@@ -1,39 +1,54 @@
-"use client";
-import React, { forwardRef } from "react";
-import clsx from "clsx";
-import AnimatedLogo from "./AnimatedLogo";
+'use client';
+import { useState, useEffect } from 'react';
+import clsx from 'clsx';
 
-interface HeaderProps extends React.HTMLAttributes<HTMLElement> {
-  className?: string;
-}
+const navItems = [
+  { name: 'BIM Studio', id: 'bim-studio' },
+  { name: 'Project Hub', id: 'project-hub' },
+  { name: '360 Tour Builder', id: 'tour-builder' },
+  { name: 'Content Creation', id: 'content-creation' },
+  { name: 'Geospatial', id: 'geospatial' },
+  { name: 'Reports & Analytics', id: 'reports' },
+  { name: 'VR/AR Lab', id: 'vr-ar-lab' },
+];
 
-const Header = forwardRef<HTMLElement, HeaderProps>(function Header(
-  { className, ...props },
-  ref
-) {
+export default function Header() {
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
+        });
+      },
+      { rootMargin: '-50% 0px -50% 0px' }
+    );
+    navItems.forEach(item => {
+      const el = document.getElementById(item.id);
+      if (el) observer.observe(el);
+    });
+    const hero = document.getElementById('hero');
+    if (hero) observer.observe(hero);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <header
-      ref={ref}
-      className={clsx(
-        "fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md shadow-md transition-all duration-300 animate-fade-in",
-        className
-      )}
-      {...props}
-    >
-      <div className="flex items-center gap-3">
-        <AnimatedLogo className="h-10 w-10" />
-        <span className="font-extrabold text-xl text-brand-blue tracking-tight select-none">
-          Slate360
-        </span>
-      </div>
-      <nav className="hidden md:flex gap-6 text-brand-gray font-medium">
-        <a href="#about" className="hover:text-brand-blue transition-colors">About</a>
-        <a href="#features" className="hover:text-brand-blue transition-colors">Features</a>
-        <a href="#demos" className="hover:text-brand-blue transition-colors">Demos</a>
-        <a href="#contact" className="hover:text-brand-blue transition-colors">Contact</a>
+    <header className="fixed top-0 left-0 right-0 z-50 flex justify-end items-center p-4 animate-fly-in">
+      <nav className="flex items-center space-x-4 md:space-x-6 bg-black/20 backdrop-blur-md p-3 rounded-lg">
+        {navItems.map((item) => (
+          <a
+            key={item.id}
+            href={`#${item.id}`}
+            className={clsx(
+              'px-3 py-1 text-sm md:text-base rounded-md transition-all duration-300',
+              activeSection === item.id ? 'bg-[hsl(var(--color-brand-blue))] text-white' : 'text-gray-300 hover:text-white'
+            )}
+          >
+            {item.name}
+          </a>
+        ))}
       </nav>
     </header>
   );
-});
-
-export default Header;
+}

@@ -1,27 +1,25 @@
-import React from "react";
-import clsx from "clsx";
+import clsx from 'clsx';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary";
+type ButtonProps = {
+  children: React.ReactNode;
   className?: string;
-}
+  as?: 'a' | 'button';
+  href?: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+} & React.ButtonHTMLAttributes<HTMLButtonElement> & React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = "primary", className, children, ...props }, ref) => (
-    <button
-      ref={ref}
-      className={clsx(
-        "px-5 py-2 rounded-lg font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2",
-        variant === "primary"
-          ? "bg-brand-blue text-white hover:bg-brand-copper focus:ring-brand-blue"
-          : "bg-white text-brand-blue border border-brand-blue hover:bg-brand-blue hover:text-white focus:ring-brand-copper",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  )
-);
-Button.displayName = "Button";
-export default Button;
+export default function Button({ children, className, as = 'button', href, size = 'md', ...props }: ButtonProps) {
+  const base = 'inline-flex items-center justify-center font-semibold rounded-lg transition-colors hover-scale focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue';
+  const sizes = {
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-6 py-3 text-base',
+    lg: 'px-8 py-4 text-lg',
+    xl: 'px-10 py-5 text-xl',
+  };
+  const color = 'bg-[hsl(var(--color-brand-blue))] text-white hover:bg-[hsl(var(--color-brand-copper))]';
+  const classes = clsx(base, color, sizes[size], className);
+  if (as === 'a' && href) {
+    return <a href={href} className={classes} {...props}>{children}</a>;
+  }
+  return <button className={classes} {...props}>{children}</button>;
+}

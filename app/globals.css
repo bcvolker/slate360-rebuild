@@ -29,67 +29,110 @@
   animation: logo-pulse 2s infinite;
 }
 .fade-slide-in {
-  opacity: 1 !important;
-  transform: translateY(0) !important;
-  animation: fade-slide-in 0.7s cubic-bezier(0.4,0,0.2,1) both;
-}
-/* app/globals.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
 
-@layer base {
-  :root {
-    /* Brand Tokens */
-    --color-brand-blue: #4B9CD3;
-    --color-brand-copper: #B87333;
-    --color-brand-gray: #2F2F2F;
-    /* Surface & Accent Tokens */
-    --color-surface-light: #F9FAFB;
-    --color-surface-dark: #f0f2f5; /* Soft light gray for alternation */
-  }
-  html {
-    scroll-behavior: smooth;
-    overflow-x: hidden;
-  }
-  body {
-    background-color: var(--color-surface-light);
-    color: var(--color-brand-gray);
-    overflow-x: hidden;
-  }
-}
-
-@layer utilities {
-  .snap-container {
-    height: 100vh;
-    overflow-y: auto;
-    scroll-snap-type: y mandatory;
-    -webkit-overflow-scrolling: touch;
-  }
-  .tile-section {
-    min-height: 100vh;
-    height: 100vh;
-    scroll-snap-align: start;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 7rem 1rem; /* Adjusted for header/logo space */
-    @media (min-width: 768px) {
-      padding: 7rem 2rem;
+  @layer base {
+    :root {
+      --color-brand-blue: 210 80% 50%;
+      --color-brand-copper: 25 80% 45%;
+      --color-brand-gray: 0 0% 18%;
+      --color-surface-light: 210 20% 98%;
+      --color-surface-dark: 0 0% 95%;
+    }
+    html {
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+    }
+    body {
+      background-color: hsl(var(--color-surface-light));
+      color: hsl(var(--color-brand-gray));
+      overflow-x: hidden;
     }
   }
-  .tile-surface-light { background-color: white; color: var(--color-brand-gray); }
-  .tile-surface-dark { background-color: var(--color-surface-dark); color: var(--color-brand-gray); }
+
+  @layer utilities {
+    .snap-container {
+      height: 100vh;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tile-section {
+      min-height: 100vh;
+      height: 100vh;
+      scroll-snap-align: start;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7rem 1rem;
+    }
+    @media (min-width: 768px) {
+      .tile-section {
+        padding: 7rem 2rem;
+      }
+    }
+    .tile-surface-light { background-color: white; color: hsl(var(--color-brand-gray)); }
+    .tile-surface-dark { background-color: hsl(var(--color-surface-dark)); color: hsl(var(--color-brand-gray)); }
   
-  .responsive-title {
-    font-size: clamp(2.5rem, 5vw + 1rem, 4rem);
-    font-weight: 800;
-    line-height: 1.1;
-    color: var(--color-brand-blue);
-  }
-  .responsive-subtitle {
-    font-size: clamp(1.125rem, 2vw + 0.5rem, 1.5rem);
-    margin-top: 0.5rem;
-    color: var(--color-brand-copper);
-  }
+    .responsive-title {
+      font-size: clamp(2.5rem, 5vw + 1rem, 4rem);
+      font-weight: 800;
+      line-height: 1.1;
+      color: hsl(var(--color-brand-blue));
+    }
+    .responsive-subtitle {
+      font-size: clamp(1.125rem, 2vw + 0.5rem, 1.5rem);
+      margin-top: 0.5rem;
+      color: hsl(var(--color-brand-copper));
+    }
+
+    /* CSS Animations for Fly-In */
+    .animate-fly-in {
+      animation: flyIn 0.6s ease-out forwards;
+    }
+    @keyframes flyIn {
+      from {
+        opacity: 0;
+        transform: translateY(-100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-slide-left {
+      animation: slideLeft 0.6s ease-out forwards;
+    }
+    @keyframes slideLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    .animate-slide-right {
+      animation: slideRight 0.6s ease-out forwards;
+    }
+    @keyframes slideRight {
+      from {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    .hover-scale {
+      transition: transform 0.3s ease;
+    }
+    .hover-scale:hover {
+      transform: scale(1.05);
+    }
+}
 }
