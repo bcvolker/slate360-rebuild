@@ -1,35 +1,86 @@
 
+"use client";
+import React, { useState, useEffect, useRef } from 'react';
+import clsx from 'clsx';
 import Logo from '@/components/ui/Logo';
-import ClientHeader from '@/components/ui/ClientHeader';
+import Header from '@/components/ui/Header';
 import Tile from '@/components/ui/Tile';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import SectionHeader from '@/components/ui/SectionHeader';
 import MediaWrapper from '@/components/ui/MediaWrapper';
+import Footer from '@/components/ui/Footer';
 
-export default function Home() {
+const tileData = [
+  { id: 'bim-studio', title: 'BIM Studio', dark: true, reverse: true, features: ['Cloud-Native 3D Viewer', 'Real-Time Collaboration', 'Version Control & Annotations', 'Automated Clash Detection'], viewer: { type: 'iframe', src: 'https://example-3d-viewer.com', alt: 'BIM Studio Viewer' } },
+  { id: 'project-hub', title: 'Project Hub', dark: false, reverse: false, features: ['Centralized Document Management', 'RFI & Submittal Tracking', 'Daily Logs & Reporting', 'Team & Task Coordination'], viewer: { type: 'custom', alt: 'Project Hub Viewer' } },
+  { id: 'tour-builder', title: '360 Tour Builder', dark: true, reverse: true, features: ['Intuitive Drag-and-Drop Interface', 'Embed Hotspots & Rich Media', 'VR/AR Headset Compatibility', 'Shareable Public & Private Links'], viewer: { type: 'video', src: '/tour-demo.mp4', alt: '360 Tour Demo' } },
+  { id: 'content-creation', title: 'Content Creation', dark: false, reverse: false, features: ['AI-Powered Video Summaries', 'Automated Timeline Generation', 'Drone & Site Photo Management', 'Branded Content Exports'], viewer: { type: 'image', src: '/content-screenshot.png', alt: 'Content Screenshot' } },
+  { id: 'geospatial', title: 'Geospatial & Robotics', dark: true, reverse: true, features: ['Live Cesium 3D Globe', 'Drone & Robot Data Integration', 'LiDAR Point Cloud Visualization', 'GNSS & Mission Planning'], viewer: { type: 'custom', alt: 'Geospatial Viewer' } },
+  { id: 'reports', title: 'Reports & Analytics', dark: false, reverse: false, features: ['Customizable KPI Dashboards', 'Automated PDF/CSV Exports', 'Predictive Cost & Schedule Analysis', 'Stakeholder-Ready Visualizations'], viewer: { type: 'image', src: '/analytics-chart.png', alt: 'Analytics Chart' } },
+  { id: 'vr-ar-lab', title: 'VR/AR Lab', dark: true, reverse: true, features: ['Immersive Design Review', 'On-Site AR Model Overlay', 'Virtual Safety Training Scenarios', 'Multi-User VR Collaboration'], viewer: { type: 'video', src: '/vr-demo.mp4', alt: 'VR/AR Demo' } },
+];
+
+export default function Page() {
+  const [activeSection, setActiveSection] = useState<string | null>('hero');
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
+        });
+      },
+      { rootMargin: '-50% 0px -50% 0px' }
+    );
+    Object.values(sectionRefs.current).forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <main className="min-h-screen w-full bg-gradient-to-br from-slate-100 to-slate-300 dark:from-black dark:to-slate-900 text-gray-900 dark:text-white">
-  <ClientHeader activeSection={null} />
-      <section className="flex flex-col items-center justify-center py-16 px-4 md:px-0">
-        <Logo className="w-32 h-32 mb-6" />
-        <h1 className="text-4xl md:text-6xl font-extrabold mb-4 text-center">Slate360</h1>
-        <p className="text-lg md:text-2xl text-center max-w-2xl mb-8">A modern, beautiful, and interactive homepage built with Next.js 15, Tailwind CSS v4, and CSS animations.</p>
-        <Button as="a" href="#tiles" size="xl" className="mt-2">Explore the Tiles</Button>
-      </section>
-      <section id="tiles" className="snap-y snap-mandatory h-[90vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 md:px-12 py-12">
-        <Tile title="Dashboard" description="Your personalized overview and quick stats." icon={<span>📊</span>} />
-        <Tile title="Projects" description="Manage and track your projects efficiently." icon={<span>📁</span>} />
-        <Tile title="Calendar" description="Stay on top of your schedule and events." icon={<span>📅</span>} />
-        <Tile title="Team" description="Collaborate with your team in real time." icon={<span>👥</span>} />
-        <Tile title="Media" description="View and share media files easily." icon={<span>🎬</span>} />
-        <Tile title="Settings" description="Customize your experience and preferences." icon={<span>⚙️</span>} />
-        <Tile title="Support" description="Get help and find answers quickly." icon={<span>💬</span>} />
-      </section>
-      <footer className="w-full py-8 flex flex-col items-center justify-center border-t border-gray-200 dark:border-gray-800 mt-12">
-        <Logo className="w-10 h-10 mb-2" />
-        <p className="text-sm text-gray-500 dark:text-gray-400">&copy; {new Date().getFullYear()} Slate360. All rights reserved.</p>
-      </footer>
-    </main>
+    <>
+      <Logo />
+      <Header activeSection={activeSection} />
+      <main className="snap-container">
+        <section id="hero" className="tile-section tile-surface-light" ref={(el) => { sectionRefs.current['hero'] = el; }}>
+          <div className="text-center flex flex-col items-center">
+            <SectionHeader title="Slate360" subtitle="From Design to Reality" align="center" />
+            <p className="max-w-3xl mb-8 text-lg md:text-xl">The all-in-one platform for AEC professionals. Integrate 3D models, geospatial data, and advanced reporting.</p>
+            <Button>Request a Demo</Button>
+            <MediaWrapper type="iframe" src="https://your-main-3d-viewer.com" alt="Slate360 Main Viewer" />
+          </div>
+        </section>
+
+        {tileData.map((tile, index) => (
+          <Tile
+            key={tile.id}
+            dark={tile.dark}
+            reverse={tile.reverse}
+            ref={(el) => { sectionRefs.current[tile.id] = el; }}
+          >
+            <div className={clsx(tile.reverse && 'md:order-last')}>
+              <SectionHeader title={tile.title} />
+              <Card className="mt-4 p-4">
+                <ul className="space-y-2 text-left">
+                  {tile.features.map(feature => <li key={feature} className="flex items-center"><span className="text-[var(--color-brand-blue)] mr-2">✓</span>{feature}</li>)}
+                </ul>
+              </Card>
+              <Button className="mt-6">Explore {tile.title}</Button>
+            </div>
+            <div className="w-full flex items-center justify-center">
+              <MediaWrapper
+                type={tile.viewer.type as 'iframe' | 'video' | 'image' | 'custom'}
+                src={tile.viewer.src}
+                alt={tile.viewer.alt}
+              />
+            </div>
+          </Tile>
+        ))}
+      </main>
+      <Footer />
+    </>
   );
 }
