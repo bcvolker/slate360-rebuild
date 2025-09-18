@@ -1,5 +1,6 @@
+
 import Logo from '@/components/ui/Logo';
-import Header from '@/components/ui/Header';
+import ClientHeader from '@/components/ui/ClientHeader';
 import Tile from '@/components/ui/Tile';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -9,7 +10,7 @@ import MediaWrapper from '@/components/ui/MediaWrapper';
 export default function Home() {
   return (
     <main className="min-h-screen w-full bg-gradient-to-br from-slate-100 to-slate-300 dark:from-black dark:to-slate-900 text-gray-900 dark:text-white">
-      <Header />
+  <ClientHeader activeSection={null} />
       <section className="flex flex-col items-center justify-center py-16 px-4 md:px-0">
         <Logo className="w-32 h-32 mb-6" />
         <h1 className="text-4xl md:text-6xl font-extrabold mb-4 text-center">Slate360</h1>
@@ -32,4 +33,3 @@ export default function Home() {
     </main>
   );
 }
-// Removed duplicate code after Home component

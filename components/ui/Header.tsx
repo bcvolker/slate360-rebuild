@@ -1,5 +1,7 @@
+
 'use client';
-import { useState, useEffect } from 'react';
+import React from 'react';
+import { motion } from 'framer-motion';
 import clsx from 'clsx';
 
 const navItems = [
@@ -12,29 +14,16 @@ const navItems = [
   { name: 'VR/AR Lab', id: 'vr-ar-lab' },
 ];
 
-export default function Header() {
-  const [activeSection, setActiveSection] = useState<string | null>(null);
+type HeaderProps = { activeSection: string | null };
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveSection(entry.target.id);
-        });
-      },
-      { rootMargin: '-50% 0px -50% 0px' }
-    );
-    navItems.forEach(item => {
-      const el = document.getElementById(item.id);
-      if (el) observer.observe(el);
-    });
-    const hero = document.getElementById('hero');
-    if (hero) observer.observe(hero);
-    return () => observer.disconnect();
-  }, []);
-
+export default function Header({ activeSection }: HeaderProps) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex justify-end items-center p-4 animate-fly-in">
+    <motion.header
+      className="fixed top-0 left-0 right-0 z-50 flex justify-end items-center p-4"
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+    >
       <nav className="flex items-center space-x-4 md:space-x-6 bg-black/20 backdrop-blur-md p-3 rounded-lg">
         {navItems.map((item) => (
           <a
@@ -42,13 +31,13 @@ export default function Header() {
             href={`#${item.id}`}
             className={clsx(
               'px-3 py-1 text-sm md:text-base rounded-md transition-all duration-300',
-              activeSection === item.id ? 'bg-[hsl(var(--color-brand-blue))] text-white' : 'text-gray-300 hover:text-white'
+              activeSection === item.id ? 'bg-[var(--color-brand-blue)] text-white' : 'text-gray-300 hover:text-white'
             )}
           >
             {item.name}
           </a>
         ))}
       </nav>
-    </header>
+    </motion.header>
   );
 }

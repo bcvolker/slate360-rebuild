@@ -1,11 +1,10 @@
-import React from "react";
 
-const Footer: React.FC = () => (
-  <footer className="w-full py-6 text-center text-sm text-brand-gray bg-white/80 backdrop-blur-md shadow-inner mt-auto">
-    <span>
-      &copy; {new Date().getFullYear()} Slate360. All rights reserved.
-    </span>
-  </footer>
-);
+import React from 'react';
 
-export default Footer;
+export default function Footer() {
+  return (
+    <footer className="fixed bottom-0 z-10 w-full bg-black/20 p-4 text-center text-xs text-gray-400">
+      <p>&copy; {new Date().getFullYear()} Slate360. All Rights Reserved. | <a href="#privacy" className="hover:text-white">Privacy Policy</a></p>
+    </footer>
+  );
+}

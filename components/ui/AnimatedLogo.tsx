@@ -1,24 +1,17 @@
 
 'use client';
+import React from 'react';
+import { motion } from 'framer-motion';
 
-import * as React from "react";
-// Framer Motion removed; using CSS animations
-import clsx from "clsx";
-
-interface AnimatedLogoProps {
-  className?: string;
+export default function AnimatedLogo() {
+  return (
+    <motion.div
+      className="fixed top-4 left-4 z-50 text-2xl font-bold text-white"
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
+    >
+      <span className="text-[var(--color-brand-blue)]">Slate</span>360
+    </motion.div>
+  );
 }
-
-const AnimatedLogo = React.forwardRef<HTMLImageElement, AnimatedLogoProps>(
-  ({ className }, ref) => (
-    <img
-      ref={ref}
-      src="/logo.png"
-      alt="Slate360 Logo"
-      className={clsx("h-8 w-auto", className)}
-      draggable={false}
-    />
-  )
-);
-AnimatedLogo.displayName = "AnimatedLogo";
-export default AnimatedLogo;

@@ -1,7 +1,10 @@
+
 "use client";
 import React from "react";
 import Header from "./Header";
 
-export default function ClientHeader() {
-  return <Header />;
+type HeaderProps = { activeSection: string | null };
+
+export default function ClientHeader({ activeSection }: HeaderProps) {
+  return <Header activeSection={activeSection} />;
 }
