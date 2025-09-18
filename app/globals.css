@@ -50,10 +50,12 @@
   }
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
   body {
     background-color: var(--color-surface-light);
     color: var(--color-brand-gray);
+    overflow-x: hidden;
   }
 }
 

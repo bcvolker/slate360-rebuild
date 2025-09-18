@@ -9,32 +9,15 @@ interface AnimatedLogoProps {
   className?: string;
 }
 
-const AnimatedLogo = React.forwardRef<SVGSVGElement, AnimatedLogoProps>(
+const AnimatedLogo = React.forwardRef<HTMLImageElement, AnimatedLogoProps>(
   ({ className }, ref) => (
-    <svg
+    <img
       ref={ref}
-      className={clsx("inline-block animate-logo-spin", className)}
-      viewBox="0 0 48 48"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle cx="24" cy="24" r="22" stroke="#4B9CD3" strokeWidth="4" fill="#F9FAFB" />
-      <path
-        className="animate-logo-draw"
-        d="M24 8a16 16 0 1 1-11.31 27.31"
-        stroke="#B87333"
-        strokeWidth="4"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <circle
-        className="animate-logo-pulse"
-        cx="24"
-        cy="24"
-        r="6"
-        fill="#4B9CD3"
-      />
-    </svg>
+      src="/logo.png"
+      alt="Slate360 Logo"
+      className={clsx("h-8 w-auto", className)}
+      draggable={false}
+    />
   )
 );
 AnimatedLogo.displayName = "AnimatedLogo";
