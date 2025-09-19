@@ -1,3 +1,8 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @keyframes logo-spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -29,9 +34,6 @@
   animation: logo-pulse 2s infinite;
 }
 .fade-slide-in {
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @layer base {
   :root {
