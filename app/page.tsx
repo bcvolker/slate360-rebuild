@@ -1,6 +1,9 @@
 // Final, clean homepage implementation
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
+
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
 import clsx from 'clsx';
 import Tile from '../components/ui/Tile';
 import MediaWrapper from '../components/ui/MediaWrapper';
