@@ -1,5 +1,4 @@
 // Final, clean homepage implementation
-'use client';
 import React, { useState, useEffect, useRef } from 'react';
 
 export const revalidate = 0;
