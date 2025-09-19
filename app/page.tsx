@@ -41,7 +41,7 @@ export default function Page() {
     <>
 
       <Header activeSection={activeSection} />
-      <main className="snap-container">
+  <main className="h-screen overflow-y-scroll snap-y snap-mandatory">
         {/* Hero Tile - larger viewer, split layout */}
         <Tile id="hero" ref={el => { sectionRefs.current['hero'] = el; }} className="bg-white">
           {/* Left: Large viewer */}
