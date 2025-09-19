@@ -21,7 +21,7 @@ const Tile = forwardRef<HTMLElement, TileProps>(({ id, children, dark = false, r
       )}
     >
       <motion.div
-        className="max-w-7xl w-full grid gap-8 md:gap-12 grid-cols-1 md:grid-cols-2 items-center bg-blue-200 overflow-visible"
+        className="max-w-7xl w-full flex flex-col md:flex-row gap-8 md:gap-12 items-stretch bg-blue-200 overflow-visible"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
