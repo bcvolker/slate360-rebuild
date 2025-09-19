@@ -14,11 +14,11 @@ module.exports = {module.exports = {
 
     extend: {};
       colors: {
-        'brand-blue': 'var(--color-brand-blue)',
-        'brand-copper': 'var(--color-brand-copper)',
-        'brand-gray': 'var(--color-brand-gray)',
-        'surface-light': 'var(--color-surface-light)',
-        'surface-dark': 'var(--color-surface-dark)',
+        'brand-blue': '#4B9CD3',
+        'brand-copper': '#B87333',
+        'brand-gray': '#2F2F2F',
+        'surface-light': '#FFFFFF',
+        'surface-dark': '#f0f2f5',
       },
     },
   },

@@ -1,8 +1,10 @@
 'use client';
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import Link from 'next/link';
+import Logo from './Logo';
 
 const tileNavItems = [
   { name: 'BIM Studio', id: 'bim-studio' },
@@ -14,11 +16,14 @@ const tileNavItems = [
 export default function Header({ activeSection }: { activeSection: string | null; }) {
   return (
     <motion.header
-      className="fixed top-4 right-4 z-50 flex items-center space-x-4"
+      className="fixed top-4 right-4 z-50 flex items-center space-x-6"
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
     >
+      <Link href="/" className="flex items-center">
+        <Logo className="w-28 h-auto" />
+      </Link>
       <nav className="hidden lg:flex items-center space-x-2 bg-white/50 backdrop-blur-md p-2 rounded-lg border border-gray-200 shadow-sm">
         {tileNavItems.map((item) => (
           <a key={item.id} href={`#${item.id}`} className={clsx('px-3 py-1 text-sm rounded-md transition-all duration-300 font-medium', activeSection === item.id ? 'bg-brand-blue text-white' : 'text-brand-gray hover:bg-gray-100')}>

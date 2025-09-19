@@ -1,4 +1,3 @@
-
 'use client';
 import React, { forwardRef } from 'react';
 import clsx from 'clsx';
@@ -35,4 +34,3 @@ const Tile = forwardRef<HTMLElement, TileProps>(({ id, children, dark = false, r
 });
 Tile.displayName = 'Tile';
 export default Tile;
-
