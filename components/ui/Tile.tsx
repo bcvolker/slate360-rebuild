@@ -1,48 +1,47 @@
 
 "use client";
+import React, { forwardRef } from 'react';
 import clsx from 'clsx';
-
-
-import React from 'react';
+import { motion } from 'framer-motion';
 
 type TileProps = {
-  title?: string;
-  description?: string;
-  icon?: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
-  children?: React.ReactNode;
+  id: string;
+  textContent: React.ReactNode;
+  mediaContent: React.ReactNode;
   dark?: boolean;
   reverse?: boolean;
+  className?: string;
 };
 
-const Tile = React.forwardRef<HTMLDivElement, TileProps>(
-  ({ title, description, icon, className, onClick, children, dark, reverse }, ref) => {
+const Tile = forwardRef<HTMLElement, TileProps>(
+  ({ id, textContent, mediaContent, dark = false, reverse = false, className }, ref) => {
+    const animationVariants = {
+      hidden: { opacity: 0, x: reverse ? 50 : -50 },
+      visible: { opacity: 1, x: 0, transition: { duration: 0.6 } },
+    };
     return (
-      <div
+      <section
         ref={ref}
-        className={clsx(
-          'rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center transition-transform hover:scale-105 cursor-pointer',
-          dark ? 'bg-black/40 text-white' : 'bg-white/80 text-black',
-          reverse ? 'flex-row-reverse' : '',
-          className
-        )}
-        onClick={onClick}
-        tabIndex={0}
-        role="button"
-        onKeyPress={e => {
-          if (e.key === 'Enter' && onClick) onClick();
-        }}
+        id={id}
+        className={clsx('tile-section', dark ? 'tile-surface-dark' : 'tile-surface-light', className)}
       >
-        {icon && <div className="mb-4 text-4xl">{icon}</div>}
-        {title && <h3 className="text-lg font-bold mb-2 text-center">{title}</h3>}
-        {description && <p className="text-sm text-center text-gray-600 dark:text-gray-300 mb-2">{description}</p>}
-        {children}
-      </div>
+        <motion.div
+          className={clsx(
+            'max-w-7xl w-full grid gap-8 md:gap-12 grid-cols-1 md:grid-cols-2 items-center',
+            reverse && 'md:flex-row-reverse'
+          )}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={animationVariants}
+        >
+          <div>{textContent}</div>
+          <div>{mediaContent}</div>
+        </motion.div>
+      </section>
     );
   }
 );
-
 Tile.displayName = 'Tile';
 export default Tile;
 
