@@ -8,24 +8,30 @@
 
 @layer base {
   :root {
-    --color-brand-blue: #4B9CD3;
+    --color-brand-blue: #0A74DA; /* A stronger, more professional blue */
     --color-brand-copper: #B87333;
-    --color-brand-gray: #2F2F2F;
+    --color-brand-gray: #1F2937; /* A deep slate gray */
     --color-surface-light: #ffffff;
-    --color-surface-dark: #f0f2f5;
+    --color-surface-dark: #f3f4f6; /* A very light, clean grey */
   }
-  html { scroll-behavior: smooth; }
-  body { background-color: var(--color-surface-light); color: var(--color-brand-gray); }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--color-surface-light);
+    color: var(--color-brand-gray);
+    font-family: Inter, system-ui, sans-serif;
+  }
 }
 
 @layer utilities {
   .snap-container { height: 100vh; overflow-y: auto; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; }
-  .tile-section { min-height: 100vh; height: 100vh; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; padding: 5rem 1rem; position: relative; @media (min-width: 768px) { padding: 6rem 2rem; } }
+  .tile-section { min-height: 100vh; height: 100vh; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; padding: 5rem 1.5rem; position: relative; @media (min-width: 768px) { padding: 6rem 2rem; } }
   .tile-surface-light { background-color: var(--color-surface-light); color: var(--color-brand-gray); }
   .tile-surface-dark { background-color: var(--color-surface-dark); color: var(--color-brand-gray); }
-  .responsive-title { font-size: clamp(2.5rem, 5vw + 1rem, 4rem); font-weight: 800; line-height: 1.1; color: var(--color-brand-blue); }
-  .responsive-subtitle { font-size: clamp(1.125rem, 2vw + 0.5rem, 1.5rem); margin-top: 0.5rem; color: var(--color-brand-copper); }
-  .tile-last { @media (min-width: 768px) { min-height: calc(100vh - 80px); } }
+  .responsive-title { font-size: clamp(2.5rem, 5vw + 1rem, 4.5rem); font-weight: 800; line-height: 1.1; color: var(--color-brand-blue); }
+  .responsive-subtitle { font-size: clamp(1.125rem, 2vw + 0.5rem, 1.5rem); margin-top: 0.75rem; color: var(--color-brand-copper); }
+  .tile-last { @media (min-width: 768px) { min-height: calc(100vh - 90px); } }
 }
   .tile-section {
     min-height: 100vh;
