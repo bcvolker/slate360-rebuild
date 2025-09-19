@@ -46,7 +46,7 @@ export default function Page() {
         <Tile id="hero" ref={el => { sectionRefs.current['hero'] = el; }} className="bg-white">
           {/* Left: Large viewer */}
           <div className="flex flex-col items-start justify-start w-full md:w-[50%] h-full p-4 md:p-8">
-            <SectionHeader title="Slate360" subtitle="From Design to Reality" align="center" className="text-lg" />
+            <SectionHeader title="Slate360" subtitle="From Design to Reality" align="center" />
             <div className="w-full h-[70vh] md:h-[80%] flex items-start">
               <MediaWrapper type="iframe" src="https://your-main-3d-viewer.com" alt="Slate360 3D Viewer" className="w-full h-full rounded-xl shadow-lg mb-4" />
             </div>
