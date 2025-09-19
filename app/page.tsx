@@ -39,36 +39,53 @@ export default function Page() {
 
   return (
     <>
+
       <Header activeSection={activeSection} />
       <main className="snap-container">
-        <section id="hero" className="tile-section tile-surface-light" ref={el => { sectionRefs.current['hero'] = el; }}>
-          <div className="text-center flex flex-col items-center">
+        {/* Hero Tile - larger viewer, split layout */}
+        <Tile id="hero" ref={el => { sectionRefs.current['hero'] = el; }} className="bg-white">
+          {/* Left: Large viewer */}
+          <div className="flex flex-col items-center justify-start w-full h-full md:h-[32rem] md:w-[60%] p-4 md:p-8">
             <SectionHeader title="Slate360" subtitle="From Design to Reality" align="center" />
-            <p className="max-w-3xl mb-8 text-lg md:text-xl">The all-in-one platform for AEC professionals.</p>
-            <MediaWrapper type="iframe" src="https://your-main-3d-viewer.com" alt="Slate360 3D Viewer" />
+            <MediaWrapper type="iframe" src="https://your-main-3d-viewer.com" alt="Slate360 3D Viewer" className="w-full h-64 md:h-[22rem] rounded-xl shadow-lg mb-4" />
+            <p className="max-w-3xl mb-4 text-lg md:text-xl text-center">The all-in-one platform for AEC professionals.</p>
           </div>
-        </section>
+          {/* Right: Empty for now, could add hero features or branding */}
+          <div className="hidden md:block md:w-[40%]" />
+        </Tile>
 
-        {tileData.map((tile, index) => (
-          <Tile
-            key={tile.id}
-            id={tile.id}
-            dark={tile.dark}
-            reverse={tile.reverse}
-            ref={el => { sectionRefs.current[tile.id] = el; }}
-            className={clsx(index === tileData.length - 1 && "tile-last")}
-          >
-            <div className={clsx(tile.reverse && 'md:order-last')}>
-              <SectionHeader title={tile.title} />
-              <ul className="mt-4 space-y-2 text-left text-sm md:text-base">
-                {tile.features.map(feature => <li key={feature} className="flex items-center"><span className="text-brand-blue mr-2">✓</span>{feature}</li>)}
-              </ul>
-            </div>
-            <div className="w-full flex items-center justify-center relative">
-              <MediaWrapper alt={tile.title + ' media'} />
-            </div>
-          </Tile>
-        ))}
+        {/* Feature Tiles - alternate viewer/text sides, viewer at top of side */}
+        {tileData.map((tile, index) => {
+          const viewerSide = tile.reverse ? 'right' : 'left';
+          const textSide = tile.reverse ? 'left' : 'right';
+          return (
+            <Tile
+              key={tile.id}
+              id={tile.id}
+              dark={tile.dark}
+              reverse={tile.reverse}
+              ref={el => { sectionRefs.current[tile.id] = el; }}
+              className={clsx(index === tileData.length - 1 && "tile-last")}
+            >
+              {/* Viewer side */}
+              <div className={clsx(
+                'flex flex-col items-center justify-start w-full h-full md:h-[28rem] p-4 md:p-8',
+                tile.reverse ? 'md:order-last' : ''
+              )}>
+                <MediaWrapper alt={tile.title + ' media'} className="w-full h-48 md:h-64 rounded-xl shadow-lg mb-4" />
+              </div>
+              {/* Text/features side */}
+              <div className="flex flex-col justify-start w-full h-full p-4 md:p-8">
+                <SectionHeader title={tile.title} />
+                <ul className="mt-4 space-y-2 text-left text-sm md:text-base">
+                  {tile.features.map(feature => (
+                    <li key={feature} className="flex items-center"><span className="text-brand-blue mr-2">✓</span>{feature}</li>
+                  ))}
+                </ul>
+              </div>
+            </Tile>
+          );
+        })}
       </main>
       <Footer />
     </>
