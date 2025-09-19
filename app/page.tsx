@@ -45,9 +45,9 @@ export default function Page() {
         {/* Hero Tile - larger viewer, split layout */}
         <Tile id="hero" ref={el => { sectionRefs.current['hero'] = el; }} className="bg-white">
           {/* Left: Large viewer */}
-          <div className="flex flex-col items-start justify-start w-full md:w-[50%] h-full p-4 md:p-8">
+          <div className="flex flex-col w-full md:w-1/2 h-full p-4 md:p-8">
             <SectionHeader title="Slate360" subtitle="From Design to Reality" align="center" />
-            <div className="w-full h-[70vh] md:h-[80%] flex items-start">
+            <div className="w-full h-[60vh] bg-red-100 flex items-start justify-center">
               <MediaWrapper type="iframe" src="https://your-main-3d-viewer.com" alt="Slate360 3D Viewer" className="w-full h-full rounded-xl shadow-lg mb-4" />
             </div>
             <p className="max-w-3xl mt-2 text-lg md:text-xl text-center">The all-in-one platform for AEC professionals.</p>
@@ -71,10 +71,10 @@ export default function Page() {
             >
               {/* Viewer side */}
               <div className={clsx(
-                'flex flex-col items-start justify-start w-full md:w-[50%] h-full p-4 md:p-8',
+                'flex flex-col w-full md:w-1/2 h-full p-4 md:p-8',
                 tile.reverse ? 'md:order-last' : ''
               )}>
-                <div className="w-full h-[60vh] md:h-[60%] flex items-start">
+                <div className="w-full h-[60vh] bg-red-100 flex items-start justify-center">
                   <MediaWrapper alt={tile.title + ' media'} className="w-full h-full rounded-xl shadow-lg mb-4" />
                 </div>
               </div>
