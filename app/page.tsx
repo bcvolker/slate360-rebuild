@@ -40,7 +40,8 @@ export default function Page() {
   return (
     <>
 
-      <Header activeSection={activeSection} />
+  <Header activeSection={activeSection} />
+  <div className="bg-green-400 w-40 h-40 text-white flex items-center justify-center z-50">TEST</div>
   <main className="h-screen overflow-y-scroll snap-y snap-mandatory">
         {/* Hero Tile - larger viewer, split layout */}
         <Tile id="hero" ref={el => { sectionRefs.current['hero'] = el; }} className="bg-white">
