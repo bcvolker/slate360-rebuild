@@ -46,12 +46,16 @@ export default function Page() {
         {/* Hero Tile - larger viewer, split layout */}
         <Tile id="hero" ref={el => { sectionRefs.current['hero'] = el; }} className="bg-white">
           {/* Left: Large viewer */}
-          <div className="flex flex-col w-full md:w-1/2 h-full p-4 md:p-8">
+          <div className="flex flex-col w-full md:w-1/2 h-full p-4 md:p-8 flex-grow">
             <SectionHeader title="Slate360" subtitle="From Design to Reality" align="center" />
-            <div className="w-[120%] h-[48vh] bg-red-100 flex items-start justify-center -mt-8 relative overflow-visible">
-              <MediaWrapper type="iframe" src="https://your-main-3d-viewer.com" alt="Slate360 3D Viewer" className="w-full h-full rounded-xl shadow-lg mb-4" />
+            <div className="flex flex-col flex-grow" style={{height: '100%'}}>
+              <div className="w-full flex-grow-[2] flex items-start justify-center" style={{height: '65%'}}>
+                <MediaWrapper type="iframe" src="https://your-main-3d-viewer.com" alt="Slate360 3D Viewer" className="w-full h-full rounded-xl shadow-lg mb-4" />
+              </div>
+              <div className="flex-grow flex items-end">
+                <p className="max-w-3xl mt-2 text-lg md:text-xl text-center">The all-in-one platform for AEC professionals.</p>
+              </div>
             </div>
-            <p className="max-w-3xl mt-2 text-lg md:text-xl text-center">The all-in-one platform for AEC professionals.</p>
           </div>
           {/* Right: Empty for now, could add hero features or branding */}
           <div className="hidden md:block md:w-[40%]" />
@@ -72,11 +76,16 @@ export default function Page() {
             >
               {/* Viewer side */}
               <div className={clsx(
-                'flex flex-col w-full md:w-1/2 h-full p-4 md:p-8',
+                'flex flex-col w-full md:w-1/2 h-full p-4 md:p-8 flex-grow',
                 tile.reverse ? 'md:order-last' : ''
               )}>
-                <div className="w-[120%] h-[48vh] bg-red-100 flex items-start justify-center -mt-8 relative overflow-visible">
-                  <MediaWrapper alt={tile.title + ' media'} className="w-full h-full rounded-xl shadow-lg mb-4" />
+                <div className="flex flex-col flex-grow" style={{height: '100%'}}>
+                  <div className="w-full flex-grow-[2] flex items-start justify-center" style={{height: '65%'}}>
+                    <MediaWrapper alt={tile.title + ' media'} className="w-full h-full rounded-xl shadow-lg mb-4" />
+                  </div>
+                  <div className="flex-grow flex items-end">
+                    {/* Features or messaging can go here */}
+                  </div>
                 </div>
               </div>
               {/* Text/features side */}
