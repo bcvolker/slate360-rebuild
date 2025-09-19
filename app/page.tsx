@@ -1,17 +1,5 @@
-
-"use client";
-import React, { useState, useEffect, useRef } from 'react';
-import clsx from 'clsx';
-import Logo from '@/components/ui/Logo';
-import Header from '@/components/ui/Header';
-import Tile from '@/components/ui/Tile';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import SectionHeader from '@/components/ui/SectionHeader';
-import MediaWrapper from '@/components/ui/MediaWrapper';
-import Footer from '@/components/ui/Footer';
+// Overwrite with corrected code
 'use client';
-
 import React, { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import Tile from '../components/ui/Tile';
@@ -71,7 +59,7 @@ export default function Page() {
           <div className="text-center flex flex-col items-center">
             <SectionHeader title="Slate360" subtitle="From Design to Reality" align="center" />
             <p className="max-w-3xl mb-8 text-lg md:text-xl">The all-in-one platform for AEC professionals.</p>
-            <MediaWrapper type="iframe" src="https://your-main-3d-viewer.com" />
+            <MediaWrapper type="iframe" src="https://your-main-3d-viewer.com" alt="Slate360 3D Viewer" />
           </div>
         </section>
 
@@ -84,53 +72,27 @@ export default function Page() {
             ref={(el) => {
               if (el) sectionRefs.current[tile.id] = el;
             }}
-            className={clsx(index === tileData.length - 1 && "tile-last")}
-          >
-            <>
-              <div>
+            className={clsx(index === tileData.length - 1 && 'tile-last')}
+            textContent={(
+              <>
                 <SectionHeader title={tile.title} />
                 <ul className="mt-4 space-y-2 text-left text-sm md:text-base">
-                  {tile.features.map(feature => (
+                  {tile.features.map((feature) => (
                     <li key={feature} className="flex items-center">
-                      <span className="text-brand-blue mr-2">✓</span>{feature}
+                      <span className="text-brand-blue mr-2">✓</span>
+                      {feature}
                     </li>
                   ))}
                 </ul>
-              </div>
-              <div>
-                <MediaWrapper type={tile.viewer.type} src={tile.viewer.src} />
-              </div>
-            </>
-          </Tile>
+              </>
+            )}
+            mediaContent={(
+              <MediaWrapper type={tile.viewer.type} src={tile.viewer.src} alt={tile.title + ' media'} />
+            )}
+          />
         ))}
       </main>
       <Footer />
     </>
   );
 }
-                key={tile.id}
-                id={tile.id}
-                dark={tile.dark}
-                reverse={tile.reverse}
-                ref={(el) => {
-                  if (el) sectionRefs.current[tile.id] = el;
-                }}
-                className={clsx(index === tileData.length - 1 && "tile-last")}
-                textContent={
-                  <>
-                    <SectionHeader title={tile.title} />
-                    <ul className="mt-4 space-y-2 text-left text-sm md:text-base">
-                      {tile.features.map(feature => <li key={feature} className="flex items-center"><span className="text-brand-blue mr-2">✓</span>{feature}</li>)}
-                    </ul>
-                  </>
-                }
-                mediaContent={
-                  <MediaWrapper type={tile.viewer.type} src={tile.viewer.src} />
-                }
-              />
-            ))}
-          </main>
-          <Footer />
-        </>
-      );
-    }
