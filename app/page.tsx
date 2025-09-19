@@ -51,10 +51,8 @@ export default function Page() {
       <main className="snap-container">
         <section
           id="hero"
-          className="tile-section tile-surface-light"
-          ref={(el) => {
-            if (el) sectionRefs.current['hero'] = el;
-          }}
+          className="tile-section p-20 md:p-24 tile-surface-light"
+          ref={(el) => { if (el) sectionRefs.current['hero'] = el; }}
         >
           <div className="text-center flex flex-col items-center">
             <SectionHeader title="Slate360" subtitle="From Design to Reality" align="center" />
@@ -69,10 +67,8 @@ export default function Page() {
             id={tile.id}
             dark={tile.dark}
             reverse={tile.reverse}
-            ref={(el) => {
-              if (el) sectionRefs.current[tile.id] = el;
-            }}
-            className={clsx(index === tileData.length - 1 && 'tile-last')}
+            ref={(el) => { if (el) sectionRefs.current[tile.id] = el; }}
+            className={clsx(index === tileData.length - 1 && 'md:min-h-[calc(100vh-80px)]')}
             textContent={(
               <>
                 <SectionHeader title={tile.title} />

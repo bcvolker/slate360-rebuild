@@ -23,13 +23,10 @@ const Tile = forwardRef<HTMLElement, TileProps>(
       <section
         ref={ref}
         id={id}
-        className={clsx('tile-section', dark ? 'tile-surface-dark' : 'tile-surface-light', className)}
+        className={clsx('tile-section p-20 md:p-24', dark ? 'tile-surface-dark' : 'tile-surface-light', className)}
       >
         <motion.div
-          className={clsx(
-            'max-w-7xl w-full grid gap-8 md:gap-12 grid-cols-1 md:grid-cols-2 items-center',
-            reverse && 'md:flex-row-reverse'
-          )}
+          className="max-w-7xl w-full grid gap-8 md:gap-12 grid-cols-1 md:grid-cols-2 items-center"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
