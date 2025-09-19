@@ -1,18 +1,11 @@
-/** @type {import('tailwindcss').Config} *//** @type {import('tailwindcss').Config} */
-
-module.exports = {module.exports = {
-
-  content: [  content: ['./app/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}'],
-
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",  theme: {
-
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",    extend: {},
-
-  ],  },
-
-  theme: {  plugins: [],
-
-    extend: {};
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
       colors: {
         'brand-blue': '#4B9CD3',
         'brand-copper': '#B87333',
