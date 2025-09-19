@@ -43,7 +43,7 @@ export default function PageClient() {
       <div className="bg-green-400 w-40 h-40 text-white flex items-center justify-center z-50">TEST</div>
       <main className="h-screen overflow-y-scroll snap-y snap-mandatory">
         {/* Hero Tile - larger viewer, split layout */}
-        <Tile id="hero" ref={el => { sectionRefs.current['hero'] = el; }} className="bg-white">
+  <Tile id="hero" ref={el => { sectionRefs.current['hero'] = el; }} className="bg-red-500">
           {/* Left: Large viewer */}
           <div className="flex flex-col w-full md:w-1/2 h-full p-4 md:p-8 flex-grow">
             <SectionHeader title="Slate360" subtitle="From Design to Reality" align="center" />
