@@ -47,7 +47,7 @@ export default function Page() {
           {/* Left: Large viewer */}
           <div className="flex flex-col items-center justify-start w-full h-full md:h-[32rem] md:w-[60%] p-4 md:p-8">
             <SectionHeader title="Slate360" subtitle="From Design to Reality" align="center" />
-            <MediaWrapper type="iframe" src="https://your-main-3d-viewer.com" alt="Slate360 3D Viewer" className="w-full h-64 md:h-[22rem] rounded-xl shadow-lg mb-4" />
+            <MediaWrapper type="iframe" src="https://your-main-3d-viewer.com" alt="Slate360 3D Viewer" className="w-full h-[60vh] md:h-[60%] rounded-xl shadow-lg mb-4" />
             <p className="max-w-3xl mb-4 text-lg md:text-xl text-center">The all-in-one platform for AEC professionals.</p>
           </div>
           {/* Right: Empty for now, could add hero features or branding */}
@@ -72,7 +72,7 @@ export default function Page() {
                 'flex flex-col items-center justify-start w-full h-full md:h-[28rem] p-4 md:p-8',
                 tile.reverse ? 'md:order-last' : ''
               )}>
-                <MediaWrapper alt={tile.title + ' media'} className="w-full h-48 md:h-64 rounded-xl shadow-lg mb-4" />
+                <MediaWrapper alt={tile.title + ' media'} className="w-full h-[40vh] md:h-[60%] rounded-xl shadow-lg mb-4" />
               </div>
               {/* Text/features side */}
               <div className="flex flex-col justify-start w-full h-full p-4 md:p-8">
