@@ -46,13 +46,18 @@ export default function PageClient() {
           const isDark = !tile.alt;
           let viewerStyle: React.CSSProperties = {};
           if (isDark) {
+            // Make square: width = height
+            const size = '37.5vw'; // Use viewport width for symmetry
             viewerStyle = {
-              width: '37.5%', // 50% * 0.75
-              height: '52.5vh', // 70vh * 0.75
-              maxWidth: '540px', // 720px * 0.75
+              width: size,
+              height: size,
+              maxWidth: '540px',
+              maxHeight: '540px',
             };
             if (index === 0) {
-              viewerStyle.height = 'calc((70vh - 0.75in) * 0.75)';
+              // For the first tile, use the smaller of width or height for both
+              viewerStyle.width = viewerStyle.height = 'min(37.5vw, calc((70vh - 0.75in) * 0.75), 540px)';
+              viewerStyle.maxWidth = viewerStyle.maxHeight = '540px';
             }
           }
           return (
