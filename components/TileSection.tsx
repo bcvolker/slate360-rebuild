@@ -1,9 +1,9 @@
 import MediaViewer from "./MediaViewer";
 import Link from "next/link";
 
-type Props = { id: string; title: string; subtitle?: string; description: string; features: string[]; learnHref: string; viewerOn?: "left" | "right"; alt?: boolean; hero?: boolean; viewerStyle?: React.CSSProperties; viewerLeft?: boolean };
+type Props = { id: string; title: string; subtitle?: string; description: string; features: string[]; learnHref: string; viewerOn?: "left" | "right"; alt?: boolean; hero?: boolean; viewerStyle?: React.CSSProperties; viewerAlignStyle?: React.CSSProperties; viewerLeft?: boolean };
 
-export default function TileSection({ id, title, subtitle, description, features, learnHref, viewerOn = "right", alt = false, hero = false, viewerStyle, viewerLeft = false }: Props) {
+export default function TileSection({ id, title, subtitle, description, features, learnHref, viewerOn = "right", alt = false, hero = false, viewerStyle, viewerAlignStyle = {}, viewerLeft = false }: Props) {
   // Use a single dark background for all non-alt tiles
   const bg = alt ? "tile-surface-light" : "tile-surface-dark";
   // For the first tile, move the viewer further left by adjusting grid columns
@@ -21,7 +21,7 @@ export default function TileSection({ id, title, subtitle, description, features
     >
       <div className={`mx-auto max-w-7xl w-full px-6 ${altPad} grid ${cols} gap-6${alt ? ' mt-16' : ''}`}>
         <div className="flex justify-center">
-          <MediaViewer hero={hero} style={viewerStyle} />
+          <MediaViewer hero={hero} style={{...viewerAlignStyle, ...viewerStyle}} />
         </div>
         <div className={`flex flex-col gap-4${viewerLeft ? ' ml-8' : ''}`}>
           <h2 className="text-4xl font-bold">{title}</h2>

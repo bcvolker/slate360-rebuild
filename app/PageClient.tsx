@@ -45,6 +45,7 @@ export default function PageClient() {
           // For dark tiles (alt: false), make viewer 25% smaller
           const isDark = !tile.alt;
           let viewerStyle: React.CSSProperties = {};
+          let viewerAlignStyle: React.CSSProperties = {};
           if (isDark) {
             // Make square: width = height, 25% smaller than before
             const size = '32.34vw'; // 43.125vw * 0.75
@@ -60,6 +61,12 @@ export default function PageClient() {
               viewerStyle.maxWidth = viewerStyle.maxHeight = '465.75px';
             }
           }
+          // Move viewer closer to the side, but not crammed
+          if (tile.viewerOn === 'left') {
+            viewerAlignStyle = { marginLeft: '2vw', marginRight: 'auto' };
+          } else if (tile.viewerOn === 'right') {
+            viewerAlignStyle = { marginRight: '2vw', marginLeft: 'auto' };
+          }
           return (
             <TileSection
               key={tile.id}
@@ -73,6 +80,7 @@ export default function PageClient() {
               alt={tile.alt}
               hero={tile.hero}
               viewerStyle={viewerStyle}
+              viewerAlignStyle={viewerAlignStyle}
               viewerLeft={index === 0}
             />
           );
