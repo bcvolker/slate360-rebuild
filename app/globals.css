@@ -8,9 +8,19 @@
   --brand-gray: #708090;
   --surface-light: #F9FAFB;
   --surface-dark: #1A1A1E;
+  --ink: #0f172a;
+  --ink-sub: #475569;
 }
 
 @layer utilities {
   .tile-surface-dark { background: linear-gradient(to bottom, var(--surface-dark), #2A2A2E); color: white; }
   .tile-surface-light { background: var(--surface-light); color: var(--brand-gray); }
+  .tile-surface-dark { background: linear-gradient(to bottom, var(--surface-dark), #2A2A2E); color: white; }
+  .tile-surface-light { background: var(--surface-light); color: var(--brand-gray); }
+  .tile-flex { @apply flex flex-col md:flex-row gap-6 items-start min-w-0 w-full; }
+  .tile-flex-reverse { @apply flex flex-col md:flex-row-reverse gap-6 items-start min-w-0 w-full; }
+  .viewer-side { @apply flex-shrink-0 w-full md:w-[40%] h-[60vh] flex items-start justify-center; }
+  .text-side { @apply flex-1 min-w-0 flex flex-col space-y-4 p-4 md:p-0; }
+  .hero-viewer { @apply md:w-[50%] h-[70vh]; }
+  .cta-link { @apply mt-4 text-brand-blue font-semibold hover:underline; }
 }
