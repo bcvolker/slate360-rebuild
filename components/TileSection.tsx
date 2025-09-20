@@ -16,19 +16,19 @@ export default function TileSection({ id, title, subtitle, description, features
         <div className="flex-shrink-0 w-full md:w-[40%] h-[60vh] flex items-start justify-center">
           <MediaViewer hero={hero} style={viewerStyle} alt={alt} />
         </div>
-        <div className="flex-1 min-w-0 flex flex-col space-y-4 p-4 md:p-0">
-          <h2 className="text-4xl font-bold">{title}</h2>
-          {subtitle && <h3 className="text-2xl font-semibold text-[var(--brand-copper)]">{subtitle}</h3>}
-          <p className="mt-4 text-[var(--ink-sub)] leading-relaxed">{description}</p>
+        <div className={`flex-1 min-w-0 flex flex-col space-y-4 p-4 md:p-0 ${alt ? '' : 'text-white'}`}>
+          <h2 className={`text-4xl font-bold ${alt ? 'text-[var(--ink)]' : 'text-white'}`}>{title}</h2>
+          {subtitle && <h3 className={`text-2xl font-semibold text-[var(--brand-copper)] ${alt ? '' : 'text-blue-200'}`}>{subtitle}</h3>}
+          <p className={`mt-4 leading-relaxed ${alt ? 'text-[var(--ink-sub)]' : 'text-blue-100/90'}`}>{description}</p>
           <ul className="mt-6 space-y-2">
             {features.map((f, i) => (
-              <li key={i} className="flex items-start gap-3 text-[var(--ink)]">
-                <span className="mt-[2px] text-[var(--brand-copper)]">▸</span>
+              <li key={i} className={`flex items-start gap-3 ${alt ? 'text-[var(--ink)]' : 'text-blue-50'}`}>
+                <span className={`mt-[2px] text-[var(--brand-copper)] ${alt ? '' : 'text-blue-200'}`}>▸</span>
                 <span>{f}</span>
               </li>
             ))}
           </ul>
-          <a href={learnHref} className="mt-4 text-[var(--brand-blue)] font-semibold hover:underline">Learn More</a>
+          <a href={learnHref} className={`mt-4 font-semibold hover:underline ${alt ? 'text-[var(--brand-blue)]' : 'text-blue-200'}`}>Learn More</a>
         </div>
       </div>
     </section>
