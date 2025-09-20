@@ -13,6 +13,26 @@
 }
 
 @layer utilities {
-  .tile-surface-dark { background: linear-gradient(to bottom, #28284a 0%, #18181c 100%) !important; color: white; }
-  .tile-surface-light { background: linear-gradient(to bottom, #ffffff 0%, #a3aab5 100%) !important; color: var(--brand-gray); }
+  .tile-surface-dark {
+    background: linear-gradient(to bottom, var(--surface-dark), #2A2A2E);
+    color: #E5E7EB;
+  }
+  .tile-surface-light {
+    background: var(--surface-light);
+    color: var(--ink-sub);
+  }
+  
+  /* Consistent heading colors */
+  .tile-surface-dark h2, .tile-surface-dark h3 { color: white; }
+  .tile-surface-light h2, .tile-surface-light h3 { color: var(--ink); }
+
+  /* Feature text color override */
+  .tile-surface-dark .feature-text { color: #D1D5DB; }
+  .tile-surface-light .feature-text { color: var(--ink-sub); }
+
+  /* Final Polish: Viewer container styles */
+  .viewer-container {
+    @apply shadow-2xl border border-white/10 rounded-xl overflow-hidden;
+  }
+}
 }
