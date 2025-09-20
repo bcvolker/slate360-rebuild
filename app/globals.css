@@ -2,15 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-	:root {
-		--color-brand-blue: #4B9CD3;
-		--color-brand-copper: #B87333;
-		--color-brand-gray: #2F2F2F;
-		--color-surface-light: #FFFFFF;
-		--color-surface-dark: #f0f2f5;
-	}
-	html {
-		scroll-behavior: smooth;
-	}
+:root {
+  --brand-blue: #4B9CD3;
+  --brand-copper: #B87333;
+  --brand-gray: #708090;
+  --surface-light: #F9FAFB;
+  --surface-dark: #1A1A1E;
+}
+
+@layer utilities {
+  .tile-surface-dark { background: linear-gradient(to bottom, var(--surface-dark), #2A2A2E); color: white; }
+  .tile-surface-light { background: var(--surface-light); color: var(--brand-gray); }
 }
