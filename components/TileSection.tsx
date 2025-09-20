@@ -22,7 +22,7 @@ export default function TileSection({ id, title, subtitle, description, features
       <div className={`mx-auto max-w-7xl w-full px-6 ${altPad} grid ${cols} gap-6${alt ? ' mt-16' : ''}`}>
         {/* Use grid order to place viewer and content on correct sides */}
         <div className={`flex justify-center ${viewerOn === 'right' ? 'order-2' : 'order-1'}`}>
-          <MediaViewer hero={hero} style={viewerStyle} />
+          <MediaViewer hero={hero} style={viewerStyle} alt={alt} />
         </div>
         <div className={`flex flex-col gap-4 ${viewerOn === 'right' ? 'order-1' : 'order-2'}${viewerLeft ? ' ml-8' : ''}`}>
           <h2 className="text-4xl font-bold">{title}</h2>
