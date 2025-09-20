@@ -41,25 +41,37 @@ export default function PageClient() {
       <Navbar />
       <TileScroller />
       <main className="pt-12">
-        {tileData.map((tile, index) => (
-          <TileSection
-            key={tile.id}
-            id={tile.id}
-            title={tile.title}
-            subtitle={tile.subtitle}
-            description={tile.description}
-            features={tile.features}
-            learnHref={tile.learnHref}
-            viewerOn={tile.viewerOn as 'left' | 'right' | undefined}
-            alt={tile.alt}
-            hero={tile.hero}
-            viewerStyle={{
-              ...(index === 0 ? { height: 'calc(70vh - 0.75in)' } : {}),
-              width: 'calc(50% + 0.6in) !important'
-            }}
-            viewerLeft={index === 0}
-          />
-        ))}
+        {tileData.map((tile, index) => {
+          // For dark tiles (alt: false), make viewer 25% smaller
+          const isDark = !tile.alt;
+          let viewerStyle: React.CSSProperties = {};
+          if (isDark) {
+            viewerStyle = {
+              width: '37.5%', // 50% * 0.75
+              height: '52.5vh', // 70vh * 0.75
+              maxWidth: '540px', // 720px * 0.75
+            };
+            if (index === 0) {
+              viewerStyle.height = 'calc((70vh - 0.75in) * 0.75)';
+            }
+          }
+          return (
+            <TileSection
+              key={tile.id}
+              id={tile.id}
+              title={tile.title}
+              subtitle={tile.subtitle}
+              description={tile.description}
+              features={tile.features}
+              learnHref={tile.learnHref}
+              viewerOn={tile.viewerOn as 'left' | 'right' | undefined}
+              alt={tile.alt}
+              hero={tile.hero}
+              viewerStyle={viewerStyle}
+              viewerLeft={index === 0}
+            />
+          );
+        })}
         <Footer />
       </main>
     </div>
