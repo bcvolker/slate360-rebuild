@@ -53,7 +53,7 @@ export default function PageClient() {
             viewerOn={tile.viewerOn as 'left' | 'right' | undefined}
             alt={tile.alt}
             hero={tile.hero}
-            viewerStyle={index === 0 ? { width: 'calc(50% + 0.75in)', height: 'calc(70vh - 0.75in)' } : undefined}
+            viewerStyle={index === 0 ? { height: 'calc(70vh - 0.75in)' } : undefined}
           />
         ))}
         <Footer />
