@@ -6,12 +6,10 @@ type Props = { id: string; title: string; subtitle?: string; description: string
 export default function TileSection({ id, title, subtitle, description, features, learnHref, viewerOn = "right", alt = false, hero = false, viewerStyle, viewerLeft = false }: Props) {
   // Use a single dark background for all non-alt tiles
   const bg = alt ? "tile-surface-light" : "tile-surface-dark";
-  // For the first tile, move the viewer further left by adjusting grid columns
-  const cols = viewerLeft
-    ? "md:grid-cols-[0.8fr,1.2fr]"
-    : viewerOn === "left"
-      ? "md:grid-cols-[auto,1fr]"
-      : "md:grid-cols-[1fr,auto]";
+  // Use the same grid column structure for all tiles
+  const cols = viewerOn === "left"
+    ? "md:grid-cols-[auto,1fr]"
+    : "md:grid-cols-[1fr,auto]";
   // Use the same vertical padding and alignment for all tiles
   const pad = "py-16 items-center";
   return (
@@ -24,7 +22,7 @@ export default function TileSection({ id, title, subtitle, description, features
         <div className={`flex justify-center ${viewerOn === 'right' ? 'order-2' : 'order-1'}`}>
           <MediaViewer hero={hero} style={viewerStyle} alt={alt} />
         </div>
-  <div className={`flex flex-col gap-4 ${viewerOn === 'right' ? 'order-1 ml-8' : 'order-2 mr-8'}`}>
+  <div className={`flex flex-col gap-4 ${viewerOn === 'right' ? 'order-1 ml-8' : 'order-2 mr-8'} min-w-0`}> 
           <h2 className="text-4xl font-bold">{title}</h2>
           {subtitle && <h3 className="text-xl text-[var(--brand-copper)]">{subtitle}</h3>}
           <p className="text-gray-300">{description}</p>
