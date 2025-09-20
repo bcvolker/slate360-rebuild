@@ -1,16 +1,16 @@
 import MediaViewer from "./MediaViewer";
 import Link from "next/link";
 
-type Props = { id: string; title: string; subtitle?: string; description: string; features: string[]; learnHref: string; viewerOn?: "left" | "right"; alt?: boolean; hero?: boolean };
+type Props = { id: string; title: string; subtitle?: string; description: string; features: string[]; learnHref: string; viewerOn?: "left" | "right"; alt?: boolean; hero?: boolean; viewerStyle?: React.CSSProperties };
 
-export default function TileSection({ id, title, subtitle, description, features, learnHref, viewerOn = "right", alt = false, hero = false }: Props) {
+export default function TileSection({ id, title, subtitle, description, features, learnHref, viewerOn = "right", alt = false, hero = false, viewerStyle }: Props) {
   const bg = alt ? "bg-[var(--surface-light)]" : "bg-[var(--surface-dark)]";
   const cols = viewerOn === "left" ? "md:grid-cols-[auto,1fr]" : "md:grid-cols-[1fr,auto]";
   return (
     <section id={id} className="min-h-screen snap-start flex items-center justify-center">
       <div className={`mx-auto max-w-7xl w-full px-6 py-16 grid ${cols} gap-6 items-start ${bg} text-white`}>
         <div className="flex justify-center">
-          <MediaViewer hero={hero} />
+          <MediaViewer hero={hero} style={viewerStyle} />
         </div>
         <div className="flex flex-col gap-4">
           <h2 className="text-4xl font-bold">{title}</h2>
