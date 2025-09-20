@@ -54,6 +54,7 @@ export default function PageClient() {
             alt={tile.alt}
             hero={tile.hero}
             viewerStyle={index === 0 ? { height: 'calc(70vh - 0.75in)' } : undefined}
+            viewerLeft={index === 0}
           />
         ))}
         <Footer />
