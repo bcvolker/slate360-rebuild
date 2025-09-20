@@ -17,12 +17,12 @@ export default function TileSection({ id, title, subtitle, description, features
       id={id}
       className={`min-h-screen snap-start flex justify-center ${bg} items-center`}
     >
-      <div className={`mx-auto max-w-7xl w-full px-6 ${pad} grid ${cols} gap-6`}>
+  <div className={`mx-auto max-w-7xl w-full px-6 ${pad} grid ${cols} gap-6 min-w-0`}>
         {/* Use grid order to place viewer and content on correct sides */}
-        <div className={`flex justify-center ${viewerOn === 'right' ? 'order-2' : 'order-1'}`}>
+        <div className={`flex-shrink-0 flex justify-center ${viewerOn === 'right' ? 'order-2' : 'order-1'}`}>
           <MediaViewer hero={hero} style={viewerStyle} alt={alt} />
         </div>
-  <div className={`flex-1 flex flex-col gap-4 ${viewerOn === 'right' ? 'order-1 ml-8' : 'order-2 mr-8'}`}> 
+        <div className={`flex-1 flex flex-col gap-4 ${viewerOn === 'right' ? 'order-1 ml-8' : 'order-2 mr-8'}`}> 
           <h2 className="text-4xl font-bold">{title}</h2>
           {subtitle && <h3 className="text-xl text-[var(--brand-copper)]">{subtitle}</h3>}
           <p className="text-gray-300">{description}</p>
