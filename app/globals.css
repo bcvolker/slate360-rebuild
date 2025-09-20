@@ -14,5 +14,5 @@
 
 @layer utilities {
   .tile-surface-dark { background: linear-gradient(to bottom, #28284a 0%, #18181c 100%) !important; color: white; }
-  .tile-surface-light { background: linear-gradient(to bottom, #f9fafb 0%, #e5e7eb 100%) !important; color: var(--brand-gray); }
+  .tile-surface-light { background: linear-gradient(to bottom, #ffffff 0%, #d1d5db 100%) !important; color: var(--brand-gray); }
 }
