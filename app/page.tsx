@@ -1,35 +1,9 @@
 
 export const revalidate = 0;
-"use client";
-import { useState, useEffect, useRef } from 'react';
-import console from 'console';
-
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+import PageClient from './PageClient';
 
 export default function Page() {
-  console.log("DEBUG: Rendering app/page.tsx at", new Date().toISOString());
-  const [activeSection, setActiveSection] = useState<string | null>(null);
-  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveSection(entry.target.id);
-        });
-      },
-      { rootMargin: '-50% 0px -50% 0px', threshold: 0.5 }
-    );
-    Object.values(sectionRefs.current).forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-red-500 flex items-center justify-center">
-      <h1 className="text-white text-4xl">DEBUG: Slate360 - Latest Build</h1>
-    </div>
-  );
+  return <PageClient />;
 }
