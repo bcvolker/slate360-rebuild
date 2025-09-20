@@ -1,74 +1,81 @@
 
-"use client";
-import { useState, useEffect, useRef } from 'react';
-import TileSection from '../components/TileSection';
-import TileScroller from '../components/TileScroller';
-import Footer from '../components/Footer';
-import Navbar from '../components/Navbar';
+import React from 'react';
+import clsx from 'clsx';
+import { Tile } from '@/lib/tile-data';
+import Image from 'next/image';
+import Button from '@/components/ui/button';
+import SectionHeader from '@/components/ui/SectionHeader';
+import Footer from '@/components/ui/Footer';
 
-export default function PageClient() {
-  const [activeSection, setActiveSection] = useState<string | null>(null);
-  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+interface HomePageClientProps {
+  tiles: Tile[];
+}
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveSection(entry.target.id);
-        });
-      },
-      { rootMargin: '-50% 0px -50% 0px', threshold: 0.5 }
-    );
-    Object.values(sectionRefs.current).forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-    return () => observer.disconnect();
-  }, []);
+export default function HomePageClient({ tiles }: HomePageClientProps) {
+  return (
+    <main className="scroll-container">
+      {tiles.map((tile, index) => (
+        <TileSection 
+          key={tile.id} 
+          tile={tile} 
+          isLast={index === tiles.length - 1} 
+        />
+      ))}
+    </main>
+  );
+}
 
-  const tileData = [
-    { id: "slate360", title: "Slate360", subtitle: "From Design to Reality", description: "A platform revolutionizing AEC with 3D tools.", features: ["Unified platform", "Real-time collaboration"], learnHref: "/about", viewerOn: "right", alt: false, hero: true },
-    { id: "bim", title: "BIM Studio", subtitle: "Advanced Modeling", description: "Precision BIM editing and sequencing.", features: ["Cloud-Native 3D Viewer", "Real-Time Collaboration"], learnHref: "/dashboard/bim", viewerOn: "left", alt: true },
-    { id: "project-hub", title: "Project Hub", subtitle: "Centralized Management", description: "Real-time tracking and team coordination.", features: ["RFI Tracking", "Document Control"], learnHref: "/dashboard/project-hub", viewerOn: "right", alt: false },
-    { id: "tour", title: "360 Tour Builder", subtitle: "Immersive Walkthroughs", description: "Interactive tours with annotations.", features: ["Hotspot Tools", "VR Support"], learnHref: "/dashboard/tours", viewerOn: "left", alt: true },
-    { id: "content", title: "Content Creation", subtitle: "Media Production", description: "AI-enhanced video editing.", features: ["Magnetic Timeline", "Branding"], learnHref: "/dashboard/content", viewerOn: "right", alt: false },
-    { id: "geo", title: "Geospatial & Robotics", subtitle: "Automation Mapping", description: "Mission planning and data integration.", features: ["Live Cesium Globe", "Drone Data"], learnHref: "/dashboard/geospatial", viewerOn: "left", alt: true },
-    { id: "reports", title: "Reports & Analytics", subtitle: "Data Insights", description: "Customizable analytics reports.", features: ["KPI Dashboards", "Thermal Analysis"], learnHref: "/dashboard/reports", viewerOn: "right", alt: false },
-    { id: "vr", title: "VR/AR Lab", subtitle: "Immersive Simulation", description: "1:1 scale design reviews.", features: ["Safety Simulation", "Multi-User"], learnHref: "/dashboard/vr", viewerOn: "left", alt: true },
-  ];
+function TileSection({ tile, isLast }: { tile: Tile; isLast: boolean }) {
+  const { id, title, subtitle, description, features, cta, viewerPosition, theme, media } = tile;
+  const viewerOnLeft = viewerPosition === 'left';
+  const isLight = theme === 'light';
 
   return (
-    <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
-      <Navbar />
-      <TileScroller />
-      <main className="pt-12">
-        {tileData.map((tile, index) => {
-          // Standardized viewer size for all tiles
-          const size = '32.34vw';
-          const viewerStyle: React.CSSProperties = {
-            width: size,
-            height: size,
-            maxWidth: '465.75px',
-            maxHeight: '465.75px',
-          };
-          return (
-            <TileSection
-              key={tile.id}
-              id={tile.id}
-              title={tile.title}
-              subtitle={tile.subtitle}
-              description={tile.description}
-              features={tile.features}
-              learnHref={tile.learnHref}
-              viewerOn={tile.viewerOn as 'left' | 'right' | undefined}
-              alt={tile.alt}
-              hero={tile.hero}
-              viewerStyle={viewerStyle}
-              viewerLeft={false}
-            />
-          );
-        })}
-        <Footer />
-      </main>
-    </div>
+    <section
+      id={id}
+      className={clsx('tile-section', {
+        'tile-surface-light': isLight,
+        'tile-surface-dark': !isLight,
+      })}
+    >
+      <div
+        className={clsx(
+          'w-full max-w-7xl mx-auto flex flex-col items-center gap-8 md:gap-12',
+          {
+            'md:flex-row': !viewerOnLeft,
+            'md:flex-row-reverse': viewerOnLeft,
+          }
+        )}
+      >
+        {/* === VIEWER COLUMN (Fixed Width) === */}
+        <div className="w-full md:w-2/5 flex-shrink-0">
+          <div className="viewer-container relative aspect-[16/10] w-full flex items-center justify-center bg-black/10">
+            {media ? (
+              <Image src={media.src} alt={media.alt} fill className="object-cover" />
+            ) : (
+              <span className="text-sm opacity-50">Media Viewer</span>
+            )}
+          </div>
+        </div>
+
+        {/* === TEXT CONTENT COLUMN (Expanding) === */}
+        <div className="flex-1 min-w-0 flex flex-col w-full">
+          <SectionHeader title={title} subtitle={subtitle} align="left" />
+          <p className="mt-4 text-lg leading-relaxed">{description}</p>
+          <ul className="mt-6 space-y-3">
+            {features?.map((feature, i) => (
+              <li key={i} className="flex items-start gap-3 feature-text">
+                <span className="mt-1 text-[var(--brand-copper)] font-bold">✓</span>
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-8">
+            <Button>{cta}</Button>
+          </div>
+        </div>
+      </div>
+      {isLast && <Footer />}
+    </section>
   );
 }
