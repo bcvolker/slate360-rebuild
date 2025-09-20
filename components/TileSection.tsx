@@ -12,9 +12,11 @@ export default function TileSection({ id, title, subtitle, description, features
     : viewerOn === "left"
       ? "md:grid-cols-[auto,1fr]"
       : "md:grid-cols-[1fr,auto]";
+  // For alt (white) tiles, reduce vertical padding and align items to start
+  const altPad = alt ? "py-8 items-start" : "py-16 items-center";
   return (
     <section id={id} className={`min-h-screen snap-start flex items-center justify-center ${bg}`}>
-      <div className={`mx-auto max-w-7xl w-full px-6 py-16 grid ${cols} gap-6 items-start`}>
+      <div className={`mx-auto max-w-7xl w-full px-6 ${altPad} grid ${cols} gap-6`}>
         <div className="flex justify-center">
           <MediaViewer hero={hero} style={viewerStyle} />
         </div>
