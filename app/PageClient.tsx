@@ -1,6 +1,6 @@
+
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import console from 'console';
 
 export default function PageClient() {
   console.log("DEBUG: Rendering app/PageClient.tsx at", new Date().toISOString());
