@@ -55,7 +55,7 @@ export default function PageClient() {
             hero={tile.hero}
             viewerStyle={{
               ...(index === 0 ? { height: 'calc(70vh - 0.75in)' } : {}),
-              width: 'calc(50% + 0.6in)'
+              width: 'calc(50% + 0.6in) !important'
             }}
             viewerLeft={index === 0}
           />
