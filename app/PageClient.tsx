@@ -3,7 +3,7 @@ import React from 'react';
 import clsx from 'clsx';
 import { Tile } from '@/lib/tile-data';
 import Image from 'next/image';
-import Button from '@/components/ui/button';
+import Button from '@/components/ui/Button';
 import SectionHeader from '@/components/ui/SectionHeader';
 import Footer from '@/components/ui/Footer';
 
