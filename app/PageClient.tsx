@@ -42,24 +42,14 @@ export default function PageClient() {
       <TileScroller />
       <main className="pt-12">
         {tileData.map((tile, index) => {
-          // For dark tiles (alt: false), make viewer 25% smaller
-          const isDark = !tile.alt;
-          let viewerStyle: React.CSSProperties = {};
-          if (isDark) {
-            // Make square: width = height, 25% smaller than before
-            const size = '32.34vw'; // 43.125vw * 0.75
-            viewerStyle = {
-              width: size,
-              height: size,
-              maxWidth: '465.75px', // 621px * 0.75
-              maxHeight: '465.75px',
-            };
-            if (index === 0) {
-              // For the first tile, use the smaller of width or height for both
-              viewerStyle.width = viewerStyle.height = 'min(32.34vw, calc((70vh - 0.75in) * 0.75 * 0.75), 465.75px)';
-              viewerStyle.maxWidth = viewerStyle.maxHeight = '465.75px';
-            }
-          }
+          // Standardized viewer size for all tiles
+          const size = '32.34vw';
+          const viewerStyle: React.CSSProperties = {
+            width: size,
+            height: size,
+            maxWidth: '465.75px',
+            maxHeight: '465.75px',
+          };
           return (
             <TileSection
               key={tile.id}
@@ -73,7 +63,7 @@ export default function PageClient() {
               alt={tile.alt}
               hero={tile.hero}
               viewerStyle={viewerStyle}
-              viewerLeft={index === 0}
+              viewerLeft={false}
             />
           );
         })}
