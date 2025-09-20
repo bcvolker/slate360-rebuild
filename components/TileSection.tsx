@@ -24,7 +24,7 @@ export default function TileSection({ id, title, subtitle, description, features
         <div className={`flex justify-center ${viewerOn === 'right' ? 'order-2' : 'order-1'}`}>
           <MediaViewer hero={hero} style={viewerStyle} alt={alt} />
         </div>
-        <div className={`flex flex-col gap-4 ${viewerOn === 'right' ? 'order-1' : 'order-2'}${viewerLeft ? ' ml-8' : ''}`}>
+  <div className={`flex flex-col gap-4 ${viewerOn === 'right' ? 'order-1 ml-8' : 'order-2 mr-8'}`}>
           <h2 className="text-4xl font-bold">{title}</h2>
           {subtitle && <h3 className="text-xl text-[var(--brand-copper)]">{subtitle}</h3>}
           <p className="text-gray-300">{description}</p>
