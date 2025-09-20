@@ -3,6 +3,7 @@ import Link from "next/link";
 
 type Props = { id: string; title: string; subtitle?: string; description: string; features: string[]; learnHref: string; viewerOn?: "left" | "right"; alt?: boolean; hero?: boolean; viewerStyle?: React.CSSProperties; viewerLeft?: boolean };
 
+export default function TileSection({ id, title, subtitle, description, features, learnHref, viewerOn = "right", alt = false, hero = false, viewerStyle, viewerLeft = false }: Props) {
   // Use a single dark background for all non-alt tiles
   const bg = alt ? "tile-surface-light" : "tile-surface-dark";
   return (
