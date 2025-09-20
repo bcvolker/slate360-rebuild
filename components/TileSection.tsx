@@ -17,7 +17,7 @@ export default function TileSection({ id, title, subtitle, description, features
   return (
     <section
       id={id}
-      className={`min-h-screen snap-start flex justify-center ${bg} ${alt ? 'items-start' : 'items-center'}`}
+      className={`min-h-screen snap-start flex justify-center ${bg} ${alt ? 'items-start mt-16' : 'items-center'}`}
     >
       <div className={`mx-auto max-w-7xl w-full px-6 ${altPad} grid ${cols} gap-6`}>
         <div className="flex justify-center">
