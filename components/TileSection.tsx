@@ -9,7 +9,8 @@ export default function TileSection({ id, title, subtitle, description, features
   return (
     <section
       id={id}
-      className={`min-h-screen snap-start flex items-center ${bg}`}
+      className={`min-h-screen snap-start flex items-center ${bg} ${!alt ? 'border-4 border-red-500' : ''}`}
+      data-bg={bg}
     >
       <div className={`mx-auto max-w-7xl w-full px-6 md:px-10 py-24 flex flex-col ${viewerOn === 'left' ? 'md:flex-row-reverse' : 'md:flex-row'} gap-6 items-start min-w-0`}>
         <div className="flex-shrink-0 w-full md:w-[40%] h-[60vh] flex items-start justify-center">
