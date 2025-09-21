@@ -22,7 +22,7 @@ export default function PageClient() {
       <>
         {/* Test: Render a large logo image above the navbar, separated from the toolbar */}
         <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem 0', background: '#fff' }}>
-          <img src="/favicon.ico" alt="Test Logo" style={{ width: '120px', height: '120px', border: '2px solid #4B9CD3', borderRadius: '16px', background: '#fff' }} />
+          <img src="https://via.placeholder.com/120" alt="Remote Test Logo" style={{ width: '120px', height: '120px', border: '2px solid #4B9CD3', borderRadius: '16px', background: '#fff' }} />
         </div>
         <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
           <Navbar />
