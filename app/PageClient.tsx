@@ -22,13 +22,6 @@ export default function PageClient() {
   return (
     <>
       {/* Debug: Render logo image at very top of page */}
-      <Image
-        src="/slate360-logo.png"
-        alt="Slate360 Logo Debug Top"
-        width={100}
-        height={100}
-        style={{ background: 'yellow', border: '4px solid red', display: 'block', zIndex: 9999, position: 'relative' }}
-      />
       <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
         <Navbar />
         <main className="pt-12">
