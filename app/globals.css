@@ -5,13 +5,13 @@
 /* Brand tokens */
 :root {
   --brand-blue: #4B9CD3;
+  --brand-blue: #4B9CD3;
   --brand-copper: #B87333;
   --brand-gray: #708090;
-}
-
-/* Tile background */
-
-.tile-background {
+  --surface-light: #F9FAFB;
+  --surface-dark: #1A1A1E;
+  --ink: #0f172a;
+  --ink-sub: #475569;
   min-height: 100vh;
   scroll-snap-align: start;
   display: flex;
