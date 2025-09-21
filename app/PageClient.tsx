@@ -5,6 +5,7 @@
 import TileSection from '../components/TileSection';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
+import Image from 'next/image';
 export default function PageClient() {
   const tileData = [
     { id: "slate360", title: "Slate360", subtitle: "From Design to Reality", description: "A platform revolutionizing AEC with 3D tools.", features: ["Unified platform", "Real-time collaboration"], learnHref: "/about", viewerOn: "right" as const, hero: true },
@@ -21,10 +22,12 @@ export default function PageClient() {
   return (
     <>
       {/* Debug: Render logo image at very top of page */}
-      <img
+      <Image
         src="/slate360-logo.png"
         alt="Slate360 Logo Debug Top"
-        style={{ width: '100px', height: '100px', background: 'yellow', border: '4px solid red', display: 'block', zIndex: 9999, position: 'relative' }}
+        width={100}
+        height={100}
+        style={{ background: 'yellow', border: '4px solid red', display: 'block', zIndex: 9999, position: 'relative' }}
       />
       <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
         <Navbar />
