@@ -40,15 +40,16 @@ function TileSection({ tile, isLast }: { tile: Tile; isLast: boolean }) {
     >
       <div
         className={clsx(
-          'w-full max-w-7xl mx-auto flex flex-col md:flex-row items-stretch gap-8 md:gap-12',
+          'w-full max-w-7xl mx-auto flex flex-col items-center gap-8 md:gap-12',
           {
+            'md:flex-row': !viewerOnLeft,
             'md:flex-row-reverse': viewerOnLeft,
           }
         )}
       >
         {/* === VIEWER COLUMN (Fixed Width) === */}
-        <div className="w-full md:w-2/5 flex-shrink-0 flex items-center">
-          <div className="viewer-container relative aspect-[16/10] w-full flex items-center justify-center bg-black/10 rounded-lg overflow-hidden">
+        <div className="w-full md:w-2/5 flex-shrink-0">
+          <div className="viewer-container relative aspect-[16/10] w-full flex items-center justify-center bg-black/10">
             {media ? (
               <Image src={media.src} alt={media.alt} fill className="object-cover" />
             ) : (
@@ -57,11 +58,11 @@ function TileSection({ tile, isLast }: { tile: Tile; isLast: boolean }) {
           </div>
         </div>
 
-        {/* === TEXT CONTENT COLUMN (Expanding, Unified) === */}
-        <div className="flex-1 min-w-0 flex flex-col justify-center w-full px-4 md:px-8 py-8 md:py-12">
+        {/* === TEXT CONTENT COLUMN (Expanding) === */}
+        <div className="flex-1 min-w-0 flex flex-col w-full">
           <SectionHeader title={title} subtitle={subtitle} align="left" />
-          <p className="mt-4 text-lg leading-relaxed max-w-2xl">{description}</p>
-          <ul className="mt-6 space-y-3 max-w-2xl">
+          <p className="mt-4 text-lg leading-relaxed">{description}</p>
+          <ul className="mt-6 space-y-3">
             {features?.map((feature, i) => (
               <li key={i} className="flex items-start gap-3 feature-text">
                 <span className="mt-1 text-[var(--brand-copper)] font-bold">✓</span>
