@@ -20,58 +20,38 @@ const tileNavItems = [
 
 export default function Header({ activeSection }: { activeSection: string | null; }) {
   // Split tile nav into two rows of 4 (pad with empty if needed)
-  const navRows = [
-    tileNavItems.slice(0, 4),
-    tileNavItems.slice(4, 8)
-  ];
-  return (
-    <motion.header
-      className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-8 py-3 bg-white/80 backdrop-blur border-b border-gray-200 shadow-sm"
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
-    >
-      {/* Logo on far left */}
-      <div className="flex items-center min-w-[140px]">
-        <Link href="/" className="flex items-center">
-          <img
-            src="/slate360-logo.png"
-            alt="Slate360 Logo"
-            style={{ width: '100px', height: 'auto', display: 'block', background: 'white', borderRadius: '8px' }}
-          />
-        </Link>
-      </div>
+  import Link from 'next/link';
+  import Image from 'next/image';
 
-      {/* Tile nav links in two rows, centered, spaced 1" from logo and About */}
-      <div className="flex-1 flex flex-col items-center justify-center mx-8">
-        <div className="flex flex-col space-y-1">
-          {navRows.map((row, i) => (
-            <div key={i} className="flex flex-row space-x-2">
-              {row.map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  className={clsx(
-                    'px-3 py-1 text-sm rounded-md font-medium transition-all duration-300',
-                    activeSection === item.id ? 'bg-brand-blue text-white shadow' : 'text-brand-gray hover:bg-gray-100',
-                  )}
-                  style={{ minWidth: '7.5rem', textAlign: 'center' }}
-                >
-                  {item.name}
-                </a>
-              ))}
+  export default function Header() {
+    return (
+      <header className="fixed top-0 left-0 right-0 z-50 p-4 bg-transparent">
+        <div className="mx-auto max-w-7xl">
+          <Link href="/" aria-label="Go to Homepage">
+            {/*
+              This wrapper div creates a stable "bounding box" for the logo.
+              By setting an explicit width, height, and position, we protect the
+              image from external CSS rules that might be collapsing its dimensions or hiding it.
+            */}
+            <div style={{ width: '180px', height: '45px', position: 'relative' }}>
+              <Image
+                src="/slate360-logo.png"
+                alt="Slate360 Logo"
+                fill
+                priority
+                sizes="180px"
+                className="logo"
+                style={{
+                  objectFit: 'contain',
+                  // These styles override any global rules hiding images.
+                  display: 'block',
+                  visibility: 'visible',
+                  opacity: 1,
+                }}
+              />
             </div>
-          ))}
+          </Link>
         </div>
-      </div>
-
-      {/* Right nav: About, Contact, Subscribe, Login (rightmost) */}
-      <div className="flex items-center space-x-2 min-w-[420px] justify-end">
-        <Link href="/about" className="text-brand-gray px-3 py-1 text-sm font-medium rounded-md hover:bg-gray-100 transition-colors">About</Link>
-        <Link href="/contact" className="text-brand-gray px-3 py-1 text-sm font-medium rounded-md hover:bg-gray-100 transition-colors">Contact</Link>
-        <Link href="/subscribe" className="text-brand-gray px-3 py-1 text-sm font-medium rounded-md hover:bg-gray-100 transition-colors">Subscribe</Link>
-        <Link href="/login" className="text-brand-blue px-3 py-1 text-sm font-semibold rounded-md border border-brand-blue hover:bg-brand-blue hover:text-white transition-colors">Login</Link>
-      </div>
-    </motion.header>
-  );
-}
+      </header>
+    );
+  }
