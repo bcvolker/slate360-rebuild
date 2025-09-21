@@ -1,6 +1,6 @@
 
 import type { Metadata } from 'next';
-import AnimatedLogo from '../components/ui/AnimatedLogo';
+import Image from 'next/image';
 import CookieBanner from '../components/ui/CookieBanner';
 import './globals.css';
 
@@ -10,8 +10,10 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
   return (
     <html lang="en">
       <body className="font-sans">
-        <AnimatedLogo />
-        {children}
+        <div className="fixed top-6 left-8 z-50 flex items-center" style={{height: '64px'}}>
+          <Image src="/logo.png" alt="Slate360 Logo" width={180} height={48} priority className="h-16 w-auto drop-shadow-xl" />
+        </div>
+  {children}
         <CookieBanner />
       </body>
     </html>

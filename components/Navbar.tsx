@@ -15,8 +15,7 @@ export default function Navbar() {
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-white/60 bg-white/80 border-b border-slate-200/70">
       <nav className="mx-auto max-w-7xl flex items-center justify-between h-12 px-4">
         <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-[var(--ink)]">
-          <img src="/logo.png" alt="Slate360 Logo" className="h-7 w-7 object-contain" />
-          <span>SLATE360</span>
+          {/* Logo removed from navbar for prominence elsewhere */}
         </Link>
         <ul className="flex items-center gap-4">
           {links.map(l => {
