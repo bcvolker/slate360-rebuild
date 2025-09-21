@@ -19,14 +19,22 @@ export default function PageClient() {
 
 
   return (
-  <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
-      <Navbar />
-      <main className="pt-12">
-        {tileData.map((tile) => (
-          <TileSection key={tile.id} {...tile} />
-        ))}
-        <Footer />
-      </main>
-    </div>
+    <>
+      {/* Debug: Render logo image at very top of page */}
+      <img
+        src="/slate360-logo.png"
+        alt="Slate360 Logo Debug Top"
+        style={{ width: '100px', height: '100px', background: 'yellow', border: '4px solid red', display: 'block', zIndex: 9999, position: 'relative' }}
+      />
+      <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
+        <Navbar />
+        <main className="pt-12">
+          {tileData.map((tile) => (
+            <TileSection key={tile.id} {...tile} />
+          ))}
+          <Footer />
+        </main>
+      </div>
+    </>
   );
 }
