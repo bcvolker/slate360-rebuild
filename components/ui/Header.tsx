@@ -36,8 +36,8 @@ export default function Header({ activeSection }: { activeSection: string | null
         <Link href="/" className="flex items-center">
           <img
             src="/slate360-logo.png"
-            alt="Slate360 Logo Test"
-            className="w-28 h-auto border-4 border-red-500 bg-white rounded"
+            alt="Slate360 Logo Debug"
+            style={{ width: '100px', height: '100px', background: 'yellow', border: '4px solid red', display: 'block' }}
           />
         </Link>
       </div>
