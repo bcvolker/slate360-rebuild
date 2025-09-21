@@ -19,7 +19,7 @@ export default function PageClient() {
 
 
   return (
-    <div className="overflow-y-scroll snap-y snap-mandatory">
+  <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
       <Navbar />
       <main className="pt-12">
         {tileData.map((tile) => (
