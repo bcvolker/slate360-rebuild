@@ -10,8 +10,14 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
   return (
     <html lang="en">
       <body className="font-sans">
-        {/* Removed fixed logo to avoid overlap with header */}
-  {children}
+        {/* --- START DEBUG IMAGE --- */}
+        <img
+          src="/slate360-logo.png"
+          alt="Slate360 Logo Debug Test"
+          style={{ width: "200px", height: "auto", display: "block", border: "3px solid red", margin: "20px", zIndex: 9999, position: 'relative' }}
+        />
+        {/* --- END DEBUG IMAGE --- */}
+        {children}
         <CookieBanner />
       </body>
     </html>
