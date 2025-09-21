@@ -52,8 +52,8 @@ export default function TileSection({
     viewerOn === "left" ? "md:flex-row-reverse" : "md:flex-row";
 
   return (
-  <section id={id} className="tile-background snap-start min-h-screen">
-  <div className="mx-auto max-w-7xl w-full px-6 md:px-10 py-24 pt-20 md:pt-28 tile-content">
+  <section id={id} className="tile-background snap-start min-h-screen pt-20 md:pt-28">
+  <div className="mx-auto max-w-7xl w-full px-6 md:px-10 py-24 tile-content">
         <div className={`flex flex-col ${rowDir} gap-10 items-start`}>
           {/* Viewer */}
           <div className={`flex-shrink-0 ${viewerSize} flex items-start justify-center`}>
