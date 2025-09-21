@@ -15,7 +15,7 @@
 @layer utilities {
   .tile-surface-dark {
     background:
-      linear-gradient(135deg, rgba(80,80,90,0.18) 0%, rgba(184,115,51,0.10) 100%),
+      linear-gradient(135deg, rgba(75,156,211,0.18) 0%, rgba(184,115,51,0.12) 100%),
       linear-gradient(to bottom, var(--surface-dark), #23232A 80%, #2A2A2E 100%);
     color: #E5E7EB;
   }
