@@ -18,19 +18,21 @@ export default function PageClient() {
     { id: "vr", title: "VR/AR Lab", subtitle: "Immersive Simulation", description: "1:1 scale design reviews.", features: ["Safety Simulation", "Multi-User"], learnHref: "/dashboard/vr", viewerOn: "left" as const },
   ];
 
-
-  return (
-    <>
-      {/* Debug: Render logo image at very top of page */}
-      <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
-        <Navbar />
-        <main className="pt-12">
-          {tileData.map((tile) => (
-            <TileSection key={tile.id} {...tile} />
-          ))}
-          <Footer />
-        </main>
-      </div>
-    </>
-  );
+    return (
+      <>
+        {/* Test: Render a large logo image above the navbar, separated from the toolbar */}
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem 0', background: '#fff' }}>
+          <img src="/favicon.ico" alt="Test Logo" style={{ width: '120px', height: '120px', border: '2px solid #4B9CD3', borderRadius: '16px', background: '#fff' }} />
+        </div>
+        <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
+          <Navbar />
+          <main className="pt-12">
+            {tileData.map((tile) => (
+              <TileSection key={tile.id} {...tile} />
+            ))}
+            <Footer />
+          </main>
+        </div>
+      </>
+    );
 }
