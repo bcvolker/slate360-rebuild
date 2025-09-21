@@ -15,8 +15,7 @@ export default function Navbar() {
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-white/60 bg-white/80 border-b border-slate-200/70">
       <nav className="mx-auto max-w-7xl flex items-center justify-between h-12 px-4">
         <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-[var(--ink)]">
-          <span className="h-5 w-5 rounded-t rotate-45 border-2 border-[var(--brand-blue)]" />
-          <span>SLATE360</span>
+          {/* Logo removed from navbar for prominence elsewhere */}
         </Link>
         <ul className="flex items-center gap-4">
           {links.map(l => {

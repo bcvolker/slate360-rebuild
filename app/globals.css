@@ -2,15 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Brand tokens */
 :root {
   --brand-blue: #4B9CD3;
   --brand-copper: #B87333;
   --brand-gray: #708090;
-  --surface-light: #F9FAFB;
-  --surface-dark: #1A1A1E;
 }
 
-@layer utilities {
-  .tile-surface-dark { background: linear-gradient(to bottom, var(--surface-dark), #2A2A2E); color: white; }
-  .tile-surface-light { background: var(--surface-light); color: var(--brand-gray); }
+/* Tile background */
+
+.tile-background {
+  min-height: 100vh;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #0f172a, #1e293b);
+  color: white;
+}
+
+/* Glass content wrapper */
+.tile-content {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  padding: 2rem;
+}
+
+@media (min-width: 768px) {
+  .tile-content {
+    padding: 3rem;
+  }
 }
