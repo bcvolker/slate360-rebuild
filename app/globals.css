@@ -12,11 +12,7 @@
   --surface-dark: #1A1A1E;
   --ink: #0f172a;
   --ink-sub: #475569;
-  min-height: 100vh;
-  scroll-snap-align: start;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* Removed layout-breaking properties from :root */
   background: linear-gradient(145deg, #0f172a, #1e293b);
   color: white;
 }
