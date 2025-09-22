@@ -13,15 +13,14 @@ export default function Header() {
           */}
           <div style={{ width: '180px', height: '45px', position: 'relative' }}>
             <Image
-              src="/slate360-logo.png"
-              alt="Slate360 Logo"
+              src="https://via.placeholder.com/180x45.png?text=Test+Logo"
+              alt="Test Logo"
               fill
               priority
               sizes="180px"
               className="logo"
               style={{
                 objectFit: 'contain',
-                // These styles override any global rules hiding images.
                 display: 'block',
                 visibility: 'visible',
                 opacity: 1,
