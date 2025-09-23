@@ -14,10 +14,12 @@ export default function Header() {
               visibility: 'visible',
               opacity: 1,
               objectFit: 'contain',
-              background: 'white',
+              background: 'yellow',
+              border: '4px solid red',
               borderRadius: '8px',
             }}
           />
+          <div style={{ color: 'red', fontWeight: 'bold', marginLeft: '16px' }}>HEADER TEST TEXT</div>
         </Link>
       </div>
     </header>
