@@ -1,3 +1,4 @@
+  console.log("Header rendered");
 import Link from 'next/link';
 export default function Header() {
   return (
