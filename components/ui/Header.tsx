@@ -1,11 +1,44 @@
+const links = [
+  { href: "/about", label: "About" },
+  { href: "/subscribe", label: "Subscribe" },
+  { href: "/contact", label: "Contact" },
+  { href: "/login", label: "Login" },
+];
+
 export default function Header() {
   return (
-    <header style={{ width: '100%', background: '#fff', padding: '16px 0', display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: '1px solid #eee' }}>
-      <img
-        src="/test-logo.png"
-        alt="Test Logo"
-        style={{ height: '80px', width: 'auto', objectFit: 'contain', display: 'block' }}
-      />
+    <header style={{ width: '100%', background: '#fff', borderBottom: '1px solid #eee', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.04)', position: 'sticky', top: 0, zIndex: 100 }}>
+      <nav style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 88, padding: '0 32px' }}>
+        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
+          <img
+            src="/test-logo.png"
+            alt="Slate360 Logo"
+            style={{ height: 72, width: 'auto', objectFit: 'contain', display: 'block' }}
+          />
+        </a>
+        <ul style={{ display: 'flex', alignItems: 'center', gap: 32, margin: 0, padding: 0, listStyle: 'none' }}>
+          {links.map(l => (
+            <li key={l.href}>
+              <a
+                href={l.href}
+                style={{
+                  fontSize: 18,
+                  fontWeight: 500,
+                  color: '#222',
+                  textDecoration: 'none',
+                  padding: '6px 10px',
+                  borderRadius: 6,
+                  transition: 'background 0.2s, color 0.2s',
+                }}
+                onMouseOver={e => (e.currentTarget.style.color = '#4B9CD3')}
+                onMouseOut={e => (e.currentTarget.style.color = '#222')}
+              >
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </header>
   );
 }
