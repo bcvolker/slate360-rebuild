@@ -5,8 +5,8 @@ export default function Header() {
       <div className="mx-auto max-w-7xl">
         <Link href="/" aria-label="Go to Homepage">
           <img
-            src="/slate360-logo.png"
-            alt="Slate360 Logo"
+            src="https://via.placeholder.com/180x45.png?text=Test+Logo"
+            alt="Test Logo"
             style={{
               width: '180px',
               height: '45px',
