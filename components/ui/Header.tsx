@@ -1,8 +1,9 @@
+import Link from 'next/link';
 export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 p-4 bg-transparent">
       <div className="mx-auto max-w-7xl">
-        <a href="/" aria-label="Go to Homepage">
+        <Link href="/" aria-label="Go to Homepage">
           <img
             src="/slate360-logo.png"
             alt="Slate360 Logo"
@@ -17,7 +18,7 @@ export default function Header() {
               borderRadius: '8px',
             }}
           />
-        </a>
+        </Link>
       </div>
     </header>
   );
