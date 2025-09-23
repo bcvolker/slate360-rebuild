@@ -16,7 +16,7 @@ export default function Header() {
       <nav className="mx-auto max-w-7xl flex items-center justify-between h-16 px-6">
         <Link href="/" aria-label="Go to Homepage" className="flex items-center gap-3">
           <img
-            src="/logo.png"
+            src="/content-screenshot.png"
             alt="Slate360 Logo"
             style={{ height: '48px', width: 'auto', objectFit: 'contain', display: 'block', border: '2px solid red', background: 'yellow' }}
           />
