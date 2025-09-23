@@ -4,7 +4,6 @@
 
 import TileSection from '../components/TileSection';
 import Footer from '../components/Footer';
-import Navbar from '../components/Navbar';
 import Image from 'next/image';
 export default function PageClient() {
   const tileData = [
@@ -20,13 +19,8 @@ export default function PageClient() {
 
     return (
       <>
-        {/* Test: Render a large logo image above the navbar, separated from the toolbar */}
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem 0', background: '#fff' }}>
-          <img src="https://via.placeholder.com/120" alt="Remote Test Logo" style={{ width: '120px', height: '120px', border: '2px solid #4B9CD3', borderRadius: '16px', background: '#fff' }} />
-        </div>
         <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
-          <Navbar />
-          <main className="pt-12">
+          <main className="pt-28">
             {tileData.map((tile) => (
               <TileSection key={tile.id} {...tile} />
             ))}
