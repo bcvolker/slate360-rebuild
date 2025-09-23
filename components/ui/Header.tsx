@@ -13,12 +13,12 @@ export default function Header() {
   const pathname = usePathname();
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur border-b border-gray-200 shadow-sm">
-      <nav className="mx-auto max-w-7xl flex items-center justify-between h-24 px-6">
+      <nav className="mx-auto max-w-7xl flex items-center justify-between h-16 px-6">
         <Link href="/" aria-label="Go to Homepage" className="flex items-center gap-3">
           <img
             src="/logo.png"
             alt="Slate360 Logo"
-            style={{ height: '60px', width: 'auto', objectFit: 'contain', display: 'block' }}
+            style={{ height: '48px', width: 'auto', objectFit: 'contain', display: 'block', border: '2px solid red', background: 'yellow' }}
           />
         </Link>
         <ul className="flex items-center gap-8">
@@ -39,8 +39,6 @@ export default function Header() {
             );
           })}
         </ul>
-      </nav>
-  <nav className="mx-auto max-w-7xl flex items-center justify-between h-20 px-6">
       </nav>
     </header>
   );
