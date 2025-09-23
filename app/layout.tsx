@@ -1,3 +1,4 @@
+import ClientHeader from '../components/ui/ClientHeader';
 
 import type { Metadata } from 'next';
 import Image from 'next/image';
@@ -10,6 +11,7 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
   return (
     <html lang="en">
       <body className="font-sans">
+        <ClientHeader />
         <div style={{ background: 'lime', color: 'black', fontWeight: 'bold', fontSize: 24, padding: 16, textAlign: 'center', zIndex: 9999, position: 'relative' }}>
           LAYOUT TEST TEXT
         </div>
