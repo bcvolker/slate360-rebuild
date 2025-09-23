@@ -16,9 +16,9 @@ export default function Header() {
       <nav className="mx-auto max-w-7xl flex items-center justify-between h-24 px-6">
         <Link href="/" aria-label="Go to Homepage" className="flex items-center gap-3">
           <img
-            src="/slate360-logo.png"
+            src="/logo.png"
             alt="Slate360 Logo"
-            style={{ height: '80px', width: 'auto', objectFit: 'contain', display: 'block' }}
+            style={{ height: '60px', width: 'auto', objectFit: 'contain', display: 'block' }}
           />
         </Link>
         <ul className="flex items-center gap-8">
@@ -28,7 +28,7 @@ export default function Header() {
               <li key={l.href}>
                 <Link
                   href={l.href}
-                  className={`text-lg font-medium text-[var(--ink)]/85 hover:text-[var(--ink)] relative px-2 py-1 transition-colors duration-150
+                  className={`text-lg font-medium text-[var(--ink)] hover:text-[var(--brand-blue)] relative px-2 py-1 transition-colors duration-150
                     after:absolute after:-bottom-1 after:left-0 after:h-[2px]
                     after:w-0 hover:after:w-full after:bg-[var(--brand-blue)]
                     after:transition-all ${active ? 'text-[var(--brand-blue)] font-semibold' : ''}`}
@@ -39,6 +39,8 @@ export default function Header() {
             );
           })}
         </ul>
+      </nav>
+  <nav className="mx-auto max-w-7xl flex items-center justify-between h-20 px-6">
       </nav>
     </header>
   );
