@@ -8,7 +8,7 @@ export default function NewHome() {
         <nav style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 72, padding: '0 32px' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
             <Image
-              src="/slate360-logo.png"
+              src="/slate360-logo-v2.png"
               alt="Slate360 Logo"
               height={64}
               width={180}
