@@ -3,6 +3,9 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 p-4 bg-transparent">
       <div className="mx-auto max-w-7xl">
+        <div style={{ background: 'red', color: 'white', fontWeight: 'bold', fontSize: 20, padding: 8, textAlign: 'center', zIndex: 9999, position: 'relative' }}>
+          HEADER TEST TEXT
+        </div>
         <Link href="/" aria-label="Go to Homepage">
           <img
             src="https://via.placeholder.com/180x45.png?text=Test+Logo"
@@ -19,7 +22,6 @@ export default function Header() {
               borderRadius: '8px',
             }}
           />
-          <div style={{ color: 'red', fontWeight: 'bold', marginLeft: '16px' }}>HEADER TEST TEXT</div>
         </Link>
       </div>
     </header>
