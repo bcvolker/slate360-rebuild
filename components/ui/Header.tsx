@@ -11,12 +11,12 @@ const links = [
 export default function Header() {
   return (
     <header style={{ width: '100%', background: '#fff', borderBottom: '1px solid #eee', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.04)', position: 'sticky', top: 0, zIndex: 100 }}>
-      <nav style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 88, padding: '0 32px' }}>
+      <nav style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 72, padding: '0 32px' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
           <Image
-            src="/test-logo.png"
+            src="/slate360-logo.png"
             alt="Slate360 Logo"
-            height={72}
+            height={64}
             width={180}
             style={{ objectFit: 'contain', display: 'block' }}
             priority
