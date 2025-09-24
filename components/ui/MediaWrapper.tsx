@@ -1,6 +1,8 @@
 
+
 "use client";
 import clsx from 'clsx';
+import Image from 'next/image';
 
 
 type MediaWrapperProps = {
@@ -35,6 +37,19 @@ export default function MediaWrapper({ src, alt, className, type = 'image' }: Me
     );
   }
   if (type === 'image' && src) {
+    if (src === '/logo.png') {
+      // Use Next.js Image for logo.png
+      return (
+        <Image
+          src="/logo.png"
+          alt={alt}
+          width={120}
+          height={40}
+          priority
+          className={clsx('rounded-lg shadow-lg object-cover', className)}
+        />
+      );
+    }
     return (
       <img
         className={clsx('rounded-lg shadow-lg object-cover', className)}
