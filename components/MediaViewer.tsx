@@ -1,30 +1,81 @@
-"use client";
-import { useState } from "react";
+'use client';
+import { useState } from 'react';
+import Modal from './ui/Modal';
 
-type Props = { hero?: boolean; placeholder?: string; style?: React.CSSProperties; alt?: boolean };
+type MediaType = 'image' | 'video' | 'model' | 'tour';
 
-export default function MediaViewer({ hero = false, placeholder = "Interactive Content Coming Soon", style, alt = false }: Props) {
-  const [dragOver, setDragOver] = useState(false);
-  // Remove Tailwind width/height/max-w class if style.width/height is provided
-  const widthClass = style && style.width ? "" : hero ? "w-[50%] max-w-[720px]" : "w-[40%] max-w-[560px]";
-  const heightClass = style && style.height ? "" : hero ? "h-[70vh]" : "h-[60vh]";
-  // Use different background/border for light (alt) vs dark tiles
-  const baseClass = alt
-    ? dragOver
-      ? "border-[var(--brand-blue)] bg-white"
-      : "border-slate-300 bg-white"
-    : dragOver
-      ? "border-[var(--brand-blue)] bg-[#23232a]"
-      : "border-slate-700 bg-[#23232a]";
-  return (
-    <div
-      className={`relative flex items-center justify-center ${widthClass} ${heightClass} min-w-[320px] border-2 border-dashed rounded-2xl ${baseClass} shadow-md`}
-      style={style}
-      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-      onDragLeave={() => setDragOver(false)}
-      onDrop={(e) => { e.preventDefault(); setDragOver(false); alert("Uploads from CEO tab."); }}
-    >
-      <p className="text-gray-600">{placeholder}</p>
+interface Media {
+  type: MediaType;
+  src: string;         // local /public or remote URL
+  poster?: string;     // for video
+  alt?: string;        // for image
+}
+
+export default function MediaViewer({ media, label }: { media: Media; label: string }) {
+  const [open, setOpen] = useState(false);
+
+  const box = (
+    <div className="group relative aspect-video w-full overflow-hidden rounded-xl border bg-slate-50">
+      {/* IMAGE */}
+      {media.type === 'image' && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={media.src} alt={media.alt || label} className="h-full w-full object-cover" />
+      )}
+      {/* VIDEO */}
+      {media.type === 'video' && (
+        <video
+          className="h-full w-full object-cover"
+          src={media.src}
+          poster={media.poster}
+          controls
+          playsInline
+        />
+      )}
+      {/* MODEL / TOUR placeholders */}
+      {media.type === 'model' && (
+        <div className="flex h-full w-full items-center justify-center text-sm text-slate-500">
+          3D Model Viewer (coming from CEO uploads) — placeholder
+        </div>
+      )}
+      {media.type === 'tour' && (
+        <div className="flex h-full w-full items-center justify-center text-sm text-slate-500">
+          360° Tour Viewer — placeholder
+        </div>
+      )}
+
+      <button
+        onClick={() => setOpen(true)}
+        className="absolute right-3 top-3 rounded-md bg-white/90 px-3 py-1 text-xs shadow-sm hover:bg-white"
+      >
+        Expand
+      </button>
     </div>
+  );
+
+  return (
+    <>
+      {box}
+      <Modal open={open} onClose={() => setOpen(false)} label={`${label} Viewer`}>
+        <div className="aspect-video w-full">
+          {media.type === 'image' && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={media.src} alt={media.alt || label} className="h-full w-full object-contain" />
+          )}
+          {media.type === 'video' && (
+            <video className="h-full w-full" src={media.src} poster={media.poster} controls playsInline />
+          )}
+          {media.type === 'model' && (
+            <div className="flex h-full w-full items-center justify-center text-sm text-slate-500">
+              Large 3D Model Viewer (placeholder)
+            </div>
+          )}
+          {media.type === 'tour' && (
+            <div className="flex h-full w-full items-center justify-center text-sm text-slate-500">
+              Large 360° Tour Viewer (placeholder)
+            </div>
+          )}
+        </div>
+      </Modal>
+    </>
   );
 }
