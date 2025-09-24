@@ -24,16 +24,16 @@ const SECTIONS = [
 export default function Header() {
   return (
     <header className="sticky top-0 z-40 border-b bg-white/90 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3">
         <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
           <Link href="/" className="flex items-center gap-3">
             <Image 
               src="/slate360logoforwebsite.png" 
               alt="Slate360" 
-              width={140} 
-              height={48} 
+              width={160} 
+              height={60} 
               priority 
-              className="h-12 w-auto object-contain"
+              className="h-14 w-auto object-contain -my-2"
             />
           </Link>
         </motion.div>
