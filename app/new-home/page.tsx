@@ -10,8 +10,8 @@ export default function NewHome() {
             <Image
               src="/logo.png"
               alt="Slate360 Logo"
-              height={64}
-              width={180}
+              width={120}
+              height={40}
               style={{ objectFit: 'contain', display: 'block' }}
               priority
             />

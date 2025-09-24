@@ -17,14 +17,14 @@ export default function Header() {
           <Image
             src="/logo.png"
             alt="Slate360 Logo"
-            width={180}
+            width={120}
             height={40}
             priority
             onError={e => {
               console.error("⚠️ Logo failed to load via Next.js Image, switching to fallback <img>.");
               const target = e.target as HTMLImageElement;
               if (target && typeof target.outerHTML === 'string') {
-                target.outerHTML = `<img src='/logo.png' alt='Slate360 Logo' width='180' height='40' style='border:2px solid red;object-fit:contain;display:block;' />`;
+                target.outerHTML = `<img src='/logo.png' alt='Slate360 Logo' width='120' height='40' style='border:2px solid red;object-fit:contain;display:block;' />`;
               }
             }}
           />
