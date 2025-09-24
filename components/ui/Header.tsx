@@ -10,35 +10,31 @@ const links = [
 
 export default function Header() {
   return (
-    <header style={{ width: '100%', background: '#fff', borderBottom: '1px solid #eee', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.04)', position: 'sticky', top: 0, zIndex: 100 }}>
-      <nav style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 72, padding: '0 32px' }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
+    <header className="w-full bg-white border-b border-gray-200 shadow-md sticky top-0 z-50">
+      <nav className="max-w-screen-xl mx-auto flex items-center justify-between h-20 px-6">
+        <Link href="/" className="flex items-center gap-3" aria-label="Slate360 Home">
+          {/* Next.js Image with fallback and debug logging */}
           <Image
-            src="/slate360-logo-v2.png"
+            src="/logo.png"
             alt="Slate360 Logo"
-            height={64}
             width={180}
-            style={{ objectFit: 'contain', display: 'block' }}
+            height={40}
             priority
+            onError={e => {
+              console.error("⚠️ Logo failed to load via Next.js Image, switching to fallback <img>.");
+              const target = e.target;
+              if (target && target.outerHTML) {
+                target.outerHTML = `<img src='/logo.png' alt='Slate360 Logo' width='180' height='40' style='border:2px solid red;object-fit:contain;display:block;' />`;
+              }
+            }}
           />
         </Link>
-        <ul style={{ display: 'flex', alignItems: 'center', gap: 32, margin: 0, padding: 0, listStyle: 'none' }}>
+        <ul className="flex items-center gap-8 m-0 p-0 list-none">
           {links.map(l => (
             <li key={l.href}>
               <Link
                 href={l.href}
-                style={{
-                  fontSize: 18,
-                  fontWeight: 500,
-                  color: '#222',
-                  textDecoration: 'none',
-                  padding: '6px 10px',
-                  borderRadius: 6,
-                  transition: 'background 0.2s, color 0.2s',
-                  display: 'inline-block',
-                }}
-                onMouseOver={e => (e.currentTarget.style.color = '#4B9CD3')}
-                onMouseOut={e => (e.currentTarget.style.color = '#222')}
+                className="text-slate-800 hover:text-[#1E3A8A] transition-colors text-lg font-medium px-2 py-1 rounded-md"
               >
                 {l.label}
               </Link>
