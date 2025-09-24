@@ -1,4 +1,6 @@
 
+import Image from "next/image";
+
 export default function Page() {
   return (
     <div style={{ 
@@ -11,20 +13,12 @@ export default function Page() {
       backgroundColor: 'white',
       color: 'black'
     }}>
-      {/* Temporary placeholder until real logo is added */}
-      <div style={{
-        width: 200,
-        height: 60,
-        backgroundColor: '#4B9CD3',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 8,
-        color: 'white',
-        fontWeight: 'bold'
-      }}>
-        SLATE360 LOGO
-      </div>
+      <Image 
+        src="/slate360logoforwebsite.png" 
+        alt="Slate360 Logo" 
+        width={200} 
+        height={60} 
+      />
       <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>Slate360</h1>
     </div>
   );
