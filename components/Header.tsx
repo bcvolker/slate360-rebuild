@@ -27,7 +27,14 @@ export default function Header() {
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3">
         <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/slate360logoforwebsite.png" alt="Slate360" width={120} height={40} priority />
+            <Image 
+              src="/slate360logoforwebsite.png" 
+              alt="Slate360" 
+              width={120} 
+              height={40} 
+              priority 
+              className="h-8 w-auto object-contain"
+            />
           </Link>
         </motion.div>
         <nav className="hidden items-center gap-4 md:flex">
