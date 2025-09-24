@@ -15,7 +15,7 @@ export default function Header() {
         <Link href="/" className="flex items-center gap-3" aria-label="Slate360 Home">
           {/* Next.js Image with fallback and debug logging */}
           <Image
-            src="/logo.png"
+            src="/slate360-logo-final.png"
             alt="Slate360 Logo"
             width={120}
             height={40}
