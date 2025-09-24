@@ -37,19 +37,14 @@ export default function MediaWrapper({ src, alt, className, type = 'image' }: Me
     );
   }
   if (type === 'image' && src) {
-    if (src === '/slate360-logo-final.png') {
-      // Use Next.js Image for slate360-logo-final.png
-      return (
-        <Image
-          src="/slate360-logo-final.png"
-          alt={alt}
-          width={120}
-          height={40}
-          priority
-          className={clsx('rounded-lg shadow-lg object-cover', className)}
-        />
-      );
-    }
+    return (
+      <img
+        className={clsx('rounded-lg shadow-lg object-cover', className)}
+        src={src}
+        alt={alt}
+        loading="lazy"
+      />
+    );
   }
   // For 'custom' or fallback
   return (
