@@ -1,4 +1,4 @@
-import ClientHeader from '../components/ui/ClientHeader';
+// import ClientHeader from '../components/ui/ClientHeader';
 
 import type { Metadata } from 'next';
 import Image from 'next/image';
@@ -11,7 +11,7 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
   return (
     <html lang="en">
       <body className="font-sans">
-        <ClientHeader />
+        {/* <ClientHeader /> */}
         {children}
         <CookieBanner />
       </body>

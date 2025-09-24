@@ -6,7 +6,8 @@
     "dev": "cross-env CHOKIDAR_USEPOLLING=true next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate:logo": "node scripts/generate-logo-data.cjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
