@@ -15,18 +15,11 @@ export default function Header() {
         <Link href="/" className="flex items-center gap-3" aria-label="Slate360 Home">
           {/* Next.js Image with fallback and debug logging */}
           <Image
-            src="/logo.png"
+            src="https://raw.githubusercontent.com/bcvolker/slate360-rebuild/main/public/logo.png"
             alt="Slate360 Logo"
             width={120}
             height={40}
             priority
-            onError={e => {
-              console.error("⚠️ Logo failed to load via Next.js Image, switching to fallback <img>.");
-              const target = e.target as HTMLImageElement;
-              if (target && typeof target.outerHTML === 'string') {
-                target.outerHTML = `<img src='/logo.png' alt='Slate360 Logo' width='120' height='40' style='border:2px solid red;object-fit:contain;display:block;' />`;
-              }
-            }}
           />
         </Link>
         <ul className="flex items-center gap-8 m-0 p-0 list-none">
