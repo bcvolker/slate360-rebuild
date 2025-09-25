@@ -46,7 +46,7 @@ export default function Navbar() {
           </svg>
         </button>
         {isMenuOpen && (
-          <div className="absolute top-[48px] left-0 w-full bg-slate-900 text-white">
+          <div className="absolute top-[44px] left-0 w-full bg-slate-900 text-white">
             {tileData.map((tile) => (
               <Link key={tile.id} href={`#${tile.id}`} onClick={() => setIsMenuOpen(false)}>
                 <div className={`p-4 ${active === tile.id ? 'text-[#4B9CD3]' : ''}`}>{tile.title}</div>
