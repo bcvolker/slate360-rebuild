@@ -41,16 +41,16 @@ export default function Navbar() {
       <div className="md:hidden ml-auto">
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="p-2 rounded-md hover:bg-slate-100"
+          className="p-2 rounded-md bg-white/90 border border-slate-200 shadow-sm hover:bg-slate-100 z-[70]"
           aria-label="Toggle navigation menu"
         >
-          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-6 w-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
           </svg>
         </button>
         {isMenuOpen && (
-          <div className="absolute top-[48px] left-0 right-0 bg-white border-b border-slate-200 shadow-lg z-50">
+          <div className="absolute top-[48px] left-0 right-0 bg-white border-b border-slate-200 shadow-lg z-[65] mt-4">
             <div className="py-2">
               {tileData.map((tile) => (
                 <Link 
