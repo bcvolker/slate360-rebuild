@@ -13,7 +13,7 @@ export default function PageClient({ tileData }: { tileData: LibTile[] }) {
         <section
           key={tile.id}
           id={tile.id}
-          className="min-h-screen h-screen snap-start flex items-center justify-center border-b border-slate-200 scroll-mt-[96px]"
+          className="min-h-screen h-screen snap-start flex items-center justify-center border-b border-slate-200 scroll-mt-[60px]"
         >
           <TileSection
             id={tile.id}

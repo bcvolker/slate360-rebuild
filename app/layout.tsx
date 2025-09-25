@@ -14,14 +14,14 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
       <body className="font-sans">
         {/* Fixed logo overlay (independent of navbar height) */}
         <SiteLogo />
-        {/* Tile navigation bar positioned below the fixed logo area */}
-        <div className="fixed top-[80px] left-0 right-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm">
+        {/* Slim tile navigation bar at the very top */}
+        <div className="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm">
           <div className="mx-auto max-w-7xl px-6 h-[44px] flex items-center">
             <Navbar />
           </div>
         </div>
-        {/* Content offset for logo area (~80) + tile nav (44) */}
-        <div className="pt-[124px]">
+        {/* Content offset for slim nav (44px) */}
+        <div className="pt-[44px]">
           {children}
         </div>
         <CookieBanner />
