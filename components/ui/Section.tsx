@@ -10,7 +10,7 @@ export default function Section({
       id={id}
       className={clsx(
         'snap-start min-h-[90vh] py-12 md:py-20 flex items-center',
-        'scroll-mt-11', // for slim navbar
+        'scroll-mt-[88px]', // for blue header + tile nav
         className
       )}
     >
