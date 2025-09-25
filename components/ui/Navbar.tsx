@@ -22,7 +22,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="flex w-full items-center justify-center">
+    <nav className="fixed top-0 left-0 right-0 h-11 bg-white/90 border-b border-slate-200 z-40 md:pl-[200px] flex items-center justify-center">
       {/* Desktop */}
       <div className="hidden md:flex gap-x-6 text-sm">
         {tileData.map((tile) => (
