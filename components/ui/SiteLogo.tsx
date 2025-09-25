@@ -1,53 +1,20 @@
-'use client';
-import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default function SiteLogo() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    // Check if mobile on mount and window resize
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    const handleMobileMenuToggle = (event: CustomEvent) => {
-      setIsMobileMenuOpen(event.detail.isOpen);
-    };
-
-    window.addEventListener('mobileMenuToggle', handleMobileMenuToggle as EventListener);
-
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-      window.removeEventListener('mobileMenuToggle', handleMobileMenuToggle as EventListener);
-    };
-  }, []);
-
-  // Hide logo on mobile when menu is open, always show on desktop
-  const shouldHide = isMobileMenuOpen && isMobile;
-
+export default function SiteLogo(){
   return (
-    <Link 
-      href="/" 
-      className={`fixed top-3 left-6 z-[60] pointer-events-auto transition-opacity duration-200 ${
-        shouldHide ? 'opacity-0 pointer-events-none' : 'opacity-100'
-      }`}
-    >
-      <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm border border-white/20">
+    <Link href="/" className="fixed top-2 left-4 z-50 inline-block">
+      <span className="relative inline-flex items-center">
+        <span className="absolute inset-0 rounded-md bg-copper/14"></span>
         <Image
           src="/slate360logoforwebsite.png"
-          alt="Slate360 Logo"
-          width={208}
-          height={62}
+          alt="Slate360"
+          width={220}
+          height={74}
           priority
-          className="h-16 w-auto object-contain"
+          className="relative h-auto w-auto object-contain drop-shadow"
         />
-      </div>
+      </span>
     </Link>
   );
 }
