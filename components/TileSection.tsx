@@ -29,17 +29,17 @@ export default function TileSection({
     viewerOn === "left" ? "md:flex-row-reverse" : "md:flex-row";
 
   return (
-  <section id={id} className="tile-background snap-start min-h-screen flex items-center">
-  <div className="mx-auto max-w-7xl w-full px-6 md:px-10 py-24 tile-content">
+    <section id={id} className="tile-background snap-start h-screen flex items-center justify-center border-b border-slate-200 scroll-mt-11">
+      <div className="mx-auto max-w-7xl w-full px-6 md:px-10 tile-content flex items-center justify-center min-h-0">
         {/* Desktop layout */}
-        <div className={`hidden md:flex ${rowDir} gap-10 items-start`}>
+        <div className={`hidden md:flex ${rowDir} gap-10 items-center w-full h-full max-h-[80vh]`}>
           {/* Viewer */}
-          <div className={`flex-shrink-0 ${viewerSize} flex items-start justify-center`}>
+          <div className={`flex-shrink-0 ${viewerSize} flex items-center justify-center`}>
             <MediaViewer id={id} />
           </div>
 
           {/* Text */}
-          <div className="flex-1 min-w-0 flex flex-col justify-start">
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
             <h2 className="text-5xl font-extrabold tracking-tight">{title}</h2>
             {subtitle && (
               <h3 className="mt-2 text-2xl font-semibold text-[var(--brand-blue)]">
@@ -67,9 +67,9 @@ export default function TileSection({
         </div>
 
         {/* Mobile layout */}
-        <div className="md:hidden flex flex-col gap-6">
+        <div className="md:hidden flex flex-col gap-8 items-center justify-center w-full h-full max-h-[80vh] py-8">
           {/* Text content */}
-          <div className="text-center px-4">
+          <div className="text-center px-6 flex-1 flex flex-col justify-center">
             <h2 className="text-3xl font-extrabold tracking-tight">{title}</h2>
             {subtitle && (
               <h3 className="mt-2 text-xl font-semibold text-[var(--brand-blue)]">
@@ -79,7 +79,7 @@ export default function TileSection({
             <p className="mt-4 text-base leading-relaxed text-slate-600">
               {description}
             </p>
-            <ul className="mt-6 space-y-2 text-left">
+            <ul className="mt-6 space-y-2 text-left max-w-sm mx-auto">
               {features.map((f, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <span className="mt-[2px] text-[var(--brand-copper)]">▸</span>
@@ -95,8 +95,8 @@ export default function TileSection({
             </Link>
           </div>
 
-          {/* Small thumbnail viewer - alternating position */}
-          <div className={`w-32 h-20 ${viewerOn === 'left' ? 'self-start ml-4' : 'self-end mr-4'}`}>
+          {/* Small thumbnail viewer - centered */}
+          <div className="w-40 h-24 flex-shrink-0">
             <MediaViewer id={id} />
           </div>
         </div>

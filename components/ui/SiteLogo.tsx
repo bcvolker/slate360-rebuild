@@ -38,14 +38,16 @@ export default function SiteLogo() {
         shouldHide ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
-      <Image
-        src="/slate360logoforwebsite.png"
-        alt="Slate360 Logo"
-        width={208}
-        height={62}
-        priority
-        className="h-16 w-auto object-contain"
-      />
+      <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm border border-white/20">
+        <Image
+          src="/slate360logoforwebsite.png"
+          alt="Slate360 Logo"
+          width={208}
+          height={62}
+          priority
+          className="h-16 w-auto object-contain"
+        />
+      </div>
     </Link>
   );
 }

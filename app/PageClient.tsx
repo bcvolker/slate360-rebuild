@@ -10,22 +10,17 @@ export default function PageClient({ tileData }: { tileData: LibTile[] }) {
     <>
       {/* snap container wrapper is provided by parent <main> */}
       {tileData.map((tile) => (
-        <section
+        <TileSection
           key={tile.id}
           id={tile.id}
-          className="min-h-screen h-screen snap-start flex items-center justify-center border-b border-slate-200 scroll-mt-11"
-        >
-          <TileSection
-            id={tile.id}
-            title={tile.title}
-            subtitle={tile.subtitle}
-            description={tile.description}
-            features={tile.features}
-            learnHref={tile.id === 'hero' ? '/about' : `/features/${tile.id}`}
-            viewerOn={tile.viewerPosition}
-            hero={tile.id === 'hero'}
-          />
-        </section>
+          title={tile.title}
+          subtitle={tile.subtitle}
+          description={tile.description}
+          features={tile.features}
+          learnHref={tile.id === 'hero' ? '/about' : `/features/${tile.id}`}
+          viewerOn={tile.viewerPosition}
+          hero={tile.id === 'hero'}
+        />
       ))}
       <Footer />
     </>

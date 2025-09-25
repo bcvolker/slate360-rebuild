@@ -46,10 +46,10 @@ export default function Navbar() {
         ))}
       </div>
       {/* Mobile hamburger menu */}
-      <div className="md:hidden ml-auto">
+      <div className="md:hidden ml-auto relative">
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="p-2 rounded-md bg-white/90 border border-slate-200 shadow-sm hover:bg-slate-100 z-[70]"
+          className="p-2 rounded-md bg-white/90 border border-slate-200 shadow-sm hover:bg-slate-100 relative z-[80]"
           aria-label="Toggle navigation menu"
         >
           <svg className="h-6 w-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,7 +58,7 @@ export default function Navbar() {
           </svg>
         </button>
         {isMenuOpen && (
-          <div className="absolute top-[48px] left-0 right-0 bg-white border-b border-slate-200 shadow-lg z-[65] mt-4">
+          <div className="fixed top-[88px] left-0 right-0 bg-white border-b border-slate-200 shadow-lg z-[75]">
             <div className="py-2">
               {/* Logo in mobile menu */}
               <div className="px-6 py-4 border-b border-slate-100">

@@ -15,10 +15,10 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
         {/* Fixed logo overlay (independent of navbar height) */}
         <SiteLogo />
         {/* Slim top header */}
-        <div className="fixed top-0 left-0 right-0 h-11 bg-white/90 border-b border-slate-200 z-50" />
+        <div className="fixed top-0 left-0 right-0 h-11 bg-white/90 border-b border-slate-200 z-40" />
         
         {/* Static navigation bar below header */}
-        <div className="bg-white border-b border-slate-200 pt-11">
+        <div className="bg-white pt-11 z-30">
           <div className="mx-auto max-w-7xl px-6 py-2 pl-56">
             <Navbar />
           </div>
