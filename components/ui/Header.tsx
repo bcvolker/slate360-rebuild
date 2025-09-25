@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import Navbar from './Navbar';
 
 export default function Header() {
   return (
@@ -19,7 +18,8 @@ export default function Header() {
             />
           </div>
         </Link>
-        <Navbar />
+        {/* Spacer for right side to balance layout if needed */}
+        <div className="ml-auto" />
       </div>
     </header>
   );
