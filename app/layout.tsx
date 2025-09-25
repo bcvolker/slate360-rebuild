@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
         
         {/* Static navigation bar below header */}
         <div className="bg-white border-b border-slate-200 pt-11">
-          <div className="mx-auto max-w-7xl px-6 py-2 pr-56">
+          <div className="mx-auto max-w-7xl px-6 py-2 pl-56">
             <Navbar />
           </div>
         </div>

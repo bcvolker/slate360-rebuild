@@ -22,9 +22,9 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="flex w-full items-center justify-center">
+    <nav className="flex w-full items-center justify-start">
       {/* Desktop */}
-      <div className="hidden md:flex gap-x-6 text-sm">
+      <div className="hidden md:flex gap-x-5 text-sm">
         {tileData.map((tile) => (
           <Link
             key={tile.id}

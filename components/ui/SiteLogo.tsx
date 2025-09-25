@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export default function SiteLogo() {
   return (
-    <Link href="/" className="fixed top-3 right-6 z-[60] pointer-events-auto">
+    <Link href="/" className="fixed top-3 left-6 z-[60] pointer-events-auto">
       <Image
         src="/slate360logoforwebsite.png"
         alt="Slate360 Logo"
