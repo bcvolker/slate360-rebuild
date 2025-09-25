@@ -8,7 +8,7 @@ export default function MediaViewer({ id }: Props) {
   if (id === 'tour-builder' || id === 'tours' || id === 'tour') message = '360° Photo Coming Soon';
 
   return (
-    <div className="flex aspect-video w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500">
+    <div className="flex aspect-video w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 text-xs md:text-sm">
       {message}
     </div>
   );

@@ -37,21 +37,34 @@ export default function Navbar() {
           </Link>
         ))}
       </div>
-      {/* Mobile */}
+      {/* Mobile hamburger menu */}
       <div className="md:hidden ml-auto">
-        <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        <button 
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="p-2 rounded-md hover:bg-slate-100"
+          aria-label="Toggle navigation menu"
+        >
           <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
           </svg>
         </button>
         {isMenuOpen && (
-          <div className="absolute top-[48px] left-0 w-full bg-slate-900 text-white">
-            {tileData.map((tile) => (
-              <Link key={tile.id} href={`#${tile.id}`} onClick={() => setIsMenuOpen(false)}>
-                <div className={`p-4 ${active === tile.id ? 'text-[#4B9CD3]' : ''}`}>{tile.title}</div>
-              </Link>
-            ))}
+          <div className="absolute top-[48px] left-0 right-0 bg-white border-b border-slate-200 shadow-lg z-50">
+            <div className="py-2">
+              {tileData.map((tile) => (
+                <Link 
+                  key={tile.id} 
+                  href={`#${tile.id}`} 
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`block px-6 py-3 text-sm hover:bg-slate-50 ${
+                    active === tile.id ? 'text-[#4B9CD3] bg-slate-50' : 'text-slate-700'
+                  }`}
+                >
+                  {tile.title}
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </div>
