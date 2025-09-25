@@ -9,10 +9,10 @@ export default function SiteLogo(){
         <Image
           src="/slate360logoforwebsite.png"
           alt="Slate360"
-          width={220}
-          height={74}
+          width={180}
+          height={54}
           priority
-          className="relative h-auto w-auto object-contain drop-shadow"
+          className="relative h-12 w-auto object-contain drop-shadow"
         />
       </span>
     </Link>

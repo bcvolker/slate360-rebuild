@@ -7,7 +7,7 @@ module.exports = {
   ],
   safelist: [
     'bg-red-500', 'text-red-500', 'min-h-screen', 'flex', 'items-center', 'justify-center', 'snap-start',
-    'w-[40%]', 'w-[50%]', 'h-[60vh]', 'h-[70vh]'
+    'w-[40%]', 'w-[50%]', 'h-[60vh]', 'h-[70vh]', 'text-copper', 'bg-copper', 'bg-brand-blue'
   ],
   theme: {
     extend: {

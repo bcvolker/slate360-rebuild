@@ -29,7 +29,7 @@ export default function TileSection({
     viewerOn === "left" ? "md:flex-row-reverse" : "md:flex-row";
 
   return (
-    <section id={id} className="tile-background snap-start h-screen flex items-center justify-center border-b border-slate-200 scroll-mt-11">
+    <section id={id} data-tile className="tile-background snap-start h-screen flex items-center justify-center border-b border-slate-200 scroll-mt-[88px]">
       <div className="mx-auto max-w-7xl w-full px-6 md:px-10 tile-content flex items-center justify-center min-h-0">
         {/* Desktop layout */}
         <div className={`hidden md:flex ${rowDir} gap-10 items-center w-full h-full max-h-[80vh]`}>

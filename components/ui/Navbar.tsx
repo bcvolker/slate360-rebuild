@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { tileData } from '@/lib/tile-data';
 
 export default function Navbar(){
-  const [active, setActive] = useState<string>('slate360');
+  const [active, setActive] = useState<string>('hero');
   const obs = useRef<IntersectionObserver|null>(null);
 
   useEffect(()=>{
@@ -26,30 +26,41 @@ export default function Navbar(){
   ];
 
   return (
-    <header className="fixed top-0 inset-x-0 z-40 h-16 bg-brand-blue/90 header-blur header-border flex items-center justify-center">
-      <nav className="w-full max-w-7xl px-4 md:px-6 flex items-center justify-center md:pl-[240px]">
-        <ul className="hidden md:flex items-center gap-6 text-sm">
-          {tileData.map(t=>(
-            <li key={t.id}>
-              <a
-                href={`#${t.id}`}
-                className={`transition relative after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-copper after:transition-all ${
-                  active===t.id ? 'text-copper after:w-full' : 'text-white/90 hover:text-white'
-                }`}
-              >
-                {t.title}
-              </a>
-            </li>
-          ))}
-          {staticLinks.map(l=>(
-            <li key={l.id}>
-              <Link href={l.href} className="text-white/90 hover:text-white">{l.title}</Link>
-            </li>
-          ))}
-        </ul>
-        <MobileMenu active={active} items={tileData} extra={staticLinks}/>
+    <>
+      {/* Top blue header with static links */}
+      <header className="fixed top-0 inset-x-0 z-40 h-12 bg-brand-blue/90 header-blur header-border flex items-center justify-end">
+        <nav className="w-full max-w-7xl px-4 md:px-6 flex items-center justify-end">
+          <ul className="hidden md:flex items-center gap-6 text-sm">
+            {staticLinks.map(l=>(
+              <li key={l.id}>
+                <Link href={l.href} className="text-copper hover:text-copper/80">{l.title}</Link>
+              </li>
+            ))}
+          </ul>
+          <MobileMenu active={active} items={tileData} extra={staticLinks}/>
+        </nav>
+      </header>
+
+      {/* Tile navigation bar below header */}
+      <nav className="fixed top-12 inset-x-0 z-30 h-10 bg-white border-b border-slate-200 flex items-center justify-center">
+        <div className="w-full max-w-7xl px-4 md:px-6 flex items-center justify-center">
+          <ul className="hidden md:flex items-center gap-8 text-sm">
+            {tileData.map(t=>(
+              <li key={t.id}>
+                <a
+                  href={`#${t.id}`}
+                  className={`transition relative after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-copper after:transition-all ${
+                    active===t.id ? 'text-copper after:w-full font-medium' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {t.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </nav>
-    </header>
+    </>
   );
 }
 
@@ -63,7 +74,7 @@ function MobileMenu({active, items, extra}:{active:string; items:{id:string; tit
         </svg>
       </button>
       {open && (
-        <ul className="absolute top-16 left-0 right-0 bg-brand-blue/95 border-t border-white/10 py-3 space-y-2">
+        <ul className="absolute top-12 left-0 right-0 bg-brand-blue/95 border-t border-white/10 py-3 space-y-2 z-50">
           {items.map(t=>(
             <li key={t.id} className="text-center">
               <a href={`#${t.id}`} onClick={()=>setOpen(false)}
@@ -74,7 +85,7 @@ function MobileMenu({active, items, extra}:{active:string; items:{id:string; tit
           ))}
           {extra.map(l=>(
             <li key={l.id} className="text-center">
-              <Link href={l.href} onClick={()=>setOpen(false)} className="block py-2 text-white/90 hover:text-white">
+              <Link href={l.href} onClick={()=>setOpen(false)} className="block py-2 text-copper hover:text-copper/80">
                 {l.title}
               </Link>
             </li>
