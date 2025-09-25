@@ -1,28 +1,5 @@
 import Link from "next/link";
-// If you have a MediaViewer component, import it here:
-// import MediaViewer from "@/components/ui/MediaViewer";
-
-// TEMP: Placeholder for MediaViewer if missing
-function MediaViewer({ hero }: { hero?: boolean }) {
-  return (
-    <div
-      style={{
-        width: hero ? "100%" : "100%",
-        height: hero ? "100%" : "100%",
-        background: "rgba(75,156,211,0.15)",
-        borderRadius: 16,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "#fff",
-        fontWeight: 600,
-        fontSize: 24,
-      }}
-    >
-      MediaViewer
-    </div>
-  );
-}
+import MediaViewer from "./MediaViewer";
 
 type Props = {
   id: string;
@@ -46,18 +23,18 @@ export default function TileSection({
   hero = false,
 }: Props) {
   const viewerSize = hero
-    ? "w-[50%] max-w-2xl h-[70vh]"
-    : "w-[40%] max-w-xl h-[60vh]";
+    ? "w-full md:w-[50%] max-w-3xl h-[70vh]"
+    : "w-full md:w-[40%] max-w-2xl h-[60vh]";
   const rowDir =
     viewerOn === "left" ? "md:flex-row-reverse" : "md:flex-row";
 
   return (
-  <section id={id} className="tile-background snap-start min-h-screen flex items-center">
+  <div id={id} className="tile-background min-h-screen h-screen snap-start flex items-center justify-center border-b border-slate-200">
   <div className="mx-auto max-w-7xl w-full px-6 md:px-10 py-24 tile-content">
         <div className={`flex flex-col ${rowDir} gap-10 items-start`}>
           {/* Viewer */}
           <div className={`flex-shrink-0 ${viewerSize} flex items-start justify-center`}>
-            <MediaViewer hero={hero} />
+            <MediaViewer id={id} />
           </div>
 
           {/* Text */}
@@ -88,6 +65,6 @@ export default function TileSection({
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

@@ -24,7 +24,7 @@ export default function Tile({
   return (
     <div className={clsx('grid items-center gap-8 md:gap-12', reverse ? 'md:grid-cols-2 md:[&>*:first-child]:order-2' : 'md:grid-cols-2')}>
       <div className={clsx(biggerHero ? 'md:col-span-1 md:scale-[1.03]' : '')}>
-        <MediaViewer media={media} label={title} />
+        <MediaViewer id={id} />
       </div>
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h2>
