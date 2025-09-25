@@ -22,7 +22,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 h-11 bg-white/90 border-b border-slate-200 z-40 md:pl-[200px] flex items-center justify-center">
+    <nav className="flex w-full items-center justify-center">
       {/* Desktop */}
       <div className="hidden md:flex gap-x-6 text-sm">
         {tileData.map((tile) => (
@@ -46,7 +46,7 @@ export default function Navbar() {
           </svg>
         </button>
         {isMenuOpen && (
-          <div className="absolute top-[44px] left-0 w-full bg-slate-900 text-white">
+          <div className="absolute top-[48px] left-0 w-full bg-slate-900 text-white">
             {tileData.map((tile) => (
               <Link key={tile.id} href={`#${tile.id}`} onClick={() => setIsMenuOpen(false)}>
                 <div className={`p-4 ${active === tile.id ? 'text-[#4B9CD3]' : ''}`}>{tile.title}</div>
