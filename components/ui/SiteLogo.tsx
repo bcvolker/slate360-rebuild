@@ -5,16 +5,16 @@ export default function SiteLogo() {
   return (
     <Link
       href="/"
-      className="fixed top-2 left-4 z-50 pointer-events-auto inline-flex items-center"
+      className="fixed top-3 left-6 z-[100] pointer-events-auto inline-flex items-center"
     >
       <span className="absolute inset-0 bg-[#B87333]/80 rounded-md -z-10" />
       <Image
         src="/slate360logoforwebsite.png"
         alt="Slate360 Logo"
-        width={160}
-        height={48}
+        width={200}
+        height={60}
         priority
-        className="h-12 w-auto object-contain drop-shadow-md relative z-10"
+        className="h-14 w-auto object-contain drop-shadow-md relative z-10"
       />
     </Link>
   );

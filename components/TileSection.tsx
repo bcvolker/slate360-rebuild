@@ -22,84 +22,49 @@ export default function TileSection({
   viewerOn = "right",
   hero = false,
 }: Props) {
-  const viewerSize = hero
-    ? "w-[50%] max-w-2xl h-[70vh]"
-    : "w-[40%] max-w-xl h-[60vh]";
-  const rowDir =
-    viewerOn === "left" ? "md:flex-row-reverse" : "md:flex-row";
-
+  const isReverse = viewerOn === "left";
+  
   return (
-    <section id={id} data-tile className="tile-background snap-start h-screen flex items-center justify-center border-b border-slate-200 scroll-mt-[64px]">
-      <div className="mx-auto max-w-7xl w-full px-6 md:px-10 tile-content flex items-center justify-center min-h-0">
-        {/* Desktop layout */}
-        <div className={`hidden md:flex ${rowDir} gap-10 items-center w-full h-full max-h-[80vh]`}>
-          {/* Viewer */}
-          <div className={`flex-shrink-0 ${viewerSize} flex items-center justify-center`}>
-            <MediaViewer id={id} />
-          </div>
-
-          {/* Text */}
-          <div className="flex-1 min-w-0 flex flex-col justify-center">
-            <h2 className="text-5xl font-extrabold tracking-tight">{title}</h2>
-            {subtitle && (
-              <h3 className="mt-2 text-2xl font-semibold text-[var(--brand-blue)]">
-                {subtitle}
-              </h3>
-            )}
-            <p className="mt-4 text-lg leading-relaxed text-slate-300">
-              {description}
-            </p>
-            <ul className="mt-6 space-y-2">
-              {features.map((f, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="mt-[2px] text-[var(--brand-copper)]">▸</span>
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href={learnHref}
-              className="mt-8 inline-flex items-center gap-2 text-[var(--brand-blue)] font-semibold hover:underline"
-            >
-              Learn more →
-            </Link>
-          </div>
+    <section 
+      id={id} 
+      className={`w-full h-screen snap-start flex ${
+        isReverse ? "md:flex-row-reverse" : "md:flex-row"
+      } flex-col items-center justify-center bg-white border-b border-[#B87333]/20 scroll-mt-[64px]`}
+    >
+      {/* Viewer Section */}
+      <div className={`${
+        hero ? "md:w-[55%] h-[75%]" : "md:w-[45%] h-[70%]"
+      } w-full flex items-center justify-center p-4`}>
+        <div className="w-full h-full bg-gray-900 rounded-lg shadow-lg overflow-hidden">
+          <MediaViewer id={id} />
         </div>
+      </div>
 
-        {/* Mobile layout */}
-        <div className="md:hidden flex flex-col gap-8 items-center justify-center w-full h-full max-h-[80vh] py-8">
-          {/* Text content */}
-          <div className="text-center px-6 flex-1 flex flex-col justify-center">
-            <h2 className="text-3xl font-extrabold tracking-tight">{title}</h2>
-            {subtitle && (
-              <h3 className="mt-2 text-xl font-semibold text-[var(--brand-blue)]">
-                {subtitle}
-              </h3>
-            )}
-            <p className="mt-4 text-base leading-relaxed text-slate-600">
-              {description}
-            </p>
-            <ul className="mt-6 space-y-2 text-left max-w-sm mx-auto">
-              {features.map((f, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="mt-[2px] text-[var(--brand-copper)]">▸</span>
-                  <span className="text-sm">{f}</span>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href={learnHref}
-              className="mt-6 inline-flex items-center gap-2 text-[var(--brand-blue)] font-semibold hover:underline"
-            >
-              Learn more →
-            </Link>
-          </div>
-
-          {/* Small thumbnail viewer - centered */}
-          <div className="w-40 h-24 flex-shrink-0">
-            <MediaViewer id={id} />
-          </div>
-        </div>
+      {/* Content Section */}
+      <div className="flex-1 h-full flex flex-col justify-center p-8 space-y-6">
+        <h2 className="text-5xl font-bold text-gray-900">{title}</h2>
+        {subtitle && (
+          <h3 className="text-2xl font-semibold text-[#4B9CD3]">{subtitle}</h3>
+        )}
+        <p className="text-xl text-gray-700 leading-relaxed max-w-2xl">{description}</p>
+        
+        {features && features.length > 0 && (
+          <ul className="space-y-3">
+            {features.map((feature, index) => (
+              <li key={index} className="flex items-start gap-3">
+                <span className="text-[#B87333] text-lg mt-1">▸</span>
+                <span className="text-lg text-gray-700">{feature}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        
+        <Link
+          href={learnHref}
+          className="inline-flex items-center gap-2 bg-[#B87333] text-white px-6 py-3 rounded-md font-semibold hover:bg-[#9f5f24] transition-colors shadow-lg"
+        >
+          Learn More →
+        </Link>
       </div>
     </section>
   );
