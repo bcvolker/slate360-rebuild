@@ -1,12 +1,20 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { tileData } from '@/lib/tile-data';
 
 export default function Navbar() {
   const [active, setActive] = useState('hero');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const observer = useRef<IntersectionObserver | null>(null);
+
+  // Trigger custom event to notify SiteLogo of state change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('mobileMenuToggle', { detail: { isOpen: isMenuOpen } }));
+    }
+  }, [isMenuOpen]);
 
   useEffect(() => {
     observer.current = new IntersectionObserver(
@@ -52,6 +60,19 @@ export default function Navbar() {
         {isMenuOpen && (
           <div className="absolute top-[48px] left-0 right-0 bg-white border-b border-slate-200 shadow-lg z-[65] mt-4">
             <div className="py-2">
+              {/* Logo in mobile menu */}
+              <div className="px-6 py-4 border-b border-slate-100">
+                <Link href="/" onClick={() => setIsMenuOpen(false)}>
+                  <Image
+                    src="/slate360logoforwebsite.png"
+                    alt="Slate360 Logo"
+                    width={156}
+                    height={46}
+                    priority
+                    className="h-12 w-auto object-contain"
+                  />
+                </Link>
+              </div>
               {tileData.map((tile) => (
                 <Link 
                   key={tile.id} 
