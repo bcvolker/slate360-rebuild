@@ -31,7 +31,7 @@ export default function TileSection({
   return (
     <section 
       id={id} 
-      className="w-full h-screen snap-start snap-always flex flex-col items-center justify-start bg-white border-b border-[#B87333]/20 scroll-mt-20 relative"
+      className="w-full h-screen snap-start snap-always flex flex-col items-center justify-start bg-white border-b border-[#B87333]/20 scroll-mt-12 relative overflow-hidden"
     >
       {/* Main Content Container - Fixed positioning */}
       <div className="w-full max-w-7xl mx-auto h-full flex items-center justify-center pt-8 pb-20">

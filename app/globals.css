@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fix scrollbar issues */
+html, body {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
 :root {
   --brand-blue:#4B9CD3; /* Carolina Blue PMS 542 */
   --brand-copper:#B87333;

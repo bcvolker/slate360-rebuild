@@ -49,36 +49,54 @@ export default function Navbar() {
           </button>
           {isOpen && (
             <div className="absolute top-12 left-0 w-full bg-[#4B9CD3]/95 border-t border-slate-200 shadow-lg z-50">
-              <ul className="flex flex-col items-center py-4 space-y-3">
-                {tileData.map((tile) => (
-                  <li key={tile.id}>
-                    <Link href={`#${tile.id}`} onClick={() => setIsOpen(false)} className="text-lg text-white hover:text-[#FFD7B5]">
-                      {tile.title}
-                    </Link>
-                  </li>
-                ))}
-                <li><Link href="/about" onClick={() => setIsOpen(false)} className="text-lg text-white hover:text-[#FFD7B5]">About</Link></li>
-                <li><Link href="/contact" onClick={() => setIsOpen(false)} className="text-lg text-white hover:text-[#FFD7B5]">Contact</Link></li>
-                <li><Link href="/pricing" onClick={() => setIsOpen(false)} className="text-lg text-white hover:text-[#FFD7B5]">Pricing</Link></li>
-                <li><Link href="/login" onClick={() => setIsOpen(false)} className="text-lg text-white hover:text-[#FFD7B5]">Login</Link></li>
-              </ul>
+              <div className="p-4">
+                {/* Tile Navigation for Mobile */}
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-white/80 mb-3 uppercase tracking-wide">Features</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {tileData.map((tile) => (
+                      <Link 
+                        key={tile.id} 
+                        href={`#${tile.id}`} 
+                        onClick={() => setIsOpen(false)} 
+                        className={`text-sm text-white hover:text-[#FFD7B5] p-2 rounded transition-colors ${
+                          activeSection === tile.id ? 'bg-white/20 font-semibold' : ''
+                        }`}
+                      >
+                        {tile.title}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Main Navigation for Mobile */}
+                <div>
+                  <h3 className="text-sm font-semibold text-white/80 mb-3 uppercase tracking-wide">Company</h3>
+                  <ul className="grid grid-cols-2 gap-2">
+                    <li><Link href="/about" onClick={() => setIsOpen(false)} className="text-sm text-white hover:text-[#FFD7B5] block p-2 rounded transition-colors">About</Link></li>
+                    <li><Link href="/contact" onClick={() => setIsOpen(false)} className="text-sm text-white hover:text-[#FFD7B5] block p-2 rounded transition-colors">Contact</Link></li>
+                    <li><Link href="/pricing" onClick={() => setIsOpen(false)} className="text-sm text-white hover:text-[#FFD7B5] block p-2 rounded transition-colors">Pricing</Link></li>
+                    <li><Link href="/login" onClick={() => setIsOpen(false)} className="text-sm text-white hover:text-[#FFD7B5] block p-2 rounded transition-colors">Login</Link></li>
+                  </ul>
+                </div>
+              </div>
             </div>
           )}
         </div>
       </header>
 
-      {/* Tile Navigation Grid - Below Header */}
-      <nav className="fixed top-12 left-0 right-0 z-30 py-2">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="hidden md:grid grid-cols-4 gap-x-8 gap-y-2 justify-items-center">
+      {/* Compact Tile Navigation - Positioned over content */}
+      <nav className="fixed top-16 left-4 z-30">
+        <div className="hidden md:block bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-slate-200 p-3">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
             {tileData.map((tile) => (
               <Link
                 key={tile.id}
                 href={`#${tile.id}`}
-                className={`text-sm font-medium transition-all whitespace-nowrap ${
+                className={`px-2 py-1 rounded transition-all whitespace-nowrap text-center ${
                   activeSection === tile.id
-                    ? "text-[#B87333] scale-105 font-semibold"
-                    : "text-slate-700 hover:text-[#B87333]"
+                    ? "bg-[#B87333] text-white font-semibold"
+                    : "text-slate-700 hover:bg-[#B87333]/10 hover:text-[#B87333]"
                 }`}
               >
                 {tile.title}
