@@ -10,6 +10,9 @@ html, body {
   touch-action: pan-y;
 }
 
+/* Ensure images are visible and scale correctly */
+img { display: block; max-width: 100%; height: auto; }
+
 /* Enable smooth scrolling only on desktop */
 @media (min-width: 768px) {
   html, body {
