@@ -78,14 +78,7 @@ export default function Navbar() {
         {/* Mobile Hamburger */}
         <div className="md:hidden">
           <button
-            onClick={() => {
-              const newState = !isOpen;
-              setIsOpen(newState);
-              // Notify SiteLogo about mobile menu state
-              window.dispatchEvent(new CustomEvent('mobile-menu-toggle', { 
-                detail: { isOpen: newState } 
-              }));
-            }}
+            onClick={() => setIsOpen(!isOpen)}
             className="text-[#B87333] focus:outline-none p-2 rounded transition-colors hover:bg-[#B87333]/10"
           >
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,12 +95,7 @@ export default function Navbar() {
               <div className="p-4">
                 {/* Logo inside mobile menu */}
                 <div className="flex justify-center mb-4">
-                  <Link href="/" onClick={() => {
-                    setIsOpen(false);
-                    window.dispatchEvent(new CustomEvent('mobile-menu-toggle', { 
-                      detail: { isOpen: false } 
-                    }));
-                  }} className="inline-flex items-center">
+                  <Link href="/" onClick={() => setIsOpen(false)} className="inline-flex items-center">
                     <img
                       src="/slate360logoforwebsite.png"
                       alt="Slate360 Logo"
@@ -121,21 +109,16 @@ export default function Navbar() {
                   <h3 className="text-sm font-semibold text-[#B87333]/80 mb-3 uppercase tracking-wide">Menu</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {tileData.map((tile) => (
-                      <Link 
+                      <a
                         key={tile.id} 
                         href={`#${tile.id}`} 
-                        onClick={() => {
-                          setIsOpen(false);
-                          window.dispatchEvent(new CustomEvent('mobile-menu-toggle', { 
-                            detail: { isOpen: false } 
-                          }));
-                        }} 
+                        onClick={() => setIsOpen(false)} 
                         className={`text-sm text-[#B87333] hover:text-[#B87333]/70 p-2 rounded transition-colors ${
                           activeSection === tile.id ? 'bg-[#B87333]/20 font-semibold' : ''
                         }`}
                       >
                         {tile.title}
-                      </Link>
+                      </a>
                     ))}
                   </div>
                 </div>
@@ -144,22 +127,10 @@ export default function Navbar() {
                 <div>
                   <h3 className="text-sm font-semibold text-[#B87333]/80 mb-3 uppercase tracking-wide">Company</h3>
                   <ul className="grid grid-cols-2 gap-2">
-                    <li><Link href="/about" onClick={() => {
-                      setIsOpen(false);
-                      window.dispatchEvent(new CustomEvent('mobile-menu-toggle', { detail: { isOpen: false } }));
-                    }} className="text-sm text-[#B87333] hover:text-[#B87333]/70 block p-2 rounded transition-colors">About</Link></li>
-                    <li><Link href="/contact" onClick={() => {
-                      setIsOpen(false);
-                      window.dispatchEvent(new CustomEvent('mobile-menu-toggle', { detail: { isOpen: false } }));
-                    }} className="text-sm text-[#B87333] hover:text-[#B87333]/70 block p-2 rounded transition-colors">Contact</Link></li>
-                    <li><Link href="/subscribe" onClick={() => {
-                      setIsOpen(false);
-                      window.dispatchEvent(new CustomEvent('mobile-menu-toggle', { detail: { isOpen: false } }));
-                    }} className="text-sm text-[#B87333] hover:text-[#B87333]/70 block p-2 rounded transition-colors">Subscribe</Link></li>
-                    <li><Link href="/login" onClick={() => {
-                      setIsOpen(false);
-                      window.dispatchEvent(new CustomEvent('mobile-menu-toggle', { detail: { isOpen: false } }));
-                    }} className="text-sm text-[#B87333] hover:text-[#B87333]/70 block p-2 rounded transition-colors">Login</Link></li>
+                    <li><Link href="/about" onClick={() => setIsOpen(false)} className="text-sm text-[#B87333] hover:text-[#B87333]/70 block p-2 rounded transition-colors">About</Link></li>
+                    <li><Link href="/contact" onClick={() => setIsOpen(false)} className="text-sm text-[#B87333] hover:text-[#B87333]/70 block p-2 rounded transition-colors">Contact</Link></li>
+                    <li><Link href="/subscribe" onClick={() => setIsOpen(false)} className="text-sm text-[#B87333] hover:text-[#B87333]/70 block p-2 rounded transition-colors">Subscribe</Link></li>
+                    <li><Link href="/login" onClick={() => setIsOpen(false)} className="text-sm text-[#B87333] hover:text-[#B87333]/70 block p-2 rounded transition-colors">Login</Link></li>
                   </ul>
                 </div>
               </div>

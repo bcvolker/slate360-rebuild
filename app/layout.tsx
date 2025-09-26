@@ -7,6 +7,7 @@ import CEOPanelWrapper from "@/components/admin/CEOPanelWrapper";
 export const metadata: Metadata = {
   title: "Slate360",
   description: "From Design to Reality",
+  viewport: "width=device-width, initial-scale=1",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
