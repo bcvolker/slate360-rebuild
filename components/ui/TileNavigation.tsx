@@ -21,18 +21,28 @@ export default function TileNavigation() {
   }, []);
 
   return (
-    <nav className="fixed top-20 right-6 z-30 flex flex-col space-y-0.5">
+    <nav className="fixed top-16 right-6 z-30 flex flex-col space-y-1">
       {tileData.map((tile) => (
         <Link
           key={tile.id}
           href={`#${tile.id}`}
-          className={`text-xs transition-colors ${
-            activeSection === tile.id
-              ? "text-[#B87333] font-semibold"
-              : "text-gray-700 hover:text-[#B87333]"
-          }`}
+          className="group relative"
+          title={tile.title}
         >
-          {tile.title}
+          {/* Hamburger line */}
+          <div 
+            className={`w-6 h-0.5 transition-all duration-300 ${
+              activeSection === tile.id
+                ? "bg-[#4B9CD3] shadow-lg shadow-[#4B9CD3]/50"
+                : "bg-[#B87333] hover:bg-[#4B9CD3] hover:shadow-md hover:shadow-[#4B9CD3]/30"
+            }`}
+          />
+          
+          {/* Tooltip on hover */}
+          <div className="absolute left-8 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+            {tile.title}
+            <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+          </div>
         </Link>
       ))}
     </nav>
