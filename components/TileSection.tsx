@@ -32,10 +32,13 @@ export default function TileSection({
   return (
     <section 
       id={id} 
-      className="w-full h-auto md:h-screen md:snap-start md:snap-always scroll-mt-16 md:scroll-mt-12 bg-white relative"
+      className={`w-full h-auto md:h-screen md:snap-start md:snap-always scroll-mt-16 md:scroll-mt-12 bg-white relative ${
+        // subtle divider between tiles on mobile to show boundaries
+        id !== 'vr' ? 'md:border-none' : ''
+      }`}
     >
       {/* Mobile Layout */}
-      <div className="md:hidden w-full flex flex-col px-6 py-16">
+      <div className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-28' : 'py-16'} border-b border-slate-200/70 last:border-b-0`}>
         {/* Content Section for Mobile */}
         <div className="flex flex-col justify-start space-y-4 mb-6">
           {id === 'hero' ? (
@@ -78,7 +81,7 @@ export default function TileSection({
         
         {/* Mobile Thumbnail Viewer at Bottom */}
         <div className={`w-full flex ${isReverse ? "justify-start" : "justify-end"}`}>
-          <div className="w-24 h-16 rounded-lg shadow-md overflow-hidden border border-slate-200 cursor-pointer hover:shadow-lg transition-shadow">
+          <div className="w-16 h-12 rounded-lg shadow-md overflow-hidden border border-slate-200 cursor-pointer hover:shadow-lg transition-shadow">
             <MediaViewer id={id} title={title} thumbnail={true} />
           </div>
         </div>
@@ -108,7 +111,7 @@ export default function TileSection({
                     width={200}
                     height={60}
                     priority
-                    className="h-[1.5rem] md:h-[2rem] w-auto object-contain"
+                    className="h-[1.75rem] md:h-[2.25rem] w-auto object-contain"
                   />
                 </div>
               ) : (
