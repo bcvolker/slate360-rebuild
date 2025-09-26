@@ -95,7 +95,7 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title }: Props) {
         <h3 className="text-xl font-semibold text-slate-700 mb-2">{content.title}</h3>
         <p className="text-slate-500 mb-6 max-w-md leading-relaxed">{content.description}</p>
         <div className="flex gap-2 text-xs text-slate-400">
-          <span className="px-2 py-1 bg-white rounded border">Upload from CEO Panel</span>
+          <span className="px-2 py-1 bg-white rounded border">Dynamic Content</span>
           <span className="px-2 py-1 bg-white rounded border">Multi-format Support</span>
           <span className="px-2 py-1 bg-white rounded border">Interactive Controls</span>
         </div>
