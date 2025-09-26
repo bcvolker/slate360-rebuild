@@ -34,20 +34,18 @@ export default function TileSection({
       id={id} 
       className="w-full h-screen snap-start snap-always bg-white border-b border-[#B87333]/20 scroll-mt-12 relative overflow-hidden"
     >
-      {/* Force content with 0.75" viewer offset */}
-      <div className="absolute top-16 left-0 right-0 bottom-0 flex items-start justify-center">
+      {/* Centered content with proper spacing */}
+      <div className="w-full h-full flex items-center justify-center">
         <div className="w-full max-w-7xl mx-auto px-8">
           <div className={`flex ${
             isReverse ? "md:flex-row-reverse" : "md:flex-row"
-          } items-start justify-center gap-8 h-full`}>
+          } items-center justify-center gap-8 h-full`}>
             
-            {/* Viewer Section with Navigation Below - Moved down 0.75" */}
-            <div className={`${viewerWidth} flex flex-col shrink-0`}>
-              {/* Viewer moved down 0.75" (18px at 96dpi) */}
-              <div className="pt-[18px]">
-                <div className={`w-full ${viewerHeight} rounded-lg shadow-lg overflow-hidden border border-slate-200`}>
-                  <MediaViewer id={id} title={title} />
-                </div>
+            {/* Viewer Section with Navigation Below - Centered */}
+            <div className={`${viewerWidth} flex flex-col items-center shrink-0`}>
+              {/* Viewer */}
+              <div className={`w-full ${viewerHeight} rounded-lg shadow-lg overflow-hidden border border-slate-200`}>
+                <MediaViewer id={id} title={title} />
               </div>
               
               {/* Constrained Navigation - 2x4 grid within viewer width */}
@@ -56,8 +54,8 @@ export default function TileSection({
               </div>
             </div>
 
-            {/* Content Section - Moved Up */}
-            <div className="flex-1 max-w-2xl space-y-4 pt-8">
+            {/* Content Section - Centered */}
+            <div className="flex-1 max-w-2xl space-y-6 flex flex-col justify-center">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
               {subtitle && (
                 <h3 className="text-lg md:text-xl font-semibold text-[#4B9CD3]">{subtitle}</h3>
