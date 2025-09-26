@@ -29,7 +29,7 @@ export default function TileSection({
       id={id} 
       className={`w-full h-screen snap-start flex ${
         isReverse ? "md:flex-row-reverse" : "md:flex-row"
-      } flex-col items-center justify-center bg-white border-b border-[#B87333]/20 scroll-mt-[64px]`}
+      } flex-col items-center justify-center bg-white border-b border-[#B87333]/20 scroll-mt-20`}
     >
       {/* Viewer Section */}
       <div className={`${
