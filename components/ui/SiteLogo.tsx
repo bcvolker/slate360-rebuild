@@ -5,7 +5,7 @@ export default function SiteLogo() {
   return (
     <Link
       href="/"
-      className="fixed top-4 right-6 z-[100] pointer-events-auto inline-flex items-center"
+      className="fixed top-4 left-6 z-[100] pointer-events-auto inline-flex items-center"
     >
       <Image
         src="/slate360logoforwebsite.png"

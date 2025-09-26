@@ -26,17 +26,17 @@ export default function Navbar() {
       {/* Top Header - Static Links Only */}
       <header className="fixed top-0 left-0 right-0 h-12 bg-transparent z-40 flex items-center justify-end px-6">
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="/about" className="text-sm text-[#B87333] hover:text-[#B87333]/70">About</Link>
-          <Link href="/contact" className="text-sm text-[#B87333] hover:text-[#B87333]/70">Contact</Link>
-          <Link href="/pricing" className="text-sm text-[#B87333] hover:text-[#B87333]/70">Pricing</Link>
-          <Link href="/login" className="text-sm text-[#B87333] hover:text-[#B87333]/70">Login</Link>
+          <Link href="/about" className="text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors">About</Link>
+          <Link href="/contact" className="text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors">Contact</Link>
+          <Link href="/pricing" className="text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors">Pricing</Link>
+          <Link href="/login" className="text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors">Login</Link>
         </nav>
 
         {/* Mobile Hamburger */}
         <div className="md:hidden">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="text-[#B87333] focus:outline-none"
+            className="text-[#B87333] focus:outline-none p-2 rounded transition-colors hover:bg-[#B87333]/10"
           >
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path

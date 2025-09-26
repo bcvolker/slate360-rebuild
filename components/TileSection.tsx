@@ -84,14 +84,6 @@ export default function TileSection({
         </div>
       </div>
       
-      {/* Bottom Messaging Area */}
-      <div className="absolute bottom-4 left-0 right-0 flex items-center justify-center px-8">
-        <div className="text-center text-gray-500">
-          <p className="text-xs">
-            Scroll to explore more features • Professional tools for modern workflows
-          </p>
-        </div>
-      </div>
     </section>
   );
 }
