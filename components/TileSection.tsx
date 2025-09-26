@@ -35,7 +35,7 @@ export default function TileSection({
       className="w-full min-h-screen md:h-screen md:snap-start md:snap-always bg-white scroll-mt-12 relative"
     >
       {/* Mobile Layout */}
-      <div className="md:hidden w-full h-full flex flex-col justify-center px-6 py-8">
+      <div className="md:hidden w-full min-h-screen flex flex-col justify-center px-6 py-8">
         {/* Content Section for Mobile */}
         <div className="flex-1 flex flex-col justify-center space-y-4 mb-6">
           {id === 'hero' ? (
