@@ -21,12 +21,12 @@ export default function TileNavigation() {
   }, []);
 
   return (
-    <nav className="fixed top-20 right-6 z-30 flex flex-col space-y-1">
+    <nav className="fixed top-20 right-6 z-30 flex flex-col space-y-0.5">
       {tileData.map((tile) => (
         <Link
           key={tile.id}
           href={`#${tile.id}`}
-          className={`text-sm transition-colors ${
+          className={`text-xs transition-colors ${
             activeSection === tile.id
               ? "text-[#B87333] font-semibold"
               : "text-gray-700 hover:text-[#B87333]"

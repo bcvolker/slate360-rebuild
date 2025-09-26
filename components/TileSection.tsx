@@ -31,7 +31,7 @@ export default function TileSection({
   return (
     <section 
       id={id} 
-      className="w-full h-screen snap-start snap-always bg-white border-b border-[#B87333]/20 scroll-mt-12 relative overflow-hidden"
+      className="w-full h-screen snap-start snap-always bg-white scroll-mt-12 relative overflow-hidden"
     >
       {/* Centered content with proper spacing */}
       <div className="w-full h-full flex items-center justify-center">
