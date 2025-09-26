@@ -93,6 +93,17 @@ export default function Navbar() {
           {isOpen && (
             <div className="absolute top-12 left-0 w-full bg-white/95 backdrop-blur-sm shadow-lg z-[60]">
               <div className="p-4">
+                {/* Logo inside mobile menu */}
+                <div className="flex justify-center mb-4">
+                  <Link href="/" onClick={() => setIsOpen(false)} className="inline-flex items-center">
+                    <img
+                      src="/slate360logoforwebsite.png"
+                      alt="Slate360 Logo"
+                      className="h-8 w-auto object-contain"
+                    />
+                  </Link>
+                </div>
+                
                 {/* Tile Navigation for Mobile */}
                 <div className="mb-6">
                   <h3 className="text-sm font-semibold text-[#B87333]/80 mb-3 uppercase tracking-wide">Menu</h3>

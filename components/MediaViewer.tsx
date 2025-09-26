@@ -9,9 +9,10 @@ type Props = {
   mediaUrl?: string;
   mediaType?: MediaType;
   title?: string;
+  thumbnail?: boolean;
 };
 
-export default function MediaViewer({ id, mediaUrl, mediaType, title }: Props) {
+export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail = false }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -204,6 +205,27 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title }: Props) {
       </div>
     </div>
   );
+
+  // Thumbnail version for mobile
+  if (thumbnail) {
+    const content = (() => {
+      switch (finalMediaType) {
+        case '3d-model': return { icon: '🏗️', color: 'bg-slate-700' };
+        case '360-photo': return { icon: '📷', color: 'bg-blue-600' };
+        case '360-video': return { icon: '🎥', color: 'bg-red-600' };
+        case 'video': return { icon: '🎬', color: 'bg-purple-600' };
+        case 'bim-model': return { icon: '🏢', color: 'bg-green-600' };
+        case 'vr-scene': return { icon: '🥽', color: 'bg-indigo-600' };
+        default: return { icon: '🖼️', color: 'bg-gray-600' };
+      }
+    })();
+
+    return (
+      <div className={`w-full h-full ${content.color} flex items-center justify-center text-white text-lg hover:scale-105 transition-transform cursor-pointer`}>
+        {content.icon}
+      </div>
+    );
+  }
 
   return (
     <div 
