@@ -52,11 +52,11 @@ export default function Navbar() {
   <header className="fixed top-0 left-0 right-0 h-16 bg-white/80 bg-gradient-to-r from-white/90 to-[#4B9CD3]/5 backdrop-blur-sm border-b border-gray-200 z-50 flex items-center justify-end px-4 md:px-6">
         {/* Mobile-only top-left logo */}
         <Link href="/" className="absolute left-4 top-2 inline-flex items-center md:hidden">
-          <Image src="/slate360logoforwebsite.png" alt="Slate360" width={200} height={60} priority unoptimized className="h-12 w-auto max-w-[55vw]" />
+          <Image src="/assets/slate360logoforwebsite.png" alt="Slate360" width={200} height={60} priority unoptimized className="h-12 w-auto max-w-[55vw]" />
         </Link>
         {/* Desktop top-left logo */}
         <Link href="/" className="absolute left-6 top-2 hidden md:inline-flex items-center">
-          <Image src="/slate360logoforwebsite.png" alt="Slate360" width={260} height={78} priority unoptimized className="h-12 w-auto" />
+          <Image src="/assets/slate360logoforwebsite.png" alt="Slate360" width={260} height={78} priority unoptimized className="h-12 w-auto" />
         </Link>
         <nav className="hidden md:flex items-center gap-6">
           {/* Menu Dropdown */}
