@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import MediaViewer from "./MediaViewer";
 
 type Props = {
@@ -50,7 +51,20 @@ export default function TileSection({
 
             {/* Content Section - Centered */}
             <div className="flex-1 max-w-2xl space-y-6 flex flex-col justify-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
+              {id === 'hero' ? (
+                <div className="flex justify-center">
+                  <Image
+                    src="/logowithoutchevron.png"
+                    alt="Slate360 Logo"
+                    width={400}
+                    height={120}
+                    priority
+                    className="h-[3rem] md:h-[4rem] w-auto object-contain"
+                  />
+                </div>
+              ) : (
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
+              )}
               {subtitle && (
                 <h3 className="text-lg md:text-xl font-semibold text-[#4B9CD3]">{subtitle}</h3>
               )}
