@@ -52,14 +52,14 @@ export default function TileSection({
             {/* Content Section - Centered */}
             <div className="flex-1 max-w-2xl space-y-6 flex flex-col justify-center">
               {id === 'hero' ? (
-                <div className="flex justify-center">
+                <div className="flex justify-start">
                   <Image
                     src="/logowithoutchevron.png"
                     alt="Slate360 Logo"
-                    width={400}
-                    height={120}
+                    width={200}
+                    height={60}
                     priority
-                    className="h-[3rem] md:h-[4rem] w-auto object-contain"
+                    className="h-[1.5rem] md:h-[2rem] w-auto object-contain"
                   />
                 </div>
               ) : (
