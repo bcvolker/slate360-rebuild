@@ -38,15 +38,13 @@ export default function Navbar() {
       {/* Top Header - Static Links Only */}
       <header className="fixed top-0 left-0 right-0 h-12 bg-transparent z-40 flex items-center justify-end px-6">
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="/about" className="text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors">About</Link>
-          
-          {/* Features Dropdown */}
+          {/* Menu Dropdown */}
           <div className="relative">
             <button
               onClick={() => setFeaturesOpen(!featuresOpen)}
               className="flex items-center gap-1 text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors"
             >
-              Features
+              Menu
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
@@ -71,6 +69,7 @@ export default function Navbar() {
             )}
           </div>
           
+          <Link href="/about" className="text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors">About</Link>
           <Link href="/contact" className="text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors">Contact</Link>
           <Link href="/subscribe" className="text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors">Subscribe</Link>
           <Link href="/login" className="text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors">Login</Link>
@@ -96,7 +95,7 @@ export default function Navbar() {
               <div className="p-4">
                 {/* Tile Navigation for Mobile */}
                 <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-[#B87333]/80 mb-3 uppercase tracking-wide">Features</h3>
+                  <h3 className="text-sm font-semibold text-[#B87333]/80 mb-3 uppercase tracking-wide">Menu</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {tileData.map((tile) => (
                       <Link 
