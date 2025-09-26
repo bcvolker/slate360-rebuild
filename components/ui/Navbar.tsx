@@ -10,6 +10,14 @@ export default function Navbar() {
   const [featuresOpen, setFeaturesOpen] = useState(false);
   const observer = useRef<IntersectionObserver | null>(null);
 
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      // Respect scroll-margin-top via block: 'start'
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   useEffect(() => {
     observer.current = new IntersectionObserver(
       (entries) => {
@@ -61,10 +69,14 @@ export default function Navbar() {
             {featuresOpen && (
               <div className="absolute top-full left-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 min-w-[200px]">
                 {tileData.map((tile) => (
-                  <Link
+                  <a
                     key={tile.id}
                     href={`#${tile.id}`}
-                    onClick={() => setFeaturesOpen(false)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollToSection(tile.id);
+                      setFeaturesOpen(false);
+                    }}
                     className={`block px-4 py-2 text-sm hover:bg-slate-50 transition-colors ${
                       activeSection === tile.id
                         ? "text-[#B87333] font-semibold bg-slate-50"
@@ -72,7 +84,7 @@ export default function Navbar() {
                     }`}
                   >
                     {tile.title}
-                  </Link>
+                  </a>
                 ))}
               </div>
             )}
@@ -121,9 +133,13 @@ export default function Navbar() {
                   <div className="grid grid-cols-2 gap-2">
                     {tileData.map((tile) => (
                       <a
-                        key={tile.id} 
-                        href={`#${tile.id}`} 
-                        onClick={() => setIsOpen(false)} 
+                        key={tile.id}
+                        href={`#${tile.id}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          scrollToSection(tile.id);
+                          setIsOpen(false);
+                        }}
                         className={`text-sm text-[#B87333] hover:text-[#B87333]/70 p-2 rounded transition-colors ${
                           activeSection === tile.id ? 'bg-[#B87333]/20 font-semibold' : ''
                         }`}

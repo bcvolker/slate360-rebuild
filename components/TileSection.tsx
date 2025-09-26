@@ -46,10 +46,10 @@ export default function TileSection({
               <Image
                 src="/logowithoutchevron.png"
                 alt="Slate360 Logo"
-                width={150}
-                height={45}
+                width={280}
+                height={84}
                 priority
-                className="h-[1.2rem] w-auto object-contain"
+                className="h-[2.4rem] w-auto object-contain"
               />
             </div>
           ) : (
@@ -108,10 +108,10 @@ export default function TileSection({
                   <Image
                     src="/logowithoutchevron.png"
                     alt="Slate360 Logo"
-                    width={200}
-                    height={60}
+                    width={400}
+                    height={120}
                     priority
-                    className="h-[1.75rem] md:h-[2.25rem] w-auto object-contain"
+                    className="h-[3rem] md:h-[4rem] w-auto object-contain"
                   />
                 </div>
               ) : (
