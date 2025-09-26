@@ -1,6 +1,5 @@
 import Link from "next/link";
 import MediaViewer from "./MediaViewer";
-import TileNavigation from "./ui/TileNavigation";
 
 type Props = {
   id: string;
@@ -46,11 +45,6 @@ export default function TileSection({
               {/* Viewer */}
               <div className={`w-full ${viewerHeight} rounded-lg shadow-lg overflow-hidden border border-slate-200`}>
                 <MediaViewer id={id} title={title} />
-              </div>
-              
-              {/* Constrained Navigation - 2x4 grid within viewer width */}
-              <div className="mt-4 w-full">
-                <TileNavigation />
               </div>
             </div>
 
