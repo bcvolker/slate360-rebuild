@@ -32,7 +32,7 @@ export default function TileSection({
   return (
     <section 
       id={id} 
-      className={`w-full h-auto md:h-screen md:snap-start md:snap-always scroll-mt-16 md:scroll-mt-12 bg-white relative ${
+      className={`w-full h-auto md:h-screen md:snap-start md:snap-always scroll-mt-16 md:scroll-mt-16 bg-white relative ${
         // subtle divider between tiles on mobile to show boundaries
         id !== 'vr' ? 'md:border-none' : ''
       }`}
