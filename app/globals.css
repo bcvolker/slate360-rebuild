@@ -48,6 +48,11 @@ body {
 .header-border { box-shadow: 0 1px 0 rgba(15,23,42,.06); }
 .tile-divider { box-shadow: inset 0 -1px 0 rgba(75,156,211,.12); }
 
+/* Subtle header gradient background to help logo stand out */
+.header-gradient {
+  background: linear-gradient(to right, rgba(255,255,255,0.9), rgba(75,156,211,0.06));
+}
+
 /* Brand tokens */
 :root {
   --brand-blue: #4B9CD3;

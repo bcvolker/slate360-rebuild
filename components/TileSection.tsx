@@ -25,17 +25,14 @@ export default function TileSection({
 }: Props) {
   const isReverse = viewerOn === "left";
   
-  // Standardized sizing: hero 30% smaller, others 25% smaller
-  const viewerWidth = hero ? "md:w-[38.5%]" : "md:w-[33.75%]";
-  const viewerHeight = "h-[52.5%]"; // Uniform height for all tiles
+  // Standardized sizing: slightly larger viewer for better balance
+  const viewerWidth = hero ? "md:w-[45%]" : "md:w-[40%]";
+  const viewerHeight = hero ? "h-[60%]" : "h-[55%]";
   
   return (
     <section 
       id={id} 
-      className={`w-full h-auto md:h-screen md:snap-start md:snap-always scroll-mt-16 md:scroll-mt-16 bg-white relative ${
-        // subtle divider between tiles on mobile to show boundaries
-        id !== 'vr' ? 'md:border-none' : ''
-      }`}
+      className={`w-full h-auto md:h-screen md:snap-start md:snap-always scroll-mt-16 md:scroll-mt-16 bg-white relative border-b border-slate-200/70 last:border-b-0`}
     >
       {/* Mobile Layout */}
       <div className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-28' : 'py-16'} border-b border-slate-200/70 last:border-b-0`}>
@@ -88,21 +85,21 @@ export default function TileSection({
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden md:flex w-full h-full items-center justify-center">
+      <div className="hidden md:flex w-full h-full items-stretch justify-center">
         <div className="w-full max-w-7xl mx-auto px-8">
           <div className={`flex ${
             isReverse ? "md:flex-row-reverse" : "md:flex-row"
-          } items-center justify-center gap-8 h-full`}>
+          } items-center justify-between gap-10 h-full`}>
             
             {/* Viewer Section - Desktop */}
             <div className={`${viewerWidth} flex flex-col items-center shrink-0`}>
-              <div className={`w-full ${viewerHeight} rounded-lg shadow-lg overflow-hidden border border-slate-200`}>
+              <div className={`w-full ${viewerHeight} rounded-lg shadow-lg overflow-hidden border border-slate-200`}> 
                 <MediaViewer id={id} title={title} />
               </div>
             </div>
 
             {/* Content Section - Desktop */}
-            <div className="flex-1 max-w-2xl space-y-6 flex flex-col justify-center">
+            <div className="flex-1 min-w-0 max-w-2xl space-y-6 flex flex-col justify-center">
               {id === 'hero' ? (
                 <div className="flex justify-start">
                   <Image

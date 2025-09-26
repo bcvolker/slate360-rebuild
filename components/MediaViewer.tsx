@@ -91,14 +91,13 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail 
     const content = getPlaceholderContent();
 
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 text-center p-8">
+      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-800 text-center p-8">
         <div className="text-6xl mb-4">{content.icon}</div>
-        <h3 className="text-xl font-semibold text-slate-700 mb-2">{content.title}</h3>
-        <p className="text-slate-500 mb-6 max-w-md leading-relaxed">{content.description}</p>
-        <div className="flex gap-2 text-xs text-slate-400">
-          <span className="px-2 py-1 bg-white rounded border">Dynamic Content</span>
-          <span className="px-2 py-1 bg-white rounded border">Multi-format Support</span>
-          <span className="px-2 py-1 bg-white rounded border">Interactive Controls</span>
+        <h3 className="text-lg font-semibold text-white/90 mb-1">{content.title}</h3>
+        <p className="text-white/70 mb-6 max-w-md leading-relaxed">{content.description}</p>
+        <div className="inline-flex items-center gap-2 text-xs text-white/80 bg-white/10 border border-white/20 rounded-full px-3 py-1">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span>Content Coming Soon</span>
         </div>
       </div>
     );
