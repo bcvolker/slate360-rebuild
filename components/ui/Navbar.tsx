@@ -91,7 +91,7 @@ export default function Navbar() {
             </svg>
           </button>
           {isOpen && (
-            <div className="absolute top-12 left-0 w-full bg-white/95 backdrop-blur-sm shadow-lg z-50">
+            <div className="absolute top-12 left-0 w-full bg-white/95 backdrop-blur-sm shadow-lg z-[60]">
               <div className="p-4">
                 {/* Tile Navigation for Mobile */}
                 <div className="mb-6">
