@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { tileData } from "@/lib/tile-data";
 
 export default function Navbar() {
@@ -37,6 +38,14 @@ export default function Navbar() {
     <>
       {/* Top Header - Static Links Only */}
       <header className="fixed top-0 left-0 right-0 h-12 bg-transparent z-40 flex items-center justify-end px-6">
+        {/* Mobile-only top-left logo */}
+        <Link href="/" className="absolute left-4 top-2 inline-flex items-center md:hidden">
+          <Image src="/slate360logoforwebsite.png" alt="Slate360" width={160} height={48} className="h-7 w-auto" />
+        </Link>
+        {/* Desktop top-left logo */}
+        <Link href="/" className="absolute left-6 top-2 hidden md:inline-flex items-center">
+          <Image src="/slate360logoforwebsite.png" alt="Slate360" width={200} height={60} className="h-8 w-auto" />
+        </Link>
         <nav className="hidden md:flex items-center gap-6">
           {/* Menu Dropdown */}
           <div className="relative">
@@ -96,9 +105,11 @@ export default function Navbar() {
                 {/* Logo inside mobile menu */}
                 <div className="flex justify-center mb-4">
                   <Link href="/" onClick={() => setIsOpen(false)} className="inline-flex items-center">
-                    <img
+                    <Image
                       src="/slate360logoforwebsite.png"
                       alt="Slate360 Logo"
+                      width={200}
+                      height={60}
                       className="h-8 w-auto object-contain"
                     />
                   </Link>

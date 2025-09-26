@@ -4,7 +4,7 @@ import PageClient from './PageClient';
 
 export default function HomePage() {
   return (
-    <div className="w-full md:snap-y md:snap-mandatory md:overflow-y-scroll md:h-screen">
+    <div className="w-full overflow-y-auto md:snap-y md:snap-mandatory md:overflow-y-scroll md:h-screen">
       <PageClient tileData={tileData} />
     </div>
   );

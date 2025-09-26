@@ -32,12 +32,12 @@ export default function TileSection({
   return (
     <section 
       id={id} 
-      className="w-full md:h-screen md:snap-start md:snap-always scroll-mt-16 md:scroll-mt-12 bg-white relative"
+      className="w-full h-auto md:h-screen md:snap-start md:snap-always scroll-mt-16 md:scroll-mt-12 bg-white relative"
     >
       {/* Mobile Layout */}
       <div className="md:hidden w-full flex flex-col px-6 py-16">
         {/* Content Section for Mobile */}
-        <div className="flex-1 flex flex-col justify-start space-y-4 mb-6">
+        <div className="flex flex-col justify-start space-y-4 mb-6">
           {id === 'hero' ? (
             <div className="flex justify-start mb-2">
               <Image
