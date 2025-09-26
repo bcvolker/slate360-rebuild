@@ -2,7 +2,6 @@
 "use client";
 
 import TileSection from '../components/TileSection';
-import Footer from '../components/Footer';
 import type { Tile as LibTile } from '@/lib/tile-data';
 
 export default function PageClient({ tileData }: { tileData: LibTile[] }) {
@@ -22,7 +21,6 @@ export default function PageClient({ tileData }: { tileData: LibTile[] }) {
           hero={tile.id === 'hero'}
         />
       ))}
-      <Footer />
     </>
   );
 }
