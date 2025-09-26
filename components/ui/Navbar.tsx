@@ -85,26 +85,7 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Compact Tile Navigation - Positioned over content */}
-      <nav className="fixed top-16 left-4 z-30">
-        <div className="hidden md:block bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-slate-200 p-3">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
-            {tileData.map((tile) => (
-              <Link
-                key={tile.id}
-                href={`#${tile.id}`}
-                className={`px-2 py-1 rounded transition-all whitespace-nowrap text-center ${
-                  activeSection === tile.id
-                    ? "bg-[#B87333] text-white font-semibold"
-                    : "text-slate-700 hover:bg-[#B87333]/10 hover:text-[#B87333]"
-                }`}
-              >
-                {tile.title}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </nav>
+
     </>
   );
 }
