@@ -35,8 +35,8 @@ export default function TileSection({
       <div className={`${
         hero ? "md:w-[55%] h-[75%]" : "md:w-[45%] h-[70%]"
       } w-full flex items-center justify-center p-4`}>
-        <div className="w-full h-full bg-gray-900 rounded-lg shadow-lg overflow-hidden">
-          <MediaViewer id={id} />
+        <div className="w-full h-full rounded-lg shadow-lg overflow-hidden border border-slate-200">
+          <MediaViewer id={id} title={title} />
         </div>
       </div>
 
