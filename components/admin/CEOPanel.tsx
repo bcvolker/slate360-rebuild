@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 type MediaUpload = {
   id: string;
@@ -20,6 +20,9 @@ type TileContent = {
 
 export default function CEOPanel() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [activeTab, setActiveTab] = useState<'upload' | 'manage' | 'analytics'>('upload');
   const [uploads, setUploads] = useState<MediaUpload[]>([]);
   const [tileContents, setTileContents] = useState<TileContent[]>([
@@ -35,6 +38,48 @@ export default function CEOPanel() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedTileId, setSelectedTileId] = useState<string>('');
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const authToken = localStorage.getItem('slate360_ceo_auth');
+    if (authToken === 'authenticated') {
+      setIsAuthenticated(true);
+    }
+
+    // Listen for CEO login trigger
+    const handleShowLogin = () => {
+      if (!isAuthenticated) {
+        setShowLogin(true);
+      }
+    };
+
+    window.addEventListener('show-ceo-login', handleShowLogin);
+    return () => window.removeEventListener('show-ceo-login', handleShowLogin);
+  }, [isAuthenticated]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    // CEO credentials check (in production, this would use secure authentication)
+    if (credentials.username === 'admin' && credentials.password === 'slate360ceo2025') {
+      setIsAuthenticated(true);
+      localStorage.setItem('slate360_ceo_auth', 'authenticated');
+      setShowLogin(false);
+      setCredentials({ username: '', password: '' });
+    } else {
+      alert('Invalid credentials');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('slate360_ceo_auth');
+    setIsOpen(false);
+  };
+
+  // Don't render anything for unauthenticated users
+  if (!isAuthenticated && !showLogin) {
+    return null;
+  }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -109,6 +154,60 @@ export default function CEOPanel() {
     ];
   };
 
+  // Show login form if not authenticated but login was requested
+  if (showLogin && !isAuthenticated) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-2xl w-full max-w-md p-8">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">CEO Access</h2>
+            <p className="text-gray-600">Enter your credentials to access the content management panel</p>
+          </div>
+          
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+              <input
+                type="text"
+                value={credentials.username}
+                onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-transparent"
+                placeholder="Enter username"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input
+                type="password"
+                value={credentials.password}
+                onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#B87333] focus:border-transparent"
+                placeholder="Enter password"
+                required
+              />
+            </div>
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setShowLogin(false)}
+                className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 bg-[#B87333] text-white rounded-lg hover:bg-[#9f5f24] transition-colors"
+              >
+                Login
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   if (!isOpen) {
     return (
       <button
@@ -129,14 +228,22 @@ export default function CEOPanel() {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">CEO Content Management Panel</h2>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="text-gray-500 hover:text-gray-700 p-2"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleLogout}
+              className="text-red-600 hover:text-red-800 px-3 py-1 text-sm border border-red-300 rounded hover:bg-red-50 transition-colors"
+            >
+              Logout
+            </button>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-gray-500 hover:text-gray-700 p-2"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
