@@ -49,7 +49,7 @@ export default function Navbar() {
   return (
     <>
       {/* Top Header - Static Links Only */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-sm border-b border-gray-200 z-50 flex items-center justify-end px-4 md:px-6">
+  <header className="fixed top-0 left-0 right-0 h-16 bg-white/80 bg-gradient-to-r from-white/90 to-[#4B9CD3]/5 backdrop-blur-sm border-b border-gray-200 z-50 flex items-center justify-end px-4 md:px-6">
         {/* Mobile-only top-left logo */}
         <Link href="/" className="absolute left-4 top-2 inline-flex items-center md:hidden">
           <Image src="/slate360logoforwebsite.png" alt="Slate360" width={200} height={60} className="h-12 w-auto max-w-[55vw]" />
