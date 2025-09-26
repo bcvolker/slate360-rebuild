@@ -19,14 +19,18 @@ export default function Navbar() {
   };
 
   useEffect(() => {
+    const root = document.getElementById('snap-container') || undefined;
     observer.current = new IntersectionObserver(
       (entries) => {
-        const visible = entries.find((e) => e.isIntersecting)?.target.id;
-        if (visible) setActiveSection(visible);
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
       },
-      { threshold: 0.5 }
+      { threshold: 0.5, root, rootMargin: '-50% 0px -50% 0px' }
     );
-    const sections = document.querySelectorAll("section");
+    const sections = document.querySelectorAll('section');
     sections.forEach((s) => observer.current?.observe(s));
     return () => sections.forEach((s) => observer.current?.unobserve(s));
   }, []);
