@@ -45,14 +45,14 @@ export default function Navbar() {
   return (
     <>
       {/* Top Header - Static Links Only */}
-      <header className="fixed top-0 left-0 right-0 h-12 bg-transparent z-40 flex items-center justify-end px-6">
+      <header className="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-sm border-b border-gray-200 z-50 flex items-center justify-end px-4 md:px-6">
         {/* Mobile-only top-left logo */}
-        <Link href="/" className="absolute left-4 top-1 inline-flex items-center md:hidden">
-          <Image src="/slate360logoforwebsite.png" alt="Slate360" width={200} height={60} className="h-10 w-auto max-w-[55vw]" />
+        <Link href="/" className="absolute left-4 top-2 inline-flex items-center md:hidden">
+          <Image src="/slate360logoforwebsite.png" alt="Slate360" width={200} height={60} className="h-12 w-auto max-w-[55vw]" />
         </Link>
         {/* Desktop top-left logo */}
-        <Link href="/" className="absolute left-6 top-1 hidden md:inline-flex items-center">
-          <Image src="/slate360logoforwebsite.png" alt="Slate360" width={260} height={78} className="h-10 w-auto" />
+        <Link href="/" className="absolute left-6 top-2 hidden md:inline-flex items-center">
+          <Image src="/slate360logoforwebsite.png" alt="Slate360" width={260} height={78} className="h-12 w-auto" />
         </Link>
         <nav className="hidden md:flex items-center gap-6">
           {/* Menu Dropdown */}
