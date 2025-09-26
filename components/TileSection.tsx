@@ -34,22 +34,26 @@ export default function TileSection({
       id={id} 
       className="w-full h-screen snap-start snap-always bg-white border-b border-[#B87333]/20 scroll-mt-12 relative overflow-hidden"
     >
-      {/* Force content to top with absolute positioning */}
+      {/* Force content with 0.75" viewer offset */}
       <div className="absolute top-16 left-0 right-0 bottom-0 flex items-start justify-center">
         <div className="w-full max-w-7xl mx-auto px-8">
           <div className={`flex ${
             isReverse ? "md:flex-row-reverse" : "md:flex-row"
           } items-start justify-center gap-8 h-full`}>
             
-            {/* Viewer Section with Navigation Below */}
-            <div className={`${viewerWidth} flex flex-col items-center gap-4 shrink-0`}>
-              {/* Viewer */}
-              <div className={`w-full ${viewerHeight} rounded-lg shadow-lg overflow-hidden border border-slate-200`}>
-                <MediaViewer id={id} title={title} />
+            {/* Viewer Section with Navigation Below - Moved down 0.75" */}
+            <div className={`${viewerWidth} flex flex-col shrink-0`}>
+              {/* Viewer moved down 0.75" (18px at 96dpi) */}
+              <div className="pt-[18px]">
+                <div className={`w-full ${viewerHeight} rounded-lg shadow-lg overflow-hidden border border-slate-200`}>
+                  <MediaViewer id={id} title={title} />
+                </div>
               </div>
               
-              {/* Tile Navigation Below Viewer */}
-              <TileNavigation />
+              {/* Constrained Navigation - 2x4 grid within viewer width */}
+              <div className="mt-4 w-full">
+                <TileNavigation />
+              </div>
             </div>
 
             {/* Content Section - Moved Up */}
