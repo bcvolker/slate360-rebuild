@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="bg-white text-gray-900">
         <div className="fixed top-0 left-0 right-0 z-50 flex justify-end items-center p-4">
-          <Image src="/slate360logoforwebsite.png" alt="Slate360 Logo" width={180} height={50} priority className="h-20 w-auto p-2" unoptimized />
+          <Image src="/assets/slate360logoforwebsite.png" alt="Slate360 Logo" width={180} height={50} priority className="h-20 w-auto p-2" unoptimized />
         </div>
         <Navbar />
         <main className="pt-16">{children}</main>
