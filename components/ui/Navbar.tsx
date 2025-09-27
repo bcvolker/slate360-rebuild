@@ -23,17 +23,17 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-slate-900/80 backdrop-blur-sm border-b border-slate-700/50">
-      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6">
-        {/* Left: Logo */}
-        <Link href="/" aria-label="Go to Homepage" className="flex items-center">
+      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-3 sm:px-4">
+        {/* Left: Logo - larger and tighter to top-left */}
+        <Link href="/" aria-label="Go to Homepage" className="flex items-center -mt-1">
           <Image
             src="/assets/slate360logoforwebsite.v2.png"
             alt="Slate360 Logo"
-            width={200}
-            height={60}
+            width={260}
+            height={78}
             priority
             unoptimized
-            className="h-10 w-auto object-contain"
+            className="h-12 sm:h-14 w-auto object-contain"
           />
         </Link>
 
@@ -41,8 +41,8 @@ export default function Navbar() {
         <div className="flex items-center gap-6 ml-8 flex-1 justify-end">
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/about" className="text-sm font-medium text-slate-300 hover:text-white">About</Link>
-            {/* Menu dropdown for tile links (desktop) */}
-            <div className="relative hidden md:block">
+            {/* Menu dropdown for tile links (desktop) right next to About */}
+            <div className="relative">
               <button
                 onClick={() => setIsMenuOpen((v) => !v)}
                 aria-haspopup="true"
