@@ -38,20 +38,7 @@ export default function TileSection({
       <div className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-28' : 'py-16'} border-b border-slate-200/70 last:border-b-0`}>
         {/* Content Section for Mobile */}
         <div className="flex flex-col justify-start space-y-4 mb-6">
-          {id === 'hero' ? (
-            <div className="flex justify-start mb-2">
-              <Image
-                src="/logowithoutchevron.png"
-                alt="Slate360 Logo"
-                width={280}
-                height={84}
-                priority
-                className="h-[2.4rem] w-auto object-contain"
-              />
-            </div>
-          ) : (
-            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-          )}
+          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
           {subtitle && (
             <h3 className="text-lg font-semibold text-[#4B9CD3]">{subtitle}</h3>
           )}
@@ -100,20 +87,7 @@ export default function TileSection({
 
             {/* Content Section - Desktop */}
             <div className="flex-1 min-w-0 max-w-2xl space-y-6 flex flex-col justify-center">
-              {id === 'hero' ? (
-                <div className="flex justify-start">
-                  <Image
-                    src="/logowithoutchevron.png"
-                    alt="Slate360 Logo"
-                    width={400}
-                    height={120}
-                    priority
-                    className="h-[3rem] md:h-[4rem] w-auto object-contain"
-                  />
-                </div>
-              ) : (
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
-              )}
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
               {subtitle && (
                 <h3 className="text-lg md:text-xl font-semibold text-[#4B9CD3]">{subtitle}</h3>
               )}
