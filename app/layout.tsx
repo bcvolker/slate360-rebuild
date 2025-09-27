@@ -14,9 +14,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-white text-gray-900 md:snap-y md:snap-mandatory">
+      <body className="bg-white text-gray-900 overflow-x-hidden md:overflow-hidden">
         <Navbar />
-        <main>{children}</main>
+        <main id="scroll-container" className="scroll-pt-16 md:h-screen md:overflow-y-scroll md:snap-y md:snap-mandatory md:scroll-smooth">{children}</main>
       </body>
     </html>
   );
