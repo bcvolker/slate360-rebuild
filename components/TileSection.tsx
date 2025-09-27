@@ -32,7 +32,7 @@ export default function TileSection({
   return (
     <section 
       id={id} 
-      className={`w-full min-h-screen md:h-screen md:snap-start md:snap-always scroll-mt-16 md:scroll-mt-16 bg-white relative border-b border-slate-200/70 last:border-b-0`}
+      className={`w-full min-h-screen h-screen snap-start border-b border-slate-200/70 flex items-center justify-center`}
     >
       {/* Mobile Layout */}
       <div className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-28' : 'py-16'} border-b border-slate-200/70 last:border-b-0`}>
@@ -78,7 +78,7 @@ export default function TileSection({
         
         {/* Mobile Thumbnail Viewer at Bottom */}
         <div className={`w-full flex ${isReverse ? "justify-start" : "justify-end"}`}>
-          <div className="w-16 h-12 rounded-lg shadow-md overflow-hidden border border-slate-200 cursor-pointer hover:shadow-lg transition-shadow">
+          <div className="md:hidden w-32 h-24 rounded-lg shadow-md overflow-hidden border border-slate-200 cursor-pointer hover:shadow-lg transition-shadow">
             <MediaViewer id={id} title={title} thumbnail={true} />
           </div>
         </div>
