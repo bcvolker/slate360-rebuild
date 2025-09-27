@@ -1,17 +1,24 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --brand-blue: #4B9CD3;
-  --brand-copper: #B87333;
-  --brand-gray: #708090;
-  --surface-light: #F9FAFB;
-  --surface-dark: #1A1A1E;
-  --ink: #0f172a;
-  --ink-sub: #475569;
+  --header-height: 4rem; /* 64px */
 }
 
-.tile-surface-dark { background: linear-gradient(to bottom, var(--surface-dark), #2A2A2E); color: white; }
-.tile-surface-light { background: var(--surface-light); color: var(--brand-gray); }
-img { display: block; max-width: 100%; height: auto; }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--header-height);
+}
+
+body {
+  @apply bg-slate-900 text-slate-300;
+}
+
+/* DESKTOP: Enforce snap-scrolling on the main container */
+@media (min-width: 768px) {
+  .snap-scroll-container {
+    @apply h-screen snap-y snap-mandatory overflow-y-scroll;
+  }
+}

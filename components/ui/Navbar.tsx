@@ -1,176 +1,56 @@
-"use client";
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { tileData } from "@/lib/tile-data";
+
+'use client';
+import { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { tileData } from '@/lib/tile-data';
 
 export default function Navbar() {
-  const [activeSection, setActiveSection] = useState("hero");
-  const [isOpen, setIsOpen] = useState(false);
-  const [featuresOpen, setFeaturesOpen] = useState(false);
-  const observer = useRef<IntersectionObserver | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      // Respect scroll-margin-top via block: 'start'
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    setIsMenuOpen(false);
+    const targetId = href.replace(/.*#/, "");
+    const elem = document.getElementById(targetId);
+    if (elem) {
+      const headerOffset = 64; // Corresponds to h-16 in Tailwind
+      const elementPosition = elem.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
     }
   };
 
-  useEffect(() => {
-    const root = document.getElementById('snap-container') || undefined;
-    observer.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { threshold: 0.5, root, rootMargin: '-50% 0px -50% 0px' }
-    );
-    const sections = document.querySelectorAll('section');
-    sections.forEach((s) => observer.current?.observe(s));
-    return () => sections.forEach((s) => observer.current?.unobserve(s));
-  }, []);
-
-  // Close features dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (featuresOpen && !(event.target as Element).closest('.relative')) {
-        setFeaturesOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [featuresOpen]);
-
   return (
-    <>
-      {/* Top Header - Static Links Only */}
-  <header className="fixed top-0 left-0 right-0 h-16 bg-white/80 bg-gradient-to-r from-white/90 to-[#4B9CD3]/5 backdrop-blur-sm border-b border-gray-200 z-50 flex items-center justify-end px-4 md:px-6">
-        {/* Mobile-only top-left logo */}
-        <Link href="/" className="absolute left-4 top-2 inline-flex items-center md:hidden">
-          <Image src="/assets/slate360logoforwebsite.v2.png" alt="Slate360" width={200} height={60} priority unoptimized className="h-12 w-auto max-w-[55vw]" />
-        </Link>
-        {/* Desktop top-left logo */}
-        <Link href="/" className="absolute left-6 top-2 hidden md:inline-flex items-center">
-          <Image src="/assets/slate360logoforwebsite.v2.png" alt="Slate360" width={260} height={78} priority unoptimized className="h-12 w-auto" />
-        </Link>
-        <nav className="hidden md:flex items-center gap-6">
-          {/* Menu Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setFeaturesOpen(!featuresOpen)}
-              className="flex items-center gap-1 text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors"
-            >
-              Menu
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {featuresOpen && (
-              <div className="absolute top-full left-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 min-w-[200px]">
-                {tileData.map((tile) => (
-                  <a
-                    key={tile.id}
-                    href={`#${tile.id}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      scrollToSection(tile.id);
-                      setFeaturesOpen(false);
-                    }}
-                    className={`block px-4 py-2 text-sm hover:bg-slate-50 transition-colors ${
-                      activeSection === tile.id
-                        ? "text-[#B87333] font-semibold bg-slate-50"
-                        : "text-slate-700 hover:text-[#B87333]"
-                    }`}
-                  >
-                    {tile.title}
-                  </a>
-                ))}
-              </div>
-            )}
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-slate-900/80 backdrop-blur-sm border-b border-slate-700/50">
+      <div className="relative mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6">
+        {/* LOGO: Absolutely positioned to decouple from header height */}
+        <Link href="/" aria-label="Go to Homepage" className="absolute top-1/2 left-4 sm:left-6 -translate-y-1/2">
+          <div className="relative h-[56px] w-[220px]">
+            <Image src="/assets/slate360logoforwebsite.v2.png" alt="Slate360 Logo" fill priority unoptimized className="object-contain" />
           </div>
-          
-          <Link href="/about" className="text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors">About</Link>
-          <Link href="/contact" className="text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors">Contact</Link>
-          <Link href="/subscribe" className="text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors">Subscribe</Link>
-          <Link href="/login" className="text-base font-semibold text-[#B87333] hover:text-[#B87333]/70 px-2 py-1 rounded transition-colors">Login</Link>
+        </Link>
+
+        {/* Desktop Menu */}
+        <nav className="hidden md:flex items-center space-x-8 w-full justify-end">
+          {tileData.map((tile) => ( <a key={tile.id} href={`#${tile.id}`} onClick={(e) => handleScroll(e, `#${tile.id}`)} className="text-sm font-medium text-slate-300 hover:text-brand-blue transition-colors">{tile.title}</a> ))}
         </nav>
 
-        {/* Mobile Hamburger */}
-        <div className="md:hidden">
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-[#B87333] focus:outline-none p-2 rounded transition-colors hover:bg-[#B87333]/10"
-          >
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
-              />
-            </svg>
-          </button>
-          {isOpen && (
-            <div className="absolute top-12 left-0 w-full bg-white/95 backdrop-blur-sm shadow-lg z-[60]">
-              <div className="p-4">
-                {/* Logo inside mobile menu */}
-                <div className="flex justify-center mb-4">
-                  <Link href="/" onClick={() => setIsOpen(false)} className="inline-flex items-center">
-                    <Image
-                      src="/slate360logoforwebsite.png"
-                      alt="Slate360 Logo"
-                      width={240}
-                      height={72}
-                      className="h-10 w-auto object-contain"
-                    />
-                  </Link>
-                </div>
-                
-                {/* Tile Navigation for Mobile */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-[#B87333]/80 mb-3 uppercase tracking-wide">Menu</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {tileData.map((tile) => (
-                      <a
-                        key={tile.id}
-                        href={`#${tile.id}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          scrollToSection(tile.id);
-                          setIsOpen(false);
-                        }}
-                        className={`text-sm text-[#B87333] hover:text-[#B87333]/70 p-2 rounded transition-colors ${
-                          activeSection === tile.id ? 'bg-[#B87333]/20 font-semibold' : ''
-                        }`}
-                      >
-                        {tile.title}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Main Navigation for Mobile */}
-                <div>
-                  <h3 className="text-sm font-semibold text-[#B87333]/80 mb-3 uppercase tracking-wide">Company</h3>
-                  <ul className="grid grid-cols-2 gap-2">
-                    <li><Link href="/about" onClick={() => setIsOpen(false)} className="text-sm text-[#B87333] hover:text-[#B87333]/70 block p-2 rounded transition-colors">About</Link></li>
-                    <li><Link href="/contact" onClick={() => setIsOpen(false)} className="text-sm text-[#B87333] hover:text-[#B87333]/70 block p-2 rounded transition-colors">Contact</Link></li>
-                    <li><Link href="/subscribe" onClick={() => setIsOpen(false)} className="text-sm text-[#B87333] hover:text-[#B87333]/70 block p-2 rounded transition-colors">Subscribe</Link></li>
-                    <li><Link href="/login" onClick={() => setIsOpen(false)} className="text-sm text-[#B87333] hover:text-[#B87333]/70 block p-2 rounded transition-colors">Login</Link></li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
+        {/* Mobile Menu Button */}
+        <div className="md:hidden ml-auto">
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-slate-300 focus:outline-none"><svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg></button>
         </div>
-      </header>
+      </div>
 
-
-    </>
+      {/* Mobile Menu Overlay */}
+      {isMenuOpen && (
+        <div className="absolute top-16 left-0 w-full bg-slate-900 md:hidden">
+          <nav className="flex flex-col items-center space-y-4 py-4">
+            {/* Mobile menu uses the same robust scroll handler */}
+            {tileData.map((tile) => ( <a key={tile.id} href={`#${tile.id}`} onClick={(e) => handleScroll(e, `#${tile.id}`)} className="text-lg font-medium text-slate-300">{tile.title}</a> ))}
+          </nav>
+        </div>
+      )}
+    </header>
   );
 }
