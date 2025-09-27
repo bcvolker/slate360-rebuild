@@ -33,7 +33,7 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-slate-900/80 backdrop-blur-sm border-b border-slate-700/50">
-      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-3 sm:px-4">
+  <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-2 sm:px-4">
         {/* Left: Logo */}
         <Link href="/" aria-label="Go to Homepage" className="flex items-center">
           <Image
@@ -43,7 +43,7 @@ export default function Navbar() {
             height={90}
             priority
             unoptimized
-            className="h-12 sm:h-14 w-auto object-contain"
+            className="h-14 sm:h-16 w-auto object-contain"
           />
         </Link>
 
