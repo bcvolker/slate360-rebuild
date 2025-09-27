@@ -32,7 +32,7 @@ export default function TileSection({
   return (
     <section 
       id={id} 
-      className={`w-full min-h-screen snap-start border-b border-slate-200/70 flex items-center justify-center`}
+      className={`w-full h-screen snap-start border-b border-slate-200/70 flex items-center justify-center`}
     >
       {/* Mobile Layout */}
       <div className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-28' : 'py-16'} border-b border-slate-200/70 last:border-b-0`}>
