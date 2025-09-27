@@ -2,63 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Fix scrollbar issues */
-html, body {
-  overflow-x: hidden;
-  width: 100%;
-  max-width: 100vw;
-  touch-action: pan-y;
-}
-
-/* Ensure images are visible and scale correctly */
-img { display: block; max-width: 100%; height: auto; }
-
-/* Enable smooth scrolling only on desktop */
-@media (min-width: 768px) {
-  html, body {
-    scroll-behavior: smooth;
-  }
-}
-
-/* Ensure no elements cause horizontal overflow */
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-}
-
 :root {
-  --brand-blue:#4B9CD3; /* Carolina Blue PMS 542 */
-  --brand-copper:#B87333;
-  --ink:#0f172a;
-  --ink-sub:#475569;
-  --surface:#ffffff;
-  --surface-muted:#F8FAFC;
-}
-
-.brand-blue { color: var(--brand-blue); }
-.bg-brand-blue { background-color: var(--brand-blue); }
-.text-copper { color: var(--brand-copper); }
-.bg-copper { background-color: var(--brand-copper); }
-
-.header-blur { backdrop-filter: blur(6px); }
-.header-border { box-shadow: 0 1px 0 rgba(15,23,42,.06); }
-.tile-divider { box-shadow: inset 0 -1px 0 rgba(75,156,211,.12); }
-
-/* Subtle header gradient background to help logo stand out */
-.header-gradient {
-  background: linear-gradient(to right, rgba(255,255,255,0.9), rgba(75,156,211,0.06));
-}
-
-/* Brand tokens */
-:root {
-  --brand-blue: #4B9CD3;
   --brand-blue: #4B9CD3;
   --brand-copper: #B87333;
   --brand-gray: #708090;
@@ -68,19 +12,6 @@ body {
   --ink-sub: #475569;
 }
 
-/* Glass content wrapper */
-.tile-content {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  padding: 2rem;
-}
-
-@media (min-width: 768px) {
-  .tile-content {
-    padding: 3rem;
-  }
-}
+.tile-surface-dark { background: linear-gradient(to bottom, var(--surface-dark), #2A2A2E); color: white; }
+.tile-surface-light { background: var(--surface-light); color: var(--brand-gray); }
+img { display: block; max-width: 100%; height: auto; }

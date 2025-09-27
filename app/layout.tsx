@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from "next";
+ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
 import CEOPanelWrapper from "@/components/admin/CEOPanelWrapper";
