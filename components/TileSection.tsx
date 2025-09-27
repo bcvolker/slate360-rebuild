@@ -143,14 +143,14 @@ export default function TileSection({
       
       {/* Footer integrated into last tile */}
       {id === 'vr' && (
-        <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-[#B87333]/20">
-          <div className="mx-auto w-full max-w-7xl px-8 py-6 text-xs text-slate-600">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex flex-col space-y-1">
-                <p className="font-semibold text-gray-900">© {new Date().getFullYear()} Slate360</p>
-                <p className="text-slate-500">From Design to Reality</p>
+        <div className="absolute bottom-0 left-0 right-0 bg-white/95 border-t border-[#B87333]/20">
+          <div className="mx-auto w-full max-w-7xl px-6 py-3 text-[11px] text-slate-600">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 whitespace-nowrap">
+                <span className="font-semibold text-gray-900">© {new Date().getFullYear()} Slate360</span>
+                <span className="text-slate-500">• From Design to Reality</span>
               </div>
-              <nav className="flex flex-wrap items-center gap-4 text-xs">
+              <nav className="flex flex-wrap items-center gap-3">
                 <a href="/about" className="hover:text-[#B87333] transition-colors">About</a>
                 <a href="/contact" className="hover:text-[#B87333] transition-colors">Contact</a>
                 <a href="/pricing" className="hover:text-[#B87333] transition-colors">Pricing</a>

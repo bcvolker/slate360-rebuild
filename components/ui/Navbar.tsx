@@ -24,30 +24,56 @@ export default function Navbar() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-slate-900/80 backdrop-blur-sm border-b border-slate-700/50">
       <div className="relative mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6">
-        {/* LOGO: Absolutely positioned to decouple from header height */}
-        <Link href="/" aria-label="Go to Homepage" className="absolute top-1/2 left-4 sm:left-6 -translate-y-1/2">
-          <div className="relative h-[56px] w-[220px]">
+        {/* Left: Menu trigger (desktop) and hamburger (mobile) */}
+        <div className="flex items-center gap-4">
+          {/* Desktop Menu dropdown for tile links */}
+          <div className="hidden md:block relative">
+            <button onClick={() => setIsMenuOpen((v) => !v)} className="text-slate-300 hover:text-white text-sm font-medium flex items-center gap-2">
+              Menu
+              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.25 8.29a.75.75 0 01-.02-1.08z" clipRule="evenodd"/></svg>
+            </button>
+            {isMenuOpen && (
+              <div className="absolute mt-2 w-56 rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg p-2">
+                {tileData.map((tile) => (
+                  <a key={tile.id} href={`#${tile.id}`} onClick={(e) => handleScroll(e, `#${tile.id}`)} className="block px-3 py-2 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded">
+                    {tile.title}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Hamburger */}
+          <button onClick={() => setIsMenuOpen((v) => !v)} className="md:hidden text-slate-300 focus:outline-none">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg>
+          </button>
+        </div>
+
+        {/* Center: Top text links (desktop) */}
+        <nav className="hidden md:flex items-center gap-6">
+          <Link href="/about" className="text-sm font-medium text-slate-300 hover:text-white">About</Link>
+          <Link href="/contact" className="text-sm font-medium text-slate-300 hover:text-white">Contact</Link>
+          <Link href="/subscribe" className="text-sm font-medium text-slate-300 hover:text-white">Subscribe</Link>
+          <Link href="/login" className="text-sm font-medium text-slate-300 hover:text-white">Login</Link>
+        </nav>
+
+        {/* Right: Logo in normal spot */}
+        <Link href="/" aria-label="Go to Homepage" className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2">
+          <div className="relative h-[40px] w-[180px] sm:h-[48px] sm:w-[220px]">
             <Image src="/assets/slate360logoforwebsite.v2.png" alt="Slate360 Logo" fill priority unoptimized className="object-contain" />
           </div>
         </Link>
-
-        {/* Desktop Menu */}
-        <nav className="hidden md:flex items-center space-x-8 w-full justify-end">
-          {tileData.map((tile) => ( <a key={tile.id} href={`#${tile.id}`} onClick={(e) => handleScroll(e, `#${tile.id}`)} className="text-sm font-medium text-slate-300 hover:text-brand-blue transition-colors">{tile.title}</a> ))}
-        </nav>
-
-        {/* Mobile Menu Button */}
-        <div className="md:hidden ml-auto">
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-slate-300 focus:outline-none"><svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg></button>
-        </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Overlay: shows tile links when hamburger open */}
       {isMenuOpen && (
-        <div className="absolute top-16 left-0 w-full bg-slate-900 md:hidden">
-          <nav className="flex flex-col items-center space-y-4 py-4">
-            {/* Mobile menu uses the same robust scroll handler */}
-            {tileData.map((tile) => ( <a key={tile.id} href={`#${tile.id}`} onClick={(e) => handleScroll(e, `#${tile.id}`)} className="text-lg font-medium text-slate-300">{tile.title}</a> ))}
+        <div className="absolute top-16 left-0 w-full bg-slate-900 md:hidden border-t border-slate-700/60">
+          <nav className="flex flex-col items-stretch space-y-1 py-3 px-3">
+            {tileData.map((tile) => (
+              <a key={tile.id} href={`#${tile.id}`} onClick={(e) => handleScroll(e, `#${tile.id}`)} className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800">
+                {tile.title}
+              </a>
+            ))}
           </nav>
         </div>
       )}
