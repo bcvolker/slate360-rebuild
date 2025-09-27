@@ -43,7 +43,7 @@ export default function Navbar() {
             height={90}
             priority
             unoptimized
-            className="h-14 sm:h-16 w-auto object-contain"
+            className="h-[70px] sm:h-[80px] w-auto object-contain"
           />
         </Link>
 

@@ -38,7 +38,11 @@ export default function TileSection({
       <div className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-28' : 'py-16'} border-b border-slate-200/70 last:border-b-0`}>
         {/* Content Section for Mobile */}
         <div className="flex flex-col justify-start space-y-4 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+          {id === 'hero' ? (
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Slate360</h1>
+          ) : (
+            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+          )}
           {subtitle && (
             <h3 className="text-lg font-semibold text-[#4B9CD3]">{subtitle}</h3>
           )}
@@ -87,7 +91,11 @@ export default function TileSection({
 
             {/* Content Section - Desktop */}
             <div className="flex-1 min-w-0 max-w-2xl space-y-6 flex flex-col justify-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
+              {id === 'hero' ? (
+                <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900">Slate360</h1>
+              ) : (
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
+              )}
               {subtitle && (
                 <h3 className="text-lg md:text-xl font-semibold text-[#4B9CD3]">{subtitle}</h3>
               )}
