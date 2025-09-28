@@ -25,13 +25,14 @@ export default function TileSection({
 }: Props) {
   const isReverse = viewerOn === "left";
   
-  // Standardized viewer height for desktop to keep alignment consistent
-  const viewerHeight = hero ? "md:h-[60vh]" : "md:h-[55vh]";
+  // Standardized sizing: slightly larger viewer for better balance
+  const viewerWidth = hero ? "md:w-[45%]" : "md:w-[40%]";
+  const viewerHeight = hero ? "h-[60%]" : "h-[55%]";
   
   return (
     <section 
       id={id} 
-      className={`w-full h-screen snap-start border-b border-slate-200/70 flex items-center justify-center`}
+      className={`w-full h-screen snap-start border-b border-slate-200/70 flex items-center justify-center ${id === 'vr' ? 'pb-16' : ''}`}
     >
       {/* Mobile Layout */}
       <div className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-28' : 'py-16'} border-b border-slate-200/70 last:border-b-0`}>
@@ -82,51 +83,56 @@ export default function TileSection({
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden md:block w-full h-full">
-        <div className="w-full max-w-7xl mx-auto px-8 h-full grid grid-cols-12 items-center gap-10">
-          {/* Viewer Section - Desktop */}
-          <div className={`${isReverse ? 'col-start-10 col-span-3' : 'col-start-1 col-span-3'} flex flex-col items-center`}>
-            <div className={`w-full ${viewerHeight} rounded-lg shadow-lg overflow-hidden border border-slate-200`}>
-              <MediaViewer id={id} title={title} />
+      <div className="hidden md:flex w-full h-full items-stretch justify-center">
+        <div className="w-full max-w-7xl mx-auto px-8">
+          <div className={`flex ${
+            isReverse ? "md:flex-row-reverse" : "md:flex-row"
+          } items-center justify-between gap-10 h-full`}>
+            
+            {/* Viewer Section - Desktop */}
+            <div className={`${viewerWidth} flex flex-col items-center justify-center shrink-0 h-full`}>
+              <div className={`w-full ${viewerHeight} rounded-lg shadow-lg overflow-hidden border border-slate-200`}> 
+                <MediaViewer id={id} title={title} />
+              </div>
             </div>
-          </div>
 
-          {/* Content Section - Desktop (fixed center columns) */}
-          <div className="col-start-4 col-span-6 min-w-0 space-y-6 flex flex-col justify-center">
-            {id === 'hero' ? (
-              <Image
-                src="/logowithoutchevron.png"
-                alt="Slate360"
-                width={420}
-                height={120}
-                priority
-                className="h-[3.2rem] md:h-[4rem] w-auto object-contain self-start -ml-2"
-              />
-            ) : (
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
-            )}
-            {subtitle && (
-              <h3 className="text-lg md:text-xl font-semibold text-[#4B9CD3]">{subtitle}</h3>
-            )}
-            <p className="text-base md:text-lg text-gray-700 leading-relaxed">{description}</p>
-
-            {features && features.length > 0 && (
-              <ul className="space-y-2">
-                {features.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="text-[#B87333] text-base mt-1">▸</span>
-                    <span className="text-base text-gray-700">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <Link
-              href={learnHref}
-              className="inline-flex items-center gap-2 bg-[#B87333] text-white px-5 py-2 rounded-md font-semibold hover:bg-[#9f5f24] transition-colors shadow-lg w-fit text-sm"
-            >
-              Learn More →
-            </Link>
+            {/* Content Section - Desktop */}
+            <div className="flex-1 min-w-0 max-w-2xl space-y-6 flex flex-col justify-center h-full">
+              {id === 'hero' ? (
+                <Image
+                  src="/logowithoutchevron.png"
+                  alt="Slate360"
+                  width={420}
+                  height={120}
+                  priority
+                  className="h-[3.2rem] md:h-[4rem] w-auto object-contain self-start -ml-2"
+                />
+              ) : (
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
+              )}
+              {subtitle && (
+                <h3 className="text-lg md:text-xl font-semibold text-[#4B9CD3]">{subtitle}</h3>
+              )}
+              <p className="text-base md:text-lg text-gray-700 leading-relaxed">{description}</p>
+              
+              {features && features.length > 0 && (
+                <ul className="space-y-2">
+                  {features.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <span className="text-[#B87333] text-base mt-1">▸</span>
+                      <span className="text-base text-gray-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              
+              <Link
+                href={learnHref}
+                className="inline-flex items-center gap-2 bg-[#B87333] text-white px-5 py-2 rounded-md font-semibold hover:bg-[#9f5f24] transition-colors shadow-lg w-fit text-sm"
+              >
+                Learn More →
+              </Link>
+            </div>
           </div>
         </div>
       </div>
