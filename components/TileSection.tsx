@@ -87,11 +87,11 @@ export default function TileSection({
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden md:flex w-full h-full items-stretch justify-center">
-  <div className={`w-full max-w-7xl mx-auto px-8 h-full pt-8 md:pt-16 ${id === 'vr' ? 'md:pt-20' : ''}` }>
+     <div className="hidden md:flex w-full h-full items-stretch justify-center">
+        <div className="w-full max-w-7xl mx-auto px-6 md:px-10 py-24 md:pt-16 pt-8 h-full">
           <div className={`flex ${
             isReverse ? "md:flex-row-reverse" : "md:flex-row"
-          } items-center justify-between gap-10 h-full`}>
+          } items-center justify-between gap-6 min-w-0`}>
             
             {/* Viewer Section - Desktop */}
             <div className={`${viewerWidth} flex flex-col items-center justify-center shrink-0 h-full`}>
