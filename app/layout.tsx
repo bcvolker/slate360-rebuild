@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
     <body className="bg-white text-gray-900 overflow-x-hidden md:overflow-hidden">
         <Navbar />
-  <main id="scroll-container" className="scroll-pt-20 md:h-screen md:overflow-y-scroll md:snap-y md:snap-mandatory md:scroll-smooth">{children}</main>
+  <main id="scroll-container" className="scroll-pt-20 h-screen overflow-y-scroll snap-y snap-proximity md:snap-mandatory scroll-smooth">{children}</main>
       </body>
     </html>
   );

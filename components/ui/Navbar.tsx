@@ -15,17 +15,13 @@ export default function Navbar() {
     const elem = document.getElementById(targetId);
     if (elem) {
       const headerOffset = 80; // h-20
-      const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
-      const scroller = isDesktop ? (document.getElementById('scroll-container') as HTMLElement | null) : null;
+      const scroller = document.getElementById('scroll-container') as HTMLElement | null;
       if (scroller) {
         const elementTop = elem.getBoundingClientRect().top;
         const containerTop = scroller.getBoundingClientRect().top;
         const currentScroll = scroller.scrollTop;
         const offsetPosition = currentScroll + (elementTop - containerTop) - headerOffset;
         scroller.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-      } else {
-        // On mobile, rely on native smooth scrolling + scroll-padding-top
-        elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
   };

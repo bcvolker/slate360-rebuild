@@ -33,11 +33,11 @@ export default function TileSection({
   return (
     <section 
       id={id} 
-      className={`relative w-full min-h-[100svh] md:h-screen md:snap-start border-b border-slate-200/70 flex md:items-center md:justify-center scroll-mt-20 md:scroll-mt-0 ${id === 'vr' ? 'pb-16' : ''}`}
+      className={`relative w-full min-h-[100svh] md:h-screen snap-start border-b border-slate-200/70 flex md:items-center md:justify-center scroll-mt-20 md:scroll-mt-0 ${id === 'vr' ? 'pb-16' : ''}`}
     >
       {/* Mobile Layout */}
       <div 
-        className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-28' : 'py-16 pb-8'} border-b border-slate-200/70 last:border-b-0`}
+        className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-28' : id === 'hero' ? 'pt-24 pb-8' : 'py-16 pb-8'} border-b border-slate-200/70 last:border-b-0`}
         style={{ paddingBottom: id === 'vr' ? undefined : 'calc(env(safe-area-inset-bottom, 0px) + 2rem)' }}
       >
         {/* Content Section for Mobile */}
@@ -49,7 +49,7 @@ export default function TileSection({
               width={300}
               height={84}
               priority
-              className="h-[2.6rem] w-auto object-contain self-start -ml-1"
+              className="h-[2.6rem] w-auto object-contain self-start -ml-1 mt-1"
             />
           ) : (
             <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
