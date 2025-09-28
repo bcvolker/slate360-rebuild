@@ -18,7 +18,7 @@ export default function MobileViewerLauncher({ id, title }: Props) {
         type="button"
         aria-label={`Open ${title} preview`}
         onClick={() => setOpen(true)}
-        className="w-64 h-48 rounded-lg shadow-md overflow-hidden border border-slate-200 cursor-pointer hover:shadow-lg transition-shadow"
+        className="w-64 h-48 rounded-lg shadow-md overflow-hidden border border-slate-200 cursor-pointer hover:shadow-lg transition-shadow mb-2"
       >
         <MediaViewer id={id} title={title} thumbnail={true} />
       </button>

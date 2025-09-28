@@ -33,10 +33,13 @@ export default function TileSection({
   return (
     <section 
       id={id} 
-      className={`w-full h-screen snap-start border-b border-slate-200/70 flex items-center justify-center ${id === 'vr' ? 'pb-16' : ''}`}
+      className={`relative w-full min-h-[100svh] md:h-screen md:snap-start border-b border-slate-200/70 flex md:items-center md:justify-center scroll-mt-20 md:scroll-mt-0 ${id === 'vr' ? 'pb-16' : ''}`}
     >
       {/* Mobile Layout */}
-      <div className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-28' : 'py-16'} border-b border-slate-200/70 last:border-b-0`}>
+      <div 
+        className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-28' : 'py-16 pb-8'} border-b border-slate-200/70 last:border-b-0`}
+        style={{ paddingBottom: id === 'vr' ? undefined : 'calc(env(safe-area-inset-bottom, 0px) + 2rem)' }}
+      >
         {/* Content Section for Mobile */}
         <div className="flex flex-col justify-start space-y-4 mb-6">
           {id === 'hero' ? (
@@ -77,7 +80,7 @@ export default function TileSection({
         
         {/* Mobile Thumbnail Viewer at Bottom (2x size and clickable to expand) */}
         <div className={`w-full flex ${isReverse ? "justify-start" : "justify-end"}`}>
-          <div className="md:hidden">
+          <div className="md:hidden mb-4">
             <MobileViewerLauncher id={id} title={title} />
           </div>
         </div>
