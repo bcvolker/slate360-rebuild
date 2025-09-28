@@ -58,11 +58,10 @@ export default function Navbar() {
           <Image
             src="/assets/slate360logoforwebsite.v2.png"
             alt="Slate360 Logo"
-            width={300}
-            height={90}
+            width={180}
+            height={50}
             priority
-            unoptimized
-            className="h-[70px] sm:h-[80px] w-auto object-contain"
+            className="h-16 w-auto drop-shadow-md"
           />
         </Link>
 
