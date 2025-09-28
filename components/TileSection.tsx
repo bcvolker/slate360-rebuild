@@ -33,7 +33,7 @@ export default function TileSection({
   return (
     <section 
       id={id} 
-  className={`relative w-full min-h-[calc(100svh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start border-b border-slate-200/70 flex md:items-center md:justify-center md:pb-16 md:scroll-mt-0 ${id === 'vr' ? 'last:scroll-mb-20' : ''}`}
+       className={`relative w-full min-h-[calc(100svh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start border-b border-slate-200/70 flex md:items-center md:justify-center md:py-8 md:scroll-mt-0 ${id === 'vr' ? 'last:scroll-mb-20' : ''}`}
     >
       {/* Mobile Layout */}
       <div 
@@ -87,7 +87,7 @@ export default function TileSection({
       </div>
 
       {/* Desktop Layout */}
-  <div className="hidden md:flex w-full h-full items-stretch justify-center md:pt-6">
+     <div className="hidden md:flex w-full h-full items-stretch justify-center">
         <div className="w-full max-w-7xl mx-auto px-8 h-full">
           <div className={`flex ${
             isReverse ? "md:flex-row-reverse" : "md:flex-row"
