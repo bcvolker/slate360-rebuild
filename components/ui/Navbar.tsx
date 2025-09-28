@@ -28,18 +28,23 @@ export default function Navbar() {
     const targetId = href.replace(/.*#/, "");
     const elem = document.getElementById(targetId);
     if (elem) {
+      const isDesktop = window.matchMedia('(min-width: 768px)').matches;
       const scroller = document.getElementById('scroll-container');
-      if (!scroller) {
-        elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
+      if (isDesktop && scroller) {
+        // Desktop: scroll the container
+        const styles = window.getComputedStyle(scroller);
+        const padTop = parseFloat(styles.paddingTop || '0');
+        const elemTop = elem.getBoundingClientRect().top;
+        const containerTop = scroller.getBoundingClientRect().top;
+        const current = scroller.scrollTop;
+        const offset = current + (elemTop - containerTop) - padTop;
+        scroller.scrollTo({ top: offset, behavior: 'smooth' });
+      } else {
+        // Mobile: scroll window, offset by header height (same as pt-20)
+        const headerOffset = 80;
+        const top = window.scrollY + elem.getBoundingClientRect().top - headerOffset;
+        window.scrollTo({ top, behavior: 'smooth' });
       }
-      const styles = window.getComputedStyle(scroller);
-      const padTop = parseFloat(styles.paddingTop || '0');
-      const elemTop = elem.getBoundingClientRect().top;
-      const containerTop = scroller.getBoundingClientRect().top;
-      const current = scroller.scrollTop;
-      const offset = current + (elemTop - containerTop) - padTop;
-      scroller.scrollTo({ top: offset, behavior: 'smooth' });
     }
   };
 
