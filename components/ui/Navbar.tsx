@@ -14,15 +14,8 @@ export default function Navbar() {
     const targetId = href.replace(/.*#/, "");
     const elem = document.getElementById(targetId);
     if (elem) {
-      const headerOffset = 80; // h-20
-      const scroller = document.getElementById('scroll-container') as HTMLElement | null;
-      if (scroller) {
-        const elementTop = elem.getBoundingClientRect().top;
-        const containerTop = scroller.getBoundingClientRect().top;
-        const currentScroll = scroller.scrollTop;
-        const offsetPosition = currentScroll + (elementTop - containerTop) - headerOffset;
-        scroller.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-      }
+      // Let CSS handle offsets via scroll-padding-top on the container and scroll-margin-top on sections
+      elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
