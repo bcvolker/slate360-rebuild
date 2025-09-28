@@ -33,7 +33,7 @@ export default function TileSection({
   return (
     <section 
       id={id} 
-      className={`relative w-full min-h-[calc(100svh-5rem)] md:h-[calc(100vh-5rem)] snap-start border-b border-slate-200/70 flex md:items-center md:justify-center scroll-mt-20 md:scroll-mt-20 ${id === 'hero' ? 'first:scroll-mt-20' : ''} ${id === 'vr' ? 'pb-16 last:scroll-mb-20' : ''}`}
+  className={`relative w-full min-h-[calc(100svh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start border-b border-slate-200/70 flex md:items-center md:justify-center scroll-mt-20 md:scroll-mt-0 ${id === 'vr' ? 'pb-16 last:scroll-mb-20' : ''}`}
     >
       {/* Mobile Layout */}
       <div 
