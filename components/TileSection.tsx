@@ -39,7 +39,14 @@ export default function TileSection({
         {/* Content Section for Mobile */}
         <div className="flex flex-col justify-start space-y-4 mb-6">
           {id === 'hero' ? (
-            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Slate360</h1>
+            <Image
+              src="/logowithoutchevron.png"
+              alt="Slate360"
+              width={300}
+              height={84}
+              priority
+              className="h-[2.6rem] w-auto object-contain"
+            />
           ) : (
             <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
           )}
@@ -92,7 +99,14 @@ export default function TileSection({
             {/* Content Section - Desktop */}
             <div className="flex-1 min-w-0 max-w-2xl space-y-6 flex flex-col justify-center">
               {id === 'hero' ? (
-                <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900">Slate360</h1>
+                <Image
+                  src="/logowithoutchevron.png"
+                  alt="Slate360"
+                  width={420}
+                  height={120}
+                  priority
+                  className="h-[3.2rem] md:h-[4rem] w-auto object-contain"
+                />
               ) : (
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
               )}

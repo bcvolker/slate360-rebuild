@@ -14,7 +14,7 @@ export default function Navbar() {
     const targetId = href.replace(/.*#/, "");
     const elem = document.getElementById(targetId);
     if (elem) {
-      const headerOffset = 64; // h-16
+  const headerOffset = 80; // h-20
       const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
       const scroller = isDesktop ? (document.getElementById('scroll-container') as HTMLElement | null) : null;
       if (scroller) {
@@ -32,7 +32,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-slate-900/80 backdrop-blur-sm border-b border-slate-700/50">
+  <header className="fixed top-0 left-0 right-0 z-50 h-20 bg-slate-900/80 backdrop-blur-sm border-b border-slate-700/50">
   <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-2 sm:px-4">
         {/* Left: Logo */}
         <Link href="/" aria-label="Go to Homepage" className="flex items-center">
@@ -90,7 +90,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Overlay: shows tile links when hamburger open */}
       {isMenuOpen && (
-        <div className="absolute top-16 left-0 w-full bg-slate-900 md:hidden border-t border-slate-700/60">
+        <div className="absolute top-20 left-0 w-full bg-slate-900 md:hidden border-t border-slate-700/60">
           <nav className="flex flex-col items-stretch space-y-1 py-3 px-3">
             {tileData.map((tile) => (
               <a key={tile.id} href={`#${tile.id}`} onClick={(e) => handleScroll(e, `#${tile.id}`)} className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800">
