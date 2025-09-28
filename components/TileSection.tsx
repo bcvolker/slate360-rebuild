@@ -87,7 +87,7 @@ export default function TileSection({
         <div className="w-full max-w-7xl mx-auto px-8">
           <div className={`flex ${
             isReverse ? "md:flex-row-reverse" : "md:flex-row"
-          } items-center justify-between gap-10 h-full`}>
+          } items-center justify-between gap-10 h-full ${id !== 'hero' ? 'md:-translate-y-[72px]' : ''}`}>
             
             {/* Viewer Section - Desktop */}
             <div className={`${viewerWidth} flex flex-col items-center justify-center shrink-0 h-full`}>
