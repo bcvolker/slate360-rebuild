@@ -88,7 +88,7 @@ export default function TileSection({
 
       {/* Desktop Layout */}
      <div className="hidden md:flex w-full h-full items-stretch justify-center">
-        <div className="w-full max-w-7xl mx-auto px-6 md:px-10 py-24 md:pt-16 pt-8 h-full">
+        <div className={`w-full max-w-7xl mx-auto px-6 md:px-10 py-24 md:pt-16 pt-8 ${id === 'vr' ? 'md:pt-20' : ''} h-full`}>
           <div className={`flex ${
             isReverse ? "md:flex-row-reverse" : "md:flex-row"
           } items-center justify-between gap-6 min-w-0`}>
