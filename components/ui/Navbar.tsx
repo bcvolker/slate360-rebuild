@@ -28,22 +28,35 @@ export default function Navbar() {
     const targetId = href.replace(/.*#/, "");
     const elem = document.getElementById(targetId);
     if (elem) {
-      const isDesktop = window.matchMedia('(min-width: 768px)').matches;
-      const scroller = document.getElementById('scroll-container');
-      if (isDesktop && scroller) {
-        // Desktop: scroll the container
+      const scroller = document.getElementById('scroll-container') as HTMLElement | null;
+      if (scroller) {
+        // Temporarily disable snap so programmatic scroll doesn't fight it
+        const prevSnapType = scroller.style.scrollSnapType;
+        scroller.style.scrollSnapType = 'none';
+
         const styles = window.getComputedStyle(scroller);
         const padTop = parseFloat(styles.paddingTop || '0');
         const elemTop = elem.getBoundingClientRect().top;
         const containerTop = scroller.getBoundingClientRect().top;
         const current = scroller.scrollTop;
-        const offset = current + (elemTop - containerTop) - padTop;
-        scroller.scrollTo({ top: offset, behavior: 'smooth' });
+        const target = current + (elemTop - containerTop) - padTop;
+        scroller.scrollTo({ top: target, behavior: 'smooth' });
+
+        // Post-scroll correction for mobile viewport quirks (iOS URL bar, etc.)
+        window.setTimeout(() => {
+          const newElemTop = elem.getBoundingClientRect().top;
+          const newContainerTop = scroller.getBoundingClientRect().top;
+          const now = scroller.scrollTop;
+          const correctedTarget = now + (newElemTop - newContainerTop) - padTop;
+          if (Math.abs(correctedTarget - now) > 2) {
+            scroller.scrollTo({ top: correctedTarget, behavior: 'smooth' });
+          }
+          // Restore snap
+          scroller.style.scrollSnapType = prevSnapType;
+        }, 450);
       } else {
-        // Mobile: scroll window, offset by header height (same as pt-20)
-        const headerOffset = 80;
-        const top = window.scrollY + elem.getBoundingClientRect().top - headerOffset;
-        window.scrollTo({ top, behavior: 'smooth' });
+        // Fallback to native behavior
+        elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
   };
