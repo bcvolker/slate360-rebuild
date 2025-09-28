@@ -26,39 +26,28 @@ export default function Navbar() {
     e.preventDefault();
     setIsMenuOpen(false);
     const targetId = href.replace(/.*#/, "");
-    const elem = document.getElementById(targetId);
-    if (elem) {
-      const scroller = document.getElementById('scroll-container') as HTMLElement | null;
-      if (scroller) {
-        // Temporarily disable snap so programmatic scroll doesn't fight it
-        const prevSnapType = scroller.style.scrollSnapType;
-        scroller.style.scrollSnapType = 'none';
-
-        const styles = window.getComputedStyle(scroller);
-        const padTop = parseFloat(styles.paddingTop || '0');
-        const elemTop = elem.getBoundingClientRect().top;
-        const containerTop = scroller.getBoundingClientRect().top;
-        const current = scroller.scrollTop;
-        const target = current + (elemTop - containerTop) - padTop;
-        scroller.scrollTo({ top: target, behavior: 'smooth' });
-
-        // Post-scroll correction for mobile viewport quirks (iOS URL bar, etc.)
-        window.setTimeout(() => {
-          const newElemTop = elem.getBoundingClientRect().top;
-          const newContainerTop = scroller.getBoundingClientRect().top;
-          const now = scroller.scrollTop;
-          const correctedTarget = now + (newElemTop - newContainerTop) - padTop;
-          if (Math.abs(correctedTarget - now) > 2) {
-            scroller.scrollTo({ top: correctedTarget, behavior: 'smooth' });
-          }
-          // Restore snap
-          scroller.style.scrollSnapType = prevSnapType;
-        }, 450);
-      } else {
-        // Fallback to native behavior
-        elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const scrollContainer = document.getElementById('scroll-container');
+    const targetElement = document.getElementById(targetId);
+    if (!scrollContainer || !targetElement) return;
+    
+    const headerHeight = 80;
+    const targetPosition = targetElement.offsetTop;
+    const scrollPosition = targetPosition - headerHeight;
+    
+    scrollContainer.style.scrollSnapType = 'none';
+    scrollContainer.scrollTo({ top: scrollPosition, behavior: 'smooth' });
+    
+    let attempts = 0;
+    const maxAttempts = 10;
+    const correctScroll = () => {
+      if (Math.abs(scrollContainer.scrollTop - scrollPosition) < 2 || attempts >= maxAttempts) {
+        scrollContainer.style.scrollSnapType = 'y proximity';
+        return;
       }
-    }
+      attempts++;
+      requestAnimationFrame(correctScroll);
+    };
+    requestAnimationFrame(correctScroll);
   };
 
   return (
