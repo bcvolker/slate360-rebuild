@@ -28,8 +28,18 @@ export default function Navbar() {
     const targetId = href.replace(/.*#/, "");
     const elem = document.getElementById(targetId);
     if (elem) {
-      // Let CSS handle offsets via scroll-padding-top on the container and scroll-margin-top on sections
-      elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const scroller = document.getElementById('scroll-container');
+      if (!scroller) {
+        elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      const styles = window.getComputedStyle(scroller);
+      const padTop = parseFloat(styles.paddingTop || '0');
+      const elemTop = elem.getBoundingClientRect().top;
+      const containerTop = scroller.getBoundingClientRect().top;
+      const current = scroller.scrollTop;
+      const offset = current + (elemTop - containerTop) - padTop;
+      scroller.scrollTo({ top: offset, behavior: 'smooth' });
     }
   };
 
