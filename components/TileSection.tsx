@@ -45,7 +45,7 @@ export default function TileSection({
               width={300}
               height={84}
               priority
-              className="h-[2.6rem] w-auto object-contain"
+              className="h-[2.6rem] w-auto object-contain self-start -ml-1"
             />
           ) : (
             <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
@@ -105,7 +105,7 @@ export default function TileSection({
                   width={420}
                   height={120}
                   priority
-                  className="h-[3.2rem] md:h-[4rem] w-auto object-contain"
+                  className="h-[3.2rem] md:h-[4rem] w-auto object-contain self-start -ml-2"
                 />
               ) : (
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
