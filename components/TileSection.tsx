@@ -33,12 +33,12 @@ export default function TileSection({
   return (
     <section 
       id={id} 
-  className={`relative w-full min-h-[100svh] md:h-screen snap-start border-b border-slate-200/70 flex md:items-center md:justify-center scroll-mt-20 md:scroll-mt-20 ${id === 'hero' ? 'first:scroll-mt-20' : ''} ${id === 'vr' ? 'pb-16 last:scroll-mb-20' : ''}`}
+      className={`relative w-full min-h-[calc(100svh-5rem)] md:h-[calc(100vh-5rem)] snap-start border-b border-slate-200/70 flex md:items-center md:justify-center scroll-mt-20 md:scroll-mt-20 ${id === 'hero' ? 'first:scroll-mt-20' : ''} ${id === 'vr' ? 'pb-16 last:scroll-mb-20' : ''}`}
     >
       {/* Mobile Layout */}
       <div 
-        className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-28' : id === 'hero' ? 'pt-24 pb-8' : 'py-16 pb-8'} border-b border-slate-200/70 last:border-b-0`}
-        style={{ paddingBottom: id === 'vr' ? undefined : 'calc(env(safe-area-inset-bottom, 0px) + 2rem)' }}
+        className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-24' : id === 'hero' ? 'pt-24 pb-6' : 'py-16 pb-6'} border-b border-slate-200/70 last:border-b-0`}
+        style={{ paddingBottom: id === 'vr' ? undefined : 'env(safe-area-inset-bottom, 0px)' }}
       >
         {/* Content Section for Mobile */}
         <div className="flex flex-col justify-start space-y-4 mb-6">

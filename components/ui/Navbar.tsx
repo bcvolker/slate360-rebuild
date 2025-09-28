@@ -1,12 +1,26 @@
 
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { tileData } from '@/lib/tile-data';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const desktopMenuRef = useRef<HTMLDivElement | null>(null);
+
+  // Close desktop dropdown when clicking outside
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (!isMenuOpen) return;
+      const target = e.target as Node;
+      if (desktopMenuRef.current && !desktopMenuRef.current.contains(target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [isMenuOpen]);
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -39,7 +53,7 @@ export default function Navbar() {
         <div className="flex items-center gap-6">
           <nav className="hidden md:flex items-center gap-6">
             {/* Menu dropdown for tile links (desktop) placed to the left of About */}
-            <div className="relative">
+            <div className="relative" ref={desktopMenuRef}>
               <button
                 onClick={() => setIsMenuOpen((v) => !v)}
                 aria-haspopup="true"
@@ -76,17 +90,20 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay: shows tile links when hamburger open */}
+      {/* Mobile Menu Overlay: shows tile links when hamburger open; tap outside to close */}
       {isMenuOpen && (
-        <div className="absolute top-20 left-0 w-full bg-slate-900 md:hidden border-t border-slate-700/60">
-          <nav className="flex flex-col items-stretch space-y-1 py-3 px-3">
-            {tileData.map((tile) => (
-              <a key={tile.id} href={`#${tile.id}`} onClick={(e) => handleScroll(e, `#${tile.id}`)} className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800">
-                {tile.title}
-              </a>
-            ))}
-          </nav>
-        </div>
+        <>
+          <div className="fixed inset-0 top-20 z-40 md:hidden" onClick={() => setIsMenuOpen(false)} />
+          <div className="absolute top-20 left-0 w-full bg-slate-900 md:hidden border-t border-slate-700/60 z-50">
+            <nav className="flex flex-col items-stretch space-y-1 py-3 px-3">
+              {tileData.map((tile) => (
+                <a key={tile.id} href={`#${tile.id}`} onClick={(e) => handleScroll(e, `#${tile.id}`)} className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800">
+                  {tile.title}
+                </a>
+              ))}
+            </nav>
+          </div>
+        </>
       )}
     </header>
   );
