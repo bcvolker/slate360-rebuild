@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import MediaViewer from "./MediaViewer";
+import MobileViewerLauncher from "./MobileViewerLauncher";
 
 type Props = {
   id: string;
@@ -74,10 +75,10 @@ export default function TileSection({
           </Link>
         </div>
         
-        {/* Mobile Thumbnail Viewer at Bottom */}
+        {/* Mobile Thumbnail Viewer at Bottom (2x size and clickable to expand) */}
         <div className={`w-full flex ${isReverse ? "justify-start" : "justify-end"}`}>
-          <div className="md:hidden w-32 h-24 rounded-lg shadow-md overflow-hidden border border-slate-200 cursor-pointer hover:shadow-lg transition-shadow">
-            <MediaViewer id={id} title={title} thumbnail={true} />
+          <div className="md:hidden">
+            <MobileViewerLauncher id={id} title={title} />
           </div>
         </div>
       </div>

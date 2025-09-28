@@ -14,7 +14,7 @@ export default function Navbar() {
     const targetId = href.replace(/.*#/, "");
     const elem = document.getElementById(targetId);
     if (elem) {
-  const headerOffset = 80; // h-20
+      const headerOffset = 80; // h-20
       const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
       const scroller = isDesktop ? (document.getElementById('scroll-container') as HTMLElement | null) : null;
       if (scroller) {
@@ -24,9 +24,8 @@ export default function Navbar() {
         const offsetPosition = currentScroll + (elementTop - containerTop) - headerOffset;
         scroller.scrollTo({ top: offsetPosition, behavior: 'smooth' });
       } else {
-        const elementTop = elem.getBoundingClientRect().top;
-        const offsetPosition = window.scrollY + elementTop - headerOffset;
-        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+        // On mobile, rely on native smooth scrolling + scroll-padding-top
+        elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
   };

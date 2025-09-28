@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 :root {
-  --header-height: 4rem; /* 64px */
+  --header-height: 5rem; /* 80px to match h-20 navbar */
 }
 
 html {
