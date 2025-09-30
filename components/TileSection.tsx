@@ -54,7 +54,7 @@ export default function TileSection({
         {isHero && <div className="absolute inset-0 bg-hero-animated pointer-events-none" />}
         {/* Mobile Layout */}
         <div
-          className={`md:hidden w-full flex flex-col px-6 ${isHero ? 'pt-4 pb-4 -mt-8' : 'py-8'} border-b border-slate-200/70 last:border-b-0 relative z-10`}
+          className={`md:hidden w-full flex flex-col px-6 ${isHero ? 'pt-8 pb-4 -mt-4' : 'py-8'} border-b border-slate-200/70 last:border-b-0 relative z-10`}
           style={{ paddingBottom: id === 'vr' ? undefined : 'env(safe-area-inset-bottom, 0px)' }}
         >
           {/* Content Section for Mobile */}
@@ -96,9 +96,16 @@ export default function TileSection({
             </Link>
           </div>
 
-          {/* Mobile Thumbnail Viewer at Bottom (2x size and clickable to expand) */}
-          <div className={`w-full flex ${isReverse ? 'justify-start' : 'justify-end'}`}>
-            <div className="md:hidden mb-4">
+          {/* Mobile Viewer and Text Side-by-Side Layout */}
+          <div className="w-full flex gap-4 items-start">
+            <div className="flex-1 min-w-0">
+              {/* Space for additional text, messaging, icons, etc. */}
+              <div className="text-xs text-gray-600 space-y-2">
+                <p className="font-medium">Interactive Preview</p>
+                <p>Tap to explore features</p>
+              </div>
+            </div>
+            <div className="flex-shrink-0">
               <MobileViewerLauncher id={id} title={title} />
             </div>
           </div>
