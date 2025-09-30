@@ -29,3 +29,9 @@ body { overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; }
     @apply h-screen snap-y snap-mandatory overflow-y-scroll;
   }
 }
+
+/* Mobile tile alignment helpers */
+@media (max-width: 767px) {
+  .tile-section { padding-top: 80px; }
+  .text-side { width: 100%; }
+}

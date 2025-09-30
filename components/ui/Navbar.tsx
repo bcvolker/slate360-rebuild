@@ -29,25 +29,27 @@ export default function Navbar() {
     const scrollContainer = document.getElementById('scroll-container');
     const targetElement = document.getElementById(targetId);
     if (!scrollContainer || !targetElement) return;
-    
+
     const headerHeight = 80;
-    const targetPosition = targetElement.offsetTop;
-    const scrollPosition = targetPosition - headerHeight;
-    
+    const targetPosition = targetElement.offsetTop - headerHeight;
+
+    // Temporarily disable snap to allow smooth programmatic scroll
+    const previousSnap = scrollContainer.style.scrollSnapType;
     scrollContainer.style.scrollSnapType = 'none';
-    scrollContainer.scrollTo({ top: scrollPosition, behavior: 'smooth' });
-    
+    scrollContainer.scrollTo({ top: targetPosition, behavior: 'smooth' });
+
     let attempts = 0;
     const maxAttempts = 10;
-    const correctScroll = () => {
-      if (Math.abs(scrollContainer.scrollTop - scrollPosition) < 2 || attempts >= maxAttempts) {
-        scrollContainer.style.scrollSnapType = 'y proximity';
+    const restoreSnap = () => {
+      if (Math.abs(scrollContainer.scrollTop - targetPosition) < 2 || attempts >= maxAttempts) {
+        // Restore responsive snap behavior (proximity on mobile, mandatory on md+ via classes)
+        scrollContainer.style.scrollSnapType = previousSnap || 'y proximity';
         return;
       }
       attempts++;
-      requestAnimationFrame(correctScroll);
+      requestAnimationFrame(restoreSnap);
     };
-    requestAnimationFrame(correctScroll);
+    requestAnimationFrame(restoreSnap);
   };
 
   return (
