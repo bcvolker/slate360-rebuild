@@ -12,9 +12,8 @@ html {
   scroll-padding-top: var(--header-height);
 }
 
-body {
-  @apply bg-slate-900 text-slate-300;
-}
+/* Body colors are controlled via layout.tsx body classes */
+body { font-variant-ligatures: contextual; }
 
 /* Unified scroll model */
 html { scroll-padding-top: 5rem; height: 100%; }

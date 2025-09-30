@@ -46,7 +46,7 @@ export default function TileSection({
           style={{ paddingBottom: id === 'vr' ? undefined : 'env(safe-area-inset-bottom, 0px)' }}
         >
           {/* Content Section for Mobile */}
-          <div className="text-side flex flex-col justify-start space-y-4 mb-6">
+          <div className="text-side flex flex-col justify-start space-y-4 mb-6 max-w-prose">
             <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
             {subtitle && (
               <h3 className="text-lg font-semibold text-[#4B9CD3]">{subtitle}</h3>
@@ -97,7 +97,7 @@ export default function TileSection({
                 {subtitle && (
                   <h3 className="text-lg md:text-xl font-semibold text-[#4B9CD3]">{subtitle}</h3>
                 )}
-                <p className="text-base md:text-lg text-gray-700 leading-relaxed">{description}</p>
+                <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-prose">{description}</p>
 
                 {features && features.length > 0 && (
                   <ul className="space-y-2">
