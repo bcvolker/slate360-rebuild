@@ -1,6 +1,7 @@
 
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { tileData } from '@/lib/tile-data';
@@ -8,6 +9,8 @@ import { tileData } from '@/lib/tile-data';
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const desktopMenuRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Close desktop dropdown when clicking outside
   useEffect(() => {
@@ -26,13 +29,23 @@ export default function Navbar() {
     e.preventDefault();
     setIsMenuOpen(false);
     const targetId = href.replace(/.*#/, "");
+
+    // If we're not on the homepage, navigate first, then scroll after next frame.
+    if (pathname !== '/') {
+      router.push(`/#${targetId}`);
+      requestAnimationFrame(() => {
+        const el = document.getElementById(targetId);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      });
+      return;
+    }
   const scrollContainer = document.getElementById('scroll-container');
   const targetElement = document.getElementById(targetId);
   if (!targetElement) return;
 
   const headerHeight = 80;
     // Temporarily disable snap to allow smooth programmatic scroll
-    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+  const isDesktop = window.matchMedia('(min-width: 768px)').matches;
     if (isDesktop && scrollContainer) {
       const previousSnap = scrollContainer.style.scrollSnapType;
       scrollContainer.style.scrollSnapType = 'none';
@@ -91,8 +104,8 @@ export default function Navbar() {
                   {tileData.map((tile) => (
                     <a
                       key={tile.id}
-                      href={`#${tile.id}`}
-                      onClick={(e) => handleScroll(e, `#${tile.id}`)}
+                      href={`/#${tile.id}`}
+                      onClick={(e) => handleScroll(e, `/#${tile.id}`)}
                       className="block px-3 py-2 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded"
                     >
                       {tile.title}
@@ -120,7 +133,7 @@ export default function Navbar() {
           <div className="absolute top-20 left-0 w-full bg-slate-900 md:hidden border-t border-slate-700/60 z-50">
             <nav className="flex flex-col items-stretch space-y-1 py-3 px-3">
               {tileData.map((tile) => (
-                <a key={tile.id} href={`#${tile.id}`} onClick={(e) => handleScroll(e, `#${tile.id}`)} className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800">
+                <a key={tile.id} href={`/#${tile.id}`} onClick={(e) => handleScroll(e, `/#${tile.id}`)} className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800">
                   {tile.title}
                 </a>
               ))}

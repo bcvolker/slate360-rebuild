@@ -16,20 +16,23 @@ body {
   @apply bg-slate-900 text-slate-300;
 }
 
-/* Unified scroll model: ensure main height accounts for fixed header */
-html { scroll-padding-top: 5rem; }
+/* Unified scroll model */
+html { scroll-padding-top: 5rem; height: 100%; }
+body { min-height: 100%; overscroll-behavior-y: none; -webkit-overflow-scrolling: auto; }
 @supports (height: 100dvh) {
   main { height: calc(100dvh - 5rem); }
 }
-body { overscroll-behavior-y: none; -webkit-overflow-scrolling: auto; }
 /* Momentum scrolling for the main scroll container on iOS */
 #scroll-container { -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
 
 /* DESKTOP: Enforce snap-scrolling on the main container */
+/* Mobile: make the document the snap container */
+@media (max-width: 767px) {
+  html, body { scroll-snap-type: y proximity; }
+}
+/* Desktop: container handles snap */
 @media (min-width: 768px) {
-  .snap-scroll-container {
-    @apply h-screen snap-y snap-mandatory overflow-y-scroll;
-  }
+  #scroll-container { scroll-snap-type: y mandatory; }
 }
 
 /* Mobile tile alignment helpers */
