@@ -16,6 +16,13 @@ body {
   @apply bg-slate-900 text-slate-300;
 }
 
+/* Unified scroll model: ensure main height accounts for fixed header */
+html { scroll-padding-top: 5rem; }
+@supports (height: 100dvh) {
+  main { height: calc(100dvh - 5rem); }
+}
+body { overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; }
+
 /* DESKTOP: Enforce snap-scrolling on the main container */
 @media (min-width: 768px) {
   .snap-scroll-container {
