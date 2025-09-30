@@ -12,6 +12,9 @@ type Props = {
   learnHref: string;
   viewerOn?: "left" | "right";
   hero?: boolean;
+  isAlt?: boolean;                // NEW
+  isHero?: boolean;               // NEW
+  hasDivider?: boolean;           // NEW: allow turning off on last tile
 };
 
 export default function TileSection({
@@ -23,6 +26,9 @@ export default function TileSection({
   learnHref,
   viewerOn = "right",
   hero = false,
+  isAlt = false,
+  isHero = false,
+  hasDivider = true,
 }: Props) {
   const isReverse = viewerOn === "left";
   
@@ -30,16 +36,23 @@ export default function TileSection({
   const viewerWidth = "md:w-[42%]";
   const viewerHeight = "h-[50vh] md:h-[55vh] lg:h-[60vh]";
   
+  const bgClass = isAlt ? "bg-tile-alt" : "bg-tile-base";
+  const dividerClass = hasDivider ? "section-divider" : "";
+  
   return (
     <section
       id={id}
-      className={`tile-section relative w-full min-h-[calc(100dvh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start border-b border-slate-200/70 grid grid-rows-[1fr_auto_1fr] items-stretch scroll-mt-20 md:scroll-mt-0 ${id === 'vr' ? 'last:scroll-mb-20' : ''}`}
+      className={`tile-section relative w-full min-h-[calc(100dvh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start grid grid-rows-[1fr_auto_1fr] items-stretch scroll-mt-20 md:scroll-mt-0 ${bgClass} ${dividerClass} ${id === 'vr' ? 'last:scroll-mb-20' : ''}`}
+      data-tile={id}
     >
+      {/* Optional hero overlay behind content */}
+      {isHero && <div className="absolute inset-0 bg-hero-animated pointer-events-none" />}
+
   {/* Top spacer */}
   <div className="h-12 md:h-16" aria-hidden="true" />
 
       {/* Middle row: content wrapper */}
-      <div className="row-start-2 place-self-stretch w-full">
+      <div className="row-start-2 place-self-stretch w-full relative z-10">
         {/* Mobile Layout */}
         <div
           className={`md:hidden w-full flex flex-col px-6 py-8 border-b border-slate-200/70 last:border-b-0`}
@@ -47,7 +60,7 @@ export default function TileSection({
         >
           {/* Content Section for Mobile */}
           <div className="text-side flex flex-col justify-start space-y-4 mb-6 max-w-prose">
-            <h2 className="text-3xl font-bold text-gray-900 leading-tight">{title}</h2>
+            <h2 className="text-3xl font-bold leading-tight" style={{ color: 'var(--brand-ink)' }}>{title}</h2>
             {subtitle && (
               <h3 className="text-xl font-semibold text-[#4B9CD3] leading-snug">{subtitle}</h3>
             )}
@@ -93,7 +106,7 @@ export default function TileSection({
 
               {/* Content Section - Desktop */}
               <div className="text-side flex-1 min-w-0 max-w-2xl space-y-6 flex flex-col justify-center h-full transition-all duration-300">
-                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 leading-tight">{title}</h2>
+                <h2 className="text-3xl md:text-5xl font-bold leading-tight" style={{ color: 'var(--brand-ink)' }}>{title}</h2>
                 {subtitle && (
                   <h3 className="text-xl md:text-2xl font-semibold text-[#4B9CD3] leading-snug">{subtitle}</h3>
                 )}
