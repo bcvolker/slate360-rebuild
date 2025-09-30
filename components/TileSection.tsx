@@ -54,12 +54,24 @@ export default function TileSection({
         {isHero && <div className="absolute inset-0 bg-hero-animated pointer-events-none" />}
         {/* Mobile Layout */}
         <div
-          className={`md:hidden w-full flex flex-col px-6 ${isHero ? 'pt-2 pb-4 -mt-12' : 'py-8'} border-b border-slate-200/70 last:border-b-0 relative z-10`}
+          className={`md:hidden w-full flex flex-col px-6 ${isHero ? 'pt-4 pb-4 -mt-8' : 'py-8'} border-b border-slate-200/70 last:border-b-0 relative z-10`}
           style={{ paddingBottom: id === 'vr' ? undefined : 'env(safe-area-inset-bottom, 0px)' }}
         >
           {/* Content Section for Mobile */}
           <div className="text-side flex flex-col justify-start space-y-4 mb-6 max-w-prose">
-            <h2 className="text-3xl font-bold leading-tight" style={{ color: 'var(--brand-ink)' }}>{title}</h2>
+            {isHero ? (
+              <div className="flex items-center justify-start">
+                <Image 
+                  src="/logowithoutchevron.png" 
+                  alt="Slate360" 
+                  width={200} 
+                  height={60} 
+                  className="h-12 w-auto"
+                />
+              </div>
+            ) : (
+              <h2 className="text-3xl font-bold leading-tight" style={{ color: 'var(--brand-ink)' }}>{title}</h2>
+            )}
             {subtitle && (
               <h3 className="text-xl font-semibold text-[#4B9CD3] leading-snug">{subtitle}</h3>
             )}
@@ -105,7 +117,19 @@ export default function TileSection({
 
               {/* Content Section - Desktop */}
               <div className="text-side flex-1 min-w-0 max-w-2xl space-y-6 flex flex-col justify-center h-full transition-all duration-300">
-                <h2 className="text-3xl md:text-5xl font-bold leading-tight" style={{ color: 'var(--brand-ink)' }}>{title}</h2>
+                {isHero ? (
+                  <div className="flex items-center justify-start">
+                    <Image 
+                      src="/logowithoutchevron.png" 
+                      alt="Slate360" 
+                      width={280} 
+                      height={84} 
+                      className="h-16 md:h-20 w-auto"
+                    />
+                  </div>
+                ) : (
+                  <h2 className="text-3xl md:text-5xl font-bold leading-tight" style={{ color: 'var(--brand-ink)' }}>{title}</h2>
+                )}
                 {subtitle && (
                   <h3 className="text-xl md:text-2xl font-semibold text-[#4B9CD3] leading-snug">{subtitle}</h3>
                 )}
