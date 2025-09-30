@@ -1,2 +1,5 @@
-# Ignore tests until test runner is configured
+# Ignore tests and playwright config until dependencies are installed
 /tests
+/playwright.config.ts
+/test-results
+/playwright-report
