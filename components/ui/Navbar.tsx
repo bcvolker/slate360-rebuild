@@ -31,28 +31,28 @@ export default function Navbar() {
     if (!scrollContainer || !targetElement) return;
 
   const headerHeight = 80;
-  const containerRect = scrollContainer.getBoundingClientRect();
-  const targetRect = targetElement.getBoundingClientRect();
-  const delta = targetRect.top - containerRect.top;
-  const targetPosition = scrollContainer.scrollTop + delta - headerHeight;
-
     // Temporarily disable snap to allow smooth programmatic scroll
-  const previousSnap = scrollContainer.style.scrollSnapType;
-  scrollContainer.style.scrollSnapType = 'none';
-    scrollContainer.scrollTo({ top: targetPosition, behavior: 'smooth' });
+    const previousSnap = scrollContainer.style.scrollSnapType;
+    scrollContainer.style.scrollSnapType = 'none';
 
+    // Use scrollIntoView for container-scoped smooth scroll; scroll-margin-top handles header offset
+    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+
+    // Restore snap once we're close enough
     let attempts = 0;
-    const maxAttempts = 10;
-    const restoreSnap = () => {
-      if (Math.abs(scrollContainer.scrollTop - targetPosition) < 2 || attempts >= maxAttempts) {
-        // Restore responsive snap behavior (proximity on mobile, mandatory on md+ via classes)
+    const maxAttempts = 12;
+    const check = () => {
+      // If the target is near the top of the container, restore snap
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const targetRect = targetElement.getBoundingClientRect();
+      if (Math.abs(targetRect.top - containerRect.top - headerHeight) < 3 || attempts >= maxAttempts) {
         scrollContainer.style.scrollSnapType = previousSnap || 'y proximity';
         return;
       }
       attempts++;
-      requestAnimationFrame(restoreSnap);
+      requestAnimationFrame(check);
     };
-    requestAnimationFrame(restoreSnap);
+    requestAnimationFrame(check);
   };
 
   return (
