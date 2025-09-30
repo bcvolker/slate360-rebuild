@@ -1,10 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+
+type ScrollDebugInfo = {
+  path: string;
+  isDesktop: boolean;
+  scrollContainerScrollTop: number | null;
+  bodyScrollY: number;
+  containerSnap: string | null;
+  docSnap: string;
+  activeId: string | null;
+};
 
 export default function DebugScrollOverlay() {
   const [enabled, setEnabled] = useState(false);
-  const [info, setInfo] = useState<any>({});
+  const [info, setInfo] = useState<ScrollDebugInfo | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

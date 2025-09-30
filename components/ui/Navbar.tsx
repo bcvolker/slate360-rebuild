@@ -26,8 +26,7 @@ export default function Navbar() {
   }, [isMenuOpen]);
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
-    const onHome = pathname === '/';
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
     // Mobile: allow native anchor behavior for maximum iOS reliability
     if (!isDesktop) {
       setIsMenuOpen(false);
