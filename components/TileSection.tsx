@@ -64,9 +64,9 @@ export default function TileSection({
                 <Image 
                   src="/logowithoutchevron.png" 
                   alt="Slate360" 
-                  width={200} 
-                  height={60} 
-                  className="h-12 w-auto"
+                  width={120} 
+                  height={36} 
+                  className="h-6 w-auto"
                 />
               </div>
             ) : (
@@ -122,9 +122,9 @@ export default function TileSection({
                     <Image 
                       src="/logowithoutchevron.png" 
                       alt="Slate360" 
-                      width={280} 
-                      height={84} 
-                      className="h-16 md:h-20 w-auto"
+                      width={160} 
+                      height={48} 
+                      className="h-8 md:h-10 w-auto"
                     />
                   </div>
                 ) : (
