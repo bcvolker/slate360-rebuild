@@ -8,7 +8,7 @@ export default function PageClient({ tileData }: { tileData: LibTile[] }) {
   return (
     <>
       {/* snap container wrapper is provided by parent <main> */}
-      {tileData.map((tile) => (
+      {tileData.map((tile, idx) => (
         <TileSection
           key={tile.id}
           id={tile.id}
@@ -19,6 +19,9 @@ export default function PageClient({ tileData }: { tileData: LibTile[] }) {
           learnHref={tile.id === 'hero' ? '/about' : `/features/${tile.id}`}
           viewerOn={tile.viewerPosition}
           hero={tile.id === 'hero'}
+          isAlt={idx % 2 === 1}
+          isHero={idx === 0}
+          hasDivider={idx < tileData.length - 1}
         />
       ))}
     </>
