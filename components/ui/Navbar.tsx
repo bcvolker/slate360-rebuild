@@ -142,11 +142,29 @@ export default function Navbar() {
           <div className="fixed inset-0 top-20 z-40 md:hidden" onClick={() => setIsMenuOpen(false)} />
           <div className="absolute top-20 left-0 w-full bg-slate-900 md:hidden border-t border-slate-700/60 z-50">
             <nav className="flex flex-col items-stretch space-y-1 py-3 px-3">
+              {/* Tile navigation links */}
               {tileData.map((tile) => (
                 <a key={tile.id} href={`/#${tile.id}`} onClick={(e) => handleScroll(e, `/#${tile.id}`)} className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800">
                   {tile.title}
                 </a>
               ))}
+              
+              {/* Divider */}
+              <div className="border-t border-slate-700/60 my-2" />
+              
+              {/* Main navigation links */}
+              <Link href="/about" className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800" onClick={() => setIsMenuOpen(false)}>
+                About
+              </Link>
+              <Link href="/contact" className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800" onClick={() => setIsMenuOpen(false)}>
+                Contact
+              </Link>
+              <Link href="/subscribe" className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800" onClick={() => setIsMenuOpen(false)}>
+                Subscribe
+              </Link>
+              <Link href="/login" className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800" onClick={() => setIsMenuOpen(false)}>
+                Login
+              </Link>
             </nav>
           </div>
         </>
