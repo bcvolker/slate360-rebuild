@@ -158,8 +158,8 @@ export default function TileSection({
         </div>
       </div>
 
-  {/* Bottom spacer */}
-  <div className="h-12 md:h-16" aria-hidden="true" />
+  {/* Bottom spacer - reduced to minimize white banner */}
+  <div className="h-4 md:h-6" aria-hidden="true" />
 
       {/* Footer integrated into last tile */}
       {id === 'vr' && (
