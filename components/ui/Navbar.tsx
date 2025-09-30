@@ -124,10 +124,10 @@ export default function Navbar() {
                 </div>
               )}
             </div>
-            <Link href="/about" className="text-sm font-medium text-slate-300 hover:text-white">About</Link>
-            <Link href="/contact" className="text-sm font-medium text-slate-300 hover:text-white">Contact</Link>
-            <Link href="/subscribe" className="text-sm font-medium text-slate-300 hover:text-white">Subscribe</Link>
-            <Link href="/login" className="text-sm font-medium text-slate-300 hover:text-white">Login</Link>
+            <Link href="/about" className="text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200">About</Link>
+            <Link href="/contact" className="text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200">Contact</Link>
+            <Link href="/subscribe" className="text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200">Subscribe</Link>
+            <Link href="/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200">Login</Link>
           </nav>
           {/* Mobile Hamburger */}
           <button onClick={() => setIsMenuOpen((v) => !v)} className="md:hidden text-slate-300 focus:outline-none">

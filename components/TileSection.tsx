@@ -47,11 +47,11 @@ export default function TileSection({
         >
           {/* Content Section for Mobile */}
           <div className="text-side flex flex-col justify-start space-y-4 mb-6 max-w-prose">
-            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+            <h2 className="text-3xl font-bold text-gray-900 leading-tight">{title}</h2>
             {subtitle && (
-              <h3 className="text-lg font-semibold text-[#4B9CD3]">{subtitle}</h3>
+              <h3 className="text-xl font-semibold text-[#4B9CD3] leading-snug">{subtitle}</h3>
             )}
-            <p className="text-base text-gray-700 leading-relaxed">{description}</p>
+            <p className="text-lg text-gray-700 leading-relaxed">{description}</p>
 
             {features && features.length > 0 && (
               <ul className="space-y-2">
@@ -66,7 +66,7 @@ export default function TileSection({
 
             <Link
               href={learnHref}
-              className="inline-flex items-center gap-2 bg-[#B87333] text-white px-4 py-2 rounded-md font-semibold hover:bg-[#9f5f24] transition-colors shadow-lg w-fit text-sm"
+              className="inline-flex items-center gap-2 bg-[#B87333] text-white px-6 py-3 rounded-md font-semibold hover:bg-[#9f5f24] hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 shadow-lg w-fit text-base"
             >
               Learn More →
             </Link>
@@ -92,12 +92,12 @@ export default function TileSection({
               </div>
 
               {/* Content Section - Desktop */}
-              <div className="text-side flex-1 min-w-0 max-w-2xl space-y-6 flex flex-col justify-center h-full">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
+              <div className="text-side flex-1 min-w-0 max-w-2xl space-y-6 flex flex-col justify-center h-full transition-all duration-300">
+                <h2 className="text-3xl md:text-5xl font-bold text-gray-900 leading-tight">{title}</h2>
                 {subtitle && (
-                  <h3 className="text-lg md:text-xl font-semibold text-[#4B9CD3]">{subtitle}</h3>
+                  <h3 className="text-xl md:text-2xl font-semibold text-[#4B9CD3] leading-snug">{subtitle}</h3>
                 )}
-                <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-prose">{description}</p>
+                <p className="text-lg md:text-xl text-gray-700 leading-relaxed max-w-prose">{description}</p>
 
                 {features && features.length > 0 && (
                   <ul className="space-y-2">
@@ -112,7 +112,7 @@ export default function TileSection({
 
                 <Link
                   href={learnHref}
-                  className="inline-flex items-center gap-2 bg-[#B87333] text-white px-5 py-2 rounded-md font-semibold hover:bg-[#9f5f24] transition-colors shadow-lg w-fit text-sm"
+                  className="inline-flex items-center gap-2 bg-[#B87333] text-white px-6 py-3 rounded-md font-semibold hover:bg-[#9f5f24] hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 shadow-lg w-fit text-base"
                 >
                   Learn More →
                 </Link>

@@ -13,7 +13,46 @@ html {
 }
 
 /* Body colors are controlled via layout.tsx body classes */
-body { font-variant-ligatures: contextual; }
+body { 
+  font-variant-ligatures: contextual;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography improvements */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+h2 {
+  @apply text-3xl md:text-4xl lg:text-5xl;
+}
+
+h3 {
+  @apply text-lg md:text-xl lg:text-2xl;
+}
+
+/* Improved text readability */
+p {
+  line-height: 1.7;
+  color: rgb(55 65 81);
+}
+
+/* Content width optimization for large screens */
+@media (min-width: 1536px) {
+  .text-side {
+    max-width: 48rem; /* 768px - optimized for readability */
+  }
+}
+
+/* Smooth transitions for interactive elements */
+a, button {
+  transition: all 0.2s ease-in-out;
+}
 
 /* Unified scroll model */
 html { scroll-padding-top: 5rem; height: 100%; }
