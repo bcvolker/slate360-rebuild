@@ -64,32 +64,19 @@ body { min-height: 100%; overscroll-behavior-y: none; -webkit-overflow-scrolling
 #scroll-container { -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
 
 /* DESKTOP: Enforce snap-scrolling on the main container */
-/* Mobile: disable snap for smooth natural scrolling */
+/* Mobile: make the document the snap container */
 @media (max-width: 767px) {
   html, body { 
-    scroll-snap-type: none;
+    scroll-snap-type: y proximity;
     overflow-x: hidden;
     height: 100%;
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
   }
   body {
     overflow-y: auto;
-    overscroll-behavior: auto;
   }
   #scroll-container {
     height: auto;
     overflow: visible;
-    scroll-snap-type: none;
-    overscroll-behavior: auto;
-  }
-  /* Make sections scroll naturally on mobile */
-  section[id] {
-    scroll-snap-align: none;
-  }
-  /* Ensure mobile sections allow natural scrolling */
-  .tile-section {
-    scroll-snap-align: none;
   }
 }
 /* Desktop: container handles snap */
