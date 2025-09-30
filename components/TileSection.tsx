@@ -45,8 +45,8 @@ export default function TileSection({
       className={`tile-section relative w-full min-h-[calc(100dvh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start grid grid-rows-[1fr_auto_1fr] items-stretch scroll-mt-20 md:scroll-mt-0 ${bgClass} ${dividerClass} ${id === 'vr' ? 'last:scroll-mb-20' : ''}`}
       data-tile={id}
     >
-  {/* Top spacer */}
-  <div className="h-12 md:h-16" aria-hidden="true" />
+  {/* Top spacer - reduced for hero tile on mobile */}
+  <div className={`${isHero ? 'h-4 md:h-16' : 'h-12 md:h-16'}`} aria-hidden="true" />
 
       {/* Middle row: content wrapper */}
       <div className="row-start-2 place-self-stretch w-full relative">
@@ -54,7 +54,7 @@ export default function TileSection({
         {isHero && <div className="absolute inset-0 bg-hero-animated pointer-events-none" />}
         {/* Mobile Layout */}
         <div
-          className={`md:hidden w-full flex flex-col px-6 py-8 border-b border-slate-200/70 last:border-b-0 relative z-10`}
+          className={`md:hidden w-full flex flex-col px-6 ${isHero ? 'py-4' : 'py-8'} border-b border-slate-200/70 last:border-b-0 relative z-10`}
           style={{ paddingBottom: id === 'vr' ? undefined : 'env(safe-area-inset-bottom, 0px)' }}
         >
           {/* Content Section for Mobile */}
