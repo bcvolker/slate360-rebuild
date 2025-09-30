@@ -38,4 +38,5 @@ body { min-height: 100%; overscroll-behavior-y: none; -webkit-overflow-scrolling
 /* Mobile tile alignment helpers */
 @media (max-width: 767px) {
   .text-side { width: 100%; }
+  html.no-snap, html.no-snap body { scroll-snap-type: none !important; }
 }

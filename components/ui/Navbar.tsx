@@ -30,7 +30,10 @@ export default function Navbar() {
     // Mobile: allow native anchor behavior for maximum iOS reliability
     if (!isDesktop) {
       setIsMenuOpen(false);
-      return; // do not prevent default
+      // Add a transient class to reduce snap interference on mobile
+      document.documentElement.classList.add('no-snap');
+      setTimeout(() => document.documentElement.classList.remove('no-snap'), 800);
+      return; // native anchor behavior
     }
 
     // Desktop: custom scroll within container

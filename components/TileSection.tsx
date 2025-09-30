@@ -26,9 +26,9 @@ export default function TileSection({
 }: Props) {
   const isReverse = viewerOn === "left";
   
-  // Standardized sizing: slightly larger viewer for better balance
-  const viewerWidth = hero ? "md:w-[45%]" : "md:w-[40%]";
-  const viewerHeight = hero ? "h-[60%]" : "h-[55%]";
+  // Standardized sizing: consistent viewer sizing across tiles
+  const viewerWidth = "md:w-[42%]";
+  const viewerHeight = "h-[50vh] md:h-[55vh] lg:h-[60vh]";
   
   return (
     <section
@@ -42,23 +42,12 @@ export default function TileSection({
       <div className="row-start-2 place-self-stretch w-full">
         {/* Mobile Layout */}
         <div
-          className={`md:hidden w-full flex flex-col px-6 ${id === 'vr' ? 'pt-16 pb-24' : id === 'hero' ? 'pt-24 pb-6' : 'py-16 pb-6'} border-b border-slate-200/70 last:border-b-0`}
+          className={`md:hidden w-full flex flex-col px-6 py-8 border-b border-slate-200/70 last:border-b-0`}
           style={{ paddingBottom: id === 'vr' ? undefined : 'env(safe-area-inset-bottom, 0px)' }}
         >
           {/* Content Section for Mobile */}
           <div className="text-side flex flex-col justify-start space-y-4 mb-6">
-            {id === 'hero' ? (
-              <Image
-                src="/logowithoutchevron.png"
-                alt="Slate360"
-                width={300}
-                height={84}
-                priority
-                className="h-[2.6rem] w-auto object-contain self-start -ml-1 mt-1"
-              />
-            ) : (
-              <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-            )}
+            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
             {subtitle && (
               <h3 className="text-lg font-semibold text-[#4B9CD3]">{subtitle}</h3>
             )}
@@ -93,29 +82,18 @@ export default function TileSection({
 
         {/* Desktop Layout */}
         <div className="hidden md:flex w-full h-full items-stretch justify-center">
-          <div className={`w-full max-w-7xl mx-auto px-6 md:px-10 py-24 md:pt-16 pt-8 ${id === 'vr' ? 'md:pt-20' : ''} h-full`}>
+          <div className={`w-full max-w-7xl mx-auto px-6 md:px-10 py-8 md:py-10 ${id === 'vr' ? 'md:pt-12' : ''} h-full`}>
             <div className={`flex ${isReverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center justify-between gap-8 min-w-0`}>
               {/* Viewer Section - Desktop */}
               <div className={`${viewerWidth} flex flex-col items-center justify-center shrink-0 h-full`}>
-                <div className={`w-full ${viewerHeight} rounded-lg shadow-lg overflow-hidden border border-slate-200`}>
+                <div className={`w-full ${viewerHeight} max-h-[60vh] rounded-lg shadow-lg overflow-hidden border border-slate-200`}>
                   <MediaViewer id={id} title={title} />
                 </div>
               </div>
 
               {/* Content Section - Desktop */}
               <div className="text-side flex-1 min-w-0 max-w-2xl space-y-6 flex flex-col justify-center h-full">
-                {id === 'hero' ? (
-                  <Image
-                    src="/logowithoutchevron.png"
-                    alt="Slate360"
-                    width={420}
-                    height={120}
-                    priority
-                    className="h-[3.2rem] md:h-[4rem] w-auto object-contain self-start -ml-2"
-                  />
-                ) : (
-                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
-                )}
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{title}</h2>
                 {subtitle && (
                   <h3 className="text-lg md:text-xl font-semibold text-[#4B9CD3]">{subtitle}</h3>
                 )}
