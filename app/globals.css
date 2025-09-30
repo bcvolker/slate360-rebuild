@@ -73,6 +73,84 @@ body { min-height: 100%; overscroll-behavior-y: none; -webkit-overflow-scrolling
   #scroll-container { scroll-snap-type: y mandatory; }
 }
 
+/* === Slate360 Brand Tokens & Effects ============================== */
+:root {
+  --brand-blue: #4B9CD3;      /* Carolina Blue */
+  --brand-copper: #B87333;    /* Copper accent */
+  --brand-ink: #0f172a;       /* Slate/ink */
+  --bg-alt: #F4F8FB;          /* Very light blue/grey alt tile */
+  --divider-copper: rgba(184, 115, 51, 0.22);
+}
+
+/* Alternating section helpers */
+.bg-tile-base { background-color: #ffffff; }
+.bg-tile-alt  { background-color: var(--bg-alt); }
+
+/* Subtle copper divider (use on sections except last) */
+.section-divider { border-bottom: 1px solid var(--divider-copper); }
+
+/* Hero animated gradient + blueprint grid overlay */
+.bg-hero-animated {
+  position: relative;
+  isolation: isolate;
+}
+.bg-hero-animated::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: radial-gradient(1200px 700px at 20% 10%, rgba(75,156,211,0.18), transparent 60%),
+              radial-gradient(900px 600px at 80% 50%, rgba(184,115,51,0.12), transparent 65%);
+  animation: heroPulse 10s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.bg-hero-animated::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(transparent 23px, rgba(75,156,211,0.09) 24px),
+    linear-gradient(90deg, transparent 23px, rgba(75,156,211,0.09) 24px);
+  background-size: 24px 24px, 24px 24px; /* faint blueprint grid */
+  mix-blend-mode: multiply;
+  opacity: 0.25;
+  pointer-events: none;
+}
+@keyframes heroPulse {
+  0%   { filter: saturate(1) hue-rotate(0deg); }
+  100% { filter: saturate(1.06) hue-rotate(-6deg); }
+}
+
+/* Buttons / links hover accents */
+.btn-brand {
+  @apply inline-flex items-center justify-center rounded-md px-4 py-2 font-medium transition;
+  color: white;
+  background-color: var(--brand-blue);
+  box-shadow: 0 0 0 rgba(184,115,51,0);
+}
+.btn-brand:hover {
+  box-shadow: 0 6px 18px rgba(184,115,51,0.35);
+  transform: translateY(-1px);
+}
+.btn-ghost {
+  @apply inline-flex items-center justify-center rounded-md px-3 py-2 font-medium transition;
+  color: var(--brand-copper);
+}
+.btn-ghost:hover {
+  text-shadow: 0 0 12px rgba(184,115,51,0.45);
+}
+
+/* Optional: dark-mode site backdrop (kept minimal; tiles still control their own bg) */
+:root.dark {
+  --bg-alt: #0b1220;
+}
+html.dark body {
+  background: radial-gradient(800px 500px at 10% -10%, rgba(75,156,211,0.08), transparent 60%),
+              radial-gradient(700px 400px at 90% 110%, rgba(184,115,51,0.06), transparent 70%),
+              #0b0f1a;
+}
+
 /* Mobile tile alignment helpers */
 @media (max-width: 767px) {
   .text-side { width: 100%; }
