@@ -30,12 +30,15 @@ export default function Navbar() {
     const targetElement = document.getElementById(targetId);
     if (!scrollContainer || !targetElement) return;
 
-    const headerHeight = 80;
-    const targetPosition = targetElement.offsetTop - headerHeight;
+  const headerHeight = 80;
+  const containerRect = scrollContainer.getBoundingClientRect();
+  const targetRect = targetElement.getBoundingClientRect();
+  const delta = targetRect.top - containerRect.top;
+  const targetPosition = scrollContainer.scrollTop + delta - headerHeight;
 
     // Temporarily disable snap to allow smooth programmatic scroll
-    const previousSnap = scrollContainer.style.scrollSnapType;
-    scrollContainer.style.scrollSnapType = 'none';
+  const previousSnap = scrollContainer.style.scrollSnapType;
+  scrollContainer.style.scrollSnapType = 'none';
     scrollContainer.scrollTo({ top: targetPosition, behavior: 'smooth' });
 
     let attempts = 0;

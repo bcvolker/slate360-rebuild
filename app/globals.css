@@ -21,7 +21,9 @@ html { scroll-padding-top: 5rem; }
 @supports (height: 100dvh) {
   main { height: calc(100dvh - 5rem); }
 }
-body { overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; }
+body { overscroll-behavior-y: none; -webkit-overflow-scrolling: auto; }
+/* Momentum scrolling for the main scroll container on iOS */
+#scroll-container { -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
 
 /* DESKTOP: Enforce snap-scrolling on the main container */
 @media (min-width: 768px) {
