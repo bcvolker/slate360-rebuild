@@ -45,17 +45,16 @@ export default function TileSection({
       className={`tile-section relative w-full min-h-[calc(100dvh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start grid grid-rows-[1fr_auto_1fr] items-stretch scroll-mt-20 md:scroll-mt-0 ${bgClass} ${dividerClass} ${id === 'vr' ? 'last:scroll-mb-20' : ''}`}
       data-tile={id}
     >
-      {/* Optional hero overlay behind content */}
-      {isHero && <div className="absolute inset-0 bg-hero-animated pointer-events-none" />}
-
   {/* Top spacer */}
   <div className="h-12 md:h-16" aria-hidden="true" />
 
       {/* Middle row: content wrapper */}
-      <div className="row-start-2 place-self-stretch w-full relative z-10">
+      <div className="row-start-2 place-self-stretch w-full relative">
+        {/* Optional hero overlay behind content - only covers content area */}
+        {isHero && <div className="absolute inset-0 bg-hero-animated pointer-events-none" />}
         {/* Mobile Layout */}
         <div
-          className={`md:hidden w-full flex flex-col px-6 py-8 border-b border-slate-200/70 last:border-b-0`}
+          className={`md:hidden w-full flex flex-col px-6 py-8 border-b border-slate-200/70 last:border-b-0 relative z-10`}
           style={{ paddingBottom: id === 'vr' ? undefined : 'env(safe-area-inset-bottom, 0px)' }}
         >
           {/* Content Section for Mobile */}
@@ -94,7 +93,7 @@ export default function TileSection({
         </div>
 
         {/* Desktop Layout */}
-        <div className="hidden md:flex w-full h-full items-stretch justify-center">
+        <div className="hidden md:flex w-full h-full items-stretch justify-center relative z-10">
           <div className={`w-full max-w-7xl mx-auto px-6 md:px-10 py-8 md:py-10 ${id === 'vr' ? 'md:pt-12' : ''} h-full`}>
             <div className={`flex ${isReverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center justify-between gap-8 min-w-0`}>
               {/* Viewer Section - Desktop */}

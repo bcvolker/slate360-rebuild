@@ -66,7 +66,18 @@ body { min-height: 100%; overscroll-behavior-y: none; -webkit-overflow-scrolling
 /* DESKTOP: Enforce snap-scrolling on the main container */
 /* Mobile: make the document the snap container */
 @media (max-width: 767px) {
-  html, body { scroll-snap-type: y proximity; }
+  html, body { 
+    scroll-snap-type: y proximity;
+    overflow-x: hidden;
+    height: 100%;
+  }
+  body {
+    overflow-y: auto;
+  }
+  #scroll-container {
+    height: auto;
+    overflow: visible;
+  }
 }
 /* Desktop: container handles snap */
 @media (min-width: 768px) {
