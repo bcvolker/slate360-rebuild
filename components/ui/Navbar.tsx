@@ -26,6 +26,15 @@ export default function Navbar() {
   }, [isMenuOpen]);
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
+    const onHome = pathname === '/';
+    // Mobile: allow native anchor behavior for maximum iOS reliability
+    if (!isDesktop) {
+      setIsMenuOpen(false);
+      return; // do not prevent default
+    }
+
+    // Desktop: custom scroll within container
     e.preventDefault();
     setIsMenuOpen(false);
     const targetId = href.replace(/.*#/, "");
@@ -45,7 +54,6 @@ export default function Navbar() {
 
   const headerHeight = 80;
     // Temporarily disable snap to allow smooth programmatic scroll
-  const isDesktop = window.matchMedia('(min-width: 768px)').matches;
     if (isDesktop && scrollContainer) {
       const previousSnap = scrollContainer.style.scrollSnapType;
       scrollContainer.style.scrollSnapType = 'none';
