@@ -60,7 +60,7 @@ export default function TileSection({
           {/* Content Section for Mobile */}
           <div className="text-side flex flex-col justify-start space-y-4 mb-6 max-w-prose">
             {isHero ? (
-              <div className="flex items-center justify-start">
+              <div className="flex items-center justify-start -mb-2">
                 <Image 
                   src="/logowithoutchevron.png" 
                   alt="Slate360" 
@@ -118,7 +118,7 @@ export default function TileSection({
               {/* Content Section - Desktop */}
               <div className="text-side flex-1 min-w-0 max-w-2xl space-y-6 flex flex-col justify-center h-full transition-all duration-300">
                 {isHero ? (
-                  <div className="flex items-center justify-start">
+                  <div className="flex items-center justify-start -mb-3">
                     <Image 
                       src="/logowithoutchevron.png" 
                       alt="Slate360" 
