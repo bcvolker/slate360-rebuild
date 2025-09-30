@@ -34,6 +34,5 @@ body { overscroll-behavior-y: none; -webkit-overflow-scrolling: auto; }
 
 /* Mobile tile alignment helpers */
 @media (max-width: 767px) {
-  .tile-section { padding-top: 80px; }
   .text-side { width: 100%; }
 }

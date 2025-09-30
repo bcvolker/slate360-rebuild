@@ -26,33 +26,35 @@ export default function Navbar() {
     e.preventDefault();
     setIsMenuOpen(false);
     const targetId = href.replace(/.*#/, "");
-    const scrollContainer = document.getElementById('scroll-container');
-    const targetElement = document.getElementById(targetId);
-    if (!scrollContainer || !targetElement) return;
+  const scrollContainer = document.getElementById('scroll-container');
+  const targetElement = document.getElementById(targetId);
+  if (!targetElement) return;
 
   const headerHeight = 80;
     // Temporarily disable snap to allow smooth programmatic scroll
-    const previousSnap = scrollContainer.style.scrollSnapType;
-    scrollContainer.style.scrollSnapType = 'none';
-
-    // Use scrollIntoView for container-scoped smooth scroll; scroll-margin-top handles header offset
-    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-
-    // Restore snap once we're close enough
-    let attempts = 0;
-    const maxAttempts = 12;
-    const check = () => {
-      // If the target is near the top of the container, restore snap
-      const containerRect = scrollContainer.getBoundingClientRect();
-      const targetRect = targetElement.getBoundingClientRect();
-      if (Math.abs(targetRect.top - containerRect.top - headerHeight) < 3 || attempts >= maxAttempts) {
-        scrollContainer.style.scrollSnapType = previousSnap || 'y proximity';
-        return;
-      }
-      attempts++;
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    if (isDesktop && scrollContainer) {
+      const previousSnap = scrollContainer.style.scrollSnapType;
+      scrollContainer.style.scrollSnapType = 'none';
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      let attempts = 0;
+      const maxAttempts = 12;
+      const check = () => {
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const targetRect = targetElement.getBoundingClientRect();
+        if (Math.abs(targetRect.top - containerRect.top - headerHeight) < 3 || attempts >= maxAttempts) {
+          scrollContainer.style.scrollSnapType = previousSnap || 'y proximity';
+          return;
+        }
+        attempts++;
+        requestAnimationFrame(check);
+      };
       requestAnimationFrame(check);
-    };
-    requestAnimationFrame(check);
+    } else {
+      // Mobile: default to document scroll; rely on scroll-margin-top and html scroll-padding-top
+      const y = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
   };
 
   return (
