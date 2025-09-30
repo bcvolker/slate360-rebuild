@@ -35,8 +35,8 @@ export default function TileSection({
       id={id}
       className={`tile-section relative w-full min-h-[calc(100dvh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start border-b border-slate-200/70 grid grid-rows-[1fr_auto_1fr] items-stretch scroll-mt-20 md:scroll-mt-0 ${id === 'vr' ? 'last:scroll-mb-20' : ''}`}
     >
-      {/* Top spacer (debug red) */}
-      <div className="h-12 md:h-16 bg-red-200" aria-hidden="true" />
+  {/* Top spacer */}
+  <div className="h-12 md:h-16" aria-hidden="true" />
 
       {/* Middle row: content wrapper */}
       <div className="row-start-2 place-self-stretch w-full">
@@ -144,8 +144,8 @@ export default function TileSection({
         </div>
       </div>
 
-      {/* Bottom spacer (debug red) */}
-      <div className="h-12 md:h-16 bg-red-200" aria-hidden="true" />
+  {/* Bottom spacer */}
+  <div className="h-12 md:h-16" aria-hidden="true" />
 
       {/* Footer integrated into last tile */}
       {id === 'vr' && (
