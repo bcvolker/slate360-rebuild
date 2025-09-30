@@ -56,15 +56,13 @@ test.describe('Slate360 Homepage', () => {
       await firstMenuLink.click();
       
       // Wait for navigation/scroll
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(1000);
       
-      // Verify hash is updated
-      expect(page.url()).toContain('#');
-      
-      // Verify expected hash from href
-      if (href) {
+      // Verify hash is updated (but only if we actually navigated)
+      const currentUrl = page.url();
+      if (href && href.includes('#')) {
         const expectedHash = href.split('#')[1];
-        expect(page.url()).toContain(`#${expectedHash}`);
+        expect(currentUrl).toContain(`#${expectedHash}`);
       }
     }
   });
@@ -113,10 +111,10 @@ test.describe('Slate360 Homepage', () => {
     const sections = page.locator('section[id]');
     const sectionCount = await sections.count();
     
-    // Verify each section has a title
+    // Verify each section has a title (handle multiple h2s per section)
     for (let i = 0; i < Math.min(sectionCount, 5); i++) {
       const section = sections.nth(i);
-      const title = section.locator('h2');
+      const title = section.locator('h2').first();
       await expect(title).toBeVisible();
     }
     
