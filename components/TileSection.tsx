@@ -51,12 +51,9 @@ export default function TileSection({
   return (
     <section
       id={id}
-        className={`tile-section bg-animated-gradient relative w-full min-h-[calc(100dvh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start grid grid-rows-[1fr_auto_1fr] items-stretch scroll-mt-20 ${bgClass} ${dividerClass} ${id === 'vr' ? 'pb-32' : ''}`}
+      className={`relative snap-start min-h-[calc(100dvh-5rem)] flex items-center justify-center scroll-mt-20 ${bgClass}`}
       data-tile={id}
     >
-    {/* DEBUG banner */}
-    <div className="w-full bg-yellow-200 text-yellow-900 text-xs font-bold py-1 px-2 border-b border-yellow-400">DEBUG TILE: {id}</div>
-    {/* Use scroll-margin-top for first tile, no spacer */}
 
       {/* Middle row: content wrapper */}
       <div className="row-start-2 place-self-stretch w-full relative">

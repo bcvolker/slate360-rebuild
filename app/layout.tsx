@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   <body className={`bg-white text-gray-900 overflow-x-hidden md:overflow-hidden ${inter.className}`}>
     <Navbar />
     <DebugScrollOverlay />
-  <main id="scroll-container" className="scroll-container bg-white overscroll-contain touch-pan-y">{children}</main>
+  <main id="scroll-container" className="min-h-screen snap-y snap-mandatory">{children}</main>
       </body>
     </html>
   );
