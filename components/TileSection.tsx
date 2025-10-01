@@ -54,6 +54,7 @@ export default function TileSection({
       className="relative snap-start min-h-[calc(100dvh-5rem)] flex items-center justify-center"
       data-tile={id}
     >
+      <div className="absolute top-2 left-2 text-red-500 text-xs z-50">DEBUG TILE: {id}</div>
       <div className="absolute top-2 left-2 text-xs text-red-500">DEBUG: {id}</div>
 
       {/* Middle row: content wrapper */}
