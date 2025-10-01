@@ -8,4 +8,4 @@ export interface Feature {
   cta: string;
 }
 
-export interface Tile extends Feature {}
+export type Tile = Feature;
