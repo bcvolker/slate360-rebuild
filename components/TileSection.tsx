@@ -51,14 +51,14 @@ export default function TileSection({
   return (
     <section
       id={id}
-      className={`tile-section bg-animated-gradient relative w-full min-h-[calc(100dvh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start grid grid-rows-[1fr_auto_1fr] items-stretch scroll-mt-20 md:scroll-mt-0 ${bgClass} ${dividerClass} ${id === 'vr' ? 'last:scroll-mb-20' : ''}`}
+  className={`tile-section bg-animated-gradient relative w-full min-h-[calc(100dvh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start grid grid-rows-[1fr_auto_1fr] items-stretch scroll-mt-20 md:scroll-mt-0 ${bgClass} ${dividerClass} ${id === 'vr' ? 'mb-32' : ''}`}
       data-tile={id}
     >
       {/* DEBUG banner */}
       <div className="w-full bg-yellow-200 text-yellow-900 text-xs font-bold py-1 px-2 border-b border-yellow-400">DEBUG TILE: {id}</div>
 
-      {/* Top spacer - eliminated for hero tile on mobile to counteract pt-20 */}
-      <div className={`${isHero ? 'h-0 md:h-16' : 'h-12 md:h-16'}`} aria-hidden="true" />
+  {/* Top spacer - match navbar height for first tile, ensure content is not hidden */}
+  <div className={`${isHero ? 'h-20 md:h-20' : 'h-12 md:h-16'}`} aria-hidden="true" />
 
       {/* Middle row: content wrapper */}
       <div className="row-start-2 place-self-stretch w-full relative">
