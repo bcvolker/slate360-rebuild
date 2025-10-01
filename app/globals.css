@@ -1,3 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { 
+  scroll-behavior: smooth; 
+  scroll-padding-top: 5rem; 
+}
+body { 
+  @apply bg-slate-950 text-white; 
+}
+
 /* === Animated Gradient for Tiles === */
 .bg-animated-gradient {
   background: linear-gradient(120deg, #4B9CD3 0%, #B87333 100%);
@@ -15,10 +27,6 @@
     filter: hue-rotate(-12deg) brightness(1.08);
   }
 }
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 :root {
   --header-height: 5rem; /* 80px to match h-20 navbar */
