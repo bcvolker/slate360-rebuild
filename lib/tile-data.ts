@@ -1,4 +1,5 @@
 import { Tile } from "./types";
+export type { Tile };
 
 export const tileData: Tile[] = [
   {
@@ -10,6 +11,13 @@ export const tileData: Tile[] = [
     icon: "Rocket",
     route: "/about/hero",
     cta: "Learn More",
+    features: [
+      "Unified Project Dashboard",
+      "Real-Time 3D Collaboration",
+      "AI-Powered Analytics",
+      "Seamless Data Integration"
+    ],
+    viewerPosition: 'right',
   },
   {
     id: "bim-studio",
@@ -20,6 +28,13 @@ export const tileData: Tile[] = [
     icon: "Cube",
     route: "/about/bim-studio",
     cta: "Explore BIM Studio",
+    features: [
+      "Cloud-Native 3D Viewer",
+      "Real-Time Markup & Annotation",
+      "Automated Clash Detection",
+      "Version History & Comparison"
+    ],
+    viewerPosition: 'left',
   },
   {
     id: "tour-builder",
@@ -30,6 +45,13 @@ export const tileData: Tile[] = [
     icon: "MapPin",
     route: "/about/tour-builder",
     cta: "Build a Tour",
+    features: [
+      "Guided Walkthroughs",
+      "Annotations & Multimedia",
+      "Client Presentation Mode",
+      "VR Compatibility"
+    ],
+    viewerPosition: 'right',
   },
   {
     id: "content-studio",
@@ -40,6 +62,13 @@ export const tileData: Tile[] = [
     icon: "FolderOpen",
     route: "/about/content-studio",
     cta: "Manage Content",
+    features: [
+      "Asset Tagging & Organization",
+      "Secure Sharing",
+      "Approval Workflows",
+      "Version Control"
+    ],
+    viewerPosition: 'left',
   },
   {
     id: "analytics",
@@ -50,5 +79,12 @@ export const tileData: Tile[] = [
     icon: "BarChart2",
     route: "/about/analytics",
     cta: "View Analytics",
+    features: [
+      "AI-Powered Metrics",
+      "Risk Identification",
+      "Resource Optimization",
+      "Trend Visualization"
+    ],
+    viewerPosition: 'right',
   },
 ];

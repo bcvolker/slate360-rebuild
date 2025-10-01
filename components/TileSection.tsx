@@ -1,7 +1,10 @@
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import MediaViewer from "./MediaViewer";
 import MobileViewerLauncher from "./MobileViewerLauncher";
+import * as LucideIconsRaw from "lucide-react";
+const LucideIcons = LucideIconsRaw;
 
 type Props = {
   id: string;
@@ -70,10 +73,12 @@ export default function TileSection({
           <div className="grid grid-cols-2 gap-4">
             {/* Icon */}
             <div className="flex items-center justify-center">
-              {icon && (() => {
-                const LucideIcon = require('lucide-react')[icon];
-                return LucideIcon ? <LucideIcon size={32} color="#B87333" /> : null;
-              })()}
+              {icon &&
+                // @ts-expect-error dynamic Lucide icon access by string name
+                typeof LucideIcons[icon] === "function"
+                ? // @ts-expect-error dynamic Lucide icon access by string name
+                  React.createElement(LucideIcons[icon], { size: 32, color: "#B87333" })
+                : null}
             </div>
             <div className="flex flex-col">
               <h2 className="text-lg font-bold leading-tight text-brand-ink">{title}</h2>

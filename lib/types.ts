@@ -6,6 +6,8 @@ export interface Feature {
   icon: string;
   route: string;
   cta: string;
+  features?: string[];
+  viewerPosition?: 'left' | 'right';
 }
 
 export type Tile = Feature;
