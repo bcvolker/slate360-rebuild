@@ -26,7 +26,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: var(--header-height);
+  scroll-padding-top: 5rem;
 }
 
 /* Body colors are controlled via layout.tsx body classes */
