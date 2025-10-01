@@ -8,8 +8,11 @@ type Props = {
   title: string;
   subtitle?: string;
   description: string;
-  features: string[];
-  learnHref: string;
+  features?: string[];
+  icon?: string;
+  cta?: string;
+  route?: string;
+  learnHref?: string;
   viewerOn?: "left" | "right";
   hero?: boolean;
   isAlt?: boolean;                // NEW
@@ -22,7 +25,10 @@ export default function TileSection({
   title,
   subtitle,
   description,
-  features,
+  features = [],
+  icon,
+  cta = "Learn More",
+  route = "#",
   learnHref,
   viewerOn = "right",
   hero = false,
@@ -45,8 +51,11 @@ export default function TileSection({
       className={`tile-section relative w-full min-h-[calc(100dvh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start grid grid-rows-[1fr_auto_1fr] items-stretch scroll-mt-20 md:scroll-mt-0 ${bgClass} ${dividerClass} ${id === 'vr' ? 'last:scroll-mb-20' : ''}`}
       data-tile={id}
     >
-  {/* Top spacer - eliminated for hero tile on mobile to counteract pt-20 */}
-  <div className={`${isHero ? 'h-0 md:h-16' : 'h-12 md:h-16'}`} aria-hidden="true" />
+      {/* DEBUG banner */}
+      <div className="w-full bg-yellow-200 text-yellow-900 text-xs font-bold py-1 px-2 border-b border-yellow-400">DEBUG TILE: {id}</div>
+
+      {/* Top spacer - eliminated for hero tile on mobile to counteract pt-20 */}
+      <div className={`${isHero ? 'h-0 md:h-16' : 'h-12 md:h-16'}`} aria-hidden="true" />
 
       {/* Middle row: content wrapper */}
       <div className="row-start-2 place-self-stretch w-full relative">
@@ -58,6 +67,22 @@ export default function TileSection({
           style={{ paddingBottom: id === 'vr' ? undefined : 'env(safe-area-inset-bottom, 0px)' }}
         >
           {/* Content Section for Mobile */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Icon */}
+            <div className="flex items-center justify-center">
+              {icon && (() => {
+                const LucideIcon = require('lucide-react')[icon];
+                return LucideIcon ? <LucideIcon size={32} color="#B87333" /> : null;
+              })()}
+            </div>
+            <div className="flex flex-col">
+              <h2 className="text-lg font-bold leading-tight text-brand-ink">{title}</h2>
+              <h3 className="text-sm font-semibold text-brand-blue leading-snug">{subtitle}</h3>
+              <p className="text-xs text-gray-700 leading-relaxed">{description}</p>
+              <Link href={route} className="mt-2 text-brand-copper underline">{cta}</Link>
+            </div>
+          </div>
+        </div>
           <div className="text-side flex flex-col justify-start space-y-4 mb-6 max-w-prose">
             {isHero ? (
               <div className="flex items-center justify-start -mb-2">
@@ -154,10 +179,10 @@ export default function TileSection({
                 )}
 
                 <Link
-                  href={learnHref}
+                  href={route}
                   className="inline-flex items-center gap-2 bg-[#B87333] text-white px-6 py-3 rounded-md font-semibold hover:bg-[#9f5f24] hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 shadow-lg w-fit text-base"
                 >
-                  Learn More →
+                  {cta}
                 </Link>
               </div>
             </div>
@@ -165,8 +190,8 @@ export default function TileSection({
         </div>
       </div>
 
-  {/* Bottom spacer - reduced to minimize white banner */}
-  <div className="h-4 md:h-6" aria-hidden="true" />
+      {/* Bottom spacer - reduced to minimize white banner */}
+      <div className="h-4 md:h-6" aria-hidden="true" />
 
       {/* Footer integrated into last tile */}
       {id === 'vr' && (

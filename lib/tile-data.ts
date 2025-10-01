@@ -1,125 +1,54 @@
-export interface Tile {
-  id: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  features: string[];
-  cta: string;
-  viewerPosition: 'left' | 'right';
-  theme: 'light' | 'dark';
-  media?: {
-    src: string;
-    alt: string;
-  };
-}
+import { Tile } from "./types";
 
-// Unified tileData export
 export const tileData: Tile[] = [
   {
-    id: 'hero',
-    title: 'Slate360',
-    subtitle: 'From Design to Reality',
+    id: "hero",
+    title: "Slate360",
+    subtitle: "From Design to Reality",
     description:
-      'The all-in-one platform for AEC professionals, integrating 3D modeling, geospatial tools, and advanced analytics to bring your designs to life faster and more efficiently than ever before.',
-    features: [
-      'Unified Project Dashboard',
-      'Real-Time 3D Collaboration',
-      'AI-Powered Analytics',
-      'Seamless Data Integration',
-    ],
-    cta: 'Request a Demo',
-    viewerPosition: 'right',
-    theme: 'dark',
-    media: { src: '/images/hero-analytics.png', alt: 'Slate360 Analytics Dashboard' },
+      "The all-in-one platform for AEC professionals, integrating 3D modeling, geospatial tools, and advanced analytics to bring your designs to life faster and more efficiently than ever before. Unlock seamless collaboration and data-driven insights for every project stage.",
+    icon: "Rocket",
+    route: "/about/hero",
+    cta: "Learn More",
   },
   {
-    id: 'bim-studio',
-    title: 'BIM Studio',
-    subtitle: 'Precision 3D Modeling in the Cloud',
+    id: "bim-studio",
+    title: "BIM Studio",
+    subtitle: "Precision 3D Modeling in the Cloud",
     description:
-      'Collaborate on complex BIM models with real-time updates, version control, and integrated tools. Detect clashes automatically and streamline your design review process.',
-    features: [
-      'Cloud-Native 3D Viewer',
-      'Real-Time Markup & Annotation',
-      'Automated Clash Detection',
-      'Version History & Comparison',
-    ],
-    cta: 'Explore BIM Studio',
-    viewerPosition: 'left',
-    theme: 'light',
-    media: { src: '/images/bim-model.png', alt: 'Architectural BIM Model' },
+      "Collaborate on complex BIM models with real-time updates, version control, and integrated tools. Detect clashes automatically and streamline your design review process. Experience cloud-native 3D workflows and instant feedback.",
+    icon: "Cube",
+    route: "/about/bim-studio",
+    cta: "Explore BIM Studio",
   },
   {
-    id: 'project-hub',
-    title: 'Project Hub',
-    subtitle: 'Your Single Source of Truth',
+    id: "tour-builder",
+    title: "Tour Builder",
+    subtitle: "Immersive Project Walkthroughs",
     description:
-      'Organize all your project files, documents, and communication in one centralized hub. Ensure your entire team is working with the latest information, from concept to completion.',
-    features: [
-      'Centralized File Management',
-      'Task & Milestone Tracking',
-      'Team Communication Channels',
-      'Granular Access Control',
-    ],
-    cta: 'Discover Project Hub',
-    viewerPosition: 'right',
-    theme: 'dark',
-    media: { src: '/images/project-hub.png', alt: 'Project Hub Interface' },
-  },
-  // Add more tiles as needed
-  {
-    id: 'tour-builder',
-    title: '360° Tour Builder',
-    subtitle: 'Immersive Walkthroughs',
-    description: 'Create immersive site walkthroughs with hotspots, audio, and VR compatibility.',
-    features: ['Hotspots & Measurements', 'VR Mode (WebXR-ready)', 'Floorplans & timeline comparison', 'Branding & overlays'],
-    cta: 'Explore Tour Builder',
-    viewerPosition: 'left',
-    theme: 'light',
-    media: { src: '/images/tour-placeholder.jpg', alt: '360 Tour' },
+      "Create interactive tours for stakeholders and clients. Showcase your designs with guided walkthroughs, annotations, and multimedia overlays. Make every presentation memorable and actionable.",
+    icon: "MapPin",
+    route: "/about/tour-builder",
+    cta: "Build a Tour",
   },
   {
-    id: 'content',
-    title: 'Content Creation',
-    subtitle: 'Media Production',
-    description: 'Batch photo/video editing with AI assists, LUTs, branding, and social presets.',
-    features: ['Magnetic Timeline', 'AI Enhancement Presets', 'Export templates', 'Team review hooks'],
-    cta: 'Explore Content',
-    viewerPosition: 'right',
-    theme: 'dark',
-    media: { src: '/images/content-placeholder.jpg', alt: 'Content' },
+    id: "content-studio",
+    title: "Content Studio",
+    subtitle: "Centralized Asset Management",
+    description:
+      "Organize, tag, and share all your project assets in one place. From 3D models to documents and images, keep your team in sync and your content secure. Streamline approvals and versioning.",
+    icon: "FolderOpen",
+    route: "/about/content-studio",
+    cta: "Manage Content",
   },
   {
-    id: 'geospatial',
-    title: 'Geospatial & Robotics',
-    subtitle: 'Automation Mapping',
-    description: 'Plan missions, analyze flatness/volume, overlay maps, and track progress.',
-    features: ['Automated mission planning', 'Volumetrics & overlays', 'RTK/PPK hooks', 'DXF/point cloud export'],
-    cta: 'Explore Geospatial',
-    viewerPosition: 'left',
-    theme: 'light',
-    media: { src: '/images/geospatial.jpg', alt: 'Geospatial' },
+    id: "analytics",
+    title: "Analytics",
+    subtitle: "Actionable Project Insights",
+    description:
+      "Leverage AI-powered analytics to track progress, identify risks, and optimize resources. Visualize key metrics and trends to drive smarter decisions and deliver successful outcomes.",
+    icon: "BarChart2",
+    route: "/about/analytics",
+    cta: "View Analytics",
   },
-  {
-    id: 'insights',
-    title: 'Reports & Insights',
-    subtitle: 'Data Insights',
-    description: 'Thermal analysis, KPIs, and PDF/Excel exports with AI-assisted insights.',
-    features: ['Custom KPI builder', 'Thermal palettes & anomalies', 'Report templates', 'One-click PDF export'],
-    cta: 'Explore Insights',
-    viewerPosition: 'right',
-    theme: 'dark',
-    media: { src: '/images/insights.jpg', alt: 'Insights' },
-  },
-  {
-    id: 'vr',
-    title: 'VR / AR',
-    subtitle: 'Immersive Simulation',
-    description: 'Step into your projects, simulate scenarios, and record flythroughs.',
-    features: ['Multi-user sessions (roadmap)', 'Marker-based AR (roadmap)', 'Recording & sharing', 'Headset-friendly UI'],
-    cta: 'Explore VR/AR',
-    viewerPosition: 'left',
-    theme: 'light',
-    media: { src: '/images/vr.jpg', alt: 'VR' },
-  }
 ];
