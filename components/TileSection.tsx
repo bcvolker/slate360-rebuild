@@ -57,8 +57,8 @@ export default function TileSection({
       {/* DEBUG banner */}
       <div className="w-full bg-yellow-200 text-yellow-900 text-xs font-bold py-1 px-2 border-b border-yellow-400">DEBUG TILE: {id}</div>
 
-  {/* Top spacer - match navbar height for first tile, ensure content is not hidden */}
-  <div className={`${isHero ? 'h-20 md:h-20' : 'h-12 md:h-16'}`} aria-hidden="true" />
+  {/* Top spacer removed; use scroll-margin-top for first tile instead */}
+  {isHero && <div className="h-0" aria-hidden="true" />} 
 
       {/* Middle row: content wrapper */}
       <div className="row-start-2 place-self-stretch w-full relative">
@@ -195,8 +195,8 @@ export default function TileSection({
         </div>
       </div>
 
-      {/* Bottom spacer - reduced to minimize white banner */}
-      <div className="h-4 md:h-6" aria-hidden="true" />
+  {/* Bottom spacer - ensure last tile is scrollable */}
+  <div className={`${id === 'vr' ? 'h-32 md:h-40' : 'h-4 md:h-6'}`} aria-hidden="true" />
 
       {/* Footer integrated into last tile */}
       {id === 'vr' && (
