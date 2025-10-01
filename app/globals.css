@@ -92,13 +92,17 @@ body { min-height: 100%; overscroll-behavior-y: none; -webkit-overflow-scrolling
     overflow-y: auto;
   }
   #scroll-container {
-    height: auto;
-    overflow: visible;
+    height: auto !important;
+    overflow: visible !important;
+    scroll-snap-type: y proximity !important;
   }
 }
-/* Desktop: container handles snap */
 @media (min-width: 768px) {
-  #scroll-container { scroll-snap-type: y mandatory; }
+  #scroll-container {
+    height: calc(100vh - 5rem) !important;
+    overflow-y: scroll !important;
+    scroll-snap-type: y mandatory !important;
+  }
 }
 
 /* === Slate360 Brand Tokens & Effects ============================== */

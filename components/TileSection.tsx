@@ -54,37 +54,41 @@ export default function TileSection({
   className={`tile-section bg-animated-gradient relative w-full min-h-[calc(100dvh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start grid grid-rows-[1fr_auto_1fr] items-stretch scroll-mt-20 md:scroll-mt-0 ${bgClass} ${dividerClass} ${id === 'vr' ? 'pb-32' : ''}`}
       data-tile={id}
     >
-      {/* DEBUG banner */}
-      <div className="w-full bg-yellow-200 text-yellow-900 text-xs font-bold py-1 px-2 border-b border-yellow-400">DEBUG TILE: {id}</div>
-
-  {/* Top spacer removed; use scroll-margin-top for first tile instead */}
-  {isHero && <div className="h-0" aria-hidden="true" />} 
+    {/* DEBUG banner */}
+    <div className="w-full bg-yellow-200 text-yellow-900 text-xs font-bold py-1 px-2 border-b border-yellow-400">DEBUG TILE: {id}</div>
+    {/* Use scroll-margin-top for first tile, no spacer */}
 
       {/* Middle row: content wrapper */}
       <div className="row-start-2 place-self-stretch w-full relative">
         {/* Optional hero overlay behind content - only covers content area */}
         {isHero && <div className="absolute inset-0 bg-hero-animated pointer-events-none" />}
-        {/* Mobile Layout */}
+        {/* Mobile Layout - now includes viewer */}
         <div
           className={`md:hidden w-full flex flex-col px-6 ${isHero ? 'pt-8 pb-4 -mt-4' : 'py-8'} border-b border-slate-200/70 last:border-b-0 relative z-10`}
           style={{ paddingBottom: id === 'vr' ? undefined : 'env(safe-area-inset-bottom, 0px)' }}
         >
-          {/* Content Section for Mobile */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Icon */}
-            <div className="flex items-center justify-center">
-              {icon &&
-                // @ts-expect-error dynamic Lucide icon access by string name
-                typeof LucideIcons[icon] === "function"
-                ? // @ts-expect-error dynamic Lucide icon access by string name
-                  React.createElement(LucideIcons[icon], { size: 32, color: "#B87333" })
-                : null}
+          <div className="flex flex-col gap-4">
+            {/* Viewer Section - Mobile */}
+            <div className="w-full h-[40vh] max-h-[50vh] rounded-lg shadow-lg overflow-hidden border-4 border-[#B87333] mb-2">
+              <MediaViewer id={id} title={title} />
             </div>
-            <div className="flex flex-col">
-              <h2 className="text-lg font-bold leading-tight text-brand-ink">{title}</h2>
-              <h3 className="text-sm font-semibold text-brand-blue leading-snug">{subtitle}</h3>
-              <p className="text-xs text-gray-700 leading-relaxed">{description}</p>
-              <Link href={route} className="mt-2 text-brand-copper underline">{cta}</Link>
+            {/* Content Section for Mobile */}
+            <div className="flex flex-row gap-4 items-center">
+              {/* Icon */}
+              <div className="flex items-center justify-center">
+                {icon &&
+                  (() => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const IconComponent = (LucideIcons as any)[icon];
+                    return IconComponent ? React.createElement(IconComponent, { size: 32, color: "#B87333" }) : null;
+                  })()}
+              </div>
+              <div className="flex flex-col">
+                <h2 className="text-lg font-bold leading-tight text-brand-ink">{title}</h2>
+                <h3 className="text-sm font-semibold text-brand-blue leading-snug">{subtitle}</h3>
+                <p className="text-xs text-gray-700 leading-relaxed">{description}</p>
+                <Link href={route} className="mt-2 text-brand-copper underline">{cta}</Link>
+              </div>
             </div>
           </div>
         </div>
