@@ -83,55 +83,55 @@ export default function TileSection({
             </div>
           </div>
         </div>
-          <div className="text-side flex flex-col justify-start space-y-4 mb-6 max-w-prose">
-            {isHero ? (
-              <div className="flex items-center justify-start -mb-2">
-                <Image 
-                  src="/logowithoutchevron.png" 
-                  alt="Slate360" 
-                  width={120} 
-                  height={36} 
-                  className="h-6 w-auto"
-                />
+        {/* Desktop Layout */}
+        <div className="hidden md:flex w-full h-full items-stretch justify-center relative z-10">
+          <div className={`w-full max-w-7xl mx-auto px-6 md:px-10 py-8 md:py-10 ${id === 'vr' ? 'md:pt-12' : ''} h-full`}>
+            <div className={`flex ${isReverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center justify-between gap-8 min-w-0`}>
+              {/* Viewer Section - Desktop */}
+              <div className={`${viewerWidth} flex flex-col items-center justify-center shrink-0 h-full`}>
+                <div className={`w-full ${viewerHeight} max-h-[60vh] rounded-lg shadow-lg overflow-hidden border border-slate-200`}>
+                  <MediaViewer id={id} title={title} />
+                </div>
               </div>
-            ) : (
-              <h2 className="text-3xl font-bold leading-tight" style={{ color: 'var(--brand-ink)' }}>{title}</h2>
-            )}
-            {subtitle && (
-              <h3 className="text-xl font-semibold text-[#4B9CD3] leading-snug">{subtitle}</h3>
-            )}
-            <p className="text-lg text-gray-700 leading-relaxed">{description}</p>
 
-            {features && features.length > 0 && (
-              <ul className="space-y-2">
-                {features.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="text-[#B87333] text-base mt-1">▸</span>
-                    <span className="text-sm text-gray-700">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+              {/* Content Section - Desktop */}
+              <div className="text-side flex-1 min-w-0 max-w-2xl space-y-6 flex flex-col justify-center h-full transition-all duration-300">
+                {isHero ? (
+                  <div className="flex items-center justify-start -mb-3">
+                    <Image 
+                      src="/logowithoutchevron.png" 
+                      alt="Slate360" 
+                      width={160} 
+                      height={48} 
+                      className="h-8 md:h-10 w-auto"
+                    />
+                  </div>
+                ) : (
+                  <h2 className="text-3xl md:text-5xl font-bold leading-tight" style={{ color: 'var(--brand-ink)' }}>{title}</h2>
+                )}
+                {subtitle && (
+                  <h3 className="text-xl md:text-2xl font-semibold text-[#4B9CD3] leading-snug">{subtitle}</h3>
+                )}
+                <p className="text-lg md:text-xl text-gray-700 leading-relaxed max-w-prose">{description}</p>
 
-            <Link
-              href={learnHref}
-              className="inline-flex items-center gap-2 bg-[#B87333] text-white px-6 py-3 rounded-md font-semibold hover:bg-[#9f5f24] hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 shadow-lg w-fit text-base"
-            >
-              Learn More →
-            </Link>
-          </div>
+                {features && features.length > 0 && (
+                  <ul className="space-y-2">
+                    {features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <span className="text-[#B87333] text-base mt-1">▸</span>
+                        <span className="text-base text-gray-700">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
-          {/* Mobile Viewer and Text Side-by-Side Layout */}
-          <div className="w-full flex gap-4 items-start">
-            <div className="flex-1 min-w-0">
-              {/* Space for additional text, messaging, icons, etc. */}
-              <div className="text-xs text-gray-600 space-y-2">
-                <p className="font-medium">Interactive Preview</p>
-                <p>Tap to explore features</p>
+                <Link
+                  href={route}
+                  className="inline-flex items-center gap-2 bg-[#B87333] text-white px-6 py-3 rounded-md font-semibold hover:bg-[#9f5f24] hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 shadow-lg w-fit text-base"
+                >
+                  {cta}
+                </Link>
               </div>
-            </div>
-            <div className="flex-shrink-0">
-              <MobileViewerLauncher id={id} title={title} />
             </div>
           </div>
         </div>
