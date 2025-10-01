@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  console.log("✅ Slate360 CLEAN BUILD", new Date().toISOString());
   return (
     <html lang="en">
   <body className={`bg-white text-gray-900 overflow-x-hidden md:overflow-hidden ${inter.className}`}>

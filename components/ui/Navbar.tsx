@@ -86,7 +86,7 @@ export default function Navbar() {
         {/* Left: Logo */}
         <Link href="/" aria-label="Go to Homepage" className="flex items-center">
           <Image
-            src="/assets/slate360logoforwebsite.v2.png"
+            src="/assets/slate360-logo.png"
             alt="Slate360 Logo"
             width={180}
             height={50}
