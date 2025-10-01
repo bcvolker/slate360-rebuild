@@ -1,32 +1,33 @@
-'use client';
+"use client";
+import { useState } from "react";
+import MediaViewer from "./MediaViewer";
+import { Tile } from "@/lib/types";
 
-import { useState } from 'react';
-import MediaViewer from './MediaViewer';
-import Modal from './ui/Modal';
-
-type Props = {
-  id: string;
-  title: string;
-};
-
-export default function MobileViewerLauncher({ id, title }: Props) {
+export default function MobileViewerLauncher({ tile }: { tile: Tile }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <>
+    <div className="mt-4 flex flex-col items-center">
       <button
-        type="button"
-        aria-label={`Open ${title} preview`}
         onClick={() => setOpen(true)}
-        className="w-48 h-36 rounded-lg shadow-md overflow-hidden border border-slate-200 cursor-pointer hover:shadow-lg transition-shadow mb-2"
+        className="w-32 h-24 bg-slate-800 rounded-lg shadow-md flex items-center justify-center"
       >
-        <MediaViewer id={id} title={title} thumbnail={true} />
+        <span className="text-slate-400 text-sm">Open Viewer</span>
       </button>
-      <Modal open={open} onClose={() => setOpen(false)} label={`${title} preview`}>
-        <div className="w-full h-[70vh] rounded-lg overflow-hidden border border-slate-200">
-          <MediaViewer id={id} title={title} />
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="w-[90%] h-[70%] bg-slate-900 rounded-xl p-2 relative">
+            <button
+              onClick={() => setOpen(false)}
+              className="absolute top-2 right-2 text-slate-400 hover:text-white"
+            >
+              ✕
+            </button>
+            <MediaViewer id={tile.id} title={tile.title} />
+          </div>
         </div>
-      </Modal>
-    </>
+      )}
+    </div>
   );
 }
