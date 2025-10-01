@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+
 import TileSection from "@/components/TileSection";
 import WaveDivider from "@/components/ui/WaveDivider";
 import { Tile } from "@/lib/types";

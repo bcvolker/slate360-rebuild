@@ -1,13 +1,17 @@
+import { LucideIcon } from "lucide-react";
+
 export interface Feature {
+  icon: LucideIcon;
+  title: string;
+  text: string;
+}
+
+export interface Tile {
   id: string;
   title: string;
   subtitle: string;
   description: string;
-  icon: string;
-  route: string;
+  features: Feature[];
   cta: string;
-  features?: string[];
-  viewerPosition?: 'left' | 'right';
+  viewerPosition: "left" | "right";
 }
-
-export type Tile = Feature;

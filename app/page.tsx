@@ -1,4 +1,3 @@
-
 import { tileData } from '@/lib/tile-data';
 import PageClient from './PageClient';
 

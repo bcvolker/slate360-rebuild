@@ -1,25 +1,20 @@
- import type { Metadata } from "next";
 import "./globals.css";
+import type { Metadata } from "next";
 import Navbar from "@/components/ui/Navbar";
-import { Inter } from "next/font/google";
-import DebugScrollOverlay from "@/components/DebugScrollOverlay";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Slate360",
   description: "From Design to Reality",
 };
 
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  console.log("✅ Slate360 CLEAN BUILD", new Date().toISOString());
   return (
     <html lang="en">
-  <body className={`bg-white text-gray-900 overflow-x-hidden md:overflow-hidden ${inter.className}`}>
-    <Navbar />
-    <DebugScrollOverlay />
-  <main id="scroll-container" className="scroll-container bg-white overscroll-contain touch-pan-y">{children}</main>
+      <body className="bg-slate-950 text-white">
+        <Navbar />
+        <main id="scroll-container" className="h-[100dvh] overflow-y-scroll snap-y snap-mandatory">
+          {children}
+        </main>
       </body>
     </html>
   );

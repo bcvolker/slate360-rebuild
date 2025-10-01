@@ -1,90 +1,62 @@
 import { Tile } from "./types";
-export type { Tile };
+import { LayoutGrid, Users, BrainCircuit, DatabaseZap, GitCompareArrows, CheckSquare, MessageSquare, Camera, Film, BarChart3 } from "lucide-react";
 
 export const tileData: Tile[] = [
-  {
-    id: "hero",
-    title: "Slate360",
-    subtitle: "From Design to Reality",
-    description:
-      "The all-in-one platform for AEC professionals, integrating 3D modeling, geospatial tools, and advanced analytics to bring your designs to life faster and more efficiently than ever before. Unlock seamless collaboration and data-driven insights for every project stage.",
-    icon: "Rocket",
-    route: "/about/hero",
-    cta: "Learn More",
-    features: [
-      "Unified Project Dashboard",
-      "Real-Time 3D Collaboration",
-      "AI-Powered Analytics",
-      "Seamless Data Integration"
-    ],
-    viewerPosition: 'right',
-  },
-  {
-    id: "bim-studio",
-    title: "BIM Studio",
-    subtitle: "Precision 3D Modeling in the Cloud",
-    description:
-      "Collaborate on complex BIM models with real-time updates, version control, and integrated tools. Detect clashes automatically and streamline your design review process. Experience cloud-native 3D workflows and instant feedback.",
-    icon: "Cube",
-    route: "/about/bim-studio",
-    cta: "Explore BIM Studio",
-    features: [
-      "Cloud-Native 3D Viewer",
-      "Real-Time Markup & Annotation",
-      "Automated Clash Detection",
-      "Version History & Comparison"
-    ],
-    viewerPosition: 'left',
-  },
-  {
-    id: "tour-builder",
-    title: "Tour Builder",
-    subtitle: "Immersive Project Walkthroughs",
-    description:
-      "Create interactive tours for stakeholders and clients. Showcase your designs with guided walkthroughs, annotations, and multimedia overlays. Make every presentation memorable and actionable.",
-    icon: "MapPin",
-    route: "/about/tour-builder",
-    cta: "Build a Tour",
-    features: [
-      "Guided Walkthroughs",
-      "Annotations & Multimedia",
-      "Client Presentation Mode",
-      "VR Compatibility"
-    ],
-    viewerPosition: 'right',
-  },
-  {
-    id: "content-studio",
-    title: "Content Studio",
-    subtitle: "Centralized Asset Management",
-    description:
-      "Organize, tag, and share all your project assets in one place. From 3D models to documents and images, keep your team in sync and your content secure. Streamline approvals and versioning.",
-    icon: "FolderOpen",
-    route: "/about/content-studio",
-    cta: "Manage Content",
-    features: [
-      "Asset Tagging & Organization",
-      "Secure Sharing",
-      "Approval Workflows",
-      "Version Control"
-    ],
-    viewerPosition: 'left',
-  },
-  {
-    id: "analytics",
-    title: "Analytics",
-    subtitle: "Actionable Project Insights",
-    description:
-      "Leverage AI-powered analytics to track progress, identify risks, and optimize resources. Visualize key metrics and trends to drive smarter decisions and deliver successful outcomes.",
-    icon: "BarChart2",
-    route: "/about/analytics",
-    cta: "View Analytics",
-    features: [
-      "AI-Powered Metrics",
-      "Risk Identification",
-      "Resource Optimization",
-      "Trend Visualization"
-    ],
-    viewerPosition: 'right',
-  },
+	{
+		id: "hero",
+		title: "Your Vision, Instantly Realized.",
+		subtitle: "Slate360",
+		description:
+			"Slate360 unifies modeling, analytics, and collaboration in one sleek SaaS platform.",
+		features: [
+			{
+				icon: LayoutGrid,
+				title: "Unified Dashboard",
+				text: "Centralize files, tasks, and updates.",
+			},
+			{ icon: Users, title: "Collaboration", text: "Work in real-time with your team." },
+			{ icon: BrainCircuit, title: "AI Insights", text: "Predict risks, costs, and delays." },
+			{ icon: DatabaseZap, title: "Data Integration", text: "Plug into tools you already use." },
+		],
+		cta: "Request Demo",
+		viewerPosition: "right",
+	},
+	{
+		id: "bim-studio",
+		title: "Move Beyond the Desktop.",
+		subtitle: "BIM Studio",
+		description: "Cloud-native BIM modeling with advanced rendering and clash detection.",
+		features: [
+			{ icon: Film, title: "High-Fidelity Rendering", text: "Smooth navigation of complex models." },
+			{ icon: GitCompareArrows, title: "Version Control", text: "Compare revisions instantly." },
+			{ icon: CheckSquare, title: "Clash Detection", text: "Spot conflicts early." },
+			{ icon: MessageSquare, title: "Annotations", text: "Markup and share notes live." },
+		],
+		cta: "Explore BIM Studio",
+		viewerPosition: "left",
+	},
+	{
+		id: "analytics",
+		title: "Data-Driven Decisions.",
+		subtitle: "Reports & Analytics",
+		description: "Custom reports and dashboards to track KPIs, thermal data, and forecasts.",
+		features: [
+			{ icon: BarChart3, title: "KPI Dashboards", text: "Stay on top of performance." },
+			{ icon: BrainCircuit, title: "Predictive Analytics", text: "Spot risks before they happen." },
+		],
+		cta: "See Reports",
+		viewerPosition: "right",
+	},
+	{
+		id: "vr-studio",
+		title: "Step Into the Future.",
+		subtitle: "Virtual & AR Studio",
+		description: "Immersive walkthroughs and design reviews before construction begins.",
+		features: [
+			{ icon: Camera, title: "1:1 Walkthroughs", text: "Experience projects at full scale." },
+			{ icon: Camera, title: "Simulation Tools", text: "Run safety and design simulations." },
+		],
+		cta: "Try VR Studio",
+		viewerPosition: "left",
+	},
 ];
