@@ -1,11 +1,8 @@
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import MediaViewer from "./MediaViewer";
-import MobileViewerLauncher from "./MobileViewerLauncher";
 import { Tile } from "@/lib/types";
-import * as LucideIconsRaw from "lucide-react";
-const LucideIcons = LucideIconsRaw;
+import { iconMap } from "@/lib/icon-map";
 
 interface TileSectionProps {
   tile: Tile;
@@ -42,14 +39,26 @@ export default function TileSection({ tile, index, isLast }: TileSectionProps) {
               <MediaViewer id={id} title={title} />
             </div>
             {/* Content Section for Mobile */}
-            <div className="flex flex-row gap-4 items-center">
-              {/* Icon (if any) - not used in new tileData */}
-              <div className="flex flex-col">
-                <h2 className="text-lg font-bold leading-tight text-brand-ink">{title}</h2>
-                <h3 className="text-sm font-semibold text-brand-blue leading-snug">{subtitle}</h3>
-                <p className="text-xs text-gray-700 leading-relaxed">{description}</p>
-                <Link href="#" className="mt-2 text-brand-copper underline">{cta}</Link>
-              </div>
+            <div className="flex flex-col">
+              <h2 className="text-lg font-bold leading-tight text-brand-ink">{title}</h2>
+              <h3 className="text-sm font-semibold text-brand-blue leading-snug">{subtitle}</h3>
+              <p className="text-xs text-gray-700 leading-relaxed">{description}</p>
+              <Link href="#" className="mt-2 text-brand-copper underline">{cta}</Link>
+              {/* Features with icons */}
+              {features?.map((feature) => {
+                const Icon = iconMap[feature.iconName];
+                return (
+                  <div key={feature.title} className="flex items-start space-x-4 mt-2">
+                    <div className="flex-shrink-0 rounded-lg bg-slate-800 p-3">
+                      {Icon && <Icon className="h-6 w-6 text-brand-copper" />}
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-white">{feature.title}</h3>
+                      <p className="mt-1 text-slate-400">{feature.text}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -70,17 +79,21 @@ export default function TileSection({ tile, index, isLast }: TileSectionProps) {
                   <h3 className="text-xl md:text-2xl font-semibold text-[#4B9CD3] leading-snug">{subtitle}</h3>
                 )}
                 <p className="text-lg md:text-xl text-gray-700 leading-relaxed max-w-prose">{description}</p>
-                {features && features.length > 0 && (
-                  <ul className="space-y-2">
-                    {features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        {feature.icon && React.createElement(feature.icon, { size: 24, color: "#B87333" })}
-                        <span className="font-semibold text-base text-gray-700">{feature.title}</span>
-                        <span className="text-base text-gray-700">{feature.text}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                {/* Features with icons */}
+                {features?.map((feature) => {
+                  const Icon = iconMap[feature.iconName];
+                  return (
+                    <div key={feature.title} className="flex items-start space-x-4 mt-2">
+                      <div className="flex-shrink-0 rounded-lg bg-slate-800 p-3">
+                        {Icon && <Icon className="h-6 w-6 text-brand-copper" />}
+                      </div>
+                      <div>
+                        <h3 className="text-base font-semibold text-white">{feature.title}</h3>
+                        <p className="mt-1 text-slate-400">{feature.text}</p>
+                      </div>
+                    </div>
+                  );
+                })}
                 <Link
                   href="#"
                   className="inline-flex items-center gap-2 bg-[#B87333] text-white px-6 py-3 rounded-md font-semibold hover:bg-[#9f5f24] hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 shadow-lg w-fit text-base"
