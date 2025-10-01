@@ -2,7 +2,6 @@ import React from "react";
 import Link from "next/link";
 import MediaViewer from "./MediaViewer";
 import { Tile } from "@/lib/types";
-import { iconMap } from "@/lib/icon-map";
 
 interface TileSectionProps {
   tile: Tile;
@@ -46,7 +45,7 @@ export default function TileSection({ tile, index, isLast }: TileSectionProps) {
               <Link href="#" className="mt-2 text-brand-copper underline">{cta}</Link>
               {/* Features with icons */}
               {features?.map((feature) => {
-                const Icon = iconMap[feature.iconName];
+                const Icon = feature.icon;
                 return (
                   <div key={feature.title} className="flex items-start space-x-4 mt-2">
                     <div className="flex-shrink-0 rounded-lg bg-slate-800 p-3">
@@ -81,7 +80,7 @@ export default function TileSection({ tile, index, isLast }: TileSectionProps) {
                 <p className="text-lg md:text-xl text-gray-700 leading-relaxed max-w-prose">{description}</p>
                 {/* Features with icons */}
                 {features?.map((feature) => {
-                  const Icon = iconMap[feature.iconName];
+                  const Icon = feature.icon;
                   return (
                     <div key={feature.title} className="flex items-start space-x-4 mt-2">
                       <div className="flex-shrink-0 rounded-lg bg-slate-800 p-3">
