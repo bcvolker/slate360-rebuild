@@ -34,33 +34,33 @@ export default function TileSection({ tile, index, isLast }: TileSectionProps) {
           className={`md:hidden w-full flex flex-col px-6 py-8 border-b border-slate-200/70 last:border-b-0 relative z-10`}
           style={{ paddingBottom: id === 'vr' ? undefined : 'env(safe-area-inset-bottom, 0px)' }}
         >
-          <div className="flex flex-col gap-4">
-            {/* Viewer Section - Mobile */}
-            <div className="w-full h-[40vh] max-h-[50vh] rounded-lg shadow-lg overflow-hidden border-4 border-[#B87333] mb-2">
-              <MediaViewer id={id} title={title} />
-            </div>
+          <div className="flex flex-col gap-2">
             {/* Content Section for Mobile */}
-            <div className="flex flex-col">
-              <h2 className="text-lg font-bold leading-tight text-brand-ink">{title}</h2>
-              <h3 className="text-sm font-semibold text-brand-blue leading-snug">{subtitle}</h3>
-              <p className="text-xs text-gray-700 leading-relaxed">{description}</p>
-              <Link href="#" className="mt-2 text-brand-copper underline">{cta}</Link>
+            <div className="flex flex-col mb-2">
+              <h2 className="text-lg font-bold leading-tight text-brand-ink mb-1">{title}</h2>
+              <h3 className="text-sm font-semibold text-brand-blue leading-snug mb-1">{subtitle}</h3>
+              <p className="text-xs text-gray-700 leading-relaxed mb-2">{description}</p>
+              <Link href="#" className="mb-2 text-brand-copper underline">{cta}</Link>
               {/* Features with icons */}
-              {features?.map((feature) => {
-                const Icon = iconMap[feature.iconName];
-                return (
-                  <div key={feature.title} className="flex items-start space-x-4 mt-2">
-                    <div className="flex-shrink-0 rounded-lg bg-slate-800 p-3">
-                      {Icon && <Icon className="h-6 w-6 text-brand-copper" />}
+              <div className="flex flex-col gap-2 mb-2">
+                {features?.map((feature) => {
+                  const Icon = iconMap[feature.iconName];
+                  return (
+                    <div key={feature.title} className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 rounded-lg bg-slate-800 p-2">
+                        {Icon && <Icon className="h-5 w-5 text-brand-copper" />}
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-white">{feature.title}</h3>
+                        <p className="mt-0.5 text-slate-400 text-xs">{feature.text}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-base font-semibold text-white">{feature.title}</h3>
-                      <p className="mt-1 text-slate-400">{feature.text}</p>
-                    </div>
-                  </div>
-                );
-              })}
-              {/* MobileViewer modal below content */}
+                  );
+                })}
+              </div>
+            </div>
+            {/* Viewer Section - Mobile (smaller, spaced below content) */}
+            <div className="flex justify-center items-center mt-2 mb-2">
               <MobileViewer tile={tile} />
             </div>
           </div>

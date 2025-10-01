@@ -11,7 +11,11 @@ export default function MobileViewer({ tile }: { tile: Tile }) {
   return (
     <div className="md:hidden">
       {/* Small viewer preview */}
-      <div className="mx-auto mt-4 w-1/4 h-24 rounded bg-slate-800" onClick={() => setIsOpen(true)}>
+      <div
+        className="mx-auto mt-2 mb-4 w-1/4 h-20 min-w-[64px] min-h-[64px] max-w-[96px] max-h-[96px] rounded bg-slate-800 flex items-center justify-center shadow-md border border-slate-700"
+        style={{ marginLeft: 'auto', marginRight: 'auto' }}
+        onClick={() => setIsOpen(true)}
+      >
         <MediaViewer id={tile.id} title={tile.title} thumbnail={true} />
       </div>
 
