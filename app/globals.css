@@ -16,41 +16,18 @@
   }
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-:root {
-  --header-height: 5rem; /* 80px to match h-20 navbar */
-}
-
 html {
+  scroll-padding-top: 5rem; /* match 80px navbar */
+  scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
-  scroll-padding-top: 5rem;
 }
-
-/* Body colors are controlled via layout.tsx body classes */
-body { 
-  font-variant-ligatures: contextual;
-  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+body {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
-
-/* Typography improvements */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
-}
-
-h2 {
-  @apply text-3xl md:text-4xl lg:text-5xl;
-}
-
-h3 {
-  @apply text-lg md:text-xl lg:text-2xl;
+section {
+  scroll-snap-align: start;
 }
 
 /* Improved text readability */

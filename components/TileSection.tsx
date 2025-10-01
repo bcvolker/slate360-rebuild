@@ -54,9 +54,7 @@ export default function TileSection({
       className="relative snap-start min-h-[calc(100dvh-5rem)] flex items-center justify-center"
       data-tile={id}
     >
-    {/* DEBUG banner */}
-    <div className="w-full bg-yellow-200 text-yellow-900 text-xs font-bold py-1 px-2 border-b border-yellow-400">DEBUG TILE: {id}</div>
-    {/* Use scroll-margin-top for first tile, no spacer */}
+      <div className="absolute top-2 left-2 text-xs text-red-500">DEBUG: {id}</div>
 
       {/* Middle row: content wrapper */}
       <div className="row-start-2 place-self-stretch w-full relative">
