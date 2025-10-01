@@ -12,7 +12,7 @@ export default function MobileViewer({ tile }: { tile: Tile }) {
     <div className="md:hidden">
       {/* Small viewer preview */}
       <div
-        className="mx-auto mt-2 mb-4 w-1/4 h-20 min-w-[64px] min-h-[64px] max-w-[96px] max-h-[96px] rounded bg-slate-800 flex items-center justify-center shadow-md border border-slate-700"
+        className="mx-auto mt-2 mb-4 w-2/5 h-32 min-w-[120px] min-h-[120px] max-w-[180px] max-h-[180px] rounded bg-slate-800 flex items-center justify-center shadow-md border border-slate-700"
         style={{ marginLeft: 'auto', marginRight: 'auto' }}
         onClick={() => setIsOpen(true)}
       >
