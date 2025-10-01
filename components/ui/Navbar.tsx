@@ -27,12 +27,11 @@ export default function Navbar() {
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
   const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
     // Mobile: allow native anchor behavior for maximum iOS reliability
-    if (!isDesktop) {
-      setIsMenuOpen(false);
-      // Add a transient class to reduce snap interference on mobile
-      document.documentElement.classList.add('no-snap');
-      setTimeout(() => document.documentElement.classList.remove('no-snap'), 800);
-      return; // native anchor behavior
+    // Simple scroll handler for anchor links
+    e.preventDefault();
+    const anchorTarget = document.querySelector(href);
+    if (anchorTarget) {
+      anchorTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     // Desktop: custom scroll within container
@@ -50,20 +49,20 @@ export default function Navbar() {
       return;
     }
   const scrollContainer = document.getElementById('scroll-container');
-  const targetElement = document.getElementById(targetId);
-  if (!targetElement) return;
+  const scrollTarget = document.getElementById(targetId);
+  if (!scrollTarget) return;
 
   const headerHeight = 80;
     // Temporarily disable snap to allow smooth programmatic scroll
     if (isDesktop && scrollContainer) {
       const previousSnap = scrollContainer.style.scrollSnapType;
       scrollContainer.style.scrollSnapType = 'none';
-      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
       let attempts = 0;
       const maxAttempts = 12;
       const check = () => {
         const containerRect = scrollContainer.getBoundingClientRect();
-        const targetRect = targetElement.getBoundingClientRect();
+        const targetRect = scrollTarget.getBoundingClientRect();
         if (Math.abs(targetRect.top - containerRect.top - headerHeight) < 3 || attempts >= maxAttempts) {
           scrollContainer.style.scrollSnapType = previousSnap || 'y proximity';
           return;
@@ -74,7 +73,7 @@ export default function Navbar() {
       requestAnimationFrame(check);
     } else {
       // Mobile: default to document scroll; rely on scroll-margin-top and html scroll-padding-top
-      const y = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+      const y = scrollTarget.getBoundingClientRect().top + window.pageYOffset - headerHeight;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
