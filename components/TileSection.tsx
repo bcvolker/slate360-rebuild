@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import MediaViewer from "./MediaViewer";
+import MobileViewer from "@/components/ui/MobileViewer";
 import { Tile } from "@/lib/types";
 import { iconMap } from "@/lib/icon-map";
 
@@ -59,6 +60,8 @@ export default function TileSection({ tile, index, isLast }: TileSectionProps) {
                   </div>
                 );
               })}
+              {/* MobileViewer modal below content */}
+              <MobileViewer tile={tile} />
             </div>
           </div>
         </div>
