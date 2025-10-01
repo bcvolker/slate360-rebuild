@@ -25,43 +25,41 @@ export default function TileSection({ tile, index, isLast }: TileSectionProps) {
       className={`tile-section bg-animated-gradient relative w-full min-h-[calc(100dvh-5rem)] md:min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] snap-start grid grid-rows-[1fr_auto_1fr] items-stretch scroll-mt-20 ${bgClass} ${dividerClass} ${id === 'vr' ? 'pb-32' : ''}`}
       data-tile={id}
     >
-      {/* DEBUG banner */}
-      <div className="w-full bg-yellow-200 text-yellow-900 text-xs font-bold py-1 px-2 border-b border-yellow-400">DEBUG TILE: {id}</div>
       {/* Middle row: content wrapper */}
       <div className="row-start-2 place-self-stretch w-full relative">
-        {/* Mobile Layout - now includes viewer */}
+        {/* Mobile Layout - alternate viewer sides, feature list beside viewer */}
         <div
           className={`md:hidden w-full flex flex-col px-6 py-8 border-b border-slate-200/70 last:border-b-0 relative z-10`}
           style={{ paddingBottom: id === 'vr' ? undefined : 'env(safe-area-inset-bottom, 0px)' }}
         >
-          <div className="flex flex-col gap-2">
-            {/* Content Section for Mobile */}
-            <div className="flex flex-col mb-2">
-              <h2 className="text-lg font-bold leading-tight text-brand-ink mb-1">{title}</h2>
-              <h3 className="text-sm font-semibold text-brand-blue leading-snug mb-1">{subtitle}</h3>
-              <p className="text-xs text-gray-700 leading-relaxed mb-2">{description}</p>
-              <Link href="#" className="mb-2 text-brand-copper underline">{cta}</Link>
-              {/* Features with icons */}
-              <div className="flex flex-col gap-2 mb-2">
-                {features?.map((feature) => {
-                  const Icon = iconMap[feature.iconName];
-                  return (
-                    <div key={feature.title} className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 rounded-lg bg-slate-800 p-2">
-                        {Icon && <Icon className="h-5 w-5 text-brand-copper" />}
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-semibold text-white">{feature.title}</h3>
-                        <p className="mt-0.5 text-slate-400 text-xs">{feature.text}</p>
-                      </div>
-                    </div>
-                  );
-                })}
+          <div className={`flex flex-col gap-2 ${index % 2 === 0 ? '' : 'flex-col-reverse'}`}>
+            <div className={`flex ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'} items-start gap-4 mb-2`}>
+              <div className="flex-shrink-0">
+                <MobileViewer tile={tile} />
               </div>
-            </div>
-            {/* Viewer Section - Mobile (smaller, spaced below content) */}
-            <div className="flex justify-center items-center mt-2 mb-2">
-              <MobileViewer tile={tile} />
+              <div className="flex flex-col">
+                <h2 className="text-lg font-bold leading-tight text-brand-ink mb-1">{title}</h2>
+                <h3 className="text-sm font-semibold text-brand-blue leading-snug mb-1">{subtitle}</h3>
+                <p className="text-xs text-gray-700 leading-relaxed mb-2">{description}</p>
+                <Link href="#" className="mb-2 text-brand-copper underline">{cta}</Link>
+                {/* Features with icons */}
+                <div className="flex flex-col gap-2 mb-2">
+                  {features?.map((feature) => {
+                    const Icon = iconMap[feature.iconName];
+                    return (
+                      <div key={feature.title} className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 rounded-lg bg-slate-800 p-2">
+                          {Icon && <Icon className="h-5 w-5 text-brand-copper" />}
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-white">{feature.title}</h3>
+                          <p className="mt-0.5 text-slate-400 text-xs">{feature.text}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
