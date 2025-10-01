@@ -1,16 +1,4 @@
 import { Tile } from "./types";
-import {
-	LayoutGrid,
-	Users,
-	BrainCircuit,
-	DatabaseZap,
-	Film,
-	GitCompareArrows,
-	CheckSquare,
-	MessageSquare,
-	BarChart3,
-	Camera,
-} from "lucide-react";
 
 export const tileData: Tile[] = [
 	{
@@ -20,10 +8,10 @@ export const tileData: Tile[] = [
 		description:
 			"Slate360 unifies modeling, analytics, and collaboration in one sleek SaaS platform.",
 		features: [
-			{ icon: LayoutGrid, title: "Unified Dashboard", text: "Centralize files, tasks, and updates." },
-			{ icon: Users, title: "Collaboration", text: "Work in real-time with your team." },
-			{ icon: BrainCircuit, title: "AI Insights", text: "Predict risks, costs, and delays." },
-			{ icon: DatabaseZap, title: "Data Integration", text: "Plug into tools you already use." },
+			{ iconName: "LayoutGrid", title: "Unified Dashboard", text: "Centralize files, tasks, and updates." },
+			{ iconName: "Users", title: "Collaboration", text: "Work in real-time with your team." },
+			{ iconName: "BrainCircuit", title: "AI Insights", text: "Predict risks, costs, and delays." },
+			{ iconName: "DatabaseZap", title: "Data Integration", text: "Plug into tools you already use." },
 		],
 		cta: "Request Demo",
 		viewerPosition: "right",
@@ -34,10 +22,10 @@ export const tileData: Tile[] = [
 		subtitle: "BIM Studio",
 		description: "Cloud-native BIM modeling with advanced rendering and clash detection.",
 		features: [
-			{ icon: Film, title: "High-Fidelity Rendering", text: "Smooth navigation of complex models." },
-			{ icon: GitCompareArrows, title: "Version Control", text: "Compare revisions instantly." },
-			{ icon: CheckSquare, title: "Clash Detection", text: "Spot conflicts early." },
-			{ icon: MessageSquare, title: "Annotations", text: "Markup and share notes live." },
+			{ iconName: "Film", title: "High-Fidelity Rendering", text: "Smooth navigation of complex models." },
+			{ iconName: "GitCompareArrows", title: "Version Control", text: "Compare revisions instantly." },
+			{ iconName: "CheckSquare", title: "Clash Detection", text: "Spot conflicts early." },
+			{ iconName: "MessageSquare", title: "Annotations", text: "Markup and share notes live." },
 		],
 		cta: "Explore BIM Studio",
 		viewerPosition: "left",
@@ -48,8 +36,8 @@ export const tileData: Tile[] = [
 		subtitle: "Reports & Analytics",
 		description: "Custom reports and dashboards to track KPIs, thermal data, and forecasts.",
 		features: [
-			{ icon: BarChart3, title: "KPI Dashboards", text: "Stay on top of performance." },
-			{ icon: BrainCircuit, title: "Predictive Analytics", text: "Spot risks before they happen." },
+			{ iconName: "BarChart3", title: "KPI Dashboards", text: "Stay on top of performance." },
+			{ iconName: "BrainCircuit", title: "Predictive Analytics", text: "Spot risks before they happen." },
 		],
 		cta: "See Reports",
 		viewerPosition: "right",
@@ -60,8 +48,8 @@ export const tileData: Tile[] = [
 		subtitle: "Virtual & AR Studio",
 		description: "Immersive walkthroughs and design reviews before construction begins.",
 		features: [
-			{ icon: Camera, title: "1:1 Walkthroughs", text: "Experience projects at full scale." },
-			{ icon: Camera, title: "Simulation Tools", text: "Run safety and design simulations." },
+			{ iconName: "Camera", title: "1:1 Walkthroughs", text: "Experience projects at full scale." },
+			{ iconName: "Camera", title: "Simulation Tools", text: "Run safety and design simulations." },
 		],
 		cta: "Try VR Studio",
 		viewerPosition: "left",
