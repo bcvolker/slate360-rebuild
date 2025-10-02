@@ -9,7 +9,7 @@ export default function PricingPage() {
         {/* Single */}
         <div className="bg-slate-800 rounded-lg p-6 shadow-lg">
           <h2 className="text-2xl font-bold mb-2">Single</h2>
-          <p className="text-3xl font-bold mb-4">$49<span className="text-lg">/mo</span></p>
+          <p className="text-4xl font-extrabold mb-4 text-brand-copper">$49<span className="text-lg text-slate-200">/mo</span></p>
           <ul className="text-slate-300 space-y-2">
             <li>✔ Project Hub</li>
             <li>✔ Basic reports</li>
@@ -18,7 +18,7 @@ export default function PricingPage() {
         {/* Double */}
         <div className="bg-slate-800 rounded-lg p-6 shadow-lg">
           <h2 className="text-2xl font-bold mb-2">Double</h2>
-          <p className="text-3xl font-bold mb-4">$99<span className="text-lg">/mo</span></p>
+          <p className="text-4xl font-extrabold mb-4 text-brand-copper">$99<span className="text-lg text-slate-200">/mo</span></p>
           <ul className="text-slate-300 space-y-2">
             <li>✔ Everything in Single</li>
             <li>✔ 2 users included</li>
@@ -27,7 +27,7 @@ export default function PricingPage() {
         {/* Business */}
         <div className="bg-slate-800 rounded-lg p-6 shadow-lg border-2 border-brand-copper">
           <h2 className="text-2xl font-bold mb-2">Business</h2>
-          <p className="text-3xl font-bold mb-4">$499<span className="text-lg">/mo</span></p>
+          <p className="text-4xl font-extrabold mb-4 text-brand-copper">$499<span className="text-lg text-slate-200">/mo</span></p>
           <ul className="text-slate-300 space-y-2">
             <li>✔ Project Hub</li>
             <li>✔ BIM Studio</li>
@@ -37,7 +37,7 @@ export default function PricingPage() {
         {/* Enterprise */}
         <div className="bg-slate-800 rounded-lg p-6 shadow-lg">
           <h2 className="text-2xl font-bold mb-2">Enterprise</h2>
-          <p className="text-3xl font-bold mb-4">Custom</p>
+          <p className="text-4xl font-extrabold mb-4 text-brand-copper">Custom</p>
           <ul className="text-slate-300 space-y-2">
             <li>✔ Unlimited users</li>
             <li>✔ White-label branding</li>
