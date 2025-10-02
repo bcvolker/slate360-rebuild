@@ -1,4 +1,6 @@
-import { Tile } from "./types";
+// File: lib/tile-data.ts
+import { Tile } from "@/lib/types";
+// Only one tileData export, with all features including iconName and title
 
 export const tileData: Tile[] = [
 	{
