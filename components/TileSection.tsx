@@ -12,15 +12,8 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
   const viewerOnLeft = viewerPosition === 'left';
 
 
-  // First tile is pink, others alternate blue/white
-  let bgClass = '';
-  if (index === 0) {
-    bgClass = 'bg-pink-100/30';
-  } else if (index % 2 === 1) {
-    bgClass = 'bg-blue-100/30';
-  } else {
-    bgClass = 'bg-white/30';
-  }
+  // All tiles use the same pink background for consistency
+  const bgClass = 'bg-pink-100/30';
 
   return (
     <section
