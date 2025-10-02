@@ -1,38 +1,30 @@
-import "./globals.css";
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
+import Footer from "@/components/ui/Footer";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Slate360",
-  description: "From Design to Reality",
+  title: "Slate360 - From Design to Reality",
+  description: "The all-in-one platform for AEC professionals.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode; }) {
   return (
     <html lang="en">
-      <body className="bg-slate-950 text-white">
-        <Navbar />
-        <main id="scroll-container" className="overflow-y-scroll snap-y snap-mandatory pb-20">
-          {children}
-        </main>
-        <footer className="w-full bg-white/95 border-t border-[#B87333]/20">
-          <div className="mx-auto w-full max-w-7xl px-6 py-3 text-[11px] text-slate-600">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2 whitespace-nowrap">
-                <span className="font-semibold text-gray-900">© {new Date().getFullYear()} Slate360</span>
-                <span className="text-slate-500">• From Design to Reality</span>
-              </div>
-              <nav className="flex flex-wrap items-center gap-3">
-                <a href="/about" className="hover:text-[#B87333] transition-colors">About</a>
-                <a href="/contact" className="hover:text-[#B87333] transition-colors">Contact</a>
-                <a href="/pricing" className="hover:text-[#B87333] transition-colors">Pricing</a>
-                <a href="/privacy" className="hover:text-[#B87333] transition-colors">Privacy</a>
-                <a href="/terms" className="hover:text-[#B87333] transition-colors">Terms</a>
-                <a href="/cookies" className="hover:text-[#B87333] transition-colors">Cookies</a>
-              </nav>
-            </div>
-          </div>
-        </footer>
+      <body className={inter.className}>
+        <div className="flex flex-col h-screen bg-slate-900">
+          <Navbar />
+          <main
+            id="scroll-container"
+            className="flex-1 overflow-y-auto snap-y snap-proximity md:snap-mandatory bg-pink-500" // VISUAL DEBUG: Main container is now pink
+          >
+            <div className="pt-20">{children}</div>
+          </main>
+          <Footer />
+        </div>
       </body>
     </html>
   );
