@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
           <Navbar />
           <main
             id="scroll-container"
-            className="flex-1 overflow-y-auto snap-y snap-proximity md:snap-mandatory"
+            className="flex-1 overflow-y-auto snap-y snap-mandatory"
           >
             {/* The pt-20 creates space for the fixed h-20 header */}
             <div className="pt-20">
