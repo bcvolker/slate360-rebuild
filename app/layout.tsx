@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
           <Navbar />
           <main
             id="scroll-container"
-            className="flex-1 overflow-y-auto snap-y snap-proximity md:snap-mandatory bg-pink-500" // VISUAL DEBUG: Main container is now pink
+            className="flex-1 overflow-y-auto snap-y snap-proximity md:snap-mandatory"
           >
             <div className="pt-20">{children}</div>
           </main>
