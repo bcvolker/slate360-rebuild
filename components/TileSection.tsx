@@ -11,11 +11,10 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
   const viewerOnLeft = viewerPosition === 'left';
 
   // Alternate backgrounds for each tile
-  const bgClass = index % 2 === 0 ? 'bg-tile-base' : 'bg-tile-alt';
   return (
     <section
       id={id}
-      className={`snap-start w-full flex items-center justify-center border-b border-slate-800 ${bgClass}`}
+      className={"snap-start w-full flex items-center justify-center border-b border-slate-800 bg-hero-animated text-white"}
       style={{ minHeight: 'calc(100vh - 5rem)' }} // 5rem = h-20 header
     >
       <div className="w-full max-w-7xl mx-auto px-6 py-16 md:py-24">
