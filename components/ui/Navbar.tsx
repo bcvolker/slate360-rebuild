@@ -109,14 +109,23 @@ export default function Navbar() {
               </button>
               {isMenuOpen && (
                 <div className="absolute left-0 mt-2 w-56 rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg p-2">
-                  {tileData.map((tile) => (
+                  {/* First tile is always 'Slate360', then dashboard tile names */}
+                  <a
+                    key="slate360"
+                    href="#hero"
+                    onClick={(e) => handleScroll(e, `#hero`)}
+                    className="block px-3 py-2 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded"
+                  >
+                    Slate360
+                  </a>
+                  {tileData.slice(1).map((tile) => (
                     <a
                       key={tile.id}
                       href={`/#${tile.id}`}
                       onClick={(e) => handleScroll(e, `/#${tile.id}`)}
                       className="block px-3 py-2 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded"
                     >
-                      {tile.title}
+                      {tile.subtitle || tile.title}
                     </a>
                   ))}
                 </div>
@@ -141,9 +150,23 @@ export default function Navbar() {
           <div className="absolute top-20 left-0 w-full bg-slate-900 md:hidden border-t border-slate-700/60 z-50">
             <nav className="flex flex-col items-stretch space-y-1 py-3 px-3">
               {/* Tile navigation links */}
-              {tileData.map((tile) => (
-                <a key={tile.id} href={`/#${tile.id}`} onClick={(e) => handleScroll(e, `/#${tile.id}`)} className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800">
-                  {tile.title}
+              {/* First tile is always 'Slate360', then dashboard tile names */}
+              <a
+                key="slate360-mobile"
+                href="#hero"
+                onClick={(e) => handleScroll(e, `#hero`)}
+                className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800"
+              >
+                Slate360
+              </a>
+              {tileData.slice(1).map((tile) => (
+                <a
+                  key={tile.id}
+                  href={`/#${tile.id}`}
+                  onClick={(e) => handleScroll(e, `/#${tile.id}`)}
+                  className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800"
+                >
+                  {tile.subtitle || tile.title}
                 </a>
               ))}
               
