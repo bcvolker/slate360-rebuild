@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
           <Navbar />
           <main
             id="scroll-container"
-            className="flex-1 overflow-y-auto snap-y snap-proximity md:snap-mandatory bg-animated-gradient"
+            className="flex-1 overflow-y-auto snap-y snap-proximity md:snap-mandatory bg-animated-gradient pr-4"
           >
             <div className="pt-20">{children}</div>
           </main>

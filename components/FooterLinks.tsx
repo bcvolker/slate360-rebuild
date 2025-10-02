@@ -2,7 +2,7 @@ export default function FooterLinks() {
   return (
   <footer className="w-full bg-slate-900 text-white py-6 text-center border-t border-slate-800">
       <div className="max-w-6xl mx-auto px-4">
-        <span className="footer-text text-base font-medium text-slate-300" style={{textShadow: '0 1px 6px rgba(0,0,0,0.18)'}}>
+  <span className="footer-text text-base font-medium" style={{ color: '#d1d5db', textShadow: '0 1px 6px rgba(0,0,0,0.18)' }}>
           &copy; {new Date().getFullYear()} Slate360. All rights reserved. |
           <a href="/subscribe" className="underline hover:text-brand-copper mx-1 transition-colors duration-200">Subscribe</a>
           | <a href="/about" className="underline hover:text-brand-copper mx-1 transition-colors duration-200">About</a>
