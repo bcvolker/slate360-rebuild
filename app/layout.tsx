@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
-import Footer from "../components/Footer";
+import FooterLinks from "../components/FooterLinks";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,15 +15,15 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="flex flex-col h-screen bg-slate-900">
+        <div className="flex flex-col h-screen">
           <Navbar />
           <main
             id="scroll-container"
-            className="flex-1 overflow-y-auto snap-y snap-proximity md:snap-mandatory"
+            className="flex-1 overflow-y-auto snap-y snap-proximity md:snap-mandatory bg-animated-gradient"
           >
             <div className="pt-20">{children}</div>
           </main>
-          <Footer />
+          <FooterLinks />
         </div>
       </body>
     </html>
