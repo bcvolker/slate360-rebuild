@@ -1,3 +1,7 @@
+/* Ensure footer text is always white and readable */
+.footer-text {
+  color: #fff !important;
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
