@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="bg-slate-950 text-white">
         <Navbar />
-        <main id="scroll-container" className="h-[100dvh] overflow-y-scroll snap-y snap-mandatory">
+        <main id="scroll-container" className="overflow-y-scroll snap-y snap-mandatory pb-20">
           {children}
         </main>
         <footer className="w-full bg-white/95 border-t border-[#B87333]/20">
