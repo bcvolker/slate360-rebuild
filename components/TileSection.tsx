@@ -1,24 +1,27 @@
 
+
 import { Tile } from "@/lib/types";
 import SectionHeader from "./ui/SectionHeader";
 import Button from "./ui/Button";
 import MediaViewer from "./MediaViewer";
-import MobileViewerLauncher from "./MobileViewerLauncher";
-
 type TileWithIndex = { tile: Tile; index: number; isLast?: boolean; };
 
 export default function TileSection({ tile, index, isLast = false }: TileWithIndex) {
   const { id, title, subtitle, description, features, cta, viewerPosition } = tile;
   const viewerOnLeft = viewerPosition === 'left';
 
-
-  // All tiles use the same pink background for consistency
-  const bgClass = 'bg-pink-100/30';
+  // First tile uses animated gradient, others alternate brand backgrounds
+  const bgClass = index === 0
+    ? 'bg-animated-gradient bg-hero-animated text-white'
+    : index % 2 === 0
+      ? 'bg-tile-base'
+      : 'bg-tile-alt';
+  const dividerClass = !isLast ? 'section-divider' : '';
 
   return (
     <section
       id={id}
-      className={`snap-start w-full flex items-center justify-center border-b border-slate-300/30 text-white ${bgClass}`}
+      className={`snap-start w-full flex items-center justify-center ${bgClass} ${dividerClass}`}
       style={{ minHeight: 'calc(100vh - 5rem)' }} // 5rem = h-20 header
     >
       <div className="w-full max-w-7xl mx-auto px-6 py-16 md:py-24">
@@ -41,9 +44,11 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
             </div>
           </div>
 
-          {/* Viewer: always visible, side-by-side on all screens */}
+          {/* Viewer: always visible, side-by-side on all screens, reasonable size */}
           <div className="flex w-full flex-1 items-center justify-center md:w-1/2">
-            <MediaViewer id={id} title={title} />
+            <div className="w-full max-w-xs md:max-w-md">
+              <MediaViewer id={id} title={title} />
+            </div>
           </div>
         </div>
       </div>

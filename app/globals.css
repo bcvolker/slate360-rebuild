@@ -1,129 +1,14 @@
-/* Ensure footer text is always white and readable */
-.footer-text {
-  color: #fff !important;
-}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html { 
-  scroll-behavior: smooth; 
-  scroll-padding-top: 5rem; 
-}
-body { 
-  @apply bg-slate-950 text-white; 
-}
-
-/* === Animated Gradient for Tiles === */
-.bg-animated-gradient {
-  background: linear-gradient(120deg, #4B9CD3 0%, #B87333 100%);
-  background-size: 200% 200%;
-  animation: animatedGradientMove 6s ease-in-out infinite alternate;
-}
-
-@keyframes animatedGradientMove {
-  0% {
-    background-position: 0% 50%;
-    filter: hue-rotate(0deg) brightness(1);
-  }
-  100% {
-    background-position: 100% 50%;
-    filter: hue-rotate(-12deg) brightness(1.08);
-  }
-}
-
-:root {
-  --header-height: 5rem; /* 80px to match h-20 navbar */
-}
-
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 5rem; /* matches 80px Navbar */
-}
-
-/* Body colors are controlled via layout.tsx body classes */
-body { 
-  font-variant-ligatures: contextual;
-  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Typography improvements */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
-}
-
-h2 {
-  @apply text-3xl md:text-4xl lg:text-5xl;
-}
-
-h3 {
-  @apply text-lg md:text-xl lg:text-2xl;
-}
-
-/* Improved text readability */
-p {
-  line-height: 1.7;
-  color: rgb(55 65 81);
-}
-
-/* Content width optimization for large screens */
-@media (min-width: 1536px) {
-  .text-side {
-    max-width: 48rem; /* 768px - optimized for readability */
-  }
-}
-
-/* Smooth transitions for interactive elements */
-a, button {
-  transition: all 0.2s ease-in-out;
-}
-
-/* Unified scroll model */
-html { scroll-padding-top: 5rem; height: 100%; }
-body { min-height: 100%; overscroll-behavior-y: none; -webkit-overflow-scrolling: auto; }
-@supports (height: 100dvh) {
-  main { height: calc(100dvh - 5rem); }
-}
-/* Momentum scrolling for the main scroll container on iOS */
-#scroll-container { -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
-
-/* DESKTOP: Enforce snap-scrolling on the main container */
-/* Mobile: make the document the snap container */
-@media (max-width: 767px) {
-  html, body { 
-    scroll-snap-type: y proximity;
-    overflow-x: hidden;
-    height: 100%;
-  }
-  body {
-    overflow-y: auto;
-  }
-  #scroll-container {
-    height: auto !important;
-    overflow: visible !important;
-    scroll-snap-type: y proximity !important;
-  }
-}
-@media (min-width: 768px) {
-  #scroll-container {
-    height: calc(100vh - 5rem) !important;
-    overflow-y: scroll !important;
-    scroll-snap-type: y mandatory !important;
-  }
-}
-
 /* === Slate360 Brand Tokens & Effects ============================== */
 :root {
-  --brand-blue: #4B9CD3;      /* Carolina Blue */
-  --brand-copper: #B87333;    /* Copper accent */
-  --brand-ink: #0f172a;       /* Slate/ink */
-  --bg-alt: #F4F8FB;          /* Very light blue/grey alt tile */
-  --divider-copper: rgba(184, 115, 51, 0.22);
+	--brand-blue: #4B9CD3;      /* Carolina Blue */
+	--brand-copper: #B87333;    /* Copper accent */
+	--brand-ink: #0f172a;       /* Slate/ink */
+	--bg-alt: #F4F8FB;          /* Very light blue/grey alt tile */
+	--divider-copper: rgba(184,115,51,0.22);
 }
 
 /* Alternating section helpers */
@@ -134,69 +19,55 @@ body { min-height: 100%; overscroll-behavior-y: none; -webkit-overflow-scrolling
 .section-divider { border-bottom: 1px solid var(--divider-copper); }
 
 /* Hero animated gradient + blueprint grid overlay */
+.bg-animated-gradient {
+	background: linear-gradient(120deg, #4B9CD3 0%, #B87333 100%);
+	background-size: 200% 200%;
+	animation: animatedGradientMove 6s ease-in-out infinite alternate;
+}
 .bg-hero-animated {
-  position: relative;
-  isolation: isolate;
+	position: relative;
+	isolation: isolate;
 }
 .bg-hero-animated::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  background: radial-gradient(1200px 700px at 20% 10%, rgba(75,156,211,0.18), transparent 60%),
-              radial-gradient(900px 600px at 80% 50%, rgba(184,115,51,0.12), transparent 65%);
-  animation: heroPulse 10s ease-in-out infinite alternate;
-  pointer-events: none;
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -2;
+	background: radial-gradient(1200px 700px at 20% 10%, rgba(75,156,211,0.18), transparent 60%),
+							radial-gradient(900px 600px at 80% 50%, rgba(184,115,51,0.12), transparent 65%);
+	animation: heroPulse 10s ease-in-out infinite alternate;
+	pointer-events: none;
 }
 .bg-hero-animated::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background-image:
-    linear-gradient(transparent 23px, rgba(75,156,211,0.09) 24px),
-    linear-gradient(90deg, transparent 23px, rgba(75,156,211,0.09) 24px);
-  background-size: 24px 24px, 24px 24px; /* faint blueprint grid */
-  mix-blend-mode: multiply;
-  opacity: 0.25;
-  pointer-events: none;
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background-image:
+		linear-gradient(transparent 23px, rgba(75,156,211,0.09) 24px),
+		linear-gradient(90deg, transparent 23px, rgba(75,156,211,0.09) 24px);
+	background-size: 24px 24px, 24px 24px; /* faint blueprint grid */
+	mix-blend-mode: multiply;
+	opacity: 0.25;
+	pointer-events: none;
 }
 @keyframes heroPulse {
-  0%   { filter: saturate(1) hue-rotate(0deg); }
-  100% { filter: saturate(1.06) hue-rotate(-6deg); }
-}
-
-/* Buttons / links hover accents */
-.btn-brand {
-  @apply inline-flex items-center justify-center rounded-md px-4 py-2 font-medium transition;
-  color: white;
-  background-color: var(--brand-blue);
-  box-shadow: 0 0 0 rgba(184,115,51,0);
-}
-.btn-brand:hover {
-  box-shadow: 0 6px 18px rgba(184,115,51,0.35);
-  transform: translateY(-1px);
-}
-.btn-ghost {
-  @apply inline-flex items-center justify-center rounded-md px-3 py-2 font-medium transition;
-  color: var(--brand-copper);
-}
-.btn-ghost:hover {
-  text-shadow: 0 0 12px rgba(184,115,51,0.45);
+	0%   { filter: saturate(1) hue-rotate(0deg); }
+	100% { filter: saturate(1.06) hue-rotate(-6deg); }
 }
 
 /* Optional: dark-mode site backdrop (kept minimal; tiles still control their own bg) */
 :root.dark {
-  --bg-alt: #0b1220;
+	--bg-alt: #0b1220;
 }
 html.dark body {
-  background: radial-gradient(800px 500px at 10% -10%, rgba(75,156,211,0.08), transparent 60%),
-              radial-gradient(700px 400px at 90% 110%, rgba(184,115,51,0.06), transparent 70%),
-              #0b0f1a;
+	background: radial-gradient(800px 500px at 10% -10%, rgba(75,156,211,0.08), transparent 60%),
+							radial-gradient(700px 400px at 90% 110%, rgba(184,115,51,0.06), transparent 70%),
+							#0b0f1a;
 }
 
 /* Mobile tile alignment helpers */
 @media (max-width: 767px) {
-  .text-side { width: 100%; }
-  html.no-snap, html.no-snap body { scroll-snap-type: none !important; }
+	.text-side { width: 100%; }
+	html.no-snap, html.no-snap body { scroll-snap-type: none !important; }
 }
