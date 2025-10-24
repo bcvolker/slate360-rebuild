@@ -76,6 +76,13 @@ export default function Navbar() {
       const y = scrollTarget.getBoundingClientRect().top + window.pageYOffset - headerHeight;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
+    // Ensure URL hash reflects the target so tests and users can link to sections
+    try {
+      const newUrl = `${window.location.pathname}#${targetId}`;
+      window.history.replaceState(null, '', newUrl);
+    } catch (e) {
+      // ignore
+    }
   };
 
   return (
@@ -98,15 +105,18 @@ export default function Navbar() {
           <nav className="hidden md:flex items-center gap-6">
             {/* Menu dropdown for tile links (desktop) placed to the left of About */}
             <div className="relative" ref={desktopMenuRef}>
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => setIsMenuOpen((v) => !v)}
                 aria-haspopup="true"
                 aria-expanded={isMenuOpen}
-                className="text-sm font-medium text-slate-300 hover:text-white inline-flex items-center gap-2"
+                className="text-sm font-medium text-slate-300 hover:text-white inline-flex items-center gap-2 cursor-pointer"
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsMenuOpen((v) => !v); }}
               >
                 Menu
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.25 8.29a.75.75 0 01-.02-1.08z" clipRule="evenodd"/></svg>
-              </button>
+              </div>
               {isMenuOpen && (
                 <div className="absolute left-0 mt-2 w-56 rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg p-2">
                   {tileData.map((tile) => (

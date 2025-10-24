@@ -1,244 +1,203 @@
 # Page snapshot
 
 ```yaml
-- generic [active] [ref=e1]:
-  - banner [ref=e2]:
-    - generic [ref=e3]:
-      - link "Go to Homepage" [ref=e4] [cursor=pointer]:
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "Go to Homepage" [ref=e5] [cursor=pointer]:
         - /url: /
-        - img "Slate360 Logo" [ref=e5] [cursor=pointer]
-      - navigation [ref=e7]:
-        - button "Menu" [ref=e9] [cursor=pointer]:
+        - img "Slate360 Logo" [ref=e6] [cursor=pointer]
+      - navigation [ref=e8]:
+        - button "Menu" [ref=e10] [cursor=pointer]:
           - text: Menu
-          - img [ref=e10] [cursor=pointer]
-        - link "About" [ref=e12] [cursor=pointer]:
+          - img [ref=e11] [cursor=pointer]
+        - link "About" [ref=e13] [cursor=pointer]:
           - /url: /about
-        - link "Contact" [ref=e13] [cursor=pointer]:
+        - link "Contact" [ref=e14] [cursor=pointer]:
           - /url: /contact
-        - link "Subscribe" [ref=e14] [cursor=pointer]:
+        - link "Subscribe" [ref=e15] [cursor=pointer]:
           - /url: /subscribe
-        - link "Login" [ref=e15] [cursor=pointer]:
+        - link "Login" [ref=e16] [cursor=pointer]:
           - /url: /login
-  - main [ref=e16]:
-    - generic [ref=e22]:
-      - generic [ref=e26]:
-        - generic [ref=e27]: 🏗️
-        - heading "3D Model Viewer" [level=3] [ref=e28]
-        - paragraph [ref=e29]: Interactive 3D models with measurement tools, annotations, and collaboration features
-        - generic [ref=e32]: Content Coming Soon
-      - generic [ref=e33]:
-        - heading "Slate360" [level=2] [ref=e34]
-        - heading "From Design to Reality" [level=3] [ref=e35]
-        - paragraph [ref=e36]: The all-in-one platform for AEC professionals, integrating 3D modeling, geospatial tools, and advanced analytics to bring your designs to life faster and more efficiently than ever before.
-        - list [ref=e37]:
-          - listitem [ref=e38]:
-            - generic [ref=e39]: ▸
-            - generic [ref=e40]: Unified Project Dashboard
-          - listitem [ref=e41]:
-            - generic [ref=e42]: ▸
-            - generic [ref=e43]: Real-Time 3D Collaboration
-          - listitem [ref=e44]:
-            - generic [ref=e45]: ▸
-            - generic [ref=e46]: AI-Powered Analytics
-          - listitem [ref=e47]:
-            - generic [ref=e48]: ▸
-            - generic [ref=e49]: Seamless Data Integration
-        - link "Learn More →" [ref=e50] [cursor=pointer]:
-          - /url: /about
-    - generic [ref=e57]:
-      - generic [ref=e61]:
-        - generic [ref=e62]: 🏗️
-        - heading "3D Model Viewer" [level=3] [ref=e63]
-        - paragraph [ref=e64]: Interactive 3D models with measurement tools, annotations, and collaboration features
-        - generic [ref=e67]: Content Coming Soon
-      - generic [ref=e68]:
-        - heading "BIM Studio" [level=2] [ref=e69]
-        - heading "Precision 3D Modeling in the Cloud" [level=3] [ref=e70]
-        - paragraph [ref=e71]: Collaborate on complex BIM models with real-time updates, version control, and integrated tools. Detect clashes automatically and streamline your design review process.
-        - list [ref=e72]:
-          - listitem [ref=e73]:
-            - generic [ref=e74]: ▸
-            - generic [ref=e75]: Cloud-Native 3D Viewer
-          - listitem [ref=e76]:
-            - generic [ref=e77]: ▸
-            - generic [ref=e78]: Real-Time Markup & Annotation
-          - listitem [ref=e79]:
-            - generic [ref=e80]: ▸
-            - generic [ref=e81]: Automated Clash Detection
-          - listitem [ref=e82]:
-            - generic [ref=e83]: ▸
-            - generic [ref=e84]: Version History & Comparison
-        - link "Learn More →" [ref=e85] [cursor=pointer]:
-          - /url: /features/bim-studio
-    - generic [ref=e92]:
-      - generic [ref=e96]:
-        - generic [ref=e97]: 🖼️
-        - heading "Media Viewer" [level=3] [ref=e98]
-        - paragraph [ref=e99]: Interactive media viewing with zoom, pan, and annotation tools
-        - generic [ref=e102]: Content Coming Soon
-      - generic [ref=e103]:
-        - heading "Project Hub" [level=2] [ref=e104]
-        - heading "Your Single Source of Truth" [level=3] [ref=e105]
-        - paragraph [ref=e106]: Organize all your project files, documents, and communication in one centralized hub. Ensure your entire team is working with the latest information, from concept to completion.
-        - list [ref=e107]:
-          - listitem [ref=e108]:
-            - generic [ref=e109]: ▸
-            - generic [ref=e110]: Centralized File Management
-          - listitem [ref=e111]:
-            - generic [ref=e112]: ▸
-            - generic [ref=e113]: Task & Milestone Tracking
-          - listitem [ref=e114]:
-            - generic [ref=e115]: ▸
-            - generic [ref=e116]: Team Communication Channels
-          - listitem [ref=e117]:
-            - generic [ref=e118]: ▸
-            - generic [ref=e119]: Granular Access Control
-        - link "Learn More →" [ref=e120] [cursor=pointer]:
-          - /url: /features/project-hub
-    - generic [ref=e127]:
-      - generic [ref=e131]:
-        - generic [ref=e132]: 🌐
-        - heading "360° Experience" [level=3] [ref=e133]
-        - paragraph [ref=e134]: Immersive 360° photos and videos with hotspots and navigation controls
-        - generic [ref=e137]: Content Coming Soon
-      - generic [ref=e138]:
-        - heading "360° Tour Builder" [level=2] [ref=e139]
-        - heading "Immersive Walkthroughs" [level=3] [ref=e140]
-        - paragraph [ref=e141]: Create immersive site walkthroughs with hotspots, audio, and VR compatibility.
-        - list [ref=e142]:
-          - listitem [ref=e143]:
-            - generic [ref=e144]: ▸
-            - generic [ref=e145]: Hotspots & Measurements
-          - listitem [ref=e146]:
-            - generic [ref=e147]: ▸
-            - generic [ref=e148]: VR Mode (WebXR-ready)
-          - listitem [ref=e149]:
-            - generic [ref=e150]: ▸
-            - generic [ref=e151]: Floorplans & timeline comparison
-          - listitem [ref=e152]:
-            - generic [ref=e153]: ▸
-            - generic [ref=e154]: Branding & overlays
-        - link "Learn More →" [ref=e155] [cursor=pointer]:
-          - /url: /features/tour-builder
-    - generic [ref=e162]:
-      - generic [ref=e166]:
-        - generic [ref=e167]: 🎬
-        - heading "Video Player" [level=3] [ref=e168]
-        - paragraph [ref=e169]: High-quality video playback with timeline controls and annotations
-        - generic [ref=e172]: Content Coming Soon
-      - generic [ref=e173]:
-        - heading "Content Creation" [level=2] [ref=e174]
-        - heading "Media Production" [level=3] [ref=e175]
-        - paragraph [ref=e176]: Batch photo/video editing with AI assists, LUTs, branding, and social presets.
-        - list [ref=e177]:
-          - listitem [ref=e178]:
-            - generic [ref=e179]: ▸
-            - generic [ref=e180]: Magnetic Timeline
-          - listitem [ref=e181]:
-            - generic [ref=e182]: ▸
-            - generic [ref=e183]: AI Enhancement Presets
-          - listitem [ref=e184]:
-            - generic [ref=e185]: ▸
-            - generic [ref=e186]: Export templates
-          - listitem [ref=e187]:
-            - generic [ref=e188]: ▸
-            - generic [ref=e189]: Team review hooks
-        - link "Learn More →" [ref=e190] [cursor=pointer]:
-          - /url: /features/content
-    - generic [ref=e197]:
-      - generic [ref=e201]:
-        - generic [ref=e202]: 🖼️
-        - heading "Media Viewer" [level=3] [ref=e203]
-        - paragraph [ref=e204]: Interactive media viewing with zoom, pan, and annotation tools
-        - generic [ref=e207]: Content Coming Soon
-      - generic [ref=e208]:
-        - heading "Geospatial & Robotics" [level=2] [ref=e209]
-        - heading "Automation Mapping" [level=3] [ref=e210]
-        - paragraph [ref=e211]: Plan missions, analyze flatness/volume, overlay maps, and track progress.
-        - list [ref=e212]:
-          - listitem [ref=e213]:
-            - generic [ref=e214]: ▸
-            - generic [ref=e215]: Automated mission planning
-          - listitem [ref=e216]:
-            - generic [ref=e217]: ▸
-            - generic [ref=e218]: Volumetrics & overlays
-          - listitem [ref=e219]:
-            - generic [ref=e220]: ▸
-            - generic [ref=e221]: RTK/PPK hooks
-          - listitem [ref=e222]:
-            - generic [ref=e223]: ▸
-            - generic [ref=e224]: DXF/point cloud export
-        - link "Learn More →" [ref=e225] [cursor=pointer]:
-          - /url: /features/geospatial
-    - generic [ref=e232]:
-      - generic [ref=e236]:
-        - generic [ref=e237]: 🖼️
-        - heading "Media Viewer" [level=3] [ref=e238]
-        - paragraph [ref=e239]: Interactive media viewing with zoom, pan, and annotation tools
-        - generic [ref=e242]: Content Coming Soon
-      - generic [ref=e243]:
-        - heading "Reports & Insights" [level=2] [ref=e244]
-        - heading "Data Insights" [level=3] [ref=e245]
-        - paragraph [ref=e246]: Thermal analysis, KPIs, and PDF/Excel exports with AI-assisted insights.
-        - list [ref=e247]:
-          - listitem [ref=e248]:
-            - generic [ref=e249]: ▸
-            - generic [ref=e250]: Custom KPI builder
-          - listitem [ref=e251]:
-            - generic [ref=e252]: ▸
-            - generic [ref=e253]: Thermal palettes & anomalies
-          - listitem [ref=e254]:
-            - generic [ref=e255]: ▸
-            - generic [ref=e256]: Report templates
-          - listitem [ref=e257]:
-            - generic [ref=e258]: ▸
-            - generic [ref=e259]: One-click PDF export
-        - link "Learn More →" [ref=e260] [cursor=pointer]:
-          - /url: /features/insights
-    - generic [ref=e262]:
-      - generic [ref=e267]:
-        - generic [ref=e271]:
-          - generic [ref=e272]: 🥽
-          - heading "VR Experience" [level=3] [ref=e273]
-          - paragraph [ref=e274]: Virtual reality scenes compatible with WebXR and VR headsets
-          - generic [ref=e277]: Content Coming Soon
-        - generic [ref=e278]:
-          - heading "VR / AR" [level=2] [ref=e279]
-          - heading "Immersive Simulation" [level=3] [ref=e280]
-          - paragraph [ref=e281]: Step into your projects, simulate scenarios, and record flythroughs.
-          - list [ref=e282]:
-            - listitem [ref=e283]:
-              - generic [ref=e284]: ▸
-              - generic [ref=e285]: Multi-user sessions (roadmap)
-            - listitem [ref=e286]:
-              - generic [ref=e287]: ▸
-              - generic [ref=e288]: Marker-based AR (roadmap)
-            - listitem [ref=e289]:
-              - generic [ref=e290]: ▸
-              - generic [ref=e291]: Recording & sharing
-            - listitem [ref=e292]:
-              - generic [ref=e293]: ▸
-              - generic [ref=e294]: Headset-friendly UI
-          - link "Learn More →" [ref=e295] [cursor=pointer]:
-            - /url: /features/vr
-      - generic [ref=e299]:
-        - generic [ref=e300]:
-          - generic [ref=e301]: © 2025 Slate360
-          - generic [ref=e302]: • From Design to Reality
-        - navigation [ref=e303]:
-          - link "About" [ref=e304] [cursor=pointer]:
-            - /url: /about
-          - link "Contact" [ref=e305] [cursor=pointer]:
-            - /url: /contact
-          - link "Pricing" [ref=e306] [cursor=pointer]:
-            - /url: /pricing
-          - link "Privacy" [ref=e307] [cursor=pointer]:
-            - /url: /privacy
-          - link "Terms" [ref=e308] [cursor=pointer]:
-            - /url: /terms
-          - link "Cookies" [ref=e309] [cursor=pointer]:
-            - /url: /cookies
-  - button "Open Next.js Dev Tools" [ref=e315] [cursor=pointer]:
-    - img [ref=e316] [cursor=pointer]
-  - alert [ref=e320]
+  - main [ref=e17]:
+    - generic [ref=e18]:
+      - generic [ref=e19]: "DEBUG: Reverted to 7f54ed9"
+      - main [ref=e20]:
+        - generic [ref=e21]:
+          - generic [ref=e24]:
+            - generic [ref=e25]:
+              - generic [ref=e26]:
+                - heading "Your Vision, Instantly Realized." [level=2] [ref=e27]
+                - paragraph [ref=e28]: "Slate360: From Design to Reality"
+              - paragraph [ref=e29]: Slate360 unifies BIM, 360 tours, analytics, and VR into one SaaS platform. Move beyond disconnected tools and discover your command center for the built environment.
+              - list [ref=e30]:
+                - listitem [ref=e31]:
+                  - generic [ref=e32]: ✓
+                  - generic [ref=e33]: Access every workflow in one secure hub.
+                - listitem [ref=e34]:
+                  - generic [ref=e35]: ✓
+                  - generic [ref=e36]: Work seamlessly across office and field teams.
+                - listitem [ref=e37]:
+                  - generic [ref=e38]: ✓
+                  - generic [ref=e39]: Forecast risks, costs, and performance.
+                - listitem [ref=e40]:
+                  - generic [ref=e41]: ✓
+                  - generic [ref=e42]: Connect with tools you already rely on.
+              - button "Request a Demo" [ref=e44] [cursor=pointer]
+            - generic [ref=e47]:
+              - generic [ref=e48]: 🏗️
+              - heading "3D Model Viewer" [level=3] [ref=e49]
+              - paragraph [ref=e50]: Interactive 3D models with measurement tools, annotations, and collaboration features
+              - generic [ref=e53]: Content Coming Soon
+          - img [ref=e55]
+        - generic [ref=e57]:
+          - generic [ref=e60]:
+            - generic [ref=e61]:
+              - generic [ref=e62]:
+                - heading "Move Beyond the Desktop." [level=2] [ref=e63]
+                - paragraph [ref=e64]: BIM Studio
+              - paragraph [ref=e65]: Our browser-based BIM Studio brings complex models into the cloud. No installs. No compatibility headaches. True field-to-office collaboration, wherever you are.
+              - list [ref=e66]:
+                - listitem [ref=e67]:
+                  - generic [ref=e68]: ✓
+                  - generic [ref=e69]: Explore models with stunning detail on any device.
+                - listitem [ref=e70]:
+                  - generic [ref=e71]: ✓
+                  - generic [ref=e72]: Instantly track and compare design revisions.
+                - listitem [ref=e73]:
+                  - generic [ref=e74]: ✓
+                  - generic [ref=e75]: Identify conflicts before they become costly mistakes.
+                - listitem [ref=e76]:
+                  - generic [ref=e77]: ✓
+                  - generic [ref=e78]: Annotate directly in 3D with your team.
+              - button "Explore BIM Studio" [ref=e80] [cursor=pointer]
+            - generic [ref=e83]:
+              - generic [ref=e84]: 🏗️
+              - heading "3D Model Viewer" [level=3] [ref=e85]
+              - paragraph [ref=e86]: Interactive 3D models with measurement tools, annotations, and collaboration features
+              - generic [ref=e89]: Content Coming Soon
+          - img [ref=e91]
+        - generic [ref=e93]:
+          - generic [ref=e96]:
+            - generic [ref=e97]:
+              - generic [ref=e98]:
+                - heading "Immersive 360 Tours." [level=2] [ref=e99]
+                - paragraph [ref=e100]: 360 Tour Builder
+              - paragraph [ref=e101]: Transform site photos into interactive 360° walkthroughs. Add hotspots, embed media, and deliver clarity to every stakeholder.
+              - list [ref=e102]:
+                - listitem [ref=e103]:
+                  - generic [ref=e104]: ✓
+                  - generic [ref=e105]: Build tours in minutes with no coding required.
+                - listitem [ref=e106]:
+                  - generic [ref=e107]: ✓
+                  - generic [ref=e108]: View projects at true scale with headset compatibility.
+              - button "Discover Tour Building" [ref=e110] [cursor=pointer]
+            - generic [ref=e113]:
+              - generic [ref=e114]: 🌐
+              - heading "360° Experience" [level=3] [ref=e115]
+              - paragraph [ref=e116]: Immersive 360° photos and videos with hotspots and navigation controls
+              - generic [ref=e119]: Content Coming Soon
+          - img [ref=e121]
+        - generic [ref=e123]:
+          - generic [ref=e126]:
+            - generic [ref=e127]:
+              - generic [ref=e128]:
+                - heading "Your Story, Beautifully Told." [level=2] [ref=e129]
+                - paragraph [ref=e130]: Content Studio
+              - paragraph [ref=e131]: Produce polished visuals directly inside Slate360. Edit drone footage, generate timelapses, and share branded media instantly.
+              - list [ref=e132]:
+                - listitem [ref=e133]:
+                  - generic [ref=e134]: ✓
+                  - generic [ref=e135]: Cut, overlay, and render without external software.
+                - listitem [ref=e136]:
+                  - generic [ref=e137]: ✓
+                  - generic [ref=e138]: Deliver content to clients or post directly to social media.
+              - button "Learn About Content Studio" [ref=e140] [cursor=pointer]
+            - generic [ref=e143]:
+              - generic [ref=e144]: 🖼️
+              - heading "Media Viewer" [level=3] [ref=e145]
+              - paragraph [ref=e146]: Interactive media viewing with zoom, pan, and annotation tools
+              - generic [ref=e149]: Content Coming Soon
+          - img [ref=e151]
+        - generic [ref=e153]:
+          - generic [ref=e156]:
+            - generic [ref=e157]:
+              - generic [ref=e158]:
+                - heading "Geospatial Intelligence + Robotics." [level=2] [ref=e159]
+                - paragraph [ref=e160]: Geospatial & Robotics
+              - paragraph [ref=e161]: Integrate drone data, GNSS, and robotics into your projects. See your site from every angle with unmatched precision.
+              - list [ref=e162]:
+                - listitem [ref=e163]:
+                  - generic [ref=e164]: ✓
+                  - generic [ref=e165]: Integrate GNSS and LiDAR workflows seamlessly.
+                - listitem [ref=e166]:
+                  - generic [ref=e167]: ✓
+                  - generic [ref=e168]: Control drones and robots from one interface.
+              - button "See Geospatial Tools" [ref=e170] [cursor=pointer]
+            - generic [ref=e173]:
+              - generic [ref=e174]: 🖼️
+              - heading "Media Viewer" [level=3] [ref=e175]
+              - paragraph [ref=e176]: Interactive media viewing with zoom, pan, and annotation tools
+              - generic [ref=e179]: Content Coming Soon
+          - img [ref=e181]
+        - generic [ref=e183]:
+          - generic [ref=e186]:
+            - generic [ref=e187]:
+              - generic [ref=e188]:
+                - heading "Insights that Drive Action." [level=2] [ref=e189]
+                - paragraph [ref=e190]: Analytics & Reports
+              - paragraph [ref=e191]: Turn raw project data into predictive insights. Understand performance and deliver results faster, smarter, and with confidence.
+              - list [ref=e192]:
+                - listitem [ref=e193]:
+                  - generic [ref=e194]: ✓
+                  - generic [ref=e195]: Tailor insights to stakeholder needs.
+                - listitem [ref=e196]:
+                  - generic [ref=e197]: ✓
+                  - generic [ref=e198]: Spot risks before they impact timelines or budgets.
+              - button "Explore Analytics" [ref=e200] [cursor=pointer]
+            - generic [ref=e203]:
+              - generic [ref=e204]: 🖼️
+              - heading "Media Viewer" [level=3] [ref=e205]
+              - paragraph [ref=e206]: Interactive media viewing with zoom, pan, and annotation tools
+              - generic [ref=e209]: Content Coming Soon
+          - img [ref=e211]
+        - generic [ref=e216]:
+          - generic [ref=e217]:
+            - generic [ref=e218]:
+              - heading "Experience in True Scale." [level=2] [ref=e219]
+              - paragraph [ref=e220]: VR/AR Studio
+            - paragraph [ref=e221]: Step inside your projects before they’re built. From immersive design reviews to client presentations, Slate360 VR/AR delivers the future of visualization.
+            - list [ref=e222]:
+              - listitem [ref=e223]:
+                - generic [ref=e224]: ✓
+                - generic [ref=e225]: Walk through designs in virtual reality.
+              - listitem [ref=e226]:
+                - generic [ref=e227]: ✓
+                - generic [ref=e228]: Bring stakeholders into the model, wherever they are.
+            - button "Experience VR/AR" [ref=e230] [cursor=pointer]
+          - generic [ref=e233]:
+            - generic [ref=e234]: 🖼️
+            - heading "Media Viewer" [level=3] [ref=e235]
+            - paragraph [ref=e236]: Interactive media viewing with zoom, pan, and annotation tools
+            - generic [ref=e239]: Content Coming Soon
+  - contentinfo [ref=e240]:
+    - paragraph [ref=e242]:
+      - text: © 2025 Slate360. All rights reserved. |
+      - link "Subscribe" [ref=e243] [cursor=pointer]:
+        - /url: /subscribe
+      - text: "|"
+      - link "About" [ref=e244] [cursor=pointer]:
+        - /url: /about
+      - text: "|"
+      - link "Contact" [ref=e245] [cursor=pointer]:
+        - /url: /contact
+      - text: "|"
+      - link "Terms" [ref=e246] [cursor=pointer]:
+        - /url: /terms
+      - text: "|"
+      - link "Privacy" [ref=e247] [cursor=pointer]:
+        - /url: /privacy
+      - text: "|"
+      - link "Cookies" [ref=e248] [cursor=pointer]:
+        - /url: /cookies
 ```

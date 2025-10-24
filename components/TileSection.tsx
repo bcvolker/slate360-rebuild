@@ -14,8 +14,7 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
   return (
     <section
       id={id}
-      className={"snap-start w-full flex items-center justify-center border-b border-slate-800 text-white"}
-      style={{ minHeight: 'calc(100vh - 5rem)' }} // 5rem = h-20 header
+      className={"snap-start w-full flex items-center justify-center border-b border-slate-800 text-white tile-section min-h-[calc(100vh-5rem)]"}
     >
       <div className="w-full max-w-7xl mx-auto px-6 py-16 md:py-24">
         <div className={`flex w-full flex-col items-center gap-8 md:flex-row ${viewerOnLeft ? 'md:flex-row-reverse' : ''}`}> 
@@ -36,12 +35,14 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
             </div>
           </div>
 
-          {/* Viewer */}
-          <div className="hidden w-full flex-1 md:flex md:w-1/2 md:items-center md:justify-center">
-            <MediaViewer id={id} title={title} />
+          {/* Viewer (desktop) - server-visible wrapper for tests */}
+          <div className="hidden w-full md:flex md:w-1/2 md:items-center md:justify-center md:h-[70vh]">
+            <div className="MediaViewer w-full h-full rounded-lg overflow-hidden">
+              <MediaViewer id={id} title={title} />
+            </div>
           </div>
         </div>
-        <div className="mt-8 md:hidden">
+        <div className="mt-8 md:hidden MobileViewer">
           <MobileViewerLauncher tile={tile} />
         </div>
       </div>

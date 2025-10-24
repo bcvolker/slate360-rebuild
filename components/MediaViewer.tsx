@@ -229,7 +229,7 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail 
   return (
     <div 
       ref={viewerRef}
-      className={`w-full h-full rounded-lg overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}
+      className={`MediaViewer w-full h-full rounded-lg overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}
     >
       {renderViewer()}
     </div>
