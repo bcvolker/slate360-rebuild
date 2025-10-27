@@ -10,40 +10,43 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
   const { id, title, subtitle, description, features, cta, viewerPosition } = tile;
   const viewerOnLeft = viewerPosition === 'left';
 
-  // Alternate backgrounds for each tile
+  // Alternate simple background colors for tiles (designer may replace with palette later)
+  const bgClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+
+  const viewerOrderClass = viewerOnLeft ? 'md:order-2' : 'md:order-1';
+  const textOrderClass = viewerOnLeft ? 'md:order-1' : 'md:order-2';
+
   return (
-    <section
-      id={id}
-      className={"snap-start w-full flex items-center justify-center border-b border-slate-800 text-white tile-section min-h-[calc(100vh-5rem)]"}
-    >
-      <div className="w-full max-w-7xl mx-auto px-6 py-16 md:py-24">
-        <div className={`flex w-full flex-col items-center gap-8 md:flex-row ${viewerOnLeft ? 'md:flex-row-reverse' : ''}`}> 
-          {/* Text Content */}
-          <div className="flex w-full flex-1 flex-col md:w-1/2">
-            <SectionHeader title={title} subtitle={subtitle} />
-            <p className="mt-4 text-lg leading-relaxed">{description}</p>
-            <ul className="mt-6 space-y-3">
-              {features?.map((feature: { text: string }, i: number) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="mt-1 font-bold text-brand-copper">✓</span>
-                  <span>{feature.text}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-8">
-              <Button>{cta}</Button>
+    <section id={id} className={`w-full ${bgClass} text-slate-900 tile-section`}>
+      <div className="w-full max-w-7xl mx-auto px-6 py-12 md:py-20">
+  <div className={`grid gap-8 items-center md:grid-cols-2 ${viewerOnLeft ? 'md:grid-flow-col-dense' : ''}`}>
+          {/* Viewer side */}
+          <div className={`order-1 ${viewerOrderClass} flex items-center justify-center`}>
+            <div className="w-full md:w-10/12">
+              <div className="w-full h-full rounded-lg overflow-hidden">
+                <MediaViewer id={id} title={title} />
+              </div>
             </div>
           </div>
 
-          {/* Viewer (desktop) - server-visible wrapper for tests */}
-          <div className="hidden w-full md:flex md:w-1/2 md:items-center md:justify-center md:h-[70vh]">
-            <div className="MediaViewer w-full h-full rounded-lg overflow-hidden">
-              <MediaViewer id={id} title={title} />
+          {/* Text side */}
+          <div className={`order-2 ${textOrderClass} flex flex-col justify-center`}>
+            <SectionHeader title={title} subtitle={subtitle} />
+            <p className="mt-4 text-lg leading-relaxed text-slate-700">{description}</p>
+            {features && (
+              <ul className="mt-6 space-y-2">
+                {features.map((feature: any, i: number) => (
+                  <li key={i} className="flex items-start gap-3 text-slate-700">
+                    <span className="mt-1 text-brand-copper">▸</span>
+                    <span>{feature.text}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-6">
+              <Button>{cta}</Button>
             </div>
           </div>
-        </div>
-        <div className="mt-8 md:hidden MobileViewer">
-          <MobileViewerLauncher tile={tile} />
         </div>
       </div>
     </section>

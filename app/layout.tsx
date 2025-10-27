@@ -15,12 +15,9 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="flex flex-col h-screen">
+          <div className="flex flex-col">
           <Navbar />
-          <main
-            id="scroll-container"
-            className="flex-1 overflow-y-auto snap-y snap-proximity md:snap-mandatory bg-animated-gradient"
-          >
+            <main id="scroll-container" className="flex-1 bg-white">
             <div className="pt-20">{children}</div>
           </main>
           <FooterLinks />

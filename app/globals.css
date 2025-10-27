@@ -11,26 +11,11 @@ html {
   scroll-padding-top: 5rem; 
 }
 body { 
-  @apply bg-slate-950 text-white; 
+  @apply bg-white text-slate-900; 
 }
 
 /* === Animated Gradient for Tiles === */
-.bg-animated-gradient {
-  background: linear-gradient(120deg, #4B9CD3 0%, #B87333 100%);
-  background-size: 200% 200%;
-  animation: animatedGradientMove 6s ease-in-out infinite alternate;
-}
-
-@keyframes animatedGradientMove {
-  0% {
-    background-position: 0% 50%;
-    filter: hue-rotate(0deg) brightness(1);
-  }
-  100% {
-    background-position: 100% 50%;
-    filter: hue-rotate(-12deg) brightness(1.08);
-  }
-}
+/* simplified: remove animated gradient to avoid rendering inconsistencies */
 
 :root {
   --header-height: 5rem; /* 80px to match h-20 navbar */
@@ -83,39 +68,16 @@ a, button {
   transition: all 0.2s ease-in-out;
 }
 
-/* Unified scroll model */
+/* Unified scroll model: simplify to document-level scrolling by default.
+   Desktop can still opt-in to a snapped container via md utilities in layout/components.
+*/
 html { scroll-padding-top: 5rem; height: 100%; }
-body { min-height: 100%; overscroll-behavior-y: none; -webkit-overflow-scrolling: auto; }
+body { min-height: 100%; overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; }
 @supports (height: 100dvh) {
   main { height: calc(100dvh - 5rem); }
 }
-/* Momentum scrolling for the main scroll container on iOS */
-#scroll-container { -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
-
-/* DESKTOP: Enforce snap-scrolling on the main container */
-/* Mobile: make the document the snap container */
-@media (max-width: 767px) {
-  html, body { 
-    scroll-snap-type: y proximity;
-    overflow-x: hidden;
-    height: 100%;
-  }
-  body {
-    overflow-y: auto;
-  }
-  #scroll-container {
-    height: auto !important;
-    overflow: visible !important;
-    scroll-snap-type: y proximity !important;
-  }
-}
-@media (min-width: 768px) {
-  #scroll-container {
-    height: calc(100vh - 5rem) !important;
-    overflow-y: scroll !important;
-    scroll-snap-type: y mandatory !important;
-  }
-}
+/* keep #scroll-container present but don't force snapping globally */
+#scroll-container { -webkit-overflow-scrolling: touch; }
 
 /* === Slate360 Brand Tokens & Effects ============================== */
 :root {
