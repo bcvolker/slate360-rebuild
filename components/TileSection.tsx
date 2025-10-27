@@ -1,4 +1,4 @@
-import { Tile } from "@/lib/types";
+import { Tile, Feature } from "@/lib/types";
 import SectionHeader from "./ui/SectionHeader";
 import Button from "./ui/Button";
 import MediaViewer from "./MediaViewer";
@@ -35,7 +35,7 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
             <p className="mt-4 text-lg leading-relaxed text-slate-700">{description}</p>
             {features && (
               <ul className="mt-6 space-y-2">
-                {features.map((feature: any, i: number) => (
+                {features.map((feature: Feature, i: number) => (
                   <li key={i} className="flex items-start gap-3 text-slate-700">
                     <span className="mt-1 text-brand-copper">▸</span>
                     <span>{feature.text}</span>
