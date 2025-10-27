@@ -80,18 +80,21 @@ body { min-height: 100%; overscroll-behavior-y: auto; -webkit-overflow-scrolling
 #scroll-container { -webkit-overflow-scrolling: touch; }
 
 @media (min-width: 768px) {
-  /* Desktop: enable a snapped scroll container to show one tile per screen */
+  /* Desktop: don't force a second scroll container — prefer document scrolling to avoid double-scrollbars */
   #scroll-container {
-    height: calc(100vh - var(--header-height));
-    overflow-y: auto;
-    scroll-snap-type: y mandatory;
+    /* keep touch-momentum but allow the document to provide the primary scrolling experience */
+    height: auto;
+    overflow-y: visible;
+    scroll-snap-type: none;
   }
 }
 
 /* Ensure each tile aligns to the top of the viewport when snapping */
 .tile-section {
-  min-height: calc(100vh - var(--header-height));
-  scroll-snap-align: start;
+  /* Let each tile size naturally. Removing forced viewport min-height prevents stacking and unexpected scrollbars.
+     If we want desktop snap in future, enable with a dedicated container and media query after testing. */
+  min-height: auto;
+  scroll-snap-align: none;
 }
 
 /* === Slate360 Brand Tokens & Effects ============================== */

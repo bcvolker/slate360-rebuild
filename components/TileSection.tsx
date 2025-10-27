@@ -22,7 +22,8 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
   <div className={`grid gap-8 items-center md:grid-cols-2 ${viewerOnLeft ? 'md:grid-flow-col-dense' : ''}`}>
           {/* Viewer side */}
           <div className={`order-1 ${viewerOrderClass} flex items-center justify-center`}>
-            <div className="w-full md:w-1/2 md:h-[70vh]">
+            {/* Constrain viewer height on small screens so it doesn't grow vertically forever. */}
+            <div className="w-full md:w-1/2 h-56 md:h-[70vh]">
               <div className="w-full h-full rounded-lg overflow-hidden">
                 <MediaViewer id={id} title={title} />
               </div>
