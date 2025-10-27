@@ -79,6 +79,21 @@ body { min-height: 100%; overscroll-behavior-y: auto; -webkit-overflow-scrolling
 /* keep #scroll-container present but don't force snapping globally */
 #scroll-container { -webkit-overflow-scrolling: touch; }
 
+@media (min-width: 768px) {
+  /* Desktop: enable a snapped scroll container to show one tile per screen */
+  #scroll-container {
+    height: calc(100vh - var(--header-height));
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+  }
+}
+
+/* Ensure each tile aligns to the top of the viewport when snapping */
+.tile-section {
+  min-height: calc(100vh - var(--header-height));
+  scroll-snap-align: start;
+}
+
 /* === Slate360 Brand Tokens & Effects ============================== */
 :root {
   --brand-blue: #4B9CD3;      /* Carolina Blue */

@@ -22,7 +22,7 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
   <div className={`grid gap-8 items-center md:grid-cols-2 ${viewerOnLeft ? 'md:grid-flow-col-dense' : ''}`}>
           {/* Viewer side */}
           <div className={`order-1 ${viewerOrderClass} flex items-center justify-center`}>
-            <div className="w-full md:w-10/12">
+            <div className="w-full md:w-1/2 md:h-[70vh]">
               <div className="w-full h-full rounded-lg overflow-hidden">
                 <MediaViewer id={id} title={title} />
               </div>
@@ -30,7 +30,7 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
           </div>
 
           {/* Text side */}
-          <div className={`order-2 ${textOrderClass} flex flex-col justify-center`}>
+          <div className={`order-2 ${textOrderClass} flex flex-col justify-center md:w-1/2`}>
             <SectionHeader title={title} subtitle={subtitle} />
             <p className="mt-4 text-lg leading-relaxed text-slate-700">{description}</p>
             {features && (
