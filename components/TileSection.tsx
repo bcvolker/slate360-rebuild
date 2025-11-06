@@ -17,7 +17,7 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
   const textOrderClass = viewerOnLeft ? 'md:order-1' : 'md:order-2';
 
   return (
-    <section id={id} className={`w-full ${bgClass} text-slate-900 tile-section pt-24 md:pt-28`}>
+    <section id={id} className={`w-full ${bgClass} text-slate-900 tile-section`}>
       <div className="w-full max-w-7xl mx-auto px-6 py-12 md:py-20">
   <div className={`grid gap-8 items-center md:grid-cols-2 ${viewerOnLeft ? 'md:grid-flow-col-dense' : ''}`}>
           {/* Viewer side */}
