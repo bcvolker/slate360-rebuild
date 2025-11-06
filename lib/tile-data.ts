@@ -6,7 +6,7 @@ export const tileData: Tile[] = [
 	{
 		id: "hero",
 		title: "Your Vision, Instantly Realized.",
-		subtitle: "Slate360 unifies BIM, 360 tours, analytics, and VR into one SaaS platform.",
+		subtitle: "Slate360: From Design to Reality",
 		description:
 			"Slate360 unifies BIM, 360 tours, analytics, and VR into one SaaS platform. Move beyond disconnected tools and discover your command center for the built environment.",
 		features: [

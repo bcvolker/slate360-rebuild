@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-// navigation is intentionally minimal for restored homepage
+import { tileData } from '@/lib/tile-data';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -47,7 +47,35 @@ export default function Navbar() {
         {/* Right: Desktop nav with Menu placed before About */}
         <div className="flex items-center gap-6">
           <nav className="hidden md:flex items-center gap-6">
-            {/* Intentionally minimal header navigation (Home via logo, About, Contact, Subscribe, Login) */}
+            {/* Menu dropdown for tile links (desktop) placed to the left of About */}
+            <div className="relative" ref={desktopMenuRef}>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => setIsMenuOpen((v) => !v)}
+                aria-haspopup="true"
+                aria-expanded={isMenuOpen}
+                className="text-sm font-medium text-slate-300 hover:text-white inline-flex items-center gap-2 cursor-pointer"
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsMenuOpen((v) => !v); }}
+              >
+                Menu
+                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.25 8.29a.75.75 0 01-.02-1.08z" clipRule="evenodd"/></svg>
+              </div>
+              {isMenuOpen && (
+                <div className="absolute left-0 mt-2 w-56 rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg p-2">
+                  {tileData.map((tile) => (
+                    <Link
+                      key={tile.id}
+                      href={`/#${tile.id}`}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block px-3 py-2 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded"
+                    >
+                      {tile.title}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
             <Link href="/about" className="text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200">About</Link>
             <Link href="/contact" className="text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200">Contact</Link>
             <Link href="/subscribe" className="text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200">Subscribe</Link>
@@ -66,6 +94,16 @@ export default function Navbar() {
           <div className="fixed inset-0 top-20 z-40 md:hidden" onClick={() => setIsMenuOpen(false)} />
           <div className="absolute top-20 left-0 w-full bg-slate-900 md:hidden border-t border-slate-700/60 z-50">
             <nav className="flex flex-col items-stretch space-y-1 py-3 px-3">
+              {/* Tile navigation links */}
+              {tileData.map((tile) => (
+                <Link key={tile.id} href={`/#${tile.id}`} onClick={() => setIsMenuOpen(false)} className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800">
+                  {tile.title}
+                </Link>
+              ))}
+              
+              {/* Divider */}
+              <div className="border-t border-slate-700/60 my-2" />
+              
               {/* Main navigation links */}
               <Link href="/about" className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800" onClick={() => setIsMenuOpen(false)}>
                 About
