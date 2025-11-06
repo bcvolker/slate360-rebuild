@@ -10,13 +10,14 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
   const { id, title, subtitle, description, features, cta, viewerPosition } = tile;
   const viewerOnLeft = viewerPosition === 'left';
 
+  // Alternate backgrounds for each tile
   return (
     <section
       id={id}
       className={"snap-start w-full flex items-center justify-center border-b border-slate-800 text-white tile-section min-h-[calc(100vh-5rem)]"}
     >
       <div className="w-full max-w-7xl mx-auto px-6 py-16 md:py-24">
-        <div className={`flex w-full flex-col items-center gap-8 md:flex-row ${viewerOnLeft ? 'md:flex-row-reverse' : ''}`}>
+        <div className={`flex w-full flex-col items-center gap-8 md:flex-row ${viewerOnLeft ? 'md:flex-row-reverse' : ''}`}> 
           {/* Text Content */}
           <div className="flex w-full flex-1 flex-col md:w-1/2">
             <SectionHeader title={title} subtitle={subtitle} />
