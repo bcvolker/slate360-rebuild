@@ -8,6 +8,9 @@ export default function FooterLinks() {
           <a href="/terms" className="underline hover:text-brand-copper transition-colors duration-200">Terms</a>
           <a href="/privacy" className="underline hover:text-brand-copper transition-colors duration-200">Privacy</a>
         </nav>
+        <p className="text-[10px] text-center text-gray-500 mt-8 mb-4">
+          Build: {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? 'local'}
+        </p>
       </div>
     </footer>
   );
