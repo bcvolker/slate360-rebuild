@@ -24,9 +24,65 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', onClick);
   }, [isMenuOpen]);
 
-  // simple handler: close any open menus and allow anchor/default navigation to proceed
-  const handleScroll = () => {
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
+    // Mobile: allow native anchor behavior for maximum iOS reliability
+    // Simple scroll handler for anchor links
+    e.preventDefault();
+    const anchorTarget = document.querySelector(href);
+    if (anchorTarget) {
+      anchorTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Desktop: custom scroll within container
+    e.preventDefault();
     setIsMenuOpen(false);
+    const targetId = href.replace(/.*#/, "");
+
+    // If we're not on the homepage, navigate first, then scroll after next frame.
+    if (pathname !== '/') {
+      router.push(`/#${targetId}`);
+      requestAnimationFrame(() => {
+        const el = document.getElementById(targetId);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      });
+      return;
+    }
+  const scrollContainer = document.getElementById('scroll-container');
+  const scrollTarget = document.getElementById(targetId);
+  if (!scrollTarget) return;
+
+  const headerHeight = 80;
+    // Temporarily disable snap to allow smooth programmatic scroll
+    if (isDesktop && scrollContainer) {
+      const previousSnap = scrollContainer.style.scrollSnapType;
+      scrollContainer.style.scrollSnapType = 'none';
+      scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      let attempts = 0;
+      const maxAttempts = 12;
+      const check = () => {
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const targetRect = scrollTarget.getBoundingClientRect();
+        if (Math.abs(targetRect.top - containerRect.top - headerHeight) < 3 || attempts >= maxAttempts) {
+          scrollContainer.style.scrollSnapType = previousSnap || 'y proximity';
+          return;
+        }
+        attempts++;
+        requestAnimationFrame(check);
+      };
+      requestAnimationFrame(check);
+    } else {
+      // Mobile: default to document scroll; rely on scroll-margin-top and html scroll-padding-top
+      const y = scrollTarget.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+    // Ensure URL hash reflects the target so tests and users can link to sections
+    try {
+      const newUrl = `${window.location.pathname}#${targetId}`;
+      window.history.replaceState(null, '', newUrl);
+    } catch (e) {
+      // ignore
+    }
   };
 
   return (
@@ -64,14 +120,14 @@ export default function Navbar() {
               {isMenuOpen && (
                 <div className="absolute left-0 mt-2 w-56 rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg p-2">
                   {tileData.map((tile) => (
-                    <Link
+                    <a
                       key={tile.id}
                       href={`/#${tile.id}`}
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={(e) => handleScroll(e, `/#${tile.id}`)}
                       className="block px-3 py-2 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded"
                     >
                       {tile.title}
-                    </Link>
+                    </a>
                   ))}
                 </div>
               )}
@@ -96,9 +152,9 @@ export default function Navbar() {
             <nav className="flex flex-col items-stretch space-y-1 py-3 px-3">
               {/* Tile navigation links */}
               {tileData.map((tile) => (
-                <Link key={tile.id} href={`/#${tile.id}`} onClick={() => setIsMenuOpen(false)} className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800">
+                <a key={tile.id} href={`/#${tile.id}`} onClick={(e) => handleScroll(e, `/#${tile.id}`)} className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800">
                   {tile.title}
-                </Link>
+                </a>
               ))}
               
               {/* Divider */}
