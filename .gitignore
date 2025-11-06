@@ -8,3 +8,5 @@ coverage
 dist
 *.local
 .vercel
+
+test-results/
