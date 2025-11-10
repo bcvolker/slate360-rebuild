@@ -1,17 +1,23 @@
 export default function FooterLinks() {
   return (
-    <footer className="w-full bg-slate-900/80 backdrop-blur-sm border-t border-slate-700/50 py-6 text-center">
+    <footer className="w-full bg-[#343947] text-white py-6 text-center text-sm">
       <div className="max-w-6xl mx-auto px-4">
-        <p className="footer-text text-base font-medium text-slate-300" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.18)' }}>
-          &copy; {new Date().getFullYear()} Slate360. All rights reserved. |
-          <a href="/subscribe" className="text-slate-300 hover:text-white mx-1 transition-colors duration-200">Subscribe</a>
-          | <a href="/about" className="text-slate-300 hover:text-white mx-1 transition-colors duration-200">About</a>
-          | <a href="/contact" className="text-slate-300 hover:text-white mx-1 transition-colors duration-200">Contact</a>
-          | <a href="/terms" className="text-slate-300 hover:text-white mx-1 transition-colors duration-200">Terms</a>
-          | <a href="/privacy" className="text-slate-300 hover:text-white mx-1 transition-colors duration-200">Privacy</a>
-          | <a href="/cookies" className="text-slate-300 hover:text-white mx-1 transition-colors duration-200">Cookies</a>
+        <p className="footer-text text-sm font-medium text-white">
+          &copy; {new Date().getFullYear()} Slate360. All rights reserved.
+          <span className="mx-2">|</span>
+          <a href="/subscribe" className="text-white hover:text-white/90 mx-1 transition-colors duration-200">Subscribe</a>
+          <span className="mx-2">|</span>
+          <a href="/about" className="text-white hover:text-white/90 mx-1 transition-colors duration-200">About</a>
+          <span className="mx-2">|</span>
+          <a href="/contact" className="text-white hover:text-white/90 mx-1 transition-colors duration-200">Contact</a>
+          <span className="mx-2">|</span>
+          <a href="/terms" className="text-white hover:text-white/90 mx-1 transition-colors duration-200">Terms</a>
+          <span className="mx-2">|</span>
+          <a href="/privacy" className="text-white hover:text-white/90 mx-1 transition-colors duration-200">Privacy</a>
+          <span className="mx-2">|</span>
+          <a href="/cookies" className="text-white hover:text-white/90 mx-1 transition-colors duration-200">Cookies</a>
         </p>
-        <p className="text-[10px] text-center text-slate-400 mt-8 mb-4">
+        <p className="text-[10px] text-center text-white mt-4">
           Build: {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? 'local'}
         </p>
       </div>
