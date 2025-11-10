@@ -39,7 +39,7 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
           </div>
 
           {/* Viewer (desktop) - server-visible wrapper for tests */}
-          <div className="hidden w-full md:flex md:w-1/2 md:items-center md:justify-center md:h-[70vh]">
+          <div className="hidden w-full md:flex md:w-1/2 md:items-center md:justify-center md:h-auto">
             <div className="rounded-2xl bg-slate-900 p-8 md:p-10 h-full flex flex-col gap-6">
               <div className="MediaViewer w-full h-full overflow-hidden">
                 <MediaViewer id={id} title={title} />

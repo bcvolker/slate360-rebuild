@@ -74,7 +74,7 @@ a, button {
 html { scroll-padding-top: 5rem; height: 100%; }
 body { min-height: 100%; overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; }
 @supports (height: 100dvh) {
-  main { height: calc(100dvh - 5rem); }
+  main { min-height: calc(100dvh - 5rem); }
 }
 /* keep #scroll-container present but don't force snapping globally */
 #scroll-container { -webkit-overflow-scrolling: touch; }
