@@ -17,7 +17,7 @@ export default function MobileViewerLauncher({ tile }: { tile: Tile }) {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-          <div className="w-[90%] h-[70%] bg-slate-900 rounded-xl p-2 relative">
+          <div className="w-90p h-70p bg-slate-900 rounded-xl p-2 relative">
             <button
               onClick={() => setOpen(false)}
               className="absolute top-2 right-2 text-slate-400 hover:text-white"

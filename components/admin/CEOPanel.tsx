@@ -224,7 +224,7 @@ export default function CEOPanel() {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col">
+  <div className="bg-white rounded-lg shadow-2xl w-full max-w-6xl h-90vh flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">CEO Content Management Panel</h2>

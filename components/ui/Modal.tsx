@@ -24,7 +24,7 @@ export default function Modal({ open, onClose, children, label = 'Dialog' }: Mod
       <div
         role="dialog"
         aria-label={label}
-        className="relative z-10 w-[95vw] max-w-5xl max-h-[90vh] overflow-auto rounded-2xl bg-white p-4 shadow-xl"
+        className="relative z-10 w-95vw max-w-5xl max-h-90vh overflow-auto rounded-2xl bg-white p-4 shadow-xl"
       >
         <button onClick={onClose} className="absolute right-3 top-3 rounded-md border px-2 py-1 text-sm">
           Close

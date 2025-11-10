@@ -9,7 +9,7 @@ export default function Section({
     <section
       id={id}
       className={clsx(
-        'snap-start min-h-[90vh] py-12 md:py-20 flex items-center',
+  'snap-start min-h-90vh py-12 md:py-20 flex items-center',
         'scroll-mt-[64px]', // for slim navbar
         className
       )}
