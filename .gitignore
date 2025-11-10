@@ -13,3 +13,6 @@ test-results/
 
 # ignore moved legacy archive
 legacy/**
+
+# ignore local restore exports used during restore workflow
+.restore/
