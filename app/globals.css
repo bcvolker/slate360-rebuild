@@ -36,10 +36,17 @@ html, body, #__next { height: 100%; }
 html { scroll-behavior: smooth; }
 body { min-height: 100%; overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; }
 /* Snap helpers: container holds viewport-height scrolling, children snap to start */
+.min-h-dvh { min-height: 100dvh; }
+
 .snap-container {
   scroll-snap-type: y mandatory;
   overflow-y: auto;
   height: 100dvh;
+  /* ensure first tile isn't hidden under header (header is h-20 / 5rem) */
+  scroll-padding-top: 5rem;
+  /* prevent iOS momentum from causing snap jank */
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
 }
 .snap-child { scroll-snap-align: start; }
 
