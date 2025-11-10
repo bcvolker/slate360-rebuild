@@ -17,9 +17,7 @@ export default function FooterLinks() {
           <span className="mx-2">|</span>
           <a href="/cookies" className="text-white hover:text-white/90 mx-1 transition-colors duration-200">Cookies</a>
         </p>
-        <p className="text-[10px] text-center text-white mt-4">
-          Build: {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? 'local'}
-        </p>
+        {/* Build hash removed (dev artifact) */}
       </div>
     </footer>
   );

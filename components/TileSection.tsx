@@ -17,7 +17,7 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
   return (
     <section
       id={id}
-      className={"snap-start w-full flex items-center justify-center border-b border-slate-800 text-white tile-section"}
+      className={`snap-child w-full flex items-center justify-center border-b border-slate-800 text-white tile-section min-h-screen md:h-[100dvh]`}
     >
       <div className={`w-full max-w-7xl mx-auto px-6 ${topPaddingClass} ${bottomPaddingClass}`}>
         <div className={`flex w-full flex-col items-center gap-8 md:flex-row ${viewerOnLeft ? 'md:flex-row-reverse' : ''}`}> 

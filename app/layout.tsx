@@ -15,11 +15,13 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Navbar />
-        <main id="scroll-container" className="min-h-screen">
-          {children}
-        </main>
-        <FooterLinks />
+        <div className="flex flex-col min-h-screen">
+          <Navbar />
+          <main id="scroll-container" className="flex-1 snap-container">
+            {children}
+          </main>
+          <FooterLinks />
+        </div>
       </body>
     </html>
   );

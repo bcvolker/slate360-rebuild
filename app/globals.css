@@ -28,11 +28,24 @@ html {
 
 /* Body colors are controlled via layout.tsx body classes */
 body { 
-  font-variant-ligatures: contextual;
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+html, body, #__next { height: 100%; }
+html { scroll-behavior: smooth; }
+body { min-height: 100%; overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; }
+/* Snap helpers: container holds viewport-height scrolling, children snap to start */
+.snap-container {
+  scroll-snap-type: y mandatory;
+  overflow-y: auto;
+  height: 100dvh;
+}
+.snap-child { scroll-snap-align: start; }
+
+@supports (height: 100dvh) {
+  main { min-height: calc(100dvh - 5rem); }
+}
 }
 
 /* Typography improvements */
