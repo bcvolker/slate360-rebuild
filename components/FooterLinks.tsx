@@ -1,6 +1,6 @@
 export default function FooterLinks() {
   return (
-    <footer className="w-full bg-[#343947] text-white py-6 text-center text-sm">
+    <footer className="w-full bg-slate-700 text-white py-4 md:py-6 text-center text-sm space-x-4">
       <div className="max-w-6xl mx-auto px-4">
         <p className="footer-text text-sm font-medium text-white">
           &copy; {new Date().getFullYear()} Slate360. All rights reserved.

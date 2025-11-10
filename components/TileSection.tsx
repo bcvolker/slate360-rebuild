@@ -10,15 +10,16 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
   const { id, title, subtitle, description, features, cta, viewerPosition } = tile;
   const viewerOnLeft = viewerPosition === 'left';
 
-  const topPaddingClass = index === 0 ? 'pt-4 md:pt-6' : 'py-16 md:py-24';
+  const topPaddingClass = index === 0 ? 'pt-8 md:pt-10' : 'pt-16 md:pt-20';
+  const bottomPaddingClass = 'pb-16 md:pb-20';
 
   // Alternate backgrounds for each tile
   return (
     <section
       id={id}
-      className={"snap-start w-full flex items-center justify-center border-b border-slate-800 text-white tile-section min-h-[calc(100vh-5rem)]"}
+      className={"snap-start w-full flex items-center justify-center border-b border-slate-800 text-white tile-section"}
     >
-  <div className={`w-full max-w-7xl mx-auto px-6 ${topPaddingClass}`}>
+      <div className={`w-full max-w-7xl mx-auto px-6 ${topPaddingClass} ${bottomPaddingClass}`}>
         <div className={`flex w-full flex-col items-center gap-8 md:flex-row ${viewerOnLeft ? 'md:flex-row-reverse' : ''}`}> 
           {/* Text Content */}
           <div className="flex w-full flex-1 flex-col md:w-1/2">
@@ -39,8 +40,10 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
 
           {/* Viewer (desktop) - server-visible wrapper for tests */}
           <div className="hidden w-full md:flex md:w-1/2 md:items-center md:justify-center md:h-[70vh]">
-            <div className="MediaViewer w-full h-full rounded-lg overflow-hidden">
-              <MediaViewer id={id} title={title} />
+            <div className="rounded-2xl bg-slate-900 p-8 md:p-10 h-full flex flex-col gap-6">
+              <div className="MediaViewer w-full h-full overflow-hidden">
+                <MediaViewer id={id} title={title} />
+              </div>
             </div>
           </div>
         </div>
