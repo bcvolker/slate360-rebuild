@@ -15,7 +15,7 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
 
   // Alternate backgrounds for each tile
   return (
-    <section className="snap-child min-h-dvh md:h-screen bg-gradient-to-br from-slate-50 to-blue-50" id={id}>
+  <section id={id} className="snap-child min-h-[calc(100dvh-5rem)] md:h-[calc(100dvh-5rem)] bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="flex flex-col md:flex-row items-center justify-center max-w-7xl mx-auto px-6 py-12 gap-12">
         <div className={`flex w-full flex-col items-center gap-8 md:flex-row ${viewerOnLeft ? 'md:flex-row-reverse' : ''}`}> 
           {/* Text Content */}

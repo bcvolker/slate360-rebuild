@@ -39,9 +39,13 @@ body { min-height: 100%; overscroll-behavior-y: auto; -webkit-overflow-scrolling
 .snap-container {
   scroll-snap-type: y mandatory;
   overflow-y: auto;
+  height: calc(100dvh - 5rem); /* 100dvh minus header height */
+  scroll-padding-top: 5rem;
 }
-.snap-container { scroll-padding-top: 5rem; height: 100dvh; }
-.snap-child { min-height: 100dvh; scroll-snap-align: start; }
+.snap-child {
+  scroll-snap-align: start;
+  min-height: calc(100dvh - 5rem);
+}
 
 @supports (height: 100dvh) {
   main { min-height: calc(100dvh - 5rem); }

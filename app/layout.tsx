@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
       <body className={inter.className}>
         <div className="flex flex-col min-h-screen">
           <Navbar />
-          <main id="scroll-container" className="snap-container pt-20 min-h-screen">
+          <main id="scroll-container" className="flex-1 snap-container pt-20">
             {children}
           </main>
           <FooterLinks />
