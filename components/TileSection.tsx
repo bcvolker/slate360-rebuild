@@ -43,8 +43,8 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
 
           {/* Viewer (desktop) - server-visible wrapper for tests */}
           <div className="hidden w-full md:flex md:w-1/2 md:items-center md:justify-center md:h-auto">
-            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-b from-gray-800 to-black p-1.5 md:p-3 max-w-lg mx-auto">
-              <div className="rounded-2xl bg-gray-900/90 backdrop-blur-sm p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-4 h-80 md:h-96">
+            <div className="relative overflow-hidden w-full">
+              <div className="w-full h-72 md:h-96">
                 <MediaViewer id={id} title={title} />
               </div>
             </div>
