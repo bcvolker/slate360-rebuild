@@ -15,11 +15,11 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
 
   // Alternate backgrounds for each tile
   return (
-  <section id={id} className="snap-child min-h-[calc(100vh-80px)] md:h-[calc(100vh-80px)] bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="flex flex-col md:flex-row items-center justify-center max-w-7xl mx-auto px-6 py-12 gap-12">
-        <div className={`flex w-full flex-col items-center gap-8 md:flex-row ${viewerOnLeft ? 'md:flex-row-reverse' : ''}`}> 
+    <section id={id} className="min-h-screen flex items-center justify-center px-6 py-12">
+      <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-12 items-center">
+        <div className={`w-full ${viewerOnLeft ? 'md:col-start-2 md:col-end-3' : 'md:col-start-1 md:col-end-2'}`}>
           {/* Text Content */}
-          <div className="flex w-full flex-1 flex-col md:w-1/2">
+          <div className="w-full">
             <SectionHeader title={title} subtitle={subtitle} />
             <p className="mt-4 text-lg leading-relaxed">{description}</p>
             <ul className="mt-6 space-y-3">
@@ -37,17 +37,18 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
               <Button>{cta}</Button>
             </div>
           </div>
+        </div>
 
-          {/* Viewer (desktop) - server-visible wrapper for tests */}
-          <div className="hidden w-full md:flex md:w-1/2 md:items-center md:justify-center md:h-auto">
-            <div className="relative overflow-hidden w-full">
-              <div className="w-full h-72 md:h-96">
-                <MediaViewer id={id} title={title} />
-              </div>
+        <div className={`w-full ${viewerOnLeft ? 'md:col-start-1 md:col-end-2' : 'md:col-start-2 md:col-end-3'} hidden md:flex items-center justify-center`}>
+          <div className="relative overflow-hidden w-full">
+            <div className="w-full h-72 md:h-96">
+              <MediaViewer id={id} title={title} />
             </div>
           </div>
         </div>
-        <div className="mt-8 md:hidden MobileViewer">
+
+        {/* Mobile viewer placed as its own row for small screens */}
+        <div className="md:hidden mt-8 MobileViewer">
           <MobileViewerLauncher tile={tile} />
         </div>
       </div>

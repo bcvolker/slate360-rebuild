@@ -35,17 +35,7 @@ body {
 html, body, #__next { height: 100%; }
 html { scroll-behavior: smooth; }
 body { min-height: 100%; overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; }
-/* Snap helpers: container holds viewport-height scrolling, children snap to start */
-.snap-container {
-  scroll-snap-type: y mandatory;
-  overflow-y: auto;
-  height: 100vh;
-  scroll-padding-top: 80px; /* 5rem = 80px header */
-}
-.snap-child {
-  scroll-snap-align: start;
-  min-height: calc(100vh - 80px);
-}
+/* Snap helpers removed: site uses document scrolling with full-height sections. */
 
 @supports (height: 100dvh) {
   main { min-height: calc(100dvh - 5rem); }
