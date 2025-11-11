@@ -43,7 +43,7 @@ export default function TileSection({ tile, index, isLast = false }: Props) {
           </ul>
           <a href={tile.cta} className="text-blue-600 font-medium">Learn more →</a>
         </div>
-        <div className="bg-slate-900 rounded-3xl p-8 text-white text-center">
+        <div className="rounded-2xl bg-gray-900/90 backdrop-blur-sm p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-4 h-80 md:h-96 text-white">
           <div className="text-6xl mb-4">🔧</div>
           <h3 className="text-xl font-semibold">{tile.title} Viewer</h3>
           <p className="text-sm mt-2">Interactive tools coming soon</p>

@@ -1,8 +1,10 @@
+import Image from 'next/image';
+
 export default function Navbar() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-20 bg-slate-900 text-white flex items-center px-6">
       <div className="flex-1 flex items-center gap-4">
-        <div className="w-10 h-10 bg-white rounded" />
+        <Image src="/logo.svg" alt="Slate360" width={40} height={40} />
         <span className="text-2xl font-bold">SLATE360</span>
       </div>
       <nav className="flex gap-6 text-sm">
