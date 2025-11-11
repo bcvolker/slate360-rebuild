@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode; })
         <div className="flex flex-col min-h-screen">
           <Navbar />
           <main id="scroll-container" className="flex-1 snap-container">
-            {children}
+            <div className="pt-20">{children}</div>
           </main>
           <FooterLinks />
         </div>
