@@ -17,7 +17,7 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
   return (
     <section
       id={id}
-      className={`snap-child w-full flex items-center justify-center border-b border-slate-800 text-white tile-section min-h-screen md:h-[100dvh]`}
+      className={`snap-child min-h-dvh md:h-screen w-full flex items-center justify-center border-b border-slate-800 text-white tile-section`}
     >
       <div className={`w-full max-w-7xl mx-auto px-6 ${topPaddingClass} ${bottomPaddingClass}`}>
         <div className={`flex w-full flex-col items-center gap-8 md:flex-row ${viewerOnLeft ? 'md:flex-row-reverse' : ''}`}> 
@@ -26,12 +26,15 @@ export default function TileSection({ tile, index, isLast = false }: TileWithInd
             <SectionHeader title={title} subtitle={subtitle} />
             <p className="mt-4 text-lg leading-relaxed">{description}</p>
             <ul className="mt-6 space-y-3">
-              {features?.map((feature: { text: string }, i: number) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="mt-1 font-bold text-brand-copper">✓</span>
-                  <span>{feature.text}</span>
-                </li>
-              ))}
+              {(features || []).map((f, i: number) => {
+                const text = (typeof f === 'object' && f !== null && 'text' in f) ? (f as { text?: string }).text : String(f);
+                return (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="mt-1 font-bold text-brand-copper">✓</span>
+                    <span>{text}</span>
+                  </li>
+                );
+              })}
             </ul>
             <div className="mt-8">
               <Button>{cta}</Button>

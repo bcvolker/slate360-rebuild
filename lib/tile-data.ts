@@ -16,6 +16,7 @@ export const tileData: Tile[] = [
 			{ iconName: "DatabaseZap", title: "Data Integration", text: "Connect with tools you already rely on." },
 		],
 		cta: "Request a Demo",
+		iconColor: 'blue',
 		viewerPosition: "right",
 	},
 	{
@@ -31,6 +32,7 @@ export const tileData: Tile[] = [
 			{ iconName: "MessageSquare", title: "Live Markup", text: "Annotate directly in 3D with your team." },
 		],
 		cta: "Explore BIM Studio",
+		iconColor: 'orange',
 		viewerPosition: "left",
 	},
 	{
@@ -44,6 +46,7 @@ export const tileData: Tile[] = [
 			{ iconName: "MonitorSmartphone", title: "VR Ready", text: "View projects at true scale with headset compatibility." },
 		],
 		cta: "Discover Tour Building",
+		iconColor: 'cyan',
 		viewerPosition: "right",
 	},
 	{
@@ -57,6 +60,7 @@ export const tileData: Tile[] = [
 			{ iconName: "Users", title: "Easy Sharing", text: "Deliver content to clients or post directly to social media." },
 		],
 		cta: "Learn About Content Studio",
+		iconColor: 'blue',
 		viewerPosition: "left",
 	},
 	{
@@ -70,6 +74,7 @@ export const tileData: Tile[] = [
 			{ iconName: "Users", title: "Robotics Integration", text: "Control drones and robots from one interface." },
 		],
 		cta: "See Geospatial Tools",
+		iconColor: 'orange',
 		viewerPosition: "right",
 	},
 	{
@@ -83,6 +88,7 @@ export const tileData: Tile[] = [
 			{ iconName: "BrainCircuit", title: "Predictive Modeling", text: "Spot risks before they impact timelines or budgets." },
 		],
 		cta: "Explore Analytics",
+		iconColor: 'cyan',
 		viewerPosition: "left",
 	},
 	{
@@ -96,6 +102,7 @@ export const tileData: Tile[] = [
 			{ iconName: "Users", title: "Client Engagement", text: "Bring stakeholders into the model, wherever they are." },
 		],
 		cta: "Experience VR/AR",
+		iconColor: 'blue',
 		viewerPosition: "right",
 	},
 ];
