@@ -1,8 +1,189 @@
-.snap-container {
-  scroll-snap-type: y mandatory;
-  overflow-y: auto;
-  height: 100dvh;
+/* Ensure footer text is always white and readable */
+.footer-text {
+  color: #fff !important;
 }
-.snap-child {
-  scroll-snap-align: start;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { 
+  scroll-behavior: smooth; 
+  scroll-padding-top: 5rem; 
+}
+body { 
+  @apply bg-white text-slate-900; 
+}
+
+/* === Animated Gradient for Tiles === */
+/* simplified: remove animated gradient to avoid rendering inconsistencies */
+
+:root {
+  --header-height: 5rem; /* 80px to match h-20 navbar */
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* matches 80px Navbar */
+}
+
+/* Body colors are controlled via layout.tsx body classes */
+body { 
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+html, body, #__next { height: 100%; }
+html { scroll-behavior: smooth; }
+body { min-height: 100%; overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; }
+/* Snap helpers removed: site uses document scrolling with full-height sections. */
+
+@supports (height: 100dvh) {
+  main { min-height: calc(100dvh - 5rem); }
+}
+}
+
+/* Typography improvements */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+h2 {
+  @apply text-3xl md:text-4xl lg:text-5xl;
+}
+
+h3 {
+  @apply text-lg md:text-xl lg:text-2xl;
+}
+
+/* Improved text readability */
+p {
+  line-height: 1.7;
+  color: rgb(55 65 81);
+}
+
+/* Content width optimization for large screens */
+@media (min-width: 1536px) {
+  .text-side {
+    max-width: 48rem; /* 768px - optimized for readability */
+  }
+}
+
+/* Smooth transitions for interactive elements */
+a, button {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Unified scroll model: simplify to document-level scrolling by default.
+   Desktop can still opt-in to a snapped container via md utilities in layout/components.
+*/
+html { scroll-padding-top: 5rem; height: 100%; }
+body { min-height: 100%; overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; }
+@supports (height: 100dvh) {
+  main { min-height: calc(100dvh - 5rem); }
+}
+/* keep #scroll-container present but don't force snapping globally */
+#scroll-container { -webkit-overflow-scrolling: touch; }
+
+@media (min-width: 768px) {
+  /* Desktop: don't force a second scroll container — prefer document scrolling to avoid double-scrollbars */
+  #scroll-container {
+    /* keep touch-momentum but allow the document to provide the primary scrolling experience */
+    height: auto;
+    overflow-y: visible;
+    scroll-snap-type: none;
+  }
+}
+
+/* Ensure each tile aligns to the top of the viewport when snapping */
+.tile-section {
+  /* Let each tile size naturally. Removing forced viewport min-height prevents stacking and unexpected scrollbars.
+     If we want desktop snap in future, enable with a dedicated container and media query after testing. */
+  min-height: auto;
+  scroll-snap-align: none;
+}
+
+/* === Slate360 Brand Tokens & Effects ============================== */
+:root {
+  --brand-blue: #4B9CD3;      /* Carolina Blue */
+  --brand-copper: #B87333;    /* Copper accent */
+  --brand-ink: #0f172a;       /* Slate/ink */
+  --bg-alt: #F4F8FB;          /* Very light blue/grey alt tile */
+  --divider-copper: rgba(184, 115, 51, 0.22);
+}
+
+/* Alternating section helpers */
+.bg-tile-base { background-color: #ffffff; }
+.bg-tile-alt  { background-color: var(--bg-alt); }
+
+/* Subtle copper divider (use on sections except last) */
+.section-divider { border-bottom: 1px solid var(--divider-copper); }
+
+/* Hero animated gradient + blueprint grid overlay */
+.bg-hero-animated {
+  position: relative;
+  isolation: isolate;
+}
+.bg-hero-animated::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: radial-gradient(1200px 700px at 20% 10%, rgba(75,156,211,0.18), transparent 60%),
+              radial-gradient(900px 600px at 80% 50%, rgba(184,115,51,0.12), transparent 65%);
+  animation: heroPulse 10s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.bg-hero-animated::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(transparent 23px, rgba(75,156,211,0.09) 24px),
+    linear-gradient(90deg, transparent 23px, rgba(75,156,211,0.09) 24px);
+  background-size: 24px 24px, 24px 24px; /* faint blueprint grid */
+  mix-blend-mode: multiply;
+  opacity: 0.25;
+  pointer-events: none;
+}
+@keyframes heroPulse {
+  0%   { filter: saturate(1) hue-rotate(0deg); }
+  100% { filter: saturate(1.06) hue-rotate(-6deg); }
+}
+
+/* Buttons / links hover accents */
+.btn-brand {
+  @apply inline-flex items-center justify-center rounded-md px-4 py-2 font-medium transition;
+  color: white;
+  background-color: var(--brand-blue);
+  box-shadow: 0 0 0 rgba(184,115,51,0);
+}
+.btn-brand:hover {
+  box-shadow: 0 6px 18px rgba(184,115,51,0.35);
+  transform: translateY(-1px);
+}
+.btn-ghost {
+  @apply inline-flex items-center justify-center rounded-md px-3 py-2 font-medium transition;
+  color: var(--brand-copper);
+}
+.btn-ghost:hover {
+  text-shadow: 0 0 12px rgba(184,115,51,0.45);
+}
+
+/* Optional: dark-mode site backdrop (kept minimal; tiles still control their own bg) */
+:root.dark {
+  --bg-alt: #0b1220;
+}
+html.dark body {
+  background: radial-gradient(800px 500px at 10% -10%, rgba(75,156,211,0.08), transparent 60%),
+              radial-gradient(700px 400px at 90% 110%, rgba(184,115,51,0.06), transparent 70%),
+              #0b0f1a;
+}
+
+/* Mobile tile alignment helpers */
+@media (max-width: 767px) {
+  .text-side { width: 100%; }
+  html.no-snap, html.no-snap body { scroll-snap-type: none !important; }
 }

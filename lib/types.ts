@@ -12,4 +12,5 @@ export interface Tile {
   features: Feature[];
   cta: string;
   viewerPosition: "left" | "right";
+  iconColor?: string;
 }
