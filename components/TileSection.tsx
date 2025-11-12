@@ -1,54 +1,36 @@
-import { Tile } from "@/lib/types";
-import SectionHeader from "./ui/SectionHeader";
-import Button from "./ui/Button";
-import MediaViewer from "./MediaViewer";
-import MobileViewerLauncher from "./MobileViewerLauncher";
+type SimpleTile = { id: string; title: string; description?: string; features?: Array<string | { text?: string }>; cta?: string };
 
-type TileWithIndex = { tile: Tile; index: number; isLast?: boolean; };
-
-export default function TileSection({ tile, index, isLast = false }: TileWithIndex) {
-  const { id, title, subtitle, description, features, cta, viewerPosition } = tile;
-  const viewerOnLeft = viewerPosition === 'left';
-
-  const topPaddingClass = index === 0 ? 'pt-8 md:pt-10' : 'pt-16 md:pt-20';
-  const bottomPaddingClass = 'pb-16 md:pb-20';
-
-  // Alternate backgrounds for each tile
+export default function TileSection({ tile, index, isLast = false }: { tile: SimpleTile; index: number; isLast?: boolean }) {
   return (
-    <section
-      id={id}
-      className={`snap-child w-full flex items-center justify-center border-b border-slate-800 text-white tile-section min-h-dvh md:h-screen`}
-    >
-      <div className={`w-full max-w-7xl mx-auto px-6 ${topPaddingClass} ${bottomPaddingClass}`}>
-        <div className={`flex w-full flex-col items-center gap-8 md:flex-row ${viewerOnLeft ? 'md:flex-row-reverse' : ''}`}> 
-          {/* Text Content */}
-          <div className="flex w-full flex-1 flex-col md:w-1/2">
-            <SectionHeader title={title} subtitle={subtitle} />
-            <p className="mt-4 text-lg leading-relaxed">{description}</p>
-            <ul className="mt-6 space-y-3">
-              {features?.map((feature: { text: string }, i: number) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="mt-1 font-bold text-brand-copper">✓</span>
-                  <span>{feature.text}</span>
+    <section id={tile.id} className="min-h-screen flex items-center justify-center px-6 py-12 bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-12 items-center">
+        <div className="space-y-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900">{tile.title}</h2>
+          <p className="text-lg text-gray-700">{tile.description}</p>
+          <ul className="space-y-3">
+            {(tile.features || []).map((f, i) => {
+              const text = typeof f === 'string' ? f : f.text || '';
+              return (
+                <li key={i} className="flex items-center gap-2 text-gray-700">
+                  <span className="text-orange-500 font-bold">✓</span> {text}
                 </li>
-              ))}
-            </ul>
-            <div className="mt-8">
-              <Button>{cta}</Button>
-            </div>
-          </div>
-
-          {/* Viewer (desktop) - server-visible wrapper for tests */}
-          <div className="hidden w-full md:flex md:w-1/2 md:items-center md:justify-center md:h-auto">
-            <div className="rounded-2xl bg-slate-900 p-8 md:p-10 h-full flex flex-col gap-6">
-              <div className="MediaViewer w-full h-full overflow-hidden">
-                <MediaViewer id={id} title={title} />
-              </div>
-            </div>
-          </div>
+              );
+            })}
+          </ul>
+          <a href={tile.cta} className="inline-block text-blue-600 font-medium hover:text-blue-800">
+            Learn more →
+          </a>
         </div>
-        <div className="mt-8 md:hidden MobileViewer">
-          <MobileViewerLauncher tile={tile} />
+        <div className="flex justify-center">
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-b from-gray-800 to-black p-1.5 md:p-3 max-w-lg w-full">
+            <div className="rounded-2xl bg-gray-900/90 backdrop-blur-sm p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-4 h-80 md:h-96">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-2xl">▶</span>
+              </div>
+              <h3 className="text-xl font-semibold text-white">{tile.title} Viewer</h3>
+              <p className="text-sm text-gray-300">Interactive tools coming soon</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
