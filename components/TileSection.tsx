@@ -1,55 +1,47 @@
-import { Tile } from "@/lib/types";
-import SectionHeader from "./ui/SectionHeader";
-import Button from "./ui/Button";
-import MediaViewer from "./MediaViewer";
-import MobileViewerLauncher from "./MobileViewerLauncher";
+type Props = {
+  tile: {
+    id: string;
+    title: string;
+    description: string;
+    features: string[];
+    cta: string;
+  };
+  index: number;
+};
 
-type TileWithIndex = { tile: Tile; index: number; isLast?: boolean; };
+const gradients = [
+  'from-slate-50 to-blue-50',
+  'from-orange-50 to-amber-50',
+  'from-cyan-50 to-teal-50',
+  'from-orange-50 to-amber-50',
+  'from-orange-50 to-amber-50',
+  'from-orange-50 to-amber-50',
+  'from-cyan-50 to-teal-50',
+];
 
-export default function TileSection({ tile, index, isLast = false }: TileWithIndex) {
-  const { id, title, subtitle, description, features, cta, viewerPosition } = tile;
-  const viewerOnLeft = viewerPosition === 'left';
-
-  const topPaddingClass = index === 0 ? 'pt-8 md:pt-10' : 'pt-16 md:pt-20';
-  const bottomPaddingClass = 'pb-16 md:pb-20';
-
-  // Alternate backgrounds for each tile
+export default function TileSection({ tile, index }: Props) {
   return (
-    <section id={id} className="min-h-screen flex items-center justify-center px-6 py-12">
+    <section
+      id={tile.id}
+      className={`snap-child min-h-screen flex items-center justify-center px-6 py-12 bg-gradient-to-br ${gradients[index % 7]}`}
+    >
       <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-12 items-center">
-        <div className={`w-full ${viewerOnLeft ? 'md:col-start-2 md:col-end-3' : 'md:col-start-1 md:col-end-2'}`}>
-          {/* Text Content */}
-          <div className="w-full">
-            <SectionHeader title={title} subtitle={subtitle} />
-            <p className="mt-4 text-lg leading-relaxed">{description}</p>
-            <ul className="mt-6 space-y-3">
-              {(features || []).map((f, i: number) => {
-                const text = (typeof f === 'object' && f !== null && 'text' in f) ? (f as { text?: string }).text : String(f);
-                return (
-                  <li key={i} className="flex items-start gap-3">
-                    <span className="mt-1 font-bold text-brand-copper">✓</span>
-                    <span>{text}</span>
-                  </li>
-                );
-              })}
-            </ul>
-            <div className="mt-8">
-              <Button>{cta}</Button>
-            </div>
-          </div>
+        <div className="space-y-6">
+          <h2 className="text-5xl font-bold">{tile.title}</h2>
+          <p className="text-lg">{tile.description}</p>
+          <ul className="space-y-2">
+            {tile.features.map((f, j) => (
+              <li key={j} className="flex items-center gap-2">
+                <span className="text-orange-500">✓</span> {f}
+              </li>
+            ))}
+          </ul>
+          <a href={tile.cta} className="text-blue-600 font-medium">Learn more →</a>
         </div>
-
-        <div className={`w-full ${viewerOnLeft ? 'md:col-start-1 md:col-end-2' : 'md:col-start-2 md:col-end-3'} hidden md:flex items-center justify-center`}>
-          <div className="relative overflow-hidden w-full">
-            <div className="w-full h-72 md:h-96">
-              <MediaViewer id={id} title={title} />
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile viewer placed as its own row for small screens */}
-        <div className="md:hidden mt-8 MobileViewer">
-          <MobileViewerLauncher tile={tile} />
+        <div className="bg-slate-900 rounded-3xl p-8 text-white text-center">
+          <div className="text-6xl mb-4">🔧</div>
+          <h3 className="text-xl font-semibold">{tile.title} Viewer</h3>
+          <p className="text-sm mt-2">Interactive tools coming soon</p>
         </div>
       </div>
     </section>

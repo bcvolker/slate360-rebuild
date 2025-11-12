@@ -1,4 +1,4 @@
-import TileSection from '@/components/TileSection';
+import TileSection from '../components/TileSection';
 
 const tiles = [
   { id: 'slate360', title: 'Slate360', description: 'Unifies BIM, 360 tours, analytics, VR.', features: ['Secure hub', 'Cross-team', 'Risk forecast', 'Tool sync'], cta: '#' },
