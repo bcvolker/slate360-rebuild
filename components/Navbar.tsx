@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 type NavItem = { href: string; label: string };
 
 const tileLinks: NavItem[] = [
   { href: "#slate360", label: "Slate360" },
-  { href: "#new-tile", label: "New Tile" },
+  { href: "#project-hub", label: "Project Hub" },
   { href: "#bim-studio", label: "BIM Studio" },
   { href: "#content-studio", label: "Content Studio" },
   { href: "#geospatial", label: "Geospatial & Robotics" },
@@ -25,24 +24,31 @@ const rightLinks: NavItem[] = [
   { href: "/login", label: "Login" },
 ];
 
+function scrollToTile(hash: string) {
+  const id = hash.replace("#", "");
+  const target = document.getElementById(id);
+  const scroller = document.getElementById("snap-container");
+  if (!target || !scroller) return;
+  const top = target.offsetTop - scroller.offsetTop;
+  scroller.scrollTo({ top, behavior: "smooth" });
+}
+
 export default function Navbar() {
-  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    function onDocClick(e: Event) {
+    const onDocClick = (e: MouseEvent) => {
       if (!menuRef.current) return;
-      const target = e.target as Node | null;
-      if (target && !menuRef.current.contains(target)) setMenuOpen(false);
-    }
-    function onEsc(e: KeyboardEvent) {
-      if ((e as KeyboardEvent).key === "Escape") {
+      if (!menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
         setMenuOpen(false);
         setMobileOpen(false);
       }
-    }
+    };
     document.addEventListener("click", onDocClick);
     document.addEventListener("keydown", onEsc);
     return () => {
@@ -51,16 +57,14 @@ export default function Navbar() {
     };
   }, []);
 
-  const TileLink = ({ item, onClick }: { item: NavItem; onClick?: () => void }) => (
+  const TileLink = ({ item, close }: { item: NavItem; close?: () => void }) => (
     <a
       href={item.href}
       className="rounded-lg px-3 py-2 text-gray-200 hover:bg-white/5"
       onClick={(e) => {
         e.preventDefault();
-        const id = item.href.replace("#", "");
-        const el = document.getElementById(id);
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-        onClick?.();
+        scrollToTile(item.href);
+        close?.();
       }}
     >
       {item.label}
@@ -76,9 +80,9 @@ export default function Navbar() {
             <Image
               src="/slate360logoforwebsite.png"
               alt="Slate360"
-              width={180}
-              height={36}
-              className="h-9 w-auto"
+              width={220}
+              height={44}
+              className="h-10 w-auto"
               priority
             />
             <span className="sr-only">Slate360</span>
@@ -97,7 +101,6 @@ export default function Navbar() {
                   <path fill="currentColor" d="M5.5 7.5l4.5 4.5 4.5-4.5h-9z" />
                 </svg>
               </button>
-
               {menuOpen && (
                 <div
                   role="menu"
@@ -105,16 +108,19 @@ export default function Navbar() {
                 >
                   <nav className="flex flex-col py-2">
                     {tileLinks.map((n) => (
-                      <TileLink key={n.href} item={n} onClick={() => setMenuOpen(false)} />
+                      <TileLink key={n.href} item={n} close={() => setMenuOpen(false)} />
                     ))}
                   </nav>
                 </div>
               )}
             </div>
-
             <nav className="flex items-center gap-5">
               {rightLinks.map((n) => (
-                <Link key={n.href} href={n.href} className="text-sm text-gray-300 hover:text-white transition-colors">
+                <Link
+                  key={n.href}
+                  href={n.href}
+                  className="text-sm text-gray-300 hover:text-white transition-colors"
+                >
                   {n.label}
                 </Link>
               ))}
@@ -127,7 +133,9 @@ export default function Navbar() {
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"
           >
-            Menu
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z" />
+            </svg>
           </button>
         </div>
 
@@ -137,13 +145,18 @@ export default function Navbar() {
               <div className="grid gap-2">
                 <div className="text-xs uppercase tracking-wide text-gray-400">Tiles</div>
                 {tileLinks.map((n) => (
-                  <TileLink key={n.href} item={n} onClick={() => setMobileOpen(false)} />
+                  <TileLink key={n.href} item={n} close={() => setMobileOpen(false)} />
                 ))}
               </div>
               <hr className="my-3 border-white/10" />
               <div className="grid gap-2">
                 {rightLinks.map((n) => (
-                  <Link key={n.href} href={n.href} className="rounded-lg px-3 py-2 text-gray-200 hover:bg-white/5" onClick={() => setMobileOpen(false)}>
+                  <Link
+                    key={n.href}
+                    href={n.href}
+                    className="rounded-lg px-3 py-2 text-gray-200 hover:bg-white/5"
+                    onClick={() => setMobileOpen(false)}
+                  >
                     {n.label}
                   </Link>
                 ))}
