@@ -1,14 +1,23 @@
-import './globals.css';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import Navbar from "../components/NavbarFixed";
+
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "Slate360 – From Design to Reality",
+  description: "The all-in-one platform for AEC professionals.",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-white">
+    <html lang="en" className="h-full">
+      <body className={`${inter.className} h-full antialiased`}>
         <Navbar />
-        <main className="pt-20">{children}</main>
-        <Footer />
+        <main id="main" className="pt-20 h-full">
+          {children}
+        </main>
       </body>
     </html>
   );

@@ -2,6 +2,7 @@ import TileSection from '../components/TileSection';
 
 const tiles = [
   { id: 'slate360', title: 'Slate360', description: 'Unifies BIM, 360 tours, analytics, VR.', features: ['Secure hub', 'Cross-team', 'Risk forecast', 'Tool sync'], cta: '#' },
+  { id: 'project-hub', title: 'Project Hub', description: 'Daily logs, RFIs, submittals, observations, timecards, markups.', features: ['Daily logs', 'RFIs/submittals', 'Observations', 'Timecards/markups'], cta: '#' },
   { id: 'bim', title: 'BIM Studio', description: 'Browser-based BIM. No installs.', features: ['Any device', 'Track revisions', 'Find conflicts', '3D annotate'], cta: '#' },
   { id: '360', title: '360 Tour Builder', description: 'Interactive 360 walkthroughs.', features: ['No code', 'Headset ready'], cta: '#' },
   { id: 'content', title: 'Content Studio', description: 'Polished visuals in-app.', features: ['Edit drone', 'Share branded'], cta: '#' },
