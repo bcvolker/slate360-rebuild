@@ -8,11 +8,21 @@ const tiles = [
   { id: 'vr', title: 'AR/VR Studio', desc: 'Step inside your model.', features: ['VR walk', 'Remote collab'], cta: '#' },
 ];
 
+const gradients = [
+  'from-slate-50 to-blue-50',
+  'from-orange-50 to-amber-50',
+  'from-cyan-50 to-teal-50',
+  'from-orange-50 to-amber-50',
+  'from-orange-50 to-amber-50',
+  'from-orange-50 to-amber-50',
+  'from-cyan-50 to-teal-50',
+];
+
 export default function Home() {
   return (
-    <>
+    <main className="snap-container">
       {tiles.map((t, i) => (
-        <section key={t.id} id={t.id} className="min-h-screen flex items-center justify-center px-6 bg-slate-50">
+        <section key={t.id} id={t.id} className={`snap-child min-h-screen flex items-center justify-center px-6 py-12 bg-gradient-to-br ${gradients[i % 7]}`}>
           <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <h2 className="text-5xl font-bold">{t.title}</h2>
@@ -34,6 +44,6 @@ export default function Home() {
           </div>
         </section>
       ))}
-    </>
+    </main>
   );
 }
