@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Image from "next/image";
+import { useState, useRef, useEffect } from "react";
 
 type NavItem = { href: string; label: string };
 
 const tileLinks: NavItem[] = [
-  { href: "#slate360", label: "Slate360" },
-  { href: "#new-tile", label: "New Tile" },
+  { href: "#project-hub", label: "Project Hub" },
   { href: "#bim-studio", label: "BIM Studio" },
   { href: "#content-studio", label: "Content Studio" },
   { href: "#geospatial", label: "Geospatial & Robotics" },
@@ -26,7 +24,6 @@ const rightLinks: NavItem[] = [
 ];
 
 export default function Navbar() {
-  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -51,15 +48,20 @@ export default function Navbar() {
     };
   }, []);
 
+  function scrollToId(href: string) {
+    if (!href || !href.startsWith("#")) return;
+    const id = href.slice(1);
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   const TileLink = ({ item, onClick }: { item: NavItem; onClick?: () => void }) => (
     <a
       href={item.href}
       className="rounded-lg px-3 py-2 text-gray-200 hover:bg-white/5"
       onClick={(e) => {
         e.preventDefault();
-        const id = item.href.replace("#", "");
-        const el = document.getElementById(id);
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        scrollToId(item.href);
         onClick?.();
       }}
     >
