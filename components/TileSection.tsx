@@ -1,6 +1,6 @@
-type SimpleTile = { id: string; title: string; description?: string; features?: Array<string | { text?: string }>; cta?: string };
+import { Tile } from '@/lib/types';
 
-export default function TileSection({ tile, index, isLast = false }: { tile: SimpleTile; index: number; isLast?: boolean }) {
+export default function TileSection({ tile, index, isLast = false }: { tile: Tile; index: number; isLast?: boolean }) {
   return (
     <section id={tile.id} className="min-h-screen flex items-center justify-center px-6 py-12 bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-12 items-center">
@@ -8,14 +8,11 @@ export default function TileSection({ tile, index, isLast = false }: { tile: Sim
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900">{tile.title}</h2>
           <p className="text-lg text-gray-700">{tile.description}</p>
           <ul className="space-y-3">
-            {(tile.features || []).map((f, i) => {
-              const text = typeof f === 'string' ? f : f.text || '';
-              return (
-                <li key={i} className="flex items-center gap-2 text-gray-700">
-                  <span className="text-orange-500 font-bold">✓</span> {text}
-                </li>
-              );
-            })}
+            {tile.features.map((f, i) => (
+              <li key={i} className="flex items-center gap-2 text-gray-700">
+                <span className="text-orange-500 font-bold">✓</span> {f.text}
+              </li>
+            ))}
           </ul>
           <a href={tile.cta} className="inline-block text-blue-600 font-medium hover:text-blue-800">
             Learn more →
