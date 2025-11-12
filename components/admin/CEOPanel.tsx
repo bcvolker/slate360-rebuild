@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 
 type MediaUpload = {
   id: string;
@@ -330,7 +331,9 @@ export default function CEOPanel() {
                       {uploads.map(upload => (
                         <div key={upload.id} className="bg-white border rounded-lg p-4 shadow-sm">
                           {upload.preview && (
-                            <img src={upload.preview} alt="Preview" className="w-full h-32 object-cover rounded mb-3" />
+                            <div className="w-full h-32 relative rounded mb-3 overflow-hidden">
+                              <Image src={upload.preview} alt="Preview" fill style={{ objectFit: 'cover' }} />
+                            </div>
                           )}
                           <div className="space-y-2">
                             <p className="font-medium text-sm truncate">{upload.file.name}</p>

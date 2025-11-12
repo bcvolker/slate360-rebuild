@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 
 type MediaType = '3d-model' | '360-photo' | '360-video' | 'video' | 'image' | 'bim-model' | 'vr-scene';
 
@@ -13,8 +13,7 @@ type Props = {
 };
 
 export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail = false }: Props) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // removed unused isLoading and error state (placeholders)
   const [isFullscreen, setIsFullscreen] = useState(false);
   const viewerRef = useRef<HTMLDivElement>(null);
 

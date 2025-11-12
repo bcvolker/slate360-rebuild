@@ -1,3 +1,6 @@
+"use client";
+import { useState } from "react";
+
 type Props = {
   tile: {
     id: string;
@@ -20,6 +23,8 @@ const gradients = [
 ];
 
 export default function TileSection({ tile, index }: Props) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <section
       id={tile.id}
@@ -38,10 +43,24 @@ export default function TileSection({ tile, index }: Props) {
           </ul>
           <a href={tile.cta} className="text-blue-600 font-medium">Learn more →</a>
         </div>
-        <div className="bg-slate-900 rounded-3xl p-8 text-white text-center">
-          <div className="text-6xl mb-4">🔧</div>
-          <h3 className="text-xl font-semibold">{tile.title} Viewer</h3>
-          <p className="text-sm mt-2">Interactive tools coming soon</p>
+        <div className="flex justify-center">
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-b from-gray-800 to-black p-1.5 md:p-3 max-w-lg w-full">
+            <div className="rounded-2xl bg-gray-900/90 backdrop-blur-sm p-8 md:p-12 flex flex-col items-center justify-center text-center space-y-4 h-80 md:h-96">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-2xl">▶</span>
+              </div>
+              <h3 className="text-xl font-semibold text-white">{tile.title} Viewer</h3>
+              <p className="text-sm text-gray-300">Interactive tools coming soon</p>
+              <button onClick={() => setExpanded(!expanded)} className="md:hidden text-white">
+                {expanded ? 'Close' : 'Expand'}
+              </button>
+              {expanded && (
+                <div className="md:hidden mt-4 w-full h-64 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  Expanded Viewer
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </section>
