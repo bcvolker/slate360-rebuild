@@ -2,16 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
-.snap-container {
-  scroll-snap-type: y mandatory;
-  overflow-y: auto;
-  height: 100dvh;
-  scroll-padding-top: 5rem;
-}
-.snap-child {
-  scroll-snap-align: start;
+/* Smooth scroll behavior for anchor links (header nav -> tiles) */
+html, body {
+  height: 100%;
+  scroll-behavior: smooth;
+  background-color: #0b1220; /* deep slate backdrop behind gradients */
 }
 
-html {
-  scroll-behavior: smooth;
+/* Each tile must be viewport height minus the fixed header: 80px (h-20) */
+.section-min {
+  min-height: calc(100vh - 80px);
+}
+
+/* Optional: hide ugly scrollbars on snap container (keeps keyboard/scroll usable) */
+#snap-container {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.2) transparent;
+}
+#snap-container::-webkit-scrollbar {
+  width: 10px;
+}
+#snap-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+#snap-container::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,0.2);
+  border-radius: 9999px;
+}
+
+/* Typographic polish */
+:root {
+  --slate-ink: #e6eefc;
+}
+body {
+  color: var(--slate-ink);
+}
+
+/* Utility if you need a copper accent (brand) */
+.copper {
+  color: #b87333;
 }

@@ -1,21 +1,51 @@
-import TileSection from '../components/TileSection';
+import TileSection from "@/components/TileSection";
 
-const tiles = [
-  { id: 'slate360', title: 'Slate360', description: 'Unifies BIM, 360 tours, analytics, VR.', features: ['Secure hub', 'Cross-team', 'Risk forecast', 'Tool sync'], cta: '#' },
-  { id: 'bim', title: 'BIM Studio', description: 'Browser-based BIM. No installs.', features: ['Any device', 'Track revisions', 'Find conflicts', '3D annotate'], cta: '#' },
-  { id: '360', title: '360 Tour Builder', description: 'Interactive 360 walkthroughs.', features: ['No code', 'Headset ready'], cta: '#' },
-  { id: 'content', title: 'Content Studio', description: 'Polished visuals in-app.', features: ['Edit drone', 'Share branded'], cta: '#' },
-  { id: 'geospatial', title: 'Geospatial & Robotics', description: 'Drone + GNSS + robotics.', features: ['LiDAR sync', 'Robot control'], cta: '#' },
-  { id: 'analytics', title: 'Analytics & Reports', description: 'Predictive insights.', features: ['Stakeholder view', 'Risk alerts'], cta: '#' },
-  { id: 'vr', title: 'AR/VR Studio', description: 'Step inside your model.', features: ['VR walk', 'Remote collab'], cta: '#' },
-];
-
-export default function Home() {
+export default function HomePage() {
   return (
-    <>
-      {tiles.map((tile, i) => (
-        <TileSection key={tile.id} tile={tile} index={i} />
-      ))}
-    </>
+    // Dedicated snap container that scrolls the viewport area below the fixed header
+    <div id="snap-container" className="snap-y snap-mandatory overflow-y-auto h-[calc(100vh-80px)]">
+      <TileSection
+        id="project-hub"
+        title="Project Hub"
+        subtitle="Daily logs, RFIs, submittals, observations, timecards, markups, and more."
+        gradient="from-slate-900 via-slate-900 to-slate-800"
+      />
+      <TileSection
+        id="bim-studio"
+        title="BIM Studio"
+        subtitle="Model viewing, annotations, measurements, issue tracking, and 3D print lab."
+        gradient="from-slate-900 via-slate-800 to-slate-900"
+      />
+      <TileSection
+        id="content-studio"
+        title="Content Studio"
+        subtitle="Video editing, media management, timelines, and rendering pipelines."
+        gradient="from-slate-900 via-slate-900 to-slate-800"
+      />
+      <TileSection
+        id="geospatial"
+        title="Geospatial & Autonomous Robotics"
+        subtitle="Flight planning, RTK/PPK, point clouds, and mission automation."
+        gradient="from-slate-900 via-slate-800 to-slate-900"
+      />
+      <TileSection
+        id="tour-builder"
+        title="360 Tour Builder"
+        subtitle="Upload stitched panos, link hotspots, publish on custom CloudFront URLs."
+        gradient="from-slate-900 via-slate-900 to-slate-800"
+      />
+      <TileSection
+        id="xr"
+        title="Virtual & Augmented Reality"
+        subtitle="XR viewer stubs here; swap with three/cesium/xeokit based on asset type."
+        gradient="from-slate-900 via-slate-800 to-slate-900"
+      />
+      <TileSection
+        id="reports"
+        title="Reports & Analytics"
+        subtitle="Dashboards, exports, and AI-assisted insights for stakeholders."
+        gradient="from-slate-900 via-slate-900 to-slate-800"
+      />
+    </div>
   );
 }
