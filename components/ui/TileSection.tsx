@@ -51,13 +51,13 @@ export default function TileSection({ tile, index }: TileSectionProps) {
   return (
     <section
       id={tile.id}
-      className="snap-start scroll-mt-24 min-h-[calc(100vh-5rem)] px-4 py-20 md:px-10 lg:px-24 flex items-center"
+      className="scroll-mt-24 min-h-screen px-4 py-20 md:px-10 lg:px-24 flex items-center snap-start"
     >
       <div className="mx-auto flex w-full max-w-6xl flex-col items-stretch md:flex-row md:items-center">
         {/* Text / content column */}
         <div className={textColClass}>
           {tile.eyebrow && (
-            <p className="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-sky-400/90">
+            <p className="mb-3 text-base font-semibold uppercase tracking-[0.18em] text-sky-400/90">
               {tile.eyebrow}
             </p>
           )}
@@ -92,7 +92,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
         {/* Viewer column – only this part has a card */}
         <div className={viewerColClass}>
-          <div className="relative w-full max-w-lg lg:max-w-2xl rounded-3xl border border-slate-700/70 bg-slate-950/80 px-6 py-8 shadow-2xl">
+          <div className="relative w-full max-w-3xl lg:max-w-4xl rounded-3xl border border-slate-700/70 bg-slate-950/90 px-8 py-10 shadow-2xl">
             <div className="mb-4 flex justify-center">
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 shadow-lg shadow-sky-500/40">
                 <span className="ml-0.5 text-lg text-white">▶</span>

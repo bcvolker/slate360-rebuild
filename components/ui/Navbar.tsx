@@ -52,7 +52,7 @@ export default function Navbar() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-700/50 bg-slate-950/90 backdrop-blur-md shadow-lg">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 lg:px-8">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-2 py-4 sm:px-4 lg:px-6">
         {/* Logo - larger on both desktop and mobile */}
         <Link
           href="/"

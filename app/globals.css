@@ -2,12 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body {
+  height: 100%;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
   min-height: 100vh;
+  scroll-behavior: smooth;
+  scroll-snap-type: y proximity;
   /* Subtle UNC-blue inspired gradient background */
   background: linear-gradient(
     to bottom,
@@ -17,11 +24,6 @@ body {
   );
   color: rgb(248, 250, 252);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
-}
-
-/* Make tiles stop below the fixed header */
-#scroll-container {
-  scroll-padding-top: 5rem;
 }
 
 * {
