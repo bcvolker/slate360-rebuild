@@ -24,7 +24,7 @@ export default function RootLayout({
           <ScrollRail />
           <main
             id="scroll-container"
-            className="flex-1 overflow-y-auto pt-20 snap-y snap-mandatory"
+            className="flex-1 pt-20 snap-y snap-proximity"
           >
             {children}
           </main>

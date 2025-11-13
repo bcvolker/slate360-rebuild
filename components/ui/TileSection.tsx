@@ -17,6 +17,14 @@ interface TileSectionProps {
   index: number;
 }
 
+/**
+ * Full-screen tile section with no big inner card.
+ * Layout:
+ *  - Section is the "tile" (background is the page gradient).
+ *  - Inside there is a max-width row: text + viewer.
+ *  - Columns alternate left/right per tile.
+ *  - Viewer has its own smaller card, text side is clean.
+ */
 export default function TileSection({ tile, index }: TileSectionProps) {
   const isReversed = index % 2 === 1;
 
@@ -27,7 +35,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
     "justify-center",
     "gap-4",
     "md:gap-6",
-    isReversed ? "md:order-2" : "md:order-1",
+    isReversed ? "md:order-2 md:pl-6" : "md:order-1 md:pr-6",
   ].join(" ");
 
   const viewerColClass = [
@@ -35,21 +43,21 @@ export default function TileSection({ tile, index }: TileSectionProps) {
     "flex",
     "items-center",
     "justify-center",
-    "mt-8",
+    "mt-10",
     "md:mt-0",
-    isReversed ? "md:order-1" : "md:order-2",
+    isReversed ? "md:order-1 md:pr-6" : "md:order-2 md:pl-6",
   ].join(" ");
 
   return (
     <section
       id={tile.id}
-      className="snap-start min-h-screen px-4 py-16 md:px-10 lg:px-16 flex items-stretch justify-center"
+      className="snap-start min-h-[calc(100vh-5rem)] px-4 py-16 md:px-10 lg:px-20 flex items-center"
     >
-      <div className="flex w-full max-w-6xl flex-col md:flex-row md:items-stretch md:gap-10 bg-gradient-to-br from-slate-900/90 via-slate-950/95 to-slate-900/90 rounded-3xl shadow-2xl border border-slate-800/70 px-6 py-8 md:px-10 md:py-10">
-        {/* Text column */}
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-stretch md:flex-row md:items-center">
+        {/* Text / content column */}
         <div className={textColClass}>
           {tile.eyebrow && (
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300/90">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-400/90">
               {tile.eyebrow}
             </p>
           )}
@@ -59,6 +67,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           <p className="max-w-xl text-base leading-relaxed text-slate-200/95 sm:text-lg">
             {tile.subtitle}
           </p>
+
           <ul className="mt-3 space-y-2.5 text-sm text-slate-100/95">
             {tile.bullets.map((item) => (
               <li key={item} className="flex items-start gap-2.5">
@@ -67,6 +76,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
               </li>
             ))}
           </ul>
+
           {tile.ctaLabel && tile.ctaHref && (
             <div className="mt-6">
               <a
@@ -80,9 +90,9 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           )}
         </div>
 
-        {/* Viewer column – single clean card */}
+        {/* Viewer column – only this part has a card */}
         <div className={viewerColClass}>
-          <div className="relative w-full max-w-md lg:max-w-lg rounded-3xl border border-slate-700/70 bg-slate-950/90 px-4 py-6 sm:px-6 shadow-xl">
+          <div className="relative w-full max-w-md lg:max-w-xl rounded-3xl border border-slate-700/70 bg-slate-950/80 px-6 py-6 shadow-2xl">
             <div className="mb-4 flex justify-center">
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 shadow-lg shadow-sky-500/40">
                 <span className="ml-0.5 text-lg text-white">▶</span>
