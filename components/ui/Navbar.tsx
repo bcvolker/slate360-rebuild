@@ -76,14 +76,14 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600/60 bg-slate-800/80 px-4 py-2 text-sm font-medium shadow-sm hover:bg-slate-700/90 hover:border-slate-500/60 transition-colors"
+              className="inline-flex items-center gap-1 rounded-full border border-slate-600/60 bg-slate-900/70 px-4 py-1.5 text-sm shadow-sm hover:bg-slate-800"
             >
               <span>Menu</span>
               <span className="text-xs">▾</span>
             </button>
             {menuOpen && (
-              <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-600/80 bg-slate-950/98 backdrop-blur-sm p-2 shadow-2xl">
-                <div className="max-h-[70vh] space-y-0.5 overflow-y-auto">
+              <div className="absolute right-0 mt-2 w-64 max-h-[60vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 shadow-2xl">
+                <div className="p-2 space-y-0.5">
                   {TILE_LINKS.map((item) => (
                     <button
                       key={item.id}

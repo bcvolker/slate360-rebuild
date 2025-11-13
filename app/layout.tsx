@@ -15,21 +15,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        {/* Full-page flex column so header + main + footer stack correctly */}
+      <body className="bg-transparent text-slate-50 antialiased">
         <div className="flex min-h-screen flex-col">
-          {/* Fixed header at top */}
           <Navbar />
-
-          {/* Scrollable content area with top padding equal to header height */}
           <main
             id="scroll-container"
-            className="flex-1 pt-20 snap-y snap-mandatory scroll-smooth"
+            className="flex-1 pt-20 snap-y snap-mandatory"
           >
             {children}
           </main>
-
-          {/* Global footer at very bottom */}
           <Footer />
         </div>
       </body>
