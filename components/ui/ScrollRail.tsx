@@ -62,31 +62,31 @@ export default function ScrollRail() {
 
   return (
     <div className="pointer-events-none fixed right-6 top-1/2 z-40 hidden -translate-y-1/2 transform md:flex">
-      <div className="flex flex-col items-center gap-2">
-        {SECTIONS.map((section) => {
-          const isActive = section.id === activeId;
-          return (
-            <button
-              key={section.id}
-              type="button"
-              className="group relative flex h-6 items-center pointer-events-auto"
-              onClick={() => scrollToSection(section.id)}
-            >
-              {/* horizontal line */}
-              <span
-                className={`h-0.5 w-7 rounded-full transition-colors ${
-                  isActive
-                    ? "bg-sky-400"
-                    : "bg-slate-500/60 group-hover:bg-sky-300"
-                }`}
-              />
-              {/* tooltip */}
-              <span className="pointer-events-none absolute right-full mr-3 rounded-md bg-slate-950/90 px-2 py-1 text-xs text-slate-100 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-                {section.label}
-              </span>
-            </button>
-          );
-        })}
+      <div className="rounded-full bg-slate-950/85 border border-slate-700/70 px-3 py-4 shadow-xl">
+        <div className="flex flex-col items-center gap-2">
+          {SECTIONS.map((section) => {
+            const isActive = section.id === activeId;
+            return (
+              <button
+                key={section.id}
+                type="button"
+                className="group relative flex h-6 items-center pointer-events-auto"
+                onClick={() => scrollToSection(section.id)}
+              >
+                <span
+                  className={`h-0.5 w-7 rounded-full transition-colors ${
+                    isActive
+                      ? "bg-sky-400"
+                      : "bg-slate-300/80 group-hover:bg-sky-300"
+                  }`}
+                />
+                <span className="pointer-events-none absolute right-full mr-3 rounded-md bg-slate-950/90 px-2 py-1 text-xs text-slate-100 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                  {section.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

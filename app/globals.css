@@ -11,12 +11,11 @@ body {
   /* Subtle UNC-blue inspired gradient background */
   background: linear-gradient(
     to bottom,
-    rgb(15, 23, 42) 0%,    /* slate-900 */
-    rgb(37, 99, 235) 35%,  /* blue-600 (UNC-ish accent) */
-    rgb(37, 99, 235) 65%,
-    rgb(15, 23, 42) 100%   /* slate-900 */
+    rgb(15, 23, 42) 0%,
+    rgb(37, 99, 235) 45%,
+    rgb(15, 23, 42) 100%
   );
-  color: rgb(248, 250, 252); /* slate-50 */
+  color: rgb(248, 250, 252);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
 }
 
