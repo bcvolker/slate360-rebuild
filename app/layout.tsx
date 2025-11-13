@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
 import Footer from "@/components/ui/Footer";
+import ScrollRail from "@/components/ui/ScrollRail";
 
 export const metadata: Metadata = {
   title: "Slate360 – From Design to Reality",
-  description: "Slate360 unifies BIM, 360 tours, analytics, VR, and geospatial tools for the built environment.",
+  description:
+    "Slate360 unifies BIM, 360 tours, analytics, VR, and geospatial tools for the built environment.",
 };
 
 export default function RootLayout({
@@ -15,12 +17,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-transparent text-slate-50 antialiased">
+      <body className="bg-slate-950 text-slate-50 antialiased">
         <div className="flex min-h-screen flex-col">
           <Navbar />
+          {/* Right-side scroll rail for desktop */}
+          <ScrollRail />
           <main
             id="scroll-container"
-            className="flex-1 pt-20 snap-y snap-mandatory"
+            className="flex-1 overflow-y-auto pt-20 snap-y snap-mandatory"
           >
             {children}
           </main>

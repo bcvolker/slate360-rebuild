@@ -43,16 +43,13 @@ export default function TileSection({ tile, index }: TileSectionProps) {
   return (
     <section
       id={tile.id}
-      className="snap-start min-h-[calc(100vh-5rem)] px-4 py-10 md:px-8 lg:px-12 flex items-stretch justify-center"
+      className="snap-start min-h-screen px-4 py-16 md:px-10 lg:px-16 flex items-stretch justify-center"
     >
-      <div className="relative flex w-full max-w-6xl flex-col overflow-hidden rounded-3xl border border-slate-700/60 bg-gradient-to-br from-slate-900/95 via-slate-900/90 to-slate-950 shadow-2xl md:flex-row md:items-stretch md:gap-10 p-6 md:p-10">
-        {/* Subtle top gradient highlight */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-sky-500/10 to-transparent" />
-
-        {/* Text / content column */}
+      <div className="flex w-full max-w-6xl flex-col md:flex-row md:items-stretch md:gap-10 bg-gradient-to-br from-slate-900/90 via-slate-950/95 to-slate-900/90 rounded-3xl shadow-2xl border border-slate-800/70 px-6 py-8 md:px-10 md:py-10">
+        {/* Text column */}
         <div className={textColClass}>
           {tile.eyebrow && (
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-400/90">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300/90">
               {tile.eyebrow}
             </p>
           )}
@@ -62,7 +59,6 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           <p className="max-w-xl text-base leading-relaxed text-slate-200/95 sm:text-lg">
             {tile.subtitle}
           </p>
-
           <ul className="mt-3 space-y-2.5 text-sm text-slate-100/95">
             {tile.bullets.map((item) => (
               <li key={item} className="flex items-start gap-2.5">
@@ -71,7 +67,6 @@ export default function TileSection({ tile, index }: TileSectionProps) {
               </li>
             ))}
           </ul>
-
           {tile.ctaLabel && tile.ctaHref && (
             <div className="mt-6">
               <a
@@ -85,9 +80,9 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           )}
         </div>
 
-        {/* Viewer column - larger on desktop, compact on mobile */}
+        {/* Viewer column – single clean card */}
         <div className={viewerColClass}>
-          <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-lg rounded-3xl border border-slate-700/70 bg-slate-950/90 px-4 py-5 sm:px-6 sm:py-6 shadow-xl">
+          <div className="relative w-full max-w-md lg:max-w-lg rounded-3xl border border-slate-700/70 bg-slate-950/90 px-4 py-6 sm:px-6 shadow-xl">
             <div className="mb-4 flex justify-center">
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 shadow-lg shadow-sky-500/40">
                 <span className="ml-0.5 text-lg text-white">▶</span>
@@ -100,8 +95,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
               {tile.viewerSubtitle}
             </p>
             <p className="mt-3 text-center text-[11px] text-slate-400 hidden sm:block">
-              Tap or click to expand and explore. Future versions will load 3D models,
-              videos, or 360 tours here.
+              Tap or click to expand and explore. Future versions will load 3D
+              models, videos, or 360 tours here.
             </p>
           </div>
         </div>

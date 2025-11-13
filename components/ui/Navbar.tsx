@@ -32,7 +32,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // Close dropdowns when clicking outside
+  // Close desktop dropdown when clicking outside
   useEffect(() => {
     function handleClick(event: MouseEvent) {
       if (!menuRef.current) return;
@@ -51,15 +51,15 @@ export default function Navbar() {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-700/50 bg-slate-950/95 backdrop-blur-md shadow-lg">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-700/50 bg-slate-950/90 backdrop-blur-md shadow-lg">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 lg:px-8">
-        {/* Logo - Made larger and more prominent */}
+        {/* Logo - larger on both desktop and mobile */}
         <Link
           href="/"
           className="flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded-md"
           onClick={() => handleTileClick("slate360")}
         >
-          <div className="relative h-11 w-44 sm:h-12 sm:w-52">
+          <div className="relative h-14 w-60 sm:h-16 sm:w-72">
             <Image
               src="/assets/slate360logoforwebsite.png"
               alt="Slate360 logo"
@@ -125,7 +125,6 @@ export default function Navbar() {
             aria-label="Toggle navigation menu"
           >
             <span className="sr-only">Toggle menu</span>
-            {/* Simple hamburger icon */}
             <div className="flex flex-col gap-1.5">
               <span className="block h-0.5 w-5 rounded bg-slate-100" />
               <span className="block h-0.5 w-5 rounded bg-slate-100" />
@@ -135,57 +134,64 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile dropdown panel - solid background to prevent text showing through */}
+      {/* Mobile menu with backdrop that closes on outside click */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-slate-700/60 bg-slate-950 shadow-xl">
-          <div className="mx-auto max-w-6xl px-4 py-4 space-y-4">
-            <div className="flex flex-col gap-1 text-sm">
-              <Link
-                href="/about"
-                className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
-                onClick={() => setMobileOpen(false)}
-              >
-                About
-              </Link>
-              <Link
-                href="/contact"
-                className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
-                onClick={() => setMobileOpen(false)}
-              >
-                Contact
-              </Link>
-              <Link
-                href="/subscribe"
-                className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
-                onClick={() => setMobileOpen(false)}
-              >
-                Subscribe
-              </Link>
-              <Link
-                href="/login"
-                className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
-                onClick={() => setMobileOpen(false)}
-              >
-                Login
-              </Link>
-            </div>
-
-            <div className="h-px bg-slate-700/60" />
-
-            <div className="space-y-0.5">
-              {TILE_LINKS.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => handleTileClick(item.id)}
-                  className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/90 hover:text-white transition-colors"
+        <>
+          {/* Clickable backdrop */}
+          <div
+            className="fixed inset-0 z-30 bg-black/40 md:hidden"
+            onClick={() => setMobileOpen(false)}
+          />
+          <div className="fixed inset-x-0 top-16 z-40 md:hidden border-t border-slate-700/60 bg-slate-950 shadow-2xl">
+            <div className="mx-auto max-w-6xl px-4 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div className="flex flex-col gap-1 text-sm">
+                <Link
+                  href="/about"
+                  className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
+                  onClick={() => setMobileOpen(false)}
                 >
-                  {item.label}
-                </button>
-              ))}
+                  About
+                </Link>
+                <Link
+                  href="/contact"
+                  className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Contact
+                </Link>
+                <Link
+                  href="/subscribe"
+                  className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Subscribe
+                </Link>
+                <Link
+                  href="/login"
+                  className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Login
+                </Link>
+              </div>
+
+              <div className="h-px bg-slate-700/60" />
+
+              <div className="space-y-0.5">
+                {TILE_LINKS.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleTileClick(item.id)}
+                    className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/90 hover:text-white transition-colors"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </header>
   );
