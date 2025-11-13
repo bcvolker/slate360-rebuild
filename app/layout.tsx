@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-slate-950 text-slate-50 antialiased">
+      <body>
         {/* Full-page flex column so header + main + footer stack correctly */}
         <div className="flex min-h-screen flex-col">
           {/* Fixed header at top */}
@@ -24,7 +24,7 @@ export default function RootLayout({
           {/* Scrollable content area with top padding equal to header height */}
           <main
             id="scroll-container"
-            className="flex-1 overflow-y-auto pt-20 snap-y snap-mandatory scroll-smooth"
+            className="flex-1 pt-20 snap-y snap-mandatory scroll-smooth"
           >
             {children}
           </main>

@@ -51,15 +51,15 @@ export default function Navbar() {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-800 bg-slate-950/90 backdrop-blur">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 lg:px-8">
-        {/* Logo */}
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-700/50 bg-slate-950/95 backdrop-blur-md shadow-lg">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 lg:px-8">
+        {/* Logo - Made larger and more prominent */}
         <Link
           href="/"
           className="flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded-md"
           onClick={() => handleTileClick("slate360")}
         >
-          <div className="relative h-9 w-32 sm:h-10 sm:w-40">
+          <div className="relative h-11 w-44 sm:h-12 sm:w-52">
             <Image
               src="/assets/slate360logoforwebsite.png"
               alt="Slate360 logo"
@@ -76,20 +76,20 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
-              className="inline-flex items-center gap-1 rounded-full border border-slate-600/60 bg-slate-900/60 px-4 py-1.5 text-sm shadow-sm hover:bg-slate-800"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600/60 bg-slate-800/80 px-4 py-2 text-sm font-medium shadow-sm hover:bg-slate-700/90 hover:border-slate-500/60 transition-colors"
             >
               <span>Menu</span>
               <span className="text-xs">▾</span>
             </button>
             {menuOpen && (
-              <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-700 bg-slate-900/98 p-2 shadow-xl">
-                <div className="max-h-[70vh] space-y-1 overflow-y-auto">
+              <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-600/80 bg-slate-950/98 backdrop-blur-sm p-2 shadow-2xl">
+                <div className="max-h-[70vh] space-y-0.5 overflow-y-auto">
                   {TILE_LINKS.map((item) => (
                     <button
                       key={item.id}
                       type="button"
                       onClick={() => handleTileClick(item.id)}
-                      className="w-full rounded-xl px-3 py-2 text-left text-sm text-slate-100 hover:bg-slate-800/80"
+                      className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/90 hover:text-white transition-colors"
                     >
                       {item.label}
                     </button>
@@ -99,18 +99,18 @@ export default function Navbar() {
             )}
           </div>
 
-          <Link href="/about" className="hover:text-sky-300">
+          <Link href="/about" className="hover:text-sky-400 transition-colors">
             About
           </Link>
-          <Link href="/contact" className="hover:text-sky-300">
+          <Link href="/contact" className="hover:text-sky-400 transition-colors">
             Contact
           </Link>
-          <Link href="/subscribe" className="hover:text-sky-300">
+          <Link href="/subscribe" className="hover:text-sky-400 transition-colors">
             Subscribe
           </Link>
           <Link
             href="/login"
-            className="rounded-full border border-sky-500/70 bg-sky-500/10 px-4 py-1.5 text-sky-100 hover:bg-sky-500/20"
+            className="rounded-lg border border-sky-500/70 bg-sky-500/20 px-4 py-2 text-sky-100 hover:bg-sky-500/30 hover:border-sky-400/70 transition-colors"
           >
             Login
           </Link>
@@ -121,62 +121,64 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-600/70 bg-slate-900/80 text-slate-100"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-600/70 bg-slate-800/90 text-slate-100 hover:bg-slate-700 transition-colors"
             aria-label="Toggle navigation menu"
           >
             <span className="sr-only">Toggle menu</span>
             {/* Simple hamburger icon */}
-            <span className="block h-0.5 w-4 rounded bg-slate-100" />
-            <span className="mt-1 block h-0.5 w-4 rounded bg-slate-100" />
-            <span className="mt-1 block h-0.5 w-4 rounded bg-slate-100" />
+            <div className="flex flex-col gap-1.5">
+              <span className="block h-0.5 w-5 rounded bg-slate-100" />
+              <span className="block h-0.5 w-5 rounded bg-slate-100" />
+              <span className="block h-0.5 w-5 rounded bg-slate-100" />
+            </div>
           </button>
         </div>
       </nav>
 
-      {/* Mobile dropdown panel */}
+      {/* Mobile dropdown panel - solid background to prevent text showing through */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-slate-800 bg-slate-950/98">
-          <div className="mx-auto max-w-6xl px-4 py-3 space-y-4">
-            <div className="flex flex-col gap-2 text-sm">
+        <div className="md:hidden border-t border-slate-700/60 bg-slate-950 shadow-xl">
+          <div className="mx-auto max-w-6xl px-4 py-4 space-y-4">
+            <div className="flex flex-col gap-1 text-sm">
               <Link
                 href="/about"
-                className="py-1 text-slate-100 hover:text-sky-300"
+                className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
                 onClick={() => setMobileOpen(false)}
               >
                 About
               </Link>
               <Link
                 href="/contact"
-                className="py-1 text-slate-100 hover:text-sky-300"
+                className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
                 onClick={() => setMobileOpen(false)}
               >
                 Contact
               </Link>
               <Link
                 href="/subscribe"
-                className="py-1 text-slate-100 hover:text-sky-300"
+                className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
                 onClick={() => setMobileOpen(false)}
               >
                 Subscribe
               </Link>
               <Link
                 href="/login"
-                className="py-1 text-slate-100 hover:text-sky-300"
+                className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
                 onClick={() => setMobileOpen(false)}
               >
                 Login
               </Link>
             </div>
 
-            <div className="h-px bg-slate-800" />
+            <div className="h-px bg-slate-700/60" />
 
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {TILE_LINKS.map((item) => (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => handleTileClick(item.id)}
-                  className="w-full rounded-lg px-2 py-2 text-left text-sm text-slate-100 hover:bg-slate-900"
+                  className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/90 hover:text-white transition-colors"
                 >
                   {item.label}
                 </button>
