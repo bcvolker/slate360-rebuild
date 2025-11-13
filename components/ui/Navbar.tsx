@@ -1,181 +1,189 @@
-'use client';
-import { useEffect, useRef, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
-import { tileData } from '@/lib/tile-data';
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+
+type TileLink = {
+  id: string;
+  label: string;
+};
+
+const TILE_LINKS: TileLink[] = [
+  { id: "slate360", label: "Slate360" },
+  { id: "project-hub", label: "Project Hub" },
+  { id: "bim", label: "BIM Studio" },
+  { id: "content", label: "Content Studio" },
+  { id: "geospatial", label: "Geospatial & Robotics" },
+  { id: "tour", label: "360 Tour Builder" },
+  { id: "vr", label: "AR/VR Studio" },
+  { id: "analytics", label: "Analytics & Reports" },
+];
+
+function scrollToTile(id: string) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
 
 export default function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const desktopMenuRef = useRef<HTMLDivElement | null>(null);
-  const router = useRouter();
-  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // Close desktop dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (!isMenuOpen) return;
-      const target = e.target as Node;
-      if (desktopMenuRef.current && !desktopMenuRef.current.contains(target)) {
-        setIsMenuOpen(false);
+    function handleClick(event: MouseEvent) {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
       }
-    };
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, [isMenuOpen]);
-
-  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
-    // Mobile: allow native anchor behavior for maximum iOS reliability
-    // Simple scroll handler for anchor links
-    e.preventDefault();
-    const anchorTarget = document.querySelector(href);
-    if (anchorTarget) {
-      anchorTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, []);
 
-    // Desktop: custom scroll within container
-    e.preventDefault();
-    setIsMenuOpen(false);
-    const targetId = href.replace(/.*#/, "");
-
-    // If we're not on the homepage, navigate first, then scroll after next frame.
-    if (pathname !== '/') {
-      router.push(`/#${targetId}`);
-      requestAnimationFrame(() => {
-        const el = document.getElementById(targetId);
-        el?.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-      });
-      return;
-    }
-  const scrollContainer = document.getElementById('scroll-container');
-  const scrollTarget = document.getElementById(targetId);
-  if (!scrollTarget) return;
-
-  const headerHeight = 80;
-    // Temporarily disable snap to allow smooth programmatic scroll
-    if (isDesktop && scrollContainer) {
-      const previousSnap = scrollContainer.style.scrollSnapType;
-      scrollContainer.style.scrollSnapType = 'none';
-      scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-      let attempts = 0;
-      const maxAttempts = 12;
-      const check = () => {
-        const containerRect = scrollContainer.getBoundingClientRect();
-        const targetRect = scrollTarget.getBoundingClientRect();
-        if (Math.abs(targetRect.top - containerRect.top - headerHeight) < 3 || attempts >= maxAttempts) {
-          scrollContainer.style.scrollSnapType = previousSnap || 'y proximity';
-          return;
-        }
-        attempts++;
-        requestAnimationFrame(check);
-      };
-      requestAnimationFrame(check);
-    } else {
-      // Mobile: default to document scroll; rely on scroll-margin-top and html scroll-padding-top
-      const y = scrollTarget.getBoundingClientRect().top + window.pageYOffset - headerHeight;
-      window.scrollTo({ top: y, behavior: 'smooth' });
-    }
-    // Ensure URL hash reflects the target so tests and users can link to sections
-    try {
-      const newUrl = `${window.location.pathname}#${targetId}`;
-      window.history.replaceState(null, '', newUrl);
-    } catch (e) {
-      // ignore
-    }
+  const handleTileClick = (id: string) => {
+    scrollToTile(id);
+    setMenuOpen(false);
+    setMobileOpen(false);
   };
 
   return (
-  <header className="fixed top-0 left-0 right-0 z-50 h-20 bg-slate-900/80 backdrop-blur-sm border-b border-slate-700/50">
-  <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-2 sm:px-4">
-        {/* Left: Logo */}
-        <Link href="/" aria-label="Go to Homepage" className="flex items-center">
-          <Image
-            src="/slate360logoforwebsite.png"
-            alt="Slate360 Logo"
-            width={180}
-            height={50}
-            priority
-            className="h-16 w-auto drop-shadow-md"
-          />
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-800 bg-slate-950/90 backdrop-blur">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 lg:px-8">
+        {/* Logo */}
+        <Link
+          href="/"
+          className="flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded-md"
+          onClick={() => handleTileClick("slate360")}
+        >
+          <div className="relative h-9 w-32 sm:h-10 sm:w-40">
+            <Image
+              src="/assets/slate360logoforwebsite.png"
+              alt="Slate360 logo"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
         </Link>
 
-        {/* Right: Desktop nav with Menu placed before About */}
-        <div className="flex items-center gap-6">
-          <nav className="hidden md:flex items-center gap-6">
-            {/* Menu dropdown for tile links (desktop) placed to the left of About */}
-            <div className="relative" ref={desktopMenuRef}>
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => setIsMenuOpen((v) => !v)}
-                aria-haspopup="true"
-                aria-expanded={isMenuOpen}
-                className="text-sm font-medium text-slate-300 hover:text-white inline-flex items-center gap-2 cursor-pointer"
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsMenuOpen((v) => !v); }}
-              >
-                Menu
-                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.25 8.29a.75.75 0 01-.02-1.08z" clipRule="evenodd"/></svg>
-              </div>
-              {isMenuOpen && (
-                <div className="absolute left-0 mt-2 w-56 rounded-md bg-slate-900/95 border border-slate-700/70 shadow-lg p-2 z-50">
-                  {tileData.map((tile) => (
-                    <a
-                      key={tile.id}
-                      href={`/#${tile.id}`}
-                      onClick={(e) => handleScroll(e, `/#${tile.id}`)}
-                      className="block px-3 py-2 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded"
+        {/* Desktop navigation */}
+        <div className="hidden items-center gap-6 text-sm font-medium text-slate-100 md:flex">
+          <div className="relative" ref={menuRef}>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              className="inline-flex items-center gap-1 rounded-full border border-slate-600/60 bg-slate-900/60 px-4 py-1.5 text-sm shadow-sm hover:bg-slate-800"
+            >
+              <span>Menu</span>
+              <span className="text-xs">▾</span>
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-700 bg-slate-900/98 p-2 shadow-xl">
+                <div className="max-h-[70vh] space-y-1 overflow-y-auto">
+                  {TILE_LINKS.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleTileClick(item.id)}
+                      className="w-full rounded-xl px-3 py-2 text-left text-sm text-slate-100 hover:bg-slate-800/80"
                     >
-                      {tile.title}
-                    </a>
+                      {item.label}
+                    </button>
                   ))}
                 </div>
-              )}
-            </div>
-            <Link href="/about" className="text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200">About</Link>
-            <Link href="/contact" className="text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200">Contact</Link>
-            <Link href="/subscribe" className="text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200">Subscribe</Link>
-            <Link href="/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors duration-200">Login</Link>
-          </nav>
-          {/* Mobile Hamburger */}
-          <button onClick={() => setIsMenuOpen((v) => !v)} className="md:hidden text-slate-300 focus:outline-none">
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg>
+              </div>
+            )}
+          </div>
+
+          <Link href="/about" className="hover:text-sky-300">
+            About
+          </Link>
+          <Link href="/contact" className="hover:text-sky-300">
+            Contact
+          </Link>
+          <Link href="/subscribe" className="hover:text-sky-300">
+            Subscribe
+          </Link>
+          <Link
+            href="/login"
+            className="rounded-full border border-sky-500/70 bg-sky-500/10 px-4 py-1.5 text-sky-100 hover:bg-sky-500/20"
+          >
+            Login
+          </Link>
+        </div>
+
+        {/* Mobile hamburger */}
+        <div className="flex items-center gap-3 md:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-600/70 bg-slate-900/80 text-slate-100"
+            aria-label="Toggle navigation menu"
+          >
+            <span className="sr-only">Toggle menu</span>
+            {/* Simple hamburger icon */}
+            <span className="block h-0.5 w-4 rounded bg-slate-100" />
+            <span className="mt-1 block h-0.5 w-4 rounded bg-slate-100" />
+            <span className="mt-1 block h-0.5 w-4 rounded bg-slate-100" />
           </button>
         </div>
-      </div>
+      </nav>
 
-      {/* Mobile Menu Overlay: shows tile links when hamburger open; tap outside to close */}
-      {isMenuOpen && (
-        <>
-          <div className="fixed inset-0 top-20 z-40 md:hidden" onClick={() => setIsMenuOpen(false)} />
-          <div className="absolute top-20 left-0 w-full bg-slate-900 md:hidden border-t border-slate-700/60 z-50">
-            <nav className="flex flex-col items-stretch space-y-1 py-3 px-3">
-              {/* Tile navigation links */}
-              {tileData.map((tile) => (
-                <a key={tile.id} href={`/#${tile.id}`} onClick={(e) => handleScroll(e, `/#${tile.id}`)} className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800">
-                  {tile.title}
-                </a>
-              ))}
-              
-              {/* Divider */}
-              <div className="border-t border-slate-700/60 my-2" />
-              
-              {/* Main navigation links */}
-              <Link href="/about" className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800" onClick={() => setIsMenuOpen(false)}>
+      {/* Mobile dropdown panel */}
+      {mobileOpen && (
+        <div className="md:hidden border-t border-slate-800 bg-slate-950/98">
+          <div className="mx-auto max-w-6xl px-4 py-3 space-y-4">
+            <div className="flex flex-col gap-2 text-sm">
+              <Link
+                href="/about"
+                className="py-1 text-slate-100 hover:text-sky-300"
+                onClick={() => setMobileOpen(false)}
+              >
                 About
               </Link>
-              <Link href="/contact" className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800" onClick={() => setIsMenuOpen(false)}>
+              <Link
+                href="/contact"
+                className="py-1 text-slate-100 hover:text-sky-300"
+                onClick={() => setMobileOpen(false)}
+              >
                 Contact
               </Link>
-              <Link href="/subscribe" className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800" onClick={() => setIsMenuOpen(false)}>
+              <Link
+                href="/subscribe"
+                className="py-1 text-slate-100 hover:text-sky-300"
+                onClick={() => setMobileOpen(false)}
+              >
                 Subscribe
               </Link>
-              <Link href="/login" className="px-3 py-2 text-slate-200 rounded hover:bg-slate-800" onClick={() => setIsMenuOpen(false)}>
+              <Link
+                href="/login"
+                className="py-1 text-slate-100 hover:text-sky-300"
+                onClick={() => setMobileOpen(false)}
+              >
                 Login
               </Link>
-            </nav>
+            </div>
+
+            <div className="h-px bg-slate-800" />
+
+            <div className="space-y-1">
+              {TILE_LINKS.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => handleTileClick(item.id)}
+                  className="w-full rounded-lg px-2 py-2 text-left text-sm text-slate-100 hover:bg-slate-900"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </>
+        </div>
       )}
     </header>
   );

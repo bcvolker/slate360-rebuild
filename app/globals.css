@@ -2,16 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-.snap-container {
-  scroll-snap-type: y mandatory;
-  overflow-y: auto;
-  height: 100dvh;
-  scroll-padding-top: 5rem;
-}
-.snap-child {
-  scroll-snap-align: start;
-}
-
 html {
   scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-slate-950 text-slate-50 antialiased;
+}
+
+/* Make sure the main scroll container behaves nicely */
+#scroll-container {
+  scroll-padding-top: 5rem; /* matches header height so tiles stop below header */
+}
+
+/* Optional: thinner scrollbars on desktop */
+* {
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 9999px;
 }

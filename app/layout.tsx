@@ -1,21 +1,37 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "../components/Navbar";
-
-const inter = Inter({ subsets: ["latin"] });
+import Navbar from "@/components/ui/Navbar";
+import Footer from "@/components/ui/Footer";
 
 export const metadata: Metadata = {
   title: "Slate360 – From Design to Reality",
-  description: "The all-in-one platform for AEC professionals.",
+  description: "Slate360 unifies BIM, 360 tours, analytics, VR, and geospatial tools for the built environment.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" className="h-full">
-      <body className={`${inter.className} h-full antialiased bg-[#0b1220]`}>
-        <Navbar />
-        <main id="main" className="pt-20 h-full">{children}</main>
+    <html lang="en">
+      <body className="bg-slate-950 text-slate-50 antialiased">
+        {/* Full-page flex column so header + main + footer stack correctly */}
+        <div className="flex min-h-screen flex-col">
+          {/* Fixed header at top */}
+          <Navbar />
+
+          {/* Scrollable content area with top padding equal to header height */}
+          <main
+            id="scroll-container"
+            className="flex-1 overflow-y-auto pt-20 snap-y snap-mandatory scroll-smooth"
+          >
+            {children}
+          </main>
+
+          {/* Global footer at very bottom */}
+          <Footer />
+        </div>
       </body>
     </html>
   );
