@@ -28,8 +28,10 @@ interface TileSectionProps {
 export default function TileSection({ tile, index }: TileSectionProps) {
   const isReversed = index % 2 === 1;
 
+  // TEXT COLUMN: Slightly smaller flex ratio (0.9) so viewer gets more space
   const textColClass = [
     "flex-1",
+    "md:flex-[0.9]",
     "flex",
     "flex-col",
     "justify-center",
@@ -38,8 +40,10 @@ export default function TileSection({ tile, index }: TileSectionProps) {
     isReversed ? "md:order-2 md:pl-6" : "md:order-1 md:pr-6",
   ].join(" ");
 
+  // VIEWER COLUMN: Larger flex ratio (1.1) to make viewer more prominent
   const viewerColClass = [
     "flex-1",
+    "md:flex-[1.1]",
     "flex",
     "items-center",
     "justify-center",
@@ -49,15 +53,17 @@ export default function TileSection({ tile, index }: TileSectionProps) {
   ].join(" ");
 
   return (
+    // SECTION: snap-start for scroll-snap, scroll-mt-24 + pt-24 to clear fixed header
     <section
       id={tile.id}
-      className="scroll-mt-24 min-h-screen px-4 py-20 md:px-10 lg:px-24 flex items-center snap-start"
+      className="min-h-screen scroll-mt-24 pt-24 px-4 pb-20 md:px-10 lg:px-24 flex items-center snap-start"
     >
       <div className="mx-auto flex w-full max-w-6xl flex-col items-stretch md:flex-row md:items-center">
         {/* Text / content column */}
         <div className={textColClass}>
+          {/* EYEBROW: Slightly larger with breathing room */}
           {tile.eyebrow && (
-            <p className="mb-3 text-base font-semibold uppercase tracking-[0.18em] text-sky-400/90">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-sky-400/90">
               {tile.eyebrow}
             </p>
           )}
@@ -90,9 +96,9 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           )}
         </div>
 
-        {/* Viewer column – only this part has a card */}
+        {/* VIEWER COLUMN: Clear sizing - max-w-md mobile, max-w-2xl desktop */}
         <div className={viewerColClass}>
-          <div className="relative w-full max-w-3xl lg:max-w-4xl rounded-3xl border border-slate-700/70 bg-slate-950/90 px-8 py-10 shadow-2xl">
+          <div className="relative w-full max-w-md md:max-w-2xl mx-auto rounded-3xl border border-slate-700/70 bg-slate-950/90 px-8 py-10 shadow-2xl">
             <div className="mb-4 flex justify-center">
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 shadow-lg shadow-sky-500/40">
                 <span className="ml-0.5 text-lg text-white">▶</span>

@@ -22,9 +22,10 @@ export default function RootLayout({
           <Navbar />
           {/* Right-side scroll rail for desktop */}
           <ScrollRail />
+          {/* SCROLL CONTAINER: Only element with overflow-y. All snap behavior controlled here. */}
           <main
             id="scroll-container"
-            className="flex-1 pt-20"
+            className="flex-1 h-screen overflow-y-auto snap-y snap-mandatory pt-20"
           >
             {children}
           </main>

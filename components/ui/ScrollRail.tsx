@@ -22,12 +22,14 @@ function scrollToSection(id: string) {
 export default function ScrollRail() {
   const [activeId, setActiveId] = useState<string>("slate360");
 
+  // SCROLL TRACKING: Uses IntersectionObserver with main#scroll-container as root
   useEffect(() => {
+    const scrollContainer = document.getElementById("scroll-container");
     const sections = SECTIONS.map((s) => document.getElementById(s.id)).filter(
       Boolean
     ) as HTMLElement[];
 
-    if (!sections.length) return;
+    if (!sections.length || !scrollContainer) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -51,7 +53,7 @@ export default function ScrollRail() {
         }
       },
       {
-        root: null,
+        root: scrollContainer,
         threshold: [0.25, 0.6],
       }
     );

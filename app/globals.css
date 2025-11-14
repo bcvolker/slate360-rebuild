@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* CSS VARIABLES: Viewer sizing for responsive control */
+:root {
+  --viewer-width: clamp(320px, 40vw, 720px);
+}
+
 html,
 body {
   height: 100%;
@@ -11,10 +16,10 @@ html {
   scroll-behavior: smooth;
 }
 
+/* BODY: NO scroll-snap here - that's on main#scroll-container now */
 body {
   min-height: 100vh;
   scroll-behavior: smooth;
-  scroll-snap-type: y proximity;
   /* Subtle UNC-blue inspired gradient background */
   background: linear-gradient(
     to bottom,
