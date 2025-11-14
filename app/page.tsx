@@ -1,156 +1,132 @@
-import TileSection, { TileConfig } from "@/components/ui/TileSection";
+import TileSection from '@/components/ui/TileSection'
 
-const tiles: TileConfig[] = [
+const tiles = [
   {
-    id: "slate360",
-    eyebrow: "Slate360 · From Design to Reality",
-    title: "Your vision, instantly realized.",
-    subtitle:
-      "Slate360 unifies BIM, 360 tours, analytics, VR, and geospatial tools into one command center for the built environment.",
+    id: 'hero',
+    title: 'Slate360: From Design to Reality',
+    subtitle: 'Your vision, instantly realized—unify BIM, 360 tours, analytics, VR, and geospatial tools into one secure command center for the built environment.',
     bullets: [
-      "Access every workflow in one secure hub.",
-      "Connect office and field teams in real time.",
-      "Forecast risk, cost, and performance with AI.",
-      "Plug into the tools and data you already use.",
+      'Access every workflow in one hub—no more app-switching chaos.',
+      'Connect office and field teams in real-time for seamless collaboration.',
+      'Forecast risks, costs, and performance with built-in AI (toggle on/off).',
+      'Plug into tools you already use: Upload LiDAR, export to Procore or DroneDeploy.'
     ],
-    ctaLabel: "Request a demo",
-    ctaHref: "/contact",
-    viewerTitle: "Slate360 Viewer",
-    viewerSubtitle: "Interactive tools and digital twins coming soon.",
+    cta: 'Request a Free Demo',
+    viewer: 'Interactive 3D digital twin morphing from blueprint to built site.',
+    link: '/demo'
   },
   {
-    id: "project-hub",
-    eyebrow: "Project Hub",
-    title: "Orchestrate every project from one place.",
-    subtitle:
-      "Daily logs, RFIs, submittals, schedules, and cost tracking – all connected to your 3D context and 360 documentation.",
+    id: 'project-hub',
+    title: 'Project Hub',
+    subtitle: 'Manage and document projects like a pro—track schedules, budgets, and RFIs without Procore\'s $500/mo price tag.',
     bullets: [
-      "Standardize project setup with reusable templates.",
-      "Keep owners, GCs, and subs aligned in one workspace.",
-      "Attach models, drawings, and field photos to every record.",
-      "Export clean, client-ready status reports in a click.",
+      'Create projects with pins on Google Maps—share markup PDFs for subs (e.g., parking zones).',
+      'Custom folders + AI doc review: Split PDFs, generate POs/bids from contracts.',
+      'Punch lists, Gantt charts, and team collab—RBAC for freelancers to enterprises.',
+      'Offline sync: Add notes/photos from the field, auto-file on reconnect.'
     ],
-    ctaLabel: "Explore Project Hub",
-    ctaHref: "/features#project-hub",
-    viewerTitle: "Project Hub Timeline & Logs",
-    viewerSubtitle: "See schedules, RFIs, and decisions in one timeline view.",
+    cta: 'Start Free Trial',
+    viewer: 'Embedded video: Timelapse of a construction site from kickoff to handover.',
+    link: '/features/project-hub'
   },
   {
-    id: "bim",
-    eyebrow: "BIM Studio",
-    title: "From point cloud to parametric models.",
-    subtitle:
-      "Ingest point clouds, LiDAR, and photogrammetry to generate editable BIM-style models ready for design and coordination.",
+    id: 'bim-studio',
+    title: 'BIM Studio',
+    subtitle: 'SketchUp-level design without the sub—build 2D plans, convert to 3D models, and prep for printing or VR.',
     bullets: [
-      "Combine laser scans, photogrammetry, and survey control.",
-      "Snapshot as-built conditions at every project milestone.",
-      "Export to open formats for Revit, IFC, and more.",
-      "Prepare models for 3D printing or VR with one pipeline.",
+      'Prepacked libraries + AI 2D-to-3D (free Open3D or premium RealityCapture—cost calculator included).',
+      'Clash detection, volume calcs, and animations—export GLB/IFC for Revit compatibility.',
+      '3D Print Studio integration: Slice models, segment for multi-printer farms, add pegs/magnets for assembly.',
+      'Progress tracking: Animate fly-throughs of sites, stadiums, or custom builds.'
     ],
-    ctaLabel: "Discover BIM Studio",
-    ctaHref: "/features#bim-studio",
-    viewerTitle: "3D Model Workspace",
-    viewerSubtitle:
-      "Future demo: orbit, section, and measure your digital twin.",
+    cta: 'Explore BIM Tools',
+    viewer: 'Interactive 3D model: Orbit a building from wireframe blueprint to textured reality.',
+    link: '/features/bim-studio'
   },
   {
-    id: "content",
-    eyebrow: "Content Studio",
-    title: "Turn raw captures into hero-ready media.",
-    subtitle:
-      "Edit drone footage, time-lapses, progress photos, and marketing video – all in a browser-based studio built for AEC teams.",
+    id: 'content-studio',
+    title: 'Content Studio',
+    subtitle: 'Edit drone footage, photos, and timelapses like Final Cut—turn raw clips into social-ready reels in minutes.',
     bullets: [
-      "Non-linear editing with branded templates and LUTs.",
-      "Auto-cut sequences from flight logs and event markers.",
-      "Batch-grade stills and time-lapse sequences.",
-      "Publish directly to clients or social channels.",
+      'AI enhancements: Stabilize, speed-ramp, color-grade; add LUTs, text, music libraries.',
+      'Batch timelapse creator: Auto-stitch site progress, export at 4K for LinkedIn.',
+      'Aspect ratios for platforms (Instagram/TikTok presets)—no watermarks, full ownership.',
+      'Hotspot editor: Overlay notes/logos on videos for client deliverables.'
     ],
-    ctaLabel: "See Content Studio",
-    ctaHref: "/features#content-studio",
-    viewerTitle: "Media Timeline Preview",
-    viewerSubtitle:
-      "Future demo: trim, title, and grade in a single, simple UI.",
+    cta: 'Upload Your First Clip',
+    viewer: 'Embedded video: Before/after edit of a construction timelapse with effects.',
+    link: '/features/content-studio'
   },
   {
-    id: "tour",
-    eyebrow: "360 Tour Builder",
-    title: "Walk every stakeholder through the site.",
-    subtitle:
-      "Build and host clickable 360° tours for construction, facilities, and marketing – no separate tour platform required.",
+    id: '360-tour-builder',
+    title: '360 Tour Builder',
+    subtitle: 'Stitch and host immersive tours that beat Kuula—brand, add hotspots, and embed on Zillow or your site.',
     bullets: [
-      "Drag-and-drop tours from 360 photos and panoramas.",
-      "Drop hotspots for drawings, RFIs, and assets.",
-      "Share secure links or embed on your own site.",
-      "Version tours as projects evolve over time.",
+      'Auto/manual stitching from 360 cams or drone panoramas—export to Google Maps.',
+      'Hotspots with photos/videos/notes: Guide clients through progress or staging.',
+      'Shareable links/codes: View-only for non-users, analytics on tour engagement.',
+      'VR-ready: Convert to WebXR for headset tours of properties or job sites.'
     ],
-    ctaLabel: "Build a 360 Tour",
-    ctaHref: "/features#tour-builder",
-    viewerTitle: "Interactive 360 Tour",
-    viewerSubtitle:
-      "Future demo: move node-to-node and inspect every room.",
+    cta: 'Build Your First Tour',
+    viewer: 'Interactive 360 viewer: Clickable tour of a construction site with hotspots.',
+    link: '/features/360-tour-builder'
   },
   {
-    id: "geospatial",
-    eyebrow: "Geospatial & Robotics",
-    title: "Map, measure, and automate the field.",
-    subtitle:
-      "Plan missions, process surveys, and calculate volumes with survey-grade accuracy – from drones, rovers, and scanners.",
+    id: 'geospatial-robotics',
+    title: 'Geospatial & Robotics',
+    subtitle: 'Plan drone/robot missions and analyze volumes—replace DroneDeploy/Pix4D for under $150/mo.',
     bullets: [
-      "Design repeatable missions with RTK/PPK support.",
-      "Fuse LiDAR, imagery, and survey control in one model.",
-      "Compute cut/fill and material takeoffs in minutes.",
-      "Simulate routes for ground and aerial robots.",
+      'Waypoint editor with AR overlays: Repeatable autonomous paths using BIM models.',
+      'LiDAR/photogrammetry processing: OpenDroneMap for point clouds, volume calcs, layer toggles.',
+      'Survey-grade exports: KML/GeoJSON for GIS; mobile app for on-site uploads.',
+      'Anomaly detection (AI toggle): Spot cracks/leaks in scans, predict risks.'
     ],
-    ctaLabel: "Explore Geospatial Tools",
-    ctaHref: "/features#geospatial",
-    viewerTitle: "Survey & Volume Analysis",
-    viewerSubtitle:
-      "Future demo: measure stockpiles and earthworks in 3D.",
+    cta: 'Plan a Mission',
+    viewer: 'Interactive 3D map: Drone flight path over a site with volume highlights.',
+    link: '/features/geospatial'
   },
   {
-    id: "vr",
-    eyebrow: "AR/VR Studio",
-    title: "Step inside your digital twin.",
-    subtitle:
-      "Spin up immersive review rooms from your models and scans so teams can walk, annotate, and plan in context.",
+    id: 'virtual-reality-studio',
+    title: 'Virtual Reality Studio',
+    subtitle: 'Convert scans to explorable VR worlds—stage spaces, inspect remotely, or simulate plays (Athlete 360 add-on).',
     bullets: [
-      "Generate VR-ready scenes from BIM Studio outputs.",
-      "Stage furniture, equipment, and wayfinding scenarios.",
-      "Capture walkthroughs for non-VR stakeholders.",
-      "Reuse scenes for training, safety, and operations.",
+      'Import BIM/LiDAR → WebXR rooms: Orbit in 360, add annotations/hotspots.',
+      'Staging tools: Virtual furniture for realtors; motion analysis for coaches (MediaPipe scrubs).',
+      'Export/share: GLB for Oculus or embeddable viewers—no extra apps needed.',
+      'Team collab: Real-time edits, Zoom integration for virtual walkthroughs.'
     ],
-    ctaLabel: "Preview AR/VR Studio",
-    ctaHref: "/features#vr-studio",
-    viewerTitle: "Immersive Review Room",
-    viewerSubtitle:
-      "Future demo: explore a scanned space in full 3D & VR.",
+    cta: 'Launch VR Preview',
+    viewer: 'Embedded video: VR walkthrough of a staged home from site scan.',
+    link: '/features/vr-studio'
   },
   {
-    id: "analytics",
-    eyebrow: "Analytics & Reports",
-    title: "Translate data into decisions.",
-    subtitle:
-      "Pull together field data, models, and financials to generate clear, repeatable reports for executives and project teams.",
+    id: 'analytics-reports',
+    title: 'Analytics & Reports',
+    subtitle: 'Pull data from all tabs into custom templates—auto-generate insights that wow stakeholders.',
     bullets: [
-      "Build reusable templates for owners, PMs, and trades.",
-      "Blend schedule, cost, and risk into one narrative.",
-      "Highlight hotspots directly on models or tours.",
-      "Export polished PDFs or share live dashboards.",
+      'AI reports: Energy forecasts, cost variances, anomaly heatmaps (YOLOv5 toggle).',
+      'Templates: Punch lists, site surveys—drag-drop sections, export PDF/CSV.',
+      'Cross-tab magic: BIM volumes → budget alerts; Geospatial scans → progress dashboards.',
+      'CEO tools: Revenue metrics, user analytics—90% margins baked in.'
     ],
-    ctaLabel: "See Analytics in Action",
-    ctaHref: "/features#analytics",
-    viewerTitle: "Interactive Dashboards",
-    viewerSubtitle:
-      "Future demo: slice progress by trade, area, or system.",
-  },
-];
+    cta: 'Generate Your Report',
+    viewer: 'Interactive dashboard: Animated chart of project cost trends.',
+    link: '/features/analytics'
+  }
+]
 
 export default function Home() {
   return (
-    <div className="space-y-0">
-      {tiles.map((tile, index) => (
-        <TileSection key={tile.id} tile={tile} index={index} />
-      ))}
-    </div>
-  );
+    <>
+      <TileSection tiles={tiles} />
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            console.log('Scroll container height: ', document.getElementById('scroll-container')?.offsetHeight);
+            console.log('Viewer test width: ', document.querySelector('.viewer-card')?.offsetWidth || 'No viewer found');
+          `
+        }}
+      />
+    </>
+  )
 }
