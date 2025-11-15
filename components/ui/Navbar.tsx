@@ -11,12 +11,12 @@ type TileLink = {
 
 const TILE_LINKS: TileLink[] = [
   { id: "slate360", label: "Slate360" },
+  { id: "bim", label: "Design Studio" },
   { id: "project-hub", label: "Project Hub" },
-  { id: "bim", label: "BIM Studio" },
   { id: "content", label: "Content Studio" },
-  { id: "geospatial", label: "Geospatial & Robotics" },
   { id: "tour", label: "360 Tour Builder" },
-  { id: "vr", label: "AR/VR Studio" },
+  { id: "geospatial", label: "Geospatial & Robotics" },
+  { id: "vr", label: "Virtual Studio" },
   { id: "analytics", label: "Analytics & Reports" },
 ];
 
@@ -32,7 +32,6 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // Close desktop dropdown when clicking outside
   useEffect(() => {
     function handleClick(event: MouseEvent) {
       if (!menuRef.current) return;
@@ -51,13 +50,12 @@ export default function Navbar() {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-700/50 bg-slate-950/90 backdrop-blur-md shadow-lg">
-      {/* NAV: Adjusted padding for logo positioning */}
-      <nav className="mx-auto flex max-w-6xl items-center justify-between pl-2 pr-4 py-4 sm:px-4 lg:pl-2 lg:pr-6">
-        {/* LOGO: flex-shrink-0 prevents squeezing, ml-2 pushes slightly left */}
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-700/40 bg-slate-900/40 backdrop-blur-xl">
+      <nav className="flex w-full items-center justify-between px-6 py-4 lg:px-8 bg-slate-950/90 backdrop-blur-md">
+        {/* LOGO: closer to left edge */}
         <Link
           href="/"
-          className="flex items-center gap-3 flex-shrink-0 ml-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded-md"
+          className="flex items-center gap-3 flex-shrink-0 -ml-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded-md"
           onClick={() => handleTileClick("slate360")}
         >
           <div className="relative h-14 w-60 sm:h-16 sm:w-72">
@@ -71,8 +69,8 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Desktop navigation */}
-        <div className="hidden items-center gap-6 text-sm font-medium text-slate-100 md:flex">
+        {/* DESKTOP NAV: pushed all the way to the right */}
+        <div className="ml-auto hidden items-center gap-6 text-sm font-medium text-slate-100 md:flex">
           <div className="relative" ref={menuRef}>
             <button
               type="button"
@@ -117,8 +115,8 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Mobile hamburger */}
-        <div className="flex items-center gap-3 md:hidden">
+        {/* MOBILE HAMBURGER: also aligned to the right */}
+        <div className="ml-auto flex items-center gap-3 md:hidden">
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
@@ -135,15 +133,13 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* MOBILE MENU: Full-screen overlay + rounded panel */}
+      {/* MOBILE MENU OVERLAY */}
       {mobileOpen && (
         <>
-          {/* Backdrop overlay - clicking outside closes menu */}
           <div
             className="fixed inset-0 bg-black/50 z-40 md:hidden"
             onClick={() => setMobileOpen(false)}
           />
-          {/* Mobile menu panel - higher z-index, rounded, centered */}
           <div className="fixed top-16 right-3 left-3 rounded-2xl bg-slate-900/95 border border-slate-700 z-50 md:hidden shadow-2xl">
             <div className="mx-auto max-w-6xl px-4 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
               <div className="flex flex-col gap-1 text-sm">

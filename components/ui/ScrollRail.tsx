@@ -4,46 +4,59 @@ import { useEffect, useState } from "react";
 
 const SECTIONS: { id: string; label: string }[] = [
   { id: "slate360", label: "Slate360" },
+  { id: "bim", label: "Design Studio" },
   { id: "project-hub", label: "Project Hub" },
-  { id: "bim", label: "BIM Studio" },
   { id: "content", label: "Content Studio" },
-  { id: "geospatial", label: "Geospatial & Robotics" },
   { id: "tour", label: "360 Tour Builder" },
-  { id: "vr", label: "AR/VR Studio" },
+  { id: "geospatial", label: "Geospatial & Robotics" },
+  { id: "vr", label: "Virtual Studio" },
   { id: "analytics", label: "Analytics & Reports" },
 ];
 
 function scrollToSection(id: string) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  // Height of the fixed navbar in pixels
+  const headerHeight = 80; // keep this in sync with the actual nav height
+
+  const rect = el.getBoundingClientRect();
+  const sectionHeight = rect.height;
+  const viewportHeight = window.innerHeight;
+
+  // We want the *center* of the section to line up with the
+  // center of the viewport, accounting for the fixed header.
+  const sectionCenterInDocument = window.scrollY + rect.top + sectionHeight / 2;
+  const viewportCenter = headerHeight + (viewportHeight - headerHeight) / 2;
+
+  const targetScrollTop = sectionCenterInDocument - viewportCenter;
+
+  window.scrollTo({
+    top: Math.max(targetScrollTop, 0),
+    behavior: "smooth",
+  });
 }
 
 export default function ScrollRail() {
   const [activeId, setActiveId] = useState<string>("slate360");
 
-  // SCROLL TRACKING: Uses IntersectionObserver with main#scroll-container as root
+  // SCROLL TRACKING: Uses IntersectionObserver with viewport as root
   useEffect(() => {
-    const scrollContainer = document.getElementById("scroll-container");
     const sections = SECTIONS.map((s) => document.getElementById(s.id)).filter(
       Boolean
     ) as HTMLElement[];
 
-    if (!sections.length || !scrollContainer) return;
+    if (!sections.length) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Find the entry closest to viewport center
+        // Find the entry with highest intersection ratio
         let bestId = activeId;
-        let bestScore = -Infinity;
+        let bestRatio = 0;
 
         entries.forEach((entry) => {
-          const rect = entry.target.getBoundingClientRect();
-          const viewportCenter = window.innerHeight / 2;
-          const distance = Math.abs(rect.top + rect.height / 2 - viewportCenter);
-          const score = entry.isIntersecting ? -distance : -Infinity;
-          if (score > bestScore) {
-            bestScore = score;
+          if (entry.isIntersecting && entry.intersectionRatio > bestRatio) {
+            bestRatio = entry.intersectionRatio;
             bestId = entry.target.id;
           }
         });
@@ -53,8 +66,8 @@ export default function ScrollRail() {
         }
       },
       {
-        root: scrollContainer,
-        threshold: [0.25, 0.6],
+        root: null,
+        threshold: 0.5,
       }
     );
 
@@ -64,7 +77,7 @@ export default function ScrollRail() {
 
   return (
     <div className="pointer-events-none fixed right-6 top-1/2 z-40 hidden -translate-y-1/2 transform md:flex">
-      <div className="rounded-full bg-slate-950/85 border border-slate-700/70 px-3 py-4 shadow-xl">
+      <div className="rounded-full bg-slate-900/80 border border-slate-700/70 px-2 py-3 shadow-lg backdrop-blur-sm">
         <div className="flex flex-col items-center gap-2">
           {SECTIONS.map((section) => {
             const isActive = section.id === activeId;
@@ -76,13 +89,13 @@ export default function ScrollRail() {
                 onClick={() => scrollToSection(section.id)}
               >
                 <span
-                  className={`h-0.5 w-7 rounded-full transition-colors ${
+                  className={`h-0.5 w-6 rounded-full transition-all ${
                     isActive
-                      ? "bg-sky-400"
-                      : "bg-slate-300/80 group-hover:bg-sky-300"
+                      ? "bg-blue-400 shadow-lg shadow-blue-400/50"
+                      : "bg-slate-500 group-hover:bg-blue-300"
                   }`}
                 />
-                <span className="pointer-events-none absolute right-full mr-3 rounded-md bg-slate-950/90 px-2 py-1 text-xs text-slate-100 opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                <span className="pointer-events-none absolute right-full mr-3 rounded-md bg-slate-900/95 border border-slate-700 px-2 py-1 text-xs text-slate-100 opacity-0 shadow-xl transition-opacity group-hover:opacity-100">
                   {section.label}
                 </span>
               </button>

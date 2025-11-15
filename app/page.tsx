@@ -19,6 +19,24 @@ const tiles: TileConfig[] = [
     viewerSubtitle: "Interactive tools and digital twins coming soon.",
   },
   {
+    id: "bim",
+    eyebrow: "Design Studio",
+    title: "From point cloud to parametric models.",
+    subtitle:
+      "Ingest point clouds, LiDAR, and photogrammetry to generate editable BIM-style models ready for design and coordination.",
+    bullets: [
+      "Combine laser scans, photogrammetry, and survey control.",
+      "Snapshot as-built conditions at every project milestone.",
+      "Export to open formats for Revit, IFC, and more.",
+      "Prepare models for 3D printing or VR with one pipeline.",
+    ],
+    ctaLabel: "Discover Design Studio",
+    ctaHref: "/features#bim-studio",
+    viewerTitle: "3D Model Workspace",
+    viewerSubtitle:
+      "Future demo: orbit, section, and measure your digital twin.",
+  },
+  {
     id: "project-hub",
     eyebrow: "Project Hub",
     title: "Orchestrate every project from one place.",
@@ -34,24 +52,6 @@ const tiles: TileConfig[] = [
     ctaHref: "/features#project-hub",
     viewerTitle: "Project Hub Timeline & Logs",
     viewerSubtitle: "See schedules, RFIs, and decisions in one timeline view.",
-  },
-  {
-    id: "bim",
-    eyebrow: "BIM Studio",
-    title: "From point cloud to parametric models.",
-    subtitle:
-      "Ingest point clouds, LiDAR, and photogrammetry to generate editable BIM-style models ready for design and coordination.",
-    bullets: [
-      "Combine laser scans, photogrammetry, and survey control.",
-      "Snapshot as-built conditions at every project milestone.",
-      "Export to open formats for Revit, IFC, and more.",
-      "Prepare models for 3D printing or VR with one pipeline.",
-    ],
-    ctaLabel: "Discover BIM Studio",
-    ctaHref: "/features#bim-studio",
-    viewerTitle: "3D Model Workspace",
-    viewerSubtitle:
-      "Future demo: orbit, section, and measure your digital twin.",
   },
   {
     id: "content",
@@ -109,17 +109,17 @@ const tiles: TileConfig[] = [
   },
   {
     id: "vr",
-    eyebrow: "AR/VR Studio",
+    eyebrow: "Virtual Studio",
     title: "Step inside your digital twin.",
     subtitle:
       "Spin up immersive review rooms from your models and scans so teams can walk, annotate, and plan in context.",
     bullets: [
-      "Generate VR-ready scenes from BIM Studio outputs.",
+      "Generate VR-ready scenes from Design Studio outputs.",
       "Stage furniture, equipment, and wayfinding scenarios.",
       "Capture walkthroughs for non-VR stakeholders.",
       "Reuse scenes for training, safety, and operations.",
     ],
-    ctaLabel: "Preview AR/VR Studio",
+    ctaLabel: "Preview Virtual Studio",
     ctaHref: "/features#vr-studio",
     viewerTitle: "Immersive Review Room",
     viewerSubtitle:

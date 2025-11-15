@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
-import Footer from "@/components/ui/Footer";
 import ScrollRail from "@/components/ui/ScrollRail";
 
 export const metadata: Metadata = {
@@ -17,19 +16,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-slate-950 text-slate-50 antialiased">
+      <body className="bg-slate-950 text-slate-50 antialiased min-h-screen">
         <div className="flex min-h-screen flex-col">
           <Navbar />
-          {/* Right-side scroll rail for desktop */}
           <ScrollRail />
-          {/* SCROLL CONTAINER: Only element with overflow-y. All snap behavior controlled here. */}
-          <main
-            id="scroll-container"
-            className="flex-1 h-screen overflow-y-auto snap-y snap-mandatory pt-20"
-          >
+          {process.env.NODE_ENV === "development" && (
+            <div className="pointer-events-none fixed inset-x-0 top-1/2 z-[60] border-t border-red-500/40" />
+          )}
+          <main id="scroll-container" className="flex-1">
             {children}
           </main>
-          <Footer />
         </div>
       </body>
     </html>
