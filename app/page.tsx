@@ -148,6 +148,7 @@ const tiles: TileConfig[] = [
 export default function Home() {
   return (
     <div className="space-y-0">
+      {/* TEST COMMIT — DELETE ME AFTER VERIFYING GIT PUSH */}
       {tiles.map((tile, index) => (
         <TileSection key={tile.id} tile={tile} index={index} />
       ))}
