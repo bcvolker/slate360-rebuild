@@ -18,25 +18,27 @@ interface TileSectionProps {
 }
 
 /**
- * Strict layout template for homepage tiles.
+ * Homepage tile layout
  *
  * Goals:
- * - All tiles have the same structure and spacing.
- * - Two equal columns on desktop, single column on mobile.
- * - Each tile fills at least one screen and snaps cleanly.
+ * - All tiles share the exact same structure + padding
+ * - Two equal-width columns via CSS Grid
+ * - Vertical midline centered for both text + viewer
+ * - Simple red debug line to visually check alignment
  */
 export default function TileSection({ tile, index }: TileSectionProps) {
   const isReversed = index % 2 === 1;
 
-  // Each section is a snap child and fills at least one viewport.
+  // Section: full-height-ish container with uniform padding for ALL tiles
   const sectionClass =
-    "home-gradient relative min-h-screen flex items-center justify-center snap-start";
+    "relative min-h-screen flex items-center justify-center py-32 home-gradient";
 
-  // Two equal columns, centered, with consistent horizontal padding.
+  // Grid wrapper: two equal columns, centered, consistent gap
   const gridClass =
-    "mx-auto w-full max-w-6xl px-4 md:px-10 lg:px-24 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center";
+    "mx-auto w-full max-w-6xl px-4 md:px-10 lg:px-24 " +
+    "grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center";
 
-  // Text column: stacked with consistent gap; alternates left/right via order.
+  // Text column
   const textColClass = [
     "flex",
     "flex-col",
@@ -45,7 +47,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
     isReversed ? "md:order-2" : "md:order-1",
   ].join(" ");
 
-  // Viewer column: centers the card; alternates column side via order.
+  // Viewer column
   const viewerColClass = [
     "flex",
     "items-center",
@@ -60,8 +62,11 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       data-snap="tile"
       className={sectionClass}
     >
+      {/* Horizontal midline debug guide */}
+      <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-red-500/35" />
+
       <div className={gridClass}>
-        {/* TEXT COLUMN */}
+        {/* Text column */}
         <div className={textColClass}>
           {tile.eyebrow && (
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-sky-400/90">
@@ -99,7 +104,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           )}
         </div>
 
-        {/* VIEWER COLUMN */}
+        {/* Viewer column */}
         <div className={viewerColClass}>
           <div className="w-full max-w-xl rounded-3xl border border-slate-700/70 bg-slate-950/90 px-10 py-12 shadow-2xl flex flex-col items-center justify-center text-center min-h-[280px]">
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 shadow-lg shadow-sky-500/40">
