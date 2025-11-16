@@ -1,5 +1,7 @@
 import React from "react";
 
+const DEBUG_LAYOUT = true; // Set to false later once you're happy
+
 export type TileConfig = {
   id: string;
   eyebrow?: string;
@@ -18,52 +20,57 @@ interface TileSectionProps {
 }
 
 /**
- * Homepage tile layout
+ * Homepage tile layout with optional debug markers.
  *
- * Goals:
- * - All tiles share the exact same structure + padding
- * - Two equal-width columns via CSS Grid
- * - Vertical midline centered for both text + viewer
- * - Simple red debug line to visually check alignment
+ * - Each tile is a snap-start section inside the main scroll container
+ * - Two equal-width columns via CSS Grid on desktop
+ * - Vertical midline centered for both text and viewer
+ * - DEBUG_LAYOUT shows tile ids + a red horizontal midline + outlines
  */
 export default function TileSection({ tile, index }: TileSectionProps) {
   const isReversed = index % 2 === 1;
 
-  // Section: full-height-ish container with uniform padding for ALL tiles
   const sectionClass =
-    "relative min-h-screen flex items-center justify-center py-32 home-gradient";
+    "home-gradient snap-start relative min-h-screen flex items-center justify-center py-24";
 
-  // Grid wrapper: two equal columns, centered, consistent gap
   const gridClass =
     "mx-auto w-full max-w-6xl px-4 md:px-10 lg:px-24 " +
     "grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center";
 
-  // Text column
   const textColClass = [
     "flex",
     "flex-col",
     "justify-center",
     "gap-6",
+    "max-w-xl",
     isReversed ? "md:order-2" : "md:order-1",
+    DEBUG_LAYOUT ? "border border-dashed border-yellow-400/80 p-4 rounded-lg" : "",
   ].join(" ");
 
-  // Viewer column
   const viewerColClass = [
     "flex",
     "items-center",
     "justify-center",
+    "max-w-xl",
     isReversed ? "md:order-1" : "md:order-2",
+    DEBUG_LAYOUT ? "border border-dashed border-yellow-400/80 p-4 rounded-lg" : "",
   ].join(" ");
 
   return (
     <section
       id={tile.id}
-      data-tile-id={tile.id}
       data-snap="tile"
       className={sectionClass}
     >
-      {/* Horizontal midline debug guide */}
-      <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-red-500/35" />
+      {/* DEBUG: tile label + red horizontal midline */}
+      {DEBUG_LAYOUT && (
+        <>
+          <div className="pointer-events-none absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-red-500/70" />
+          <div className="pointer-events-none absolute left-4 top-4 rounded bg-red-700/90 px-2 py-0.5 text-xs font-semibold text-white">
+            {tile.id} · index {index}
+          </div>
+        </>
+      )}
 
       <div className={gridClass}>
         {/* Text column */}

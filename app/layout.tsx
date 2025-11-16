@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
+import ScrollRail from "@/components/ui/ScrollRail";
 import FooterLinks from "../components/FooterLinks";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -19,14 +20,21 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        {/* Fixed header at the very top */}
         <Navbar />
-        {/* MAIN is now the scroll container */}
+
+        {/* Fixed right-side scroll rail (desktop only) */}
+        <ScrollRail />
+
+        {/* Scroll container: full viewport height, snaps per tile */}
         <main
           id="scroll-container"
           className="h-screen overflow-y-auto snap-y snap-mandatory pt-20"
         >
+          {/* All homepage tiles */}
           {children}
-          {/* Footer sits inside the scroll container, after the tiles */}
+
+          {/* Footer as final snap tile */}
           <FooterLinks />
         </main>
       </body>
