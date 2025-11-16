@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
-import ScrollRail from "@/components/ui/ScrollRail";
+import FooterLinks from "../components/FooterLinks";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Slate360 – From Design to Reality",
-  description:
-    "Slate360 unifies BIM, 360 tours, analytics, VR, and geospatial tools for the built environment.",
+  title: "Slate360 - From Design to Reality",
+  description: "The all-in-one platform for AEC professionals.",
 };
 
 export default function RootLayout({
@@ -16,17 +18,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-slate-950 text-slate-50 antialiased min-h-screen">
-        <div className="flex min-h-screen flex-col">
-          <Navbar />
-          <ScrollRail />
-          {process.env.NODE_ENV === "development" && (
-            <div className="pointer-events-none fixed inset-x-0 top-1/2 z-[60] border-t border-red-500/40" />
-          )}
-          <main id="scroll-container" className="flex-1">
-            {children}
-          </main>
-        </div>
+      <body className={inter.className}>
+        <Navbar />
+        {/* MAIN is now the scroll container */}
+        <main
+          id="scroll-container"
+          className="h-screen overflow-y-auto snap-y snap-mandatory pt-20"
+        >
+          {children}
+          {/* Footer sits inside the scroll container, after the tiles */}
+          <FooterLinks />
+        </main>
       </body>
     </html>
   );
