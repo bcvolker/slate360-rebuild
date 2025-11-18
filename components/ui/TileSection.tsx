@@ -36,19 +36,19 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
   // This is the NEW, CLEAN gridClass
   const gridClass =
-    "mx-auto w-full max-w-6xl px-4 md:px-10 lg:px-24 " +
+    "mx-auto w-full max-w-7xl px-4 md:px-10 lg:px-24 " +
     "grid grid-cols-1 md:grid-cols-2 md:gap-12 items-center " +
     "pt-20 " + // This is our padding-top (80px, same as var(--navbar-height))
     (isLastTile ? "pb-20" : "pb-8"); // This adds 80px padding for the footer, and 32px for all other tiles
 
   const textColClass = [
-    "flex flex-col justify-center gap-4 p-6",
+    "flex flex-col justify-center gap-4 p-10",
     "max-w-3xl", "bg-slate-800/40 rounded-lg", "debug-content",
     isReversed ? "md:order-2 md:pl-6" : "md:order-1 md:pr-6",
   ].join(" ");
 
   const viewerColClass = [
-    "flex flex-col items-center justify-center gap-2 p-4",
+    "flex flex-col items-center justify-center gap-2 p-10",
     "aspect-[4/3] rounded-xl", "bg-slate-950/90 border border-slate-800/70 shadow-2xl",
     "debug-viewer",
     isReversed ? "md:order-1 md:pr-6" : "md:order-2 md:pl-6",
