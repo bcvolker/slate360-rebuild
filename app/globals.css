@@ -61,7 +61,6 @@ body {
   height: 100vh;
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
-  scroll-padding-top: var(--navbar-height);  /* e9 snap ignores nav (#A) */
   /* We remove the padding from here to let the section control it */
 }
 
@@ -104,4 +103,18 @@ body {
 }
 .debug-viewer {
   outline: 1px dashed rgba(0, 128, 255, 0.6);
+}
+
+/* --- TILE SECTION "CLEAN ROOM" FIX --- */
+
+/* This new class adds the flex centering and padding */
+.tile-section-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* This adds the extra padding to the last tile's grid for the footer */
+.tile-section-grid-last {
+  /* This class is now just a marker, padding will be handled in the component */
 }

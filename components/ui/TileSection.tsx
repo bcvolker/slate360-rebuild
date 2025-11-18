@@ -26,18 +26,20 @@ export default function TileSection({ tile, index }: TileSectionProps) {
   // IMPORTANT: Update this number to be (total number of tiles - 1)
   // If you have 8 tiles, this should be index === 7
   const isLastTile = index === 7;
-  const bullets: string[] = Array.isArray(tile?.bullets) ? tile.bullets : [];
+  const bullets: string[] = Array.isArray(tile?.bullets) ? tile?.bullets : [];
 
+  // This is the NEW, CLEAN sectionClass
   const sectionClass = [
-    "relative", "min-h-screen", "flex", "items-center", "justify-center",
-    "pt-28 md:pt-32", "home-gradient", "snap-start", "debug-section",
-    isLastTile ? "pb-48" : "pb-24", // This is the new footer fix
+    "relative", "h-screen", "home-gradient", "snap-start", "debug-section",
+    "tile-section-container" // This is our new, unique class
   ].join(" ");
 
+  // This is the NEW, CLEAN gridClass
   const gridClass =
     "mx-auto w-full max-w-6xl px-4 md:px-10 lg:px-24 " +
     "grid grid-cols-1 md:grid-cols-2 md:gap-12 items-center " +
-    (isLastTile ? "pb-24" : "");
+    "pt-20 " + // This is our padding-top (80px, same as var(--navbar-height))
+    (isLastTile ? "pb-20" : "pb-8"); // This adds 80px padding for the footer, and 32px for all other tiles
 
   const textColClass = [
     "flex flex-col justify-center gap-4 p-6",
