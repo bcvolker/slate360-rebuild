@@ -82,6 +82,11 @@ body {
     gap: 1rem;
   }
   nav.fixed { display: none; }  /* Hide rail */
+  
+  section[data-snap="tile"] {
+    height: auto;
+    min-height: 100vh;
+  }
 }
 
 /* DEBUG CLASSES: Visual markers for alignment (e9 active; remove post-verification) */
