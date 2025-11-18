@@ -2,9 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CSS VARIABLES: Viewer sizing for responsive control */
+/* CSS VARIABLES: Future-proof (accents, padding) */
 :root {
   --viewer-width: clamp(320px, 40vw, 720px);
+  --tile-padding: 3rem;
+  --navbar-height: 80px;
+  --accent: #B87333;  /* Easy swap for highlights */
 }
 
 html {
@@ -41,6 +44,7 @@ body {
 * {
   scrollbar-width: thin;
 }
+
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -54,4 +58,50 @@ body {
 
 .snap-scroll-section {
   scroll-margin-top: 5rem; /* leave for now, may be used for anchored links */
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-padding-top: var(--navbar-height);  /* e9 snap ignores nav (#A) */
+  /* We remove the padding from here to let the section control it */
+}
+
+/* HIDE SCROLLBAR */
+.snap-scroll-section {
+  scrollbar-width: none; /* Firefox */
+}
+.snap-scroll-section::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+/* MOBILE: Stack + hide rail (defer polish; #F) */
+@media (max-width: 768px) {
+  .snap-scroll-section { padding: 1rem; scroll-padding-top: 60px; }
+  /* We need to target the classes in TileSection directly */
+  /* This is a simple example, the gridClass in TileSection is better */
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+  }
+  nav.fixed { display: none; }  /* Hide rail */
+}
+
+/* DEBUG CLASSES: Visual markers for alignment (e9 active; remove post-verification) */
+.debug-midline {
+  position: fixed;
+  top: 50vh;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 0, 0, 0.5);
+  z-index: 50;
+  pointer-events: none;
+}
+.debug-section {
+  outline: 1px dashed rgba(255, 255, 0, 0.6);
+}
+.debug-content {
+  outline: 1px dashed rgba(0, 255, 0, 0.6);
+}
+.debug-viewer {
+  outline: 1px dashed rgba(0, 128, 255, 0.6);
 }
