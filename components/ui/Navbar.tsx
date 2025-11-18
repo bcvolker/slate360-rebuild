@@ -50,8 +50,14 @@ export default function Navbar() {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-700/40 bg-slate-900/40 backdrop-blur-xl">
-      <nav className="flex w-full items-center justify-between px-6 py-4 lg:px-8 bg-slate-950/90 backdrop-blur-md">
+    <header 
+      className="fixed top-0 z-50 w-full backdrop-blur-md transition-all"
+      style={{ 
+        backgroundColor: '#0B1014', 
+        borderBottom: '1px solid rgba(180, 110, 58, 0.25)' 
+      }}
+    >
+      <nav className="flex w-full items-center justify-between px-6 py-4 lg:px-8">
         {/* LOGO: closer to left edge */}
         <Link
           href="/"
@@ -70,7 +76,7 @@ export default function Navbar() {
         </Link>
 
         {/* DESKTOP NAV: pushed all the way to the right */}
-        <div className="ml-auto hidden items-center gap-6 text-sm font-medium text-slate-100 md:flex">
+        <div className="ml-auto hidden items-center gap-6 text-sm font-medium text-slate-300 md:flex">
           <div className="relative" ref={menuRef}>
             <button
               type="button"
@@ -98,21 +104,30 @@ export default function Navbar() {
             )}
           </div>
 
-          <Link href="/about" className="hover:text-sky-400 transition-colors">
-            About
-          </Link>
-          <Link href="/contact" className="hover:text-sky-400 transition-colors">
-            Contact
-          </Link>
-          <Link href="/subscribe" className="hover:text-sky-400 transition-colors">
-            Subscribe
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-lg border border-sky-500/70 bg-sky-500/20 px-4 py-2 text-sky-100 hover:bg-sky-500/30 hover:border-sky-400/70 transition-colors"
-          >
-            Login
-          </Link>
+          <nav className="hidden md:flex items-center gap-1">
+            {/* Contact */}
+            <Link href="/contact" className="group relative px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-300 transition-colors hover:text-[#4B9CD3]">
+              Contact
+              <span className="absolute bottom-1 left-3 right-3 h-[2px] scale-x-0 bg-gradient-to-r from-[#4B9CD3] via-[#B46E3A] to-[#4B9CD3] transition-transform duration-300 ease-out group-hover:scale-x-100" />
+            </Link>
+
+            {/* About */}
+            <Link href="/about" className="group relative px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-300 transition-colors hover:text-[#4B9CD3]">
+              About
+              <span className="absolute bottom-1 left-3 right-3 h-[2px] scale-x-0 bg-gradient-to-r from-[#4B9CD3] via-[#B46E3A] to-[#4B9CD3] transition-transform duration-300 ease-out group-hover:scale-x-100" />
+            </Link>
+
+            {/* Subscribe */}
+            <Link href="/subscribe" className="group relative px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-300 transition-colors hover:text-[#4B9CD3]">
+              Subscribe
+              <span className="absolute bottom-1 left-3 right-3 h-[2px] scale-x-0 bg-gradient-to-r from-[#4B9CD3] via-[#B46E3A] to-[#4B9CD3] transition-transform duration-300 ease-out group-hover:scale-x-100" />
+            </Link>
+
+            {/* Login Button */}
+            <Link href="/login" className="ml-4 rounded-full border border-[#4B9CD3]/60 bg-[#4B9CD3]/10 px-5 py-1.5 text-xs font-bold uppercase tracking-wider text-[#4B9CD3] hover:bg-[#4B9CD3]/20 hover:shadow-[0_0_15px_rgba(75,156,211,0.4)] transition-all">
+              Login
+            </Link>
+          </nav>
         </div>
 
         {/* MOBILE HAMBURGER: also aligned to the right */}
@@ -140,33 +155,33 @@ export default function Navbar() {
             className="fixed inset-0 bg-black/50 z-40 md:hidden"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="fixed top-16 right-3 left-3 rounded-2xl bg-slate-900/95 border border-slate-700 z-50 md:hidden shadow-2xl">
+          <div className="fixed top-16 right-3 left-3 rounded-2xl bg-[#0B1014] border border-[#B46E3A]/30 z-50 md:hidden shadow-2xl">
             <div className="mx-auto max-w-6xl px-4 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
               <div className="flex flex-col gap-1 text-sm">
                 <Link
                   href="/about"
-                  className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
+                  className="py-2 px-3 text-slate-100 hover:text-[#4B9CD3] hover:bg-[#11161C] rounded-lg transition-colors"
                   onClick={() => setMobileOpen(false)}
                 >
                   About
                 </Link>
                 <Link
                   href="/contact"
-                  className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
+                  className="py-2 px-3 text-slate-100 hover:text-[#4B9CD3] hover:bg-[#11161C] rounded-lg transition-colors"
                   onClick={() => setMobileOpen(false)}
                 >
                   Contact
                 </Link>
                 <Link
                   href="/subscribe"
-                  className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
+                  className="py-2 px-3 text-slate-100 hover:text-[#4B9CD3] hover:bg-[#11161C] rounded-lg transition-colors"
                   onClick={() => setMobileOpen(false)}
                 >
                   Subscribe
                 </Link>
                 <Link
                   href="/login"
-                  className="py-2 px-3 text-slate-200 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors"
+                  className="py-2 px-3 text-slate-100 hover:text-[#4B9CD3] hover:bg-[#11161C] rounded-lg transition-colors"
                   onClick={() => setMobileOpen(false)}
                 >
                   Login

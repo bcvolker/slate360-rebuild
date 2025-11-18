@@ -2,13 +2,13 @@
 import React, { useState, useEffect } from "react";
 
 const TILE_IDS = [
-  { id: "slate360", title: "Home" },
-  { id: "bim-studio", title: "BIM Studio" },
+  { id: "slate360", title: "Slate360" },
+  { id: "bim-studio", title: "Design Studio" },
   { id: "project-hub", title: "Project Hub" },
-  { id: "content-studio", title: "Content Studio" },
+  { id: "content-studio", title: "360 Content" },
   { id: "tour-builder", title: "360 Tour Builder" },
   { id: "geospatial", title: "Geospatial" },
-  { id: "vr-lab", title: "VR Lab" },
+  { id: "vr-lab", title: "Virtual Studio" },
   { id: "analytics", title: "Analytics" }
 ];
 
