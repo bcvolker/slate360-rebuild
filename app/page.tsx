@@ -1,4 +1,5 @@
 import TileSection from "@/components/ui/TileSection";
+import MobileTileContent from "@/components/MobileTileContent";
 
 const tiles = [
   { id: "slate360", eyebrow: "From Design to Reality", title: "Your vision, instantly realized.", subtitle: "Slate360 unifies BIM, 360 tours, analytics, VR, and geospatial tools into one command center for the built environment.", bullets: ["Access every workflow in one secure hub.", "Connect office and field teams in real time.", "Forecast risk, cost, and performance with AI.", "Plug into the tools and data you already use."], ctaLabel: "Request a demo", ctaHref: "#contact", viewerTitle: "Slate360 Viewer", viewerSubtitle: "Interactive tools and digital twins coming soon." },
@@ -16,7 +17,23 @@ export default function Home() {
     <>
       <div className="debug-midline" />
       {tiles.map((tile, index) => (
-        <TileSection key={tile.id} tile={tile} index={index} />
+        <div key={tile.id}>
+          {/* Desktop View - Original TileSection */}
+          <div className="hidden lg:flex w-full h-full">
+            <TileSection tile={tile} index={index} />
+          </div>
+          
+          {/* Mobile View - Compact Layout */}
+          <div className="lg:hidden w-full h-screen">
+            <MobileTileContent 
+              title={tile.title}
+              copy={tile.subtitle}
+              ctaLabel={tile.ctaLabel}
+              ctaHref={tile.ctaHref}
+              features={tile.bullets}
+            />
+          </div>
+        </div>
       ))}
     </>
   );
