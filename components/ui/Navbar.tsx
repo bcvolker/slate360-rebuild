@@ -51,7 +51,6 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 z-50 w-full border-b border-slate360-copper/20 bg-slate360-charcoal/60 backdrop-blur-md transition-all">
-      <div className="absolute top-0 left-1/2 bg-red-600 text-white font-bold z-[100] px-4 py-2">VERSION 5 - CACHE CHECK</div>
       <nav className="flex w-full items-center justify-between px-6 py-4 lg:px-8">
         {/* LOGO: closer to left edge */}
         <Link
