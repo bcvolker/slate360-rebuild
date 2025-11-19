@@ -15,7 +15,6 @@ const tiles = [
 export default function Home() {
   return (
     <>
-      <div className="debug-midline" />
       {tiles.map((tile, index) => (
         <div key={tile.id}>
           {/* Desktop View - Original TileSection */}

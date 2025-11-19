@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 interface Props {
   title: string;
@@ -8,39 +8,54 @@ interface Props {
   features?: string[];
 }
 
-export default function MobileTileContent({ title, copy, ctaLabel = "Learn More", ctaHref = "#", features = [] }: Props) {
+export default function MobileTileContent({
+  title,
+  copy,
+  ctaLabel = "Learn More",
+  ctaHref = "#",
+  features = [],
+}: Props) {
   return (
-    <div className="flex flex-col justify-center h-screen px-6 py-20 bg-slate360-charcoal snap-start">
-      {/* 1. Header Padding to prevent overlap */}
-      <div className="h-16 w-full" /> 
-      
-      {/* 2. Text Content */}
+    <section className="flex min-h-screen flex-col bg-slate360-charcoal px-6 pt-24 pb-16 snap-start">
+      {/* MAIN TEXT CARD */}
       <div className="flex-1 flex flex-col justify-center space-y-4 rounded-2xl border border-slate360-blue/30 bg-slate360-panel/90 p-8 shadow-blueGlow backdrop-blur-sm">
-        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate360-blue">Slate360</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate360-blue">
+          Slate360
+        </p>
         <h2 className="font-orbitron text-3xl text-slate-50">{title}</h2>
-        <p className="text-sm text-slate-300 leading-relaxed line-clamp-6">{copy}</p>
-        
-        {/* Features */}
-        <ul className="space-y-2">
-           {features.slice(0,3).map((f,i) => (
-             <li key={i} className="text-xs text-slate-400 flex gap-2">
-               <span className="text-slate360-copper">•</span> {f}
-             </li>
-           ))}
-        </ul>
+        <p className="text-sm text-slate-300 leading-relaxed line-clamp-6">
+          {copy}
+        </p>
+
+        {/* Feature bullets (max 3) */}
+        {features.length > 0 && (
+          <ul className="space-y-2">
+            {features.slice(0, 3).map((f, i) => (
+              <li key={i} className="flex gap-2 text-xs text-slate-400">
+                <span className="text-slate360-copper">•</span>
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
-      {/* 3. The Fix: Small Thumbnail Button instead of Giant Viewer */}
-      <div className="mt-6 w-full h-16 rounded-xl border border-slate360-blue/30 flex items-center justify-center bg-slate360-charcoalSoft cursor-pointer">
-         <span className="text-xs uppercase font-bold text-slate360-blue">Tap to View 3D Model ↗</span>
+      {/* MINI VIEWER STRIP */}
+      <div className="mt-6 h-16 w-full cursor-pointer rounded-xl border border-slate360-blue/30 bg-slate360-charcoalSoft flex items-center justify-center">
+        <span className="text-xs font-bold uppercase tracking-widest text-slate360-blue">
+          Tap to view 3D model ↗
+        </span>
       </div>
-      
-      {/* 4. CTA */}
-      <div className="mt-4 mb-12">
-         <Link href={ctaHref} className="block w-full py-4 text-center rounded-xl bg-slate360-blue text-white font-bold uppercase text-xs tracking-widest">
-            {ctaLabel}
-         </Link>
+
+      {/* CTA BUTTON */}
+      <div className="mt-4">
+        <Link
+          href={ctaHref}
+          className="block w-full rounded-xl bg-slate360-blue py-4 text-center text-xs font-bold uppercase tracking-widest text-white hover:bg-slate360-blue/90"
+        >
+          {ctaLabel}
+        </Link>
       </div>
-    </div>
+    </section>
   );
 }

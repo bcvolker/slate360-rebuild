@@ -85,16 +85,6 @@ body {
 }
 
 /* DEBUG CLASSES: Visual markers for alignment (e9 active; remove post-verification) */
-.debug-midline {
-  position: fixed;
-  top: 50vh;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: rgba(255, 0, 0, 0.5);
-  z-index: 50;
-  pointer-events: none;
-}
 .debug-section {
   outline: 1px dashed rgba(255, 255, 0, 0.6);
 }
