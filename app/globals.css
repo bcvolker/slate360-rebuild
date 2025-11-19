@@ -75,12 +75,12 @@ body {
 /* MOBILE: Stack + hide rail (defer polish; #F) */
 @media (max-width: 768px) {
   .snap-scroll-section { padding: 1rem; scroll-padding-top: 60px; }
-  /* We need to target the classes in TileSection directly */
-  /* This is a simple example, the gridClass in TileSection is better */
-  .grid {
-    grid-template-columns: 1fr !important;
+  
+  .tile-grid {
+    grid-template-columns: 1fr;
     gap: 1rem;
   }
+  
   nav.fixed { display: none; }  /* Hide rail */
   
   section[data-snap="tile"] {
