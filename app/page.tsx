@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <>
       {tiles.map((tile, index) => (
-        <div key={tile.id}>
+        <div key={tile.id} className="last:pb-24">
           {/* Desktop View - Original TileSection */}
           <div className="hidden lg:flex w-full h-full">
             <TileSection tile={tile} index={index} />
