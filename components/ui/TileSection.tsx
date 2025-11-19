@@ -30,28 +30,28 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
   // This is the NEW, CLEAN sectionClass
   const sectionClass = [
-    "relative", "h-screen", "home-gradient", "snap-start", "debug-section",
-    "tile-section-container" // This is our new, unique class
+    "relative", "snap-start", "home-gradient", "debug-section",
+    "flex min-h-screen items-start py-10 px-4 sm:px-8 lg:px-16 lg:items-center",
+    "tile-section-container"
   ].join(" ");
 
   // This is the NEW, CLEAN gridClass
   const gridClass =
-    "mx-auto w-full max-w-7xl px-4 md:px-10 lg:px-24 " +
-    "grid grid-cols-1 md:grid-cols-2 md:gap-12 items-center " +
-    "pt-20 " + // This is our padding-top (80px, same as var(--navbar-height))
-    (isLastTile ? "pb-40 md:pb-20" : "pb-8"); // Mobile gets extra padding (160px) for footer access, desktop gets 80px
+    "tile-grid mx-auto w-full max-w-6xl " +
+    "grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12 " +
+    (isLastTile ? "pb-40 md:pb-20" : "");
 
   const textColClass = [
-    "flex flex-col justify-center gap-4 px-10 py-12",
-    "min-h-[70vh]", "max-w-3xl", "bg-slate-800/40 rounded-lg", "debug-content",
-    isReversed ? "md:order-2 md:pl-6" : "md:order-1 md:pr-6",
+    "flex flex-col justify-start lg:justify-center gap-4 px-6 py-8 sm:px-10 sm:py-12",
+    "max-w-3xl bg-slate-800/40 rounded-lg debug-content",
+    isReversed ? "lg:order-2" : "lg:order-1",
   ].join(" ");
 
   const viewerColClass = [
-    "flex flex-col items-center justify-center gap-2 p-10",
-    "aspect-[4/3] rounded-xl", "bg-slate-950/90 border border-slate-800/70 shadow-2xl",
-    "debug-viewer",
-    isReversed ? "md:order-1 md:pr-6" : "md:order-2 md:pl-6",
+    "flex flex-col items-center justify-center gap-2 p-6 sm:p-8 lg:p-10",
+    "h-52 sm:h-60 lg:h-80 rounded-xl",
+    "bg-slate-950/90 border border-slate-800/70 shadow-2xl debug-viewer",
+    isReversed ? "lg:order-1" : "lg:order-2",
   ].join(" ");
 
   return (
