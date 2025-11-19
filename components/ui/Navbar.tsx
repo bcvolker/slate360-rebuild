@@ -71,7 +71,7 @@ export default function Navbar() {
         </Link>
 
         {/* DESKTOP NAV: pushed all the way to the right */}
-        <div className="ml-auto hidden items-center gap-6 text-sm font-medium text-slate-300 md:flex">
+        <div className="ml-auto hidden items-center gap-6 text-sm font-medium text-slate-300 lg:flex">
           <div className="relative" ref={menuRef}>
             <button
               type="button"
@@ -118,7 +118,7 @@ export default function Navbar() {
         </div>
 
         {/* MOBILE HAMBURGER: also aligned to the right */}
-        <div className="ml-auto flex items-center gap-3 md:hidden">
+        <div className="ml-auto flex items-center gap-3 lg:hidden">
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
@@ -139,10 +139,10 @@ export default function Navbar() {
       {mobileOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="fixed top-16 right-3 left-3 rounded-2xl bg-[#0B1014] border border-[#B46E3A]/30 z-50 md:hidden shadow-2xl">
+          <div className="fixed top-16 right-3 left-3 rounded-2xl bg-[#0B1014] border border-[#B46E3A]/30 z-50 lg:hidden shadow-2xl">
             <div className="mx-auto max-w-6xl px-4 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
               <div className="flex flex-col gap-1 text-sm">
                 <Link
