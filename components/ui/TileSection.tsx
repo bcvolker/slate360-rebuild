@@ -43,7 +43,9 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
   const textColClass = [
     "flex flex-col justify-center gap-4 px-10 py-12",
-    "min-h-[70vh]", "max-w-3xl", "bg-slate-800/40 rounded-lg", "debug-content",
+    "min-h-[70vh]", "max-w-3xl",
+    "rounded-2xl border border-slate360-blue/30 bg-slate360-panel/90 shadow-blueGlow backdrop-blur-sm",
+    "debug-content",
     isReversed ? "md:order-2 md:pl-6" : "md:order-1 md:pr-6",
   ].join(" ");
 
@@ -60,19 +62,19 @@ export default function TileSection({ tile, index }: TileSectionProps) {
         {/* TEXT / CONTENT BOX */}
         <div className={textColClass}>
           {tile?.eyebrow && (
-            <p className="text-sm uppercase text-blue-400">{tile.eyebrow}</p>
+            <p className="text-slate360-blue font-bold tracking-widest uppercase text-xs">{tile.eyebrow}</p>
           )}
           {tile?.title && (
-            <h2 className="text-3xl font-bold text-white">{tile.title}</h2>
+            <h2 className="text-3xl font-bold text-slate-50 font-orbitron tracking-wide">{tile.title}</h2>
           )}
           {tile?.subtitle && (
-            <p className="text-lg text-slate-300">{tile.subtitle}</p>
+            <p className="text-lg text-slate-300 leading-relaxed">{tile.subtitle}</p>
           )}
           {bullets.length > 0 && (
             <ul className="space-y-2 text-slate-300">
               {bullets.map((item: string) => (
                 <li key={item} className="flex items-start">
-                  <span className="text-blue-400 mr-2">•</span>
+                  <span className="text-slate360-blue mr-2">•</span>
                   <span>{item}</span>
                 </li>
               ))}

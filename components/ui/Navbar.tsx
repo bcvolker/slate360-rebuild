@@ -50,13 +50,8 @@ export default function Navbar() {
   };
 
   return (
-    <header 
-      className="fixed top-0 z-50 w-full backdrop-blur-md transition-all"
-      style={{ 
-        backgroundColor: '#0B1014', 
-        borderBottom: '1px solid rgba(180, 110, 58, 0.25)' 
-      }}
-    >
+    <header className="fixed top-0 z-50 w-full border-b border-slate360-copper/20 bg-slate360-charcoal/60 backdrop-blur-md transition-all">
+      <div className="absolute top-0 left-1/2 bg-red-600 text-white font-bold z-[100] px-4 py-2">VERSION 5 - CACHE CHECK</div>
       <nav className="flex w-full items-center justify-between px-6 py-4 lg:px-8">
         {/* LOGO: closer to left edge */}
         <Link
@@ -104,27 +99,19 @@ export default function Navbar() {
             )}
           </div>
 
-          <nav className="hidden md:flex items-center gap-1">
-            {/* Contact */}
-            <Link href="/contact" className="group relative px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-300 transition-colors hover:text-[#4B9CD3]">
-              Contact
-              <span className="absolute bottom-1 left-3 right-3 h-[2px] scale-x-0 bg-gradient-to-r from-[#4B9CD3] via-[#B46E3A] to-[#4B9CD3] transition-transform duration-300 ease-out group-hover:scale-x-100" />
-            </Link>
-
-            {/* About */}
-            <Link href="/about" className="group relative px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-300 transition-colors hover:text-[#4B9CD3]">
-              About
-              <span className="absolute bottom-1 left-3 right-3 h-[2px] scale-x-0 bg-gradient-to-r from-[#4B9CD3] via-[#B46E3A] to-[#4B9CD3] transition-transform duration-300 ease-out group-hover:scale-x-100" />
-            </Link>
-
-            {/* Subscribe */}
-            <Link href="/subscribe" className="group relative px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-300 transition-colors hover:text-[#4B9CD3]">
-              Subscribe
-              <span className="absolute bottom-1 left-3 right-3 h-[2px] scale-x-0 bg-gradient-to-r from-[#4B9CD3] via-[#B46E3A] to-[#4B9CD3] transition-transform duration-300 ease-out group-hover:scale-x-100" />
-            </Link>
-
-            {/* Login Button */}
-            <Link href="/login" className="ml-4 rounded-full border border-[#4B9CD3]/60 bg-[#4B9CD3]/10 px-5 py-1.5 text-xs font-bold uppercase tracking-wider text-[#4B9CD3] hover:bg-[#4B9CD3]/20 hover:shadow-[0_0_15px_rgba(75,156,211,0.4)] transition-all">
+          <nav className="hidden md:flex items-center gap-8">
+            {['Contact', 'About', 'Subscribe'].map((label) => (
+              <Link 
+                key={label} 
+                href={`/${label.toLowerCase()}`} 
+                className="group relative text-xs font-bold uppercase tracking-widest text-slate-300 transition-colors hover:text-slate360-blue"
+              >
+                {label}
+                {/* The Copper Line Animation */}
+                <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-slate360-blue via-slate360-copper to-slate360-blue transition-transform duration-300 ease-out group-hover:scale-x-100" />
+              </Link>
+            ))}
+            <Link href="/login" className="ml-4 rounded-full border border-slate360-blue/50 bg-slate360-blue/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-slate360-blue hover:bg-slate360-blue/20 hover:shadow-blueGlow transition-all">
               Login
             </Link>
           </nav>

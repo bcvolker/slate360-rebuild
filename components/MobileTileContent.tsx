@@ -15,7 +15,7 @@ export default function MobileTileContent({ title, copy, ctaLabel = "Learn More"
       <div className="h-16 w-full" /> 
       
       {/* 2. Text Content */}
-      <div className="flex-1 flex flex-col justify-center space-y-4">
+      <div className="flex-1 flex flex-col justify-center space-y-4 rounded-2xl border border-slate360-blue/30 bg-slate360-panel/90 p-8 shadow-blueGlow backdrop-blur-sm">
         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate360-blue">Slate360</p>
         <h2 className="font-orbitron text-3xl text-slate-50">{title}</h2>
         <p className="text-sm text-slate-300 leading-relaxed line-clamp-6">{copy}</p>

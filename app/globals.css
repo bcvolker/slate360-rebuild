@@ -21,12 +21,7 @@ body {
 
 /* HOME GRADIENT: Reusable gradient for each tile section */
 .home-gradient {
-  background: linear-gradient(
-    to bottom,
-    rgb(15, 23, 42) 0%,
-    rgb(37, 99, 235) 45%,
-    rgb(15, 23, 42) 100%
-  );
+  background: linear-gradient(to bottom, #0B1014 0%, #141A21 100%);
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
