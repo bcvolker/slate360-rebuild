@@ -47,6 +47,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
     "rounded-2xl border border-slate360-blue/30 bg-slate360-panel/90 shadow-blueGlow backdrop-blur-sm",
     "debug-content",
     isReversed ? "md:order-2 md:pl-6" : "md:order-1 md:pr-6",
+    "tile-panel",
   ].join(" ");
 
   const viewerColClass = [

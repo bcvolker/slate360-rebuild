@@ -10,6 +10,7 @@
   --accent: #B87333;  /* Easy swap for highlights */
 }
 
+/* Smooth scrolling for in-page jumps */
 html {
   scroll-behavior: smooth;
 }
@@ -19,23 +20,64 @@ body {
   height: 100%;
 }
 
-/* HOME GRADIENT: Reusable gradient for each tile section */
+/* BODY: Cinematic blue base */
+body {
+  min-height: 100vh;
+  scroll-behavior: smooth;
+  background: radial-gradient(circle at 0% 0%, #1d4ed822 0, transparent 55%),
+              radial-gradient(circle at 100% 100%, #22d3ee22 0, transparent 55%),
+              linear-gradient(160deg, #020617 0%, #020c1b 30%, #0b1736 65%, #020617 100%);
+  color: rgb(248, 250, 252);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+}
+
+/* REUSABLE SECTION GRADIENT: each tile sits on this */
 .home-gradient {
-  background: linear-gradient(to bottom, #0B1014 0%, #141A21 100%);
+  position: relative;
+  background:
+    radial-gradient(circle at 0% 0%, #1d4ed833 0, transparent 55%),
+    radial-gradient(circle at 100% 0%, #4f46e533 0, transparent 55%),
+    radial-gradient(circle at 50% 100%, #22d3ee33 0, transparent 55%),
+    linear-gradient(150deg, #020617 0%, #020d1f 30%, #0f172a 60%, #020617 100%);
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
 }
 
-/* BODY: Solid background only */
-body {
-  min-height: 100vh;
-  scroll-behavior: smooth;
-  background-color: #020617;
-  color: rgb(248, 250, 252);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+/* POLISHED SITE HEADER: applied via `site-header` class on <header> */
+.site-header {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.25) 0, transparent 55%),
+    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.2) 0, transparent 55%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.9));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow:
+    0 0 25px rgba(56, 189, 248, 0.25),
+    0 18px 40px rgba(15, 23, 42, 0.9);
 }
 
+/* TILE CONTENT PANEL: subtle card on top of background */
+.tile-panel {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.22) 0, transparent 55%),
+    linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.94));
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  box-shadow:
+    0 0 25px rgba(15, 23, 42, 0.9),
+    0 0 30px rgba(37, 99, 235, 0.25);
+}
+
+/* FOOTER BAR: matches header polish when we hook it up */
+.footer-bar {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.3) 0, transparent 60%),
+    linear-gradient(180deg, #020617 0%, #020617 35%, #020617 100%);
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* Scrollbar tweaks */
 * {
   scrollbar-width: thin;
 }
@@ -51,40 +93,42 @@ body {
   border-radius: 9999px;
 }
 
+/* SNAP-SCROLL CONTAINER (desktop) */
 .snap-scroll-section {
   scroll-margin-top: 5rem; /* leave for now, may be used for anchored links */
   height: 100vh;
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
-  /* We remove the padding from here to let the section control it */
-}
-
-/* HIDE SCROLLBAR */
-.snap-scroll-section {
   scrollbar-width: none; /* Firefox */
 }
+
 .snap-scroll-section::-webkit-scrollbar {
   display: none; /* Safari and Chrome */
 }
 
-/* MOBILE: Stack + hide rail (defer polish; #F) */
+/* MOBILE: stack tiles and hide rail */
 @media (max-width: 768px) {
-  .snap-scroll-section { padding: 1rem; scroll-padding-top: 60px; }
-  
+  .snap-scroll-section {
+    padding: 1rem;
+    scroll-padding-top: 60px;
+  }
+
   .tile-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
-  nav.fixed { display: none; }  /* Hide rail */
-  
+
+  nav.fixed {
+    display: none; /* Hide rail */
+  }
+
   section[data-snap="tile"] {
     height: auto;
     min-height: 100vh;
   }
 }
 
-/* DEBUG CLASSES: Visual markers for alignment (e9 active; remove post-verification) */
+/* DEBUG CLASSES – remove when we’re done */
 .debug-section {
   outline: 1px dashed rgba(255, 255, 0, 0.6);
 }
@@ -95,16 +139,13 @@ body {
   outline: 1px dashed rgba(0, 128, 255, 0.6);
 }
 
-/* --- TILE SECTION "CLEAN ROOM" FIX --- */
-
-/* This new class adds the flex centering and padding */
+/* TILE SECTION “CLEAN ROOM” FIX */
 .tile-section-container {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* This adds the extra padding to the last tile's grid for the footer */
 .tile-section-grid-last {
-  /* This class is now just a marker, padding will be handled in the component */
+  /* Marker only – padding handled in component */
 }
