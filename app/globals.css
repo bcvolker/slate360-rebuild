@@ -20,13 +20,11 @@ body {
   height: 100%;
 }
 
-/* BODY: Cinematic blue base */
+/* BODY: UNC-style lighter blue gradient */
 body {
   min-height: 100vh;
   scroll-behavior: smooth;
-  background: radial-gradient(circle at 0% 0%, #1d4ed822 0, transparent 55%),
-              radial-gradient(circle at 100% 100%, #22d3ee22 0, transparent 55%),
-              linear-gradient(160deg, #020617 0%, #020c1b 30%, #0b1736 65%, #020617 100%);
+  background: radial-gradient(circle at 50% 0%, #4B9CD3 0%, #2A4F7A 50%, #0B1014 100%);
   color: rgb(248, 250, 252);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
 }
@@ -34,11 +32,7 @@ body {
 /* REUSABLE SECTION GRADIENT: each tile sits on this */
 .home-gradient {
   position: relative;
-  background:
-    radial-gradient(circle at 0% 0%, #1d4ed833 0, transparent 55%),
-    radial-gradient(circle at 100% 0%, #4f46e533 0, transparent 55%),
-    radial-gradient(circle at 50% 100%, #22d3ee33 0, transparent 55%),
-    linear-gradient(150deg, #020617 0%, #020d1f 30%, #0f172a 60%, #020617 100%);
+  background: transparent;
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
@@ -46,10 +40,7 @@ body {
 
 /* POLISHED SITE HEADER: applied via `site-header` class on <header> */
 .site-header {
-  background:
-    radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.25) 0, transparent 55%),
-    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.2) 0, transparent 55%),
-    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.9));
+  background: transparent;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(148, 163, 184, 0.4);
@@ -60,9 +51,7 @@ body {
 
 /* TILE CONTENT PANEL: subtle card on top of background */
 .tile-panel {
-  background:
-    radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.22) 0, transparent 55%),
-    linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.94));
+  background: transparent;
   border: 1px solid rgba(148, 163, 184, 0.55);
   box-shadow:
     0 0 25px rgba(15, 23, 42, 0.9),
@@ -128,18 +117,14 @@ body {
   }
 }
 
-/* DEBUG CLASSES – remove when we’re done */
-.debug-section {
-  outline: 1px dashed rgba(255, 255, 0, 0.6);
-}
-.debug-content {
-  outline: 1px dashed rgba(0, 255, 0, 0.6);
-}
+/* DEBUG CLASSES – remove when we're done */
+.debug-section,
+.debug-content,
 .debug-viewer {
-  outline: 1px dashed rgba(0, 128, 255, 0.6);
+  outline: none;
 }
 
-/* TILE SECTION “CLEAN ROOM” FIX */
+/* TILE SECTION "CLEAN ROOM" FIX */
 .tile-section-container {
   display: flex;
   align-items: center;

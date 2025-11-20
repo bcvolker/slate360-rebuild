@@ -30,7 +30,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
   // This is the NEW, CLEAN sectionClass
   const sectionClass = [
-    "relative", "h-screen", "home-gradient", "snap-start", "debug-section",
+    "relative", "h-screen", "home-gradient", "snap-start",
     "tile-section-container" // This is our new, unique class
   ].join(" ");
 
@@ -42,18 +42,16 @@ export default function TileSection({ tile, index }: TileSectionProps) {
     (isLastTile ? "pb-40 md:pb-20" : "pb-8"); // Mobile gets extra padding (160px) for footer access, desktop gets 80px
 
   const textColClass = [
-    "flex flex-col justify-center gap-4 px-10 py-12",
-    "min-h-[70vh]", "max-w-3xl",
-    "rounded-2xl border border-slate360-blue/30 bg-slate360-panel/90 shadow-blueGlow backdrop-blur-sm",
-    "debug-content",
+    "flex flex-col justify-center gap-4",
+    "px-10 py-12",
+    "min-h-[70vh] max-w-3xl",
+    "text-left",
     isReversed ? "md:order-2 md:pl-6" : "md:order-1 md:pr-6",
-    "tile-panel",
   ].join(" ");
 
   const viewerColClass = [
     "flex flex-col items-center justify-center gap-2 p-10",
     "aspect-[4/3] rounded-xl", "bg-slate-950/90 border border-slate-800/70 shadow-2xl",
-    "debug-viewer",
     isReversed ? "md:order-1 md:pr-6" : "md:order-2 md:pl-6",
   ].join(" ");
 
@@ -113,13 +111,12 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
       {/* THIN FOOTER STRIP – ONLY ON LAST TILE */}
       {isLastTile && (
-        <footer className="absolute bottom-0 left-0 right-0 h-16 border-t border-slate-800/70 bg-slate-950/90 backdrop-blur-md text-slate-400">
-          <div className="mx-auto flex h-full max-w-7xl items-center px-6 text-xs lg:px-8 flex-wrap gap-4">
-            <Link href="/about" className="hover:text-slate-200 transition-colors">About</Link>
-            <Link href="/contact" className="hover:text-slate-200 transition-colors">Contact</Link>
-            <Link href="/subscribe" className="hover:text-slate-200 transition-colors">Subscribe</Link>
-            <Link href="/privacy" className="hover:text-slate-200 transition-colors">Privacy</Link>
-            <span className="ml-auto text-[10px] sm:text-xs">© 2025 Slate360. All rights reserved.</span>
+        <footer className="mt-8 border-t border-slate360-blue/30 bg-slate-950/70 backdrop-blur-md">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 text-xs text-slate-300">
+            <Link href="/about" className="relative px-2 py-1 hover:text-slate360-blue transition-colors duration-200">About</Link>
+            <Link href="/contact" className="relative px-2 py-1 hover:text-slate360-blue transition-colors duration-200">Contact</Link>
+            <Link href="/subscribe" className="relative px-2 py-1 hover:text-slate360-blue transition-colors duration-200">Subscribe</Link>
+            <Link href="/privacy" className="relative px-2 py-1 hover:text-slate360-blue transition-colors duration-200">Privacy</Link>
           </div>
         </footer>
       )}
