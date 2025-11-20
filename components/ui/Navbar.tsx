@@ -50,7 +50,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="fixed top-0 z-50 w-full border-b border-slate360-blue/40 bg-slate-900/75 backdrop-blur-md shadow-[0_10px_30px_rgba(15,23,42,0.75)]">
+    <header className="site-header fixed top-0 z-50 w-full">
       <nav className="flex w-full items-center justify-between px-6 py-4 lg:px-8">
         {/* LOGO: closer to left edge */}
         <Link
@@ -81,14 +81,14 @@ export default function Navbar() {
               <span className="text-xs">▾</span>
             </button>
             {menuOpen && (
-              <div className="absolute right-0 mt-2 w-64 max-h-[60vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-950 shadow-2xl">
-                <div className="p-2 space-y-0.5">
+              <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-[rgba(5,10,22,0.96)] border border-[color:var(--slate360-copper-soft)] shadow-[0_22px_45px_rgba(15,23,42,0.9)] backdrop-blur-xl py-2">
+                <div className="max-h-[60vh] overflow-y-auto space-y-0.5 px-2">
                   {TILE_LINKS.map((item) => (
                     <button
                       key={item.id}
                       type="button"
                       onClick={() => handleTileClick(item.id)}
-                      className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/90 hover:text-white transition-colors"
+                      className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[rgba(184,115,51,0.16)] hover:text-[color:var(--slate360-blue-soft)] transition-colors duration-150"
                     >
                       {item.label}
                     </button>

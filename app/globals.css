@@ -8,6 +8,13 @@
   --tile-padding: 3rem;
   --navbar-height: 80px;
   --accent: #B87333;  /* Easy swap for highlights */
+  --slate360-blue: #4f9dfd;         /* UNC-ish primary */
+  --slate360-blue-soft: #7bb5ff;    /* softer highlight */
+  --slate360-blue-deep: #1f2937;    /* mid-slate, not navy */
+  --slate360-header: #0b1220;       /* header background */
+  --slate360-header-border: rgba(255, 255, 255, 0.06);
+  --slate360-copper: #b87333;       /* muted non-orange copper */
+  --slate360-copper-soft: rgba(184, 115, 51, 0.6);
 }
 
 /* Smooth scrolling for in-page jumps */
@@ -20,13 +27,17 @@ body {
   height: 100%;
 }
 
-/* BODY: UNC-style lighter blue gradient */
+/* BODY: Lighter executive gradient */
 body {
   min-height: 100vh;
   scroll-behavior: smooth;
-  background: radial-gradient(circle at 50% 0%, #4B9CD3 0%, #2A4F7A 50%, #0B1014 100%);
   color: rgb(248, 250, 252);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  background:
+    radial-gradient(circle at 15% -20%, rgba(125, 195, 255, 0.9), transparent 55%),
+    radial-gradient(circle at 85% 120%, rgba(46, 78, 138, 0.9), transparent 55%),
+    linear-gradient(to bottom, var(--slate360-blue) 0%, #2b3b52 55%, var(--slate360-blue-deep) 100%);
+  background-attachment: fixed;
 }
 
 /* REUSABLE SECTION GRADIENT: each tile sits on this */
@@ -40,13 +51,13 @@ body {
 
 /* POLISHED SITE HEADER: applied via `site-header` class on <header> */
 .site-header {
-  background: transparent;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
-  box-shadow:
-    0 0 25px rgba(56, 189, 248, 0.25),
-    0 18px 40px rgba(15, 23, 42, 0.9);
+  background: linear-gradient(to bottom,
+    rgba(11, 18, 32, 0.96),
+    rgba(11, 18, 32, 0.92)
+  );
+  border-bottom: 1px solid var(--slate360-header-border);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(18px);
 }
 
 /* TILE CONTENT PANEL: subtle card on top of background */
@@ -58,12 +69,61 @@ body {
     0 0 30px rgba(37, 99, 235, 0.25);
 }
 
+/* TRANSPARENT TILE SURFACES */
+.tile-text-surface,
+.tile-viewer-surface {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
 /* FOOTER BAR: matches header polish when we hook it up */
 .footer-bar {
   background:
     radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.3) 0, transparent 60%),
     linear-gradient(180deg, #020617 0%, #020617 35%, #020617 100%);
   border-top: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* SLATE360 FOOTER STYLING */
+.slate360-footer {
+  background: rgba(5, 12, 24, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 -18px 40px rgba(15, 23, 42, 0.7);
+}
+
+.slate360-footer a {
+  position: relative;
+  transition: color 150ms ease, transform 150ms ease;
+}
+
+.slate360-footer a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    var(--slate360-blue),
+    var(--slate360-copper),
+    var(--slate360-blue)
+  );
+  transform-origin: center;
+  transform: scaleX(0);
+  transition: transform 150ms ease-out;
+}
+
+.slate360-footer a:hover {
+  color: var(--slate360-blue-soft);
+  transform: translateY(-1px);
+}
+
+.slate360-footer a:hover::after {
+  transform: scaleX(1);
 }
 
 /* Scrollbar tweaks */

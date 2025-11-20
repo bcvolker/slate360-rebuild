@@ -43,15 +43,16 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
   const textColClass = [
     "flex flex-col justify-center gap-4",
-    "px-10 py-12",
-    "min-h-[70vh] max-w-3xl",
-    "text-left",
+    "px-8 py-10",
+    "min-h-[60vh] max-w-3xl",
+    "tile-text-surface",
     isReversed ? "md:order-2 md:pl-6" : "md:order-1 md:pr-6",
   ].join(" ");
 
   const viewerColClass = [
-    "flex flex-col items-center justify-center gap-2 p-10",
-    "aspect-[4/3] rounded-xl", "bg-slate-950/90 border border-slate-800/70 shadow-2xl",
+    "flex flex-col items-center justify-center gap-3 p-8",
+    "aspect-[4/3]",
+    "tile-viewer-surface",
     isReversed ? "md:order-1 md:pr-6" : "md:order-2 md:pl-6",
   ].join(" ");
 
@@ -111,12 +112,12 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
       {/* THIN FOOTER STRIP – ONLY ON LAST TILE */}
       {isLastTile && (
-        <footer className="mt-8 border-t border-slate360-blue/30 bg-slate-950/70 backdrop-blur-md">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 text-xs text-slate-300">
-            <Link href="/about" className="relative px-2 py-1 hover:text-slate360-blue transition-colors duration-200">About</Link>
-            <Link href="/contact" className="relative px-2 py-1 hover:text-slate360-blue transition-colors duration-200">Contact</Link>
-            <Link href="/subscribe" className="relative px-2 py-1 hover:text-slate360-blue transition-colors duration-200">Subscribe</Link>
-            <Link href="/privacy" className="relative px-2 py-1 hover:text-slate360-blue transition-colors duration-200">Privacy</Link>
+        <footer className="slate360-footer w-full text-xs text-slate-200">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 gap-4">
+            <Link href="/about">About</Link>
+            <Link href="/contact">Contact</Link>
+            <Link href="/subscribe">Subscribe</Link>
+            <Link href="/privacy">Privacy</Link>
           </div>
         </footer>
       )}
