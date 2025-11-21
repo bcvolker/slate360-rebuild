@@ -48,11 +48,11 @@ export default function TileSection({ tile, index }: TileSectionProps) {
     <section
       id={tile?.id}
       data-snap="tile"
-      className={`relative h-screen snap-start overflow-hidden ${isFirstTile ? "debug-section-center" : ""}`}
+      className={`relative min-h-[calc(100vh-4.5rem)] snap-start overflow-hidden ${isFirstTile ? "debug-section-center" : ""}`}
     >
       <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-red-500/70 z-50" />
       {/* Main content - perfectly centered */}
-      <div className="h-full flex items-center justify-center px-6 lg:px-8">
+      <div className="h-full flex items-center justify-center px-6 lg:px-8 pt-16 pb-16 lg:pt-20 lg:pb-20">
         <div className="w-full max-w-7xl mx-auto">
           <div className="grid gap-12 lg:gap-16 lg:grid-cols-2 items-center">
             <div className={textColClass}>

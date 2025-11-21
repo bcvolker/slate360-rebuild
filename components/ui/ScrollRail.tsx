@@ -54,7 +54,7 @@ export default function ScrollRail() {
 
   // Desktop only
   return (
-    <div className="hidden lg:flex fixed top-1/2 -translate-y-1/2 z-40 right-8 lg:right-12 xl:right-20 2xl:right-28">
+    <div className="hidden lg:flex fixed top-1/2 -translate-y-1/2 z-40 right-2 sm:right-3 md:right-4 lg:right-6 xl:right-8 2xl:right-10">
       <nav className="flex flex-col items-center justify-center gap-3 rounded-full border border-slate360-blue/40 bg-slate360-charcoal/90 px-4 py-5 shadow-blueGlow backdrop-blur-md">
         {SECTIONS.map(section => {
           const isActive = section.id === activeId;
