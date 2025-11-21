@@ -1,119 +1,107 @@
+.slate360-footer a {
+  position: relative;
+  display: inline-block;
+  padding-inline: 0.75rem;
+  color: inherit;
+  text-decoration: none;
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* CSS VARIABLES: Future-proof (accents, padding) */
 :root {
   --viewer-width: clamp(320px, 40vw, 720px);
   --tile-padding: 3rem;
   --navbar-height: 80px;
-  --accent: #B87333;  /* Easy swap for highlights */
-  
-  /* Updated Slate360 color tokens */
-  --slate360-blue-top: #4FA9FF;      /* bright UNC-style blue */
-  --slate360-blue-mid: #2C8DFF;      /* mid-tone */
-  --slate360-blue-bottom: #071726;   /* deep base, but not pure black */
-  --slate360-header-bg: #0C1117;     /* slate grey for header/footer, NOT navy */
-  --slate360-panel-bg: transparent;  /* text content panels invisible */
-  --slate360-viewer-bg: #020617;     /* very dark navy/black for viewer only */
-  --slate360-copper: #B87333;        /* muted copper, not orange */
+  --slate360-blue-top: #4FA9FF;
+  --slate360-blue-mid: #2C8DFF;
+  --slate360-blue-bottom: #071726;
+  --slate360-header-bg: #0C1117;
+  --slate360-copper: #B87333;
   --slate360-copper-soft: rgba(184, 115, 51, 0.45);
 }
 
-/* Smooth scrolling for in-page jumps */
-html {
-  scroll-behavior: smooth;
-}
+html, body { height: 100%; }
+html { scroll-behavior: smooth; }
 
-html,
-body {
-  height: 100%;
-}
-
-/* BODY: Lighter, polished UNC-style gradient */
 body {
   min-height: 100vh;
-  scroll-behavior: smooth;
   color: rgb(248, 250, 252);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
-  background: radial-gradient(
-    circle at 20% 0%,
-    var(--slate360-blue-top) 0%,
-    var(--slate360-blue-mid) 35%,
-    var(--slate360-blue-bottom) 100%
-  );
+  background: radial-gradient(circle at 20% 0%, var(--slate360-blue-top) 0%, var(--slate360-blue-mid) 35%, var(--slate360-blue-bottom) 100%);
   background-attachment: fixed;
 }
 
-/* REUSABLE SECTION GRADIENT: each tile sits on this */
-.home-gradient {
-  position: relative;
-  background: transparent;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-}
+.home-gradient { background: transparent; }
 
-/* POLISHED SITE HEADER: applied via `site-header` class on <header> */
 .site-header {
-  background: linear-gradient(
-    to bottom,
-    rgba(15, 23, 42, 0.92),
-    rgba(30, 64, 175, 0.88)
-  );
+  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.92), rgba(30, 64, 175, 0.88));
   border-bottom: 1px solid rgba(148, 163, 184, 0.35);
   backdrop-filter: blur(18px);
   box-shadow: 0 12px 40px rgba(15, 23, 42, 0.7);
 }
 
-/* TILE CONTENT PANEL: visually invisible */
-.tile-panel {
-  background-color: transparent;
-  border: none;
-  box-shadow: none;
-}
-
-/* TRANSPARENT TEXT SURFACE (invisible) */
-.tile-text-surface {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-}
-
-/* DARK VIEWER SURFACE - CARD */
 .tile-viewer-surface {
-  background: radial-gradient(circle at top left, #020617 0%, #020617 45%, #020617 100%);
+  background: #020617;
   border-radius: 1.25rem;
   border: 1px solid rgba(15, 23, 42, 0.8);
-  box-shadow: 
-    0 0 0 1px rgba(148, 163, 184, 0.2),
-    0 22px 55px rgba(15, 23, 42, 0.95);
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.2), 0 22px 55px rgba(15, 23, 42, 0.95);
 }
 
-/* FOOTER BAR: matches header polish when we hook it up */
-.footer-bar {
-  background:
-    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.3) 0, transparent 60%),
-    linear-gradient(180deg, #020617 0%, #020617 35%, #020617 100%);
-  border-top: 1px solid rgba(148, 163, 184, 0.3);
-}
-
-/* SLATE360 FOOTER STYLING */
 .slate360-footer {
-  background: radial-gradient(
-    circle at top,
-    rgba(15, 23, 42, 0.98),
-    rgba(15, 23, 42, 0.92)
-  );
+  background: radial-gradient(circle at top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.92));
   border-top: 1px solid rgba(148, 163, 184, 0.35);
   box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.85);
 }
 
 .slate360-footer a {
   position: relative;
+  display: inline-block;
   padding-inline: 0.75rem;
+  color: inherit;
   text-decoration: none;
-  transition: color 150ms ease;
+}
+
+.slate360-footer a::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -6px; height: 2px;
+  background: linear-gradient(to right, var(--slate360-blue-top), var(--slate360-copper), var(--slate360-blue-top));
+  border-radius: 9999px;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 300ms ease-out;
+}
+
+.slate360-footer a:hover { color: #e5f1ff; }
+.slate360-footer a:hover::after { transform: scaleX(1); }
+
+.snap-scroll-section {
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+}
+.snap-scroll-section::-webkit-scrollbar { display: none; }
+
+.debug-section-center::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  border-top: 1px dashed rgba(255, 0, 0, 0.7);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.debug-horizontal-line {
+  position: fixed;
+  top: var(--debug-line-y, 0px);
+  left: 0;
+  width: 100vw;
+  height: 2px;
+  background: red;
+  z-index: 99999;
+  pointer-events: none;
 }
 
 .slate360-footer a::after {
@@ -121,19 +109,13 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -0.2rem;
+  bottom: -6px;
   height: 2px;
+  background: linear-gradient(to right, var(--slate360-blue), var(--slate360-copper), var(--slate360-blue));
   border-radius: 9999px;
-  background: linear-gradient(
-    to right,
-    rgba(148, 163, 184, 0),
-    var(--slate360-copper),
-    rgba(148, 163, 184, 0)
-  );
-  opacity: 0;
-  transform: scaleX(0.7);
+  transform: scaleX(0);
   transform-origin: center;
-  transition: opacity 150ms ease, transform 180ms ease;
+  transition: transform 300ms ease-out;
 }
 
 .slate360-footer a:hover {
@@ -141,73 +123,5 @@ body {
 }
 
 .slate360-footer a:hover::after {
-  opacity: 1;
   transform: scaleX(1);
 }
-
-/* Scrollbar tweaks */
-* {
-  scrollbar-width: thin;
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(15, 23, 42, 0.7);
-  border-radius: 9999px;
-}
-
-/* SNAP-SCROLL CONTAINER (desktop) */
-.snap-scroll-section {
-  scroll-margin-top: 5rem; /* leave for now, may be used for anchored links */
-  height: 100vh;
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;
-  scrollbar-width: none; /* Firefox */
-}
-
-.snap-scroll-section::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
-}
-
-/* MOBILE: stack tiles and hide rail */
-@media (max-width: 768px) {
-  .snap-scroll-section {
-    padding: 1rem;
-    scroll-padding-top: 60px;
-  }
-
-  .tile-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  nav.fixed {
-    display: none; /* Hide rail */
-  }
-
-  section[data-snap="tile"] {
-    height: auto;
-    min-height: 100vh;
-  }
-}
-
-/* DEBUG CLASSES – remove when we're done */
-.debug-section,
-.debug-content,
-.debug-viewer {
-  outline: none;
-}
-
-/* TILE SECTION CENTERING */
-.tile-section-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* .tile-section-grid-last - removed empty ruleset */

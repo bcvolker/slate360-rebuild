@@ -15,11 +15,7 @@ export default function DesktopHome() {
   return (
     <>
       {tiles.map((tile, index) => (
-        <div key={tile.id} className="last:pb-24">
-          <div className="w-full h-full">
-            <TileSection tile={tile} index={index} />
-          </div>
-        </div>
+        <TileSection key={tile.id} tile={tile} index={index} />
       ))}
     </>
   );
