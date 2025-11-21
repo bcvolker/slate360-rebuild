@@ -58,12 +58,12 @@ body {
 .site-header {
   background: linear-gradient(
     to bottom,
-    rgba(12, 17, 23, 0.96),
-    rgba(12, 17, 23, 0.88)
+    rgba(15, 23, 42, 0.92),
+    rgba(30, 64, 175, 0.88)
   );
-  border-bottom: 1px solid rgba(15, 23, 42, 0.4);
-  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.8);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
   backdrop-filter: blur(18px);
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.7);
 }
 
 /* TILE CONTENT PANEL: visually invisible */
@@ -75,19 +75,19 @@ body {
 
 /* TRANSPARENT TEXT SURFACE (invisible) */
 .tile-text-surface {
-  background-color: transparent;
+  background: transparent;
   border: none;
   box-shadow: none;
 }
 
-/* DARK VIEWER SURFACE WITH GLOW */
+/* DARK VIEWER SURFACE - CARD */
 .tile-viewer-surface {
-  background-color: var(--slate360-viewer-bg);
+  background: radial-gradient(circle at top left, #020617 0%, #020617 45%, #020617 100%);
+  border-radius: 1.25rem;
   border: 1px solid rgba(15, 23, 42, 0.8);
   box-shadow: 
-    0 0 40px rgba(15, 23, 42, 0.9),
-    0 0 18px var(--slate360-blue-mid);
-  border-radius: 1rem;
+    0 0 0 1px rgba(148, 163, 184, 0.2),
+    0 22px 55px rgba(15, 23, 42, 0.95);
 }
 
 /* FOOTER BAR: matches header polish when we hook it up */
@@ -100,19 +100,20 @@ body {
 
 /* SLATE360 FOOTER STYLING */
 .slate360-footer {
-  background: linear-gradient(
-    to bottom,
-    rgba(12, 17, 23, 0.96),
-    rgba(12, 17, 23, 0.92)
+  background: radial-gradient(
+    circle at top,
+    rgba(15, 23, 42, 0.98),
+    rgba(15, 23, 42, 0.92)
   );
-  border-top: 1px solid rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.8);
+  border-top: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.85);
 }
 
 .slate360-footer a {
   position: relative;
-  transition: color 150ms ease, transform 150ms ease;
+  padding-inline: 0.75rem;
+  text-decoration: none;
+  transition: color 150ms ease;
 }
 
 .slate360-footer a::after {
@@ -120,21 +121,27 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -2px;
+  bottom: -0.2rem;
   height: 2px;
   border-radius: 9999px;
   background: linear-gradient(
     to right,
-    var(--slate360-blue-mid),
+    rgba(148, 163, 184, 0),
     var(--slate360-copper),
-    var(--slate360-blue-mid)
+    rgba(148, 163, 184, 0)
   );
+  opacity: 0;
+  transform: scaleX(0.7);
   transform-origin: center;
-  transform: scaleX(0);
-  transition: transform 150ms ease-out;
+  transition: opacity 150ms ease, transform 180ms ease;
+}
+
+.slate360-footer a:hover {
+  color: #e5f1ff;
 }
 
 .slate360-footer a:hover::after {
+  opacity: 1;
   transform: scaleX(1);
 }
 
@@ -196,7 +203,7 @@ body {
   outline: none;
 }
 
-/* TILE SECTION "CLEAN ROOM" FIX */
+/* TILE SECTION CENTERING */
 .tile-section-container {
   display: flex;
   align-items: center;

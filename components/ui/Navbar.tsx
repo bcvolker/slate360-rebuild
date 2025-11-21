@@ -75,7 +75,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
-              className="inline-flex items-center gap-1 rounded-full border border-slate-600/60 bg-slate-900/70 px-4 py-1.5 text-sm shadow-sm hover:bg-slate-800"
+              className="inline-flex items-center gap-1 rounded-full border border-[color:var(--slate360-copper-soft)] bg-slate-900/40 px-4 py-1.5 text-sm shadow-sm hover:bg-slate-900/55"
             >
               <span>Menu</span>
               <span className="text-xs">▾</span>
@@ -121,7 +121,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-600/70 bg-slate-800/90 text-slate-100 hover:bg-slate-700 transition-colors"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-600/70 bg-black/20 text-slate-100 hover:bg-black/30 transition-colors"
             aria-label="Toggle navigation menu"
           >
             <span className="sr-only">Toggle menu</span>
@@ -141,7 +141,7 @@ export default function Navbar() {
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="fixed top-16 right-3 left-3 rounded-2xl bg-[#0B1014] border border-[#B46E3A]/30 z-50 lg:hidden shadow-2xl">
+          <div className="fixed top-16 right-3 left-3 rounded-2xl bg-slate-950/90 border border-[color:var(--slate360-copper-soft)] z-50 lg:hidden shadow-2xl backdrop-blur-xl">
             <div className="mx-auto max-w-6xl px-4 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
               <div className="flex flex-col gap-1 text-sm">
                 <Link

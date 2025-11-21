@@ -28,38 +28,25 @@ export default function TileSection({ tile, index }: TileSectionProps) {
   const isLastTile = index === 7;
   const bullets: string[] = Array.isArray(tile?.bullets) ? tile?.bullets : [];
 
-  // This is the NEW, CLEAN sectionClass
-  const sectionClass = [
-    "relative", "h-screen", "home-gradient", "snap-start",
-    "tile-section-container" // This is our new, unique class
-  ].join(" ");
-
-  // This is the NEW, CLEAN gridClass
-  const gridClass =
-    "mx-auto w-full max-w-7xl px-4 md:px-10 lg:px-24 " +
-    "grid grid-cols-1 md:grid-cols-2 md:gap-12 items-center " +
-    "pt-20 " + // This is our padding-top (80px, same as var(--navbar-height))
-    (isLastTile ? "pb-40 md:pb-20" : "pb-8"); // Mobile gets extra padding (160px) for footer access, desktop gets 80px
-
+  // Text column - transparent, merges with background
   const textColClass = [
     "flex flex-col justify-center gap-4",
-    "px-8 py-10",
-    "min-h-[60vh] max-w-3xl",
     "tile-text-surface",
-    isReversed ? "md:order-2 md:pl-6" : "md:order-1 md:pr-6",
+    isReversed ? "lg:order-2" : "lg:order-1",
   ].join(" ");
 
+  // Viewer column - dark card (consistent size for both layouts)
   const viewerColClass = [
+    "h-[420px] w-full max-w-xl rounded-3xl mx-auto",
     "flex flex-col items-center justify-center gap-3 p-8",
-    "aspect-[4/3]",
     "tile-viewer-surface",
-    isReversed ? "md:order-1 md:pr-6" : "md:order-2 md:pl-6",
+    isReversed ? "lg:order-1" : "lg:order-2",
   ].join(" ");
 
   return (
-    <section id={tile?.id} data-snap="tile" className={sectionClass}>
-      <div className="flex flex-col min-h-screen">
-        <div className={gridClass}>
+    <section id={tile?.id} data-snap="tile" className="h-screen home-gradient snap-start tile-section-container">
+      <div className="w-full max-w-6xl mx-auto px-6 lg:px-8 py-20 lg:py-24">
+        <div className="grid gap-10 lg:gap-16 lg:grid-cols-2 items-center">
           {/* TEXT / CONTENT BOX */}
           <div className={textColClass}>
           {tile?.eyebrow && (
@@ -113,12 +100,15 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
         {/* THIN FOOTER STRIP – ONLY ON LAST TILE */}
         {isLastTile && (
-          <footer className="slate360-footer w-full text-xs text-slate-200 mt-auto">
-            <div className="mx-auto flex max-w-6xl items-center justify-center gap-6 px-6 py-4">
-              <Link href="/about" className="uppercase tracking-wider hover:text-slate360-blue-soft transition-colors">About</Link>
-              <Link href="/contact" className="uppercase tracking-wider hover:text-slate360-blue-soft transition-colors">Contact</Link>
-              <Link href="/subscribe" className="uppercase tracking-wider hover:text-slate360-blue-soft transition-colors">Subscribe</Link>
-              <Link href="/privacy" className="uppercase tracking-wider hover:text-slate360-blue-soft transition-colors">Privacy</Link>
+          <footer className="slate360-footer w-full text-xs text-slate-200">
+            <div className="mx-auto flex max-w-6xl items-center justify-between flex-wrap gap-4 px-6 py-4">
+              <nav className="flex items-center gap-6">
+                <Link href="/about" className="uppercase tracking-wider">About</Link>
+                <Link href="/contact" className="uppercase tracking-wider">Contact</Link>
+                <Link href="/subscribe" className="uppercase tracking-wider">Subscribe</Link>
+                <Link href="/privacy" className="uppercase tracking-wider">Privacy</Link>
+              </nav>
+              <p className="text-slate-400">© 2025 Slate360. All rights reserved.</p>
             </div>
           </footer>
         )}

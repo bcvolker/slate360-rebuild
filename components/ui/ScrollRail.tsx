@@ -54,7 +54,7 @@ export default function ScrollRail() {
 
   // Desktop only
   return (
-    <div className="hidden lg:flex fixed right-6 top-1/2 -translate-y-1/2 z-40">
+    <div className="hidden lg:flex fixed right-12 top-1/2 -translate-y-1/2 z-40">
       <nav className="flex flex-col items-center justify-center gap-3 rounded-full border border-slate360-blue/40 bg-slate360-charcoal/90 px-4 py-5 shadow-blueGlow backdrop-blur-md">
         {SECTIONS.map(section => {
           const isActive = section.id === activeId;
@@ -64,7 +64,7 @@ export default function ScrollRail() {
               key={section.id}
               type="button"
               onClick={() => scrollToSection(section.id)}
-              className="group relative flex items-center focus:outline-none"
+              className="group relative flex items-center py-1 focus:outline-none"
               aria-label={section.label}
             >
               {/* Thicker horizontal bar */}
