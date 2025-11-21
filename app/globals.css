@@ -8,13 +8,16 @@
   --tile-padding: 3rem;
   --navbar-height: 80px;
   --accent: #B87333;  /* Easy swap for highlights */
-  --slate360-blue: #4f9dfd;         /* UNC-ish primary */
-  --slate360-blue-soft: #7bb5ff;    /* softer highlight */
-  --slate360-blue-deep: #1f2937;    /* mid-slate, not navy */
-  --slate360-header: #0b1220;       /* header background */
-  --slate360-header-border: rgba(255, 255, 255, 0.06);
-  --slate360-copper: #b87333;       /* muted non-orange copper */
-  --slate360-copper-soft: rgba(184, 115, 51, 0.6);
+  
+  /* Updated Slate360 color tokens */
+  --slate360-blue-top: #4FA9FF;      /* bright UNC-style blue */
+  --slate360-blue-mid: #2C8DFF;      /* mid-tone */
+  --slate360-blue-bottom: #071726;   /* deep base, but not pure black */
+  --slate360-header-bg: #0C1117;     /* slate grey for header/footer, NOT navy */
+  --slate360-panel-bg: transparent;  /* text content panels invisible */
+  --slate360-viewer-bg: #020617;     /* very dark navy/black for viewer only */
+  --slate360-copper: #B87333;        /* muted copper, not orange */
+  --slate360-copper-soft: rgba(184, 115, 51, 0.45);
 }
 
 /* Smooth scrolling for in-page jumps */
@@ -27,16 +30,18 @@ body {
   height: 100%;
 }
 
-/* BODY: Lighter executive gradient */
+/* BODY: Lighter, polished UNC-style gradient */
 body {
   min-height: 100vh;
   scroll-behavior: smooth;
   color: rgb(248, 250, 252);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
-  background:
-    radial-gradient(circle at 15% -20%, rgba(125, 195, 255, 0.9), transparent 55%),
-    radial-gradient(circle at 85% 120%, rgba(46, 78, 138, 0.9), transparent 55%),
-    linear-gradient(to bottom, var(--slate360-blue) 0%, #2b3b52 55%, var(--slate360-blue-deep) 100%);
+  background: radial-gradient(
+    circle at 20% 0%,
+    var(--slate360-blue-top) 0%,
+    var(--slate360-blue-mid) 35%,
+    var(--slate360-blue-bottom) 100%
+  );
   background-attachment: fixed;
 }
 
@@ -51,30 +56,38 @@ body {
 
 /* POLISHED SITE HEADER: applied via `site-header` class on <header> */
 .site-header {
-  background: linear-gradient(to bottom,
-    rgba(11, 18, 32, 0.96),
-    rgba(11, 18, 32, 0.92)
+  background: linear-gradient(
+    to bottom,
+    rgba(12, 17, 23, 0.96),
+    rgba(12, 17, 23, 0.88)
   );
-  border-bottom: 1px solid var(--slate360-header-border);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.65);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.4);
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(18px);
 }
 
-/* TILE CONTENT PANEL: subtle card on top of background */
+/* TILE CONTENT PANEL: visually invisible */
 .tile-panel {
-  background: transparent;
-  border: 1px solid rgba(148, 163, 184, 0.55);
-  box-shadow:
-    0 0 25px rgba(15, 23, 42, 0.9),
-    0 0 30px rgba(37, 99, 235, 0.25);
-}
-
-/* TRANSPARENT TILE SURFACES */
-.tile-text-surface,
-.tile-viewer-surface {
-  background: transparent;
+  background-color: transparent;
   border: none;
   box-shadow: none;
+}
+
+/* TRANSPARENT TEXT SURFACE (invisible) */
+.tile-text-surface {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* DARK VIEWER SURFACE WITH GLOW */
+.tile-viewer-surface {
+  background-color: var(--slate360-viewer-bg);
+  border: 1px solid rgba(15, 23, 42, 0.8);
+  box-shadow: 
+    0 0 40px rgba(15, 23, 42, 0.9),
+    0 0 18px var(--slate360-blue-mid);
+  border-radius: 1rem;
 }
 
 /* FOOTER BAR: matches header polish when we hook it up */
@@ -87,10 +100,14 @@ body {
 
 /* SLATE360 FOOTER STYLING */
 .slate360-footer {
-  background: rgba(5, 12, 24, 0.9);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(
+    to bottom,
+    rgba(12, 17, 23, 0.96),
+    rgba(12, 17, 23, 0.92)
+  );
+  border-top: 1px solid rgba(15, 23, 42, 0.4);
   backdrop-filter: blur(16px);
-  box-shadow: 0 -18px 40px rgba(15, 23, 42, 0.7);
+  box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.8);
 }
 
 .slate360-footer a {
@@ -108,18 +125,13 @@ body {
   border-radius: 9999px;
   background: linear-gradient(
     to right,
-    var(--slate360-blue),
+    var(--slate360-blue-mid),
     var(--slate360-copper),
-    var(--slate360-blue)
+    var(--slate360-blue-mid)
   );
   transform-origin: center;
   transform: scaleX(0);
   transition: transform 150ms ease-out;
-}
-
-.slate360-footer a:hover {
-  color: var(--slate360-blue-soft);
-  transform: translateY(-1px);
 }
 
 .slate360-footer a:hover::after {
@@ -191,6 +203,4 @@ body {
   justify-content: center;
 }
 
-.tile-section-grid-last {
-  /* Marker only – padding handled in component */
-}
+/* .tile-section-grid-last - removed empty ruleset */

@@ -58,9 +58,10 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
   return (
     <section id={tile?.id} data-snap="tile" className={sectionClass}>
-      <div className={gridClass}>
-        {/* TEXT / CONTENT BOX */}
-        <div className={textColClass}>
+      <div className="flex flex-col min-h-screen">
+        <div className={gridClass}>
+          {/* TEXT / CONTENT BOX */}
+          <div className={textColClass}>
           {tile?.eyebrow && (
             <p className="text-slate360-blue font-bold tracking-widest uppercase text-xs">{tile.eyebrow}</p>
           )}
@@ -108,19 +109,20 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             models, videos, or 360 tours here.
           </p>
         </div>
-      </div>
+        </div>
 
-      {/* THIN FOOTER STRIP – ONLY ON LAST TILE */}
-      {isLastTile && (
-        <footer className="slate360-footer w-full text-xs text-slate-200">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 gap-4">
-            <Link href="/about">About</Link>
-            <Link href="/contact">Contact</Link>
-            <Link href="/subscribe">Subscribe</Link>
-            <Link href="/privacy">Privacy</Link>
-          </div>
-        </footer>
-      )}
+        {/* THIN FOOTER STRIP – ONLY ON LAST TILE */}
+        {isLastTile && (
+          <footer className="slate360-footer w-full text-xs text-slate-200 mt-auto">
+            <div className="mx-auto flex max-w-6xl items-center justify-center gap-6 px-6 py-4">
+              <Link href="/about" className="uppercase tracking-wider hover:text-slate360-blue-soft transition-colors">About</Link>
+              <Link href="/contact" className="uppercase tracking-wider hover:text-slate360-blue-soft transition-colors">Contact</Link>
+              <Link href="/subscribe" className="uppercase tracking-wider hover:text-slate360-blue-soft transition-colors">Subscribe</Link>
+              <Link href="/privacy" className="uppercase tracking-wider hover:text-slate360-blue-soft transition-colors">Privacy</Link>
+            </div>
+          </footer>
+        )}
+      </div>
     </section>
   );
 }

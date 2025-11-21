@@ -9,12 +9,12 @@ type Section = {
 
 const SECTIONS: Section[] = [
   { id: "slate360", label: "Slate360" },
-  { id: "bim-studio", label: "BIM Studio" },
+  { id: "design-studio", label: "Design Studio" },
   { id: "project-hub", label: "Project Hub" },
   { id: "content-studio", label: "Content Studio" },
   { id: "tour-builder", label: "360 Tour Builder" },
   { id: "geospatial", label: "Geospatial & Robotics" },
-  { id: "vr-lab", label: "Virtual Studio" },
+  { id: "virtual-studio", label: "Virtual Studio" },
   { id: "analytics", label: "Analytics & Reports" },
 ];
 

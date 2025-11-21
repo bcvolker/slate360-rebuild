@@ -11,12 +11,12 @@ type TileLink = {
 
 const TILE_LINKS: TileLink[] = [
   { id: "slate360", label: "Slate360" },
-  { id: "bim", label: "Design Studio" },
+  { id: "design-studio", label: "Design Studio" },
   { id: "project-hub", label: "Project Hub" },
-  { id: "content", label: "Content Studio" },
-  { id: "tour", label: "360 Tour Builder" },
+  { id: "content-studio", label: "Content Studio" },
+  { id: "tour-builder", label: "360 Tour Builder" },
   { id: "geospatial", label: "Geospatial & Robotics" },
-  { id: "vr", label: "Virtual Studio" },
+  { id: "virtual-studio", label: "Virtual Studio" },
   { id: "analytics", label: "Analytics & Reports" },
 ];
 
