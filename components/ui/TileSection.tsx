@@ -53,7 +53,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
     flex flex-col items-center justify-center
     bg-slate-900 border border-white/10
     tile-viewer-surface
-    w-32 h-32 rounded-xl cursor-pointer hover:bg-slate-800/50
+    w-full aspect-square rounded-xl cursor-pointer hover:bg-slate-800/50
     shrink-0
   `;
 
@@ -81,8 +81,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       className={`relative min-h-screen snap-start overflow-hidden flex flex-col ${isFirstTile ? "debug-section-center" : ""}`}
       style={{ paddingTop: "var(--navbar-height)", paddingBottom: isLastTile ? "0" : "var(--navbar-height)" }}
     >
-      <div className="flex-1 flex items-start pt-8 md:pt-24 lg:pt-40">
-        <div className="w-full max-w-6xl mx-auto px-8 lg:px-12">
+      <div className="flex-1 flex items-start pt-4 md:pt-24 lg:pt-40">
+        <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12">
           
           {/* --- DESKTOP LAYOUT (lg+) --- */}
           <div className="hidden lg:flow-root relative w-full clearfix">
@@ -148,23 +148,25 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             {/* Bottom Row: Viewer + Buttons */}
             <div className={`flex items-end gap-4 ${isReversed ? 'flex-row-reverse' : 'flex-row'}`}>
               
-              {/* Small Viewer Box */}
-              <div 
-                className={mobileViewerClasses}
-                onClick={() => setIsExpanded(true)}
-              >
-                <span className="text-2xl text-theme-accent">▶</span>
-                <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-1">View</p>
+              {/* Small Viewer Box (50% width) */}
+              <div className="w-1/2">
+                <div 
+                  className={mobileViewerClasses}
+                  onClick={() => setIsExpanded(true)}
+                >
+                  <span className="text-2xl text-theme-accent">▶</span>
+                  <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-1">View</p>
+                </div>
               </div>
 
-              {/* Buttons Stack */}
-              <div className={`flex flex-col gap-3 flex-1 ${isReversed ? 'items-end text-right' : 'items-start text-left'}`}>
+              {/* Buttons Stack (50% width) */}
+              <div className={`w-1/2 flex flex-col gap-3 ${isReversed ? 'items-end text-right' : 'items-start text-left'}`}>
                 {tile?.ctaLabel && tile?.ctaHref && (
                   <Link href={tile.ctaHref} className="text-sm font-bold text-theme-accent uppercase tracking-widest hover:text-slate-900 transition-colors">
                     {tile.ctaLabel} →
                   </Link>
                 )}
-                <Link href="/subscribe" className="bg-theme-accent hover:bg-theme-accent/80 text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-fit">
+                <Link href="/subscribe" className="bg-theme-accent hover:bg-theme-accent/80 text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center">
                   Get Started
                 </Link>
               </div>
