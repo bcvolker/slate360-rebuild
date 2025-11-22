@@ -77,14 +77,14 @@ export default function Navbar() {
   return (
     <>
       <header className="site-header fixed top-0 z-50 w-full border-b border-[#A97142]/50">
-        <nav className="flex w-full items-center justify-between pl-2 pr-6 py-2 lg:pl-4 lg:pr-8">
+        <nav className="flex w-full items-center justify-between pl-0 pr-6 py-2 lg:pl-0 lg:pr-8">
           {/* LOGO: closer to left edge */}
           <Link
             href="/"
             className="flex items-center gap-3 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme rounded-md"
             onClick={() => handleTileClick("slate360")}
           >
-            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80">
+            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 -ml-4">
               <Image
                 src="/assets/slate360logoforwebsite.png"
                 alt="Slate360 logo"

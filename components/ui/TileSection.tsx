@@ -81,7 +81,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       className={`relative min-h-screen snap-start overflow-hidden flex flex-col ${isFirstTile ? "debug-section-center" : ""}`}
       style={{ paddingTop: "var(--navbar-height)", paddingBottom: isLastTile ? "0" : "var(--navbar-height)" }}
     >
-      <div className="flex-1 flex items-start pt-4 md:pt-24 lg:pt-40">
+      <div className="flex-1 flex items-start pt-4 md:pt-24 lg:pt-40 overflow-y-auto lg:overflow-visible">
         <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12">
           
           {/* --- DESKTOP LAYOUT (lg+) --- */}
@@ -195,7 +195,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       </div>
 
       {isLastTile && (
-        <footer className="slate360-footer w-full text-xs shrink-0 mt-auto">
+        <footer className="slate360-footer w-full text-xs shrink-0 mt-auto relative z-30 bg-slate-950/80 backdrop-blur-sm">
           <div className="mx-auto flex max-w-6xl items-center justify-between flex-wrap gap-4 px-6 py-6">
             <nav className="flex items-center gap-8">
               <Link href="/about" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">About</Link>
