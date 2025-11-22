@@ -220,7 +220,7 @@ export default function Navbar() {
       </header>
 
       {/* SECONDARY NAV: Row of text links to tiles */}
-      <div className="hidden xl:flex fixed top-[100px] w-full justify-center gap-8 pt-1 px-4 z-40">
+      <div className="hidden lg:flex fixed top-[100px] w-full justify-center gap-8 pt-1 px-4 z-40">
         {TILE_LINKS.map((item) => (
           <button
             key={item.id}

@@ -80,7 +80,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       id={tile?.id}
       data-snap="tile"
       className={`relative h-[100dvh] snap-start overflow-hidden flex flex-col ${isFirstTile ? "debug-section-center" : ""}`}
-      style={{ paddingTop: "var(--navbar-height)", paddingBottom: isLastTile ? "0" : "var(--navbar-height)" }}
+      style={{ paddingTop: "var(--navbar-height)", paddingBottom: "var(--navbar-height)" }}
     >
       {/* Main Content Container */}
       <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible ${isFirstTile ? 'pt-24 md:pt-32 lg:pt-40' : 'pt-20 md:pt-32 lg:pt-40'}`}>
@@ -197,7 +197,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       </div>
 
       {isLastTile && (
-        <footer className="slate360-footer w-full text-xs shrink-0 mt-auto relative z-30 bg-slate-950/80 backdrop-blur-sm">
+        <footer className="slate360-footer w-full text-xs shrink-0 absolute bottom-0 left-0 right-0 z-30 bg-slate-950/80 backdrop-blur-sm">
           <div className="mx-auto flex max-w-6xl items-center justify-between flex-wrap gap-4 px-6 py-6">
             <nav className="flex items-center gap-8">
               <Link href="/about" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">About</Link>
