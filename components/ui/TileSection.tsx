@@ -72,7 +72,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
   const textClasses = `
     tile-text-surface block
     lg:pb-12 lg:-ml-12
-    ${isReversed ? "md:pr-20 lg:pr-0" : "md:pl-20 lg:pl-0"}
+    ${isReversed ? "md:pr-20 xl:pr-0" : "md:pl-20 xl:pl-0"}
   `;
 
   return (
