@@ -50,12 +50,12 @@ export default function Navbar() {
   };
 
   return (
-    <header className="site-header fixed top-0 z-50 w-full">
-      <nav className="flex w-full items-center justify-between px-6 py-2 lg:px-8">
+    <header className="site-header fixed top-0 z-50 w-full border-b border-[#A97142]/50">
+      <nav className="flex w-full items-center justify-between pl-2 pr-6 py-2 lg:pl-4 lg:pr-8">
         {/* LOGO: closer to left edge */}
         <Link
           href="/"
-          className="flex items-center gap-3 flex-shrink-0 -ml-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme rounded-md"
+          className="flex items-center gap-3 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme rounded-md"
           onClick={() => handleTileClick("slate360")}
         >
           <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80">
@@ -75,7 +75,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
-              className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm shadow-sm hover:bg-white/10 text-slate-200"
+              className="inline-flex items-center gap-1 rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4FA9FF] transition-all hover:text-[#A97142] hover:border-[#A97142] hover:bg-[#A97142]/10 hover:shadow-[0_0_15px_rgba(169,113,66,0.4)]"
             >
               <span>Menu</span>
               <span className="text-xs">▾</span>
@@ -88,7 +88,7 @@ export default function Navbar() {
                       key={item.id}
                       type="button"
                       onClick={() => handleTileClick(item.id)}
-                      className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-theme-accentSecondary/15 hover:text-theme-accent transition-colors duration-150"
+                      className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[#A97142]/15 hover:text-[#A97142] transition-colors duration-150"
                     >
                       {item.label}
                     </button>
@@ -103,14 +103,14 @@ export default function Navbar() {
               <Link 
                 key={label} 
                 href={`/${label.toLowerCase()}`} 
-                className="group relative text-xs font-bold uppercase tracking-widest text-theme-muted transition-colors hover:text-theme-accent"
+                className="group relative text-xs font-bold uppercase tracking-widest text-[#4FA9FF] transition-all duration-300 hover:text-[#A97142] hover:drop-shadow-[0_0_8px_rgba(169,113,66,0.5)]"
               >
                 {label}
-                {/* The Copper Line Animation */}
-                <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-theme-accent via-theme-accentSecondary to-theme-accent transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                {/* The Copper Line Animation - Pure Copper Gradient */}
+                <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-[#A97142] via-[#D49A6A] to-[#A97142] transition-transform duration-300 ease-out group-hover:scale-x-100" />
               </Link>
             ))}
-            <Link href="/login" className="ml-4 rounded-full border border-theme-accent/50 bg-theme-accent/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-theme-accent hover:bg-theme-accent/20 hover:shadow-blueGlow transition-all">
+            <Link href="/login" className="ml-4 rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4FA9FF] transition-all hover:text-[#A97142] hover:border-[#A97142] hover:bg-[#A97142]/10 hover:shadow-[0_0_15px_rgba(169,113,66,0.4)]">
               Login
             </Link>
           </nav>
@@ -121,14 +121,14 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-theme-border/60 bg-theme-overlay/30 text-slate-100 hover:bg-theme-overlay/45 transition-colors"
+            className="group inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/20 shadow-[0_0_15px_rgba(79,169,255,0.4)] transition-all hover:border-[#A97142] hover:bg-[#A97142]/20 hover:shadow-[0_0_15px_rgba(169,113,66,0.4)]"
             aria-label="Toggle navigation menu"
           >
             <span className="sr-only">Toggle menu</span>
             <div className="flex flex-col gap-1.5">
-              <span className="block h-0.5 w-5 rounded bg-slate-100" />
-              <span className="block h-0.5 w-5 rounded bg-slate-100" />
-              <span className="block h-0.5 w-5 rounded bg-slate-100" />
+              <span className="block h-0.5 w-5 rounded bg-white group-hover:bg-[#A97142] transition-colors" />
+              <span className="block h-0.5 w-5 rounded bg-white group-hover:bg-[#A97142] transition-colors" />
+              <span className="block h-0.5 w-5 rounded bg-white group-hover:bg-[#A97142] transition-colors" />
             </div>
           </button>
         </div>
@@ -146,31 +146,31 @@ export default function Navbar() {
               <div className="flex flex-col gap-1 text-sm">
                 <Link
                   href="/about"
-                  className="py-2 px-3 text-slate-100 hover:text-theme-accent hover:bg-theme-overlay/70 rounded-lg transition-colors"
+                  className="py-2 px-3 text-slate-100 hover:text-[#A97142] hover:bg-[#A97142]/15 rounded-lg transition-colors"
                   onClick={() => setMobileOpen(false)}
                 >
                   About
                 </Link>
                 <Link
                   href="/contact"
-                  className="py-2 px-3 text-slate-100 hover:text-theme-accent hover:bg-theme-overlay/70 rounded-lg transition-colors"
+                  className="py-2 px-3 text-slate-100 hover:text-[#A97142] hover:bg-[#A97142]/15 rounded-lg transition-colors"
                   onClick={() => setMobileOpen(false)}
                 >
                   Contact
                 </Link>
                 <Link
                   href="/subscribe"
-                  className="py-2 px-3 text-slate-100 hover:text-theme-accent hover:bg-theme-overlay/70 rounded-lg transition-colors"
+                  className="py-2 px-3 text-slate-100 hover:text-[#A97142] hover:bg-[#A97142]/15 rounded-lg transition-colors"
                   onClick={() => setMobileOpen(false)}
                 >
                   Subscribe
                 </Link>
                 <Link
-                  href="/login"
-                  className="py-2 px-3 text-slate-100 hover:text-theme-accent hover:bg-theme-overlay/70 rounded-lg transition-colors"
+                  href="/privacy"
+                  className="py-2 px-3 text-slate-100 hover:text-[#A97142] hover:bg-[#A97142]/15 rounded-lg transition-colors"
                   onClick={() => setMobileOpen(false)}
                 >
-                  Login
+                  Privacy
                 </Link>
               </div>
 

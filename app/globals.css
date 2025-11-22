@@ -136,21 +136,23 @@ body {
 }
 
 .slate360-footer {
-  background: radial-gradient(
-    circle at top,
-    rgba(var(--footer-gradient-top) / 0.96),
-    rgba(var(--footer-gradient-bottom) / 0.92)
+  background: linear-gradient(
+    to bottom,
+    rgba(30, 41, 59, 0.95),
+    rgba(30, 41, 59, 0.75)
   );
-  border-top: 1px solid rgba(var(--color-border-soft) / 0.35);
-  box-shadow: 0 -12px 40px rgba(var(--shadow-soft) / 0.75);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.2);
 }
 
 .slate360-footer a {
   position: relative;
   display: inline-block;
   padding-inline: 0.75rem;
-  color: inherit;
+  color: #4FA9FF; /* Slate360 Blue */
   text-decoration: none;
+  transition: color 300ms ease-out, text-shadow 300ms ease-out;
 }
 
 .slate360-footer a::after {
@@ -162,9 +164,9 @@ body {
   height: 2px;
   background: linear-gradient(
     to right,
-    rgb(var(--color-accent)),
-    rgb(var(--color-accent-secondary)),
-    rgb(var(--color-accent))
+    #A97142,
+    #D49A6A,
+    #A97142
   );
   border-radius: 9999px;
   transform: scaleX(0);
@@ -173,7 +175,8 @@ body {
 }
 
 .slate360-footer a:hover {
-  color: rgb(var(--color-text-primary));
+  color: #A97142; /* Earthy Copper */
+  text-shadow: 0 0 12px rgba(169, 113, 66, 0.5); /* Glow */
 }
 
 .slate360-footer a:hover::after {

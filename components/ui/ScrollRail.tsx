@@ -55,7 +55,7 @@ export default function ScrollRail() {
   // Desktop only
   return (
     <div className="hidden xl:flex fixed top-1/2 -translate-y-1/2 z-40 right-8 2xl:right-12">
-      <nav className="flex flex-col items-center justify-center gap-3 rounded-full border border-theme-accent/35 bg-theme-surface/90 px-3 py-5 shadow-blueGlow backdrop-blur-md">
+      <nav className="flex flex-col items-center justify-center gap-3 rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/90 px-3 py-5 shadow-[0_0_15px_rgba(79,169,255,0.4)] backdrop-blur-md">
         {SECTIONS.map(section => {
           const isActive = section.id === activeId;
 
@@ -72,13 +72,13 @@ export default function ScrollRail() {
                 className={[
                   "h-[7px] w-6 rounded-full transition-all duration-300 cursor-pointer",
                   isActive
-                    ? "bg-gradient-to-r from-theme-accent via-theme-accentSecondary to-theme-accent shadow-blueGlow"
-                    : "bg-theme-soft/70 group-hover:bg-theme-accent/80",
+                    ? "bg-gradient-to-r from-[#A97142] via-[#D49A6A] to-[#A97142] shadow-[0_0_8px_rgba(169,113,66,0.6)]"
+                    : "bg-white/65 group-hover:bg-[#A97142]",
                 ].join(" ")}
               />
 
               {/* Slate360 tooltip bubble */}
-              <span className="pointer-events-none absolute right-full mr-3 hidden rounded-xl border border-theme-accent/35 bg-theme-overlay/95 px-3 py-1 text-xs font-medium text-slate-100 shadow-lg group-hover:flex">
+              <span className="pointer-events-none absolute right-full mr-3 hidden rounded-xl border border-[#A97142]/35 bg-theme-overlay/95 px-3 py-1 text-xs font-medium text-slate-100 shadow-lg group-hover:flex">
                 {section.label}
               </span>
             </button>
