@@ -37,7 +37,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
   // DESKTOP VIEWER CLASSES
   // Floated, specific size, hidden on mobile
   const desktopViewerClasses = `
-    hidden lg:flex relative z-20 transition-all duration-300 ease-in-out
+    hidden md:flex relative z-20 transition-all duration-300 ease-in-out
     flex-col items-center justify-center
     bg-slate-900 border-2 border-dotted border-red-500
     tile-viewer-surface
@@ -82,11 +82,11 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       style={{ paddingTop: "var(--navbar-height)", paddingBottom: isLastTile ? "0" : "var(--navbar-height)" }}
     >
       {/* Main Content Container */}
-      <div className={`flex-1 flex items-start overflow-y-auto lg:overflow-visible ${isFirstTile ? 'pt-12 md:pt-16 lg:pt-40' : 'pt-4 md:pt-16 lg:pt-40'}`}>
-        <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12 h-full flex flex-col lg:block">
+      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible ${isFirstTile ? 'pt-24 md:pt-32 lg:pt-40' : 'pt-4 md:pt-32 lg:pt-40'}`}>
+        <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12 h-full flex flex-col md:block">
           
-          {/* --- DESKTOP LAYOUT (lg+) --- */}
-          <div className="hidden lg:flow-root relative w-full clearfix">
+          {/* --- DESKTOP LAYOUT (md+) --- */}
+          <div className="hidden md:flow-root relative w-full clearfix">
             
             {/* DESKTOP VIEWER */}
             <div className={desktopViewerClasses}>
@@ -129,8 +129,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
           </div>
 
-          {/* --- MOBILE/TABLET LAYOUT (<lg) --- */}
-          <div className="lg:hidden flex flex-col flex-1 pb-8 justify-between">
+          {/* --- MOBILE LAYOUT (<md) --- */}
+          <div className="md:hidden flex flex-col flex-1 pb-8 justify-between min-h-full">
             
             {/* Top Text Content */}
             <div className="mb-6 px-2">
