@@ -14,7 +14,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" data-theme={DEFAULT_THEME}>
       <body className="antialiased">
         <Navbar />
-        <ScrollRail />
         <main className="snap-scroll-section min-h-screen">
           {children}
         </main>

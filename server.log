@@ -1,0 +1,37 @@
+
+> slate360-rebuild@1.0.0 dev
+> cross-env CHOKIDAR_USEPOLLING=true next dev
+
+   ▲ Next.js 15.5.3
+   - Local:        http://localhost:3000
+   - Network:      http://10.0.0.229:3000
+
+ ✓ Starting...
+ ✓ Ready in 1680ms
+ ○ Compiling / ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ✓ Compiled / in 7.9s (640 modules)
+ HEAD / 200 in 8423ms
+ GET / 200 in 116ms
+ GET / 200 in 147ms
+ ✓ Compiled in 1207ms (640 modules)
+ GET / 200 in 316ms
+ ✓ Compiled in 575ms (640 modules)
+ GET / 200 in 218ms
+ ✓ Compiled in 690ms (640 modules)
+ GET / 200 in 308ms
+ ✓ Compiled in 1148ms (639 modules)
+ GET / 200 in 446ms
+ ✓ Compiled in 431ms (639 modules)
+ GET / 200 in 218ms
+ GET / 200 in 270ms
+ ✓ Compiled in 1138ms (639 modules)
+ GET / 200 in 155ms
+ GET / 200 in 253ms
+ ✓ Compiled in 1319ms (639 modules)
+ GET / 200 in 183ms
+ ✓ Compiled in 568ms (639 modules)
+ GET / 200 in 348ms
+ ✓ Compiled in 520ms (639 modules)
+ GET / 200 in 290ms
+ GET / 200 in 169ms
