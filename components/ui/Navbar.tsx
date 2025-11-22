@@ -220,13 +220,13 @@ export default function Navbar() {
       </header>
 
       {/* SECONDARY NAV: Row of text links to tiles */}
-      <div className="hidden lg:flex fixed top-[100px] w-full justify-center gap-8 pt-1 px-4 z-40">
+      <div className="hidden lg:flex fixed top-[100px] w-full justify-center gap-4 lg:gap-6 pt-1 px-4 z-40">
         {TILE_LINKS.map((item) => (
           <button
             key={item.id}
             type="button"
             onClick={() => handleTileClick(item.id)}
-            className={`text-sm font-bold uppercase tracking-widest transition-colors duration-300 ${
+            className={`text-[10px] lg:text-xs font-bold uppercase tracking-wider transition-colors duration-300 ${
               activeId === item.id
                 ? "text-[#4FA9FF] drop-shadow-[0_0_8px_rgba(79,169,255,0.5)]"
                 : "text-slate-400 hover:text-[#4FA9FF]"
