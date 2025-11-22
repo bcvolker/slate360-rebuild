@@ -96,7 +96,7 @@ export default function Navbar() {
           </Link>
 
           {/* DESKTOP NAV: pushed all the way to the right */}
-          <div className="ml-auto hidden items-center gap-6 text-sm font-medium text-slate-200 lg:flex">
+          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-slate-200 md:flex">
             <div className="relative" ref={menuRef}>
               <button
                 type="button"

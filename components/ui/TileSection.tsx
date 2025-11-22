@@ -64,7 +64,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
     shadow-[0_-10px_40px_rgba(0,0,0,0.8)]
     flex flex-col items-center justify-center
     transition-transform duration-300 ease-out
-    ${isExpanded ? 'translate-y-0' : 'translate-y-full'}
+    ${isExpanded ? 'translate-y-0 visible' : 'translate-y-full invisible'}
   `;
 
   // Text Classes
@@ -81,8 +81,9 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       className={`relative min-h-screen snap-start overflow-hidden flex flex-col ${isFirstTile ? "debug-section-center" : ""}`}
       style={{ paddingTop: "var(--navbar-height)", paddingBottom: isLastTile ? "0" : "var(--navbar-height)" }}
     >
-      <div className="flex-1 flex items-start pt-4 md:pt-24 lg:pt-40 overflow-y-auto lg:overflow-visible">
-        <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12">
+      {/* Main Content Container */}
+      <div className={`flex-1 flex items-start overflow-y-auto lg:overflow-visible ${isFirstTile ? 'pt-12 md:pt-16 lg:pt-40' : 'pt-4 md:pt-16 lg:pt-40'}`}>
+        <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12 h-full flex flex-col lg:block">
           
           {/* --- DESKTOP LAYOUT (lg+) --- */}
           <div className="hidden lg:flow-root relative w-full clearfix">
@@ -129,10 +130,10 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           </div>
 
           {/* --- MOBILE/TABLET LAYOUT (<lg) --- */}
-          <div className="lg:hidden flex flex-col h-full pb-8">
+          <div className="lg:hidden flex flex-col flex-1 pb-8 justify-between">
             
             {/* Top Text Content */}
-            <div className="flex-1 mb-6 px-2">
+            <div className="mb-6 px-2">
               {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-xs mb-2">{tile.eyebrow}</p>}
               {tile?.title && <h2 className="text-3xl font-bold text-slate-900 font-orbitron tracking-wide mb-4">{tile.title}</h2>}
               {tile?.subtitle && <p className="text-lg text-theme-muted leading-relaxed mb-4">{tile.subtitle}</p>}
