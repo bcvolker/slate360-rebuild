@@ -78,11 +78,11 @@ export default function TileSection({ tile, index }: TileSectionProps) {
     <section
       id={tile?.id}
       data-snap="tile"
-      className={`relative min-h-screen snap-start overflow-hidden flex flex-col ${isFirstTile ? "debug-section-center" : ""}`}
+      className={`relative h-[100dvh] snap-start overflow-hidden flex flex-col ${isFirstTile ? "debug-section-center" : ""}`}
       style={{ paddingTop: "var(--navbar-height)", paddingBottom: isLastTile ? "0" : "var(--navbar-height)" }}
     >
       {/* Main Content Container */}
-      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible ${isFirstTile ? 'pt-24 md:pt-32 lg:pt-40' : 'pt-4 md:pt-32 lg:pt-40'}`}>
+      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible ${isFirstTile ? 'pt-24 md:pt-32 lg:pt-40' : 'pt-20 md:pt-32 lg:pt-40'}`}>
         <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12 h-full flex flex-col md:block">
           
           {/* --- DESKTOP LAYOUT (md+) --- */}
@@ -130,7 +130,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           </div>
 
           {/* --- MOBILE LAYOUT (<md) --- */}
-          <div className="md:hidden flex flex-col flex-1 pb-8 justify-between min-h-full">
+          <div className="md:hidden flex flex-col flex-1 pb-8 justify-between min-h-[calc(100dvh-160px)]">
             
             {/* Top Text Content */}
             <div className="mb-6 px-2">
