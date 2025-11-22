@@ -47,14 +47,14 @@ export default function TileSection({ tile, index }: TileSectionProps) {
   `;
 
   // MOBILE VIEWER CLASSES
-  // Small box, alternating sides
+  // Full width, fixed height at bottom
   const mobileViewerClasses = `
     relative z-20 transition-all duration-300 ease-in-out
     flex flex-col items-center justify-center
     bg-slate-900 border border-white/10
     tile-viewer-surface
-    w-full aspect-square rounded-xl cursor-pointer hover:bg-slate-800/50
-    shrink-0
+    w-full h-40 rounded-xl cursor-pointer hover:bg-slate-800/50
+    shrink-0 mt-auto
   `;
 
   // EXPANDED MOBILE VIEWER OVERLAY
@@ -79,8 +79,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
     <section
       id={tile?.id}
       data-snap="tile"
-      className={`relative h-[100dvh] snap-start overflow-hidden flex flex-col ${isFirstTile ? "debug-section-center" : ""}`}
-      style={{ paddingTop: "var(--navbar-height)", paddingBottom: "var(--navbar-height)" }}
+      className={`relative h-[100dvh] snap-start overflow-hidden flex flex-col ${isFirstTile ? "debug-section-center" : ""} pb-0 md:pb-20`}
+      style={{ paddingTop: "var(--navbar-height)" }}
     >
       {/* Main Content Container */}
       <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible ${isFirstTile ? 'pt-24 md:pt-32 lg:pt-40' : 'pt-20 md:pt-32 lg:pt-40'}`}>
@@ -131,47 +131,44 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           </div>
 
           {/* --- MOBILE LAYOUT (<md) --- */}
-          <div className="md:hidden flex flex-col flex-1 pb-8 justify-between min-h-[calc(100dvh-160px)]">
+          <div className={`md:hidden flex flex-col h-full px-6 pt-8 ${isLastTile ? 'pb-32' : 'pb-6'}`}>
             
-            {/* Top Text Content */}
-            <div className="mb-6 px-2">
-              {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-xs mb-2">{tile.eyebrow}</p>}
-              {tile?.title && <h2 className="text-3xl font-bold text-slate-900 font-orbitron tracking-wide mb-4">{tile.title}</h2>}
-              {tile?.subtitle && <p className="text-lg text-theme-muted leading-relaxed mb-4">{tile.subtitle}</p>}
+            {/* Top Content Stack */}
+            <div className="flex flex-col gap-4">
+              <div>
+                {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
+                {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}
+                {tile?.subtitle && <p className="text-sm text-theme-muted leading-relaxed">{tile.subtitle}</p>}
+              </div>
+
               {bullets.length > 0 && (
-                <ul className="space-y-2 text-theme-muted mb-6">
+                <ul className="space-y-1 text-sm text-theme-muted">
                   {bullets.map((item, i) => (
                     <li key={i} className="flex items-start"><span className="text-theme-accent mr-2">•</span><span>{item}</span></li>
                   ))}
                 </ul>
               )}
-            </div>
 
-            {/* Bottom Row: Viewer + Buttons */}
-            <div className={`flex items-end gap-4 ${isReversed ? 'flex-row-reverse' : 'flex-row'}`}>
-              
-              {/* Small Viewer Box (50% width) */}
-              <div className="w-1/2">
-                <div 
-                  className={mobileViewerClasses}
-                  onClick={() => setIsExpanded(true)}
-                >
-                  <span className="text-2xl text-theme-accent">▶</span>
-                  <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-1">View</p>
-                </div>
-              </div>
-
-              {/* Buttons Stack (50% width) */}
-              <div className={`w-1/2 flex flex-col gap-3 ${isReversed ? 'items-end text-right' : 'items-start text-left'}`}>
+              {/* CTAs */}
+              <div className="flex flex-col gap-3 mt-2">
+                 <Link href="/subscribe" className="bg-theme-accent hover:bg-theme-accent/80 text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center">
+                  Get Started
+                </Link>
                 {tile?.ctaLabel && tile?.ctaHref && (
-                  <Link href={tile.ctaHref} className="text-sm font-bold text-theme-accent uppercase tracking-widest hover:text-slate-900 transition-colors">
+                  <Link href={tile.ctaHref} className="text-sm font-bold text-theme-accent uppercase tracking-widest hover:text-slate-900 transition-colors text-center">
                     {tile.ctaLabel} →
                   </Link>
                 )}
-                <Link href="/subscribe" className="bg-theme-accent hover:bg-theme-accent/80 text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center">
-                  Get Started
-                </Link>
               </div>
+            </div>
+
+            {/* Bottom Viewer */}
+            <div 
+              className={mobileViewerClasses}
+              onClick={() => setIsExpanded(true)}
+            >
+              <span className="text-2xl text-theme-accent">▶</span>
+              <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-1">View</p>
             </div>
 
             {/* Expanded Viewer Overlay */}
