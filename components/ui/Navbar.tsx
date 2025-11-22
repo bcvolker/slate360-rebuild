@@ -142,7 +142,7 @@ export default function Navbar() {
           </div>
 
           {/* MOBILE HAMBURGER: also aligned to the right */}
-          <div className="ml-auto flex items-center gap-3 lg:hidden">
+          <div className="ml-auto flex items-center gap-3 md:hidden">
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
