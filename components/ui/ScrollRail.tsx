@@ -54,8 +54,8 @@ export default function ScrollRail() {
 
   // Desktop only
   return (
-    <div className="hidden lg:flex fixed top-1/2 -translate-y-1/2 z-40 right-2 sm:right-3 md:right-4 lg:right-6 xl:right-8 2xl:right-10">
-      <nav className="flex flex-col items-center justify-center gap-3 rounded-full border border-slate360-blue/40 bg-slate360-charcoal/90 px-4 py-5 shadow-blueGlow backdrop-blur-md">
+    <div className="hidden xl:flex fixed top-1/2 -translate-y-1/2 z-40 right-8 2xl:right-12">
+      <nav className="flex flex-col items-center justify-center gap-3 rounded-full border border-theme-accent/35 bg-theme-surface/90 px-3 py-5 shadow-blueGlow backdrop-blur-md">
         {SECTIONS.map(section => {
           const isActive = section.id === activeId;
 
@@ -70,15 +70,15 @@ export default function ScrollRail() {
               {/* Thicker horizontal bar */}
               <span
                 className={[
-                  "h-[5px] w-12 rounded-full transition-all duration-300 cursor-pointer",
+                  "h-[7px] w-6 rounded-full transition-all duration-300 cursor-pointer",
                   isActive
-                    ? "bg-gradient-to-r from-slate360-blue via-slate360-copper to-slate360-blue shadow-blueGlow"
-                    : "bg-slate-500/70 group-hover:bg-slate360-blue/90",
+                    ? "bg-gradient-to-r from-theme-accent via-theme-accentSecondary to-theme-accent shadow-blueGlow"
+                    : "bg-theme-soft/70 group-hover:bg-theme-accent/80",
                 ].join(" ")}
               />
 
               {/* Slate360 tooltip bubble */}
-              <span className="pointer-events-none absolute right-full mr-3 hidden rounded-xl border border-slate360-blue/40 bg-slate360-charcoalSoft/95 px-3 py-1 text-xs font-medium text-slate-100 shadow-lg group-hover:flex">
+              <span className="pointer-events-none absolute right-full mr-3 hidden rounded-xl border border-theme-accent/35 bg-theme-overlay/95 px-3 py-1 text-xs font-medium text-slate-100 shadow-lg group-hover:flex">
                 {section.label}
               </span>
             </button>

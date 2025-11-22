@@ -15,7 +15,7 @@ export default function Logo({ className }: LogoProps) {
       xmlns="http://www.w3.org/2000/svg"
       className={className ? className + ' animate-fly-in' : 'animate-fly-in'}
     >
-      <rect width="120" height="32" rx="8" fill="#4B9CD3" />
+      <rect width="120" height="32" rx="8" fill="rgb(var(--color-accent))" />
       <text
         x="50%"
         y="50%"

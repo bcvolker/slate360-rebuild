@@ -1,3 +1,4 @@
+import React from "react";
 import DesktopHome from "@/components/home/DesktopHome";
 import MobileHome from "@/components/home/MobileHome";
 

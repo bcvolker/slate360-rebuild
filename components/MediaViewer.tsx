@@ -88,13 +88,14 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail 
     };
 
     const content = getPlaceholderContent();
+    const heading = title ?? content.title;
 
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-800 text-center p-8">
+      <div className="w-full h-full flex flex-col items-center justify-center bg-theme-surface text-center p-8 border border-theme-border/40">
         <div className="text-6xl mb-4">{content.icon}</div>
-        <h3 className="text-lg font-semibold text-white/90 mb-1">{content.title}</h3>
+        <h3 className="text-lg font-semibold text-white/90 mb-1">{heading}</h3>
         <p className="text-white/70 mb-6 max-w-md leading-relaxed">{content.description}</p>
-        <div className="inline-flex items-center gap-2 text-xs text-white/80 bg-white/10 border border-white/20 rounded-full px-3 py-1">
+        <div className="inline-flex items-center gap-2 text-xs text-white/80 bg-theme-accent/10 border border-theme-accent/20 rounded-full px-3 py-1">
           <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
           <span>Content Coming Soon</span>
         </div>
@@ -103,11 +104,11 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail 
   };
 
   const render3DViewer = () => (
-    <div className="w-full h-full relative bg-slate-900 flex items-center justify-center">
-      <div className="absolute inset-4 border-2 border-dashed border-slate-600 rounded-lg flex flex-col items-center justify-center">
+    <div className="w-full h-full relative bg-theme-surface flex items-center justify-center">
+      <div className="absolute inset-4 border-2 border-dashed border-theme-borderStrong/60 rounded-lg flex flex-col items-center justify-center">
         <div className="text-4xl mb-4">🏗️</div>
         <div className="text-white text-lg font-medium mb-2">3D Model Viewer</div>
-        <div className="text-slate-400 text-sm text-center mb-4">
+        <div className="text-theme-soft text-sm text-center mb-4">
           • Rotate, zoom, and pan<br/>
           • Measurement tools<br/>
           • Annotations and markups
@@ -118,11 +119,11 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail 
   );
 
   const render360Viewer = () => (
-    <div className="w-full h-full relative bg-black flex items-center justify-center">
-      <div className="absolute inset-4 border-2 border-dashed border-slate-600 rounded-lg flex flex-col items-center justify-center">
+    <div className="w-full h-full relative bg-theme-surface flex items-center justify-center">
+      <div className="absolute inset-4 border-2 border-dashed border-theme-borderStrong/60 rounded-lg flex flex-col items-center justify-center">
         <div className="text-4xl mb-4">🌐</div>
         <div className="text-white text-lg font-medium mb-2">360° Viewer</div>
-        <div className="text-slate-400 text-sm text-center mb-4">
+        <div className="text-theme-soft text-sm text-center mb-4">
           • Drag to look around<br/>
           • Hotspots and navigation<br/>
           • VR mode compatible
@@ -133,11 +134,11 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail 
   );
 
   const renderVideoViewer = () => (
-    <div className="w-full h-full relative bg-black flex items-center justify-center">
-      <div className="absolute inset-4 border-2 border-dashed border-slate-600 rounded-lg flex flex-col items-center justify-center">
+    <div className="w-full h-full relative bg-theme-surface flex items-center justify-center">
+      <div className="absolute inset-4 border-2 border-dashed border-theme-borderStrong/60 rounded-lg flex flex-col items-center justify-center">
         <div className="text-4xl mb-4">🎬</div>
         <div className="text-white text-lg font-medium mb-2">Video Player</div>
-        <div className="text-slate-400 text-sm text-center mb-4">
+        <div className="text-theme-soft text-sm text-center mb-4">
           • Timeline scrubbing<br/>
           • Playback controls<br/>
           • Annotations support
@@ -148,11 +149,11 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail 
   );
 
   const renderVRViewer = () => (
-    <div className="w-full h-full relative bg-gradient-to-b from-purple-900 to-blue-900 flex items-center justify-center">
-      <div className="absolute inset-4 border-2 border-dashed border-purple-400 rounded-lg flex flex-col items-center justify-center">
+    <div className="w-full h-full relative bg-gradient-to-b from-theme-accentSecondary/30 via-theme-accent/40 to-theme-accent flex items-center justify-center">
+      <div className="absolute inset-4 border-2 border-dashed border-theme-accent/50 rounded-lg flex flex-col items-center justify-center">
         <div className="text-4xl mb-4">🥽</div>
         <div className="text-white text-lg font-medium mb-2">VR Experience</div>
-        <div className="text-slate-300 text-sm text-center mb-4">
+        <div className="text-theme-muted text-sm text-center mb-4">
           • WebXR compatible<br/>
           • Multi-user sessions<br/>
           • Immersive walkthroughs
@@ -163,8 +164,8 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail 
   );
 
   const renderImageViewer = () => (
-    <div className="w-full h-full relative bg-slate-100 flex items-center justify-center">
-      <div className="text-slate-400">
+    <div className="w-full h-full relative bg-theme-surfaceAlt flex items-center justify-center">
+      <div className="text-theme-soft">
         <div className="text-4xl mb-4 text-center">🖼️</div>
         <div>Image Viewer Ready</div>
       </div>
@@ -174,17 +175,17 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail 
 
   const renderViewerControls = (viewerType: string) => (
     <div className="absolute bottom-4 left-4 right-4">
-      <div className="bg-black/70 backdrop-blur-sm rounded-lg p-3 flex items-center justify-between">
+      <div className="bg-theme-overlay/70 backdrop-blur-sm rounded-lg p-3 flex items-center justify-between border border-theme-border/40">
         <div className="flex items-center gap-3">
           <span className="text-white text-sm font-medium">{viewerType}</span>
           <div className="flex gap-2">
-            <button className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded flex items-center justify-center text-white transition-colors">
+            <button className="w-8 h-8 bg-white/15 hover:bg-white/25 rounded flex items-center justify-center text-white transition-colors">
               ⚙️
             </button>
-            <button className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded flex items-center justify-center text-white transition-colors">
+            <button className="w-8 h-8 bg-white/15 hover:bg-white/25 rounded flex items-center justify-center text-white transition-colors">
               📐
             </button>
-            <button className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded flex items-center justify-center text-white transition-colors">
+            <button className="w-8 h-8 bg-white/15 hover:bg-white/25 rounded flex items-center justify-center text-white transition-colors">
               💬
             </button>
           </div>
@@ -192,11 +193,11 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail 
         <div className="flex gap-2">
           <button 
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded flex items-center justify-center text-white transition-colors"
+            className="w-8 h-8 bg-white/15 hover:bg-white/25 rounded flex items-center justify-center text-white transition-colors"
           >
             ⛶
           </button>
-          <button className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded flex items-center justify-center text-white transition-colors">
+          <button className="w-8 h-8 bg-white/15 hover:bg-white/25 rounded flex items-center justify-center text-white transition-colors">
             ⋮
           </button>
         </div>
@@ -206,21 +207,21 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail 
 
   // Thumbnail version for mobile
   if (thumbnail) {
-    const content = (() => {
+    const icon = (() => {
       switch (finalMediaType) {
-        case '3d-model': return { icon: '🏗️', color: 'bg-slate-700' };
-        case '360-photo': return { icon: '📷', color: 'bg-blue-600' };
-        case '360-video': return { icon: '🎥', color: 'bg-red-600' };
-        case 'video': return { icon: '🎬', color: 'bg-purple-600' };
-        case 'bim-model': return { icon: '🏢', color: 'bg-green-600' };
-        case 'vr-scene': return { icon: '🥽', color: 'bg-indigo-600' };
-        default: return { icon: '🖼️', color: 'bg-gray-600' };
+        case '3d-model': return '🏗️';
+        case '360-photo': return '📷';
+        case '360-video': return '🎥';
+        case 'video': return '🎬';
+        case 'bim-model': return '🏢';
+        case 'vr-scene': return '🥽';
+        default: return '🖼️';
       }
     })();
 
     return (
-      <div className={`w-full h-full ${content.color} flex items-center justify-center text-white text-lg hover:scale-105 transition-transform cursor-pointer`}>
-        {content.icon}
+      <div className="w-full h-full bg-theme-accent/20 flex items-center justify-center text-white text-lg hover:scale-105 transition-transform cursor-pointer">
+        {icon}
       </div>
     );
   }
@@ -229,6 +230,7 @@ export default function MediaViewer({ id, mediaUrl, mediaType, title, thumbnail 
     <div 
       ref={viewerRef}
       className={`MediaViewer w-full h-full rounded-lg overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}
+      aria-label={title || `${finalMediaType} viewer`}
     >
       {renderViewer()}
     </div>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
 import ScrollRail from "@/components/ui/ScrollRail";
+import { DEFAULT_THEME } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: "Slate360 – From Design to Reality",
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme={DEFAULT_THEME}>
       <body className="antialiased">
         <Navbar />
         <ScrollRail />

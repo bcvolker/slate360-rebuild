@@ -34,11 +34,11 @@ export default function TileNavigation() {
           title={tile.title}
         >
           {/* Hamburger line */}
-          <div 
+          <div
             className={`w-6 h-0.5 transition-all duration-300 ${
               activeSection === tile.id
-                ? "bg-[#4B9CD3] shadow-lg shadow-[#4B9CD3]/50"
-                : "bg-[#B87333] hover:bg-[#4B9CD3] hover:shadow-md hover:shadow-[#4B9CD3]/30"
+                ? "bg-theme-accent shadow-[0_0_12px_rgba(var(--color-accent)_/_0.45)]"
+                : "bg-theme-accentSecondary hover:bg-theme-accent hover:shadow-[0_0_10px_rgba(var(--color-accent)_/_0.3)]"
             }`}
           />
           
