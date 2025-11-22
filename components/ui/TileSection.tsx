@@ -54,7 +54,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
     bg-slate-900 border border-white/10
     tile-viewer-surface
     w-full h-40 rounded-xl cursor-pointer hover:bg-slate-800/50
-    shrink-0 mt-auto
+    shrink-0
   `;
 
   // EXPANDED MOBILE VIEWER OVERLAY
@@ -163,12 +163,14 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
 
             {/* Bottom Viewer */}
-            <div 
-              className={mobileViewerClasses}
-              onClick={() => setIsExpanded(true)}
-            >
-              <span className="text-2xl text-theme-accent">▶</span>
-              <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-1">View</p>
+            <div className="mt-auto">
+              <div 
+                className={mobileViewerClasses}
+                onClick={() => setIsExpanded(true)}
+              >
+                <span className="text-2xl text-theme-accent">▶</span>
+                <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-1">View</p>
+              </div>
             </div>
 
             {/* Expanded Viewer Overlay */}
