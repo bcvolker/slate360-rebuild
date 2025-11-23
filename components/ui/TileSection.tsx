@@ -151,7 +151,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             {/* Row 1: Text Content (Flexible Top) */}
             {/* Increased padding to pt-[96px] (80px navbar + 16px gap) to uncrowd the top */}
             {/* Landscape: Reduced padding to pt-20 (80px) to save vertical space */}
-            <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-2 self-start min-h-0 pt-[96px] landscape:pt-20">
+            {/* Added pb-8 to ensure text doesn't spill off bottom of scroll area */}
+            <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-8 self-start min-h-0 pt-[96px] landscape:pt-20">
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
                 {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}

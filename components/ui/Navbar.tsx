@@ -164,17 +164,21 @@ export default function Navbar() {
 
         {/* MOBILE MENU OVERLAY */}
         {mobileOpen && (
-          <>
-            {/* Backdrop - Added cursor-pointer and high z-index to ensure clickability */}
-            {/* NUCLEAR FIX: Use a button element to guarantee click capture */}
+          <div className="fixed inset-0 z-[9999] flex flex-col lg:hidden">
+            {/* Backdrop - Full screen button to capture clicks */}
             <button
               type="button"
-              className="fixed inset-0 h-full w-full bg-black/60 z-[105] lg:hidden backdrop-blur-sm cursor-pointer border-none outline-none"
+              className="absolute inset-0 h-full w-full bg-black/60 backdrop-blur-sm cursor-pointer border-none outline-none"
               onClick={() => setMobileOpen(false)}
+              onTouchEnd={() => setMobileOpen(false)}
               aria-label="Close menu"
             />
-            {/* Menu Panel - Higher z-index than backdrop */}
-            <div className="fixed inset-x-0 top-0 z-[110] flex flex-col border-b border-white/10 bg-zinc-900/95 p-6 shadow-2xl md:hidden max-h-[80vh] overflow-y-auto">
+            
+            {/* Menu Panel - Sits on top of backdrop */}
+            <div 
+              className="relative z-10 flex flex-col border-b border-white/10 bg-zinc-900/95 p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex items-center justify-between mb-6">
                 {/* Added Logo to Menu Header */}
                 <div className="relative h-12 w-40 -ml-2">
@@ -236,7 +240,7 @@ export default function Navbar() {
                 </div>
               </div>
             </div>
-          </>
+          </div>
         )}
       </header>
 
