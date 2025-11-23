@@ -143,12 +143,11 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
           {/* --- MOBILE LAYOUT (<md) --- */}
           {/* REFACTOR: 4-Row Grid for rigid structure: Text / Buttons / Viewer / Footer */}
-          {/* DEBUG: Added borders to visualize layout if isLastTile */}
-          <div className={`md:hidden h-full w-full grid ${isLastTile ? 'grid-rows-[1fr_auto_auto_auto] border-2 border-red-500' : 'grid-rows-[1fr_auto_auto]'} gap-0 px-0 pt-0 pb-0`}>
+          <div className={`md:hidden h-full w-full grid ${isLastTile ? 'grid-rows-[1fr_auto_auto_auto]' : 'grid-rows-[1fr_auto_auto]'} gap-0 px-0 pt-0 pb-0`}>
             
             {/* Row 1: Text Content (Flexible Top) */}
-            {/* ADDED pt-[80px] to account for navbar, since we removed it from section */}
-            <div className={`flex flex-col gap-4 overflow-y-auto px-6 pb-4 self-start min-h-0 pt-[var(--navbar-height)] ${isLastTile ? 'border border-blue-500' : ''}`}>
+            {/* Increased top padding to 'pt-24' (approx 96px) to leave a sliver of space below navbar */}
+            <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-2 self-start min-h-0 pt-24">
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
                 {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}
@@ -165,20 +164,21 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
 
             {/* Row 2: Buttons (Fixed above viewer) */}
-            <div className={`flex flex-col gap-3 px-6 pb-4 w-full z-10 bg-gradient-to-t from-slate-50 to-transparent pt-4 ${isLastTile ? 'border border-green-500' : ''}`}>
+            {/* CHANGED: Side-by-side buttons (flex-row) to save vertical space */}
+            <div className="flex flex-row gap-3 px-6 pb-4 w-full z-10 bg-gradient-to-t from-slate-50 to-transparent pt-2 items-end">
               {tile?.ctaLabel && tile?.ctaHref && (
-                <Link href={tile.ctaHref} className="bg-[#A97142] hover:bg-[#8a5d36] text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center uppercase tracking-widest">
+                <Link href={tile.ctaHref} className="flex-1 bg-[#A97142] hover:bg-[#8a5d36] text-white text-xs px-2 py-3 rounded-md font-semibold transition-colors shadow-lg text-center uppercase tracking-widest">
                   {tile.ctaLabel}
                 </Link>
               )}
-               <Link href="/subscribe" className="bg-[#A97142] hover:bg-[#8a5d36] text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center">
+               <Link href="/subscribe" className="flex-1 bg-[#A97142] hover:bg-[#8a5d36] text-white text-xs px-2 py-3 rounded-md font-semibold transition-colors shadow-lg text-center">
                 Get Started
               </Link>
             </div>
 
             {/* Row 3: Bottom Viewer (Fixed Height) */}
-            {/* RESTORED height to 25vh for consistency */}
-            <div className={`h-[25vh] min-h-[140px] w-full px-2 pb-2 ${isLastTile ? 'border border-purple-500' : ''}`}>
+            {/* CHANGED: Reduced height to 15vh (~half of previous) to create more content space */}
+            <div className="h-[15vh] min-h-[100px] w-full px-2 pb-2">
               <div 
                 className={mobileViewerClasses}
                 onClick={() => setIsExpanded(true)}
@@ -190,15 +190,15 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
             {/* Row 4: Footer (Last Tile Only) */}
             {isLastTile && (
-              <footer className="w-full text-xs bg-slate-950/80 backdrop-blur-sm border-t border-white/10 py-6 px-6 border border-yellow-500">
-                <div className="flex flex-col gap-4 items-center text-center">
-                  <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+              <footer className="w-full text-xs bg-slate-950/80 backdrop-blur-sm border-t border-white/10 py-4 px-6">
+                <div className="flex flex-col gap-2 items-center text-center">
+                  <nav className="flex flex-wrap justify-center gap-x-4 gap-y-2">
                     <Link href="/about" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">About</Link>
                     <Link href="/contact" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">Contact</Link>
                     <Link href="/subscribe" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">Subscribe</Link>
                     <Link href="/privacy" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">Privacy</Link>
                   </nav>
-                  <p className="text-theme-soft">© 2025 Slate360. All rights reserved.</p>
+                  <p className="text-theme-soft text-[10px]">© 2025 Slate360. All rights reserved.</p>
                 </div>
               </footer>
             )} 

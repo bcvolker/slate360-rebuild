@@ -91,6 +91,8 @@ body {
   min-height: 100vh;
   overflow: hidden; /* Prevent body scroll, let snap container handle it */
   color: rgb(var(--color-text-primary));
+  /* Match background to tile background to hide grey bars on overscroll/refresh */
+  background-color: rgb(241, 245, 249); 
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
   background: 
     radial-gradient(circle at 50% 0%, rgba(0,0,0,0.03) 0%, transparent 70%),
