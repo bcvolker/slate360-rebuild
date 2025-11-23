@@ -27,7 +27,7 @@ function scrollToTile(id: string) {
   }
 }
 
-export default function Navbar() {
+export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeId, setActiveId] = useState<string>("slate360");

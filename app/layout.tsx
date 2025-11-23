@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "@/components/ui/Navbar";
+import SiteHeader from "@/components/ui/SiteHeader";
 import { DEFAULT_THEME } from "@/lib/theme";
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" data-theme={DEFAULT_THEME}>
       <body className="antialiased">
-        <Navbar />
+        <SiteHeader />
         <main className="snap-scroll-section">
           {children}
         </main>

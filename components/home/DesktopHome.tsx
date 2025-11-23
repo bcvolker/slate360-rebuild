@@ -1,4 +1,4 @@
-import TileSection from "@/components/ui/TileSection";
+import HomeSection from "@/components/ui/HomeSection";
 
 const tiles = [
   { id: "slate360", eyebrow: "From Design to Reality", title: "Your vision, instantly realized.", subtitle: "Slate360 unifies BIM, 360 tours, analytics, VR, and geospatial tools into one command center for the built environment.", bullets: ["Access every workflow in one secure hub.", "Connect office and field teams in real time.", "Forecast risk, cost, and performance with AI.", "Plug into the tools and data you already use."], ctaLabel: "Request a demo", ctaHref: "#contact", viewerTitle: "Slate360 Viewer", viewerSubtitle: "Interactive tools and digital twins coming soon." },
@@ -15,7 +15,7 @@ export default function DesktopHome() {
   return (
     <>
       {tiles.map((tile, index) => (
-        <TileSection key={tile.id} tile={tile} index={index} />
+        <HomeSection key={tile.id} tile={tile} index={index} />
       ))}
     </>
   );

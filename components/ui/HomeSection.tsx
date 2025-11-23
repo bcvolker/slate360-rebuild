@@ -20,7 +20,7 @@ interface TileSectionProps {
   'data-placeholder'?: boolean;
 }
 
-export default function TileSection({ tile, index }: TileSectionProps) {
+export default function HomeSection({ tile, index }: TileSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const isReversed = index % 2 === 1;
   const isFirstTile = index === 0;
