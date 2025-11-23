@@ -47,13 +47,13 @@ export default function TileSection({ tile, index }: TileSectionProps) {
   `;
 
   // MOBILE VIEWER CLASSES
-  // Full width, fixed height at bottom
+  // Full width, flexible height
   const mobileViewerClasses = `
     relative z-20 transition-all duration-300 ease-in-out
     flex flex-col items-center justify-center
     bg-slate-900 border border-white/10
     tile-viewer-surface
-    w-full h-40 rounded-xl cursor-pointer hover:bg-slate-800/50
+    w-full flex-1 rounded-xl cursor-pointer hover:bg-slate-800/50
     shrink-0
   `;
 
@@ -131,12 +131,10 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           </div>
 
           {/* --- MOBILE LAYOUT (<md) --- */}
-          <div className={`md:hidden flex flex-col h-full px-6 pt-8 ${isLastTile ? 'pb-32' : 'pb-6'} border-2 border-red-500 relative`}>
-            <div className="absolute top-0 left-0 bg-red-500 text-white text-xs px-2 py-1 z-50">DEBUG: V4 - RAINBOW MODE</div>
+          <div className={`md:hidden flex flex-col h-full px-6 pt-8 ${isLastTile ? 'pb-32' : 'pb-6'}`}>
             
             {/* Top Content Stack */}
-            <div className="flex flex-col gap-4 border-2 border-blue-500 p-2 relative">
-              <div className="absolute top-0 right-0 bg-blue-500 text-white text-[10px] px-1">TEXT</div>
+            <div className="flex flex-col gap-4">
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
                 {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}
@@ -152,7 +150,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
               )}
 
               {/* CTAs */}
-              <div className="flex flex-col gap-3 mt-2 border border-yellow-500 border-dashed p-1">
+              <div className="flex flex-col gap-3 mt-2">
                  <Link href="/subscribe" className="bg-theme-accent hover:bg-theme-accent/80 text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center">
                   Get Started
                 </Link>
@@ -165,8 +163,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
 
             {/* Bottom Viewer */}
-            <div className="mt-4 border-2 border-green-500 p-2 relative">
-              <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] px-1">VIEWER</div>
+            <div className="mt-4 flex-1 flex flex-col">
               <div 
                 className={mobileViewerClasses}
                 onClick={() => setIsExpanded(true)}
