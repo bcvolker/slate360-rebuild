@@ -235,7 +235,7 @@ export default function SiteHeader() {
       )}
 
       {/* SECONDARY NAV: Stacked on the right */}
-      <div className="hidden lg:flex flex-col fixed top-[calc(var(--navbar-height)+0.5rem)] right-8 items-end gap-1 z-40">
+      <div className="hidden xl:flex flex-col fixed top-[calc(var(--navbar-height)+0.5rem)] right-8 items-end gap-1 z-40">
         {NAV_LINKS.map((item) => (
           <Link
             key={item.id}

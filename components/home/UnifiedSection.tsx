@@ -33,7 +33,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const renderCtas = (isMobile = false) => {
     if (!tile.cta && !tile.secondaryCta) return null;
     return (
-      <div className={`flex ${isMobile ? 'flex-col w-full' : 'flex-col sm:flex-row'} gap-3 pt-2`}>
+      <div className={`flex ${isMobile ? 'flex-col w-full' : 'flex-col sm:flex-row'} gap-2 pt-0`}>
         {tile.cta && (
           <Link
             href={tile.cta.href}
@@ -107,7 +107,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               <button 
                 type="button"
                 onClick={() => setViewerOpen(true)}
-                className="w-32 h-32 bg-slate-900 rounded-xl flex flex-col items-center justify-center shrink-0 border border-slate-800 shadow-sm relative overflow-hidden group transition-transform active:scale-95"
+                className="w-40 h-32 bg-slate-900 rounded-xl flex flex-col items-center justify-center shrink-0 border border-slate-800 shadow-sm relative overflow-hidden group transition-transform active:scale-95"
               >
                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/0 pointer-events-none" />
                  <span className="text-3xl mb-1" style={{ color: accent }}>▶</span>
@@ -115,7 +115,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               </button>
 
               {/* CTAs - Made smaller to accommodate larger viewer */}
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 flex flex-col gap-2">
                  {renderCtas(true)}
               </div>
            </div>
