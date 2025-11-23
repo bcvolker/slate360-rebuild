@@ -16,12 +16,12 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const layoutAlign = tile.layout?.align ?? (index % 2 === 0 ? "right" : "left");
   const snapEnabled = tile.layout?.snap ?? true;
 
-  const sectionStyle = useMemo<CSSProperties>(() => ({
+  const sectionStyle = useMemo(() => ({
     // Expose accent color for inline elements that need it
     // without adding extra utility classes everywhere.
     // Using CSS vars keeps Tailwind output lean.
-    ["--section-accent" as const]: accent,
-  }), [accent]);
+    "--section-accent": accent,
+  } as CSSProperties), [accent]);
 
   const viewerTitle = tile.viewer?.title ?? "Viewer";
   const viewerSubtitle = tile.viewer?.subtitle ?? "Interactive content arrives shortly.";
