@@ -86,16 +86,8 @@ html {
   color-scheme: dark;
 }
 
-@media (min-width: 1024px) {
-  html {
-    scroll-snap-type: y mandatory;
-  }
-}
-
-@media (max-width: 1023px) {
-  html {
-    scroll-snap-type: none;
-  }
+html {
+  scroll-snap-type: y mandatory;
 }
 
 body {

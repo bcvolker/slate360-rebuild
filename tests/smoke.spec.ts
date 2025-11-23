@@ -59,7 +59,8 @@ test.describe('Slate360 Homepage', () => {
     
     // Find first menu link (handle both mobile overlay and desktop dropdown)
     // We look for visible links with href starting with /#
-    const firstMenuLink = page.locator('a[href^="/#"]:visible').first();
+    // Exclude the logo link which might be covered by the menu overlay
+    const firstMenuLink = page.locator('a[href^="/#"]:visible:not(:has(img))').first();
     
     if (await firstMenuLink.isVisible()) {
       const href = await firstMenuLink.getAttribute('href');
@@ -121,7 +122,7 @@ test.describe('Slate360 Homepage', () => {
     // Verify each section has a title (handle multiple h2s per section)
     for (let i = 0; i < Math.min(sectionCount, 5); i++) {
       const section = sections.nth(i);
-      const title = section.locator('h2').first();
+      const title = section.locator('h2:visible').first();
       await expect(title).toBeVisible();
     }
     

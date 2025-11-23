@@ -58,8 +58,8 @@ export default function SiteHeader() {
     <>
       {/* Removed site-header class to avoid conflicts. Added explicit Tailwind styles for background and blur. */}
       {/* Changed to charcoal grey (zinc-900) with subtle bottom border and shadow for "pop" */}
-      <header className="fixed top-0 z-[100] w-full border-b border-white/10 bg-zinc-900/95 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-        <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 lg:pl-8 lg:pr-8">
+      <header className="fixed top-0 z-[100] w-full border-b border-white/10 bg-zinc-900/95 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.5)] transition-all duration-300">
+        <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 landscape:py-1 lg:py-2 lg:pl-8 lg:pr-8">
           {/* LOGO: closer to left edge */}
           <Link
             href={anchorFor("slate360")}
@@ -67,7 +67,7 @@ export default function SiteHeader() {
             onClick={closeMenus}
           >
             {/* Adjusted negative margin to pull logo further left on mobile/tablet */}
-            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80">
+            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 landscape:h-10 landscape:w-40 lg:h-[4.5rem] lg:w-80 transition-all duration-300">
               <Image
                 src="/assets/slate360logoforwebsite.png"
                 alt="Slate360 logo"
@@ -84,7 +84,7 @@ export default function SiteHeader() {
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4FA9FF] transition-all hover:text-[#A97142] hover:border-[#A97142] hover:bg-[#A97142]/10 hover:shadow-[0_0_15px_rgba(169,113,66,0.4)]"
+                className="inline-flex items-center gap-1 rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4FA9FF] transition-all hover:text-[#A97142] hover:border-[#A97142] hover:bg-[#A97142]/10 hover:shadow-[0_0_15px_rgba(169,113,66,0.4)] landscape:px-4 landscape:py-1 lg:px-6 lg:py-2"
               >
                 <span>Menu</span>
                 <span className="text-xs">▾</span>
