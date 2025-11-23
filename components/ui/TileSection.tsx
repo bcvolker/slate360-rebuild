@@ -142,12 +142,12 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           </div>
 
           {/* --- MOBILE LAYOUT (<md) --- */}
-          {/* REFACTOR: 4-Row Grid for rigid structure: Text / Buttons / Viewer / Footer */}
-          <div className={`md:hidden h-full w-full grid ${isLastTile ? 'grid-rows-[1fr_auto_auto_auto]' : 'grid-rows-[1fr_auto_auto]'} gap-0 px-0 pt-0 pb-0`}>
+          {/* REFACTOR: Absolute positioning to force 100% height match with section */}
+          <div className={`md:hidden absolute inset-0 w-full grid ${isLastTile ? 'grid-rows-[minmax(0,1fr)_auto_auto_auto]' : 'grid-rows-[minmax(0,1fr)_auto_auto]'} gap-0 px-0 pt-0 pb-0`}>
             
             {/* Row 1: Text Content (Flexible Top) */}
-            {/* Increased top padding to 'pt-24' (approx 96px) to leave a sliver of space below navbar */}
-            <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-2 self-start min-h-0 pt-24">
+            {/* Reduced padding to pt-20 (80px) to match navbar exactly */}
+            <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-2 self-start min-h-0 pt-20">
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
                 {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}
@@ -164,7 +164,6 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
 
             {/* Row 2: Buttons (Fixed above viewer) */}
-            {/* CHANGED: Side-by-side buttons (flex-row) to save vertical space */}
             <div className="flex flex-row gap-3 px-6 pb-4 w-full z-10 bg-gradient-to-t from-slate-50 to-transparent pt-2 items-end">
               {tile?.ctaLabel && tile?.ctaHref && (
                 <Link href={tile.ctaHref} className="flex-1 bg-[#A97142] hover:bg-[#8a5d36] text-white text-xs px-2 py-3 rounded-md font-semibold transition-colors shadow-lg text-center uppercase tracking-widest">
@@ -177,7 +176,6 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
 
             {/* Row 3: Bottom Viewer (Fixed Height) */}
-            {/* CHANGED: Reduced height to 15vh (~half of previous) to create more content space */}
             <div className="h-[15vh] min-h-[100px] w-full px-2 pb-2">
               <div 
                 className={mobileViewerClasses}
