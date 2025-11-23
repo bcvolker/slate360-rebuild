@@ -53,7 +53,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
     flex flex-col items-center justify-center
     bg-slate-900 border border-white/10
     tile-viewer-surface
-    w-full h-full rounded-xl cursor-pointer hover:bg-slate-800/50
+    w-full h-full cursor-pointer hover:bg-slate-800/50
     shrink-0
   `;
 
@@ -131,12 +131,10 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           </div>
 
           {/* --- MOBILE LAYOUT (<md) --- */}
-          <div className={`md:hidden flex flex-col h-full px-6 pt-8 ${isLastTile ? 'pb-24' : 'pb-0'} border-2 border-red-500 relative`}>
-            <div className="absolute top-0 left-0 bg-red-500 text-white text-xs px-2 py-1 z-50">DEBUG: V5 - NO PADDING</div>
+          <div className={`md:hidden flex flex-col h-full px-0 pt-4 ${isLastTile ? 'pb-24' : 'pb-0'}`}>
             
             {/* Top Content Stack - Takes available space */}
-            <div className="flex-1 flex flex-col gap-4 overflow-y-auto pb-4 border-2 border-blue-500 relative">
-              <div className="absolute top-0 right-0 bg-blue-500 text-white text-[10px] px-1">TEXT</div>
+            <div className="flex-1 flex flex-col gap-4 overflow-y-auto pb-4 px-6">
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
                 {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}
@@ -152,21 +150,20 @@ export default function TileSection({ tile, index }: TileSectionProps) {
               )}
 
               {/* CTAs */}
-              <div className="flex flex-col gap-3 mt-2 border border-yellow-500 border-dashed p-1">
+              <div className="flex flex-col gap-3 mt-2">
+                {tile?.ctaLabel && tile?.ctaHref && (
+                  <Link href={tile.ctaHref} className="bg-slate-200 hover:bg-slate-300 text-slate-900 text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-sm w-full text-center uppercase tracking-widest">
+                    {tile.ctaLabel}
+                  </Link>
+                )}
                  <Link href="/subscribe" className="bg-theme-accent hover:bg-theme-accent/80 text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center">
                   Get Started
                 </Link>
-                {tile?.ctaLabel && tile?.ctaHref && (
-                  <Link href={tile.ctaHref} className="text-sm font-bold text-theme-accent uppercase tracking-widest hover:text-slate-900 transition-colors text-center">
-                    {tile.ctaLabel} →
-                  </Link>
-                )}
               </div>
             </div>
 
             {/* Bottom Viewer - Fixed ~25% height */}
-            <div className="h-[25vh] min-h-[160px] shrink-0 border-2 border-green-500 relative">
-              <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] px-1">VIEWER</div>
+            <div className="h-[25vh] min-h-[160px] shrink-0">
               <div 
                 className={mobileViewerClasses}
                 onClick={() => setIsExpanded(true)}
