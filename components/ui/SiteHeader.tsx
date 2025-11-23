@@ -218,7 +218,7 @@ export default function SiteHeader() {
 
               {/* Condense links into 2 columns */}
               <div className="grid grid-cols-2 gap-2">
-                {TILE_LINKS.map((item) => (
+                {NAV_LINKS.map((item) => (
                   <Link
                     key={item.id}
                     href={anchorFor(item.id)}
