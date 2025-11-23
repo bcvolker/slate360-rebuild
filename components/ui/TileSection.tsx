@@ -146,9 +146,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           <div className={`md:hidden absolute inset-0 w-full grid ${isLastTile ? 'grid-rows-[minmax(0,1fr)_auto_auto_auto]' : 'grid-rows-[minmax(0,1fr)_auto_auto]'} gap-0 px-0 pt-0 pb-0`}>
             
             {/* Row 1: Text Content (Flexible Top) */}
-            {/* Reduced padding to pt-20 (80px) to match navbar exactly */}
-            {/* Added 'pt-[84px]' (80px + 4px) to give the requested 3-4mm breathing room */}
-            <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-2 self-start min-h-0 pt-[84px]">
+            {/* Increased padding to pt-[96px] (80px navbar + 16px gap) to uncrowd the top */}
+            <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-2 self-start min-h-0 pt-[96px]">
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
                 {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}
@@ -189,7 +188,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
             {/* Row 4: Footer (Last Tile Only) */}
             {isLastTile && (
-              <footer className="w-full text-xs bg-slate-950/80 backdrop-blur-sm border-t border-white/10 py-4 px-6">
+              <footer className="w-full text-xs bg-slate-950/80 backdrop-blur-sm border-t border-white/10 py-4 px-6 z-30">
                 <div className="flex flex-col gap-2 items-center text-center">
                   <nav className="flex flex-wrap justify-center gap-x-4 gap-y-2">
                     <Link href="/about" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">About</Link>

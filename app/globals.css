@@ -88,7 +88,7 @@ html {
 }
 
 body {
-  min-height: 100vh;
+  height: 100%; /* Use 100% instead of min-h-screen to avoid 100vh vs 100dvh conflicts */
   overflow: hidden; /* Prevent body scroll, let snap container handle it */
   color: rgb(var(--color-text-primary));
   /* Match background to tile background to hide grey bars on overscroll/refresh */
