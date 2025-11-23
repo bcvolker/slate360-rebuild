@@ -132,10 +132,11 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
           {/* --- MOBILE LAYOUT (<md) --- */}
           <div className={`md:hidden flex flex-col h-full px-6 pt-8 ${isLastTile ? 'pb-32' : 'pb-6'} border-2 border-red-500 relative`}>
-            <div className="absolute top-0 left-0 bg-red-500 text-white text-xs px-2 py-1 z-50">DEBUG: V3 - CHECKING UPDATES</div>
+            <div className="absolute top-0 left-0 bg-red-500 text-white text-xs px-2 py-1 z-50">DEBUG: V4 - RAINBOW MODE</div>
             
             {/* Top Content Stack */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 border-2 border-blue-500 p-2 relative">
+              <div className="absolute top-0 right-0 bg-blue-500 text-white text-[10px] px-1">TEXT</div>
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
                 {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}
@@ -151,7 +152,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
               )}
 
               {/* CTAs */}
-              <div className="flex flex-col gap-3 mt-2">
+              <div className="flex flex-col gap-3 mt-2 border border-yellow-500 border-dashed p-1">
                  <Link href="/subscribe" className="bg-theme-accent hover:bg-theme-accent/80 text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center">
                   Get Started
                 </Link>
@@ -164,7 +165,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
 
             {/* Bottom Viewer */}
-            <div className="mt-4">
+            <div className="mt-4 border-2 border-green-500 p-2 relative">
+              <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] px-1">VIEWER</div>
               <div 
                 className={mobileViewerClasses}
                 onClick={() => setIsExpanded(true)}
