@@ -94,7 +94,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       {/* Main Content Container */}
       {/* Added pt-[80px] (navbar height) to desktop only via md:pt-[80px] */}
       {/* For mobile, we will apply the padding inside the grid's text row */}
-      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible md:pt-[var(--navbar-height)] ${isFirstTile ? 'pt-0 md:pt-32 lg:pt-40' : 'pt-0 md:pt-32 lg:pt-40'}`}>
+      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible md:pt-[var(--navbar-height)] ${isFirstTile ? 'pt-0 md:pt-48 lg:pt-56' : 'pt-0 md:pt-48 lg:pt-56'}`}>
         <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12 h-full flex flex-col md:block">
           
           {/* --- DESKTOP LAYOUT (md+) --- */}
@@ -147,7 +147,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             
             {/* Row 1: Text Content (Flexible Top) */}
             {/* Increased padding to pt-[96px] (80px navbar + 16px gap) to uncrowd the top */}
-            <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-2 self-start min-h-0 pt-[96px]">
+            {/* Landscape: Reduced padding to pt-20 (80px) to save vertical space */}
+            <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-2 self-start min-h-0 pt-[96px] landscape:pt-20">
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
                 {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}
@@ -176,7 +177,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
 
             {/* Row 3: Bottom Viewer (Fixed Height) */}
-            <div className="h-[15vh] min-h-[100px] w-full px-2 pb-2">
+            {/* Landscape: Reduced height to save space */}
+            <div className="h-[15vh] min-h-[100px] landscape:h-[12vh] landscape:min-h-[80px] w-full px-2 pb-2">
               <div 
                 className={mobileViewerClasses}
                 onClick={() => setIsExpanded(true)}

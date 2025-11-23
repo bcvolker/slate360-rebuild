@@ -84,7 +84,8 @@ export default function Navbar() {
             className="flex items-center gap-3 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme rounded-md"
             onClick={() => handleTileClick("slate360")}
           >
-            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 -ml-4">
+            {/* Adjusted negative margin to pull logo further left on mobile/tablet */}
+            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 -ml-6 md:-ml-4">
               <Image
                 src="/assets/slate360logoforwebsite.png"
                 alt="Slate360 logo"
@@ -162,52 +163,67 @@ export default function Navbar() {
         {/* MOBILE MENU OVERLAY */}
         {mobileOpen && (
           <>
+            {/* Backdrop - Added onClick to close menu */}
             <div
-              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+              className="fixed inset-0 bg-black/60 z-[60] lg:hidden backdrop-blur-sm"
               onClick={() => setMobileOpen(false)}
             />
-            <div className="fixed top-16 right-3 left-3 rounded-2xl bg-theme-overlay/90 border border-theme-accentSecondary/30 z-50 lg:hidden shadow-2xl backdrop-blur-xl">
-              <div className="mx-auto max-w-6xl px-4 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
-                <div className="flex flex-col gap-1 text-sm">
-                  <Link
-                    href="/about"
-                    className="py-2 px-3 text-slate-100 hover:text-[#A97142] hover:bg-[#A97142]/15 rounded-lg transition-colors"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    About
-                  </Link>
-                  <Link
-                    href="/contact"
-                    className="py-2 px-3 text-slate-100 hover:text-[#A97142] hover:bg-[#A97142]/15 rounded-lg transition-colors"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Contact
-                  </Link>
-                  <Link
-                    href="/subscribe"
-                    className="py-2 px-3 text-slate-100 hover:text-[#A97142] hover:bg-[#A97142]/15 rounded-lg transition-colors"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Subscribe
-                  </Link>
-                  <Link
-                    href="/privacy"
-                    className="py-2 px-3 text-slate-100 hover:text-[#A97142] hover:bg-[#A97142]/15 rounded-lg transition-colors"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Privacy
-                  </Link>
+            {/* Menu Panel - Increased z-index to cover logo */}
+            <div className="fixed inset-x-0 top-0 z-[70] flex flex-col border-b border-white/10 bg-slate-900/95 p-6 shadow-2xl md:hidden max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                {/* Added Logo to Menu Header */}
+                <div className="relative h-12 w-40 -ml-2">
+                  <Image
+                    src="/assets/slate360logoforwebsite.png"
+                    alt="Slate360 logo"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white"
+                >
+                  <span className="sr-only">Close menu</span>
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <nav className="flex flex-col gap-4">
+                  {['Contact', 'About', 'Subscribe'].map((label) => (
+                    <Link
+                      key={label}
+                      href={`/${label.toLowerCase()}`}
+                      onClick={() => setMobileOpen(false)}
+                      className="text-lg font-bold uppercase tracking-widest text-[#4FA9FF] hover:text-[#A97142]"
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                  <Link 
+                    href="/login" 
+                    onClick={() => setMobileOpen(false)}
+                    className="inline-block w-fit rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4FA9FF] hover:bg-[#A97142]/10 hover:text-[#A97142] hover:border-[#A97142]"
+                  >
+                    Login
+                  </Link>
+                </nav>
 
                 <div className="h-px bg-slate-700/60" />
 
-                <div className="space-y-0.5">
+                {/* Condense links into 2 columns */}
+                <div className="grid grid-cols-2 gap-2">
                   {TILE_LINKS.map((item) => (
                     <button
                       key={item.id}
                       type="button"
                       onClick={() => handleTileClick(item.id)}
-                      className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-200 hover:bg-theme-overlay/80 hover:text-white transition-colors"
+                      className="w-full rounded-lg px-2 py-2 text-left text-xs text-slate-200 hover:bg-theme-overlay/80 hover:text-white transition-colors truncate"
                     >
                       {item.label}
                     </button>
