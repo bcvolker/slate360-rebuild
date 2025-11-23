@@ -135,6 +135,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           <div className={`md:hidden h-full w-full grid ${isLastTile ? 'grid-rows-[1fr_auto_auto_auto]' : 'grid-rows-[1fr_auto_auto]'} gap-0 px-0 pt-4 pb-0`}>
             
             {/* Row 1: Text Content (Flexible Top) */}
+            {/* ADDED min-h-0 to prevent grid blowout */}
             <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-4 self-start min-h-0">
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
@@ -164,7 +165,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
 
             {/* Row 3: Bottom Viewer (Fixed Height) */}
-            <div className="h-[25vh] min-h-[160px] w-full px-2 pb-2">
+            {/* Reduced height on last tile to accommodate footer */}
+            <div className={`${isLastTile ? 'h-[20vh]' : 'h-[25vh]'} min-h-[140px] w-full px-2 pb-2`}>
               <div 
                 className={mobileViewerClasses}
                 onClick={() => setIsExpanded(true)}
