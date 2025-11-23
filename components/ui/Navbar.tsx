@@ -162,87 +162,88 @@ export default function Navbar() {
           </div>
         </nav>
 
-        {/* MOBILE MENU OVERLAY */}
-        {mobileOpen && (
-          <div className="fixed inset-0 z-[9999] flex flex-col lg:hidden">
-            {/* Backdrop - Full screen button to capture clicks */}
-            <button
-              type="button"
-              className="absolute inset-0 h-full w-full bg-black/60 backdrop-blur-sm cursor-pointer border-none outline-none"
-              onClick={() => setMobileOpen(false)}
-              onTouchEnd={() => setMobileOpen(false)}
-              aria-label="Close menu"
-            />
-            
-            {/* Menu Panel - Sits on top of backdrop */}
-            <div 
-              className="relative z-10 flex flex-col border-b border-white/10 bg-zinc-900/95 p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-6">
-                {/* Added Logo to Menu Header */}
-                <div className="relative h-12 w-40 -ml-2">
-                  <Image
-                    src="/assets/slate360logoforwebsite.png"
-                    alt="Slate360 logo"
-                    fill
-                    className="object-contain object-left"
-                    priority
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white"
-                >
-                  <span className="sr-only">Close menu</span>
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+      </header>
+
+      {/* MOBILE MENU OVERLAY - Moved outside header to avoid stacking context issues */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-[9999] flex flex-col lg:hidden">
+          {/* Backdrop - Full screen button to capture clicks */}
+          <button
+            type="button"
+            className="absolute inset-0 h-full w-full bg-black/60 backdrop-blur-sm cursor-pointer border-none outline-none"
+            onClick={() => setMobileOpen(false)}
+            onTouchEnd={() => setMobileOpen(false)}
+            aria-label="Close menu"
+          />
+          
+          {/* Menu Panel - Sits on top of backdrop */}
+          <div 
+            className="relative z-10 flex flex-col border-b border-white/10 bg-zinc-900/95 p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              {/* Added Logo to Menu Header */}
+              <div className="relative h-12 w-40 -ml-2">
+                <Image
+                  src="/assets/slate360logoforwebsite.png"
+                  alt="Slate360 logo"
+                  fill
+                  className="object-contain object-left"
+                  priority
+                />
               </div>
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white"
+              >
+                <span className="sr-only">Close menu</span>
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-              <div className="space-y-6">
-                <nav className="flex flex-col gap-4">
-                  {['Contact', 'About', 'Subscribe'].map((label) => (
-                    <Link
-                      key={label}
-                      href={`/${label.toLowerCase()}`}
-                      onClick={() => setMobileOpen(false)}
-                      className="text-lg font-bold uppercase tracking-widest text-[#4FA9FF] hover:text-[#A97142]"
-                    >
-                      {label}
-                    </Link>
-                  ))}
-                  <Link 
-                    href="/login" 
+            <div className="space-y-6">
+              <nav className="flex flex-col gap-4">
+                {['Contact', 'About', 'Subscribe'].map((label) => (
+                  <Link
+                    key={label}
+                    href={`/${label.toLowerCase()}`}
                     onClick={() => setMobileOpen(false)}
-                    className="inline-block w-fit rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4FA9FF] hover:bg-[#A97142]/10 hover:text-[#A97142] hover:border-[#A97142]"
+                    className="text-lg font-bold uppercase tracking-widest text-[#4FA9FF] hover:text-[#A97142]"
                   >
-                    Login
+                    {label}
                   </Link>
-                </nav>
+                ))}
+                <Link 
+                  href="/login" 
+                  onClick={() => setMobileOpen(false)}
+                  className="inline-block w-fit rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4FA9FF] hover:bg-[#A97142]/10 hover:text-[#A97142] hover:border-[#A97142]"
+                >
+                  Login
+                </Link>
+              </nav>
 
-                <div className="h-px bg-slate-700/60" />
+              <div className="h-px bg-slate-700/60" />
 
-                {/* Condense links into 2 columns */}
-                <div className="grid grid-cols-2 gap-2">
-                  {TILE_LINKS.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => handleTileClick(item.id)}
-                      className="w-full rounded-lg px-2 py-2 text-left text-xs text-slate-200 hover:bg-theme-overlay/80 hover:text-white transition-colors truncate"
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
+              {/* Condense links into 2 columns */}
+              <div className="grid grid-cols-2 gap-2">
+                {TILE_LINKS.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleTileClick(item.id)}
+                    className="w-full rounded-lg px-2 py-2 text-left text-xs text-slate-200 hover:bg-theme-overlay/80 hover:text-white transition-colors truncate"
+                  >
+                    {item.label}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
-        )}
-      </header>
+        </div>
+      )}
 
       {/* SECONDARY NAV: Row of text links to tiles */}
       <div className="hidden lg:flex fixed top-[100px] w-full justify-center gap-4 lg:gap-6 pt-1 px-4 z-40">

@@ -94,8 +94,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       {/* Main Content Container */}
       {/* Added pt-[80px] (navbar height) to desktop only via md:pt-[80px] */}
       {/* For mobile, we will apply the padding inside the grid's text row */}
-      {/* Added pb-24 to ensure content doesn't spill off bottom on tablet/desktop */}
-      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible md:pt-[var(--navbar-height)] ${isFirstTile ? 'pt-0 md:pt-48 lg:pt-56' : 'pt-0 md:pt-48 lg:pt-56'} pb-0 md:pb-24`}>
+      {/* Added pb-32 to ensure content doesn't spill off bottom on tablet/desktop */}
+      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible md:pt-[var(--navbar-height)] ${isFirstTile ? 'pt-0 md:pt-48 lg:pt-56' : 'pt-0 md:pt-48 lg:pt-56'} pb-0 md:pb-32`}>
         <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12 h-full flex flex-col md:block">
           
           {/* --- DESKTOP LAYOUT (md+) --- */}
@@ -124,16 +124,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
                 </ul>
               )}
               
-              {/* DEMO CONTENT */}
-              {isFirstTile && (
-                <div className="mt-4 p-4 bg-yellow-100/10 border border-yellow-500/50 rounded text-sm text-theme-muted">
-                  <p className="font-bold text-yellow-500 mb-2">DEMO: Extra Content Expansion</p>
-                  <p>
-                    This is extra content to demonstrate that the text area expands and wraps around the viewer. 
-                    As you add more text here, it will flow down the side of the viewer and eventually wrap underneath it.
-                  </p>
-                </div>
-              )}
+              {/* DEMO CONTENT REMOVED */}
 
               {tile?.ctaLabel && tile?.ctaHref && (
                 <Link href={tile.ctaHref} className="mt-4 inline-block bg-theme-accent hover:bg-theme-accent/80 text-white px-6 py-3 rounded-md font-semibold transition-colors">
