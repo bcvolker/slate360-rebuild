@@ -33,11 +33,11 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const renderCtas = (isMobile = false) => {
     if (!tile.cta && !tile.secondaryCta) return null;
     return (
-      <div className={`flex ${isMobile ? 'flex-col w-full' : 'flex-col sm:flex-row'} gap-2 pt-0`}>
+      <div className={`flex ${isMobile ? 'flex-row w-full' : 'flex-col sm:flex-row'} gap-2 pt-0`}>
         {tile.cta && (
           <Link
             href={tile.cta.href}
-            className={`inline-flex items-center justify-center rounded-md bg-[var(--section-accent)] px-6 py-3 text-sm font-semibold uppercase tracking-widest text-white shadow-lg shadow-[var(--section-accent)/40] transition hover:opacity-90 ${isMobile ? 'w-full py-2 text-[10px] leading-tight' : ''}`}
+            className={`inline-flex items-center justify-center rounded-md bg-[var(--section-accent)] px-6 py-3 text-sm font-semibold uppercase tracking-widest text-white shadow-lg shadow-[var(--section-accent)/40] transition hover:opacity-90 ${isMobile ? 'flex-1 py-3 text-xs' : ''}`}
             style={{ backgroundColor: accent }}
           >
             {tile.cta.label}
@@ -46,7 +46,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {tile.secondaryCta && (
           <Link
             href={tile.secondaryCta.href}
-            className={`inline-flex items-center justify-center rounded-md border border-slate-900/10 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-slate-700 transition hover:border-slate-900/40 ${isMobile ? 'w-full py-2 text-[10px] leading-tight' : ''}`}
+            className={`inline-flex items-center justify-center rounded-md border border-slate-900/10 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-slate-700 transition hover:border-slate-900/40 ${isMobile ? 'flex-1 py-3 text-xs' : ''}`}
           >
             {tile.secondaryCta.label}
           </Link>
@@ -59,17 +59,18 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
     <section
       id={tile.id}
       data-snap="tile"
-      // Updated: Enable snap and full height on mobile as well, but disable snap/height constraints in landscape to allow scrolling
-      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "snap-start h-[100dvh] landscape:h-auto landscape:min-h-screen landscape:snap-none landscape:py-24 lg:pt-[80px]" : "py-16 sm:py-20"}`}
+      // Updated: Use min-h-screen instead of fixed height for mobile to allow natural scrolling
+      // Only apply snap and fixed height on desktop (lg)
+      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "min-h-[100dvh] lg:h-[100dvh] lg:snap-start lg:pt-[80px]" : "py-16 sm:py-20"}`}
       style={sectionStyle}
     >
       <div className="absolute inset-0 -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" aria-hidden />
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 h-full flex flex-col justify-center">
         
-        {/* --- MOBILE LAYOUT (Condensed) --- */}
-        <div className="lg:hidden flex flex-col h-full pt-24 pb-8 justify-between landscape:justify-start landscape:gap-8 landscape:h-auto">
+        {/* --- MOBILE LAYOUT (Refactored for natural flow) --- */}
+        <div className="lg:hidden flex flex-col pt-24 pb-12 gap-8">
            {/* Top: Text Content */}
-           <div className="space-y-4 overflow-y-auto no-scrollbar pr-1 landscape:overflow-visible">
+           <div className="space-y-4">
               {tile.eyebrow && (
                 <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-slate-500" style={{ color: accent }}>
                   {tile.eyebrow}
@@ -101,21 +102,21 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               )}
            </div>
 
-           {/* Bottom: Viewer + CTAs Side-by-Side */}
-           <div className="mt-2 pt-3 border-t border-slate-100 flex items-center gap-3 shrink-0 landscape:mt-0 landscape:border-none">
-              {/* Compact Viewer Thumbnail - Enlarged per request */}
+           {/* Bottom: Viewer + CTAs Stacked or Side-by-Side depending on space */}
+           <div className="flex flex-col gap-4">
+              {/* Large Viewer Thumbnail */}
               <button 
                 type="button"
                 onClick={() => setViewerOpen(true)}
-                className="w-40 h-32 bg-slate-900 rounded-xl flex flex-col items-center justify-center shrink-0 border border-slate-800 shadow-sm relative overflow-hidden group transition-transform active:scale-95"
+                className="w-full aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center shrink-0 border border-slate-800 shadow-sm relative overflow-hidden group transition-transform active:scale-[0.98]"
               >
                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/0 pointer-events-none" />
-                 <span className="text-3xl mb-1" style={{ color: accent }}>▶</span>
-                 <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">View</span>
+                 <span className="text-4xl mb-2" style={{ color: accent }}>▶</span>
+                 <span className="text-xs uppercase tracking-widest text-slate-400 font-semibold">View Content</span>
               </button>
 
-              {/* CTAs - Made smaller to accommodate larger viewer */}
-              <div className="flex-1 min-w-0 flex flex-col gap-2">
+              {/* CTAs - Compact Row below viewer */}
+              <div className="w-full">
                  {renderCtas(true)}
               </div>
            </div>
