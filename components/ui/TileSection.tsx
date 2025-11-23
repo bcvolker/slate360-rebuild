@@ -185,7 +185,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
             {/* Row 4: Footer (Last Tile Only) */}
             {isLastTile && (
-              <footer className="w-full text-xs bg-slate-950/80 backdrop-blur-sm border-t border-white/10 py-4 px-6 z-30">
+              <footer className="w-full text-xs bg-zinc-900/95 backdrop-blur-md border-t border-white/10 shadow-[0_-4px_30px_rgba(0,0,0,0.5)] py-4 px-6 z-30">
                 <div className="flex flex-col gap-2 items-center text-center">
                   <nav className="flex flex-wrap justify-center gap-x-4 gap-y-2">
                     <Link href="/about" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">About</Link>
@@ -221,7 +221,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       </div>
 
       {isLastTile && (
-        <footer className="hidden md:block slate360-footer w-full text-xs shrink-0 absolute bottom-0 left-0 right-0 z-30 bg-slate-950/80 backdrop-blur-sm">
+        <footer className="hidden md:block slate360-footer w-full text-xs shrink-0 absolute bottom-0 left-0 right-0 z-30 bg-zinc-900/95 backdrop-blur-md border-t border-white/10 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]">
           <div className="mx-auto flex max-w-6xl items-center justify-between flex-wrap gap-4 px-6 py-6">
             <nav className="flex items-center gap-8">
               <Link href="/about" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">About</Link>

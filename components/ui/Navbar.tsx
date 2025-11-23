@@ -128,17 +128,18 @@ export default function Navbar() {
             </div>
 
             <nav className="hidden md:flex items-center gap-8">
+              {/* Updated Desktop Nav: Neutral text color, blue hover, no glow */}
               {['Contact', 'About', 'Subscribe'].map((label) => (
                 <Link 
                   key={label} 
                   href={`/${label.toLowerCase()}`} 
-                  className="group relative text-xs font-bold uppercase tracking-widest text-[#4FA9FF] transition-all duration-300 hover:text-[#A97142] hover:drop-shadow-[0_0_8px_rgba(169,113,66,0.5)]"
+                  className="group relative text-xs font-bold uppercase tracking-widest text-slate-200 transition-all duration-300 hover:text-[#4FA9FF]"
                 >
                   {label}
-                  <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-[#A97142] via-[#D49A6A] to-[#A97142] transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                  <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-[#4FA9FF] via-[#8CC5FF] to-[#4FA9FF] transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
-              <Link href="/login" className="ml-4 rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4FA9FF] transition-all hover:text-[#A97142] hover:border-[#A97142] hover:bg-[#A97142]/10 hover:shadow-[0_0_15px_rgba(169,113,66,0.4)]">
+              <Link href="/login" className="ml-4 rounded-full border border-slate-200/30 bg-white/5 px-6 py-2 text-xs font-bold uppercase tracking-widest text-slate-200 transition-all hover:text-[#4FA9FF] hover:border-[#4FA9FF] hover:bg-[#4FA9FF]/10">
                 Login
               </Link>
             </nav>
@@ -204,28 +205,36 @@ export default function Navbar() {
               </button>
             </div>
 
-            <div className="space-y-6">
-              <nav className="flex flex-col gap-4">
-                {['Contact', 'About', 'Subscribe'].map((label) => (
+              <div className="space-y-6">
+                <nav className="flex flex-col gap-4">
+                  {/* Reordered Mobile Links: Login, Get Started, About, Contact */}
+                  <Link 
+                    href="/login" 
+                    onClick={() => setMobileOpen(false)}
+                    className="inline-block w-fit rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4FA9FF] hover:bg-[#A97142]/10 hover:text-[#A97142] hover:border-[#A97142]"
+                  >
+                    Login
+                  </Link>
+                  
                   <Link
-                    key={label}
-                    href={`/${label.toLowerCase()}`}
+                    href="/subscribe"
                     onClick={() => setMobileOpen(false)}
                     className="text-lg font-bold uppercase tracking-widest text-[#4FA9FF] hover:text-[#A97142]"
                   >
-                    {label}
+                    Get Started
                   </Link>
-                ))}
-                <Link 
-                  href="/login" 
-                  onClick={() => setMobileOpen(false)}
-                  className="inline-block w-fit rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4FA9FF] hover:bg-[#A97142]/10 hover:text-[#A97142] hover:border-[#A97142]"
-                >
-                  Login
-                </Link>
-              </nav>
 
-              <div className="h-px bg-slate-700/60" />
+                  {['About', 'Contact'].map((label) => (
+                    <Link
+                      key={label}
+                      href={`/${label.toLowerCase()}`}
+                      onClick={() => setMobileOpen(false)}
+                      className="text-lg font-bold uppercase tracking-widest text-[#4FA9FF] hover:text-[#A97142]"
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </nav>              <div className="h-px bg-slate-700/60" />
 
               {/* Condense links into 2 columns */}
               <div className="grid grid-cols-2 gap-2">
