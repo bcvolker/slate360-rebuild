@@ -234,14 +234,14 @@ export default function SiteHeader() {
         </div>
       )}
 
-      {/* SECONDARY NAV: Row of text links to tiles */}
-      <div className="hidden lg:flex fixed top-[100px] w-full justify-center gap-4 lg:gap-6 pt-1 px-4 z-40">
+      {/* SECONDARY NAV: Stacked on the right */}
+      <div className="hidden lg:flex flex-col fixed top-[calc(var(--navbar-height)+0.5rem)] right-8 items-end gap-1 z-40">
         {NAV_LINKS.map((item) => (
           <Link
             key={item.id}
             href={anchorFor(item.id)}
             onClick={() => setMenuOpen(false)}
-            className={`text-[10px] lg:text-xs font-orbitron tracking-wider transition-colors duration-300 ${
+            className={`text-[9px] lg:text-[10px] font-orbitron tracking-wider transition-colors duration-300 ${
               activeId === item.id
                 ? "text-slate-900 font-bold"
                 : "text-slate-500 font-medium hover:text-slate-900"

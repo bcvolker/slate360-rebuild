@@ -64,7 +64,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       style={sectionStyle}
     >
       <div className="absolute inset-0 -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" aria-hidden />
-      <div className="w-full max-w-6xl mx-auto px-6 md:px-10 lg:px-12 h-full flex flex-col justify-center">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 h-full flex flex-col justify-center">
         
         {/* --- MOBILE LAYOUT (Condensed) --- */}
         <div className="lg:hidden flex flex-col h-full pt-24 pb-8 justify-between">
@@ -122,8 +122,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         </div>
 
         {/* --- DESKTOP LAYOUT --- */}
-        <div className="hidden lg:grid items-center gap-10 lg:gap-16 lg:grid-cols-2 h-full pt-20 lg:pt-0">
-          <div className={`order-1 ${textColumnOrder} space-y-6`}>
+        <div className="hidden lg:grid items-center gap-12 lg:gap-24 lg:grid-cols-2 h-full">
+          <div className={`order-1 ${textColumnOrder} space-y-8`}>
             {tile.eyebrow && (
               <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-500" style={{ color: accent }}>
                 {tile.eyebrow}
@@ -157,19 +157,19 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
             {renderCtas(false)}
           </div>
 
-          <div className={`order-2 ${viewerColumnOrder} flex justify-center`}>
-            <div className="tile-viewer-surface w-full lg:w-[460px] lg:h-[336px] flex flex-col items-center justify-center p-8 transition-all duration-300 hover:bg-slate-900/80">
-              <span className="text-4xl mb-2" style={{ color: accent }}>▶</span>
-              <h3 className="text-xl font-semibold text-white text-center">{viewerTitle}</h3>
-              <p className="text-xs text-slate-400 text-center mt-1 leading-tight">
-                {viewerSubtitle}
+          <div className={`order-2 ${viewerColumnOrder} flex justify-center w-full`}>
+            <div className="tile-viewer-surface w-full max-w-[640px] aspect-[16/10] flex flex-col items-center justify-center p-6 landscape:p-4 lg:p-8 transition-all duration-300 hover:bg-slate-900/80">
+              <span className="text-4xl mb-2 landscape:text-2xl landscape:mb-1" style={{ color: accent }}>▶</span>
+              <h3 className="text-xl font-semibold text-white text-center landscape:text-lg">{viewerTitle}</h3>
+              <p className="text-xs text-slate-400 text-center mt-1 leading-tight landscape:hidden">
+                Tap to expand
               </p>
               <button
                 type="button"
                 onClick={() => setViewerOpen(true)}
-                className="mt-4 rounded-xl border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:border-white/60 lg:hidden"
+                className="mt-2 rounded-xl border border-white/20 px-4 py-3 text-xs font-semibold uppercase tracking-[0.4em] text-white transition hover:border-white/60 lg:hidden"
               >
-                Expand
+                Expand Viewer
               </button>
             </div>
           </div>
