@@ -3,35 +3,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { siteNavLinks } from "@/lib/config";
 
-type TileLink = {
-  id: string;
-  label: string;
-};
-
-const TILE_LINKS: TileLink[] = [
-  { id: "slate360", label: "Slate360" },
-  { id: "design-studio", label: "Design Studio" },
-  { id: "project-hub", label: "Project Hub" },
-  { id: "content-studio", label: "Content Studio" },
-  { id: "tour-builder", label: "360 Tour Builder" },
-  { id: "geospatial", label: "Geospatial & Robotics" },
-  { id: "virtual-studio", label: "Virtual Studio" },
-  { id: "analytics", label: "Analytics & Reports" },
-];
-
-function scrollToTile(id: string) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-}
+const NAV_LINKS = siteNavLinks;
 
 export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeId, setActiveId] = useState<string>("slate360");
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const closeMenus = () => {
+    setMenuOpen(false);
+    setMobileOpen(false);
+  };
 
   useEffect(() => {
     function handleClick(event: MouseEvent) {
@@ -60,7 +44,7 @@ export default function SiteHeader() {
       { threshold: 0.55 }
     );
 
-    TILE_LINKS.forEach(section => {
+    NAV_LINKS.forEach(section => {
       const el = document.getElementById(section.id);
       if (el) observer.observe(el);
     });
@@ -68,11 +52,7 @@ export default function SiteHeader() {
     return () => observer.disconnect();
   }, []);
 
-  const handleTileClick = (id: string) => {
-    scrollToTile(id);
-    setMenuOpen(false);
-    setMobileOpen(false);
-  };
+  const anchorFor = (id: string) => `/#${id}`;
 
   return (
     <>
@@ -82,9 +62,9 @@ export default function SiteHeader() {
         <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 lg:pl-8 lg:pr-8">
           {/* LOGO: closer to left edge */}
           <Link
-            href="/"
+            href={anchorFor("slate360")}
             className="flex items-center gap-3 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme rounded-md"
-            onClick={() => handleTileClick("slate360")}
+            onClick={closeMenus}
           >
             {/* Adjusted negative margin to pull logo further left on mobile/tablet */}
             <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80">
@@ -112,15 +92,15 @@ export default function SiteHeader() {
               {menuOpen && (
                 <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-theme-overlay/95 border border-theme-accentSecondary/30 shadow-[0_22px_45px_rgba(15,23,42,0.9)] backdrop-blur-xl py-2">
                   <div className="max-h-[60vh] overflow-y-auto space-y-0.5 px-2">
-                    {TILE_LINKS.map((item) => (
-                      <button
+                    {NAV_LINKS.map((item) => (
+                      <Link
                         key={item.id}
-                        type="button"
-                        onClick={() => handleTileClick(item.id)}
-                        className="w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[#A97142]/15 hover:text-[#A97142] transition-colors duration-150"
+                        href={anchorFor(item.id)}
+                        onClick={closeMenus}
+                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[#A97142]/15 hover:text-[#A97142] transition-colors duration-150"
                       >
                         {item.label}
-                      </button>
+                      </Link>
                     ))}
                   </div>
                 </div>
@@ -129,7 +109,7 @@ export default function SiteHeader() {
 
             <nav className="hidden md:flex items-center gap-8">
               {/* Updated Desktop Nav: Neutral text color, blue hover, no glow */}
-              {['Contact', 'About', 'Subscribe'].map((label) => (
+              {["Contact", "About", "Subscribe"].map((label) => (
                 <Link 
                   key={label} 
                   href={`/${label.toLowerCase()}`} 
@@ -239,14 +219,14 @@ export default function SiteHeader() {
               {/* Condense links into 2 columns */}
               <div className="grid grid-cols-2 gap-2">
                 {TILE_LINKS.map((item) => (
-                  <button
+                  <Link
                     key={item.id}
-                    type="button"
-                    onClick={() => handleTileClick(item.id)}
+                    href={anchorFor(item.id)}
+                    onClick={closeMenus}
                     className="w-full rounded-lg px-2 py-2 text-left text-xs text-slate-200 hover:bg-theme-overlay/80 hover:text-white transition-colors truncate"
                   >
                     {item.label}
-                  </button>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -256,19 +236,19 @@ export default function SiteHeader() {
 
       {/* SECONDARY NAV: Row of text links to tiles */}
       <div className="hidden lg:flex fixed top-[100px] w-full justify-center gap-4 lg:gap-6 pt-1 px-4 z-40">
-        {TILE_LINKS.map((item) => (
-          <button
+        {NAV_LINKS.map((item) => (
+          <Link
             key={item.id}
-            type="button"
-            onClick={() => handleTileClick(item.id)}
-            className={`text-[10px] lg:text-xs font-bold uppercase tracking-wider transition-colors duration-300 ${
+            href={anchorFor(item.id)}
+            onClick={() => setMenuOpen(false)}
+            className={`text-[10px] lg:text-xs font-orbitron tracking-wider transition-colors duration-300 ${
               activeId === item.id
-                ? "text-[#4FA9FF] drop-shadow-[0_0_8px_rgba(79,169,255,0.5)]"
-                : "text-slate-400 hover:text-[#4FA9FF]"
+                ? "text-slate-900 font-bold"
+                : "text-slate-500 font-medium hover:text-slate-900"
             }`}
           >
             {item.label}
-          </button>
+          </Link>
         ))}
       </div>
     </>

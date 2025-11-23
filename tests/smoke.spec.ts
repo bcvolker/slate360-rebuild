@@ -40,17 +40,27 @@ test.describe('Slate360 Homepage', () => {
     }
   });
 
-  test('anchor navigation updates hash', async ({ page }) => {
+  test('anchor navigation updates hash', async ({ page, isMobile }) => {
     await page.goto('/');
     
     // Open mobile menu if on mobile
-    const menuBtn = page.locator('header button:has-text("Menu")');
-    if (await menuBtn.isVisible()) {
-      await menuBtn.click();
+    if (isMobile) {
+      const menuBtn = page.getByLabel('Toggle navigation menu');
+      if (await menuBtn.isVisible()) {
+        await menuBtn.click();
+      }
+    } else {
+      // On desktop, open the dropdown menu
+      const menuBtn = page.getByRole('button', { name: 'Menu' });
+      if (await menuBtn.isVisible()) {
+        await menuBtn.click();
+      }
     }
     
-    // Find first menu link
-    const firstMenuLink = page.locator('header nav a[href^="/#"]').first();
+    // Find first menu link (handle both mobile overlay and desktop dropdown)
+    // We look for visible links with href starting with /#
+    const firstMenuLink = page.locator('a[href^="/#"]:visible').first();
+    
     if (await firstMenuLink.isVisible()) {
       const href = await firstMenuLink.getAttribute('href');
       await firstMenuLink.click();
@@ -73,14 +83,11 @@ test.describe('Slate360 Homepage', () => {
     
     await page.goto('/');
     
-    // Check that scroll container exists on desktop
-    const scrollContainer = page.locator('#scroll-container');
-    await expect(scrollContainer).toBeVisible();
-    
-    // Verify snap-type is set (should be mandatory on desktop)
-    const snapType = await scrollContainer.evaluate(el => 
-      getComputedStyle(el).scrollSnapType
+    // Verify html has scroll-snap-type set on desktop
+    const snapType = await page.evaluate(() => 
+      getComputedStyle(document.documentElement).scrollSnapType
     );
+    // We expect 'y proximity' or similar based on globals.css
     expect(snapType).toContain('y');
   });
 
@@ -90,7 +97,7 @@ test.describe('Slate360 Homepage', () => {
     await page.goto('/');
     
     // Verify mobile menu button exists
-    const menuBtn = page.locator('header button');
+    const menuBtn = page.getByLabel('Toggle navigation menu');
     await expect(menuBtn).toBeVisible();
     
     // Verify sections stack properly on mobile
@@ -118,8 +125,8 @@ test.describe('Slate360 Homepage', () => {
       await expect(title).toBeVisible();
     }
     
-    // Verify viewer consistency (MediaViewer or MobileViewerLauncher should be present)
-    const viewers = page.locator('[class*="MediaViewer"], [class*="MobileViewer"]');
+    // Verify viewer consistency (Look for the viewer container text)
+    const viewers = page.locator('text=Experience');
     expect(await viewers.count()).toBeGreaterThan(0);
   });
 });

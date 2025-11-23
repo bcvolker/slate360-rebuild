@@ -13,9 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" data-theme={DEFAULT_THEME}>
       <body className="antialiased">
         <SiteHeader />
-        <main className="snap-scroll-section">
-          {children}
-        </main>
+        <main>{children}</main>
       </body>
     </html>
   );

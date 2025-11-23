@@ -1,5 +1,7 @@
 import React from "react";
-import DesktopHome from "@/components/home/DesktopHome";
+import UnifiedSection from "@/components/home/UnifiedSection";
+import { siteSections } from "@/lib/config";
+import Footer from "@/components/ui/Footer";
 
 export default function HomePage() {
   return (
@@ -11,8 +13,12 @@ export default function HomePage() {
         />
       )}
       
-      {/* Unified Home Component for all devices */}
-      <DesktopHome />
+      <div>
+        {siteSections.map((section, index) => (
+          <UnifiedSection key={section.id} tile={section} index={index} />
+        ))}
+      </div>
+      <Footer />
     </>
   );
 }
