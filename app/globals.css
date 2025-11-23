@@ -79,6 +79,7 @@
 html,
 body {
   height: 100%;
+  overscroll-behavior-y: none; /* Prevent grey bars/elastic scroll */
 }
 
 html {
@@ -88,6 +89,7 @@ html {
 
 body {
   min-height: 100vh;
+  overflow: hidden; /* Prevent body scroll, let snap container handle it */
   color: rgb(var(--color-text-primary));
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
   background: 

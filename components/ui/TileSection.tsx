@@ -131,11 +131,11 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           </div>
 
           {/* --- MOBILE LAYOUT (<md) --- */}
-          {/* REFACTOR: Using CSS Grid for rigid structure */}
-          <div className={`md:hidden h-full w-full grid ${isLastTile ? 'grid-rows-[1fr_auto_auto]' : 'grid-rows-[1fr_auto]'} gap-4 px-0 pt-4 pb-2`}>
+          {/* REFACTOR: 4-Row Grid for rigid structure: Text / Buttons / Viewer / Footer */}
+          <div className={`md:hidden h-full w-full grid ${isLastTile ? 'grid-rows-[1fr_auto_auto_auto]' : 'grid-rows-[1fr_auto_auto]'} gap-0 px-0 pt-4 pb-0`}>
             
-            {/* Top Content Stack - Row 1 */}
-            <div className="flex flex-col gap-4 overflow-y-auto px-6 self-start">
+            {/* Row 1: Text Content (Flexible Top) */}
+            <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-4 self-start min-h-0">
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
                 {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}
@@ -149,22 +149,22 @@ export default function TileSection({ tile, index }: TileSectionProps) {
                   ))}
                 </ul>
               )}
-
-              {/* CTAs */}
-              <div className="flex flex-col gap-3 mt-2">
-                {tile?.ctaLabel && tile?.ctaHref && (
-                  <Link href={tile.ctaHref} className="bg-theme-accent hover:bg-theme-accent/80 text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center">
-                    {tile.ctaLabel}
-                  </Link>
-                )}
-                 <Link href="/subscribe" className="bg-theme-accent hover:bg-theme-accent/80 text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center">
-                  Get Started
-                </Link>
-              </div>
             </div>
 
-            {/* Bottom Viewer - Row 2 */}
-            <div className="h-[25vh] min-h-[160px] w-full px-2">
+            {/* Row 2: Buttons (Fixed above viewer) */}
+            <div className="flex flex-col gap-3 px-6 pb-4 w-full z-10 bg-gradient-to-t from-slate-50 to-transparent pt-4">
+              {tile?.ctaLabel && tile?.ctaHref && (
+                <Link href={tile.ctaHref} className="bg-[#A97142] hover:bg-[#8a5d36] text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center uppercase tracking-widest">
+                  {tile.ctaLabel}
+                </Link>
+              )}
+               <Link href="/subscribe" className="bg-[#A97142] hover:bg-[#8a5d36] text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center">
+                Get Started
+              </Link>
+            </div>
+
+            {/* Row 3: Bottom Viewer (Fixed Height) */}
+            <div className="h-[25vh] min-h-[160px] w-full px-2 pb-2">
               <div 
                 className={mobileViewerClasses}
                 onClick={() => setIsExpanded(true)}
@@ -174,7 +174,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
               </div>
             </div>
 
-            {/* Footer - Row 3 (Last Tile Only) */}
+            {/* Row 4: Footer (Last Tile Only) */}
             {isLastTile && (
               <footer className="w-full text-xs bg-slate-950/80 backdrop-blur-sm border-t border-white/10 py-6 px-6">
                 <div className="flex flex-col gap-4 items-center text-center">
