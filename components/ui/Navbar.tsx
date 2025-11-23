@@ -85,7 +85,7 @@ export default function Navbar() {
             onClick={() => handleTileClick("slate360")}
           >
             {/* Adjusted negative margin to pull logo further left on mobile/tablet */}
-            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 -ml-6 md:-ml-4">
+            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80">
               <Image
                 src="/assets/slate360logoforwebsite.png"
                 alt="Slate360 logo"
