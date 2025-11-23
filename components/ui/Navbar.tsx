@@ -76,8 +76,9 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="site-header fixed top-0 z-[100] w-full border-b border-[#A97142]/50">
-        <nav className="flex w-full items-center justify-between pl-6 pr-6 py-2 lg:pl-8 lg:pr-8">
+      {/* Removed site-header class to avoid conflicts. Added explicit Tailwind styles for background and blur. */}
+      <header className="fixed top-0 z-[100] w-full border-b border-[#A97142]/50 bg-slate-900/90 backdrop-blur-md shadow-lg">
+        <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 lg:pl-8 lg:pr-8">
           {/* LOGO: closer to left edge */}
           <Link
             href="/"
@@ -163,13 +164,13 @@ export default function Navbar() {
         {/* MOBILE MENU OVERLAY */}
         {mobileOpen && (
           <>
-            {/* Backdrop - Added onClick to close menu */}
+            {/* Backdrop - Added cursor-pointer and high z-index to ensure clickability */}
             <div
-              className="fixed inset-0 bg-black/60 z-[60] lg:hidden backdrop-blur-sm"
+              className="fixed inset-0 bg-black/60 z-[105] lg:hidden backdrop-blur-sm cursor-pointer"
               onClick={() => setMobileOpen(false)}
             />
-            {/* Menu Panel - Increased z-index to cover logo */}
-            <div className="fixed inset-x-0 top-0 z-[70] flex flex-col border-b border-white/10 bg-slate-900/95 p-6 shadow-2xl md:hidden max-h-[80vh] overflow-y-auto">
+            {/* Menu Panel - Higher z-index than backdrop */}
+            <div className="fixed inset-x-0 top-0 z-[110] flex flex-col border-b border-white/10 bg-slate-900/95 p-6 shadow-2xl md:hidden max-h-[80vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 {/* Added Logo to Menu Header */}
                 <div className="relative h-12 w-40 -ml-2">
