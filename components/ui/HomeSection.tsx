@@ -32,7 +32,7 @@ export default function HomeSection({ tile, index }: TileSectionProps) {
   const desktopViewerClasses = `
     hidden md:flex relative z-20 transition-all duration-300 ease-in-out
     flex-col items-center justify-center
-    bg-slate-900 border-2 border-dotted border-red-500
+    bg-slate-900 border border-white/10
     tile-viewer-surface
     w-[460px] h-[336px] rounded-3xl p-8 mb-12 mt-0 cursor-default hover:bg-slate-900
     ${isFirstTile ? "lg:max-w-[550px] lg:h-[400px]" : ""}
