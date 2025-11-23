@@ -47,13 +47,13 @@ export default function TileSection({ tile, index }: TileSectionProps) {
   `;
 
   // MOBILE VIEWER CLASSES
-  // Full width, flexible height
+  // Full width, fills container
   const mobileViewerClasses = `
     relative z-20 transition-all duration-300 ease-in-out
     flex flex-col items-center justify-center
     bg-slate-900 border border-white/10
     tile-viewer-surface
-    w-full flex-1 rounded-xl cursor-pointer hover:bg-slate-800/50
+    w-full h-full rounded-xl cursor-pointer hover:bg-slate-800/50
     shrink-0
   `;
 
@@ -133,8 +133,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           {/* --- MOBILE LAYOUT (<md) --- */}
           <div className={`md:hidden flex flex-col h-full px-6 pt-8 ${isLastTile ? 'pb-32' : 'pb-6'}`}>
             
-            {/* Top Content Stack */}
-            <div className="flex flex-col gap-4">
+            {/* Top Content Stack - Takes available space */}
+            <div className="flex-1 flex flex-col gap-4 overflow-y-auto pb-4">
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
                 {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}
@@ -162,8 +162,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
               </div>
             </div>
 
-            {/* Bottom Viewer */}
-            <div className="mt-4 flex-1 flex flex-col">
+            {/* Bottom Viewer - Fixed ~25% height */}
+            <div className="h-[25vh] min-h-[160px] shrink-0">
               <div 
                 className={mobileViewerClasses}
                 onClick={() => setIsExpanded(true)}
