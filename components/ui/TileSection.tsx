@@ -131,10 +131,11 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           </div>
 
           {/* --- MOBILE LAYOUT (<md) --- */}
-          <div className={`md:hidden flex flex-col h-full px-0 pt-4 ${isLastTile ? 'pb-24' : 'pb-0'}`}>
+          {/* REFACTOR: Using CSS Grid for rigid structure */}
+          <div className={`md:hidden h-full w-full grid ${isLastTile ? 'grid-rows-[1fr_auto_auto]' : 'grid-rows-[1fr_auto]'} gap-4 px-0 pt-4 pb-2`}>
             
-            {/* Top Content Stack - Takes available space */}
-            <div className="flex-1 flex flex-col gap-4 overflow-y-auto pb-4 px-6">
+            {/* Top Content Stack - Row 1 */}
+            <div className="flex flex-col gap-4 overflow-y-auto px-6 self-start">
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
                 {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}
@@ -152,7 +153,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
               {/* CTAs */}
               <div className="flex flex-col gap-3 mt-2">
                 {tile?.ctaLabel && tile?.ctaHref && (
-                  <Link href={tile.ctaHref} className="bg-slate-200 hover:bg-slate-300 text-slate-900 text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-sm w-full text-center uppercase tracking-widest">
+                  <Link href={tile.ctaHref} className="bg-theme-accent hover:bg-theme-accent/80 text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center">
                     {tile.ctaLabel}
                   </Link>
                 )}
@@ -162,8 +163,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
               </div>
             </div>
 
-            {/* Bottom Viewer - Fixed ~25% height */}
-            <div className="h-[25vh] min-h-[160px] shrink-0">
+            {/* Bottom Viewer - Row 2 */}
+            <div className="h-[25vh] min-h-[160px] w-full px-2">
               <div 
                 className={mobileViewerClasses}
                 onClick={() => setIsExpanded(true)}
@@ -172,6 +173,21 @@ export default function TileSection({ tile, index }: TileSectionProps) {
                 <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-1">View</p>
               </div>
             </div>
+
+            {/* Footer - Row 3 (Last Tile Only) */}
+            {isLastTile && (
+              <footer className="w-full text-xs bg-slate-950/80 backdrop-blur-sm border-t border-white/10 py-6 px-6">
+                <div className="flex flex-col gap-4 items-center text-center">
+                  <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+                    <Link href="/about" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">About</Link>
+                    <Link href="/contact" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">Contact</Link>
+                    <Link href="/subscribe" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">Subscribe</Link>
+                    <Link href="/privacy" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">Privacy</Link>
+                  </nav>
+                  <p className="text-theme-soft">© 2025 Slate360. All rights reserved.</p>
+                </div>
+              </footer>
+            )} 
 
             {/* Expanded Viewer Overlay */}
             <div className={expandedViewerClasses}>
@@ -196,7 +212,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       </div>
 
       {isLastTile && (
-        <footer className="slate360-footer w-full text-xs shrink-0 absolute bottom-0 left-0 right-0 z-30 bg-slate-950/80 backdrop-blur-sm">
+        <footer className="hidden md:block slate360-footer w-full text-xs shrink-0 absolute bottom-0 left-0 right-0 z-30 bg-slate-950/80 backdrop-blur-sm">
           <div className="mx-auto flex max-w-6xl items-center justify-between flex-wrap gap-4 px-6 py-6">
             <nav className="flex items-center gap-8">
               <Link href="/about" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">About</Link>
