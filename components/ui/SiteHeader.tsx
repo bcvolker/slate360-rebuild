@@ -67,7 +67,7 @@ export default function SiteHeader() {
             onClick={closeMenus}
           >
             {/* Adjusted negative margin to pull logo further left on mobile/tablet */}
-            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 landscape:h-10 landscape:w-40 lg:h-[4.5rem] lg:w-80 transition-all duration-300">
+            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300">
               <Image
                 src="/assets/slate360logoforwebsite.png"
                 alt="Slate360 logo"
