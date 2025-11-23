@@ -131,7 +131,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
           </div>
 
           {/* --- MOBILE LAYOUT (<md) --- */}
-          <div className={`md:hidden flex flex-col h-full px-6 pt-8 ${isLastTile ? 'pb-32' : 'pb-6'}`}>
+          <div className={`md:hidden flex flex-col h-full px-6 pt-8 ${isLastTile ? 'pb-32' : 'pb-6'} border-2 border-red-500 relative`}>
+            <div className="absolute top-0 left-0 bg-red-500 text-white text-xs px-2 py-1 z-50">DEBUG: V3 - CHECKING UPDATES</div>
             
             {/* Top Content Stack */}
             <div className="flex flex-col gap-4">
