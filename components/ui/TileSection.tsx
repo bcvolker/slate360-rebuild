@@ -147,7 +147,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             
             {/* Row 1: Text Content (Flexible Top) */}
             {/* Reduced padding to pt-20 (80px) to match navbar exactly */}
-            <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-2 self-start min-h-0 pt-20">
+            {/* Added 'pt-[84px]' (80px + 4px) to give the requested 3-4mm breathing room */}
+            <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-2 self-start min-h-0 pt-[84px]">
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
                 {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}
