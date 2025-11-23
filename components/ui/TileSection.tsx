@@ -83,7 +83,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       style={{ paddingTop: "var(--navbar-height)" }}
     >
       {/* Main Content Container */}
-      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible ${isFirstTile ? 'pt-24 md:pt-32 lg:pt-40' : 'pt-20 md:pt-32 lg:pt-40'}`}>
+      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible ${isFirstTile ? 'pt-0 md:pt-32 lg:pt-40' : 'pt-0 md:pt-32 lg:pt-40'}`}>
         <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12 h-full flex flex-col md:block">
           
           {/* --- DESKTOP LAYOUT (md+) --- */}
@@ -163,7 +163,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
 
             {/* Bottom Viewer */}
-            <div className="mt-auto">
+            <div className="mt-4">
               <div 
                 className={mobileViewerClasses}
                 onClick={() => setIsExpanded(true)}
