@@ -80,10 +80,21 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       id={tile?.id}
       data-snap="tile"
       className={`relative h-[100dvh] snap-start snap-always overflow-hidden flex flex-col ${isFirstTile ? "debug-section-center" : ""} pb-0 md:pb-20`}
-      style={{ paddingTop: "var(--navbar-height)" }}
+      style={{ 
+        // Only apply padding-top on desktop (md+). On mobile, we handle it inside the grid to avoid height issues.
+        // We use a CSS variable for the value, but apply it conditionally.
+        // Note: We can't easily use media queries in inline styles, so we'll use a class for the padding 
+        // and remove this inline style for mobile via a utility class approach if possible, 
+        // or just rely on the fact that we are refactoring the mobile layout to absorb the padding.
+        // ACTUALLY: The safest way is to keep it here but override it for mobile in the className? 
+        // No, inline styles win. Let's use a CSS variable that changes based on media query? No.
+        // Let's just use Tailwind for the padding and remove the inline style.
+      }}
     >
       {/* Main Content Container */}
-      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible ${isFirstTile ? 'pt-0 md:pt-32 lg:pt-40' : 'pt-0 md:pt-32 lg:pt-40'}`}>
+      {/* Added pt-[80px] (navbar height) to desktop only via md:pt-[80px] */}
+      {/* For mobile, we will apply the padding inside the grid's text row */}
+      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible md:pt-[var(--navbar-height)] ${isFirstTile ? 'pt-0 md:pt-32 lg:pt-40' : 'pt-0 md:pt-32 lg:pt-40'}`}>
         <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12 h-full flex flex-col md:block">
           
           {/* --- DESKTOP LAYOUT (md+) --- */}
@@ -132,11 +143,12 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
           {/* --- MOBILE LAYOUT (<md) --- */}
           {/* REFACTOR: 4-Row Grid for rigid structure: Text / Buttons / Viewer / Footer */}
-          <div className={`md:hidden h-full w-full grid ${isLastTile ? 'grid-rows-[1fr_auto_auto_auto]' : 'grid-rows-[1fr_auto_auto]'} gap-0 px-0 pt-4 pb-0`}>
+          {/* DEBUG: Added borders to visualize layout if isLastTile */}
+          <div className={`md:hidden h-full w-full grid ${isLastTile ? 'grid-rows-[1fr_auto_auto_auto] border-2 border-red-500' : 'grid-rows-[1fr_auto_auto]'} gap-0 px-0 pt-0 pb-0`}>
             
             {/* Row 1: Text Content (Flexible Top) */}
-            {/* ADDED min-h-0 to prevent grid blowout */}
-            <div className="flex flex-col gap-4 overflow-y-auto px-6 pb-4 self-start min-h-0">
+            {/* ADDED pt-[80px] to account for navbar, since we removed it from section */}
+            <div className={`flex flex-col gap-4 overflow-y-auto px-6 pb-4 self-start min-h-0 pt-[var(--navbar-height)] ${isLastTile ? 'border border-blue-500' : ''}`}>
               <div>
                 {tile?.eyebrow && <p className="text-theme-accent font-bold tracking-widest uppercase text-[10px] mb-1">{tile.eyebrow}</p>}
                 {tile?.title && <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-wide mb-2">{tile.title}</h2>}
@@ -153,7 +165,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
 
             {/* Row 2: Buttons (Fixed above viewer) */}
-            <div className="flex flex-col gap-3 px-6 pb-4 w-full z-10 bg-gradient-to-t from-slate-50 to-transparent pt-4">
+            <div className={`flex flex-col gap-3 px-6 pb-4 w-full z-10 bg-gradient-to-t from-slate-50 to-transparent pt-4 ${isLastTile ? 'border border-green-500' : ''}`}>
               {tile?.ctaLabel && tile?.ctaHref && (
                 <Link href={tile.ctaHref} className="bg-[#A97142] hover:bg-[#8a5d36] text-white text-sm px-6 py-3 rounded-md font-semibold transition-colors shadow-lg w-full text-center uppercase tracking-widest">
                   {tile.ctaLabel}
@@ -165,8 +177,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
 
             {/* Row 3: Bottom Viewer (Fixed Height) */}
-            {/* Reduced height on last tile to accommodate footer */}
-            <div className={`${isLastTile ? 'h-[20vh]' : 'h-[25vh]'} min-h-[140px] w-full px-2 pb-2`}>
+            {/* RESTORED height to 25vh for consistency */}
+            <div className={`h-[25vh] min-h-[140px] w-full px-2 pb-2 ${isLastTile ? 'border border-purple-500' : ''}`}>
               <div 
                 className={mobileViewerClasses}
                 onClick={() => setIsExpanded(true)}
@@ -178,7 +190,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
 
             {/* Row 4: Footer (Last Tile Only) */}
             {isLastTile && (
-              <footer className="w-full text-xs bg-slate-950/80 backdrop-blur-sm border-t border-white/10 py-6 px-6">
+              <footer className="w-full text-xs bg-slate-950/80 backdrop-blur-sm border-t border-white/10 py-6 px-6 border border-yellow-500">
                 <div className="flex flex-col gap-4 items-center text-center">
                   <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2">
                     <Link href="/about" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">About</Link>
