@@ -79,7 +79,7 @@ export default function SiteHeader() {
           </Link>
 
           {/* DESKTOP NAV: pushed all the way to the right */}
-          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-slate-900 md:flex">
+          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-slate-900 lg:flex">
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
@@ -126,7 +126,7 @@ export default function SiteHeader() {
           </div>
 
           {/* MOBILE HAMBURGER: also aligned to the right */}
-          <div className="ml-auto flex items-center gap-3 md:hidden">
+          <div className="ml-auto flex items-center gap-3 lg:hidden">
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
