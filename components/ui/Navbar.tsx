@@ -77,7 +77,8 @@ export default function Navbar() {
   return (
     <>
       {/* Removed site-header class to avoid conflicts. Added explicit Tailwind styles for background and blur. */}
-      <header className="fixed top-0 z-[100] w-full border-b border-[#A97142]/50 bg-slate-900/90 backdrop-blur-md shadow-lg">
+      {/* Changed to charcoal grey (zinc-900) with subtle bottom border and shadow for "pop" */}
+      <header className="fixed top-0 z-[100] w-full border-b border-white/10 bg-zinc-900/95 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 lg:pl-8 lg:pr-8">
           {/* LOGO: closer to left edge */}
           <Link
@@ -165,12 +166,15 @@ export default function Navbar() {
         {mobileOpen && (
           <>
             {/* Backdrop - Added cursor-pointer and high z-index to ensure clickability */}
-            <div
-              className="fixed inset-0 bg-black/60 z-[105] lg:hidden backdrop-blur-sm cursor-pointer"
+            {/* NUCLEAR FIX: Use a button element to guarantee click capture */}
+            <button
+              type="button"
+              className="fixed inset-0 h-full w-full bg-black/60 z-[105] lg:hidden backdrop-blur-sm cursor-pointer border-none outline-none"
               onClick={() => setMobileOpen(false)}
+              aria-label="Close menu"
             />
             {/* Menu Panel - Higher z-index than backdrop */}
-            <div className="fixed inset-x-0 top-0 z-[110] flex flex-col border-b border-white/10 bg-slate-900/95 p-6 shadow-2xl md:hidden max-h-[80vh] overflow-y-auto">
+            <div className="fixed inset-x-0 top-0 z-[110] flex flex-col border-b border-white/10 bg-zinc-900/95 p-6 shadow-2xl md:hidden max-h-[80vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 {/* Added Logo to Menu Header */}
                 <div className="relative h-12 w-40 -ml-2">

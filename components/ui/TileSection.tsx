@@ -94,7 +94,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       {/* Main Content Container */}
       {/* Added pt-[80px] (navbar height) to desktop only via md:pt-[80px] */}
       {/* For mobile, we will apply the padding inside the grid's text row */}
-      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible md:pt-[var(--navbar-height)] ${isFirstTile ? 'pt-0 md:pt-48 lg:pt-56' : 'pt-0 md:pt-48 lg:pt-56'}`}>
+      {/* Added pb-24 to ensure content doesn't spill off bottom on tablet/desktop */}
+      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible md:pt-[var(--navbar-height)] ${isFirstTile ? 'pt-0 md:pt-48 lg:pt-56' : 'pt-0 md:pt-48 lg:pt-56'} pb-0 md:pb-24`}>
         <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12 h-full flex flex-col md:block">
           
           {/* --- DESKTOP LAYOUT (md+) --- */}
