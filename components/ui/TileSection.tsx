@@ -98,7 +98,8 @@ export default function TileSection({ tile, index }: TileSectionProps) {
         <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12 h-full flex flex-col md:block">
           
           {/* --- DESKTOP LAYOUT (md+) --- */}
-          <div className="hidden md:flow-root relative w-full clearfix">
+          {/* Hidden on landscape phones (short height) even if width is md+ */}
+          <div className="hidden md:flow-root md:max-h-[600px]:hidden relative w-full clearfix">
             
             {/* DESKTOP VIEWER */}
             <div className={desktopViewerClasses}>
@@ -141,9 +142,10 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
           </div>
 
-          {/* --- MOBILE LAYOUT (<md) --- */}
+          {/* --- MOBILE LAYOUT (<md OR landscape phones) --- */}
           {/* REFACTOR: Absolute positioning to force 100% height match with section */}
-          <div className={`md:hidden absolute inset-0 w-full grid ${isLastTile ? 'grid-rows-[minmax(0,1fr)_auto_auto_auto]' : 'grid-rows-[minmax(0,1fr)_auto_auto]'} gap-0 px-0 pt-0 pb-0`}>
+          {/* Force grid display on landscape phones (md width but short height) */}
+          <div className={`md:hidden md:max-h-[600px]:grid absolute inset-0 w-full grid ${isLastTile ? 'grid-rows-[minmax(0,1fr)_auto_auto_auto]' : 'grid-rows-[minmax(0,1fr)_auto_auto]'} gap-0 px-0 pt-0 pb-0`}>
             
             {/* Row 1: Text Content (Flexible Top) */}
             {/* Increased padding to pt-[96px] (80px navbar + 16px gap) to uncrowd the top */}

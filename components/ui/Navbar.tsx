@@ -76,8 +76,8 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="site-header fixed top-0 z-50 w-full border-b border-[#A97142]/50">
-        <nav className="flex w-full items-center justify-between pl-0 pr-6 py-2 lg:pl-0 lg:pr-8">
+      <header className="site-header fixed top-0 z-[100] w-full border-b border-[#A97142]/50">
+        <nav className="flex w-full items-center justify-between pl-6 pr-6 py-2 lg:pl-8 lg:pr-8">
           {/* LOGO: closer to left edge */}
           <Link
             href="/"
