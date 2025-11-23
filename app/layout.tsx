@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
-import ScrollRail from "@/components/ui/ScrollRail";
 import { DEFAULT_THEME } from "@/lib/theme";
 
 export const metadata: Metadata = {

@@ -27,13 +27,6 @@ export default function TileSection({ tile, index }: TileSectionProps) {
   const isLastTile = index === 7; // Adjust based on total tiles
   const bullets: string[] = Array.isArray(tile?.bullets) ? tile?.bullets : [];
 
-  const toggleViewer = () => {
-    // Only toggle on mobile (when not lg)
-    if (window.innerWidth < 1024) {
-      setIsExpanded(!isExpanded);
-    }
-  };
-
   // DESKTOP VIEWER CLASSES
   // Floated, specific size, hidden on mobile
   const desktopViewerClasses = `
