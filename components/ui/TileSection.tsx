@@ -37,7 +37,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
   // DESKTOP VIEWER CLASSES
   // Floated, specific size, hidden on mobile
   const desktopViewerClasses = `
-    hidden md:flex relative z-20 transition-all duration-300 ease-in-out
+    hidden lg:flex relative z-20 transition-all duration-300 ease-in-out
     flex-col items-center justify-center
     bg-slate-900 border-2 border-dotted border-red-500
     tile-viewer-surface
@@ -72,7 +72,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
   const textClasses = `
     tile-text-surface block
     lg:pb-12 lg:-ml-12
-    ${isReversed ? "md:pr-20 xl:pr-0" : "md:pl-20 xl:pl-0"}
+    ${isReversed ? "lg:pr-20 xl:pr-0" : "lg:pl-20 xl:pl-0"}
   `;
 
   return (
@@ -92,13 +92,13 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       }}
     >
       {/* Main Content Container */}
-      {/* Added pt-[80px] (navbar height) to desktop only via md:pt-[80px] */}
+      {/* Added pt-[80px] (navbar height) to desktop only via lg:pt-[80px] */}
       {/* For mobile, we will apply the padding inside the grid's text row */}
-      <div className={`flex-1 flex items-start overflow-y-auto md:overflow-visible md:pt-[var(--navbar-height)] ${isFirstTile ? 'pt-0 md:pt-48 lg:pt-56' : 'pt-0 md:pt-48 lg:pt-56'}`}>
-        <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12 h-full flex flex-col md:block">
+      <div className={`flex-1 flex items-start overflow-y-auto lg:overflow-visible lg:pt-[var(--navbar-height)] ${isFirstTile ? 'pt-0 lg:pt-56' : 'pt-0 lg:pt-56'}`}>
+        <div className="w-full max-w-6xl mx-auto px-6 md:px-16 lg:px-12 h-full flex flex-col lg:block">
           
-          {/* --- DESKTOP LAYOUT (md+) --- */}
-          <div className="hidden md:flow-root relative w-full clearfix">
+          {/* --- DESKTOP LAYOUT (lg+) --- */}
+          <div className="hidden lg:flow-root relative w-full clearfix">
             
             {/* DESKTOP VIEWER */}
             <div className={desktopViewerClasses}>
@@ -141,9 +141,9 @@ export default function TileSection({ tile, index }: TileSectionProps) {
             </div>
           </div>
 
-          {/* --- MOBILE LAYOUT (<md) --- */}
+          {/* --- MOBILE LAYOUT (<lg) --- */}
           {/* REFACTOR: Absolute positioning to force 100% height match with section */}
-          <div className={`md:hidden absolute inset-0 w-full grid ${isLastTile ? 'grid-rows-[minmax(0,1fr)_auto_auto_auto]' : 'grid-rows-[minmax(0,1fr)_auto_auto]'} gap-0 px-0 pt-0 pb-0`}>
+          <div className={`lg:hidden absolute inset-0 w-full grid ${isLastTile ? 'grid-rows-[minmax(0,1fr)_auto_auto_auto]' : 'grid-rows-[minmax(0,1fr)_auto_auto]'} gap-0 px-0 pt-0 pb-0`}>
             
             {/* Row 1: Text Content (Flexible Top) */}
             {/* Increased padding to pt-[96px] (80px navbar + 16px gap) to uncrowd the top */}
@@ -226,7 +226,7 @@ export default function TileSection({ tile, index }: TileSectionProps) {
       </div>
 
       {isLastTile && (
-        <footer className="hidden md:block slate360-footer w-full text-xs shrink-0 absolute bottom-0 left-0 right-0 z-30 bg-slate-950/80 backdrop-blur-sm">
+        <footer className="hidden lg:block slate360-footer w-full text-xs shrink-0 absolute bottom-0 left-0 right-0 z-30 bg-slate-950/80 backdrop-blur-sm">
           <div className="mx-auto flex max-w-6xl items-center justify-between flex-wrap gap-4 px-6 py-6">
             <nav className="flex items-center gap-8">
               <Link href="/about" className="uppercase tracking-wider hover:text-[#A97142] transition-colors">About</Link>

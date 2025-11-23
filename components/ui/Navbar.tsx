@@ -90,7 +90,7 @@ export default function Navbar() {
                 src="/assets/slate360logoforwebsite.png"
                 alt="Slate360 logo"
                 fill
-                className="object-contain"
+                className="object-contain object-left"
                 priority
               />
             </div>
@@ -177,7 +177,7 @@ export default function Navbar() {
                     src="/assets/slate360logoforwebsite.png"
                     alt="Slate360 logo"
                     fill
-                    className="object-contain"
+                    className="object-contain object-left"
                     priority
                   />
                 </div>
