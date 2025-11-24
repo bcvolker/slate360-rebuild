@@ -116,7 +116,12 @@ body {
     );
   background-size: 100% 100%, 40px 40px, 40px 40px, 100% 100%;
   background-color: rgb(var(--color-bg-canvas));
-  background-attachment: fixed;
+}
+
+@media (min-width: 1024px) {
+  body {
+    background-attachment: fixed;
+  }
 }
 
 * {

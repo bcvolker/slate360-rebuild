@@ -71,9 +71,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       ref={sectionRef}
       id={tile.id}
       data-snap="tile"
-      // Snap sections align under the fixed header; use min-height so content can grow
-      // On mobile (lg:hidden), we disable snap-start and use standard padding to let content flow naturally
-      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "lg:snap-start lg:min-h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"} pt-[80px] overflow-hidden`}
+      // On desktop we keep full-height snapped sections; on mobile let content flow naturally
+      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "lg:snap-start lg:min-h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"} pt-[80px]`}
       style={sectionStyle}
     >
       <motion.div 
