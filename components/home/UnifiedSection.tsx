@@ -58,8 +58,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
     <section
       id={tile.id}
       data-snap="tile"
-      // Updated: Enforce full height on mobile/tablet for the "bottom 20%" layout
-      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "snap-start h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"}`}
+      // Snap sections align under the fixed header; use min-height so content can grow
+      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "snap-start min-h-[100dvh] pt-[80px]" : "py-16 sm:py-20"}`}
       style={sectionStyle}
     >
       <div className="absolute inset-0 -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" aria-hidden />
