@@ -54,7 +54,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {tile.cta && (
           <Link
             href={tile.cta.href}
-            className={`inline-flex items-center justify-center rounded-md border border-slate-900/20 bg-white/50 px-6 py-3 text-sm font-bold uppercase tracking-widest text-slate-900 shadow-sm transition hover:bg-white hover:shadow-md hover:border-slate-900 font-orbitron ${isMobile ? 'w-full flex-1 py-0 text-[9px] leading-tight px-1 text-center' : ''}`}
+            className={`inline-flex items-center justify-center rounded-md border border-slate-900 bg-white/90 px-6 py-3 text-sm font-bold uppercase tracking-widest text-slate-900 shadow-sm transition hover:bg-white hover:shadow-md hover:border-slate-900 font-orbitron ${isMobile ? 'w-full flex-1 py-2 text-[10px] leading-tight px-1 text-center' : ''}`}
           >
             {tile.cta.label}
           </Link>
@@ -62,7 +62,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {tile.secondaryCta && (
           <Link
             href={tile.secondaryCta.href}
-            className={`inline-flex items-center justify-center rounded-md bg-slate-900 px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-lg transition hover:opacity-90 hover:shadow-xl font-orbitron ${isMobile ? 'w-full flex-1 py-0 text-[9px] leading-tight px-1 text-center' : ''}`}
+            className={`inline-flex items-center justify-center rounded-md bg-slate-900 px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-lg transition hover:opacity-90 hover:shadow-xl font-orbitron ${isMobile ? 'w-full flex-1 py-2 text-[10px] leading-tight px-1 text-center' : ''}`}
           >
             {tile.secondaryCta.label}
           </Link>
@@ -77,7 +77,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       id={tile.id}
       data-snap="tile"
       // On desktop we keep full-height snapped sections; on mobile let content flow naturally
-      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "xl:snap-start xl:min-h-[100dvh] xl:pt-[80px]" : "min-h-[100dvh] py-16 sm:py-20"} pt-[80px] ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "xl:snap-start xl:min-h-[100dvh] xl:pt-[80px]" : "min-h-[100dvh] py-0"} pt-[80px] ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Parallax Background - Enabled on all devices but constrained horizontally */}
@@ -89,19 +89,19 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 h-full flex flex-col justify-center">
         
           {/* --- MOBILE/TABLET VERTICAL LAYOUT (Natural Flow) --- */}
-          <div className="lg:hidden flex flex-col gap-8 py-8">
-            {/* Text Content */}
-            <div className="flex flex-col justify-start space-y-4">
+          <div className="lg:hidden flex flex-col h-full py-4">
+            {/* Text Content - Takes up top 75% roughly */}
+            <div className="flex-1 flex flex-col justify-center space-y-4 min-h-[60%]">
                 {tile.eyebrow && (
-                  <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron text-slate-900/80">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron text-slate-900">
                     {tile.eyebrow}
                   </p>
                 )}
                 <div className="space-y-2">
-                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 font-orbitron tracking-tight leading-tight drop-shadow-sm">
+                  <h2 className="text-3xl sm:text-4xl font-black text-slate-900 font-orbitron tracking-tight leading-tight drop-shadow-sm">
                     {tile.title}
                   </h2>
-                  <p className="text-sm sm:text-base text-slate-800 font-bold leading-relaxed">
+                  <p className="text-base sm:text-lg text-slate-900 font-bold leading-relaxed">
                     {tile.subtitle}
                   </p>
                 </div>
@@ -113,7 +113,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                       {tile.bullets.map((bullet) => (
                         <li 
                           key={bullet.label} 
-                          className="snap-center w-[260px] flex flex-col gap-2 p-4 rounded-xl border border-white/40 bg-white/60 backdrop-blur-sm shadow-sm"
+                          className="snap-center w-[260px] flex flex-col gap-2 p-4 rounded-xl border border-slate-900/10 bg-white/80 backdrop-blur-sm shadow-sm"
                         >
                           <div className="flex items-center gap-2">
                             <span className="inline-flex h-1.5 w-1.5 rounded-full shrink-0 bg-slate-900" />
@@ -129,23 +129,23 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 )}
            </div>
 
-           {/* Viewer + Buttons */}
-           <div className="flex flex-col gap-4">
-              {/* Viewer Area */}
-              <div className="w-full aspect-video">
+           {/* Viewer + Buttons - Compressed into bottom area */}
+           <div className="flex flex-col gap-3 mt-auto pb-4">
+              {/* Viewer Area - Reduced height */}
+              <div className="w-full h-[140px]">
                 <button 
                   type="button"
                   onClick={() => setViewerOpen(true)}
-                  className="w-full h-full bg-slate360-charcoal rounded-xl flex flex-col items-center justify-center border border-white/20 shadow-lg relative overflow-hidden group transition-transform active:scale-[0.98] hover:border-brand-blue/50"
+                  className="w-full h-full bg-slate-900 rounded-xl flex flex-col items-center justify-center border border-white/20 shadow-lg relative overflow-hidden group transition-transform active:scale-[0.98] hover:border-brand-blue/50"
                 >
                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
-                   <span className="text-3xl mb-1" style={{ color: accent }}>▶</span>
+                   <span className="text-2xl mb-1 text-white">▶</span>
                    <span className="text-[10px] uppercase tracking-widest text-slate-300 font-semibold font-orbitron">View</span>
                 </button>
               </div>
 
               {/* Buttons Area */}
-              <div className="w-full">
+              <div className="w-full h-[40px]">
                  {renderCtas(true)}
               </div>
            </div>

@@ -59,7 +59,7 @@ export default function SiteHeader() {
       {/* Fixed header with dark ribbon so the logo sits on a clean, high-contrast band. */}
       {/* Removed site-header class to avoid conflicts. Added explicit Tailwind styles for background and blur. */}
       {/* Changed to dark charcoal with subtle bottom border and shadow for "pop" */}
-      <header className="fixed top-0 z-[100] w-full border-b border-white/10 bg-slate360-charcoal/95 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.5)] transition-all duration-300">
+      <header className="fixed top-0 z-[100] w-full border-b border-slate-900/10 bg-white/95 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.05)] transition-all duration-300">
         <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 landscape:py-1 lg:py-2 lg:pl-8 lg:pr-8">
           {/* LOGO: slightly larger with a subtle halo so it never feels muted. */}
           {/* LOGO: closer to left edge */}
@@ -70,7 +70,7 @@ export default function SiteHeader() {
           >
             {/* Adjusted negative margin to pull logo further left on mobile/tablet */}
             {/* Added drop-shadow to make logo pop against the dark header */}
-            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300 drop-shadow-[0_0_8px_rgba(255,255,255,0.15)]">
+            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300 drop-shadow-sm">
               <Image
                 src="/assets/slate360logoforwebsite.png"
                 alt="Slate360 logo"
@@ -82,7 +82,7 @@ export default function SiteHeader() {
           </Link>
 
           {/* DESKTOP NAV: pushed all the way to the right */}
-          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-white lg:flex">
+          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-slate-900 lg:flex">
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
@@ -93,14 +93,14 @@ export default function SiteHeader() {
                 <span className="text-xs">▾</span>
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-slate360-charcoal/95 border border-white/10 shadow-[0_22px_45px_rgba(0,0,0,0.9)] backdrop-blur-xl py-2">
+                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-white border border-slate-900/10 shadow-xl backdrop-blur-xl py-2">
                   <div className="max-h-[60vh] overflow-y-auto space-y-0.5 px-2">
                     {NAV_LINKS.map((item) => (
                       <Link
                         key={item.id}
                         href={anchorFor(item.id)}
                         onClick={closeMenus}
-                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-white hover:bg-brand-copper/15 hover:text-brand-copper transition-colors duration-150 font-orbitron"
+                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-900 hover:bg-brand-copper/15 hover:text-brand-copper transition-colors duration-150 font-orbitron"
                       >
                         {item.label}
                       </Link>
@@ -116,13 +116,13 @@ export default function SiteHeader() {
                 <Link 
                   key={label} 
                   href={label === "Plans & Pricing" ? "/subscribe" : `/${label.toLowerCase()}`} 
-                  className="group relative text-xs font-bold uppercase tracking-widest text-slate-200 transition-all duration-300 hover:text-brand-blue font-orbitron"
+                  className="group relative text-xs font-bold uppercase tracking-widest text-slate-900 transition-all duration-300 hover:text-brand-blue font-orbitron"
                 >
                   {label}
                   <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-brand-blue via-[#8CC5FF] to-brand-blue transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
-              <Link href="/login" className="ml-4 rounded-full border border-white/30 bg-white/5 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white transition-all hover:text-brand-blue hover:border-brand-blue hover:bg-brand-blue/10 font-orbitron">
+              <Link href="/login" className="ml-4 rounded-full border border-slate-900/30 bg-slate-900/5 px-6 py-2 text-xs font-bold uppercase tracking-widest text-slate-900 transition-all hover:text-brand-blue hover:border-brand-blue hover:bg-brand-blue/10 font-orbitron">
                 Login
               </Link>
             </nav>

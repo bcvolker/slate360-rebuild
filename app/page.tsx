@@ -13,11 +13,14 @@ export default function HomePage() {
         />
       )}
       
-      <div>
+      {/* Main Scroll Container - Handles Snap */}
+      <main className="w-full">
         {siteSections.map((section, index) => (
           <UnifiedSection key={section.id} tile={section} index={index} />
         ))}
-      </div>
+      </main>
+      
+      {/* Footer - Outside Snap Flow */}
       <Footer />
     </>
   );
