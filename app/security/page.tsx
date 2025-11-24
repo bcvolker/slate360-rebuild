@@ -1,4 +1,4 @@
-export default function Privacy() {
+export default function SecurityPage() {
   return (
     <main className="min-h-[100dvh] px-6 py-24 md:py-28">
       <div className="mx-auto max-w-6xl">
@@ -14,45 +14,45 @@ export default function Privacy() {
                 Trust Center
               </p>
               <h1 className="text-3xl md:text-4xl font-orbitron font-semibold tracking-tight text-slate-900 mb-3">
-                Privacy Policy
+                Security Overview
               </h1>
               <p className="text-sm sm:text-base text-slate-700">
-                Your data is your work product. We treat it accordinglyno selling, limited retention, and controls that match how project teams actually operate.
+                Slate360 is built for teams who ship real projects. Security, access control, and data separation are part of the product surfacenot an afterthought.
               </p>
             </header>
 
             <div className="space-y-6 text-sm sm:text-base text-slate-800">
               <section>
-                <h2 className="text-base sm:text-lg font-orbitron font-semibold text-slate-900 mb-2">What we collect</h2>
+                <h2 className="text-base sm:text-lg font-orbitron font-semibold text-slate-900 mb-2">Infrastructure & isolation</h2>
                 <p>
-                  We collect account details (like name, email, organization), usage data (how features are used), and project content you choose to upload (files, models, images, scans).
+                  We run on modern cloud infrastructure with strong isolation between workspaces. Access to environments is restricted to a small, audited team.
                 </p>
               </section>
 
               <section>
-                <h2 className="text-base sm:text-lg font-orbitron font-semibold text-slate-900 mb-2">How we use it</h2>
+                <h2 className="text-base sm:text-lg font-orbitron font-semibold text-slate-900 mb-2">Access & roles</h2>
                 <p>
-                  We use data to provide and improve Slate360from rendering 3D views and 360 tours to sending critical status emails. We don&apos;t sell your data to third parties.
+                  Role-based access controls help ensure the right people see the right projects. Admins can manage seats, roles, and invitations from within the product.
                 </p>
               </section>
 
               <section>
-                <h2 className="text-base sm:text-lg font-orbitron font-semibold text-slate-900 mb-2">Retention and deletion</h2>
+                <h2 className="text-base sm:text-lg font-orbitron font-semibold text-slate-900 mb-2">Data protection</h2>
                 <p>
-                  You can request deletion of projects or your entire workspace. We may retain limited logs and backups for a short period to meet legal, security, and billing obligations.
+                  Data in transit is protected with modern TLS. At-rest encryption and backups are used to reduce risk from hardware failures and recovery scenarios.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-base sm:text-lg font-orbitron font-semibold text-slate-900 mb-2">Contact</h2>
                 <p>
-                  Questions about privacy or data handling?
+                  For security questions, responsible disclosure, or vendor questionnaires, contact
                   {" "}
                   <a
-                    href="mailto:privacy@slate360.ai"
+                    href="mailto:security@slate360.ai"
                     className="font-medium text-brand-blue underline-offset-2 hover:text-brand-copper hover:underline"
                   >
-                    privacy@slate360.ai
+                    security@slate360.ai
                   </a>
                   .
                 </p>

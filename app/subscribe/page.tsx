@@ -1,44 +1,179 @@
+const plans = [
+  {
+    name: "Starter",
+    price: "$49",
+    highlight: false,
+    description: "For individuals exploring Slate360 on real projects.",
+    features: [
+      "Single user",
+      "Project Hub access",
+      "Simple progress snapshots",
+      "Email support",
+    ],
+  },
+  {
+    name: "Team",
+    price: "$99",
+    highlight: false,
+    description: "For small project teams and boutique studios.",
+    features: [
+      "Up to 3 users",
+      "Project Hub + task lanes",
+      "Baseline analytics",
+      "Standard support",
+    ],
+  },
+  {
+    name: "Studio",
+    price: "$199",
+    highlight: false,
+    description: "For studios managing multiple active projects.",
+    features: [
+      "Up to 8 users",
+      "BIM Studio previews",
+      "Reporting templates",
+      "Priority support window",
+    ],
+  },
+  {
+    name: "Firm",
+    price: "$299",
+    highlight: true,
+    description: "Best for growing firms standardizing delivery.",
+    features: [
+      "Up to 20 users",
+      "Advanced analytics & trends",
+      "Portfolio-level dashboards",
+      "Scheduled exports",
+    ],
+  },
+  {
+    name: "Pro",
+    price: "$499",
+    highlight: false,
+    description: "For high-volume teams and complex programs.",
+    features: [
+      "Up to 40 users",
+      "API access (beta)",
+      "Advanced permissions",
+      "Dedicated onboarding",
+    ],
+  },
+];
+
 export default function SubscribePage() {
   return (
-    <main className="max-w-6xl mx-auto px-6 py-16 text-white">
-      <h1 className="text-4xl font-bold mb-6 text-center">Subscribe to Slate360</h1>
-      <p className="text-center text-slate-400 mb-12">
-        Choose a plan that fits your needs.
-      </p>
-      <div className="grid md:grid-cols-4 gap-6">
-        {/* Single */}
-        <div className="bg-slate-800 rounded-lg p-6 shadow-lg">
-          <h2 className="text-2xl font-bold mb-2">Single</h2>
-          <p className="text-4xl font-extrabold mb-4 text-brand-copper">$49<span className="text-lg text-slate-200">/mo</span></p>
-          <ul className="text-slate-300 space-y-2">
-            <li>✔ Project Hub</li>
-            <li>✔ Basic reports</li>
-          </ul>
-        </div>
-        {/* Double */}
-        <div className="bg-slate-800 rounded-lg p-6 shadow-lg">
-          <h2 className="text-2xl font-bold mb-2">Double</h2>
-          <p className="text-4xl font-extrabold mb-4 text-brand-copper">$99<span className="text-lg text-slate-200">/mo</span></p>
-          <ul className="text-slate-300 space-y-2">
-            <li>✔ Everything in Single</li>
-            <li>✔ 2 users included</li>
-          </ul>
-        </div>
-        {/* Business */}
-        <div className="bg-slate-800 rounded-lg p-6 shadow-lg border-2 border-brand-copper">
-          <h2 className="text-2xl font-bold mb-2">Business</h2>
-          <p className="text-4xl font-extrabold mb-4 text-brand-copper">$499<span className="text-lg text-slate-200">/mo</span></p>
-          <ul className="text-slate-300 space-y-2">
-            <li>✔ Project Hub</li>
-            <li>✔ BIM Studio</li>
-            <li>✔ Reports & Analytics</li>
-          </ul>
-        </div>
-        {/* Enterprise */}
-        <div className="bg-slate-800 rounded-lg p-6 shadow-lg">
-          <h2 className="text-2xl font-bold mb-2">Enterprise</h2>
-          <p className="text-4xl font-extrabold mb-4 text-brand-copper">Custom</p>
-        </div>
+    <main className="min-h-[100dvh] px-6 py-24 md:py-28">
+      <div className="mx-auto max-w-6xl">
+        <section className="relative overflow-hidden rounded-3xl border border-brand-blue/20 bg-white/98 shadow-[0_26px_80px_rgba(15,23,42,0.55)] px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+          <div className="pointer-events-none absolute inset-0 opacity-[0.08]">
+            <div className="absolute inset-0 bg-gradient-radial from-brand-blue/30 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(148,163,184,0.35)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.28)_1px,transparent_1px)] bg-[size:40px_40px]" />
+          </div>
+
+          <div className="relative z-10 flex flex-col gap-8">
+            <div className="text-center max-w-3xl mx-auto">
+              <p className="mb-3 text-[11px] font-orbitron uppercase tracking-[0.35em] text-slate-500">
+                Pricing &amp; Access
+              </p>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-orbitron tracking-tight text-slate-900 mb-4">
+                Plans &amp; Pricing
+              </h1>
+              <p className="text-sm md:text-base text-slate-600 max-w-2xl mx-auto">
+                Choose a plan that matches how your teams actually deliver work. 
+                Start small, scale as you standardize on Slate360.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-2">
+                {plans.map((plan) => (
+                  <div
+                    key={plan.name}
+                    className={`relative flex h-full flex-col rounded-2xl border bg-white/95 p-5 sm:p-6 shadow-[0_18px_40px_rgba(15,23,42,0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_22px_60px_rgba(15,23,42,0.45)] ${
+                      plan.highlight
+                        ? "border-brand-copper/70 shadow-[0_24px_70px_rgba(179,112,49,0.45)]"
+                        : "border-slate-200/80"
+                    }`}
+                  >
+                    {plan.highlight && (
+                      <span className="absolute right-4 top-4 rounded-full bg-brand-copper/90 px-3 py-1 text-[10px] font-orbitron font-semibold uppercase tracking-[0.2em] text-white">
+                        Most Popular
+                      </span>
+                    )}
+                    <div className="mb-3">
+                      <h2 className="text-lg font-orbitron tracking-wide text-slate-900">
+                        {plan.name}
+                      </h2>
+                      <p className="mt-1 text-xs text-slate-500">{plan.description}</p>
+                    </div>
+                    <div className="mb-4 flex items-baseline gap-1">
+                      <span className="text-3xl font-semibold text-slate-900">
+                        {plan.price}
+                      </span>
+                      <span className="text-xs uppercase tracking-[0.25em] text-slate-500">
+                        /month
+                      </span>
+                    </div>
+                    <ul className="mb-5 flex-1 space-y-1.5 text-xs text-slate-600">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-start gap-2">
+                          <span className="mt-[2px] inline-flex h-3 w-3 flex-shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-[9px] text-brand-blue">
+                            •
+                          </span>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <button className="inline-flex items-center justify-center rounded-full border border-brand-blue/60 bg-brand-blue/5 px-4 py-2 text-[11px] font-orbitron font-semibold uppercase tracking-[0.25em] text-brand-blue transition-colors hover:border-brand-copper hover:bg-brand-copper/10 hover:text-brand-copper">
+                      Get Started
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <aside className="flex flex-col gap-5 rounded-2xl border border-slate-200/80 bg-slate-50/95 p-5 sm:p-6 shadow-[0_18px_40px_rgba(15,23,42,0.2)]">
+                <div>
+                  <h2 className="text-sm font-orbitron uppercase tracking-[0.3em] text-slate-500 mb-2">
+                    Enterprise &amp; Programs
+                  </h2>
+                  <p className="text-2xl font-orbitron tracking-tight text-slate-900 mb-1">
+                    Enterprise
+                  </p>
+                  <p className="text-sm text-slate-600 mb-3">
+                    For larger organizations, multi-region programs, and highly customized workflows.
+                  </p>
+                  <p className="text-xs text-slate-500 mb-4">
+                    Pricing is tailored based on number of teams, integrations, and rollout complexity. 
+                    We work closely with you to design a rollout that actually lands.
+                  </p>
+                  <div className="rounded-xl border border-dashed border-slate-300/80 bg-white/80 p-4">
+                    <p className="text-xs text-slate-600 mb-3">
+                      Share a bit about your portfolio and we&apos;ll follow up with a short working session.
+                    </p>
+                    <a
+                      href="mailto:support@slate360.ai?subject=Slate360%20Enterprise%20Pricing"
+                      className="inline-flex items-center justify-center rounded-full border border-brand-copper/70 bg-brand-copper/10 px-4 py-2 text-[11px] font-orbitron font-semibold uppercase tracking-[0.25em] text-brand-copper transition-colors hover:bg-brand-copper/20"
+                    >
+                      Talk to us about Enterprise
+                    </a>
+                  </div>
+                </div>
+
+                <div className="pt-1 border-t border-slate-200/70 mt-2">
+                  <h3 className="text-xs font-orbitron uppercase tracking-[0.3em] text-slate-500 mb-2">
+                    Early Access Details
+                  </h3>
+                  <ul className="space-y-1.5 text-xs text-slate-600">
+                    <li>No long-term contracts during early access.</li>
+                    <li>Cancel anytime; you&apos;re billed month-to-month.</li>
+                    <li>We&apos;ll review pricing and packaging before general release.</li>
+                  </ul>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   );

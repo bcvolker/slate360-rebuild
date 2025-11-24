@@ -7,7 +7,7 @@ export default function Footer() {
         <nav className="flex items-center gap-8">
           <Link href="/about" className="uppercase tracking-wider hover:text-brand-copper transition-colors text-slate-400 font-orbitron">About</Link>
           <Link href="/contact" className="uppercase tracking-wider hover:text-brand-copper transition-colors text-slate-400 font-orbitron">Contact</Link>
-          <Link href="/subscribe" className="uppercase tracking-wider hover:text-brand-copper transition-colors text-slate-400 font-orbitron">Subscribe</Link>
+            <Link href="/subscribe" className="uppercase tracking-wider hover:text-brand-copper transition-colors text-slate-400 font-orbitron">Plans &amp; Pricing</Link>
           <Link href="/privacy" className="uppercase tracking-wider hover:text-brand-copper transition-colors text-slate-400 font-orbitron">Privacy</Link>
         </nav>
         <p className="text-slate-500 font-orbitron">© 2025 Slate360. All rights reserved.</p>

@@ -56,19 +56,17 @@ export default function SiteHeader() {
 
   return (
     <>
-      {/* Removed site-header class to avoid conflicts. Added explicit Tailwind styles for background and blur. */}
-      {/* Changed to dark charcoal with subtle bottom border and shadow for "pop" */}
-      <header className="fixed top-0 z-[100] w-full border-b border-white/10 bg-slate360-charcoal/95 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.5)] transition-all duration-300">
+      {/* Fixed header with dark ribbon so the logo sits on a clean, high-contrast band. */}
+      <header className="fixed top-0 z-[100] w-full border-b border-white/10 bg-gradient-to-b from-slate360-charcoal/98 via-slate360-charcoal/95 to-slate360-charcoal/90 backdrop-blur-md shadow-[0_10px_35px_rgba(0,0,0,0.75)] transition-all duration-300">
         <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 landscape:py-1 lg:py-2 lg:pl-8 lg:pr-8">
-          {/* LOGO: closer to left edge */}
+          {/* LOGO: slightly larger with a subtle halo so it never feels muted. */}
           <Link
             href={anchorFor("slate360")}
             className="flex items-center gap-3 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme rounded-md"
             onClick={closeMenus}
           >
-            {/* Adjusted negative margin to pull logo further left on mobile/tablet */}
-            {/* Added drop-shadow to make logo pop against the dark header */}
-            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300 drop-shadow-[0_0_8px_rgba(255,255,255,0.15)]">
+            <div className="relative h-16 w-64 sm:h-[4.75rem] sm:w-80 lg:h-[5rem] lg:w-[21rem] transition-all duration-300 drop-shadow-[0_0_14px_rgba(0,0,0,0.9)]">
+              <div className="pointer-events-none absolute inset-[-3px] rounded-2xl border border-white/8 shadow-[0_0_22px_rgba(148,163,184,0.55)]" />
               <Image
                 src="/assets/slate360logoforwebsite.png"
                 alt="Slate360 logo"
@@ -110,10 +108,10 @@ export default function SiteHeader() {
 
             <nav className="hidden md:flex items-center gap-8">
               {/* Updated Desktop Nav: Light text on dark background */}
-              {["Contact", "About", "Subscribe"].map((label) => (
+              {["Contact", "About", "Plans & Pricing"].map((label) => (
                 <Link 
                   key={label} 
-                  href={`/${label.toLowerCase()}`} 
+                  href={label === "Plans & Pricing" ? "/subscribe" : `/${label.toLowerCase()}`}
                   className="group relative text-xs font-bold uppercase tracking-widest text-slate-200 transition-all duration-300 hover:text-brand-blue font-orbitron"
                 >
                   {label}
