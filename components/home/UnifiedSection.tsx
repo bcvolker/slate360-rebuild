@@ -39,8 +39,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const viewerSubtitle = tile.viewer?.subtitle ?? "Interactive content arrives shortly.";
 
   // Alternate subtle tile backgrounds for more separation on the home canvas.
-  // Even tiles: blueprint grid on light canvas (default).
-  // Odd tiles: slightly darker slate background to pop the content.
+  // Even tiles: transparent over the global blueprint background.
+  // Odd tiles: bluish slab for a stronger, but still on-brand, contrast.
   const isAlternate = index % 2 === 1;
 
   const textColumnOrder = layoutAlign === "left" ? "lg:order-2" : "lg:order-1";
@@ -77,7 +77,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       id={tile.id}
       data-snap="tile"
       // On desktop we keep full-height snapped sections; on mobile let content flow naturally
-      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "lg:snap-start lg:min-h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"} pt-[80px] ${isAlternate ? "bg-slate-900/75" : "bg-transparent"}`}
+      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "lg:snap-start lg:min-h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"} pt-[80px] ${isAlternate ? "bg-[#041322]" : "bg-transparent"}`}
       style={sectionStyle}
     >
       <motion.div 
