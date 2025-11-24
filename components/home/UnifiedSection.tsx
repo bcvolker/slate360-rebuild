@@ -25,12 +25,6 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const bgY = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
 
   const accent = tile.theme?.accent ?? "#4F89D4";
-  
-  // Alternate background logic
-  const isAlternate = index % 2 !== 0;
-  const sectionBgColor = isAlternate ? `${accent}10` : "#ffffff";
-  const cardBgClass = isAlternate ? "bg-white/90" : "bg-slate-50/80";
-
   const layoutAlign = tile.layout?.align ?? (index % 2 === 0 ? "right" : "left");
   const snapEnabled = tile.layout?.snap ?? true;
 
@@ -79,8 +73,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       data-snap="tile"
       // Snap sections align under the fixed header; use min-height so content can grow
       // On mobile (lg:hidden), we disable snap-start and use standard padding to let content flow naturally
-      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "lg:snap-start lg:min-h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"} min-h-[100dvh] pt-[80px] overflow-hidden transition-colors duration-500`}
-      style={{ ...sectionStyle, backgroundColor: sectionBgColor }}
+      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "lg:snap-start lg:min-h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"} pt-[80px] overflow-hidden`}
+      style={sectionStyle}
     >
       <motion.div 
         style={{ y: bgY }}
@@ -114,7 +108,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                       {tile.bullets.map((bullet) => (
                         <li 
                           key={bullet.label} 
-                          className={`snap-center w-[260px] flex flex-col gap-2 p-4 rounded-xl border border-slate-200 ${cardBgClass} backdrop-blur-sm shadow-sm`}
+                          className="snap-center w-[260px] flex flex-col gap-2 p-4 rounded-xl border border-slate-200 bg-white/40 backdrop-blur-sm shadow-sm"
                         >
                           <div className="flex items-center gap-2">
                             <span className="inline-flex h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: accent }} />
