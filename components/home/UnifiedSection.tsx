@@ -33,11 +33,11 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const renderCtas = (isMobile = false) => {
     if (!tile.cta && !tile.secondaryCta) return null;
     return (
-      <div className={`flex ${isMobile ? 'flex-row w-full' : 'flex-col sm:flex-row'} gap-2 pt-0`}>
+      <div className={`flex ${isMobile ? 'flex-col h-full justify-center' : 'flex-col sm:flex-row'} gap-2 pt-0`}>
         {tile.cta && (
           <Link
             href={tile.cta.href}
-            className={`inline-flex items-center justify-center rounded-md bg-[var(--section-accent)] px-6 py-3 text-sm font-semibold uppercase tracking-widest text-white shadow-lg shadow-[var(--section-accent)/40] transition hover:opacity-90 ${isMobile ? 'flex-1 py-3 text-xs' : ''}`}
+            className={`inline-flex items-center justify-center rounded-md bg-[var(--section-accent)] px-6 py-3 text-sm font-semibold uppercase tracking-widest text-white shadow-lg shadow-[var(--section-accent)/40] transition hover:opacity-90 ${isMobile ? 'w-full flex-1 py-0 text-[9px] leading-tight px-1 text-center' : ''}`}
             style={{ backgroundColor: accent }}
           >
             {tile.cta.label}
@@ -46,7 +46,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {tile.secondaryCta && (
           <Link
             href={tile.secondaryCta.href}
-            className={`inline-flex items-center justify-center rounded-md border border-slate-900/10 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-slate-700 transition hover:border-slate-900/40 ${isMobile ? 'flex-1 py-3 text-xs' : ''}`}
+            className={`inline-flex items-center justify-center rounded-md border border-slate-900/10 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-slate-700 transition hover:border-slate-900/40 ${isMobile ? 'w-full flex-1 py-0 text-[9px] leading-tight px-1 text-center' : ''}`}
           >
             {tile.secondaryCta.label}
           </Link>
@@ -59,64 +59,67 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
     <section
       id={tile.id}
       data-snap="tile"
-      // Updated: Use min-h-screen instead of fixed height for mobile to allow natural scrolling
-      // Only apply snap and fixed height on desktop (lg)
-      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "min-h-[100dvh] lg:h-[100dvh] lg:snap-start lg:pt-[80px]" : "py-16 sm:py-20"}`}
+      // Updated: Enforce full height on mobile/tablet for the "bottom 20%" layout
+      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "snap-start h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"}`}
       style={sectionStyle}
     >
       <div className="absolute inset-0 -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" aria-hidden />
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 h-full flex flex-col justify-center">
         
-        {/* --- MOBILE LAYOUT (Refactored for natural flow) --- */}
-        <div className="lg:hidden flex flex-col pt-24 pb-12 gap-8">
-           {/* Top: Text Content */}
-           <div className="space-y-4">
-              {tile.eyebrow && (
-                <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-slate-500" style={{ color: accent }}>
-                  {tile.eyebrow}
-                </p>
-              )}
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-slate-900 font-orbitron tracking-tight leading-tight">
-                  {tile.title}
-                </h2>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  {tile.subtitle}
-                </p>
-              </div>
+        {/* --- MOBILE/TABLET VERTICAL LAYOUT (Fixed Bottom Bar) --- */}
+        <div className="lg:hidden flex flex-col h-full">
+           {/* Top 80% (approx): Text Content - Scrollable if needed */}
+           <div className="flex-1 overflow-y-auto no-scrollbar pt-24 pb-4 flex flex-col justify-center">
+              <div className="space-y-4">
+                {tile.eyebrow && (
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-slate-500" style={{ color: accent }}>
+                    {tile.eyebrow}
+                  </p>
+                )}
+                <div className="space-y-2">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 font-orbitron tracking-tight leading-tight">
+                    {tile.title}
+                  </h2>
+                  <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+                    {tile.subtitle}
+                  </p>
+                </div>
 
-              {tile.bullets?.length > 0 && (
-                <ul className="space-y-2 text-xs text-slate-600 pt-2">
-                  {tile.bullets.map((bullet) => (
-                    <li key={bullet.label} className="flex gap-2">
-                      <span className="mt-1 inline-flex h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: accent }} />
-                      <div>
-                        <p className="font-semibold text-slate-900">{bullet.label}</p>
-                        {bullet.description && (
-                          <p className="text-slate-500 text-[10px] leading-snug mt-0.5">{bullet.description}</p>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
+                {tile.bullets?.length > 0 && (
+                  <ul className="space-y-2 text-xs sm:text-sm text-slate-600 pt-2">
+                    {tile.bullets.map((bullet) => (
+                      <li key={bullet.label} className="flex gap-2">
+                        <span className="mt-1 inline-flex h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: accent }} />
+                        <div>
+                          <p className="font-semibold text-slate-900">{bullet.label}</p>
+                          {bullet.description && (
+                            <p className="text-slate-500 text-[10px] sm:text-xs leading-snug mt-0.5">{bullet.description}</p>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
            </div>
 
-           {/* Bottom: Viewer + CTAs Stacked or Side-by-Side depending on space */}
-           <div className="flex flex-col gap-4">
-              {/* Large Viewer Thumbnail */}
-              <button 
-                type="button"
-                onClick={() => setViewerOpen(true)}
-                className="w-full aspect-video bg-slate-900 rounded-xl flex flex-col items-center justify-center shrink-0 border border-slate-800 shadow-sm relative overflow-hidden group transition-transform active:scale-[0.98]"
-              >
-                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/0 pointer-events-none" />
-                 <span className="text-4xl mb-2" style={{ color: accent }}>▶</span>
-                 <span className="text-xs uppercase tracking-widest text-slate-400 font-semibold">View Content</span>
-              </button>
+           {/* Bottom 20%: Viewer (2/3) + Buttons (1/3) */}
+           <div className="h-[20%] min-h-[140px] max-h-[200px] flex border-t border-slate-200/50 bg-slate-50/50 backdrop-blur-sm -mx-6 md:-mx-10 px-6 md:px-10 py-3 gap-3">
+              {/* Viewer Area - 2/3 Width */}
+              <div className="w-[66%] h-full">
+                <button 
+                  type="button"
+                  onClick={() => setViewerOpen(true)}
+                  className="w-full h-full bg-slate-900 rounded-xl flex flex-col items-center justify-center border border-slate-800 shadow-sm relative overflow-hidden group transition-transform active:scale-[0.98]"
+                >
+                   <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/0 pointer-events-none" />
+                   <span className="text-3xl mb-1" style={{ color: accent }}>▶</span>
+                   <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">View</span>
+                </button>
+              </div>
 
-              {/* CTAs - Compact Row below viewer */}
-              <div className="w-full">
+              {/* Buttons Area - 1/3 Width */}
+              <div className="w-[33%] h-full flex flex-col gap-2 justify-center">
                  {renderCtas(true)}
               </div>
            </div>

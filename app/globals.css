@@ -87,7 +87,7 @@ html {
 }
 
 html {
-  scroll-snap-type: y proximity;
+  scroll-snap-type: y mandatory;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
