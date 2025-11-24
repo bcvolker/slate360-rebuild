@@ -87,7 +87,7 @@ html {
 }
 
 html {
-  scroll-snap-type: y mandatory;
+  scroll-snap-type: y proximity;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -143,10 +143,10 @@ body {
 } */
 
 .tile-viewer-surface {
-  background: rgb(var(--color-surface-primary));
+  background: #1E1E1E; /* Dark Charcoal for viewer surface */
   border-radius: 1.25rem;
-  border: 2px solid rgba(var(--color-border-strong) / 0.3);
-  box-shadow: 0 0 0 1px rgba(var(--color-border-strong) / 0.1), 0 12px 35px rgba(79,137,212,0.15), 0 4px 12px rgba(0,0,0,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 12px 35px rgba(0,0,0,0.3);
 }
 
 .tile-text-surface {

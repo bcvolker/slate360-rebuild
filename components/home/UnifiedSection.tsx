@@ -65,34 +65,34 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       <div className="absolute inset-0 -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" aria-hidden />
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 h-full flex flex-col justify-center">
         
-        {/* --- MOBILE/TABLET VERTICAL LAYOUT (Fixed Bottom Bar) --- */}
-        <div className="lg:hidden flex flex-col h-full">
-           {/* Top 80% (approx): Text Content - Scrollable if needed */}
-           <div className="flex-1 overflow-y-auto no-scrollbar pt-28 pb-4 flex flex-col justify-start">
+          {/* --- MOBILE/TABLET VERTICAL LAYOUT (Fixed Bottom Bar) --- */}
+          <div className="lg:hidden flex flex-col h-full">
+            {/* Top ~80%: Text Content (page handles scrolling) */}
+            <div className="flex-1 pt-28 pb-4 flex flex-col justify-start">
               <div className="space-y-4">
                 {tile.eyebrow && (
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.35em] font-orbitron" style={{ color: accent }}>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron" style={{ color: accent }}>
                     {tile.eyebrow}
                   </p>
                 )}
                 <div className="space-y-2">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 font-orbitron tracking-tight leading-tight">
+                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 font-orbitron tracking-tight leading-tight drop-shadow-sm">
                     {tile.title}
                   </h2>
-                  <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
+                  <p className="text-sm sm:text-base text-slate-800 font-medium leading-relaxed">
                     {tile.subtitle}
                   </p>
                 </div>
 
                 {tile.bullets?.length > 0 && (
-                  <ul className="space-y-2 text-xs sm:text-sm text-slate-700 pt-2">
+                  <ul className="space-y-2 text-xs sm:text-sm text-slate-800 pt-2">
                     {tile.bullets.map((bullet) => (
                       <li key={bullet.label} className="flex gap-2">
                         <span className="mt-1 inline-flex h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: accent }} />
                         <div>
-                          <p className="font-semibold text-slate-900 font-orbitron">{bullet.label}</p>
+                          <p className="font-bold text-slate-900 font-orbitron">{bullet.label}</p>
                           {bullet.description && (
-                            <p className="text-slate-600 text-[10px] sm:text-xs leading-snug mt-0.5">{bullet.description}</p>
+                            <p className="text-slate-700 font-medium text-[10px] sm:text-xs leading-snug mt-0.5">{bullet.description}</p>
                           )}
                         </div>
                       </li>
@@ -109,11 +109,11 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 <button 
                   type="button"
                   onClick={() => setViewerOpen(true)}
-                  className="w-full h-full bg-white rounded-xl flex flex-col items-center justify-center border-2 border-brand-blue/30 shadow-lg shadow-brand-blue/10 relative overflow-hidden group transition-transform active:scale-[0.98] hover:border-brand-blue/50 hover:shadow-brand-blue/20"
+                  className="w-full h-full bg-slate360-charcoal rounded-xl flex flex-col items-center justify-center border border-white/20 shadow-lg relative overflow-hidden group transition-transform active:scale-[0.98] hover:border-brand-blue/50"
                 >
-                   <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent pointer-events-none" />
+                   <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
                    <span className="text-3xl mb-1" style={{ color: accent }}>▶</span>
-                   <span className="text-[10px] uppercase tracking-widest text-slate-600 font-semibold font-orbitron">View</span>
+                   <span className="text-[10px] uppercase tracking-widest text-slate-300 font-semibold font-orbitron">View</span>
                 </button>
               </div>
 
@@ -128,28 +128,28 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         <div className="hidden lg:grid items-center gap-12 lg:gap-24 lg:grid-cols-2 h-full">
           <div className={`order-1 ${textColumnOrder} space-y-8`}>
             {tile.eyebrow && (
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] font-orbitron" style={{ color: accent }}>
+              <p className="text-[11px] font-bold uppercase tracking-[0.35em] font-orbitron" style={{ color: accent }}>
                 {tile.eyebrow}
               </p>
             )}
             <div className="space-y-4">
-              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 font-orbitron tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-black text-slate-900 font-orbitron tracking-tight drop-shadow-sm">
                 {tile.title}
               </h2>
-              <p className="text-base sm:text-lg text-slate-700 leading-relaxed">
+              <p className="text-base sm:text-lg text-slate-800 font-medium leading-relaxed">
                 {tile.subtitle}
               </p>
             </div>
 
             {tile.bullets?.length > 0 && (
-              <ul className="space-y-3 text-sm sm:text-base text-slate-700">
+              <ul className="space-y-3 text-sm sm:text-base text-slate-800">
                 {tile.bullets.map((bullet) => (
                   <li key={bullet.label} className="flex gap-3">
                     <span className="mt-1 inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: accent }} />
                     <div>
-                      <p className="font-semibold text-slate-900 font-orbitron">{bullet.label}</p>
+                      <p className="font-bold text-slate-900 font-orbitron">{bullet.label}</p>
                       {bullet.description && (
-                        <p className="text-slate-600 text-sm leading-snug">{bullet.description}</p>
+                        <p className="text-slate-700 font-medium text-sm leading-snug">{bullet.description}</p>
                       )}
                     </div>
                   </li>
@@ -163,14 +163,14 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
           <div className={`order-2 ${viewerColumnOrder} flex justify-center w-full`}>
             <div className="tile-viewer-surface w-full max-w-[640px] aspect-[16/10] flex flex-col items-center justify-center p-6 landscape:p-4 lg:p-8 transition-all duration-300 hover:shadow-[0_0_0_1px_rgba(79,137,212,0.2),0_15px_40px_rgba(79,137,212,0.25),0_5px_15px_rgba(0,0,0,0.12)]">
               <span className="text-4xl mb-2 landscape:text-2xl landscape:mb-1" style={{ color: accent }}>▶</span>
-              <h3 className="text-xl font-semibold text-slate-900 text-center landscape:text-lg font-orbitron">{viewerTitle}</h3>
-              <p className="text-xs text-slate-600 text-center mt-1 leading-tight landscape:hidden">
+              <h3 className="text-xl font-semibold text-white text-center landscape:text-lg font-orbitron">{viewerTitle}</h3>
+              <p className="text-xs text-slate-400 text-center mt-1 leading-tight landscape:hidden">
                 Tap to expand
               </p>
               <button
                 type="button"
                 onClick={() => setViewerOpen(true)}
-                className="mt-2 rounded-xl border border-brand-blue/30 bg-brand-blue/10 px-4 py-3 text-xs font-semibold uppercase tracking-[0.4em] text-brand-blue transition hover:border-brand-blue hover:bg-brand-blue/20 lg:hidden font-orbitron"
+                className="mt-2 rounded-xl border border-white/20 px-4 py-3 text-xs font-semibold uppercase tracking-[0.4em] text-white transition hover:border-white/60 lg:hidden font-orbitron"
               >
                 Expand Viewer
               </button>

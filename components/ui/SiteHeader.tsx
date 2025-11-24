@@ -57,8 +57,8 @@ export default function SiteHeader() {
   return (
     <>
       {/* Removed site-header class to avoid conflicts. Added explicit Tailwind styles for background and blur. */}
-      {/* Changed to light translucent white with blue accent border */}
-      <header className="fixed top-0 z-[100] w-full border-b border-brand-blue/20 bg-white/80 backdrop-blur-md shadow-[0_4px_20px_rgba(79,137,212,0.12)] transition-all duration-300">
+      {/* Changed to dark charcoal with subtle bottom border and shadow for "pop" */}
+      <header className="fixed top-0 z-[100] w-full border-b border-white/10 bg-slate360-charcoal/95 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.5)] transition-all duration-300">
         <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 landscape:py-1 lg:py-2 lg:pl-8 lg:pr-8">
           {/* LOGO: closer to left edge */}
           <Link
@@ -67,7 +67,8 @@ export default function SiteHeader() {
             onClick={closeMenus}
           >
             {/* Adjusted negative margin to pull logo further left on mobile/tablet */}
-            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300">
+            {/* Added drop-shadow to make logo pop against the dark header */}
+            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300 drop-shadow-[0_0_8px_rgba(255,255,255,0.15)]">
               <Image
                 src="/assets/slate360logoforwebsite.png"
                 alt="Slate360 logo"
@@ -79,7 +80,7 @@ export default function SiteHeader() {
           </Link>
 
           {/* DESKTOP NAV: pushed all the way to the right */}
-          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-slate-900 lg:flex">
+          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-white lg:flex">
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
@@ -90,7 +91,7 @@ export default function SiteHeader() {
                 <span className="text-xs">▾</span>
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-brand-grey/95 border border-brand-light-grey/30 shadow-[0_22px_45px_rgba(0,0,0,0.9)] backdrop-blur-xl py-2">
+                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-slate360-charcoal/95 border border-white/10 shadow-[0_22px_45px_rgba(0,0,0,0.9)] backdrop-blur-xl py-2">
                   <div className="max-h-[60vh] overflow-y-auto space-y-0.5 px-2">
                     {NAV_LINKS.map((item) => (
                       <Link
@@ -108,18 +109,18 @@ export default function SiteHeader() {
             </div>
 
             <nav className="hidden md:flex items-center gap-8">
-              {/* Updated Desktop Nav: Dark text on light background */}
+              {/* Updated Desktop Nav: Light text on dark background */}
               {["Contact", "About", "Subscribe"].map((label) => (
                 <Link 
                   key={label} 
                   href={`/${label.toLowerCase()}`} 
-                  className="group relative text-xs font-bold uppercase tracking-widest text-slate-700 transition-all duration-300 hover:text-brand-blue font-orbitron"
+                  className="group relative text-xs font-bold uppercase tracking-widest text-slate-200 transition-all duration-300 hover:text-brand-blue font-orbitron"
                 >
                   {label}
                   <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-brand-blue via-[#8CC5FF] to-brand-blue transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
-              <Link href="/login" className="ml-4 rounded-full border border-brand-blue/30 bg-brand-blue/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-brand-blue transition-all hover:border-brand-blue hover:bg-brand-blue/20 font-orbitron">
+              <Link href="/login" className="ml-4 rounded-full border border-white/30 bg-white/5 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white transition-all hover:text-brand-blue hover:border-brand-blue hover:bg-brand-blue/10 font-orbitron">
                 Login
               </Link>
             </nav>
@@ -159,7 +160,7 @@ export default function SiteHeader() {
           
           {/* Menu Panel - Sits on top of backdrop */}
           <div 
-            className="relative z-10 flex flex-col border-b border-brand-blue/20 bg-white/95 p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
+            className="relative z-10 flex flex-col border-b border-white/10 bg-slate360-charcoal/95 p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
@@ -176,7 +177,7 @@ export default function SiteHeader() {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-full p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white"
               >
                 <span className="sr-only">Close menu</span>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -214,7 +215,7 @@ export default function SiteHeader() {
                       {label}
                     </Link>
                   ))}
-                </nav>              <div className="h-px bg-brand-light-grey/20" />
+                </nav>              <div className="h-px bg-white/10" />
 
               {/* Condense links into 2 columns */}
               <div className="grid grid-cols-2 gap-2">
@@ -223,7 +224,7 @@ export default function SiteHeader() {
                     key={item.id}
                     href={anchorFor(item.id)}
                     onClick={closeMenus}
-                    className="w-full rounded-lg px-2 py-2 text-left text-xs text-slate-700 hover:bg-brand-blue/10 hover:text-brand-blue transition-colors truncate font-orbitron"
+                    className="w-full rounded-lg px-2 py-2 text-left text-xs text-white hover:bg-white/10 hover:text-brand-blue transition-colors truncate font-orbitron"
                   >
                     {item.label}
                   </Link>
@@ -244,7 +245,7 @@ export default function SiteHeader() {
             className={`text-[9px] lg:text-[10px] font-orbitron tracking-wider transition-colors duration-300 ${
               activeId === item.id
                 ? "text-brand-blue font-bold"
-                : "text-slate-600 font-medium hover:text-brand-blue"
+                : "text-slate-500 font-medium hover:text-brand-blue"
             }`}
           >
             {item.label}
