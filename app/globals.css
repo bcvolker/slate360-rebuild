@@ -3,6 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  height: 100%;
+  overscroll-behavior-y: none; /* Prevents bounce/blank space on mobile */
+}
+
 :root {
   --viewer-width: clamp(320px, 40vw, 720px);
   --tile-padding: 3rem;
@@ -148,7 +153,7 @@ body {
 @media (min-width: 1280px) {
   html {
     scroll-snap-type: y mandatory;
-    /* Removed scroll-padding-top to prevent double-padding issue with fixed header */
+    scroll-padding-top: 80px; /* Restored to fix alignment */
   }
 }
 

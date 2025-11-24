@@ -79,7 +79,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       // On desktop we keep full-height snapped sections; on mobile let content flow naturally but start below header
       // Changed justify-center to justify-start for mobile to prevent top clipping behind header
       // Added min-h-[100dvh] to base classes to ensure full height on mobile/tablet even when snap is enabled for desktop
-      className={`relative w-full flex flex-col min-h-[100dvh] ${snapEnabled ? "xl:justify-center xl:snap-start xl:pt-[80px]" : "justify-start"} pt-[120px] pb-4 ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      // Mobile: justify-end to push content to bottom. Desktop: justify-center.
+      className={`relative w-full flex flex-col min-h-[100dvh] justify-end xl:justify-center ${snapEnabled ? "xl:snap-start" : ""} pb-8 ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Parallax Background - Enabled on all devices but constrained horizontally */}
@@ -88,11 +89,11 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         className="absolute -top-[20%] -bottom-[20%] left-0 right-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 h-full flex flex-col justify-center">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex-1 flex flex-col justify-center">
         
           {/* --- MOBILE/TABLET VERTICAL LAYOUT (Natural Flow) --- */}
-          <div className="lg:hidden flex flex-col h-full">
-            {/* Text Content - Takes up top space */}
+          <div className="lg:hidden flex flex-col flex-1 pt-[100px]">
+            {/* Text Content - Takes up top space (Spacer) */}
             <div className="flex-1 flex flex-col justify-start space-y-4">
                 {tile.eyebrow && (
                   <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron text-slate-900">
