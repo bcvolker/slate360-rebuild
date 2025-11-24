@@ -86,6 +86,12 @@ html {
   color-scheme: dark;
 }
 
+@media (min-width: 1024px) {
+  html {
+    scroll-snap-type: y proximity;
+  }
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 ::-webkit-scrollbar {
   display: none;
@@ -102,7 +108,7 @@ body {
   overflow-x: hidden;
   color: rgb(var(--color-text-primary));
   /* Match background to tile background to hide grey bars on overscroll/refresh */
-  background-color: rgb(var(--color-bg-canvas)); 
+  background-color: rgb(var(--color-bg-canvas));
   font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
   background: 
     radial-gradient(circle at 50% 0%, rgba(79,137,212,0.08) 0%, transparent 70%),
