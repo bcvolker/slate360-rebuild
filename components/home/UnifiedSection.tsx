@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import type { CSSProperties } from "react";
 import { Tile } from "@/lib/types";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 interface UnifiedSectionProps {
   tile: Tile;
@@ -12,6 +13,17 @@ interface UnifiedSectionProps {
 
 export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const [viewerOpen, setViewerOpen] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  
+  // Parallax effect for background
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"],
+  });
+  
+  // Move background slightly slower than scroll to create depth
+  const bgY = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
+
   const accent = tile.theme?.accent ?? "#4F89D4";
   const layoutAlign = tile.layout?.align ?? (index % 2 === 0 ? "right" : "left");
   const snapEnabled = tile.layout?.snap ?? true;
@@ -56,20 +68,25 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
 
   return (
     <section
+      ref={sectionRef}
       id={tile.id}
       data-snap="tile"
       // Snap sections align under the fixed header; use min-height so content can grow
-      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "snap-start min-h-[100dvh] pt-[80px]" : "py-16 sm:py-20"}`}
+      // On mobile (lg:hidden), we disable snap-start and use standard padding to let content flow naturally
+      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "lg:snap-start lg:min-h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"} min-h-[100dvh] pt-[80px] overflow-hidden`}
       style={sectionStyle}
     >
-      <div className="absolute inset-0 -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" aria-hidden />
+      <motion.div 
+        style={{ y: bgY }}
+        className="absolute -inset-[20%] -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
+        aria-hidden 
+      />
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 h-full flex flex-col justify-center">
         
-          {/* --- MOBILE/TABLET VERTICAL LAYOUT (Fixed Bottom Bar) --- */}
-          <div className="lg:hidden flex flex-col h-full">
-            {/* Top ~80%: Text Content (page handles scrolling) */}
-            <div className="flex-1 pt-28 pb-4 flex flex-col justify-start">
-              <div className="space-y-4">
+          {/* --- MOBILE/TABLET VERTICAL LAYOUT (Natural Flow) --- */}
+          <div className="lg:hidden flex flex-col gap-8 py-8">
+            {/* Text Content */}
+            <div className="flex flex-col justify-start space-y-4">
                 {tile.eyebrow && (
                   <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron" style={{ color: accent }}>
                     {tile.eyebrow}
@@ -84,28 +101,33 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                   </p>
                 </div>
 
+                {/* Horizontal Scroll for Bullets on Mobile */}
                 {tile.bullets?.length > 0 && (
-                  <ul className="space-y-2 text-xs sm:text-sm text-slate-800 pt-2">
-                    {tile.bullets.map((bullet) => (
-                      <li key={bullet.label} className="flex gap-2">
-                        <span className="mt-1 inline-flex h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: accent }} />
-                        <div>
-                          <p className="font-bold text-slate-900 font-orbitron">{bullet.label}</p>
+                  <div className="-mx-6 px-6 w-[calc(100%+3rem)] overflow-x-auto pb-4 pt-2 snap-x hide-scrollbar">
+                    <ul className="flex gap-4 w-max">
+                      {tile.bullets.map((bullet) => (
+                        <li 
+                          key={bullet.label} 
+                          className="snap-center w-[260px] flex flex-col gap-2 p-4 rounded-xl border border-slate-200 bg-white/40 backdrop-blur-sm shadow-sm"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: accent }} />
+                            <p className="font-bold text-slate-900 font-orbitron text-sm">{bullet.label}</p>
+                          </div>
                           {bullet.description && (
-                            <p className="text-slate-700 font-medium text-[10px] sm:text-xs leading-snug mt-0.5">{bullet.description}</p>
+                            <p className="text-slate-700 font-medium text-xs leading-snug pl-3.5">{bullet.description}</p>
                           )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
-              </div>
            </div>
 
-           {/* Bottom 20%: Viewer (2/3) + Buttons (1/3) */}
-           <div className="h-[20%] min-h-[140px] max-h-[200px] flex items-end pb-6 gap-3">
-              {/* Viewer Area - 2/3 Width */}
-              <div className="w-[66%] h-full">
+           {/* Viewer + Buttons */}
+           <div className="flex flex-col gap-4">
+              {/* Viewer Area */}
+              <div className="w-full aspect-video">
                 <button 
                   type="button"
                   onClick={() => setViewerOpen(true)}
@@ -117,8 +139,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 </button>
               </div>
 
-              {/* Buttons Area - 1/3 Width */}
-              <div className="w-[33%] h-full flex flex-col gap-2 justify-center">
+              {/* Buttons Area */}
+              <div className="w-full">
                  {renderCtas(true)}
               </div>
            </div>
