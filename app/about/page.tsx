@@ -40,7 +40,7 @@ export default function AboutPage(){
               </h2>
               <p>
                 General contractors managing multi-site chaos, government teams tracking capital projects, trade partners needing quick 360 tours,
-                owners’ reps analyzing risks, and design teams visualizing models. Whether you're a solo freelancer, enterprise with 50+ users,
+                owners&apos; reps analyzing risks, and design teams visualizing models. Whether you&apos;re a solo freelancer, enterprise with 50+ users,
                 or student testing drone missions, Slate360 scales with you—individual profiles for quick setups, RBAC for teams.
               </p>
             </section>
@@ -50,9 +50,9 @@ export default function AboutPage(){
                 Why We Built It
               </h2>
               <p>
-                From years in construction project management and drone tech education, we've seen siloed apps slow decisions and inflate costs.
+                From years in construction project management and drone tech education, we&apos;ve seen siloed apps slow decisions and inflate costs.
                 Slate360 is the unified hub we needed: Admin docs flow to geospatial plans, models to virtual tours—all with AI toggles
-                (verify results; we're not liable for errors) and open exports (no lock-in).
+                (verify results; we&apos;re not liable for errors) and open exports (no lock-in).
               </p>
             </section>
           </div>
