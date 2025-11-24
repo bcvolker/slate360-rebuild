@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="relative z-10 w-full text-xs bg-slate-900 text-slate-300 border-t border-white/10 shadow-[0_-4px_30px_rgba(0,0,0,0.5)] py-8">
+    <footer className="relative z-10 w-full text-xs bg-slate-900 text-slate-300 border-t border-white/10 shadow-[0_-4px_30px_rgba(0,0,0,0.5)] py-8 snap-end">
       <div className="mx-auto flex max-w-6xl items-center justify-between flex-wrap gap-4 px-6">
         <nav className="flex items-center gap-6 flex-wrap">
           <Link href="/subscribe" className="uppercase tracking-wider hover:text-brand-copper transition-colors text-slate-400 font-orbitron">Plans & Pricing</Link>

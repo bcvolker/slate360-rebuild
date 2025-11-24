@@ -130,16 +130,26 @@ body {
 .bg-blueprint {
   background-color: #60A5FA; /* Deeper Blue (Blue-400) */
   background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.3) 2px, transparent 2px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.3) 2px, transparent 2px);
-  background-size: 80px 80px; /* Larger grid */
+    linear-gradient(rgba(255, 255, 255, 0.15) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.15) 2px, transparent 2px),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  background-size: 240px 240px, 240px 240px, 100% 100%; /* 3x larger grid + subtle radial glow */
 }
 
 /* Concrete Pattern for Grey Tiles */
 .bg-concrete {
-  background-color: #64748B; /* Slate-500 - Much Deeper Grey */
+  background-color: #94A3B8; /* Lighter Slate (Slate-400) */
   background-image: 
-    radial-gradient(circle at 50% 0%, rgba(255,255,255,0.15) 0%, transparent 70%);
+    linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%),
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,0.2) 0%, transparent 70%);
+}
+
+/* Scroll Snap - Desktop Only */
+@media (min-width: 1280px) {
+  html {
+    scroll-snap-type: y mandatory;
+    scroll-padding-top: 80px; /* Account for header */
+  }
 }
 
 * {

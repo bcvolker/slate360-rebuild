@@ -39,9 +39,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const viewerSubtitle = tile.viewer?.subtitle ?? "Interactive content arrives shortly.";
 
   // Alternate subtle tile backgrounds for more separation on the home canvas.
-  // Even tiles: Concrete grey (medium depth).
-  // Odd tiles: Blueprint blue (deeper contrast).
-  const isAlternate = index % 2 === 1;
+  // Even tiles (0, 2, 4): Blueprint blue (First tile is blue).
+  // Odd tiles (1, 3, 5): Concrete grey.
+  const isAlternate = index % 2 === 0;
 
   const textColumnOrder = layoutAlign === "left" ? "lg:order-2" : "lg:order-1";
   const viewerColumnOrder = layoutAlign === "left" ? "lg:order-1" : "lg:order-2";
@@ -50,11 +50,11 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const renderCtas = (isMobile = false) => {
     if (!tile.cta && !tile.secondaryCta) return null;
     return (
-      <div className={`flex ${isMobile ? 'flex-col h-full justify-center' : 'flex-col sm:flex-row'} gap-2 pt-0`}>
+      <div className={`flex ${isMobile ? 'flex-col h-full justify-center gap-1' : 'flex-col sm:flex-row gap-2'} pt-0`}>
         {tile.cta && (
           <Link
             href={tile.cta.href}
-            className={`inline-flex items-center justify-center rounded-md border border-slate-900 bg-white/90 px-6 py-3 text-sm font-bold uppercase tracking-widest text-slate-900 shadow-sm transition hover:bg-white hover:shadow-md hover:border-slate-900 font-orbitron ${isMobile ? 'w-full flex-1 py-2 text-[10px] leading-tight px-1 text-center' : ''}`}
+            className={`inline-flex items-center justify-center rounded-md border border-slate-900 bg-white/90 px-6 py-3 text-sm font-bold uppercase tracking-widest text-slate-900 shadow-sm transition hover:bg-white hover:shadow-md hover:border-slate-900 font-orbitron ${isMobile ? 'w-full flex-1 py-1 text-[9px] leading-tight px-1 text-center whitespace-normal' : ''}`}
           >
             {tile.cta.label}
           </Link>
@@ -62,7 +62,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {tile.secondaryCta && (
           <Link
             href={tile.secondaryCta.href}
-            className={`inline-flex items-center justify-center rounded-md bg-slate-900 px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-lg transition hover:opacity-90 hover:shadow-xl font-orbitron ${isMobile ? 'w-full flex-1 py-2 text-[10px] leading-tight px-1 text-center' : ''}`}
+            className={`inline-flex items-center justify-center rounded-md bg-slate-900 px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-lg transition hover:opacity-90 hover:shadow-xl font-orbitron ${isMobile ? 'w-full flex-1 py-1 text-[9px] leading-tight px-1 text-center whitespace-normal' : ''}`}
           >
             {tile.secondaryCta.label}
           </Link>
@@ -76,8 +76,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       ref={sectionRef}
       id={tile.id}
       data-snap="tile"
-      // On desktop we keep full-height snapped sections; on mobile let content flow naturally
-      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "xl:snap-start xl:min-h-[100dvh] xl:pt-[80px]" : "min-h-[100dvh] py-0"} pt-[80px] ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      // On desktop we keep full-height snapped sections; on mobile let content flow naturally but start below header
+      // Changed justify-center to justify-start for mobile to prevent top clipping behind header
+      className={`relative w-full flex flex-col ${snapEnabled ? "xl:justify-center xl:snap-start xl:min-h-[100dvh] xl:pt-[80px]" : "justify-start min-h-[100dvh]"} pt-[120px] pb-4 ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Parallax Background - Enabled on all devices but constrained horizontally */}
@@ -89,9 +90,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 h-full flex flex-col justify-center">
         
           {/* --- MOBILE/TABLET VERTICAL LAYOUT (Natural Flow) --- */}
-          <div className="lg:hidden flex flex-col h-full py-4">
-            {/* Text Content - Takes up top 75% roughly */}
-            <div className="flex-1 flex flex-col justify-center space-y-4 min-h-[60%]">
+          <div className="lg:hidden flex flex-col h-full">
+            {/* Text Content - Takes up top space */}
+            <div className="flex-1 flex flex-col justify-start space-y-4">
                 {tile.eyebrow && (
                   <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron text-slate-900">
                     {tile.eyebrow}
@@ -129,10 +130,11 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 )}
            </div>
 
-           {/* Viewer + Buttons - Compressed into bottom area */}
-           <div className="flex flex-col gap-3 mt-auto pb-4">
-              {/* Viewer Area - Reduced height */}
-              <div className="w-full h-[140px]">
+           {/* Viewer + Buttons - Bottom 25% Area */}
+           {/* Layout: Row with Viewer (75%) and Buttons (25%) */}
+           <div className="h-[25vh] min-h-[160px] w-full flex gap-3 mt-4">
+              {/* Viewer Area - 75% Width */}
+              <div className="w-[75%] h-full">
                 <button 
                   type="button"
                   onClick={() => setViewerOpen(true)}
@@ -144,8 +146,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 </button>
               </div>
 
-              {/* Buttons Area */}
-              <div className="w-full h-[40px]">
+              {/* Buttons Area - 25% Width */}
+              <div className="w-[25%] h-full">
                  {renderCtas(true)}
               </div>
            </div>

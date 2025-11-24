@@ -59,7 +59,7 @@ export default function SiteHeader() {
       {/* Fixed header with dark ribbon so the logo sits on a clean, high-contrast band. */}
       {/* Removed site-header class to avoid conflicts. Added explicit Tailwind styles for background and blur. */}
       {/* Changed to dark charcoal with subtle bottom border and shadow for "pop" */}
-      <header className="fixed top-0 z-[100] w-full border-b border-slate-900/10 bg-white/95 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.05)] transition-all duration-300">
+      <header className="fixed top-0 z-[100] w-full border-b border-slate-900/10 bg-white/95 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.05)] transition-all duration-300 bg-[linear-gradient(to_right,rgba(255,255,255,0.9),rgba(248,250,252,0.9))]">
         <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 landscape:py-1 lg:py-2 lg:pl-8 lg:pr-8">
           {/* LOGO: slightly larger with a subtle halo so it never feels muted. */}
           {/* LOGO: closer to left edge */}
@@ -133,14 +133,14 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
-              className="group inline-flex h-10 w-10 items-center justify-center rounded-full border border-brand-blue/50 bg-brand-blue/20 shadow-[0_0_15px_rgba(79,137,212,0.4)] transition-all hover:border-brand-copper hover:bg-brand-copper/20 hover:shadow-[0_0_15px_rgba(179,112,49,0.4)]"
+              className="group inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-900/20 bg-white/50 shadow-sm transition-all hover:border-brand-copper hover:bg-brand-copper/10"
               aria-label="Toggle navigation menu"
             >
               <span className="sr-only">Toggle menu</span>
               <div className="flex flex-col gap-1.5">
-                <span className="block h-0.5 w-5 rounded bg-white group-hover:bg-brand-copper transition-colors" />
-                <span className="block h-0.5 w-5 rounded bg-white group-hover:bg-brand-copper transition-colors" />
-                <span className="block h-0.5 w-5 rounded bg-white group-hover:bg-brand-copper transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-slate-900 group-hover:bg-brand-copper transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-slate-900 group-hover:bg-brand-copper transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-slate-900 group-hover:bg-brand-copper transition-colors" />
               </div>
             </button>
           </div>
@@ -162,7 +162,7 @@ export default function SiteHeader() {
           
           {/* Menu Panel - Sits on top of backdrop */}
           <div 
-            className="relative z-10 flex flex-col border-b border-white/10 bg-slate360-charcoal/95 p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
+            className="relative z-10 flex flex-col border-b border-slate-900/10 bg-white/95 p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
@@ -179,7 +179,7 @@ export default function SiteHeader() {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-900"
               >
                 <span className="sr-only">Close menu</span>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -199,40 +199,44 @@ export default function SiteHeader() {
                     Login
                   </Link>
                   
+                  <div className="h-px w-full bg-slate-100 my-2" />
+
+                  {NAV_LINKS.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={anchorFor(item.id)}
+                      onClick={setMobileOpen.bind(null, false)}
+                      className="text-lg font-bold text-slate-900 hover:text-brand-blue font-orbitron"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                  
+                  <div className="h-px w-full bg-slate-100 my-2" />
+
                   <Link
                     href="/subscribe"
                     onClick={() => setMobileOpen(false)}
-                    className="text-lg font-bold uppercase tracking-widest text-brand-blue hover:text-brand-copper font-orbitron"
+                    className="text-lg font-bold text-slate-900 hover:text-brand-blue font-orbitron"
                   >
-                    Get Started
+                    Plans & Pricing
                   </Link>
-
-                  {['About', 'Contact'].map((label) => (
-                    <Link
-                      key={label}
-                      href={`/${label.toLowerCase()}`}
-                      onClick={() => setMobileOpen(false)}
-                      className="text-lg font-bold uppercase tracking-widest text-brand-blue hover:text-brand-copper font-orbitron"
-                    >
-                      {label}
-                    </Link>
-                  ))}
-                </nav>              <div className="h-px bg-white/10" />
-
-              {/* Condense links into 2 columns */}
-              <div className="grid grid-cols-2 gap-2">
-                {NAV_LINKS.map((item) => (
                   <Link
-                    key={item.id}
-                    href={anchorFor(item.id)}
-                    onClick={closeMenus}
-                    className="w-full rounded-lg px-2 py-2 text-left text-xs text-white hover:bg-white/10 hover:text-brand-blue transition-colors truncate font-orbitron"
+                    href="/about"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-lg font-bold text-slate-900 hover:text-brand-blue font-orbitron"
                   >
-                    {item.label}
+                    About
                   </Link>
-                ))}
+                  <Link
+                    href="/contact"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-lg font-bold text-slate-900 hover:text-brand-blue font-orbitron"
+                  >
+                    Contact
+                  </Link>
+                </nav>
               </div>
-            </div>
           </div>
         </div>
       )}
