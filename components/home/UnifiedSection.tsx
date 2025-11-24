@@ -39,8 +39,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const viewerSubtitle = tile.viewer?.subtitle ?? "Interactive content arrives shortly.";
 
   // Alternate subtle tile backgrounds for more separation on the home canvas.
-  // Even tiles: transparent over the global blueprint background.
-  // Odd tiles: Light blueprint pattern for contrast.
+  // Even tiles: Concrete grey (medium depth).
+  // Odd tiles: Blueprint blue (deeper contrast).
   const isAlternate = index % 2 === 1;
 
   const textColumnOrder = layoutAlign === "left" ? "lg:order-2" : "lg:order-1";
@@ -54,7 +54,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {tile.cta && (
           <Link
             href={tile.cta.href}
-            className={`inline-flex items-center justify-center rounded-md border border-brand-blue/30 bg-brand-blue/10 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-brand-blue shadow-[0_0_15px_rgba(79,137,212,0.2)] transition hover:bg-brand-blue/20 hover:shadow-[0_0_20px_rgba(79,137,212,0.4)] hover:border-brand-blue font-orbitron ${isMobile ? 'w-full flex-1 py-0 text-[9px] leading-tight px-1 text-center' : ''}`}
+            className={`inline-flex items-center justify-center rounded-md border border-slate-900/20 bg-white/50 px-6 py-3 text-sm font-bold uppercase tracking-widest text-slate-900 shadow-sm transition hover:bg-white hover:shadow-md hover:border-slate-900 font-orbitron ${isMobile ? 'w-full flex-1 py-0 text-[9px] leading-tight px-1 text-center' : ''}`}
           >
             {tile.cta.label}
           </Link>
@@ -62,7 +62,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {tile.secondaryCta && (
           <Link
             href={tile.secondaryCta.href}
-            className={`inline-flex items-center justify-center rounded-md bg-brand-copper px-6 py-3 text-sm font-semibold uppercase tracking-widest text-white shadow-lg shadow-brand-copper/30 transition hover:opacity-90 hover:shadow-brand-copper/50 font-orbitron ${isMobile ? 'w-full flex-1 py-0 text-[9px] leading-tight px-1 text-center' : ''}`}
+            className={`inline-flex items-center justify-center rounded-md bg-slate-900 px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-lg transition hover:opacity-90 hover:shadow-xl font-orbitron ${isMobile ? 'w-full flex-1 py-0 text-[9px] leading-tight px-1 text-center' : ''}`}
           >
             {tile.secondaryCta.label}
           </Link>
@@ -77,13 +77,13 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       id={tile.id}
       data-snap="tile"
       // On desktop we keep full-height snapped sections; on mobile let content flow naturally
-      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "lg:snap-start lg:min-h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"} pt-[80px] ${isAlternate ? "bg-blueprint" : "bg-transparent"}`}
+      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "xl:snap-start xl:min-h-[100dvh] xl:pt-[80px]" : "py-16 sm:py-20"} pt-[80px] ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Parallax Background - DESKTOP ONLY to prevent mobile sliding/overflow issues */}
       <motion.div 
         style={{ y: bgY }}
-        className="hidden lg:block absolute -inset-[20%] -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
+        className="hidden xl:block absolute -inset-[20%] -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 h-full flex flex-col justify-center">
@@ -93,7 +93,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
             {/* Text Content */}
             <div className="flex flex-col justify-start space-y-4">
                 {tile.eyebrow && (
-                  <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron" style={{ color: accent }}>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron text-slate-900/80">
                     {tile.eyebrow}
                   </p>
                 )}
@@ -101,26 +101,26 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                   <h2 className="text-2xl sm:text-3xl font-black text-slate-900 font-orbitron tracking-tight leading-tight drop-shadow-sm">
                     {tile.title}
                   </h2>
-                  <p className="text-sm sm:text-base text-slate-800 font-medium leading-relaxed">
+                  <p className="text-sm sm:text-base text-slate-800 font-bold leading-relaxed">
                     {tile.subtitle}
                   </p>
                 </div>
 
                 {/* Horizontal Scroll for Bullets on Mobile */}
                 {tile.bullets?.length > 0 && (
-                  <div className="-mx-6 px-6 w-[calc(100%+3rem)] overflow-x-auto pb-4 pt-2 snap-x hide-scrollbar">
-                    <ul className="flex gap-4 w-max">
+                  <div className="w-full overflow-x-auto pb-4 pt-2 snap-x hide-scrollbar">
+                    <ul className="flex gap-4 w-max px-1">
                       {tile.bullets.map((bullet) => (
                         <li 
                           key={bullet.label} 
-                          className="snap-center w-[260px] flex flex-col gap-2 p-4 rounded-xl border border-slate-200 bg-white/40 backdrop-blur-sm shadow-sm"
+                          className="snap-center w-[260px] flex flex-col gap-2 p-4 rounded-xl border border-white/40 bg-white/60 backdrop-blur-sm shadow-sm"
                         >
                           <div className="flex items-center gap-2">
-                            <span className="inline-flex h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: accent }} />
+                            <span className="inline-flex h-1.5 w-1.5 rounded-full shrink-0 bg-slate-900" />
                             <p className="font-bold text-slate-900 font-orbitron text-sm">{bullet.label}</p>
                           </div>
                           {bullet.description && (
-                            <p className="text-slate-700 font-medium text-xs leading-snug pl-3.5">{bullet.description}</p>
+                            <p className="text-slate-800 font-semibold text-xs leading-snug pl-3.5">{bullet.description}</p>
                           )}
                         </li>
                       ))}
