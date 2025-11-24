@@ -126,6 +126,15 @@ body {
   }
 }
 
+/* Blueprint Pattern for Light Tiles */
+.bg-blueprint {
+  background-color: #E0F2FE; /* Light Sky Blue */
+  background-image: 
+    linear-gradient(rgba(56, 189, 248, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
 * {
   border-color: rgba(var(--color-border-soft) / 0.35);
 }

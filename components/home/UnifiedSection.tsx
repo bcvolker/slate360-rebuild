@@ -40,7 +40,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
 
   // Alternate subtle tile backgrounds for more separation on the home canvas.
   // Even tiles: transparent over the global blueprint background.
-  // Odd tiles: bluish slab for a stronger, but still on-brand, contrast.
+  // Odd tiles: Light blueprint pattern for contrast.
   const isAlternate = index % 2 === 1;
 
   const textColumnOrder = layoutAlign === "left" ? "lg:order-2" : "lg:order-1";
@@ -77,12 +77,13 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       id={tile.id}
       data-snap="tile"
       // On desktop we keep full-height snapped sections; on mobile let content flow naturally
-      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "lg:snap-start lg:min-h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"} pt-[80px] ${isAlternate ? "bg-[#041322]" : "bg-transparent"}`}
+      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "lg:snap-start lg:min-h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"} pt-[80px] ${isAlternate ? "bg-blueprint" : "bg-transparent"}`}
       style={sectionStyle}
     >
+      {/* Parallax Background - DESKTOP ONLY to prevent mobile sliding/overflow issues */}
       <motion.div 
         style={{ y: bgY }}
-        className="absolute -inset-[20%] -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
+        className="hidden lg:block absolute -inset-[20%] -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 h-full flex flex-col justify-center">
