@@ -10,20 +10,20 @@
   --tile-content-height: calc(100vh - var(--navbar-height));
 
   /* Theme tokens stored as RGB triples for Tailwind opacity support */
-  --color-text-primary: 255 255 255; /* White text for contrast on dark grey */
-  --color-text-muted: 146 146 146; /* #929292 Light Grey */
-  --color-text-soft: 146 146 146;
+  --color-text-primary: 30 30 30; /* Dark text for light background */
+  --color-text-muted: 100 100 100; /* Darker muted text */
+  --color-text-soft: 120 120 120;
 
-  --color-bg-canvas: 54 52 52; /* #363434 Grey */
-  --color-bg-gradient-top: 54 52 52;
-  --color-bg-gradient-mid: 45 43 43;
-  --color-bg-gradient-bottom: 35 33 33;
+  --color-bg-canvas: 248 248 250; /* Light grey-blue canvas */
+  --color-bg-gradient-top: 250 250 252;
+  --color-bg-gradient-mid: 245 247 250;
+  --color-bg-gradient-bottom: 240 242 245;
 
-  --color-surface-primary: 54 52 52; /* #363434 */
-  --color-surface-elevated: 64 62 62;
-  --color-surface-overlay: 54 52 52;
+  --color-surface-primary: 255 255 255; /* White surfaces */
+  --color-surface-elevated: 250 250 252;
+  --color-surface-overlay: 255 255 255;
 
-  --color-border-soft: 146 146 146; /* #929292 */
+  --color-border-soft: 220 220 225; /* Light border */
   --color-border-strong: 79 137 212; /* #4F89D4 Blue */
 
   --color-accent: 79 137 212; /* #4F89D4 Blue */
@@ -109,9 +109,9 @@ body {
   background-color: rgb(var(--color-bg-canvas)); 
   font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
   background: 
-    radial-gradient(circle at 50% 0%, rgba(255,255,255,0.03) 0%, transparent 70%),
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px),
+    radial-gradient(circle at 50% 0%, rgba(79,137,212,0.08) 0%, transparent 70%),
+    linear-gradient(rgba(79,137,212,0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,137,212,0.12) 1px, transparent 1px),
     radial-gradient(
       circle at 20% 0%,
       rgb(var(--color-bg-gradient-top)) 0%,
@@ -145,8 +145,8 @@ body {
 .tile-viewer-surface {
   background: rgb(var(--color-surface-primary));
   border-radius: 1.25rem;
-  border: 1px solid rgba(var(--color-border-strong) / 0.65);
-  box-shadow: 0 0 0 1px rgba(var(--color-border-soft) / 0.22), 0 22px 55px rgba(0,0,0,0.5);
+  border: 2px solid rgba(var(--color-border-strong) / 0.3);
+  box-shadow: 0 0 0 1px rgba(var(--color-border-strong) / 0.1), 0 12px 35px rgba(79,137,212,0.15), 0 4px 12px rgba(0,0,0,0.08);
 }
 
 .tile-text-surface {
@@ -156,12 +156,12 @@ body {
 .slate360-footer {
   background: linear-gradient(
     to bottom,
-    rgba(54, 52, 52, 0.95),
-    rgba(54, 52, 52, 0.75)
+    rgba(255, 255, 255, 0.95),
+    rgba(250, 250, 252, 0.9)
   );
-  border-top: 1px solid rgba(146, 146, 146, 0.2);
+  border-top: 1px solid rgba(79, 137, 212, 0.2);
   backdrop-filter: blur(20px) saturate(180%);
-  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 -12px 40px rgba(79, 137, 212, 0.08);
 }
 
 .slate360-footer a {

@@ -18,15 +18,15 @@ module.exports = {
       colors: {
         "brand-blue": "#4F89D4",
         "brand-copper": "#B37031",
-        "brand-grey": "#363434",
-        "brand-light-grey": "#929292",
+        "brand-grey": "#F8F8FA",
+        "brand-light-grey": "#646464",
         slate360: {
           blue: '#4F89D4',
           copper: '#B37031',
-          grey: '#363434',
-          lightGrey: '#929292',
-          charcoal: '#363434',
-          panel: '#363434',
+          grey: '#F8F8FA',
+          lightGrey: '#646464',
+          charcoal: '#1E1E1E',
+          panel: '#FFFFFF',
         },
         theme: {
           canvas: withOpacity('--color-bg-canvas'),

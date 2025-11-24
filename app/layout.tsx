@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-theme={DEFAULT_THEME} className={`${inter.variable} ${orbitron.variable}`}>
-      <body className="antialiased font-sans bg-brand-grey text-white">
+      <body className="antialiased font-sans bg-brand-grey text-slate-900">
         <SiteHeader />
         <main>{children}</main>
       </body>
