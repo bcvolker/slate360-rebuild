@@ -12,7 +12,7 @@ interface UnifiedSectionProps {
 
 export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const [viewerOpen, setViewerOpen] = useState(false);
-  const accent = tile.theme?.accent ?? "#4FA9FF";
+  const accent = tile.theme?.accent ?? "#4F89D4";
   const layoutAlign = tile.layout?.align ?? (index % 2 === 0 ? "right" : "left");
   const snapEnabled = tile.layout?.snap ?? true;
 
@@ -37,8 +37,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {tile.cta && (
           <Link
             href={tile.cta.href}
-            className={`inline-flex items-center justify-center rounded-md bg-[var(--section-accent)] px-6 py-3 text-sm font-semibold uppercase tracking-widest text-white shadow-lg shadow-[var(--section-accent)/40] transition hover:opacity-90 ${isMobile ? 'w-full flex-1 py-0 text-[9px] leading-tight px-1 text-center' : ''}`}
-            style={{ backgroundColor: accent }}
+            className={`inline-flex items-center justify-center rounded-md border border-brand-blue/30 bg-brand-blue/10 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-brand-blue shadow-[0_0_15px_rgba(79,137,212,0.2)] transition hover:bg-brand-blue/20 hover:shadow-[0_0_20px_rgba(79,137,212,0.4)] hover:border-brand-blue font-orbitron ${isMobile ? 'w-full flex-1 py-0 text-[9px] leading-tight px-1 text-center' : ''}`}
           >
             {tile.cta.label}
           </Link>
@@ -46,7 +45,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {tile.secondaryCta && (
           <Link
             href={tile.secondaryCta.href}
-            className={`inline-flex items-center justify-center rounded-md border border-slate-900/10 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-slate-700 transition hover:border-slate-900/40 ${isMobile ? 'w-full flex-1 py-0 text-[9px] leading-tight px-1 text-center' : ''}`}
+            className={`inline-flex items-center justify-center rounded-md bg-brand-copper px-6 py-3 text-sm font-semibold uppercase tracking-widest text-white shadow-lg shadow-brand-copper/30 transition hover:opacity-90 hover:shadow-brand-copper/50 font-orbitron ${isMobile ? 'w-full flex-1 py-0 text-[9px] leading-tight px-1 text-center' : ''}`}
           >
             {tile.secondaryCta.label}
           </Link>
@@ -72,28 +71,28 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
            <div className="flex-1 overflow-y-auto no-scrollbar pt-28 pb-4 flex flex-col justify-start">
               <div className="space-y-4">
                 {tile.eyebrow && (
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-slate-500" style={{ color: accent }}>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-brand-light-grey font-orbitron" style={{ color: accent }}>
                     {tile.eyebrow}
                   </p>
                 )}
                 <div className="space-y-2">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 font-orbitron tracking-tight leading-tight">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white font-orbitron tracking-tight leading-tight">
                     {tile.title}
                   </h2>
-                  <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+                  <p className="text-sm sm:text-base text-brand-light-grey leading-relaxed">
                     {tile.subtitle}
                   </p>
                 </div>
 
                 {tile.bullets?.length > 0 && (
-                  <ul className="space-y-2 text-xs sm:text-sm text-slate-600 pt-2">
+                  <ul className="space-y-2 text-xs sm:text-sm text-brand-light-grey pt-2">
                     {tile.bullets.map((bullet) => (
                       <li key={bullet.label} className="flex gap-2">
                         <span className="mt-1 inline-flex h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: accent }} />
                         <div>
-                          <p className="font-semibold text-slate-900">{bullet.label}</p>
+                          <p className="font-semibold text-white font-orbitron">{bullet.label}</p>
                           {bullet.description && (
-                            <p className="text-slate-500 text-[10px] sm:text-xs leading-snug mt-0.5">{bullet.description}</p>
+                            <p className="text-brand-light-grey text-[10px] sm:text-xs leading-snug mt-0.5">{bullet.description}</p>
                           )}
                         </div>
                       </li>
@@ -110,11 +109,11 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 <button 
                   type="button"
                   onClick={() => setViewerOpen(true)}
-                  className="w-full h-full bg-slate-900 rounded-xl flex flex-col items-center justify-center border border-slate-800 shadow-sm relative overflow-hidden group transition-transform active:scale-[0.98]"
+                  className="w-full h-full bg-brand-grey rounded-xl flex flex-col items-center justify-center border border-brand-light-grey/20 shadow-sm relative overflow-hidden group transition-transform active:scale-[0.98]"
                 >
                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/0 pointer-events-none" />
                    <span className="text-3xl mb-1" style={{ color: accent }}>▶</span>
-                   <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">View</span>
+                   <span className="text-[10px] uppercase tracking-widest text-brand-light-grey font-semibold font-orbitron">View</span>
                 </button>
               </div>
 
@@ -129,28 +128,28 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         <div className="hidden lg:grid items-center gap-12 lg:gap-24 lg:grid-cols-2 h-full">
           <div className={`order-1 ${textColumnOrder} space-y-8`}>
             {tile.eyebrow && (
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-500" style={{ color: accent }}>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-brand-light-grey font-orbitron" style={{ color: accent }}>
                 {tile.eyebrow}
               </p>
             )}
             <div className="space-y-4">
-              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 font-orbitron tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white font-orbitron tracking-tight">
                 {tile.title}
               </h2>
-              <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
+              <p className="text-base sm:text-lg text-brand-light-grey leading-relaxed">
                 {tile.subtitle}
               </p>
             </div>
 
             {tile.bullets?.length > 0 && (
-              <ul className="space-y-3 text-sm sm:text-base text-slate-600">
+              <ul className="space-y-3 text-sm sm:text-base text-brand-light-grey">
                 {tile.bullets.map((bullet) => (
                   <li key={bullet.label} className="flex gap-3">
                     <span className="mt-1 inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: accent }} />
                     <div>
-                      <p className="font-semibold text-slate-900">{bullet.label}</p>
+                      <p className="font-semibold text-white font-orbitron">{bullet.label}</p>
                       {bullet.description && (
-                        <p className="text-slate-600 text-sm leading-snug">{bullet.description}</p>
+                        <p className="text-brand-light-grey text-sm leading-snug">{bullet.description}</p>
                       )}
                     </div>
                   </li>
@@ -162,16 +161,16 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
           </div>
 
           <div className={`order-2 ${viewerColumnOrder} flex justify-center w-full`}>
-            <div className="tile-viewer-surface w-full max-w-[640px] aspect-[16/10] flex flex-col items-center justify-center p-6 landscape:p-4 lg:p-8 transition-all duration-300 hover:bg-slate-900/80">
+            <div className="tile-viewer-surface w-full max-w-[640px] aspect-[16/10] flex flex-col items-center justify-center p-6 landscape:p-4 lg:p-8 transition-all duration-300 hover:bg-brand-grey/80 border border-brand-light-grey/20 shadow-2xl shadow-black/50">
               <span className="text-4xl mb-2 landscape:text-2xl landscape:mb-1" style={{ color: accent }}>▶</span>
-              <h3 className="text-xl font-semibold text-white text-center landscape:text-lg">{viewerTitle}</h3>
-              <p className="text-xs text-slate-400 text-center mt-1 leading-tight landscape:hidden">
+              <h3 className="text-xl font-semibold text-white text-center landscape:text-lg font-orbitron">{viewerTitle}</h3>
+              <p className="text-xs text-brand-light-grey text-center mt-1 leading-tight landscape:hidden">
                 Tap to expand
               </p>
               <button
                 type="button"
                 onClick={() => setViewerOpen(true)}
-                className="mt-2 rounded-xl border border-white/20 px-4 py-3 text-xs font-semibold uppercase tracking-[0.4em] text-white transition hover:border-white/60 lg:hidden"
+                className="mt-2 rounded-xl border border-white/20 px-4 py-3 text-xs font-semibold uppercase tracking-[0.4em] text-white transition hover:border-white/60 lg:hidden font-orbitron"
               >
                 Expand Viewer
               </button>
@@ -182,21 +181,21 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
 
       {viewerOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center px-4">
-          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900 p-6 text-white shadow-2xl">
+          <div className="w-full max-w-md rounded-3xl border border-brand-light-grey/20 bg-brand-grey p-6 text-white shadow-2xl">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-base font-semibold" style={{ color: accent }}>
+              <h4 className="text-base font-semibold font-orbitron" style={{ color: accent }}>
                 {viewerTitle}
               </h4>
               <button
                 type="button"
                 onClick={() => setViewerOpen(false)}
-                className="rounded-full border border-white/20 px-3 py-1 text-xs uppercase tracking-[0.3em]"
+                className="rounded-full border border-white/20 px-3 py-1 text-xs uppercase tracking-[0.3em] font-orbitron"
               >
                 Close
               </button>
             </div>
-            <p className="text-sm text-slate-200 mb-4">{viewerSubtitle}</p>
-            <p className="text-xs text-slate-400">
+            <p className="text-sm text-brand-light-grey mb-4">{viewerSubtitle}</p>
+            <p className="text-xs text-brand-light-grey/60">
               This placeholder keeps the interaction consistent with the prior design while we migrate to fully embeddable viewers.
             </p>
           </div>

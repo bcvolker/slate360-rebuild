@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
+import { Inter, Orbitron } from "next/font/google";
 import "./globals.css";
 import SiteHeader from "@/components/ui/SiteHeader";
 import { DEFAULT_THEME } from "@/lib/theme";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const orbitron = Orbitron({ subsets: ["latin"], variable: "--font-orbitron" });
 
 export const metadata: Metadata = {
   title: "Slate360 – From Design to Reality",
@@ -10,8 +14,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme={DEFAULT_THEME}>
-      <body className="antialiased">
+    <html lang="en" data-theme={DEFAULT_THEME} className={`${inter.variable} ${orbitron.variable}`}>
+      <body className="antialiased font-sans bg-brand-grey text-white">
         <SiteHeader />
         <main>{children}</main>
       </body>

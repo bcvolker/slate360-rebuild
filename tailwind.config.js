@@ -16,16 +16,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "brand-blue": "#4B9CD3",
-        "brand-copper": "#B87333",
-        "brand-gray": "#475569",
+        "brand-blue": "#4F89D4",
+        "brand-copper": "#B37031",
+        "brand-grey": "#363434",
+        "brand-light-grey": "#929292",
         slate360: {
-          blue: '#4B9CD3',
-          copper: '#B46E3A',
-          copperDark: '#8D522C',
-          charcoal: '#0B1014',
-          charcoalSoft: '#11161C',
-          panel: '#141A21',
+          blue: '#4F89D4',
+          copper: '#B37031',
+          grey: '#363434',
+          lightGrey: '#929292',
+          charcoal: '#363434',
+          panel: '#363434',
         },
         theme: {
           canvas: withOpacity('--color-bg-canvas'),
@@ -46,12 +47,12 @@ module.exports = {
         theme: withOpacity('--color-focus-ring'),
       },
       fontFamily: {
-        orbitron: ['Orbitron', 'system-ui', 'sans-serif'],
-        inter: ['Inter', 'system-ui', 'sans-serif'],
+        orbitron: ['var(--font-orbitron)', 'system-ui', 'sans-serif'],
+        inter: ['var(--font-inter)', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        copperGlow: '0 0 18px rgba(180, 110, 58, 0.32)',
-        blueGlow: '0 0 18px rgba(75, 156, 211, 0.32)',
+        copperGlow: '0 0 18px rgba(179, 112, 49, 0.32)',
+        blueGlow: '0 0 18px rgba(79, 137, 212, 0.32)',
       },
       borderRadius: {
         '2xl': '1.5rem',

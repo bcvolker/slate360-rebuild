@@ -58,7 +58,7 @@ export default function SiteHeader() {
     <>
       {/* Removed site-header class to avoid conflicts. Added explicit Tailwind styles for background and blur. */}
       {/* Changed to charcoal grey (zinc-900) with subtle bottom border and shadow for "pop" */}
-      <header className="fixed top-0 z-[100] w-full border-b border-white/10 bg-zinc-900/95 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.5)] transition-all duration-300">
+      <header className="fixed top-0 z-[100] w-full border-b border-brand-light-grey/20 bg-brand-grey/95 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.5)] transition-all duration-300">
         <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 landscape:py-1 lg:py-2 lg:pl-8 lg:pr-8">
           {/* LOGO: closer to left edge */}
           <Link
@@ -79,25 +79,25 @@ export default function SiteHeader() {
           </Link>
 
           {/* DESKTOP NAV: pushed all the way to the right */}
-          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-slate-900 lg:flex">
+          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-white lg:flex">
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4FA9FF] transition-all hover:text-[#A97142] hover:border-[#A97142] hover:bg-[#A97142]/10 hover:shadow-[0_0_15px_rgba(169,113,66,0.4)] landscape:px-4 landscape:py-1 lg:px-6 lg:py-2"
+                className="inline-flex items-center gap-1 rounded-full border border-brand-blue/50 bg-brand-blue/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-brand-blue transition-all hover:text-brand-copper hover:border-brand-copper hover:bg-brand-copper/10 hover:shadow-[0_0_15px_rgba(179,112,49,0.4)] landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron"
               >
                 <span>Menu</span>
                 <span className="text-xs">▾</span>
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-theme-overlay/95 border border-theme-accentSecondary/30 shadow-[0_22px_45px_rgba(15,23,42,0.9)] backdrop-blur-xl py-2">
+                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-brand-grey/95 border border-brand-light-grey/30 shadow-[0_22px_45px_rgba(0,0,0,0.9)] backdrop-blur-xl py-2">
                   <div className="max-h-[60vh] overflow-y-auto space-y-0.5 px-2">
                     {NAV_LINKS.map((item) => (
                       <Link
                         key={item.id}
                         href={anchorFor(item.id)}
                         onClick={closeMenus}
-                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[#A97142]/15 hover:text-[#A97142] transition-colors duration-150"
+                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-white hover:bg-brand-copper/15 hover:text-brand-copper transition-colors duration-150 font-orbitron"
                       >
                         {item.label}
                       </Link>
@@ -113,13 +113,13 @@ export default function SiteHeader() {
                 <Link 
                   key={label} 
                   href={`/${label.toLowerCase()}`} 
-                  className="group relative text-xs font-bold uppercase tracking-widest text-slate-200 transition-all duration-300 hover:text-[#4FA9FF]"
+                  className="group relative text-xs font-bold uppercase tracking-widest text-white transition-all duration-300 hover:text-brand-blue font-orbitron"
                 >
                   {label}
-                  <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-[#4FA9FF] via-[#8CC5FF] to-[#4FA9FF] transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                  <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-brand-blue via-[#8CC5FF] to-brand-blue transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
-              <Link href="/login" className="ml-4 rounded-full border border-slate-200/30 bg-white/5 px-6 py-2 text-xs font-bold uppercase tracking-widest text-slate-200 transition-all hover:text-[#4FA9FF] hover:border-[#4FA9FF] hover:bg-[#4FA9FF]/10">
+              <Link href="/login" className="ml-4 rounded-full border border-white/30 bg-white/5 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white transition-all hover:text-brand-blue hover:border-brand-blue hover:bg-brand-blue/10 font-orbitron">
                 Login
               </Link>
             </nav>
@@ -130,14 +130,14 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
-              className="group inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/20 shadow-[0_0_15px_rgba(79,169,255,0.4)] transition-all hover:border-[#A97142] hover:bg-[#A97142]/20 hover:shadow-[0_0_15px_rgba(169,113,66,0.4)]"
+              className="group inline-flex h-10 w-10 items-center justify-center rounded-full border border-brand-blue/50 bg-brand-blue/20 shadow-[0_0_15px_rgba(79,137,212,0.4)] transition-all hover:border-brand-copper hover:bg-brand-copper/20 hover:shadow-[0_0_15px_rgba(179,112,49,0.4)]"
               aria-label="Toggle navigation menu"
             >
               <span className="sr-only">Toggle menu</span>
               <div className="flex flex-col gap-1.5">
-                <span className="block h-0.5 w-5 rounded bg-white group-hover:bg-[#A97142] transition-colors" />
-                <span className="block h-0.5 w-5 rounded bg-white group-hover:bg-[#A97142] transition-colors" />
-                <span className="block h-0.5 w-5 rounded bg-white group-hover:bg-[#A97142] transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-white group-hover:bg-brand-copper transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-white group-hover:bg-brand-copper transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-white group-hover:bg-brand-copper transition-colors" />
               </div>
             </button>
           </div>
@@ -159,7 +159,7 @@ export default function SiteHeader() {
           
           {/* Menu Panel - Sits on top of backdrop */}
           <div 
-            className="relative z-10 flex flex-col border-b border-white/10 bg-zinc-900/95 p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
+            className="relative z-10 flex flex-col border-b border-brand-light-grey/20 bg-brand-grey/95 p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
@@ -176,7 +176,7 @@ export default function SiteHeader() {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white"
+                className="rounded-full p-2 text-brand-light-grey hover:bg-white/10 hover:text-white"
               >
                 <span className="sr-only">Close menu</span>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -191,7 +191,7 @@ export default function SiteHeader() {
                   <Link 
                     href="/login" 
                     onClick={() => setMobileOpen(false)}
-                    className="inline-block w-fit rounded-full border border-[#4FA9FF]/50 bg-[#4FA9FF]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4FA9FF] hover:bg-[#A97142]/10 hover:text-[#A97142] hover:border-[#A97142]"
+                    className="inline-block w-fit rounded-full border border-brand-blue/50 bg-brand-blue/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-brand-blue hover:bg-brand-copper/10 hover:text-brand-copper hover:border-brand-copper font-orbitron"
                   >
                     Login
                   </Link>
@@ -199,7 +199,7 @@ export default function SiteHeader() {
                   <Link
                     href="/subscribe"
                     onClick={() => setMobileOpen(false)}
-                    className="text-lg font-bold uppercase tracking-widest text-[#4FA9FF] hover:text-[#A97142]"
+                    className="text-lg font-bold uppercase tracking-widest text-brand-blue hover:text-brand-copper font-orbitron"
                   >
                     Get Started
                   </Link>
@@ -209,12 +209,12 @@ export default function SiteHeader() {
                       key={label}
                       href={`/${label.toLowerCase()}`}
                       onClick={() => setMobileOpen(false)}
-                      className="text-lg font-bold uppercase tracking-widest text-[#4FA9FF] hover:text-[#A97142]"
+                      className="text-lg font-bold uppercase tracking-widest text-brand-blue hover:text-brand-copper font-orbitron"
                     >
                       {label}
                     </Link>
                   ))}
-                </nav>              <div className="h-px bg-slate-700/60" />
+                </nav>              <div className="h-px bg-brand-light-grey/20" />
 
               {/* Condense links into 2 columns */}
               <div className="grid grid-cols-2 gap-2">
@@ -223,7 +223,7 @@ export default function SiteHeader() {
                     key={item.id}
                     href={anchorFor(item.id)}
                     onClick={closeMenus}
-                    className="w-full rounded-lg px-2 py-2 text-left text-xs text-slate-200 hover:bg-theme-overlay/80 hover:text-white transition-colors truncate"
+                    className="w-full rounded-lg px-2 py-2 text-left text-xs text-white hover:bg-brand-grey/80 hover:text-brand-blue transition-colors truncate font-orbitron"
                   >
                     {item.label}
                   </Link>
@@ -243,8 +243,8 @@ export default function SiteHeader() {
             onClick={() => setMenuOpen(false)}
             className={`text-[9px] lg:text-[10px] font-orbitron tracking-wider transition-colors duration-300 ${
               activeId === item.id
-                ? "text-slate-900 font-bold"
-                : "text-slate-500 font-medium hover:text-slate-900"
+                ? "text-brand-blue font-bold"
+                : "text-brand-light-grey font-medium hover:text-white"
             }`}
           >
             {item.label}

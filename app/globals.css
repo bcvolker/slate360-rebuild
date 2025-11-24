@@ -10,36 +10,36 @@
   --tile-content-height: calc(100vh - var(--navbar-height));
 
   /* Theme tokens stored as RGB triples for Tailwind opacity support */
-  --color-text-primary: 15 23 42;
-  --color-text-muted: 51 65 85;
-  --color-text-soft: 100 116 139;
+  --color-text-primary: 255 255 255; /* White text for contrast on dark grey */
+  --color-text-muted: 146 146 146; /* #929292 Light Grey */
+  --color-text-soft: 146 146 146;
 
-  --color-bg-canvas: 241 245 249;
-  --color-bg-gradient-top: 248 250 252;
-  --color-bg-gradient-mid: 226 232 240;
-  --color-bg-gradient-bottom: 203 213 225;
+  --color-bg-canvas: 54 52 52; /* #363434 Grey */
+  --color-bg-gradient-top: 54 52 52;
+  --color-bg-gradient-mid: 45 43 43;
+  --color-bg-gradient-bottom: 35 33 33;
 
-  --color-surface-primary: 2 6 23;
-  --color-surface-elevated: 10 16 28;
-  --color-surface-overlay: 13 19 32;
+  --color-surface-primary: 54 52 52; /* #363434 */
+  --color-surface-elevated: 64 62 62;
+  --color-surface-overlay: 54 52 52;
 
-  --color-border-soft: 148 163 184;
-  --color-border-strong: 74 94 122;
+  --color-border-soft: 146 146 146; /* #929292 */
+  --color-border-strong: 79 137 212; /* #4F89D4 Blue */
 
-  --color-accent: 79 169 255;
-  --color-accent-strong: 44 141 255;
-  --color-accent-secondary: 184 115 51;
+  --color-accent: 79 137 212; /* #4F89D4 Blue */
+  --color-accent-strong: 60 110 180;
+  --color-accent-secondary: 179 112 49; /* #B37031 Copper */
 
-  --color-focus-ring: 79 169 255;
+  --color-focus-ring: 79 137 212;
 
-  --header-gradient-start: 15 23 42;
-  --header-gradient-end: 30 64 175;
+  --header-gradient-start: 54 52 52;
+  --header-gradient-end: 54 52 52;
 
-  --footer-gradient-top: 15 23 42;
-  --footer-gradient-bottom: 9 14 24;
+  --footer-gradient-top: 54 52 52;
+  --footer-gradient-bottom: 45 43 43;
 
-  --shadow-strong: 15 23 42;
-  --shadow-soft: 12 18 30;
+  --shadow-strong: 0 0 0;
+  --shadow-soft: 0 0 0;
 
   /* shadcn/ui palette bridge */
   --background: 215 33% 12%;
@@ -106,12 +106,12 @@ body {
   overflow-x: hidden;
   color: rgb(var(--color-text-primary));
   /* Match background to tile background to hide grey bars on overscroll/refresh */
-  background-color: rgb(241, 245, 249); 
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  background-color: rgb(var(--color-bg-canvas)); 
+  font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
   background: 
-    radial-gradient(circle at 50% 0%, rgba(0,0,0,0.03) 0%, transparent 70%),
-    linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px),
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,0.03) 0%, transparent 70%),
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px),
     radial-gradient(
       circle at 20% 0%,
       rgb(var(--color-bg-gradient-top)) 0%,
@@ -134,10 +134,10 @@ body {
 /* .site-header {
   background: linear-gradient(
     to bottom,
-    rgba(30, 41, 59, 0.95),
-    rgba(30, 41, 59, 0.75)
+    rgba(54, 52, 52, 0.95),
+    rgba(54, 52, 52, 0.75)
   );
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(146, 146, 146, 0.2);
   backdrop-filter: blur(20px) saturate(180%);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 } */
@@ -146,7 +146,7 @@ body {
   background: rgb(var(--color-surface-primary));
   border-radius: 1.25rem;
   border: 1px solid rgba(var(--color-border-strong) / 0.65);
-  box-shadow: 0 0 0 1px rgba(var(--color-border-soft) / 0.22), 0 22px 55px rgba(var(--shadow-strong) / 0.85);
+  box-shadow: 0 0 0 1px rgba(var(--color-border-soft) / 0.22), 0 22px 55px rgba(0,0,0,0.5);
 }
 
 .tile-text-surface {
@@ -156,10 +156,10 @@ body {
 .slate360-footer {
   background: linear-gradient(
     to bottom,
-    rgba(30, 41, 59, 0.95),
-    rgba(30, 41, 59, 0.75)
+    rgba(54, 52, 52, 0.95),
+    rgba(54, 52, 52, 0.75)
   );
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(146, 146, 146, 0.2);
   backdrop-filter: blur(20px) saturate(180%);
   box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.2);
 }
@@ -168,7 +168,7 @@ body {
   position: relative;
   display: inline-block;
   padding-inline: 0.75rem;
-  color: #4FA9FF; /* Slate360 Blue */
+  color: #4F89D4; /* Slate360 Blue */
   text-decoration: none;
   transition: color 300ms ease-out, text-shadow 300ms ease-out;
 }
@@ -182,9 +182,9 @@ body {
   height: 2px;
   background: linear-gradient(
     to right,
-    #A97142,
+    #B37031,
     #D49A6A,
-    #A97142
+    #B37031
   );
   border-radius: 9999px;
   transform: scaleX(0);
@@ -193,8 +193,8 @@ body {
 }
 
 .slate360-footer a:hover {
-  color: #A97142; /* Earthy Copper */
-  text-shadow: 0 0 12px rgba(169, 113, 66, 0.5); /* Glow */
+  color: #B37031; /* Earthy Copper */
+  text-shadow: 0 0 12px rgba(179, 112, 49, 0.5); /* Glow */
 }
 
 .slate360-footer a:hover::after {

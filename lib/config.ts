@@ -14,14 +14,14 @@ export const siteSections: Tile[] = [
       { label: "Predictive intelligence", description: "Forecast risk, cost, and performance with AI." },
       { label: "Connected ecosystem", description: "Plug into the data sources and tools you already trust." },
     ],
-    cta: { label: "Request a demo", href: "#contact" },
+    cta: { label: "Learn more", href: "#contact" },
     secondaryCta: { label: "Get started", href: "/subscribe" },
     viewer: {
       title: "Slate360 Viewer",
       subtitle: "Interactive tools and digital twins are on deck.",
     },
     layout: { align: "right", snap: true },
-    theme: { accent: "#4FA9FF" },
+    theme: { accent: "#4F89D4" },
   },
   {
     id: "design-studio",
@@ -36,13 +36,13 @@ export const siteSections: Tile[] = [
       { label: "Version control", description: "Compare revisions instantly and roll back with confidence." },
     ],
     cta: { label: "Explore Design Studio", href: "/features/design" },
-    secondaryCta: { label: "View roadmap", href: "/subscribe" },
+    secondaryCta: { label: "Get started", href: "/subscribe" },
     viewer: {
       title: "Realtime BIM Preview",
       subtitle: "Drop in models, iterate faster, and spotlight issues in seconds.",
     },
     layout: { align: "left", snap: true },
-    theme: { accent: "#A97142" },
+    theme: { accent: "#B37031" },
   },
   {
     id: "project-hub",
@@ -57,13 +57,13 @@ export const siteSections: Tile[] = [
       { label: "Audit friendly", description: "Time-stamped activity lets you defend every decision." },
     ],
     cta: { label: "See Project Hub", href: "/features/project-hub" },
-    secondaryCta: { label: "Talk to product", href: "#contact" },
+    secondaryCta: { label: "Get started", href: "#contact" },
     viewer: {
       title: "Operations Console",
       subtitle: "Blend gantt charts, live site feeds, and approvals inside one screen.",
     },
     layout: { align: "right", snap: true },
-    theme: { accent: "#8CC5FF" },
+    theme: { accent: "#4F89D4" },
   },
   {
     id: "content-studio",
@@ -78,13 +78,13 @@ export const siteSections: Tile[] = [
       { label: "Instant delivery", description: "Share secure links or publish straight to social." },
     ],
     cta: { label: "Learn about Content Studio", href: "/features/content-studio" },
-    secondaryCta: { label: "Join beta", href: "/subscribe" },
+    secondaryCta: { label: "Get started", href: "/subscribe" },
     viewer: {
       title: "Media Workspace",
       subtitle: "Stack timelines, voiceover, and approvals in one view.",
     },
     layout: { align: "left", snap: true },
-    theme: { accent: "#FFB677" },
+    theme: { accent: "#B37031" },
   },
   {
     id: "tour-builder",
@@ -99,13 +99,13 @@ export const siteSections: Tile[] = [
       { label: "Shareable links", description: "Secure viewer URLs with granular permissions." },
     ],
     cta: { label: "Discover Tour Builder", href: "/features/tour-builder" },
-    secondaryCta: { label: "Request content sample", href: "#contact" },
+    secondaryCta: { label: "Get started", href: "#contact" },
     viewer: {
       title: "360° Preview",
       subtitle: "Tap anywhere to jump between scans or compare progress over time.",
     },
     layout: { align: "right", snap: true },
-    theme: { accent: "#4FA9FF" },
+    theme: { accent: "#4F89D4" },
   },
   {
     id: "geospatial",
@@ -120,13 +120,13 @@ export const siteSections: Tile[] = [
       { label: "Compliance ready", description: "Traceable datasets make regulator conversations simple." },
     ],
     cta: { label: "See Geospatial Tools", href: "/features/geospatial" },
-    secondaryCta: { label: "Book a field test", href: "#contact" },
+    secondaryCta: { label: "Get started", href: "#contact" },
     viewer: {
       title: "Geospatial Console",
       subtitle: "Overlay flight paths, GNSS checkpoints, and volumetric analytics.",
     },
     layout: { align: "left", snap: true },
-    theme: { accent: "#22D3EE" },
+    theme: { accent: "#B37031" },
   },
   {
     id: "virtual-studio",
@@ -141,13 +141,13 @@ export const siteSections: Tile[] = [
       { label: "Story mode", description: "String scenes together for narrative-ready presentations." },
     ],
     cta: { label: "Experience Virtual Studio", href: "/features/virtual-studio" },
-    secondaryCta: { label: "View sample deck", href: "/subscribe" },
+    secondaryCta: { label: "Get started", href: "/subscribe" },
     viewer: {
       title: "XR Stage",
       subtitle: "Preview immersive scenes, handoff to Quest, Vision Pro, or WebXR.",
     },
     layout: { align: "right", snap: true },
-    theme: { accent: "#C084FC" },
+    theme: { accent: "#4F89D4" },
   },
   {
     id: "analytics",
@@ -162,13 +162,13 @@ export const siteSections: Tile[] = [
       { label: "Automated narratives", description: "Send weekly recaps written by copilots who know the work." },
     ],
     cta: { label: "Explore Analytics", href: "/features/analytics" },
-    secondaryCta: { label: "Download sample report", href: "#contact" },
+    secondaryCta: { label: "Get started", href: "#contact" },
     viewer: {
       title: "Insight Board",
       subtitle: "Blend charts, geospatial overlays, and model callouts in seconds.",
     },
     layout: { align: "left", snap: true },
-    theme: { accent: "#FACC15" },
+    theme: { accent: "#B37031" },
   },
 ];
 
