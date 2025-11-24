@@ -153,8 +153,13 @@ body {
 @media (min-width: 1280px) {
   html {
     scroll-snap-type: y mandatory;
-    scroll-padding-top: 80px; /* Restored to fix alignment */
+    /* Removed scroll-padding-top; handled by scroll-margin-top on sections */
   }
+}
+
+/* Fix for blank bar under footer on mobile */
+body {
+  background-color: #0f172a; /* Slate-900 to match footer */
 }
 
 /* Fix for blank bar under footer on mobile */

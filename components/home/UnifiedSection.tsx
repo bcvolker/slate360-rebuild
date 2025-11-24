@@ -80,7 +80,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       // Changed justify-center to justify-start for mobile to prevent top clipping behind header
       // Added min-h-[100dvh] to base classes to ensure full height on mobile/tablet even when snap is enabled for desktop
       // Mobile: justify-end to push content to bottom. Desktop: justify-center.
-      className={`relative w-full flex flex-col min-h-[100dvh] justify-end xl:justify-center ${snapEnabled ? "xl:snap-start" : ""} pb-8 ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      // Added scroll-mt-[80px] for desktop snap alignment
+      className={`relative w-full flex flex-col min-h-[100dvh] justify-end xl:justify-center ${snapEnabled ? "xl:snap-start scroll-mt-[80px]" : ""} pb-8 ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Parallax Background - Enabled on all devices but constrained horizontally */}
@@ -92,7 +93,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex-1 flex flex-col justify-center">
         
           {/* --- MOBILE/TABLET VERTICAL LAYOUT (Natural Flow) --- */}
-          <div className="lg:hidden flex flex-col flex-1 pt-[100px]">
+          <div className="lg:hidden flex flex-col flex-1 pt-[140px]">
             {/* Text Content - Takes up top space (Spacer) */}
             <div className="flex-1 flex flex-col justify-start space-y-4">
                 {tile.eyebrow && (
@@ -108,29 +109,29 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                     {tile.subtitle}
                   </p>
                 </div>
-
-                {/* Horizontal Scroll for Bullets on Mobile */}
-                {tile.bullets?.length > 0 && (
-                  <div className="w-full overflow-x-auto pb-4 pt-2 snap-x hide-scrollbar">
-                    <ul className="flex gap-4 w-max px-1">
-                      {tile.bullets.map((bullet) => (
-                        <li 
-                          key={bullet.label} 
-                          className="snap-center w-[260px] flex flex-col gap-2 p-4 rounded-xl border border-slate-900/10 bg-white/80 backdrop-blur-sm shadow-sm"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="inline-flex h-1.5 w-1.5 rounded-full shrink-0 bg-slate-900" />
-                            <p className="font-bold text-slate-900 font-orbitron text-sm">{bullet.label}</p>
-                          </div>
-                          {bullet.description && (
-                            <p className="text-slate-800 font-semibold text-xs leading-snug pl-3.5">{bullet.description}</p>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
            </div>
+
+           {/* Horizontal Scroll for Bullets on Mobile - Moved to bottom just above viewer */}
+           {tile.bullets?.length > 0 && (
+              <div className="w-full overflow-x-auto pb-4 pt-2 snap-x hide-scrollbar mt-auto">
+                <ul className="flex gap-4 w-max px-1">
+                  {tile.bullets.map((bullet) => (
+                    <li 
+                      key={bullet.label} 
+                      className="snap-center w-[260px] flex flex-col gap-2 p-4 rounded-xl border border-slate-900/10 bg-white/80 backdrop-blur-sm shadow-sm"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex h-1.5 w-1.5 rounded-full shrink-0 bg-slate-900" />
+                        <p className="font-bold text-slate-900 font-orbitron text-sm">{bullet.label}</p>
+                      </div>
+                      {bullet.description && (
+                        <p className="text-slate-800 font-semibold text-xs leading-snug pl-3.5">{bullet.description}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
            {/* Viewer + Buttons - Bottom 25% Area */}
            {/* Layout: Row with Viewer (75%) and Buttons (25%) */}
