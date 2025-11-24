@@ -76,9 +76,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       ref={sectionRef}
       id={tile.id}
       data-snap="tile"
-      // Desktop: full-height snapped sections with parallax background.
-      // Mobile: no snap on the section itself; just natural flow + horizontal bullet scroll.
-      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "lg:snap-start lg:min-h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"} pt-[80px]`}
+      // On desktop we keep full-height snapped sections; on mobile let content flow naturally
+      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "lg:snap-start lg:min-h-[100dvh] lg:pt-[80px]" : "py-16 sm:py-20"} pt-[80px] ${isAlternate ? "bg-[#041322]" : "bg-transparent"}`}
       style={sectionStyle}
     >
       <motion.div 
@@ -90,8 +89,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         
           {/* --- MOBILE/TABLET VERTICAL LAYOUT (Natural Flow) --- */}
           <div className="lg:hidden flex flex-col gap-8 py-8">
-            {/* Text Content + Blueprint Panel */}
-            <div className={`flex flex-col justify-start space-y-4 rounded-2xl p-5 shadow-md ${isAlternate ? 'blueprint-panel' : 'bg-white/95'}`}>
+            {/* Text Content */}
+            <div className="flex flex-col justify-start space-y-4">
                 {tile.eyebrow && (
                   <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron" style={{ color: accent }}>
                     {tile.eyebrow}
