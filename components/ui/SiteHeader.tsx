@@ -165,9 +165,9 @@ export default function SiteHeader() {
             className="relative z-10 flex flex-col border-b border-slate-900/10 bg-white/95 p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center justify-between mb-6">
               {/* Added Logo to Menu Header */}
-              <div className="relative h-12 w-40 -ml-2">
+              <div className="relative h-10 w-32 -ml-2">
                 <Image
                   src="/assets/slate360logoforwebsite.png"
                   alt="Slate360 logo"
@@ -179,7 +179,7 @@ export default function SiteHeader() {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-900"
+                className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white"
               >
                 <span className="sr-only">Close menu</span>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -190,7 +190,7 @@ export default function SiteHeader() {
 
               <div className="space-y-6">
                 <nav className="flex flex-col gap-4">
-                  {/* Reordered Mobile Links: Login, Get Started, About, Contact */}
+                  {/* Reordered Mobile Links: Login, Plans, About, Contact */}
                   <Link 
                     href="/login" 
                     onClick={() => setMobileOpen(false)}
@@ -198,19 +198,6 @@ export default function SiteHeader() {
                   >
                     Login
                   </Link>
-                  
-                  <div className="h-px w-full bg-slate-100 my-2" />
-
-                  {NAV_LINKS.map((item) => (
-                    <Link
-                      key={item.id}
-                      href={anchorFor(item.id)}
-                      onClick={setMobileOpen.bind(null, false)}
-                      className="text-lg font-bold text-slate-900 hover:text-brand-blue font-orbitron"
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
                   
                   <div className="h-px w-full bg-slate-100 my-2" />
 
@@ -235,6 +222,23 @@ export default function SiteHeader() {
                   >
                     Contact
                   </Link>
+
+                  <div className="h-px w-full bg-slate-100 my-2" />
+                  
+                  {/* Features Grid - Condensed */}
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-500 font-orbitron mb-2">Features</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                    {NAV_LINKS.map((item) => (
+                      <Link
+                        key={item.id}
+                        href={anchorFor(item.id)}
+                        onClick={setMobileOpen.bind(null, false)}
+                        className="text-sm font-bold text-slate-700 hover:text-brand-blue font-orbitron truncate"
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
                 </nav>
               </div>
           </div>

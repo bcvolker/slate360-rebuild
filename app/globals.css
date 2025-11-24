@@ -148,8 +148,13 @@ body {
 @media (min-width: 1280px) {
   html {
     scroll-snap-type: y mandatory;
-    scroll-padding-top: 80px; /* Account for header */
+    /* Removed scroll-padding-top to prevent double-padding issue with fixed header */
   }
+}
+
+/* Fix for blank bar under footer on mobile */
+body {
+  background-color: #0f172a; /* Slate-900 to match footer */
 }
 
 * {

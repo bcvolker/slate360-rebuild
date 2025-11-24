@@ -78,7 +78,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       data-snap="tile"
       // On desktop we keep full-height snapped sections; on mobile let content flow naturally but start below header
       // Changed justify-center to justify-start for mobile to prevent top clipping behind header
-      className={`relative w-full flex flex-col ${snapEnabled ? "xl:justify-center xl:snap-start xl:min-h-[100dvh] xl:pt-[80px]" : "justify-start min-h-[100dvh]"} pt-[120px] pb-4 ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      // Added min-h-[100dvh] to base classes to ensure full height on mobile/tablet even when snap is enabled for desktop
+      className={`relative w-full flex flex-col min-h-[100dvh] ${snapEnabled ? "xl:justify-center xl:snap-start xl:pt-[80px]" : "justify-start"} pt-[120px] pb-4 ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Parallax Background - Enabled on all devices but constrained horizontally */}
