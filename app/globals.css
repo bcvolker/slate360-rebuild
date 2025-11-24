@@ -293,3 +293,35 @@ body {
     scrollbar-width: none;
   }
 }
+
+/* --- DEBUG MODE MARKERS --- */
+/* These will help visualize the layout boundaries and alignment */
+body.debug-mode {
+  /* Cyan line at 80px (Header Bottom) to check alignment */
+  background-image: linear-gradient(to bottom, transparent 79px, cyan 80px, transparent 81px) !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat !important;
+}
+
+body.debug-mode header {
+  outline: 2px solid yellow !important; /* Header Boundary */
+  background-color: rgba(255, 255, 0, 0.1) !important;
+}
+
+body.debug-mode main {
+  outline: 2px solid green !important; /* Main Container Boundary */
+}
+
+body.debug-mode section {
+  outline: 2px solid blue !important; /* Section/Tile Boundary */
+}
+
+body.debug-mode footer {
+  outline: 2px solid pink !important; /* Footer Boundary */
+}
+
+body.debug-mode * {
+  /* Faint red outline on EVERYTHING to see padding/margins */
+  outline: 1px solid rgba(255, 0, 0, 0.1);
+}
+/* -------------------------- */
