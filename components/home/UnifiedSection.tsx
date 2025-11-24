@@ -69,7 +69,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {/* --- MOBILE/TABLET VERTICAL LAYOUT (Fixed Bottom Bar) --- */}
         <div className="lg:hidden flex flex-col h-full">
            {/* Top 80% (approx): Text Content - Scrollable if needed */}
-           <div className="flex-1 overflow-y-auto no-scrollbar pt-24 pb-4 flex flex-col justify-center">
+           <div className="flex-1 overflow-y-auto no-scrollbar pt-28 pb-4 flex flex-col justify-start">
               <div className="space-y-4">
                 {tile.eyebrow && (
                   <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-slate-500" style={{ color: accent }}>
@@ -104,7 +104,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
            </div>
 
            {/* Bottom 20%: Viewer (2/3) + Buttons (1/3) */}
-           <div className="h-[20%] min-h-[140px] max-h-[200px] flex border-t border-slate-200/50 bg-slate-50/50 backdrop-blur-sm -mx-6 md:-mx-10 px-6 md:px-10 py-3 gap-3">
+           <div className="h-[20%] min-h-[140px] max-h-[200px] flex items-end pb-6 gap-3">
               {/* Viewer Area - 2/3 Width */}
               <div className="w-[66%] h-full">
                 <button 
