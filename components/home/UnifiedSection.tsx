@@ -77,13 +77,13 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       id={tile.id}
       data-snap="tile"
       // On desktop we keep full-height snapped sections; on mobile let content flow naturally
-      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "xl:snap-start xl:min-h-[100dvh] xl:pt-[80px]" : "py-16 sm:py-20"} pt-[80px] ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      className={`relative w-full flex flex-col justify-center ${snapEnabled ? "xl:snap-start xl:min-h-[100dvh] xl:pt-[80px]" : "min-h-[100dvh] py-16 sm:py-20"} pt-[80px] ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
-      {/* Parallax Background - DESKTOP ONLY to prevent mobile sliding/overflow issues */}
+      {/* Parallax Background - Enabled on all devices but constrained horizontally */}
       <motion.div 
         style={{ y: bgY }}
-        className="hidden xl:block absolute -inset-[20%] -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
+        className="absolute -top-[20%] -bottom-[20%] left-0 right-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 h-full flex flex-col justify-center">

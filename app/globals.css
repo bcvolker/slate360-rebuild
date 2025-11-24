@@ -128,7 +128,7 @@ body {
 
 /* Blueprint Pattern for Light Tiles */
 .bg-blueprint {
-  background-color: #BFDBFE; /* Deeper Blue (Blue-200) */
+  background-color: #93C5FD; /* Deeper Blue (Blue-300) */
   background-image: 
     linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.4) 1px, transparent 1px);
@@ -137,7 +137,7 @@ body {
 
 /* Concrete Pattern for Grey Tiles */
 .bg-concrete {
-  background-color: #CBD5E1; /* Slate-300 - Deeper Medium Grey */
+  background-color: #94A3B8; /* Slate-400 - Deeper Grey */
   background-image: 
     radial-gradient(circle at 50% 0%, rgba(255,255,255,0.3) 0%, transparent 70%);
 }
