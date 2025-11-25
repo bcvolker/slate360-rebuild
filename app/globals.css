@@ -253,13 +253,8 @@ body.debug-tiles section[data-snap="tile"]::before {
 }
 
 .slate360-footer {
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.95),
-    rgba(250, 250, 252, 0.9)
-  );
+  background: #F0F4F8; /* Solid light grey-blue */
   border-top: 1px solid rgba(79, 137, 212, 0.2);
-  backdrop-filter: blur(20px) saturate(180%);
   box-shadow: 0 -12px 40px rgba(79, 137, 212, 0.08);
 }
 
@@ -279,12 +274,7 @@ body.debug-tiles section[data-snap="tile"]::before {
   right: 0;
   bottom: -6px;
   height: 2px;
-  background: linear-gradient(
-    to right,
-    #B37031,
-    #D49A6A,
-    #B37031
-  );
+  background: #B37031; /* Solid Copper */
   border-radius: 9999px;
   transform: scaleX(0);
   transform-origin: center;
