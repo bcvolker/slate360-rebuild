@@ -245,16 +245,16 @@ export default function SiteHeader() {
 
       {/* SECONDARY NAV: Stacked on the right */}
       {pathname === "/" && (
-        <div className="hidden xl:flex flex-col fixed top-[calc(var(--navbar-height)+0.5rem)] right-4 items-end gap-2 z-40 backdrop-blur-sm bg-slate-900/40 p-3 rounded-xl border border-white/5">
+        <div className="hidden xl:flex flex-col fixed top-1/2 -translate-y-1/2 right-4 items-end gap-1 z-40 backdrop-blur-md p-2 rounded-lg">
           {NAV_LINKS.map((item) => (
             <Link
               key={item.id}
               href={anchorFor(item.id)}
               onClick={() => setMenuOpen(false)}
-              className={`text-[9px] lg:text-[10px] font-orbitron tracking-wider transition-colors duration-300 ${
+              className={`text-[10px] font-orbitron tracking-wider transition-colors duration-300 ${
                 activeId === item.id
-                  ? "text-[#4F89D4] font-bold"
-                  : "text-slate-200 font-semibold hover:text-[#4F89D4]"
+                  ? "text-black font-black"
+                  : "text-slate-700 font-bold hover:text-blue-600"
               }`}
             >
               {item.label}
