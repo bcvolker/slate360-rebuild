@@ -5,15 +5,17 @@
 
 @layer base {
   html {
-    /* 1. FIXED: Set exactly to 80px to match the visual header height. 
-       This removes the 'blue stripe' gap from the previous tile. */
-    scroll-padding-top: 80px;
+    /* Mobile: 0px scroll padding so anchor links align to top (0px).
+       The section padding (pt-20) handles the visual offset for the header. */
+    scroll-padding-top: 0;
     scroll-snap-type: none; /* Mobile/tablet: natural scrolling */
   }
 
 
 @media (min-width: 1024px) {
   html {
+    /* Desktop: Restore 80px offset for snap/scroll */
+    scroll-padding-top: 80px;
     /* Desktop: gentle vertical snap between full-screen tiles */
     scroll-snap-type: y mandatory;
   }
