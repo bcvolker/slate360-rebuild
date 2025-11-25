@@ -5,20 +5,9 @@
 
 @layer base {
   html {
-    /* 1. This creates a "roof" 80px thick. 
-       Snapping will stop exactly at the bottom of your header. */
-    scroll-padding-top: 80px; 
-    
-    /* 2. Explicitly DISABLE snap on mobile/tablet */
+    /* Anchor links should land just below ~80px header */
+    scroll-padding-top: 80px;
     scroll-snap-type: none;
-    
-    /* 3. Enforce snapping on the Y axis - DESKTOP ONLY (lg+) */
-    @media (min-width: 1024px) {
-      scroll-snap-type: y mandatory;
-    }
-
-    /* 4. Prevents the whole page from rubber-banding too aggressively */
-    /* Removed overscroll-behavior-y: none to restore natural feel */
   }
 
   /* 5. Ensure the background behind the rubber-banding is dark */
