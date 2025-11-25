@@ -275,7 +275,7 @@ body.debug-tiles section[data-snap="tile"]::before {
 }
 
 .slate360-footer {
-  background: #F0F4F8; /* Solid light grey-blue */
+  /* Background handled by bg-metallic utility */
   border-top: 1px solid rgba(79, 137, 212, 0.2);
   box-shadow: 0 -12px 40px rgba(79, 137, 212, 0.08);
 }
@@ -284,7 +284,7 @@ body.debug-tiles section[data-snap="tile"]::before {
   position: relative;
   display: inline-block;
   padding-inline: 0.75rem;
-  color: #4F89D4; /* Slate360 Blue */
+  color: #6BA4E9; /* Brighter Blue */
   text-decoration: none;
   transition: color 300ms ease-out, text-shadow 300ms ease-out;
 }
