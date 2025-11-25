@@ -69,7 +69,13 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       id={tile.id}
       data-snap="tile"
       // Tile height is viewport minus 80px header so centering is relative to visible area
-      className={`relative w-full flex flex-col min-h-[calc(100dvh-80px)] pt-20 pb-8 ${snapEnabled ? "lg:snap-start" : ""} ${isFirstTile ? "bg-blueprint-paper" : isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      // First tile gets a tiny extra visual height so its background
+      // covers any bottom strip, but inner content height stays the same.
+      className={`relative w-full flex flex-col ${
+        isFirstTile ? "min-h-[calc(100dvh-72px)]" : "min-h-[calc(100dvh-80px)]"
+      } pt-20 pb-8 ${snapEnabled ? "lg:snap-start" : ""} ${
+        isFirstTile ? "bg-blueprint-paper" : isAlternate ? "bg-blueprint" : "bg-concrete"
+      }`}
       style={sectionStyle}
     >
       {/* Static decorative background behind each tile */}
