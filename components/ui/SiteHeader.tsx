@@ -78,12 +78,12 @@ export default function SiteHeader() {
           </Link>
 
           {/* DESKTOP NAV: right-aligned, high-contrast on metallic header */}
-          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-slate-800 lg:flex">
+          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-slate-100 lg:flex">
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-full border border-[color:var(--slate360-blue)]/70 bg-white/50 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[color:var(--slate360-blue)] transition-all hover:text-[color:var(--slate360-copper)] hover:border-[color:var(--slate360-copper)] hover:bg-white/80 landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron shadow-sm hover:shadow-md"
+                className="inline-flex items-center gap-1 rounded-full border border-[color:var(--slate360-blue)]/70 bg-[color:var(--slate360-blue)]/20 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[color:var(--slate360-blue)] transition-all hover:text-[color:var(--slate360-copper)] hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/30 landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron shadow-[0_0_18px_rgba(79,137,212,0.65)] hover:shadow-[0_0_22px_rgba(179,112,49,0.7)]"
               >
                 <span>Features</span>
                 <span className="text-xs">▾</span>
@@ -112,13 +112,13 @@ export default function SiteHeader() {
                 <Link 
                   key={label} 
                   href={label === "Plans & Pricing" ? "/subscribe" : `/${label.toLowerCase()}`} 
-                      className="group relative text-xs font-bold uppercase tracking-widest text-slate-700 transition-all duration-300 hover:text-[color:var(--slate360-blue)] font-orbitron drop-shadow-sm"
+                      className="group relative text-xs font-bold uppercase tracking-widest text-[color:var(--slate360-blue)] transition-all duration-300 hover:text-[color:var(--slate360-copper)] font-orbitron drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]"
                 >
                   {label}
                     <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[color:var(--slate360-copper)] transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
-                <Link href="/login" className="ml-4 rounded-full border border-[color:var(--slate360-blue)]/70 bg-white/50 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[color:var(--slate360-blue)] transition-all hover:text-[color:var(--slate360-copper)] hover:border-[color:var(--slate360-copper)] hover:bg-white/80 font-orbitron">
+                <Link href="/login" className="ml-4 rounded-full border border-[color:var(--slate360-blue)]/70 bg-[color:var(--slate360-blue)]/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[color:var(--slate360-blue)] transition-all hover:text-[color:var(--slate360-copper)] hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/30 font-orbitron">
                 Login
               </Link>
             </nav>
