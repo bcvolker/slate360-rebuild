@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="relative z-10 w-full text-xs py-8 snap-end bg-metallic slate360-footer">
       <div className="mx-auto flex max-w-6xl items-center justify-between flex-wrap gap-4 px-6">
-        <nav className="flex items-center gap-6 flex-wrap text-slate-300">
+        <nav className="flex items-center gap-6 flex-wrap text-[#6BA4E9]">
           <Link href="/subscribe" className="uppercase tracking-wider font-orbitron hover:text-[#B37031] transition-colors">Plans & Pricing</Link>
           <Link href="/about" className="uppercase tracking-wider font-orbitron hover:text-[#B37031] transition-colors">About</Link>
           <Link href="/contact" className="uppercase tracking-wider font-orbitron hover:text-[#B37031] transition-colors">Contact</Link>

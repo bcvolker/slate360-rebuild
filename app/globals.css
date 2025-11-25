@@ -193,7 +193,7 @@ body {
 
 /* UNC Blue Weathered Blueprint Pattern for Subpages */
 .bg-blueprint-dark {
-  background-color: #7BAFD4; /* UNC Blue */
+  background-color: #4F89D4; /* Slate360 Blue */
   background-image:
     /* Grid Lines (White, more noticeable) */
     linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px),
