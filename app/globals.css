@@ -8,9 +8,16 @@
     /* 1. FIXED: Set exactly to 80px to match the visual header height. 
        This removes the 'blue stripe' gap from the previous tile. */
     scroll-padding-top: 80px;
-    scroll-snap-type: none; /* We will re-enable this later */
+    scroll-snap-type: none; /* Mobile/tablet: natural scrolling */
   }
 
+
+@media (min-width: 1024px) {
+  html {
+    /* Desktop: gentle vertical snap between full-screen tiles */
+    scroll-snap-type: y mandatory;
+  }
+}
   /* 5. Ensure the background behind the rubber-banding is dark */
   body {
     @apply bg-slate-900; 
@@ -150,6 +157,15 @@ body {
   background-size: 240px 240px, 240px 240px, 100% 100%; /* 3x larger grid + subtle radial glow */
 }
 
+/* Blueprint paper style for the first tile: warm off-white with a light grey grid */
+.bg-blueprint-paper {
+  background-color: #f5f1e8; /* warm off-white */
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
+  background-size: 40px 40px, 40px 40px;
+}
+
 /* Concrete Pattern for Grey Tiles */
 .bg-concrete {
   background-color: #94A3B8; /* Lighter Slate (Slate-400) */
@@ -190,6 +206,19 @@ body {
   border-radius: 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 12px 35px rgba(0,0,0,0.3);
+}
+
+/* Debug helper: horizontal center line through tiles when body has .debug-tiles */
+body.debug-tiles section[data-snap="tile"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgba(239, 68, 68, 0.9); /* red-500 */
+  pointer-events: none;
+  z-index: 5;
 }
 
 .tile-text-surface {

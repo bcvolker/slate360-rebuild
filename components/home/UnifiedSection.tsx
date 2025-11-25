@@ -28,9 +28,11 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const viewerTitle = tile.viewer?.title ?? "Viewer";
   const viewerSubtitle = tile.viewer?.subtitle ?? "Interactive content arrives shortly.";
 
-  // Alternate subtle tile backgrounds for more separation on the home canvas.
-  // Even tiles (0, 2, 4): Blueprint blue (First tile is blue).
-  // Odd tiles (1, 3, 5): Concrete grey.
+  // Tile backgrounds:
+  // First tile (index 0): blueprint paper (off-white with grey grid).
+  // Other even tiles (2, 4, ...): blueprint blue.
+  // Odd tiles (1, 3, 5): concrete grey.
+  const isFirstTile = index === 0;
   const isAlternate = index % 2 === 0;
 
   const textColumnOrder = layoutAlign === "left" ? "lg:order-2" : "lg:order-1";
@@ -67,7 +69,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       id={tile.id}
       data-snap="tile"
       // Tile height is viewport minus 80px header so centering is relative to visible area
-      className={`relative w-full flex flex-col min-h-[calc(100dvh-80px)] pt-20 pb-8 ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      className={`relative w-full flex flex-col min-h-[calc(100dvh-80px)] pt-20 pb-8 ${snapEnabled ? "lg:snap-start" : ""} ${isFirstTile ? "bg-blueprint-paper" : isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Static decorative background behind each tile */}
