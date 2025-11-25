@@ -48,7 +48,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {tile.cta && (
           <Link
             href={tile.cta.href}
-            className={`inline-flex items-center justify-center rounded-md border border-slate-900 bg-white/90 px-4 py-3 text-sm font-bold uppercase tracking-widest text-slate-900 shadow-sm transition hover:bg-white hover:shadow-md hover:border-slate-900 font-orbitron ${
+            className={`inline-flex items-center justify-center rounded-md border border-[color:var(--slate360-blue)] bg-[color:var(--slate360-blue)] px-4 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-sm transition hover:bg-white hover:text-[color:var(--slate360-blue)] hover:shadow-md hover:border-[color:var(--slate360-blue)] font-orbitron ${
               isMobile
                 ? "flex-1 text-[10px] leading-tight px-1 text-center whitespace-normal h-12"
                 : ""
@@ -60,7 +60,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {tile.secondaryCta && (
           <Link
             href={tile.secondaryCta.href}
-            className={`inline-flex items-center justify-center rounded-md bg-slate-900 px-4 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-lg transition hover:opacity-90 hover:shadow-xl font-orbitron ${
+            className={`inline-flex items-center justify-center rounded-md bg-[color:var(--slate360-copper)] px-4 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-lg transition hover:opacity-90 hover:shadow-xl font-orbitron ${
               isMobile
                 ? "flex-1 text-[10px] leading-tight px-1 text-center whitespace-normal h-12"
                 : ""
@@ -133,7 +133,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                     key={bullet.label}
                     className="flex items-start gap-2.5 rounded-lg bg-white/60 backdrop-blur-sm border border-slate-200/50 px-3 py-2 md:px-4 md:py-2.5 shadow-sm"
                   >
-                    <span className="mt-1.5 inline-flex h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-[color:var(--slate360-blue)] shrink-0" />
+                    <span className="mt-1.5 inline-flex h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-[color:var(--slate360-copper)] shrink-0" />
                     <p className="font-bold text-slate-900 font-orbitron text-sm md:text-base">
                       {bullet.label}
                     </p>
@@ -229,7 +229,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                   <li key={bullet.label} className="flex gap-3">
                     <span
                       className="mt-1 inline-flex h-2 w-2 rounded-full"
-                      style={{ backgroundColor: accent }}
+                      style={{ backgroundColor: "var(--slate360-copper)" }}
                     />
                     <div>
                       <p className="font-bold text-slate-900 font-orbitron">{bullet.label}</p>

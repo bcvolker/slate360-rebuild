@@ -134,20 +134,14 @@ body {
   overflow-x: hidden;
   color: rgb(var(--color-text-primary));
   /* Match background to tile background to hide grey bars on overscroll/refresh */
-  background-color: rgb(var(--color-bg-canvas));
+  background-color: #f0f4f8; /* Slightly cooler/darker white base */
   font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
-  background: 
-    radial-gradient(circle at 50% 0%, rgba(79,137,212,0.08) 0%, transparent 70%),
-    linear-gradient(rgba(79,137,212,0.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(79,137,212,0.12) 1px, transparent 1px),
-    radial-gradient(
-      circle at 20% 0%,
-      rgb(var(--color-bg-gradient-top)) 0%,
-      rgb(var(--color-bg-gradient-mid)) 35%,
-      rgb(var(--color-bg-gradient-bottom)) 100%
-    );
-  background-size: 100% 100%, 40px 40px, 40px 40px, 100% 100%;
-  background-color: rgb(var(--color-bg-canvas));
+  background-image:
+    linear-gradient(rgba(79, 137, 212, 0.15) 1px, transparent 1px), /* Blue grid lines, more visible */
+    linear-gradient(90deg, rgba(79, 137, 212, 0.15) 1px, transparent 1px),
+    radial-gradient(circle at 0% 0%, rgba(79, 137, 212, 0.45) 0%, transparent 60%), /* Darker/Expansive Blue Radial */
+    radial-gradient(circle at 100% 100%, rgba(179, 112, 49, 0.15) 0%, transparent 60%); /* Copper accent radial */
+  background-size: 80px 80px, 80px 80px, 120% 120%, 120% 120%; /* Tighter grid for prominence */
 }
 
 @media (min-width: 1024px) {
@@ -168,15 +162,14 @@ body {
 
 /* Blueprint paper style for the first tile: warm off-white with a light grey grid */
 .bg-blueprint-paper {
-  /* Softer blueprint paper: neutral white with faint grey grid and blue wash */
-  background-color: #f9fafb; /* near-white */
+  /* Darker blue gradient and more prominent lines */
+  background-color: #f0f4f8; /* Slightly cooler/darker white base */
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.18) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.18) 1px, transparent 1px),
-    radial-gradient(circle at 0% 0%, rgba(79, 137, 212, 0.30) 0%, transparent 70%),
-    radial-gradient(circle at 100% 100%, rgba(79, 137, 212, 0.18) 0%, transparent 75%);
-  /* Keep grid large and subtle, extend blue wash a bit further */
-  background-size: 160px 160px, 160px 160px, 140% 140%, 140% 140%;
+    linear-gradient(rgba(79, 137, 212, 0.15) 1px, transparent 1px), /* Blue grid lines, more visible */
+    linear-gradient(90deg, rgba(79, 137, 212, 0.15) 1px, transparent 1px),
+    radial-gradient(circle at 0% 0%, rgba(79, 137, 212, 0.45) 0%, transparent 60%), /* Darker/Expansive Blue Radial */
+    radial-gradient(circle at 100% 100%, rgba(179, 112, 49, 0.15) 0%, transparent 60%); /* Copper accent radial */
+  background-size: 80px 80px, 80px 80px, 120% 120%, 120% 120%; /* Tighter grid for prominence */
 }
 
 /* Concrete Pattern for Grey Tiles */
@@ -184,13 +177,13 @@ body {
   /* Grey blueprint-style tile: light grey base with subtle slightly darker grid */
   background-color: #e5e7eb; /* light grey */
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.22) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.22) 1px, transparent 1px),
-    radial-gradient(circle at 0% 0%, rgba(148, 163, 184, 0.26) 0%, transparent 70%),
-    radial-gradient(circle at 100% 100%, rgba(148, 163, 184, 0.22) 0%, transparent 75%),
-    radial-gradient(circle at 0% 100%, rgba(179, 112, 49, 0.14) 0%, transparent 70%);
+    linear-gradient(rgba(54, 52, 52, 0.15) 1px, transparent 1px), /* Darker grid lines */
+    linear-gradient(90deg, rgba(54, 52, 52, 0.15) 1px, transparent 1px),
+    radial-gradient(circle at 0% 0%, rgba(148, 163, 184, 0.35) 0%, transparent 70%),
+    radial-gradient(circle at 100% 100%, rgba(179, 112, 49, 0.20) 0%, transparent 75%), /* Stronger Copper accent */
+    radial-gradient(circle at 0% 100%, rgba(79, 137, 212, 0.15) 0%, transparent 70%); /* Blue accent */
   /* Large subtle grid with cool copper-grey wash similar in scale to tile 1 */
-  background-size: 160px 160px, 160px 160px, 140% 140%, 140% 140%, 130% 130%;
+  background-size: 80px 80px, 80px 80px, 140% 140%, 140% 140%, 130% 130%;
 }
 
 /* Scroll Snap - Desktop Only */
