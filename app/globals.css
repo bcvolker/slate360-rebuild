@@ -168,20 +168,24 @@ body {
   /* Softer blueprint paper: neutral white with faint grey grid and blue wash */
   background-color: #f9fafb; /* near-white */
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
-    radial-gradient(circle at 0% 0%, rgba(79, 137, 212, 0.24) 0%, transparent 55%),
-    radial-gradient(circle at 100% 100%, rgba(79, 137, 212, 0.12) 0%, transparent 60%);
-  /* Keep grid large and subtle */
-  background-size: 160px 160px, 160px 160px, 100% 100%, 100% 100%;
+    linear-gradient(rgba(148, 163, 184, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.18) 1px, transparent 1px),
+    radial-gradient(circle at 0% 0%, rgba(79, 137, 212, 0.30) 0%, transparent 70%),
+    radial-gradient(circle at 100% 100%, rgba(79, 137, 212, 0.18) 0%, transparent 75%);
+  /* Keep grid large and subtle, extend blue wash a bit further */
+  background-size: 160px 160px, 160px 160px, 140% 140%, 140% 140%;
 }
 
 /* Concrete Pattern for Grey Tiles */
 .bg-concrete {
-  background-color: #94A3B8; /* Lighter Slate (Slate-400) */
-  background-image: 
-    linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%),
-    radial-gradient(circle at 50% 0%, rgba(255,255,255,0.2) 0%, transparent 70%);
+  /* Grey blueprint-style tile: light grey base with subtle slightly darker grid */
+  background-color: #e5e7eb; /* light grey */
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.22) 1px, transparent 1px),
+    radial-gradient(circle at 0% 0%, rgba(148, 163, 184, 0.22) 0%, transparent 70%),
+    radial-gradient(circle at 100% 100%, rgba(148, 163, 184, 0.18) 0%, transparent 75%);
+  background-size: 160px 160px, 160px 160px, 140% 140%, 140% 140%;
 }
 
 /* Scroll Snap - Desktop Only */

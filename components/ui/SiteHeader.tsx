@@ -60,12 +60,12 @@ export default function SiteHeader() {
       <header className="fixed top-0 z-[100] w-full border-b border-[color:var(--slate360-grey)]/40 bg-[color:var(--slate360-charcoal)] bg-[linear-gradient(to_bottom,#1f1d1d,#363434,#454141)]">
         {/* Background effects live behind content so the logo stays clean */}
         <div
-          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(79,137,212,0.4)_0%,transparent_55%)] opacity-70"
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(79,137,212,0.28)_0%,transparent_60%)] opacity-70 mix-blend-screen"
           aria-hidden
         />
         {/* Thin copper/blue glow strip under the header bottom for extra pop */}
         <div
-          className="pointer-events-none absolute bottom-0 left-0 right-0 z-0 h-[2px] bg-[radial-gradient(circle_at_center,rgba(79,137,212,0.75)_0%,transparent_55%)]"
+          className="pointer-events-none absolute bottom-0 left-0 right-0 z-0 h-[2px] bg-[radial-gradient(circle_at_center,rgba(79,137,212,0.6)_0%,transparent_65%)]"
           aria-hidden
         />
 
