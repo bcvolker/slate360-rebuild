@@ -83,7 +83,7 @@ export default function SiteHeader() {
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-full border border-[color:var(--slate360-blue)]/70 bg-[color:var(--slate360-blue)]/20 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#E5F0FF] transition-all hover:text-[#FFF5EC] hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/30 landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron shadow-[0_0_18px_rgba(79,137,212,0.65)] hover:shadow-[0_0_22px_rgba(179,112,49,0.7)]"
+                className="inline-flex items-center gap-1 rounded-full border border-[color:var(--slate360-blue)]/70 bg-[color:var(--slate360-blue)]/20 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[color:var(--slate360-blue)] transition-all hover:text-[color:var(--slate360-copper)] hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/30 landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron shadow-[0_0_18px_rgba(79,137,212,0.65)] hover:shadow-[0_0_22px_rgba(179,112,49,0.7)]"
               >
                 <span>Features</span>
                 <span className="text-xs">▾</span>
@@ -118,7 +118,7 @@ export default function SiteHeader() {
                     <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[color:var(--slate360-copper)] transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
-                <Link href="/login" className="ml-4 rounded-full border border-[color:var(--slate360-blue)]/70 bg-[color:var(--slate360-blue)]/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#E5F0FF] transition-all hover:text-[#FFF5EC] hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/30 font-orbitron">
+                <Link href="/login" className="ml-4 rounded-full border border-[color:var(--slate360-blue)]/70 bg-[color:var(--slate360-blue)]/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[color:var(--slate360-blue)] transition-all hover:text-[color:var(--slate360-copper)] hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/30 font-orbitron">
                 Login
               </Link>
             </nav>
