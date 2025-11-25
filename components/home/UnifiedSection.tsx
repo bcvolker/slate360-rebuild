@@ -85,41 +85,68 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         aria-hidden 
       />
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-[calc(100dvh-80px)] justify-center gap-6 md:gap-10">
-        
-          {/* --- MOBILE/TABLET LAYOUT --- */}
-          <div className="lg:hidden flex flex-col w-full h-full justify-center gap-6 md:gap-10">
-            {/* Top: Text Content */}
-            <div className="flex flex-col space-y-3 shrink-0 text-center md:text-left">
-                {tile.eyebrow && (
-                  <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron text-slate-900">
-                    {tile.eyebrow}
-                  </p>
-                )}
-                <div className="space-y-2">
-                  <h2 className="text-3xl sm:text-[30px] font-black text-slate-900 font-orbitron tracking-tight leading-snug drop-shadow-sm">
-                    {tile.title}
-                  </h2>
-                  <p className="text-[15px] sm:text-base text-slate-900 font-semibold leading-relaxed">
-                    {tile.subtitle}
-                  </p>
-                </div>
-           </div>
 
-            {/* Middle: Horizontal Scroll */}
+          {/* --- MOBILE/TABLET LAYOUT --- */}
+          <div className="lg:hidden flex flex-col w-full h-full justify-between gap-6 md:gap-8">
+            {/* 1. Top: Eyebrow, Title, Rich description, key features (vertical) */}
+            <div className="flex flex-col gap-4 pt-2">
+              {tile.eyebrow && (
+                <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron text-slate-900/80">
+                  {tile.eyebrow}
+                </p>
+              )}
+              <div className="space-y-3">
+                <h2 className="text-3xl sm:text-[30px] font-black text-slate-900 font-orbitron tracking-tight leading-snug drop-shadow-sm">
+                  {tile.title}
+                </h2>
+                <p className="text-[15px] sm:text-base text-slate-900/90 font-semibold leading-relaxed">
+                  {tile.subtitle}
+                </p>
+              </div>
+
               {tile.bullets?.length > 0 && (
-                <div className="w-full overflow-x-auto pb-2 pt-2 hide-scrollbar flex-[0_0_auto]">
-                <ul className="flex gap-4 w-max px-1">
-                  {tile.bullets.map((bullet) => (
-                    <li 
-                      key={bullet.label} 
-                      className="snap-center w-[260px] flex flex-col gap-2 p-4 rounded-xl border border-slate-900/10 bg-white/80 backdrop-blur-sm shadow-sm"
+                <ul className="mt-2 space-y-2">
+                  {tile.bullets.slice(0, 3).map((bullet) => (
+                    <li
+                      key={bullet.label}
+                      className="flex items-start gap-3 rounded-xl bg-white/80 backdrop-blur-sm border border-slate-200/80 px-3 py-2 shadow-sm"
+                    >
+                      <span className="mt-1 inline-flex h-2 w-2 rounded-full bg-[color:var(--slate360-blue)]" />
+                      <div>
+                        <p className="font-bold text-slate-900 font-orbitron text-xs sm:text-sm">
+                          {bullet.label}
+                        </p>
+                        {bullet.description && (
+                          <p className="text-[11px] sm:text-xs text-slate-700 leading-snug mt-0.5">
+                            {bullet.description}
+                          </p>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* 2. Middle: Horizontal scroll for additional feature cards */}
+            {tile.bullets && tile.bullets.length > 3 && (
+              <div className="w-full overflow-x-auto pb-1 pt-1 hide-scrollbar flex-[0_0_auto]">
+                <ul className="flex gap-3 w-max px-1">
+                  {tile.bullets.slice(3).map((bullet) => (
+                    <li
+                      key={bullet.label}
+                      className="snap-center w-[220px] flex flex-col gap-1.5 p-3 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm shadow-sm"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex h-1.5 w-1.5 rounded-full shrink-0 bg-slate-900" />
-                        <p className="font-bold text-slate-900 font-orbitron text-sm">{bullet.label}</p>
+                        <span className="inline-flex h-1.5 w-1.5 rounded-full shrink-0 bg-[color:var(--slate360-blue)]" />
+                        <p className="font-bold text-slate-900 font-orbitron text-[11px] truncate">
+                          {bullet.label}
+                        </p>
                       </div>
                       {bullet.description && (
-                        <p className="text-slate-800 font-semibold text-xs leading-snug pl-3.5">{bullet.description}</p>
+                        <p className="text-slate-700 font-medium text-[11px] leading-snug line-clamp-3">
+                          {bullet.description}
+                        </p>
                       )}
                     </li>
                   ))}
@@ -127,17 +154,20 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               </div>
             )}
 
-            {/* Bottom: Viewer & Buttons */}
-            <div className="w-full flex flex-col gap-4 mt-2">
-              <div className="w-full aspect-video bg-black/20 rounded-lg overflow-hidden relative">
+            {/* 3. Bottom: Viewer (medium) + compact CTAs */}
+            <div className="w-full flex flex-col gap-4 pb-1">
+              <div className="w-full aspect-video rounded-2xl overflow-hidden relative border border-slate-900/10 bg-slate-900/90">
                 <button
                   type="button"
                   onClick={() => setViewerOpen(true)}
-                  className="absolute inset-0 w-full h-full flex flex-col items-center justify-center border border-white/20 shadow-lg overflow-hidden group transition-transform active:scale-[0.98] hover:border-brand-blue/50 bg-slate-900"
+                  className="absolute inset-0 w-full h-full flex flex-col items-center justify-center shadow-lg overflow-hidden group active:scale-[0.985] transition-transform"
                 >
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(79,137,212,0.25)_0%,transparent_60%)] opacity-80 pointer-events-none" />
                   <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
-                  <span className="text-2xl mb-1 text-white">▶</span>
-                  <span className="text-[10px] uppercase tracking-widest text-slate-300 font-semibold font-orbitron">View</span>
+                  <span className="text-3xl mb-1 text-white drop-shadow-[0_0_12px_rgba(79,137,212,0.9)]">▶</span>
+                  <span className="text-[10px] uppercase tracking-[0.35em] text-slate-200 font-semibold font-orbitron">
+                    Expand Viewer
+                  </span>
                 </button>
               </div>
 

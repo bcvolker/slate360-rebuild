@@ -15,7 +15,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-theme={DEFAULT_THEME} className={`${inter.variable} ${orbitron.variable}`}>
-      <body className="antialiased font-sans text-slate-900">
+      {/* Add debug-tiles to body to show horizontal center line in each tile */}
+      <body className="antialiased font-sans text-slate-900 debug-tiles">
         <SiteHeader />
         <main>{children}</main>
       </body>
