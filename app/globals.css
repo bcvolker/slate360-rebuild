@@ -5,9 +5,10 @@
 
 @layer base {
   html {
-    /* Roof matches visual header (~80px) so anchors land cleanly */
+    /* 1. FIXED: Set exactly to 80px to match the visual header height. 
+       This removes the 'blue stripe' gap from the previous tile. */
     scroll-padding-top: 80px;
-    scroll-snap-type: none;
+    scroll-snap-type: none; /* We will re-enable this later */
   }
 
   /* 5. Ensure the background behind the rubber-banding is dark */

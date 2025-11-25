@@ -65,9 +65,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
     <section
       ref={sectionRef}
       id={tile.id}
-      // Use dynamic viewport height to avoid mobile browser chrome cutting off content
-      // Anchor offset is handled globally via scroll-padding-top on html.
-      className={`relative w-full min-h-[100dvh] flex flex-col ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      data-snap="tile"
+      className={`relative w-full flex flex-col min-h-[100dvh] justify-center pt-20 pb-8 ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Static decorative background behind each tile */}
@@ -75,12 +74,12 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 pt-20 pb-8 lg:pt-24 lg:pb-10 flex flex-col gap-6 md:gap-8 flex-1">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-full justify-center gap-6 md:gap-8">
         
           {/* --- MOBILE/TABLET LAYOUT --- */}
-          <div className="lg:hidden flex flex-col w-full h-full gap-4 justify-between">
+          <div className="lg:hidden flex flex-col w-full h-full justify-center gap-6 md:gap-10">
             {/* Top: Text Content */}
-            <div className="flex flex-col justify-start space-y-2 shrink-0">
+            <div className="flex flex-col space-y-3 shrink-0 text-center md:text-left">
                 {tile.eyebrow && (
                   <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron text-slate-900">
                     {tile.eyebrow}
@@ -96,9 +95,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 </div>
            </div>
 
-            {/* Middle: Horizontal Scroll for Bullets on Mobile (no snap) */}
+            {/* Middle: Horizontal Scroll */}
               {tile.bullets?.length > 0 && (
-                <div className="w-full overflow-x-auto pb-1 pt-1 hide-scrollbar flex-[0.4] min-h-[120px]">
+                <div className="w-full overflow-x-auto pb-2 pt-2 hide-scrollbar flex-[0_0_auto]">
                 <ul className="flex gap-4 w-max px-1">
                   {tile.bullets.map((bullet) => (
                     <li 
@@ -118,26 +117,24 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               </div>
             )}
 
-            {/* Bottom: Viewer (2/3) + Buttons (1/3) in bottom 25% */}
-            <div className="w-full mt-auto h-[25vh] min-h-[180px] flex gap-3">
-              {/* Viewer Area - 2/3 of bottom band */}
-              <div className="w-2/3 h-full">
-                <button 
+            {/* Bottom: Viewer & Buttons */}
+            <div className="w-full flex flex-col gap-4 mt-2">
+              <div className="w-full aspect-video bg-black/20 rounded-lg overflow-hidden relative">
+                <button
                   type="button"
                   onClick={() => setViewerOpen(true)}
-                  className="w-full h-full bg-slate-900 rounded-xl flex flex-col items-center justify-center border border-white/20 shadow-lg relative overflow-hidden group transition-transform active:scale-[0.98] hover:border-brand-blue/50"
+                  className="absolute inset-0 w-full h-full flex flex-col items-center justify-center border border-white/20 shadow-lg overflow-hidden group transition-transform active:scale-[0.98] hover:border-brand-blue/50 bg-slate-900"
                 >
-                   <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
-                   <span className="text-2xl mb-1 text-white">▶</span>
-                   <span className="text-[10px] uppercase tracking-widest text-slate-300 font-semibold font-orbitron">View</span>
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+                  <span className="text-2xl mb-1 text-white">▶</span>
+                  <span className="text-[10px] uppercase tracking-widest text-slate-300 font-semibold font-orbitron">View</span>
                 </button>
               </div>
 
-              {/* Buttons Area - 1/3 of bottom band */}
-              <div className="w-1/3 h-full">
-                 {renderCtas(true)}
+              <div className="w-full grid grid-cols-2 gap-3">
+                {renderCtas(true)}
               </div>
-           </div>
+            </div>
         </div>
 
         {/* --- DESKTOP LAYOUT --- */}
