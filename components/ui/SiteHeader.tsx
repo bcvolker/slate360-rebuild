@@ -112,13 +112,13 @@ export default function SiteHeader() {
                 <Link 
                   key={label} 
                   href={label === "Plans & Pricing" ? "/subscribe" : `/${label.toLowerCase()}`} 
-                      className="group relative text-xs font-bold uppercase tracking-widest text-slate-100 transition-all duration-300 hover:text-[color:var(--slate360-blue)] font-orbitron drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]"
+                      className="group relative text-xs font-bold uppercase tracking-widest text-[color:var(--slate360-blue)] transition-all duration-300 hover:text-[color:var(--slate360-copper)] font-orbitron drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]"
                 >
                   {label}
-                    <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[color:var(--slate360-blue)] transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                    <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[color:var(--slate360-copper)] transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
-                <Link href="/login" className="ml-4 rounded-full border border-[color:var(--slate360-blue)]/70 bg-[color:var(--slate360-blue)]/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#E5F0FF] transition-all hover:text-[#FFF5EC] hover:border-[color:var(--slate360-blue)] hover:bg-[color:var(--slate360-blue)]/30 font-orbitron">
+                <Link href="/login" className="ml-4 rounded-full border border-[color:var(--slate360-blue)]/70 bg-[color:var(--slate360-blue)]/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#E5F0FF] transition-all hover:text-[#FFF5EC] hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/30 font-orbitron">
                 Login
               </Link>
             </nav>
