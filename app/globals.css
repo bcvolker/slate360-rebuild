@@ -163,7 +163,8 @@ body {
   background-image:
     linear-gradient(rgba(148, 163, 184, 0.2) 1px, transparent 1px),
     linear-gradient(90deg, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
-  background-size: 40px 40px, 40px 40px;
+  /* 4x larger grid than before for a looser blueprint look */
+  background-size: 160px 160px, 160px 160px;
 }
 
 /* Concrete Pattern for Grey Tiles */
