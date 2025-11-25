@@ -9,8 +9,11 @@
        Snapping will stop exactly at the bottom of your header. */
     scroll-padding-top: 80px; 
     
-    /* 2. Enforce snapping on the Y axis */
-    scroll-snap-type: y mandatory;
+    /* 2. Enforce snapping on the Y axis - DESKTOP ONLY (lg+) */
+    /* We disable this on mobile to prevent jitter and address bar conflicts */
+    @media (min-width: 1024px) {
+      scroll-snap-type: y mandatory;
+    }
 
     /* 3. Prevents the whole page from rubber-banding too aggressively */
     overscroll-behavior-y: none;

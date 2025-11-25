@@ -83,7 +83,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       // Added scroll-mt-[80px] for desktop snap alignment
       // Reverted h-[100dvh] to min-h-[100dvh] to allow growth for tall content (Tablet Landscape fix)
       // Added py-24 to ensure safe padding top (header) and bottom
-      className={`relative w-full flex flex-col min-h-[100dvh] justify-center py-24 ${snapEnabled ? "snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      // CHANGED: snap-start -> lg:snap-start (Disable snap on mobile)
+      className={`relative w-full flex flex-col min-h-[100dvh] justify-center py-24 ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Parallax Background - Enabled on all devices but constrained horizontally */}
