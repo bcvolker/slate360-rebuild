@@ -89,7 +89,7 @@ export default function SiteHeader() {
                 <span className="text-xs">▾</span>
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-[#1F1F1F]/98 border border-[color:var(--slate360-blue)]/25 shadow-xl backdrop-blur-xl py-2">
+                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-[#181717] border border-slate-700 shadow-xl py-2">
                   <div className="max-h-[60vh] overflow-y-auto space-y-0.5 px-2">
                     {NAV_LINKS.map((item) => (
                       <Link
@@ -158,12 +158,12 @@ export default function SiteHeader() {
           
           {/* Menu Panel - Sits on top of backdrop */}
           <div 
-            className="relative z-10 flex flex-col border-b border-[#929292]/40 bg-[#363434]/98 p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
+            className="relative z-10 flex flex-col border-b border-[#929292]/40 bg-[#181717] p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
                         <div className="flex items-center justify-between mb-6">
               {/* Added Logo to Menu Header */}
-              <div className="relative h-10 w-32 -ml-2 drop-shadow-[0_0_14px_rgba(79,137,212,0.7)]">
+              <div className="relative h-14 w-48 -ml-2 drop-shadow-[0_0_14px_rgba(79,137,212,0.7)]">
                 <Image
                   src="/assets/slate360logoforwebsite.png"
                   alt="Slate360 logo"

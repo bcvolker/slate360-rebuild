@@ -202,29 +202,29 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {/* --- DESKTOP LAYOUT (Unchanged) --- */}
         <div className="hidden lg:grid items-center gap-8 lg:gap-16 lg:grid-cols-2 h-full pt-4 lg:pt-0">
           {/* ... Desktop code remains exactly as it was ... */}
-           <div className={`order-1 ${textColumnOrder} space-y-6 self-center`}>
+           <div className={`order-1 ${textColumnOrder} space-y-6 lg:space-y-10 self-center`}>
             
-            <div className="space-y-2">
+            <div className="space-y-2 lg:space-y-4">
               {/* TITLE: Blue & Large */}
-              <h2 className="text-[36px] sm:text-[40px] font-black text-[color:var(--slate360-blue)] font-orbitron tracking-tight leading-tight drop-shadow-sm">
+              <h2 className="text-[36px] sm:text-[40px] lg:text-6xl font-black text-[color:var(--slate360-blue)] font-orbitron tracking-tight leading-tight drop-shadow-sm">
                 {tile.title}
               </h2>
               
               {/* SUB-HEADLINE (Eyebrow repurposed) */}
               {tile.eyebrow && (
-                <p className="text-xl sm:text-2xl font-bold text-slate-900 font-orbitron leading-tight">
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 font-orbitron leading-tight">
                   {tile.eyebrow}
                 </p>
               )}
 
               {/* SUBTITLE: Description */}
-              <p className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed max-w-[50rem]">
+              <p className="text-xs sm:text-sm lg:text-lg text-slate-800 font-medium leading-relaxed max-w-[50rem]">
                 {tile.subtitle}
               </p>
             </div>
 
             {tile.bullets?.length > 0 && (
-              <ul className="space-y-2 text-xs sm:text-sm text-slate-800 max-h-[36vh] overflow-y-auto pr-1">
+              <ul className="space-y-2 lg:space-y-4 text-xs sm:text-sm lg:text-base text-slate-800 max-h-[36vh] overflow-y-auto pr-1">
                 {tile.bullets.map((bullet) => (
                   <li key={bullet.label} className="flex gap-3">
                     <span
@@ -234,7 +234,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                     <div>
                       <p className="font-bold text-slate-900 font-orbitron">{bullet.label}</p>
                       {bullet.description && (
-                        <p className="text-slate-700 font-medium text-sm leading-snug">
+                        <p className="text-slate-700 font-medium text-sm lg:text-base leading-snug">
                           {bullet.description}
                         </p>
                       )}
