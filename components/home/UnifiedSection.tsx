@@ -100,22 +100,22 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               - justify-start: Stacks items tightly at the top.
               - flex-1 min-h-0 overflow-y-auto: Allows text/bullets to scroll if they get too tall, preserving layout.
           */}
-          <div className="flex flex-col justify-start pt-4 pb-2 px-1 flex-1 min-h-0 overflow-y-auto">
+          <div className="flex flex-col justify-start pt-4 pb-2 px-1 flex-1 min-h-0 overflow-y-auto md:justify-center md:pt-0">
             
             {/* 1. TITLE (Largest Text & BLUE) */}
-            <h2 className="text-3xl sm:text-4xl font-black text-[color:var(--slate360-blue)] font-orbitron tracking-tight leading-none mb-1 drop-shadow-sm shrink-0">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[color:var(--slate360-blue)] font-orbitron tracking-tight leading-none mb-1 drop-shadow-sm shrink-0">
               {tile.title}
             </h2>
 
             {/* 2. SUB-HEADLINE (Eyebrow repurposed) */}
             {tile.eyebrow && (
-              <p className="text-lg sm:text-xl font-bold text-slate-900 font-orbitron leading-tight mb-2 shrink-0">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 font-orbitron leading-tight mb-2 md:mb-4 shrink-0">
                 {tile.eyebrow}
               </p>
             )}
 
             {/* 3. SUBTITLE (Description) */}
-            <p className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed mb-3 shrink-0">
+            <p className="text-xs sm:text-sm md:text-lg text-slate-800 font-medium leading-relaxed mb-3 md:mb-6 shrink-0">
               {tile.subtitle}
             </p>
 
@@ -124,14 +124,14 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 - Landscape: Hidden (uses horizontal scroller below).
             */}
             {tile.bullets?.length > 0 && (
-              <ul className="space-y-2 mb-2 landscape:hidden">
+              <ul className="space-y-2 md:space-y-3 mb-2 landscape:hidden">
                 {tile.bullets.map((bullet) => (
                   <li
                     key={bullet.label}
-                    className="flex items-start gap-2.5 rounded-lg bg-white/60 backdrop-blur-sm border border-slate-200/50 px-3 py-1.5 shadow-sm"
+                    className="flex items-start gap-2.5 rounded-lg bg-white/60 backdrop-blur-sm border border-slate-200/50 px-3 py-1.5 md:px-4 md:py-2.5 shadow-sm"
                   >
-                    <span className="mt-1.5 inline-flex h-1.5 w-1.5 rounded-full bg-[color:var(--slate360-blue)] shrink-0" />
-                    <p className="font-bold text-slate-900 font-orbitron text-xs">
+                    <span className="mt-1.5 inline-flex h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-[color:var(--slate360-blue)] shrink-0" />
+                    <p className="font-bold text-slate-900 font-orbitron text-xs md:text-base">
                       {bullet.label}
                     </p>
                   </li>
