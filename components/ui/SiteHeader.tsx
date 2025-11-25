@@ -56,21 +56,16 @@ export default function SiteHeader() {
 
   return (
     <>
-      {/* Fixed header with dark ribbon so the logo sits on a clean, high-contrast band. */}
-      {/* Removed site-header class to avoid conflicts. Added explicit Tailwind styles for background and blur. */}
-      {/* Changed to dark charcoal with subtle bottom border and shadow for "pop" */}
-      <header className="fixed top-0 z-[100] w-full border-b border-slate-900/10 bg-white/95 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.05)] transition-all duration-300 bg-[linear-gradient(to_right,rgba(255,255,255,0.9),rgba(248,250,252,0.9))]">
+      {/* Fixed header in Slate360 charcoal (363434) with subtle copper/blue accents. */}
+      <header className="fixed top-0 z-[100] w-full border-b border-[#929292]/40 bg-[#363434]/98 backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.45)] transition-all duration-300">
         <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 landscape:py-1 lg:py-2 lg:pl-8 lg:pr-8">
-          {/* LOGO: slightly larger with a subtle halo so it never feels muted. */}
-          {/* LOGO: closer to left edge */}
+          {/* LOGO: larger with a soft blue/copper glow to make it pop. */}
           <Link
             href={anchorFor("slate360")}
-            className="flex items-center gap-3 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-theme rounded-md"
+            className="group flex items-center gap-3 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F89D4] rounded-md"
             onClick={closeMenus}
           >
-            {/* Adjusted negative margin to pull logo further left on mobile/tablet */}
-            {/* Added drop-shadow to make logo pop against the dark header */}
-            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300 drop-shadow-sm">
+            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300 drop-shadow-[0_0_18px_rgba(79,137,212,0.55)] group-hover:drop-shadow-[0_0_26px_rgba(179,112,49,0.7)]">
               <Image
                 src="/assets/slate360logoforwebsite.png"
                 alt="Slate360 logo"
@@ -81,26 +76,26 @@ export default function SiteHeader() {
             </div>
           </Link>
 
-          {/* DESKTOP NAV: pushed all the way to the right */}
-          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-slate-900 lg:flex">
+          {/* DESKTOP NAV: right-aligned, high-contrast on charcoal header */}
+          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-slate-100 lg:flex">
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-full border border-brand-blue/50 bg-brand-blue/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-brand-blue transition-all hover:text-brand-copper hover:border-brand-copper hover:bg-brand-copper/10 hover:shadow-[0_0_15px_rgba(179,112,49,0.4)] landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron"
+                className="inline-flex items-center gap-1 rounded-full border border-[#4F89D4]/70 bg-[#4F89D4]/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#E5F0FF] transition-all hover:text-[#FFF5EC] hover:border-[#B37031] hover:bg-[#B37031]/25 hover:shadow-[0_0_22px_rgba(179,112,49,0.7)] landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron"
               >
                 <span>Features</span>
                 <span className="text-xs">▾</span>
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-white border border-slate-900/10 shadow-xl backdrop-blur-xl py-2">
+                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-[#1F1F1F]/98 border border-[#4F89D4]/20 shadow-xl backdrop-blur-xl py-2">
                   <div className="max-h-[60vh] overflow-y-auto space-y-0.5 px-2">
                     {NAV_LINKS.map((item) => (
                       <Link
                         key={item.id}
                         href={anchorFor(item.id)}
                         onClick={closeMenus}
-                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-900 hover:bg-brand-copper/15 hover:text-brand-copper transition-colors duration-150 font-orbitron"
+                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[#4F89D4]/15 hover:text-[#4F89D4] transition-colors duration-150 font-orbitron"
                       >
                         {item.label}
                       </Link>
@@ -111,18 +106,18 @@ export default function SiteHeader() {
             </div>
 
                         <nav className="hidden md:flex items-center gap-8">
-              {/* Updated Desktop Nav: Light text on dark background */}
+              {/* Desktop Nav: off-white text on charcoal, blue underline/copper hover */}
               {["Plans & Pricing", "About"].map((label) => (
                 <Link 
                   key={label} 
                   href={label === "Plans & Pricing" ? "/subscribe" : `/${label.toLowerCase()}`} 
-                  className="group relative text-xs font-bold uppercase tracking-widest text-slate-900 transition-all duration-300 hover:text-brand-blue font-orbitron"
+                  className="group relative text-xs font-bold uppercase tracking-widest text-slate-100 transition-all duration-300 hover:text-[#4F89D4] font-orbitron"
                 >
                   {label}
-                  <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-brand-blue via-[#8CC5FF] to-brand-blue transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                  <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-[#4F89D4] via-[#8CC5FF] to-[#B37031] transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
-              <Link href="/login" className="ml-4 rounded-full border border-slate-900/30 bg-slate-900/5 px-6 py-2 text-xs font-bold uppercase tracking-widest text-slate-900 transition-all hover:text-brand-blue hover:border-brand-blue hover:bg-brand-blue/10 font-orbitron">
+              <Link href="/login" className="ml-4 rounded-full border border-[#4F89D4]/70 bg-[#4F89D4]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#E5F0FF] transition-all hover:text-[#FFF5EC] hover:border-[#B37031] hover:bg-[#B37031]/20 font-orbitron shadow-[0_0_18px_rgba(79,137,212,0.55)]">
                 Login
               </Link>
             </nav>
@@ -133,14 +128,14 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
-              className="group inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-900/20 bg-white/50 shadow-sm transition-all hover:border-brand-copper hover:bg-brand-copper/10"
+              className="group inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#929292]/40 bg-[#363434] shadow-sm transition-all hover:border-[#B37031] hover:bg-[#4F89D4]/20"
               aria-label="Toggle navigation menu"
             >
               <span className="sr-only">Toggle menu</span>
               <div className="flex flex-col gap-1.5">
-                <span className="block h-0.5 w-5 rounded bg-slate-900 group-hover:bg-brand-copper transition-colors" />
-                <span className="block h-0.5 w-5 rounded bg-slate-900 group-hover:bg-brand-copper transition-colors" />
-                <span className="block h-0.5 w-5 rounded bg-slate-900 group-hover:bg-brand-copper transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-[#B37031] transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-[#B37031] transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-[#B37031] transition-colors" />
               </div>
             </button>
           </div>
@@ -154,7 +149,7 @@ export default function SiteHeader() {
           {/* Backdrop - Full screen button to capture clicks */}
           <button
             type="button"
-            className="absolute inset-0 h-full w-full bg-black/60 backdrop-blur-sm cursor-pointer border-none outline-none"
+            className="absolute inset-0 h-full w-full bg-black/70 backdrop-blur-sm cursor-pointer border-none outline-none"
             onClick={() => setMobileOpen(false)}
             onTouchEnd={() => setMobileOpen(false)}
             aria-label="Close menu"
@@ -162,12 +157,12 @@ export default function SiteHeader() {
           
           {/* Menu Panel - Sits on top of backdrop */}
           <div 
-            className="relative z-10 flex flex-col border-b border-slate-900/10 bg-white/95 p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
+            className="relative z-10 flex flex-col border-b border-[#929292]/40 bg-[#363434]/98 p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
                         <div className="flex items-center justify-between mb-6">
               {/* Added Logo to Menu Header */}
-              <div className="relative h-10 w-32 -ml-2">
+              <div className="relative h-10 w-32 -ml-2 drop-shadow-[0_0_14px_rgba(79,137,212,0.7)]">
                 <Image
                   src="/assets/slate360logoforwebsite.png"
                   alt="Slate360 logo"
@@ -179,7 +174,7 @@ export default function SiteHeader() {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white"
+                className="rounded-full p-2 text-slate-300 hover:bg-white/10 hover:text-white"
               >
                 <span className="sr-only">Close menu</span>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -194,7 +189,7 @@ export default function SiteHeader() {
                   <Link 
                     href="/login" 
                     onClick={() => setMobileOpen(false)}
-                    className="inline-block w-fit rounded-full border border-brand-blue/50 bg-brand-blue/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-brand-blue hover:bg-brand-copper/10 hover:text-brand-copper hover:border-brand-copper font-orbitron"
+                    className="inline-block w-fit rounded-full border border-[#4F89D4]/70 bg-[#4F89D4]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#E5F0FF] hover:bg-[#B37031]/20 hover:text-[#FFF5EC] hover:border-[#B37031] font-orbitron"
                   >
                     Login
                   </Link>
@@ -204,21 +199,21 @@ export default function SiteHeader() {
                   <Link
                     href="/subscribe"
                     onClick={() => setMobileOpen(false)}
-                    className="text-lg font-bold text-slate-900 hover:text-brand-blue font-orbitron"
+                    className="text-lg font-bold text-slate-100 hover:text-[#4F89D4] font-orbitron"
                   >
                     Plans & Pricing
                   </Link>
                   <Link
                     href="/about"
                     onClick={() => setMobileOpen(false)}
-                    className="text-lg font-bold text-slate-900 hover:text-brand-blue font-orbitron"
+                    className="text-lg font-bold text-slate-100 hover:text-[#4F89D4] font-orbitron"
                   >
                     About
                   </Link>
                   <Link
                     href="/contact"
                     onClick={() => setMobileOpen(false)}
-                    className="text-lg font-bold text-slate-900 hover:text-brand-blue font-orbitron"
+                    className="text-lg font-bold text-slate-100 hover:text-[#4F89D4] font-orbitron"
                   >
                     Contact
                   </Link>
@@ -226,14 +221,14 @@ export default function SiteHeader() {
                   <div className="h-px w-full bg-slate-100 my-2" />
                   
                   {/* Features Grid - Condensed */}
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-500 font-orbitron mb-2">Features</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#929292] font-orbitron mb-2">Features</p>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                     {NAV_LINKS.map((item) => (
                       <Link
                         key={item.id}
                         href={anchorFor(item.id)}
                         onClick={setMobileOpen.bind(null, false)}
-                        className="text-sm font-bold text-slate-700 hover:text-brand-blue font-orbitron truncate"
+                        className="text-sm font-bold text-slate-100 hover:text-[#4F89D4] font-orbitron truncate"
                       >
                         {item.label}
                       </Link>
