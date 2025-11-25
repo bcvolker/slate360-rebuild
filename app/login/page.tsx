@@ -1,7 +1,7 @@
 export default function LoginPage(){
   return (
-    <main className="min-h-screen bg-concrete text-slate-900 flex items-center justify-center pt-24 pb-16 px-4">
-      <div className="w-full max-w-md mx-auto bg-[#F0F4F8] border border-[color:var(--slate360-blue)]/20 rounded-3xl shadow-[0_18px_45px_rgba(15,23,42,0.12)] p-8">
+    <main className="min-h-screen bg-blueprint-dark text-slate-900 flex items-center justify-center pt-24 pb-16 px-4">
+      <div className="w-full max-w-md mx-auto bg-white border border-[color:var(--slate360-blue)]/20 rounded-3xl shadow-[0_18px_45px_rgba(15,23,42,0.12)] p-8">
         <h1 className="text-2xl sm:text-3xl font-orbitron font-semibold text-slate-900 mb-4 text-center">
           Welcome Back
         </h1>

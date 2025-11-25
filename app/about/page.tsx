@@ -3,9 +3,9 @@ import Footer from "@/components/ui/Footer";
 export default function AboutPage(){
   return (
     <>
-      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-concrete">
+      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-blueprint-dark">
         <div className="mx-auto max-w-6xl">
-          <section className="relative overflow-hidden rounded-3xl border border-[color:var(--slate360-blue)]/20 bg-[#F0F4F8] shadow-[0_26px_80px_rgba(15,23,42,0.55)] px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+          <section className="relative overflow-hidden rounded-3xl border border-[color:var(--slate360-blue)]/20 bg-white shadow-[0_26px_80px_rgba(15,23,42,0.55)] px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             
             <div className="relative z-10 flex flex-col gap-10">
               <header className="max-w-3xl">
