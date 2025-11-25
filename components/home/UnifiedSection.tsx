@@ -78,7 +78,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 pt-20 pb-8 lg:pt-24 lg:pb-10 flex flex-col gap-6 md:gap-8 flex-1">
         
           {/* --- MOBILE/TABLET LAYOUT --- */}
-          <div className="lg:hidden flex flex-col w-full h-full gap-4">
+          <div className="lg:hidden flex flex-col w-full h-full gap-4 justify-between">
             {/* Top: Text Content */}
             <div className="flex flex-col justify-start space-y-2 shrink-0">
                 {tile.eyebrow && (
@@ -97,8 +97,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
            </div>
 
             {/* Middle: Horizontal Scroll for Bullets on Mobile (no snap) */}
-            {tile.bullets?.length > 0 && (
-              <div className="w-full overflow-x-auto pb-1 pt-1 hide-scrollbar flex-[0.35] min-h-[110px]">
+              {tile.bullets?.length > 0 && (
+                <div className="w-full overflow-x-auto pb-1 pt-1 hide-scrollbar flex-[0.4] min-h-[120px]">
                 <ul className="flex gap-4 w-max px-1">
                   {tile.bullets.map((bullet) => (
                     <li 
@@ -142,7 +142,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
 
         {/* --- DESKTOP LAYOUT --- */}
         <div className="hidden lg:grid items-center gap-12 lg:gap-24 lg:grid-cols-2 h-full">
-          <div className={`order-1 ${textColumnOrder} space-y-8`}>
+          <div className={`order-1 ${textColumnOrder} space-y-8 self-center`}>
             {tile.eyebrow && (
               <p className="text-[11px] font-bold uppercase tracking-[0.35em] font-orbitron" style={{ color: accent }}>
                 {tile.eyebrow}
@@ -176,7 +176,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
             {renderCtas(false)}
           </div>
 
-          <div className={`order-2 ${viewerColumnOrder} flex justify-center w-full`}>
+          <div className={`order-2 ${viewerColumnOrder} flex justify-center w-full self-center`}>
             <div className="tile-viewer-surface w-full max-w-[640px] aspect-[16/10] flex flex-col items-center justify-center p-6 landscape:p-4 lg:p-8 transition-all duration-300 hover:shadow-[0_0_0_1px_rgba(79,137,212,0.2),0_15px_40px_rgba(79,137,212,0.25),0_5px_15px_rgba(0,0,0,0.12)]">
               <span className="text-4xl mb-2 landscape:text-2xl landscape:mb-1" style={{ color: accent }}>▶</span>
               <h3 className="text-xl font-semibold text-white text-center landscape:text-lg font-orbitron">{viewerTitle}</h3>
