@@ -56,16 +56,16 @@ export default function SiteHeader() {
 
   return (
     <>
-      {/* Fixed header: Slate360 charcoal with a vertical gradient; effects stay under logo/nav. */}
-      <header className="fixed top-0 z-[100] w-full border-b border-[color:var(--slate360-grey)]/40 bg-[color:var(--slate360-charcoal)] bg-[linear-gradient(to_bottom,#1f1d1d,#363434,#454141)]">
+      {/* Fixed header: Slate360 charcoal with a subtle vertical gradient; effects stay under logo/nav. */}
+      <header className="fixed top-0 z-[100] w-full border-b border-[color:var(--slate360-grey)]/40 bg-[color:var(--slate360-charcoal)] bg-[linear-gradient(to_bottom,#181717,#363434,#3f3b3b)]">
         {/* Background effects live behind content so the logo stays clean */}
         <div
-          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(79,137,212,0.28)_0%,transparent_60%)] opacity-70 mix-blend-screen"
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(79,137,212,0.18)_0%,transparent_65%)] opacity-60 mix-blend-screen"
           aria-hidden
         />
-        {/* Thin copper/blue glow strip under the header bottom for extra pop */}
+        {/* Thin blue glow strip under the header bottom for extra pop */}
         <div
-          className="pointer-events-none absolute bottom-0 left-0 right-0 z-0 h-[2px] bg-[radial-gradient(circle_at_center,rgba(79,137,212,0.6)_0%,transparent_65%)]"
+          className="pointer-events-none absolute bottom-0 left-0 right-0 z-0 h-[2px] bg-[radial-gradient(circle_at_center,rgba(79,137,212,0.45)_0%,transparent_70%)]"
           aria-hidden
         />
 
@@ -117,15 +117,15 @@ export default function SiteHeader() {
             </div>
 
                         <nav className="hidden md:flex items-center gap-8">
-              {/* Desktop Nav: off-white text on charcoal, blue underline/copper hover */}
+              {/* Desktop Nav: bright text on charcoal, pure blue hover */}
                 {["Plans & Pricing", "About"].map((label) => (
                 <Link 
                   key={label} 
                   href={label === "Plans & Pricing" ? "/subscribe" : `/${label.toLowerCase()}`} 
-                      className="group relative text-xs font-bold uppercase tracking-widest text-slate-100 transition-all duration-300 hover:text-[color:var(--slate360-blue)] font-orbitron"
+                      className="group relative text-xs font-bold uppercase tracking-widest text-slate-100 transition-all duration-300 hover:text-[color:var(--slate360-blue)] font-orbitron drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]"
                 >
                   {label}
-                    <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-[color:var(--slate360-blue)] via-[#8CC5FF] to-[color:var(--slate360-copper)] transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                    <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[color:var(--slate360-blue)] transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
                 <Link href="/login" className="ml-4 rounded-full border border-[color:var(--slate360-blue)]/70 bg-[color:var(--slate360-blue)]/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#E5F0FF] transition-all hover:text-[#FFF5EC] hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/30 font-orbitron shadow-[0_0_18px_rgba(79,137,212,0.65)]">
@@ -260,8 +260,8 @@ export default function SiteHeader() {
             onClick={() => setMenuOpen(false)}
             className={`text-[9px] lg:text-[10px] font-orbitron tracking-wider transition-colors duration-300 ${
               activeId === item.id
-                ? "text-brand-blue font-bold"
-                : "text-slate-500 font-medium hover:text-brand-blue"
+                ? "text-[color:var(--slate360-blue)] font-bold"
+                : "text-[color:var(--slate360-charcoal)] font-semibold hover:text-[color:var(--slate360-blue)]"
             }`}
           >
             {item.label}

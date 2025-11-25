@@ -29,9 +29,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const viewerSubtitle = tile.viewer?.subtitle ?? "Interactive content arrives shortly.";
 
   // Tile backgrounds:
-  // First tile (index 0): blueprint paper (off-white with grey grid).
-  // Other even tiles (2, 4, ...): blueprint blue.
-  // Odd tiles (1, 3, 5): concrete grey.
+  // First tile (index 0): blueprint paper (white with grey grid + blue wash).
+  // Other even tiles (2, 4, ...): blueprint paper.
+  // Odd tiles (1, 3, 5): concrete grey blueprint.
   const isFirstTile = index === 0;
   const isAlternate = index % 2 === 0;
 
@@ -74,7 +74,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       className={`relative w-full flex flex-col ${
         isFirstTile ? "min-h-[100dvh]" : "min-h-[calc(100dvh-80px)]"
       } pt-20 pb-8 ${snapEnabled ? "lg:snap-start" : ""} ${
-        isFirstTile ? "bg-blueprint-paper" : isAlternate ? "bg-blueprint" : "bg-concrete"
+        // Apply blueprint-paper to all even tiles, concrete blueprint to odds
+        isFirstTile || isAlternate ? "bg-blueprint-paper" : "bg-concrete"
       }`}
       style={sectionStyle}
     >
