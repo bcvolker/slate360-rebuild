@@ -73,7 +73,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       // any bottom sliver, while inner content height/alignment stay the same.
       className={`relative w-full flex flex-col ${
         isFirstTile ? "min-h-[100dvh]" : "min-h-[calc(100dvh-80px)]"
-      } pt-20 pb-8 ${snapEnabled ? "lg:snap-start" : ""} ${
+      } pt-20 pb-10 ${snapEnabled ? "lg:snap-start" : ""} ${
         // Apply blueprint-paper to all even tiles, concrete blueprint to odds
         isFirstTile || isAlternate ? "bg-blueprint-paper" : "bg-concrete"
       }`}
@@ -84,29 +84,29 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-[calc(100dvh-80px)] justify-center gap-6 md:gap-10 pt-4 pb-4">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-[calc(100dvh-80px)] justify-center gap-4 md:gap-8 pt-6 pb-6">
 
           {/* --- MOBILE/TABLET LAYOUT --- */}
-          <div className="lg:hidden flex flex-col w-full h-full justify-between gap-5 md:gap-7">
+          <div className="lg:hidden flex flex-col w-full h-full justify-between gap-4 md:gap-6">
             {/* 1. Top: Eyebrow, Title, Rich description, key features (vertical) */}
-            <div className="flex flex-col gap-3 pt-1">
+            <div className="flex flex-col gap-2 pt-2">
               {tile.eyebrow && (
-                <p className="text-[11px] font-bold uppercase tracking-[0.35em] font-orbitron text-[color:var(--slate360-blue)]">
+                <p className="text-[12px] font-bold uppercase tracking-[0.35em] font-orbitron text-[color:var(--slate360-blue)]">
                   {tile.eyebrow}
                 </p>
               )}
-              <div className="space-y-2">
-                <h2 className="text-[26px] sm:text-[30px] font-black text-slate-900 font-orbitron tracking-tight leading-snug drop-shadow-sm">
+              <div className="space-y-1.5">
+                <h2 className="text-[30px] sm:text-[34px] font-black text-slate-900 font-orbitron tracking-tight leading-tight drop-shadow-sm">
                   {tile.title}
                 </h2>
-                <p className="text-[14px] sm:text-[15px] text-slate-900/90 font-semibold leading-relaxed">
+                <p className="text-[13px] sm:text-[14px] text-slate-900/85 font-medium leading-relaxed">
                   {tile.subtitle}
                 </p>
               </div>
 
               {tile.bullets?.length > 0 && (
-                <ul className="mt-2 space-y-2">
-                  {tile.bullets.map((bullet) => (
+                <ul className="mt-2 space-y-1.5 max-h-[40vh] overflow-y-auto pr-1">
+                  {tile.bullets.slice(0, 2).map((bullet) => (
                     <li
                       key={bullet.label}
                       className="flex items-start gap-3 rounded-xl bg-white/80 backdrop-blur-sm border border-slate-200/80 px-3 py-2 shadow-sm"
@@ -155,7 +155,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
             )}
 
             {/* 3. Bottom: Viewer (medium) + compact CTAs */}
-            <div className="w-full flex flex-col gap-4 pb-1">
+            <div className="w-full flex flex-col gap-3 pb-2 pt-1">
               <div className="w-full aspect-video rounded-2xl overflow-hidden relative border border-slate-900/10 bg-slate-900/90">
                 <button
                   type="button"
@@ -178,24 +178,24 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         </div>
 
         {/* --- DESKTOP LAYOUT --- */}
-        <div className="hidden lg:grid items-center gap-10 lg:gap-20 lg:grid-cols-2 h-full">
-          <div className={`order-1 ${textColumnOrder} space-y-8 self-center`}>
+        <div className="hidden lg:grid items-center gap-8 lg:gap-16 lg:grid-cols-2 h-full">
+          <div className={`order-1 ${textColumnOrder} space-y-6 self-center`}>
             {tile.eyebrow && (
               <p className="text-xs sm:text-sm font-bold uppercase tracking-[0.35em] font-orbitron text-[color:var(--slate360-blue)]">
                 {tile.eyebrow}
               </p>
             )}
             <div className="space-y-4">
-              <h2 className="text-[32px] sm:text-[38px] font-black text-slate-900 font-orbitron tracking-tight drop-shadow-sm">
+              <h2 className="text-[40px] sm:text-[44px] font-black text-slate-900 font-orbitron tracking-tight leading-tight drop-shadow-sm">
                 {tile.title}
               </h2>
-              <p className="text-base sm:text-lg text-slate-800 font-medium leading-relaxed">
+              <p className="text-sm sm:text-base text-slate-800 font-medium leading-relaxed max-w-[50rem]">
                 {tile.subtitle}
               </p>
             </div>
 
             {tile.bullets?.length > 0 && (
-              <ul className="space-y-3 text-sm sm:text-base text-slate-800">
+              <ul className="space-y-2.5 text-xs sm:text-sm text-slate-800 max-h-[40vh] overflow-y-auto pr-1">
                 {tile.bullets.map((bullet) => (
                   <li key={bullet.label} className="flex gap-3">
                     <span className="mt-1 inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: accent }} />
