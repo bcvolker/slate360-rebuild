@@ -56,16 +56,26 @@ export default function SiteHeader() {
 
   return (
     <>
-      {/* Fixed header in Slate360 charcoal (363434) with subtle copper/blue accents. */}
-      <header className="fixed top-0 z-[100] w-full border-b border-[#929292]/40 bg-[#363434]/98 backdrop-blur-md shadow-[0_6px_30px_rgba(0,0,0,0.45)] transition-all duration-300">
+      {/* Fixed header: solid Slate360 charcoal with underlay effects; logo sits above. */}
+      <header className="fixed top-0 z-[100] w-full border-b border-[color:var(--slate360-grey)]/40 bg-[color:var(--slate360-charcoal)]">
+        {/* Background effects live behind content so the logo stays clean */}
+        <div
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(79,137,212,0.45)_0%,transparent_55%)] opacity-70"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.55),rgba(0,0,0,0.9))] mix-blend-multiply opacity-70"
+          aria-hidden
+        />
+
         <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 landscape:py-1 lg:py-2 lg:pl-8 lg:pr-8">
-          {/* LOGO: larger with a soft blue/copper glow to make it pop. */}
+          {/* LOGO: bright with its own glow, always above header effects. */}
           <Link
             href={anchorFor("slate360")}
-            className="group flex items-center gap-3 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F89D4] rounded-md"
+            className="group flex items-center gap-3 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--slate360-blue)] rounded-md"
             onClick={closeMenus}
           >
-            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300 drop-shadow-[0_0_18px_rgba(79,137,212,0.55)] group-hover:drop-shadow-[0_0_26px_rgba(179,112,49,0.7)]">
+            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300 drop-shadow-[0_0_22px_rgba(79,137,212,0.9)] group-hover:drop-shadow-[0_0_30px_rgba(255,255,255,0.85)]">
               <Image
                 src="/assets/slate360logoforwebsite.png"
                 alt="Slate360 logo"
@@ -82,20 +92,20 @@ export default function SiteHeader() {
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-full border border-[#4F89D4]/70 bg-[#4F89D4]/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#E5F0FF] transition-all hover:text-[#FFF5EC] hover:border-[#B37031] hover:bg-[#B37031]/25 hover:shadow-[0_0_22px_rgba(179,112,49,0.7)] landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron"
+                className="inline-flex items-center gap-1 rounded-full border border-[color:var(--slate360-blue)]/70 bg-[color:var(--slate360-blue)]/20 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#E5F0FF] transition-all hover:text-[#FFF5EC] hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/30 hover:shadow-[0_0_22px_rgba(179,112,49,0.7)] landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron"
               >
                 <span>Features</span>
                 <span className="text-xs">▾</span>
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-[#1F1F1F]/98 border border-[#4F89D4]/20 shadow-xl backdrop-blur-xl py-2">
+                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-[#1F1F1F]/98 border border-[color:var(--slate360-blue)]/25 shadow-xl backdrop-blur-xl py-2">
                   <div className="max-h-[60vh] overflow-y-auto space-y-0.5 px-2">
                     {NAV_LINKS.map((item) => (
                       <Link
                         key={item.id}
                         href={anchorFor(item.id)}
                         onClick={closeMenus}
-                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[#4F89D4]/15 hover:text-[#4F89D4] transition-colors duration-150 font-orbitron"
+                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[color:var(--slate360-blue)]/20 hover:text-[color:var(--slate360-blue)] transition-colors duration-150 font-orbitron"
                       >
                         {item.label}
                       </Link>
@@ -107,17 +117,17 @@ export default function SiteHeader() {
 
                         <nav className="hidden md:flex items-center gap-8">
               {/* Desktop Nav: off-white text on charcoal, blue underline/copper hover */}
-              {["Plans & Pricing", "About"].map((label) => (
+                {["Plans & Pricing", "About"].map((label) => (
                 <Link 
                   key={label} 
                   href={label === "Plans & Pricing" ? "/subscribe" : `/${label.toLowerCase()}`} 
-                  className="group relative text-xs font-bold uppercase tracking-widest text-slate-100 transition-all duration-300 hover:text-[#4F89D4] font-orbitron"
+                      className="group relative text-xs font-bold uppercase tracking-widest text-slate-100 transition-all duration-300 hover:text-[color:var(--slate360-blue)] font-orbitron"
                 >
                   {label}
-                  <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-[#4F89D4] via-[#8CC5FF] to-[#B37031] transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                    <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-gradient-to-r from-[color:var(--slate360-blue)] via-[#8CC5FF] to-[color:var(--slate360-copper)] transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
-              <Link href="/login" className="ml-4 rounded-full border border-[#4F89D4]/70 bg-[#4F89D4]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#E5F0FF] transition-all hover:text-[#FFF5EC] hover:border-[#B37031] hover:bg-[#B37031]/20 font-orbitron shadow-[0_0_18px_rgba(79,137,212,0.55)]">
+                <Link href="/login" className="ml-4 rounded-full border border-[color:var(--slate360-blue)]/70 bg-[color:var(--slate360-blue)]/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#E5F0FF] transition-all hover:text-[#FFF5EC] hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/30 font-orbitron shadow-[0_0_18px_rgba(79,137,212,0.65)]">
                 Login
               </Link>
             </nav>

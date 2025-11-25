@@ -29,6 +29,12 @@ html, body {
 }
 
 :root {
+  /* Slate360 brand tokens */
+  --slate360-blue: #4F89D4;
+  --slate360-copper: #B37031;
+  --slate360-charcoal: #363434;
+  --slate360-grey: #929292;
+
   --viewer-width: clamp(320px, 40vw, 720px);
   --tile-padding: 3rem;
   --navbar-height: 80px;
