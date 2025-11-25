@@ -5,8 +5,8 @@
 
 @layer base {
   html {
-    /* Single global roof so anchors land just below header */
-    scroll-padding-top: 104px;
+    /* Roof matches visual header (~80px) so anchors land cleanly */
+    scroll-padding-top: 80px;
     scroll-snap-type: none;
   }
 

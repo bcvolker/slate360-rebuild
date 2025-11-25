@@ -65,9 +65,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
     <section
       ref={sectionRef}
       id={tile.id}
-      // Full-viewport tile on all devices, with alternating blueprint / concrete backgrounds.
+      // Use dynamic viewport height to avoid mobile browser chrome cutting off content
       // Anchor offset is handled globally via scroll-padding-top on html.
-      className={`relative w-full min-h-[100vh] ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      className={`relative w-full min-h-[100dvh] flex flex-col ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Static decorative background behind each tile */}
@@ -75,10 +75,10 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 pt-[110px] pb-8 lg:pt-[120px] lg:pb-10 flex flex-col min-h-[calc(100vh-104px)] lg:min-h-[calc(100vh-104px)]">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 pt-20 pb-8 lg:pt-24 lg:pb-10 flex flex-col gap-6 md:gap-8 flex-1 justify-center">
         
           {/* --- MOBILE/TABLET LAYOUT --- */}
-          <div className="lg:hidden flex flex-col gap-3 flex-1">
+          <div className="lg:hidden flex flex-col w-full h-full justify-center gap-4">
             {/* Text Content */}
             <div className="flex flex-col justify-start space-y-2">
                 {tile.eyebrow && (
@@ -118,8 +118,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               </div>
             )}
 
-           {/* Viewer + Buttons pinned toward bottom of tile, but less tall to avoid cutoff */}
-           <div className="mt-3 h-[26vh] min-h-[180px] w-full flex gap-3">
+           {/* Viewer + Buttons at bottom without over-constraining height */}
+           <div className="w-full shrink-0 min-h-[220px] flex gap-3">
               {/* Viewer Area - 75% Width */}
               <div className="w-[75%] h-full">
                 <button 
