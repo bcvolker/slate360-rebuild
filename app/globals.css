@@ -223,7 +223,8 @@ body {
 
 .slate360-footer {
   /* Background handled by bg-metallic-footer utility */
-  border-top: 1px solid rgba(255, 255, 255, 0.1); /* Matching metallic border style */
+  /* Removed border-top to fix double bar issue */
+  border-top: none;
 }
 
 .slate360-footer a {
@@ -233,6 +234,11 @@ body {
   color: #FFFFFF; /* White text */
   text-decoration: none;
   transition: color 300ms ease-out, text-shadow 300ms ease-out;
+}
+
+.slate360-footer a:hover {
+  color: #4F89D4; /* Electric Blue */
+  text-shadow: 0 0 12px rgba(79, 137, 212, 0.5); /* Blue Glow */
 }
 
 /* Scroll Snap - Desktop Only */
@@ -296,43 +302,7 @@ body.debug-tiles section[data-snap="tile"]::before {
   color: rgb(var(--color-text-primary));
 }
 
-.slate360-footer {
-  /* Background handled by bg-metallic utility */
-  border-top: 1px solid rgba(79, 137, 212, 0.2);
-  box-shadow: 0 -12px 40px rgba(79, 137, 212, 0.08);
-}
-
-.slate360-footer a {
-  position: relative;
-  display: inline-block;
-  padding-inline: 0.75rem;
-  color: #6BA4E9; /* Brighter Blue */
-  text-decoration: none;
-  transition: color 300ms ease-out, text-shadow 300ms ease-out;
-}
-
-.slate360-footer a::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  height: 2px;
-  background: #B37031; /* Solid Copper */
-  border-radius: 9999px;
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform 300ms ease-out;
-}
-
-.slate360-footer a:hover {
-  color: #B37031; /* Earthy Copper */
-  text-shadow: 0 0 12px rgba(179, 112, 49, 0.5); /* Glow */
-}
-
-.slate360-footer a:hover::after {
-  transform: scaleX(1);
-}
+/* Removed duplicate .slate360-footer definition */
 
 .debug-section-center::before {
   content: "";

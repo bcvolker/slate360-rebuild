@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { siteNavLinks } from "@/lib/config";
 
 const NAV_LINKS = siteNavLinks;
 
 export default function SiteHeader() {
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeId, setActiveId] = useState<string>("slate360");
@@ -83,7 +85,7 @@ export default function SiteHeader() {
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/20 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white transition-all hover:text-[color:var(--slate360-copper)] hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/30 landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron shadow-[0_0_18px_rgba(79,137,212,0.65)] hover:shadow-[0_0_22px_rgba(179,112,49,0.7)]"
+                className="inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/20 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white transition-all hover:text-[#4F89D4] hover:border-[#4F89D4] hover:bg-[#4F89D4]/30 landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron shadow-[0_0_18px_rgba(79,137,212,0.65)] hover:shadow-[0_0_22px_rgba(79,137,212,0.7)]"
               >
                 <span>Features</span>
                 <span className="text-xs">▾</span>
@@ -96,7 +98,7 @@ export default function SiteHeader() {
                         key={item.id}
                         href={anchorFor(item.id)}
                         onClick={closeMenus}
-                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[color:var(--slate360-blue)]/20 hover:text-[color:var(--slate360-blue)] transition-colors duration-150 font-orbitron"
+                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[#4F89D4]/20 hover:text-[#4F89D4] transition-colors duration-150 font-orbitron"
                       >
                         {item.label}
                       </Link>
@@ -112,13 +114,13 @@ export default function SiteHeader() {
                 <Link 
                   key={label} 
                   href={label === "Plans & Pricing" ? "/subscribe" : `/${label.toLowerCase()}`} 
-                      className="group relative text-xs font-bold uppercase tracking-widest text-white transition-all duration-300 hover:text-[color:var(--slate360-copper)] font-orbitron drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]"
+                      className="group relative text-xs font-bold uppercase tracking-widest text-white transition-all duration-300 hover:text-[#4F89D4] font-orbitron drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]"
                 >
                   {label}
-                    <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[color:var(--slate360-copper)] transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                    <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[#4F89D4] transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
-                <Link href="/login" className="ml-4 rounded-full border border-white/70 bg-white/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white transition-all hover:text-[color:var(--slate360-copper)] hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/30 font-orbitron">
+                <Link href="/login" className="ml-4 rounded-full border border-white/70 bg-white/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white transition-all hover:text-[#4F89D4] hover:border-[#4F89D4] hover:bg-[#4F89D4]/30 font-orbitron">
                 Login
               </Link>
             </nav>
@@ -242,22 +244,24 @@ export default function SiteHeader() {
       )}
 
       {/* SECONDARY NAV: Stacked on the right */}
-      <div className="hidden xl:flex flex-col fixed top-[calc(var(--navbar-height)+0.5rem)] right-8 items-end gap-1 z-40">
-        {NAV_LINKS.map((item) => (
-          <Link
-            key={item.id}
-            href={anchorFor(item.id)}
-            onClick={() => setMenuOpen(false)}
-            className={`text-[9px] lg:text-[10px] font-orbitron tracking-wider transition-colors duration-300 ${
-              activeId === item.id
-                ? "text-[color:var(--slate360-blue)] font-bold"
-                : "text-[color:var(--slate360-charcoal)] font-semibold hover:text-[color:var(--slate360-blue)]"
-            }`}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </div>
+      {pathname === "/" && (
+        <div className="hidden xl:flex flex-col fixed top-[calc(var(--navbar-height)+0.5rem)] right-4 items-end gap-2 z-40 backdrop-blur-sm bg-slate-900/40 p-3 rounded-xl border border-white/5">
+          {NAV_LINKS.map((item) => (
+            <Link
+              key={item.id}
+              href={anchorFor(item.id)}
+              onClick={() => setMenuOpen(false)}
+              className={`text-[9px] lg:text-[10px] font-orbitron tracking-wider transition-colors duration-300 ${
+                activeId === item.id
+                  ? "text-[#4F89D4] font-bold"
+                  : "text-slate-200 font-semibold hover:text-[#4F89D4]"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      )}
     </>
   );
 }
