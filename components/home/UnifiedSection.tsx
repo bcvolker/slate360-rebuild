@@ -95,15 +95,14 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                   {tile.eyebrow}
                 </p>
               )}
-              <div className="space-y-1.5">
-                <h2 className="text-[32px] sm:text-[36px] font-black text-slate-900 font-orbitron tracking-tight leading-tight drop-shadow-sm">
-                  {tile.title}
-                </h2>
-                <p className="text-[13px] sm:text-[14px] text-slate-900/85 font-medium leading-relaxed">
+              <div className="space-y-3">
+                <p className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed max-w-[50rem]">
                   {tile.subtitle}
                 </p>
+                <h2 className="text-[36px] sm:text-[40px] font-black text-slate-900 font-orbitron tracking-tight leading-tight drop-shadow-sm">
+                  {tile.title}
+                </h2>
               </div>
-
               {tile.bullets?.length > 0 && (
                 <ul className="mt-2 space-y-1.5 max-h-[32vh] overflow-y-auto pr-1">
                   {tile.bullets.slice(0, 2).map((bullet) => (
@@ -171,7 +170,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 </button>
               </div>
 
-              <div className="w-full grid grid-cols-2 gap-3">
+              <div className="w-full flex flex-row gap-3">
                 {renderCtas(true)}
               </div>
             </div>
