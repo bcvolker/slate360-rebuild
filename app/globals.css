@@ -5,8 +5,8 @@
 
 @layer base {
   html {
-    /* Anchor links should land just below ~88px header band */
-    scroll-padding-top: 88px;
+    /* Single global roof so anchors land just below header */
+    scroll-padding-top: 96px;
     scroll-snap-type: none;
   }
 

@@ -66,16 +66,16 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       ref={sectionRef}
       id={tile.id}
       // Full-viewport tile on all devices, with alternating blueprint / concrete backgrounds.
-      // Desktop keeps snap-start; mobile/tablet scroll naturally.
-      className={`relative w-full min-h-[100vh] scroll-mt-[88px] lg:scroll-mt-[104px] ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      // Anchor offset is handled globally via scroll-padding-top on html.
+      className={`relative w-full min-h-[100vh] ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Static decorative background behind each tile */}
-      <div 
+      <div
         className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 pt-[88px] pb-6 lg:pt-[104px] lg:pb-8 flex flex-col h-[calc(100vh-80px)] lg:h-[calc(100vh-96px)]">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 pt-[96px] pb-8 lg:pt-[112px] lg:pb-10 flex flex-col min-h-[calc(100vh-88px)] lg:min-h-[calc(100vh-96px)]">
         
           {/* --- MOBILE/TABLET LAYOUT --- */}
           <div className="lg:hidden flex flex-col gap-4 flex-1">
@@ -118,8 +118,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               </div>
             )}
 
-           {/* Viewer + Buttons pinned toward bottom of tile, slightly taller */}
-           <div className="mt-auto h-[34vh] min-h-[210px] w-full flex gap-3">
+           {/* Viewer + Buttons pinned toward bottom of tile */}
+           <div className="mt-auto h-[32vh] min-h-[200px] w-full flex gap-3">
               {/* Viewer Area - 75% Width */}
               <div className="w-[75%] h-full">
                 <button 
