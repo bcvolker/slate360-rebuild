@@ -90,7 +90,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       
       {/* INNER CONTAINER */}
       {/* FIX 2: SPACING - Removed inner pt-6, changed justify-center to justify-start for mobile compactness */}
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-[calc(100dvh-80px)] justify-start lg:justify-center gap-0 md:gap-8">
+      {/* FIX 3: LANDSCAPE SCROLLING - Added landscape:h-auto to allow full page scrolling on short screens, restored fixed height for lg */}
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-[calc(100dvh-80px)] landscape:h-auto lg:h-[calc(100dvh-80px)] justify-start lg:justify-center gap-0 md:gap-8">
         
         {/* --- MOBILE/TABLET LAYOUT (REWRITTEN) --- */}
         <div className="lg:hidden w-full h-full flex flex-col">
