@@ -32,6 +32,24 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const isFirstTile = index === 0;
   const isAlternate = index % 2 === 0;
 
+  // --- THEME LOGIC ---
+  // Theme A: Blueprint (Blue Background) -> isAlternate (Even index)
+  // Theme B: Graphite (Grey Background) -> !isAlternate (Odd index)
+  
+  const themeClass = isAlternate ? "bg-blueprint-theme" : "bg-graphite-theme";
+  
+  // Glass Card Classes
+  const glassCardClass = isAlternate
+    ? "backdrop-blur-md bg-white/10 rounded-2xl border border-white/10 p-6 md:p-8" // Blue Theme: White Glass
+    : "backdrop-blur-md bg-white/60 rounded-2xl border border-slate-900/5 p-6 md:p-8"; // Grey Theme: Frosted Glass
+
+  // Text Colors
+  const titleColor = isAlternate ? "text-white" : "text-slate-900";
+  const eyebrowColor = isAlternate ? "text-blue-200" : "text-blue-600";
+  const textColor = isAlternate ? "text-slate-200" : "text-slate-800";
+  const bulletColor = isAlternate ? "text-white" : "text-slate-900";
+  const bulletBg = isAlternate ? "bg-white/10 border-white/20" : "bg-white/60 border-slate-200/50";
+
   const textColumnOrder = layoutAlign === "left" ? "lg:order-2" : "lg:order-1";
   const viewerColumnOrder = layoutAlign === "left" ? "lg:order-1" : "lg:order-2";
 
@@ -80,7 +98,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       data-snap="tile"
       className={`relative w-full flex flex-col min-h-[100dvh] pt-20 pb-4 lg:pt-24 lg:pb-10 ${
         snapEnabled ? "lg:snap-start" : ""
-      } ${isFirstTile || isAlternate ? "bg-blueprint-paper" : "bg-concrete"}`}
+      } ${themeClass}`}
       style={sectionStyle}
     >
       <div
@@ -102,22 +120,22 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               - flex-1 min-h-0 overflow-y-auto: Allows text/bullets to scroll if they get too tall on mobile.
               - md:overflow-hidden: On tablet, we lock the main container and scroll just the list.
           */}
-          <div className="flex flex-col justify-start pt-4 pb-2 px-1 flex-1 min-h-0 overflow-y-auto md:overflow-hidden md:justify-center md:pt-0">
+          <div className={`flex flex-col justify-start pt-4 pb-2 px-1 flex-1 min-h-0 overflow-y-auto md:overflow-hidden md:justify-center md:pt-0 ${glassCardClass} mb-4`}>
             
             {/* 1. TITLE (Largest Text & BLUE) - Increased mobile sizes */}
-            <h2 className="text-4xl sm:text-5xl md:text-5xl font-black text-[color:var(--slate360-blue)] font-orbitron tracking-tight leading-none mb-2 drop-shadow-sm shrink-0">
+            <h2 className={`text-3xl sm:text-4xl md:text-5xl font-black ${titleColor} font-orbitron tracking-tight leading-none mb-2 drop-shadow-sm shrink-0`}>
               {tile.title}
             </h2>
 
             {/* 2. SUB-HEADLINE (Eyebrow repurposed) - Increased mobile sizes */}
             {tile.eyebrow && (
-              <p className="text-xl sm:text-2xl md:text-2xl font-bold text-slate-900 font-orbitron leading-tight mb-3 md:mb-4 shrink-0">
+              <p className={`text-lg sm:text-xl md:text-2xl font-bold ${eyebrowColor} font-orbitron leading-tight mb-3 md:mb-4 shrink-0`}>
                 {tile.eyebrow}
               </p>
             )}
 
             {/* 3. SUBTITLE (Description) - Increased mobile sizes */}
-            <p className="text-sm sm:text-base md:text-lg text-slate-800 font-medium leading-relaxed mb-4 md:mb-6 shrink-0">
+            <p className={`text-sm sm:text-base md:text-lg ${textColor} font-medium leading-relaxed mb-4 md:mb-6 shrink-0`}>
               {tile.subtitle}
             </p>
 
@@ -131,10 +149,10 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 {tile.bullets.map((bullet) => (
                   <li
                     key={bullet.label}
-                    className="flex items-start gap-2.5 rounded-lg bg-white/60 backdrop-blur-sm border border-slate-200/50 px-3 py-2 md:px-4 md:py-2.5 shadow-sm"
+                    className={`flex items-start gap-2.5 rounded-lg ${bulletBg} backdrop-blur-sm border px-3 py-2 md:px-4 md:py-2.5 shadow-sm`}
                   >
                     <span className="mt-1.5 inline-flex h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-[color:var(--slate360-copper)] shrink-0" />
-                    <p className="font-bold text-slate-900 font-orbitron text-sm md:text-base">
+                    <p className={`font-bold ${bulletColor} font-orbitron text-sm md:text-base`}>
                       {bullet.label}
                     </p>
                   </li>
@@ -155,13 +173,13 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                   {tile.bullets.map((bullet) => (
                     <li
                       key={`land-${bullet.label}`}
-                      className="w-[160px] flex flex-col gap-1 p-2 rounded-lg border border-slate-200/80 bg-white/80 backdrop-blur-sm shadow-sm"
+                      className={`w-[160px] flex flex-col gap-1 p-2 rounded-lg border ${bulletBg} backdrop-blur-sm shadow-sm`}
                     >
-                      <p className="font-bold text-slate-900 font-orbitron text-[10px] truncate">
+                      <p className={`font-bold ${bulletColor} font-orbitron text-[10px] truncate`}>
                         {bullet.label}
                       </p>
                        {bullet.description && (
-                       <p className="text-slate-600 text-[9px] leading-tight line-clamp-2">
+                       <p className={`${isAlternate ? "text-slate-300" : "text-slate-600"} text-[9px] leading-tight line-clamp-2`}>
                          {bullet.description}
                        </p>
                      )}
@@ -202,29 +220,29 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         {/* --- DESKTOP LAYOUT (Unchanged) --- */}
         <div className="hidden lg:grid items-center gap-8 lg:gap-16 lg:grid-cols-2 h-full pt-4 lg:pt-0">
           {/* ... Desktop code remains exactly as it was ... */}
-           <div className={`order-1 ${textColumnOrder} space-y-6 lg:space-y-10 self-center`}>
+           <div className={`order-1 ${textColumnOrder} space-y-6 lg:space-y-10 self-center ${glassCardClass}`}>
             
             <div className="space-y-2 lg:space-y-4">
               {/* TITLE: Blue & Large */}
-              <h2 className="text-[36px] sm:text-[40px] lg:text-6xl font-black text-[color:var(--slate360-blue)] font-orbitron tracking-tight leading-tight drop-shadow-sm">
+              <h2 className={`text-[36px] sm:text-[40px] lg:text-6xl font-black ${titleColor} font-orbitron tracking-tight leading-tight drop-shadow-sm`}>
                 {tile.title}
               </h2>
               
               {/* SUB-HEADLINE (Eyebrow repurposed) */}
               {tile.eyebrow && (
-                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 font-orbitron leading-tight">
+                <p className={`text-xl sm:text-2xl lg:text-3xl font-bold ${eyebrowColor} font-orbitron leading-tight`}>
                   {tile.eyebrow}
                 </p>
               )}
 
               {/* SUBTITLE: Description */}
-              <p className="text-xs sm:text-sm lg:text-lg text-slate-800 font-medium leading-relaxed max-w-[50rem]">
+              <p className={`text-xs sm:text-sm lg:text-lg ${textColor} font-medium leading-relaxed max-w-[50rem]`}>
                 {tile.subtitle}
               </p>
             </div>
 
             {tile.bullets?.length > 0 && (
-              <ul className="space-y-2 lg:space-y-4 text-xs sm:text-sm lg:text-base text-slate-900 max-h-[36vh] overflow-y-auto pr-1 pl-1">
+              <ul className={`space-y-2 lg:space-y-4 text-xs sm:text-sm lg:text-base ${bulletColor} max-h-[36vh] overflow-y-auto pr-1 pl-1`}>
                 {tile.bullets.map((bullet) => (
                   <li key={bullet.label} className="flex gap-3">
                     <span
@@ -232,9 +250,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                       style={{ backgroundColor: "var(--slate360-copper)" }}
                     />
                     <div>
-                      <p className="font-black text-slate-900 font-orbitron">{bullet.label}</p>
+                      <p className={`font-black ${bulletColor} font-orbitron`}>{bullet.label}</p>
                       {bullet.description && (
-                        <p className="text-slate-900 font-bold text-sm lg:text-base leading-snug">
+                        <p className={`${bulletColor} font-bold text-sm lg:text-base leading-snug opacity-80`}>
                           {bullet.description}
                         </p>
                       )}

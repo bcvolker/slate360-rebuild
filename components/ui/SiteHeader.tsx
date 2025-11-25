@@ -65,7 +65,7 @@ export default function SiteHeader() {
   return (
     <>
       {/* Fixed header: Metallic gradient background */}
-      <header className="fixed top-0 z-[100] w-full bg-metallic-header">
+      <header className="fixed top-0 z-[100] w-full bg-midnight">
         
         <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 landscape:py-1 lg:py-2 lg:pl-8 lg:pr-8">
           {/* LOGO: Enhanced pop with brightness and larger shadow */}
@@ -91,7 +91,7 @@ export default function SiteHeader() {
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/20 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white transition-all hover:text-[#4F89D4] hover:border-[#4F89D4] hover:bg-[#4F89D4]/30 landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron shadow-[0_0_18px_rgba(79,137,212,0.65)] hover:shadow-[0_0_22px_rgba(79,137,212,0.7)]"
+                className="inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/20 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white transition-all hover-copper hover:border-[#B87333] hover:bg-[#B87333]/30 landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron shadow-[0_0_18px_rgba(79,137,212,0.65)] hover:shadow-[0_0_22px_rgba(184,115,51,0.7)]"
               >
                 <span>Features</span>
                 <span className="text-xs">▾</span>
@@ -104,7 +104,7 @@ export default function SiteHeader() {
                         key={item.id}
                         href={anchorFor(item.id)}
                         onClick={closeMenus}
-                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[#4F89D4]/20 hover:text-[#4F89D4] transition-colors duration-150 font-orbitron"
+                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[#B87333]/20 hover-copper transition-colors duration-150 font-orbitron"
                       >
                         {item.label}
                       </Link>
@@ -120,13 +120,13 @@ export default function SiteHeader() {
                 <Link 
                   key={label} 
                   href={label === "Plans & Pricing" ? "/subscribe" : `/${label.toLowerCase()}`} 
-                      className="group relative text-xs font-bold uppercase tracking-widest text-white transition-all duration-300 hover:text-[#4F89D4] font-orbitron drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]"
+                      className="group relative text-xs font-bold uppercase tracking-widest text-slate-300 transition-all duration-300 hover-copper font-orbitron drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]"
                 >
                   {label}
-                    <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[#4F89D4] transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                    <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[#B87333] transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
-                <Link href="/login" className="ml-4 rounded-full border border-white/70 bg-white/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white transition-all hover:text-[#4F89D4] hover:border-[#4F89D4] hover:bg-[#4F89D4]/30 font-orbitron">
+                <Link href="/login" className="ml-4 rounded-full border border-white/70 bg-white/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white transition-all hover-copper hover:border-[#B87333] hover:bg-[#B87333]/30 font-orbitron">
                 Login
               </Link>
             </nav>

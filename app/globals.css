@@ -205,19 +205,49 @@ body {
   background-size: 80px 80px, 80px 80px, 100% 100%, 20px 20px; /* 2x larger grid (80px) */
 }
 
-/* Metallic Charcoal Gradient for Header */
-.bg-metallic-header {
-  background-color: #363434;
-  background-image: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%);
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+/* --- NEW THEME: ARCHITECTURAL BLUEPRINT --- */
+.bg-blueprint-theme {
+  background-color: #002082; /* Deep Blue */
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 160px 160px; /* Large Grid */
 }
 
-/* Metallic Charcoal Gradient for Footer */
+/* --- NEW THEME: GRAPHITE PAPER --- */
+.bg-graphite-theme {
+  background-color: #f1f5f9; /* Slate-100 */
+  background-image: 
+    linear-gradient(rgba(51, 65, 85, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(51, 65, 85, 0.08) 1px, transparent 1px);
+  background-size: 160px 160px; /* Large Grid */
+}
+
+/* --- NEW HEADER/FOOTER: MIDNIGHT --- */
+.bg-midnight {
+  background-color: #020617; /* Slate-950 */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* --- BURNISHED COPPER HOVER --- */
+.hover-copper:hover {
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  background-image: linear-gradient(to bottom right, #E0A080, #B87333, #8B4513);
+  text-shadow: 0 0 20px rgba(184, 115, 51, 0.4);
+}
+
+/* Metallic Charcoal Gradient for Header - DEPRECATED but kept for safety if needed elsewhere */
+.bg-metallic-header {
+  background-color: #020617; /* Updated to Midnight */
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Metallic Charcoal Gradient for Footer - DEPRECATED but kept for safety */
 .bg-metallic-footer {
-  background-color: #363434;
-  background-image: linear-gradient(to top, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.2) 100%);
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  background-color: #020617; /* Updated to Midnight */
+  box-shadow: none;
 }
 
 .slate360-footer {
@@ -230,14 +260,18 @@ body {
   position: relative;
   display: inline-block;
   padding-inline: 0.75rem;
-  color: #FFFFFF; /* White text */
+  color: #cbd5e1; /* Slate-300 */
   text-decoration: none;
-  transition: color 300ms ease-out, text-shadow 300ms ease-out;
+  transition: all 300ms ease-out;
 }
 
 .slate360-footer a:hover {
-  color: #4F89D4; /* Electric Blue */
-  text-shadow: 0 0 12px rgba(79, 137, 212, 0.5); /* Blue Glow */
+  color: #B87333; /* Fallback Copper */
+  /* Gradient text effect */
+  background: linear-gradient(to bottom right, #E0A080, #B87333);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 /* Scroll Snap - Desktop Only */
