@@ -96,7 +96,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 </p>
               )}
               <div className="space-y-1.5">
-                <h2 className="text-[30px] sm:text-[34px] font-black text-slate-900 font-orbitron tracking-tight leading-tight drop-shadow-sm">
+                <h2 className="text-[32px] sm:text-[36px] font-black text-slate-900 font-orbitron tracking-tight leading-tight drop-shadow-sm">
                   {tile.title}
                 </h2>
                 <p className="text-[13px] sm:text-[14px] text-slate-900/85 font-medium leading-relaxed">
@@ -105,7 +105,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               </div>
 
               {tile.bullets?.length > 0 && (
-                <ul className="mt-2 space-y-1.5 max-h-[40vh] overflow-y-auto pr-1">
+                <ul className="mt-2 space-y-1.5 max-h-[32vh] overflow-y-auto pr-1">
                   {tile.bullets.slice(0, 2).map((bullet) => (
                     <li
                       key={bullet.label}
@@ -129,10 +129,10 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
             </div>
 
             {/* 2. Middle: Horizontal scroll for additional feature cards */}
-            {tile.bullets && tile.bullets.length > 0 && (
+            {tile.bullets && tile.bullets.length > 2 && (
               <div className="w-full overflow-x-auto pb-1 pt-1 hide-scrollbar flex-[0_0_auto]">
                 <ul className="flex gap-3 w-max px-1">
-                  {tile.bullets.map((bullet) => (
+                  {tile.bullets.slice(2).map((bullet) => (
                     <li
                       key={bullet.label}
                       className="snap-center w-[220px] flex flex-col gap-1.5 p-3 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm shadow-sm"
@@ -185,17 +185,17 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 {tile.eyebrow}
               </p>
             )}
-            <div className="space-y-4">
-              <h2 className="text-[40px] sm:text-[44px] font-black text-slate-900 font-orbitron tracking-tight leading-tight drop-shadow-sm">
+            <div className="space-y-3">
+              <h2 className="text-[36px] sm:text-[40px] font-black text-slate-900 font-orbitron tracking-tight leading-tight drop-shadow-sm">
                 {tile.title}
               </h2>
-              <p className="text-sm sm:text-base text-slate-800 font-medium leading-relaxed max-w-[50rem]">
+              <p className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed max-w-[50rem]">
                 {tile.subtitle}
               </p>
             </div>
 
             {tile.bullets?.length > 0 && (
-              <ul className="space-y-2.5 text-xs sm:text-sm text-slate-800 max-h-[40vh] overflow-y-auto pr-1">
+              <ul className="space-y-2 text-xs sm:text-sm text-slate-800 max-h-[36vh] overflow-y-auto pr-1">
                 {tile.bullets.map((bullet) => (
                   <li key={bullet.label} className="flex gap-3">
                     <span className="mt-1 inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: accent }} />
