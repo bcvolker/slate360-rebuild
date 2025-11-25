@@ -74,7 +74,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-full justify-center gap-6 md:gap-8">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-full justify-center gap-6 md:gap-10">
         
           {/* --- MOBILE/TABLET LAYOUT --- */}
           <div className="lg:hidden flex flex-col w-full h-full justify-center gap-6 md:gap-10">
