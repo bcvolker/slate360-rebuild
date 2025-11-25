@@ -5,9 +5,9 @@ export const siteSections: Tile[] = [
     id: "slate360",
     navLabel: "Slate360",
     eyebrow: "Slate360",
-    title: "Your operational command center.",
+    title: "Slate360",
     subtitle:
-      "Keep every project, team member, file, note, and workflow connected in one secure workspace. The Project Hub brings structure to fast-moving programs while staying flexible for any discipline or team size.",
+      "Your operational command center. Keep every project, team member, file, note, and workflow connected in one secure workspace.",
     bullets: [
       {
         label: "Unified project dashboard",
@@ -47,9 +47,9 @@ export const siteSections: Tile[] = [
     id: "design-studio",
     navLabel: "Design Studio",
     eyebrow: "Design Studio",
-    title: "A cloud-native design environment for the browser.",
+    title: "Design Studio",
     subtitle:
-      "View, annotate, compare, and collaborate on 3D designs from any device—without installs, hardware limits, or complexity.",
+      "A cloud-native design environment for the browser. View, annotate, compare, and collaborate on 3D designs from any device.",
     bullets: [
       {
         label: "High-fidelity model viewing",
@@ -89,9 +89,9 @@ export const siteSections: Tile[] = [
     id: "content-studio",
     navLabel: "Content Studio",
     eyebrow: "Content Studio",
-    title: "Your media lab for field and marketing teams.",
+    title: "Content Studio",
     subtitle:
-      "Upload, edit, enhance, and organize photo and video content—powered by cloud tools and AI assistance.",
+      "Your media lab for field and marketing teams. Upload, edit, enhance, and organize photo and video content.",
     bullets: [
       {
         label: "Basic editing tools",
@@ -131,9 +131,9 @@ export const siteSections: Tile[] = [
     id: "tour-builder",
     navLabel: "360 Tour Builder",
     eyebrow: "360 Tour Builder",
-    title: "Transform captured spaces into interactive tours.",
+    title: "360 Tour Builder",
     subtitle:
-      "Upload panoramas, connect scenes, and share immersive, navigable environments for progress updates, training, and marketing.",
+      "Transform captured spaces into interactive tours for progress updates, training, and marketing.",
     bullets: [
       {
         label: "Drag-and-drop tour building",
@@ -173,9 +173,9 @@ export const siteSections: Tile[] = [
     id: "geospatial",
     navLabel: "Geospatial & Robotics",
     eyebrow: "Geospatial & Autonomous Robotics",
-    title: "Capture the world with drones, LiDAR, and mapping tools.",
+    title: "Geospatial & Autonomous Robotics",
     subtitle:
-      "Whether it’s aerial mapping, interior scanning, or progress verification, Slate360 brings field intelligence into one platform.",
+      "Capture the world with drones, LiDAR, and mapping tools for aerial mapping, interior scanning, and progress verification.",
     bullets: [
       {
         label: "Photogrammetry-ready storage",
@@ -215,9 +215,9 @@ export const siteSections: Tile[] = [
     id: "virtual-studio",
     navLabel: "VR / AR Studio",
     eyebrow: "Virtual & Augmented Reality Studio",
-    title: "Turn models and tours into immersive experiences.",
+    title: "Virtual Studio",
     subtitle:
-      "Explore designs, scans, and tours in VR and AR without engines or bulky software—just WebXR in the browser.",
+      "Turn models and tours into immersive VR and AR experiences directly in the browser.",
     bullets: [
       {
         label: "VR mode (WebXR)",
@@ -257,9 +257,9 @@ export const siteSections: Tile[] = [
     id: "analytics",
     navLabel: "Reports & Analytics",
     eyebrow: "Reports & Analytics",
-    title: "Turn your data into dashboards and decisions.",
+    title: "Analytics & Reports",
     subtitle:
-      "Transform models, tours, tasks, and scans into dashboards, visualizations, and exportable reports backed by real-world data.",
+      "Turn your data into dashboards and decisions with visualizations and exportable reports backed by real-world data.",
     bullets: [
       {
         label: "Automated dashboards",
