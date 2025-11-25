@@ -5,8 +5,8 @@
 
 @layer base {
   html {
-    /* Anchor links should land just below ~80px header */
-    scroll-padding-top: 80px;
+    /* Anchor links should land just below ~88px header band */
+    scroll-padding-top: 88px;
     scroll-snap-type: none;
   }
 

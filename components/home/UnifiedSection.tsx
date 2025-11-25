@@ -67,7 +67,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       id={tile.id}
       // Full-viewport tile on all devices, with alternating blueprint / concrete backgrounds.
       // Desktop keeps snap-start; mobile/tablet scroll naturally.
-      className={`relative w-full min-h-[100vh] scroll-mt-[96px] lg:scroll-mt-[112px] ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      className={`relative w-full min-h-[100vh] scroll-mt-[88px] lg:scroll-mt-[104px] ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Static decorative background behind each tile */}
@@ -75,10 +75,10 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 pt-[76px] pb-6 lg:pt-[96px] lg:pb-8 flex flex-col h-[calc(100vh-80px)] lg:h-[calc(100vh-96px)]">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 pt-[88px] pb-6 lg:pt-[104px] lg:pb-8 flex flex-col h-[calc(100vh-80px)] lg:h-[calc(100vh-96px)]">
         
           {/* --- MOBILE/TABLET LAYOUT --- */}
-          <div className="lg:hidden flex flex-col gap-5 flex-1 justify-between">
+          <div className="lg:hidden flex flex-col gap-4 flex-1">
             {/* Text Content */}
             <div className="flex flex-col justify-start space-y-3">
                 {tile.eyebrow && (
@@ -96,9 +96,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 </div>
            </div>
 
-           {/* Horizontal Scroll for Bullets on Mobile (no snap) */}
+           {/* Horizontal Scroll for Bullets on Mobile (no snap), closer to viewer/buttons */}
            {tile.bullets?.length > 0 && (
-              <div className="w-full overflow-x-auto pb-3 pt-1 hide-scrollbar">
+              <div className="w-full overflow-x-auto pb-2 pt-1 hide-scrollbar">
                 <ul className="flex gap-4 w-max px-1">
                   {tile.bullets.map((bullet) => (
                     <li 
@@ -119,7 +119,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
             )}
 
            {/* Viewer + Buttons pinned toward bottom of tile, slightly taller */}
-           <div className="mt-auto h-[32vh] min-h-[190px] w-full flex gap-3">
+           <div className="mt-auto h-[34vh] min-h-[210px] w-full flex gap-3">
               {/* Viewer Area - 75% Width */}
               <div className="w-[75%] h-full">
                 <button 
