@@ -81,7 +81,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       // Added min-h-[100dvh] to base classes to ensure full height on mobile/tablet even when snap is enabled for desktop
       // Mobile: justify-end to push content to bottom. Desktop: justify-center.
       // Added scroll-mt-[80px] for desktop snap alignment
-      className={`relative w-full flex flex-col min-h-[100dvh] justify-end xl:justify-center ${snapEnabled ? "xl:snap-start scroll-mt-[80px]" : ""} pb-8 ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      className={`relative w-full flex flex-col h-[100dvh] justify-center pt-20 pb-8 ${snapEnabled ? "snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Parallax Background - Enabled on all devices but constrained horizontally */}
@@ -93,7 +93,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex-1 flex flex-col justify-center">
         
           {/* --- MOBILE/TABLET VERTICAL LAYOUT (Natural Flow) --- */}
-          <div className="lg:hidden flex flex-col flex-1 pt-[140px]">
+          <div className="lg:hidden flex flex-col flex-1">
             {/* Text Content - Takes up top space (Spacer) */}
             <div className="flex-1 flex flex-col justify-start space-y-4">
                 {tile.eyebrow && (

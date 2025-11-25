@@ -3,6 +3,22 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    /* 1. This creates a "roof" 80px thick. 
+       Snapping will stop exactly at the bottom of your header. */
+    scroll-padding-top: 80px; 
+    
+    /* 2. Enforce snapping on the Y axis */
+    scroll-snap-type: y mandatory;
+  }
+
+  /* 3. Ensure the background behind the rubber-banding is dark */
+  body {
+    @apply bg-slate-900; 
+  }
+}
+
 html, body {
   height: 100%;
   overscroll-behavior-y: none; /* Prevents bounce/blank space on mobile */
@@ -150,12 +166,7 @@ body {
 }
 
 /* Scroll Snap - Desktop Only */
-@media (min-width: 1280px) {
-  html {
-    scroll-snap-type: y mandatory;
-    /* Removed scroll-padding-top; handled by scroll-margin-top on sections */
-  }
-}
+/* Removed desktop-only media query as we are now enforcing global snap behavior */
 
 /* Fix for blank bar under footer on mobile */
 body {
