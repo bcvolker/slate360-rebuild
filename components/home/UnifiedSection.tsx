@@ -84,29 +84,29 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-[calc(100dvh-80px)] justify-center gap-6 md:gap-10">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-[calc(100dvh-80px)] justify-center gap-6 md:gap-10 pt-4 pb-4">
 
           {/* --- MOBILE/TABLET LAYOUT --- */}
-          <div className="lg:hidden flex flex-col w-full h-full justify-between gap-6 md:gap-8">
+          <div className="lg:hidden flex flex-col w-full h-full justify-between gap-5 md:gap-7">
             {/* 1. Top: Eyebrow, Title, Rich description, key features (vertical) */}
-            <div className="flex flex-col gap-4 pt-2">
+            <div className="flex flex-col gap-3 pt-1">
               {tile.eyebrow && (
-                <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron text-slate-900/80">
+                <p className="text-[11px] font-bold uppercase tracking-[0.35em] font-orbitron text-[color:var(--slate360-blue)]">
                   {tile.eyebrow}
                 </p>
               )}
-              <div className="space-y-3">
-                <h2 className="text-3xl sm:text-[30px] font-black text-slate-900 font-orbitron tracking-tight leading-snug drop-shadow-sm">
+              <div className="space-y-2">
+                <h2 className="text-[26px] sm:text-[30px] font-black text-slate-900 font-orbitron tracking-tight leading-snug drop-shadow-sm">
                   {tile.title}
                 </h2>
-                <p className="text-[15px] sm:text-base text-slate-900/90 font-semibold leading-relaxed">
+                <p className="text-[14px] sm:text-[15px] text-slate-900/90 font-semibold leading-relaxed">
                   {tile.subtitle}
                 </p>
               </div>
 
               {tile.bullets?.length > 0 && (
                 <ul className="mt-2 space-y-2">
-                  {tile.bullets.slice(0, 3).map((bullet) => (
+                  {tile.bullets.map((bullet) => (
                     <li
                       key={bullet.label}
                       className="flex items-start gap-3 rounded-xl bg-white/80 backdrop-blur-sm border border-slate-200/80 px-3 py-2 shadow-sm"
@@ -129,10 +129,10 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
             </div>
 
             {/* 2. Middle: Horizontal scroll for additional feature cards */}
-            {tile.bullets && tile.bullets.length > 3 && (
+            {tile.bullets && tile.bullets.length > 0 && (
               <div className="w-full overflow-x-auto pb-1 pt-1 hide-scrollbar flex-[0_0_auto]">
                 <ul className="flex gap-3 w-max px-1">
-                  {tile.bullets.slice(3).map((bullet) => (
+                  {tile.bullets.map((bullet) => (
                     <li
                       key={bullet.label}
                       className="snap-center w-[220px] flex flex-col gap-1.5 p-3 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm shadow-sm"
@@ -178,15 +178,15 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         </div>
 
         {/* --- DESKTOP LAYOUT --- */}
-        <div className="hidden lg:grid items-center gap-12 lg:gap-24 lg:grid-cols-2 h-full">
+        <div className="hidden lg:grid items-center gap-10 lg:gap-20 lg:grid-cols-2 h-full">
           <div className={`order-1 ${textColumnOrder} space-y-8 self-center`}>
             {tile.eyebrow && (
-              <p className="text-[11px] font-bold uppercase tracking-[0.35em] font-orbitron" style={{ color: accent }}>
+              <p className="text-xs sm:text-sm font-bold uppercase tracking-[0.35em] font-orbitron text-[color:var(--slate360-blue)]">
                 {tile.eyebrow}
               </p>
             )}
             <div className="space-y-4">
-              <h2 className="text-3xl sm:text-4xl font-black text-slate-900 font-orbitron tracking-tight drop-shadow-sm">
+              <h2 className="text-[32px] sm:text-[38px] font-black text-slate-900 font-orbitron tracking-tight drop-shadow-sm">
                 {tile.title}
               </h2>
               <p className="text-base sm:text-lg text-slate-800 font-medium leading-relaxed">

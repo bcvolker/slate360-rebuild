@@ -3,8 +3,8 @@ import { Tile } from "@/lib/types";
 export const siteSections: Tile[] = [
   {
     id: "slate360",
-    navLabel: "Project Hub",
-    eyebrow: "Project Hub",
+    navLabel: "Slate360",
+    eyebrow: "Slate360",
     title: "Your operational command center.",
     subtitle:
       "Keep every project, team member, file, note, and workflow connected in one secure workspace. The Project Hub brings structure to fast-moving programs while staying flexible for any discipline or team size.",
@@ -45,15 +45,15 @@ export const siteSections: Tile[] = [
   },
   {
     id: "design-studio",
-    navLabel: "BIM / Design Studio",
-    eyebrow: "BIM / Design Studio",
-    title: "A cloud-native BIM environment for the browser.",
+    navLabel: "Design Studio",
+    eyebrow: "Design Studio",
+    title: "A cloud-native design environment for the browser.",
     subtitle:
-      "View, annotate, compare, and collaborate on 3D models from any device—without installs, hardware limits, or complexity.",
+      "View, annotate, compare, and collaborate on 3D designs from any device—without installs, hardware limits, or complexity.",
     bullets: [
       {
         label: "High-fidelity model viewing",
-        description: "Stream IFC, OBJ, GLB, and RVT-converted models directly in the browser.",
+        description: "Stream high-detail 3D and design files directly in the browser.",
       },
       {
         label: "Live markups",
@@ -69,7 +69,7 @@ export const siteSections: Tile[] = [
       },
       {
         label: "Issue tagging",
-        description: "Add notes and issues directly onto model geometry.",
+        description: "Add notes and issues directly onto geometry and views.",
       },
       {
         label: "Layer controls",
