@@ -183,9 +183,11 @@ body {
   background-image:
     linear-gradient(rgba(148, 163, 184, 0.22) 1px, transparent 1px),
     linear-gradient(90deg, rgba(148, 163, 184, 0.22) 1px, transparent 1px),
-    radial-gradient(circle at 0% 0%, rgba(148, 163, 184, 0.22) 0%, transparent 70%),
-    radial-gradient(circle at 100% 100%, rgba(148, 163, 184, 0.18) 0%, transparent 75%);
-  background-size: 160px 160px, 160px 160px, 140% 140%, 140% 140%;
+    radial-gradient(circle at 0% 0%, rgba(148, 163, 184, 0.26) 0%, transparent 70%),
+    radial-gradient(circle at 100% 100%, rgba(148, 163, 184, 0.22) 0%, transparent 75%),
+    radial-gradient(circle at 0% 100%, rgba(179, 112, 49, 0.14) 0%, transparent 70%);
+  /* Large subtle grid with cool copper-grey wash similar in scale to tile 1 */
+  background-size: 160px 160px, 160px 160px, 140% 140%, 140% 140%, 130% 130%;
 }
 
 /* Scroll Snap - Desktop Only */
