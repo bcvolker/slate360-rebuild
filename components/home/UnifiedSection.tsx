@@ -75,12 +75,12 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 pt-20 pb-8 lg:pt-24 lg:pb-10 flex flex-col gap-6 md:gap-8 flex-1 justify-center">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 pt-20 pb-8 lg:pt-24 lg:pb-10 flex flex-col gap-6 md:gap-8 flex-1">
         
           {/* --- MOBILE/TABLET LAYOUT --- */}
-          <div className="lg:hidden flex flex-col w-full h-full justify-center gap-4">
-            {/* Text Content */}
-            <div className="flex flex-col justify-start space-y-2">
+          <div className="lg:hidden flex flex-col w-full h-full gap-4">
+            {/* Top: Text Content */}
+            <div className="flex flex-col justify-start space-y-2 shrink-0">
                 {tile.eyebrow && (
                   <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron text-slate-900">
                     {tile.eyebrow}
@@ -96,9 +96,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 </div>
            </div>
 
-           {/* Horizontal Scroll for Bullets on Mobile (no snap), closer to viewer/buttons */}
-           {tile.bullets?.length > 0 && (
-              <div className="w-full overflow-x-auto pb-1 pt-1 hide-scrollbar flex-1">
+            {/* Middle: Horizontal Scroll for Bullets on Mobile (no snap) */}
+            {tile.bullets?.length > 0 && (
+              <div className="w-full overflow-x-auto pb-1 pt-1 hide-scrollbar flex-[0.35] min-h-[110px]">
                 <ul className="flex gap-4 w-max px-1">
                   {tile.bullets.map((bullet) => (
                     <li 
@@ -118,10 +118,10 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               </div>
             )}
 
-           {/* Viewer + Buttons at bottom without over-constraining height */}
-           <div className="w-full shrink-0 min-h-[220px] flex gap-3">
-              {/* Viewer Area - 75% Width */}
-              <div className="w-[75%] h-full">
+            {/* Bottom: Viewer (2/3) + Buttons (1/3) in bottom 25% */}
+            <div className="w-full mt-auto h-[25vh] min-h-[180px] flex gap-3">
+              {/* Viewer Area - 2/3 of bottom band */}
+              <div className="w-2/3 h-full">
                 <button 
                   type="button"
                   onClick={() => setViewerOpen(true)}
@@ -133,8 +133,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 </button>
               </div>
 
-              {/* Buttons Area - 25% Width */}
-              <div className="w-[25%] h-full">
+              {/* Buttons Area - 1/3 of bottom band */}
+              <div className="w-1/3 h-full">
                  {renderCtas(true)}
               </div>
            </div>
