@@ -191,13 +191,25 @@ body {
   background-size: 80px 80px, 80px 80px, 150% 150%, 150% 150%, 140% 140%;
 }
 
-/* Dark Blueprint Pattern for Subpages */
+/* UNC Blue Weathered Blueprint Pattern for Subpages */
 .bg-blueprint-dark {
-  background-color: #1e293b; /* Slate-800 (Lighter than Slate-900) */
+  background-color: #7BAFD4; /* UNC Blue */
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
-  background-size: 40px 40px;
+    /* Grid Lines (White, more noticeable) */
+    linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.4) 1px, transparent 1px),
+    /* Weathered Vignette (Darkens corners) */
+    radial-gradient(circle at center, transparent 40%, rgba(0, 0, 0, 0.15) 100%),
+    /* Subtle Noise/Texture (Simulates paper grain) */
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 2px, transparent 2px, transparent 4px);
+  background-size: 80px 80px, 80px 80px, 100% 100%, 20px 20px; /* 2x larger grid (80px) */
+}
+
+/* Metallic Gradient for Header/Footer */
+.bg-metallic {
+  background: linear-gradient(180deg, #f1f5f9 0%, #cbd5e1 50%, #94a3b8 100%);
+  border-bottom: 1px solid #64748b;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Scroll Snap - Desktop Only */
