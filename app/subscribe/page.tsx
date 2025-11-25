@@ -100,7 +100,7 @@ export default function SubscribePage() {
                       }`}
                     >
                       {plan.highlight && (
-                        <span className="absolute right-4 top-4 rounded-full bg-brand-copper/90 px-3 py-1 text-[10px] font-orbitron font-semibold uppercase tracking-[0.2em] text-white">
+                        <span className="absolute right-4 top-4 rounded-full bg-[color:var(--slate360-copper)]/90 px-3 py-1 text-[10px] font-orbitron font-semibold uppercase tracking-[0.2em] text-white">
                           Most Popular
                         </span>
                       )}
@@ -121,14 +121,14 @@ export default function SubscribePage() {
                       <ul className="mb-5 flex-1 space-y-1.5 text-xs text-slate-600">
                         {plan.features.map((feature) => (
                           <li key={feature} className="flex items-start gap-2">
-                            <span className="mt-[2px] inline-flex h-3 w-3 flex-shrink-0 items-center justify-center rounded-full bg-brand-blue/10 text-[9px] text-brand-blue">
+                            <span className="mt-[2px] inline-flex h-3 w-3 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--slate360-blue)]/10 text-[9px] text-[color:var(--slate360-blue)]">
                               •
                             </span>
                             <span>{feature}</span>
                           </li>
                         ))}
                       </ul>
-                      <button className="inline-flex items-center justify-center rounded-full border border-brand-blue/60 bg-brand-blue/5 px-4 py-2 text-[11px] font-orbitron font-semibold uppercase tracking-[0.25em] text-brand-blue transition-colors hover:border-brand-copper hover:bg-brand-copper/10 hover:text-brand-copper">
+                      <button className="inline-flex items-center justify-center rounded-full border border-[color:var(--slate360-blue)]/60 bg-[color:var(--slate360-blue)]/5 px-4 py-2 text-[11px] font-orbitron font-semibold uppercase tracking-[0.25em] text-[color:var(--slate360-blue)] transition-colors hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/10 hover:text-[color:var(--slate360-copper)]">
                         Get Started
                       </button>
                     </div>
@@ -137,7 +137,7 @@ export default function SubscribePage() {
 
                 <aside className="flex flex-col gap-5 rounded-2xl border border-slate-200/80 bg-slate-50/95 p-5 sm:p-6 shadow-[0_18px_40px_rgba(15,23,42,0.2)]">
                   <div>
-                    <h2 className="text-sm font-orbitron uppercase tracking-[0.3em] text-slate-500 mb-2">
+                    <h2 className="text-sm font-orbitron uppercase tracking-[0.3em] text-[color:var(--slate360-copper)] mb-2">
                       Enterprise &amp; Programs
                     </h2>
                     <p className="text-2xl font-orbitron tracking-tight text-slate-900 mb-1">
@@ -156,7 +156,7 @@ export default function SubscribePage() {
                       </p>
                       <a
                         href="mailto:support@slate360.ai?subject=Slate360%20Enterprise%20Pricing"
-                        className="inline-flex items-center justify-center rounded-full border border-brand-copper/70 bg-brand-copper/10 px-4 py-2 text-[11px] font-orbitron font-semibold uppercase tracking-[0.25em] text-brand-copper transition-colors hover:bg-brand-copper/20"
+                        className="inline-flex items-center justify-center rounded-full border border-[color:var(--slate360-copper)]/70 bg-[color:var(--slate360-copper)]/10 px-4 py-2 text-[11px] font-orbitron font-semibold uppercase tracking-[0.25em] text-[color:var(--slate360-copper)] transition-colors hover:bg-[color:var(--slate360-copper)]/20"
                       >
                         Talk to us about Enterprise
                       </a>

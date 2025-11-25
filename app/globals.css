@@ -17,18 +17,23 @@
     /* Desktop: Remove scroll padding so pt-20 handles the offset naturally. 
        This fixes the 'too low' issue when snapping. */
     scroll-padding-top: 0;
+  }
+  
+  /* Only apply mandatory snap on the homepage (controlled by SnapManager) */
+  html.snap-mandatory {
     /* Desktop: gentle vertical snap between full-screen tiles */
     scroll-snap-type: y mandatory;
   }
 }
   /* 5. Ensure the background behind the rubber-banding is dark */
-  body {
+  /* body {
     @apply bg-slate-900; 
-  }
+  } */
 }
 
 html, body {
-  height: 100%;
+  /* Changed from height: 100% to min-height: 100% to allow scrolling on long pages */
+  min-height: 100%;
 }
 
 :root {
@@ -137,11 +142,11 @@ body {
   background-color: #f0f4f8; /* Slightly cooler/darker white base */
   font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
   background-image:
-    linear-gradient(rgba(79, 137, 212, 0.15) 1px, transparent 1px), /* Blue grid lines, more visible */
-    linear-gradient(90deg, rgba(79, 137, 212, 0.15) 1px, transparent 1px),
-    radial-gradient(circle at 0% 0%, rgba(79, 137, 212, 0.45) 0%, transparent 60%), /* Darker/Expansive Blue Radial */
-    radial-gradient(circle at 100% 100%, rgba(179, 112, 49, 0.15) 0%, transparent 60%); /* Copper accent radial */
-  background-size: 80px 80px, 80px 80px, 120% 120%, 120% 120%; /* Tighter grid for prominence */
+    linear-gradient(rgba(79, 137, 212, 0.25) 1px, transparent 1px), /* Blue grid lines, stronger (0.25) */
+    linear-gradient(90deg, rgba(79, 137, 212, 0.25) 1px, transparent 1px),
+    radial-gradient(circle at 0% 0%, rgba(79, 137, 212, 0.55) 0%, transparent 75%), /* Darker/Expansive Blue Radial (0.55, 75%) */
+    radial-gradient(circle at 100% 100%, rgba(179, 112, 49, 0.20) 0%, transparent 70%); /* Copper accent radial */
+  background-size: 80px 80px, 80px 80px, 130% 130%, 130% 130%; /* Expanded size */
 }
 
 @media (min-width: 1024px) {
@@ -165,11 +170,11 @@ body {
   /* Darker blue gradient and more prominent lines */
   background-color: #f0f4f8; /* Slightly cooler/darker white base */
   background-image:
-    linear-gradient(rgba(79, 137, 212, 0.15) 1px, transparent 1px), /* Blue grid lines, more visible */
-    linear-gradient(90deg, rgba(79, 137, 212, 0.15) 1px, transparent 1px),
-    radial-gradient(circle at 0% 0%, rgba(79, 137, 212, 0.45) 0%, transparent 60%), /* Darker/Expansive Blue Radial */
-    radial-gradient(circle at 100% 100%, rgba(179, 112, 49, 0.15) 0%, transparent 60%); /* Copper accent radial */
-  background-size: 80px 80px, 80px 80px, 120% 120%, 120% 120%; /* Tighter grid for prominence */
+    linear-gradient(rgba(79, 137, 212, 0.25) 1px, transparent 1px), /* Blue grid lines, stronger (0.25) */
+    linear-gradient(90deg, rgba(79, 137, 212, 0.25) 1px, transparent 1px),
+    radial-gradient(circle at 0% 0%, rgba(79, 137, 212, 0.55) 0%, transparent 75%), /* Darker/Expansive Blue Radial (0.55, 75%) */
+    radial-gradient(circle at 100% 100%, rgba(179, 112, 49, 0.20) 0%, transparent 70%); /* Copper accent radial */
+  background-size: 80px 80px, 80px 80px, 130% 130%, 130% 130%; /* Expanded size */
 }
 
 /* Concrete Pattern for Grey Tiles */
@@ -177,22 +182,23 @@ body {
   /* Grey blueprint-style tile: light grey base with subtle slightly darker grid */
   background-color: #e5e7eb; /* light grey */
   background-image:
-    linear-gradient(rgba(54, 52, 52, 0.15) 1px, transparent 1px), /* Darker grid lines */
-    linear-gradient(90deg, rgba(54, 52, 52, 0.15) 1px, transparent 1px),
-    radial-gradient(circle at 0% 0%, rgba(148, 163, 184, 0.35) 0%, transparent 70%),
-    radial-gradient(circle at 100% 100%, rgba(179, 112, 49, 0.20) 0%, transparent 75%), /* Stronger Copper accent */
-    radial-gradient(circle at 0% 100%, rgba(79, 137, 212, 0.15) 0%, transparent 70%); /* Blue accent */
+    linear-gradient(rgba(179, 112, 49, 0.25) 1px, transparent 1px), /* Copper grid lines (0.25) */
+    linear-gradient(90deg, rgba(179, 112, 49, 0.25) 1px, transparent 1px),
+    radial-gradient(circle at 0% 0%, rgba(148, 163, 184, 0.45) 0%, transparent 80%), /* Expanded Grey Radial */
+    radial-gradient(circle at 100% 100%, rgba(179, 112, 49, 0.30) 0%, transparent 80%), /* Stronger Copper accent */
+    radial-gradient(circle at 0% 100%, rgba(79, 137, 212, 0.20) 0%, transparent 75%); /* Blue accent */
   /* Large subtle grid with cool copper-grey wash similar in scale to tile 1 */
-  background-size: 80px 80px, 80px 80px, 140% 140%, 140% 140%, 130% 130%;
+  background-size: 80px 80px, 80px 80px, 150% 150%, 150% 150%, 140% 140%;
 }
 
 /* Scroll Snap - Desktop Only */
 /* Removed desktop-only media query as we are now enforcing global snap behavior */
 
 /* Fix for blank bar under footer on mobile */
-body {
-  background-color: #0f172a; /* Slate-900 to match footer */
-}
+/* Removed dark background override to fix "navy blue" issue on other pages */
+/* body {
+  background-color: #0f172a; 
+} */
 
 * {
   border-color: rgba(var(--color-border-soft) / 0.35);

@@ -13,7 +13,7 @@ export default function ContactPage() {
 
             <div className="relative z-10 grid gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
               <div>
-                <p className="mb-3 text-[11px] font-orbitron uppercase tracking-[0.35em] text-slate-500">
+                <p className="mb-3 text-[11px] font-orbitron uppercase tracking-[0.35em] text-[color:var(--slate360-copper)]">
                   Contact
                 </p>
                 <h1 className="text-3xl md:text-4xl font-orbitron font-semibold tracking-tight text-slate-900 mb-3">
@@ -26,22 +26,22 @@ export default function ContactPage() {
                 <form className="space-y-5 text-sm text-slate-700">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-slate-500">
+                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-[color:var(--slate360-blue)]">
                         Name
                       </label>
                       <input
                         type="text"
-                        className="rounded-xl border border-slate-300 bg-white/80 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/30"
+                        className="rounded-xl border border-slate-300 bg-white/80 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-[color:var(--slate360-copper)] focus:ring-2 focus:ring-[color:var(--slate360-copper)]/30"
                         placeholder="Alex Jensen"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-slate-500">
+                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-[color:var(--slate360-blue)]">
                         Organization
                       </label>
                       <input
                         type="text"
-                        className="rounded-xl border border-slate-300 bg-white/80 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/30"
+                        className="rounded-xl border border-slate-300 bg-white/80 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-[color:var(--slate360-copper)] focus:ring-2 focus:ring-[color:var(--slate360-copper)]/30"
                         placeholder="Studio, GC, university, agency"
                       />
                     </div>

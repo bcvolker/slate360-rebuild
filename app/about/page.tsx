@@ -13,7 +13,7 @@ export default function AboutPage(){
 
             <div className="relative z-10 flex flex-col gap-10">
               <header className="max-w-3xl">
-                <p className="mb-3 text-[11px] font-orbitron uppercase tracking-[0.35em] text-slate-500">
+                <p className="mb-3 text-[11px] font-orbitron uppercase tracking-[0.35em] text-[color:var(--slate360-copper)]">
                   Company
                 </p>
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-orbitron font-semibold tracking-tight text-slate-900 mb-3">
@@ -27,7 +27,7 @@ export default function AboutPage(){
               <div className="grid md:grid-cols-2 gap-10 lg:gap-14 items-start text-sm sm:text-base text-slate-800">
             <div className="space-y-8 text-sm sm:text-base text-slate-800">
               <section>
-                <h2 className="text-xl sm:text-2xl font-orbitron font-semibold text-slate-900 mb-3">
+                <h2 className="text-xl sm:text-2xl font-orbitron font-semibold text-[color:var(--slate360-blue)] mb-3">
                   Our Mission
                 </h2>
                 <p>
@@ -38,7 +38,7 @@ export default function AboutPage(){
               </section>
 
               <section>
-                <h2 className="text-xl sm:text-2xl font-orbitron font-semibold text-slate-900 mb-3">
+                <h2 className="text-xl sm:text-2xl font-orbitron font-semibold text-[color:var(--slate360-blue)] mb-3">
                   Who We Serve
                 </h2>
                 <p>
