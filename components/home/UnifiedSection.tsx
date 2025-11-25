@@ -224,7 +224,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
             </div>
 
             {tile.bullets?.length > 0 && (
-              <ul className="space-y-2 lg:space-y-4 text-xs sm:text-sm lg:text-base text-slate-800 max-h-[36vh] overflow-y-auto pr-1">
+              <ul className="space-y-2 lg:space-y-4 text-xs sm:text-sm lg:text-base text-slate-900 max-h-[36vh] overflow-y-auto pr-1 pl-1">
                 {tile.bullets.map((bullet) => (
                   <li key={bullet.label} className="flex gap-3">
                     <span
@@ -232,9 +232,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                       style={{ backgroundColor: "var(--slate360-copper)" }}
                     />
                     <div>
-                      <p className="font-bold text-slate-900 font-orbitron">{bullet.label}</p>
+                      <p className="font-black text-slate-900 font-orbitron">{bullet.label}</p>
                       {bullet.description && (
-                        <p className="text-slate-700 font-medium text-sm lg:text-base leading-snug">
+                        <p className="text-slate-900 font-bold text-sm lg:text-base leading-snug">
                           {bullet.description}
                         </p>
                       )}
