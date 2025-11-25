@@ -66,7 +66,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       ref={sectionRef}
       id={tile.id}
       data-snap="tile"
-      className={`relative w-full flex flex-col min-h-[100dvh] justify-center pt-20 pb-8 ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      // Tile height is viewport minus 80px header so centering is relative to visible area
+      className={`relative w-full flex flex-col min-h-[calc(100dvh-80px)] pt-20 pb-8 ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Static decorative background behind each tile */}
@@ -74,7 +75,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-full justify-center gap-6 md:gap-10">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-[calc(100dvh-80px)] justify-center gap-6 md:gap-10">
         
           {/* --- MOBILE/TABLET LAYOUT --- */}
           <div className="lg:hidden flex flex-col w-full h-full justify-center gap-6 md:gap-10">
