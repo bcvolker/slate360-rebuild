@@ -9,17 +9,19 @@
        Snapping will stop exactly at the bottom of your header. */
     scroll-padding-top: 80px; 
     
-    /* 2. Enforce snapping on the Y axis - DESKTOP ONLY (lg+) */
-    /* We disable this on mobile to prevent jitter and address bar conflicts */
+    /* 2. Explicitly DISABLE snap on mobile/tablet */
+    scroll-snap-type: none;
+    
+    /* 3. Enforce snapping on the Y axis - DESKTOP ONLY (lg+) */
     @media (min-width: 1024px) {
       scroll-snap-type: y mandatory;
     }
 
-    /* 3. Prevents the whole page from rubber-banding too aggressively */
+    /* 4. Prevents the whole page from rubber-banding too aggressively */
     overscroll-behavior-y: none;
   }
 
-  /* 4. Ensure the background behind the rubber-banding is dark */
+  /* 5. Ensure the background behind the rubber-banding is dark */
   body {
     @apply bg-slate-900; 
   }
@@ -108,11 +110,7 @@ html {
   color-scheme: dark;
 }
 
-@media (min-width: 1280px) {
-  html {
-    scroll-snap-type: y proximity;
-  }
-}
+/* Removed legacy scroll-snap-type block */
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 ::-webkit-scrollbar {
@@ -172,11 +170,6 @@ body {
 
 /* Scroll Snap - Desktop Only */
 /* Removed desktop-only media query as we are now enforcing global snap behavior */
-
-/* Fix for blank bar under footer on mobile */
-body {
-  background-color: #0f172a; /* Slate-900 to match footer */
-}
 
 /* Fix for blank bar under footer on mobile */
 body {
