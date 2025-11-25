@@ -18,7 +18,7 @@
     }
 
     /* 4. Prevents the whole page from rubber-banding too aggressively */
-    overscroll-behavior-y: none;
+    /* Removed overscroll-behavior-y: none to restore natural feel */
   }
 
   /* 5. Ensure the background behind the rubber-banding is dark */

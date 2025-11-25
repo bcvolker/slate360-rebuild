@@ -88,9 +88,15 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       style={sectionStyle}
     >
       {/* Parallax Background - Enabled on all devices but constrained horizontally */}
+      {/* Update: Disabled parallax on mobile (lg:block) to remove "scrolling effect" feel */}
       <motion.div 
         style={{ y: bgY }}
-        className="absolute -top-[20%] -bottom-[20%] left-0 right-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
+        className="absolute -top-[20%] -bottom-[20%] left-0 right-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)] hidden lg:block" 
+        aria-hidden 
+      />
+      {/* Static Background for Mobile */}
+      <div 
+        className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)] lg:hidden" 
         aria-hidden 
       />
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex-1 flex flex-col justify-center">
