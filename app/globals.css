@@ -165,12 +165,15 @@ body {
 
 /* Blueprint paper style for the first tile: warm off-white with a light grey grid */
 .bg-blueprint-paper {
-  background-color: #f5f1e8; /* warm off-white */
+  /* Softer blueprint paper: neutral white with faint grey grid and blue wash */
+  background-color: #f9fafb; /* near-white */
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.2) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
-  /* 4x larger grid than before for a looser blueprint look */
-  background-size: 160px 160px, 160px 160px;
+    linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+    radial-gradient(circle at 0% 0%, rgba(79, 137, 212, 0.24) 0%, transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(79, 137, 212, 0.12) 0%, transparent 60%);
+  /* Keep grid large and subtle */
+  background-size: 160px 160px, 160px 160px, 100% 100%, 100% 100%;
 }
 
 /* Concrete Pattern for Grey Tiles */
@@ -213,6 +216,15 @@ body {
   border-radius: 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 12px 35px rgba(0,0,0,0.3);
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+
+.tile-viewer-surface:hover {
+  box-shadow:
+    0 0 0 1px rgba(79, 137, 212, 0.35),
+    0 14px 45px rgba(79, 137, 212, 0.32),
+    0 6px 18px rgba(0, 0, 0, 0.25);
+  transform: translateY(-1px);
 }
 
 /* Debug helper: horizontal center line through tiles when body has .debug-tiles */
