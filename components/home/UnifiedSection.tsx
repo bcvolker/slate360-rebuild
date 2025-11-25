@@ -75,19 +75,19 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 pt-[96px] pb-8 lg:pt-[112px] lg:pb-10 flex flex-col min-h-[calc(100vh-88px)] lg:min-h-[calc(100vh-96px)]">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 pt-[110px] pb-8 lg:pt-[120px] lg:pb-10 flex flex-col min-h-[calc(100vh-104px)] lg:min-h-[calc(100vh-104px)]">
         
           {/* --- MOBILE/TABLET LAYOUT --- */}
-          <div className="lg:hidden flex flex-col gap-4 flex-1">
+          <div className="lg:hidden flex flex-col gap-3 flex-1">
             {/* Text Content */}
-            <div className="flex flex-col justify-start space-y-3">
+            <div className="flex flex-col justify-start space-y-2">
                 {tile.eyebrow && (
                   <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron text-slate-900">
                     {tile.eyebrow}
                   </p>
                 )}
                 <div className="space-y-2">
-                  <h2 className="text-3xl sm:text-[32px] font-black text-slate-900 font-orbitron tracking-tight leading-snug drop-shadow-sm">
+                  <h2 className="text-3xl sm:text-[30px] font-black text-slate-900 font-orbitron tracking-tight leading-snug drop-shadow-sm">
                     {tile.title}
                   </h2>
                   <p className="text-[15px] sm:text-base text-slate-900 font-semibold leading-relaxed">
@@ -98,7 +98,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
 
            {/* Horizontal Scroll for Bullets on Mobile (no snap), closer to viewer/buttons */}
            {tile.bullets?.length > 0 && (
-              <div className="w-full overflow-x-auto pb-2 pt-1 hide-scrollbar">
+              <div className="w-full overflow-x-auto pb-1 pt-1 hide-scrollbar flex-1">
                 <ul className="flex gap-4 w-max px-1">
                   {tile.bullets.map((bullet) => (
                     <li 
@@ -118,8 +118,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               </div>
             )}
 
-           {/* Viewer + Buttons pinned toward bottom of tile */}
-           <div className="mt-auto h-[32vh] min-h-[200px] w-full flex gap-3">
+           {/* Viewer + Buttons pinned toward bottom of tile, but less tall to avoid cutoff */}
+           <div className="mt-3 h-[26vh] min-h-[180px] w-full flex gap-3">
               {/* Viewer Area - 75% Width */}
               <div className="w-[75%] h-full">
                 <button 
