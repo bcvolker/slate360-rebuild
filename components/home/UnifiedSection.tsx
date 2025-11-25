@@ -81,7 +81,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       // Added min-h-[100dvh] to base classes to ensure full height on mobile/tablet even when snap is enabled for desktop
       // Mobile: justify-end to push content to bottom. Desktop: justify-center.
       // Added scroll-mt-[80px] for desktop snap alignment
-      className={`relative w-full flex flex-col h-[100dvh] justify-center pt-20 pb-8 ${snapEnabled ? "snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      // Reverted h-[100dvh] to min-h-[100dvh] to allow growth for tall content (Tablet Landscape fix)
+      // Added py-24 to ensure safe padding top (header) and bottom
+      className={`relative w-full flex flex-col min-h-[100dvh] justify-center py-24 ${snapEnabled ? "snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Parallax Background - Enabled on all devices but constrained horizontally */}
