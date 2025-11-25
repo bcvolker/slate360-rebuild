@@ -4,10 +4,10 @@ export const siteSections: Tile[] = [
   {
     id: "slate360",
     navLabel: "Slate360",
-    eyebrow: "Slate360",
+    eyebrow: "Operational Command Center",
     title: "Slate360",
     subtitle:
-      "Your operational command center. Keep every project, team member, file, note, and workflow connected in one secure workspace.",
+      "Keep every project, team member, file, note, and workflow connected in one secure workspace.",
     bullets: [
       {
         label: "Unified project dashboard",
@@ -46,10 +46,10 @@ export const siteSections: Tile[] = [
   {
     id: "design-studio",
     navLabel: "Design Studio",
-    eyebrow: "Design Studio",
+    eyebrow: "Cloud-Native BIM Design",
     title: "Design Studio",
     subtitle:
-      "A cloud-native design environment for the browser. View, annotate, compare, and collaborate on 3D designs from any device.",
+      "View, annotate, compare, and collaborate on 3D designs from any device directly in the browser.",
     bullets: [
       {
         label: "High-fidelity model viewing",
@@ -88,10 +88,10 @@ export const siteSections: Tile[] = [
   {
     id: "content-studio",
     navLabel: "Content Studio",
-    eyebrow: "Content Studio",
+    eyebrow: "Media Lab for Construction",
     title: "Content Studio",
     subtitle:
-      "Your media lab for field and marketing teams. Upload, edit, enhance, and organize photo and video content.",
+      "Upload, edit, enhance, and organize photo and video content for field and marketing teams.",
     bullets: [
       {
         label: "Basic editing tools",
@@ -130,7 +130,7 @@ export const siteSections: Tile[] = [
   {
     id: "tour-builder",
     navLabel: "360 Tour Builder",
-    eyebrow: "360 Tour Builder",
+    eyebrow: "Interactive 360° Experiences",
     title: "360 Tour Builder",
     subtitle:
       "Transform captured spaces into interactive tours for progress updates, training, and marketing.",
@@ -172,7 +172,7 @@ export const siteSections: Tile[] = [
   {
     id: "geospatial",
     navLabel: "Geospatial & Robotics",
-    eyebrow: "Geospatial & Autonomous Robotics",
+    eyebrow: "Drone & LiDAR Mapping",
     title: "Geospatial & Autonomous Robotics",
     subtitle:
       "Capture the world with drones, LiDAR, and mapping tools for aerial mapping, interior scanning, and progress verification.",
@@ -214,7 +214,7 @@ export const siteSections: Tile[] = [
   {
     id: "virtual-studio",
     navLabel: "VR / AR Studio",
-    eyebrow: "Virtual & Augmented Reality Studio",
+    eyebrow: "WebXR Immersive Reality",
     title: "Virtual Studio",
     subtitle:
       "Turn models and tours into immersive VR and AR experiences directly in the browser.",
@@ -256,7 +256,7 @@ export const siteSections: Tile[] = [
   {
     id: "analytics",
     navLabel: "Reports & Analytics",
-    eyebrow: "Reports & Analytics",
+    eyebrow: "Data-Driven Insights",
     title: "Analytics & Reports",
     subtitle:
       "Turn your data into dashboards and decisions with visualizations and exportable reports backed by real-world data.",
