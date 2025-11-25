@@ -33,26 +33,32 @@ export default function SiteHeader() {
   // Track active section for secondary nav
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (pathname !== "/") return;
 
     const observer = new IntersectionObserver(
-      entries => {
-        for (const entry of entries) {
-          if (entry.isIntersecting && entry.target.id) {
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
             setActiveId(entry.target.id);
-            break;
           }
-        }
+        });
       },
-      { threshold: 0.55 }
+      { threshold: 0.5 }
     );
 
-    NAV_LINKS.forEach(section => {
-      const el = document.getElementById(section.id);
-      if (el) observer.observe(el);
-    });
+    // Small timeout to ensure DOM elements are present after navigation
+    const timer = setTimeout(() => {
+      NAV_LINKS.forEach((section) => {
+        const el = document.getElementById(section.id);
+        if (el) observer.observe(el);
+      });
+    }, 100);
 
-    return () => observer.disconnect();
-  }, []);
+    return () => {
+      observer.disconnect();
+      clearTimeout(timer);
+    };
+  }, [pathname]);
 
   const anchorFor = (id: string) => `/#${id}`;
 
@@ -245,7 +251,7 @@ export default function SiteHeader() {
 
       {/* SECONDARY NAV: Stacked on the right */}
       {pathname === "/" && (
-        <div className="hidden xl:flex flex-col fixed top-1/2 -translate-y-1/2 right-4 items-end gap-1 z-40 backdrop-blur-md p-2 rounded-lg">
+        <div className="hidden xl:flex flex-col fixed top-32 right-4 items-end gap-1 z-40 backdrop-blur-md p-2 rounded-lg">
           {NAV_LINKS.map((item) => (
             <Link
               key={item.id}
@@ -253,8 +259,8 @@ export default function SiteHeader() {
               onClick={() => setMenuOpen(false)}
               className={`text-[10px] font-orbitron tracking-wider transition-colors duration-300 ${
                 activeId === item.id
-                  ? "text-black font-black"
-                  : "text-slate-700 font-bold hover:text-blue-600"
+                  ? "text-[#4F89D4] font-bold"
+                  : "text-slate-700 font-medium hover:text-blue-600"
               }`}
             >
               {item.label}
