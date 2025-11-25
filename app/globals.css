@@ -14,8 +14,9 @@
 
 @media (min-width: 1024px) {
   html {
-    /* Desktop: Restore 80px offset for snap/scroll */
-    scroll-padding-top: 80px;
+    /* Desktop: Remove scroll padding so pt-20 handles the offset naturally. 
+       This fixes the 'too low' issue when snapping. */
+    scroll-padding-top: 0;
     /* Desktop: gentle vertical snap between full-screen tiles */
     scroll-snap-type: y mandatory;
   }

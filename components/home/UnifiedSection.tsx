@@ -98,37 +98,34 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
           {/* TOP HALF: Text Content 
               - pt-4: Reduced from pt-28 to fix "massive blank space".
               - justify-start: Stacks items tightly at the top.
+              - flex-1 min-h-0 overflow-y-auto: Allows text/bullets to scroll if they get too tall, preserving layout.
           */}
-          <div className="flex flex-col justify-start pt-4 pb-2 px-1 shrink-0">
+          <div className="flex flex-col justify-start pt-4 pb-2 px-1 flex-1 min-h-0 overflow-y-auto">
             
-            {/* 1. TITLE (Largest Text & BLUE) 
-                - Changed color to var(--slate360-blue) to satisfy "blue project names" request.
-            */}
-            <h2 className="text-3xl sm:text-4xl font-black text-[color:var(--slate360-blue)] font-orbitron tracking-tight leading-none mb-1 drop-shadow-sm">
+            {/* 1. TITLE (Largest Text & BLUE) */}
+            <h2 className="text-3xl sm:text-4xl font-black text-[color:var(--slate360-blue)] font-orbitron tracking-tight leading-none mb-1 drop-shadow-sm shrink-0">
               {tile.title}
             </h2>
 
-            {/* 2. SUB-HEADLINE (Eyebrow repurposed) 
-                - Larger than description, smaller than title.
-                - Placed below title as requested.
-            */}
+            {/* 2. SUB-HEADLINE (Eyebrow repurposed) */}
             {tile.eyebrow && (
-              <p className="text-lg sm:text-xl font-bold text-slate-900 font-orbitron leading-tight mb-2">
+              <p className="text-lg sm:text-xl font-bold text-slate-900 font-orbitron leading-tight mb-2 shrink-0">
                 {tile.eyebrow}
               </p>
             )}
 
             {/* 3. SUBTITLE (Description) */}
-            <p className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed mb-3">
+            <p className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed mb-3 shrink-0">
               {tile.subtitle}
             </p>
 
-            {/* 4. MAIN BULLETS (Limit to 2 to save space) 
-                - Hidden on landscape to save vertical space.
+            {/* 4. MAIN BULLETS (Vertical List) 
+                - Portrait: Show ALL bullets vertically (no horizontal scroll).
+                - Landscape: Hidden (uses horizontal scroller below).
             */}
             {tile.bullets?.length > 0 && (
               <ul className="space-y-2 mb-2 landscape:hidden">
-                {tile.bullets.slice(0, 2).map((bullet) => (
+                {tile.bullets.map((bullet) => (
                   <li
                     key={bullet.label}
                     className="flex items-start gap-2.5 rounded-lg bg-white/60 backdrop-blur-sm border border-slate-200/50 px-3 py-1.5 shadow-sm"
@@ -143,46 +140,19 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
             )}
           </div>
 
-          {/* MIDDLE: Horizontal Scroller (Flexible Height) 
-              - flex-1 min-h-0: Allows this section to shrink if needed, preventing button overflow.
+          {/* MIDDLE: Horizontal Scroller (Landscape Only) 
+              - Hidden on Portrait.
+              - Visible on Landscape.
+              - mb-2: Adds gap between scroller and viewer.
           */}
-          <div className="w-full flex-1 min-h-0 overflow-y-auto flex flex-col justify-center">
+          <div className="w-full min-h-0 hidden landscape:flex flex-col justify-center mb-2 shrink-0">
              {tile.bullets && (
               <div className="w-full overflow-x-auto py-1 hide-scrollbar">
                 <ul className="flex gap-3 w-max px-1">
-                  {/* Landscape: Show ALL bullets. Portrait: Show bullets after index 2 */}
-                  {(tile.bullets.length > 2 ? tile.bullets : []).map((bullet, i) => {
-                     // Logic: In portrait, only show if index >= 2. In landscape, show all.
-                     // But we can't easily switch the map source in CSS.
-                     // Instead, we render two lists or use CSS to hide items?
-                     // Simpler: Just render the slice(2) list for portrait, and a full list for landscape?
-                     // Or just render one list and use CSS classes on items?
-                     // Let's try a cleaner approach:
-                     return null;
-                  })}
-                  
-                  {/* PORTRAIT SCROLLER (Items 3+) */}
-                  {tile.bullets.slice(2).map((bullet) => (
-                    <li
-                      key={bullet.label}
-                      className="w-[160px] flex flex-col gap-1 p-2 rounded-lg border border-slate-200/80 bg-white/80 backdrop-blur-sm shadow-sm landscape:hidden"
-                    >
-                      <p className="font-bold text-slate-900 font-orbitron text-[10px] truncate">
-                        {bullet.label}
-                      </p>
-                       {bullet.description && (
-                       <p className="text-slate-600 text-[9px] leading-tight line-clamp-2">
-                         {bullet.description}
-                       </p>
-                     )}
-                    </li>
-                  ))}
-
-                  {/* LANDSCAPE SCROLLER (All Items) */}
                   {tile.bullets.map((bullet) => (
                     <li
                       key={`land-${bullet.label}`}
-                      className="hidden landscape:flex w-[160px] flex-col gap-1 p-2 rounded-lg border border-slate-200/80 bg-white/80 backdrop-blur-sm shadow-sm"
+                      className="w-[160px] flex flex-col gap-1 p-2 rounded-lg border border-slate-200/80 bg-white/80 backdrop-blur-sm shadow-sm"
                     >
                       <p className="font-bold text-slate-900 font-orbitron text-[10px] truncate">
                         {bullet.label}
@@ -200,13 +170,15 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
           </div>
 
           {/* BOTTOM HALF: Visuals & Actions 
-              - mt-auto: Pushes to bottom.
-              - pb-4: Standard padding, no huge gap.
+              - mt-auto: Pushes to bottom (if space allows).
+              - pb-4: Standard padding.
           */}
-          <div className="flex flex-col gap-3 pb-4 mt-auto shrink-0">
+          <div className="flex flex-col gap-3 pb-4 shrink-0">
             
-            {/* 4. VIEWER */}
-            <div className="w-full aspect-video rounded-xl overflow-hidden relative border border-slate-900/10 bg-slate-900/90 shadow-lg max-h-[25vh]">
+            {/* 4. VIEWER 
+                - landscape:max-h-[20vh]: Reduce height in landscape to prevent collision.
+            */}
+            <div className="w-full aspect-video rounded-xl overflow-hidden relative border border-slate-900/10 bg-slate-900/90 shadow-lg max-h-[25vh] landscape:max-h-[20vh]">
               <button
                 type="button"
                 onClick={() => setViewerOpen(true)}
