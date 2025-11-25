@@ -15,8 +15,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-theme={DEFAULT_THEME} className={`${inter.variable} ${orbitron.variable}`}>
-      {/* Added debug-mode class for visualization */}
-      <body className="antialiased font-sans text-slate-900 debug-mode">
+      <body className="antialiased font-sans text-slate-900">
         <SiteHeader />
         <main>{children}</main>
       </body>

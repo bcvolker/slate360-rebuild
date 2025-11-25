@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, useRef } from "react";
 import type { CSSProperties } from "react";
 import { Tile } from "@/lib/types";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useScroll, useTransform } from "framer-motion";
 
 interface UnifiedSectionProps {
   tile: Tile;
@@ -15,14 +15,11 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const [viewerOpen, setViewerOpen] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   
-  // Parallax effect for background
+  // Parallax effect was used previously; now disabled to simplify scrolling
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"],
   });
-  
-  // Move background slightly slower than scroll to create depth
-  const bgY = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
 
   const accent = tile.theme?.accent ?? "#4F89D4";
   const layoutAlign = tile.layout?.align ?? (index % 2 === 0 ? "right" : "left");
@@ -75,36 +72,22 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
     <section
       ref={sectionRef}
       id={tile.id}
-      data-snap="tile"
-      // On desktop we keep full-height snapped sections; on mobile let content flow naturally but start below header
-      // Changed justify-center to justify-start for mobile to prevent top clipping behind header
-      // Added min-h-[100dvh] to base classes to ensure full height on mobile/tablet even when snap is enabled for desktop
-      // Mobile: justify-end to push content to bottom. Desktop: justify-center.
-      // Added scroll-mt-[80px] for desktop snap alignment
-      // Reverted h-[100dvh] to min-h-[100dvh] to allow growth for tall content (Tablet Landscape fix)
-      // Added py-24 to ensure safe padding top (header) and bottom
-      // CHANGED: snap-start -> lg:snap-start (Disable snap on mobile)
-      className={`relative w-full flex flex-col min-h-[100dvh] justify-center py-24 ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      // Mobile/tablet: behave like a normal block section with alternating backgrounds
+      // Desktop: enable snap-start for slide-like behavior
+      className={`relative w-full ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
-      {/* Parallax Background - Enabled on all devices but constrained horizontally */}
-      {/* Update: Disabled parallax on mobile (lg:block) to remove "scrolling effect" feel */}
-      <motion.div 
-        style={{ y: bgY }}
-        className="absolute -top-[20%] -bottom-[20%] left-0 right-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)] hidden lg:block" 
-        aria-hidden 
-      />
-      {/* Static Background for Mobile */}
+      {/* Static decorative background behind each tile */}
       <div 
-        className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)] lg:hidden" 
+        className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex-1 flex flex-col justify-center">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 py-16 lg:py-24">
         
-          {/* --- MOBILE/TABLET VERTICAL LAYOUT (Natural Flow) --- */}
-          <div className="lg:hidden flex flex-col flex-1">
-            {/* Text Content - Takes up top space (Spacer) */}
-            <div className="flex-1 flex flex-col justify-start space-y-4">
+          {/* --- MOBILE/TABLET LAYOUT --- */}
+          <div className="lg:hidden flex flex-col gap-6">
+            {/* Text Content */}
+            <div className="flex flex-col justify-start space-y-4">
                 {tile.eyebrow && (
                   <p className="text-[10px] font-bold uppercase tracking-[0.35em] font-orbitron text-slate-900">
                     {tile.eyebrow}
@@ -120,9 +103,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
                 </div>
            </div>
 
-           {/* Horizontal Scroll for Bullets on Mobile - Moved to bottom just above viewer */}
+           {/* Horizontal Scroll for Bullets on Mobile (no snap) */}
            {tile.bullets?.length > 0 && (
-              <div className="w-full overflow-x-auto pb-4 pt-2 snap-x hide-scrollbar mt-auto">
+              <div className="w-full overflow-x-auto pb-4 pt-2 hide-scrollbar">
                 <ul className="flex gap-4 w-max px-1">
                   {tile.bullets.map((bullet) => (
                     <li 
