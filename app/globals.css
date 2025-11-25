@@ -80,22 +80,22 @@ html, body {
   --shadow-strong: 0 0 0;
   --shadow-soft: 0 0 0;
 
-  /* shadcn/ui palette bridge */
-  --background: 215 33% 12%;
-  --foreground: 210 40% 98%;
-  --muted: 215 19% 27%;
-  --muted-foreground: 215 15% 65%;
-  --accent: 208 90% 65%;
-  --accent-foreground: 210 40% 98%;
-  --primary: 208 90% 65%;
+  /* shadcn/ui palette bridge - LIGHT THEME */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --primary: 222.2 47.4% 11.2%;
   --primary-foreground: 210 40% 98%;
-  --secondary: 28 63% 46%;
-  --secondary-foreground: 210 40% 96%;
-  --destructive: 0 84% 60%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
-  --border: 216 34% 48%;
-  --input: 216 34% 48%;
-  --ring: 208 90% 65%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
 }
 
 /* Sample alternate palette (warm dusk) */
