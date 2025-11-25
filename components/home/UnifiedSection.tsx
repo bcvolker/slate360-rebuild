@@ -98,40 +98,42 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
           {/* TOP HALF: Text Content 
               - pt-4: Reduced from pt-28 to fix "massive blank space".
               - justify-start: Stacks items tightly at the top.
-              - flex-1 min-h-0 overflow-y-auto: Allows text/bullets to scroll if they get too tall, preserving layout.
+              - flex-1 min-h-0 overflow-y-auto: Allows text/bullets to scroll if they get too tall on mobile.
+              - md:overflow-hidden: On tablet, we lock the main container and scroll just the list.
           */}
-          <div className="flex flex-col justify-start pt-4 pb-2 px-1 flex-1 min-h-0 overflow-y-auto md:justify-center md:pt-0">
+          <div className="flex flex-col justify-start pt-4 pb-2 px-1 flex-1 min-h-0 overflow-y-auto md:overflow-hidden md:justify-center md:pt-0">
             
-            {/* 1. TITLE (Largest Text & BLUE) */}
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[color:var(--slate360-blue)] font-orbitron tracking-tight leading-none mb-1 drop-shadow-sm shrink-0">
+            {/* 1. TITLE (Largest Text & BLUE) - Increased mobile sizes */}
+            <h2 className="text-4xl sm:text-5xl md:text-5xl font-black text-[color:var(--slate360-blue)] font-orbitron tracking-tight leading-none mb-2 drop-shadow-sm shrink-0">
               {tile.title}
             </h2>
 
-            {/* 2. SUB-HEADLINE (Eyebrow repurposed) */}
+            {/* 2. SUB-HEADLINE (Eyebrow repurposed) - Increased mobile sizes */}
             {tile.eyebrow && (
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 font-orbitron leading-tight mb-2 md:mb-4 shrink-0">
+              <p className="text-xl sm:text-2xl md:text-2xl font-bold text-slate-900 font-orbitron leading-tight mb-3 md:mb-4 shrink-0">
                 {tile.eyebrow}
               </p>
             )}
 
-            {/* 3. SUBTITLE (Description) */}
-            <p className="text-xs sm:text-sm md:text-lg text-slate-800 font-medium leading-relaxed mb-3 md:mb-6 shrink-0">
+            {/* 3. SUBTITLE (Description) - Increased mobile sizes */}
+            <p className="text-sm sm:text-base md:text-lg text-slate-800 font-medium leading-relaxed mb-4 md:mb-6 shrink-0">
               {tile.subtitle}
             </p>
 
             {/* 4. MAIN BULLETS (Vertical List) 
-                - Portrait: Show ALL bullets vertically (no horizontal scroll).
-                - Landscape: Hidden (uses horizontal scroller below).
+                - Portrait: Show ALL bullets vertically.
+                - Landscape: Hidden.
+                - Tablet (md): Scrollable container for the list itself.
             */}
             {tile.bullets?.length > 0 && (
-              <ul className="space-y-2 md:space-y-3 mb-2 landscape:hidden">
+              <ul className="space-y-2 md:space-y-3 mb-2 landscape:hidden md:overflow-y-auto md:max-h-[35vh] md:pr-2 md:scrollbar-thin md:scrollbar-thumb-slate-300 md:scrollbar-track-transparent">
                 {tile.bullets.map((bullet) => (
                   <li
                     key={bullet.label}
-                    className="flex items-start gap-2.5 rounded-lg bg-white/60 backdrop-blur-sm border border-slate-200/50 px-3 py-1.5 md:px-4 md:py-2.5 shadow-sm"
+                    className="flex items-start gap-2.5 rounded-lg bg-white/60 backdrop-blur-sm border border-slate-200/50 px-3 py-2 md:px-4 md:py-2.5 shadow-sm"
                   >
                     <span className="mt-1.5 inline-flex h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-[color:var(--slate360-blue)] shrink-0" />
-                    <p className="font-bold text-slate-900 font-orbitron text-xs md:text-base">
+                    <p className="font-bold text-slate-900 font-orbitron text-sm md:text-base">
                       {bullet.label}
                     </p>
                   </li>

@@ -56,27 +56,17 @@ export default function SiteHeader() {
 
   return (
     <>
-      {/* Fixed header: Slate360 charcoal with a subtle vertical gradient; effects stay under logo/nav. */}
-      <header className="fixed top-0 z-[100] w-full border-b border-[color:var(--slate360-grey)]/40 bg-[color:var(--slate360-charcoal)] bg-[linear-gradient(to_bottom,#181717,#363434,#3f3b3b)]">
-        {/* Background effects live behind content so the logo stays clean */}
-        <div
-          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,rgba(79,137,212,0.18)_0%,transparent_65%)] opacity-60 mix-blend-screen"
-          aria-hidden
-        />
-        {/* Thin blue glow strip under the header bottom for extra pop */}
-        <div
-          className="pointer-events-none absolute bottom-0 left-0 right-0 z-0 h-[2px] bg-[radial-gradient(circle_at_center,rgba(79,137,212,0.45)_0%,transparent_70%)]"
-          aria-hidden
-        />
-
+      {/* Fixed header: Slate360 charcoal, flat background for clean look */}
+      <header className="fixed top-0 z-[100] w-full border-b border-[color:var(--slate360-grey)]/40 bg-[color:var(--slate360-charcoal)]">
+        
         <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 landscape:py-1 lg:py-2 lg:pl-8 lg:pr-8">
-          {/* LOGO: bright with its own glow, always above header effects. */}
+          {/* LOGO: Enhanced pop with brightness and larger shadow */}
           <Link
             href={anchorFor("slate360")}
             className="group flex items-center gap-3 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--slate360-blue)] rounded-md"
             onClick={closeMenus}
           >
-            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300 drop-shadow-[0_0_22px_rgba(79,137,212,0.9)] group-hover:drop-shadow-[0_0_30px_rgba(255,255,255,0.85)]">
+            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300 drop-shadow-[0_0_25px_rgba(79,137,212,1)] brightness-110 hover:scale-105 group-hover:drop-shadow-[0_0_35px_rgba(255,255,255,0.9)]">
               <Image
                 src="/assets/slate360logoforwebsite.png"
                 alt="Slate360 logo"
