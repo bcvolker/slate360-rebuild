@@ -295,48 +295,6 @@ export const siteSections: Tile[] = [
     layout: { align: "right", snap: true },
     theme: { accent: "#4F89D4" },
   },
-  {
-    id: "platform",
-    navLabel: "Slate360 Platform",
-    eyebrow: "From design to reality",
-    title: "Your vision, instantly realized.",
-    subtitle:
-      "Slate360 unifies Project Hub, BIM, tours, media, geospatial, VR/AR, and analytics into one secure workspace for the built environment.",
-    bullets: [
-      {
-        label: "Unified workspace",
-        description: "Keep every workflow connected as a single platform.",
-      },
-      {
-        label: "Cross-tool linking",
-        description: "Connect models, tours, scans, and reports with a few clicks.",
-      },
-      {
-        label: "Role-aware access",
-        description: "Give each team the tools and visibility they need.",
-      },
-      {
-        label: "Automation ready",
-        description: "Hook into your existing stack and trigger workflows automatically.",
-      },
-      {
-        label: "Future-proof foundation",
-        description: "Add new modules and capabilities without replatforming.",
-      },
-      {
-        label: "Enterprise-grade security",
-        description: "Protect design, field, and operational data with confidence.",
-      },
-    ],
-    cta: { label: "Explore the Slate360 Platform", href: "#contact" },
-    secondaryCta: { label: "Get started", href: "/subscribe" },
-    viewer: {
-      title: "Slate360 Platform View",
-      subtitle: "See how every module connects across your projects.",
-    },
-    layout: { align: "left", snap: true },
-    theme: { accent: "#B37031" },
-  },
 ];
 
 export const siteNavLinks = siteSections.map(({ id, navLabel }) => ({ id, label: navLabel }));

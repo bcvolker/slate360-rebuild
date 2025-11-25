@@ -90,77 +90,76 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       
       {/* INNER CONTAINER */}
       {/* FIX 2: SPACING - Removed inner pt-6, changed justify-center to justify-start for mobile compactness */}
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-full justify-start lg:justify-center gap-4 md:gap-8">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-full justify-start lg:justify-center gap-0 md:gap-8">
         
-        {/* --- MOBILE/TABLET LAYOUT (lg:hidden) --- */}
-        <div className="lg:hidden flex flex-col w-full h-full">
-          
-          {/* 1. TOP BLOCK: Title First -> Subtitle Second */}
-          <div className="flex flex-col gap-2 shrink-0">
-            {/* EYEBROW (Optional Kicker) */}
+        {/* --- MOBILE/TABLET LAYOUT (REWRITTEN) --- */}
+        <div className="lg:hidden w-full h-full flex flex-col landscape:grid landscape:grid-cols-2 landscape:gap-4 landscape:items-center">
+  
+          {/* TOP HALF: Text Content 
+              - pt-28: Creates a massive safe zone so text clears the header.
+              - justify-start: Stacks items tightly at the top (no huge gaps).
+          */}
+          <div className="flex flex-col justify-start pt-28 pb-4 px-1 landscape:pt-20 landscape:h-full landscape:justify-center">
+            
+            {/* 1. EYEBROW */}
             {tile.eyebrow && (
-              <p className="text-[10px] font-bold uppercase tracking-[0.25em] font-orbitron text-[color:var(--slate360-blue)] opacity-80 mb-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.25em] font-orbitron text-[color:var(--slate360-blue)] opacity-90 mb-2">
                 {tile.eyebrow}
               </p>
             )}
-            
-            {/* TITLE: Main Star (Largest Text) */}
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 font-orbitron tracking-tight leading-none drop-shadow-sm">
+
+            {/* 2. TITLE (Largest Text) */}
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 font-orbitron tracking-tight leading-none mb-2 drop-shadow-sm">
               {tile.title}
             </h2>
 
-            {/* SUBTITLE: Description (Smaller Text) */}
-            <p className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed max-w-[50rem] mt-1">
+            {/* 3. SUBTITLE (Smaller) */}
+            <p className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed mb-4">
               {tile.subtitle}
             </p>
 
-            {/* 3 BULLET POINTS (Vertical) */}
+            {/* 4. MAIN BULLETS */}
             {tile.bullets?.length > 0 && (
-              <ul className="mt-3 space-y-2 pr-1">
+              <ul className="space-y-2 mb-4">
                 {tile.bullets.slice(0, 3).map((bullet) => (
                   <li
                     key={bullet.label}
                     className="flex items-start gap-2.5 rounded-lg bg-white/60 backdrop-blur-sm border border-slate-200/50 px-3 py-1.5 shadow-sm"
                   >
                     <span className="mt-1.5 inline-flex h-1.5 w-1.5 rounded-full bg-[color:var(--slate360-blue)] shrink-0" />
-                    <div>
-                      <p className="font-bold text-slate-900 font-orbitron text-xs">
+                    <p className="font-bold text-slate-900 font-orbitron text-xs">
+                      {bullet.label}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* BOTTOM HALF: Visuals & Actions 
+              - pb-24: Ensures buttons aren't cut off by mobile UI on scroll 
+          */}
+          <div className="flex flex-col gap-4 pb-24 landscape:pb-4 landscape:justify-center">
+            
+            {/* 5. HORIZONTAL SCROLLER (If more bullets exist) */}
+            {tile.bullets && tile.bullets.length > 3 && (
+              <div className="w-full overflow-x-auto py-1 hide-scrollbar landscape:hidden">
+                <ul className="flex gap-3 w-max px-1">
+                  {tile.bullets.slice(3).map((bullet) => (
+                    <li
+                      key={bullet.label}
+                      className="w-[160px] flex flex-col gap-1 p-2 rounded-lg border border-slate-200/80 bg-white/80 backdrop-blur-sm shadow-sm"
+                    >
+                      <p className="font-bold text-slate-900 font-orbitron text-[10px] truncate">
                         {bullet.label}
                       </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
-          </div>
 
-          {/* 2. MIDDLE: Horizontal Scroll (Flexible Height) */}
-          <div className="w-full overflow-x-auto py-3 hide-scrollbar shrink min-h-0">
-             {/* Only show if we have extra bullets */}
-             {tile.bullets && tile.bullets.length > 3 && (
-              <ul className="flex gap-3 w-max px-1">
-                {tile.bullets.slice(3).map((bullet) => (
-                  <li
-                    key={bullet.label}
-                    className="snap-center w-[180px] flex flex-col gap-1 p-2 rounded-lg border border-slate-200/80 bg-white/80 backdrop-blur-sm shadow-sm"
-                  >
-                     <p className="font-bold text-slate-900 font-orbitron text-[10px] truncate">
-                        {bullet.label}
-                     </p>
-                     {bullet.description && (
-                       <p className="text-slate-600 text-[9px] leading-tight line-clamp-2">
-                         {bullet.description}
-                       </p>
-                     )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* 3. BOTTOM: Viewer & Buttons (Pushed to bottom, but won't overflow) */}
-          <div className="w-full mt-auto flex flex-col gap-3 shrink-0 pb-4">
-            {/* Viewer */}
+            {/* 6. VIEWER */}
             <div className="w-full aspect-video rounded-xl overflow-hidden relative border border-slate-900/10 bg-slate-900/90 shadow-lg">
               <button
                 type="button"
@@ -174,7 +173,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               </button>
             </div>
 
-            {/* Buttons (Side by Side) */}
+            {/* 7. BUTTONS (Side by Side) */}
             {renderCtas(true)}
           </div>
         </div>
