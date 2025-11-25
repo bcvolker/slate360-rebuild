@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useMemo, useState, useRef } from "react";
 import type { CSSProperties } from "react";
 import { Tile } from "@/lib/types";
-import { useScroll, useTransform } from "framer-motion";
 
 interface UnifiedSectionProps {
   tile: Tile;
@@ -14,12 +13,6 @@ interface UnifiedSectionProps {
 export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   const [viewerOpen, setViewerOpen] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
-  
-  // Parallax effect was used previously; now disabled to simplify scrolling
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  });
 
   const accent = tile.theme?.accent ?? "#4F89D4";
   const layoutAlign = tile.layout?.align ?? (index % 2 === 0 ? "right" : "left");
@@ -72,9 +65,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
     <section
       ref={sectionRef}
       id={tile.id}
-      // Mobile/tablet: behave like a normal block section with alternating backgrounds
-      // Desktop: enable snap-start for slide-like behavior
-      className={`relative w-full ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
+      // Full-viewport tile on all devices, with alternating blueprint / concrete backgrounds.
+      // Desktop keeps snap-start; mobile/tablet scroll naturally.
+      className={`relative w-full min-h-[100vh] scroll-mt-[96px] lg:scroll-mt-[112px] ${snapEnabled ? "lg:snap-start" : ""} ${isAlternate ? "bg-blueprint" : "bg-concrete"}`}
       style={sectionStyle}
     >
       {/* Static decorative background behind each tile */}
@@ -82,10 +75,10 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
         className="absolute inset-0 w-full -z-10 opacity-[0.08] bg-[radial-gradient(circle_at_top,var(--section-accent)_0%,transparent_55%)]" 
         aria-hidden 
       />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 py-16 lg:py-24">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 pt-[96px] pb-8 lg:pt-[112px] lg:pb-10 flex flex-col h-[calc(100vh-96px)] lg:h-[calc(100vh-112px)]">
         
           {/* --- MOBILE/TABLET LAYOUT --- */}
-          <div className="lg:hidden flex flex-col gap-6">
+          <div className="lg:hidden flex flex-col gap-6 flex-1">
             {/* Text Content */}
             <div className="flex flex-col justify-start space-y-4">
                 {tile.eyebrow && (
@@ -125,9 +118,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               </div>
             )}
 
-           {/* Viewer + Buttons - Bottom 25% Area */}
-           {/* Layout: Row with Viewer (75%) and Buttons (25%) */}
-           <div className="h-[25vh] min-h-[160px] w-full flex gap-3 mt-4">
+           {/* Viewer + Buttons pinned toward bottom of tile */}
+           <div className="mt-auto h-[25vh] min-h-[160px] w-full flex gap-3">
               {/* Viewer Area - 75% Width */}
               <div className="w-[75%] h-full">
                 <button 
