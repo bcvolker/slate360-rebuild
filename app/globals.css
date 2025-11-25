@@ -115,10 +115,10 @@ html, body {
   --footer-gradient-bottom: 24 8 16;
 }
 
-html,
 html {
   scroll-behavior: smooth;
-  color-scheme: dark;
+  /* color-scheme: dark; -- REMOVED to prevent forced dark backgrounds */
+  background-color: #f0f4f8; /* Ensure html background matches body */
 }
 
 /* Removed legacy scroll-snap-type block */
