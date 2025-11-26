@@ -60,7 +60,12 @@ export default function SiteHeader() {
     };
   }, [pathname]);
 
-  const anchorFor = (id: string) => `/#${id}`;
+  const anchorFor = (id: string) => {
+    if (pathname === "/") {
+      return `#${id}`;
+    }
+    return `/#${id}`;
+  };
 
   return (
     <>
