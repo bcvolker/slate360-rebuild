@@ -97,7 +97,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       ref={sectionRef}
       id={tile.id}
       data-snap="tile"
-      className={`relative w-full flex flex-col min-h-[100dvh] pt-8 snap-start snap-always ${themeClass}`}
+      className={`relative w-full flex flex-col min-h-[100dvh] snap-start scroll-mt-20 pt-20 pb-12 ${themeClass}`}
       style={sectionStyle}
     >
       <div

@@ -7,12 +7,15 @@
   /* Removed global scroll padding and snap from html */
 }
 
-html, body {
-  height: 100%;
-  overflow: hidden; /* Freezes the outer frame */
+html {
+  scroll-behavior: smooth;
+  /* Proximity prevents the 'stuck' feeling if content is tall */
+  scroll-snap-type: y proximity; 
+}
+
+body {
   margin: 0;
   padding: 0;
-  overscroll-behavior: none;
 }
 
 :root {
