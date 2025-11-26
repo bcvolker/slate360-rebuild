@@ -67,10 +67,10 @@ export default function SideNav() {
 
             {/* The Line (Ruler Mark) */}
             <div
-              className={`w-1 rounded-full shadow-md transition-all duration-300 ${
+              className={`w-3 rounded-full shadow-md transition-all duration-300 ${
                 isActive
                   ? "h-10 bg-[#B37031]" // Active: Copper, taller
-                  : "h-6 bg-white/50 group-hover:h-8 group-hover:bg-white" // Inactive: White/50, grows on hover
+                  : "h-6 bg-[#020617] group-hover:h-8 group-hover:bg-[#020617]" // Inactive: Charcoal, grows on hover
               }`}
             />
           </Link>
