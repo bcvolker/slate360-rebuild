@@ -87,6 +87,26 @@ export default function SiteHeader() {
     [pathname]
   );
 
+  const handleLogoClick = useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      if (pathname !== "/") {
+        // Let Next.js handle route change back to home
+        return;
+      }
+
+      event.preventDefault();
+      closeMenus();
+
+      const el = document.getElementById("slate360");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    },
+    [pathname]
+  );
+
   return (
     <>
       {/* Fixed header: Metallic gradient background */}
@@ -97,7 +117,7 @@ export default function SiteHeader() {
           <Link
             href={anchorFor("slate360")}
             className="group flex items-center gap-3 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--slate360-blue)] rounded-md relative z-[102]"
-            onClick={closeMenus}
+            onClick={handleLogoClick}
           >
             <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300 drop-shadow-[0_0_25px_rgba(79,137,212,1)] brightness-110 hover:scale-105 group-hover:drop-shadow-[0_0_35px_rgba(255,255,255,0.9)]">
               <Image

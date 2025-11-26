@@ -16,7 +16,7 @@ export default function HomePage() {
       
       <SideNav />
 
-      {/* Main Scroll Container */}
+      {/* Main Scroll Container lives on the page; body/html handle scrolling */}
       <div className="w-full pt-20 relative">
         {siteSections.map((section, index) => (
           <UnifiedSection key={section.id} tile={section} index={index} />
