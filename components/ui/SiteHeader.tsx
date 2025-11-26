@@ -79,7 +79,7 @@ export default function SiteHeader() {
 
       const el = document.getElementById(id);
       if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
       } else {
         window.location.hash = `#${id}`;
       }
@@ -99,7 +99,7 @@ export default function SiteHeader() {
 
       const el = document.getElementById("slate360");
       if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
       } else {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }

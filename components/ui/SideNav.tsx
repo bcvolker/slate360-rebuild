@@ -57,7 +57,8 @@ export default function SideNav() {
 
       const el = document.getElementById(id);
       if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        // Use nearest so browser respects scroll-margin-top on the section
+        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
       } else {
         // Fallback to hash if element is not yet in the DOM for some reason
         window.location.hash = `#${id}`;
