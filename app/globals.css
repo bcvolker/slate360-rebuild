@@ -4,35 +4,15 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
-    /* Global scroll padding to account for fixed header */
-    scroll-padding-top: 80px;
-  }
-
-  /* Desktop: Enforce snap scrolling without JS */
-  @media (min-width: 1024px) {
-    html {
-      scroll-snap-type: y mandatory;
-    }
-  }
+  /* Removed global scroll padding and snap from html */
 }
 
 html, body {
-  /* Ensure the document is the scroll container */
-  height: auto;
-  min-height: 100%;
-  overflow-x: hidden;
-}
-
-html {
-  scroll-behavior: smooth;
-  overflow-y: scroll; /* Force scrollbar on viewport */
-}
-
-body {
-  overflow-y: visible; /* Let body grow with content */
-  position: relative;
+  height: 100%;
+  overflow: hidden; /* Freezes the outer frame */
+  margin: 0;
+  padding: 0;
+  overscroll-behavior: none;
 }
 
 :root {

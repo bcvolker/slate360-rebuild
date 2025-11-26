@@ -21,6 +21,7 @@ export default function SideNav() {
       {
         threshold: 0.5,
         rootMargin: "-80px 0px -20% 0px",
+        root: document.getElementById("main-scroller"),
       }
     );
 
