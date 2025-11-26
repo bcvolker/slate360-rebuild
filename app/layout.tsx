@@ -19,10 +19,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="alternate icon" href="/favicon.ico" />
       </head>
-      <body className="antialiased font-sans text-[color:var(--slate-text-main)] overflow-hidden">
-        <div className="h-screen flex flex-col">
+      <body className="antialiased font-sans text-[color:var(--slate-text-main)] overflow-x-hidden">
+        <div className="min-h-screen flex flex-col">
           <SiteHeader />
-          <main className="h-screen w-full overflow-y-auto scroll-smooth md:snap-y md:snap-mandatory relative">
+          <main className="flex-1 w-full relative md:h-screen md:overflow-y-auto md:snap-y md:snap-mandatory scroll-smooth">
             {children}
           </main>
         </div>

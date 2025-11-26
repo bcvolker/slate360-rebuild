@@ -36,25 +36,25 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
   const textColumnOrder = layoutAlign === "left" ? "lg:order-2" : "lg:order-1";
   const viewerColumnOrder = layoutAlign === "left" ? "lg:order-1" : "lg:order-2";
 
-  const baseCardClasses = "relative flex h-full max-h-[82vh] w-full flex-col rounded-[32px] px-8 py-8 shadow-2xl backdrop-blur-md";
-  const primaryToneClasses = "bg-[#0b1220]/95 border border-white/5";
-  const altToneClasses = "bg-[#020f2a]/95 border border-[#2f6bff]/25";
+  const baseCardClasses = "relative flex h-full w-full flex-col rounded-[32px] px-8 py-8 shadow-2xl backdrop-blur-md";
+  const primaryToneClasses = "bg-white/90 border border-slate-200/60 shadow-sm";
+  const altToneClasses = "bg-slate-50/85 border border-slate-300/45 shadow-sm";
   
   const toneClasses = effectiveTone === "alt" ? altToneClasses : primaryToneClasses;
 
   const sectionTone = effectiveTone === "alt"
-    ? "bg-[radial-gradient(circle_at_top,_#020b1f,_#020617)]"
-    : "bg-[radial-gradient(circle_at_top,_#050816,_#020617)]";
+    ? "bg-gradient-to-b from-slate-50 to-slate-100"
+    : "bg-gradient-to-b from-white to-slate-50";
 
   return (
     <section
       ref={sectionRef}
       id={id}
       data-snap="tile"
-      className={`md:snap-start min-h-screen w-full flex items-center justify-center px-4 md:px-10 lg:px-20 relative overflow-hidden ${sectionTone}`}
+      className={`md:snap-start min-h-screen pt-20 w-full flex items-center justify-center px-4 md:px-10 lg:px-20 relative overflow-hidden ${sectionTone}`}
       style={sectionStyle}
     >
-      <div className="mx-auto flex h-[82vh] max-h-[82vh] w-full max-w-6xl flex-col items-stretch justify-center gap-10 lg:flex-row lg:items-center">
+      <div className="mx-auto flex h-auto min-h-[60vh] lg:h-[82vh] lg:max-h-[82vh] w-full max-w-6xl flex-col items-stretch justify-center gap-10 lg:flex-row lg:items-center">
         
         {/* TEXT CONTENT CARD */}
         <div className={`w-full lg:w-1/2 h-full ${textColumnOrder}`}>
@@ -123,8 +123,8 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
 
         {/* VIEWER COLUMN */}
         <div className={`w-full lg:w-1/2 h-full flex items-center justify-center ${viewerColumnOrder}`}>
-             <div className="w-full max-w-xl aspect-video bg-[#050712]/95 border border-white/10 rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-50" />
+             <div className="w-full max-w-xl lg:max-w-2xl aspect-video bg-white/95 border border-slate-200/50 rounded-3xl shadow-xl flex items-center justify-center overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-50" />
                 <div className="text-center z-10 p-6">
                     <div className="text-6xl mb-4 opacity-50 group-hover:opacity-100 transition-opacity duration-500 text-[color:var(--slate-text-main)]">
                         ❖

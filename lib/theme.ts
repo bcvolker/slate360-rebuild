@@ -6,28 +6,28 @@ type ThemeRegistry = Record<ThemeName, ThemeTokens>;
 
 export const themeTokens: ThemeRegistry = {
   slate360: {
-    '--color-text-primary': '201 214 232', // Surface Light
-    '--color-text-muted': '107 168 255', // Soft Blueprint Tint
-    '--color-text-soft': '52 71 94', // Mid Graphite
-    '--color-bg-canvas': '2 12 31', // Background Blueprint Navy
-    '--color-bg-gradient-top': '0 71 187', // Primary Blueprint
-    '--color-bg-gradient-mid': '26 93 255', // Electric Blueprint Accent
-    '--color-bg-gradient-bottom': '2 12 31', // Background Blueprint Navy
-    '--color-surface-primary': '10 26 47', // Deep Graphite
-    '--color-surface-elevated': '52 71 94', // Mid Graphite
-    '--color-surface-overlay': '10 26 47', // Deep Graphite
-    '--color-border-soft': '107 168 255', // Soft Blueprint Tint
-    '--color-border-strong': '26 93 255', // Electric Blueprint Accent
-    '--color-accent': '0 71 187', // Primary Blueprint
-    '--color-accent-strong': '26 93 255', // Electric Blueprint Accent
-    '--color-accent-secondary': '255 177 94', // Copper Accent
-    '--color-focus-ring': '26 93 255', // Electric Blueprint Accent
-    '--header-gradient-start': '2 12 31', // Background Blueprint Navy
-    '--header-gradient-end': '0 71 187', // Primary Blueprint
-    '--footer-gradient-top': '10 26 47', // Deep Graphite
-    '--footer-gradient-bottom': '2 12 31', // Background Blueprint Navy
-    '--shadow-strong': '2 12 31', // Background Blueprint Navy
-    '--shadow-soft': '10 26 47', // Deep Graphite
+    '--color-text-primary': '15 23 42', // Slate 900
+    '--color-text-muted': '100 116 139', // Slate 500
+    '--color-text-soft': '51 65 85', // Slate 700
+    '--color-bg-canvas': '248 250 252', // Slate 50
+    '--color-bg-gradient-top': '255 255 255', // White
+    '--color-bg-gradient-mid': '241 245 249', // Slate 100
+    '--color-bg-gradient-bottom': '248 250 252', // Slate 50
+    '--color-surface-primary': '255 255 255', // White
+    '--color-surface-elevated': '248 250 252', // Slate 50
+    '--color-surface-overlay': '255 255 255', // White
+    '--color-border-soft': '226 232 240', // Slate 200
+    '--color-border-strong': '59 130 246', // Blue 500
+    '--color-accent': '59 130 246', // Blue 500
+    '--color-accent-strong': '37 99 235', // Blue 600
+    '--color-accent-secondary': '245 158 11', // Amber 500
+    '--color-focus-ring': '59 130 246', // Blue 500
+    '--header-gradient-start': '255 255 255', // White
+    '--header-gradient-end': '248 250 252', // Slate 50
+    '--footer-gradient-top': '248 250 252', // Slate 50
+    '--footer-gradient-bottom': '241 245 249', // Slate 100
+    '--shadow-strong': '226 232 240', // Slate 200
+    '--shadow-soft': '241 245 249', // Slate 100
   },
   dusk: {
     '--color-text-primary': '250 245 255',
@@ -65,13 +65,13 @@ export function getThemeTokens(theme: ThemeName): ThemeTokens {
 
 export const slateTheme = {
   colors: {
-    blueprint: "#0047BB",
-    blueprintAccent: "#1A5DFF",
-    blueprintSoft: "#6BA8FF",
-    graphiteDark: "#0A1A2F",
-    graphite: "#34475E",
-    surfaceLight: "#C9D6E8",
-    copper: "#FFB15E",
-    bgNavy: "#020C1F",
+    blueprint: "#2f6bff",
+    blueprintAccent: "#60a5fa",
+    blueprintSoft: "#bfdbfe",
+    graphiteDark: "#1e293b",
+    graphite: "#475569",
+    surfaceLight: "#f8fafc",
+    copper: "#f59e0b",
+    bgNavy: "#f1f5f9", // Remapped to light slate
   },
 };

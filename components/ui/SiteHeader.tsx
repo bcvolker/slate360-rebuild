@@ -108,7 +108,7 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
           "fixed top-0 left-0 right-0 z-[9999] w-full border-b backdrop-blur-sm transition-colors duration-300",
           isLight 
             ? "bg-white/85 border-slate-200" 
-            : "bg-gradient-to-b from-black/70 via-black/40 to-transparent backdrop-blur-md border-white/10"
+            : "bg-slate-900/90 border-slate-800 backdrop-blur-md"
         )}
       >
         
@@ -227,14 +227,14 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
           
           {/* Menu Panel - Sits on top of backdrop */}
           <div 
-            className="relative z-10 flex flex-col border-b border-[color:var(--slate-border-light)] bg-[color:var(--slate-blueprint)] p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
+            className="relative z-10 flex flex-col border-b border-slate-200 bg-white p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
               {/* Added Logo to Menu Header */}
               <div className="relative h-10 w-40 -ml-2">
                 <Image
-                  src="/slate360-logo-blueprint-compass.svg"
+                  src="/slate360-logo-blueprint-compass-light.svg"
                   alt="Slate360 logo"
                   fill
                   className="object-contain object-left"
@@ -244,7 +244,7 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
                 aria-label="Close menu"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -261,20 +261,20 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
                   onClick={closeMenus}
                   className={`block rounded-lg px-4 py-3 text-base font-medium transition-colors font-orbitron ${
                     activeId === item.id
-                      ? "bg-[color:var(--slate-blueprint-accent)]/20 text-[color:var(--slate-blueprint-accent)]"
-                      : "text-slate-100 hover:bg-white/5 hover:text-white"
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                   }`}
                 >
                   {item.label}
                 </Link>
               ))}
-              <div className="my-2 border-t border-white/10" />
+              <div className="my-2 border-t border-slate-100" />
               {["Plans & Pricing", "About", "Login"].map((label) => (
                 <Link
                   key={label}
                   href={label === "Plans & Pricing" ? "/subscribe" : label === "Login" ? "/login" : `/${label.toLowerCase()}`}
                   onClick={closeMenus}
-                  className="block rounded-lg px-4 py-3 text-base font-medium text-slate-100 hover:bg-white/5 hover:text-white transition-colors font-orbitron"
+                  className="block rounded-lg px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors font-orbitron"
                 >
                   {label}
                 </Link>

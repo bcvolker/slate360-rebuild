@@ -5,9 +5,7 @@
 
 @layer base {
   /* Body is fixed; main handles scrolling */
-  body {
-    @apply overflow-hidden bg-[#040e24];
-  }
+  /* Removed hard-coded navy background */
 }
 
 html,
@@ -25,8 +23,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Blueprint Grid Pattern */
-body::before {
+/* Blueprint Grid Pattern - DISABLED for clean look */
+/* body::before {
   content: "";
   position: fixed;
   top: 0;
@@ -40,17 +38,17 @@ body::before {
   opacity: 1;
   pointer-events: none;
   z-index: -1;
-}
+} */
 
 
 :root {
-  /* Slate360 brand tokens - Blueprint Ultra */
-  --slate-bg-root: #020617;
-  --slate-bg-tile-primary: #050816;
-  --slate-bg-tile-alt: #020b1f;
-  --slate-card-primary: #0b1220;
-  --slate-card-alt: #020f2a;
-  --slate-card-viewer: #050712;
+  /* Slate360 brand tokens - Blueprint Ultra (Light/Graphite) */
+  --slate-bg-root: #f8fafc; /* Slate 50 */
+  --slate-bg-tile-primary: #ffffff; /* White */
+  --slate-bg-tile-alt: #f1f5f9; /* Slate 100 */
+  --slate-card-primary: #ffffff;
+  --slate-card-alt: #f8fafc;
+  --slate-card-viewer: #ffffff;
   --slate-accent-blue: #2f6bff;
   --slate-accent-copper: #f59e0b;
   
@@ -62,13 +60,13 @@ body::before {
   --slate-graphite-soft: #020f2a;
   --slate-silver: #cbd5f5;
   --slate-copper: #f59e0b;
-  --slate-text-main: #f9fafb;
-  --slate-text-muted: #9ca3af;
+  --slate-text-main: #0f172a; /* Slate 900 */
+  --slate-text-muted: #64748b; /* Slate 500 */
   --slate-bg-navy: #020617;
   --slate-border-light: rgba(148, 163, 184, 0.25);
   
-  --slate-bg-light: #050816;
-  --slate-bg-alt: #020b1f;
+  --slate-bg-light: #ffffff;
+  --slate-bg-alt: #f1f5f9;
   --slate-copper-soft: #fed7aa;
 
   /* Legacy tokens mapped to new palette where appropriate */
@@ -88,33 +86,33 @@ body::before {
   --tile-content-height: calc(100vh - var(--navbar-height));
 
   /* Theme tokens stored as RGB triples for Tailwind opacity support */
-  --color-text-primary: 249 250 251; /* slate-text-main */
-  --color-text-muted: 156 163 175; /* slate-text-muted */
-  --color-text-soft: 39 49 60; /* slate-graphite-soft */
+  --color-text-primary: 15 23 42; /* slate-900 */
+  --color-text-muted: 100 116 139; /* slate-500 */
+  --color-text-soft: 51 65 85; /* slate-700 */
 
-  --color-bg-canvas: 11 23 40; /* slate-bg-light */
-  --color-bg-gradient-top: 14 34 69; /* slate-blueprint */
-  --color-bg-gradient-mid: 63 162 255; /* slate-blue */
-  --color-bg-gradient-bottom: 11 23 40; /* slate-bg-light */
+  --color-bg-canvas: 248 250 252; /* slate-50 */
+  --color-bg-gradient-top: 255 255 255; /* white */
+  --color-bg-gradient-mid: 241 245 249; /* slate-100 */
+  --color-bg-gradient-bottom: 248 250 252; /* slate-50 */
 
-  --color-surface-primary: 31 41 51; /* slate-graphite */
-  --color-surface-elevated: 39 49 60; /* slate-graphite-soft */
-  --color-surface-overlay: 31 41 51; /* slate-graphite */
+  --color-surface-primary: 255 255 255; /* white */
+  --color-surface-elevated: 248 250 252; /* slate-50 */
+  --color-surface-overlay: 255 255 255; /* white */
 
-  --color-border-soft: 182 197 224; /* slate-text-muted */
-  --color-border-strong: 63 162 255; /* slate-blue */
+  --color-border-soft: 226 232 240; /* slate-200 */
+  --color-border-strong: 59 130 246; /* blue-500 */
 
-  --color-accent: 63 162 255; /* slate-blue */
-  --color-accent-strong: 24 54 107; /* slate-blueprint-light */
-  --color-accent-secondary: 247 169 90; /* slate-copper */
+  --color-accent: 59 130 246; /* blue-500 */
+  --color-accent-strong: 37 99 235; /* blue-600 */
+  --color-accent-secondary: 245 158 11; /* amber-500 */
 
-  --color-focus-ring: 63 162 255;
+  --color-focus-ring: 59 130 246;
 
-  --header-gradient-start: 54 52 52;
-  --header-gradient-end: 54 52 52;
+  --header-gradient-start: 255 255 255;
+  --header-gradient-end: 248 250 252;
 
-  --footer-gradient-top: 54 52 52;
-  --footer-gradient-bottom: 45 43 43;
+  --footer-gradient-top: 248 250 252;
+  --footer-gradient-bottom: 241 245 249;
 
   --shadow-strong: 0 0 0;
   --shadow-soft: 0 0 0;
@@ -177,7 +175,7 @@ body {
   min-height: 100%;
   overflow-x: hidden;
   color: rgb(var(--color-text-primary));
-  background-color: #020617; /* Neutral Midnight */
+  background-color: var(--slate-bg-root); /* Use variable instead of hardcoded navy */
   font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
 }
 
