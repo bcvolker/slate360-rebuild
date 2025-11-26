@@ -36,7 +36,7 @@ export default function SideNav() {
   const anchorFor = (id: string) => `/#${id}`;
 
   return (
-    <nav className="fixed top-1/2 right-6 z-40 hidden -translate-y-1/2 flex-col gap-3 lg:flex">
+    <nav className="fixed top-1/2 right-6 z-[50] hidden -translate-y-1/2 flex-col gap-3 lg:flex">
       {siteNavLinks.map((item) => {
         const isActive = activeId === item.id;
         return (
