@@ -184,8 +184,8 @@ body {
 .bg-blueprint-theme {
   background-color: #002082; /* Deep Blue */
   background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
   background-size: 160px 160px; /* Large Grid */
 }
 
@@ -193,8 +193,8 @@ body {
 .bg-graphite-theme {
   background-color: #f1f5f9; /* Slate-100 */
   background-image: 
-    linear-gradient(rgba(51, 65, 85, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(51, 65, 85, 0.08) 1px, transparent 1px);
+    linear-gradient(rgba(51, 65, 85, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(51, 65, 85, 0.2) 1px, transparent 1px);
   background-size: 160px 160px; /* Large Grid */
 }
 
