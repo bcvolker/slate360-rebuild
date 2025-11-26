@@ -1,5 +1,6 @@
 "use client";
 
+// Mobile layout fix verified: Light Theme Active
 import Link from "next/link";
 import { useMemo, useState, useRef } from "react";
 import type { CSSProperties } from "react";
