@@ -2,6 +2,48 @@ import { Tile } from "@/lib/types";
 
 export const siteSections: Tile[] = [
   {
+    id: "slate360",
+    navLabel: "Slate360",
+    eyebrow: "The Operating System for the Built Environment",
+    title: "Slate360",
+    subtitle:
+      "From design to reality. Unify your entire project lifecycle with the only platform that connects BIM, reality capture, and field operations.",
+    bullets: [
+      {
+        label: "One platform, every tool",
+        description: "Replace disconnected point solutions with a single unified ecosystem.",
+      },
+      {
+        label: "Seamless data flow",
+        description: "Move from design to construction to operations without data loss.",
+      },
+      {
+        label: "Real-time collaboration",
+        description: "Connect office, field, and stakeholders instantly.",
+      },
+      {
+        label: "Enterprise security",
+        description: "Bank-grade encryption and role-based access control.",
+      },
+      {
+        label: "Open API",
+        description: "Integrate with your existing ERP and scheduling tools.",
+      },
+      {
+        label: "Device agnostic",
+        description: "Works on any browser, tablet, or mobile device.",
+      },
+    ],
+    cta: { label: "Start Free Trial", href: "/subscribe" },
+    secondaryCta: { label: "Contact Sales", href: "#contact" },
+    viewer: {
+      title: "Welcome to Slate360",
+      subtitle: "Explore the future of construction technology.",
+    },
+    layout: { align: "left", snap: true },
+    theme: { accent: "#4F89D4" },
+  },
+  {
     id: "project-hub",
     navLabel: "Project Hub",
     eyebrow: "Operational Command Center",

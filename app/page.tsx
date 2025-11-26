@@ -17,7 +17,7 @@ export default function HomePage() {
       <SideNav />
 
       {/* Main Scroll Container - Handles Snap */}
-      <main className="w-full">
+      <main className="w-full pt-20">
         {siteSections.map((section, index) => (
           <UnifiedSection key={section.id} tile={section} index={index} />
         ))}
