@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="antialiased font-sans text-[color:var(--slate-text-main)] overflow-hidden">
         <div className="h-screen flex flex-col">
           <SiteHeader />
-          <main className="min-h-screen w-full relative overflow-y-auto scroll-smooth md:h-screen md:snap-y md:snap-mandatory">
+          <main className="flex-1 w-full relative overflow-y-auto scroll-smooth md:snap-y md:snap-mandatory">
             {children}
           </main>
         </div>

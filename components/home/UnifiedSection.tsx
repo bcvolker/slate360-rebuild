@@ -38,6 +38,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
   const viewerColumnOrder = layoutAlign === "left" ? "lg:order-1" : "lg:order-2";
 
   const baseCardClasses = "relative flex h-full w-full flex-col rounded-[32px] px-8 py-8 shadow-2xl backdrop-blur-md";
+  // LIGHT THEME COLORS
   const primaryToneClasses = "bg-white/90 border border-slate-200/60 shadow-sm";
   const altToneClasses = "bg-slate-50/85 border border-slate-300/45 shadow-sm";
   
@@ -62,7 +63,8 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
       ref={sectionRef}
       id={id}
       data-snap="tile"
-      className={`${sectionBackground} w-full px-4 py-10 md:px-10 lg:px-20 relative overflow-hidden pt-24 md:pt-28 lg:pt-0 flex flex-col md:min-h-screen md:snap-start md:items-center md:justify-center`}
+      // LAYOUT FIX: min-h-full instead of min-h-screen to avoid mobile address bar clipping
+      className={`${sectionBackground} w-full px-4 py-10 md:px-10 lg:px-20 relative overflow-hidden pt-24 md:pt-28 lg:pt-0 flex flex-col min-h-full md:snap-start md:items-center md:justify-center`}
       style={sectionStyle}
     >
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 md:grid md:grid-cols-2 md:items-center">
@@ -136,6 +138,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
 
         {/* VIEWER COLUMN */}
         <div className={`w-full flex items-start justify-center mt-8 md:mt-0 md:h-full md:items-center ${viewerColumnOrder}`}>
+            {/* LIGHT THEME VIEWER CARD */}
             <div className="w-full max-w-md md:max-w-xl h-56 sm:h-64 md:h-[420px] bg-white/90 border border-slate-200/60 rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-50" />
                 <div className="text-center z-10 p-6">
