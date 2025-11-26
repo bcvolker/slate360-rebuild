@@ -67,45 +67,9 @@ export default function SiteHeader() {
     return `/#${id}`;
   };
 
-  const handleFeatureClick = useCallback(
-    (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-      if (pathname !== "/") {
-        // Cross-page navigation: let Next.js handle it
-        return;
-      }
-
-      event.preventDefault();
-      closeMenus();
-
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      } else {
-        window.location.hash = `#${id}`;
-      }
-    },
-    [pathname]
-  );
-
-  const handleLogoClick = useCallback(
-    (event: React.MouseEvent<HTMLAnchorElement>) => {
-      if (pathname !== "/") {
-        // Let Next.js handle route change back to home
-        return;
-      }
-
-      event.preventDefault();
-      closeMenus();
-
-      const el = document.getElementById("slate360");
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      } else {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-    },
-    [pathname]
-  );
+  const handleLogoClick = useCallback(() => {
+    closeMenus();
+  }, []);
 
   return (
     <>
@@ -148,7 +112,7 @@ export default function SiteHeader() {
                       <Link
                         key={item.id}
                         href={anchorFor(item.id)}
-                        onClick={(event) => handleFeatureClick(event, item.id)}
+                        onClick={closeMenus}
                         className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[#B87333]/20 hover-copper transition-colors duration-150 font-orbitron"
                       >
                         {item.label}

@@ -14,8 +14,7 @@
   /* Apply snap on the homepage (controlled by SnapManager) on desktop only */
   @media (min-width: 1024px) {
     html.snap-mandatory {
-      scroll-snap-type: y proximity;
-      scroll-padding-top: 5rem; /* align with header height */
+      scroll-snap-type: y mandatory;
     }
   }
 
