@@ -59,7 +59,7 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
           "fixed top-0 left-0 right-0 z-[9999] w-full border-b backdrop-blur-sm transition-colors duration-300",
           isLight 
             ? "bg-white/85 border-slate-200" 
-            : "bg-[#111827]/95 border-slate-800 shadow-md backdrop-blur-lg"
+            : "bg-[#050814]/95 border-slate-800 shadow-md backdrop-blur-lg"
         )}
       >
         
@@ -166,83 +166,68 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
 
       {/* MOBILE MENU OVERLAY - Moved outside header to avoid stacking context issues */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-[9999] flex flex-col lg:hidden">
-          {/* Backdrop - Full screen button to capture clicks */}
-          <button
-            type="button"
-            className="absolute inset-0 h-full w-full bg-black/70 backdrop-blur-sm cursor-pointer border-none outline-none"
-            onClick={() => setMobileOpen(false)}
-            onTouchEnd={() => setMobileOpen(false)}
-            aria-label="Close menu"
-          />
-          
-          {/* Menu Panel - Sits on top of backdrop */}
-          <div 
-            className="relative z-10 flex flex-col border-b border-slate-200 bg-slate-50/95 backdrop-blur-md p-0 shadow-2xl max-h-[90vh] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Top Bar */}
-            <div className="flex items-center justify-between px-6 pt-6 pb-4">
-              {/* Added Logo to Menu Header */}
-              <div className="relative h-10 w-40 -ml-2">
-                <Image
-                  src="/slate360-logo-blueprint-compass-light.svg"
-                  alt="Slate360 logo"
-                  fill
-                  className="object-contain object-left"
-                  priority
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-                aria-label="Close menu"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+        <div className="fixed inset-0 z-[9000] flex flex-col bg-slate-50/95 backdrop-blur-md md:hidden">
+          {/* Top Bar */}
+          <div className="flex h-16 items-center justify-between px-4 bg-[#050814] text-slate-50">
+            {/* Added Logo to Menu Header */}
+            <div className="relative h-10 w-40 -ml-2">
+              <Image
+                src="/slate360-logo-blueprint-compass-light.svg"
+                alt="Slate360 logo"
+                fill
+                className="object-contain object-left"
+                priority
+              />
             </div>
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+              aria-label="Close menu"
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
-            <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-6">
-              {/* Features Accordion */}
-              <details className="group rounded-2xl bg-white/80 shadow-sm border border-slate-200/50 open:bg-white transition-all">
-                <summary className="flex items-center justify-between px-4 py-3 cursor-pointer list-none select-none">
-                  <span className="font-bold text-slate-800 font-orbitron tracking-wide">Features</span>
-                  <span className="text-xs text-slate-500 group-open:hidden">Tap to expand</span>
-                  <span className="text-xs text-slate-500 hidden group-open:block">Collapse</span>
-                </summary>
+          <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+            {/* Features Accordion */}
+            <details className="group rounded-2xl bg-white/80 shadow-sm border border-slate-200/50 open:bg-white transition-all">
+              <summary className="flex items-center justify-between px-4 py-3 cursor-pointer list-none select-none">
+                <span className="font-bold text-slate-800 font-orbitron tracking-wide">Features</span>
+                <span className="text-xs text-slate-500 group-open:hidden">Tap to expand</span>
+                <span className="text-xs text-slate-500 hidden group-open:block">Collapse</span>
+              </summary>
 
-                <div className="px-4 pb-4 pt-2 grid grid-cols-2 gap-3 text-sm border-t border-slate-100 mt-1">
-                  {siteSections.map((item) => (
-                    <Link
-                      key={item.id}
-                      href={anchorFor(item.id)}
-                      onClick={closeMenus}
-                      className="text-left rounded-xl px-3 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium text-xs leading-tight border border-slate-100"
-                    >
-                      {item.navLabel || item.title}
-                    </Link>
-                  ))}
-                </div>
-              </details>
-
-              {/* Primary Links */}
-              <nav className="space-y-2">
-                {["Plans & Pricing", "About", "Login"].map((label) => (
+              <div className="px-4 pb-4 pt-2 grid grid-cols-2 gap-3 text-sm border-t border-slate-100 mt-1">
+                {siteSections.map((item) => (
                   <Link
-                    key={label}
-                    href={label === "Plans & Pricing" ? "/subscribe" : label === "Login" ? "/login" : `/${label.toLowerCase()}`}
+                    key={item.id}
+                    href={anchorFor(item.id)}
                     onClick={closeMenus}
-                    className="block rounded-xl px-4 py-3 text-base font-bold text-slate-700 bg-white border border-slate-200/50 hover:bg-slate-50 hover:text-slate-900 transition-colors font-orbitron shadow-sm"
+                    className="text-left rounded-xl px-3 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium text-xs leading-tight border border-slate-100"
                   >
-                    {label}
+                    {item.navLabel || item.title}
                   </Link>
                 ))}
-              </nav>
+              </div>
+            </details>
+
+            {/* Primary Links */}
+            <div className="space-y-2">
+              {["Plans & Pricing", "About", "Login"].map((label) => (
+                <Link
+                  key={label}
+                  href={label === "Plans & Pricing" ? "/subscribe" : label === "Login" ? "/login" : `/${label.toLowerCase()}`}
+                  onClick={closeMenus}
+                  className="block rounded-xl px-4 py-3 text-base font-bold text-slate-700 bg-white border border-slate-200/50 hover:bg-slate-50 hover:text-slate-900 transition-colors font-orbitron shadow-sm"
+                >
+                  {label}
+                </Link>
+              ))}
             </div>
-          </div>
+          </nav>
         </div>
       )}
     </>

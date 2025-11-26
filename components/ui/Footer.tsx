@@ -14,7 +14,7 @@ export default function Footer({ variant = "dark" }: FooterProps) {
         "relative z-10 w-full text-xs py-8 snap-end border-t transition-colors duration-300",
         isLight 
           ? "bg-slate-50 border-slate-200" 
-          : "border-slate-800 bg-[#0f172a]"
+          : "border-slate-800 bg-[#050814]"
       )}
     >
       
