@@ -248,26 +248,6 @@ export default function SiteHeader() {
           </div>
         </div>
       )}
-
-      {/* SECONDARY NAV: Stacked on the right */}
-      {pathname === "/" && (
-        <div className="hidden xl:flex flex-col fixed top-32 right-0 items-end gap-1 z-40 bg-white/90 backdrop-blur-md rounded-l-2xl shadow-lg py-4 px-3">
-          {NAV_LINKS.map((item) => (
-            <Link
-              key={item.id}
-              href={anchorFor(item.id)}
-              onClick={() => setMenuOpen(false)}
-              className={`text-[10px] font-orbitron tracking-wider transition-colors duration-300 ${
-                activeId === item.id
-                  ? "text-blue-600 font-bold"
-                  : "text-slate-600 font-medium hover:text-blue-600"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      )}
     </>
   );
 }

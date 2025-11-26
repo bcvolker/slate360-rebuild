@@ -2,6 +2,7 @@ import React from "react";
 import UnifiedSection from "@/components/home/UnifiedSection";
 import { siteSections } from "@/lib/config";
 import Footer from "@/components/ui/Footer";
+import SideNav from "@/components/ui/SideNav";
 
 export default function HomePage() {
   return (
@@ -13,6 +14,8 @@ export default function HomePage() {
         />
       )}
       
+      <SideNav />
+
       {/* Main Scroll Container - Handles Snap */}
       <main className="w-full">
         {siteSections.map((section, index) => (
