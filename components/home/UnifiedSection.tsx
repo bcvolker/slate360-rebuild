@@ -111,7 +111,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-[calc(100dvh-80px)] landscape:h-auto lg:h-[calc(100dvh-80px)] justify-start lg:justify-center gap-0 md:gap-8">
         
         {/* --- MOBILE/TABLET LAYOUT (REWRITTEN) --- */}
-        <div className="lg:hidden w-full h-full flex flex-col">
+        <div className="lg:hidden w-full h-[100dvh] flex flex-col justify-start pt-28 pb-20 px-4 overflow-y-auto no-scrollbar">
   
           {/* TOP HALF: Text Content 
               - pt-4: Reduced from pt-28 to fix "massive blank space".
@@ -119,7 +119,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
               - flex-1 min-h-0 overflow-y-auto: Allows text/bullets to scroll if they get too tall on mobile.
               - md:overflow-hidden: On tablet, we lock the main container and scroll just the list.
           */}
-          <div className={`flex flex-col justify-start pt-4 pb-2 px-1 flex-1 min-h-0 overflow-y-auto md:overflow-hidden md:justify-center md:pt-0 ${glassCardClass} mb-4`}>
+          <div className={`flex flex-col justify-start pt-4 pb-2 px-1 flex-1 min-h-0 md:overflow-hidden md:justify-center md:pt-0 ${glassCardClass} mb-4`}>
             
             {/* 1. TITLE (Largest Text & BLUE) - Increased mobile sizes */}
             <h2 className={`text-3xl sm:text-4xl md:text-5xl font-black ${titleColor} font-orbitron tracking-tight leading-none mb-2 drop-shadow-sm shrink-0`}>

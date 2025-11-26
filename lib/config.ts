@@ -77,7 +77,7 @@ export const siteSections: Tile[] = [
       },
     ],
     cta: { label: "See Project Hub", href: "/features/project-hub" },
-    secondaryCta: { label: "Get started", href: "#contact" },
+    secondaryCta: { label: "Get started", href: "/subscribe" },
     viewer: {
       title: "Project Hub Overview",
       subtitle: "Glanceable dashboards, live tasks, and activity streams in one place.",
@@ -203,7 +203,7 @@ export const siteSections: Tile[] = [
       },
     ],
     cta: { label: "Discover Tour Builder", href: "/features/tour-builder" },
-    secondaryCta: { label: "Get started", href: "#contact" },
+    secondaryCta: { label: "Get started", href: "/subscribe" },
     viewer: {
       title: "360 Tour Preview",
       subtitle: "Click through hotspots, floorplans, and guided walkthroughs in one place.",
@@ -245,7 +245,7 @@ export const siteSections: Tile[] = [
       },
     ],
     cta: { label: "See Geospatial Tools", href: "/features/geospatial" },
-    secondaryCta: { label: "Get started", href: "#contact" },
+    secondaryCta: { label: "Get started", href: "/subscribe" },
     viewer: {
       title: "Geospatial Console",
       subtitle: "View missions, maps, and volumetric analytics from a single screen.",
@@ -329,7 +329,7 @@ export const siteSections: Tile[] = [
       },
     ],
     cta: { label: "Explore Reports & Analytics", href: "/features/analytics" },
-    secondaryCta: { label: "Get started", href: "#contact" },
+    secondaryCta: { label: "Get started", href: "/subscribe" },
     viewer: {
       title: "Analytics Board",
       subtitle: "Visualize KPIs, trends, and site telemetry from a single view.",
