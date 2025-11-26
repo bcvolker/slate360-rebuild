@@ -19,9 +19,8 @@ export default function SideNav() {
         });
       },
       {
-        // Slightly more forgiving so sections become active earlier
-        threshold: 0.35,
-        rootMargin: "-80px 0px -40% 0px", // account for fixed header height
+        threshold: 0.5,
+        rootMargin: "-80px 0px -20% 0px",
       }
     );
 

@@ -43,7 +43,10 @@ export default function SiteHeader() {
           }
         });
       },
-      { threshold: 0.5 }
+      {
+        threshold: 0.5,
+        rootMargin: "-80px 0px -20% 0px",
+      }
     );
 
     // Small timeout to ensure DOM elements are present after navigation

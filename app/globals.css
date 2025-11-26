@@ -6,28 +6,16 @@
 @layer base {
   html {
     scroll-behavior: smooth;
-    /* Mobile: 0px scroll padding so anchor links align to top (0px).
-       The section padding (pt-20) handles the visual offset for the header. */
-    scroll-padding-top: 0;
+    /* Global scroll padding to account for fixed header */
+    scroll-padding-top: 80px;
   }
 
-  /* Apply snap on the homepage (controlled by SnapManager) on desktop only */
+  /* Desktop: Enforce snap scrolling without JS */
   @media (min-width: 1024px) {
-    html.snap-mandatory {
+    html {
       scroll-snap-type: y mandatory;
     }
   }
-
-  @media (min-width: 1024px) {
-    html {
-      /* Desktop: Remove scroll padding so pt-20 handles the offset naturally. */
-      scroll-padding-top: 0;
-    }
-  }
-  /* 5. Ensure the background behind the rubber-banding is dark */
-  /* body {
-    @apply bg-slate-900; 
-  } */
 }
 
 html, body {
