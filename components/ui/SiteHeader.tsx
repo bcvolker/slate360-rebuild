@@ -138,7 +138,7 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
                   )}
                 >
                   {label}
-                  <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[color:var(--slate-copper)] transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                  <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-blue-600 transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
             </nav>
@@ -154,9 +154,9 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
             >
               <span className="sr-only">Toggle menu</span>
               <div className="flex flex-col gap-1.5">
-                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-[color:var(--slate-copper)] transition-colors" />
-                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-[color:var(--slate-copper)] transition-colors" />
-                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-[color:var(--slate-copper)] transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-blue-600 transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-blue-600 transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-blue-600 transition-colors" />
               </div>
             </button>
           </div>

@@ -66,7 +66,7 @@ export default function SideNav() {
             <div
               className={`w-3 rounded-full shadow-md transition-all duration-300 ${
                 isActive
-                  ? "h-10 bg-[color:var(--slate-copper)] shadow-[0_0_10px_rgba(255,177,94,0.5)]" // Active: Copper, taller, glow
+                  ? "h-10 bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]" // Active: Blue, taller, glow
                   : "h-6 bg-slate-900/60 group-hover:h-8 group-hover:bg-blue-600" // Inactive: Dark charcoal -> Blue on hover
               }`}
             />
