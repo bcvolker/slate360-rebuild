@@ -40,8 +40,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   
   // Glass Card Classes
   const glassCardClass = isAlternate
-    ? "backdrop-blur-md bg-white/10 rounded-2xl border border-white/10 p-6 lg:py-6 lg:px-8 flex flex-col justify-center h-full max-h-[80vh]" // Blue Theme: White Glass
-    : "backdrop-blur-md bg-white/60 rounded-2xl border border-slate-900/5 p-6 lg:py-6 lg:px-8 flex flex-col justify-center h-full max-h-[80vh]"; // Grey Theme: Frosted Glass
+    ? "backdrop-blur-md bg-white/10 rounded-2xl border border-white/10 p-6 lg:py-4 lg:px-6 flex flex-col justify-center h-full max-h-[80vh]" // Blue Theme: White Glass
+    : "backdrop-blur-md bg-white/60 rounded-2xl border border-slate-900/5 p-6 lg:py-4 lg:px-6 flex flex-col justify-center h-full max-h-[80vh]"; // Grey Theme: Frosted Glass
 
   // Text Colors
   const titleColor = isAlternate ? "text-white" : "text-slate-900";
@@ -242,7 +242,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
             </div>
 
             {tile.bullets?.length > 0 && (
-              <ul className={`space-y-2 lg:space-y-4 text-xs sm:text-sm lg:text-base ${bulletColor} max-h-[30vh] overflow-y-auto pr-1 pl-1 scrollbar-thin scrollbar-thumb-white/20`}>
+              <ul className="space-y-2 text-xs sm:text-sm text-slate-800 max-h-[30vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/40 scrollbar-track-transparent">
                 {tile.bullets.map((bullet) => (
                   <li key={bullet.label} className="flex gap-3">
                     <span

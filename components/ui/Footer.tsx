@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="relative z-10 w-full text-xs py-6 snap-end bg-midnight slate360-footer">
+    <footer className="relative z-10 w-full text-xs py-6 snap-end bg-[#020617] slate360-footer">
       <div className="mx-auto flex max-w-6xl items-center justify-between flex-wrap gap-4 px-6">
         <nav className="flex items-center gap-6 flex-wrap text-slate-300">
           <Link href="/subscribe" className="uppercase tracking-wider font-orbitron hover-copper transition-colors">Plans & Pricing</Link>

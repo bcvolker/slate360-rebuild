@@ -65,7 +65,7 @@ export default function SiteHeader() {
   return (
     <>
       {/* Fixed header: Metallic gradient background */}
-      <header className="fixed top-0 z-[100] w-full bg-midnight">
+      <header className="fixed top-0 z-[100] w-full bg-[#020617]">
         
         <nav className="relative z-[101] flex w-full items-center justify-between pl-6 pr-6 py-2 landscape:py-1 lg:py-2 lg:pl-8 lg:pr-8">
           {/* LOGO: Enhanced pop with brightness and larger shadow */}
