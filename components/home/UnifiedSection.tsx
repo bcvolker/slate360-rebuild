@@ -40,8 +40,8 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
   
   // Glass Card Classes
   const glassCardClass = isAlternate
-    ? "backdrop-blur-md bg-white/10 rounded-2xl border border-white/10 p-6 lg:py-8 lg:px-10 flex flex-col justify-center h-full lg:h-[80dvh] lg:overflow-hidden" // Blue Theme: White Glass
-    : "backdrop-blur-md bg-white/60 rounded-2xl border border-slate-900/5 p-6 lg:py-8 lg:px-10 flex flex-col justify-center h-full lg:h-[80dvh] lg:overflow-hidden"; // Grey Theme: Frosted Glass
+    ? "backdrop-blur-md bg-white/10 rounded-2xl border border-white/10 p-6 lg:py-8 lg:px-10 flex flex-col justify-center h-full lg:h-[80dvh] lg:overflow-hidden mt-4" // Blue Theme: White Glass
+    : "backdrop-blur-md bg-white/60 rounded-2xl border border-slate-900/5 p-6 lg:py-8 lg:px-10 flex flex-col justify-center h-full lg:h-[80dvh] lg:overflow-hidden mt-4"; // Grey Theme: Frosted Glass
 
   // Text Colors
   const titleColor = isAlternate ? "text-white" : "text-slate-900";
@@ -96,7 +96,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       ref={sectionRef}
       id={tile.id}
       data-snap="tile"
-      className={`relative w-full flex flex-col min-h-[100dvh] pb-32 lg:pb-10 lg:h-[100dvh] lg:sticky lg:top-0 ${
+      className={`relative w-full flex flex-col min-h-[100dvh] pb-32 lg:pb-10 lg:h-[100dvh] lg:sticky lg:top-24 z-0 ${
         snapEnabled ? "snap-start" : ""
       } ${themeClass}`}
       style={sectionStyle}

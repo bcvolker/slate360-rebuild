@@ -3,9 +3,9 @@ import { Tile } from "@/lib/types";
 export const siteSections: Tile[] = [
   {
     id: "slate360",
-    navLabel: "Slate360",
+    navLabel: "Project Hub",
     eyebrow: "Operational Command Center",
-    title: "Slate360",
+    title: "Project Hub",
     subtitle:
       "Keep every project, team member, file, note, and workflow connected in one secure workspace.",
     bullets: [
@@ -213,7 +213,7 @@ export const siteSections: Tile[] = [
   },
   {
     id: "virtual-studio",
-    navLabel: "VR / AR Studio",
+    navLabel: "Virtual Studio",
     eyebrow: "WebXR Immersive Reality",
     title: "Virtual Studio",
     subtitle:
