@@ -108,15 +108,18 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       {/* INNER CONTAINER */}
       {/* FIX 2: SPACING - Removed inner pt-6, changed justify-center to justify-start for mobile compactness */}
       {/* FIX 3: LANDSCAPE SCROLLING - Added landscape:h-auto to allow full page scrolling on short screens, restored fixed height for lg */}
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 min-h-[calc(100dvh-80px)] h-auto lg:h-[calc(100dvh-80px)] justify-start lg:justify-center gap-0 md:gap-8">
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-12 flex flex-col flex-1 h-[calc(100dvh-80px)] landscape:h-auto lg:h-[calc(100dvh-80px)] justify-start lg:justify-center gap-0 md:gap-8">
         
         {/* --- MOBILE/TABLET LAYOUT (REWRITTEN) --- */}
-        {/* --- MOBILE/TABLET LAYOUT (FIXED ALIGNMENT) --- */}
-        {/* Changed justify-center to justify-start. Added pt-32 for safe clearance. */}
-        <div className="lg:hidden w-full min-h-[100dvh] flex flex-col justify-start pt-32 pb-24 px-4 landscape:grid landscape:grid-cols-2 landscape:gap-4 landscape:items-center landscape:pt-20">
+        <div className="lg:hidden w-full h-full flex flex-col">
   
-          {/* TOP HALF: Text Content */}
-          <div className={`flex flex-col justify-start pt-4 pb-2 px-1 md:justify-center md:pt-0 ${glassCardClass} mb-4`}>
+          {/* TOP HALF: Text Content 
+              - pt-4: Reduced from pt-28 to fix "massive blank space".
+              - justify-start: Stacks items tightly at the top.
+              - flex-1 min-h-0 overflow-y-auto: Allows text/bullets to scroll if they get too tall on mobile.
+              - md:overflow-hidden: On tablet, we lock the main container and scroll just the list.
+          */}
+          <div className={`flex flex-col justify-start pt-4 pb-2 px-1 flex-1 min-h-0 overflow-y-auto md:overflow-hidden md:justify-center md:pt-0 ${glassCardClass} mb-4`}>
             
             {/* 1. TITLE (Largest Text & BLUE) - Increased mobile sizes */}
             <h2 className={`text-3xl sm:text-4xl md:text-5xl font-black ${titleColor} font-orbitron tracking-tight leading-none mb-2 drop-shadow-sm shrink-0`}>
