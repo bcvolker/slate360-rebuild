@@ -64,8 +64,8 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
       ref={sectionRef}
       id={id}
       data-snap="tile"
-      // LAYOUT FIX: min-h-full instead of min-h-screen to avoid mobile address bar clipping
-      className={`${sectionBackground} w-full px-4 py-10 md:px-10 lg:px-20 relative overflow-hidden pt-24 md:pt-28 lg:pt-0 flex flex-col min-h-full md:snap-start md:items-center md:justify-center`}
+      // LAYOUT FIX: min-h-full for mobile, min-h-screen for desktop to ensure full tiles
+      className={`${sectionBackground} w-full px-4 py-10 md:px-10 lg:px-20 relative overflow-hidden pt-24 md:pt-28 lg:pt-0 flex flex-col min-h-full md:min-h-screen md:snap-start md:items-center md:justify-center`}
       style={sectionStyle}
     >
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 md:grid md:grid-cols-2 md:items-center">
