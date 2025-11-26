@@ -4,8 +4,9 @@
 @tailwind utilities;
 
 @layer base {
-  /* Body is fixed; main handles scrolling */
-  /* Removed hard-coded navy background */
+  body {
+    @apply overflow-hidden;
+  }
 }
 
 html,
@@ -16,34 +17,33 @@ body {
 body {
   margin: 0;
   padding: 0;
-  background: var(--slate-bg-root);
+  background: #f0f4f8;          /* light canvas */
   color: var(--slate-text-main);
   font-family: var(--font-inter), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Blueprint Grid Pattern - DISABLED for clean look */
-/* body::before {
+body::before {
   content: "";
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: 
-    linear-gradient(to right, rgba(96, 165, 250, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(96, 165, 250, 0.12) 1px, transparent 1px);
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 184, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.15) 1px, transparent 1px);
   background-size: 240px 240px;
-  opacity: 1;
+  opacity: 0.4;
   pointer-events: none;
   z-index: -1;
-} */
+}
 
 
 :root {
   /* Slate360 brand tokens - Blueprint Ultra (Light/Graphite) */
-  --slate-bg-root: #f8fafc; /* Slate 50 */
+  --slate-bg-root: #f0f4f8;
   --slate-bg-tile-primary: #ffffff; /* White */
   --slate-bg-tile-alt: #f1f5f9; /* Slate 100 */
   --slate-card-primary: #ffffff;
@@ -90,7 +90,7 @@ body {
   --color-text-muted: 100 116 139; /* slate-500 */
   --color-text-soft: 51 65 85; /* slate-700 */
 
-  --color-bg-canvas: 248 250 252; /* slate-50 */
+  --color-bg-canvas: 240 244 248; /* match #f0f4f8 as RGB */
   --color-bg-gradient-top: 255 255 255; /* white */
   --color-bg-gradient-mid: 241 245 249; /* slate-100 */
   --color-bg-gradient-bottom: 248 250 252; /* slate-50 */
@@ -175,7 +175,6 @@ body {
   min-height: 100%;
   overflow-x: hidden;
   color: rgb(var(--color-text-primary));
-  background-color: var(--slate-bg-root); /* Use variable instead of hardcoded navy */
   font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
 }
 

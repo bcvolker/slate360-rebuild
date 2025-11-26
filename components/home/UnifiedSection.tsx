@@ -42,16 +42,26 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
   
   const toneClasses = effectiveTone === "alt" ? altToneClasses : primaryToneClasses;
 
-  const sectionTone = effectiveTone === "alt"
-    ? "bg-gradient-to-b from-slate-50 to-slate-100"
-    : "bg-gradient-to-b from-white to-slate-50";
+  const sectionBackground = (() => {
+    switch (displayTheme) {
+      case "light":
+        return "bg-blueprint-paper";   // warm off-white grid
+      case "graphite":
+        return "bg-concrete";          // light grey grid
+      case "gradient":
+        return "bg-gradient-to-b from-slate-50 to-slate-100";
+      case "deep":
+      default:
+        return "bg-slate-100";         // simple light fallback
+    }
+  })();
 
   return (
     <section
       ref={sectionRef}
       id={id}
       data-snap="tile"
-      className={`md:snap-start min-h-screen pt-20 w-full flex items-center justify-center px-4 md:px-10 lg:px-20 relative overflow-hidden ${sectionTone}`}
+      className={`md:snap-start min-h-screen w-full flex items-center justify-center px-4 md:px-10 lg:px-20 relative overflow-hidden pt-24 md:pt-28 lg:pt-0 ${sectionBackground}`}
       style={sectionStyle}
     >
       <div className="mx-auto flex h-auto min-h-[60vh] lg:h-[82vh] lg:max-h-[82vh] w-full max-w-6xl flex-col items-stretch justify-center gap-10 lg:flex-row lg:items-center">
@@ -77,7 +87,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="mt-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <div className="mt-4 flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[32vh] sm:max-h-[40vh] lg:max-h-[46vh]">
                     <div className="prose prose-invert max-w-none">
                         {tile.bullets && tile.bullets.length > 0 && (
                             <ul className="mt-6 space-y-3">
@@ -96,6 +106,9 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                         )}
                     </div>
                 </div>
+                
+                {/* Bottom gradient hint for scrollable card content */}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white/90 via-white/70 to-transparent" />
 
                 {/* Footer (Buttons) */}
                 {(tile.cta || tile.secondaryCta) && (
@@ -122,8 +135,8 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         </div>
 
         {/* VIEWER COLUMN */}
-        <div className={`w-full lg:w-1/2 h-full flex items-center justify-center ${viewerColumnOrder}`}>
-             <div className="w-full max-w-xl lg:max-w-2xl aspect-video bg-white/95 border border-slate-200/50 rounded-3xl shadow-xl flex items-center justify-center overflow-hidden group">
+        <div className={`w-full lg:w-1/2 flex items-end justify-center mt-8 lg:mt-0 ${viewerColumnOrder}`}>
+             <div className="w-full max-w-md md:max-w-xl aspect-[4/3] md:aspect-video bg-[#050712]/95 border border-white/10 rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-50" />
                 <div className="text-center z-10 p-6">
                     <div className="text-6xl mb-4 opacity-50 group-hover:opacity-100 transition-opacity duration-500 text-[color:var(--slate-text-main)]">

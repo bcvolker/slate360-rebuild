@@ -108,7 +108,7 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
           "fixed top-0 left-0 right-0 z-[9999] w-full border-b backdrop-blur-sm transition-colors duration-300",
           isLight 
             ? "bg-white/85 border-slate-200" 
-            : "bg-slate-900/90 border-slate-800 backdrop-blur-md"
+            : "bg-[#111827]/95 border-slate-800 shadow-md backdrop-blur-lg"
         )}
       >
         
