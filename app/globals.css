@@ -8,23 +8,19 @@
     /* Mobile: 0px scroll padding so anchor links align to top (0px).
        The section padding (pt-20) handles the visual offset for the header. */
     scroll-padding-top: 0;
-    scroll-snap-type: none; /* Mobile/tablet: natural scrolling */
   }
 
-
-@media (min-width: 1024px) {
-  html {
-    /* Desktop: Remove scroll padding so pt-20 handles the offset naturally. 
-       This fixes the 'too low' issue when snapping. */
-    scroll-padding-top: 0;
-  }
-  
-  /* Only apply mandatory snap on the homepage (controlled by SnapManager) */
+  /* Apply mandatory snap on the homepage (controlled by SnapManager) for ALL devices */
   html.snap-mandatory {
-    /* Desktop: gentle vertical snap between full-screen tiles */
     scroll-snap-type: y mandatory;
   }
-}
+
+  @media (min-width: 1024px) {
+    html {
+      /* Desktop: Remove scroll padding so pt-20 handles the offset naturally. */
+      scroll-padding-top: 0;
+    }
+  }
   /* 5. Ensure the background behind the rubber-banding is dark */
   /* body {
     @apply bg-slate-900; 
