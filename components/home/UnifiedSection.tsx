@@ -242,7 +242,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
             </div>
 
             {tile.bullets?.length > 0 && (
-              <ul className="space-y-2 text-xs sm:text-sm text-slate-800 max-h-[30vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/40 scrollbar-track-transparent">
+              <ul className="space-y-3 text-sm text-slate-800 max-h-[30vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/30">
                 {tile.bullets.map((bullet) => (
                   <li key={bullet.label} className="flex gap-3">
                     <span
