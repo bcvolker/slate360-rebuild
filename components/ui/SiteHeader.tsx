@@ -31,6 +31,8 @@ export default function SiteHeader() {
   }, []);
 
   // Track active section for secondary nav
+  const visibleSections = useState(() => new Set<string>())[0];
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (pathname !== "/") return;
@@ -39,13 +41,25 @@ export default function SiteHeader() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
+            visibleSections.add(entry.target.id);
+          } else {
+            visibleSections.delete(entry.target.id);
           }
         });
+
+        let newActiveId = "";
+        for (let i = NAV_LINKS.length - 1; i >= 0; i--) {
+          const id = NAV_LINKS[i].id;
+          if (visibleSections.has(id)) {
+            newActiveId = id;
+            break;
+          }
+        }
+        setActiveId(newActiveId);
       },
       {
-        threshold: 0.5,
-        rootMargin: "-80px 0px -20% 0px",
+        threshold: 0.1,
+        rootMargin: "-80px 0px -40% 0px",
       }
     );
 
