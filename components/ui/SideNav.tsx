@@ -43,7 +43,7 @@ export default function SideNav() {
   };
 
   return (
-    <nav className="fixed top-1/2 right-6 z-[50] hidden -translate-y-1/2 flex-col gap-3 lg:flex">
+    <nav className="fixed top-1/2 right-6 z-[50] hidden -translate-y-1/2 flex-col gap-3 md:flex">
       {siteNavLinks.map((item) => {
         const isActive = activeId === item.id;
         return (
@@ -67,7 +67,7 @@ export default function SideNav() {
               className={`w-3 rounded-full shadow-md transition-all duration-300 ${
                 isActive
                   ? "h-10 bg-[color:var(--slate-copper)] shadow-[0_0_10px_rgba(255,177,94,0.5)]" // Active: Copper, taller, glow
-                  : "h-6 bg-[color:var(--slate-silver)]/40 group-hover:h-8 group-hover:bg-[color:var(--slate-silver)]" // Inactive: Subtle silver
+                  : "h-6 bg-slate-900/60 group-hover:h-8 group-hover:bg-blue-600" // Inactive: Dark charcoal -> Blue on hover
               }`}
             />
           </Link>

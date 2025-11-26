@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { siteNavLinks } from "@/lib/config";
+import { siteNavLinks, siteSections } from "@/lib/config";
 
 import { clsx } from "clsx";
 
@@ -15,8 +15,6 @@ interface SiteHeaderProps {
 }
 
 export default function SiteHeader({ variant }: SiteHeaderProps) {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [activeId, setActiveId] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -41,53 +39,6 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
   }, []);
-
-  // Track active section for secondary nav
-  const visibleSections = useRef(new Set<string>());
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (pathname !== "/") return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            visibleSections.current.add(entry.target.id);
-          } else {
-            visibleSections.current.delete(entry.target.id);
-          }
-        });
-
-        let newActiveId = "";
-        for (let i = NAV_LINKS.length - 1; i >= 0; i--) {
-          const id = NAV_LINKS[i].id;
-          if (visibleSections.current.has(id)) {
-            newActiveId = id;
-            break;
-          }
-        }
-        setActiveId(newActiveId);
-      },
-      {
-        threshold: 0.1,
-        rootMargin: "-80px 0px -40% 0px",
-      }
-    );
-
-    // Small timeout to ensure DOM elements are present after navigation
-    const timer = setTimeout(() => {
-      NAV_LINKS.forEach((section) => {
-        const el = document.getElementById(section.id);
-        if (el) observer.observe(el);
-      });
-    }, 100);
-
-    return () => {
-      observer.disconnect();
-      clearTimeout(timer);
-    };
-  }, [pathname]);
 
   const anchorFor = (id: string) => {
     if (pathname === "/") {
@@ -227,10 +178,11 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
           
           {/* Menu Panel - Sits on top of backdrop */}
           <div 
-            className="relative z-10 flex flex-col border-b border-slate-200 bg-white p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
+            className="relative z-10 flex flex-col border-b border-slate-200 bg-slate-50/95 backdrop-blur-md p-0 shadow-2xl max-h-[90vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
+            {/* Top Bar */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4">
               {/* Added Logo to Menu Header */}
               <div className="relative h-10 w-40 -ml-2">
                 <Image
@@ -253,32 +205,42 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
               </button>
             </div>
 
-            <div className="flex flex-col gap-1">
-              {NAV_LINKS.map((item) => (
-                <Link
-                  key={item.id}
-                  href={anchorFor(item.id)}
-                  onClick={closeMenus}
-                  className={`block rounded-lg px-4 py-3 text-base font-medium transition-colors font-orbitron ${
-                    activeId === item.id
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-              <div className="my-2 border-t border-slate-100" />
-              {["Plans & Pricing", "About", "Login"].map((label) => (
-                <Link
-                  key={label}
-                  href={label === "Plans & Pricing" ? "/subscribe" : label === "Login" ? "/login" : `/${label.toLowerCase()}`}
-                  onClick={closeMenus}
-                  className="block rounded-lg px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors font-orbitron"
-                >
-                  {label}
-                </Link>
-              ))}
+            <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-6">
+              {/* Features Accordion */}
+              <details className="group rounded-2xl bg-white/80 shadow-sm border border-slate-200/50 open:bg-white transition-all">
+                <summary className="flex items-center justify-between px-4 py-3 cursor-pointer list-none select-none">
+                  <span className="font-bold text-slate-800 font-orbitron tracking-wide">Features</span>
+                  <span className="text-xs text-slate-500 group-open:hidden">Tap to expand</span>
+                  <span className="text-xs text-slate-500 hidden group-open:block">Collapse</span>
+                </summary>
+
+                <div className="px-4 pb-4 pt-2 grid grid-cols-2 gap-3 text-sm border-t border-slate-100 mt-1">
+                  {siteSections.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={anchorFor(item.id)}
+                      onClick={closeMenus}
+                      className="text-left rounded-xl px-3 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium text-xs leading-tight border border-slate-100"
+                    >
+                      {item.navLabel || item.title}
+                    </Link>
+                  ))}
+                </div>
+              </details>
+
+              {/* Primary Links */}
+              <nav className="space-y-2">
+                {["Plans & Pricing", "About", "Login"].map((label) => (
+                  <Link
+                    key={label}
+                    href={label === "Plans & Pricing" ? "/subscribe" : label === "Login" ? "/login" : `/${label.toLowerCase()}`}
+                    onClick={closeMenus}
+                    className="block rounded-xl px-4 py-3 text-base font-bold text-slate-700 bg-white border border-slate-200/50 hover:bg-slate-50 hover:text-slate-900 transition-colors font-orbitron shadow-sm"
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </nav>
             </div>
           </div>
         </div>
