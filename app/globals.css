@@ -29,10 +29,20 @@
 }
 
 html, body {
-  /* Changed from height: 100% to min-height: 100% to allow scrolling on long pages */
+  /* Ensure the document is the scroll container */
+  height: auto;
   min-height: 100%;
-  /* overflow-x: hidden; */
-  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-y: scroll; /* Force scrollbar on viewport */
+}
+
+body {
+  overflow-y: visible; /* Let body grow with content */
+  position: relative;
 }
 
 :root {
