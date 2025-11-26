@@ -1,9 +1,31 @@
 "use client";
 
-// SnapManager is intentionally disabled.
-// The curtain experience now relies on CSS sticky + smooth scrolling only.
-// This component is kept as a no-op for future experiments if needed.
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export default function SnapManager() {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const enableSnap = () => {
+      // Only enable snap on the homepage and on desktop screens
+      if (pathname === "/" && window.innerWidth >= 1024) {
+        document.documentElement.classList.add("snap-mandatory");
+      } else {
+        document.documentElement.classList.remove("snap-mandatory");
+      }
+    };
+
+    enableSnap();
+    window.addEventListener("resize", enableSnap);
+
+    return () => {
+      window.removeEventListener("resize", enableSnap);
+      document.documentElement.classList.remove("snap-mandatory");
+    };
+  }, [pathname]);
+
   return null;
 }
