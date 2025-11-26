@@ -2,7 +2,7 @@ import { Tile } from "@/lib/types";
 
 export const siteSections: Tile[] = [
   {
-    id: "slate360",
+    id: "project-hub",
     navLabel: "Project Hub",
     eyebrow: "Operational Command Center",
     title: "Project Hub",
@@ -244,7 +244,7 @@ export const siteSections: Tile[] = [
         description: "Create role-based guided simulations for teams.",
       },
     ],
-    cta: { label: "Experience VR / AR Studio", href: "/features/virtual-studio" },
+    cta: { label: "Experience Virtual Studio", href: "/features/virtual-studio" },
     secondaryCta: { label: "Get started", href: "/subscribe" },
     viewer: {
       title: "Immersive Preview",

@@ -1,4 +1,21 @@
+"use client";
+
+import Footer from "@/components/ui/Footer";
+import Link from "next/link";
+
 const plans = [
+  {
+    name: "Trial / Explore",
+    price: "Free",
+    highlight: false,
+    description: "Explore the platform.",
+    features: [
+      "Single User",
+      "Project Hub Access",
+      "View-Only Mode",
+      "Community Support",
+    ],
+  },
   {
     name: "Creator Bundle",
     price: "$79",
@@ -7,6 +24,8 @@ const plans = [
     features: [
       "Content Studio (Full Suite)",
       "360 Tour Builder",
+      "Basic Storage",
+      "Email Support",
     ],
   },
   {
@@ -33,20 +52,7 @@ const plans = [
       "Unlimited Projects",
     ],
   },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    highlight: false,
-    description: "For larger organizations requiring custom solutions.",
-    features: [
-      "SSO",
-      "Custom Integrations",
-      "Dedicated Success Manager",
-    ],
-  },
 ];
-
-import Footer from "@/components/ui/Footer";
 
 export default function SubscribePage() {
   return (
@@ -68,7 +74,7 @@ export default function SubscribePage() {
                   Start small, scale as you standardize on Slate360.
                 </p>
                 <p className="text-xs font-bold text-[#B37031] uppercase tracking-widest">
-                  Save 20% with yearly billing
+                  Introductory pricing. Subject to change. Data rates apply for usage over set thresholds.
                 </p>
               </div>
 
@@ -97,7 +103,7 @@ export default function SubscribePage() {
                       <span className="text-3xl font-semibold text-slate-900">
                         {plan.price}
                       </span>
-                      {plan.price !== "Custom" && (
+                      {plan.price !== "Free" && plan.price !== "Custom" && (
                         <span className="text-xs uppercase tracking-[0.25em] text-slate-500">
                           /month
                         </span>
@@ -116,6 +122,11 @@ export default function SubscribePage() {
                     <button className="inline-flex items-center justify-center rounded-full border border-[#4F89D4]/60 bg-[#4F89D4]/5 px-4 py-2 text-[11px] font-orbitron font-semibold uppercase tracking-[0.25em] text-[#4F89D4] transition-colors hover:border-[#B37031] hover:bg-[#B37031]/10 hover:text-[#B37031] w-full">
                       {plan.price === "Custom" ? "Contact Us" : "Get Started"}
                     </button>
+                    
+                    <div className="mt-4 pt-3 border-t border-slate-200/50 flex justify-center gap-3 text-[9px] text-slate-400">
+                      <Link href="/terms" className="hover:text-slate-600 hover:underline">Terms of Service</Link>
+                      <Link href="/terms" className="hover:text-slate-600 hover:underline">No Refund Policy</Link>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -127,3 +138,6 @@ export default function SubscribePage() {
     </>
   );
 }
+
+
+
