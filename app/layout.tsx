@@ -8,18 +8,24 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const orbitron = Orbitron({ subsets: ["latin"], variable: "--font-orbitron" });
 
 export const metadata: Metadata = {
-  title: "Slate360 – From Design to Reality",
+  title: "Slate360 – The Operating System for the Built Environment",
   description: "Slate360 unifies BIM, 360 tours, analytics, VR, and geospatial tools for the built environment.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-theme={DEFAULT_THEME} className={`${inter.variable} ${orbitron.variable}`}>
-      <body className="antialiased font-sans text-slate-900 bg-slate-50 bg-[linear-gradient(to_right,#80808040_1px,transparent_1px),linear-gradient(to_bottom,#80808040_1px,transparent_1px)] bg-[size:24px_24px]">
-        <SiteHeader />
-        <main className="w-full min-h-screen relative flex flex-col">
-          {children}
-        </main>
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="alternate icon" href="/favicon.ico" />
+      </head>
+      <body className="antialiased font-sans text-[color:var(--slate-text-main)] overflow-hidden">
+        <div className="h-screen flex flex-col">
+          <SiteHeader />
+          <main className="h-screen w-full overflow-y-auto scroll-smooth md:snap-y md:snap-mandatory relative">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   );

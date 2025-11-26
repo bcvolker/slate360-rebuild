@@ -6,14 +6,26 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { siteNavLinks } from "@/lib/config";
 
+import { clsx } from "clsx";
+
 const NAV_LINKS = siteNavLinks;
 
-export default function SiteHeader() {
-  const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
+interface SiteHeaderProps {
+  variant?: "dark" | "light";
+}
+
+export default function SiteHeader({ variant }: SiteHeaderProps) {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeId, setActiveId] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeId, setActiveId] = useState<string>("slate360");
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Determine if we should use the light variant
+  // Use prop if provided, otherwise default to light for non-home pages
+  const isLight = variant === "light" || (variant === undefined && pathname !== "/");
+
   const closeMenus = () => {
     setMenuOpen(false);
     setMobileOpen(false);
@@ -90,47 +102,68 @@ export default function SiteHeader() {
 
   return (
     <>
-      {/* Fixed header: Metallic gradient background */}
-      <header className="fixed top-0 left-0 right-0 z-[9999] w-full bg-[#020617]">
+      {/* Fixed header: Blueprint Ultra gradient background */}
+      <header 
+        className={clsx(
+          "fixed top-0 left-0 right-0 z-[9999] w-full border-b backdrop-blur-sm transition-colors duration-300",
+          isLight 
+            ? "bg-white/85 border-slate-200" 
+            : "bg-gradient-to-b from-black/70 via-black/40 to-transparent backdrop-blur-md border-white/10"
+        )}
+      >
         
         <nav className="relative z-[10000] flex w-full items-center justify-between pl-6 pr-6 py-2 landscape:py-1 lg:py-2 lg:pl-8 lg:pr-8">
-          {/* LOGO: Enhanced pop with brightness and larger shadow */}
+          {/* LOGO: Blueprint Compass */}
           <Link
             href={anchorFor("slate360")}
-            className="group flex items-center gap-3 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--slate360-blue)] rounded-md relative z-[102]"
+            className="group flex items-center gap-3 flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-blueprint"
             onClick={handleLogoClick}
           >
-            <div className="relative h-16 w-64 sm:h-[4.5rem] sm:w-80 lg:h-[4.5rem] lg:w-80 transition-all duration-300 drop-shadow-[0_0_25px_rgba(79,137,212,1)] brightness-110 hover:scale-105 group-hover:drop-shadow-[0_0_35px_rgba(255,255,255,0.9)]">
-              <Image
-                src="/assets/slate360logoforwebsite.png"
-                alt="Slate360 logo"
-                fill
-                className="object-contain object-left"
-                priority
-              />
-            </div>
+            <img
+              src="/slate360-logo-blueprint-compass-light.svg"
+              alt="Slate360 Logo"
+              className="h-11 md:h-12 w-auto"
+            />
           </Link>
 
-          {/* DESKTOP NAV: right-aligned, high-contrast on metallic header */}
-          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium text-slate-100 lg:flex">
+          {/* DESKTOP NAV: right-aligned, high-contrast on blueprint header */}
+          <div className={clsx(
+            "ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium lg:flex",
+            isLight ? "text-slate-700" : "text-[color:var(--slate-silver)]"
+          )}>
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/20 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white transition-all hover-copper hover:border-[#B87333] hover:bg-[#B87333]/30 landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron shadow-[0_0_18px_rgba(79,137,212,0.65)] hover:shadow-[0_0_22px_rgba(184,115,51,0.7)]"
+                className={clsx(
+                  "inline-flex items-center gap-1 rounded-full border px-6 py-2 text-xs font-bold uppercase tracking-widest transition-all landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron shadow-lg",
+                  isLight 
+                    ? "border-slate-300 bg-white/50 text-slate-800 hover:bg-slate-100 hover:border-slate-400 hover:shadow-md"
+                    : "border-[color:var(--slate-border-light)] bg-white/10 text-[color:var(--slate-text-main)] hover:bg-[color:var(--slate-blueprint-accent)]/30 hover:border-[color:var(--slate-blueprint-accent)] hover:text-white hover:shadow-[0_0_15px_rgba(26,93,255,0.5)]"
+                )}
               >
                 <span>Features</span>
                 <span className="text-xs">▾</span>
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-[#181717] border border-slate-700 shadow-xl py-2">
+                <div className={clsx(
+                  "absolute right-0 mt-3 w-64 rounded-2xl border shadow-xl py-2 backdrop-blur-md",
+                  isLight 
+                    ? "bg-white border-slate-200"
+                    : "bg-[color:var(--slate-blueprint)] border-[color:var(--slate-border-light)]"
+                )}>
                   <div className="max-h-[60vh] overflow-y-auto space-y-0.5 px-2">
                     {NAV_LINKS.map((item) => (
                       <Link
                         key={item.id}
                         href={anchorFor(item.id)}
                         onClick={closeMenus}
-                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[#B87333]/20 hover-copper transition-colors duration-150 font-orbitron"
+                        className={clsx(
+                          "block w-full rounded-lg px-3 py-2.5 text-left text-sm transition-colors duration-150 font-orbitron",
+                          isLight
+                            ? "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                            : "text-[color:var(--slate-silver)] hover:bg-[color:var(--slate-blueprint-accent)]/20 hover:text-[color:var(--slate-text-main)]"
+                        )}
                       >
                         {item.label}
                       </Link>
@@ -140,21 +173,23 @@ export default function SiteHeader() {
               )}
             </div>
 
-                        <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden md:flex items-center gap-8">
               {/* Desktop Nav: dark text on metallic, pure blue hover */}
-                {["Plans & Pricing", "About"].map((label) => (
+              {["Plans & Pricing", "About"].map((label) => (
                 <Link 
                   key={label} 
                   href={label === "Plans & Pricing" ? "/subscribe" : `/${label.toLowerCase()}`} 
-                      className="group relative text-xs font-bold uppercase tracking-widest text-slate-300 transition-all duration-300 hover-copper font-orbitron drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]"
+                  className={clsx(
+                    "group relative text-xs font-bold uppercase tracking-widest transition-all duration-300 font-orbitron drop-shadow-md",
+                    isLight 
+                      ? "text-slate-600 hover:text-slate-900"
+                      : "text-[color:var(--slate-silver)] hover:text-[color:var(--slate-text-main)]"
+                  )}
                 >
                   {label}
-                    <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[#B87333] transition-transform duration-300 ease-out group-hover:scale-x-100" />
+                  <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[color:var(--slate-copper)] transition-transform duration-300 ease-out group-hover:scale-x-100" />
                 </Link>
               ))}
-                <Link href="/login" className="ml-4 rounded-full border border-white/70 bg-white/15 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white transition-all hover-copper hover:border-[#B87333] hover:bg-[#B87333]/30 font-orbitron">
-                Login
-              </Link>
             </nav>
           </div>
 
@@ -163,14 +198,14 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
-              className="group inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#929292]/40 bg-[#363434] shadow-sm transition-all hover:border-[#B37031] hover:bg-[#4F89D4]/20"
+              className="group inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 shadow-sm transition-all hover:border-[color:var(--slate-blueprint-accent)] hover:bg-[color:var(--slate-blueprint-accent)]/20"
               aria-label="Toggle navigation menu"
             >
               <span className="sr-only">Toggle menu</span>
               <div className="flex flex-col gap-1.5">
-                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-[#B37031] transition-colors" />
-                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-[#B37031] transition-colors" />
-                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-[#B37031] transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-[color:var(--slate-copper)] transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-[color:var(--slate-copper)] transition-colors" />
+                <span className="block h-0.5 w-5 rounded bg-slate-100 group-hover:bg-[color:var(--slate-copper)] transition-colors" />
               </div>
             </button>
           </div>
@@ -192,14 +227,14 @@ export default function SiteHeader() {
           
           {/* Menu Panel - Sits on top of backdrop */}
           <div 
-            className="relative z-10 flex flex-col border-b border-[#929292]/40 bg-[#181717] p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
+            className="relative z-10 flex flex-col border-b border-[color:var(--slate-border-light)] bg-[color:var(--slate-blueprint)] p-6 shadow-2xl max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-                        <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6">
               {/* Added Logo to Menu Header */}
-              <div className="relative h-14 w-48 -ml-2 drop-shadow-[0_0_14px_rgba(79,137,212,0.7)]">
+              <div className="relative h-10 w-40 -ml-2">
                 <Image
-                  src="/assets/slate360logoforwebsite.png"
+                  src="/slate360-logo-blueprint-compass.svg"
                   alt="Slate360 logo"
                   fill
                   className="object-contain object-left"
@@ -209,68 +244,42 @@ export default function SiteHeader() {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-full p-2 text-slate-300 hover:bg-white/10 hover:text-white"
+                className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+                aria-label="Close menu"
               >
-                <span className="sr-only">Close menu</span>
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-              <div className="space-y-6">
-                <nav className="flex flex-col gap-4">
-                  {/* Reordered Mobile Links: Login, Plans, About, Contact */}
-                  <Link 
-                    href="/login" 
-                    onClick={() => setMobileOpen(false)}
-                    className="inline-block w-fit rounded-full border border-[#4F89D4]/70 bg-[#4F89D4]/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#E5F0FF] hover:bg-[#B37031]/20 hover:text-[#FFF5EC] hover:border-[#B37031] font-orbitron"
-                  >
-                    Login
-                  </Link>
-                  
-                  <div className="h-px w-full bg-slate-100 my-2" />
-
-                  <Link
-                    href="/subscribe"
-                    onClick={() => setMobileOpen(false)}
-                    className="text-lg font-bold text-slate-100 hover:text-[#4F89D4] font-orbitron"
-                  >
-                    Plans & Pricing
-                  </Link>
-                  <Link
-                    href="/about"
-                    onClick={() => setMobileOpen(false)}
-                    className="text-lg font-bold text-slate-100 hover:text-[#4F89D4] font-orbitron"
-                  >
-                    About
-                  </Link>
-                  <Link
-                    href="/contact"
-                    onClick={() => setMobileOpen(false)}
-                    className="text-lg font-bold text-slate-100 hover:text-[#4F89D4] font-orbitron"
-                  >
-                    Contact
-                  </Link>
-
-                  <div className="h-px w-full bg-slate-100 my-2" />
-                  
-                  {/* Features Grid - Condensed */}
-                  <p className="text-xs font-bold uppercase tracking-widest text-[#929292] font-orbitron mb-2">Features</p>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                    {NAV_LINKS.map((item) => (
-                      <Link
-                        key={item.id}
-                        href={anchorFor(item.id)}
-                        onClick={setMobileOpen.bind(null, false)}
-                        className="text-sm font-bold text-slate-100 hover:text-[#4F89D4] font-orbitron truncate"
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                </nav>
-              </div>
+            <div className="flex flex-col gap-1">
+              {NAV_LINKS.map((item) => (
+                <Link
+                  key={item.id}
+                  href={anchorFor(item.id)}
+                  onClick={closeMenus}
+                  className={`block rounded-lg px-4 py-3 text-base font-medium transition-colors font-orbitron ${
+                    activeId === item.id
+                      ? "bg-[color:var(--slate-blueprint-accent)]/20 text-[color:var(--slate-blueprint-accent)]"
+                      : "text-slate-100 hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <div className="my-2 border-t border-white/10" />
+              {["Plans & Pricing", "About", "Login"].map((label) => (
+                <Link
+                  key={label}
+                  href={label === "Plans & Pricing" ? "/subscribe" : label === "Login" ? "/login" : `/${label.toLowerCase()}`}
+                  onClick={closeMenus}
+                  className="block rounded-lg px-4 py-3 text-base font-medium text-slate-100 hover:bg-white/5 hover:text-white transition-colors font-orbitron"
+                >
+                  {label}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       )}

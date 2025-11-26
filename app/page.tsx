@@ -4,6 +4,8 @@ import { siteSections } from "@/lib/config";
 import Footer from "@/components/ui/Footer";
 import SideNav from "@/components/ui/SideNav";
 
+const themes = ["deep", "light", "graphite", "gradient"] as const;
+
 export default function HomePage() {
   return (
     <>
@@ -17,14 +19,20 @@ export default function HomePage() {
       <SideNav />
 
       {/* Main Scroll Container lives on the page; body/html handle scrolling */}
-      <div className="w-full pt-20 relative">
+      <div id="slate360">
         {siteSections.map((section, index) => (
-          <UnifiedSection key={section.id} tile={section} index={index} />
+          <UnifiedSection 
+            key={section.id} 
+            id={section.id} 
+            tile={section} 
+            index={index} 
+            displayTheme={themes[index % themes.length]}
+          />
         ))}
+        
+        {/* Footer - Inside Snap Flow to be reachable */}
+        <Footer />
       </div>
-      
-      {/* Footer - Outside Snap Flow */}
-      <Footer />
     </>
   );
 }

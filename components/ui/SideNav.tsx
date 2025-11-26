@@ -8,48 +8,30 @@ import { siteNavLinks } from "@/lib/config";
 export default function SideNav() {
   const pathname = usePathname();
   const [activeId, setActiveId] = useState<string>("");
-  // Track which sections are currently visible using a Ref to avoid state issues
-  const visibleSections = useRef(new Set<string>());
 
   useEffect(() => {
+    // Use viewport as root (root: null) since body is scrolling
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            visibleSections.current.add(entry.target.id);
-          } else {
-            visibleSections.current.delete(entry.target.id);
+            setActiveId(entry.target.id);
           }
         });
-
-        // Determine active section: The last one in the list that is visible
-        let newActiveId = "";
-        for (let i = siteNavLinks.length - 1; i >= 0; i--) {
-          const id = siteNavLinks[i].id;
-          if (visibleSections.current.has(id)) {
-            newActiveId = id;
-            break;
-          }
-        }
-        setActiveId(newActiveId);
       },
       {
-        threshold: 0.1,
-        rootMargin: "-80px 0px -40% 0px",
+        root: null,
+        threshold: 0.5,
       }
     );
 
-    // Small timeout to ensure DOM elements are present
-    const timer = setTimeout(() => {
-      siteNavLinks.forEach((section) => {
-        const el = document.getElementById(section.id);
-        if (el) observer.observe(el);
-      });
-    }, 100);
+    // Observe all sections that have an ID
+    const sections = document.querySelectorAll("section[id]");
+    sections.forEach((section) => observer.observe(section));
 
     return () => {
+      sections.forEach((section) => observer.unobserve(section));
       observer.disconnect();
-      clearTimeout(timer);
     };
   }, []);
 
@@ -73,7 +55,7 @@ export default function SideNav() {
           >
             {/* Tooltip - Left of the line */}
             <span
-              className={`absolute right-6 mr-4 rounded bg-slate-900/90 px-2 py-1 text-xs font-bold uppercase tracking-widest text-white shadow-lg backdrop-blur transition-all duration-300 ${
+              className={`absolute right-6 mr-4 rounded bg-[color:var(--slate-blueprint)] px-2 py-1 text-xs font-bold uppercase tracking-widest text-[color:var(--slate-text-main)] shadow-lg backdrop-blur transition-all duration-300 ${
                 isActive ? "opacity-0 group-hover:opacity-100" : "opacity-0 group-hover:opacity-100"
               } pointer-events-none whitespace-nowrap`}
             >
@@ -84,8 +66,8 @@ export default function SideNav() {
             <div
               className={`w-3 rounded-full shadow-md transition-all duration-300 ${
                 isActive
-                  ? "h-10 bg-[#B37031]" // Active: Copper, taller
-                  : "h-6 bg-[#020617] group-hover:h-8 group-hover:bg-[#020617]" // Inactive: Charcoal, grows on hover
+                  ? "h-10 bg-[color:var(--slate-copper)] shadow-[0_0_10px_rgba(255,177,94,0.5)]" // Active: Copper, taller, glow
+                  : "h-6 bg-[color:var(--slate-silver)]/40 group-hover:h-8 group-hover:bg-[color:var(--slate-silver)]" // Inactive: Subtle silver
               }`}
             />
           </Link>

@@ -3,41 +3,41 @@ import Footer from "@/components/ui/Footer";
 export default function ContactPage() {
   return (
     <>
-      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-[#002082] bg-[linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:160px_160px]">
+      <main className="snap-start min-h-[100dvh] px-6 py-24 md:py-28 bg-[color:var(--slate-bg-navy)] bg-[linear-gradient(to_right,rgba(107,168,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(107,168,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px]">
         <div className="mx-auto max-w-6xl">
-          <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+          <section className="relative overflow-hidden rounded-3xl border border-[color:var(--slate-blueprint-soft)]/20 bg-[color:var(--slate-surface-primary)]/80 backdrop-blur-md shadow-2xl px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             
             <div className="relative z-10 grid gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
               <div>
-                <p className="mb-3 text-xs font-orbitron font-bold uppercase tracking-[0.35em] text-[color:var(--slate360-copper)] drop-shadow-sm">
+                <p className="mb-3 text-xs font-orbitron font-bold uppercase tracking-[0.35em] text-[color:var(--slate-copper)] drop-shadow-sm">
                   Contact
                 </p>
-                <h1 className="text-3xl md:text-4xl font-orbitron font-semibold tracking-tight text-slate-900 mb-3">
+                <h1 className="text-3xl md:text-4xl font-orbitron font-semibold tracking-tight text-white mb-3">
                   Contact Slate360
                 </h1>
-                <p className="text-sm sm:text-base text-slate-700 mb-8 max-w-xl">
+                <p className="text-sm sm:text-base text-[color:var(--slate-surface-light)] mb-8 max-w-xl">
                   Have a question about plans, workflows, or early access? Send us a note and we&apos;ll follow up with something actually useful—not a generic drip sequence.
                 </p>
 
-                <form className="space-y-5 text-sm text-slate-700">
+                <form className="space-y-5 text-sm text-[color:var(--slate-surface-light)]">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-[color:var(--slate360-blue)]">
+                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-[color:var(--slate-blueprint-accent)]">
                         Name
                       </label>
                       <input
                         type="text"
-                        className="rounded-xl border border-slate-300 bg-white/50 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-[color:var(--slate360-copper)] focus:ring-2 focus:ring-[color:var(--slate360-copper)]/30"
+                        className="rounded-xl border border-[color:var(--slate-blueprint-soft)]/30 bg-[color:var(--slate-graphite-dark)] px-3 py-2 text-sm text-white shadow-sm outline-none focus:border-[color:var(--slate-copper)] focus:ring-2 focus:ring-[color:var(--slate-copper)]/30 placeholder-slate-500"
                         placeholder="Alex Jensen"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-[color:var(--slate360-blue)]">
+                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-[color:var(--slate-blueprint-accent)]">
                         Organization
                       </label>
                       <input
                         type="text"
-                        className="rounded-xl border border-slate-300 bg-white/50 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-[color:var(--slate360-copper)] focus:ring-2 focus:ring-[color:var(--slate360-copper)]/30"
+                        className="rounded-xl border border-[color:var(--slate-blueprint-soft)]/30 bg-[color:var(--slate-graphite-dark)] px-3 py-2 text-sm text-white shadow-sm outline-none focus:border-[color:var(--slate-copper)] focus:ring-2 focus:ring-[color:var(--slate-copper)]/30 placeholder-slate-500"
                         placeholder="Studio, GC, university, agency"
                       />
                     </div>
@@ -45,7 +45,7 @@ export default function ContactPage() {
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-slate-500">
+                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-[color:var(--slate-blueprint-soft)]">
                         Email
                       </label>
                       <input
@@ -121,7 +121,7 @@ export default function ContactPage() {
           </section>
         </div>
       </main>
-      <Footer />
+      <Footer variant="light" />
     </>
   );
 }

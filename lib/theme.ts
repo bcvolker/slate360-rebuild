@@ -6,28 +6,28 @@ type ThemeRegistry = Record<ThemeName, ThemeTokens>;
 
 export const themeTokens: ThemeRegistry = {
   slate360: {
-    '--color-text-primary': '248 250 252',
-    '--color-text-muted': '203 213 225',
-    '--color-text-soft': '148 163 184',
-    '--color-bg-canvas': '7 23 38',
-    '--color-bg-gradient-top': '79 169 255',
-    '--color-bg-gradient-mid': '44 141 255',
-    '--color-bg-gradient-bottom': '7 23 38',
-    '--color-surface-primary': '2 6 23',
-    '--color-surface-elevated': '10 16 28',
-    '--color-surface-overlay': '13 19 32',
-    '--color-border-soft': '148 163 184',
-    '--color-border-strong': '74 94 122',
-    '--color-accent': '79 169 255',
-    '--color-accent-strong': '44 141 255',
-    '--color-accent-secondary': '184 115 51',
-    '--color-focus-ring': '79 169 255',
-    '--header-gradient-start': '15 23 42',
-    '--header-gradient-end': '30 64 175',
-    '--footer-gradient-top': '15 23 42',
-    '--footer-gradient-bottom': '9 14 24',
-    '--shadow-strong': '15 23 42',
-    '--shadow-soft': '12 18 30',
+    '--color-text-primary': '201 214 232', // Surface Light
+    '--color-text-muted': '107 168 255', // Soft Blueprint Tint
+    '--color-text-soft': '52 71 94', // Mid Graphite
+    '--color-bg-canvas': '2 12 31', // Background Blueprint Navy
+    '--color-bg-gradient-top': '0 71 187', // Primary Blueprint
+    '--color-bg-gradient-mid': '26 93 255', // Electric Blueprint Accent
+    '--color-bg-gradient-bottom': '2 12 31', // Background Blueprint Navy
+    '--color-surface-primary': '10 26 47', // Deep Graphite
+    '--color-surface-elevated': '52 71 94', // Mid Graphite
+    '--color-surface-overlay': '10 26 47', // Deep Graphite
+    '--color-border-soft': '107 168 255', // Soft Blueprint Tint
+    '--color-border-strong': '26 93 255', // Electric Blueprint Accent
+    '--color-accent': '0 71 187', // Primary Blueprint
+    '--color-accent-strong': '26 93 255', // Electric Blueprint Accent
+    '--color-accent-secondary': '255 177 94', // Copper Accent
+    '--color-focus-ring': '26 93 255', // Electric Blueprint Accent
+    '--header-gradient-start': '2 12 31', // Background Blueprint Navy
+    '--header-gradient-end': '0 71 187', // Primary Blueprint
+    '--footer-gradient-top': '10 26 47', // Deep Graphite
+    '--footer-gradient-bottom': '2 12 31', // Background Blueprint Navy
+    '--shadow-strong': '2 12 31', // Background Blueprint Navy
+    '--shadow-soft': '10 26 47', // Deep Graphite
   },
   dusk: {
     '--color-text-primary': '250 245 255',
@@ -62,3 +62,16 @@ export const themeNames = Object.keys(themeTokens) as ThemeName[];
 export function getThemeTokens(theme: ThemeName): ThemeTokens {
   return themeTokens[theme];
 }
+
+export const slateTheme = {
+  colors: {
+    blueprint: "#0047BB",
+    blueprintAccent: "#1A5DFF",
+    blueprintSoft: "#6BA8FF",
+    graphiteDark: "#0A1A2F",
+    graphite: "#34475E",
+    surfaceLight: "#C9D6E8",
+    copper: "#FFB15E",
+    bgNavy: "#020C1F",
+  },
+};

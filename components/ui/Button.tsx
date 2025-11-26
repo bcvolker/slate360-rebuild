@@ -11,12 +11,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-        outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
+        default: 'bg-[color:var(--slate-blueprint)] text-white hover:bg-[color:var(--slate-blueprint-accent)] shadow-[0_0_15px_rgba(0,71,187,0.4)] hover:shadow-[0_0_20px_rgba(26,93,255,0.6)] font-orbitron tracking-wide',
+        destructive: 'bg-red-600 text-white hover:bg-red-700',
+        outline: 'border border-[color:var(--slate-blueprint-soft)] bg-transparent text-[color:var(--slate-blueprint-soft)] hover:bg-[color:var(--slate-blueprint-soft)]/10 hover:text-[color:var(--slate-blueprint)] font-orbitron tracking-wide',
+        secondary: 'bg-[color:var(--slate-graphite-soft)] text-[color:var(--slate-text-main)] hover:bg-[color:var(--slate-graphite-dark)] font-orbitron tracking-wide',
+        ghost: 'hover:bg-[color:var(--slate-blueprint-soft)]/10 hover:text-[color:var(--slate-blueprint)]',
+        link: 'text-[color:var(--slate-blueprint-accent)] underline-offset-4 hover:underline',
+        copper: 'bg-[color:var(--slate-copper)] text-white hover:bg-[color:var(--slate-blueprint)] hover:text-white font-orbitron font-bold tracking-wide shadow-[0_0_15px_rgba(255,177,94,0.4)]',
       },
       size: {
         default: 'h-10 px-4 py-2',

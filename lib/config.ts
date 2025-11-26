@@ -42,48 +42,7 @@ export const siteSections: Tile[] = [
     },
     layout: { align: "left", snap: true },
     theme: { accent: "#4F89D4" },
-  },
-  {
-    id: "project-hub",
-    navLabel: "Project Hub",
-    eyebrow: "Operational Command Center",
-    title: "Project Hub",
-    subtitle:
-      "Keep every project, team member, file, note, and workflow connected in one secure workspace.",
-    bullets: [
-      {
-        label: "Unified project dashboard",
-        description: "See everything happening across your programs at a glance.",
-      },
-      {
-        label: "Tasks & observations",
-        description: "Capture field notes, issues, and progress in real time.",
-      },
-      {
-        label: "Schedule tracking",
-        description: "View timelines, dependencies, and milestones.",
-      },
-      {
-        label: "Document management",
-        description: "Keep drawings, photos, PDFs, and reports organized.",
-      },
-      {
-        label: "Field-to-office sync",
-        description: "Updates appear instantly for all teammates.",
-      },
-      {
-        label: "Role-based visibility",
-        description: "Show or hide tools based on access level.",
-      },
-    ],
-    cta: { label: "See Project Hub", href: "/features/project-hub" },
-    secondaryCta: { label: "Get started", href: "/subscribe" },
-    viewer: {
-      title: "Project Hub Overview",
-      subtitle: "Glanceable dashboards, live tasks, and activity streams in one place.",
-    },
-    layout: { align: "right", snap: true },
-    theme: { accent: "#4F89D4" },
+    tone: "primary",
   },
   {
     id: "design-studio",
@@ -126,48 +85,50 @@ export const siteSections: Tile[] = [
     },
     layout: { align: "left", snap: true },
     theme: { accent: "#B37031" },
+    tone: "alt",
   },
   {
-    id: "content-studio",
-    navLabel: "Content Studio",
-    eyebrow: "Media Lab for Construction",
-    title: "Content Studio",
+    id: "project-hub",
+    navLabel: "Project Hub",
+    eyebrow: "Operational Command Center",
+    title: "Project Hub",
     subtitle:
-      "Upload, edit, enhance, and organize photo and video content for field and marketing teams.",
+      "Keep every project, team member, file, note, and workflow connected in one secure workspace.",
     bullets: [
       {
-        label: "Basic editing tools",
-        description: "Crop, color correct, trim, and sharpen directly in the browser.",
+        label: "Unified project dashboard",
+        description: "See everything happening across your programs at a glance.",
       },
       {
-        label: "Photo & video library",
-        description: "Automatically organize media by project and source.",
+        label: "Tasks & observations",
+        description: "Capture field notes, issues, and progress in real time.",
       },
       {
-        label: "AI enhancements",
-        description: "Auto-stabilize, upscale, and clean noise from your footage.",
+        label: "Schedule tracking",
+        description: "View timelines, dependencies, and milestones.",
       },
       {
-        label: "Timelapse builder",
-        description: "Generate timelapses from photos or clips in a few clicks.",
+        label: "Document management",
+        description: "Keep drawings, photos, PDFs, and reports organized.",
       },
       {
-        label: "Side-by-side comparison",
-        description: "Compare progress or revisions on a single screen.",
+        label: "Field-to-office sync",
+        description: "Updates appear instantly for all teammates.",
       },
       {
-        label: "Voiceover & caption tools",
-        description: "Create explainers and updates without leaving the platform.",
+        label: "Role-based visibility",
+        description: "Show or hide tools based on access level.",
       },
     ],
-    cta: { label: "Learn about Content Studio", href: "/features/content-studio" },
+    cta: { label: "See Project Hub", href: "/features/project-hub" },
     secondaryCta: { label: "Get started", href: "/subscribe" },
     viewer: {
-      title: "Content Studio Workspace",
-      subtitle: "Edit, enhance, and approve media where the rest of your work lives.",
+      title: "Project Hub Overview",
+      subtitle: "Glanceable dashboards, live tasks, and activity streams in one place.",
     },
     layout: { align: "right", snap: true },
     theme: { accent: "#4F89D4" },
+    tone: "primary",
   },
   {
     id: "tour-builder",
@@ -210,6 +171,7 @@ export const siteSections: Tile[] = [
     },
     layout: { align: "left", snap: true },
     theme: { accent: "#B37031" },
+    tone: "alt",
   },
   {
     id: "geospatial",
@@ -252,6 +214,7 @@ export const siteSections: Tile[] = [
     },
     layout: { align: "right", snap: true },
     theme: { accent: "#4F89D4" },
+    tone: "primary",
   },
   {
     id: "virtual-studio",
@@ -294,6 +257,7 @@ export const siteSections: Tile[] = [
     },
     layout: { align: "left", snap: true },
     theme: { accent: "#B37031" },
+    tone: "alt",
   },
   {
     id: "analytics",
@@ -336,6 +300,7 @@ export const siteSections: Tile[] = [
     },
     layout: { align: "right", snap: true },
     theme: { accent: "#4F89D4" },
+    tone: "primary",
   },
 ];
 

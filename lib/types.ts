@@ -38,4 +38,5 @@ export interface Tile {
   viewer?: TileViewer;
   layout?: TileLayout;
   theme?: TileTheme;
+  tone?: "primary" | "alt";
 }
