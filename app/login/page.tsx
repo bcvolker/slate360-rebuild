@@ -1,6 +1,6 @@
 export default function LoginPage(){
   return (
-    <main className="min-h-screen bg-slate-50 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] text-slate-900 flex items-center justify-center pt-24 pb-16 px-4">
+    <main className="min-h-screen bg-[#002082] bg-[linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:160px_160px] text-slate-900 flex items-center justify-center pt-24 pb-16 px-4">
       <div className="w-full max-w-md mx-auto bg-white/80 backdrop-blur-md border border-slate-200 rounded-3xl shadow-sm p-8">
         <h1 className="text-2xl sm:text-3xl font-orbitron font-semibold text-slate-900 mb-4 text-center">
           Welcome Back

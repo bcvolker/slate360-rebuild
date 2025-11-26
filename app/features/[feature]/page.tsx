@@ -17,7 +17,7 @@ export default async function FeaturePage({params}:{params:Promise<{feature:stri
   if(!f) return notFound();
   return (
     <>
-      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-slate-50 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] flex items-center justify-center">
+      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-[#002082] bg-[linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:160px_160px] flex items-center justify-center">
         <div className="mx-auto max-w-4xl w-full">
           <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm px-6 py-16 text-center">
             <h1 className="text-4xl md:text-5xl font-orbitron font-bold text-[#4F89D4] mb-6">{f.title}</h1>
