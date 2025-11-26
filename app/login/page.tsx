@@ -1,7 +1,7 @@
 export default function LoginPage(){
   return (
-    <main className="min-h-screen bg-blueprint-dark text-slate-900 flex items-center justify-center pt-24 pb-16 px-4">
-      <div className="w-full max-w-md mx-auto bg-white border border-[color:var(--slate360-blue)]/20 rounded-3xl shadow-[0_18px_45px_rgba(15,23,42,0.12)] p-8">
+    <main className="min-h-screen bg-graphite-theme text-slate-900 flex items-center justify-center pt-24 pb-16 px-4">
+      <div className="w-full max-w-md mx-auto bg-white/80 backdrop-blur-md border border-slate-200 rounded-3xl shadow-sm p-8">
         <h1 className="text-2xl sm:text-3xl font-orbitron font-semibold text-slate-900 mb-4 text-center">
           Welcome Back
         </h1>
@@ -10,13 +10,13 @@ export default function LoginPage(){
         </p>
         <a
           href="mailto:support@slate360.ai"
-          className="mb-4 block w-full rounded-full border border-[color:var(--slate360-blue)]/40 bg-[color:var(--slate360-blue)]/10 px-6 py-3 text-sm font-orbitron font-semibold uppercase tracking-[0.3em] text-[color:var(--slate360-blue)] text-center shadow-[0_0_18px_rgba(79,137,212,0.25)] transition hover:border-[color:var(--slate360-copper)] hover:bg-[color:var(--slate360-copper)]/10 hover:text-[color:var(--slate360-copper)]"
+          className="mb-4 block w-full rounded-full border border-[#4F89D4]/40 bg-[#4F89D4]/10 px-6 py-3 text-sm font-orbitron font-semibold uppercase tracking-[0.3em] text-[#4F89D4] text-center shadow-[0_0_18px_rgba(79,137,212,0.25)] transition hover:border-[#B37031] hover:bg-[#B37031]/10 hover:text-[#B37031]"
         >
           Get Access Link
         </a>
         <p className="text-xs sm:text-sm text-slate-600 text-center">
           New?{" "}
-          <a href="/subscribe" className="text-[color:var(--slate360-blue)] hover:text-[color:var(--slate360-copper)] hover:underline font-semibold">
+          <a href="/subscribe" className="text-[#4F89D4] hover:text-[#B37031] hover:underline font-semibold">
             Start free trial
           </a>
           .

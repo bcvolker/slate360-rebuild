@@ -3,9 +3,9 @@ import Footer from "@/components/ui/Footer";
 export default function SecurityPage() {
   return (
     <>
-      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-blueprint-dark">
+      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-graphite-theme">
         <div className="mx-auto max-w-6xl">
-          <section className="relative overflow-hidden rounded-3xl border border-brand-blue/20 bg-white shadow-[0_26px_80px_rgba(15,23,42,0.55)] px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+          <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             
             <div className="relative z-10 flex flex-col gap-8 max-w-4xl">
               <header>
@@ -49,7 +49,7 @@ export default function SecurityPage() {
                     {" "}
                     <a
                       href="mailto:security@slate360.ai"
-                      className="font-medium text-brand-blue underline-offset-2 hover:text-brand-copper hover:underline"
+                      className="font-medium text-[#4F89D4] underline-offset-2 hover:text-[#B37031] hover:underline"
                     >
                       security@slate360.ai
                     </a>

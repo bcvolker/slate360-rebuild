@@ -3,9 +3,9 @@ import Footer from "@/components/ui/Footer";
 export default function ContactPage() {
   return (
     <>
-      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-blueprint-dark">
+      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-graphite-theme">
         <div className="mx-auto max-w-6xl">
-          <section className="relative overflow-hidden rounded-3xl border border-[color:var(--slate360-blue)]/20 bg-white shadow-[0_26px_80px_rgba(15,23,42,0.55)] px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+          <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             
             <div className="relative z-10 grid gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
               <div>
@@ -16,7 +16,7 @@ export default function ContactPage() {
                   Contact Slate360
                 </h1>
                 <p className="text-sm sm:text-base text-slate-700 mb-8 max-w-xl">
-                  Have a question about plans, workflows, or early access? Send us a note and we&apos;ll follow up with something actually usefulnot a generic drip sequence.
+                  Have a question about plans, workflows, or early access? Send us a note and we&apos;ll follow up with something actually useful—not a generic drip sequence.
                 </p>
 
                 <form className="space-y-5 text-sm text-slate-700">
@@ -27,7 +27,7 @@ export default function ContactPage() {
                       </label>
                       <input
                         type="text"
-                        className="rounded-xl border border-slate-300 bg-white/80 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-[color:var(--slate360-copper)] focus:ring-2 focus:ring-[color:var(--slate360-copper)]/30"
+                        className="rounded-xl border border-slate-300 bg-white/50 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-[color:var(--slate360-copper)] focus:ring-2 focus:ring-[color:var(--slate360-copper)]/30"
                         placeholder="Alex Jensen"
                       />
                     </div>
@@ -37,7 +37,7 @@ export default function ContactPage() {
                       </label>
                       <input
                         type="text"
-                        className="rounded-xl border border-slate-300 bg-white/80 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-[color:var(--slate360-copper)] focus:ring-2 focus:ring-[color:var(--slate360-copper)]/30"
+                        className="rounded-xl border border-slate-300 bg-white/50 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-[color:var(--slate360-copper)] focus:ring-2 focus:ring-[color:var(--slate360-copper)]/30"
                         placeholder="Studio, GC, university, agency"
                       />
                     </div>

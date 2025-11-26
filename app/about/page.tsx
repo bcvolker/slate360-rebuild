@@ -3,9 +3,9 @@ import Footer from "@/components/ui/Footer";
 export default function AboutPage(){
   return (
     <>
-      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-blueprint-dark">
+      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-graphite-theme">
         <div className="mx-auto max-w-6xl">
-          <section className="relative overflow-hidden rounded-3xl border border-[color:var(--slate360-blue)]/20 bg-white shadow-[0_26px_80px_rgba(15,23,42,0.55)] px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+          <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             
             <div className="relative z-10 flex flex-col gap-10">
               <header className="max-w-3xl">
@@ -89,7 +89,7 @@ export default function AboutPage(){
               <div className="text-center md:text-left mt-2">
                 <a
                   href="/subscribe"
-                  className="inline-flex items-center justify-center rounded-full border border-brand-blue/40 bg-brand-blue/8 px-8 py-3 text-sm sm:text-base font-orbitron font-semibold uppercase tracking-[0.3em] text-brand-blue shadow-[0_0_18px_rgba(79,137,212,0.25)] transition hover:border-brand-blue hover:bg-brand-blue/16"
+                  className="inline-flex items-center justify-center rounded-full border border-[#4F89D4]/40 bg-[#4F89D4]/8 px-8 py-3 text-sm sm:text-base font-orbitron font-semibold uppercase tracking-[0.3em] text-[#4F89D4] shadow-[0_0_18px_rgba(79,137,212,0.25)] transition hover:border-[#4F89D4] hover:bg-[#4F89D4]/16"
                 >
                   Join Early Access
                 </a>

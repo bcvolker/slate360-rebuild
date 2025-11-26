@@ -17,10 +17,14 @@ export default async function FeaturePage({params}:{params:Promise<{feature:stri
   if(!f) return notFound();
   return (
     <>
-      <div className="min-h-screen bg-white text-[var(--ink)] flex flex-col items-center justify-center p-12">
-        <h1 className="text-4xl font-bold brand-blue">{f.title}</h1>
-        <p className="mt-4 text-lg text-[var(--ink-sub)] max-w-2xl text-center">{f.desc}</p>
-      </div>
+      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-graphite-theme flex items-center justify-center">
+        <div className="mx-auto max-w-4xl w-full">
+          <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm px-6 py-16 text-center">
+            <h1 className="text-4xl md:text-5xl font-orbitron font-bold text-[#4F89D4] mb-6">{f.title}</h1>
+            <p className="text-lg md:text-xl text-slate-700 max-w-2xl mx-auto">{f.desc}</p>
+          </section>
+        </div>
+      </main>
       <Footer />
     </>
   );

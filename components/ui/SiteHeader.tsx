@@ -251,7 +251,7 @@ export default function SiteHeader() {
 
       {/* SECONDARY NAV: Stacked on the right */}
       {pathname === "/" && (
-        <div className="hidden xl:flex flex-col fixed top-32 right-4 items-end gap-1 z-40 backdrop-blur-md p-2 rounded-lg">
+        <div className="hidden xl:flex flex-col fixed top-32 right-0 items-end gap-1 z-40 bg-white/90 backdrop-blur-md rounded-l-2xl shadow-lg py-4 px-3">
           {NAV_LINKS.map((item) => (
             <Link
               key={item.id}
@@ -259,8 +259,8 @@ export default function SiteHeader() {
               onClick={() => setMenuOpen(false)}
               className={`text-[10px] font-orbitron tracking-wider transition-colors duration-300 ${
                 activeId === item.id
-                  ? "text-[#4F89D4] font-bold"
-                  : "text-slate-700 font-medium hover:text-blue-600"
+                  ? "text-blue-600 font-bold"
+                  : "text-slate-600 font-medium hover:text-blue-600"
               }`}
             >
               {item.label}
