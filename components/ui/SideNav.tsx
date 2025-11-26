@@ -2,32 +2,31 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { siteNavLinks } from "@/lib/config";
 
 export default function SideNav() {
   const pathname = usePathname();
   const [activeId, setActiveId] = useState<string>("");
-  // Track which sections are currently visible
-  const visibleSections = useState(() => new Set<string>())[0];
+  // Track which sections are currently visible using a Ref to avoid state issues
+  const visibleSections = useRef(new Set<string>());
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            visibleSections.add(entry.target.id);
+            visibleSections.current.add(entry.target.id);
           } else {
-            visibleSections.delete(entry.target.id);
+            visibleSections.current.delete(entry.target.id);
           }
         });
 
         // Determine active section: The last one in the list that is visible
-        // This handles the "sticky stacking" where multiple sections are technically visible
         let newActiveId = "";
         for (let i = siteNavLinks.length - 1; i >= 0; i--) {
           const id = siteNavLinks[i].id;
-          if (visibleSections.has(id)) {
+          if (visibleSections.current.has(id)) {
             newActiveId = id;
             break;
           }
@@ -35,8 +34,8 @@ export default function SideNav() {
         setActiveId(newActiveId);
       },
       {
-        threshold: 0.1, // Lower threshold to catch sections early
-        rootMargin: "-80px 0px -40% 0px", // Focus on the top half of the screen
+        threshold: 0.1,
+        rootMargin: "-80px 0px -40% 0px",
       }
     );
 

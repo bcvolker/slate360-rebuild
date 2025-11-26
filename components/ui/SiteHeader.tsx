@@ -31,7 +31,7 @@ export default function SiteHeader() {
   }, []);
 
   // Track active section for secondary nav
-  const visibleSections = useState(() => new Set<string>())[0];
+  const visibleSections = useRef(new Set<string>());
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -41,16 +41,16 @@ export default function SiteHeader() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            visibleSections.add(entry.target.id);
+            visibleSections.current.add(entry.target.id);
           } else {
-            visibleSections.delete(entry.target.id);
+            visibleSections.current.delete(entry.target.id);
           }
         });
 
         let newActiveId = "";
         for (let i = NAV_LINKS.length - 1; i >= 0; i--) {
           const id = NAV_LINKS[i].id;
-          if (visibleSections.has(id)) {
+          if (visibleSections.current.has(id)) {
             newActiveId = id;
             break;
           }
