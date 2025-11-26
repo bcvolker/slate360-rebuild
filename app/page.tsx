@@ -16,12 +16,12 @@ export default function HomePage() {
       
       <SideNav />
 
-      {/* Main Scroll Container - Handles Snap */}
-      <main className="w-full pt-20">
+      {/* Main Scroll Container */}
+      <div className="w-full pt-20 relative">
         {siteSections.map((section, index) => (
           <UnifiedSection key={section.id} tile={section} index={index} />
         ))}
-      </main>
+      </div>
       
       {/* Footer - Outside Snap Flow */}
       <Footer />

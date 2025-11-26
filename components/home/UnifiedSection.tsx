@@ -22,8 +22,9 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
     () =>
       ({
         "--section-accent": accent,
+        zIndex: index + 1, // Explicit z-index to ensure correct stacking order
       } as CSSProperties),
-    [accent]
+    [accent, index]
   );
 
   const viewerTitle = tile.viewer?.title ?? "Viewer";
@@ -96,7 +97,7 @@ export default function UnifiedSection({ tile, index }: UnifiedSectionProps) {
       ref={sectionRef}
       id={tile.id}
       data-snap="tile"
-      className={`relative w-full flex flex-col min-h-[100dvh] pb-32 lg:pb-10 lg:sticky lg:top-20 z-0 ${
+      className={`relative w-full flex flex-col min-h-[100dvh] pb-32 lg:pb-10 lg:sticky lg:top-20 ${
         snapEnabled ? "snap-start" : ""
       } ${themeClass}`}
       style={sectionStyle}

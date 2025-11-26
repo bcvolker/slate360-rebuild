@@ -11,9 +11,9 @@
   }
 
   /* Apply mandatory snap on the homepage (controlled by SnapManager) for ALL devices */
-  html.snap-mandatory {
+  /* html.snap-mandatory {
     scroll-snap-type: y mandatory;
-  }
+  } */
 
   @media (min-width: 1024px) {
     html {
