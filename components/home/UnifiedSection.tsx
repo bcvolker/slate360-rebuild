@@ -1,3 +1,4 @@
+// Force Git Sync
 "use client";
 
 // Mobile layout fix verified: Light Theme Active
