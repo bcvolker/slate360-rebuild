@@ -136,7 +136,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
 
         {/* VIEWER COLUMN */}
         <div className={`w-full flex items-start justify-center mt-8 md:mt-0 md:h-full md:items-center ${viewerColumnOrder}`}>
-             <div className="w-full max-w-md md:max-w-xl h-56 sm:h-64 md:h-[420px] bg-[#050814]/95 border border-white/10 rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden group">
+            <div className="w-full max-w-md md:max-w-xl h-56 sm:h-64 md:h-[420px] bg-white/90 border border-slate-200/60 rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-50" />
                 <div className="text-center z-10 p-6">
                     <div className="text-6xl mb-4 opacity-50 group-hover:opacity-100 transition-opacity duration-500 text-[color:var(--slate-text-main)]">
