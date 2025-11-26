@@ -5,6 +5,7 @@
 
 @layer base {
   html {
+    scroll-behavior: smooth;
     /* Mobile: 0px scroll padding so anchor links align to top (0px).
        The section padding (pt-20) handles the visual offset for the header. */
     scroll-padding-top: 0;
