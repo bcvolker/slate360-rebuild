@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { siteNavLinks } from "@/lib/config";
 
 export default function SideNav() {
+  const pathname = usePathname();
   const [activeId, setActiveId] = useState<string>("");
 
   useEffect(() => {
@@ -33,7 +35,12 @@ export default function SideNav() {
     };
   }, []);
 
-  const anchorFor = (id: string) => `/#${id}`;
+  const anchorFor = (id: string) => {
+    if (pathname === "/") {
+      return `#${id}`;
+    }
+    return `/#${id}`;
+  };
 
   return (
     <nav className="fixed top-1/2 right-6 z-[50] hidden -translate-y-1/2 flex-col gap-3 lg:flex">

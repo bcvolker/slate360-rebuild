@@ -57,7 +57,7 @@ const plans = [
 export default function SubscribePage() {
   return (
     <>
-      <main className="min-h-screen w-full flex items-center justify-center py-24 px-4 sm:px-6 lg:px-8 bg-slate-50 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]">
+      <div className="min-h-screen w-full flex items-center justify-center py-24 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-7xl">
           <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             
@@ -133,7 +133,7 @@ export default function SubscribePage() {
             </div>
           </section>
         </div>
-      </main>
+      </div>
       <Footer />
     </>
   );

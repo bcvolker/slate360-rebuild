@@ -30,7 +30,7 @@
 html, body {
   /* Changed from height: 100% to min-height: 100% to allow scrolling on long pages */
   min-height: 100%;
-  overflow-x: hidden;
+  /* overflow-x: hidden; */
   overflow-y: auto;
 }
 
