@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { siteNavLinks } from "@/lib/config";
 
 const NAV_LINKS = siteNavLinks;
@@ -67,6 +67,26 @@ export default function SiteHeader() {
     return `/#${id}`;
   };
 
+  const handleFeatureClick = useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+      if (pathname !== "/") {
+        // Cross-page navigation: let Next.js handle it
+        return;
+      }
+
+      event.preventDefault();
+      closeMenus();
+
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.location.hash = `#${id}`;
+      }
+    },
+    [pathname]
+  );
+
   return (
     <>
       {/* Fixed header: Metallic gradient background */}
@@ -108,7 +128,7 @@ export default function SiteHeader() {
                       <Link
                         key={item.id}
                         href={anchorFor(item.id)}
-                        onClick={closeMenus}
+                        onClick={(event) => handleFeatureClick(event, item.id)}
                         className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-100 hover:bg-[#B87333]/20 hover-copper transition-colors duration-150 font-orbitron"
                       >
                         {item.label}
