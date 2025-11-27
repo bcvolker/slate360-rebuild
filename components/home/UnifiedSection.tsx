@@ -34,8 +34,8 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
   const viewerTitle = tile.viewer?.title ?? "Viewer";
   const viewerSubtitle = tile.viewer?.subtitle ?? "Interactive content arrives shortly.";
   
-  const textColumnOrder = layoutAlign === "left" ? "lg:order-2" : "lg:order-1";
-  const viewerColumnOrder = layoutAlign === "left" ? "lg:order-1" : "lg:order-2";
+  const textColumnOrder = layoutAlign === "left" ? "md:order-2" : "md:order-1";
+  const viewerColumnOrder = layoutAlign === "left" ? "md:order-1" : "md:order-2";
 
   // THEME MAPPING
   const isDark = displayTheme === "deep"; // Derived for conditional logic
@@ -55,8 +55,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
   })();
 
   // CARD STYLES
-  const baseCardClasses = "relative flex flex-col rounded-[32px] shadow-2xl backdrop-blur-md overflow-hidden";
-  // Both tones now use the clean white look to avoid "grey over text"
+  const baseCardClasses = "relative flex flex-col rounded-[32px] shadow-2xl backdrop-blur-md";
   const primaryToneClasses = "bg-white border border-slate-200/60 shadow-sm";
   const altToneClasses = "bg-white border border-slate-200/60 shadow-sm"; 
   const toneClasses = effectiveTone === "alt" ? altToneClasses : primaryToneClasses;
@@ -67,19 +66,17 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
       id={id}
       className={clsx(
         "w-full relative",
-        // MOBILE: Natural scroll, full viewport height
         "min-h-screen pt-20 pb-4",
-        // DESKTOP: Sticky Curtain Reveal (tiles stick and stack)
-        "lg:sticky lg:top-0 lg:h-screen lg:overflow-hidden",
+        "md:sticky md:top-0 md:h-screen md:overflow-hidden",
         sectionBackground
       )}
       style={sectionStyle}
     >
-      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-24 h-full flex flex-col justify-between lg:flex-row lg:items-stretch lg:justify-center lg:gap-16 lg:pt-16">
+      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-24 h-full flex flex-col justify-between md:flex-row md:items-stretch md:justify-center md:gap-16 md:pt-16">
         
         {/* TEXT CONTENT CARD */}
-        <div className={clsx("w-full lg:w-[55%] lg:h-[75dvh] lg:flex-none", textColumnOrder)}>
-            <div className={clsx(baseCardClasses, toneClasses, "h-full w-full justify-between")}>
+        <div className={clsx("w-full md:w-[55%] md:h-[75dvh] md:flex-none", textColumnOrder)}>
+            <div className={clsx(baseCardClasses, toneClasses, "h-full w-full justify-between max-h-[60vh] md:max-h-none overflow-hidden")}>
                 
                 {/* Fixed Header (Non-scrolling) */}
                 <div className="px-6 pt-8 pb-4 md:px-10 md:pt-10 md:pb-6 z-30 bg-white shrink-0">
@@ -97,7 +94,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                 {/* Wrapper for Scroll + Overlay */}
                 <div className="relative flex-1 overflow-hidden min-h-0">
                     {/* Scrollable Content Area (Subtitle + Bullets only) */}
-                    <div className="h-full overflow-y-auto custom-scrollbar px-6 md:px-10 pb-4 max-h-[380px] sm:max-h-[420px] lg:max-h-none">
+                    <div className="h-full overflow-y-auto custom-scrollbar px-6 md:px-10 pb-4">
                         <p className="text-base md:text-lg text-slate-600 font-medium mb-6 leading-relaxed">
                             {tile.subtitle}
                         </p>
@@ -121,7 +118,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                     </div>
                     
                     {/* Scroll Fade Overlay - Pinned to Bottom (always light blur to match white card) */}
-                    <div className="absolute bottom-0 left-0 right-0 h-12 lg:h-24 pointer-events-none z-20 rounded-b-3xl bg-gradient-to-t from-white via-white/80 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 h-12 pointer-events-none z-20 rounded-b-3xl bg-gradient-to-t from-white via-white/80 to-transparent" />
                 </div>
 
                 {/* Fixed Footer (Buttons) */}
@@ -149,21 +146,21 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         </div>
 
         {/* VIEWER COLUMN */}
-        <div className={clsx("w-full lg:w-[38%] pb-8 lg:pb-0 h-[180px] shrink-0 lg:h-[75dvh] flex items-end justify-center", viewerColumnOrder)}>
+        <div className={clsx("w-full md:w-[38%] mt-6 md:mt-0 mb-8 md:mb-0 h-[240px] shrink-0 md:h-[75dvh] flex items-end justify-center", viewerColumnOrder)}>
           {/* VIEWER CARD */}
-          <div className="w-full h-full lg:h-[52dvh] lg:max-w-3xl bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
+          <div className="w-full h-full md:h-[52dvh] md:max-w-3xl bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 pointer-events-none" />
                 
-                <div className="text-center z-10 p-4 lg:p-8 relative pointer-events-auto flex flex-row lg:flex-col items-center gap-4 lg:gap-0">
-                    <div className="text-4xl lg:text-6xl lg:mb-6 text-slate-700 group-hover:text-blue-500 transition-colors duration-500">
+                <div className="text-center z-10 p-4 lg:p-8 relative pointer-events-auto flex flex-row md:flex-col items-center gap-4 md:gap-0">
+                    <div className="text-4xl md:text-6xl md:mb-6 text-slate-700 group-hover:text-blue-500 transition-colors duration-500">
                         ❖
                     </div>
-                    <div className="text-left lg:text-center">
-                        <h3 className="text-lg lg:text-2xl font-bold text-white font-orbitron mb-1 lg:mb-2">{viewerTitle}</h3>
-                        <p className="text-slate-400 text-xs lg:text-base mb-0 lg:mb-6 max-w-xs mx-auto hidden lg:block">{viewerSubtitle}</p>
+                    <div className="text-left md:text-center">
+                        <h3 className="text-lg md:text-2xl font-bold text-white font-orbitron mb-1 md:mb-2">{viewerTitle}</h3>
+                        <p className="text-slate-400 text-xs md:text-base mb-0 md:mb-6 max-w-xs mx-auto hidden md:block">{viewerSubtitle}</p>
                         <button 
                             onClick={() => setViewerOpen(true)}
-                            className="lg:hidden text-xs font-bold text-blue-400 uppercase tracking-widest"
+                            className="md:hidden text-xs font-bold text-blue-400 uppercase tracking-widest"
                         >
                             Tap to View
                         </button>
@@ -171,7 +168,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                     
                     <button 
                         onClick={() => setViewerOpen(true)}
-                        className="hidden lg:block px-8 py-3 border border-slate-600 rounded-full text-sm font-bold font-orbitron text-white hover:bg-white hover:text-black transition-all uppercase tracking-widest shadow-[0_0_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                        className="hidden md:block px-8 py-3 border border-slate-600 rounded-full text-sm font-bold font-orbitron text-white hover:bg-white hover:text-black transition-all uppercase tracking-widest shadow-[0_0_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
                     >
                         Expand Viewer
                     </button>
