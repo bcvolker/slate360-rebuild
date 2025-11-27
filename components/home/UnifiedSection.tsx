@@ -54,8 +54,9 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
 
   // CARD STYLES
   const baseCardClasses = "relative flex flex-col rounded-[32px] shadow-2xl backdrop-blur-md overflow-hidden";
+  // Both tones now use the clean white look to avoid "grey over text"
   const primaryToneClasses = "bg-white/90 border border-slate-200/60 shadow-sm";
-  const altToneClasses = "bg-slate-50/85 border border-slate-300/45 shadow-sm";
+  const altToneClasses = "bg-white/90 border border-slate-200/60 shadow-sm"; 
   const toneClasses = effectiveTone === "alt" ? altToneClasses : primaryToneClasses;
 
   return (
@@ -75,7 +76,8 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
       <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-12 h-full flex flex-col lg:flex-row lg:items-center lg:gap-12">
         
         {/* TEXT CONTENT CARD */}
-        <div className={clsx("flex flex-col justify-center w-full lg:w-1/2 h-full lg:h-[85dvh]", textColumnOrder)}>
+        {/* Mobile: Fixed height (75dvh) to ensure internal scrolling. Desktop: 85dvh */}
+        <div className={clsx("flex flex-col justify-center w-full lg:w-1/2 h-[75dvh] lg:h-[85dvh]", textColumnOrder)}>
             <div className={clsx(baseCardClasses, toneClasses, "h-full w-full")}>
                 
                 {/* Fixed Header */}
