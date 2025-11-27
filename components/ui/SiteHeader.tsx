@@ -166,38 +166,46 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
 
       {/* MOBILE MENU OVERLAY - Moved outside header to avoid stacking context issues */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-[9000] flex flex-col bg-slate-50/95 backdrop-blur-md md:hidden">
-          {/* Top Bar */}
-          <div className="flex h-16 items-center justify-between px-4 bg-slate-950 text-slate-50">
-            {/* Added Logo to Menu Header */}
-            <div className="relative h-10 w-40 -ml-2 flex items-center gap-2">
-               {/* Favicon/Icon */}
-               <div className="relative h-8 w-8">
-                  <Image
-                    src="/favicon.svg"
-                    alt="Slate360 Icon"
-                    fill
-                    className="object-contain"
-                  />
-               </div>
-               <span className="font-orbitron font-bold text-lg tracking-widest text-white">SLATE360</span>
+        <div className="fixed inset-0 z-[9000] md:hidden">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setMobileOpen(false)}
+          />
+          
+          {/* Menu Container - Auto height, max 85vh */}
+          <div className="absolute top-0 left-0 right-0 bg-slate-50 flex flex-col max-h-[85vh] shadow-2xl rounded-b-3xl overflow-hidden">
+            {/* Top Bar */}
+            <div className="flex h-16 items-center justify-between px-4 bg-slate-950 text-slate-50 shrink-0">
+              {/* Added Logo to Menu Header */}
+              <div className="relative h-10 w-40 -ml-2 flex items-center gap-2">
+                 {/* Favicon/Icon */}
+                 <div className="relative h-8 w-8">
+                    <Image
+                      src="/favicon.svg"
+                      alt="Slate360 Icon"
+                      fill
+                      className="object-contain"
+                    />
+                 </div>
+                 <span className="font-orbitron font-bold text-lg tracking-widest text-white">SLATE360</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+                aria-label="Close menu"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setMobileOpen(false)}
-              className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
-              aria-label="Close menu"
-            >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
 
-          <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
-            {/* Primary Links Reordered: Login -> Plans & Pricing -> About */}
-            <div className="space-y-2">
-              {["Login", "Plans & Pricing", "About"].map((label) => (
+            <nav className="overflow-y-auto px-4 py-6 space-y-4">
+              {/* Primary Links Reordered: Login -> Plans & Pricing -> About */}
+              <div className="space-y-2">
+                {["Login", "Plans & Pricing", "About"].map((label) => (
                 <Link
                   key={label}
                   href={label === "Plans & Pricing" ? "/subscribe" : label === "Login" ? "/login" : `/${label.toLowerCase()}`}
@@ -231,6 +239,7 @@ export default function SiteHeader({ variant }: SiteHeaderProps) {
               </div>
             </details>
           </nav>
+          </div>
         </div>
       )}
     </>

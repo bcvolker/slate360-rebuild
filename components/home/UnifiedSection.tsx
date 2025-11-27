@@ -80,68 +80,64 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         <div className={clsx("flex flex-col justify-center w-full lg:w-1/2 flex-1 min-h-0 lg:h-[85dvh] lg:flex-none", textColumnOrder)}>
             <div className={clsx(baseCardClasses, toneClasses, "h-full w-full")}>
                 
-                {/* Scrollable Wrapper for Whole Card */}
-                <div className="h-full w-full overflow-y-auto custom-scrollbar relative">
-                    
-                    {/* Sticky Header */}
-                    <div className="sticky top-0 px-6 pt-8 pb-4 md:px-10 md:pt-10 md:pb-6 z-30 bg-white">
-                        <div className={`mb-4 h-1 w-16 rounded-full ${effectiveTone === "alt" ? "bg-slate-400" : "bg-[#B87333]"}`} />
-                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 font-orbitron tracking-tight mb-2">
-                            {tile.title}
-                        </h2>
-                        {tile.eyebrow && (
-                            <p className="text-lg md:text-xl font-bold text-blue-600 font-orbitron">
-                                {tile.eyebrow}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="px-6 md:px-10 pb-8">
-                        <p className="text-base md:text-lg text-slate-600 font-medium mb-6 leading-relaxed">
-                            {tile.subtitle}
+                {/* Fixed Header (Non-scrolling) */}
+                <div className="px-6 pt-8 pb-4 md:px-10 md:pt-10 md:pb-6 z-30 bg-white shrink-0">
+                    <div className={`mb-4 h-1 w-16 rounded-full ${effectiveTone === "alt" ? "bg-slate-400" : "bg-[#B87333]"}`} />
+                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 font-orbitron tracking-tight mb-2">
+                        {tile.title}
+                    </h2>
+                    {tile.eyebrow && (
+                        <p className="text-lg md:text-xl font-bold text-blue-600 font-orbitron">
+                            {tile.eyebrow}
                         </p>
-                        <div className="prose prose-slate max-w-none">
-                            {tile.bullets && tile.bullets.length > 0 && (
-                                <ul className="space-y-4">
-                                    {tile.bullets.map((bullet) => (
-                                        <li key={bullet.label} className="flex gap-3 items-start text-slate-600">
-                                            <span className="mt-1.5 h-2 w-2 rounded-full bg-[#B87333] shrink-0" />
-                                            <span>
-                                                <strong className="text-slate-900 font-orbitron text-sm uppercase tracking-wide block mb-1">
-                                                    {bullet.label}
-                                                </strong>
-                                                {bullet.description}
-                                            </span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Sticky Footer (Buttons) */}
-                    {(tile.cta || tile.secondaryCta) && (
-                        <div className="sticky bottom-0 px-6 pb-6 pt-4 md:px-10 md:pb-10 mt-auto flex flex-wrap gap-3 shrink-0 z-30 bg-white border-t border-slate-100">
-                            {tile.cta && (
-                                <Link
-                                    href={tile.cta.href}
-                                    className="flex-1 inline-flex items-center justify-center px-6 py-4 text-sm font-bold text-white uppercase tracking-widest bg-blue-600 hover:bg-blue-700 border border-transparent rounded-xl transition-all font-orbitron shadow-lg hover:shadow-xl relative z-30"
-                                >
-                                    {tile.cta.label}
-                                </Link>
-                            )}
-                            {tile.secondaryCta && (
-                                <Link
-                                    href={tile.secondaryCta.href}
-                                    className="flex-1 inline-flex items-center justify-center px-6 py-4 text-sm font-bold text-slate-700 uppercase tracking-widest bg-slate-100 hover:bg-slate-200 border border-transparent rounded-xl transition-all font-orbitron relative z-30"
-                                >
-                                    {tile.secondaryCta.label}
-                                </Link>
-                            )}
-                        </div>
                     )}
                 </div>
+
+                {/* Scrollable Content Area (Subtitle + Bullets only) */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar px-6 md:px-10 pb-4 relative">
+                    <p className="text-base md:text-lg text-slate-600 font-medium mb-6 leading-relaxed">
+                        {tile.subtitle}
+                    </p>
+                    <div className="prose prose-slate max-w-none pb-4">
+                        {tile.bullets && tile.bullets.length > 0 && (
+                            <ul className="space-y-4">
+                                {tile.bullets.map((bullet) => (
+                                    <li key={bullet.label} className="flex gap-3 items-start text-slate-600">
+                                        <span className="mt-1.5 h-2 w-2 rounded-full bg-[#B87333] shrink-0" />
+                                        <span>
+                                            <strong className="text-slate-900 font-orbitron text-sm uppercase tracking-wide block mb-1">
+                                                {bullet.label}
+                                            </strong>
+                                            {bullet.description}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+
+                {/* Fixed Footer (Buttons) */}
+                {(tile.cta || tile.secondaryCta) && (
+                    <div className="px-6 pb-6 pt-4 md:px-10 md:pb-10 mt-auto flex flex-wrap gap-3 shrink-0 z-30 bg-white border-t border-slate-100">
+                        {tile.cta && (
+                            <Link
+                                href={tile.cta.href}
+                                className="flex-1 inline-flex items-center justify-center px-6 py-4 text-sm font-bold text-white uppercase tracking-widest bg-blue-600 hover:bg-blue-700 border border-transparent rounded-xl transition-all font-orbitron shadow-lg hover:shadow-xl relative z-30"
+                            >
+                                {tile.cta.label}
+                            </Link>
+                        )}
+                        {tile.secondaryCta && (
+                            <Link
+                                href={tile.secondaryCta.href}
+                                className="flex-1 inline-flex items-center justify-center px-6 py-4 text-sm font-bold text-slate-700 uppercase tracking-widest bg-slate-100 hover:bg-slate-200 border border-transparent rounded-xl transition-all font-orbitron relative z-30"
+                            >
+                                {tile.secondaryCta.label}
+                            </Link>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
 
