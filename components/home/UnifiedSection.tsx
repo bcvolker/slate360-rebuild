@@ -41,9 +41,9 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
   const sectionBackground = (() => {
     switch (displayTheme) {
       case "light":
-        return "bg-blueprint"; // Dark Blue #002082
+        return "bg-slate-50"; // Light / White
       case "graphite":
-        return "bg-graphite";  // Light Grey #f1f5f9
+        return "bg-slate-100";  // Light Grey
       case "gradient":
         return "bg-gradient-to-b from-slate-50 to-slate-100";
       case "deep":

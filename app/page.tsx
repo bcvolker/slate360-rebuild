@@ -24,7 +24,7 @@ export default function HomePage() {
             id={section.id} 
             tile={section} 
             index={index} 
-            displayTheme={index % 2 === 0 ? "deep" : "graphite"}
+            displayTheme={index % 2 === 0 ? "deep" : "light"}
           />
         ))}
         
