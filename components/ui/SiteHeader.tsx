@@ -93,7 +93,7 @@ export default function SiteHeader() {
                         key={item.id}
                         href={anchorFor(item.id)}
                         onClick={(e) => handleFeatureClick(e, item.id)}
-                        className="block w-full text-left rounded-lg px-3 py-2.5 text-sm transition-colors duration-150 font-orbitron text-blue-500 hover:bg-slate-800 hover:text-[#B87333]"
+                        className="block w-full text-left rounded-lg px-3 py-2.5 text-sm transition-colors duration-150 font-orbitron text-blue-500 hover:bg-orange-50 hover:text-slate-900"
                       >
                         {item.label}
                       </Link>
@@ -109,7 +109,7 @@ export default function SiteHeader() {
                 <Link 
                   key={label} 
                   href={label === "Plans & Pricing" ? "/subscribe" : `/${label.toLowerCase()}`} 
-                  className="group relative text-xs font-bold uppercase tracking-widest transition-all duration-300 font-orbitron drop-shadow-md text-slate-300 hover:text-[#B87333]"
+                  className="group relative text-xs font-bold uppercase tracking-widest transition-all duration-300 font-orbitron drop-shadow-md text-slate-300 hover:text-slate-900 hover:bg-orange-50 px-3 py-1 rounded-full"
                 >
                   {label}
                   <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[#B87333] transition-transform duration-300 ease-out group-hover:scale-x-100" />

@@ -2,10 +2,10 @@ import PageShell from "@/components/ui/PageShell";
 
 export default function AboutPage() {
   return (
-    <PageShell variant="light" maxWidth="7xl">
-      <div className="pb-20">
+    <PageShell variant="light" maxWidth="7xl" className="!bg-transparent !border-none !shadow-none p-0">
+      <div className="pb-10">
         {/* Page Header */}
-        <div className="mb-12">
+        <div className="mb-8">
           <p className="text-blue-600 font-bold tracking-widest uppercase text-sm mb-2">Company</p>
           <h1 className="text-5xl font-black text-slate-900 font-orbitron uppercase">About Slate360</h1>
           <p className="text-xl text-slate-600 mt-4 max-w-2xl">
@@ -14,10 +14,10 @@ export default function AboutPage() {
         </div>
 
         {/* Bento Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           
           {/* Card 1: Mission (Wide) */}
-          <div className="lg:col-span-2 bg-white/80 backdrop-blur p-8 rounded-2xl shadow-sm border border-slate-200">
+          <div className="lg:col-span-2 bg-orange-50/80 backdrop-blur p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="text-2xl font-bold text-slate-900 mb-4 font-orbitron">Our Mission</h3>
             <p className="text-slate-700 leading-relaxed">
               Slate360 empowers built environment professionals—from contractors and realtors to universities and drone pilots—to bridge administrative chaos and visual workflows. We turn raw data (LiDAR, 360 photos, project docs) into actionable insights.
@@ -25,7 +25,7 @@ export default function AboutPage() {
           </div>
 
           {/* Card 2: Who We Serve (Tall) */}
-          <div className="lg:row-span-2 bg-white/80 backdrop-blur p-8 rounded-2xl shadow-sm border border-slate-200">
+          <div className="lg:row-span-2 bg-orange-50/80 backdrop-blur p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="text-2xl font-bold text-slate-900 mb-4 font-orbitron">Who We Serve</h3>
             <p className="text-slate-700 leading-relaxed mb-4">
               General contractors managing multi-site chaos, government teams tracking capital projects, and design teams visualizing models.
@@ -36,7 +36,7 @@ export default function AboutPage() {
           </div>
 
           {/* Card 3: Why We Built It */}
-          <div className="bg-white/80 backdrop-blur p-8 rounded-2xl shadow-sm border border-slate-200">
+          <div className="bg-orange-50/80 backdrop-blur p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="text-2xl font-bold text-slate-900 mb-4 font-orbitron">Why We Built It</h3>
             <p className="text-slate-700 leading-relaxed">
               We&apos;ve seen siloed apps slow decisions. Slate360 is the unified hub where admin docs flow to geospatial plans instantly.

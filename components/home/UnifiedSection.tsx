@@ -56,8 +56,8 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
 
   // CARD STYLES
   const baseCardClasses = "relative flex flex-col rounded-[32px] shadow-2xl backdrop-blur-md";
-  const primaryToneClasses = "bg-white border border-slate-200/60 shadow-sm";
-  const altToneClasses = "bg-white border border-slate-200/60 shadow-sm"; 
+  const primaryToneClasses = "bg-orange-50/90 border border-slate-200/60 shadow-sm";
+  const altToneClasses = "bg-orange-50/90 border border-slate-200/60 shadow-sm"; 
   const toneClasses = effectiveTone === "alt" ? altToneClasses : primaryToneClasses;
 
   return (
@@ -79,7 +79,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
             <div className={clsx(baseCardClasses, toneClasses, "h-full w-full justify-between md:max-h-none overflow-hidden")}>
                 
                 {/* Fixed Header (Non-scrolling) */}
-                <div className="px-6 pt-8 pb-4 md:px-10 md:pt-10 md:pb-6 z-30 bg-white shrink-0">
+                <div className="px-6 pt-8 pb-4 md:px-10 md:pt-10 md:pb-6 z-30 bg-orange-50/90 shrink-0">
                     <div className={`mb-4 h-1 w-16 rounded-full ${effectiveTone === "alt" ? "bg-slate-400" : "bg-[#B87333]"}`} />
                     <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 font-orbitron tracking-tight mb-2">
                         {tile.title}
@@ -118,12 +118,12 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                     </div>
                     
                     {/* Scroll Fade Overlay - Pinned to Bottom (always light blur to match white card) */}
-                    <div className="absolute bottom-0 left-0 right-0 h-12 pointer-events-none z-20 rounded-b-3xl bg-gradient-to-t from-white via-white/80 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 h-12 pointer-events-none z-20 rounded-b-3xl bg-gradient-to-t from-orange-50 via-orange-50/80 to-transparent" />
                 </div>
 
                 {/* Fixed Footer (Buttons) */}
                 {(tile.cta || tile.secondaryCta) && (
-                    <div className="px-6 pb-6 pt-4 md:px-10 md:pb-10 mt-auto flex flex-wrap gap-3 shrink-0 z-30 bg-white border-t border-slate-100">
+                    <div className="px-6 pb-6 pt-4 md:px-10 md:pb-10 mt-auto flex flex-wrap gap-3 shrink-0 z-30 bg-orange-50/90 border-t border-slate-200/50">
                         {tile.cta && (
                             <Link
                                 href={tile.cta.href}

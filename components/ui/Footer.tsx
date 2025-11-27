@@ -15,7 +15,7 @@ export default function Footer() {
                 <Link 
                   key={label}
                   href={href} 
-                  className="text-sm tracking-wide uppercase transition-colors duration-150 underline-offset-4 font-bold text-slate-400 hover:text-[#B87333] hover:underline"
+                  className="text-sm tracking-wide uppercase transition-colors duration-150 underline-offset-4 font-bold text-slate-400 hover:text-slate-900 hover:bg-orange-50 px-2 py-1 rounded-md hover:no-underline"
                 >
                   {label}
                 </Link>

@@ -17,7 +17,7 @@ body {
 body {
   margin: 0;
   padding: 0;
-  background: #f0f4f8;          /* light canvas */
+  background: #cbd5e1;          /* Darkened from #f0f4f8 (~25%) */
   color: var(--slate-text-main);
   font-family: var(--font-inter), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -32,8 +32,8 @@ body::before {
   width: 100%;
   height: 100%;
   background-image:
-    linear-gradient(to right, rgba(148, 163, 184, 0.15) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(148, 163, 184, 0.15) 1px, transparent 1px);
+    linear-gradient(to right, rgba(71, 85, 105, 0.25) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(71, 85, 105, 0.25) 1px, transparent 1px);
   /* Make global canvas grid boxes ~4x larger */
   background-size: 480px 480px;
   opacity: 0.4;
@@ -198,16 +198,16 @@ body {
 
 /* Blueprint paper style for the first tile: warm off-white with a light grey grid */
 .bg-blueprint-paper {
-  background-color: #f0f4f8;
+  background-color: #cbd5e1; /* Darkened from #f0f4f8 */
   background-image:
     linear-gradient(
       to right,
-      rgba(96, 165, 250, 0.28) 1px,
+      rgba(37, 99, 235, 0.35) 1px,
       transparent 1px
     ),
     linear-gradient(
       to bottom,
-      rgba(96, 165, 250, 0.28) 1px,
+      rgba(37, 99, 235, 0.35) 1px,
       transparent 1px
     );
   /* 4x larger blueprint paper grid */
@@ -216,16 +216,16 @@ body {
 
 /* Concrete Pattern for Grey Tiles */
 .bg-concrete {
-  background-color: #f5f5f7;
+  background-color: #d1d5db; /* Darkened from #f5f5f7 */
   background-image:
     linear-gradient(
       to right,
-      rgba(148, 163, 184, 0.25) 1px,
+      rgba(71, 85, 105, 0.3) 1px,
       transparent 1px
     ),
     linear-gradient(
       to bottom,
-      rgba(148, 163, 184, 0.25) 1px,
+      rgba(71, 85, 105, 0.3) 1px,
       transparent 1px
     );
   /* 4x larger concrete grid */
@@ -259,10 +259,10 @@ body {
 
 /* --- NEW THEME: GRAPHITE PAPER --- */
 .bg-graphite-theme {
-  background-color: #f1f5f9; /* Slate-100 */
+  background-color: #cbd5e1; /* Darkened from #f1f5f9 */
   background-image: 
-    linear-gradient(rgba(51, 65, 85, 0.2) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(51, 65, 85, 0.2) 1px, transparent 1px);
+    linear-gradient(rgba(51, 65, 85, 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(51, 65, 85, 0.3) 1px, transparent 1px);
   background-size: 320px 320px;
 }
 
@@ -494,10 +494,10 @@ body.debug-mode * {
 
 /* THEME B: Graphite (Light Grey #f1f5f9) */
 .bg-graphite {
-  background-color: #f1f5f9;
+  background-color: #cbd5e1; /* Darkened from #f1f5f9 */
   background-image:
-    linear-gradient(rgba(51, 51, 51, 0.3) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(51, 51, 51, 0.3) 1px, transparent 1px);
+    linear-gradient(rgba(51, 51, 51, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(51, 51, 51, 0.4) 1px, transparent 1px);
   background-size: 160px 160px;
   background-position: center center;
   background-attachment: fixed;
@@ -505,10 +505,10 @@ body.debug-mode * {
 
 /* THEME C: Light (Clean White/Slate-50 with Grid) */
 .bg-light-theme {
-  background-color: #f8fafc; /* slate-50 */
+  background-color: #cbd5e1; /* Darkened from #f8fafc */
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.2) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
+    linear-gradient(rgba(71, 85, 105, 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(71, 85, 105, 0.3) 1px, transparent 1px);
   background-size: 160px 160px;
   background-position: center center;
   background-attachment: fixed;
@@ -516,10 +516,10 @@ body.debug-mode * {
 
 /* Standard Page Backgrounds */
 .bg-grid-light {
-  background-color: #f8fafc; /* slate-50 */
+  background-color: #cbd5e1; /* Darkened from #f8fafc */
   background-image: 
-    linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(0,0,0,0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.15) 1px, transparent 1px);
   background-size: 160px 160px;
 }
 

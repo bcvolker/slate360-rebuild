@@ -17,7 +17,7 @@ export default function PageShell({
 }: PageShellProps) {
   const bgClass =
     variant === "graphite"
-      ? "bg-slate-50 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"
+      ? "bg-graphite"
       : variant === "blueprint"
       ? "bg-blueprint"
       : variant === "navy"
@@ -40,7 +40,7 @@ export default function PageShell({
   return (
     <div
       className={clsx(
-        "w-full flex flex-col items-center px-4 sm:px-6 lg:px-8 pt-32 pb-32",
+        "w-full flex flex-col items-center px-4 sm:px-6 lg:px-8 pt-24 pb-12",
         bgClass,
         className
       )}
@@ -49,7 +49,7 @@ export default function PageShell({
         className={clsx(
           "w-full min-h-[60vh] text-slate-800",
           !className?.includes("p-0") &&
-            "rounded-2xl border border-white/50 bg-white/80 backdrop-blur-md shadow-sm p-8 md:p-12",
+            "rounded-2xl border border-white/50 bg-orange-50/90 backdrop-blur-md shadow-sm p-8 md:p-12",
           maxWidthClass
         )}
       >
