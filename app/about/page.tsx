@@ -1,9 +1,8 @@
-import Footer from "@/components/ui/Footer";
 import PageShell from "@/components/ui/PageShell";
 
 export default function AboutPage() {
   return (
-    <PageShell variant="light" maxWidth="7xl" footer={<Footer />}>
+    <PageShell variant="light" maxWidth="7xl">
       <div className="pb-20">
         {/* Page Header */}
         <div className="mb-12">

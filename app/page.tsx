@@ -1,7 +1,6 @@
 import React from "react";
 import UnifiedSection from "@/components/home/UnifiedSection";
 import { siteSections } from "@/lib/config";
-import Footer from "@/components/ui/Footer";
 import SideNav from "@/components/ui/SideNav";
 
 export default function HomePage() {
@@ -27,9 +26,6 @@ export default function HomePage() {
             displayTheme={index % 2 === 0 ? "deep" : "light"}
           />
         ))}
-        
-        {/* Footer - Inside Snap Flow to be reachable */}
-        <Footer />
       </div>
     </>
   );

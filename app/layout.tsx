@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Orbitron } from "next/font/google";
 import "./globals.css";
 import SiteHeader from "@/components/ui/SiteHeader";
+import Footer from "@/components/ui/Footer";
 import { DEFAULT_THEME } from "@/lib/theme";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -21,10 +22,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="alternate icon" href="/favicon.ico" />
       </head>
       <body className={inter.className}>
-        <SiteHeader />
-        <main className="min-h-screen w-full relative">
-          {children}
-        </main>
+        <div className="min-h-screen w-full flex flex-col bg-slate-950">
+          <SiteHeader />
+          <main className="flex-1 w-full relative flex flex-col">
+            {children}
+          </main>
+          <Footer />
+        </div>
       </body>
     </html>
   );
