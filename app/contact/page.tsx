@@ -121,7 +121,7 @@ export default function ContactPage() {
           </section>
         </div>
       </main>
-      <Footer variant="light" />
+      <Footer />
     </>
   );
 }

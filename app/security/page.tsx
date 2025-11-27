@@ -61,7 +61,7 @@ export default function SecurityPage() {
           </section>
         </div>
       </main>
-      <Footer variant="light" />
+      <Footer />
     </>
   );
 }

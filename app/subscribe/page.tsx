@@ -138,7 +138,7 @@ export default function SubscribePage() {
           </section>
         </div>
       </main>
-      <Footer variant="light" />
+      <Footer />
     </>
   );
 }

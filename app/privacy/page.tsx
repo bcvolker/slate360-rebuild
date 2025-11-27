@@ -60,7 +60,7 @@ export default function Privacy() {
           </section>
         </div>
       </main>
-      <Footer variant="light" />
+      <Footer />
     </>
   );
 }

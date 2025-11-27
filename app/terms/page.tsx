@@ -53,7 +53,7 @@ export default function Terms() {
           </section>
         </div>
       </main>
-      <Footer variant="light" />
+      <Footer />
     </>
   );
 }
