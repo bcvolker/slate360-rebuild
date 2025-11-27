@@ -4,8 +4,6 @@ import { siteSections } from "@/lib/config";
 import Footer from "@/components/ui/Footer";
 import SideNav from "@/components/ui/SideNav";
 
-const themes = ["deep", "light", "graphite", "gradient"] as const;
-
 export default function HomePage() {
   return (
     <>
@@ -26,7 +24,7 @@ export default function HomePage() {
             id={section.id} 
             tile={section} 
             index={index} 
-            displayTheme={themes[index % themes.length]}
+            displayTheme={index % 2 === 0 ? "deep" : "graphite"}
           />
         ))}
         

@@ -142,7 +142,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         </div>
 
         {/* VIEWER COLUMN */}
-        <div className={clsx("w-full lg:w-1/2 mt-6 lg:mt-0 h-[40vh] lg:h-[60vh] flex items-center justify-center", viewerColumnOrder)}>
+        <div className={clsx("w-full lg:w-1/2 mt-6 lg:mt-0 h-[40vh] lg:h-[45vh] flex items-center justify-center", viewerColumnOrder)}>
             {/* VIEWER CARD: Black Placeholder */}
             <div className="w-full h-full bg-black rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 pointer-events-none" />
