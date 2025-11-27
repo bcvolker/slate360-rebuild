@@ -119,11 +119,11 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
 
                 {/* Footer (Buttons) - Fixed at bottom */}
                 {(tile.cta || tile.secondaryCta) && (
-                    <div className="px-6 pb-6 pt-4 md:px-10 md:pb-10 mt-auto flex flex-wrap gap-3 shrink-0 z-10 bg-inherit border-t border-slate-100">
+                    <div className="px-6 pb-6 pt-4 md:px-10 md:pb-10 mt-auto flex flex-wrap gap-3 shrink-0 z-20 bg-inherit border-t border-slate-100 relative">
                         {tile.cta && (
                             <Link
                                 href={tile.cta.href}
-                                className="flex-1 inline-flex items-center justify-center px-6 py-4 text-sm font-bold text-white uppercase tracking-widest bg-blue-600 hover:bg-blue-700 border border-transparent rounded-xl transition-all font-orbitron shadow-lg hover:shadow-xl"
+                                className="flex-1 inline-flex items-center justify-center px-6 py-4 text-sm font-bold text-white uppercase tracking-widest bg-blue-600 hover:bg-blue-700 border border-transparent rounded-xl transition-all font-orbitron shadow-lg hover:shadow-xl relative z-30"
                             >
                                 {tile.cta.label}
                             </Link>
@@ -131,7 +131,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                         {tile.secondaryCta && (
                             <Link
                                 href={tile.secondaryCta.href}
-                                className="flex-1 inline-flex items-center justify-center px-6 py-4 text-sm font-bold text-slate-700 uppercase tracking-widest bg-slate-100 hover:bg-slate-200 border border-transparent rounded-xl transition-all font-orbitron"
+                                className="flex-1 inline-flex items-center justify-center px-6 py-4 text-sm font-bold text-slate-700 uppercase tracking-widest bg-slate-100 hover:bg-slate-200 border border-transparent rounded-xl transition-all font-orbitron relative z-30"
                             >
                                 {tile.secondaryCta.label}
                             </Link>
@@ -142,12 +142,12 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         </div>
 
         {/* VIEWER COLUMN */}
-        <div className={clsx("w-full lg:w-1/2 mt-6 lg:mt-0 h-[40vh] lg:h-[85dvh] flex items-center justify-center", viewerColumnOrder)}>
+        <div className={clsx("w-full lg:w-1/2 mt-6 lg:mt-0 h-[40vh] lg:h-[60vh] flex items-center justify-center", viewerColumnOrder)}>
             {/* VIEWER CARD: Black Placeholder */}
             <div className="w-full h-full bg-black rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
-                <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20" />
+                <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 pointer-events-none" />
                 
-                <div className="text-center z-10 p-8 relative">
+                <div className="text-center z-10 p-8 relative pointer-events-auto">
                     <div className="text-6xl mb-6 text-slate-700 group-hover:text-blue-500 transition-colors duration-500">
                         ❖
                     </div>
