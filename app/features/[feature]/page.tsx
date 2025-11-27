@@ -18,7 +18,7 @@ export default async function FeaturePage({params}:{params:Promise<{feature:stri
   const f = features[feature as keyof typeof features];
   if(!f) return notFound();
   return (
-    <PageShell variant="dark" maxWidth="4xl" footer={<Footer />}>
+    <PageShell variant="dark" maxWidth="5xl" footer={<Footer />}>
       <div className="flex items-center justify-center min-h-[60vh]">
         <GlassCard variant="deep" className="px-6 py-16 text-center">
           <h1 className="text-4xl md:text-5xl font-orbitron font-bold text-white mb-6">{f.title}</h1>
