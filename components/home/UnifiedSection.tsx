@@ -69,15 +69,15 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         sectionBackground,
         "w-full relative flex flex-col",
         "lg:sticky lg:top-0 lg:h-screen lg:justify-center lg:items-center lg:overflow-hidden", // Desktop Curtain
-        "h-[100dvh] overflow-hidden pt-20 pb-4 lg:py-0" // Mobile: Strict 100dvh, no scroll on body
+        "h-[100dvh] overflow-hidden pt-20 pb-2 lg:pt-20 lg:pb-0" // Mobile: Strict 100dvh. Desktop: Add pt-20 for header offset.
       )}
       style={sectionStyle}
     >
       <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-12 h-full flex flex-col lg:flex-row lg:items-center lg:gap-12 pb-2 lg:pb-0">
         
         {/* TEXT CONTENT CARD */}
-        {/* Mobile: Flex-1 to take available space. Desktop: 85dvh */}
-        <div className={clsx("flex flex-col justify-center w-full lg:w-1/2 flex-1 min-h-0 lg:h-[85dvh] lg:flex-none", textColumnOrder)}>
+        {/* Mobile: Flex-1. Desktop: Fixed 70vh to ensure equal buffer from header and bottom. */}
+        <div className={clsx("flex flex-col justify-center w-full lg:w-1/2 flex-1 min-h-0 lg:h-[70vh] lg:flex-none", textColumnOrder)}>
             <div className={clsx(baseCardClasses, toneClasses, "h-full w-full")}>
                 
                 {/* Fixed Header (Non-scrolling) */}
