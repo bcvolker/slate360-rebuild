@@ -72,10 +72,10 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
       )}
       style={sectionStyle}
     >
-      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-24 h-full flex flex-col justify-between md:flex-row md:items-stretch md:justify-center md:gap-16 md:pt-16">
+      <div className="mx-auto w-full max-w-[90rem] h-full flex flex-col justify-between md:flex-row md:items-stretch md:justify-center md:gap-16 md:pt-16">
         
         {/* TEXT CONTENT CARD */}
-        <div className={clsx("w-full flex-1 min-h-0 md:w-[55%] md:h-[75dvh] md:flex-none", textColumnOrder)}>
+        <div className={clsx("w-full flex-1 min-h-0 md:w-[55%] md:h-[75dvh] md:flex-none px-4 md:px-0", textColumnOrder)}>
             <div className={clsx(baseCardClasses, toneClasses, "h-full w-full justify-between md:max-h-none overflow-hidden")}>
                 
                 {/* Fixed Header (Non-scrolling) */}
@@ -146,7 +146,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         </div>
 
         {/* VIEWER COLUMN */}
-        <div className={clsx("w-full md:w-[38%] mt-4 md:mt-0 h-[110px] shrink-0 md:h-[75dvh] flex items-end justify-center", viewerColumnOrder)}>
+        <div className={clsx("w-full md:w-[38%] mt-4 md:mt-0 h-[110px] shrink-0 md:h-[75dvh] flex items-end justify-center px-4 md:px-0", viewerColumnOrder)}>
           {/* VIEWER CARD */}
           <div className="w-full h-full md:h-[52dvh] md:max-w-3xl bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 pointer-events-none" />
