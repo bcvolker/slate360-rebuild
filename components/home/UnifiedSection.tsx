@@ -78,7 +78,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         {/* TEXT CONTENT CARD */}
         {/* Mobile: Flex-1. Desktop: Fixed 60dvh (Standardized) and 55% width. */}
         <div className={clsx("flex flex-col justify-center w-full lg:w-[55%] flex-1 min-h-0 lg:h-[60dvh] lg:flex-none", textColumnOrder)}>
-            <div className={clsx(baseCardClasses, toneClasses, "h-full w-full")}>
+            <div className={clsx(baseCardClasses, toneClasses, "h-full w-full justify-between")}>
                 
                 {/* Fixed Header (Non-scrolling) */}
                 <div className="px-6 pt-8 pb-4 md:px-10 md:pt-10 md:pb-6 z-30 bg-white shrink-0">
@@ -93,14 +93,8 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                     )}
                 </div>
 
-                {/* Scrollable Content Area (Subtitle + Bullets only) with Fade Mask */}
-                <div 
-                    className="flex-1 overflow-y-auto custom-scrollbar px-6 md:px-10 pb-4 relative"
-                    style={{
-                        maskImage: "linear-gradient(to bottom, black 80%, transparent 100%)",
-                        WebkitMaskImage: "linear-gradient(to bottom, black 80%, transparent 100%)"
-                    }}
-                >
+                {/* Scrollable Content Area (Subtitle + Bullets only) with Gradient Overlay */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar px-6 md:px-10 pb-4 relative">
                     <p className="text-base md:text-lg text-slate-600 font-medium mb-6 leading-relaxed">
                         {tile.subtitle}
                     </p>
@@ -121,6 +115,9 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                             </ul>
                         )}
                     </div>
+                    
+                    {/* Gradient Overlay for Scroll Affordance */}
+                    <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none rounded-b-2xl" />
                 </div>
 
                 {/* Fixed Footer (Buttons) */}

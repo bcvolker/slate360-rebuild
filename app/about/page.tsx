@@ -20,7 +20,7 @@ export default function AboutPage(){
                 </p>
               </header>
 
-              <div className="grid md:grid-cols-2 gap-10 lg:gap-14 items-start text-sm sm:text-base text-slate-600">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start text-sm sm:text-base text-slate-600">
             <div className="space-y-8 text-sm sm:text-base text-slate-600">
               <section>
                 <h2 className="text-xl sm:text-2xl font-orbitron font-semibold text-blue-600 mb-3">
@@ -43,7 +43,9 @@ export default function AboutPage(){
                   or student testing drone missions, Slate360 scales with you—individual profiles for quick setups, RBAC for teams.
                 </p>
               </section>
+            </div>
 
+            <div className="space-y-6">
               <section>
                 <h2 className="text-xl sm:text-2xl font-orbitron font-semibold text-slate-900 mb-3">
                   Why We Built It
@@ -54,9 +56,7 @@ export default function AboutPage(){
                   (verify results; we&apos;re not liable for errors) and open exports (no lock-in).
                 </p>
               </section>
-            </div>
 
-            <div className="space-y-6">
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-sm">
                 <h3 className="text-lg sm:text-xl font-orbitron font-semibold text-slate-900 mb-2">
                   What Sets Us Apart
