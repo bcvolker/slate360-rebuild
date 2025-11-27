@@ -55,8 +55,8 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
   // CARD STYLES
   const baseCardClasses = "relative flex flex-col rounded-[32px] shadow-2xl backdrop-blur-md overflow-hidden";
   // Both tones now use the clean white look to avoid "grey over text"
-  const primaryToneClasses = "bg-white/90 border border-slate-200/60 shadow-sm";
-  const altToneClasses = "bg-white/90 border border-slate-200/60 shadow-sm"; 
+  const primaryToneClasses = "bg-white border border-slate-200/60 shadow-sm";
+  const altToneClasses = "bg-white border border-slate-200/60 shadow-sm"; 
   const toneClasses = effectiveTone === "alt" ? altToneClasses : primaryToneClasses;
 
   return (
@@ -80,22 +80,24 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         <div className={clsx("flex flex-col justify-center w-full lg:w-1/2 h-[75dvh] lg:h-[85dvh]", textColumnOrder)}>
             <div className={clsx(baseCardClasses, toneClasses, "h-full w-full")}>
                 
-                {/* Fixed Header */}
-                <div className="px-6 pt-8 pb-4 md:px-10 md:pt-10 md:pb-6 shrink-0 z-10 bg-inherit">
-                    <div className={`mb-4 h-1 w-16 rounded-full ${effectiveTone === "alt" ? "bg-slate-400" : "bg-[#B87333]"}`} />
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 font-orbitron tracking-tight mb-2">
-                        {tile.title}
-                    </h2>
-                    {tile.eyebrow && (
-                        <p className="text-lg md:text-xl font-bold text-blue-600 font-orbitron">
-                            {tile.eyebrow}
-                        </p>
-                    )}
-                </div>
+                {/* Scrollable Wrapper for Whole Card */}
+                <div className="h-full w-full overflow-y-auto custom-scrollbar relative">
+                    
+                    {/* Sticky Header */}
+                    <div className="sticky top-0 px-6 pt-8 pb-4 md:px-10 md:pt-10 md:pb-6 z-30 bg-white">
+                        <div className={`mb-4 h-1 w-16 rounded-full ${effectiveTone === "alt" ? "bg-slate-400" : "bg-[#B87333]"}`} />
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 font-orbitron tracking-tight mb-2">
+                            {tile.title}
+                        </h2>
+                        {tile.eyebrow && (
+                            <p className="text-lg md:text-xl font-bold text-blue-600 font-orbitron">
+                                {tile.eyebrow}
+                            </p>
+                        )}
+                    </div>
 
-                {/* Scrollable Content with Fade Mask */}
-                <div className="relative flex-1 overflow-y-auto px-6 md:px-10 fade-mask-bottom custom-scrollbar">
-                    <div className="pb-8">
+                    {/* Content */}
+                    <div className="px-6 md:px-10 pb-8">
                         <p className="text-base md:text-lg text-slate-600 font-medium mb-6 leading-relaxed">
                             {tile.subtitle}
                         </p>
@@ -117,29 +119,29 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                             )}
                         </div>
                     </div>
-                </div>
 
-                {/* Footer (Buttons) - Fixed at bottom */}
-                {(tile.cta || tile.secondaryCta) && (
-                    <div className="px-6 pb-6 pt-4 md:px-10 md:pb-10 mt-auto flex flex-wrap gap-3 shrink-0 z-20 bg-inherit border-t border-slate-100 relative">
-                        {tile.cta && (
-                            <Link
-                                href={tile.cta.href}
-                                className="flex-1 inline-flex items-center justify-center px-6 py-4 text-sm font-bold text-white uppercase tracking-widest bg-blue-600 hover:bg-blue-700 border border-transparent rounded-xl transition-all font-orbitron shadow-lg hover:shadow-xl relative z-30"
-                            >
-                                {tile.cta.label}
-                            </Link>
-                        )}
-                        {tile.secondaryCta && (
-                            <Link
-                                href={tile.secondaryCta.href}
-                                className="flex-1 inline-flex items-center justify-center px-6 py-4 text-sm font-bold text-slate-700 uppercase tracking-widest bg-slate-100 hover:bg-slate-200 border border-transparent rounded-xl transition-all font-orbitron relative z-30"
-                            >
-                                {tile.secondaryCta.label}
-                            </Link>
-                        )}
-                    </div>
-                )}
+                    {/* Sticky Footer (Buttons) */}
+                    {(tile.cta || tile.secondaryCta) && (
+                        <div className="sticky bottom-0 px-6 pb-6 pt-4 md:px-10 md:pb-10 mt-auto flex flex-wrap gap-3 shrink-0 z-30 bg-white border-t border-slate-100">
+                            {tile.cta && (
+                                <Link
+                                    href={tile.cta.href}
+                                    className="flex-1 inline-flex items-center justify-center px-6 py-4 text-sm font-bold text-white uppercase tracking-widest bg-blue-600 hover:bg-blue-700 border border-transparent rounded-xl transition-all font-orbitron shadow-lg hover:shadow-xl relative z-30"
+                                >
+                                    {tile.cta.label}
+                                </Link>
+                            )}
+                            {tile.secondaryCta && (
+                                <Link
+                                    href={tile.secondaryCta.href}
+                                    className="flex-1 inline-flex items-center justify-center px-6 py-4 text-sm font-bold text-slate-700 uppercase tracking-widest bg-slate-100 hover:bg-slate-200 border border-transparent rounded-xl transition-all font-orbitron relative z-30"
+                                >
+                                    {tile.secondaryCta.label}
+                                </Link>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
 
