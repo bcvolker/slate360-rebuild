@@ -101,7 +101,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                 {/* Wrapper for Scroll + Overlay */}
                 <div className="relative flex-1 overflow-hidden min-h-0">
                     {/* Scrollable Content Area (Subtitle + Bullets only) */}
-                    <div className="h-full overflow-y-auto custom-scrollbar px-6 md:px-10 pb-4">
+                    <div className="h-full overflow-y-auto custom-scrollbar px-6 md:px-10 pb-4 max-h-[320px] sm:max-h-[360px] lg:max-h-none">
                         <p className="text-base md:text-lg text-slate-600 font-medium mb-6 leading-relaxed">
                             {tile.subtitle}
                         </p>
@@ -154,7 +154,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
 
         {/* VIEWER COLUMN */}
         {/* Desktop: Column matches 75dvh height; viewer sits on bottom within it. */}
-        <div className={clsx("w-full lg:w-[38%] mt-4 lg:mt-0 h-[160px] shrink-0 lg:h-[75dvh] flex items-end justify-center", viewerColumnOrder)}>
+        <div className={clsx("w-full lg:w-[38%] mt-8 sm:mt-12 lg:mt-0 h-[160px] shrink-0 lg:h-[75dvh] flex items-end justify-center", viewerColumnOrder)}>
           {/* VIEWER CARD */}
           <div className="w-full h-full lg:h-[52dvh] lg:max-w-3xl bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 pointer-events-none" />
