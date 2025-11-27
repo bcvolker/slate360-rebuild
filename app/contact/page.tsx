@@ -3,7 +3,7 @@ import Footer from "@/components/ui/Footer";
 export default function ContactPage() {
   return (
     <>
-      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-graphite">
+      <main className="min-h-screen flex flex-col justify-center pt-24 pb-12 px-6 bg-graphite">
         <div className="mx-auto max-w-6xl">
           <section className="relative overflow-hidden rounded-[32px] border border-slate-200/60 bg-white/90 backdrop-blur-md shadow-xl px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             

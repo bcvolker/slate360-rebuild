@@ -3,7 +3,7 @@ import Footer from "@/components/ui/Footer";
 export default function CookiesPage() {
   return (
     <>
-      <main className="snap-start min-h-[100dvh] px-6 py-24 md:py-28 bg-slate-50 bg-[linear-gradient(to_right,rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.05)_1px,transparent_1px)] bg-[size:40px_40px]">
+      <main className="snap-start min-h-screen flex flex-col justify-center pt-24 pb-12 px-6 bg-slate-50 bg-[linear-gradient(to_right,rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.05)_1px,transparent_1px)] bg-[size:40px_40px]">
         <div className="mx-auto max-w-6xl">
           <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-xl px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             

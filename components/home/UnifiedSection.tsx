@@ -70,7 +70,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
       className={clsx(
         sectionBackground,
         "w-full relative flex flex-col",
-        "lg:sticky lg:top-0 lg:h-screen lg:justify-center lg:items-center lg:overflow-hidden", // Desktop Curtain
+        "lg:sticky lg:top-0 lg:h-screen lg:pt-20 lg:justify-center lg:items-center lg:overflow-hidden", // Desktop Curtain
         "h-[100dvh] overflow-hidden pt-20 pb-2 lg:pt-0 lg:pb-0" // Mobile: Strict 100dvh. Desktop: No padding.
       )}
       style={sectionStyle}
@@ -123,10 +123,10 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                     
                     {/* Scroll Fade Overlay - Pinned to Bottom */}
                     <div className={clsx(
-                      "absolute bottom-0 left-0 right-0 h-24 pointer-events-none z-20 rounded-b-3xl",
+                      "absolute bottom-0 left-0 right-0 h-12 lg:h-24 pointer-events-none z-20 rounded-b-3xl",
                       // Conditional Logic: Dark Fade for Dark Theme, White Fade for Light Theme
                       isDark 
-                        ? "bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" 
+                        ? "bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent" 
                         : "bg-gradient-to-t from-white via-white/80 to-transparent"
                     )} />
                 </div>
