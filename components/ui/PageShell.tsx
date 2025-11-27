@@ -47,7 +47,9 @@ export default function PageShell({
     >
       <section
         className={clsx(
-          "w-full min-h-[60vh] rounded-2xl border border-white/50 bg-white/80 backdrop-blur-md shadow-sm p-8 md:p-12 text-slate-800",
+          "w-full min-h-[60vh] text-slate-800",
+          !className?.includes("p-0") &&
+            "rounded-2xl border border-white/50 bg-white/80 backdrop-blur-md shadow-sm p-8 md:p-12",
           maxWidthClass
         )}
       >

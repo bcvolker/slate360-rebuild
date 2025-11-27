@@ -2,9 +2,9 @@ import PageShell from "@/components/ui/PageShell";
 
 export default function ContactPage() {
   return (
-    <PageShell maxWidth="6xl" variant="graphite">
+    <PageShell maxWidth="6xl" variant="graphite" className="p-0">
       <div className="relative z-10 grid gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
-        <div>
+        <div className="w-full min-h-[60vh] rounded-2xl border border-white/50 bg-white/80 backdrop-blur-md shadow-sm p-8 md:p-12 text-slate-800">
           <p className="mb-3 text-xs font-orbitron font-bold uppercase tracking-[0.35em] text-blue-600">
                   Contact
                 </p>

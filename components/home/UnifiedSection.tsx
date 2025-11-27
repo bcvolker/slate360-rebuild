@@ -68,7 +68,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
       className={clsx(
         "w-full relative flex flex-col",
         // MOBILE: Natural scroll, full viewport height
-        "min-h-[100dvh] pt-20 pb-12",
+        "h-[100dvh] pt-20 pb-12",
         // DESKTOP: Sticky Curtain Reveal (tiles stick and stack)
         // Keep the section itself full-screen and sticky; vertical centering
         // of the content is handled by the inner flex wrapper so we don't
