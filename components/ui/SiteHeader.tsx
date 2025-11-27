@@ -65,12 +65,12 @@ export default function SiteHeader() {
           </Link>
 
           {/* DESKTOP NAV: right-aligned, high-contrast on blueprint header */}
-          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium lg:flex text-blue-600">
+          <div className="ml-auto hidden items-center gap-4 md:gap-6 text-xs md:text-sm font-medium lg:flex text-slate-300">
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-full border px-6 py-2 text-xs font-bold uppercase tracking-widest transition-all landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron shadow-lg border-slate-700 bg-white/10 text-blue-600 hover:bg-slate-800 hover:border-slate-600 hover:text-[#B87333] hover:shadow-[0_0_15px_rgba(184,115,51,0.3)]"
+                className="inline-flex items-center gap-1 rounded-full border px-6 py-2 text-xs font-bold uppercase tracking-widest transition-all landscape:px-4 landscape:py-1 lg:px-6 lg:py-2 font-orbitron shadow-lg border-slate-700 bg-white/10 text-slate-300 hover:bg-slate-800 hover:border-slate-600 hover:text-[#B87333] hover:shadow-[0_0_15px_rgba(184,115,51,0.3)]"
               >
                 <span>Features</span>
                 <span className="text-xs">▾</span>
@@ -99,7 +99,7 @@ export default function SiteHeader() {
                 <Link 
                   key={label} 
                   href={label === "Plans & Pricing" ? "/subscribe" : `/${label.toLowerCase()}`} 
-                  className="group relative text-xs font-bold uppercase tracking-widest transition-all duration-300 font-orbitron drop-shadow-md text-blue-500 hover:text-[#B87333]"
+                  className="group relative text-xs font-bold uppercase tracking-widest transition-all duration-300 font-orbitron drop-shadow-md text-slate-300 hover:text-[#B87333]"
                 >
                   {label}
                   <span className="absolute -bottom-2 left-0 h-[2px] w-full scale-x-0 bg-[#B87333] transition-transform duration-300 ease-out group-hover:scale-x-100" />

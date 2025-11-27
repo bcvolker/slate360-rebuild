@@ -95,32 +95,35 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                     )}
                 </div>
 
-                {/* Scrollable Content Area (Subtitle + Bullets only) with Gradient Overlay */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar px-6 md:px-10 pb-4 relative">
-                    <p className="text-base md:text-lg text-slate-600 font-medium mb-6 leading-relaxed">
-                        {tile.subtitle}
-                    </p>
-                    <div className="prose prose-slate max-w-none pb-4">
-                        {tile.bullets && tile.bullets.length > 0 && (
-                            <ul className="space-y-4">
-                                {tile.bullets.map((bullet) => (
-                                    <li key={bullet.label} className="flex gap-3 items-start text-slate-600">
-                                        <span className="mt-1.5 h-2 w-2 rounded-full bg-[#B87333] shrink-0" />
-                                        <span>
-                                            <strong className="text-slate-900 font-orbitron text-sm uppercase tracking-wide block mb-1">
-                                                {bullet.label}
-                                            </strong>
-                                            {bullet.description}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                {/* Wrapper for Scroll + Overlay */}
+                <div className="relative flex-1 overflow-hidden min-h-0">
+                    {/* Scrollable Content Area (Subtitle + Bullets only) */}
+                    <div className="h-full overflow-y-auto custom-scrollbar px-6 md:px-10 pb-4">
+                        <p className="text-base md:text-lg text-slate-600 font-medium mb-6 leading-relaxed">
+                            {tile.subtitle}
+                        </p>
+                        <div className="prose prose-slate max-w-none pb-4">
+                            {tile.bullets && tile.bullets.length > 0 && (
+                                <ul className="space-y-4">
+                                    {tile.bullets.map((bullet) => (
+                                        <li key={bullet.label} className="flex gap-3 items-start text-slate-600">
+                                            <span className="mt-1.5 h-2 w-2 rounded-full bg-[#B87333] shrink-0" />
+                                            <span>
+                                                <strong className="text-slate-900 font-orbitron text-sm uppercase tracking-wide block mb-1">
+                                                    {bullet.label}
+                                                </strong>
+                                                {bullet.description}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
                     </div>
                     
                     {/* Scroll Fade Overlay - Pinned to Bottom */}
                     <div className={clsx(
-                      "absolute bottom-0 left-0 right-0 h-20 pointer-events-none z-10 rounded-b-3xl",
+                      "absolute bottom-0 left-0 right-0 h-24 pointer-events-none z-20 rounded-b-3xl",
                       // Conditional Logic: Dark Fade for Dark Theme, White Fade for Light Theme
                       isDark 
                         ? "bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" 
