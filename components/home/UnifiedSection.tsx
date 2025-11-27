@@ -69,15 +69,15 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         sectionBackground,
         "w-full relative flex flex-col",
         "lg:sticky lg:top-0 lg:h-screen lg:justify-center lg:items-center lg:overflow-hidden", // Desktop Curtain
-        "h-[100dvh] overflow-hidden pt-20 pb-2 lg:pt-20 lg:pb-0" // Mobile: Strict 100dvh. Desktop: Add pt-20 for header offset.
+        "h-[100dvh] overflow-hidden pt-20 pb-2 lg:pt-24 lg:pb-0" // Mobile: Strict 100dvh. Desktop: pt-24 for header offset.
       )}
       style={sectionStyle}
     >
-      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-12 h-full flex flex-col lg:flex-row lg:items-center lg:gap-12 pb-2 lg:pb-0">
+      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-24 h-full flex flex-col lg:flex-row lg:items-center lg:justify-center lg:gap-16 pb-2 lg:pb-0">
         
         {/* TEXT CONTENT CARD */}
-        {/* Mobile: Flex-1. Desktop: Fixed 70vh to ensure equal buffer from header and bottom. */}
-        <div className={clsx("flex flex-col justify-center w-full lg:w-1/2 flex-1 min-h-0 lg:h-[70vh] lg:flex-none", textColumnOrder)}>
+        {/* Mobile: Flex-1. Desktop: Fixed 78vh (enlarged) and 55% width (more room). */}
+        <div className={clsx("flex flex-col justify-center w-full lg:w-[55%] flex-1 min-h-0 lg:h-[78vh] lg:flex-none", textColumnOrder)}>
             <div className={clsx(baseCardClasses, toneClasses, "h-full w-full")}>
                 
                 {/* Fixed Header (Non-scrolling) */}
@@ -142,7 +142,8 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         </div>
 
         {/* VIEWER COLUMN */}
-        <div className={clsx("w-full lg:w-1/2 mt-4 lg:mt-0 h-[160px] shrink-0 lg:h-[45vh] flex items-center justify-center", viewerColumnOrder)}>
+        {/* Desktop: Reduced width to 35% to make it boxier and give text card more room. */}
+        <div className={clsx("w-full lg:w-[35%] mt-4 lg:mt-0 h-[160px] shrink-0 lg:h-[45vh] flex items-center justify-center", viewerColumnOrder)}>
             {/* VIEWER CARD: Black Placeholder */}
             <div className="w-full h-full bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 pointer-events-none" />
