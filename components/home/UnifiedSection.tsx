@@ -66,23 +66,19 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
       ref={sectionRef}
       id={id}
       className={clsx(
-        "w-full relative flex flex-col",
+        "w-full relative",
         // MOBILE: Natural scroll, full viewport height
-        "h-[100dvh] pt-20 pb-12",
+        "min-h-screen pt-20 pb-4",
         // DESKTOP: Sticky Curtain Reveal (tiles stick and stack)
-        // Keep the section itself full-screen and sticky; vertical centering
-        // of the content is handled by the inner flex wrapper so we don't
-        // double-apply padding and push everything too high.
         "lg:sticky lg:top-0 lg:h-screen lg:overflow-hidden",
         sectionBackground
       )}
       style={sectionStyle}
     >
-      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-24 h-full flex flex-col lg:flex-row lg:items-stretch lg:justify-center lg:gap-16 pb-2 lg:pb-8 lg:pt-16">
+      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-24 h-full flex flex-col justify-between lg:flex-row lg:items-stretch lg:justify-center lg:gap-16 lg:pt-16">
         
         {/* TEXT CONTENT CARD */}
-        {/* Mobile: Flex-1. Desktop: Fixed 75dvh (Standardized) and 55% width. */}
-        <div className={clsx("flex flex-col justify-center w-full lg:w-[55%] flex-1 min-h-0 lg:h-[75dvh] lg:flex-none", textColumnOrder)}>
+        <div className={clsx("w-full lg:w-[55%] lg:h-[75dvh] lg:flex-none", textColumnOrder)}>
             <div className={clsx(baseCardClasses, toneClasses, "h-full w-full justify-between")}>
                 
                 {/* Fixed Header (Non-scrolling) */}
@@ -101,7 +97,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                 {/* Wrapper for Scroll + Overlay */}
                 <div className="relative flex-1 overflow-hidden min-h-0">
                     {/* Scrollable Content Area (Subtitle + Bullets only) */}
-                    <div className="h-full overflow-y-auto custom-scrollbar px-6 md:px-10 pb-4 max-h-[320px] sm:max-h-[360px] lg:max-h-none">
+                    <div className="h-full overflow-y-auto custom-scrollbar px-6 md:px-10 pb-4 max-h-[380px] sm:max-h-[420px] lg:max-h-none">
                         <p className="text-base md:text-lg text-slate-600 font-medium mb-6 leading-relaxed">
                             {tile.subtitle}
                         </p>
@@ -153,8 +149,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         </div>
 
         {/* VIEWER COLUMN */}
-        {/* Desktop: Column matches 75dvh height; viewer sits on bottom within it. */}
-        <div className={clsx("w-full lg:w-[38%] mt-8 sm:mt-12 lg:mt-0 h-[160px] shrink-0 lg:h-[75dvh] flex items-end justify-center", viewerColumnOrder)}>
+        <div className={clsx("w-full lg:w-[38%] pb-8 lg:pb-0 h-[180px] shrink-0 lg:h-[75dvh] flex items-end justify-center", viewerColumnOrder)}>
           {/* VIEWER CARD */}
           <div className="w-full h-full lg:h-[52dvh] lg:max-w-3xl bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 pointer-events-none" />
