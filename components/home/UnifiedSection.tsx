@@ -70,12 +70,14 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
       className={clsx(
         sectionBackground,
         "w-full relative flex flex-col",
-        "lg:sticky lg:top-0 lg:h-screen lg:pt-20 lg:justify-center lg:items-center lg:overflow-hidden", // Desktop Curtain
-        "h-[100dvh] overflow-hidden pt-20 pb-2 lg:pt-0 lg:pb-0" // Mobile: Strict 100dvh. Desktop: No padding.
+        // Desktop: sticky full-height, but with extra top padding so the content card centers between header and footer.
+        "lg:sticky lg:top-0 lg:h-screen lg:pt-28 lg:justify-center lg:items-center lg:overflow-hidden",
+        // Mobile: keep strict viewport height with original padding.
+        "h-[100dvh] overflow-hidden pt-20 pb-2 lg:pt-0 lg:pb-0"
       )}
       style={sectionStyle}
     >
-      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-24 h-full flex flex-col lg:flex-row lg:items-center lg:justify-center lg:gap-16 pb-2 lg:pb-0">
+      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-24 h-full flex flex-col lg:flex-row lg:items-stretch lg:justify-center lg:gap-16 pb-2 lg:pb-0">
         
         {/* TEXT CONTENT CARD */}
         {/* Mobile: Flex-1. Desktop: Fixed 75dvh (Standardized) and 55% width. */}
@@ -150,10 +152,10 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         </div>
 
         {/* VIEWER COLUMN */}
-        {/* Desktop: Shorter viewer (50dvh) biased toward bottom to leave room above. */}
-        <div className={clsx("w-full lg:w-[35%] mt-4 lg:mt-0 h-[160px] shrink-0 lg:h-auto flex items-end justify-center", viewerColumnOrder)}>
+        {/* Desktop: Column matches 75dvh height; viewer sits on bottom within it. */}
+        <div className={clsx("w-full lg:w-[38%] mt-4 lg:mt-0 h-[160px] shrink-0 lg:h-[75dvh] flex items-end justify-center", viewerColumnOrder)}>
           {/* VIEWER CARD */}
-          <div className="w-full h-full lg:h-[50dvh] lg:max-w-2xl bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
+          <div className="w-full h-full lg:h-[52dvh] lg:max-w-3xl bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 pointer-events-none" />
                 
                 <div className="text-center z-10 p-4 lg:p-8 relative pointer-events-auto flex flex-row lg:flex-col items-center gap-4 lg:gap-0">
