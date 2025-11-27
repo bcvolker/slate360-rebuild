@@ -31,8 +31,8 @@ export default function PageShell({ children, footer, variant = "light", maxWidt
       : "max-w-7xl";
 
   return (
-    <div className={clsx("page-shell min-h-screen w-full flex flex-col justify-between", bgClass)}>
-      <div className={clsx("page-shell-inner w-full mx-auto px-4 sm:px-6 lg:px-8 pb-24", HEADER_OFFSET, maxWidthClass)}>
+    <div className={clsx("page-shell min-h-screen w-full flex flex-col", bgClass)}>
+      <div className={clsx("page-shell-inner flex-grow w-full mx-auto px-4 sm:px-6 lg:px-8 pb-24", HEADER_OFFSET, maxWidthClass)}>
         {children}
       </div>
       {footer}
