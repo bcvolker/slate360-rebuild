@@ -66,7 +66,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
       id={id}
       className={clsx(
         "w-full relative",
-        "min-h-screen pt-20 pb-4",
+        "h-[100dvh] pt-20 pb-4",
         "md:sticky md:top-0 md:h-screen md:overflow-hidden",
         sectionBackground
       )}
@@ -75,8 +75,8 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
       <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-24 h-full flex flex-col justify-between md:flex-row md:items-stretch md:justify-center md:gap-16 md:pt-16">
         
         {/* TEXT CONTENT CARD */}
-        <div className={clsx("w-full md:w-[55%] md:h-[75dvh] md:flex-none", textColumnOrder)}>
-            <div className={clsx(baseCardClasses, toneClasses, "h-full w-full justify-between max-h-[60vh] md:max-h-none overflow-hidden")}>
+        <div className={clsx("w-full flex-1 min-h-0 md:w-[55%] md:h-[75dvh] md:flex-none", textColumnOrder)}>
+            <div className={clsx(baseCardClasses, toneClasses, "h-full w-full justify-between md:max-h-none overflow-hidden")}>
                 
                 {/* Fixed Header (Non-scrolling) */}
                 <div className="px-6 pt-8 pb-4 md:px-10 md:pt-10 md:pb-6 z-30 bg-white shrink-0">
@@ -146,7 +146,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         </div>
 
         {/* VIEWER COLUMN */}
-        <div className={clsx("w-full md:w-[38%] mt-4 md:mt-0 mb-8 md:mb-0 h-[120px] shrink-0 md:h-[75dvh] flex items-end justify-center", viewerColumnOrder)}>
+        <div className={clsx("w-full md:w-[38%] mt-4 md:mt-0 h-[110px] shrink-0 md:h-[75dvh] flex items-end justify-center", viewerColumnOrder)}>
           {/* VIEWER CARD */}
           <div className="w-full h-full md:h-[52dvh] md:max-w-3xl bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 pointer-events-none" />
