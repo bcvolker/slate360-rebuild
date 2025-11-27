@@ -2,6 +2,7 @@
 
 import Footer from "@/components/ui/Footer";
 import Link from "next/link";
+import PageShell from "@/components/ui/PageShell";
 
 const plans = [
   {
@@ -56,10 +57,8 @@ const plans = [
 
 export default function SubscribePage() {
   return (
-    <>
-      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-graphite">
-        <div className="mx-auto max-w-7xl my-auto w-full">
-          <section className="relative overflow-hidden rounded-[32px] border border-slate-200/60 bg-white/90 backdrop-blur-md shadow-xl px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+    <PageShell variant="navy" maxWidth="6xl" footer={<Footer />}>
+      <section className="relative overflow-hidden rounded-[32px] border border-slate-200/60 bg-white/90 backdrop-blur-md shadow-xl px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             
             <div className="relative z-10 flex flex-col gap-8">
               <div className="text-center max-w-3xl mx-auto">
@@ -135,11 +134,8 @@ export default function SubscribePage() {
                 ))}
               </div>
             </div>
-          </section>
-        </div>
-      </main>
-      <Footer />
-    </>
+      </section>
+    </PageShell>
   );
 }
 

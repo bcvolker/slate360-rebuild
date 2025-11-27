@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { siteNavLinks, siteSections } from "@/lib/config";
+import { scrollToSection } from "@/lib/scroll-utils";
 
 import { clsx } from "clsx";
 
@@ -14,6 +15,7 @@ export default function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
 
   const closeMenus = () => {
@@ -38,6 +40,14 @@ export default function SiteHeader() {
     }
     return `/#${id}`;
   };
+
+  const handleFeatureClick = useCallback(
+    (e: React.MouseEvent, id: string) => {
+      // Allow default hash navigation to work with CSS scroll-smooth and snap
+      closeMenus();
+    },
+    [closeMenus]
+  );
 
   const handleLogoClick = useCallback(() => {
     closeMenus();
@@ -82,8 +92,8 @@ export default function SiteHeader() {
                       <Link
                         key={item.id}
                         href={anchorFor(item.id)}
-                        onClick={closeMenus}
-                        className="block w-full rounded-lg px-3 py-2.5 text-left text-sm transition-colors duration-150 font-orbitron text-blue-500 hover:bg-slate-800 hover:text-[#B87333]"
+                        onClick={(e) => handleFeatureClick(e, item.id)}
+                        className="block w-full text-left rounded-lg px-3 py-2.5 text-sm transition-colors duration-150 font-orbitron text-blue-500 hover:bg-slate-800 hover:text-[#B87333]"
                       >
                         {item.label}
                       </Link>

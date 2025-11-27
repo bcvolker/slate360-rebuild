@@ -1,11 +1,10 @@
 import Footer from "@/components/ui/Footer";
+import PageShell from "@/components/ui/PageShell";
 
 export default function PricingPage() {
   return (
-    <>
-      <main className="snap-start min-h-[100dvh] px-6 py-24 md:py-28 bg-[#002082] bg-[linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:160px_160px]">
-        <div className="mx-auto max-w-6xl">
-          <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+    <PageShell variant="navy" maxWidth="6xl" footer={<Footer />}>
+      <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             <div className="relative z-10 flex flex-col gap-8">
               <div className="text-center max-w-3xl mx-auto">
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-orbitron tracking-tight text-slate-900 mb-4">
@@ -58,10 +57,7 @@ export default function PricingPage() {
                 </div>
               </div>
             </div>
-          </section>
-        </div>
-      </main>
-      <Footer />
-    </>
+      </section>
+    </PageShell>
   );
 }

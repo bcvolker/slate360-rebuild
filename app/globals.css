@@ -5,13 +5,13 @@
 
 @layer base {
   body {
-    @apply overflow-hidden;
+    @apply overflow-x-hidden;
   }
 }
 
 html,
 body {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
@@ -505,6 +505,31 @@ body.debug-mode * {
   background-size: 40px 40px;
   background-position: center center;
   background-attachment: fixed;
+}
+
+/* Standard Page Backgrounds */
+.bg-grid-light {
+  background-color: #f8fafc; /* slate-50 */
+  background-image: 
+    linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.bg-grid-navy {
+  background-color: #002082;
+  background-image: 
+    linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 160px 160px;
+}
+
+.bg-grid-dark {
+  background-color: var(--slate-bg-navy);
+  background-image: 
+    linear-gradient(to right, rgba(107,168,255,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(107,168,255,0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
 }
 
 /* Fade Mask for Scrollable Content */

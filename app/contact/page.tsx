@@ -1,11 +1,11 @@
 import Footer from "@/components/ui/Footer";
+import PageShell from "@/components/ui/PageShell";
+import GlassCard from "@/components/ui/GlassCard";
 
 export default function ContactPage() {
   return (
-    <>
-      <main className="min-h-screen flex flex-col justify-center pt-24 pb-12 px-6 bg-graphite">
-        <div className="mx-auto max-w-6xl">
-          <section className="relative overflow-hidden rounded-[32px] border border-slate-200/60 bg-white/90 backdrop-blur-md shadow-xl px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+    <PageShell variant="graphite" maxWidth="6xl" footer={<Footer />}>
+      <GlassCard variant="graphite" className="px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             
             <div className="relative z-10 grid gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
               <div>
@@ -118,10 +118,7 @@ export default function ContactPage() {
                 </div>
               </aside>
             </div>
-          </section>
-        </div>
-      </main>
-      <Footer />
-    </>
+      </GlassCard>
+    </PageShell>
   );
 }

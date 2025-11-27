@@ -1,11 +1,10 @@
-import SiteHeader from "@/components/ui/SiteHeader";
 import Footer from "@/components/ui/Footer";
+import PageShell from "@/components/ui/PageShell";
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen w-full bg-slate-50 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]">
-      <SiteHeader />
-      <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
+    <PageShell variant="light" maxWidth="7xl" footer={<Footer />}>
+      <div className="pb-20">
         {/* Page Header */}
         <div className="mb-12">
           <p className="text-blue-600 font-bold tracking-widest uppercase text-sm mb-2">Company</p>
@@ -56,7 +55,6 @@ export default function AboutPage() {
           </div>
         </div>
       </div>
-      <Footer />
-    </main>
+    </PageShell>
   );
 }

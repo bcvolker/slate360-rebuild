@@ -131,6 +131,49 @@ export const siteSections: Tile[] = [
     tone: "primary",
   },
   {
+    id: "content-creation",
+    navLabel: "Content Studio",
+    eyebrow: "AI-Powered Content Engine",
+    title: "Content Studio",
+    subtitle:
+      "Generate marketing assets, project updates, and documentation instantly using your project data and AI.",
+    bullets: [
+      {
+        label: "AI Copywriting",
+        description: "Generate descriptions, social posts, and emails in seconds.",
+      },
+      {
+        label: "Automated Updates",
+        description: "Turn daily logs into polished stakeholder updates.",
+      },
+      {
+        label: "Multi-format Export",
+        description: "Create PDFs, blog posts, and newsletters from one source.",
+      },
+      {
+        label: "Brand Voice Control",
+        description: "Ensure all content matches your company's tone and style.",
+      },
+      {
+        label: "SEO Optimization",
+        description: "Built-in tools to help your content rank better.",
+      },
+      {
+        label: "Asset Management",
+        description: "Organize and tag generated content for easy retrieval.",
+      },
+    ],
+    cta: { label: "Try Content Tools", href: "/features/content-creation" },
+    secondaryCta: { label: "Get started", href: "/subscribe" },
+    viewer: {
+      title: "Content Studio",
+      subtitle: "Draft, edit, and publish content from a unified interface.",
+    },
+    layout: { align: "left", snap: true },
+    theme: { accent: "#B37031" },
+    tone: "alt",
+  },
+  {
     id: "tour-builder",
     navLabel: "360 Tour Builder",
     eyebrow: "Interactive 360° Experiences",
@@ -301,49 +344,6 @@ export const siteSections: Tile[] = [
     layout: { align: "right", snap: true },
     theme: { accent: "#4F89D4" },
     tone: "primary",
-  },
-  {
-    id: "content-creation",
-    navLabel: "Content Creation",
-    eyebrow: "AI-Powered Content Engine",
-    title: "Content Creation",
-    subtitle:
-      "Generate marketing assets, project updates, and documentation instantly using your project data and AI.",
-    bullets: [
-      {
-        label: "AI Copywriting",
-        description: "Generate descriptions, social posts, and emails in seconds.",
-      },
-      {
-        label: "Automated Updates",
-        description: "Turn daily logs into polished stakeholder updates.",
-      },
-      {
-        label: "Multi-format Export",
-        description: "Create PDFs, blog posts, and newsletters from one source.",
-      },
-      {
-        label: "Brand Voice Control",
-        description: "Ensure all content matches your company's tone and style.",
-      },
-      {
-        label: "SEO Optimization",
-        description: "Built-in tools to help your content rank better.",
-      },
-      {
-        label: "Asset Management",
-        description: "Organize and tag generated content for easy retrieval.",
-      },
-    ],
-    cta: { label: "Try Content Tools", href: "/features/content-creation" },
-    secondaryCta: { label: "Get started", href: "/subscribe" },
-    viewer: {
-      title: "Content Generator",
-      subtitle: "Draft, edit, and publish content from a unified interface.",
-    },
-    layout: { align: "left", snap: true },
-    theme: { accent: "#B37031" },
-    tone: "alt",
   },
 ];
 

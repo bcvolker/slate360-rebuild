@@ -9,7 +9,8 @@ const orbitron = Orbitron({ subsets: ["latin"], variable: "--font-orbitron" });
 
 export const metadata: Metadata = {
   title: "Slate360 – The Operating System for the Built Environment",
-  description: "Slate360 unifies BIM, 360 tours, analytics, VR, and geospatial tools for the built environment.",
+  description:
+    "Slate360 unifies BIM, 360 tours, analytics, VR, and geospatial tools for the built environment.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -19,13 +20,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="alternate icon" href="/favicon.ico" />
       </head>
-      <body className="antialiased font-sans text-[color:var(--slate-text-main)] overflow-hidden">
-        <div className="h-screen flex flex-col">
-          <SiteHeader />
-          <main className="flex-1 w-full relative overflow-y-auto scroll-smooth">
-            {children}
-          </main>
-        </div>
+      <body className={inter.className}>
+        <SiteHeader />
+        <main className="min-h-screen w-full relative">
+          {children}
+        </main>
       </body>
     </html>
   );

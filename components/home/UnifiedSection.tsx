@@ -65,19 +65,20 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
     <section
       ref={sectionRef}
       id={id}
-      // DESKTOP: Sticky Curtain Reveal (h-screen, sticky top-0)
-      // MOBILE: Full Height (h-[100dvh], relative)
       className={clsx(
-        sectionBackground,
         "w-full relative flex flex-col",
-        // Desktop: sticky full-height, but with extra top padding so the content card centers between header and footer.
-        "lg:sticky lg:top-0 lg:h-screen lg:pt-28 lg:justify-center lg:items-center lg:overflow-hidden",
-        // Mobile: keep strict viewport height with original padding.
-        "h-[100dvh] overflow-hidden pt-20 pb-2 lg:pt-0 lg:pb-0"
+        // MOBILE: Natural scroll, full viewport height
+        "min-h-[100dvh] pt-20 pb-12",
+        // DESKTOP: Sticky Curtain Reveal (tiles stick and stack)
+        // Keep the section itself full-screen and sticky; vertical centering
+        // of the content is handled by the inner flex wrapper so we don't
+        // double-apply padding and push everything too high.
+        "lg:sticky lg:top-0 lg:h-screen lg:overflow-hidden",
+        sectionBackground
       )}
       style={sectionStyle}
     >
-      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-24 h-full flex flex-col lg:flex-row lg:items-stretch lg:justify-center lg:gap-16 pb-2 lg:pb-0">
+      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-24 h-full flex flex-col lg:flex-row lg:items-stretch lg:justify-center lg:gap-16 pb-2 lg:pb-8 lg:pt-16">
         
         {/* TEXT CONTENT CARD */}
         {/* Mobile: Flex-1. Desktop: Fixed 75dvh (Standardized) and 55% width. */}

@@ -10,32 +10,23 @@ export default function SideNav() {
   const [activeId, setActiveId] = useState<string>("");
 
   useEffect(() => {
-    // Only observe sections that correspond to our siteNavLinks IDs
-    const selector = siteNavLinks
-      .map((item) => `section#${item.id}`)
-      .join(",");
-
-    if (!selector) return;
-
+    // Use viewport as root (root: null) since body is scrolling
     const observer = new IntersectionObserver(
       (entries) => {
-        // Pick the most visible section rather than first/last intersecting,
-        // so behavior is stable both scrolling down and up.
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-
-        if (visible[0]?.target?.id) {
-          setActiveId(visible[0].target.id);
-        }
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
       },
       {
         root: null,
-        threshold: [0.25, 0.5, 0.75],
+        threshold: 0.5,
       }
     );
 
-    const sections = document.querySelectorAll(selector);
+    // Observe all sections that have an ID
+    const sections = document.querySelectorAll("section[id]");
     sections.forEach((section) => observer.observe(section));
 
     return () => {
@@ -59,7 +50,7 @@ export default function SideNav() {
           <Link
             key={item.id}
             href={anchorFor(item.id)}
-            className="group relative flex items-center justify-end"
+            className="group relative flex items-center justify-end py-1"
             aria-label={`Scroll to ${item.label}`}
           >
             {/* Tooltip - Left of the line */}
@@ -73,10 +64,10 @@ export default function SideNav() {
 
             {/* The Line (Ruler Mark) */}
             <div
-              className={`w-3 rounded-full shadow-md transition-all duration-300 ${
+              className={`w-1.5 rounded-full shadow-md transition-all duration-300 ${
                 isActive
-                  ? "h-10 bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]" // Active: Blue, taller, glow
-                  : "h-6 bg-slate-300/60 group-hover:h-8 group-hover:bg-blue-600" // Inactive: Light grey -> Blue on hover
+                  ? "h-10 bg-[#B87333] shadow-orange-900/20"
+                  : "h-6 bg-white/50 group-hover:h-8 group-hover:bg-white"
               }`}
             />
           </Link>

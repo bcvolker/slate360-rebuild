@@ -1,11 +1,11 @@
 import Footer from "@/components/ui/Footer";
+import PageShell from "@/components/ui/PageShell";
+import GlassCard from "@/components/ui/GlassCard";
 
 export default function SecurityPage() {
   return (
-    <>
-      <main className="snap-start min-h-[100dvh] px-6 py-24 md:py-28 bg-slate-50 bg-[linear-gradient(to_right,rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.05)_1px,transparent_1px)] bg-[size:40px_40px]">
-        <div className="mx-auto max-w-6xl">
-          <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-xl px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+    <PageShell variant="light" maxWidth="6xl" footer={<Footer />}>
+      <GlassCard variant="graphite" className="px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             
             <div className="relative z-10 flex flex-col gap-8 max-w-4xl">
               <header>
@@ -58,10 +58,7 @@ export default function SecurityPage() {
                 </section>
               </div>
             </div>
-          </section>
-        </div>
-      </main>
-      <Footer />
-    </>
+      </GlassCard>
+    </PageShell>
   );
 }
