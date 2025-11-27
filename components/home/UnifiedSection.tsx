@@ -41,7 +41,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
   const sectionBackground = (() => {
     switch (displayTheme) {
       case "light":
-        return "bg-slate-50"; // Light / White
+        return "bg-light-theme"; // Custom class with grid
       case "graphite":
         return "bg-slate-100";  // Light Grey
       case "gradient":
@@ -69,15 +69,15 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         sectionBackground,
         "w-full relative flex flex-col",
         "lg:sticky lg:top-0 lg:h-screen lg:justify-center lg:items-center lg:overflow-hidden", // Desktop Curtain
-        "min-h-[100dvh] pt-20 pb-24 lg:py-0" // Mobile
+        "h-[100dvh] overflow-hidden pt-20 pb-4 lg:py-0" // Mobile: Strict 100dvh, no scroll on body
       )}
       style={sectionStyle}
     >
-      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-12 h-full flex flex-col lg:flex-row lg:items-center lg:gap-12">
+      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-12 h-full flex flex-col lg:flex-row lg:items-center lg:gap-12 pb-20 lg:pb-0">
         
         {/* TEXT CONTENT CARD */}
-        {/* Mobile: Fixed height (75dvh) to ensure internal scrolling. Desktop: 85dvh */}
-        <div className={clsx("flex flex-col justify-center w-full lg:w-1/2 h-[75dvh] lg:h-[85dvh]", textColumnOrder)}>
+        {/* Mobile: Flex-1 to take available space. Desktop: 85dvh */}
+        <div className={clsx("flex flex-col justify-center w-full lg:w-1/2 flex-1 min-h-0 lg:h-[85dvh] lg:flex-none", textColumnOrder)}>
             <div className={clsx(baseCardClasses, toneClasses, "h-full w-full")}>
                 
                 {/* Scrollable Wrapper for Whole Card */}
@@ -146,21 +146,29 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         </div>
 
         {/* VIEWER COLUMN */}
-        <div className={clsx("w-full lg:w-1/2 mt-6 lg:mt-0 h-[40vh] lg:h-[45vh] flex items-center justify-center", viewerColumnOrder)}>
+        <div className={clsx("w-full lg:w-1/2 mt-4 lg:mt-0 h-[160px] shrink-0 lg:h-[45vh] flex items-center justify-center", viewerColumnOrder)}>
             {/* VIEWER CARD: Black Placeholder */}
-            <div className="w-full h-full bg-black rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
+            <div className="w-full h-full bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 pointer-events-none" />
                 
-                <div className="text-center z-10 p-8 relative pointer-events-auto">
-                    <div className="text-6xl mb-6 text-slate-700 group-hover:text-blue-500 transition-colors duration-500">
+                <div className="text-center z-10 p-4 lg:p-8 relative pointer-events-auto flex flex-row lg:flex-col items-center gap-4 lg:gap-0">
+                    <div className="text-4xl lg:text-6xl lg:mb-6 text-slate-700 group-hover:text-blue-500 transition-colors duration-500">
                         ❖
                     </div>
-                    <h3 className="text-2xl font-bold text-white font-orbitron mb-2">{viewerTitle}</h3>
-                    <p className="text-slate-400 mb-6 max-w-xs mx-auto">{viewerSubtitle}</p>
+                    <div className="text-left lg:text-center">
+                        <h3 className="text-lg lg:text-2xl font-bold text-white font-orbitron mb-1 lg:mb-2">{viewerTitle}</h3>
+                        <p className="text-slate-400 text-xs lg:text-base mb-0 lg:mb-6 max-w-xs mx-auto hidden lg:block">{viewerSubtitle}</p>
+                        <button 
+                            onClick={() => setViewerOpen(true)}
+                            className="lg:hidden text-xs font-bold text-blue-400 uppercase tracking-widest"
+                        >
+                            Tap to View
+                        </button>
+                    </div>
                     
                     <button 
                         onClick={() => setViewerOpen(true)}
-                        className="px-8 py-3 border border-slate-600 rounded-full text-sm font-bold font-orbitron text-white hover:bg-white hover:text-black transition-all uppercase tracking-widest shadow-[0_0_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                        className="hidden lg:block px-8 py-3 border border-slate-600 rounded-full text-sm font-bold font-orbitron text-white hover:bg-white hover:text-black transition-all uppercase tracking-widest shadow-[0_0_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
                     >
                         Expand Viewer
                     </button>

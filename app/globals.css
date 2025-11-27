@@ -496,6 +496,17 @@ body.debug-mode * {
   background-attachment: fixed;
 }
 
+/* THEME C: Light (Clean White/Slate-50 with Grid) */
+.bg-light-theme {
+  background-color: #f8fafc; /* slate-50 */
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center center;
+  background-attachment: fixed;
+}
+
 /* Fade Mask for Scrollable Content */
 .fade-mask-bottom {
   mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
