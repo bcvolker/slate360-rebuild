@@ -34,7 +34,8 @@ body::before {
   background-image:
     linear-gradient(to right, rgba(148, 163, 184, 0.15) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(148, 163, 184, 0.15) 1px, transparent 1px);
-  background-size: 240px 240px;
+  /* Make global canvas grid boxes ~4x larger */
+  background-size: 480px 480px;
   opacity: 0.4;
   pointer-events: none;
   z-index: -1;
@@ -191,7 +192,8 @@ body {
     linear-gradient(rgba(255, 255, 255, 0.15) 2px, transparent 2px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.15) 2px, transparent 2px),
     radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-  background-size: 240px 240px, 240px 240px, 100% 100%; /* 3x larger grid + subtle radial glow */
+  /* Make blueprint tile grid boxes ~4x larger */
+  background-size: 320px 320px, 320px 320px, 100% 100%;
 }
 
 /* Blueprint paper style for the first tile: warm off-white with a light grey grid */
@@ -208,7 +210,8 @@ body {
       rgba(96, 165, 250, 0.28) 1px,
       transparent 1px
     );
-  background-size: 160px 160px;
+  /* 4x larger blueprint paper grid */
+  background-size: 320px 320px;
 }
 
 /* Concrete Pattern for Grey Tiles */
@@ -225,7 +228,8 @@ body {
       rgba(148, 163, 184, 0.25) 1px,
       transparent 1px
     );
-  background-size: 160px 160px;
+  /* 4x larger concrete grid */
+  background-size: 320px 320px;
 }
 
 /* UNC Blue Weathered Blueprint Pattern for Subpages */
@@ -239,7 +243,8 @@ body {
     radial-gradient(circle at center, transparent 40%, rgba(0, 0, 0, 0.15) 100%),
     /* Subtle Noise/Texture (Simulates paper grain) */
     repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 2px, transparent 2px, transparent 4px);
-  background-size: 80px 80px, 80px 80px, 100% 100%, 20px 20px; /* 2x larger grid (80px) */
+  /* 4x larger main grid (from 80px to 320px); keep fine noise size */
+  background-size: 320px 320px, 320px 320px, 100% 100%, 20px 20px;
 }
 
 /* --- NEW THEME: ARCHITECTURAL BLUEPRINT --- */
@@ -248,7 +253,8 @@ body {
   background-image: 
     linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
-  background-size: 160px 160px; /* Large Grid */
+  /* 4x larger theme grid */
+  background-size: 320px 320px;
 }
 
 /* --- NEW THEME: GRAPHITE PAPER --- */
@@ -257,7 +263,7 @@ body {
   background-image: 
     linear-gradient(rgba(51, 65, 85, 0.2) 1px, transparent 1px),
     linear-gradient(90deg, rgba(51, 65, 85, 0.2) 1px, transparent 1px);
-  background-size: 160px 160px; /* Large Grid */
+  background-size: 320px 320px;
 }
 
 /* --- NEW HEADER/FOOTER: MIDNIGHT --- */
@@ -480,7 +486,8 @@ body.debug-mode * {
     radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.5) 100%),
     linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
-  background-size: 100% 100%, 40px 40px, 40px 40px;
+  /* 4x larger blueprint grid on tiles */
+  background-size: 100% 100%, 160px 160px, 160px 160px;
   background-position: center center;
   background-attachment: fixed;
 }
@@ -491,7 +498,7 @@ body.debug-mode * {
   background-image:
     linear-gradient(rgba(51, 51, 51, 0.3) 1px, transparent 1px),
     linear-gradient(90deg, rgba(51, 51, 51, 0.3) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-size: 160px 160px;
   background-position: center center;
   background-attachment: fixed;
 }
@@ -502,7 +509,7 @@ body.debug-mode * {
   background-image:
     linear-gradient(rgba(148, 163, 184, 0.2) 1px, transparent 1px),
     linear-gradient(90deg, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-size: 160px 160px;
   background-position: center center;
   background-attachment: fixed;
 }
@@ -513,7 +520,7 @@ body.debug-mode * {
   background-image: 
     linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-size: 160px 160px;
 }
 
 .bg-grid-navy {
@@ -529,7 +536,7 @@ body.debug-mode * {
   background-image: 
     linear-gradient(to right, rgba(107,168,255,0.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(107,168,255,0.05) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-size: 160px 160px;
 }
 
 /* Fade Mask for Scrollable Content */
