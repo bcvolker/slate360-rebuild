@@ -73,7 +73,7 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
       )}
       style={sectionStyle}
     >
-      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-12 h-full flex flex-col lg:flex-row lg:items-center lg:gap-12 pb-20 lg:pb-0">
+      <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-12 h-full flex flex-col lg:flex-row lg:items-center lg:gap-12 pb-2 lg:pb-0">
         
         {/* TEXT CONTENT CARD */}
         {/* Mobile: Flex-1 to take available space. Desktop: 85dvh */}
