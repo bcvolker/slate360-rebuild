@@ -10,23 +10,32 @@ export default function SideNav() {
   const [activeId, setActiveId] = useState<string>("");
 
   useEffect(() => {
-    // Use viewport as root (root: null) since body is scrolling
+    // Only observe sections that correspond to our siteNavLinks IDs
+    const selector = siteNavLinks
+      .map((item) => `section#${item.id}`)
+      .join(",");
+
+    if (!selector) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
-        });
+        // Pick the most visible section rather than first/last intersecting,
+        // so behavior is stable both scrolling down and up.
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+        if (visible[0]?.target?.id) {
+          setActiveId(visible[0].target.id);
+        }
       },
       {
         root: null,
-        threshold: 0.5,
+        threshold: [0.25, 0.5, 0.75],
       }
     );
 
-    // Observe all sections that have an ID
-    const sections = document.querySelectorAll("section[id]");
+    const sections = document.querySelectorAll(selector);
     sections.forEach((section) => observer.observe(section));
 
     return () => {

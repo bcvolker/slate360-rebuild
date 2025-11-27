@@ -121,14 +121,8 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                         </div>
                     </div>
                     
-                    {/* Scroll Fade Overlay - Pinned to Bottom */}
-                    <div className={clsx(
-                      "absolute bottom-0 left-0 right-0 h-12 lg:h-24 pointer-events-none z-20 rounded-b-3xl",
-                      // Conditional Logic: Dark Fade for Dark Theme, White Fade for Light Theme
-                      isDark 
-                        ? "bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent" 
-                        : "bg-gradient-to-t from-white via-white/80 to-transparent"
-                    )} />
+                    {/* Scroll Fade Overlay - Pinned to Bottom (always light blur to match white card) */}
+                    <div className="absolute bottom-0 left-0 right-0 h-12 lg:h-24 pointer-events-none z-20 rounded-b-3xl bg-gradient-to-t from-white via-white/80 to-transparent" />
                 </div>
 
                 {/* Fixed Footer (Buttons) */}
@@ -156,10 +150,10 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         </div>
 
         {/* VIEWER COLUMN */}
-        {/* Desktop: Height calculated to center vertically in available space. Viewer itself is 75dvh. */}
-        <div className={clsx("w-full lg:w-[35%] mt-4 lg:mt-0 h-[160px] shrink-0 lg:h-[calc(100dvh-80px)] flex items-center justify-center", viewerColumnOrder)}>
-            {/* VIEWER CARD: Black Placeholder */}
-            <div className="w-full h-full lg:h-[75dvh] lg:max-w-2xl bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
+        {/* Desktop: Shorter viewer (50dvh) biased toward bottom to leave room above. */}
+        <div className={clsx("w-full lg:w-[35%] mt-4 lg:mt-0 h-[160px] shrink-0 lg:h-auto flex items-end justify-center", viewerColumnOrder)}>
+          {/* VIEWER CARD */}
+          <div className="w-full h-full lg:h-[50dvh] lg:max-w-2xl bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 pointer-events-none" />
                 
                 <div className="text-center z-10 p-4 lg:p-8 relative pointer-events-auto flex flex-row lg:flex-col items-center gap-4 lg:gap-0">
