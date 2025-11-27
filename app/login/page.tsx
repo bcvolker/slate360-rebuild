@@ -1,9 +1,8 @@
 import PageShell from "@/components/ui/PageShell";
-import Footer from "@/components/ui/Footer";
 
 export default function LoginPage(){
   return (
-    <PageShell variant="navy" maxWidth="6xl" footer={<Footer />}>
+    <PageShell variant="navy" maxWidth="6xl">
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="w-full max-w-md mx-auto bg-white/80 backdrop-blur-md border border-slate-200 rounded-3xl shadow-sm p-8">
           <h1 className="text-2xl sm:text-3xl font-orbitron font-semibold text-slate-900 mb-4 text-center">

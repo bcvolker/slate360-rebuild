@@ -1,9 +1,8 @@
-import Footer from "@/components/ui/Footer";
 import PageShell from "@/components/ui/PageShell";
 
 export default function PricingPage() {
   return (
-    <PageShell variant="navy" maxWidth="6xl" footer={<Footer />}>
+    <PageShell variant="navy" maxWidth="6xl">
       <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             <div className="relative z-10 flex flex-col gap-8">
               <div className="text-center max-w-3xl mx-auto">
