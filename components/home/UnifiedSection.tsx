@@ -38,6 +38,8 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
   const viewerColumnOrder = layoutAlign === "left" ? "lg:order-1" : "lg:order-2";
 
   // THEME MAPPING
+  const isDark = displayTheme === "deep"; // Derived for conditional logic
+
   const sectionBackground = (() => {
     switch (displayTheme) {
       case "light":
@@ -69,15 +71,15 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         sectionBackground,
         "w-full relative flex flex-col",
         "lg:sticky lg:top-0 lg:h-screen lg:justify-center lg:items-center lg:overflow-hidden", // Desktop Curtain
-        "h-[100dvh] overflow-hidden pt-20 pb-2 lg:pt-24 lg:pb-0" // Mobile: Strict 100dvh. Desktop: pt-24 for header offset.
+        "h-[100dvh] overflow-hidden pt-20 pb-2 lg:pt-0 lg:pb-0" // Mobile: Strict 100dvh. Desktop: No padding.
       )}
       style={sectionStyle}
     >
       <div className="mx-auto w-full max-w-[90rem] px-4 md:px-8 lg:px-24 h-full flex flex-col lg:flex-row lg:items-center lg:justify-center lg:gap-16 pb-2 lg:pb-0">
         
         {/* TEXT CONTENT CARD */}
-        {/* Mobile: Flex-1. Desktop: Fixed 65dvh (Standardized) and 55% width. */}
-        <div className={clsx("flex flex-col justify-center w-full lg:w-[55%] flex-1 min-h-0 lg:h-[65dvh] lg:flex-none", textColumnOrder)}>
+        {/* Mobile: Flex-1. Desktop: Fixed 75dvh (Standardized) and 55% width. */}
+        <div className={clsx("flex flex-col justify-center w-full lg:w-[55%] flex-1 min-h-0 lg:h-[75dvh] lg:flex-none", textColumnOrder)}>
             <div className={clsx(baseCardClasses, toneClasses, "h-full w-full justify-between")}>
                 
                 {/* Fixed Header (Non-scrolling) */}
@@ -116,8 +118,14 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
                         )}
                     </div>
                     
-                    {/* Gradient Overlay for Scroll Affordance */}
-                    <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none rounded-b-2xl" />
+                    {/* Scroll Fade Overlay - Pinned to Bottom */}
+                    <div className={clsx(
+                      "absolute bottom-0 left-0 right-0 h-20 pointer-events-none z-10 rounded-b-3xl",
+                      // Conditional Logic: Dark Fade for Dark Theme, White Fade for Light Theme
+                      isDark 
+                        ? "bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" 
+                        : "bg-gradient-to-t from-white via-white/80 to-transparent"
+                    )} />
                 </div>
 
                 {/* Fixed Footer (Buttons) */}
@@ -145,10 +153,10 @@ export default function UnifiedSection({ id, tile, index, displayTheme = "deep",
         </div>
 
         {/* VIEWER COLUMN */}
-        {/* Desktop: Height calculated to center vertically in available space. Viewer itself is 65dvh. */}
+        {/* Desktop: Height calculated to center vertically in available space. Viewer itself is 75dvh. */}
         <div className={clsx("w-full lg:w-[35%] mt-4 lg:mt-0 h-[160px] shrink-0 lg:h-[calc(100dvh-80px)] flex items-center justify-center", viewerColumnOrder)}>
             {/* VIEWER CARD: Black Placeholder */}
-            <div className="w-full h-full lg:h-[65dvh] lg:max-w-2xl bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
+            <div className="w-full h-full lg:h-[75dvh] lg:max-w-2xl bg-black rounded-[24px] lg:rounded-[32px] shadow-2xl flex items-center justify-center overflow-hidden group relative border border-slate-800">
                 <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20 pointer-events-none" />
                 
                 <div className="text-center z-10 p-4 lg:p-8 relative pointer-events-auto flex flex-row lg:flex-col items-center gap-4 lg:gap-0">
