@@ -472,3 +472,32 @@ body.debug-mode * {
   outline: 1px solid rgba(255, 0, 0, 0.1);
 }
 /* -------------------------- */
+
+/* THEME A: Blueprint (Dark Blue #002082) */
+.bg-blueprint {
+  background-color: #002082;
+  background-image:
+    radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.5) 100%),
+    linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+  background-position: center center;
+  background-attachment: fixed;
+}
+
+/* THEME B: Graphite (Light Grey #f1f5f9) */
+.bg-graphite {
+  background-color: #f1f5f9;
+  background-image:
+    linear-gradient(rgba(51, 51, 51, 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(51, 51, 51, 0.3) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center center;
+  background-attachment: fixed;
+}
+
+/* Fade Mask for Scrollable Content */
+.fade-mask-bottom {
+  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+}

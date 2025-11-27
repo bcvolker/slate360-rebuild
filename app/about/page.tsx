@@ -3,27 +3,32 @@ import Footer from "@/components/ui/Footer";
 export default function AboutPage(){
   return (
     <>
-      <main className="snap-start min-h-[100dvh] px-6 py-24 md:py-28 bg-[color:var(--slate-bg-navy)] bg-[linear-gradient(to_right,rgba(107,168,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(107,168,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px]">
+      import Footer from "@/components/ui/Footer";
+
+export default function AboutPage(){
+  return (
+    <>
+      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-graphite">
         <div className="mx-auto max-w-6xl">
-          <section className="relative overflow-hidden rounded-3xl border border-[color:var(--slate-blueprint-soft)]/20 bg-[color:var(--slate-surface-primary)]/80 backdrop-blur-md shadow-2xl px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+          <section className="relative overflow-hidden rounded-[32px] border border-slate-200/60 bg-white/90 backdrop-blur-md shadow-xl px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             
             <div className="relative z-10 flex flex-col gap-10">
               <header className="max-w-3xl">
-                <p className="mb-3 text-xs font-orbitron font-bold uppercase tracking-[0.35em] text-[color:var(--slate-copper)] drop-shadow-sm">
+                <p className="mb-3 text-xs font-orbitron font-bold uppercase tracking-[0.35em] text-blue-600 drop-shadow-sm">
                   Company
                 </p>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-orbitron font-semibold tracking-tight text-white mb-3">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-orbitron font-semibold tracking-tight text-slate-900 mb-3">
                   About Slate360
                 </h1>
-                <p className="max-w-2xl text-sm sm:text-base text-[color:var(--slate-surface-light)]">
+                <p className="max-w-2xl text-sm sm:text-base text-slate-600">
                   We&apos;re building a single, visual home for how the built world gets delivered—where scans, docs, and decisions stay in sync.
                 </p>
               </header>
 
-              <div className="grid md:grid-cols-2 gap-10 lg:gap-14 items-start text-sm sm:text-base text-[color:var(--slate-surface-light)]">
-            <div className="space-y-8 text-sm sm:text-base text-[color:var(--slate-surface-light)]">
+              <div className="grid md:grid-cols-2 gap-10 lg:gap-14 items-start text-sm sm:text-base text-slate-600">
+            <div className="space-y-8 text-sm sm:text-base text-slate-600">
               <section>
-                <h2 className="text-xl sm:text-2xl font-orbitron font-semibold text-[color:var(--slate-blueprint-accent)] mb-3">
+                <h2 className="text-xl sm:text-2xl font-orbitron font-semibold text-blue-600 mb-3">
                   Our Mission
                 </h2>
                 <p>
@@ -34,7 +39,7 @@ export default function AboutPage(){
               </section>
 
               <section>
-                <h2 className="text-xl sm:text-2xl font-orbitron font-semibold text-[color:var(--slate-blueprint-accent)] mb-3">
+                <h2 className="text-xl sm:text-2xl font-orbitron font-semibold text-blue-600 mb-3">
                   Who We Serve
                 </h2>
                 <p>
@@ -45,7 +50,7 @@ export default function AboutPage(){
               </section>
 
               <section>
-                <h2 className="text-xl sm:text-2xl font-orbitron font-semibold text-white mb-3">
+                <h2 className="text-xl sm:text-2xl font-orbitron font-semibold text-slate-900 mb-3">
                   Why We Built It
                 </h2>
                 <p>
@@ -89,7 +94,7 @@ export default function AboutPage(){
               <div className="text-center md:text-left mt-2">
                 <a
                   href="/subscribe"
-                  className="inline-flex items-center justify-center rounded-full border border-[#4F89D4]/40 bg-[#4F89D4]/8 px-8 py-3 text-sm sm:text-base font-orbitron font-semibold uppercase tracking-[0.3em] text-[#4F89D4] shadow-[0_0_18px_rgba(79,137,212,0.25)] transition hover:border-[#4F89D4] hover:bg-[#4F89D4]/16"
+                  className="inline-flex items-center justify-center rounded-full border border-transparent bg-blue-600 px-8 py-3 text-sm sm:text-base font-orbitron font-semibold uppercase tracking-[0.3em] text-white shadow-lg transition hover:bg-blue-700 hover:shadow-xl"
                 >
                   Join Early Access
                 </a>
@@ -98,6 +103,10 @@ export default function AboutPage(){
           </section>
         </div>
       </main>
+      <Footer variant="light" />
+    </>
+  );
+}
       <Footer variant="light" />
     </>
   );

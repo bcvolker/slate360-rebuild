@@ -3,41 +3,41 @@ import Footer from "@/components/ui/Footer";
 export default function ContactPage() {
   return (
     <>
-      <main className="snap-start min-h-[100dvh] px-6 py-24 md:py-28 bg-[color:var(--slate-bg-navy)] bg-[linear-gradient(to_right,rgba(107,168,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(107,168,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px]">
+      <main className="min-h-[100dvh] px-6 py-24 md:py-28 bg-graphite">
         <div className="mx-auto max-w-6xl">
-          <section className="relative overflow-hidden rounded-3xl border border-[color:var(--slate-blueprint-soft)]/20 bg-[color:var(--slate-surface-primary)]/80 backdrop-blur-md shadow-2xl px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+          <section className="relative overflow-hidden rounded-[32px] border border-slate-200/60 bg-white/90 backdrop-blur-md shadow-xl px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14">
             
             <div className="relative z-10 grid gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] items-start">
               <div>
-                <p className="mb-3 text-xs font-orbitron font-bold uppercase tracking-[0.35em] text-[color:var(--slate-copper)] drop-shadow-sm">
+                <p className="mb-3 text-xs font-orbitron font-bold uppercase tracking-[0.35em] text-blue-600 drop-shadow-sm">
                   Contact
                 </p>
-                <h1 className="text-3xl md:text-4xl font-orbitron font-semibold tracking-tight text-white mb-3">
+                <h1 className="text-3xl md:text-4xl font-orbitron font-semibold tracking-tight text-slate-900 mb-3">
                   Contact Slate360
                 </h1>
-                <p className="text-sm sm:text-base text-[color:var(--slate-surface-light)] mb-8 max-w-xl">
+                <p className="text-sm sm:text-base text-slate-600 mb-8 max-w-xl">
                   Have a question about plans, workflows, or early access? Send us a note and we&apos;ll follow up with something actually useful—not a generic drip sequence.
                 </p>
 
-                <form className="space-y-5 text-sm text-[color:var(--slate-surface-light)]">
+                <form className="space-y-5 text-sm text-slate-600">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-[color:var(--slate-blueprint-accent)]">
+                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-slate-500">
                         Name
                       </label>
                       <input
                         type="text"
-                        className="rounded-xl border border-[color:var(--slate-blueprint-soft)]/30 bg-[color:var(--slate-graphite-dark)] px-3 py-2 text-sm text-white shadow-sm outline-none focus:border-[color:var(--slate-copper)] focus:ring-2 focus:ring-[color:var(--slate-copper)]/30 placeholder-slate-500"
+                        className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 placeholder-slate-400"
                         placeholder="Alex Jensen"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-[color:var(--slate-blueprint-accent)]">
+                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-slate-500">
                         Organization
                       </label>
                       <input
                         type="text"
-                        className="rounded-xl border border-[color:var(--slate-blueprint-soft)]/30 bg-[color:var(--slate-graphite-dark)] px-3 py-2 text-sm text-white shadow-sm outline-none focus:border-[color:var(--slate-copper)] focus:ring-2 focus:ring-[color:var(--slate-copper)]/30 placeholder-slate-500"
+                        className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 placeholder-slate-400"
                         placeholder="Studio, GC, university, agency"
                       />
                     </div>
@@ -45,12 +45,12 @@ export default function ContactPage() {
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-[color:var(--slate-blueprint-soft)]">
+                      <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-slate-500">
                         Email
                       </label>
                       <input
                         type="email"
-                        className="rounded-xl border border-slate-300 bg-white/80 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/30"
+                        className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 placeholder-slate-400"
                         placeholder="you@company.com"
                       />
                     </div>
@@ -58,7 +58,7 @@ export default function ContactPage() {
                       <label className="text-xs font-orbitron uppercase tracking-[0.25em] text-slate-500">
                         What best describes you?
                       </label>
-                      <select className="rounded-xl border border-slate-300 bg-white/80 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/30">
+                      <select className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30">
                         <option>General contractor / construction manager</option>
                         <option>Owner / owner&apos;s rep</option>
                         <option>Design firm / studio</option>
@@ -75,21 +75,21 @@ export default function ContactPage() {
                     </label>
                     <textarea
                       rows={4}
-                      className="rounded-xl border border-slate-300 bg-white/80 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/30"
+                      className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 placeholder-slate-400"
                       placeholder="Share a quick snapshot of your projects or questions."
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="inline-flex items-center justify-center rounded-full border border-brand-blue/50 bg-brand-blue/10 px-6 py-2.5 text-[11px] font-orbitron font-semibold uppercase tracking-[0.3em] text-brand-blue shadow-[0_0_18px_rgba(79,137,212,0.25)] transition hover:border-brand-blue hover:bg-brand-blue/20"
+                    className="inline-flex items-center justify-center rounded-full border border-transparent bg-blue-600 px-6 py-2.5 text-[11px] font-orbitron font-semibold uppercase tracking-[0.3em] text-white shadow-lg transition hover:bg-blue-700 hover:shadow-xl"
                   >
                     Send Message
                   </button>
                 </form>
               </div>
 
-              <aside className="space-y-6 rounded-2xl border border-slate-200/80 bg-slate-50/95 p-5 sm:p-6 shadow-[0_18px_40px_rgba(15,23,42,0.2)]">
+              <aside className="space-y-6 rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6 shadow-sm">
                 <div>
                   <h2 className="text-xs font-orbitron uppercase tracking-[0.3em] text-slate-500 mb-2">
                     Prefer email?
