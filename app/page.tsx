@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import {
   Camera,
   Layers,
@@ -394,6 +395,14 @@ export default function HomePage() {
       </section>
 
       <Footer />
+
+      {/* model-viewer — loaded only on this page */}
+      <Script
+        type="module"
+        src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"
+        strategy="lazyOnload"
+        crossOrigin="anonymous"
+      />
     </div>
   );
 }
