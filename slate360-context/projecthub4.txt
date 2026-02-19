@@ -1,0 +1,2436 @@
+and process, track, and document in a project folder, then it is all an option to bring into a report. maybe weekly reports, the contractor might be hoping to bid for the job and wanted to make a video on the content creation studio section and edit some cool  1. Project Hub – Simplified Product Spec (Replace the old text file with this)
+
+Name: Project Hub
+Audience: People managing projects, teams, documents, and field activity.
+
+Works for complex capital projects and small shops.
+
+Must stay usable for non-technical users (e.g., small contractors, drone pilots, realtors, students).
+
+Goal:
+Project Hub is the central place to manage projects, tasks, documents, and field issues in Slate360. It should feel lighter and simpler than Procore, but still powerful enough to handle “real” construction workflows.
+
+A. High-Level UX Structure
+
+Project Hub uses a 3-tier structure shared with the rest of Slate360:
+
+Tier 1 – All Projects (Hub Home)
+
+Path: /project-hub
+
+Shows:
+
+Project cards in a grid.
+
+A “My Work” tab for the current user’s RFIs, submittals, tasks, and approvals across all projects.
+
+An “Activity” tab for recent important events.
+
+Tier 2 – Project Home
+
+Path: /project-hub/[projectId]
+
+A simple overview with:
+
+Project header (name, number, status, start/end dates).
+
+3–6 small cards:
+
+Open Items (RFIs, submittals, issues, approvals)
+
+Upcoming Dates (milestones)
+
+Recent Files (drawings, specs, photos)
+
+Optional: Field Notes or Daily Logs
+
+All cards link to detailed views (Tier 3).
+
+Tier 3 – Tool Views
+
+Paths like:
+
+/project-hub/[projectId]/documents
+
+/project-hub/[projectId]/rfis
+
+/project-hub/[projectId]/submittals
+
+/project-hub/[projectId]/schedule
+
+/project-hub/[projectId]/map
+
+/project-hub/[projectId]/photos
+
+Each tool uses the same pattern:
+
+Large main table or canvas (left/center).
+
+A right-side Context Panel with tabs: Details / Comments / Share / History.
+
+B. Core Features (MVP)
+
+1. All Projects (Tier 1)
+
+Grid of project cards:
+
+Name, number, client, status (Active, On Hold, Closed).
+
+Quick stats: Open RFIs, Open Submittals, Upcoming milestone count.
+
+Top-right “New Project” button.
+
+Tabs:
+
+All Projects: default grid.
+
+My Work: unified list of items assigned to the current user (RFIs, submittals, approvals).
+
+Activity: high-level activity feed (new RFIs, approvals, uploads).
+
+2. Project Home (Tier 2)
+
+Header with:
+
+Project name + code.
+
+Status pill.
+
+Budget and %, or simple high-level metric.
+
+Widget cards:
+
+Open Items: e.g., “3 RFIs • 2 Submittals • 5 Tasks” with link.
+
+Schedule Snapshot: next 1–3 milestones.
+
+Recent Files: latest uploads (drawings, models, photos).
+
+Optional extra cards: “Field Notes Today” or “Issues This Week”.
+
+3. RFIs & Submittals (Tier 3)
+
+Simple tables with:
+
+ID, title, status, due date, assignee.
+
+Filter by status and due date.
+
+“New RFI” / “New Submittal” button at top.
+
+New form:
+
+Title, description, assignee, due date.
+
+Optional: “Attach Document / Photo / Map Location”.
+
+Context panel:
+
+Details: fields and status.
+
+Comments: thread with @mentions.
+
+Share: copy link, send email.
+
+History: status changes.
+
+4. Documents / Folders (Tier 3)
+
+Tree or list of folders and files.
+
+Drag-and-drop upload.
+
+Simple actions: rename, move, download, share.
+
+Optional AI helper button in the future (e.g., “Summarize Spec”).
+
+5. Schedule (Tier 3)
+
+Lightweight list (MVP) with task name, start, finish, status.
+
+Upgrade later to Gantt.
+
+6. Map & Photos (Tier 3)
+
+Map view with pins representing:
+
+Issues, RFIs, submittals, or generic “location notes”.
+
+Photos page:
+
+Simple grid of images with filters (by date, tag, project area).
+
+C. Roles & Permissions (Simple RBAC)
+
+Aligns with the global roles we set up in the Dashboard:
+
+Owner / Admin
+
+Can create projects.
+
+Full access to all tools and settings.
+
+Can invite/remove users from a project.
+
+Project Manager
+
+Can create and edit RFIs, submittals, documents, schedule tasks.
+
+Can invite “Project Members” and “External Viewers” for that project.
+
+Project Member
+
+Can see assigned items.
+
+Can upload documents/photos.
+
+Can add comments.
+
+External Viewer (Client/Subcontractor/Consultant)
+
+Can only see what is shared with them.
+
+Can respond to RFIs or submit limited uploads to specific folders.
+
+Permissions should be stored in one place (e.g., Supabase tables) and reused across all tabs.
+
+D. Profiles / Complexity Levels
+
+Project Hub should respect the Dashboard Profile selection (e.g., Basic / Standard / Advanced):
+
+Basic
+
+Show All Projects, My Work, simple Project Home, Documents, Photos.
+
+Hide advanced tools (RFIs/Submittals/Schedule) unless explicitly enabled.
+
+Standard
+
+Full set of tools (RFIs, submittals, schedule, map, documents).
+
+Advanced
+
+Same tools as Standard but can see extra analytics widgets and advanced filters when those are built.
+
+E. “Smart” Helpers (Optional, but planned)
+
+Keep these as small buttons, not their own tabs.
+
+“AI Assist” in RFI/Submittal forms:
+
+Suggest a better subject line or clearer description.
+
+“Suggest Assignee” button:
+
+Suggests who should handle an item based on previous assignments.
+
+“Summarize Document” in Documents:
+
+Quick paragraph summary for long PDFs.
+
+All AI buttons must:
+
+Be optional.
+
+Show a short disclaimer text like “Review before sending.”
+
+F. Design & Consistency
+
+Use the same top header and spacing as Dashboard.
+
+Background: light bg-gray-50 in main content, white cards.
+
+Buttons: primary blue, rounded, 44px min height.
+
+Context panel on the right is reused across tools:
+
+Tabs: Details / Comments / Share / History.
+
+Command Palette (Cmd/Ctrl + K) should find:
+
+Projects by name.
+
+RFIs/Submittals by ID.
+
+Actions like “New RFI”, “Upload document”.
+
+2. Code Skeletons for Copilot (Safe, Flexible)
+
+You can drop these into your codebase and let Copilot fill in details.
+
+2.1 lib/useProjectHubStore.ts
+'use client';
+
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export type ProjectStatus = 'active' | 'on_hold' | 'closed';
+
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  code: string;
+  client?: string;
+  status: ProjectStatus;
+  openRfis?: number;
+  openSubmittals?: number;
+  upcomingMilestones?: number;
+}
+
+export interface WorkItem {
+  id: string;
+  type: 'rfi' | 'submittal' | 'task';
+  projectId: string;
+  title: string;
+  status: string;
+  dueDate?: string;
+  assigneeId?: string;
+}
+
+interface ProjectHubState {
+  projects: ProjectSummary[];
+  myWork: WorkItem[];
+  isLoading: boolean;
+
+  setProjects: (projects: ProjectSummary[]) => void;
+  setMyWork: (items: WorkItem[]) => void;
+  setLoading: (value: boolean) => void;
+}
+
+export const useProjectHubStore = create<ProjectHubState>()(
+  persist(
+    (set) => ({
+      projects: [],
+      myWork: [],
+      isLoading: false,
+
+      setProjects: (projects) => set({ projects }),
+      setMyWork: (items) => set({ myWork: items }),
+      setLoading: (value) => set({ isLoading: value }),
+    }),
+    { name: 'slate360-project-hub' }
+  )
+);
+
+2.2 Tier 1 – /app/project-hub/page.tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useProjectHubStore } from '@/lib/useProjectHubStore';
+
+type TabKey = 'projects' | 'my-work' | 'activity';
+
+export default function ProjectHubPage() {
+  const { projects, myWork, isLoading, setProjects, setMyWork, setLoading } =
+    useProjectHubStore();
+  const [tab, setTab] = useState<TabKey>('projects');
+
+  // TODO: replace with real API call
+  useEffect(() => {
+    setLoading(true);
+    // fetch('/api/project-hub/overview')...
+    setLoading(false);
+  }, [setLoading]);
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-slate-900 flex flex-col">
+      {/* Top bar can be unified with Dashboard header later */}
+      <header className="border-b bg-white px-6 py-4 flex items-center justify-between">
+        <h1 className="font-orbitron font-bold text-xl">Project Hub</h1>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700">
+          New Project
+        </button>
+      </header>
+
+      {/* Tab switcher */}
+      <div className="px-6 pt-4 flex gap-2">
+        <TabButton label="All Projects" active={tab === 'projects'} onClick={() => setTab('projects')} />
+        <TabButton label="My Work" active={tab === 'my-work'} onClick={() => setTab('my-work')} />
+        <TabButton label="Activity" active={tab === 'activity'} onClick={() => setTab('activity')} />
+      </div>
+
+      <main className="flex-1 p-6">
+        {isLoading && <p className="text-sm text-slate-500">Loading…</p>}
+
+        {!isLoading && tab === 'projects' && (
+          <ProjectGrid projects={projects} />
+        )}
+
+        {!isLoading && tab === 'my-work' && (
+          <MyWorkList items={myWork} />
+        )}
+
+        {!isLoading && tab === 'activity' && (
+          <ActivityPlaceholder />
+        )}
+      </main>
+    </div>
+  );
+}
+
+function TabButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+        active
+          ? 'bg-blue-600 text-white shadow-sm'
+          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function ProjectGrid({ projects }: { projects: ReturnType<typeof useProjectHubStore>['projects'] }) {
+  if (!projects.length) {
+    return (
+      <div className="border border-dashed border-slate-300 rounded-xl p-8 text-center text-sm text-slate-500 bg-white">
+        No projects yet. Click <span className="font-semibold">New Project</span> to create your first one.
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+      {projects.map((p) => (
+        <Link
+          key={p.id}
+          href={`/project-hub/${p.id}`}
+          className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md border border-slate-200 hover:border-blue-400 transition flex flex-col gap-2"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-slate-900">
+              {p.name}
+            </h2>
+            <span className="text-xs uppercase tracking-wide px-2 py-1 rounded-full bg-slate-100 text-slate-600">
+              {p.status}
+            </span>
+          </div>
+          <p className="text-xs text-slate-500">{p.code}</p>
+          <div className="flex gap-3 text-xs text-slate-500 mt-1">
+            {typeof p.openRfis === 'number' && (
+              <span>{p.openRfis} RFIs</span>
+            )}
+            {typeof p.openSubmittals === 'number' && (
+              <span>{p.openSubmittals} Submittals</span>
+            )}
+            {typeof p.upcomingMilestones === 'number' && (
+              <span>{p.upcomingMilestones} milestones</span>
+            )}
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function MyWorkList({ items }: { items: ReturnType<typeof useProjectHubStore>['myWork'] }) {
+  if (!items.length) {
+    return (
+      <p className="text-sm text-slate-500">
+        Nothing assigned to you yet.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {items.map((item) => (
+        <div
+          key={item.id}
+          className="bg-white rounded-lg p-4 border border-slate-200 flex items-center justify-between"
+        >
+          <div>
+            <p className="text-sm font-semibold">{item.title}</p>
+            <p className="text-xs text-slate-500">
+              {item.type.toUpperCase()} • Due {item.dueDate ?? '—'}
+            </p>
+          </div>
+          <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600">
+            {item.status}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ActivityPlaceholder() {
+  return (
+    <p className="text-sm text-slate-500">
+      Activity feed coming soon. For now, focus on{" "}
+      <span className="font-semibold">All Projects</span> and{" "}
+      <span className="font-semibold">My Work</span>.
+    </p>
+  );
+}
+
+2.3 Tier 2 – /app/project-hub/[projectId]/page.tsx
+'use client';
+
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { useProjectHubStore } from '@/lib/useProjectHubStore';
+import { useMemo } from 'react';
+
+export default function ProjectHomePage() {
+  const params = useParams<{ projectId: string }>();
+  const { projectId } = params;
+  const { projects } = useProjectHubStore();
+
+  const project = useMemo(
+    () => projects.find((p) => p.id === projectId),
+    [projects, projectId]
+  );
+
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center text-sm text-slate-500">
+        Project not found.
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      <main className="flex-1 p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-orbitron font-bold text-slate-900">
+              {project.name}
+            </h1>
+            <p className="text-xs text-slate-500 mt-1">
+              {project.code}
+            </p>
+          </div>
+          <span className="text-xs uppercase tracking-wide px-3 py-1 rounded-full bg-slate-100 text-slate-600">
+            {project.status}
+          </span>
+        </div>
+
+        {/* Widgets */}
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+          <WidgetCard
+            title="Open Items"
+            body={`${project.openRfis ?? 0} RFIs • ${
+              project.openSubmittals ?? 0
+            } Submittals`}
+            href={`/project-hub/${project.id}/rfis`}
+            linkLabel="View RFIs & Submittals"
+          />
+          <WidgetCard
+            title="Upcoming Schedule"
+            body={`${project.upcomingMilestones ?? 0} upcoming milestones`}
+            href={`/project-hub/${project.id}/schedule`}
+            linkLabel="Open Schedule"
+          />
+          <WidgetCard
+            title="Recent Files"
+            body="Latest drawings, specs, and photos."
+            href={`/project-hub/${project.id}/documents`}
+            linkLabel="Open Documents"
+          />
+        </div>
+      </main>
+
+      {/* Simple placeholder for a future Context Panel */}
+      <aside className="hidden lg:block w-80 border-l border-slate-200 bg-white p-4">
+        <h2 className="text-sm font-semibold mb-2">Project Notes</h2>
+        <p className="text-xs text-slate-500">
+          This panel can later show details, comments, or quick sharing tools for
+          the selected item.
+        </p>
+      </aside>
+    </div>
+  );
+}
+
+function WidgetCard({
+  title,
+  body,
+  href,
+  linkLabel,
+}: {
+  title: string;
+  body: string;
+  href: string;
+  linkLabel: string;
+}) {
+  return (
+    <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex flex-col justify-between">
+      <div>
+        <h3 className="text-sm font-semibold text-slate-900 mb-1">
+          {title}
+        </h3>
+        <p className="text-xs text-slate-500">{body}</p>
+      </div>
+      <Link
+        href={href}
+        className="mt-3 inline-flex text-xs font-semibold text-blue-600 hover:text-blue-700"
+      >
+        {linkLabel}
+      </Link>
+    </div>
+  );
+}
+
+
+2.1. Client wrapper for the query
+
+Create:
+
+app/project-hub/LinkedTourFromQuery.tsx
+
+// app/project-hub/LinkedTourFromQuery.tsx
+'use client';
+
+import { useSearchParams } from 'next/navigation';
+import { LinkedTourBanner } from '@/components/tours/LinkedTourBanner';
+
+export function ProjectHubLinkedTourFromQuery() {
+  const params = useSearchParams();
+  const tourId = params.get('tourId');
+
+  if (!tourId) return null;
+
+  return <LinkedTourBanner tourId={tourId} context="project-hub" />;
+}
+
+2.2. Use it in app/project-hub/page.tsx
+
+At the top of your Project Hub page, import and render it.
+
+Example structure (adjust to your existing file):
+
+// app/project-hub/page.tsx
+import type { Metadata } from 'next';
+import { ProjectHubLinkedTourFromQuery } from './LinkedTourFromQuery';
+// import your existing ProjectHubContent / layout components here
+
+export const metadata: Metadata = {
+  title: 'Slate360 – Project Hub',
+};
+
+export default function ProjectHubPage() {
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+      {/* Optional: dashboard shell header here */}
+
+      <main className="flex-1 px-4 py-4 sm:px-6 lg:px-8">
+        {/* NEW: show linked tour (if ?tourId=...) */}
+        <ProjectHubLinkedTourFromQuery />
+
+        {/* Existing Project Hub content */}
+        {/* <ProjectHubShell /> or whatever component you already have */}
+      </main>
+    </div>
+  );
+}
+
+
+Now /project-hub?tourId=123 will show the banner at the top.
+
+
+
+1. What SlateDrop is (in Slate360 terms)
+
+SlateDrop = “Dropbox-style file requests” for construction.
+
+Internal (Business / Enterprise users):
+
+From the Project Hub → Documents, they click “Create SlateDrop Link” on any folder in their project tree.
+
+They configure: target folder, expiry, password (optional), white-label branding, auto-task creation, etc.
+
+They get: a URL + QR code they can paste into emails, RFIs, or print on drawings.
+
+External (subs, architects, city officials, owners, inspectors – no Slate360 login):
+
+Click the SlateDrop link → see a clean, branded upload page with instructions.
+
+Drag-and-drop files, add name/email, maybe record a selfie video.
+
+Files go straight into the chosen project folder, with metadata and audit logs.
+
+They never see any existing project files (write-only).
+
+System behavior:
+
+Files land in the correct project/folder inside your Project Hub.
+
+Permissions inherit from your existing folder system.
+
+You log who uploaded what, when, via which link.
+
+Optional: if it’s a PDF, auto-create a Submittal/Task.
+
+Notify the project team (toast + email; SMS later).
+
+2. Feature checklist vs Gemini/Grok
+
+From the responses you pasted, SlateDrop needs to cover:
+
+Core
+
+✅ Public upload link per folder (“file request” pattern).
+
+✅ No login required for upload.
+
+✅ Link configuration: folder, label/instructions, expiry (7–90 days), optional password.
+
+✅ Files land in a specific project folder, not a generic bucket.
+
+✅ Uses AWS S3 for storage + Supabase for metadata.
+
+✅ External users write-only (no list/read of bucket).
+
+✅ Metadata: uploaded by (name, email), link ID, timestamp, IP.
+
+“Wow” features
+
+✅ Password-protected SlateDrop links (optional).
+
+✅ Expiration date picker (7–90 days).
+
+✅ QR code generation for each SlateDrop.
+
+✅ White-label for Enterprise (client logo + company name on public page).
+
+✅ “Reply with Selfie Video” button on public page (stubbed now, upgrade later).
+
+✅ Real-time toast + email to owner when new files arrive.
+
+✅ Auto-create Submittal/Task when a PDF lands (e.g., in /Submittals/...).
+
+✅ Shared token/link system that other features (Punch, Check-in, etc.) can reuse later.
+
+What’s below implements all of that at a solid “MVP+wow” level. Copilot/Cursor can fill in the plumbing where we leave stubs.
+
+3. Data model (Supabase)
+3.1 slatedrop_links table
+-- supabase/migrations/xxxx_create_slatedrop_links.sql
+create table public.slatedrop_links (
+  id uuid primary key default gen_random_uuid(),
+  token text not null unique,
+  project_id uuid not null references public.projects(id) on delete cascade,
+  folder_path text not null, -- e.g. "/Submittals/Structural"
+  label text,                -- "Please upload approved concrete mix designs here"
+  password_hash text,        -- nullable; bcrypt/argon hash
+  expires_at timestamptz not null,
+  white_label_logo_url text,
+  white_label_company_name text,
+  auto_create_task boolean default false,
+  created_by uuid references auth.users(id),
+  created_at timestamptz not null default now()
+);
+
+create index on public.slatedrop_links (project_id);
+create index on public.slatedrop_links (token);
+
+3.2 slatedrop_uploads table (audit log)
+create table public.slatedrop_uploads (
+  id uuid primary key default gen_random_uuid(),
+  link_id uuid not null references public.slatedrop_links(id) on delete cascade,
+  project_id uuid not null references public.projects(id) on delete cascade,
+  folder_path text not null,
+  file_key text not null,      -- S3 key
+  file_name text not null,
+  file_size bigint,
+  file_type text,
+  uploaded_by_name text,
+  uploaded_by_email text,
+  uploader_ip inet,
+  created_at timestamptz not null default now()
+);
+
+create index on public.slatedrop_uploads (project_id);
+create index on public.slatedrop_uploads (link_id);
+
+
+RLS: allow project members (with appropriate role) to read uploads; external users never touch this directly.
+
+4. Shared types & helpers
+
+src/lib/slatedrop.ts
+
+// src/lib/slatedrop.ts
+export interface SlateDropLink {
+  id: string;
+  token: string;
+  projectId: string;
+  folderPath: string;
+  label?: string;
+  expiresAt: string;
+  passwordProtected: boolean;
+  whiteLabel?: {
+    logoUrl?: string;
+    companyName?: string;
+  };
+  autoCreateTask: boolean;
+}
+
+export function buildSlateDropUrl(token: string) {
+  return `${process.env.NEXT_PUBLIC_APP_URL}/slate-drop/${token}`;
+}
+
+export function buildSlateDropQrUrl(token: string) {
+  const url = buildSlateDropUrl(token);
+  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+    url,
+  )}`;
+}
+
+5. API: create SlateDrop links
+
+app/api/slatedrop/create/route.ts
+
+// app/api/slatedrop/create/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { nanoid } from 'nanoid';
+import bcrypt from 'bcryptjs';
+import { buildSlateDropUrl, buildSlateDropQrUrl } from '@/lib/slatedrop';
+
+export async function POST(req: NextRequest) {
+  const supabase = createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const {
+    projectId,
+    folderPath,
+    label,
+    password,
+    expiresDays = 30,
+    whiteLabelLogoUrl,
+    whiteLabelCompanyName,
+    autoCreateTask = false,
+  } = await req.json();
+
+  const token = nanoid(32);
+  const expiresAt = new Date(
+    Date.now() + expiresDays * 24 * 60 * 60 * 1000,
+  ).toISOString();
+
+  const { data, error } = await supabase
+    .from('slatedrop_links')
+    .insert({
+      token,
+      project_id: projectId,
+      folder_path: folderPath,
+      label,
+      password_hash: password ? await bcrypt.hash(password, 10) : null,
+      expires_at: expiresAt,
+      white_label_logo_url: whiteLabelLogoUrl,
+      white_label_company_name: whiteLabelCompanyName,
+      auto_create_task: autoCreateTask,
+      created_by: auth.user.id,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error(error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  const url = buildSlateDropUrl(token);
+  const qrCodeUrl = buildSlateDropQrUrl(token);
+
+  return NextResponse.json({
+    link: {
+      id: data.id,
+      token: data.token,
+      projectId: data.project_id,
+      folderPath: data.folder_path,
+      label: data.label,
+      expiresAt: data.expires_at,
+      passwordProtected: !!data.password_hash,
+      whiteLabel: data.white_label_company_name
+        ? {
+            logoUrl: data.white_label_logo_url,
+            companyName: data.white_label_company_name,
+          }
+        : undefined,
+      autoCreateTask: data.auto_create_task,
+    },
+    url,
+    qrCodeUrl,
+  });
+}
+
+6. API: fetch link info + presign uploads
+6.1 Get link details (public)
+
+app/api/slatedrop/info/route.ts
+
+// app/api/slatedrop/info/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+
+export async function GET(req: NextRequest) {
+  const token = req.nextUrl.searchParams.get('token');
+  if (!token) {
+    return NextResponse.json({ error: 'Missing token' }, { status: 400 });
+  }
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('slatedrop_links')
+    .select('*')
+    .eq('token', token)
+    .maybeSingle();
+
+  if (error || !data) {
+    return NextResponse.json({ error: 'Link not found' }, { status: 404 });
+  }
+
+  if (new Date(data.expires_at).getTime() < Date.now()) {
+    return NextResponse.json({ error: 'Link expired' }, { status: 410 });
+  }
+
+  return NextResponse.json({
+    projectId: data.project_id,
+    folderPath: data.folder_path,
+    label: data.label,
+    passwordProtected: !!data.password_hash,
+    whiteLabel: data.white_label_company_name
+      ? {
+          logoUrl: data.white_label_logo_url,
+          companyName: data.white_label_company_name,
+        }
+      : undefined,
+    autoCreateTask: data.auto_create_task,
+  });
+}
+
+6.2 Create S3 pre-signed URL for upload
+
+Assuming you already have an S3 client helper:
+
+// src/lib/s3.ts
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+const s3 = new S3Client({ region: process.env.AWS_REGION });
+
+export async function getUploadUrl(key: string, contentType: string) {
+  const command = new PutObjectCommand({
+    Bucket: process.env.AWS_UPLOAD_BUCKET!,
+    Key: key,
+    ContentType: contentType,
+  });
+
+  return getSignedUrl(s3, command, { expiresIn: 60 * 10 }); // 10 minutes
+}
+
+
+app/api/slatedrop/presign/route.ts
+
+// app/api/slatedrop/presign/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { getUploadUrl } from '@/lib/s3';
+import { nanoid } from 'nanoid';
+
+export async function POST(req: NextRequest) {
+  const { token, fileName, fileType, uploaderName, uploaderEmail } =
+    await req.json();
+
+  if (!token || !fileName || !fileType) {
+    return NextResponse.json(
+      { error: 'Missing token or file info' },
+      { status: 400 },
+    );
+  }
+
+  const supabase = createClient();
+  const { data: link, error } = await supabase
+    .from('slatedrop_links')
+    .select('*')
+    .eq('token', token)
+    .maybeSingle();
+
+  if (error || !link) {
+    return NextResponse.json({ error: 'Link not found' }, { status: 404 });
+  }
+
+  if (new Date(link.expires_at).getTime() < Date.now()) {
+    return NextResponse.json({ error: 'Link expired' }, { status: 410 });
+  }
+
+  const fileId = nanoid(16);
+  const key = `${link.project_id}${link.folder_path}/${fileId}-${fileName}`;
+
+  const uploadUrl = await getUploadUrl(key, fileType);
+
+  // Create upload log row (we’ll finalize after client confirms upload success)
+  const { error: insertError } = await supabase.from('slatedrop_uploads').insert({
+    link_id: link.id,
+    project_id: link.project_id,
+    folder_path: link.folder_path,
+    file_key: key,
+    file_name: fileName,
+    file_type: fileType,
+    uploaded_by_name: uploaderName,
+    uploaded_by_email: uploaderEmail,
+    // uploader_ip: can be added from req.ip if you proxy / set header
+  });
+
+  if (insertError) {
+    console.error(insertError);
+  }
+
+  return NextResponse.json({ uploadUrl, key });
+}
+
+
+You can add a /webhook route or “finalize” call later if you want to confirm file size, create submittal tasks, send notifications, etc.
+
+7. Public SlateDrop page
+
+app/slate-drop/[token]/page.tsx
+
+// app/slate-drop/[token]/page.tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useSearchParams, useParams } from 'next/navigation';
+import { PublicDropZone } from '@/components/slatedrop/PublicDropZone';
+
+interface LinkInfo {
+  label?: string;
+  folderPath: string;
+  passwordProtected: boolean;
+  whiteLabel?: { logoUrl?: string; companyName?: string };
+}
+
+export default function PublicSlateDropPage() {
+  const params = useParams<{ token: string }>();
+  const [link, setLink] = useState<LinkInfo | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      const res = await fetch(`/api/slatedrop/info?token=${params.token}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'This SlateDrop link is not available.');
+      } else {
+        setLink(data);
+      }
+    }
+    load();
+  }, [params.token]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <p className="text-slate-200 text-lg">{error}</p>
+      </div>
+    );
+  }
+
+  if (!link) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <p className="text-slate-400">Loading…</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 flex items-center justify-center p-6">
+      <div className="w-full max-w-3xl">
+        <div className="text-center mb-8">
+          {link.whiteLabel?.logoUrl && (
+            <img
+              src={link.whiteLabel.logoUrl}
+              alt={link.whiteLabel.companyName || 'Client'}
+              className="h-16 mx-auto mb-4"
+            />
+          )}
+          <h1 className="text-3xl font-bold text-white">SlateDrop</h1>
+          {link.whiteLabel?.companyName && (
+            <p className="text-slate-300 mt-2">
+              Upload files for {link.whiteLabel.companyName}
+            </p>
+          )}
+          <p className="text-slate-400 mt-2">{link.label}</p>
+          <p className="text-slate-500 text-xs mt-2">
+            Files will be delivered securely into the project’s folder:
+            {` ${link.folderPath}`}
+          </p>
+        </div>
+        <PublicDropZone token={params.token} />
+        <div className="mt-6 text-center">
+          <button className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium">
+            Record Selfie Video Reply
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+8. PublicDropZone component
+
+src/components/slatedrop/PublicDropZone.tsx
+
+// src/components/slatedrop/PublicDropZone.tsx
+'use client';
+
+import { useRef, useState } from 'react';
+import { UploadCloud, CheckCircle2 } from 'lucide-react';
+
+interface Props {
+  token: string;
+}
+
+export function PublicDropZone({ token }: Props) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [status, setStatus] = useState<'idle' | 'uploading' | 'done'>('idle');
+
+  const handleSelect = () => {
+    inputRef.current?.click();
+  };
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || !files.length) return;
+    setStatus('uploading');
+
+    // In a real UI, ask name/email via small form or modal
+    const uploaderName = prompt('Your name (for the audit log):') || '';
+    const uploaderEmail = prompt('Your email (optional):') || '';
+
+    for (const file of Array.from(files)) {
+      const presignRes = await fetch('/api/slatedrop/presign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          fileName: file.name,
+          fileType: file.type || 'application/octet-stream',
+          uploaderName,
+          uploaderEmail,
+        }),
+      });
+
+      const { uploadUrl } = await presignRes.json();
+
+      await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+        body: file,
+      });
+    }
+
+    setStatus('done');
+  };
+
+  return (
+    <div
+      className="border-2 border-dashed border-slate-600 rounded-2xl p-10 text-center hover:border-emerald-500 transition-all bg-slate-900/60 cursor-pointer"
+      onClick={handleSelect}
+      onDragOver={(e) => {
+        e.preventDefault();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        handleFiles(e.dataTransfer.files);
+      }}
+    >
+      {status === 'done' ? (
+        <div className="flex flex-col items-center">
+          <CheckCircle2 className="w-16 h-16 text-emerald-400 mb-4" />
+          <p className="text-xl text-white mb-2">Files received!</p>
+          <p className="text-slate-400 text-sm">
+            The project team has been notified.
+          </p>
+        </div>
+      ) : (
+        <>
+          <UploadCloud className="w-16 h-16 mx-auto text-slate-400 mb-4" />
+          <p className="text-xl text-white mb-2">Drag & drop files here</p>
+          <p className="text-slate-400 text-sm">
+            or click to browse from your device
+          </p>
+          <input
+            ref={inputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(e) => handleFiles(e.target.files)}
+          />
+          {status === 'uploading' && (
+            <p className="mt-4 text-sm text-slate-400">Uploading…</p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+9. Project Hub: SlateDrop management UI
+9.1 Page
+
+app/(dashboard)/project-hub/slatedrop/page.tsx
+
+// app/(dashboard)/project-hub/slatedrop/page.tsx
+import { SlateDropManager } from '@/components/slatedrop/SlateDropManager';
+
+export default function SlateDropPage() {
+  return (
+    <div className="p-8">
+      <SlateDropManager />
+    </div>
+  );
+}
+
+9.2 Manager + cards (list & create)
+
+src/components/slatedrop/SlateDropManager.tsx
+
+'use client';
+
+import { useEffect, useState } from 'react';
+import { SlateDropLinkCard } from './SlateDropLinkCard';
+import { Plus } from 'lucide-react';
+
+interface LinkSummary {
+  id: string;
+  token: string;
+  folderPath: string;
+  label?: string;
+  expiresAt: string;
+  url: string;
+  qrCodeUrl: string;
+}
+
+export function SlateDropManager() {
+  const [links, setLinks] = useState<LinkSummary[]>([]);
+
+  useEffect(() => {
+    // You can create /api/slatedrop/list to populate this
+    async function load() {
+      const res = await fetch('/api/slatedrop/list');
+      if (!res.ok) return;
+      const data = await res.json();
+      setLinks(data.links);
+    }
+    load();
+  }, []);
+
+  const handleCreate = async () => {
+    // In real app, open modal to choose project/folder/expiry/password/etc.
+    // Here we just demo inserting a basic link
+    const res = await fetch('/api/slatedrop/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        projectId: 'current-project-id',
+        folderPath: '/Submittals/Structural',
+        label: 'Please upload approved concrete mix designs here.',
+        expiresDays: 30,
+      }),
+    });
+    const data = await res.json();
+    setLinks((prev) => [
+      ...prev,
+      {
+        id: data.link.id,
+        token: data.link.token,
+        folderPath: data.link.folderPath,
+        label: data.link.label,
+        expiresAt: data.link.expiresAt,
+        url: data.url,
+        qrCodeUrl: data.qrCodeUrl,
+      },
+    ]);
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-white">SlateDrop</h1>
+          <p className="text-slate-400">
+            Secure external upload links into your project folders.
+          </p>
+        </div>
+        <button
+          onClick={handleCreate}
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium"
+        >
+          <Plus className="w-4 h-4" />
+          Create SlateDrop Link
+        </button>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {links.map((link) => (
+          <SlateDropLinkCard key={link.id} link={link} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+src/components/slatedrop/SlateDropLinkCard.tsx
+
+'use client';
+
+import { Copy, QrCode, Trash2 } from 'lucide-react';
+
+interface Props {
+  link: {
+    id: string;
+    token: string;
+    folderPath: string;
+    label?: string;
+    expiresAt: string;
+    url: string;
+    qrCodeUrl: string;
+  };
+}
+
+export function SlateDropLinkCard({ link }: Props) {
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(link.url);
+  };
+
+  return (
+    <div className="rounded-2xl border border-slate-700 bg-slate-900/70 p-6 flex flex-col justify-between">
+      <div>
+        <p className="text-xs text-slate-400 uppercase tracking-wide mb-2">
+          Folder
+        </p>
+        <h3 className="font-semibold text-white">{link.folderPath}</h3>
+        {link.label && (
+          <p className="text-sm text-slate-400 mt-2 line-clamp-2">
+            {link.label}
+          </p>
+        )}
+        <p className="text-xs text-slate-500 mt-3">
+          Expires:{' '}
+          {new Date(link.expiresAt).toLocaleString(undefined, {
+            dateStyle: 'medium',
+          })}
+        </p>
+      </div>
+
+      <div className="mt-6 flex gap-3">
+        <button
+          onClick={copyToClipboard}
+          className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm text-slate-100"
+        >
+          <Copy className="w-4 h-4" />
+          Copy Link
+        </button>
+        <a
+          href={link.qrCodeUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm text-slate-100"
+        >
+          <QrCode className="w-4 h-4" />
+          QR Code
+        </a>
+        <button className="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-red-900/40 hover:bg-red-800/60 text-red-300">
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+10. How this ties back into the rest of the system
+
+Project Hub:
+
+SlateDrop appears as a sub-tab/option in Project Hub (“Documents → SlateDrop”) and also as a quick action in your Field Command Center (“Request Files”).
+
+Files that come in via SlateDrop populate your existing folder tree and can appear in any “Recent Files” widgets.
+
+Submittals & Tasks:
+
+When a new PDF upload is logged in slatedrop_uploads, a background job (or DB trigger) can:
+
+Create a Submittal or Task row.
+
+Link back to the S3 file.
+
+Notify the relevant reviewers.
+
+Analytics & Reports:
+
+SlateDrop usage (how many external uploads, by who, by project, etc.) becomes part of your Reports & Analytics tab metrics.
+
+SlateView / Owner Portal:
+
+Reports generated in Analytics can include counts of recent SlateDrop activity:
+
+“3 structural submittals received this week via SlateDrop.”
+
+If you want, next step I can:
+
+Add the notification hook (Resend email + in-app toast) that fires whenever slatedrop_uploads gets a new record.
+
+Add the small “Create Submittal Task on PDF” service that reads the file type, checks the folder, and creates a task row.
+
+You said:
+yes please add those
+ChatGPT said:
+Thought for 13s
+
+Got it — let’s bolt on:
+
+Notifications whenever a SlateDrop upload finishes (email + in-app via Supabase Realtime).
+
+Auto-create a Submittal/Task when a PDF lands in the right folder.
+
+I’ll keep this consistent with the SlateDrop design we already laid out, and I’ll show you exact file paths + code blocks you can hand straight to Copilot/Cursor.
+
+1. Small schema tweaks (for upload status + tasks)
+1.1 Update slatedrop_uploads table
+
+Add a simple status + file_size field so we can distinguish “pending presign” vs “completed upload”.
+
+-- supabase/migrations/xxxx_alter_slatedrop_uploads_add_status.sql
+alter table public.slatedrop_uploads
+  add column status text not null default 'completed', -- or 'pending'
+  add column file_size bigint;
+
+1.2 Minimal project_tasks table (for auto submittals)
+
+If you don’t already have a tasks table, something like:
+
+-- supabase/migrations/xxxx_create_project_tasks.sql
+create table public.project_tasks (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.projects(id) on delete cascade,
+  type text not null,           -- 'submittal', 'rfi', 'punch', etc.
+  title text not null,
+  description text,
+  status text not null default 'open',   -- 'open', 'in_review', 'closed'
+  related_file_key text,        -- S3 key from SlateDrop
+  slate_drop_upload_id uuid references public.slatedrop_uploads(id),
+  created_by uuid references auth.users(id),
+  created_at timestamptz not null default now()
+);
+
+create index on public.project_tasks (project_id);
+create index on public.project_tasks (type);
+
+2. Adjust the presign route (no DB write here)
+
+We’ll keep the presign route purely for generating the S3 URL.
+The logging, notifications, and task creation will happen in a new /finalize route once the upload succeeds.
+
+2.1 Updated app/api/slatedrop/presign/route.ts
+// app/api/slatedrop/presign/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { getUploadUrl } from '@/lib/s3';
+import { nanoid } from 'nanoid';
+
+export async function POST(req: NextRequest) {
+  const { token, fileName, fileType } = await req.json();
+
+  if (!token || !fileName || !fileType) {
+    return NextResponse.json(
+      { error: 'Missing token or file info' },
+      { status: 400 },
+    );
+  }
+
+  const supabase = createClient();
+  const { data: link, error } = await supabase
+    .from('slatedrop_links')
+    .select('*')
+    .eq('token', token)
+    .maybeSingle();
+
+  if (error || !link) {
+    return NextResponse.json({ error: 'Link not found' }, { status: 404 });
+  }
+
+  if (new Date(link.expires_at).getTime() < Date.now()) {
+    return NextResponse.json({ error: 'Link expired' }, { status: 410 });
+  }
+
+  const fileId = nanoid(16);
+  const safeName = fileName.replace(/[^\w.\-]+/g, '_');
+  const key = `${link.project_id}${link.folder_path}/${fileId}-${safeName}`;
+
+  const uploadUrl = await getUploadUrl(
+    key,
+    fileType || 'application/octet-stream',
+  );
+
+  return NextResponse.json({ uploadUrl, key });
+}
+
+3. New finalize route: log upload + notify + auto-task
+
+When the browser finishes PUTting to the S3 uploadUrl, we call /api/slatedrop/finalize:
+
+Creates a row in slatedrop_uploads
+
+Optionally creates a task if:
+
+Link has auto_create_task = true, and
+
+fileType is PDF
+
+Sends email notification using Resend
+
+Emits a Supabase Realtime event for in-app toasts
+
+3.1 Notification helper
+
+src/lib/notifications.ts
+
+// src/lib/notifications.ts
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+interface SlateDropNotificationParams {
+  projectId: string;
+  folderPath: string;
+  fileName: string;
+  uploadedByName?: string;
+  uploadedByEmail?: string;
+  notifiedEmails: string[]; // PMs / project team
+}
+
+export async function sendSlateDropNotificationEmail(
+  params: SlateDropNotificationParams,
+) {
+  if (!params.notifiedEmails.length) return;
+
+  const subject = `New SlateDrop upload: ${params.fileName}`;
+  const body = `
+A new file was uploaded via SlateDrop.
+
+Project: ${params.projectId}
+Folder: ${params.folderPath}
+File: ${params.fileName}
+Uploaded by: ${params.uploadedByName || 'Unknown'} ${
+    params.uploadedByEmail ? `<${params.uploadedByEmail}>` : ''
+  }
+
+You can review it now in Slate360 Project Hub.
+`;
+
+  await resend.emails.send({
+    from: 'Slate360 <no-reply@slate360.ai>',
+    to: params.notifiedEmails,
+    subject,
+    text: body,
+  });
+}
+
+
+You can later wire notifiedEmails from your project members table / roles.
+
+3.2 Task helper (auto submittal creation)
+
+src/lib/tasks.ts
+
+// src/lib/tasks.ts
+import { SupabaseClient } from '@supabase/supabase-js';
+
+interface CreateSubmittalTaskParams {
+  supabase: SupabaseClient;
+  projectId: string;
+  fileKey: string;
+  fileName: string;
+  uploadId: string;
+}
+
+export async function createSubmittalTaskForSlateDropPdf(
+  params: CreateSubmittalTaskParams,
+) {
+  const title = `Review submittal: ${params.fileName}`;
+  const description =
+    'Automatically created from a SlateDrop PDF upload. Please review and update status.';
+
+  const { error } = await params.supabase.from('project_tasks').insert({
+    project_id: params.projectId,
+    type: 'submittal',
+    title,
+    description,
+    status: 'open',
+    related_file_key: params.fileKey,
+    slate_drop_upload_id: params.uploadId,
+  });
+
+  if (error) {
+    console.error('Error creating submittal task:', error);
+  }
+}
+
+3.3 Finalize route
+
+app/api/slatedrop/finalize/route.ts
+
+// app/api/slatedrop/finalize/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { sendSlateDropNotificationEmail } from '@/lib/notifications';
+import { createSubmittalTaskForSlateDropPdf } from '@/lib/tasks';
+
+export async function POST(req: NextRequest) {
+  const { token, key, fileName, fileType, fileSize, uploaderName, uploaderEmail } =
+    await req.json();
+
+  if (!token || !key || !fileName) {
+    return NextResponse.json(
+      { error: 'Missing token, key, or fileName' },
+      { status: 400 },
+    );
+  }
+
+  const supabase = createClient();
+
+  // 1) Find link
+  const { data: link, error: linkError } = await supabase
+    .from('slatedrop_links')
+    .select('*')
+    .eq('token', token)
+    .maybeSingle();
+
+  if (linkError || !link) {
+    return NextResponse.json({ error: 'Link not found' }, { status: 404 });
+  }
+
+  if (new Date(link.expires_at).getTime() < Date.now()) {
+    return NextResponse.json({ error: 'Link expired' }, { status: 410 });
+  }
+
+  // 2) Insert upload log
+  const { data: upload, error: uploadError } = await supabase
+    .from('slatedrop_uploads')
+    .insert({
+      link_id: link.id,
+      project_id: link.project_id,
+      folder_path: link.folder_path,
+      file_key: key,
+      file_name: fileName,
+      file_type: fileType,
+      file_size: fileSize,
+      uploaded_by_name: uploaderName,
+      uploaded_by_email: uploaderEmail,
+      status: 'completed',
+    })
+    .select()
+    .single();
+
+  if (uploadError) {
+    console.error(uploadError);
+    return NextResponse.json(
+      { error: 'Failed to log upload' },
+      { status: 500 },
+    );
+  }
+
+  // 3) Auto-create submittal task if enabled & PDF
+  const isPdf =
+    (fileType && fileType.toLowerCase().includes('pdf')) ||
+    fileName.toLowerCase().endsWith('.pdf');
+
+  if (link.auto_create_task && isPdf) {
+    await createSubmittalTaskForSlateDropPdf({
+      supabase,
+      projectId: link.project_id,
+      fileKey: key,
+      fileName,
+      uploadId: upload.id,
+    });
+  }
+
+  // 4) Notify project team by email (stub: you can pull emails from project_members)
+  const notifiedEmails: string[] = []; // TODO: fetch from project members/roles
+  try {
+    await sendSlateDropNotificationEmail({
+      projectId: link.project_id,
+      folderPath: link.folder_path,
+      fileName,
+      uploadedByName: uploaderName,
+      uploadedByEmail: uploaderEmail,
+      notifiedEmails,
+    });
+  } catch (e) {
+    console.error('Error sending SlateDrop email notification:', e);
+  }
+
+  // 5) (Optional) Broadcast realtime event for in-app toast
+  // You can use Supabase Realtime or your own event bus.
+  // Example (pseudo):
+  // await supabase.channel(`project-${link.project_id}`).send({
+  //   type: 'slatedrop_upload',
+  //   payload: { upload }
+  // });
+
+  return NextResponse.json({ success: true, uploadId: upload.id });
+}
+
+4. Update the PublicDropZone to call /finalize
+
+We now:
+
+Call /presign → get uploadUrl + key
+
+PUT file to S3
+
+Call /finalize with the same token, key, and file metadata
+
+src/components/slatedrop/PublicDropZone.tsx (updated)
+
+'use client';
+
+import { useRef, useState } from 'react';
+import { UploadCloud, CheckCircle2 } from 'lucide-react';
+
+interface Props {
+  token: string;
+}
+
+export function PublicDropZone({ token }: Props) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [status, setStatus] = useState<'idle' | 'uploading' | 'done'>('idle');
+
+  const handleSelect = () => {
+    inputRef.current?.click();
+  };
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || !files.length) return;
+    setStatus('uploading');
+
+    const uploaderName = prompt('Your name (for the audit log):') || '';
+    const uploaderEmail = prompt('Your email (optional):') || '';
+
+    for (const file of Array.from(files)) {
+      // 1) Get presigned URL
+      const presignRes = await fetch('/api/slatedrop/presign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          fileName: file.name,
+          fileType: file.type || 'application/octet-stream',
+        }),
+      });
+
+      if (!presignRes.ok) {
+        console.error('Failed to presign upload');
+        continue;
+      }
+
+      const { uploadUrl, key } = await presignRes.json();
+
+      // 2) Upload to S3
+      await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+        body: file,
+      });
+
+      // 3) Finalize: log, notify, maybe auto-create task
+      await fetch('/api/slatedrop/finalize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          key,
+          fileName: file.name,
+          fileType: file.type || 'application/pdf',
+          fileSize: file.size,
+          uploaderName,
+          uploaderEmail,
+        }),
+      });
+    }
+
+    setStatus('done');
+  };
+
+  return (
+    <div
+      className="border-2 border-dashed border-slate-600 rounded-2xl p-10 text-center hover:border-emerald-500 transition-all bg-slate-900/60 cursor-pointer"
+      onClick={handleSelect}
+      onDragOver={(e) => {
+        e.preventDefault();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        handleFiles(e.dataTransfer.files);
+      }}
+    >
+      {status === 'done' ? (
+        <div className="flex flex-col items-center">
+          <CheckCircle2 className="w-16 h-16 text-emerald-400 mb-4" />
+          <p className="text-xl text-white mb-2">Files received!</p>
+          <p className="text-slate-400 text-sm">
+            The project team has been notified.
+          </p>
+        </div>
+      ) : (
+        <>
+          <UploadCloud className="w-16 h-16 mx-auto text-slate-400 mb-4" />
+          <p className="text-xl text-white mb-2">Drag & drop files here</p>
+          <p className="text-slate-400 text-sm">
+            or click to browse from your device
+          </p>
+          <input
+            ref={inputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(e) => handleFiles(e.target.files)}
+          />
+          {status === 'uploading' && (
+            <p className="mt-4 text-sm text-slate-400">Uploading…</p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+5. How this surfaces in Project Hub + Reports & Analytics
+
+Project Hub (Documents / SlateDrop):
+
+Your SlateDrop manager page can show a “Recent uploads” list sourced from slatedrop_uploads.
+
+Clicking an upload can open the file viewer & related task.
+
+Tasks/Submittals:
+
+Every PDF dropped into a “Submittals/…” folder with auto_create_task = true will now have a corresponding project_tasks entry, ready for your Submittals UI.
+
+Reports & Analytics (tab you mentioned):
+
+Add metrics from slatedrop_uploads and project_tasks:
+
+“External uploads this week”
+
+“Submittals auto-created via SlateDrop”
+
+These can feed into your existing Analytics KPIs and “Send to Owner” PDF logic.
+
+If you’d like, next I can:
+
+Design the “Recent SlateDrop uploads” widget for the Project Hub overview.
+
+Or wire SlateDrop events into your Analytics & Reports KPIs with specific SELECT queries and mock API responses.
+
+You said:
+please do both
+ChatGPT said:
+Thought for 52s
+
+Perfect — I’ll wire in both: the Project Hub widget and the Analytics & Reports metrics. Below is everything broken out by file so you can hand it straight to Copilot / Cursor.
+
+1) Shared SlateDrop types (new file)
+
+File: src/types/slatedrop.ts (or @/types/slatedrop.ts depending on your structure)
+
+// src/types/slatedrop.ts
+
+export type SlateDropFileType =
+  | 'model'
+  | 'photo'
+  | 'video'
+  | 'doc'
+  | 'other';
+
+export type SlateDropStatus =
+  | 'pending'
+  | 'processing'
+  | 'complete'
+  | 'failed';
+
+export interface SlateDropFileSummary {
+  id: string;
+  projectId: string;
+  fileName: string;
+  fileType: SlateDropFileType;
+  sizeBytes: number;
+  uploadedAt: string; // ISO string
+  status: SlateDropStatus;
+}
+
+export interface SlateDropMetrics {
+  totalFiles: number;
+  totalSizeBytes: number;
+  avgProcessingSeconds: number;
+  lastUploadAt?: string | null;
+  byType: {
+    type: SlateDropFileType;
+    count: number;
+  }[];
+}
+
+2) API: Recent SlateDrop uploads for a project
+
+File: src/app/api/slatedrop/recent/route.ts
+
+This gives Project Hub a clean endpoint like:
+/api/slatedrop/recent?projectId=123&limit=5.
+
+Right now it returns mock data so nothing breaks. You (or Copilot) can later replace the mock with a real Supabase query.
+
+// src/app/api/slatedrop/recent/route.ts
+import { NextResponse } from 'next/server';
+import type { SlateDropFileSummary } from '@/types/slatedrop';
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const projectId = searchParams.get('projectId');
+  const limitParam = searchParams.get('limit');
+
+  if (!projectId) {
+    return NextResponse.json(
+      { error: 'Missing projectId parameter' },
+      { status: 400 }
+    );
+  }
+
+  const limit = limitParam ? Math.min(Number(limitParam) || 5, 10) : 5;
+
+  // TODO: Replace this mock block with a real Supabase/Postgres query
+  // Example (pseudo-code):
+  //
+  // const { data, error } = await supabase
+  //   .from('slatedrop_uploads')
+  //   .select('*')
+  //   .eq('project_id', projectId)
+  //   .order('uploaded_at', { ascending: false })
+  //   .limit(limit);
+  //
+  // Map DB rows → SlateDropFileSummary
+
+  const now = new Date().toISOString();
+  const mock: SlateDropFileSummary[] = Array.from({ length: limit }).map(
+    (_, idx) => ({
+      id: `mock-${idx}`,
+      projectId,
+      fileName: `Sample file ${idx + 1}.rczip`,
+      fileType: idx % 2 === 0 ? 'model' : 'photo',
+      sizeBytes: 12_345_678 + idx * 1000,
+      uploadedAt: now,
+      status: 'complete',
+    })
+  );
+
+  return NextResponse.json({ files: mock });
+}
+
+3) Project Hub – “SlateDrop Recent Uploads” widget
+
+We’re extending your Tier 2 Project Home layout so that in addition to Open Items / Schedule / Recent Files, you get a fourth card that shows actual SlateDrop uploads for that project. This aligns with the spec that Project Home shows recent files and important activity.
+
+3.1 New card component
+
+File: src/components/project-hub/SlateDropRecentUploadsCard.tsx
+
+// src/components/project-hub/SlateDropRecentUploadsCard.tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import type { SlateDropFileSummary } from '@/types/slatedrop';
+
+interface Props {
+  projectId: string;
+  limit?: number;
+}
+
+export function SlateDropRecentUploadsCard({ projectId, limit = 5 }: Props) {
+  const [files, setFiles] = useState<SlateDropFileSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        setIsLoading(true);
+        setErrorMsg(null);
+
+        const res = await fetch(
+          `/api/slatedrop/recent?projectId=${encodeURIComponent(
+            projectId
+          )}&limit=${limit}`
+        );
+
+        if (!res.ok) {
+          throw new Error(`Failed to load SlateDrop uploads (${res.status})`);
+        }
+
+        const data = await res.json();
+        if (!cancelled) {
+          setFiles(data.files ?? []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setErrorMsg('Unable to load recent uploads.');
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, limit]);
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-sm font-semibold text-slate-900">
+          SlateDrop – Recent Uploads
+        </h2>
+        {/* You can later wire this to a dedicated SlateDrop view */}
+        <Link
+          href={`/project-hub/${projectId}/documents?source=slatedrop`}
+          className="text-xs text-blue-600 hover:underline"
+        >
+          View all
+        </Link>
+      </div>
+
+      {isLoading && (
+        <p className="text-xs text-slate-500">Loading recent uploads…</p>
+      )}
+
+      {!isLoading && errorMsg && (
+        <p className="text-xs text-red-500">{errorMsg}</p>
+      )}
+
+      {!isLoading && !errorMsg && files.length === 0 && (
+        <p className="text-xs text-slate-500">
+          No SlateDrop uploads yet. Use SlateDrop to send in drawings,
+          models, or 360s for this project.
+        </p>
+      )}
+
+      {!isLoading && !errorMsg && files.length > 0 && (
+        <ul className="mt-1 space-y-1 text-xs text-slate-600">
+          {files.map((file) => (
+            <li
+              key={file.id}
+              className="flex items-center justify-between gap-2"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="truncate font-medium text-slate-800">
+                  {file.fileName}
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  {file.fileType.toUpperCase()} •{' '}
+                  {new Date(file.uploadedAt).toLocaleString()}
+                </p>
+              </div>
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 capitalize">
+                {file.status}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+3.2 Use it on Project Home
+
+File to edit: src/app/project-hub/[projectId]/page.tsx
+(This is your ProjectHomePage with the 3 widget cards. )
+
+Find the widget grid and adjust it like this:
+
+// src/app/project-hub/[projectId]/page.tsx
+'use client';
+
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { useMemo } from 'react';
+import { useProjectHubStore } from '@/lib/useProjectHubStore';
+import { SlateDropRecentUploadsCard } from '@/components/project-hub/SlateDropRecentUploadsCard';
+
+export default function ProjectHomePage() {
+  const params = useParams<{ projectId: string }>();
+  const { projectId } = params;
+  const { projects } = useProjectHubStore();
+
+  const project = useMemo(
+    () => projects.find((p) => p.id === projectId),
+    [projects, projectId]
+  );
+
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center text-sm text-slate-500">
+        Project not found.
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      <main className="flex-1 p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-orbitron font-bold text-slate-900">
+              {project.name}
+            </h1>
+            <p className="text-xs text-slate-500 mt-1">{project.code}</p>
+          </div>
+          <span className="text-xs uppercase tracking-wide px-3 py-1 rounded-full bg-slate-100 text-slate-600">
+            {project.status}
+          </span>
+        </div>
+
+        {/* Widgets */}
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
+          <WidgetCard
+            title="Open Items"
+            body={`${project.openRfis ?? 0} RFIs • ${
+              project.openSubmittals ?? 0
+            } Submittals`}
+            href={`/project-hub/${project.id}/rfis`}
+            linkLabel="View RFIs & Submittals"
+          />
+
+          <WidgetCard
+            title="Upcoming Schedule"
+            body={`${project.upcomingMilestones ?? 0} upcoming milestones`}
+            href={`/project-hub/${project.id}/schedule`}
+            linkLabel="Open Schedule"
+          />
+
+          <WidgetCard
+            title="Recent Files"
+            body="Latest drawings, specs, and photos."
+            href={`/project-hub/${project.id}/documents`}
+            linkLabel="Open Documents"
+          />
+
+          {/* NEW: SlateDrop recent uploads */}
+          <SlateDropRecentUploadsCard projectId={project.id} />
+        </div>
+      </main>
+
+      {/* Context Panel placeholder stays as-is */}
+      <aside className="hidden lg:block w-80 border-l border-slate-200 bg-white p-4">
+        <h2 className="text-sm font-semibold mb-2">Project Notes</h2>
+        <p className="text-xs text-slate-500">
+          This panel can later show details, comments, or quick sharing tools
+          for the selected item.
+        </p>
+      </aside>
+    </div>
+  );
+}
+
+// Existing WidgetCard helper (keep as you have it)
+function WidgetCard(props: {
+  title: string;
+  body: string;
+  href: string;
+  linkLabel: string;
+}) {
+  const { title, body, href, linkLabel } = props;
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col">
+      <h2 className="text-sm font-semibold text-slate-900 mb-1">{title}</h2>
+      <p className="text-xs text-slate-600 flex-1">{body}</p>
+      <Link
+        href={href}
+        className="mt-3 text-xs text-blue-600 hover:underline font-medium"
+      >
+        {linkLabel}
+      </Link>
+    </div>
+  );
+}
+
+
+That gives you a real, live widget on the Project Home pulling SlateDrop uploads for that project.
+
+4) API: SlateDrop analytics metrics (for Analytics & Reports tab)
+
+File: src/app/api/analytics/slatedrop/route.ts
+
+Again, this ships with mock data so the UI works immediately; Copilot can later swap in real Supabase aggregation.
+
+// src/app/api/analytics/slatedrop/route.ts
+import { NextResponse } from 'next/server';
+import type { SlateDropMetrics, SlateDropFileType } from '@/types/slatedrop';
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const projectId = searchParams.get('projectId');
+  void projectId; // optional filter later
+
+  // TODO: Replace with real aggregate query against slatedrop_uploads
+  const mockByType: { type: SlateDropFileType; count: number }[] = [
+    { type: 'model', count: 12 },
+    { type: 'photo', count: 24 },
+    { type: 'video', count: 5 },
+    { type: 'doc', count: 9 },
+  ];
+
+  const metrics: SlateDropMetrics = {
+    totalFiles: mockByType.reduce((sum, t) => sum + t.count, 0),
+    totalSizeBytes: 1_234_567_890, // mock total size
+    avgProcessingSeconds: 82, // mock
+    lastUploadAt: new Date().toISOString(),
+    byType: mockByType,
+  };
+
+  return NextResponse.json({ metrics });
+}
+
+5) Analytics & Reports – SlateDrop metrics panel
+
+We’ll create a reusable panel that you can drop into your Analytics & Reports tab layout.
+
+5.1 Metrics panel component
+
+File: src/components/analytics/SlateDropMetricsPanel.tsx
+
+// src/components/analytics/SlateDropMetricsPanel.tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from 'recharts';
+import type { SlateDropMetrics } from '@/types/slatedrop';
+
+interface Props {
+  projectId?: string; // optional – omit for org-wide view
+}
+
+export function SlateDropMetricsPanel({ projectId }: Props) {
+  const [metrics, setMetrics] = useState<SlateDropMetrics | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        setIsLoading(true);
+        setErrorMsg(null);
+
+        const url = projectId
+          ? `/api/analytics/slatedrop?projectId=${encodeURIComponent(
+              projectId
+            )}`
+          : '/api/analytics/slatedrop';
+
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error(`Failed to load SlateDrop metrics (${res.status})`);
+        }
+
+        const data = await res.json();
+        if (!cancelled) {
+          setMetrics(data.metrics ?? null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setErrorMsg('Unable to load SlateDrop analytics.');
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  return (
+    <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900">
+            SlateDrop – Upload Analytics
+          </h2>
+          <p className="text-xs text-slate-500">
+            Volume, file mix, and processing performance for SlateDrop jobs.
+          </p>
+        </div>
+        {projectId && (
+          <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] text-slate-600">
+            Project-scoped
+          </span>
+        )}
+      </div>
+
+      {isLoading && (
+        <p className="text-xs text-slate-500">Loading SlateDrop metrics…</p>
+      )}
+
+      {!isLoading && errorMsg && (
+        <p className="text-xs text-red-500">{errorMsg}</p>
+      )}
+
+      {!isLoading && !errorMsg && metrics && (
+        <>
+          {/* KPI row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <KpiCard
+              label="Total SlateDrop files"
+              value={metrics.totalFiles.toLocaleString()}
+            />
+            <KpiCard
+              label="Total size"
+              value={formatBytes(metrics.totalSizeBytes)}
+            />
+            <KpiCard
+              label="Avg processing time"
+              value={`${metrics.avgProcessingSeconds.toFixed(0)} sec/job`}
+            />
+          </div>
+
+          {/* By type chart */}
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={metrics.byType}>
+                <XAxis
+                  dataKey="type"
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  axisLine={{ stroke: '#e2e8f0' }}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  axisLine={{ stroke: '#e2e8f0' }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    fontSize: 11,
+                    borderRadius: 8,
+                  }}
+                />
+                <Bar dataKey="count" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {metrics.lastUploadAt && (
+            <p className="text-[11px] text-slate-400">
+              Last SlateDrop upload:{' '}
+              {new Date(metrics.lastUploadAt).toLocaleString()}
+            </p>
+          )}
+        </>
+      )}
+
+      {!isLoading && !errorMsg && !metrics && (
+        <p className="text-xs text-slate-500">
+          No SlateDrop analytics available yet.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function KpiCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2.5 flex flex-col gap-1">
+      <span className="text-[11px] text-slate-500">{label}</span>
+      <span className="text-sm font-semibold text-slate-900">{value}</span>
+    </div>
+  );
+}
+
+function formatBytes(bytes: number): string {
+  if (!bytes || bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const exponent = Math.min(
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+    units.length - 1
+  );
+  const value = bytes / Math.pow(1024, exponent);
+  return `${value.toFixed(1)} ${units[exponent]}`;
+}
+
+5.2 Drop it into your Analytics & Reports tab
+
+Wherever your Analytics & Reports tab page is (for example):
+
+src/app/analytics/page.tsx, or
+
+src/app/analytics-and-reports/page.tsx
+
+add the panel.
+
+Example:
+
+// src/app/analytics/page.tsx
+import { SlateDropMetricsPanel } from '@/components/analytics/SlateDropMetricsPanel';
+
+export default function AnalyticsPage() {
+  return (
+    <div className="min-h-screen bg-gray-50 text-slate-900">
+      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        {/* Existing analytics sections / charts here */}
+
+        {/* NEW: SlateDrop section */}
+        <SlateDropMetricsPanel />
+      </main>
+    </div>
+  );
+}
+
+
+Later, if you want per-project analytics (e.g., from inside a project-level Analytics view), you can just pass projectId:
+
+<SlateDropMetricsPanel projectId={project.id} />

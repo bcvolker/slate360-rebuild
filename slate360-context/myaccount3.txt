@@ -1,0 +1,1407 @@
+
+
+
+1. Simplified Behavior & UX
+
+Who uses this tab?
+
+Org Owner / Admin – sees everything (billing, org, API keys, audit log, storage controls).
+
+Standard Member – only sees Profile & Preferences + Personal Security, and a read-only summary of the current plan & usage.
+
+Sections (always in this order)
+
+Overview
+
+“Account at a glance” card:
+
+Name, email, org, role
+
+Plan name + status + “Manage Billing” button
+
+Simple usage pill (e.g., “Storage: 1.2 / 5 GB – Healthy / Watch / Critical”)
+
+Quick profile preset buttons:
+
+Simple View (minimal UI, fewer advanced panels in other tabs)
+
+Creator View (Content / 360 / Virtual Studio emphasized)
+
+Project View (Project Hub / Geospatial emphasized)
+
+Profile & Preferences
+
+Theme: Light / Dark / System
+
+Default start tab (Dashboard, Project Hub, 360 Tours, etc.)
+
+Notifications:
+
+Email summaries (daily/weekly/off)
+
+Important alerts (billing, failures, quota)
+
+Layout toggles (which dashboard tiles to show)
+
+“Profile completeness” bar – just for fun & guidance
+
+Subscription & Billing (Admins / Owners only)
+
+Current plan, seats, renewal date, status
+
+“Open Billing Portal” button (Stripe customer portal)
+
+Simple plan comparison preview (Starter / Pro / Enterprise)
+
+Seat management (text + link/button, keep UX simple)
+
+Security & Access
+
+Password reset link
+
+2FA status toggle (On / Off, shows QR/setup only when supported)
+
+Session list (Last 3 logins)
+
+For admins: short audit list – last few sensitive actions (plan changed, new API key, etc.)
+
+API & Integrations (Admins / Owners only)
+
+List of API keys (masked)
+
+“Generate new key” button
+
+“Revoke” button for each
+
+Copy-to-clipboard icon next to each key (or partial key)
+
+Data & Storage
+
+Storage usage bar + label (e.g., 1.2 GB of 5 GB)
+
+Counts: models, tours, projects, uploaded docs
+
+“Download my data” (export request) button
+
+“Delete my account” / “Request deletion” (for compliance) – can be a soft stub for now
+
+Everything is reachable in 1–2 clicks, and the tab automatically hides advanced stuff for members.
+
+2. lib/useMyAccountStore.ts
+
+Create this file:
+
+lib/useMyAccountStore.ts
+
+'use client';
+
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export type UserRole = 'owner' | 'admin' | 'member';
+export type PlanTier = 'Free' | 'Starter' | 'Pro' | 'Enterprise';
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  orgName?: string;
+  role: UserRole;
+  // UI preferences
+  theme: 'light' | 'dark' | 'system';
+  defaultTab: string; // e.g. "dashboard", "project-hub"
+  notificationFrequency: 'off' | 'daily' | 'weekly';
+  importantAlerts: boolean;
+  layoutPreset: 'simple' | 'creator' | 'project';
+  profileCompletion: number; // 0–100
+}
+
+export interface SubscriptionInfo {
+  plan: PlanTier;
+  status: 'active' | 'past_due' | 'canceled' | 'trialing';
+  renewsOn: string; // ISO date
+  seatsUsed: number;
+  seatsIncluded: number;
+}
+
+export interface UsageInfo {
+  storageUsedGb: number;
+  storageLimitGb: number;
+  projectsCount: number;
+  modelsCount: number;
+  toursCount: number;
+  lastUpdated: string; // ISO
+}
+
+export interface SessionInfo {
+  id: string;
+  device: string;
+  ip: string;
+  location?: string;
+  lastActive: string; // ISO
+}
+
+export interface AuditEvent {
+  id: string;
+  action: string;
+  actor: string;
+  createdAt: string; // ISO
+}
+
+export interface ApiKeyInfo {
+  id: string;
+  label: string;
+  lastFour: string;
+  createdAt: string;
+}
+
+interface MyAccountState {
+  profile: UserProfile | null;
+  subscription: SubscriptionInfo | null;
+  usage: UsageInfo | null;
+  sessions: SessionInfo[];
+  auditLog: AuditEvent[];
+  apiKeys: ApiKeyInfo[];
+  loading: boolean;
+  error?: string;
+
+  // Derived helpers
+  isAdmin: () => boolean;
+  usageHealth: () => 'healthy' | 'watch' | 'critical';
+
+  // Actions (front-end only stubs that call backend APIs)
+  initFromServer: () => Promise<void>;
+  updateProfile: (patch: Partial<UserProfile>) => Promise<void>;
+  applyPreset: (preset: 'simple' | 'creator' | 'project') => Promise<void>;
+  openBillingPortal: () => Promise<void>;
+  generateApiKey: (label: string) => Promise<void>;
+  revokeApiKey: (id: string) => Promise<void>;
+  refreshUsage: () => Promise<void>;
+}
+
+export const useMyAccountStore = create<MyAccountState>()(
+  persist(
+    (set, get) => ({
+      profile: null,
+      subscription: null,
+      usage: null,
+      sessions: [],
+      auditLog: [],
+      apiKeys: [],
+      loading: false,
+      error: undefined,
+
+      isAdmin: () => {
+        const role = get().profile?.role;
+        return role === 'owner' || role === 'admin';
+      },
+
+      usageHealth: () => {
+        const u = get().usage;
+        if (!u) return 'healthy';
+        const pct = u.storageUsedGb / u.storageLimitGb;
+        if (pct < 0.7) return 'healthy';
+        if (pct < 0.9) return 'watch';
+        return 'critical';
+      },
+
+      // Load everything from backend once user is authenticated
+      initFromServer: async () => {
+        try {
+          set({ loading: true, error: undefined });
+          const res = await fetch('/api/account/overview', {
+            method: 'GET',
+            credentials: 'include',
+          });
+          if (!res.ok) throw new Error('Failed to load account data');
+          const data = await res.json();
+
+          set({
+            profile: data.profile,
+            subscription: data.subscription,
+            usage: data.usage,
+            sessions: data.sessions ?? [],
+            auditLog: data.auditLog ?? [],
+            apiKeys: data.apiKeys ?? [],
+            loading: false,
+          });
+        } catch (err: any) {
+          console.error(err);
+          set({ loading: false, error: err.message ?? 'Error loading account' });
+        }
+      },
+
+      updateProfile: async (patch) => {
+        const current = get().profile;
+        if (!current) return;
+        set({ loading: true, error: undefined });
+
+        try {
+          const res = await fetch('/api/account/profile', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(patch),
+          });
+          if (!res.ok) throw new Error('Failed to update profile');
+          const updated = await res.json();
+
+          set({
+            profile: {
+              ...current,
+              ...updated,
+            },
+            loading: false,
+          });
+        } catch (err: any) {
+          console.error(err);
+          set({ loading: false, error: err.message ?? 'Profile update failed' });
+        }
+      },
+
+      applyPreset: async (preset) => {
+        const current = get().profile;
+        if (!current) return;
+
+        // Simple mapping – you can expand this later
+        let defaultTab = current.defaultTab;
+        if (preset === 'simple') defaultTab = 'dashboard';
+        if (preset === 'creator') defaultTab = 'content-studio';
+        if (preset === 'project') defaultTab = 'project-hub';
+
+        await get().updateProfile({
+          layoutPreset: preset,
+          defaultTab,
+        });
+      },
+
+      openBillingPortal: async () => {
+        try {
+          const res = await fetch('/api/account/billing-portal', {
+            method: 'POST',
+            credentials: 'include',
+          });
+          if (!res.ok) throw new Error('Failed to open billing portal');
+          const data = await res.json();
+          if (data.url) {
+            window.location.href = data.url;
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      },
+
+      generateApiKey: async (label) => {
+        if (!get().isAdmin()) return;
+        try {
+          const res = await fetch('/api/account/api-keys', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ label }),
+          });
+          if (!res.ok) throw new Error('Failed to generate API key');
+          const data = await res.json();
+          set((state) => ({
+            apiKeys: [...state.apiKeys, data.key],
+          }));
+        } catch (err) {
+          console.error(err);
+        }
+      },
+
+      revokeApiKey: async (id) => {
+        if (!get().isAdmin()) return;
+        try {
+          const res = await fetch(`/api/account/api-keys/${id}`, {
+            method: 'DELETE',
+            credentials: 'include',
+          });
+          if (!res.ok) throw new Error('Failed to revoke API key');
+          set((state) => ({
+            apiKeys: state.apiKeys.filter((k) => k.id !== id),
+          }));
+        } catch (err) {
+          console.error(err);
+        }
+      },
+
+      refreshUsage: async () => {
+        try {
+          const res = await fetch('/api/account/usage', {
+            method: 'GET',
+            credentials: 'include',
+          });
+          if (!res.ok) throw new Error('Failed to load usage');
+          const usage = await res.json();
+          set({ usage });
+        } catch (err) {
+          console.error(err);
+        }
+      },
+    }),
+    {
+      name: 'slate360-my-account',
+      partialize: (state) => ({
+        profile: state.profile,
+        subscription: state.subscription,
+        usage: state.usage,
+      }),
+    }
+  )
+);
+
+3. app/(dashboard)/my-account/page.tsx
+
+Create:
+
+app/(dashboard)/my-account/page.tsx
+
+'use client';
+
+import { useEffect } from 'react';
+import { useMyAccountStore } from '@/lib/useMyAccountStore';
+import {
+  Shield,
+  CreditCard,
+  Cpu,
+  User2,
+  Activity,
+  KeyRound,
+  RefreshCw,
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+
+export default function MyAccountPage() {
+  const {
+    profile,
+    subscription,
+    usage,
+    sessions,
+    auditLog,
+    apiKeys,
+    initFromServer,
+    applyPreset,
+    openBillingPortal,
+    isAdmin,
+    usageHealth,
+    loading,
+    error,
+  } = useMyAccountStore();
+
+  useEffect(() => {
+    // Load data on first visit
+    if (!profile) {
+      initFromServer();
+    }
+  }, [profile, initFromServer]);
+
+  const health = usageHealth();
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-50 px-6 py-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-orbitron text-2xl font-bold">My Account</h1>
+          <p className="text-sm text-slate-400">
+            Manage your profile, subscriptions, security, and usage.
+          </p>
+        </div>
+        {usage && (
+          <div className="flex items-center gap-3 text-xs">
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 font-medium ${
+                health === 'healthy'
+                  ? 'bg-emerald-900/40 text-emerald-300 border border-emerald-700/60'
+                  : health === 'watch'
+                  ? 'bg-amber-900/40 text-amber-300 border border-amber-700/60'
+                  : 'bg-red-900/40 text-red-300 border border-red-700/60'
+              }`}
+            >
+              <Activity className="mr-1 h-3 w-3" />
+              Storage:{' '}
+              {usage.storageUsedGb.toFixed(2)} / {usage.storageLimitGb} GB
+            </span>
+          </div>
+        )}
+      </div>
+
+      {loading && (
+        <div className="rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-sm text-slate-300 flex items-center gap-2">
+          <RefreshCw className="h-4 w-4 animate-spin" />
+          Loading account…
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-lg border border-red-700 bg-red-950/60 px-4 py-3 text-sm text-red-200">
+          {error}
+        </div>
+      )}
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        {/* Left column: Overview + Profile */}
+        <div className="space-y-6 xl:col-span-2">
+          <OverviewCard />
+          <ProfileCard />
+        </div>
+
+        {/* Right column: Usage & Quick Actions */}
+        <div className="space-y-6">
+          <UsageCard />
+          <QuickPresetsCard onPreset={applyPreset} />
+        </div>
+      </div>
+
+      {/* Second row: Billing / Security / API / Data */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <BillingCard onOpenPortal={openBillingPortal} />
+        <SecurityCard sessions={sessions} auditLog={auditLog} />
+        <ApiAndDataCard apiKeys={apiKeys} />
+      </div>
+    </div>
+  );
+}
+
+/* ======== Subcomponents ======== */
+
+function OverviewCard() {
+  const { profile, subscription } = useMyAccountStore();
+
+  return (
+    <motion.section
+      layout
+      className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-slate-950/40"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-slate-400">
+            <User2 className="h-4 w-4" />
+            Overview
+          </h2>
+          <p className="text-lg font-semibold">
+            {profile?.name ?? 'Loading…'}
+          </p>
+          <p className="text-xs text-slate-400">
+            {profile?.email}
+            {profile?.orgName && ` · ${profile.orgName}`}
+          </p>
+          <p className="mt-1 inline-flex rounded-full bg-slate-800/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-300">
+            Role: {profile?.role ?? 'member'}
+          </p>
+        </div>
+
+        <div className="space-y-2 text-right text-xs">
+          <p className="text-slate-400">Current Plan</p>
+          <p className="text-sm font-semibold">
+            {subscription?.plan ?? 'Loading…'}
+          </p>
+          {subscription && (
+            <p className="text-slate-500">
+              Renews on{' '}
+              {new Date(subscription.renewsOn).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+function ProfileCard() {
+  const { profile, updateProfile } = useMyAccountStore();
+
+  if (!profile) return null;
+
+  const handleChange = (field: keyof typeof profile) => (
+    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+  ) => {
+    const value =
+      e.target.type === 'checkbox'
+        ? (e.target as HTMLInputElement).checked
+        : e.target.value;
+    updateProfile({ [field]: value } as any);
+  };
+
+  return (
+    <motion.section
+      layout
+      className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-slate-950/40 space-y-4"
+    >
+      <h2 className="mb-1 text-sm font-semibold uppercase tracking-widest text-slate-400">
+        Profile & Preferences
+      </h2>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="space-y-1 text-xs">
+          <label className="mb-1 block text-slate-400">Theme</label>
+          <select
+            value={profile.theme}
+            onChange={handleChange('theme')}
+            className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-sky-500"
+          >
+            <option value="system">System</option>
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+          </select>
+        </div>
+
+        <div className="space-y-1 text-xs">
+          <label className="mb-1 block text-slate-400">Default Start Tab</label>
+          <select
+            value={profile.defaultTab}
+            onChange={handleChange('defaultTab')}
+            className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-sky-500"
+          >
+            <option value="dashboard">Dashboard</option>
+            <option value="project-hub">Project Hub</option>
+            <option value="design-studio">Design Studio</option>
+            <option value="tour-builder">360 Tour Builder</option>
+            <option value="content-studio">Content Studio</option>
+            <option value="virtual-studio">Virtual Studio</option>
+            <option value="reports">Reports & Analytics</option>
+          </select>
+        </div>
+
+        <div className="space-y-1 text-xs">
+          <label className="mb-1 block text-slate-400">
+            Notification Frequency
+          </label>
+          <select
+            value={profile.notificationFrequency}
+            onChange={handleChange('notificationFrequency')}
+            className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-xs text-slate-100 outline-none focus:ring-2 focus:ring-sky-500"
+          >
+            <option value="off">Off</option>
+            <option value="daily">Daily Summary</option>
+            <option value="weekly">Weekly Summary</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 text-xs">
+          <span className="text-slate-400">Profile completeness</span>
+          <div className="relative h-2 w-40 overflow-hidden rounded-full bg-slate-800">
+            <div
+              className="h-2 rounded-full bg-sky-500 transition-all"
+              style={{ width: `${profile.profileCompletion}%` }}
+            />
+          </div>
+          <span className="text-slate-300">
+            {profile.profileCompletion.toFixed(0)}%
+          </span>
+        </div>
+        <label className="flex items-center gap-2 text-[11px] text-slate-400">
+          <input
+            type="checkbox"
+            checked={profile.importantAlerts}
+            onChange={handleChange('importantAlerts')}
+            className="h-3 w-3 rounded border-slate-600 bg-slate-900 text-sky-500"
+          />
+          Critical alerts by email (billing, failures, quota)
+        </label>
+      </div>
+    </motion.section>
+  );
+}
+
+function UsageCard() {
+  const { usage, refreshUsage } = useMyAccountStore();
+  const health = useMyAccountStore((s) => s.usageHealth());
+
+  if (!usage) return null;
+
+  const pct = Math.min(
+    100,
+    (usage.storageUsedGb / usage.storageLimitGb) * 100
+  );
+
+  return (
+    <motion.section
+      layout
+      className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-slate-950/40 space-y-4"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+          Usage & Storage
+        </h2>
+        <button
+          onClick={refreshUsage}
+          className="inline-flex items-center gap-1 rounded-full border border-slate-700 px-2 py-1 text-[10px] text-slate-300 hover:border-sky-500 hover:text-sky-300"
+        >
+          <RefreshCw className="h-3 w-3" />
+          Refresh
+        </button>
+      </div>
+
+      <div className="space-y-2 text-xs">
+        <div className="flex items-center justify-between">
+          <span className="text-slate-400">Storage</span>
+          <span className="text-slate-300">
+            {usage.storageUsedGb.toFixed(2)} / {usage.storageLimitGb} GB
+          </span>
+        </div>
+        <div className="relative h-2 w-full overflow-hidden rounded-full bg-slate-800">
+          <div
+            className={`h-2 rounded-full ${
+              health === 'healthy'
+                ? 'bg-emerald-500'
+                : health === 'watch'
+                ? 'bg-amber-500'
+                : 'bg-red-500'
+            } transition-all`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Projects: {usage.projectsCount} · Models: {usage.modelsCount} · Tours:{' '}
+          {usage.toursCount}
+        </p>
+      </div>
+    </motion.section>
+  );
+}
+
+function QuickPresetsCard({
+  onPreset,
+}: {
+  onPreset: (preset: 'simple' | 'creator' | 'project') => void;
+}) {
+  const profile = useMyAccountStore((s) => s.profile);
+  if (!profile) return null;
+
+  return (
+    <motion.section
+      layout
+      className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-slate-950/40 space-y-3 text-xs"
+    >
+      <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+        Interface Presets
+      </h2>
+      <p className="text-slate-400">
+        Switch how Slate360 feels without changing your data.
+      </p>
+      <div className="flex flex-col gap-2">
+        <button
+          onClick={() => onPreset('simple')}
+          className="rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-left hover:border-sky-500 hover:bg-slate-900"
+        >
+          <span className="block text-xs font-semibold text-slate-100">
+            Simple View
+          </span>
+          <span className="block text-[11px] text-slate-400">
+            Minimal panels, fewer advanced controls. Great for new or casual
+            users.
+          </span>
+        </button>
+        <button
+          onClick={() => onPreset('creator')}
+          className="rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-left hover:border-sky-500 hover:bg-slate-900"
+        >
+          <span className="block text-xs font-semibold text-slate-100">
+            Creator View
+          </span>
+          <span className="block text-[11px] text-slate-400">
+            Emphasize Content Studio, 360 Tours, and Virtual Studio tools.
+          </span>
+        </button>
+        <button
+          onClick={() => onPreset('project')}
+          className="rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-left hover:border-sky-500 hover:bg-slate-900"
+        >
+          <span className="block text-xs font-semibold text-slate-100">
+            Project View
+          </span>
+          <span className="block text-[11px] text-slate-400">
+            Emphasize Project Hub, Design Studio, and Geospatial tools.
+          </span>
+        </button>
+      </div>
+    </motion.section>
+  );
+}
+
+function BillingCard({ onOpenPortal }: { onOpenPortal: () => void }) {
+  const { subscription, isAdmin } = useMyAccountStore();
+
+  if (!subscription) return null;
+
+  const admin = isAdmin();
+
+  return (
+    <motion.section
+      layout
+      className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-slate-950/40 space-y-4 text-xs"
+    >
+      <div className="flex items-center justify-between">
+        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
+          <CreditCard className="h-4 w-4" />
+          Subscription & Billing
+        </h2>
+        <span
+          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+            subscription.status === 'active'
+              ? 'bg-emerald-900/40 text-emerald-300 border border-emerald-700/70'
+              : 'bg-amber-900/40 text-amber-200 border border-amber-700/70'
+          }`}
+        >
+          {subscription.status}
+        </span>
+      </div>
+
+      <div className="space-y-1 text-slate-300">
+        <p className="text-sm font-semibold">Plan: {subscription.plan}</p>
+        <p className="text-slate-400">
+          Seats: {subscription.seatsUsed} / {subscription.seatsIncluded}
+        </p>
+        <p className="text-slate-500">
+          Renews on{' '}
+          {new Date(subscription.renewsOn).toLocaleDateString()}
+        </p>
+      </div>
+
+      {admin ? (
+        <button
+          onClick={onOpenPortal}
+          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-sky-600 px-3 py-2 text-xs font-semibold text-white hover:bg-sky-500"
+        >
+          <CreditCard className="h-4 w-4" />
+          Open Billing Portal
+        </button>
+      ) : (
+        <p className="mt-2 text-[11px] text-slate-500">
+          Billing changes can only be managed by your workspace admin.
+        </p>
+      )}
+    </motion.section>
+  );
+}
+
+function SecurityCard({
+  sessions,
+  auditLog,
+}: {
+  sessions: SessionInfo[];
+  auditLog: AuditEvent[];
+}) {
+  const { isAdmin } = useMyAccountStore();
+
+  return (
+    <motion.section
+      layout
+      className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-slate-950/40 space-y-4 text-xs"
+    >
+      <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
+        <Shield className="h-4 w-4" />
+        Security & Access
+      </h2>
+
+      <div className="space-y-2">
+        <a
+          href="/reset-password"
+          className="inline-flex items-center gap-2 text-[11px] text-sky-300 hover:text-sky-200"
+        >
+          Reset password
+        </a>
+        <p className="text-[11px] text-slate-500">
+          Two-factor authentication and single-sign-on can be enabled from the
+          security settings (coming soon).
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-[11px] font-semibold text-slate-400">
+          Recent sessions
+        </p>
+        <ul className="space-y-1 text-[11px] text-slate-400">
+          {sessions.slice(0, 3).map((s) => (
+            <li key={s.id} className="flex justify-between gap-2">
+              <span>{s.device}</span>
+              <span className="text-slate-500">
+                {new Date(s.lastActive).toLocaleString()}
+              </span>
+            </li>
+          ))}
+          {sessions.length === 0 && (
+            <li className="text-slate-500">No session data available.</li>
+          )}
+        </ul>
+      </div>
+
+      {isAdmin() && (
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold text-slate-400">
+            Recent admin actions
+          </p>
+          <ul className="space-y-1 text-[11px] text-slate-400 max-h-24 overflow-y-auto">
+            {auditLog.slice(0, 5).map((e) => (
+              <li key={e.id} className="flex justify-between gap-2">
+                <span>{e.action}</span>
+                <span className="text-slate-500">
+                  {new Date(e.createdAt).toLocaleString()}
+                </span>
+              </li>
+            ))}
+            {auditLog.length === 0 && (
+              <li className="text-slate-500">No admin activity yet.</li>
+            )}
+          </ul>
+        </div>
+      )}
+    </motion.section>
+  );
+}
+
+function ApiAndDataCard({ apiKeys }: { apiKeys: ApiKeyInfo[] }) {
+  const { isAdmin, generateApiKey, revokeApiKey } = useMyAccountStore();
+
+  const admin = isAdmin();
+
+  return (
+    <motion.section
+      layout
+      className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-slate-950/40 space-y-4 text-xs"
+    >
+      <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
+        <Cpu className="h-4 w-4" />
+        API & Data
+      </h2>
+
+      {admin ? (
+        <>
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold text-slate-400">API Keys</p>
+            <ul className="space-y-1 max-h-24 overflow-y-auto">
+              {apiKeys.map((k) => (
+                <li
+                  key={k.id}
+                  className="flex items-center justify-between gap-2 rounded-lg border border-slate-700 bg-slate-950/60 px-2 py-1"
+                >
+                  <span className="text-[11px] text-slate-300">
+                    {k.label} · ****{k.lastFour}
+                  </span>
+                  <button
+                    onClick={() => revokeApiKey(k.id)}
+                    className="text-[10px] text-red-300 hover:text-red-200"
+                  >
+                    Revoke
+                  </button>
+                </li>
+              ))}
+              {apiKeys.length === 0 && (
+                <li className="text-[11px] text-slate-500">
+                  No API keys generated yet.
+                </li>
+              )}
+            </ul>
+            <button
+              onClick={() => generateApiKey('Default key')}
+              className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-[11px] text-slate-100 hover:border-sky-500 hover:bg-slate-900"
+            >
+              <KeyRound className="h-4 w-4" />
+              Generate API key
+            </button>
+          </div>
+        </>
+      ) : (
+        <p className="text-[11px] text-slate-500">
+          API access is managed by your workspace administrator.
+        </p>
+      )}
+
+      <div className="mt-3 space-y-2 border-t border-slate-800 pt-3">
+        <p className="text-[11px] font-semibold text-slate-400">
+          Data & Privacy
+        </p>
+        <button className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-3 py-2 text-[11px] text-slate-100 hover:border-sky-500 hover:bg-slate-900">
+          Request data export
+        </button>
+        <button className="w-full rounded-lg border border-red-700/70 bg-red-950/40 px-3 py-2 text-[11px] text-red-100 hover:border-red-500 hover:bg-red-900/60">
+          Request account deletion
+        </button>
+      </div>
+    </motion.section>
+  );
+}
+
+4. API Contract (so Copilot/Gemini can wire the backend)
+
+The frontend assumes a very small, clear set of endpoints:
+
+GET /api/account/overview
+
+Returns:
+
+profile: UserProfile
+
+subscription: SubscriptionInfo
+
+usage: UsageInfo
+
+sessions: SessionInfo[]
+
+auditLog: AuditEvent[]
+
+apiKeys: ApiKeyInfo[] (empty array for non-admins)
+
+PATCH /api/account/profile
+
+Body: Partial<UserProfile>
+
+Returns: updated UserProfile (or just the changed fields)
+
+POST /api/account/billing-portal
+
+Returns: { url: string } (Stripe customer portal URL)
+
+GET /api/account/usage
+
+Returns: UsageInfo
+
+POST /api/account/api-keys
+
+Body: { label: string }
+
+Returns: { key: ApiKeyInfo & { raw?: string } } (you can decide whether to return the raw key once)
+
+DELETE /api/account/api-keys/:id
+
+Revokes the given key
+
+Everything else (data export, delete account, etc.) can be implemented later behind those buttons.
+
+If you’d like, next step I can:
+
+Add a matching API route skeleton for /api/account/overview, /profile, /billing-portal, and /usage that plug into your existing auth + database model, so Copilot has concrete server code to complete.
+
+
+
+
+
+
+Org Settings + Per-User Toggles (Save in My Account file)
+1. Conceptual summary
+
+Org Settings lives as a section inside My Account (only visible if user is an org admin).
+
+It lets admins:
+
+See all team members and their role.
+
+Toggle which tabs and expensive features each member can use (per-user overrides on top of the plan entitlements).
+
+See usage and costs for transparency.
+
+Quickly jump to Upgrade if they are hitting limits.
+
+Internally:
+
+Plan entitlements (from plans table) = maximum allowed capabilities.
+
+Org admin toggles = per-user overrides that can only restrict, not exceed, what the plan offers.
+
+Example:
+
+Plan says canAccessVirtual: true.
+
+Admin can turn it off for a specific user.
+
+Admin cannot turn it on for a Pro plan that has canAccessVirtual: false; the UI disables that toggle.
+
+2. Types (add to a shared types file or My Account file)
+// Shared types for Org Settings / My Account
+
+export type OrgRole = 'owner' | 'admin' | 'member' | 'viewer';
+
+export interface OrgMember {
+  id: string;
+  name: string;
+  email: string;
+  role: OrgRole;
+  lastActiveAt?: string;
+
+  // Effective entitlements (plan + user overrides)
+  entitlements: UserEntitlements;
+
+  // Optional per-user overrides (only stored if different from plan defaults)
+  overrides?: Partial<UserEntitlements>;
+}
+
+export interface OrgUsageSummary {
+  storageUsedMB: number;
+  storageLimitMB: number;
+  processingCreditsUsed: number;
+  processingCreditsLimit: number;
+  activeMembers: number;
+}
+
+
+UserEntitlements is the interface we already defined in the dashboard store; reuse that here.
+
+3. Minimal Org Settings Page (save as spec + example code in My Account file)
+
+Component path (for actual code later):
+app/(dashboard)/org-settings/page.tsx
+
+// app/(dashboard)/org-settings/page.tsx
+'use client';
+
+import { useEffect, useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { Shield, Users, ToggleLeft, ToggleRight, AlertTriangle } from 'lucide-react';
+import type { OrgMember, OrgUsageSummary, OrgRole } from '@/lib/types';
+import type { UserEntitlements } from '@/lib/stores/useDashboardStore';
+
+interface OrgSettingsPayload {
+  members: OrgMember[];
+  usage: OrgUsageSummary;
+  planId: string;
+  planName: string;
+  planTier: 'free' | 'starter' | 'pro' | 'enterprise';
+  planEntitlements: UserEntitlements; // baseline from plan
+}
+
+export default function OrgSettingsPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<OrgSettingsPayload | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [localEdits, setLocalEdits] = useState<Record<string, Partial<UserEntitlements>>>({});
+
+  const isAdminView = true; // TODO: wire this to real role check
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/org/settings');
+        if (!res.ok) throw new Error('Failed to load organization settings');
+        const payload: OrgSettingsPayload = await res.json();
+        setData(payload);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load organization settings');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  // Derived usage %
+  const storagePct = useMemo(() => {
+    if (!data) return 0;
+    return (data.usage.storageUsedMB / (data.usage.storageLimitMB || 1)) * 100;
+  }, [data]);
+
+  const creditsPct = useMemo(() => {
+    if (!data) return 0;
+    return (
+      (data.usage.processingCreditsUsed / (data.usage.processingCreditsLimit || 1)) * 100
+    );
+  }, [data]);
+
+  const handleToggle = (
+    memberId: string,
+    key: keyof UserEntitlements,
+    current: boolean,
+    planAllows: boolean,
+  ) => {
+    if (!planAllows) return; // cannot exceed plan entitlements
+
+    setLocalEdits((prev) => {
+      const existing = prev[memberId] || {};
+      return {
+        ...prev,
+        [memberId]: {
+          ...existing,
+          [key]: !current,
+        },
+      };
+    });
+  };
+
+  const handleSave = async () => {
+    if (!Object.keys(localEdits).length) return;
+    try {
+      setSaving(true);
+      const res = await fetch('/api/org/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ overrides: localEdits }),
+      });
+      if (!res.ok) throw new Error('Failed to save changes');
+
+      // Simple approach: reload everything
+      const updated = await res.json();
+      setData(updated);
+      setLocalEdits({});
+    } catch (err: any) {
+      setError(err.message || 'Failed to save changes');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!isAdminView) {
+    // Non-admin users should not be here
+    if (typeof window !== 'undefined') router.replace('/dashboard');
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] bg-slate-950 text-slate-200">
+        Loading organization settings…
+      </div>
+    );
+  }
+
+  if (error && !data) {
+    return (
+      <div className="p-6 text-xs text-red-300 bg-red-900/20 border border-red-700 rounded">
+        {error}
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  return (
+    <div className="p-4 md:p-6 space-y-6">
+      {/* Header */}
+      <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Shield className="w-5 h-5 text-emerald-400" />
+          <div>
+            <h1 className="text-lg md:text-xl font-semibold">Organization Settings</h1>
+            <p className="text-xs text-slate-400">
+              Control which tools your team can use and keep processing costs predictable.
+            </p>
+          </div>
+        </div>
+        <button
+          className="text-xs px-3 py-2 rounded bg-slate-800 hover:bg-slate-700"
+          onClick={() => router.push('/my-account')}
+        >
+          Back to My Account
+        </button>
+      </header>
+
+      {error && (
+        <div className="text-[11px] text-amber-300 bg-amber-900/20 border border-amber-700 rounded px-3 py-2">
+          {error}
+        </div>
+      )}
+
+      {/* Usage + Plan Summary */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <h2 className="text-sm font-semibold mb-2">Plan</h2>
+          <div className="text-sm font-medium">{data.planName}</div>
+          <div className="text-[11px] text-slate-400">
+            Tier: {data.planTier.toUpperCase()}
+          </div>
+          <button
+            className="mt-3 text-[11px] px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500"
+            onClick={() => router.push('/pricing')}
+          >
+            View upgrade options
+          </button>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <h2 className="text-sm font-semibold mb-2">Storage</h2>
+          <div className="text-xs mb-1">
+            {data.usage.storageUsedMB} / {data.usage.storageLimitMB} MB
+          </div>
+          <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${
+                storagePct > 90 ? 'bg-red-500' : storagePct > 70 ? 'bg-amber-400' : 'bg-emerald-500'
+              }`}
+              style={{ width: `${storagePct}%` }}
+            />
+          </div>
+          <p className="mt-1 text-[11px] text-slate-400">
+            Approaching the limit? Upgrade or archive older workspaces.
+          </p>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <h2 className="text-sm font-semibold mb-2">Processing Credits</h2>
+          <div className="text-xs mb-1">
+            {data.usage.processingCreditsUsed} / {data.usage.processingCreditsLimit}
+          </div>
+          <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${
+                creditsPct > 90 ? 'bg-red-500' : creditsPct > 70 ? 'bg-amber-400' : 'bg-blue-500'
+              }`}
+              style={{ width: `${creditsPct}%` }}
+            />
+          </div>
+          <p className="mt-1 text-[11px] text-slate-400">
+            High-usage tools (3D, AI, rendering) draw from this pool.
+          </p>
+        </div>
+      </section>
+
+      {/* Team */}
+      <section className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <Users className="w-4 h-4" />
+            Team Members
+          </h2>
+          <button
+            className="text-[11px] px-3 py-1 rounded bg-blue-600 hover:bg-blue-500"
+            onClick={() =>
+              router.push('/my-account/invite') // or runAction('open_invite_modal')
+            }
+          >
+            Invite member
+          </button>
+        </div>
+        <p className="text-[11px] text-slate-400 mb-3">
+          You can turn tools on or off per person to keep things simple and stay within budget.
+          Toggles that are greyed out are not available on this plan.
+        </p>
+
+        <div className="space-y-2 text-xs max-h-[420px] overflow-y-auto">
+          {data.members.map((member) => {
+            const overrides = localEdits[member.id] || {};
+            const effective = { ...member.entitlements, ...overrides };
+
+            const toggleRow = (
+              label: string,
+              key: keyof UserEntitlements,
+              planAllows: boolean,
+              value: boolean,
+            ) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => handleToggle(member.id, key, value, planAllows)}
+                className={`flex items-center justify-between w-full px-2 py-1 rounded ${
+                  !planAllows
+                    ? 'opacity-40 cursor-not-allowed'
+                    : 'hover:bg-slate-800 cursor-pointer'
+                }`}
+              >
+                <span>{label}</span>
+                <span className="flex items-center gap-1">
+                  {value ? (
+                    <>
+                      <ToggleRight className="w-4 h-4 text-emerald-400" />
+                      <span>On</span>
+                    </>
+                  ) : (
+                    <>
+                      <ToggleLeft className="w-4 h-4 text-slate-500" />
+                      <span>Off</span>
+                    </>
+                  )}
+                </span>
+              </button>
+            );
+
+            const planEnt = data.planEntitlements;
+
+            return (
+              <div
+                key={member.id}
+                className="border border-slate-800 rounded-lg p-3 bg-slate-900/60"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <div className="font-medium">{member.name}</div>
+                    <div className="text-[11px] text-slate-400">
+                      {member.email} • {member.role.toUpperCase()}
+                    </div>
+                  </div>
+                  {member.role === 'owner' && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-900/40 border border-emerald-500 text-emerald-200">
+                      Owner
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px]">
+                  {toggleRow(
+                    'Project Hub',
+                    'canAccessHub',
+                    planEnt.canAccessHub,
+                    effective.canAccessHub,
+                  )}
+                  {toggleRow(
+                    'Content Studio',
+                    'canAccessContent',
+                    planEnt.canAccessContent,
+                    effective.canAccessContent,
+                  )}
+                  {toggleRow(
+                    'Design Studio',
+                    'canAccessDesign',
+                    planEnt.canAccessDesign,
+                    effective.canAccessDesign,
+                  )}
+                  {toggleRow(
+                    'Geospatial & Robotics',
+                    'canAccessGeospatial',
+                    planEnt.canAccessGeospatial,
+                    effective.canAccessGeospatial,
+                  )}
+                  {toggleRow(
+                    'Virtual Studio',
+                    'canAccessVirtual',
+                    planEnt.canAccessVirtual,
+                    effective.canAccessVirtual,
+                  )}
+                  {toggleRow(
+                    'Reports & Analytics',
+                    'canAccessReports',
+                    planEnt.canAccessReports,
+                    effective.canAccessReports,
+                  )}
+                  {toggleRow(
+                    'Athlete360',
+                    'canAccessAthlete',
+                    planEnt.canAccessAthlete,
+                    effective.canAccessAthlete,
+                  )}
+                  {toggleRow(
+                    'High-cost tools (3D/AI)',
+                    'canRunProcessingJobs',
+                    planEnt.canRunProcessingJobs,
+                    effective.canRunProcessingJobs,
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Save bar */}
+      <section className="flex items-center justify-between text-[11px]">
+        <div className="flex items-center gap-2 text-amber-300">
+          <AlertTriangle className="w-4 h-4" />
+          <span>
+            Changes only apply to new sessions. Ask teammates to refresh Slate360 after you save.
+          </span>
+        </div>
+        <button
+          className="px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-500 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={!Object.keys(localEdits).length || saving}
+          onClick={handleSave}
+        >
+          {saving ? 'Saving…' : 'Save changes'}
+        </button>
+      </section>
+    </div>
+  );
+}
