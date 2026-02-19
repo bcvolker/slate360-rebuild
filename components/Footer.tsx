@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -6,36 +7,58 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           {/* Brand */}
-          <div className="md:col-span-2">
-            <Link
-              href="/"
-              className="text-2xl font-bold tracking-widest"
-              style={{ color: "#FF4D00" }}
-            >
-              SLATE360
+          <div className="md:col-span-1">
+            <Link href="/" className="inline-flex items-center">
+              <Image
+                src="/logo.svg"
+                alt="SLATE360"
+                width={140}
+                height={36}
+                className="h-8 w-auto object-contain"
+              />
             </Link>
-            <p className="mt-4 text-white/50 text-sm leading-relaxed max-w-xs">
+            <p className="mt-4 text-white/50 text-sm leading-relaxed">
               The all-in-one sports media platform for teams, venues, and
               creators who demand professional-grade results.
             </p>
           </div>
 
-          {/* Product */}
+          {/* Features */}
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-white/40 mb-4">
+              Features
+            </h4>
+            <ul className="space-y-3">
+              {[
+                { label: "Design Studio", href: "/features/design-studio" },
+                { label: "Project Hub", href: "/features/project-hub" },
+                { label: "SlateDrop", href: "/features/slatedrop" },
+                { label: "360° Capture", href: "/features/360-capture" },
+                { label: "Analytics", href: "/features/analytics" },
+                { label: "GPU Rendering", href: "/features/rendering" },
+              ].map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="text-sm text-white/60 hover:text-white transition-colors">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Platform */}
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-widest text-white/40 mb-4">
               Platform
             </h4>
             <ul className="space-y-3">
               {[
-                { label: "Features", href: "/features" },
+                { label: "All Features", href: "/features" },
                 { label: "Plans & Pricing", href: "/plans" },
                 { label: "About", href: "/about" },
               ].map((l) => (
                 <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    className="text-sm text-white/60 hover:text-white transition-colors"
-                  >
+                  <Link href={l.href} className="text-sm text-white/60 hover:text-white transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -52,12 +75,10 @@ export default function Footer() {
               {[
                 { label: "Login", href: "/login" },
                 { label: "Start Free Trial", href: "/plans" },
+                { label: "Contact Sales", href: "mailto:hello@slate360.ai" },
               ].map((l) => (
                 <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    className="text-sm text-white/60 hover:text-white transition-colors"
-                  >
+                  <Link href={l.href} className="text-sm text-white/60 hover:text-white transition-colors">
                     {l.label}
                   </Link>
                 </li>
