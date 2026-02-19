@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
 import { Menu, X, ChevronDown } from "lucide-react";
 
@@ -23,13 +22,11 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 md:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center h-10">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/logo.svg"
             alt="SLATE360"
-            width={160}
-            height={40}
             className="h-9 w-auto object-contain"
-            priority
           />
         </Link>
 

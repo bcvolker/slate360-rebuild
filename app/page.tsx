@@ -163,13 +163,11 @@ export default function HomePage() {
           </span>
 
           {/* Logo */}
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/logo.svg"
             alt="SLATE360"
-            width={480}
-            height={120}
             className="w-56 sm:w-80 md:w-[480px] h-auto"
-            priority
           />
 
           <p className="text-lg sm:text-xl md:text-2xl text-white/55 max-w-2xl leading-relaxed">
