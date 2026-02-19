@@ -1,12 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import Link from "next/link";
-import Script from "next/script";
 import { ChevronRight, X, Maximize2, Play, Check } from "lucide-react";
+
+/** Loaded only client-side to prevent SSR hydration mismatch on <model-viewer> */
+const ModelViewer = dynamic(() => import("@/components/ModelViewerClient"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
+      <span className="text-white/30 text-sm">Loading 3D model…</span>
+    </div>
+  ),
+});
 
 /* ─── Feature tiles ─── */
 const features = [
@@ -245,14 +255,9 @@ export default function HomePage() {
             {/* 3D Model Viewer */}
             <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-zinc-950 shadow-2xl flex flex-col">
               <div className="relative w-full aspect-video flex-shrink-0 bg-zinc-900">
-                {/* @ts-expect-error — custom web component */}
-                <model-viewer
-                  src="/uploads/csbglbmodel-optimized.glb"
+                <ModelViewer
+                  src="/uploads/csb-stadium-model.glb"
                   alt="SLATE360 3D stadium model"
-                  auto-rotate
-                  camera-controls
-                  environment-image="neutral"
-                  exposure="0.8"
                   style={{ width: "100%", height: "100%", background: "transparent" }}
                 />
                 <span className="absolute top-4 left-4 text-xs font-semibold uppercase tracking-widest text-white/80 bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm border border-white/10 pointer-events-none">
@@ -549,27 +554,15 @@ export default function HomePage() {
             </button>
           </div>
           <div className="flex-1 relative min-h-0">
-            {/* @ts-expect-error — custom web component */}
-            <model-viewer
-              src="/uploads/csbglbmodel-optimized.glb"
+            <ModelViewer
+              src="/uploads/csb-stadium-model.glb"
               alt="SLATE360 3D stadium model full screen"
-              auto-rotate
-              camera-controls
-              environment-image="neutral"
-              exposure="0.9"
               style={{ width: "100%", height: "100%", background: "#0a0a0a" }}
             />
           </div>
         </div>
       )}
 
-      {/* model-viewer — loaded only on this page */}
-      <Script
-        type="module"
-        src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"
-        strategy="lazyOnload"
-        crossOrigin="anonymous"
-      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  adjustFontFallback: false, // suppresses "Failed to find font override values" build warning
 });
 
 export const metadata: Metadata = {

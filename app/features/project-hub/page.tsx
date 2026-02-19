@@ -1,11 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import Script from "next/script";
 import { ChevronRight, X, Maximize2, Check, ChevronLeft } from "lucide-react";
+
+const ModelViewer = dynamic(() => import("@/components/ModelViewerClient"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
+      <span className="text-white/30 text-sm">Loading 3D model…</span>
+    </div>
+  ),
+});
 
 const highlights = [
   "Centralized dashboard for all campaigns, projects, and assets",
@@ -157,10 +166,13 @@ export default function ProjectHubPage() {
             <button onClick={() => setShow3D(false)} className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"><X size={18} /></button>
           </div>
           <div className="flex-1 relative min-h-0">
-            {/* @ts-expect-error */}
-            <model-viewer src="/uploads/csbglbmodel-optimized.glb" alt="3D model" auto-rotate camera-controls environment-image="neutral" exposure="0.9" style={{ width: "100%", height: "100%", background: "#0a0a0a" }} />
+            <ModelViewer
+              src="/uploads/csb-stadium-model.glb"
+              alt="3D stadium model"
+              style={{ width: "100%", height: "100%", background: "#0a0a0a" }}
+            />
           </div>
-          <Script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js" strategy="lazyOnload" crossOrigin="anonymous" />
+          
         </div>
       )}
     </div>
