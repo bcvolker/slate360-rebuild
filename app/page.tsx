@@ -270,6 +270,7 @@ function ViewerModal({
    ═══════════════════════════════════════════════════════════ */
 export default function HomePage() {
   const [modal3D, setModal3D] = useState(false);
+  const [heroInteractive, setHeroInteractive] = useState(false);
   const [modalCard, setModalCard] = useState<string | null>(null);
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [mounted, setMounted] = useState(false);
@@ -284,9 +285,9 @@ export default function HomePage() {
 
       {/* ────── HERO — full viewport ────── */}
       <section className="min-h-screen flex items-center pt-16 px-4 sm:px-6">
-        <div className="max-w-[90rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center py-12 lg:py-0">
-          {/* Left: headline + CTAs (60%) */}
-          <div className="lg:col-span-7 max-w-2xl">
+        <div className="max-w-[90rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center py-12 lg:py-0">
+          {/* Left: headline + CTAs (~55%) */}
+          <div className="lg:col-span-6 max-w-2xl">
             <h1
               className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.04] mb-6"
               style={{ color: "#1E3A8A" }}
@@ -316,8 +317,8 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right: ONE hero vision viewer (40%) — landscape, model loaded by default */}
-          <div className="lg:col-span-5 flex items-center justify-center py-4 lg:py-0">
+          {/* Right: ONE hero vision viewer (~45%) — landscape, model loaded by default */}
+          <div className="lg:col-span-6 flex items-center justify-center py-4 lg:py-0 lg:pr-4">
             <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-black shadow-2xl w-full">
               {/* Viewer — wider than tall */}
               <div className="relative w-full aspect-[16/10]">
@@ -331,8 +332,10 @@ export default function HomePage() {
                       background: "transparent",
                     }}
                     cameraOrbit="30deg 75deg 105%"
+                    orientation="0deg 0deg 0deg"
                     shadowIntensity={1}
                     shadowSoftness={0.8}
+                    interactive={heroInteractive}
                   />
                 )}
                 {/* Expand button */}
@@ -347,11 +350,11 @@ export default function HomePage() {
               <div className="px-4 py-3 flex items-center justify-between bg-gray-900/90 backdrop-blur border-t border-white/10">
                 <span className="text-xs font-semibold text-white/70 tracking-wide">Hero Vision</span>
                 <button
-                  onClick={() => setModal3D(true)}
+                  onClick={() => setHeroInteractive((v) => !v)}
                   className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white transition-all hover:opacity-90"
                   style={{ backgroundColor: "#FF4D00" }}
                 >
-                  Navigate Model
+                  {heroInteractive ? "Lock Model" : "Navigate Model"}
                 </button>
               </div>
             </div>
@@ -434,8 +437,10 @@ export default function HomePage() {
                       alt="Design Studio preview"
                       style={{ width: "100%", height: "100%", background: "transparent" }}
                       cameraOrbit="30deg 75deg 105%"
+                      orientation="0deg 0deg 0deg"
                       shadowIntensity={1}
                       shadowSoftness={0.8}
+                      interactive={false}
                     />
                   ) : p.key === "360-tour-builder" ? (
                     <div
@@ -446,6 +451,19 @@ export default function HomePage() {
                     <div className="flex flex-col items-center gap-3">
                       <span className="text-5xl opacity-80 group-hover:opacity-100 transition-opacity drop-shadow-sm">{p.icon}</span>
                       <span className="text-xs text-white/40 font-medium">Preview</span>
+                    </div>
+                  )}
+                  {/* Bottom bar for 360 card */}
+                  {p.key === "360-tour-builder" && (
+                    <div className="absolute bottom-0 left-0 right-0 px-4 py-2.5 flex items-center justify-between bg-gray-900/80 backdrop-blur border-t border-white/10 z-10">
+                      <span className="text-[10px] font-semibold text-white/70 tracking-wide">360° Preview</span>
+                      <button
+                        onClick={() => setModalCard("360-tour-builder")}
+                        className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold text-white transition-all hover:opacity-90"
+                        style={{ backgroundColor: "#FF4D00" }}
+                      >
+                        Navigate Tour
+                      </button>
                     </div>
                   )}
                 </div>
@@ -656,6 +674,7 @@ export default function HomePage() {
             alt="3D building model fullscreen"
             style={{ width: "100%", height: "100%", background: "black" }}
             cameraOrbit="30deg 75deg 105%"
+            orientation="0deg 0deg 0deg"
             shadowIntensity={1}
             shadowSoftness={0.8}
           />
@@ -674,6 +693,7 @@ export default function HomePage() {
             alt="Design Studio"
             style={{ width: "100%", height: "100%", background: "black" }}
             cameraOrbit="30deg 75deg 105%"
+            orientation="0deg 0deg 0deg"
             shadowIntensity={1}
             shadowSoftness={0.8}
           />
@@ -682,7 +702,7 @@ export default function HomePage() {
           <iframe
             src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent(
               "/uploads/pletchers.jpg"
-            )}&autoLoad=true&compass=false`}
+            )}&autoLoad=true`}
             className="w-full h-full border-0"
             allowFullScreen
             title="360 panorama"

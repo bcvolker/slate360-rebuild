@@ -13,6 +13,8 @@ interface ModelViewerClientProps {
   cameraOrbit?: string;
   shadowIntensity?: number;
   shadowSoftness?: number;
+  orientation?: string;
+  interactive?: boolean;
 }
 
 export default function ModelViewerClient({
@@ -22,6 +24,8 @@ export default function ModelViewerClient({
   cameraOrbit,
   shadowIntensity,
   shadowSoftness,
+  orientation,
+  interactive = true,
 }: ModelViewerClientProps) {
   const defaultStyle: React.CSSProperties = {
     width: "100%",
@@ -35,6 +39,7 @@ export default function ModelViewerClient({
     extras["shadow-intensity"] = String(shadowIntensity);
   if (shadowSoftness !== undefined)
     extras["shadow-softness"] = String(shadowSoftness);
+  if (orientation) extras["orientation"] = orientation;
 
   return (
     <>
@@ -43,7 +48,7 @@ export default function ModelViewerClient({
         src={src}
         alt={alt}
         auto-rotate
-        camera-controls
+        {...(interactive ? { "camera-controls": true } : { "interaction-prompt": "none", "disable-tap": true })}
         environment-image="neutral"
         exposure="0.8"
         style={style ?? defaultStyle}
