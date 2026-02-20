@@ -45,6 +45,9 @@ import {
   CloudRain,
   Snowflake,
   type LucideIcon,
+  User,
+  Shield,
+  LayoutDashboard,
 } from "lucide-react";
 
 /* ================================================================
@@ -88,6 +91,14 @@ interface Job {
   type: string;
   progress: number;
   status: "completed" | "processing" | "queued" | "failed";
+}
+
+interface DashTab {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  color: string;
+  isCEOOnly?: boolean;
 }
 
 /* ================================================================
@@ -311,6 +322,61 @@ function WidgetCard({
 }
 
 /* ================================================================
+   TAB WIREFRAME PLACEHOLDER
+   ================================================================ */
+
+function TabWireframe({ tab, onBack }: { tab: DashTab; onBack: () => void }) {
+  const Icon = tab.icon;
+  const descMap: Record<string, string> = {
+    "project-hub":    "Centralized project management, RFIs, daily reports, and team coordination.",
+    "design-studio":  "3D modelling, BIM coordination, and real-time design collaboration.",
+    "content-studio": "Create and manage visual content, renderings, and marketing assets.",
+    "tours":          "Immersive 360° virtual tours for client presentations and remote inspections.",
+    "geospatial":     "Drone surveys, point clouds, GIS mapping, and geospatial data workflows.",
+    "virtual-studio": "Virtual production, site visualization, and simulation environments.",
+    "analytics":      "Project analytics, progress tracking, financial reporting, and insights.",
+    "slatedrop":      "Intelligent file management, delivery, and secure document sharing.",
+    "my-account":     "Manage your profile, subscription, billing, and account settings.",
+    "ceo":            "Platform-wide oversight, admin controls, and strategic metrics.",
+    "market":         "Marketplace listings, procurement workflows, and vendor management.",
+    "athlete360":     "Athletic performance tracking, recruitment tools, and 360° athlete profiles.",
+  };
+  const desc = descMap[tab.id] ?? `The ${tab.label} workspace is coming soon.`;
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div
+        className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-sm"
+        style={{ backgroundColor: `${tab.color}18`, color: tab.color }}
+      >
+        <Icon size={36} />
+      </div>
+      <h2 className="text-2xl font-black text-gray-900 mb-2">{tab.label}</h2>
+      {tab.isCEOOnly && (
+        <span className="inline-block mb-3 text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+          CEO Access Only
+        </span>
+      )}
+      <p className="text-sm text-gray-400 mb-8 max-w-sm leading-relaxed">{desc}</p>
+      {tab.id === "slatedrop" && (
+        <Link
+          href="/slatedrop"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 mb-4"
+          style={{ backgroundColor: "#FF4D00" }}
+        >
+          Open SlateDrop <ArrowRight size={15} />
+        </Link>
+      )}
+      <button
+        onClick={onBack}
+        className="text-xs font-semibold text-gray-400 hover:text-gray-700 transition-colors flex items-center gap-1.5 mt-2"
+      >
+        <ChevronLeft size={13} /> Back to Overview
+      </button>
+    </div>
+  );
+}
+
+/* ================================================================
    MAIN DASHBOARD COMPONENT
    ================================================================ */
 
@@ -318,7 +384,43 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const ent = getEntitlements(tier);
   const supabase = createClient();
 
-  /* ── State ── */
+  // CEO / special-access check — only slate360ceo@gmail.com sees CEO tabs
+  const isCEO = user.email === "slate360ceo@gmail.com";
+
+  // Build the ordered, filtered tab list based on tier entitlements + identity
+  const visibleTabs: DashTab[] = ([
+    { id: "project-hub",    label: "Project Hub",    icon: LayoutDashboard, color: "#1E3A8A" },
+    { id: "design-studio",  label: "Design Studio",  icon: Palette,         color: "#FF4D00" },
+    { id: "content-studio", label: "Content Studio", icon: Layers,          color: "#1E3A8A" },
+    { id: "tours",          label: "360 Tours",      icon: Compass,         color: "#FF4D00" },
+    { id: "geospatial",     label: "Geospatial",     icon: Globe,           color: "#1E3A8A" },
+    { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#FF4D00" },
+    { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#1E3A8A" },
+    { id: "slatedrop",      label: "SlateDrop",      icon: FolderOpen,      color: "#FF4D00" },
+    { id: "my-account",     label: "My Account",     icon: User,            color: "#1E3A8A" },
+    ...(isCEO ? ([
+      { id: "ceo",        label: "CEO",        icon: Shield,      color: "#FF4D00", isCEOOnly: true },
+      { id: "market",     label: "Market",     icon: TrendingUp,  color: "#1E3A8A", isCEOOnly: true },
+      { id: "athlete360", label: "Athlete360", icon: Zap,         color: "#FF4D00", isCEOOnly: true },
+    ] as DashTab[]) : []),
+  ] as DashTab[]).filter((tab) => {
+    switch (tab.id) {
+      case "project-hub":    return ent.canAccessHub;
+      case "design-studio":  return ent.canAccessDesignStudio;
+      case "content-studio": return ent.canAccessContent;
+      case "tours":          return ent.canAccessTourBuilder;
+      case "geospatial":     return ent.canAccessGeospatial;
+      case "virtual-studio": return ent.canAccessVirtual;
+      case "analytics":      return ent.canAccessAnalytics;
+      case "slatedrop":      return ent.canViewSlateDropWidget;
+      case "my-account":     return true;
+      case "ceo":
+      case "market":
+      case "athlete360":     return isCEO;
+      default:               return false;
+    }
+  });
+
   const [selectedProject, setSelectedProject] = useState("all");
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -336,6 +438,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [suggestDone, setSuggestDone] = useState(false);
   const [weatherLogged, setWeatherLogged] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
 
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -571,6 +674,67 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           </div>
         </div>
 
+        {/* ════════ QUICK ACCESS / TAB NAVIGATION ════════ */}
+        {(() => {
+          const navItems: Array<{ id: string; label: string; icon: LucideIcon; color: string; isCEOOnly?: boolean }> = [
+            { id: "overview", label: "Overview", icon: LayoutDashboard, color: "#1E3A8A" },
+            ...visibleTabs,
+          ];
+          const count = navItems.length;
+          const tileW = count <= 7 ? "w-[6.5rem]" : count <= 10 ? "w-[5.5rem]" : "w-[4.75rem]";
+          const icoBox = count <= 7 ? "w-11 h-11" : count <= 10 ? "w-10 h-10" : "w-9 h-9";
+          const icoSz = count <= 7 ? 20 : count <= 10 ? 18 : 15;
+          const lblSz = count <= 7 ? "text-xs" : count <= 10 ? "text-[11px]" : "text-[10px]";
+          return (
+            <div className="mb-8">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Quick Access</p>
+              <div className="flex flex-wrap justify-center gap-2.5">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id)}
+                      className={`flex flex-col items-center gap-1.5 py-3.5 px-2 rounded-2xl bg-white border transition-all duration-200 group ${tileW} ${
+                        isActive
+                          ? "border-[#FF4D00] shadow-lg -translate-y-0.5"
+                          : "border-gray-100 hover:border-gray-200 hover:shadow-md hover:-translate-y-0.5"
+                      } ${item.isCEOOnly ? "ring-1 ring-amber-200" : ""}`}
+                    >
+                      <div
+                        className={`${icoBox} rounded-xl flex items-center justify-center transition-colors`}
+                        style={
+                          isActive
+                            ? { backgroundColor: "#FF4D00", color: "#fff" }
+                            : { backgroundColor: `${item.color}1A`, color: item.color }
+                        }
+                      >
+                        <Icon size={icoSz} />
+                      </div>
+                      <span
+                        className={`${lblSz} font-semibold text-center leading-tight transition-colors ${
+                          isActive ? "text-[#FF4D00]" : "text-gray-600 group-hover:text-gray-900"
+                        }`}
+                      >
+                        {item.label}
+                      </span>
+                      {item.isCEOOnly && (
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded-full leading-none">
+                          CEO
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ════════ OVERVIEW TAB CONTENT ════════ */}
+        {activeTab === "overview" && (
+        <>
         {/* ════════ PROJECT CAROUSEL ════════ */}
         <div className="relative mb-10">
           <div className="flex items-center justify-between mb-4">
@@ -1158,39 +1322,15 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           )}
         </div>
 
-        {/* ── Quick Access Bar ── */}
-        <div className="mt-10 mb-4">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Access</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-8 gap-3">
-            {[
-              { icon: Palette, label: "Design Studio", href: "/features/design-studio", color: "#FF4D00" },
-              { icon: Layers, label: "Content Studio", href: "/features/content-studio", color: "#1E3A8A" },
-              { icon: Compass, label: "360 Tours", href: "/features/360-tour-builder", color: "#FF4D00" },
-              { icon: Globe, label: "Geospatial", href: "/features/geospatial-robotics", color: "#1E3A8A" },
-              { icon: Film, label: "Virtual Studio", href: "/features/virtual-studio", color: "#FF4D00" },
-              { icon: BarChart3, label: "Analytics", href: "/features/analytics-reports", color: "#1E3A8A" },
-              { icon: FolderOpen, label: "SlateDrop", href: "/features/slatedrop", color: "#FF4D00" },
-              { icon: Activity, label: "Project Hub", href: "/features/project-hub", color: "#1E3A8A" },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition-all group"
-                >
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors"
-                    style={{ backgroundColor: `${item.color}1A`, color: item.color }}
-                  >
-                    <Icon size={18} />
-                  </div>
-                  <span className="text-[11px] font-semibold text-gray-600 group-hover:text-gray-900 transition-colors text-center leading-tight">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+        </>
+        )}
+
+        {/* ════════ SPECIFIC TAB WIREFRAME ════════ */}
+        {activeTab !== "overview" && (() => {
+          const tab = visibleTabs.find((t) => t.id === activeTab);
+          if (!tab) return null;
+          return <TabWireframe tab={tab} onBack={() => setActiveTab("overview")} />;
+        })()}
       </main>
     </div>
   );

@@ -5,13 +5,12 @@ import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
-  title: "Slate360 — The All-In-One Construction Platform",
+  title: "SLATE360 — The All-In-One Sports Media Platform",
   description:
-    "Slate360 gives construction teams, architects, and project managers a complete platform to manage, visualize, and deliver building projects.",
+    "SLATE360 gives teams, venues, and content creators a complete platform to capture, produce, and distribute elite sports content.",
   icons: {
     icon: "/uploads/favicon.svg",
   },
@@ -24,7 +23,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${geistSans.variable} antialiased`}>{children}</body>
+      <body className={`${geistSans.variable} antialiased bg-black text-white`}>
+        {children}
+      </body>
     </html>
   );
 }
