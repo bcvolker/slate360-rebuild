@@ -1,30 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ChevronRight, ChevronLeft, X, Maximize2, Check } from "lucide-react";
 
-const ModelViewer = dynamic(() => import("@/components/ModelViewerClient"), {
-  ssr: false,
-  loading: () => <div className="w-full h-full bg-gray-100 flex items-center justify-center"><span className="text-gray-400 text-sm">Loading…</span></div>,
-});
 const highlights = [
-  "3D parametric modeling with extensive open-source parts library",
-  "2D plan review with redline, cloud, and pin markup (Bluebeam-style)",
-  "STL fabrication prep: scale, auto-repair, section, and print queue",
-  "Camera-path animation export to MP4 for client presentations",
-  "BIM layer toggles for IFC, Revit, and DWG imports",
-  "Version control with visual diff comparison",
-  "Pop-out canvas for dual-monitor workflows",
-  "Attach views directly to Project Hub RFIs and submittals",
+  "Cloud-rendered photorealistic images from your 3D models",
+  "Animated fly-through MP4 export for client presentations",
+  "Material and lighting presets for fast results",
+  "Branded PDF presentation builder for bid packages",
+  "Direct import from Design Studio with scene state preserved",
+  "360° panoramic render output for virtual site previews",
+  "Pop-out preview window for second monitor workflows",
+  "Processing queue with real-time status notifications",
 ];
-
+const gallery = [
+  { id: 1, label: "Render Queue", bg: "from-purple-50 to-gray-50", emoji: "⚡", desc: "Cloud GPU render queue with per-job status, preview thumbnails, and download links" },
+  { id: 2, label: "Material Editor", bg: "from-violet-50 to-gray-50", emoji: "🎨", desc: "Drag-and-drop material presets over your model surfaces" },
+  { id: 3, label: "Animation Timeline", bg: "from-indigo-50 to-gray-50", emoji: "🎬", desc: "Set camera keyframes and export MP4 in one click" },
+  { id: 4, label: "Presentation Builder", bg: "from-blue-50 to-purple-50", emoji: "📊", desc: "Branded layout with your logo, renders, and project details — export as PDF" },
+];
 export default function Page() {
-  const [showDemo, setShowDemo] = useState(false);
-  
+  const [showDemo, setShowDemo] = useState(false); const [galleryIdx, setGalleryIdx] = useState(0);
+  const current = gallery[galleryIdx];
   return (
     <div className="bg-white min-h-screen text-gray-900 antialiased">
       <Navbar />
@@ -36,12 +36,12 @@ export default function Page() {
             <ChevronLeft size={12} /> All features
           </Link>
           <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-5" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
-            Design
+            Present
           </span>
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-none mb-6" style={{ color: "#1E3A8A" }}>
-            Design Studio
+            Virtual Studio
           </h1>
-          <p className="text-xl text-gray-500 leading-relaxed max-w-2xl mb-8">Your all-in-one workspace for 3D modeling, 2D plan markup, and fabrication preparation — context-aware tools that adapt to every task.</p>
+          <p className="text-xl text-gray-500 leading-relaxed max-w-2xl mb-8">Turn your 3D models and site captures into photorealistic renderings, fly-through animations, and polished client presentations.</p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link href="/signup" className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-base text-white transition-all hover:opacity-90 hover:scale-105" style={{ backgroundColor: "#FF4D00" }}>
               Start free trial <ChevronRight size={16} />
@@ -56,7 +56,7 @@ export default function Page() {
       {/* Description */}
       <section className="py-16 px-4 sm:px-6 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <p className="text-lg text-gray-600 leading-relaxed">Design Studio unifies the tools construction professionals need most: 3D parametric modeling, 2D plan review with redline markup, STL fabrication prep, and animated project progressions. The workspace adapts to your task automatically — switch from orbit model to redline PDF without changing tabs. Every asset integrates with Project Hub, SlateDrop, and Virtual Studio.</p>
+          <p className="text-lg text-gray-600 leading-relaxed">Virtual Studio is where your models come to life. Import directly from Design Studio, add materials and lighting, and render photorealistic images or MP4 fly-throughs in the cloud. Create branded PDF and video presentations for bid packages, owner reviews, and progress reports — all without leaving Slate360.</p>
         </div>
       </section>
 
@@ -97,11 +97,19 @@ export default function Page() {
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowDemo(false)}>
           <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[90vw] h-[90vh] sm:w-[65vw] sm:h-[65vh] max-w-5xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 flex-shrink-0">
-              <span className="text-sm font-semibold text-gray-700">3D Model Demo</span>
+              <span className="text-sm font-semibold text-gray-700">{gallery[galleryIdx].label}</span>
               <button onClick={() => setShowDemo(false)} className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"><X size={15} /></button>
             </div>
-            <div className="flex-1 relative min-h-0">
-              <ModelViewer src="/uploads/csb-stadium-model.glb" alt="3D demo" style={{ width:"100%", height:"100%", background:"#f9fafb" }} />
+            <div className={`flex-1 bg-gradient-to-br ${gallery[galleryIdx].bg} flex items-center justify-center`}>
+              <div className="text-center px-6">
+                <div className="text-7xl mb-4">{gallery[galleryIdx].emoji}</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{gallery[galleryIdx].label}</h3>
+                <p className="text-gray-500">{gallery[galleryIdx].desc}</p>
+                <div className="flex gap-3 justify-center mt-6">
+                  <button onClick={() => setGalleryIdx(i => (i - 1 + gallery.length) % gallery.length)} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"><ChevronLeft size={18} /></button>
+                  <button onClick={() => setGalleryIdx(i => (i + 1) % gallery.length)} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"><ChevronRight size={18} /></button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

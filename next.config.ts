@@ -8,26 +8,12 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      {
-        source: "/project-hub",
-        destination: "/",
-        permanent: false,
-      },
-      {
-        source: "/dashboard",
-        destination: "/",
-        permanent: false,
-      },
-      {
-        source: "/design-studio",
-        destination: "/",
-        permanent: false,
-      },
-      {
-        source: "/content-studio",
-        destination: "/",
-        permanent: false,
-      },
+      // Legacy URL aliases → correct feature pages
+      { source: "/project-hub", destination: "/features/project-hub", permanent: false },
+      { source: "/design-studio", destination: "/features/design-studio", permanent: false },
+      { source: "/content-studio", destination: "/features/virtual-studio", permanent: false },
+      { source: "/slatedrop", destination: "/features/slatedrop", permanent: false },
+      { source: "/360-capture", destination: "/features/360-tour-builder", permanent: false },
     ];
   },
 };

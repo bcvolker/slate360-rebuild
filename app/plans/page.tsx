@@ -1,300 +1,133 @@
 "use client";
-
 import { useState } from "react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import Link from "next/link";
 import { Check, ChevronRight } from "lucide-react";
 
-const plans = [
+const tiers = [
   {
-    name: "Creator",
-    monthlyPrice: "$79",
-    annualPrice: "$790",
-    tagline: "For individual creators and small teams just getting started.",
-    cta: "Start Free Trial",
-    href: "/login",
+    name: "Creator", price: "$79", annualPrice: "$66", per: "/mo",
+    desc: "For solo visual content creators and small teams.",
     features: [
-      "3 active projects",
-      "50 GB storage",
-      "500 rendering credits / mo",
-      "SlateDrop publishing",
-      "Design Studio access",
-      "360° viewer embeds",
-      "1 team member",
-      "Email support",
+      "360 Tour Builder", "Virtual Studio",
+      "40 GB SlateDrop storage", "6,000 processing credits/mo",
+      "Embed tours on any website", "Share links for clients",
+      "PWA field capture app",
     ],
+    cta: "Start free trial", href: "/signup",
   },
   {
-    name: "Model",
-    monthlyPrice: "$199",
-    annualPrice: "$1,990",
-    tagline: "For growing organizations that need more power and projects.",
-    cta: "Start Free Trial",
-    href: "/login",
-    featured: true,
+    name: "Model", price: "$199", annualPrice: "$166", per: "/mo",
+    desc: "For architects, modelers, and drone operators.",
     features: [
-      "25 active projects",
-      "250 GB storage",
-      "2,500 rendering credits / mo",
-      "Everything in Creator",
-      "GPU-accelerated rendering",
-      "Full Project Hub access",
-      "Up to 10 team members",
-      "Priority support",
-      "Automated 3D processing",
-      "Advanced analytics",
+      "Design Studio (full access)", "Geospatial & Robotics",
+      "360 Tour Builder + Virtual Studio",
+      "150 GB SlateDrop storage", "15,000 processing credits/mo",
+      "Photogrammetry pipeline", "3D print queue",
+      "Animation export to MP4",
     ],
+    cta: "Start free trial", href: "/signup", highlight: true,
   },
   {
-    name: "Business",
-    monthlyPrice: "$499",
-    annualPrice: "$4,990",
-    tagline: "For professional operations running multiple venues and campaigns.",
-    cta: "Start Free Trial",
-    href: "/login",
+    name: "Business", price: "$499", annualPrice: "$416", per: "/mo",
+    desc: "Full platform for construction teams and contractors.",
     features: [
-      "Unlimited projects",
-      "2 TB storage",
-      "10,000 rendering credits / mo",
-      "Everything in Model",
-      "Unlimited team members",
-      "White-label exports",
-      "Multi-venue management",
-      "Custom brand kits (unlimited)",
-      "Dedicated onboarding",
-      "SLA response guarantee",
+      "All modules including Project Hub",
+      "750 GB SlateDrop storage", "30,000 processing credits/mo",
+      "RFI and submittal workflows", "Project folder auto-structure",
+      "Gantt timeline and scheduling", "Analytics and reporting",
+      "PDF and CSV project exports",
     ],
+    cta: "Start free trial", href: "/signup",
   },
   {
-    name: "Enterprise",
-    monthlyPrice: "Custom",
-    annualPrice: null,
-    tagline: "Broadcast-scale, enterprise integrations, and dedicated engineering support.",
-    cta: "Contact Sales",
-    href: "mailto:hello@slate360.ai",
+    name: "Enterprise", price: "Custom", annualPrice: "Custom", per: "",
+    desc: "For large firms, multi-team organizations, and government clients.",
     features: [
-      "Everything in Business",
-      "Unlimited storage & credits",
-      "Custom integrations",
-      "Dedicated engineer",
-      "SSO / SAML authentication",
-      "On-prem deployment option",
-      "Custom SLA",
-      "Executive onboarding",
+      "Everything in Business", "Seat management and role assignment",
+      "Real-time multi-user collaboration", "Dedicated support SLA",
+      "Custom storage and credits", "SSO and enterprise security",
+      "Onboarding and training sessions",
     ],
+    cta: "Contact us", href: "mailto:hello@slate360.ai",
   },
 ];
 
 const faqs = [
-  {
-    q: "Is there a free trial?",
-    a: "Yes — Creator, Model, and Business plans all include a 14-day free trial with full access. No credit card required to start.",
-  },
-  {
-    q: "What are rendering credits?",
-    a: "Credits are used for GPU-intensive jobs: 3D model processing, 360° stitching, and large-format image exports. Unused credits roll over to the next month. Most users never need to buy more.",
-  },
-  {
-    q: "Can I change plans later?",
-    a: "Absolutely. Upgrade, downgrade, or cancel anytime from your account settings. Changes take effect at the next billing cycle.",
-  },
-  {
-    q: "What is the annual discount?",
-    a: "Annual billing saves you approximately 17% compared to monthly. The price shown for annual is the total for the year.",
-  },
-  {
-    q: "What payment methods do you accept?",
-    a: "All major credit and debit cards via Stripe. Enterprise customers can also pay by invoice.",
-  },
-  {
-    q: "What counts as a project?",
-    a: "A project is any campaign, event, or content collection in your Project Hub. Archived and active projects each count separately.",
-  },
+  { q: "Can I switch plans anytime?", a: "Yes. You can upgrade or downgrade at any time. Credits and data carry over when upgrading." },
+  { q: "What are processing credits?", a: "Credits are consumed for GPU-intensive tasks like photogrammetry, 3D rendering, and 360° stitching. Credits refresh monthly and unused credits roll over up to 2x your monthly allotment." },
+  { q: "Is the free trial really free?", a: "Yes — no credit card required. Trial gives you access to all tabs with starter-level limits so you can explore before committing." },
+  { q: "What happens to my data if I downgrade?", a: "Your data and projects are never deleted when you downgrade. You just lose access to features above your tier until you upgrade again." },
+  { q: "Do you offer nonprofit or education pricing?", a: "Yes. Contact us at hello@slate360.ai for nonprofit, academic, and government pricing." },
+  { q: "Can I use Slate360 on my phone?", a: "Yes — every module has a mobile-optimized view. Field crews can use the PWA apps for 360° capture and project reporting even with limited connectivity." },
 ];
 
 export default function PlansPage() {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
-
   return (
-    <div className="bg-black min-h-screen text-white antialiased">
+    <div className="bg-white min-h-screen text-gray-900 antialiased">
       <Navbar />
-
-      {/* Hero */}
-      <section className="pt-36 pb-16 px-6 md:px-8 text-center">
+      <section className="pt-32 pb-12 px-4 sm:px-6 text-center">
         <div className="max-w-2xl mx-auto">
-          <span
-            className="text-xs font-semibold uppercase tracking-widest"
-            style={{ color: "#FF4D00" }}
-          >
-            Pricing
-          </span>
-          <h1 className="mt-4 text-5xl md:text-7xl font-black tracking-tight leading-none">
-            Simple, honest pricing.
-          </h1>
-          <p className="mt-6 text-white/50 text-xl leading-relaxed">
-            Start free. Scale when you&apos;re ready. No surprise fees, no
-            credit card required to trial.
-          </p>
+          <span className="inline-block text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full mb-4" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>Pricing</span>
+          <h1 className="text-5xl sm:text-6xl font-black tracking-tight mb-4" style={{ color: "#1E3A8A" }}>Simple, transparent pricing</h1>
+          <p className="text-lg text-gray-500 mb-8">Credits are generous. Storage is real. No surprise bills.</p>
+          <div className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 p-1">
+            {(["monthly", "annual"] as const).map((b) => (
+              <button key={b} onClick={() => setBilling(b)} className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${billing === b ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}>
+                {b === "monthly" ? "Monthly" : "Annual — save 17%"}
+              </button>
+            ))}
+          </div>
         </div>
       </section>
-
-      {/* Billing Toggle */}
-      <div className="flex items-center justify-center gap-3 pb-10 px-6">
-        <button
-          onClick={() => setBilling("monthly")}
-          className={`px-7 py-3 rounded-full text-sm font-semibold transition-all duration-200 ${
-            billing === "monthly" ? "text-white shadow-lg" : "text-white/40 hover:text-white/70"
-          }`}
-          style={billing === "monthly" ? { backgroundColor: "#FF4D00" } : {}}
-        >
-          Monthly
-        </button>
-        <button
-          onClick={() => setBilling("annual")}
-          className={`px-7 py-3 rounded-full text-sm font-semibold flex items-center gap-2 transition-all duration-200 ${
-            billing === "annual" ? "text-white shadow-lg" : "text-white/40 hover:text-white/70"
-          }`}
-          style={billing === "annual" ? { backgroundColor: "#FF4D00" } : {}}
-        >
-          Annual
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 font-bold">
-            Save 17%
-          </span>
-        </button>
-      </div>
-
-      {/* Plans */}
-      <section className="pb-28 px-6 md:px-8">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 items-start">
-          {plans.map((plan) => (
-            <div
-              key={plan.name}
-              className={`relative p-7 rounded-2xl border flex flex-col gap-7 transition-all duration-300 ${
-                plan.featured
-                  ? "border-[#FF4D00] bg-[#FF4D00]/[0.06] shadow-[0_0_60px_rgba(255,77,0,0.12)]"
-                  : "border-white/10 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/20"
-              }`}
-            >
-              {plan.featured && (
-                <span
-                  className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase whitespace-nowrap"
-                  style={{ backgroundColor: "#FF4D00", color: "#fff" }}
-                >
-                  Most Popular
-                </span>
-              )}
-
-              <div>
-                <h2 className="text-2xl font-bold text-white">{plan.name}</h2>
-                <p className="text-white/40 text-xs mt-1.5 leading-snug">{plan.tagline}</p>
-              </div>
-
-              <div>
-                <div className="text-5xl font-black text-white leading-none">
-                  {billing === "annual" && plan.annualPrice
-                    ? plan.annualPrice
-                    : plan.monthlyPrice}
-                  {plan.monthlyPrice !== "Custom" && (
-                    <span className="text-lg font-normal text-white/40 ml-1">
-                      {billing === "annual" ? "/yr" : "/mo"}
-                    </span>
+      <section className="py-8 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+          {tiers.map((t) => (
+            <div key={t.name} className={`rounded-2xl p-7 relative flex flex-col ${t.highlight ? "border-2 border-[#FF4D00] bg-white shadow-xl" : "border border-gray-200 bg-white"}`}>
+              {t.highlight && <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full text-white" style={{ backgroundColor: "#FF4D00" }}>Most popular</span>}
+              <div className="mb-auto">
+                <h2 className="text-xl font-black text-gray-900 mb-1">{t.name}</h2>
+                <p className="text-xs text-gray-500 mb-4">{t.desc}</p>
+                <div className="flex items-baseline gap-1 mb-6">
+                  {t.price === "Custom" ? (
+                    <span className="text-3xl font-black" style={{ color: "#1E3A8A" }}>Custom</span>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-black" style={{ color: "#1E3A8A" }}>{billing === "annual" ? t.annualPrice : t.price}</span>
+                      <span className="text-gray-400 text-sm">/mo</span>
+                    </>
                   )}
                 </div>
-                {billing === "annual" && plan.annualPrice && (
-                  <p className="text-xs text-green-400 mt-1.5">
-                    Billed annually — save vs monthly
-                  </p>
-                )}
+                <ul className="space-y-2.5 mb-7">
+                  {t.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
+                      <Check size={14} style={{ color: "#FF4D00" }} className="flex-shrink-0 mt-0.5" />{f}
+                    </li>
+                  ))}
+                </ul>
               </div>
-
-              <ul className="space-y-3 flex-1">
-                {plan.features.map((f) => (
-                  <li
-                    key={f}
-                    className="flex items-start gap-3 text-sm text-white/65"
-                  >
-                    <Check
-                      size={14}
-                      className="mt-0.5 flex-shrink-0"
-                      style={{ color: "#FF4D00" }}
-                    />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              <Link
-                href={plan.href}
-                className={`text-center py-4 rounded-full text-sm font-semibold transition-all duration-200 ${
-                  plan.featured
-                    ? "hover:opacity-90 hover:scale-105"
-                    : "border border-white/20 hover:border-white/40 hover:bg-white/5"
-                }`}
-                style={
-                  plan.featured
-                    ? { backgroundColor: "#FF4D00", color: "#fff" }
-                    : {}
-                }
-              >
-                {plan.cta}
+              <Link href={t.href} className={`flex items-center justify-center w-full py-3.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-105 mt-4 ${t.highlight ? "text-white" : "border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`} style={t.highlight ? { backgroundColor: "#FF4D00" } : {}}>
+                {t.cta} {t.price !== "Custom" && <ChevronRight size={14} className="ml-1" />}
               </Link>
             </div>
           ))}
         </div>
-
-        <p className="text-center mt-10 text-white/30 text-sm">
-          All plans include a{" "}
-          <span className="text-white/60 font-semibold">14-day free trial</span>
-          {" "}· No credit card required
-        </p>
       </section>
-
-      {/* FAQ */}
-      <section className="py-24 px-6 md:px-8 bg-zinc-950/50">
+      <section className="py-20 px-4 sm:px-6 bg-gray-50">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold mb-12 text-center">
-            Frequently asked questions
-          </h2>
-          <div className="flex flex-col gap-0 divide-y divide-white/8">
-            {faqs.map((item) => (
-              <div key={item.q} className="py-7">
-                <h3 className="text-base font-semibold mb-3">{item.q}</h3>
-                <p className="text-white/50 text-sm leading-relaxed">{item.a}</p>
+          <h2 className="text-3xl font-black mb-10 text-center" style={{ color: "#1E3A8A" }}>Frequently asked questions</h2>
+          <div className="space-y-5">
+            {faqs.map((faq) => (
+              <div key={faq.q} className="p-5 rounded-xl bg-white border border-gray-100 shadow-sm">
+                <h3 className="font-semibold text-gray-900 mb-1.5">{faq.q}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{faq.a}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
-
-      {/* CTA */}
-      <section className="py-24 px-6 md:px-8 text-center">
-        <div className="max-w-xl mx-auto">
-          <h2 className="text-4xl font-black mb-4">
-            Ready to see{" "}
-            <span style={{ color: "#FF4D00" }}>SLATE360</span> in action?
-          </h2>
-          <p className="text-white/50 mb-8">
-            Start a free trial today. No credit card, no commitment.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full font-semibold text-base transition-all hover:opacity-90 hover:scale-105"
-              style={{ backgroundColor: "#FF4D00", color: "#fff" }}
-            >
-              Start Free Trial <ChevronRight size={16} />
-            </Link>
-            <Link
-              href="mailto:hello@slate360.ai"
-              className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full font-semibold text-base border border-white/20 hover:bg-white/5 transition-all"
-            >
-              Contact Sales
-            </Link>
-          </div>
-        </div>
-      </section>
-
       <Footer />
     </div>
   );

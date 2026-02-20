@@ -1,73 +1,137 @@
 "use client";
 
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown } from "lucide-react";
 
-const featureLinks = [
-  { label: "Design Studio", href: "/features/design-studio" },
-  { label: "Project Hub", href: "/features/project-hub" },
-  { label: "SlateDrop", href: "/features/slatedrop" },
-  { label: "360° Capture", href: "/features/360-capture" },
-  { label: "Analytics", href: "/features/analytics" },
-  { label: "GPU Rendering", href: "/features/rendering" },
+const features = [
+  {
+    label: "Design Studio",
+    href: "/features/design-studio",
+    desc: "3D modeling, plan markup & fabrication prep",
+    icon: "✏️",
+  },
+  {
+    label: "Project Hub",
+    href: "/features/project-hub",
+    desc: "RFIs, submittals, budgets & scheduling",
+    icon: "📋",
+  },
+  {
+    label: "SlateDrop",
+    href: "/features/slatedrop",
+    desc: "Finder-style file system for every project",
+    icon: "📂",
+  },
+  {
+    label: "360 Tour Builder",
+    href: "/features/360-tour-builder",
+    desc: "Immersive 360° walkthroughs of any space",
+    icon: "🔭",
+  },
+  {
+    label: "Virtual Studio",
+    href: "/features/virtual-studio",
+    desc: "Videos, renderings & presentations",
+    icon: "🎬",
+  },
+  {
+    label: "Geospatial & Robotics",
+    href: "/features/geospatial-robotics",
+    desc: "Drone mapping, LiDAR & photogrammetry",
+    icon: "🛰️",
+  },
 ];
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
-  const [featuresOpen, setFeaturesOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pathname = usePathname();
+
+  function openDropdown() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setDropdownOpen(true);
+  }
+  function scheduleClose() {
+    closeTimer.current = setTimeout(() => setDropdownOpen(false), 120);
+  }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-6 md:px-8 h-16 flex items-center justify-between">
+    <header className="fixed top-0 inset-x-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
         {/* Logo */}
-        <Link href="/" className="flex items-center h-10">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.svg"
-            alt="SLATE360"
-            className="h-9 w-auto object-contain"
-          />
+        <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+          <img src="/logo.svg" alt="Slate360" className="h-8 w-auto" />
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-1">
           {/* Features dropdown */}
           <div
             className="relative"
-            onMouseEnter={() => setFeaturesOpen(true)}
-            onMouseLeave={() => setFeaturesOpen(false)}
+            onMouseEnter={openDropdown}
+            onMouseLeave={scheduleClose}
           >
-            <button className="flex items-center gap-1 text-sm font-medium text-white/70 hover:text-white transition-colors duration-200">
-              Features <ChevronDown size={14} className={`transition-transform duration-200 ${featuresOpen ? "rotate-180" : ""}`} />
+            <button
+              className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                pathname?.startsWith("/features")
+                  ? "text-[#FF4D00]"
+                  : "text-gray-700 hover:text-[#FF4D00] hover:bg-gray-50"
+              }`}
+              onClick={() => setDropdownOpen((v) => !v)}
+              aria-expanded={dropdownOpen}
+            >
+              Features <ChevronDown size={14} className={`transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`} />
             </button>
-            {featuresOpen && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-52 rounded-xl bg-zinc-900 border border-white/10 shadow-2xl py-2 z-50">
-                {featureLinks.map((link) => (
+
+            {dropdownOpen && (
+              <div
+                className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[520px] bg-white rounded-2xl shadow-xl border border-gray-100 p-4 grid grid-cols-2 gap-1"
+                onMouseEnter={openDropdown}
+                onMouseLeave={scheduleClose}
+              >
+                {features.map((f) => (
                   <Link
-                    key={link.href}
-                    href={link.href}
-                    className="block px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors"
+                    key={f.href}
+                    href={f.href}
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
                   >
-                    {link.label}
+                    <span className="text-xl mt-0.5 flex-shrink-0">{f.icon}</span>
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900 group-hover:text-[#FF4D00] transition-colors">
+                        {f.label}
+                      </div>
+                      <div className="text-xs text-gray-500 leading-snug mt-0.5">
+                        {f.desc}
+                      </div>
+                    </div>
                   </Link>
                 ))}
-                <div className="border-t border-white/10 mt-1 pt-1">
-                  <Link
-                    href="/features"
-                    className="block px-4 py-2.5 text-sm font-semibold text-white/70 hover:text-white hover:bg-white/5 transition-colors"
-                    style={{ color: "#FF4D00" }}
-                  >
-                    All Features →
-                  </Link>
-                </div>
               </div>
             )}
           </div>
-          <Link href="/plans" className="text-sm font-medium text-white/70 hover:text-white transition-colors duration-200">
-            Plans &amp; Pricing
+
+          <Link
+            href="/plans"
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              pathname === "/plans"
+                ? "text-[#FF4D00]"
+                : "text-gray-700 hover:text-[#FF4D00] hover:bg-gray-50"
+            }`}
+          >
+            Pricing
           </Link>
-          <Link href="/about" className="text-sm font-medium text-white/70 hover:text-white transition-colors duration-200">
+          <Link
+            href="/about"
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              pathname === "/about"
+                ? "text-[#FF4D00]"
+                : "text-gray-700 hover:text-[#FF4D00] hover:bg-gray-50"
+            }`}
+          >
             About
           </Link>
         </nav>
@@ -76,62 +140,79 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           <Link
             href="/login"
-            className="text-sm font-medium text-white/70 hover:text-white transition-colors duration-200 px-4 py-2"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-[#FF4D00] hover:bg-gray-50 transition-colors"
           >
-            Login
+            Sign in
           </Link>
           <Link
-            href="/plans"
-            className="text-sm font-semibold px-5 py-2 rounded-full transition-all duration-200 hover:opacity-90 hover:scale-105"
-            style={{ backgroundColor: "#FF4D00", color: "#fff" }}
+            href="/signup"
+            className="px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-all hover:opacity-90 hover:scale-105"
+            style={{ backgroundColor: "#FF4D00" }}
           >
-            Start Free Trial
+            Start free trial
           </Link>
         </div>
 
-        {/* Mobile menu toggle */}
+        {/* Mobile hamburger */}
         <button
-          className="md:hidden text-white/80 hover:text-white"
-          onClick={() => setOpen((prev) => !prev)}
+          className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+          onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
         >
-          {open ? <X size={22} /> : <Menu size={22} />}
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
       {/* Mobile menu */}
-      {open && (
-        <div className="md:hidden bg-black/95 border-t border-white/10 px-6 pt-4 pb-6 flex flex-col gap-1">
-          <p className="text-xs uppercase tracking-widest text-white/30 font-semibold mt-2 mb-1">Features</p>
-          {featureLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setOpen(false)}
-              className="text-sm font-medium text-white/70 hover:text-white transition-colors py-2"
-            >
-              {link.label}
-            </Link>
-          ))}
-          <div className="border-t border-white/10 mt-2 pt-4 flex flex-col gap-3">
-            <Link href="/plans" onClick={() => setOpen(false)} className="text-base font-medium text-white/70 hover:text-white transition-colors">
-              Plans &amp; Pricing
-            </Link>
-            <Link href="/about" onClick={() => setOpen(false)} className="text-base font-medium text-white/70 hover:text-white transition-colors">
-              About
-            </Link>
-            <Link href="/login" onClick={() => setOpen(false)} className="text-base font-medium text-white/70 hover:text-white transition-colors">
-              Login
-            </Link>
+      {mobileOpen && (
+        <div className="md:hidden bg-white border-t border-gray-100 px-4 pb-6 pt-4">
+          <div className="space-y-1 mb-6">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 px-3 mb-2">
+              Features
+            </p>
+            {features.map((f) => (
+              <Link
+                key={f.href}
+                href={f.href}
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-lg">{f.icon}</span>
+                <span className="text-sm font-medium text-gray-800">{f.label}</span>
+              </Link>
+            ))}
+          </div>
+          <div className="border-t border-gray-100 pt-4 space-y-1">
             <Link
               href="/plans"
-              onClick={() => setOpen(false)}
-              className="text-center text-sm font-semibold px-5 py-3 rounded-full mt-1"
-              style={{ backgroundColor: "#FF4D00", color: "#fff" }}
+              onClick={() => setMobileOpen(false)}
+              className="block px-3 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              Start Free Trial
+              Pricing
+            </Link>
+            <Link
+              href="/about"
+              onClick={() => setMobileOpen(false)}
+              className="block px-3 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              About
+            </Link>
+            <Link
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className="block px-3 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Sign in
             </Link>
           </div>
+          <Link
+            href="/signup"
+            onClick={() => setMobileOpen(false)}
+            className="mt-4 flex items-center justify-center w-full py-3.5 rounded-full text-sm font-semibold text-white transition-all hover:opacity-90"
+            style={{ backgroundColor: "#FF4D00" }}
+          >
+            Start free trial
+          </Link>
         </div>
       )}
     </header>

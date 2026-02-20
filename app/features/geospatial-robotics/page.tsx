@@ -12,14 +12,14 @@ const ModelViewer = dynamic(() => import("@/components/ModelViewerClient"), {
   loading: () => <div className="w-full h-full bg-gray-100 flex items-center justify-center"><span className="text-gray-400 text-sm">Loading…</span></div>,
 });
 const highlights = [
-  "3D parametric modeling with extensive open-source parts library",
-  "2D plan review with redline, cloud, and pin markup (Bluebeam-style)",
-  "STL fabrication prep: scale, auto-repair, section, and print queue",
-  "Camera-path animation export to MP4 for client presentations",
-  "BIM layer toggles for IFC, Revit, and DWG imports",
-  "Version control with visual diff comparison",
-  "Pop-out canvas for dual-monitor workflows",
-  "Attach views directly to Project Hub RFIs and submittals",
+  "Automated photogrammetry processing: orthomosaics and 3D mesh from drone images",
+  "LiDAR point cloud ingestion, alignment, and colorization",
+  "Drone flight path programming with collision avoidance",
+  "Volumetric calculations for cut/fill and stockpile estimates",
+  "Georeferenced output in standard formats (GeoTIFF, LAS, OBJ, GLB)",
+  "Satellite + map base layer with polygon markup and annotation",
+  "Direct pipeline into Design Studio for model overlay and comparison",
+  "Automated inspection reports with measurement and compliance fields",
 ];
 
 export default function Page() {
@@ -32,16 +32,16 @@ export default function Page() {
       {/* Hero */}
       <section className="pt-32 pb-16 px-4 sm:px-6 bg-white">
         <div className="max-w-4xl mx-auto">
-          <Link href="/features" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#FF4D00] transition-colors mb-8">
+          <Link href="/features" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#1E3A8A] transition-colors mb-8">
             <ChevronLeft size={12} /> All features
           </Link>
-          <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-5" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
-            Design
+          <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-5" style={{ backgroundColor: "#1E3A8A1A", color: "#1E3A8A" }}>
+            Survey
           </span>
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-none mb-6" style={{ color: "#1E3A8A" }}>
-            Design Studio
+            Geospatial & Robotics
           </h1>
-          <p className="text-xl text-gray-500 leading-relaxed max-w-2xl mb-8">Your all-in-one workspace for 3D modeling, 2D plan markup, and fabrication preparation — context-aware tools that adapt to every task.</p>
+          <p className="text-xl text-gray-500 leading-relaxed max-w-2xl mb-8">Drone mapping, photogrammetry, LiDAR point clouds, and volumetric calculations — all processed automatically in the cloud.</p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link href="/signup" className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-base text-white transition-all hover:opacity-90 hover:scale-105" style={{ backgroundColor: "#FF4D00" }}>
               Start free trial <ChevronRight size={16} />
@@ -56,7 +56,7 @@ export default function Page() {
       {/* Description */}
       <section className="py-16 px-4 sm:px-6 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <p className="text-lg text-gray-600 leading-relaxed">Design Studio unifies the tools construction professionals need most: 3D parametric modeling, 2D plan review with redline markup, STL fabrication prep, and animated project progressions. The workspace adapts to your task automatically — switch from orbit model to redline PDF without changing tabs. Every asset integrates with Project Hub, SlateDrop, and Virtual Studio.</p>
+          <p className="text-lg text-gray-600 leading-relaxed">Geospatial & Robotics handles the full pipeline from drone flight to delivered model. Upload raw drone imagery or LiDAR data and Slate360's cloud processors return georeferenced orthomosaics, textured 3D mesh models, and aligned point clouds. Program automated flight paths, calculate volumes for cut/fill analysis, and deliver inspection-ready reports in formats your team already uses.</p>
         </div>
       </section>
 
@@ -67,7 +67,7 @@ export default function Page() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {highlights.map((h) => (
               <div key={h} className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 bg-gray-50">
-                <Check size={15} style={{ color: "#FF4D00" }} className="mt-0.5 flex-shrink-0" />
+                <Check size={15} style={{ color: "#1E3A8A" }} className="mt-0.5 flex-shrink-0" />
                 <span className="text-sm text-gray-600 leading-relaxed">{h}</span>
               </div>
             ))}

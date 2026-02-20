@@ -2,499 +2,264 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import Image from "next/image";
-import Link from "next/link";
-import { ChevronRight, X, Maximize2, Play, Check } from "lucide-react";
+import { ChevronRight, X, Maximize2, Check, ArrowRight } from "lucide-react";
 
-/** Loaded only client-side to prevent SSR hydration mismatch on <model-viewer> */
 const ModelViewer = dynamic(() => import("@/components/ModelViewerClient"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
-      <span className="text-white/30 text-sm">Loading 3D model…</span>
+    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+      <span className="text-gray-400 text-sm">Loading 3D model…</span>
     </div>
   ),
 });
 
-/* ─── Feature tiles ─── */
-const features = [
+const platforms = [
   {
-    key: "design-studio",
-    label: "Design",
-    title: "Design Studio",
-    description:
-      "A professional-grade composition environment with sports-specific templates, brand kit management, layer controls, and one-click exports. No design degree required.",
-    href: "/features/design-studio",
-    accent: "#FF4D00",
+    key: "design-studio", icon: "✏️", label: "Design", title: "Design Studio",
+    desc: "Context-aware 3D modeling, 2D plan markup, fabrication prep, and version control — all in one workspace that adapts to your task.",
+    href: "/features/design-studio", accent: "#FF4D00", highlight: true,
   },
   {
-    key: "project-hub",
-    label: "Manage",
-    title: "Project Hub",
-    description:
-      "Centralized campaign and project management linking every asset, brief, milestone, and deadline in one clean, role-aware workspace.",
-    href: "/features/project-hub",
-    accent: "#1E3A8A",
+    key: "project-hub", icon: "📋", label: "Manage", title: "Project Hub",
+    desc: "Command center for every project your team runs — RFIs, submittals, budgets, schedules, and team coordination in one place.",
+    href: "/features/project-hub", accent: "#1E3A8A", highlight: false,
   },
   {
-    key: "slatedrop",
-    label: "Distribute",
-    title: "SlateDrop",
-    description:
-      "Finder-style drag-and-drop publishing. Right-click any file and hit Secure Send. Content hits every channel in seconds — sized, formatted, and on brand.",
-    href: "/features/slatedrop",
-    accent: "#FF4D00",
+    key: "slatedrop", icon: "📂", label: "Organize", title: "SlateDrop",
+    desc: "Finder-style file system for every project and tab. Drag, drop, right-click Secure Send. Every file, always where it belongs.",
+    href: "/features/slatedrop", accent: "#FF4D00", highlight: false,
   },
   {
-    key: "360-capture",
-    label: "Capture",
-    title: "360° Capture",
-    description:
-      "Immersive panoramic capture workflows built for live events. Shoot, stitch, and serve interactive 360° tours directly from the platform.",
-    href: "/features/360-capture",
-    accent: "#1E3A8A",
+    key: "360-tour-builder", icon: "🔭", label: "Visualize", title: "360 Tour Builder",
+    desc: "Capture and share immersive 360° walkthroughs of any site, structure, or space. Embed anywhere, share with any stakeholder.",
+    href: "/features/360-tour-builder", accent: "#1E3A8A", highlight: false,
   },
   {
-    key: "analytics",
-    label: "Measure",
-    title: "Real-Time Analytics",
-    description:
-      "Engagement metrics across every published asset. Know what's working the moment it goes live, with exportable reports and send-to-owner PDFs.",
-    href: "/features/analytics",
-    accent: "#FF4D00",
+    key: "virtual-studio", icon: "🎬", label: "Present", title: "Virtual Studio",
+    desc: "Create photorealistic renderings, fly-through animations, and polished presentations directly from your 3D models.",
+    href: "/features/virtual-studio", accent: "#FF4D00", highlight: false,
   },
   {
-    key: "rendering",
-    label: "Process",
-    title: "GPU Rendering",
-    description:
-      "Cloud GPU workers handle heavy 3D and 360° processing so your laptop stays fast and your turnaround stays tight — even for broadcast-quality output.",
-    href: "/features/rendering",
-    accent: "#1E3A8A",
+    key: "geospatial-robotics", icon: "🛰️", label: "Survey", title: "Geospatial & Robotics",
+    desc: "Drone mapping, photogrammetry, LiDAR point clouds, and volumetric calculations. Fully automated end-to-end pipeline.",
+    href: "/features/geospatial-robotics", accent: "#1E3A8A", highlight: false,
   },
 ];
 
-/* ─── Pricing tiers ─── */
-const tiers = [
+const plans = [
   {
-    name: "Creator",
-    price: "$79",
-    priceCents: 79,
-    annual: "$790",
-    tagline: "For creators & small teams",
-    features: [
-      "3 active projects",
-      "50 GB storage",
-      "500 rendering credits / mo",
-      "SlateDrop publishing",
-      "Design Studio access",
-      "360° viewer embeds",
-      "Email support",
-    ],
+    name: "Creator", price: "$79", annualPrice: "$66",
+    desc: "For visual content creators and solo operators.",
+    features: ["360 Tour Builder", "Virtual Studio", "40 GB storage", "6,000 credits/mo"],
   },
   {
-    name: "Model",
-    price: "$199",
-    priceCents: 199,
-    annual: "$1,990",
-    tagline: "For growing organizations",
-    featured: true,
-    features: [
-      "25 active projects",
-      "250 GB storage",
-      "2,500 rendering credits / mo",
-      "Everything in Creator",
-      "GPU-accelerated rendering",
-      "Full Project Hub",
-      "Priority support",
-      "Automated 3D processing",
-    ],
+    name: "Model", price: "$199", annualPrice: "$166",
+    desc: "For advanced modelers, architects, and drone operators.",
+    features: ["Design Studio", "Geospatial & Robotics", "150 GB storage", "15,000 credits/mo"],
+    highlight: true,
   },
   {
-    name: "Business",
-    price: "$499",
-    priceCents: 499,
-    annual: "$4,990",
-    tagline: "For professional operations",
-    features: [
-      "Unlimited projects",
-      "2 TB storage",
-      "10,000 rendering credits / mo",
-      "Everything in Model",
-      "White-label exports",
-      "Multi-venue management",
-      "Advanced analytics",
-      "Dedicated onboarding",
-    ],
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    priceCents: null,
-    annual: null,
-    tagline: "Broadcast & enterprise scale",
-    features: [
-      "Everything in Business",
-      "Unlimited storage & credits",
-      "Custom integrations",
-      "Dedicated engineer",
-      "SLA guarantee",
-      "SSO / SAML",
-      "On-prem option",
-    ],
+    name: "Business", price: "$499", annualPrice: "$416",
+    desc: "Full platform access for construction teams.",
+    features: ["All modules", "Project Hub", "750 GB storage", "30,000 credits/mo"],
   },
 ];
+
+function ViewerCard({ title, tag, children, onInteract, onExpand, interacted }: {
+  title: string; tag: string; children: React.ReactNode;
+  onInteract: () => void; onExpand: () => void; interacted: boolean;
+}) {
+  return (
+    <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-lg flex flex-col">
+      <div className="relative w-full aspect-video bg-gray-100 overflow-hidden">
+        {children}
+        <span className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-white/90 text-gray-700 border border-gray-200 pointer-events-none z-10">
+          {tag}
+        </span>
+        <button onClick={onExpand}
+          className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white/90 hover:bg-white text-gray-700 border border-gray-200 shadow-sm transition-all hover:shadow backdrop-blur-sm z-10">
+          <Maximize2 size={11} /> Expand
+        </button>
+      </div>
+      <div className="px-4 py-3 flex items-center justify-between bg-white">
+        <span className="text-sm font-semibold text-gray-800">{title}</span>
+        <button onClick={onInteract}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white transition-all hover:opacity-90 hover:scale-105"
+          style={{ backgroundColor: "#FF4D00" }}>
+          {interacted ? "Reset" : "Interact"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ViewerModal({ open, onClose, title, children }: {
+  open: boolean; onClose: () => void; title: string; children: React.ReactNode;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[90vw] h-[90vh] sm:w-[65vw] sm:h-[65vh] max-w-5xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 flex-shrink-0">
+          <span className="text-sm font-semibold text-gray-700">{title}</span>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors" aria-label="Close">
+            <X size={15} />
+          </button>
+        </div>
+        <div className="flex-1 relative min-h-0">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function HomePage() {
-  const [show360, setShow360] = useState(false);
-  const [show3D, setShow3D] = useState(false);
+  const [interact360, setInteract360] = useState(false);
+  const [interact3D, setInteract3D] = useState(false);
+  const [modal360, setModal360] = useState(false);
+  const [modal3D, setModal3D] = useState(false);
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
 
   return (
-    <div className="bg-black min-h-screen text-white antialiased">
+    <div className="bg-white min-h-screen text-gray-900 antialiased">
       <Navbar />
 
-      {/* ─── HERO ─── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 md:px-8 pt-28 pb-20 overflow-hidden">
-        {/* Ambient glow */}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden>
-          <div className="w-[700px] h-[700px] rounded-full blur-[200px] opacity-15" style={{ backgroundColor: "#FF4D00" }} />
-        </div>
+      {/* HERO */}
+      <section className="pt-28 pb-20 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="inline-block text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full mb-6" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
+              Built for construction professionals
+            </span>
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-[1.02] mb-6" style={{ color: "#1E3A8A" }}>
+              See it. Experience it.<br /><span style={{ color: "#FF4D00" }}>Own it.</span>
+            </h1>
+            <p className="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
+              Manage building projects administratively and visually — one elegant platform for construction teams, architects, and project managers.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+              <Link href="/signup" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-semibold text-base text-white transition-all hover:opacity-90 hover:scale-105" style={{ backgroundColor: "#FF4D00" }}>
+                Start free trial <ChevronRight size={16} />
+              </Link>
+              <Link href="/plans" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-semibold text-base text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all">
+                View pricing
+              </Link>
+            </div>
+          </div>
 
-        <div className="relative z-10 flex flex-col items-center text-center max-w-5xl gap-8">
-          {/* Eyebrow badge */}
-          <span
-            className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full border text-xs font-semibold tracking-widest uppercase"
-            style={{ borderColor: "#FF4D00", color: "#FF4D00" }}
-          >
-            Sports Media Infrastructure
-          </span>
+          {/* viewers */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            <ViewerCard title="360° Site Tour" tag="360°" interacted={interact360} onInteract={() => setInteract360(v => !v)} onExpand={() => setModal360(true)}>
+              {interact360 ? (
+                <iframe src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent("/uploads/pletchers.jpg")}&autoLoad=true&showControls=true&compass=false`} className="w-full h-full border-0" allowFullScreen title="360 panorama" />
+              ) : (
+                <div className="w-full h-full bg-cover bg-center relative cursor-pointer group" style={{ backgroundImage: "url('/uploads/pletchers.jpg')" }} onClick={() => setInteract360(true)}>
+                  <div className="absolute inset-0 bg-[#1E3A8A]/20 group-hover:bg-[#1E3A8A]/10 transition-colors flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-full bg-white/90 shadow-lg flex items-center justify-center"><span className="text-2xl">🔭</span></div>
+                  </div>
+                </div>
+              )}
+            </ViewerCard>
 
-          {/* Logo */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.svg"
-            alt="SLATE360"
-            className="w-56 sm:w-80 md:w-[480px] h-auto"
-          />
-
-          <p className="text-lg sm:text-xl md:text-2xl text-white/55 max-w-2xl leading-relaxed">
-            Capture, produce, and distribute elite sports content — all in one
-            platform built for teams that refuse to settle.
-          </p>
-
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full justify-center">
-            <Link
-              href="/plans"
-              className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full font-semibold text-base transition-all duration-200 hover:opacity-90 hover:scale-105"
-              style={{ backgroundColor: "#FF4D00", color: "#fff" }}
-            >
-              Start Free Trial
-              <ChevronRight size={16} />
-            </Link>
-            <Link
-              href="/features"
-              className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full font-semibold text-base border border-white/20 hover:border-white/40 hover:bg-white/5 transition-all duration-200"
-            >
-              Explore the Platform
-            </Link>
+            <ViewerCard title="3D Building Model" tag="3D" interacted={interact3D} onInteract={() => setInteract3D(v => !v)} onExpand={() => setModal3D(true)}>
+              {interact3D ? (
+                <ModelViewer src="/uploads/csb-stadium-model.glb" alt="3D building model" style={{ width: "100%", height: "100%", background: "#f9fafb" }} />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-slate-100 to-gray-50 relative cursor-pointer group flex items-center justify-center" onClick={() => setInteract3D(true)}>
+                  <div className="text-center">
+                    <div className="w-14 h-14 rounded-full bg-white shadow-lg flex items-center justify-center mx-auto mb-3"><span className="text-2xl">🏗️</span></div>
+                    <p className="text-xs text-gray-400 font-medium">Click Interact to load 3D model</p>
+                  </div>
+                </div>
+              )}
+            </ViewerCard>
           </div>
         </div>
       </section>
 
-      {/* ─── INTERACTIVE VIEWERS ─── */}
-      <section className="py-24 px-6 md:px-8">
+      {/* THE PLATFORM */}
+      <section className="py-24 px-4 sm:px-6 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
-            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#FF4D00" }}>
-              Live Preview
+            <span className="inline-block text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full mb-4" style={{ backgroundColor: "#1E3A8A1A", color: "#1E3A8A" }}>
+              Everything in one platform
             </span>
-            <h2 className="mt-3 text-3xl md:text-5xl font-bold leading-tight">
-              See it. Experience it. Own it.
-            </h2>
-            <p className="mt-4 text-white/50 text-lg max-w-xl mx-auto">
-              Interact with a real 360° panorama and 3D model — powered by SLATE360.
-            </p>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight" style={{ color: "#1E3A8A" }}>The Platform</h2>
+            <p className="text-gray-500 mt-4 text-lg max-w-xl mx-auto">Six integrated modules. One login. Zero context switching.</p>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* 360° Photo Viewer */}
-            <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-zinc-950 shadow-2xl flex flex-col">
-              <div className="relative w-full aspect-video flex-shrink-0">
-                <Image
-                  src="/uploads/pletchers.jpg"
-                  alt="360° stadium panorama preview"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
-                <span className="absolute top-4 left-4 text-xs font-semibold uppercase tracking-widest text-white/80 bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm border border-white/10">
-                  360° Photo
-                </span>
-                <button
-                  onClick={() => setShow360(true)}
-                  className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-7 py-3 rounded-full font-semibold text-sm text-white transition-all duration-200 hover:scale-105 hover:opacity-90 min-w-[140px] justify-center"
-                  style={{ backgroundColor: "#FF4D00" }}
-                >
-                  <Play size={14} fill="white" className="text-white flex-shrink-0" />
-                  Interact
-                </button>
-              </div>
-              <div className="p-6">
-                <h3 className="text-base font-bold text-white">Interactive 360° Tour</h3>
-                <p className="text-white/40 text-sm mt-1 leading-relaxed">
-                  Click Interact to explore every angle in full-screen with pan, zoom, and navigation.
-                </p>
-              </div>
-            </div>
-
-            {/* 3D Model Viewer */}
-            <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-zinc-950 shadow-2xl flex flex-col">
-              <div className="relative w-full aspect-video flex-shrink-0 bg-zinc-900">
-                <ModelViewer
-                  src="/uploads/csb-stadium-model.glb"
-                  alt="SLATE360 3D stadium model"
-                  style={{ width: "100%", height: "100%", background: "transparent" }}
-                />
-                <span className="absolute top-4 left-4 text-xs font-semibold uppercase tracking-widest text-white/80 bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm border border-white/10 pointer-events-none">
-                  3D Model
-                </span>
-                <button
-                  onClick={() => setShow3D(true)}
-                  className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-7 py-3 rounded-full font-semibold text-sm text-white border border-white/20 bg-black/60 backdrop-blur-sm transition-all duration-200 hover:bg-white/10 hover:scale-105 min-w-[140px] justify-center z-10"
-                >
-                  <Maximize2 size={14} className="flex-shrink-0" />
-                  Expand
-                </button>
-              </div>
-              <div className="p-6">
-                <h3 className="text-base font-bold text-white">Interactive 3D Model</h3>
-                <p className="text-white/40 text-sm mt-1 leading-relaxed">
-                  Rotate, zoom, and inspect the model. Click Expand for a full-screen immersive view.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── FEATURES ─── */}
-      <section className="py-28 px-6 md:px-8 bg-zinc-950/60">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#FF4D00" }}>
-              The Platform
-            </span>
-            <h2 className="mt-4 text-4xl md:text-5xl font-bold leading-tight">
-              Every tool your team needs.
-            </h2>
-            <p className="mt-4 text-white/50 text-lg leading-relaxed">
-              From sideline capture to broadcast distribution — one platform,
-              zero broken handoffs.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((f) => (
-              <Link
-                key={f.key}
-                href={f.href}
-                className="group relative p-8 rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/25 transition-all duration-300 flex flex-col gap-5 min-h-[200px]"
-              >
-                <span
-                  className="inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full w-fit"
-                  style={{ backgroundColor: f.accent + "22", color: f.accent }}
-                >
-                  {f.label}
-                </span>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold mb-2 text-white group-hover:opacity-90 transition-opacity">
-                    {f.title}
-                  </h3>
-                  <p className="text-white/50 text-sm leading-relaxed">{f.description}</p>
-                </div>
-                <span
-                  className="inline-flex items-center gap-1 text-xs font-semibold mt-auto"
-                  style={{ color: f.accent }}
-                >
-                  Learn more <ChevronRight size={12} />
-                </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {platforms.map((p) => (
+              <Link key={p.key} href={p.href} className={`group relative p-6 rounded-2xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 block ${p.highlight ? "border-[#FF4D00]/30 bg-white shadow-sm ring-1 ring-[#FF4D00]/10" : "border-gray-200 bg-white hover:border-gray-300"}`}>
+                {p.highlight && <span className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: "#FF4D00" }}>Featured</span>}
+                <div className="text-3xl mb-4">{p.icon}</div>
+                <span className="text-[10px] font-bold uppercase tracking-widest mb-1 block" style={{ color: p.accent }}>{p.label}</span>
+                <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#1E3A8A] transition-colors">{p.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed mb-4">{p.desc}</p>
+                <span className="inline-flex items-center gap-1 text-sm font-semibold transition-all group-hover:gap-2" style={{ color: p.accent }}>Learn more <ArrowRight size={14} /></span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ─── DEMO VIDEO PLACEHOLDER ─── */}
-      <section className="py-28 px-6 md:px-8">
-        <div className="max-w-5xl mx-auto text-center">
-          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#FF4D00" }}>
-            See It In Action
-          </span>
-          <h2 className="mt-4 text-4xl md:text-5xl font-bold mb-12">
-            Watch the platform walkthrough.
-          </h2>
-          <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-zinc-900 aspect-video flex items-center justify-center group cursor-pointer">
-            <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-black" />
-            <div
-              className="relative z-10 w-20 h-20 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
-              style={{ backgroundColor: "#FF4D00" }}
-            >
-              <Play size={30} className="text-white ml-1" fill="white" />
+      {/* PRICING TEASER */}
+      <section className="py-24 px-4 sm:px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight" style={{ color: "#1E3A8A" }}>Simple, transparent pricing</h2>
+            <p className="text-gray-500 mt-4 text-lg max-w-lg mx-auto">Credits are generous. Storage is real. No surprise bills.</p>
+            <div className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 p-1 mt-6">
+              {(["monthly", "annual"] as const).map((b) => (
+                <button key={b} onClick={() => setBilling(b)} className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${billing === b ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}>
+                  {b === "monthly" ? "Monthly" : "Annual (save 17%)"}
+                </button>
+              ))}
             </div>
-            <span className="absolute bottom-6 left-1/2 -translate-x-1/2 text-xs font-medium tracking-widest uppercase text-white/30">
-              Demo coming soon
-            </span>
           </div>
-        </div>
-      </section>
-
-      {/* ─── PRICING ─── */}
-      <section className="py-28 px-6 md:px-8 bg-zinc-950/60">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#FF4D00" }}>
-              Simple Pricing
-            </span>
-            <h2 className="mt-4 text-4xl md:text-5xl font-bold leading-tight">
-              Plans that scale with you.
-            </h2>
-            <p className="mt-4 text-white/50 text-lg">
-              Start free. Scale when you&apos;re ready. No surprise fees.
-            </p>
-          </div>
-
-          {/* Billing toggle */}
-          <div className="flex items-center justify-center gap-3 mb-12">
-            <button
-              onClick={() => setBilling("monthly")}
-              className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                billing === "monthly" ? "text-white shadow-lg" : "text-white/40 hover:text-white/70"
-              }`}
-              style={billing === "monthly" ? { backgroundColor: "#FF4D00" } : {}}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBilling("annual")}
-              className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
-                billing === "annual" ? "text-white shadow-lg" : "text-white/40 hover:text-white/70"
-              }`}
-              style={billing === "annual" ? { backgroundColor: "#FF4D00" } : {}}
-            >
-              Annual
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 font-bold">
-                Save 17%
-              </span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-            {tiers.map((t) => (
-              <div
-                key={t.name}
-                className={`relative p-7 rounded-2xl border flex flex-col gap-6 transition-all duration-300 ${
-                  t.featured
-                    ? "border-[#FF4D00] bg-[#FF4D00]/[0.06] shadow-[0_0_60px_rgba(255,77,0,0.12)]"
-                    : "border-white/10 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/20"
-                }`}
-              >
-                {t.featured && (
-                  <span
-                    className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase whitespace-nowrap"
-                    style={{ backgroundColor: "#FF4D00", color: "#fff" }}
-                  >
-                    Most Popular
-                  </span>
-                )}
-                <div>
-                  <h3 className="text-xl font-bold text-white">{t.name}</h3>
-                  <p className="text-white/40 text-xs mt-1 leading-snug">{t.tagline}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {plans.map((plan) => (
+              <div key={plan.name} className={`rounded-2xl p-7 relative ${plan.highlight ? "border-2 border-[#FF4D00] bg-white shadow-xl" : "border border-gray-200 bg-white"}`}>
+                {plan.highlight && <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full text-white" style={{ backgroundColor: "#FF4D00" }}>Most popular</span>}
+                <h3 className="text-lg font-bold text-gray-900 mb-1">{plan.name}</h3>
+                <p className="text-xs text-gray-500 mb-4">{plan.desc}</p>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="text-4xl font-black" style={{ color: "#1E3A8A" }}>{billing === "annual" ? plan.annualPrice : plan.price}</span>
+                  <span className="text-gray-400 text-sm">/mo</span>
                 </div>
-                <div>
-                  <div className="text-4xl font-black text-white leading-none">
-                    {billing === "annual" && t.annual ? t.annual : t.price}
-                    {t.price !== "Custom" && (
-                      <span className="text-sm font-normal text-white/40 ml-1">
-                        {billing === "annual" ? "/yr" : "/mo"}
-                      </span>
-                    )}
-                  </div>
-                  {billing === "annual" && t.annual && (
-                    <p className="text-xs text-green-400 mt-1.5">Billed annually — save vs monthly</p>
-                  )}
-                </div>
-                <ul className="space-y-2.5 flex-1">
-                  {t.features.map((feat) => (
-                    <li key={feat} className="flex items-start gap-3 text-sm text-white/60">
-                      <Check
-                        size={13}
-                        className="mt-0.5 flex-shrink-0"
-                        style={{ color: "#FF4D00" }}
-                      />
-                      {feat}
+                <ul className="space-y-2.5 mb-7">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                      <Check size={14} style={{ color: "#FF4D00" }} className="flex-shrink-0" />{f}
                     </li>
                   ))}
                 </ul>
-                <Link
-                  href="/plans"
-                  className={`text-center py-3.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                    t.featured
-                      ? "hover:opacity-90 hover:scale-105"
-                      : "border border-white/20 hover:border-white/40 hover:bg-white/5"
-                  }`}
-                  style={
-                    t.featured ? { backgroundColor: "#FF4D00", color: "#fff" } : {}
-                  }
-                >
-                  {t.price === "Custom" ? "Contact Sales" : "Start Free Trial"}
+                <Link href="/signup" className={`flex items-center justify-center w-full py-3 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-105 ${plan.highlight ? "text-white" : "border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`} style={plan.highlight ? { backgroundColor: "#FF4D00" } : {}}>
+                  Start free trial
                 </Link>
               </div>
             ))}
           </div>
-
-          <p className="text-center mt-8">
-            <Link
-              href="/plans"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold hover:opacity-80 transition-opacity"
-              style={{ color: "#FF4D00" }}
-            >
-              Compare all plans in detail <ChevronRight size={14} />
+          <div className="text-center mt-8">
+            <Link href="/plans" className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[#FF4D00] transition-colors">
+              See full pricing & Enterprise <ArrowRight size={14} />
             </Link>
-          </p>
+          </div>
         </div>
       </section>
 
-      {/* ─── FINAL CTA ─── */}
-      <section className="py-32 px-6 md:px-8">
-        <div className="max-w-3xl mx-auto text-center flex flex-col items-center gap-8">
-          <h2 className="text-4xl md:text-6xl font-black leading-tight">
-            Ready to run your{" "}
-            <span style={{ color: "#FF4D00" }}>media operation</span> like a
-            pro?
-          </h2>
-          <p className="text-white/50 text-lg max-w-xl leading-relaxed">
-            Join hundreds of teams already using SLATE360 to own their story.
-            Start free — no credit card required.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
-            <Link
-              href="/plans"
-              className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full font-semibold text-base transition-all duration-200 hover:opacity-90 hover:scale-105"
-              style={{ backgroundColor: "#FF4D00", color: "#fff" }}
-            >
-              Start Free Trial
-              <ChevronRight size={16} />
+      {/* CTA */}
+      <section className="py-24 px-4 sm:px-6 text-white" style={{ backgroundColor: "#1E3A8A" }}>
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight mb-4">Your next project, fully managed.</h2>
+          <p className="text-blue-200 text-lg mb-10 leading-relaxed">Join construction professionals who manage, visualize, and deliver projects with Slate360. No credit card required.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/signup" className="inline-flex items-center justify-center gap-2 px-9 py-4 rounded-full font-semibold text-base text-white transition-all hover:opacity-90 hover:scale-105" style={{ backgroundColor: "#FF4D00" }}>
+              Start free trial <ChevronRight size={16} />
             </Link>
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full font-semibold text-base border border-white/20 hover:border-white/50 hover:bg-white/5 transition-all duration-200"
-            >
-              Sign In
+            <Link href="/features/design-studio" className="inline-flex items-center justify-center gap-2 px-9 py-4 rounded-full font-semibold text-base text-white border border-white/30 hover:bg-white/10 transition-all">
+              Explore Design Studio
             </Link>
           </div>
         </div>
@@ -502,67 +267,15 @@ export default function HomePage() {
 
       <Footer />
 
-      {/* ─── 360° FULLSCREEN MODAL ─── */}
-      {show360 && (
-        <div
-          className="fixed inset-0 z-[200] bg-black flex flex-col"
-          style={{ touchAction: "none" }}
-        >
-          <div className="flex items-center justify-between px-5 py-3 bg-black/90 backdrop-blur-md border-b border-white/10 flex-shrink-0">
-            <span className="text-sm font-semibold text-white/80 tracking-wide">
-              360° Interactive Viewer
-            </span>
-            <button
-              onClick={() => setShow360(false)}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-              aria-label="Close 360 viewer"
-            >
-              <X size={18} />
-            </button>
-          </div>
-          <div className="flex-1 relative min-h-0">
-            <iframe
-              src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${
-                typeof window !== "undefined"
-                  ? encodeURIComponent(window.location.origin + "/uploads/pletchers.jpg")
-                  : "%2Fuploads%2Fpletchers.jpg"
-              }&autoLoad=true&title=360%C2%B0%20View&showFullscreenCtrl=false&showZoomCtrl=true`}
-              className="w-full h-full border-0"
-              title="360° Panorama Viewer"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      )}
+      {/* 360 MODAL */}
+      <ViewerModal open={modal360} onClose={() => setModal360(false)} title="360° Site Tour — Interactive View">
+        <iframe src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent("/uploads/pletchers.jpg")}&autoLoad=true&showControls=true&compass=false`} className="w-full h-full border-0" allowFullScreen title="360 panorama fullscreen" />
+      </ViewerModal>
 
-      {/* ─── 3D MODEL FULLSCREEN MODAL ─── */}
-      {show3D && (
-        <div
-          className="fixed inset-0 z-[200] bg-black flex flex-col"
-          style={{ touchAction: "none" }}
-        >
-          <div className="flex items-center justify-between px-5 py-3 bg-black/90 backdrop-blur-md border-b border-white/10 flex-shrink-0">
-            <span className="text-sm font-semibold text-white/80 tracking-wide">
-              3D Model Viewer
-            </span>
-            <button
-              onClick={() => setShow3D(false)}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-              aria-label="Close 3D model viewer"
-            >
-              <X size={18} />
-            </button>
-          </div>
-          <div className="flex-1 relative min-h-0">
-            <ModelViewer
-              src="/uploads/csb-stadium-model.glb"
-              alt="SLATE360 3D stadium model full screen"
-              style={{ width: "100%", height: "100%", background: "#0a0a0a" }}
-            />
-          </div>
-        </div>
-      )}
-
+      {/* 3D MODAL */}
+      <ViewerModal open={modal3D} onClose={() => setModal3D(false)} title="3D Building Model — Interactive View">
+        <ModelViewer src="/uploads/csb-stadium-model.glb" alt="3D building model fullscreen" style={{ width: "100%", height: "100%", background: "#f9fafb" }} />
+      </ViewerModal>
     </div>
   );
 }

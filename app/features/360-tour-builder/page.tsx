@@ -1,25 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ChevronRight, ChevronLeft, X, Maximize2, Check } from "lucide-react";
 
-const ModelViewer = dynamic(() => import("@/components/ModelViewerClient"), {
-  ssr: false,
-  loading: () => <div className="w-full h-full bg-gray-100 flex items-center justify-center"><span className="text-gray-400 text-sm">Loading…</span></div>,
-});
 const highlights = [
-  "3D parametric modeling with extensive open-source parts library",
-  "2D plan review with redline, cloud, and pin markup (Bluebeam-style)",
-  "STL fabrication prep: scale, auto-repair, section, and print queue",
-  "Camera-path animation export to MP4 for client presentations",
-  "BIM layer toggles for IFC, Revit, and DWG imports",
-  "Version control with visual diff comparison",
-  "Pop-out canvas for dual-monitor workflows",
-  "Attach views directly to Project Hub RFIs and submittals",
+  "Upload equirectangular 360° photos and stitch multi-scene tours",
+  "Add hotspots, text annotations, and linked navigation points",
+  "Embed tours on any website with a single code snippet",
+  "Share scoped view-only links with clients and inspectors",
+  "Attach tour scenes to Project Hub RFIs and submittals",
+  "Full-resolution output — no compression loss",
+  "Offline field capture app (PWA) for no-signal job sites",
+  "Automated tour hosting with custom branding options",
 ];
 
 export default function Page() {
@@ -32,16 +27,16 @@ export default function Page() {
       {/* Hero */}
       <section className="pt-32 pb-16 px-4 sm:px-6 bg-white">
         <div className="max-w-4xl mx-auto">
-          <Link href="/features" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#FF4D00] transition-colors mb-8">
+          <Link href="/features" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#1E3A8A] transition-colors mb-8">
             <ChevronLeft size={12} /> All features
           </Link>
-          <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-5" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
-            Design
+          <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-5" style={{ backgroundColor: "#1E3A8A1A", color: "#1E3A8A" }}>
+            Visualize
           </span>
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-none mb-6" style={{ color: "#1E3A8A" }}>
-            Design Studio
+            360 Tour Builder
           </h1>
-          <p className="text-xl text-gray-500 leading-relaxed max-w-2xl mb-8">Your all-in-one workspace for 3D modeling, 2D plan markup, and fabrication preparation — context-aware tools that adapt to every task.</p>
+          <p className="text-xl text-gray-500 leading-relaxed max-w-2xl mb-8">Capture and publish immersive 360° walkthroughs of any site, building, or space. Embed anywhere, share with any stakeholder, inspect from anywhere.</p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link href="/signup" className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-base text-white transition-all hover:opacity-90 hover:scale-105" style={{ backgroundColor: "#FF4D00" }}>
               Start free trial <ChevronRight size={16} />
@@ -56,7 +51,7 @@ export default function Page() {
       {/* Description */}
       <section className="py-16 px-4 sm:px-6 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <p className="text-lg text-gray-600 leading-relaxed">Design Studio unifies the tools construction professionals need most: 3D parametric modeling, 2D plan review with redline markup, STL fabrication prep, and animated project progressions. The workspace adapts to your task automatically — switch from orbit model to redline PDF without changing tabs. Every asset integrates with Project Hub, SlateDrop, and Virtual Studio.</p>
+          <p className="text-lg text-gray-600 leading-relaxed">360 Tour Builder makes it easy to stitch, host, and share equirectangular 360° photos as fully navigable virtual tours. Upload your panoramas, add hotspots and annotations, and share a link or embed code with any client or inspector. Tours integrate directly with Project Hub issues and Design Studio views for contextual site documentation.</p>
         </div>
       </section>
 
@@ -67,7 +62,7 @@ export default function Page() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {highlights.map((h) => (
               <div key={h} className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 bg-gray-50">
-                <Check size={15} style={{ color: "#FF4D00" }} className="mt-0.5 flex-shrink-0" />
+                <Check size={15} style={{ color: "#1E3A8A" }} className="mt-0.5 flex-shrink-0" />
                 <span className="text-sm text-gray-600 leading-relaxed">{h}</span>
               </div>
             ))}
@@ -97,11 +92,11 @@ export default function Page() {
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowDemo(false)}>
           <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[90vw] h-[90vh] sm:w-[65vw] sm:h-[65vh] max-w-5xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 flex-shrink-0">
-              <span className="text-sm font-semibold text-gray-700">3D Model Demo</span>
+              <span className="text-sm font-semibold text-gray-700">360° Tour Demo</span>
               <button onClick={() => setShowDemo(false)} className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"><X size={15} /></button>
             </div>
             <div className="flex-1 relative min-h-0">
-              <ModelViewer src="/uploads/csb-stadium-model.glb" alt="3D demo" style={{ width:"100%", height:"100%", background:"#f9fafb" }} />
+              <iframe src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent("/uploads/pletchers.jpg")}&autoLoad=true&showControls=true`} className="w-full h-full border-0" allowFullScreen title="360 demo" />
             </div>
           </div>
         </div>

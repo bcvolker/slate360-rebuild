@@ -1,153 +1,59 @@
+"use client";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 const features = [
-  {
-    key: "design-studio",
-    label: "Design",
-    accent: "#FF4D00",
-    title: "Design Studio",
-    description:
-      "Professional-grade composition environment with sports-specific templates, brand kit management, and one-click exports. No design degree required.",
-    href: "/features/design-studio",
-  },
-  {
-    key: "project-hub",
-    label: "Manage",
-    accent: "#60a5fa",
-    title: "Project Hub",
-    description:
-      "Centralized campaign management — assets, briefs, milestones, RFIs, submittals, and team roles in one clean workspace.",
-    href: "/features/project-hub",
-  },
-  {
-    key: "slatedrop",
-    label: "Distribute",
-    accent: "#FF4D00",
-    title: "SlateDrop",
-    description:
-      "Finder-style file distribution with Secure Send, auto-folders per project, and full upload audit trails for external stakeholders.",
-    href: "/features/slatedrop",
-  },
-  {
-    key: "360-capture",
-    label: "Capture",
-    accent: "#60a5fa",
-    title: "360° Capture",
-    description:
-      "Immersive panoramic capture, stitching, and interactive tour publishing — all linked to your project documents.",
-    href: "/features/360-capture",
-  },
-  {
-    key: "analytics",
-    label: "Measure",
-    accent: "#FF4D00",
-    title: "Real-Time Analytics",
-    description:
-      "Engagement metrics across every published asset, with branded PDF reports you can send directly to ownership.",
-    href: "/features/analytics",
-  },
-  {
-    key: "rendering",
-    label: "Process",
-    accent: "#60a5fa",
-    title: "GPU Rendering",
-    description:
-      "Cloud GPU workers handle 3D optimization, 360° stitching, and format conversion — your laptop never slows down.",
-    href: "/features/rendering",
-  },
+  { key: "design-studio", icon: "✏️", label: "Design", title: "Design Studio", accent: "#FF4D00", highlight: true,
+    desc: "Context-aware 3D modeling, 2D plan markup, fabrication prep, and version control in one workspace that adapts to your task.",
+    href: "/features/design-studio" },
+  { key: "project-hub", icon: "📋", label: "Manage", title: "Project Hub", accent: "#1E3A8A",
+    desc: "Command center for every project — RFIs, submittals, budgets, schedules, and team coordination in one place.",
+    href: "/features/project-hub" },
+  { key: "slatedrop", icon: "📂", label: "Organize", title: "SlateDrop", accent: "#FF4D00",
+    desc: "Finder-style file system for every project and tab. Drag, drop, right-click Secure Send.",
+    href: "/features/slatedrop" },
+  { key: "360-tour-builder", icon: "🔭", label: "Visualize", title: "360 Tour Builder", accent: "#1E3A8A",
+    desc: "Capture and share immersive 360° walkthroughs of any site or structure. Embed anywhere.",
+    href: "/features/360-tour-builder" },
+  { key: "virtual-studio", icon: "🎬", label: "Present", title: "Virtual Studio", accent: "#FF4D00",
+    desc: "Photorealistic renderings, fly-through animations, and polished presentations from your models.",
+    href: "/features/virtual-studio" },
+  { key: "geospatial-robotics", icon: "🛰️", label: "Survey", title: "Geospatial & Robotics", accent: "#1E3A8A",
+    desc: "Drone mapping, photogrammetry, LiDAR, and volumetric calculations — fully automated.",
+    href: "/features/geospatial-robotics" },
 ];
 
 export default function FeaturesPage() {
   return (
-    <div className="bg-black min-h-screen text-white antialiased">
+    <div className="bg-white min-h-screen text-gray-900 antialiased">
       <Navbar />
-
-      {/* Hero */}
-      <section className="pt-36 pb-20 px-6 md:px-8 text-center">
-        <div className="max-w-3xl mx-auto">
-          <span
-            className="text-xs font-semibold uppercase tracking-widest"
-            style={{ color: "#FF4D00" }}
-          >
-            The Platform
-          </span>
-          <h1 className="mt-4 text-5xl md:text-7xl font-black tracking-tight leading-none">
-            Every tool. One platform.
-          </h1>
-          <p className="mt-6 text-white/50 text-xl leading-relaxed max-w-2xl mx-auto">
-            From sideline capture to broadcast distribution — SLATE360 gives your
-            team every tool they need to produce elite content, with zero broken handoffs.
-          </p>
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/plans"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-semibold text-base transition-all hover:opacity-90 hover:scale-105"
-              style={{ backgroundColor: "#FF4D00", color: "#fff" }}
-            >
-              Start Free Trial <ChevronRight size={16} />
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-semibold text-base border border-white/20 hover:bg-white/5 transition-all"
-            >
-              Sign In
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Grid */}
-      <section className="pb-28 px-6 md:px-8">
+      <section className="pt-32 pb-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="text-center mb-14">
+            <span className="inline-block text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full mb-4" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
+              The full platform
+            </span>
+            <h1 className="text-5xl sm:text-6xl font-black tracking-tight" style={{ color: "#1E3A8A" }}>Platform Features</h1>
+            <p className="text-gray-500 mt-4 text-lg max-w-xl mx-auto">Six integrated modules built for construction professionals. One login, zero context switching.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((f) => (
-              <Link
-                key={f.key}
-                href={f.href}
-                className="group relative p-8 rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/25 transition-all duration-300 flex flex-col gap-5 min-h-[220px]"
-              >
-                <span
-                  className="inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full w-fit"
-                  style={{ backgroundColor: f.accent + "22", color: f.accent }}
-                >
-                  {f.label}
-                </span>
-                <div className="flex-1">
-                  <h2 className="text-xl font-bold mb-3 text-white">{f.title}</h2>
-                  <p className="text-white/50 text-sm leading-relaxed">{f.description}</p>
-                </div>
-                <span
-                  className="inline-flex items-center gap-1 text-xs font-semibold mt-auto"
-                  style={{ color: f.accent }}
-                >
-                  Explore <ChevronRight size={12} />
+              <Link key={f.key} href={f.href} className={`group p-6 rounded-2xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 block relative ${f.highlight ? "border-[#FF4D00]/30 bg-white shadow-sm ring-1 ring-[#FF4D00]/10" : "border-gray-200 bg-white hover:border-gray-300"}`}>
+                {f.highlight && <span className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: "#FF4D00" }}>Start here</span>}
+                <div className="text-3xl mb-4">{f.icon}</div>
+                <span className="text-[10px] font-bold uppercase tracking-widest mb-1 block" style={{ color: f.accent }}>{f.label}</span>
+                <h2 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#1E3A8A] transition-colors">{f.title}</h2>
+                <p className="text-sm text-gray-500 leading-relaxed mb-4">{f.desc}</p>
+                <span className="inline-flex items-center gap-1 text-sm font-semibold transition-all group-hover:gap-2" style={{ color: f.accent }}>
+                  Learn more <ArrowRight size={14} />
                 </span>
               </Link>
             ))}
           </div>
         </div>
       </section>
-
-      {/* Bottom CTA */}
-      <section className="py-24 px-6 md:px-8 bg-zinc-950/50 text-center">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-4xl font-black mb-4">Ready to get started?</h2>
-          <p className="text-white/50 mb-8 text-lg">
-            Start free. No credit card required.
-          </p>
-          <Link
-            href="/plans"
-            className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full font-semibold text-base transition-all hover:opacity-90 hover:scale-105"
-            style={{ backgroundColor: "#FF4D00", color: "#fff" }}
-          >
-            View Plans &amp; Pricing <ChevronRight size={16} />
-          </Link>
-        </div>
-      </section>
-
       <Footer />
     </div>
   );
