@@ -22,7 +22,7 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     const confirmUrl = `${window.location.origin}/auth/callback`;
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -34,19 +34,10 @@ export default function SignupPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      // Fire branded welcome/confirmation email via Resend (non-blocking)
-      if (data.user) {
-        fetch("/api/email/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "welcome",
-            to: email,
-            name: name || undefined,
-            confirmUrl,
-          }),
-        }).catch(() => {}); // fire-and-forget; Supabase also sends its own link
-      }
+      // Supabase sends the real confirmation email with a valid token link.
+      // We no longer send a separate Resend welcome email here because its
+      // CTA cannot include the auth token — only Supabase can generate that.
+      // To get branded emails, configure Supabase custom SMTP → Resend.
       setDone(true);
     }
   }

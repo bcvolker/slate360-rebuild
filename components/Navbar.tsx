@@ -180,6 +180,16 @@ export default function Navbar() {
           </div>
 
           <Link
+            href="/slatedrop"
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              pathname === "/slatedrop"
+                ? "text-[#FF4D00]"
+                : "text-gray-700 hover:text-[#FF4D00] hover:bg-gray-50"
+            }`}
+          >
+            SlateDrop
+          </Link>
+          <Link
             href="/plans"
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               pathname === "/plans"
@@ -250,6 +260,13 @@ export default function Navbar() {
                   className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors"
                 >
                   Login
+                </Link>
+                <Link
+                  href="/slatedrop"
+                  onClick={() => setMobileOpen(false)}
+                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors"
+                >
+                  SlateDrop
                 </Link>
                 <Link
                   href="/plans"

@@ -75,7 +75,7 @@ function ctaButton(label: string, href: string) {
   </table>`;
 }
 
-/* ── Email: Welcome / Confirm Account ── */
+/* ── Email: Welcome (sent after email is confirmed) ── */
 export async function sendWelcomeEmail({
   to,
   name,
@@ -87,19 +87,19 @@ export async function sendWelcomeEmail({
 }) {
   const displayName = name ?? to.split("@")[0];
   const body = `
-    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">Welcome to Slate360${displayName ? `, ${displayName}` : ""}.</h2>
+    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">Welcome to Slate360${displayName ? `, ${displayName}` : ""}! 🎉</h2>
     <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
-      Your account is almost ready. Confirm your email address to access your dashboard and start building.
+      Your email has been verified and your account is ready. You now have access to your dashboard, SlateDrop file manager, and all Slate360 modules.
     </p>
-    ${ctaButton("Confirm my email →", confirmUrl)}
+    ${ctaButton("Go to my dashboard →", confirmUrl)}
     <p style="margin:20px 0 0;font-size:12px;color:#9ca3af;">
-      This link expires in 24 hours. If you didn't sign up for Slate360, you can safely ignore this email.
+      If you didn't create a Slate360 account, you can safely ignore this email.
     </p>`;
   return getResend().emails.send({
     from: FROM,
     to,
-    subject: "Confirm your Slate360 account",
-    html: brandedHtml("Confirm your Slate360 account", body),
+    subject: "Welcome to Slate360 — your account is ready",
+    html: brandedHtml("Welcome to Slate360", body),
   });
 }
 
