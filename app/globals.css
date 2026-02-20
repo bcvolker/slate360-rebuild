@@ -124,3 +124,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile menu slide-in */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
+}

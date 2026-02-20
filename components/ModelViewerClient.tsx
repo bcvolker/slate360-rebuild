@@ -10,18 +10,33 @@ interface ModelViewerClientProps {
   src: string;
   alt?: string;
   style?: React.CSSProperties;
+  cameraOrbit?: string;
+  shadowIntensity?: number;
+  shadowSoftness?: number;
+  showGround?: boolean;
 }
 
 export default function ModelViewerClient({
   src,
   alt = "3D model",
   style,
+  cameraOrbit,
+  shadowIntensity,
+  shadowSoftness,
+  showGround,
 }: ModelViewerClientProps) {
   const defaultStyle: React.CSSProperties = {
     width: "100%",
     height: "100%",
     background: "transparent",
   };
+
+  const extras: Record<string, string> = {};
+  if (cameraOrbit) extras["camera-orbit"] = cameraOrbit;
+  if (shadowIntensity !== undefined)
+    extras["shadow-intensity"] = String(shadowIntensity);
+  if (shadowSoftness !== undefined)
+    extras["shadow-softness"] = String(shadowSoftness);
 
   return (
     <>
@@ -34,6 +49,7 @@ export default function ModelViewerClient({
         environment-image="neutral"
         exposure="0.8"
         style={style ?? defaultStyle}
+        {...extras}
       />
       <Script
         type="module"

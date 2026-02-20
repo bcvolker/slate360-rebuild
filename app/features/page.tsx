@@ -11,18 +11,24 @@ const features = [
   { key: "project-hub", icon: "📋", label: "Manage", title: "Project Hub", accent: "#1E3A8A",
     desc: "Command center for every project — RFIs, submittals, budgets, schedules, and team coordination in one place.",
     href: "/features/project-hub" },
-  { key: "slatedrop", icon: "📂", label: "Organize", title: "SlateDrop", accent: "#FF4D00",
-    desc: "Finder-style file system for every project and tab. Drag, drop, right-click Secure Send.",
-    href: "/features/slatedrop" },
+  { key: "content-studio", icon: "🎨", label: "Create", title: "Content Studio", accent: "#FF4D00",
+    desc: "Branded reports, bid packages, social posts, and client microsites from your live project data.",
+    href: "/features/content-studio" },
   { key: "360-tour-builder", icon: "🔭", label: "Visualize", title: "360 Tour Builder", accent: "#1E3A8A",
     desc: "Capture and share immersive 360° walkthroughs of any site or structure. Embed anywhere.",
     href: "/features/360-tour-builder" },
-  { key: "virtual-studio", icon: "🎬", label: "Present", title: "Virtual Studio", accent: "#FF4D00",
-    desc: "Photorealistic renderings, fly-through animations, and polished presentations from your models.",
-    href: "/features/virtual-studio" },
-  { key: "geospatial-robotics", icon: "🛰️", label: "Survey", title: "Geospatial & Robotics", accent: "#1E3A8A",
+  { key: "geospatial-robotics", icon: "🛰️", label: "Survey", title: "Geospatial & Robotics", accent: "#FF4D00",
     desc: "Drone mapping, photogrammetry, LiDAR, and volumetric calculations — fully automated.",
     href: "/features/geospatial-robotics" },
+  { key: "virtual-studio", icon: "🎬", label: "Present", title: "Virtual Studio", accent: "#1E3A8A",
+    desc: "Photorealistic renderings, fly-through animations, and polished presentations from your models.",
+    href: "/features/virtual-studio" },
+  { key: "analytics-reports", icon: "📊", label: "Analyze", title: "Analytics & Reports", accent: "#FF4D00",
+    desc: "Portfolio dashboards, credit trends, team activity, and exportable reports.",
+    href: "/features/analytics-reports" },
+  { key: "slatedrop", icon: "📂", label: "Organize", title: "SlateDrop", accent: "#1E3A8A",
+    desc: "Finder-style file system for every project and tab. Drag, drop, right-click Secure Send.",
+    href: "/features/slatedrop" },
 ];
 
 export default function FeaturesPage() {
@@ -36,7 +42,7 @@ export default function FeaturesPage() {
               The full platform
             </span>
             <h1 className="text-5xl sm:text-6xl font-black tracking-tight" style={{ color: "#1E3A8A" }}>Platform Features</h1>
-            <p className="text-gray-500 mt-4 text-lg max-w-xl mx-auto">Six integrated modules built for construction professionals. One login, zero context switching.</p>
+            <p className="text-gray-500 mt-4 text-lg max-w-xl mx-auto">Eight integrated modules. One login, zero context switching.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((f) => (

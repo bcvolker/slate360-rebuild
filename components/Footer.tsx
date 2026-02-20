@@ -4,10 +4,12 @@ import Link from "next/link";
 const features = [
   { label: "Design Studio", href: "/features/design-studio" },
   { label: "Project Hub", href: "/features/project-hub" },
-  { label: "SlateDrop", href: "/features/slatedrop" },
+  { label: "Content Studio", href: "/features/content-studio" },
   { label: "360 Tour Builder", href: "/features/360-tour-builder" },
-  { label: "Virtual Studio", href: "/features/virtual-studio" },
   { label: "Geospatial & Robotics", href: "/features/geospatial-robotics" },
+  { label: "Virtual Studio", href: "/features/virtual-studio" },
+  { label: "Analytics & Reports", href: "/features/analytics-reports" },
+  { label: "SlateDrop", href: "/features/slatedrop" },
 ];
 
 export default function Footer() {
