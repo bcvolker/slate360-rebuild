@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 import SlateDropClient from "@/components/slatedrop/SlateDropClient";
+import MarketClient from "@/components/dashboard/MarketClient";
 import {
   Search,
   Bell,
@@ -1567,7 +1568,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         )}
 
         {/* ════════ SPECIFIC TAB WIREFRAME ════════ */}
-        {activeTab !== "overview" && (() => {
+        {activeTab === "market" && (
+          <MarketClient user={user} tier={tier} />
+        )}
+        {activeTab !== "overview" && activeTab !== "market" && (() => {
           const tab = visibleTabs.find((t) => t.id === activeTab);
           if (!tab) return null;
           return <TabWireframe tab={tab} onBack={() => setActiveTab("overview")} onOpenSlateDrop={openSlateDrop} />;
