@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
       { source: "/design-studio", destination: "/features/design-studio", permanent: false },
       { source: "/content-studio", destination: "/features/content-studio", permanent: false },
       { source: "/virtual-studio", destination: "/features/virtual-studio", permanent: false },
-      { source: "/slatedrop", destination: "/features/slatedrop", permanent: false },
+      // NOTE: /slatedrop is a real app route (app/slatedrop/page.tsx) — do NOT redirect it
       { source: "/360-capture", destination: "/features/360-tour-builder", permanent: false },
       { source: "/analytics", destination: "/features/analytics-reports", permanent: false },
       { source: "/geospatial", destination: "/features/geospatial-robotics", permanent: false },
