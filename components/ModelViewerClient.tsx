@@ -3,7 +3,12 @@
  * ModelViewerClient — renders Google's model-viewer web component.
  * Must be imported with next/dynamic + ssr:false to avoid React hydration
  * mismatches caused by the custom element being unknown on the server.
+ *
+ * IMPORTANT: We use a ref + useEffect to imperatively set attributes like
+ * `orientation` because React does NOT reliably pass JSX props/spread to
+ * custom web‑component elements via `setAttribute`.
  */
+import { useRef, useEffect } from "react";
 import Script from "next/script";
 
 interface ModelViewerClientProps {
@@ -27,32 +32,47 @@ export default function ModelViewerClient({
   orientation,
   interactive = true,
 }: ModelViewerClientProps) {
+  const ref = useRef<HTMLElement>(null);
+
   const defaultStyle: React.CSSProperties = {
     width: "100%",
     height: "100%",
     background: "transparent",
   };
 
-  const extras: Record<string, string> = {};
-  if (cameraOrbit) extras["camera-orbit"] = cameraOrbit;
-  if (shadowIntensity !== undefined)
-    extras["shadow-intensity"] = String(shadowIntensity);
-  if (shadowSoftness !== undefined)
-    extras["shadow-softness"] = String(shadowSoftness);
-  if (orientation) extras["orientation"] = orientation;
+  /* Imperatively set attributes that React's JSX doesn't reliably pass
+     to custom web‑component elements */
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (orientation) el.setAttribute("orientation", orientation);
+    if (cameraOrbit) el.setAttribute("camera-orbit", cameraOrbit);
+    if (shadowIntensity !== undefined)
+      el.setAttribute("shadow-intensity", String(shadowIntensity));
+    if (shadowSoftness !== undefined)
+      el.setAttribute("shadow-softness", String(shadowSoftness));
+    el.setAttribute("environment-image", "neutral");
+    el.setAttribute("exposure", "0.8");
+    el.setAttribute("auto-rotate", "");
+    if (interactive) {
+      el.setAttribute("camera-controls", "");
+      el.removeAttribute("interaction-prompt");
+      el.removeAttribute("disable-tap");
+    } else {
+      el.removeAttribute("camera-controls");
+      el.setAttribute("interaction-prompt", "none");
+      el.setAttribute("disable-tap", "");
+    }
+  }, [orientation, cameraOrbit, shadowIntensity, shadowSoftness, interactive]);
 
   return (
     <>
       {/* @ts-ignore — model-viewer is a custom web component */}
       <model-viewer
+        ref={ref}
         src={src}
         alt={alt}
-        auto-rotate
-        {...(interactive ? { "camera-controls": true } : { "interaction-prompt": "none", "disable-tap": true })}
-        environment-image="neutral"
-        exposure="0.8"
         style={style ?? defaultStyle}
-        {...extras}
       />
       <Script
         type="module"

@@ -113,21 +113,25 @@ const moreTools = [
     icon: <Cpu size={22} />,
     title: "GPU-Powered Processing",
     desc: "Server-side rendering, file conversion, and heavy computation — offloaded so your machine stays fast.",
+    href: "/features/gpu-processing",
   },
   {
     icon: <Users size={22} />,
     title: "Easy Collaboration & Sharing",
     desc: "Share links, comment threads, real-time co-editing, and permission-based access for every stakeholder.",
+    href: "/features/collaboration",
   },
   {
     icon: <ScanLine size={22} />,
     title: "Digital Twin Creation",
     desc: "Gaussian Splatting & NeRF options to build photorealistic digital twins from photos or LiDAR scans.",
+    href: "/features/digital-twins",
   },
   {
     icon: <span className="text-xl">🧩</span>,
     title: "Ecosystem Apps",
     desc: "Downloadable and subscribable apps that integrate seamlessly with the main platform.",
+    href: "/features/ecosystem-apps",
   },
 ];
 
@@ -429,10 +433,12 @@ export default function HomePage() {
                       interactive={false}
                     />
                   ) : p.key === "360-tour-builder" ? (
-                    <div
-                      className="w-full h-full bg-cover bg-center"
-                      style={{ backgroundImage: "url('/uploads/pletchers.jpg')" }}
-                    />
+                    <div className="w-full h-full overflow-hidden">
+                      <div
+                        className="w-[200%] h-full bg-cover bg-center animate-pan-360"
+                        style={{ backgroundImage: "url('/uploads/pletchers.jpg')" }}
+                      />
+                    </div>
                   ) : (
                     <div className="flex flex-col items-center gap-3">
                       <span className="text-5xl opacity-80 group-hover:opacity-100 transition-opacity drop-shadow-sm">{p.icon}</span>

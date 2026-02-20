@@ -138,3 +138,20 @@
 .animate-slide-in {
   animation: slideIn 0.2s ease-out;
 }
+
+/* Slow horizontal pan for 360 card thumbnail */
+@keyframes pan360 {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-pan-360 {
+  animation: pan360 12s ease-in-out infinite;
+}
