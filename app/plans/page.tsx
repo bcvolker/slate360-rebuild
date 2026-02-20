@@ -68,47 +68,47 @@ export default function PlansPage() {
   return (
     <div className="bg-white min-h-screen text-gray-900 antialiased">
       <Navbar />
-      <section className="pt-32 pb-12 px-4 sm:px-6 text-center">
+      <section className="pt-24 pb-6 px-4 sm:px-6 text-center">
         <div className="max-w-2xl mx-auto">
-          <span className="inline-block text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full mb-4" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>Pricing</span>
-          <h1 className="text-5xl sm:text-6xl font-black tracking-tight mb-4" style={{ color: "#1E3A8A" }}>Simple, transparent pricing</h1>
-          <p className="text-lg text-gray-500 mb-8">Credits are generous. Storage is real. No surprise bills.</p>
+          <span className="inline-block text-[10px] font-semibold uppercase tracking-widest px-3 py-1 rounded-full mb-3" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>Pricing</span>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-3" style={{ color: "#1E3A8A" }}>Simple, transparent pricing</h1>
+          <p className="text-base text-gray-500 mb-6">Credits are generous. Storage is real. No surprise bills.</p>
           <div className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 p-1">
             {(["monthly", "annual"] as const).map((b) => (
-              <button key={b} onClick={() => setBilling(b)} className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${billing === b ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}>
+              <button key={b} onClick={() => setBilling(b)} className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${billing === b ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}>
                 {b === "monthly" ? "Monthly" : "Annual — save 17%"}
               </button>
             ))}
           </div>
         </div>
       </section>
-      <section className="py-8 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+      <section className="pb-12 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {tiers.map((t) => (
-            <div key={t.name} className={`rounded-2xl p-7 relative flex flex-col ${t.highlight ? "border-2 border-[#FF4D00] bg-white shadow-xl" : "border border-gray-200 bg-white"}`}>
-              {t.highlight && <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full text-white" style={{ backgroundColor: "#FF4D00" }}>Most popular</span>}
+            <div key={t.name} className={`rounded-2xl p-6 relative flex flex-col ${t.highlight ? "border-2 border-[#FF4D00] bg-white shadow-xl" : "border border-gray-200 bg-white"}`}>
+              {t.highlight && <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-white" style={{ backgroundColor: "#FF4D00" }}>Most popular</span>}
               <div className="mb-auto">
-                <h2 className="text-xl font-black text-gray-900 mb-1">{t.name}</h2>
-                <p className="text-xs text-gray-500 mb-4">{t.desc}</p>
-                <div className="flex items-baseline gap-1 mb-6">
+                <h2 className="text-lg font-black text-gray-900 mb-1">{t.name}</h2>
+                <p className="text-xs text-gray-500 mb-3">{t.desc}</p>
+                <div className="flex items-baseline gap-1 mb-4">
                   {t.price === "Custom" ? (
-                    <span className="text-3xl font-black" style={{ color: "#1E3A8A" }}>Custom</span>
+                    <span className="text-2xl font-black" style={{ color: "#1E3A8A" }}>Custom</span>
                   ) : (
                     <>
-                      <span className="text-4xl font-black" style={{ color: "#1E3A8A" }}>{billing === "annual" ? t.annualPrice : t.price}</span>
-                      <span className="text-gray-400 text-sm">/mo</span>
+                      <span className="text-3xl font-black" style={{ color: "#1E3A8A" }}>{billing === "annual" ? t.annualPrice : t.price}</span>
+                      <span className="text-gray-400 text-xs">/mo</span>
                     </>
                   )}
                 </div>
-                <ul className="space-y-2.5 mb-7">
+                <ul className="space-y-2 mb-5">
                   {t.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
-                      <Check size={14} style={{ color: "#FF4D00" }} className="flex-shrink-0 mt-0.5" />{f}
+                    <li key={f} className="flex items-start gap-2 text-xs text-gray-600">
+                      <Check size={12} style={{ color: "#FF4D00" }} className="flex-shrink-0 mt-0.5" />{f}
                     </li>
                   ))}
                 </ul>
               </div>
-              <Link href={t.href} className={`flex items-center justify-center w-full py-3.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-105 mt-4 ${t.highlight ? "text-white" : "border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`} style={t.highlight ? { backgroundColor: "#FF4D00" } : {}}>
+              <Link href={t.href} className={`flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-105 mt-2 ${t.highlight ? "text-white" : "border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`} style={t.highlight ? { backgroundColor: "#FF4D00" } : {}}>
                 {t.cta} {t.price !== "Custom" && <ChevronRight size={14} className="ml-1" />}
               </Link>
             </div>

@@ -212,105 +212,80 @@ export default function Navbar() {
       </div>
 
       {/* ══════════════════════════════════════════════════
-         Mobile menu — slides in, click outside to close
+         Mobile menu — condensed dropdown
          ══════════════════════════════════════════════════ */}
       {mobileOpen && (
         <>
           {/* backdrop */}
-          <div className="fixed inset-0 bg-black/20 z-40 md:hidden" />
+          <div className="fixed inset-0 top-16 bg-black/20 z-40 md:hidden" onClick={() => setMobileOpen(false)} />
 
           <div
             ref={mobileMenuRef}
-            className="fixed top-0 right-0 w-[85vw] max-w-sm h-full bg-white z-50 shadow-2xl flex flex-col md:hidden animate-slide-in"
+            className="absolute top-16 left-0 right-0 bg-white z-50 shadow-2xl flex flex-col md:hidden border-t border-gray-100 max-h-[66vh] overflow-hidden rounded-b-3xl"
           >
-            {/* Header: logo + close */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <Link
-                href="/"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2"
-              >
-                <img src="/logo.svg" alt="Slate360" className="h-7 w-auto" />
-              </Link>
-              <button
-                onClick={() => setMobileOpen(false)}
-                className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                aria-label="Close menu"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
             {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto px-4 py-4">
-              {/* Dashboard first */}
-              <Link
-                href="/dashboard"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 transition-colors mb-1"
-              >
-                <span className="text-lg">📊</span>
-                <span className="text-sm font-semibold text-gray-900">
-                  Dashboard
-                </span>
-              </Link>
-
-              <div className="h-px bg-gray-100 my-2" />
-
-              {/* Tabs in exact sidebar order */}
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 px-3 mb-2 mt-2">
-                Platform
-              </p>
-              {features.map((f) => (
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              {/* Primary Links */}
+              <div className="flex flex-col gap-4 mb-6">
                 <Link
-                  key={f.href}
-                  href={f.href}
+                  href="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 transition-colors"
+                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors"
                 >
-                  <span className="text-lg">{f.icon}</span>
-                  <span className="text-sm font-medium text-gray-800">
-                    {f.label}
-                  </span>
+                  Login
                 </Link>
-              ))}
+                <Link
+                  href="/plans"
+                  onClick={() => setMobileOpen(false)}
+                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors"
+                >
+                  Pricing
+                </Link>
+                <Link
+                  href="/about"
+                  onClick={() => setMobileOpen(false)}
+                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors"
+                >
+                  About
+                </Link>
+                <Link
+                  href="/contact"
+                  onClick={() => setMobileOpen(false)}
+                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors"
+                >
+                  Contact
+                </Link>
+              </div>
 
-              <div className="h-px bg-gray-100 my-3" />
+              <div className="h-px bg-gray-100 my-4" />
 
-              {/* Secondary links */}
-              <Link
-                href="/plans"
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Pricing
-              </Link>
-              <Link
-                href="/about"
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                About
-              </Link>
-
-              <div className="h-px bg-gray-100 my-3" />
-
-              {/* Account links */}
-              <Link
-                href="/login"
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Sign in
-              </Link>
+              {/* Features Section */}
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
+                Features
+              </p>
+              <div className="grid grid-cols-1 gap-3">
+                {features.map((f) => (
+                  <Link
+                    key={f.href}
+                    href={f.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-3 group"
+                  >
+                    <span className="text-xl bg-gray-50 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-[#FF4D00]/10 transition-colors">{f.icon}</span>
+                    <span className="text-sm font-medium text-gray-700 group-hover:text-[#FF4D00] transition-colors">
+                      {f.label}
+                    </span>
+                  </Link>
+                ))}
+              </div>
             </div>
 
             {/* Sticky CTA */}
-            <div className="px-4 py-4 border-t border-gray-100">
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
               <Link
                 href="/signup"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center w-full py-3.5 rounded-full text-sm font-semibold text-white transition-all hover:opacity-90"
+                className="flex items-center justify-center w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 shadow-sm"
                 style={{ backgroundColor: "#FF4D00" }}
               >
                 Start free trial

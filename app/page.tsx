@@ -38,6 +38,7 @@ const platforms = [
     href: "/features/design-studio",
     accent: "#FF4D00",
     highlight: true,
+    bg: "from-orange-50 to-white",
   },
   {
     key: "project-hub",
@@ -47,6 +48,7 @@ const platforms = [
     desc: "Command center for every project — RFIs, submittals, budgets, schedules, and team coordination in one place.",
     href: "/features/project-hub",
     accent: "#1E3A8A",
+    bg: "from-blue-50 to-white",
   },
   {
     key: "content-studio",
@@ -56,6 +58,7 @@ const platforms = [
     desc: "Create marketing materials, client presentations, and polished deliverables directly from your project data.",
     href: "/features/content-studio",
     accent: "#FF4D00",
+    bg: "from-orange-50 to-white",
   },
   {
     key: "360-tour-builder",
@@ -65,6 +68,7 @@ const platforms = [
     desc: "Capture and share immersive 360° walkthroughs of any site, structure, or space. Embed anywhere.",
     href: "/features/360-tour-builder",
     accent: "#1E3A8A",
+    bg: "from-blue-50 to-white",
   },
   {
     key: "geospatial-robotics",
@@ -74,6 +78,7 @@ const platforms = [
     desc: "Drone mapping, photogrammetry, LiDAR point clouds, and volumetric calculations — fully automated.",
     href: "/features/geospatial-robotics",
     accent: "#FF4D00",
+    bg: "from-orange-50 to-white",
   },
   {
     key: "virtual-studio",
@@ -83,6 +88,7 @@ const platforms = [
     desc: "Photorealistic renderings, fly-through animations, and client-ready presentations from your 3D models.",
     href: "/features/virtual-studio",
     accent: "#1E3A8A",
+    bg: "from-blue-50 to-white",
   },
   {
     key: "analytics-reports",
@@ -92,6 +98,7 @@ const platforms = [
     desc: "Project dashboards, credit consumption trends, portfolio-level insights, and exportable reports.",
     href: "/features/analytics-reports",
     accent: "#FF4D00",
+    bg: "from-orange-50 to-white",
   },
 ];
 
@@ -117,6 +124,11 @@ const moreTools = [
     icon: <ScanLine size={22} />,
     title: "Digital Twin Creation",
     desc: "Gaussian Splatting & NeRF options to build photorealistic digital twins from photos or LiDAR scans.",
+  },
+  {
+    icon: <span className="text-xl">🧩</span>,
+    title: "Ecosystem Apps",
+    desc: "Downloadable and subscribable apps that integrate seamlessly with the main platform.",
   },
 ];
 
@@ -262,9 +274,9 @@ export default function HomePage() {
 
       {/* ────── HERO — full viewport ────── */}
       <section className="min-h-screen flex items-center pt-16 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center py-12 lg:py-0">
-          {/* Left: headline + CTAs */}
-          <div className="max-w-xl">
+        <div className="max-w-[90rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center py-12 lg:py-0">
+          {/* Left: headline + CTAs (60%) */}
+          <div className="lg:col-span-7 max-w-2xl">
             <h1
               className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.04] mb-6"
               style={{ color: "#1E3A8A" }}
@@ -294,69 +306,99 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right: side-by-side viewers */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* 360 Viewer */}
-            <ViewerCard
-              interacted={interact360}
-              onInteract={() => setInteract360((v) => !v)}
-              onExpand={() => setModal360(true)}
-            >
-              {interact360 ? (
-                <iframe
-                  src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent(
-                    "/uploads/pletchers.jpg"
-                  )}&autoLoad=true&showControls=true&compass=false`}
-                  className="w-full h-full border-0"
-                  allowFullScreen
-                  title="360 panorama"
-                />
-              ) : (
-                <div
-                  className="w-full h-full bg-cover bg-center relative cursor-pointer group"
-                  style={{ backgroundImage: "url('/uploads/pletchers.jpg')" }}
-                  onClick={() => setInteract360(true)}
-                >
-                  <div className="absolute inset-0 bg-[#1E3A8A]/20 group-hover:bg-[#1E3A8A]/10 transition-colors flex items-center justify-center">
-                    <div className="w-14 h-14 rounded-full bg-white/90 shadow-lg flex items-center justify-center">
-                      <span className="text-2xl">🔭</span>
-                    </div>
-                  </div>
+          {/* Right: ONE large hero vision viewer (40%) */}
+          <div className="lg:col-span-5">
+            <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-2xl flex flex-col w-full aspect-[4/3] sm:aspect-square lg:aspect-[4/5]">
+              {/* Top bar of the viewer */}
+              <div className="px-4 py-3 flex items-center justify-between bg-white border-b border-gray-100 z-10 relative">
+                <span className="text-sm font-bold text-gray-800">Hero Vision</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setInteract360((v) => !v)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold text-white transition-all hover:opacity-90"
+                    style={{ backgroundColor: "#FF4D00" }}
+                  >
+                    {interact360 ? "Reset 360" : "Interact 360"}
+                  </button>
+                  <button
+                    onClick={() => setInteract3D((v) => !v)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold text-white transition-all hover:opacity-90"
+                    style={{ backgroundColor: "#FF4D00" }}
+                  >
+                    {interact3D ? "Reset 3D" : "Interact 3D"}
+                  </button>
                 </div>
-              )}
-            </ViewerCard>
+              </div>
 
-            {/* 3D Viewer */}
-            <ViewerCard
-              interacted={interact3D}
-              onInteract={() => setInteract3D((v) => !v)}
-              onExpand={() => setModal3D(true)}
-            >
-              {interact3D && mounted ? (
-                <ModelViewer
-                  src="/uploads/csb-stadium-model.glb"
-                  alt="3D building model"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    background: "transparent",
-                  }}
-                  cameraOrbit="45deg 65deg 105%"
-                  shadowIntensity={0.4}
-                  shadowSoftness={1}
-                  showGround
-                />
-              ) : (
-                <div
-                  className="w-full h-full bg-gradient-to-br from-slate-100 to-gray-50 relative cursor-pointer group flex items-center justify-center"
-                  onClick={() => setInteract3D(true)}
-                >
-                  <div className="w-14 h-14 rounded-full bg-white shadow-lg flex items-center justify-center">
-                    <span className="text-2xl">🏗️</span>
-                  </div>
+              {/* Split view inside the single viewer */}
+              <div className="flex-1 flex flex-col sm:flex-row relative min-h-0">
+                {/* 360 Half */}
+                <div className="flex-1 relative border-b sm:border-b-0 sm:border-r border-gray-200 bg-gray-100">
+                  <button
+                    onClick={() => setModal360(true)}
+                    className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold bg-white/90 hover:bg-white text-gray-700 border border-gray-200 shadow-sm transition-all hover:shadow backdrop-blur-sm z-10"
+                  >
+                    <Maximize2 size={10} /> Expand
+                  </button>
+                  {interact360 ? (
+                    <iframe
+                      src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent(
+                        "/uploads/pletchers.jpg"
+                      )}&autoLoad=true&showControls=true&compass=false`}
+                      className="w-full h-full border-0"
+                      allowFullScreen
+                      title="360 panorama"
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full bg-cover bg-center relative cursor-pointer group"
+                      style={{ backgroundImage: "url('/uploads/pletchers.jpg')" }}
+                      onClick={() => setInteract360(true)}
+                    >
+                      <div className="absolute inset-0 bg-[#1E3A8A]/20 group-hover:bg-[#1E3A8A]/10 transition-colors flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center">
+                          <span className="text-xl">🔭</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </ViewerCard>
+
+                {/* 3D Half */}
+                <div className="flex-1 relative bg-gradient-to-br from-slate-100 to-gray-50">
+                  <button
+                    onClick={() => setModal3D(true)}
+                    className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold bg-white/90 hover:bg-white text-gray-700 border border-gray-200 shadow-sm transition-all hover:shadow backdrop-blur-sm z-10"
+                  >
+                    <Maximize2 size={10} /> Expand
+                  </button>
+                  {interact3D && mounted ? (
+                    <ModelViewer
+                      src="/uploads/csb-stadium-model.glb"
+                      alt="3D building model"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        background: "transparent",
+                      }}
+                      cameraOrbit="45deg 65deg 105%"
+                      shadowIntensity={0.4}
+                      shadowSoftness={1}
+                      showGround
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full relative cursor-pointer group flex items-center justify-center"
+                      onClick={() => setInteract3D(true)}
+                    >
+                      <div className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center">
+                        <span className="text-xl">🏗️</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -381,44 +423,52 @@ export default function HomePage() {
               Seven integrated modules. One login. Zero context switching.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {platforms.map((p) => (
               <Link
                 key={p.key}
                 href={p.href}
-                className={`group relative p-6 rounded-2xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 block ${
+                className={`group relative flex flex-col sm:flex-row overflow-hidden rounded-2xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
                   p.highlight
                     ? "border-[#FF4D00]/30 bg-white shadow-sm ring-1 ring-[#FF4D00]/10"
                     : "border-gray-200 bg-white hover:border-gray-300"
                 }`}
               >
-                {p.highlight && (
+                <div className="p-6 sm:w-1/2 flex flex-col justify-center relative">
+                  {p.highlight && (
+                    <span
+                      className="absolute top-6 right-6 sm:right-auto sm:left-6 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full text-white"
+                      style={{ backgroundColor: "#FF4D00" }}
+                    >
+                      Featured
+                    </span>
+                  )}
+                  <div className={`text-3xl mb-4 ${p.highlight ? "mt-6 sm:mt-8" : ""}`}>{p.icon}</div>
                   <span
-                    className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full text-white"
-                    style={{ backgroundColor: "#FF4D00" }}
+                    className="text-[10px] font-bold uppercase tracking-widest mb-1 block"
+                    style={{ color: p.accent }}
                   >
-                    Featured
+                    {p.label}
                   </span>
-                )}
-                <div className="text-3xl mb-4">{p.icon}</div>
-                <span
-                  className="text-[10px] font-bold uppercase tracking-widest mb-1 block"
-                  style={{ color: p.accent }}
-                >
-                  {p.label}
-                </span>
-                <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#1E3A8A] transition-colors">
-                  {p.title}
-                </h3>
-                <p className="text-sm text-gray-500 leading-relaxed mb-4">
-                  {p.desc}
-                </p>
-                <span
-                  className="inline-flex items-center gap-1 text-sm font-semibold transition-all group-hover:gap-2"
-                  style={{ color: p.accent }}
-                >
-                  Learn more <ArrowRight size={14} />
-                </span>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#1E3A8A] transition-colors">
+                    {p.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 leading-relaxed mb-6 flex-grow">
+                    {p.desc}
+                  </p>
+                  <span
+                    className="inline-flex items-center gap-1 text-sm font-semibold transition-all group-hover:gap-2 mt-auto"
+                    style={{ color: p.accent }}
+                  >
+                    Learn more <ArrowRight size={14} />
+                  </span>
+                </div>
+                <div className={`sm:w-1/2 min-h-[200px] sm:min-h-full bg-gradient-to-br ${p.bg} flex items-center justify-center p-6 border-t sm:border-t-0 sm:border-l border-gray-100`}>
+                  <div className="w-full aspect-video bg-white/60 backdrop-blur-sm rounded-xl border border-white/80 shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-white/40"></div>
+                    <span className="text-5xl opacity-80 group-hover:opacity-100 transition-opacity drop-shadow-sm">{p.icon}</span>
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
@@ -440,7 +490,7 @@ export default function HomePage() {
               professionals who build.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {moreTools.map((t) => (
               <div
                 key={t.title}
