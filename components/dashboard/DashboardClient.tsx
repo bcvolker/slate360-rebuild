@@ -57,6 +57,7 @@ import {
   ChevronUp,
   FileText,
   ArrowUpRight,
+  X,
 } from "lucide-react";
 
 /* ================================================================
@@ -366,7 +367,7 @@ function WidgetCard({
    TAB WIREFRAME PLACEHOLDER
    ================================================================ */
 
-function TabWireframe({ tab, onBack }: { tab: DashTab; onBack: () => void }) {
+function TabWireframe({ tab, onBack, onOpenSlateDrop }: { tab: DashTab; onBack: () => void; onOpenSlateDrop?: () => void }) {
   const Icon = tab.icon;
   const descMap: Record<string, string> = {
     "project-hub":    "Centralized project management, RFIs, daily reports, and team coordination.",
@@ -399,13 +400,13 @@ function TabWireframe({ tab, onBack }: { tab: DashTab; onBack: () => void }) {
       )}
       <p className="text-sm text-gray-400 mb-8 max-w-sm leading-relaxed">{desc}</p>
       {tab.id === "slatedrop" && (
-        <Link
-          href="/slatedrop"
+        <button
+          onClick={onOpenSlateDrop}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 mb-4"
           style={{ backgroundColor: "#FF4D00" }}
         >
           Open SlateDrop <ArrowRight size={15} />
-        </Link>
+        </button>
       )}
       <button
         onClick={onBack}
@@ -484,6 +485,47 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(DEFAULT_WIDGET_PREFS);
   const [prefsDirty, setPrefsDirty] = useState(false);
   const [prefsSaving, setPrefsSaving] = useState(false);
+
+  // ── SlateDrop floating window ───────────────────────────────
+  const [slateDropOpen, setSlateDropOpen] = useState(false);
+  const [sdMinimized, setSdMinimized] = useState(false);
+  const [sdPos, setSdPos] = useState({ x: 0, y: 0 });
+  const [sdSize, setSdSize] = useState({ w: 1000, h: 680 });
+  const sdDragMode = useRef<"title" | "resize" | null>(null);
+  const sdDragStart = useRef({ clientX: 0, clientY: 0, startX: 0, startY: 0, startW: 0, startH: 0 });
+
+  function openSlateDrop() {
+    setSdPos({
+      x: Math.max(0, (window.innerWidth - 1000) / 2),
+      y: Math.max(10, (window.innerHeight - 680) / 4),
+    });
+    setSdSize({ w: 1000, h: 680 });
+    setSdMinimized(false);
+    setSlateDropOpen(true);
+  }
+
+  function onSdTitleDown(e: React.PointerEvent) {
+    sdDragMode.current = "title";
+    sdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: sdPos.x, startY: sdPos.y, startW: sdSize.w, startH: sdSize.h };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }
+  function onSdResizeDown(e: React.PointerEvent) {
+    sdDragMode.current = "resize";
+    sdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: sdPos.x, startY: sdPos.y, startW: sdSize.w, startH: sdSize.h };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    e.stopPropagation();
+  }
+  function onSdPointerMove(e: React.PointerEvent) {
+    if (!sdDragMode.current) return;
+    const dx = e.clientX - sdDragStart.current.clientX;
+    const dy = e.clientY - sdDragStart.current.clientY;
+    if (sdDragMode.current === "title") {
+      setSdPos({ x: sdDragStart.current.startX + dx, y: sdDragStart.current.startY + dy });
+    } else {
+      setSdSize({ w: Math.max(560, sdDragStart.current.startW + dx), h: Math.max(420, sdDragStart.current.startH + dy) });
+    }
+  }
+  function onSdPointerUp() { sdDragMode.current = null; }
 
   /* ── Load saved prefs from Supabase user metadata on mount ─── */
   useState(() => {
@@ -804,7 +846,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                       key={item.id}
                       onClick={() => {
                         if (isSlatedrop) {
-                          window.open("/slatedrop", "slatedrop", "width=1200,height=800,resizable=yes,scrollbars=yes");
+                          openSlateDrop();
                         } else {
                           setActiveTab(item.id);
                         }
@@ -952,14 +994,12 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
               case "slatedrop": return (
           <WidgetCard key={id} icon={FolderOpen} title="SlateDrop" span={span} delay={0} action={
-            <Link
-              href="/slatedrop"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={openSlateDrop}
               className="text-[10px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-1"
             >
               Open <ArrowUpRight size={10} />
-            </Link>
+            </button>
           }>
             <div className="space-y-4">
               {/* Storage bar */}
@@ -988,15 +1028,13 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   </div>
                 ))}
               </div>
-              <Link
-                href="/slatedrop"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={openSlateDrop}
                 className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
                 style={{ backgroundColor: "#FF4D00" }}
               >
                 <FolderOpen size={13} /> Open SlateDrop
-              </Link>
+              </button>
             </div>
           </WidgetCard>
           );
@@ -1531,7 +1569,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         {activeTab !== "overview" && (() => {
           const tab = visibleTabs.find((t) => t.id === activeTab);
           if (!tab) return null;
-          return <TabWireframe tab={tab} onBack={() => setActiveTab("overview")} />;
+          return <TabWireframe tab={tab} onBack={() => setActiveTab("overview")} onOpenSlateDrop={openSlateDrop} />;
         })()}
       </main>
 
@@ -1649,6 +1687,66 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             </div>
           </div>
         </>
+      )}
+
+      {/* ════════ SLATEDROP FLOATING WINDOW ════════ */}
+      {slateDropOpen && (
+        <div
+          className="fixed z-[9999] flex flex-col rounded-2xl overflow-hidden shadow-[0_32px_80px_-12px_rgba(0,0,0,0.55)] border border-gray-700/70"
+          style={{ left: sdPos.x, top: sdPos.y, width: sdSize.w, height: sdMinimized ? "auto" : sdSize.h }}
+        >
+          {/* ── Title bar / drag handle ── */}
+          <div
+            className="flex items-center gap-3 px-4 h-11 bg-gray-900 select-none shrink-0 cursor-grab active:cursor-grabbing"
+            onPointerDown={onSdTitleDown}
+            onPointerMove={onSdPointerMove}
+            onPointerUp={onSdPointerUp}
+          >
+            {/* Traffic-light buttons */}
+            <div className="flex items-center gap-1.5" onPointerDown={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setSlateDropOpen(false)}
+                className="w-3.5 h-3.5 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center group transition-colors"
+                title="Close"
+              >
+                <X size={7} className="text-red-900 opacity-0 group-hover:opacity-100" />
+              </button>
+              <button
+                onClick={() => setSdMinimized((v) => !v)}
+                className="w-3.5 h-3.5 rounded-full bg-yellow-400 hover:bg-yellow-300 transition-colors"
+                title={sdMinimized ? "Restore" : "Minimise"}
+              />
+              <button
+                onClick={() => { setSdSize({ w: window.innerWidth - 32, h: window.innerHeight - 32 }); setSdPos({ x: 16, y: 16 }); setSdMinimized(false); }}
+                className="w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-400 transition-colors"
+                title="Maximise"
+              />
+            </div>
+            <FolderOpen size={14} className="text-[#FF4D00] ml-1 shrink-0" />
+            <span className="text-[13px] font-semibold text-white/90 flex-1 text-center -ml-8 pointer-events-none">SlateDrop</span>
+          </div>
+
+          {/* ── iframe body ── */}
+          {!sdMinimized && (
+            <iframe
+              src="/slatedrop"
+              className="flex-1 border-0 bg-white block"
+              title="SlateDrop"
+              allow="fullscreen"
+            />
+          )}
+
+          {/* ── Resize handle (bottom-right corner) ── */}
+          {!sdMinimized && (
+            <div
+              className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize"
+              style={{ background: "linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.18) 50%)" }}
+              onPointerDown={onSdResizeDown}
+              onPointerMove={onSdPointerMove}
+              onPointerUp={onSdPointerUp}
+            />
+          )}
+        </div>
       )}
     </div>
   );
