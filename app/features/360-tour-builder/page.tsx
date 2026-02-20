@@ -96,7 +96,7 @@ export default function Page() {
               <button onClick={() => setShowDemo(false)} className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"><X size={15} /></button>
             </div>
             <div className="flex-1 relative min-h-0">
-              <iframe src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent("/uploads/pletchers.jpg")}&autoLoad=true`} className="w-full h-full border-0" allowFullScreen title="360 demo" />
+              <iframe src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent(`${window.location.origin}/uploads/pletchers.jpg`)}&autoLoad=true`} className="w-full h-full border-0" allowFullScreen title="360 demo" />
             </div>
           </div>
         </div>

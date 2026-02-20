@@ -30,17 +30,6 @@ const ModelViewer = dynamic(() => import("@/components/ModelViewerClient"), {
 /* ── 7 platform cards (exact dashboard sidebar order) ──── */
 const platforms = [
   {
-    key: "design-studio",
-    icon: "✏️",
-    label: "Design",
-    title: "Design Studio",
-    desc: "Context-aware 3D modeling, 2D plan markup, fabrication prep, and version control — one workspace that adapts to your task.",
-    href: "/features/design-studio",
-    accent: "#FF4D00",
-    highlight: true,
-    bg: "from-orange-50 to-white",
-  },
-  {
     key: "project-hub",
     icon: "📋",
     label: "Manage",
@@ -49,6 +38,16 @@ const platforms = [
     href: "/features/project-hub",
     accent: "#1E3A8A",
     bg: "from-blue-50 to-white",
+  },
+  {
+    key: "design-studio",
+    icon: "✏️",
+    label: "Design",
+    title: "Design Studio",
+    desc: "Context-aware 3D modeling, 2D plan markup, fabrication prep, and version control — one workspace that adapts to your task.",
+    href: "/features/design-studio",
+    accent: "#FF4D00",
+    bg: "from-orange-50 to-white",
   },
   {
     key: "content-studio",
@@ -284,10 +283,10 @@ export default function HomePage() {
       <Navbar />
 
       {/* ────── HERO — full viewport ────── */}
-      <section className="min-h-screen flex items-center pt-16 px-4 sm:px-6">
-        <div className="max-w-[90rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center py-12 lg:py-0">
-          {/* Left: headline + CTAs (~55%) */}
-          <div className="lg:col-span-6 max-w-2xl">
+      <section className="min-h-screen flex items-center pt-16 px-6 sm:px-10 lg:px-16">
+        <div className="max-w-[88rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center py-12 lg:py-0">
+          {/* Left: headline + CTAs (~50%) */}
+          <div className="lg:col-span-6 max-w-2xl lg:pl-2">
             <h1
               className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.04] mb-6"
               style={{ color: "#1E3A8A" }}
@@ -317,8 +316,8 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right: ONE hero vision viewer (~45%) — landscape, model loaded by default */}
-          <div className="lg:col-span-6 flex items-center justify-center py-4 lg:py-0 lg:pr-4">
+          {/* Right: hero vision viewer (~50%) — landscape, model loaded by default */}
+          <div className="lg:col-span-6 flex items-center justify-center py-4 lg:py-0 lg:pr-2">
             <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-black shadow-2xl w-full">
               {/* Viewer — wider than tall */}
               <div className="relative w-full aspect-[16/10]">
@@ -332,7 +331,7 @@ export default function HomePage() {
                       background: "transparent",
                     }}
                     cameraOrbit="30deg 75deg 105%"
-                    orientation="0deg 0deg 0deg"
+                    orientation="-90deg 0deg 0deg"
                     shadowIntensity={1}
                     shadowSoftness={0.8}
                     interactive={heroInteractive}
@@ -347,8 +346,7 @@ export default function HomePage() {
                 </button>
               </div>
               {/* Bottom bar */}
-              <div className="px-4 py-3 flex items-center justify-between bg-gray-900/90 backdrop-blur border-t border-white/10">
-                <span className="text-xs font-semibold text-white/70 tracking-wide">Hero Vision</span>
+              <div className="px-4 py-3 flex items-center justify-end bg-gray-900/90 backdrop-blur border-t border-white/10">
                 <button
                   onClick={() => setHeroInteractive((v) => !v)}
                   className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white transition-all hover:opacity-90"
@@ -386,22 +384,10 @@ export default function HomePage() {
             {platforms.map((p) => (
               <div
                 key={p.key}
-                className={`group relative flex flex-col sm:flex-row overflow-hidden rounded-2xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
-                  p.highlight
-                    ? "border-[#FF4D00]/30 bg-white shadow-sm ring-1 ring-[#FF4D00]/10"
-                    : "border-gray-200 bg-white hover:border-gray-300"
-                }`}
+                className="group relative flex flex-col sm:flex-row overflow-hidden rounded-2xl border border-gray-200 bg-white hover:border-gray-300 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
               >
                 <div className="p-6 sm:w-1/2 flex flex-col justify-center relative">
-                  {p.highlight && (
-                    <span
-                      className="absolute top-6 right-6 sm:right-auto sm:left-6 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full text-white"
-                      style={{ backgroundColor: "#FF4D00" }}
-                    >
-                      Featured
-                    </span>
-                  )}
-                  <div className={`text-3xl mb-4 ${p.highlight ? "mt-6 sm:mt-8" : ""}`}>{p.icon}</div>
+                  <div className="text-3xl mb-4">{p.icon}</div>
                   <span
                     className="text-[10px] font-bold uppercase tracking-widest mb-1 block"
                     style={{ color: p.accent }}
@@ -437,7 +423,7 @@ export default function HomePage() {
                       alt="Design Studio preview"
                       style={{ width: "100%", height: "100%", background: "transparent" }}
                       cameraOrbit="30deg 75deg 105%"
-                      orientation="0deg 0deg 0deg"
+                      orientation="-90deg 0deg 0deg"
                       shadowIntensity={1}
                       shadowSoftness={0.8}
                       interactive={false}
@@ -453,16 +439,15 @@ export default function HomePage() {
                       <span className="text-xs text-white/40 font-medium">Preview</span>
                     </div>
                   )}
-                  {/* Bottom bar for 360 card */}
-                  {p.key === "360-tour-builder" && (
-                    <div className="absolute bottom-0 left-0 right-0 px-4 py-2.5 flex items-center justify-between bg-gray-900/80 backdrop-blur border-t border-white/10 z-10">
-                      <span className="text-[10px] font-semibold text-white/70 tracking-wide">360° Preview</span>
+                  {/* Bottom bar for interactive cards */}
+                  {(p.key === "360-tour-builder" || p.key === "design-studio") && (
+                    <div className="absolute bottom-0 left-0 right-0 px-4 py-2.5 flex items-center justify-end bg-gray-900/80 backdrop-blur border-t border-white/10 z-10">
                       <button
-                        onClick={() => setModalCard("360-tour-builder")}
+                        onClick={() => setModalCard(p.key)}
                         className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold text-white transition-all hover:opacity-90"
                         style={{ backgroundColor: "#FF4D00" }}
                       >
-                        Navigate Tour
+                        {p.key === "360-tour-builder" ? "Navigate Tour" : "Navigate Model"}
                       </button>
                     </div>
                   )}
@@ -674,7 +659,7 @@ export default function HomePage() {
             alt="3D building model fullscreen"
             style={{ width: "100%", height: "100%", background: "black" }}
             cameraOrbit="30deg 75deg 105%"
-            orientation="0deg 0deg 0deg"
+            orientation="-90deg 0deg 0deg"
             shadowIntensity={1}
             shadowSoftness={0.8}
           />
@@ -693,15 +678,15 @@ export default function HomePage() {
             alt="Design Studio"
             style={{ width: "100%", height: "100%", background: "black" }}
             cameraOrbit="30deg 75deg 105%"
-            orientation="0deg 0deg 0deg"
+            orientation="-90deg 0deg 0deg"
             shadowIntensity={1}
             shadowSoftness={0.8}
           />
         )}
-        {modalCard === "360-tour-builder" && (
+        {modalCard === "360-tour-builder" && mounted && (
           <iframe
             src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent(
-              "/uploads/pletchers.jpg"
+              `${window.location.origin}/uploads/pletchers.jpg`
             )}&autoLoad=true`}
             className="w-full h-full border-0"
             allowFullScreen
