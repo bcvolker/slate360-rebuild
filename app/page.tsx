@@ -15,6 +15,10 @@ import {
   Users,
   ScanLine,
   FolderOpen,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Hand,
 } from "lucide-react";
 
 /* ── 3D model (client-only) ────────────────────────────── */
@@ -289,7 +293,7 @@ export default function HomePage() {
       <Navbar />
 
       {/* ────── HERO — full viewport ────── */}
-      <section className="min-h-screen flex items-center pt-16 px-6 sm:px-10 lg:px-16 bg-gradient-to-br from-white via-white to-blue-50/60">
+      <section className="min-h-screen flex items-center pt-16 px-6 sm:px-10 lg:px-16 bg-gradient-to-br from-blue-50/40 via-white to-orange-50/30">
         <div className="max-w-[88rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center py-12 lg:py-0">
           {/* Left: headline + CTAs (~50%) */}
           <div className="lg:col-span-6 max-w-2xl lg:pl-2">
@@ -366,7 +370,7 @@ export default function HomePage() {
       </section>
 
       {/* ────── THE PLATFORM — 7 cards ────── */}
-      <section className="py-24 px-4 sm:px-6" style={{ backgroundColor: "#F0F4FA" }}>
+      <section className="py-24 px-4 sm:px-6" style={{ backgroundColor: "#E8EEF6" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <span
@@ -489,7 +493,7 @@ export default function HomePage() {
       </section>
 
       {/* ────── MORE POWERFUL TOOLS ────── */}
-      <section className="py-24 px-4 sm:px-6 bg-white">
+      <section className="py-24 px-4 sm:px-6 bg-gray-100/80">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <h2
@@ -537,7 +541,7 @@ export default function HomePage() {
       </section>
 
       {/* ────── PRICING TEASER ────── */}
-      <section className="py-24 px-4 sm:px-6" style={{ backgroundColor: "#F0F4FA" }}>
+      <section className="py-24 px-4 sm:px-6" style={{ backgroundColor: "#E8EEF6" }}>
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2
@@ -683,16 +687,26 @@ export default function HomePage() {
         onClose={() => setModal3D(false)}
         title="3D Building Model"
       >
-        {mounted && (
-          <ModelViewer
-            src="/uploads/csb-stadium-model.glb"
-            alt="3D building model fullscreen"
-            style={{ width: "100%", height: "100%", background: "black" }}
-            cameraOrbit="30deg 75deg 105%"
-            shadowIntensity={1}
-            shadowSoftness={0.8}
-          />
-        )}
+        <div className="relative w-full h-full" id="hero-modal-wrap">
+          {mounted && (
+            <ModelViewer
+              src="/uploads/csb-stadium-model.glb"
+              alt="3D building model fullscreen"
+              style={{ width: "100%", height: "100%", background: "black" }}
+              cameraOrbit="30deg 75deg 105%"
+              shadowIntensity={1}
+              shadowSoftness={0.8}
+            />
+          )}
+          {/* Controls overlay */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-2 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 z-20">
+            <span className="text-[10px] text-white/50 font-medium mr-1 hidden sm:inline"><Hand size={12} className="inline mr-1" />Drag to orbit</span>
+            <span className="hidden sm:inline text-white/20">|</span>
+            <button onClick={() => { const mv = document.querySelector('#hero-modal-wrap model-viewer') as any; if (mv) { const co = mv.getCameraOrbit(); co.radius *= 0.85; mv.cameraOrbit = `${co.theta}rad ${co.phi}rad ${co.radius}m`; }}} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Zoom in"><ZoomIn size={14} /></button>
+            <button onClick={() => { const mv = document.querySelector('#hero-modal-wrap model-viewer') as any; if (mv) { const co = mv.getCameraOrbit(); co.radius *= 1.15; mv.cameraOrbit = `${co.theta}rad ${co.phi}rad ${co.radius}m`; }}} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Zoom out"><ZoomOut size={14} /></button>
+            <button onClick={() => { const mv = document.querySelector('#hero-modal-wrap model-viewer') as any; if (mv) mv.cameraOrbit = '30deg 75deg 105%'; }} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Reset view"><RotateCcw size={14} /></button>
+          </div>
+        </div>
       </ViewerModal>
 
       {/* ────── FEATURE CARD MODAL ────── */}
@@ -702,14 +716,24 @@ export default function HomePage() {
         title={platforms.find((p) => p.key === modalCard)?.title ?? "Preview"}
       >
         {modalCard === "design-studio" && mounted && (
-          <ModelViewer
-            src="/uploads/csb-stadium-model.glb"
-            alt="Design Studio"
-            style={{ width: "100%", height: "100%", background: "black" }}
-            cameraOrbit="30deg 75deg 105%"
-            shadowIntensity={1}
-            shadowSoftness={0.8}
-          />
+          <div className="relative w-full h-full" id="design-modal-wrap">
+            <ModelViewer
+              src="/uploads/csb-stadium-model.glb"
+              alt="Design Studio"
+              style={{ width: "100%", height: "100%", background: "black" }}
+              cameraOrbit="30deg 75deg 105%"
+              shadowIntensity={1}
+              shadowSoftness={0.8}
+            />
+            {/* Controls overlay */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-2 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 z-20">
+              <span className="text-[10px] text-white/50 font-medium mr-1 hidden sm:inline"><Hand size={12} className="inline mr-1" />Drag to orbit</span>
+              <span className="hidden sm:inline text-white/20">|</span>
+              <button onClick={() => { const mv = document.querySelector('#design-modal-wrap model-viewer') as any; if (mv) { const co = mv.getCameraOrbit(); co.radius *= 0.85; mv.cameraOrbit = `${co.theta}rad ${co.phi}rad ${co.radius}m`; }}} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Zoom in"><ZoomIn size={14} /></button>
+              <button onClick={() => { const mv = document.querySelector('#design-modal-wrap model-viewer') as any; if (mv) { const co = mv.getCameraOrbit(); co.radius *= 1.15; mv.cameraOrbit = `${co.theta}rad ${co.phi}rad ${co.radius}m`; }}} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Zoom out"><ZoomOut size={14} /></button>
+              <button onClick={() => { const mv = document.querySelector('#design-modal-wrap model-viewer') as any; if (mv) mv.cameraOrbit = '30deg 75deg 105%'; }} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Reset view"><RotateCcw size={14} /></button>
+            </div>
+          </div>
         )}
         {modalCard === "360-tour-builder" && mounted && (
           <iframe
