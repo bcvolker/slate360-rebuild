@@ -49,12 +49,6 @@ const features = [
     desc: "Dashboards, trends & exportable reports",
     icon: "📊",
   },
-  {
-    label: "SlateDrop",
-    href: "/features/slatedrop",
-    desc: "Finder-style file system for every project",
-    icon: "📂",
-  },
 ];
 
 export default function Navbar() {

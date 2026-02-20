@@ -171,6 +171,18 @@ const plans = [
       "30,000 credits/mo",
     ],
   },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    annualPrice: "Custom",
+    desc: "For large firms, multi-team orgs, and government.",
+    features: [
+      "Everything in Business",
+      "Seat management & SSO",
+      "Custom storage & credits",
+      "Dedicated support SLA",
+    ],
+  },
 ];
 
 /* ═══════════════════════════════════════════════════════════
@@ -257,10 +269,8 @@ function ViewerModal({
    HomePage
    ═══════════════════════════════════════════════════════════ */
 export default function HomePage() {
-  const [interact360, setInteract360] = useState(false);
-  const [interact3D, setInteract3D] = useState(false);
-  const [modal360, setModal360] = useState(false);
   const [modal3D, setModal3D] = useState(false);
+  const [modalCard, setModalCard] = useState<string | null>(null);
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [mounted, setMounted] = useState(false);
 
@@ -306,97 +316,43 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right: ONE large hero vision viewer (40%) */}
-          <div className="lg:col-span-5">
-            <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-2xl flex flex-col w-full aspect-[4/3] sm:aspect-square lg:aspect-[4/5]">
-              {/* Top bar of the viewer */}
-              <div className="px-4 py-3 flex items-center justify-between bg-white border-b border-gray-100 z-10 relative">
-                <span className="text-sm font-bold text-gray-800">Hero Vision</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setInteract360((v) => !v)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold text-white transition-all hover:opacity-90"
-                    style={{ backgroundColor: "#FF4D00" }}
-                  >
-                    {interact360 ? "Reset 360" : "Interact 360"}
-                  </button>
-                  <button
-                    onClick={() => setInteract3D((v) => !v)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold text-white transition-all hover:opacity-90"
-                    style={{ backgroundColor: "#FF4D00" }}
-                  >
-                    {interact3D ? "Reset 3D" : "Interact 3D"}
-                  </button>
-                </div>
+          {/* Right: ONE hero vision viewer (40%) — landscape, model loaded by default */}
+          <div className="lg:col-span-5 flex items-center justify-center py-4 lg:py-0">
+            <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-black shadow-2xl w-full">
+              {/* Viewer — wider than tall */}
+              <div className="relative w-full aspect-[16/10]">
+                {mounted && (
+                  <ModelViewer
+                    src="/uploads/csb-stadium-model.glb"
+                    alt="3D building model"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      background: "transparent",
+                    }}
+                    cameraOrbit="30deg 75deg 105%"
+                    shadowIntensity={1}
+                    shadowSoftness={0.8}
+                  />
+                )}
+                {/* Expand button */}
+                <button
+                  onClick={() => setModal3D(true)}
+                  className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white/90 hover:bg-white text-gray-700 border border-gray-200 shadow-sm backdrop-blur-sm z-10 transition-all hover:shadow"
+                >
+                  <Maximize2 size={12} /> Expand
+                </button>
               </div>
-
-              {/* Split view inside the single viewer */}
-              <div className="flex-1 flex flex-col sm:flex-row relative min-h-0">
-                {/* 360 Half */}
-                <div className="flex-1 relative border-b sm:border-b-0 sm:border-r border-gray-200 bg-gray-100">
-                  <button
-                    onClick={() => setModal360(true)}
-                    className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold bg-white/90 hover:bg-white text-gray-700 border border-gray-200 shadow-sm transition-all hover:shadow backdrop-blur-sm z-10"
-                  >
-                    <Maximize2 size={10} /> Expand
-                  </button>
-                  {interact360 ? (
-                    <iframe
-                      src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent(
-                        "/uploads/pletchers.jpg"
-                      )}&autoLoad=true&showControls=true&compass=false`}
-                      className="w-full h-full border-0"
-                      allowFullScreen
-                      title="360 panorama"
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full bg-cover bg-center relative cursor-pointer group"
-                      style={{ backgroundImage: "url('/uploads/pletchers.jpg')" }}
-                      onClick={() => setInteract360(true)}
-                    >
-                      <div className="absolute inset-0 bg-[#1E3A8A]/20 group-hover:bg-[#1E3A8A]/10 transition-colors flex items-center justify-center">
-                        <div className="w-12 h-12 rounded-full bg-white/90 shadow-lg flex items-center justify-center">
-                          <span className="text-xl">🔭</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 3D Half */}
-                <div className="flex-1 relative bg-gradient-to-br from-slate-100 to-gray-50">
-                  <button
-                    onClick={() => setModal3D(true)}
-                    className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold bg-white/90 hover:bg-white text-gray-700 border border-gray-200 shadow-sm transition-all hover:shadow backdrop-blur-sm z-10"
-                  >
-                    <Maximize2 size={10} /> Expand
-                  </button>
-                  {interact3D && mounted ? (
-                    <ModelViewer
-                      src="/uploads/csb-stadium-model.glb"
-                      alt="3D building model"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        background: "transparent",
-                      }}
-                      cameraOrbit="45deg 65deg 105%"
-                      shadowIntensity={0.4}
-                      shadowSoftness={1}
-                      showGround
-                    />
-                  ) : (
-                    <div
-                      className="w-full h-full relative cursor-pointer group flex items-center justify-center"
-                      onClick={() => setInteract3D(true)}
-                    >
-                      <div className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center">
-                        <span className="text-xl">🏗️</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
+              {/* Bottom bar */}
+              <div className="px-4 py-3 flex items-center justify-between bg-gray-900/90 backdrop-blur border-t border-white/10">
+                <span className="text-xs font-semibold text-white/70 tracking-wide">Hero Vision</span>
+                <button
+                  onClick={() => setModal3D(true)}
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white transition-all hover:opacity-90"
+                  style={{ backgroundColor: "#FF4D00" }}
+                >
+                  Navigate Model
+                </button>
               </div>
             </div>
           </div>
@@ -425,9 +381,8 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {platforms.map((p) => (
-              <Link
+              <div
                 key={p.key}
-                href={p.href}
                 className={`group relative flex flex-col sm:flex-row overflow-hidden rounded-2xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
                   p.highlight
                     ? "border-[#FF4D00]/30 bg-white shadow-sm ring-1 ring-[#FF4D00]/10"
@@ -456,20 +411,45 @@ export default function HomePage() {
                   <p className="text-sm text-gray-500 leading-relaxed mb-6 flex-grow">
                     {p.desc}
                   </p>
-                  <span
-                    className="inline-flex items-center gap-1 text-sm font-semibold transition-all group-hover:gap-2 mt-auto"
+                  <Link
+                    href={p.href}
+                    className="inline-flex items-center gap-1 text-sm font-semibold transition-all hover:gap-2 mt-auto"
                     style={{ color: p.accent }}
                   >
                     Learn more <ArrowRight size={14} />
-                  </span>
+                  </Link>
                 </div>
-                <div className={`sm:w-1/2 min-h-[200px] sm:min-h-full bg-gradient-to-br ${p.bg} flex items-center justify-center p-6 border-t sm:border-t-0 sm:border-l border-gray-100`}>
-                  <div className="w-full aspect-video bg-white/60 backdrop-blur-sm rounded-xl border border-white/80 shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform duration-500 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-white/40"></div>
-                    <span className="text-5xl opacity-80 group-hover:opacity-100 transition-opacity drop-shadow-sm">{p.icon}</span>
-                  </div>
+                <div className="sm:w-1/2 min-h-[200px] sm:min-h-full bg-black flex items-center justify-center border-t sm:border-t-0 sm:border-l border-gray-800 relative overflow-hidden">
+                  {/* Expand button */}
+                  <button
+                    onClick={() => setModalCard(p.key)}
+                    className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold bg-white/90 hover:bg-white text-gray-700 border border-gray-200 shadow-sm transition-all hover:shadow backdrop-blur-sm z-10"
+                  >
+                    <Maximize2 size={10} /> Expand
+                  </button>
+                  {/* Viewer content */}
+                  {p.key === "design-studio" && mounted ? (
+                    <ModelViewer
+                      src="/uploads/csb-stadium-model.glb"
+                      alt="Design Studio preview"
+                      style={{ width: "100%", height: "100%", background: "transparent" }}
+                      cameraOrbit="30deg 75deg 105%"
+                      shadowIntensity={1}
+                      shadowSoftness={0.8}
+                    />
+                  ) : p.key === "360-tour-builder" ? (
+                    <div
+                      className="w-full h-full bg-cover bg-center"
+                      style={{ backgroundImage: "url('/uploads/pletchers.jpg')" }}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-3">
+                      <span className="text-5xl opacity-80 group-hover:opacity-100 transition-opacity drop-shadow-sm">{p.icon}</span>
+                      <span className="text-xs text-white/40 font-medium">Preview</span>
+                    </div>
+                  )}
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
@@ -552,11 +532,11 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`rounded-2xl p-7 relative ${
+                className={`rounded-2xl p-6 relative flex flex-col ${
                   plan.highlight
                     ? "border-2 border-[#FF4D00] bg-white shadow-xl"
                     : "border border-gray-200 bg-white"
@@ -564,50 +544,58 @@ export default function HomePage() {
               >
                 {plan.highlight && (
                   <span
-                    className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full text-white"
+                    className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full text-white"
                     style={{ backgroundColor: "#FF4D00" }}
                   >
                     Most popular
                   </span>
                 )}
-                <h3 className="text-lg font-bold text-gray-900 mb-1">
-                  {plan.name}
-                </h3>
-                <p className="text-xs text-gray-500 mb-4">{plan.desc}</p>
-                <div className="flex items-baseline gap-1 mb-6">
-                  <span
-                    className="text-4xl font-black"
-                    style={{ color: "#1E3A8A" }}
-                  >
-                    {billing === "annual" ? plan.annualPrice : plan.price}
-                  </span>
-                  <span className="text-gray-400 text-sm">/mo</span>
+                <div className="mb-auto">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">
+                    {plan.name}
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-4">{plan.desc}</p>
+                  <div className="flex items-baseline gap-1 mb-5">
+                    {plan.price === "Custom" ? (
+                      <span className="text-3xl font-black" style={{ color: "#1E3A8A" }}>Custom</span>
+                    ) : (
+                      <>
+                        <span
+                          className="text-3xl font-black"
+                          style={{ color: "#1E3A8A" }}
+                        >
+                          {billing === "annual" ? plan.annualPrice : plan.price}
+                        </span>
+                        <span className="text-gray-400 text-sm">/mo</span>
+                      </>
+                    )}
+                  </div>
+                  <ul className="space-y-2 mb-6">
+                    {plan.features.map((f) => (
+                      <li
+                        key={f}
+                        className="flex items-center gap-2 text-sm text-gray-600"
+                      >
+                        <Check
+                          size={14}
+                          style={{ color: "#FF4D00" }}
+                          className="flex-shrink-0"
+                        />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="space-y-2.5 mb-7">
-                  {plan.features.map((f) => (
-                    <li
-                      key={f}
-                      className="flex items-center gap-2 text-sm text-gray-600"
-                    >
-                      <Check
-                        size={14}
-                        style={{ color: "#FF4D00" }}
-                        className="flex-shrink-0"
-                      />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
                 <Link
-                  href="/signup"
-                  className={`flex items-center justify-center w-full py-3 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-105 ${
+                  href={plan.price === "Custom" ? "mailto:hello@slate360.ai" : "/signup"}
+                  className={`flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-105 mt-auto ${
                     plan.highlight
                       ? "text-white"
                       : "border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
                   }`}
                   style={plan.highlight ? { backgroundColor: "#FF4D00" } : {}}
                 >
-                  Start free trial
+                  {plan.price === "Custom" ? "Contact us" : "Start free trial"}
                 </Link>
               </div>
             ))}
@@ -656,23 +644,7 @@ export default function HomePage() {
 
       <Footer />
 
-      {/* ────── 360 MODAL ────── */}
-      <ViewerModal
-        open={modal360}
-        onClose={() => setModal360(false)}
-        title="360° Site Tour"
-      >
-        <iframe
-          src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent(
-            "/uploads/pletchers.jpg"
-          )}&autoLoad=true&showControls=true&compass=false`}
-          className="w-full h-full border-0"
-          allowFullScreen
-          title="360 panorama fullscreen"
-        />
-      </ViewerModal>
-
-      {/* ────── 3D MODAL ────── */}
+      {/* ────── HERO 3D MODAL ────── */}
       <ViewerModal
         open={modal3D}
         onClose={() => setModal3D(false)}
@@ -682,12 +654,45 @@ export default function HomePage() {
           <ModelViewer
             src="/uploads/csb-stadium-model.glb"
             alt="3D building model fullscreen"
-            style={{ width: "100%", height: "100%", background: "transparent" }}
-            cameraOrbit="45deg 65deg 105%"
-            shadowIntensity={0.4}
-            shadowSoftness={1}
-            showGround
+            style={{ width: "100%", height: "100%", background: "black" }}
+            cameraOrbit="30deg 75deg 105%"
+            shadowIntensity={1}
+            shadowSoftness={0.8}
           />
+        )}
+      </ViewerModal>
+
+      {/* ────── FEATURE CARD MODAL ────── */}
+      <ViewerModal
+        open={modalCard !== null}
+        onClose={() => setModalCard(null)}
+        title={platforms.find((p) => p.key === modalCard)?.title ?? "Preview"}
+      >
+        {modalCard === "design-studio" && mounted && (
+          <ModelViewer
+            src="/uploads/csb-stadium-model.glb"
+            alt="Design Studio"
+            style={{ width: "100%", height: "100%", background: "black" }}
+            cameraOrbit="30deg 75deg 105%"
+            shadowIntensity={1}
+            shadowSoftness={0.8}
+          />
+        )}
+        {modalCard === "360-tour-builder" && (
+          <iframe
+            src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent(
+              "/uploads/pletchers.jpg"
+            )}&autoLoad=true&compass=false`}
+            className="w-full h-full border-0"
+            allowFullScreen
+            title="360 panorama"
+          />
+        )}
+        {modalCard && modalCard !== "design-studio" && modalCard !== "360-tour-builder" && (
+          <div className="w-full h-full bg-black flex flex-col items-center justify-center">
+            <span className="text-7xl mb-4">{platforms.find((p) => p.key === modalCard)?.icon}</span>
+            <p className="text-white/60 text-sm">Full preview coming soon</p>
+          </div>
         )}
       </ViewerModal>
     </div>

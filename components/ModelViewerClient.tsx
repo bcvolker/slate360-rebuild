@@ -13,7 +13,6 @@ interface ModelViewerClientProps {
   cameraOrbit?: string;
   shadowIntensity?: number;
   shadowSoftness?: number;
-  showGround?: boolean;
 }
 
 export default function ModelViewerClient({
@@ -23,7 +22,6 @@ export default function ModelViewerClient({
   cameraOrbit,
   shadowIntensity,
   shadowSoftness,
-  showGround,
 }: ModelViewerClientProps) {
   const defaultStyle: React.CSSProperties = {
     width: "100%",
