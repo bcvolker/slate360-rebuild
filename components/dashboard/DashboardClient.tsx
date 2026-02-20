@@ -48,6 +48,13 @@ import {
   User,
   Shield,
   LayoutDashboard,
+  SlidersHorizontal,
+  GripVertical,
+  Eye,
+  EyeOff,
+  Maximize2,
+  Minimize2,
+  ChevronUp,
 } from "lucide-react";
 
 /* ================================================================
@@ -100,6 +107,37 @@ interface DashTab {
   color: string;
   isCEOOnly?: boolean;
 }
+
+interface WidgetPref {
+  id: string;
+  visible: boolean;
+  expanded: boolean; // takes full row width
+  order: number;
+}
+
+/* ================================================================
+   WIDGET META — source of truth for labels/icons
+   ================================================================ */
+
+const WIDGET_META: { id: string; label: string; icon: LucideIcon; tierGate?: string }[] = [
+  { id: "data-usage",   label: "Data Usage & Credits", icon: CreditCard },
+  { id: "processing",   label: "Processing Jobs",       icon: Cpu },
+  { id: "financial",    label: "Financial Snapshot",    icon: TrendingUp },
+  { id: "calendar",     label: "Calendar",              icon: CalendarIcon },
+  { id: "weather",      label: "Weather",               icon: Cloud },
+  { id: "continue",     label: "Continue Working",      icon: Clock },
+  { id: "contacts",     label: "Contacts",              icon: Users },
+  { id: "suggest",      label: "Suggest a Feature",     icon: Lightbulb },
+  { id: "seats",        label: "Seat Management",       icon: Users,       tierGate: "seats" },
+  { id: "upgrade",      label: "Upgrade Card",          icon: Zap,         tierGate: "no-seats" },
+];
+
+const DEFAULT_WIDGET_PREFS: WidgetPref[] = WIDGET_META.map((m, i) => ({
+  id: m.id,
+  visible: true,
+  expanded: m.id === "calendar" || m.id === "seats",
+  order: i,
+}));
 
 /* ================================================================
    DEMO DATA
@@ -439,6 +477,25 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [weatherLogged, setWeatherLogged] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
+  const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(DEFAULT_WIDGET_PREFS);
+  const [prefsDirty, setPrefsDirty] = useState(false);
+  const [prefsSaving, setPrefsSaving] = useState(false);
+
+  /* ── Load saved prefs from Supabase user metadata on mount ─── */
+  useState(() => {
+    supabase.auth.getUser().then(({ data: { user: u } }) => {
+      const saved = u?.user_metadata?.dashboardWidgets as WidgetPref[] | undefined;
+      if (saved && Array.isArray(saved) && saved.length > 0) {
+        // Merge saved prefs with any new widgets added since last save
+        const merged = DEFAULT_WIDGET_PREFS.map((def) => {
+          const found = saved.find((s) => s.id === def.id);
+          return found ?? def;
+        });
+        setWidgetPrefs(merged);
+      }
+    });
+  });
 
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -523,6 +580,44 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     else setCalMonth((m) => m + 1);
   };
 
+  /* ── Pref helpers ── */
+  const toggleVisible = useCallback((id: string) => {
+    setWidgetPrefs((prev) => prev.map((p) => p.id === id ? { ...p, visible: !p.visible } : p));
+    setPrefsDirty(true);
+  }, []);
+  const toggleExpanded = useCallback((id: string) => {
+    setWidgetPrefs((prev) => prev.map((p) => p.id === id ? { ...p, expanded: !p.expanded } : p));
+    setPrefsDirty(true);
+  }, []);
+  const moveWidget = useCallback((id: string, dir: -1 | 1) => {
+    setWidgetPrefs((prev) => {
+      const arr = [...prev].sort((a, b) => a.order - b.order);
+      const idx = arr.findIndex((p) => p.id === id);
+      const target = idx + dir;
+      if (target < 0 || target >= arr.length) return prev;
+      const newArr = arr.map((p, i) => {
+        if (i === idx) return { ...p, order: arr[target].order };
+        if (i === target) return { ...p, order: arr[idx].order };
+        return p;
+      });
+      return newArr;
+    });
+    setPrefsDirty(true);
+  }, []);
+  const savePrefs = useCallback(async () => {
+    setPrefsSaving(true);
+    try {
+      await supabase.auth.updateUser({ data: { dashboardWidgets: widgetPrefs } });
+      setPrefsDirty(false);
+    } finally {
+      setPrefsSaving(false);
+    }
+  }, [supabase, widgetPrefs]);
+  const resetPrefs = useCallback(() => {
+    setWidgetPrefs(DEFAULT_WIDGET_PREFS);
+    setPrefsDirty(true);
+  }, []);
+
   const financialMax = Math.max(...demoFinancial.map((f) => f.credits));
 
   /* ================================================================
@@ -558,6 +653,14 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             <button className="relative w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">
               <Bell size={18} />
               <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#FF4D00]" />
+            </button>
+            <button
+              onClick={() => setCustomizeOpen(true)}
+              title="Customize dashboard"
+              className="relative w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-[#FF4D00] transition-colors"
+            >
+              <SlidersHorizontal size={18} />
+              {prefsDirty && <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-400" />}
             </button>
 
             {/* User avatar / menu */}
@@ -818,11 +921,26 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           </div>
         </div>
 
-        {/* ════════ WIDGET GRID ════════ */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {/* ════════ WIDGET GRID (data-driven, respects customization prefs) ════════ */}
+        {(() => {
+          // Compute which widgets are available for this tier
+          const available = new Set<string>([
+            "data-usage","processing","financial","calendar","weather","continue","contacts","suggest",
+            ...(ent.canManageSeats ? ["seats"] : ["upgrade"]),
+          ]);
 
-          {/* ──────── DATA USAGE & CREDITS ──────── */}
-          <WidgetCard icon={CreditCard} title="Data Usage & Credits" delay={0} action={
+          function getSpan(id: string, expanded: boolean): string {
+            if (id === "seats") return "md:col-span-2 xl:col-span-3";
+            if (id === "calendar") return expanded ? "md:col-span-2 xl:col-span-3" : "md:col-span-2 xl:col-span-2";
+            return expanded ? "md:col-span-2 xl:col-span-3" : "";
+          }
+
+          function renderWidget(id: string, expanded: boolean): React.ReactNode {
+            const span = getSpan(id, expanded);
+            switch (id) {
+
+              case "data-usage": return (
+          <WidgetCard key={id} icon={CreditCard} title="Data Usage & Credits" span={span} delay={0} action={
             <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
               {ent.label}
             </span>
@@ -866,9 +984,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </div>
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── PROCESSING JOBS ──────── */}
-          <WidgetCard icon={Cpu} title="Processing Jobs" delay={50} action={
+              case "processing": return (
+          <WidgetCard key={id} icon={Cpu} title="Processing Jobs" span={span} delay={50} action={
             <span className="text-[11px] text-gray-400 font-medium">{demoJobs.filter((j) => j.status === "processing").length} active</span>
           }>
             <div className="space-y-3">
@@ -902,9 +1021,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               ))}
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── FINANCIAL SNAPSHOT ──────── */}
-          <WidgetCard icon={TrendingUp} title="Financial Snapshot" delay={100} action={
+              case "financial": return (
+          <WidgetCard key={id} icon={TrendingUp} title="Financial Snapshot" span={span} delay={100} action={
             <span className="text-[11px] text-gray-400 font-medium">Last 6 months</span>
           }>
             <div className="space-y-4">
@@ -940,12 +1060,14 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </div>
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── CALENDAR ──────── */}
+              case "calendar": return (
           <WidgetCard
+            key={id}
             icon={CalendarIcon}
             title="Calendar"
-            span="md:col-span-2 xl:col-span-2"
+            span={span}
             delay={150}
             action={
               <button
@@ -1039,9 +1161,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </div>
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── WEATHER ──────── */}
-          <WidgetCard icon={Cloud} title="Weather" delay={200} action={
+              case "weather": return (
+          <WidgetCard key={id} icon={Cloud} title="Weather" span={span} delay={200} action={
             <span className="text-[10px] text-gray-400 font-medium flex items-center gap-1"><MapPin size={10} />{demoWeather.location}</span>
           }>
             <div className="space-y-4">
@@ -1106,9 +1229,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </button>
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── CONTINUE WORKING ──────── */}
-          <WidgetCard icon={Clock} title="Continue Working" delay={250} action={
+              case "continue": return (
+          <WidgetCard key={id} icon={Clock} title="Continue Working" span={span} delay={250} action={
             <Link href="/dashboard" className="text-[11px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-0.5">
               View all <ArrowRight size={11} />
             </Link>
@@ -1135,9 +1259,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               })}
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── CONTACTS ──────── */}
-          <WidgetCard icon={Users} title="Contacts" delay={300} action={
+              case "contacts": return (
+          <WidgetCard key={id} icon={Users} title="Contacts" span={span} delay={300} action={
             <button className="text-[11px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-0.5">
               <UserPlus size={12} /> Add
             </button>
@@ -1178,9 +1303,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </div>
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── SUGGEST FEATURE ──────── */}
-          <WidgetCard icon={Lightbulb} title="Suggest a Feature" delay={350}>
+              case "suggest": return (
+          <WidgetCard key={id} icon={Lightbulb} title="Suggest a Feature" span={span} delay={350}>
             {suggestDone ? (
               <div className="text-center py-6">
                 <CheckCircle2 size={32} className="mx-auto mb-3 text-emerald-500" />
@@ -1238,13 +1364,14 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </div>
             )}
           </WidgetCard>
+          );
 
-          {/* ──────── SEAT MANAGEMENT (Business+ only) ──────── */}
-          {ent.canManageSeats && (
+              case "seats": return (
             <WidgetCard
+              key={id}
               icon={Users}
               title="Seat Management"
-              span="md:col-span-2 xl:col-span-3"
+              span={span}
               delay={400}
               action={
                 <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: "#FF4D00" }}>
@@ -1297,11 +1424,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 </div>
               </div>
             </WidgetCard>
-          )}
+          );
 
-          {/* Upgrade card for non-Business tiers */}
-          {!ent.canManageSeats && (
-            <WidgetCard icon={Zap} title="Unlock more power" delay={400}>
+              case "upgrade": return (
+            <WidgetCard key={id} icon={Zap} title="Unlock more power" span={span} delay={400}>
               <div className="text-center py-4">
                 <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#FF4D001A" }}>
                   <Zap size={24} style={{ color: "#FF4D00" }} />
@@ -1319,8 +1445,22 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 </Link>
               </div>
             </WidgetCard>
-          )}
-        </div>
+          );
+
+              default: return null;
+            }
+          }
+
+          const orderedVisible = [...widgetPrefs]
+            .filter((p) => p.visible && available.has(p.id))
+            .sort((a, b) => a.order - b.order);
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {orderedVisible.map((p) => renderWidget(p.id, p.expanded))}
+            </div>
+          );
+        })()}
 
         </>
         )}
@@ -1332,6 +1472,122 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           return <TabWireframe tab={tab} onBack={() => setActiveTab("overview")} />;
         })()}
       </main>
+
+      {/* ════════ CUSTOMIZE PANEL (right-side drawer) ════════ */}
+      {customizeOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/30 z-50 backdrop-blur-sm" onClick={() => setCustomizeOpen(false)} />
+          <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-white z-50 shadow-2xl flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div>
+                <h2 className="text-base font-black text-gray-900">Customize Dashboard</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Reorder, show or hide, and resize widgets</p>
+              </div>
+              <button onClick={() => setCustomizeOpen(false)} className="w-8 h-8 rounded-lg text-gray-400 hover:bg-gray-100 flex items-center justify-center transition-colors">
+                <XCircle size={18} />
+              </button>
+            </div>
+
+            {/* Widget list */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
+              {[...widgetPrefs].sort((a, b) => a.order - b.order).map((pref) => {
+                const meta = WIDGET_META.find((m) => m.id === pref.id);
+                if (!meta) return null;
+                // Hide tier-gated widgets the user can't access
+                if (meta.id === "seats" && !ent.canManageSeats) return null;
+                if (meta.id === "upgrade" && ent.canManageSeats) return null;
+                const Icon = meta.icon;
+                const pos = [...widgetPrefs].sort((a, b) => a.order - b.order).findIndex((p) => p.id === pref.id);
+                const total = widgetPrefs.length;
+                return (
+                  <div
+                    key={pref.id}
+                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                      pref.visible ? "border-gray-200 bg-white" : "border-gray-100 bg-gray-50 opacity-60"
+                    }`}
+                  >
+                    {/* Drag handle / order controls */}
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        onClick={() => moveWidget(pref.id, -1)}
+                        disabled={pos === 0}
+                        className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors"
+                      >
+                        <ChevronUp size={14} />
+                      </button>
+                      <button
+                        onClick={() => moveWidget(pref.id, 1)}
+                        disabled={pos >= total - 1}
+                        className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors"
+                      >
+                        <ChevronDown size={14} />
+                      </button>
+                    </div>
+
+                    {/* Icon */}
+                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+                      <Icon size={15} />
+                    </div>
+
+                    {/* Label */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-900">{meta.label}</p>
+                      <p className="text-[10px] text-gray-400">{pref.expanded ? "Full width" : "Normal"}</p>
+                    </div>
+
+                    {/* Expanded toggle */}
+                    <button
+                      onClick={() => toggleExpanded(pref.id)}
+                      title={pref.expanded ? "Shrink to normal" : "Expand to full width"}
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                        pref.expanded ? "bg-[#1E3A8A]/10 text-[#1E3A8A]" : "text-gray-300 hover:text-gray-500"
+                      }`}
+                    >
+                      {pref.expanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                    </button>
+
+                    {/* Visible toggle */}
+                    <button
+                      onClick={() => toggleVisible(pref.id)}
+                      title={pref.visible ? "Hide widget" : "Show widget"}
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                        pref.visible ? "bg-[#FF4D00]/10 text-[#FF4D00]" : "text-gray-300 hover:text-gray-500"
+                      }`}
+                    >
+                      {pref.visible ? <Eye size={13} /> : <EyeOff size={13} />}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Footer actions */}
+            <div className="px-6 py-4 border-t border-gray-100 space-y-2">
+              {prefsDirty && (
+                <p className="text-[10px] text-amber-600 text-center font-medium">You have unsaved changes</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={resetPrefs}
+                  className="flex-1 text-xs font-semibold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  Reset to default
+                </button>
+                <button
+                  onClick={async () => { await savePrefs(); setCustomizeOpen(false); }}
+                  disabled={prefsSaving || !prefsDirty}
+                  className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl text-white transition-all hover:opacity-90 disabled:opacity-50"
+                  style={{ backgroundColor: "#FF4D00" }}
+                >
+                  {prefsSaving ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
+                  {prefsSaving ? "Saving…" : "Save layout"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
