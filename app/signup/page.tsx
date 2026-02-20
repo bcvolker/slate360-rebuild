@@ -21,18 +21,32 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signUp({
+    const confirmUrl = `${window.location.origin}/auth/callback`;
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: name },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: confirmUrl,
       },
     });
     if (error) {
       setError(error.message);
       setLoading(false);
     } else {
+      // Fire branded welcome/confirmation email via Resend (non-blocking)
+      if (data.user) {
+        fetch("/api/email/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "welcome",
+            to: email,
+            name: name || undefined,
+            confirmUrl,
+          }),
+        }).catch(() => {}); // fire-and-forget; Supabase also sends its own link
+      }
       setDone(true);
     }
   }

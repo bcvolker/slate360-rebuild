@@ -297,8 +297,8 @@ export default function HomePage() {
       <Navbar />
 
       {/* ────── HERO — full viewport ────── */}
-      <section className="min-h-screen flex items-center pt-16 px-6 sm:px-10 lg:px-16 bg-gradient-to-br from-blue-50/40 via-white to-orange-50/30">
-        <div className="max-w-[88rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center py-12 lg:py-0">
+      <section className="min-h-[100dvh] flex items-center pt-16 pb-[env(safe-area-inset-bottom)] px-6 sm:px-10 lg:px-16 bg-gradient-to-br from-blue-50/40 via-white to-orange-50/30">
+        <div className="max-w-[88rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center py-8 pb-10 lg:py-0">
           {/* Left: headline + CTAs (~50%) */}
           <div className="lg:col-span-6 max-w-2xl lg:pl-2">
             <h1
@@ -333,8 +333,8 @@ export default function HomePage() {
           {/* Right: hero vision viewer (~50%) — landscape, model loaded by default */}
           <div className="lg:col-span-6 flex items-center justify-center py-4 lg:py-0 lg:pr-2">
             <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-black shadow-2xl w-full">
-              {/* Viewer — wider than tall */}
-              <div className="relative w-full aspect-[16/10]">
+              {/* Viewer — taller on mobile to show detail, landscape on desktop */}
+              <div className="relative w-full aspect-[4/3] sm:aspect-[16/10]">
                 {mounted && (
                   <ModelViewer
                     src="/uploads/csb-stadium-model.glb"

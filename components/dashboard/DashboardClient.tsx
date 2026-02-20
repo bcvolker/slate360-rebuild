@@ -55,6 +55,8 @@ import {
   Maximize2,
   Minimize2,
   ChevronUp,
+  FileText,
+  ArrowUpRight,
 } from "lucide-react";
 
 /* ================================================================
@@ -120,6 +122,7 @@ interface WidgetPref {
    ================================================================ */
 
 const WIDGET_META: { id: string; label: string; icon: LucideIcon; tierGate?: string }[] = [
+  { id: "slatedrop",    label: "SlateDrop",             icon: FolderOpen },
   { id: "data-usage",   label: "Data Usage & Credits", icon: CreditCard },
   { id: "processing",   label: "Processing Jobs",       icon: Cpu },
   { id: "financial",    label: "Financial Snapshot",    icon: TrendingUp },
@@ -795,10 +798,17 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
+                  const isSlatedrop = item.id === "slatedrop";
                   return (
                     <button
                       key={item.id}
-                      onClick={() => setActiveTab(item.id)}
+                      onClick={() => {
+                        if (isSlatedrop) {
+                          window.open("/slatedrop", "slatedrop", "width=1200,height=800,resizable=yes,scrollbars=yes");
+                        } else {
+                          setActiveTab(item.id);
+                        }
+                      }}
                       className={`flex flex-col items-center gap-1.5 py-3.5 px-2 rounded-2xl bg-white border transition-all duration-200 group ${tileW} ${
                         isActive
                           ? "border-[#FF4D00] shadow-lg -translate-y-0.5"
@@ -925,6 +935,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         {(() => {
           // Compute which widgets are available for this tier
           const available = new Set<string>([
+            ...(ent.canViewSlateDropWidget ? ["slatedrop"] : []),
             "data-usage","processing","financial","calendar","weather","continue","contacts","suggest",
             ...(ent.canManageSeats ? ["seats"] : ["upgrade"]),
           ]);
@@ -938,6 +949,57 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           function renderWidget(id: string, expanded: boolean): React.ReactNode {
             const span = getSpan(id, expanded);
             switch (id) {
+
+              case "slatedrop": return (
+          <WidgetCard key={id} icon={FolderOpen} title="SlateDrop" span={span} delay={0} action={
+            <Link
+              href="/slatedrop"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-1"
+            >
+              Open <ArrowUpRight size={10} />
+            </Link>
+          }>
+            <div className="space-y-4">
+              {/* Storage bar */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-gray-500">Storage used</span>
+                  <span className="text-xs font-bold text-gray-900">{storageUsed} GB / {ent.maxStorageGB} GB</span>
+                </div>
+                <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${Math.min((storageUsed / ent.maxStorageGB) * 100, 100)}%`,
+                      backgroundColor: (storageUsed / ent.maxStorageGB) > 0.85 ? "#EF4444" : "#FF4D00",
+                    }}
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1">{(ent.maxStorageGB - storageUsed).toFixed(1)} GB available</p>
+              </div>
+              {/* Recent files placeholder */}
+              <div className="space-y-2">
+                {["Welcome to SlateDrop.pdf", "Getting Started Guide.pdf", "stadium-model.glb"].map((name, i) => (
+                  <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <FileText size={13} className="text-gray-400 shrink-0" />
+                    <span className="text-[11px] text-gray-700 truncate flex-1">{name}</span>
+                  </div>
+                ))}
+              </div>
+              <Link
+                href="/slatedrop"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
+                style={{ backgroundColor: "#FF4D00" }}
+              >
+                <FolderOpen size={13} /> Open SlateDrop
+              </Link>
+            </div>
+          </WidgetCard>
+          );
 
               case "data-usage": return (
           <WidgetCard key={id} icon={CreditCard} title="Data Usage & Credits" span={span} delay={0} action={

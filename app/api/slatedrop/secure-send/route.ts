@@ -60,5 +60,21 @@ export async function POST(req: NextRequest) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.io";
   const shareUrl = `${baseUrl}/share/${token}`;
 
+  // Send branded Secure Send email via Resend (non-blocking, best-effort)
+  const senderName = user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "A Slate360 user";
+  fetch(`${baseUrl}/api/email/send`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      type: "secure-send",
+      to: email,
+      senderName,
+      fileName: file.name,
+      shareUrl,
+      permission,
+      expiresAt,
+    }),
+  }).catch(() => {});
+
   return NextResponse.json({ ok: true, shareUrl, token, expiresAt });
 }
