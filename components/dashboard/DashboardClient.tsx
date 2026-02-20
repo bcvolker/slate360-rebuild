@@ -14,6 +14,7 @@ import {
   Plus,
   ArrowRight,
   Activity,
+  Bot,
   CreditCard,
   TrendingUp,
   Calendar as CalendarIcon,
@@ -1171,6 +1172,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               { icon: BarChart3, label: "Analytics", href: "/features/analytics-reports", color: "#1E3A8A" },
               { icon: FolderOpen, label: "SlateDrop", href: "/features/slatedrop", color: "#FF4D00" },
               { icon: Activity, label: "Project Hub", href: "/features/project-hub", color: "#1E3A8A" },
+              ...(user.email === "slate360ceo@gmail.com" ? [{ icon: Bot, label: "Market Robot", href: "/market", color: "#1E3A8A" }] : []),
             ].map((item) => {
               const Icon = item.icon;
               return (
