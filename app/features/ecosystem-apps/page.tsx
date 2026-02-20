@@ -40,7 +40,7 @@ export default function Page() {
             className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-none mb-6"
             style={{ color: "#1E3A8A" }}
           >
-            Ecosystem Apps
+            Slate360 Apps
           </h1>
           <p className="text-xl text-gray-500 leading-relaxed max-w-2xl mb-8">
             Downloadable and subscribable apps that integrate seamlessly with

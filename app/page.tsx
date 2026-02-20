@@ -103,6 +103,16 @@ const platforms = [
     accent: "#FF4D00",
     bg: "from-orange-50 to-white",
   },
+  {
+    key: "slate360-apps",
+    icon: "🧩",
+    label: "Extend",
+    title: "Slate360 Apps",
+    desc: "Downloadable and subscribable apps that integrate seamlessly — one login, one file system, one subscription.",
+    href: "/features/ecosystem-apps",
+    accent: "#1E3A8A",
+    bg: "from-blue-50 to-white",
+  },
 ];
 
 /* ── "More powerful tools" cards ────────────────────────── */
@@ -130,12 +140,6 @@ const moreTools = [
     title: "Digital Twin Creation",
     desc: "Gaussian Splatting & NeRF options to build photorealistic digital twins from photos or LiDAR scans.",
     href: "/features/digital-twins",
-  },
-  {
-    icon: <span className="text-xl">🧩</span>,
-    title: "Ecosystem Apps",
-    desc: "Downloadable and subscribable apps that integrate seamlessly with the main platform.",
-    href: "/features/ecosystem-apps",
   },
 ];
 
@@ -340,7 +344,7 @@ export default function HomePage() {
                       height: "100%",
                       background: "transparent",
                     }}
-                    cameraOrbit="30deg 75deg 105%"
+                    cameraOrbit="30deg 75deg 85%"
                     shadowIntensity={1}
                     shadowSoftness={0.8}
                     interactive={heroInteractive}
@@ -386,7 +390,7 @@ export default function HomePage() {
               The Platform
             </h2>
             <p className="text-gray-500 mt-4 text-lg max-w-xl mx-auto">
-              Seven integrated modules. One login. Zero context switching.
+              Eight integrated modules. One login. Zero context switching.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -431,11 +435,32 @@ export default function HomePage() {
                       src="/uploads/csb-stadium-model.glb"
                       alt="Design Studio preview"
                       style={{ width: "100%", height: "100%", background: "transparent" }}
-                      cameraOrbit="30deg 75deg 105%"
+                      cameraOrbit="30deg 75deg 85%"
                       shadowIntensity={1}
                       shadowSoftness={0.8}
                       interactive={designInteractive}
                     />
+                  ) : p.key === "slate360-apps" ? (
+                    <div className="w-full h-full flex items-center justify-center p-5">
+                      <div className="grid grid-cols-3 gap-2.5 max-w-[220px]">
+                        {[
+                          { emoji: "🎨", name: "Design" },
+                          { emoji: "📝", name: "Content" },
+                          { emoji: "🔭", name: "360 Tour" },
+                          { emoji: "🛰️", name: "Geo" },
+                          { emoji: "🎬", name: "Virtual" },
+                          { emoji: "📊", name: "Analytics" },
+                          { emoji: "📁", name: "SlateDrop" },
+                          { emoji: "📋", name: "Project" },
+                          { emoji: "⚡", name: "GPU" },
+                        ].map((a) => (
+                          <div key={a.name} className="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
+                            <span className="text-2xl">{a.emoji}</span>
+                            <span className="text-[9px] text-white/60 font-medium leading-tight text-center">{a.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   ) : p.key === "360-tour-builder" ? (
                     tourInteractive && mounted ? (
                       <iframe
@@ -693,18 +718,20 @@ export default function HomePage() {
               src="/uploads/csb-stadium-model.glb"
               alt="3D building model fullscreen"
               style={{ width: "100%", height: "100%", background: "black" }}
-              cameraOrbit="30deg 75deg 105%"
+              cameraOrbit="30deg 75deg 85%"
               shadowIntensity={1}
               shadowSoftness={0.8}
             />
           )}
-          {/* Controls overlay */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-2 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 z-20">
-            <span className="text-[10px] text-white/50 font-medium mr-1 hidden sm:inline"><Hand size={12} className="inline mr-1" />Drag to orbit</span>
-            <span className="hidden sm:inline text-white/20">|</span>
-            <button onClick={() => { const mv = document.querySelector('#hero-modal-wrap model-viewer') as any; if (mv) { const co = mv.getCameraOrbit(); co.radius *= 0.85; mv.cameraOrbit = `${co.theta}rad ${co.phi}rad ${co.radius}m`; }}} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Zoom in"><ZoomIn size={14} /></button>
-            <button onClick={() => { const mv = document.querySelector('#hero-modal-wrap model-viewer') as any; if (mv) { const co = mv.getCameraOrbit(); co.radius *= 1.15; mv.cameraOrbit = `${co.theta}rad ${co.phi}rad ${co.radius}m`; }}} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Zoom out"><ZoomOut size={14} /></button>
-            <button onClick={() => { const mv = document.querySelector('#hero-modal-wrap model-viewer') as any; if (mv) mv.cameraOrbit = '30deg 75deg 105%'; }} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Reset view"><RotateCcw size={14} /></button>
+          {/* Controls — bottom-left bar matching pannellum style */}
+          <div className="absolute bottom-4 left-4 flex flex-col gap-1.5 z-20">
+            <button onClick={() => { const mv = document.querySelector('#hero-modal-wrap model-viewer') as any; if (mv) { const co = mv.getCameraOrbit(); co.radius *= 0.8; mv.cameraOrbit = `${co.theta}rad ${co.phi}rad ${co.radius}m`; }}} className="w-9 h-9 rounded-md bg-gray-800/80 hover:bg-gray-700 flex items-center justify-center text-white transition-colors shadow-lg border border-white/10" title="Zoom in"><ZoomIn size={16} /></button>
+            <button onClick={() => { const mv = document.querySelector('#hero-modal-wrap model-viewer') as any; if (mv) { const co = mv.getCameraOrbit(); co.radius *= 1.2; mv.cameraOrbit = `${co.theta}rad ${co.phi}rad ${co.radius}m`; }}} className="w-9 h-9 rounded-md bg-gray-800/80 hover:bg-gray-700 flex items-center justify-center text-white transition-colors shadow-lg border border-white/10" title="Zoom out"><ZoomOut size={16} /></button>
+            <button onClick={() => { const mv = document.querySelector('#hero-modal-wrap model-viewer') as any; if (mv) mv.cameraOrbit = '30deg 75deg 85%'; }} className="w-9 h-9 rounded-md bg-gray-800/80 hover:bg-gray-700 flex items-center justify-center text-white transition-colors shadow-lg border border-white/10" title="Reset view"><RotateCcw size={16} /></button>
+          </div>
+          {/* Hint — bottom center */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/50 backdrop-blur-sm z-20 pointer-events-none">
+            <span className="text-[11px] text-white/60 font-medium flex items-center gap-1.5"><Hand size={13} /> Click &amp; drag to orbit · Scroll to zoom</span>
           </div>
         </div>
       </ViewerModal>
@@ -721,17 +748,19 @@ export default function HomePage() {
               src="/uploads/csb-stadium-model.glb"
               alt="Design Studio"
               style={{ width: "100%", height: "100%", background: "black" }}
-              cameraOrbit="30deg 75deg 105%"
+              cameraOrbit="30deg 75deg 85%"
               shadowIntensity={1}
               shadowSoftness={0.8}
             />
-            {/* Controls overlay */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-2 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 z-20">
-              <span className="text-[10px] text-white/50 font-medium mr-1 hidden sm:inline"><Hand size={12} className="inline mr-1" />Drag to orbit</span>
-              <span className="hidden sm:inline text-white/20">|</span>
-              <button onClick={() => { const mv = document.querySelector('#design-modal-wrap model-viewer') as any; if (mv) { const co = mv.getCameraOrbit(); co.radius *= 0.85; mv.cameraOrbit = `${co.theta}rad ${co.phi}rad ${co.radius}m`; }}} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Zoom in"><ZoomIn size={14} /></button>
-              <button onClick={() => { const mv = document.querySelector('#design-modal-wrap model-viewer') as any; if (mv) { const co = mv.getCameraOrbit(); co.radius *= 1.15; mv.cameraOrbit = `${co.theta}rad ${co.phi}rad ${co.radius}m`; }}} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Zoom out"><ZoomOut size={14} /></button>
-              <button onClick={() => { const mv = document.querySelector('#design-modal-wrap model-viewer') as any; if (mv) mv.cameraOrbit = '30deg 75deg 105%'; }} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors" title="Reset view"><RotateCcw size={14} /></button>
+            {/* Controls — bottom-left bar matching pannellum style */}
+            <div className="absolute bottom-4 left-4 flex flex-col gap-1.5 z-20">
+              <button onClick={() => { const mv = document.querySelector('#design-modal-wrap model-viewer') as any; if (mv) { const co = mv.getCameraOrbit(); co.radius *= 0.8; mv.cameraOrbit = `${co.theta}rad ${co.phi}rad ${co.radius}m`; }}} className="w-9 h-9 rounded-md bg-gray-800/80 hover:bg-gray-700 flex items-center justify-center text-white transition-colors shadow-lg border border-white/10" title="Zoom in"><ZoomIn size={16} /></button>
+              <button onClick={() => { const mv = document.querySelector('#design-modal-wrap model-viewer') as any; if (mv) { const co = mv.getCameraOrbit(); co.radius *= 1.2; mv.cameraOrbit = `${co.theta}rad ${co.phi}rad ${co.radius}m`; }}} className="w-9 h-9 rounded-md bg-gray-800/80 hover:bg-gray-700 flex items-center justify-center text-white transition-colors shadow-lg border border-white/10" title="Zoom out"><ZoomOut size={16} /></button>
+              <button onClick={() => { const mv = document.querySelector('#design-modal-wrap model-viewer') as any; if (mv) mv.cameraOrbit = '30deg 75deg 85%'; }} className="w-9 h-9 rounded-md bg-gray-800/80 hover:bg-gray-700 flex items-center justify-center text-white transition-colors shadow-lg border border-white/10" title="Reset view"><RotateCcw size={16} /></button>
+            </div>
+            {/* Hint — bottom center */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/50 backdrop-blur-sm z-20 pointer-events-none">
+              <span className="text-[11px] text-white/60 font-medium flex items-center gap-1.5"><Hand size={13} /> Click &amp; drag to orbit · Scroll to zoom</span>
             </div>
           </div>
         )}

@@ -49,6 +49,12 @@ const features = [
     desc: "Dashboards, trends & exportable reports",
     icon: "📊",
   },
+  {
+    label: "Slate360 Apps",
+    href: "/features/ecosystem-apps",
+    desc: "Downloadable & subscribable platform apps",
+    icon: "🧩",
+  },
 ];
 
 export default function Navbar() {

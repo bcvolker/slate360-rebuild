@@ -26,7 +26,10 @@ const features = [
   { key: "analytics-reports", icon: "📊", label: "Analyze", title: "Analytics & Reports", accent: "#FF4D00",
     desc: "Portfolio dashboards, credit trends, team activity, and exportable reports.",
     href: "/features/analytics-reports" },
-  { key: "slatedrop", icon: "📂", label: "Organize", title: "SlateDrop", accent: "#1E3A8A",
+  { key: "slate360-apps", icon: "🧩", label: "Extend", title: "Slate360 Apps", accent: "#1E3A8A",
+    desc: "Downloadable and subscribable apps that integrate seamlessly — one login, one file system, one subscription.",
+    href: "/features/ecosystem-apps" },
+  { key: "slatedrop", icon: "📂", label: "Organize", title: "SlateDrop", accent: "#FF4D00",
     desc: "Finder-style file system for every project and tab. Drag, drop, right-click Secure Send.",
     href: "/features/slatedrop" },
 ];
@@ -42,7 +45,7 @@ export default function FeaturesPage() {
               The full platform
             </span>
             <h1 className="text-5xl sm:text-6xl font-black tracking-tight" style={{ color: "#1E3A8A" }}>Platform Features</h1>
-            <p className="text-gray-500 mt-4 text-lg max-w-xl mx-auto">Eight integrated modules. One login, zero context switching.</p>
+            <p className="text-gray-500 mt-4 text-lg max-w-xl mx-auto">Nine integrated modules. One login, zero context switching.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((f) => (
