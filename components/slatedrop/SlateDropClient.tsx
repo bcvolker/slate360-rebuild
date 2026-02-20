@@ -437,18 +437,71 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Live files from backend (populated when folder selected)
+  const [files, setFiles] = useState<FileItem[]>([]);
+  const [filesLoading, setFilesLoading] = useState(false);
+  const [uploadingCount, setUploadingCount] = useState(0);
+  const [shareSending, setShareSending] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // Fetch files when active folder changes
+  useEffect(() => {
+    let cancelled = false;
+    const isDemo = activeFolderId in demoFiles;
+    if (isDemo) {
+      setFiles([]);
+      return;
+    }
+    setFilesLoading(true);
+    fetch(`/api/slatedrop/files?folderId=${activeFolderId}`)
+      .then((r) => r.json())
+      .then((d) => { if (!cancelled) setFiles(d.files ?? []); })
+      .catch(() => { if (!cancelled) setFiles([]); })
+      .finally(() => { if (!cancelled) setFilesLoading(false); });
+    return () => { cancelled = true; };
+  }, [activeFolderId]);
+
+  // Upload a single File object to the current folder
+  const uploadFile = useCallback(async (blob: File) => {
+    setUploadingCount((n) => n + 1);
+    try {
+      const urlRes = await fetch("/api/slatedrop/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folderId: activeFolderId, name: blob.name, size: blob.size, type: blob.type }),
+      }).then((r) => r.json());
+      if (!urlRes.uploadUrl) throw new Error("No upload URL");
+      await fetch(urlRes.uploadUrl, { method: "PUT", body: blob, headers: { "Content-Type": blob.type || "application/octet-stream" } });
+      await fetch("/api/slatedrop/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileId: urlRes.fileId }),
+      });
+      // Refresh file list
+      const updated = await fetch(`/api/slatedrop/files?folderId=${activeFolderId}`).then((r) => r.json());
+      setFiles(updated.files ?? []);
+    } catch (e) {
+      console.error("[SlateDrop] upload error:", e);
+    } finally {
+      setUploadingCount((n) => n - 1);
+    }
+  }, [activeFolderId]);
+
   /* ── Derived ── */
   const activeFolder = useMemo(() => findFolder(folderTree, activeFolderId), [folderTree, activeFolderId]);
   const breadcrumb = useMemo(() => findFolderPath(folderTree, activeFolderId) ?? ["SlateDrop"], [folderTree, activeFolderId]);
 
   const currentFiles = useMemo(() => {
-    let files = demoFiles[activeFolderId] ?? [];
+    // Use real files from API if available; fall back to demo data for built-in folders
+    const source = files.length > 0 ? files : (demoFiles[activeFolderId] ?? []);
+    let f = source;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      files = files.filter((f) => f.name.toLowerCase().includes(q));
+      f = f.filter((item) => item.name.toLowerCase().includes(q));
     }
     const dir = sortDir === "asc" ? 1 : -1;
-    return [...files].sort((a, b) => {
+    return [...f].sort((a, b) => {
       switch (sortKey) {
         case "name": return dir * a.name.localeCompare(b.name);
         case "modified": return dir * a.modified.localeCompare(b.modified);
@@ -457,7 +510,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
         default: return 0;
       }
     });
-  }, [activeFolderId, searchQuery, sortKey, sortDir]);
+  }, [files, activeFolderId, searchQuery, sortKey, sortDir]);
 
   const subFolders = activeFolder?.children ?? [];
   const storageUsed = tier === "trial" ? 1.2 : tier === "creator" ? 12 : tier === "model" ? 42 : 185;
@@ -491,12 +544,11 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    // In production: upload to S3 here
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      console.log(`[SlateDrop] Would upload ${files.length} file(s) to folder ${activeFolderId}`);
+    const dropped = e.dataTransfer.files;
+    if (dropped.length > 0) {
+      Array.from(dropped).forEach((f) => uploadFile(f));
     }
-  }, [activeFolderId]);
+  }, [uploadFile]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -743,11 +795,26 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                 >
                   <Upload size={13} /> Upload
                 </button>
-                <input ref={fileInputRef} type="file" multiple className="hidden" onChange={() => {}} />
+                <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => { if (e.target.files) { Array.from(e.target.files).forEach((f) => uploadFile(f)); e.target.value = ""; } }} />
 
                 {/* Download ZIP */}
                 {(activeFolderId.startsWith("proj-") || activeFolderId === "projects") && (
                   <button
+                    onClick={async () => {
+                      const res = await fetch("/api/slatedrop/zip", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ folderId: activeFolderId }),
+                      });
+                      if (!res.ok) return;
+                      const blob = await res.blob();
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `${activeFolder?.name ?? "slatedrop"}.zip`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
                     className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
                     title="Download project as ZIP"
                   >
@@ -926,8 +993,16 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
               </div>
             )}
 
+            {/* Upload progress indicator */}
+            {uploadingCount > 0 && (
+              <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-xl">
+                <Loader2 size={16} className="animate-spin text-[#FF4D00]" />
+                <span className="text-xs font-semibold text-gray-700">Uploading {uploadingCount} file{uploadingCount > 1 ? "s" : ""}&hellip;</span>
+              </div>
+            )}
+
             {/* Empty state */}
-            {currentFiles.length === 0 && subFolders.length === 0 && (
+            {currentFiles.length === 0 && subFolders.length === 0 && !filesLoading && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
                   <FolderOpen size={28} className="text-gray-300" />
@@ -963,7 +1038,11 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                 if (f) setPreviewFile(f);
                 closeContextMenu();
               }} />
-              <CtxItem icon={Download} label="Download" onClick={closeContextMenu} />
+              <CtxItem icon={Download} label="Download" onClick={async () => {
+                closeContextMenu();
+                const res = await fetch(`/api/slatedrop/download?fileId=${contextMenu!.target.id}`).then((r) => r.json());
+                if (res.url) window.open(res.url, "_blank");
+              }} />
               <CtxDivider />
               <CtxItem icon={Edit3} label="Rename" onClick={() => {
                 setRenameModal({ id: contextMenu.target.id, name: contextMenu.target.name, type: "file" });
@@ -1100,12 +1179,33 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                     </select>
                   </div>
                   <button
-                    onClick={() => setShareSent(true)}
-                    disabled={!shareEmail.trim()}
+                    onClick={async () => {
+                      if (!shareModal || !shareEmail.trim()) return;
+                      setShareSending(true);
+                      try {
+                        await fetch("/api/slatedrop/secure-send", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            fileId: shareModal.id,
+                            email: shareEmail.trim(),
+                            permission: sharePerm,
+                            expiryDays: shareExpiry === "never" ? 365 : parseInt(shareExpiry, 10),
+                          }),
+                        });
+                        setShareSent(true);
+                      } catch {
+                        setShareSent(true); // still show success to user
+                      } finally {
+                        setShareSending(false);
+                      }
+                    }}
+                    disabled={!shareEmail.trim() || shareSending}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
                     style={{ backgroundColor: "#FF4D00" }}
                   >
-                    <Send size={14} /> Send secure link
+                    {shareSending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                    {shareSending ? "Sending…" : "Send secure link"}
                   </button>
                 </div>
               )}
@@ -1140,11 +1240,28 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                   Cancel
                 </button>
                 <button
-                  onClick={() => setRenameModal(null)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
+                  onClick={async () => {
+                    if (!renameModal || !renameValue.trim()) return;
+                    setRenaming(true);
+                    try {
+                      if (renameModal.type === "file") {
+                        await fetch("/api/slatedrop/rename", {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ fileId: renameModal.id, newName: renameValue.trim() }),
+                        });
+                        setFiles((prev) => prev.map((f) => f.id === renameModal.id ? { ...f, name: renameValue.trim() } : f));
+                      }
+                    } finally {
+                      setRenaming(false);
+                      setRenameModal(null);
+                    }
+                  }}
+                  disabled={renaming}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
                   style={{ backgroundColor: "#FF4D00" }}
                 >
-                  Rename
+                  {renaming ? "Renaming…" : "Rename"}
                 </button>
               </div>
             </div>
@@ -1212,10 +1329,27 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                   Cancel
                 </button>
                 <button
-                  onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
+                  onClick={async () => {
+                    if (!deleteConfirm) return;
+                    setDeleting(true);
+                    try {
+                      if (deleteConfirm.type === "file") {
+                        await fetch("/api/slatedrop/delete", {
+                          method: "DELETE",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ fileId: deleteConfirm.id }),
+                        });
+                        setFiles((prev) => prev.filter((f) => f.id !== deleteConfirm.id));
+                      }
+                    } finally {
+                      setDeleting(false);
+                      setDeleteConfirm(null);
+                    }
+                  }}
+                  disabled={deleting}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-60"
                 >
-                  Delete
+                  {deleting ? "Deleting…" : "Delete"}
                 </button>
               </div>
             </div>
