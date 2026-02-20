@@ -5,10 +5,15 @@
  */
 import { Resend } from "resend";
 
-export const resend = new Resend(process.env.RESEND_API_KEY ?? "");
-
 export const FROM = process.env.EMAIL_FROM ?? "Slate360 <noreply@slate360.io>";
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.io";
+
+/** Lazy getter — only instantiates when actually sending, avoids build-time throw */
+function getResend(): Resend {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) throw new Error("RESEND_API_KEY is not set");
+  return new Resend(key);
+}
 
 /* ── Branded HTML wrapper ── */
 function brandedHtml(title: string, body: string): string {
@@ -90,7 +95,7 @@ export async function sendWelcomeEmail({
     <p style="margin:20px 0 0;font-size:12px;color:#9ca3af;">
       This link expires in 24 hours. If you didn't sign up for Slate360, you can safely ignore this email.
     </p>`;
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: "Confirm your Slate360 account",
@@ -128,7 +133,7 @@ export async function sendSecureSendEmail({
     ${message ? `<div style="background:#f7f8fa;border-left:3px solid #FF4D00;padding:14px 18px;border-radius:0 8px 8px 0;margin-bottom:20px;"><p style="margin:0;font-size:14px;color:#374151;line-height:1.6;font-style:italic;">&ldquo;${message}&rdquo;</p></div>` : ""}
     ${ctaButton("Access file →", shareUrl)}
     <p style="margin:16px 0 0;font-size:12px;color:#9ca3af;">${expiryText}</p>`;
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: `${senderName} shared "${fileName}" with you`,
@@ -156,7 +161,7 @@ export async function sendPasswordResetEmail({
     <p style="margin:20px 0 0;font-size:12px;color:#9ca3af;">
       This link expires in 1 hour. If you didn't request a password reset, you can safely ignore this email.
     </p>`;
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to,
     subject: "Reset your Slate360 password",
