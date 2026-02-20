@@ -4,6 +4,7 @@ import { useState, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
+import SlateDropClient from "@/components/slatedrop/SlateDropClient";
 import {
   Search,
   Bell,
@@ -1726,14 +1727,11 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             <span className="text-[13px] font-semibold text-white/90 flex-1 text-center -ml-8 pointer-events-none">SlateDrop</span>
           </div>
 
-          {/* ── iframe body ── */}
+          {/* ── Embedded SlateDropClient ── */}
           {!sdMinimized && (
-            <iframe
-              src="/slatedrop"
-              className="flex-1 border-0 bg-white block"
-              title="SlateDrop"
-              allow="fullscreen"
-            />
+            <div className="flex-1 overflow-hidden">
+              <SlateDropClient user={user} tier={tier} embedded />
+            </div>
           )}
 
           {/* ── Resize handle (bottom-right corner) ── */}

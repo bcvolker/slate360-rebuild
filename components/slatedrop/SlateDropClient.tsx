@@ -55,6 +55,7 @@ import {
 interface SlateDropProps {
   user: { name: string; email: string };
   tier: Tier;
+  embedded?: boolean;
 }
 
 interface FolderNode {
@@ -402,7 +403,7 @@ function FolderTreeItem({
    MAIN COMPONENT
    ================================================================ */
 
-export default function SlateDropClient({ user, tier }: SlateDropProps) {
+export default function SlateDropClient({ user, tier, embedded = false }: SlateDropProps) {
   const ent = getEntitlements(tier);
   const supabase = createClient();
 
@@ -583,8 +584,9 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
      ================================================================ */
 
   return (
-    <div className="h-screen flex flex-col bg-[#F7F8FA] overflow-hidden">
-      {/* ════════ TOP BAR ════════ */}
+    <div className={`${embedded ? "h-full" : "h-screen"} flex flex-col bg-[#F7F8FA] overflow-hidden`}>
+      {/* ════════ TOP BAR (hidden when embedded in dashboard floating window) ════════ */}
+      {!embedded && (
       <header className="shrink-0 bg-white border-b border-gray-100 z-30">
         <div className="flex items-center justify-between h-14 px-4">
           {/* Left */}
@@ -646,6 +648,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
           </div>
         </div>
       </header>
+      )}
 
       {/* ════════ MAIN SPLIT ════════ */}
       <div className="flex-1 flex overflow-hidden relative">
