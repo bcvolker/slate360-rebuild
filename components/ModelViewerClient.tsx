@@ -18,7 +18,6 @@ interface ModelViewerClientProps {
   cameraOrbit?: string;
   shadowIntensity?: number;
   shadowSoftness?: number;
-  orientation?: string;
   interactive?: boolean;
 }
 
@@ -29,7 +28,6 @@ export default function ModelViewerClient({
   cameraOrbit,
   shadowIntensity,
   shadowSoftness,
-  orientation,
   interactive = true,
 }: ModelViewerClientProps) {
   const ref = useRef<HTMLElement>(null);
@@ -45,7 +43,6 @@ export default function ModelViewerClient({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (orientation) el.setAttribute("orientation", orientation);
     if (cameraOrbit) el.setAttribute("camera-orbit", cameraOrbit);
     if (shadowIntensity !== undefined)
       el.setAttribute("shadow-intensity", String(shadowIntensity));
@@ -63,7 +60,7 @@ export default function ModelViewerClient({
       el.setAttribute("interaction-prompt", "none");
       el.setAttribute("disable-tap", "");
     }
-  }, [orientation, cameraOrbit, shadowIntensity, shadowSoftness, interactive]);
+  }, [cameraOrbit, shadowIntensity, shadowSoftness, interactive]);
 
   return (
     <>

@@ -27,7 +27,7 @@ const tiers = [
       "Photogrammetry pipeline", "3D print queue",
       "Animation export to MP4",
     ],
-    cta: "Start free trial", href: "/signup", highlight: true,
+    cta: "Start free trial", href: "/signup",
   },
   {
     name: "Business", price: "$499", annualPrice: "$416", per: "/mo",
@@ -39,7 +39,7 @@ const tiers = [
       "Gantt timeline and scheduling", "Analytics and reporting",
       "PDF and CSV project exports",
     ],
-    cta: "Start free trial", href: "/signup",
+    cta: "Start free trial", href: "/signup", highlight: true,
   },
   {
     name: "Enterprise", price: "Custom", annualPrice: "Custom", per: "",

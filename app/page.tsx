@@ -160,7 +160,6 @@ const plans = [
       "150 GB storage",
       "15,000 credits/mo",
     ],
-    highlight: true,
   },
   {
     name: "Business",
@@ -173,6 +172,7 @@ const plans = [
       "750 GB storage",
       "30,000 credits/mo",
     ],
+    highlight: true,
   },
   {
     name: "Enterprise",
@@ -289,7 +289,7 @@ export default function HomePage() {
       <Navbar />
 
       {/* ────── HERO — full viewport ────── */}
-      <section className="min-h-screen flex items-center pt-16 px-6 sm:px-10 lg:px-16">
+      <section className="min-h-screen flex items-center pt-16 px-6 sm:px-10 lg:px-16 bg-gradient-to-br from-white via-white to-blue-50/60">
         <div className="max-w-[88rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center py-12 lg:py-0">
           {/* Left: headline + CTAs (~50%) */}
           <div className="lg:col-span-6 max-w-2xl lg:pl-2">
@@ -337,7 +337,6 @@ export default function HomePage() {
                       background: "transparent",
                     }}
                     cameraOrbit="30deg 75deg 105%"
-                    orientation="90deg 0deg 0deg"
                     shadowIntensity={1}
                     shadowSoftness={0.8}
                     interactive={heroInteractive}
@@ -367,7 +366,7 @@ export default function HomePage() {
       </section>
 
       {/* ────── THE PLATFORM — 7 cards ────── */}
-      <section className="py-24 px-4 sm:px-6 bg-gray-50">
+      <section className="py-24 px-4 sm:px-6" style={{ backgroundColor: "#F0F4FA" }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <span
@@ -429,7 +428,6 @@ export default function HomePage() {
                       alt="Design Studio preview"
                       style={{ width: "100%", height: "100%", background: "transparent" }}
                       cameraOrbit="30deg 75deg 105%"
-                      orientation="90deg 0deg 0deg"
                       shadowIntensity={1}
                       shadowSoftness={0.8}
                       interactive={designInteractive}
@@ -539,7 +537,7 @@ export default function HomePage() {
       </section>
 
       {/* ────── PRICING TEASER ────── */}
-      <section className="py-24 px-4 sm:px-6 bg-gray-50">
+      <section className="py-24 px-4 sm:px-6" style={{ backgroundColor: "#F0F4FA" }}>
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2
@@ -691,7 +689,6 @@ export default function HomePage() {
             alt="3D building model fullscreen"
             style={{ width: "100%", height: "100%", background: "black" }}
             cameraOrbit="30deg 75deg 105%"
-            orientation="90deg 0deg 0deg"
             shadowIntensity={1}
             shadowSoftness={0.8}
           />
@@ -710,7 +707,6 @@ export default function HomePage() {
             alt="Design Studio"
             style={{ width: "100%", height: "100%", background: "black" }}
             cameraOrbit="30deg 75deg 105%"
-            orientation="90deg 0deg 0deg"
             shadowIntensity={1}
             shadowSoftness={0.8}
           />
