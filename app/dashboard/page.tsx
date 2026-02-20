@@ -1,29 +1,47 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import DashboardClient from "@/components/dashboard/DashboardClient";
+import type { Tier } from "@/lib/entitlements";
+
+export const metadata = {
+  title: "Dashboard — Slate360",
+};
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  // Attempt to resolve org tier
+  let tier: Tier = "trial";
+  try {
+    const { data } = await supabase
+      .from("organization_members")
+      .select("organizations(tier)")
+      .eq("user_id", user.id)
+      .single();
+    const org = data?.organizations as unknown;
+    if (org && typeof org === "object" && !Array.isArray(org)) {
+      const t = (org as { tier?: string }).tier;
+      if (t) tier = t as Tier;
+    }
+  } catch {
+    // No org found or table doesn't exist — default to trial
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center px-4">
-      <img src="/logo.svg" alt="Slate360" className="h-10 w-auto mb-8" />
-      <h1 className="text-3xl font-black mb-2" style={{ color: "#1E3A8A" }}>
-        Welcome, {user.user_metadata?.full_name ?? user.email}
-      </h1>
-      <p className="text-gray-500 mb-8 max-w-sm">
-        Your dashboard is being built. You're authenticated and your session is live.
-      </p>
-      <div className="flex gap-4">
-        <Link href="/" className="px-6 py-3 rounded-full border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-white transition-colors">
-          Back to home
-        </Link>
-        <Link href="/features" className="px-6 py-3 rounded-full text-sm font-semibold text-white hover:opacity-90 transition-all" style={{ backgroundColor: "#FF4D00" }}>
-          Explore features
-        </Link>
-      </div>
-    </div>
+    <DashboardClient
+      user={{
+        name:
+          user.user_metadata?.full_name ??
+          user.email?.split("@")[0] ??
+          "User",
+        email: user.email ?? "",
+        avatar: user.user_metadata?.avatar_url ?? undefined,
+      }}
+      tier={tier}
+    />
   );
 }
