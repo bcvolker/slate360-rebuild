@@ -297,19 +297,19 @@ export default function HomePage() {
       <Navbar />
 
       {/* ────── HERO — full viewport ────── */}
-      <section className="min-h-[100dvh] flex items-center pt-16 pb-[env(safe-area-inset-bottom)] px-6 sm:px-10 lg:px-16 bg-gradient-to-br from-blue-50/40 via-white to-orange-50/30">
-        <div className="max-w-[88rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center py-8 pb-10 lg:py-0">
+      <section className="min-h-[100dvh] flex flex-col justify-center pt-16 pb-[max(env(safe-area-inset-bottom),1rem)] px-6 sm:px-10 lg:px-16 bg-gradient-to-br from-blue-50/40 via-white to-orange-50/30">
+        <div className="max-w-[88rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-14 items-center py-4 lg:py-0">
           {/* Left: headline + CTAs (~50%) */}
           <div className="lg:col-span-6 max-w-2xl lg:pl-2">
             <h1
-              className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.04] mb-6"
+              className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.04] mb-4 sm:mb-6"
               style={{ color: "#1E3A8A" }}
             >
               See it. Experience it.
               <br />
               <span style={{ color: "#FF4D00" }}>Own it.</span>
             </h1>
-            <p className="text-lg sm:text-xl text-gray-500 leading-relaxed mb-8">
+            <p className="text-base sm:text-xl text-gray-500 leading-relaxed mb-5 sm:mb-8">
               Manage building projects administratively and visually — one
               elegant platform for professionals who build, design, and deliver.
             </p>
@@ -333,8 +333,8 @@ export default function HomePage() {
           {/* Right: hero vision viewer (~50%) — landscape, model loaded by default */}
           <div className="lg:col-span-6 flex items-center justify-center py-4 lg:py-0 lg:pr-2">
             <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-black shadow-2xl w-full">
-              {/* Viewer — taller on mobile to show detail, landscape on desktop */}
-              <div className="relative w-full aspect-[4/3] sm:aspect-[16/10]">
+              {/* Viewer — compact 16:9 on mobile, wider on sm+ */}
+              <div className="relative w-full aspect-[16/9] sm:aspect-[4/3] lg:aspect-[16/10]">
                 {mounted && (
                   <ModelViewer
                     src="/uploads/csb-stadium-model.glb"

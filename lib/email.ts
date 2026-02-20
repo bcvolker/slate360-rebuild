@@ -5,8 +5,8 @@
  */
 import { Resend } from "resend";
 
-export const FROM = process.env.EMAIL_FROM ?? "Slate360 <noreply@slate360.io>";
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.io";
+export const FROM = process.env.EMAIL_FROM ?? "Slate360 <noreply@slate360.ai>";
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.ai";
 
 /** Lazy getter — only instantiates when actually sending, avoids build-time throw */
 function getResend(): Resend {
