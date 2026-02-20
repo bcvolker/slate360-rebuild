@@ -54,9 +54,21 @@ const features = [
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const isHome = pathname === "/";
+
+  /* ── Scroll listener for logo animation ────────────────── */
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 20);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   /* ── Desktop dropdown hover logic ──────────────────────── */
   function openDropdown() {
@@ -99,7 +111,12 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-          <img src="/logo.svg" alt="Slate360" className="h-8 w-auto" />
+          <img
+            src="/logo.svg"
+            alt="Slate360"
+            className="w-auto transition-all duration-300 ease-in-out"
+            style={{ height: isHome && !scrolled ? "2.75rem" : "2rem" }}
+          />
         </Link>
 
         {/* ── Desktop nav ──────────────────────────────── */}

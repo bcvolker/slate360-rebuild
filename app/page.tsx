@@ -274,6 +274,8 @@ function ViewerModal({
 export default function HomePage() {
   const [modal3D, setModal3D] = useState(false);
   const [heroInteractive, setHeroInteractive] = useState(false);
+  const [designInteractive, setDesignInteractive] = useState(false);
+  const [tourInteractive, setTourInteractive] = useState(false);
   const [modalCard, setModalCard] = useState<string | null>(null);
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [mounted, setMounted] = useState(false);
@@ -335,7 +337,7 @@ export default function HomePage() {
                       background: "transparent",
                     }}
                     cameraOrbit="30deg 75deg 105%"
-                    orientation="-90deg 0deg 0deg"
+                    orientation="90deg 0deg 0deg"
                     shadowIntensity={1}
                     shadowSoftness={0.8}
                     interactive={heroInteractive}
@@ -427,18 +429,31 @@ export default function HomePage() {
                       alt="Design Studio preview"
                       style={{ width: "100%", height: "100%", background: "transparent" }}
                       cameraOrbit="30deg 75deg 105%"
-                      orientation="-90deg 0deg 0deg"
+                      orientation="90deg 0deg 0deg"
                       shadowIntensity={1}
                       shadowSoftness={0.8}
-                      interactive={false}
+                      interactive={designInteractive}
                     />
                   ) : p.key === "360-tour-builder" ? (
-                    <div className="w-full h-full overflow-hidden">
-                      <div
-                        className="w-[200%] h-full bg-cover bg-center animate-pan-360"
-                        style={{ backgroundImage: "url('/uploads/pletchers.jpg')" }}
+                    tourInteractive && mounted ? (
+                      <iframe
+                        src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent(
+                          typeof window !== "undefined"
+                            ? `${window.location.origin}/uploads/pletchers.jpg`
+                            : "/uploads/pletchers.jpg"
+                        )}&autoLoad=true`}
+                        className="w-full h-full border-0"
+                        allowFullScreen
+                        title="360 panorama"
                       />
-                    </div>
+                    ) : (
+                      <div className="w-full h-full overflow-hidden">
+                        <div
+                          className="w-[300%] h-full bg-cover bg-center animate-pan-360"
+                          style={{ backgroundImage: "url('/uploads/pletchers.jpg')" }}
+                        />
+                      </div>
+                    )
                   ) : (
                     <div className="flex flex-col items-center gap-3">
                       <span className="text-5xl opacity-80 group-hover:opacity-100 transition-opacity drop-shadow-sm">{p.icon}</span>
@@ -446,14 +461,25 @@ export default function HomePage() {
                     </div>
                   )}
                   {/* Bottom bar for interactive cards */}
-                  {(p.key === "360-tour-builder" || p.key === "design-studio") && (
+                  {p.key === "design-studio" && (
                     <div className="absolute bottom-0 left-0 right-0 px-4 py-2.5 flex items-center justify-end bg-gray-900/80 backdrop-blur border-t border-white/10 z-10">
                       <button
-                        onClick={() => setModalCard(p.key)}
+                        onClick={() => setDesignInteractive((v) => !v)}
                         className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold text-white transition-all hover:opacity-90"
                         style={{ backgroundColor: "#FF4D00" }}
                       >
-                        {p.key === "360-tour-builder" ? "Navigate Tour" : "Navigate Model"}
+                        {designInteractive ? "Lock Model" : "Navigate Model"}
+                      </button>
+                    </div>
+                  )}
+                  {p.key === "360-tour-builder" && (
+                    <div className="absolute bottom-0 left-0 right-0 px-4 py-2.5 flex items-center justify-end bg-gray-900/80 backdrop-blur border-t border-white/10 z-10">
+                      <button
+                        onClick={() => setTourInteractive((v) => !v)}
+                        className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold text-white transition-all hover:opacity-90"
+                        style={{ backgroundColor: "#FF4D00" }}
+                      >
+                        {tourInteractive ? "Lock Tour" : "Navigate Tour"}
                       </button>
                     </div>
                   )}
@@ -665,7 +691,7 @@ export default function HomePage() {
             alt="3D building model fullscreen"
             style={{ width: "100%", height: "100%", background: "black" }}
             cameraOrbit="30deg 75deg 105%"
-            orientation="-90deg 0deg 0deg"
+            orientation="90deg 0deg 0deg"
             shadowIntensity={1}
             shadowSoftness={0.8}
           />
@@ -684,7 +710,7 @@ export default function HomePage() {
             alt="Design Studio"
             style={{ width: "100%", height: "100%", background: "black" }}
             cameraOrbit="30deg 75deg 105%"
-            orientation="-90deg 0deg 0deg"
+            orientation="90deg 0deg 0deg"
             shadowIntensity={1}
             shadowSoftness={0.8}
           />
