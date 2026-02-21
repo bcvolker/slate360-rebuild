@@ -444,7 +444,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     { id: "my-account",     label: "My Account",     icon: User,            color: "#1E3A8A" },
     ...(isCEO ? ([
       { id: "ceo",        label: "CEO",        icon: Shield,      color: "#FF4D00", isCEOOnly: true },
-      { id: "market",     label: "Market",     icon: TrendingUp,  color: "#1E3A8A", isCEOOnly: true },
+      { id: "market",     label: "Market Robot", icon: TrendingUp,  color: "#1E3A8A", isCEOOnly: true },
       { id: "athlete360", label: "Athlete360", icon: Zap,         color: "#FF4D00", isCEOOnly: true },
     ] as DashTab[]) : []),
   ] as DashTab[]).filter((tab) => {
@@ -484,6 +484,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [quickAccessOpen, setQuickAccessOpen] = useState(false);
   const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(DEFAULT_WIDGET_PREFS);
   const [prefsDirty, setPrefsDirty] = useState(false);
   const [prefsSaving, setPrefsSaving] = useState(false);
@@ -770,16 +771,65 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
       {/* ════════ MAIN CONTENT ════════ */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-8">
         {/* ── Welcome Section ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: "#1E3A8A" }}>
-              {getGreeting()}, {user.name.split(" ")[0]} 👋
-            </h1>
-            <p className="text-sm text-gray-400 mt-1">
-              Here&apos;s what&apos;s happening across your projects today.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
+        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${activeTab !== "market" ? "mb-8" : "mb-4"}`}>
+          {activeTab !== "market" && (
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: "#1E3A8A" }}>
+                {getGreeting()}, {user.name.split(" ")[0]} 👋
+              </h1>
+              <p className="text-sm text-gray-400 mt-1">
+                Here&apos;s what&apos;s happening across your projects today.
+              </p>
+            </div>
+          )}
+          <div className={`flex items-center gap-3 ${activeTab === "market" ? "ml-auto" : ""}`}>
+            {/* ── Quick Access dropdown ── */}
+            <div className="relative">
+              <button
+                onClick={() => setQuickAccessOpen((v) => !v)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors"
+              >
+                <LayoutDashboard size={15} className="text-gray-400" />
+                Quick Access
+                <ChevronDown size={14} className="text-gray-400" />
+              </button>
+              {quickAccessOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setQuickAccessOpen(false)} />
+                  <div className="absolute left-0 top-12 w-56 bg-white rounded-xl border border-gray-100 shadow-xl z-40 overflow-hidden">
+                    <button
+                      onClick={() => { setActiveTab("overview"); setQuickAccessOpen(false); }}
+                      className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors ${
+                        activeTab === "overview" ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      <LayoutDashboard size={15} className="text-gray-400" />
+                      Overview
+                    </button>
+                    {visibleTabs.map((vTab) => {
+                      const VIcon = vTab.icon;
+                      const isSlateDropTab = vTab.id === "slatedrop";
+                      return (
+                        <button
+                          key={vTab.id}
+                          onClick={() => {
+                            if (isSlateDropTab) { openSlateDrop(); }
+                            else { setActiveTab(vTab.id); }
+                            setQuickAccessOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors ${
+                            activeTab === vTab.id ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          <VIcon size={15} style={{ color: vTab.color }} />
+                          {vTab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
             {/* Project selector */}
             <div className="relative">
               <button
@@ -826,6 +876,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
         {/* ════════ QUICK ACCESS / TAB NAVIGATION ════════ */}
         {(() => {
+          if (activeTab === "market") return null;
           const navItems: Array<{ id: string; label: string; icon: LucideIcon; color: string; isCEOOnly?: boolean }> = [
             { id: "overview", label: "Overview", icon: LayoutDashboard, color: "#1E3A8A" },
             ...visibleTabs,
