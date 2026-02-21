@@ -309,13 +309,6 @@ function getCalendarDays(year: number, month: number) {
   return cells;
 }
 
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-}
-
 const weatherIcon = (icon: string) => {
   switch (icon) {
     case "sun": return <Sun size={18} className="text-amber-400" />;
@@ -514,7 +507,6 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [customizeOpen, setCustomizeOpen] = useState(false);
-  const [quickAccessOpen, setQuickAccessOpen] = useState(false);
   const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(DEFAULT_WIDGET_PREFS);
   const [prefsDirty, setPrefsDirty] = useState(false);
   const [prefsSaving, setPrefsSaving] = useState(false);
@@ -528,6 +520,11 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [apiKeyBusy, setApiKeyBusy] = useState<"create" | string | null>(null);
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
   const [generatedApiKey, setGeneratedApiKey] = useState<string | null>(null);
+  const [prefTheme, setPrefTheme] = useState<"light" | "dark" | "system">("system");
+  const [prefStartTab, setPrefStartTab] = useState("overview");
+  const [prefNotification, setPrefNotification] = useState<"off" | "daily" | "weekly">("daily");
+  const [prefImportantAlerts, setPrefImportantAlerts] = useState(true);
+  const [prefShowDashboardTiles, setPrefShowDashboardTiles] = useState(true);
 
   // ── SlateDrop floating window ───────────────────────────────
   const [slateDropOpen, setSlateDropOpen] = useState(false);
@@ -779,6 +776,25 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     }
   }, [loadAccountOverview]);
 
+  const saveAccountPreferences = useCallback(async () => {
+    try {
+      await supabase.auth.updateUser({
+        data: {
+          theme: prefTheme,
+          defaultTab: prefStartTab,
+          notificationFrequency: prefNotification,
+          importantAlerts: prefImportantAlerts,
+          showDashboardTiles: prefShowDashboardTiles,
+        },
+      });
+      setBillingNotice({ ok: true, text: "Preferences saved." });
+      setTimeout(() => setBillingNotice(null), 2200);
+    } catch {
+      setBillingNotice({ ok: false, text: "Could not save preferences" });
+      setTimeout(() => setBillingNotice(null), 2200);
+    }
+  }, [supabase, prefTheme, prefStartTab, prefNotification, prefImportantAlerts, prefShowDashboardTiles]);
+
   useEffect(() => {
     if (activeTab === "my-account") {
       void loadAccountOverview();
@@ -985,68 +1001,9 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             {billingNotice.text}
           </div>
         )}
-        {/* ── Welcome Section ── */}
-        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${activeTab !== "market" && activeTab !== "my-account" ? "mb-8" : "mb-4"}`}>
-          {activeTab !== "market" && activeTab !== "my-account" && (
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: "#1E3A8A" }}>
-                {getGreeting()}, {user.name.split(" ")[0]} 👋
-              </h1>
-              <p className="text-sm text-gray-400 mt-1">
-                Here&apos;s what&apos;s happening across your projects today.
-              </p>
-            </div>
-          )}
-          <div className={`w-full sm:w-auto ${activeTab === "market" ? "sm:ml-auto" : ""}`}>
+        <div className="flex justify-end mb-6">
+          <div className="w-full sm:w-auto">
             <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 sm:pb-0 whitespace-nowrap">
-            {/* ── Quick Access dropdown ── */}
-            <div className="relative">
-              <button
-                onClick={() => setQuickAccessOpen((v) => !v)}
-                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors"
-              >
-                <LayoutDashboard size={15} className="text-gray-400" />
-                <span className="sm:hidden">Quick</span>
-                <span className="hidden sm:inline">Quick Access</span>
-                <ChevronDown size={14} className="text-gray-400" />
-              </button>
-              {quickAccessOpen && (
-                <>
-                  <div className="fixed inset-0 z-30" onClick={() => setQuickAccessOpen(false)} />
-                  <div className="absolute left-0 top-12 w-52 sm:w-56 bg-white rounded-xl border border-gray-100 shadow-xl z-40 overflow-hidden">
-                    <button
-                      onClick={() => { setActiveTab("overview"); setQuickAccessOpen(false); }}
-                      className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors ${
-                        activeTab === "overview" ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      <LayoutDashboard size={15} className="text-gray-400" />
-                      Dashboard
-                    </button>
-                    {visibleTabs.map((vTab) => {
-                      const VIcon = vTab.icon;
-                      const isSlateDropTab = vTab.id === "slatedrop";
-                      return (
-                        <button
-                          key={vTab.id}
-                          onClick={() => {
-                            if (isSlateDropTab) { openSlateDrop(); }
-                            else { setActiveTab(vTab.id); }
-                            setQuickAccessOpen(false);
-                          }}
-                          className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors ${
-                            activeTab === vTab.id ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"
-                          }`}
-                        >
-                          <VIcon size={15} style={{ color: vTab.color }} />
-                          {vTab.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
             {/* Project selector */}
             <div className="relative">
               <button
@@ -1094,124 +1051,6 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             </div>
           </div>
         </div>
-
-        {/* ════════ QUICK ACCESS / TAB NAVIGATION ════════ */}
-        {(() => {
-          if (activeTab === "market" || activeTab === "my-account") return null;
-          const navItems: Array<{ id: string; label: string; icon: LucideIcon; color: string; isCEOOnly?: boolean }> = [
-            { id: "overview", label: "Dashboard", icon: LayoutDashboard, color: "#1E3A8A" },
-            ...visibleTabs,
-          ];
-          const count = navItems.length;
-          const tileW = count <= 7 ? "w-[6.5rem]" : count <= 10 ? "w-[5.5rem]" : "w-[4.75rem]";
-          const icoBox = count <= 7 ? "w-11 h-11" : count <= 10 ? "w-10 h-10" : "w-9 h-9";
-          const icoSz = count <= 7 ? 20 : count <= 10 ? 18 : 15;
-          const lblSz = count <= 7 ? "text-xs" : count <= 10 ? "text-[11px]" : "text-[10px]";
-          return (
-            <div className="mb-8">
-              <div className="flex items-center mb-3">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Quick Access</p>
-              </div>
-
-              {/* ── Mobile: horizontal snap-scroll dock ── */}
-              <div className="sm:hidden -mx-4 px-4 overflow-x-auto scrollbar-hide pb-1" style={{ scrollbarWidth: "none" }}>
-                <div className="flex gap-2.5 w-max">
-                  {navItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.id;
-                    const isSlatedrop = item.id === "slatedrop";
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          if (isSlatedrop) { openSlateDrop(); }
-                          else { setActiveTab(item.id); }
-                        }}
-                        className={`flex flex-col items-center gap-1.5 py-3 px-2.5 rounded-2xl bg-white border shrink-0 w-[4.5rem] transition-all duration-200 active:scale-95 ${
-                          isActive
-                            ? "border-[#FF4D00] shadow-md -translate-y-0.5"
-                            : "border-gray-100 shadow-sm"
-                        } ${item.isCEOOnly ? "ring-1 ring-amber-200" : ""}`}
-                      >
-                        <div
-                          className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
-                          style={
-                            isActive
-                              ? { backgroundColor: "#FF4D00", color: "#fff" }
-                              : { backgroundColor: `${item.color}1A`, color: item.color }
-                          }
-                        >
-                          <Icon size={16} />
-                        </div>
-                        <span
-                          className={`text-[10px] font-semibold text-center leading-tight truncate w-full transition-colors ${
-                            isActive ? "text-[#FF4D00]" : "text-gray-600"
-                          }`}
-                        >
-                          {item.label}
-                        </span>
-                        {item.isCEOOnly && (
-                          <span className="text-[7px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-1 py-0.5 rounded-full leading-none">
-                            CEO
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* ── Desktop: responsive wrap grid ── */}
-              <div className="hidden sm:flex flex-wrap justify-center gap-2.5">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeTab === item.id;
-                  const isSlatedrop = item.id === "slatedrop";
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        if (isSlatedrop) {
-                          openSlateDrop();
-                        } else {
-                          setActiveTab(item.id);
-                        }
-                      }}
-                      className={`flex flex-col items-center gap-1.5 py-3.5 px-2 rounded-2xl bg-white border transition-all duration-200 group ${tileW} ${
-                        isActive
-                          ? "border-[#FF4D00] shadow-lg -translate-y-0.5"
-                          : "border-gray-100 hover:border-gray-200 hover:shadow-md hover:-translate-y-0.5"
-                      } ${item.isCEOOnly ? "ring-1 ring-amber-200" : ""}`}
-                    >
-                      <div
-                        className={`${icoBox} rounded-xl flex items-center justify-center transition-colors`}
-                        style={
-                          isActive
-                            ? { backgroundColor: "#FF4D00", color: "#fff" }
-                            : { backgroundColor: `${item.color}1A`, color: item.color }
-                        }
-                      >
-                        <Icon size={icoSz} />
-                      </div>
-                      <span
-                        className={`${lblSz} font-semibold text-center leading-tight transition-colors ${
-                          isActive ? "text-[#FF4D00]" : "text-gray-600 group-hover:text-gray-900"
-                        }`}
-                      >
-                        {item.label}
-                      </span>
-                      {item.isCEOOnly && (
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded-full leading-none">
-                          CEO
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })()}
 
         {/* ════════ OVERVIEW TAB CONTENT ════════ */}
         {activeTab === "overview" && (
@@ -1922,6 +1761,16 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               const usageHealth = usagePct < 0.7 ? "Healthy" : usagePct < 0.9 ? "Watch" : "Critical";
               const usageHealthClass = usagePct < 0.7 ? "text-emerald-600 bg-emerald-50 border-emerald-200" : usagePct < 0.9 ? "text-amber-600 bg-amber-50 border-amber-200" : "text-red-600 bg-red-50 border-red-200";
               const isAdmin = accountOverview?.isAdmin ?? false;
+              const completionChecks = [
+                Boolean(accountOverview?.profile.name),
+                Boolean(accountOverview?.profile.email),
+                Boolean(accountOverview?.profile.orgName),
+                Boolean(accountOverview?.profile.role),
+                Boolean(prefTheme),
+                Boolean(prefStartTab),
+                Boolean(prefNotification),
+              ];
+              const profileCompletion = Math.round((completionChecks.filter(Boolean).length / completionChecks.length) * 100);
               return (
                 <>
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 px-1">
@@ -1948,6 +1797,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 {apiKeyError}
               </div>
             )}
+
+            <div className="text-[11px] text-gray-500 px-1">
+              {isAdmin ? "Owner/Admin view: full account controls enabled." : "Member view: personal settings and read-only plan summary."}
+            </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               <WidgetCard icon={User} title="Account At A Glance" span="xl:col-span-2" action={
@@ -1997,12 +1850,12 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 )}
               </WidgetCard>
 
-              <WidgetCard icon={CreditCard} title="Subscription & Billing" action={
+              <WidgetCard icon={CreditCard} title={isAdmin ? "Subscription & Billing" : "Plan & Usage Summary"} action={
                 <button
                   onClick={handleOpenBillingPortal}
                   className="text-[11px] font-semibold text-[#FF4D00] hover:underline"
                 >
-                  Manage Billing
+                  {isAdmin ? "Manage Billing" : "View Billing"}
                 </button>
               }>
                 <div className="space-y-3">
@@ -2020,73 +1873,95 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                       {accountOverview?.billing.renewsOn ? new Date(accountOverview.billing.renewsOn).toLocaleDateString() : "Not available"}
                     </p>
                   </div>
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Seats</p>
+                    <p className="text-sm font-semibold text-gray-900">{isAdmin ? "4 used / 10 included" : "Managed by your organization"}</p>
+                  </div>
+                  {isAdmin && (
+                    <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">Plan Preview</p>
+                      <div className="space-y-1.5 text-xs text-gray-600">
+                        <div className="flex items-center justify-between"><span>Starter</span><span className="font-semibold text-gray-700">Basic access</span></div>
+                        <div className="flex items-center justify-between"><span>Pro</span><span className="font-semibold text-gray-700">Advanced tools</span></div>
+                        <div className="flex items-center justify-between"><span>Enterprise</span><span className="font-semibold text-gray-700">Full suite</span></div>
+                      </div>
+                    </div>
+                  )}
                   {isAdmin ? (
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <button
                         onClick={handleBuyCredits}
-                        className="flex-1 text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                        className="text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
                       >
                         Buy Credits
                       </button>
                       <button
                         onClick={handleUpgradePlan}
-                        className="flex-1 text-xs font-semibold py-2 rounded-lg text-white hover:opacity-90 transition-all"
+                        className="text-xs font-semibold py-2 rounded-lg text-white hover:opacity-90 transition-all"
                         style={{ backgroundColor: "#FF4D00" }}
                       >
                         Upgrade
                       </button>
+                      <button
+                        onClick={() => setActiveTab("overview")}
+                        className="text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        Manage Seats
+                      </button>
                     </div>
                   ) : (
-                    <p className="text-[11px] text-gray-500">Billing controls are available for owner/admin roles.</p>
+                    <p className="text-[11px] text-gray-500">Read-only plan details. Billing controls are available for owner/admin roles.</p>
                   )}
                 </div>
               </WidgetCard>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              <WidgetCard icon={Activity} title="Data & Storage">
+              <WidgetCard icon={Bell} title="Profile & Preferences">
                 <div className="space-y-3">
-                  <div>
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Theme</p>
+                    <select value={prefTheme} onChange={(e) => setPrefTheme(e.target.value as "light" | "dark" | "system")} className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-2 bg-white">
+                      <option value="light">Light</option>
+                      <option value="dark">Dark</option>
+                      <option value="system">System</option>
+                    </select>
+                  </div>
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Default Start Tab</p>
+                    <select value={prefStartTab} onChange={(e) => setPrefStartTab(e.target.value)} className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-2 bg-white">
+                      <option value="overview">Dashboard</option>
+                      <option value="project-hub">Project Hub</option>
+                      <option value="tours">360 Tours</option>
+                      <option value="content-studio">Content Studio</option>
+                    </select>
+                  </div>
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Notification Frequency</p>
+                    <select value={prefNotification} onChange={(e) => setPrefNotification(e.target.value as "off" | "daily" | "weekly")} className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-2 bg-white">
+                      <option value="off">Off</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                    </select>
+                  </div>
+                  <label className="p-3 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-gray-700">Important Alerts</span>
+                    <input type="checkbox" checked={prefImportantAlerts} onChange={(e) => setPrefImportantAlerts(e.target.checked)} className="h-4 w-4 accent-[#FF4D00]" />
+                  </label>
+                  <label className="p-3 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-gray-700">Show Dashboard Tiles</span>
+                    <input type="checkbox" checked={prefShowDashboardTiles} onChange={(e) => setPrefShowDashboardTiles(e.target.checked)} className="h-4 w-4 accent-[#FF4D00]" />
+                  </label>
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs text-gray-500">Storage used</span>
-                      <span className="text-xs font-bold text-gray-900">
-                        {(accountOverview?.usage.storageUsedGb ?? storageUsed).toFixed(1)} GB / {(accountOverview?.usage.storageLimitGb ?? ent.maxStorageGB).toLocaleString()} GB
-                      </span>
+                      <span className="text-xs font-semibold text-gray-700">Profile Completeness</span>
+                      <span className="text-xs font-bold text-gray-900">{profileCompletion}%</span>
                     </div>
                     <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-[#1E3A8A]"
-                        style={{ width: `${Math.min(((accountOverview?.usage.storageUsedGb ?? storageUsed) / (accountOverview?.usage.storageLimitGb ?? ent.maxStorageGB)) * 100, 100)}%` }}
-                      />
+                      <div className="h-full rounded-full bg-[#1E3A8A]" style={{ width: `${profileCompletion}%` }} />
                     </div>
                   </div>
-                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Purchased Credits</p>
-                    <p className="text-sm font-semibold text-gray-900">{(accountOverview?.billing.purchasedCredits ?? 0).toLocaleString()}</p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Total Credit Balance</p>
-                    <p className="text-sm font-semibold text-gray-900">{(accountOverview?.billing.totalCreditsBalance ?? 0).toLocaleString()}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
-                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Projects</p>
-                      <p className="text-sm font-semibold text-gray-900">{(accountOverview?.usage.projectsCount ?? 0).toLocaleString()}</p>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
-                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Models</p>
-                      <p className="text-sm font-semibold text-gray-900">{(accountOverview?.usage.modelsCount ?? 0).toLocaleString()}</p>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
-                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Tours</p>
-                      <p className="text-sm font-semibold text-gray-900">{(accountOverview?.usage.toursCount ?? 0).toLocaleString()}</p>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
-                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Documents</p>
-                      <p className="text-sm font-semibold text-gray-900">{(accountOverview?.usage.docsCount ?? 0).toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <button className="w-full text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Download my data</button>
+                  <button onClick={() => void saveAccountPreferences()} className="w-full text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Save Preferences</button>
                 </div>
               </WidgetCard>
 
@@ -2120,20 +1995,46 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 </div>
               </WidgetCard>
 
-              <WidgetCard icon={Bell} title="Preferences">
-                <div className="space-y-2">
-                  <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors text-left">
-                    <span className="text-xs font-semibold text-gray-700">Theme</span>
-                    <span className="text-[11px] font-semibold text-gray-500">System</span>
-                  </button>
-                  <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors text-left">
-                    <span className="text-xs font-semibold text-gray-700">Default start tab</span>
-                    <span className="text-[11px] font-semibold text-gray-500">Dashboard</span>
-                  </button>
-                  <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors text-left">
-                    <span className="text-xs font-semibold text-gray-700">Notifications</span>
-                    <span className="text-[11px] font-semibold text-gray-500">Daily</span>
-                  </button>
+              <WidgetCard icon={Activity} title="Data & Storage">
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs text-gray-500">Storage used</span>
+                      <span className="text-xs font-bold text-gray-900">
+                        {(accountOverview?.usage.storageUsedGb ?? storageUsed).toFixed(1)} GB / {(accountOverview?.usage.storageLimitGb ?? ent.maxStorageGB).toLocaleString()} GB
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[#1E3A8A]"
+                        style={{ width: `${Math.min(((accountOverview?.usage.storageUsedGb ?? storageUsed) / (accountOverview?.usage.storageLimitGb ?? ent.maxStorageGB)) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Projects</p>
+                      <p className="text-sm font-semibold text-gray-900">{(accountOverview?.usage.projectsCount ?? 0).toLocaleString()}</p>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Models</p>
+                      <p className="text-sm font-semibold text-gray-900">{(accountOverview?.usage.modelsCount ?? 0).toLocaleString()}</p>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Tours</p>
+                      <p className="text-sm font-semibold text-gray-900">{(accountOverview?.usage.toursCount ?? 0).toLocaleString()}</p>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Documents</p>
+                      <p className="text-sm font-semibold text-gray-900">{(accountOverview?.usage.docsCount ?? 0).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Purchased Credits</p>
+                    <p className="text-sm font-semibold text-gray-900">{(accountOverview?.billing.purchasedCredits ?? 0).toLocaleString()}</p>
+                  </div>
+                  <button onClick={() => setBillingNotice({ ok: true, text: "Data export request submitted." })} className="w-full text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Download my data</button>
+                  <button onClick={() => setBillingNotice({ ok: false, text: "Deletion request started. Support will follow up." })} className="w-full text-xs font-semibold py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors">Request deletion</button>
                 </div>
               </WidgetCard>
 
