@@ -1995,6 +1995,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 </div>
               </WidgetCard>
 
+              {isAdmin && (
               <WidgetCard icon={Activity} title="Data & Storage">
                 <div className="space-y-3">
                   <div>
@@ -2037,6 +2038,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   <button onClick={() => setBillingNotice({ ok: false, text: "Deletion request started. Support will follow up." })} className="w-full text-xs font-semibold py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors">Request deletion</button>
                 </div>
               </WidgetCard>
+              )}
 
               {isAdmin && (
                 <WidgetCard icon={FileText} title="API & Integrations" span="md:col-span-2 xl:col-span-2">

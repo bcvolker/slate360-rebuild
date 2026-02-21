@@ -20,13 +20,28 @@ export async function POST(req: NextRequest) {
   const { folderId } = await req.json() as { folderId: string };
   if (!folderId) return NextResponse.json({ error: "folderId required" }, { status: 400 });
 
+  let orgId: string | null = null;
+  try {
+    const { data } = await supabase
+      .from("organization_members")
+      .select("org_id")
+      .eq("user_id", user.id)
+      .single();
+    orgId = data?.org_id ?? null;
+  } catch {
+    // solo user fallback
+  }
+
   // Fetch all non-deleted files in this folder
-  const { data: files, error } = await supabase
+  let query = supabase
     .from("slatedrop_files")
     .select("id, name, s3_key")
     .eq("folder_id", folderId)
     .eq("is_deleted", false)
     .eq("is_pending", false);
+
+  query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", user.id);
+  const { data: files, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

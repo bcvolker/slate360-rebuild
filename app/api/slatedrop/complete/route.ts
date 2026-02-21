@@ -16,11 +16,28 @@ export async function POST(req: NextRequest) {
   const { fileId } = await req.json() as { fileId: string | null };
   if (!fileId) return NextResponse.json({ ok: true }); // already handled
 
-  await supabase
+  let orgId: string | null = null;
+  try {
+    const { data } = await supabase
+      .from("organization_members")
+      .select("org_id")
+      .eq("user_id", user.id)
+      .single();
+    orgId = data?.org_id ?? null;
+  } catch {
+    // solo user fallback
+  }
+
+  let query = supabase
     .from("slatedrop_files")
     .update({ is_pending: false, modified_at: new Date().toISOString() })
-    .eq("id", fileId)
-    .eq("created_by", user.id);
+    .eq("id", fileId);
+
+  query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", user.id);
+  const { error } = await query;
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true });
 }

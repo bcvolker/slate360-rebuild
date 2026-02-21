@@ -80,8 +80,7 @@ export async function POST(req: NextRequest) {
 
   if (dbError) {
     console.error("[upload-url] Supabase insert error:", dbError);
-    // Still return the URL so client can try — complete endpoint will also try inserting
-    return NextResponse.json({ uploadUrl, fileId: null, s3Key });
+    return NextResponse.json({ error: "Failed to reserve upload record" }, { status: 500 });
   }
 
   return NextResponse.json({ uploadUrl, fileId: fileRecord.id, s3Key });

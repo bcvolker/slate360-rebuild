@@ -28,13 +28,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "fileId and email are required" }, { status: 400 });
   }
 
-  // Verify the file belongs to this user
-  const { data: file, error: fileErr } = await supabase
+  let orgId: string | null = null;
+  try {
+    const { data } = await supabase
+      .from("organization_members")
+      .select("org_id")
+      .eq("user_id", user.id)
+      .single();
+    orgId = data?.org_id ?? null;
+  } catch {
+    // solo user fallback
+  }
+
+  // Verify the file belongs to this org or user
+  let fileQuery = supabase
     .from("slatedrop_files")
     .select("id, name, s3_key")
-    .eq("id", fileId)
-    .eq("created_by", user.id)
-    .single();
+    .eq("id", fileId);
+
+  fileQuery = orgId ? fileQuery.eq("org_id", orgId) : fileQuery.eq("created_by", user.id);
+  const { data: file, error: fileErr } = await fileQuery.single();
 
   if (fileErr || !file) {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
@@ -57,12 +70,13 @@ export async function POST(req: NextRequest) {
     console.warn("[slatedrop/secure-send] insert failed:", insertErr.message);
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.io";
-  const shareUrl = `${baseUrl}/share/${token}`;
+  const origin = req.nextUrl.origin;
+  const publicBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? origin;
+  const shareUrl = `${publicBaseUrl}/share/${token}`;
 
   // Send branded Secure Send email via Resend (non-blocking, best-effort)
   const senderName = user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "A Slate360 user";
-  fetch(`${baseUrl}/api/email/send`, {
+  fetch(`${origin}/api/email/send`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

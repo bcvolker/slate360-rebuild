@@ -16,11 +16,25 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "fileId and newName required" }, { status: 400 });
   }
 
-  const { error } = await supabase
+  let orgId: string | null = null;
+  try {
+    const { data } = await supabase
+      .from("organization_members")
+      .select("org_id")
+      .eq("user_id", user.id)
+      .single();
+    orgId = data?.org_id ?? null;
+  } catch {
+    // solo user fallback
+  }
+
+  let query = supabase
     .from("slatedrop_files")
     .update({ name: newName.trim(), modified_at: new Date().toISOString() })
-    .eq("id", fileId)
-    .eq("created_by", user.id);
+    .eq("id", fileId);
+
+  query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", user.id);
+  const { error } = await query;
 
   if (error) {
     console.error("[slatedrop/rename]", error.message);

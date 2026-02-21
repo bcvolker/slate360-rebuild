@@ -442,6 +442,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
   // Real file state (loaded from API, keyed by folderId)
   const [realFiles, setRealFiles] = useState<Record<string, FileItem[]>>({});
   const [loadingFiles, setLoadingFiles] = useState(false);
+  const [filesLoadErrorByFolder, setFilesLoadErrorByFolder] = useState<Record<string, boolean>>({});
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const [toastMsg, setToastMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
@@ -488,40 +489,46 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
     return next;
   }, []);
 
-  /* ── Load real files from API on folder change ── */
-  useEffect(() => {
-    let cancelled = false;
-    const loadFiles = async () => {
-      setLoadingFiles(true);
-      try {
-        const res = await fetch(`/api/slatedrop/files?folderId=${activeFolderId}`);
-        if (res.ok && !cancelled) {
-          const { files } = await res.json();
-          if (files?.length) {
-            setRealFiles(prev => ({ ...prev, [activeFolderId]: files as FileItem[] }));
-          }
-        }
-      } catch { /* fallback to demo files */ }
-      finally { if (!cancelled) setLoadingFiles(false); }
-    };
-    loadFiles();
-    return () => { cancelled = true; };
-  }, [activeFolderId]);
-
   /* ── Show toast helper ── */
   const showToast = useCallback((text: string, ok = true) => {
     setToastMsg({ text, ok });
     setTimeout(() => setToastMsg(null), 3500);
   }, []);
 
+  const refreshFolderFiles = useCallback(async (folderId: string) => {
+    setLoadingFiles(true);
+    try {
+      const res = await fetch(`/api/slatedrop/files?folderId=${encodeURIComponent(folderId)}`);
+      if (!res.ok) {
+        setFilesLoadErrorByFolder((prev) => ({ ...prev, [folderId]: true }));
+        return;
+      }
+      const payload = await res.json();
+      const files = Array.isArray(payload?.files) ? (payload.files as FileItem[]) : [];
+      setRealFiles((prev) => ({ ...prev, [folderId]: files }));
+      setFilesLoadErrorByFolder((prev) => ({ ...prev, [folderId]: false }));
+    } catch {
+      setFilesLoadErrorByFolder((prev) => ({ ...prev, [folderId]: true }));
+    } finally {
+      setLoadingFiles(false);
+    }
+  }, []);
+
+  /* ── Load real files from API on folder change ── */
+  useEffect(() => {
+    void refreshFolderFiles(activeFolderId);
+  }, [activeFolderId, refreshFolderFiles]);
+
   /* ── Derived ── */
   const activeFolder = useMemo(() => findFolder(folderTree, activeFolderId), [folderTree, activeFolderId]);
   const breadcrumb = useMemo(() => findFolderPath(folderTree, activeFolderId) ?? ["SlateDrop"], [folderTree, activeFolderId]);
 
   const currentFiles = useMemo(() => {
-    // Prefer real files from API, fall back to demo data
-    const real = realFiles[activeFolderId];
-    let files = (real && real.length > 0) ? real : (demoFiles[activeFolderId] ?? []);
+    const hasLoadedRealFolder = Object.prototype.hasOwnProperty.call(realFiles, activeFolderId);
+    const hasLoadError = filesLoadErrorByFolder[activeFolderId] === true;
+    let files = hasLoadedRealFolder
+      ? realFiles[activeFolderId] ?? []
+      : (hasLoadError ? (demoFiles[activeFolderId] ?? []) : []);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       files = files.filter((f) => f.name.toLowerCase().includes(q));
@@ -536,7 +543,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
         default: return 0;
       }
     });
-  }, [activeFolderId, realFiles, searchQuery, sortKey, sortDir]);
+  }, [activeFolderId, realFiles, filesLoadErrorByFolder, searchQuery, sortKey, sortDir]);
 
   const subFolders = activeFolder?.children ?? [];
   const storageUsed = tier === "trial" ? 1.2 : tier === "creator" ? 12 : tier === "model" ? 42 : 185;
@@ -564,6 +571,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
         });
         if (!urlRes.ok) throw new Error("Failed to get upload URL");
         const { uploadUrl, fileId } = await urlRes.json();
+        if (!uploadUrl || !fileId) throw new Error("Upload reservation failed");
 
         // Step 2: PUT to S3
         setUploadProgress(prev => ({ ...prev, [key]: 10 }));
@@ -576,11 +584,12 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
         setUploadProgress(prev => ({ ...prev, [key]: 80 }));
 
         // Step 3: mark complete
-        await fetch("/api/slatedrop/complete", {
+        const completeRes = await fetch("/api/slatedrop/complete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fileId }),
         });
+        if (!completeRes.ok) throw new Error("Upload finalization failed");
         setUploadProgress(prev => ({ ...prev, [key]: 100 }));
 
         // Step 4: add to local state
@@ -606,8 +615,9 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
         }), 1000);
       }
     }
+    await refreshFolderFiles(activeFolderId);
     showToast(`${files.length} file${files.length > 1 ? "s" : ""} uploaded`);
-  }, [activeFolderId, breadcrumb, showToast]);
+  }, [activeFolderId, breadcrumb, showToast, refreshFolderFiles]);
 
   /* ── Handlers ── */
   const toggleExpand = useCallback((id: string) => {
@@ -968,6 +978,10 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                 {/* Download ZIP */}
                 {(activeFolderId.startsWith("proj-") || activeFolderId === "projects") && (
                   <button
+                    onClick={() => {
+                      const folderName = activeFolder?.name ?? "Project Folder";
+                      void handleDownloadFolderZip(activeFolderId, folderName);
+                    }}
                     className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
                     title="Download project as ZIP"
                   >
@@ -1399,16 +1413,24 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                     if (!renameValue.trim() || !renameModal) return;
                     if (renameModal.type === "file") {
                       try {
-                        await fetch("/api/slatedrop/rename", {
+                        const res = await fetch("/api/slatedrop/rename", {
                           method: "PATCH",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({ fileId: renameModal.id, newName: renameValue.trim() }),
                         });
+                        if (!res.ok) {
+                          const err = await res.json().catch(() => ({ error: "Rename failed" }));
+                          throw new Error(err.error ?? "Rename failed");
+                        }
                         setRealFiles(prev => {
                           const fold = prev[activeFolderId] ?? [];
                           return { ...prev, [activeFolderId]: fold.map(f => f.id === renameModal.id ? { ...f, name: renameValue.trim() } : f) };
                         });
-                      } catch { /* best-effort */ }
+                        await refreshFolderFiles(activeFolderId);
+                        showToast(`Renamed to "${renameValue.trim()}"`);
+                      } catch (error) {
+                        showToast(error instanceof Error ? error.message : "Rename failed", false);
+                      }
                     } else {
                       setFolderTree(prev => renameFolderInTree(prev, renameModal.id, renameValue.trim()));
                       showToast(`Folder renamed to "${renameValue.trim()}"`);
@@ -1513,17 +1535,22 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                     if (!deleteConfirm) return;
                     if (deleteConfirm.type === "file") {
                       try {
-                        await fetch("/api/slatedrop/delete", {
+                        const res = await fetch("/api/slatedrop/delete", {
                           method: "DELETE",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({ fileId: deleteConfirm.id }),
                         });
+                        if (!res.ok) {
+                          const err = await res.json().catch(() => ({ error: "Delete failed" }));
+                          throw new Error(err.error ?? "Delete failed");
+                        }
                         setRealFiles(prev => ({
                           ...prev,
                           [activeFolderId]: (prev[activeFolderId] ?? []).filter(f => f.id !== deleteConfirm.id),
                         }));
+                        await refreshFolderFiles(activeFolderId);
                         showToast(`"${deleteConfirm.name}" deleted`);
-                      } catch { showToast("Delete failed", false); }
+                      } catch (error) { showToast(error instanceof Error ? error.message : "Delete failed", false); }
                     } else {
                       const folderNode = findFolder(folderTree, deleteConfirm.id);
                       if (!folderNode) {

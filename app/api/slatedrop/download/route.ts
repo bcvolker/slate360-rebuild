@@ -16,12 +16,26 @@ export async function GET(req: NextRequest) {
   const fileId = req.nextUrl.searchParams.get("fileId");
   if (!fileId) return NextResponse.json({ error: "fileId required" }, { status: 400 });
 
-  const { data: file, error } = await supabase
+  let orgId: string | null = null;
+  try {
+    const { data } = await supabase
+      .from("organization_members")
+      .select("org_id")
+      .eq("user_id", user.id)
+      .single();
+    orgId = data?.org_id ?? null;
+  } catch {
+    // solo user fallback
+  }
+
+  let query = supabase
     .from("slatedrop_files")
     .select("name, s3_key, created_by")
     .eq("id", fileId)
-    .eq("is_deleted", false)
-    .single();
+    .eq("is_deleted", false);
+
+  query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", user.id);
+  const { data: file, error } = await query.single();
 
   if (error || !file) {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
