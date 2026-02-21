@@ -8,6 +8,7 @@ import {
   useConnect,
   useDisconnect,
   useSignMessage,
+  useBalance,
 } from "wagmi";
 import { injected } from "wagmi/connectors";
 import {
@@ -92,12 +93,14 @@ interface MarketListing {
   outcome_no: number;
   bookmarked: boolean;
   risk_tag: "hot" | "high-risk" | "construction" | "high-potential" | null;
+  end_date?: string;
+  liquidity?: number;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const FOCUS_AREAS = [
-  "Construction", "Real Estate", "Politics", "Sports",
+  "Construction", "Real Estate", "Economy", "Politics", "Sports",
   "Crypto", "Finance", "Science", "Tech", "Entertainment"
 ];
 
@@ -130,7 +133,7 @@ function StatusBadge({ status }: { status: string }) {
     open: "bg-green-100 text-green-700 border border-green-200",
     closed: "bg-gray-200 text-gray-500",
     paper: "bg-purple-100 text-purple-700 border border-purple-200",
-    connected: "bg-green-900/60 text-green-300",
+    connected: "bg-green-100 text-green-700 border border-green-200",
     disconnected: "bg-gray-200 text-gray-500",
     running: "bg-orange-100 text-orange-700 border border-orange-200",
     idle: "bg-gray-200 text-gray-500",
@@ -153,6 +156,12 @@ export default function MarketClient() {
   const { connect, isPending: isConnecting } = useConnect();
   const { disconnect } = useDisconnect();
   const { signMessageAsync } = useSignMessage();
+  // Native balance (MATIC on Polygon - USDC requires useReadContract)
+  const { data: maticData } = useBalance({
+    address,
+    chainId: 137,
+    query: { enabled: isConnected && !!address },
+  });
 
   // Tabs
   const [activeTab, setActiveTab] = useState("Overview");
@@ -329,6 +338,8 @@ export default function MarketClient() {
               edge_pct: edge,
               outcome_yes: parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[0] : 0)),
               outcome_no: parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[1] : 0)),
+              end_date: m.endDate ? new Date(String(m.endDate)).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" }) : undefined,
+              liquidity: parseFloat(String(m.liquidity || m.volume || 0)),
               bookmarked: bookmarks.has(String(m.id || m.conditionId)),
               risk_tag: tag,
             };
@@ -523,18 +534,19 @@ export default function MarketClient() {
     try {
       const price = buyOutcome === "YES" ? buyMarket.outcome_yes : buyMarket.outcome_no;
       const avgPrice = price > 0 ? price : (buyMarket.probability / 100);
-      const res = await fetch("/api/market/trades", {
+      const res = await fetch("/api/market/buy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          market_id:    buyMarket.id,
-          market_title: buyMarket.title,
-          outcome:      buyOutcome,
-          amount:       buyAmount,
-          avg_price:    avgPrice,
-          category:     buyMarket.category,
-          probability:  buyMarket.probability,
-          paper_mode:   buyPaper,
+          market_id:      buyMarket.id,
+          market_title:   buyMarket.title,
+          outcome:        buyOutcome,
+          amount:         buyAmount,
+          avg_price:      avgPrice,
+          category:       buyMarket.category,
+          probability:    buyMarket.probability,
+          paper_mode:     buyPaper,
+          wallet_address: address ?? null,
         }),
       });
       const data = await res.json();
@@ -758,7 +770,7 @@ export default function MarketClient() {
                 {address?.slice(0, 6)}…{address?.slice(-4)}
               </span>
               {walletVerified
-                ? <span className="text-xs text-green-400 font-medium">✓ Verified</span>
+                ? <span className="text-xs text-green-600 font-medium">✓ Verified</span>
                 : <button onClick={handleConnectWallet} className="text-xs bg-[#FF4D00] hover:bg-orange-600 px-3 py-1 rounded font-medium transition">Verify Signature</button>
               }
               <button onClick={() => { disconnect(); setWalletVerified(false); }} className="text-xs text-gray-500 hover:text-gray-800 px-2 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition">Disconnect</button>
@@ -777,7 +789,7 @@ export default function MarketClient() {
               <TooltipContent>Connect your MetaMask wallet to enable live trading. Paper mode works without a wallet.</TooltipContent>
             </Tooltip>
           )}
-          {walletError && <p className="text-xs text-red-400">{walletError}</p>}
+          {walletError && <p className="text-xs text-red-600">{walletError}</p>}
         </div>
       </div>
 
@@ -835,7 +847,7 @@ export default function MarketClient() {
                     </Tooltip>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button onClick={handleStopBot} className="flex-1 bg-red-900 hover:bg-red-700 py-2 rounded-lg text-sm font-bold transition">
+                        <button onClick={handleStopBot} className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg text-sm font-bold transition">
                           ⛔ Stop
                         </button>
                       </TooltipTrigger>
@@ -1030,9 +1042,9 @@ export default function MarketClient() {
             {/* Stats row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: "Total PNL", value: `${totalPnl >= 0 ? "+" : ""}$${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? "text-green-400" : "text-red-400" },
+                { label: "Total PNL", value: `${totalPnl >= 0 ? "+" : ""}$${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? "text-green-600" : "text-red-600" },
                 { label: "Open Positions", value: openTrades.length, color: "text-gray-900" },
-                { label: "Win Rate", value: `${winRate}%`, color: parseFloat(winRate) >= 50 ? "text-green-400" : "text-red-400" },
+                { label: "Win Rate", value: `${winRate}%`, color: parseFloat(winRate) >= 50 ? "text-green-600" : "text-red-600" },
                 { label: "Total Trades", value: trades.length, color: "text-gray-900" },
               ].map(stat => (
                 <div key={stat.label} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-3">
@@ -1077,10 +1089,91 @@ export default function MarketClient() {
               )}
             </div>
 
+            {/* Wallet Management */}
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-3">
+              <h3 className="font-semibold text-sm text-gray-800 flex items-center gap-1">
+                🦊 Wallet
+                <HelpTip content="Connect MetaMask to trade live on Polymarket using real USDC. Paper mode works without a wallet." />
+              </h3>
+              {!isConnected ? (
+                <div className="space-y-2">
+                  <p className="text-[11px] text-gray-400 leading-relaxed">Connect your MetaMask wallet on Polygon to enable live trades. Paper mode doesn&apos;t require a wallet.</p>
+                  <button onClick={handleConnectWallet} disabled={isConnecting}
+                    className="w-full bg-[#1E3A8A] hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-bold transition disabled:opacity-50">
+                    🦊 {isConnecting ? "Connecting…" : "Connect MetaMask"}
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">Address</span>
+                    <span className="font-mono text-xs bg-gray-100 text-gray-800 px-2 py-0.5 rounded">{address?.slice(0,6)}…{address?.slice(-4)}</span>
+                  </div>
+                  {/* USDC balance: install @polymarket/clob-client to read ERC20 */}
+                  <a href={`https://polygonscan.com/address/${address}#tokentxns`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-between hover:bg-gray-50 rounded px-1 -mx-1 transition">
+                    <span className="text-xs text-gray-500">USDC (Polygon)</span>
+                    <span className="text-xs text-[#1E3A8A] underline underline-offset-2">View on Polygonscan ↗</span>
+                  </a>
+                  {maticData && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">MATIC (gas)</span>
+                      <span className="font-mono text-xs text-gray-600">{(Number(maticData.value) / 10 ** maticData.decimals).toFixed(4)} MATIC</span>
+                    </div>
+                  )}
+                  {isConnected && chain?.id !== 137 && (
+                    <p className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">⚠️ Switch MetaMask to Polygon network to see balances</p>
+                  )}
+                  <div className="flex gap-1.5 pt-1">
+                    {!walletVerified ? (
+                      <button onClick={handleConnectWallet}
+                        className="flex-1 bg-[#FF4D00] hover:bg-orange-600 text-white text-xs py-2 rounded-lg font-bold transition">
+                        ✍️ Verify Sign
+                      </button>
+                    ) : (
+                      <span className="flex-1 text-center text-xs text-green-600 font-semibold py-2 bg-green-50 border border-green-200 rounded-lg">✓ Verified</span>
+                    )}
+                    <a href="https://global.transak.com/?defaultCryptoCurrency=USDC&network=polygon" target="_blank" rel="noopener noreferrer"
+                      className="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs py-2 rounded-lg font-bold transition">
+                      💳 Buy USDC
+                    </a>
+                    <button onClick={() => { disconnect(); setWalletVerified(false); }}
+                      className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">Disc.</button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Wallet Setup Guide */}
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+              <h3 className="font-semibold text-xs text-[#1E3A8A] mb-2 flex items-center gap-1">
+                📋 Live Trading Setup
+                <HelpTip content="Follow these 6 steps to go from paper trading to real Polymarket trades." />
+              </h3>
+              <ol className="space-y-1.5">
+                {([
+                  { text: "Paper mode ready — no wallet needed",            done: true },
+                  { text: "Install MetaMask & click Connect above",          done: isConnected },
+                  { text: "Switch MetaMask to Polygon (chainId 137)",        done: isConnected && chain?.id === 137 },
+                  { text: "Buy USDC on Polygon via Transak (link above)",    done: isConnected }, // USDC balance check: view on Polygonscan
+                  { text: "Sign verification to enable live orders",         done: walletVerified },
+                  { text: "Disable Paper Mode → bot trades with real USDC",  done: !paperMode && walletVerified },
+                ] as { text: string; done: boolean }[]).map((s, i) => (
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span className={`w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5 ${
+                      s.done ? "bg-green-100 text-green-700" : "bg-white border border-gray-300 text-gray-400"
+                    }`}>{s.done ? "✓" : i + 1}</span>
+                    <span className={`text-[11px] leading-snug ${s.done ? "text-green-700" : "text-gray-500"}`}>{s.text}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
             {/* Activity Log */}
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
               <h3 className="font-semibold text-sm text-gray-700 mb-2">Activity Log</h3>
-              <div ref={logRef} className="bg-gray-50 border border-gray-100 rounded-lg p-3 h-36 overflow-y-auto font-mono text-xs space-y-0.5">
+              <div ref={logRef} className="bg-gray-50 border border-gray-100 rounded-lg p-3 h-48 overflow-y-auto font-mono text-xs space-y-0.5">
                 {scanLog.length === 0
                   ? <span className="text-gray-400">No activity yet…</span>
                   : scanLog.map((l, i) => (
@@ -1150,7 +1243,7 @@ export default function MarketClient() {
                     <span className="text-xs text-gray-400">·</span>
                     <span className="text-xs text-gray-500">Prob: {buyMarket.probability}%</span>
                     <span className="text-xs text-gray-400">·</span>
-                    <span className={`text-xs font-bold ${buyMarket.edge_pct > 10 ? "text-orange-400" : "text-gray-500"}`}>Edge: {buyMarket.edge_pct}%</span>
+                    <span className={`text-xs font-bold ${buyMarket.edge_pct > 10 ? "text-[#FF4D00]" : "text-gray-500"}`}>Edge: {buyMarket.edge_pct}%</span>
                   </div>
                 </div>
                 <button onClick={() => setBuyMarket(null)} className="text-gray-400 hover:text-gray-800 text-lg leading-none transition">×</button>
@@ -1213,11 +1306,11 @@ export default function MarketClient() {
                     </div>
                     <div>
                       <p className="text-[10px] text-gray-400 mb-1">Max Payout</p>
-                      <p className="text-sm font-bold text-green-400">${payout.toFixed(2)}</p>
+                      <p className="text-sm font-bold text-green-600">${payout.toFixed(2)}</p>
                     </div>
                     <div>
                       <p className="text-[10px] text-gray-400 mb-1">Max Profit</p>
-                      <p className={`text-sm font-bold ${profit > 0 ? "text-green-400" : "text-red-400"}`}>
+                      <p className={`text-sm font-bold ${profit > 0 ? "text-green-600" : "text-red-600"}`}>
                         {profit >= 0 ? "+" : ""}${profit.toFixed(2)}
                       </p>
                     </div>
@@ -1241,7 +1334,7 @@ export default function MarketClient() {
               </p>
 
               {buySuccess && (
-                <p className={`text-sm text-center font-medium ${buySuccess.startsWith("✅") ? "text-green-400" : "text-red-400"}`}>
+                <p className={`text-sm text-center font-medium ${buySuccess.startsWith("✅") ? "text-green-600" : "text-red-600"}`}>
                   {buySuccess}
                 </p>
               )}
@@ -1391,12 +1484,13 @@ export default function MarketClient() {
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
-                  <thead className="bg-gray-500">
+                  <thead className="bg-gray-50 border-b border-gray-200">
                     <tr className="text-gray-500">
                       <th className="px-4 py-3 text-left font-medium">Market</th>
                       <th className="px-3 py-3 text-center font-medium">Cat.</th>
-                      <th className="px-3 py-3 text-right font-medium">Prob.</th>
+                      <th className="px-3 py-3 text-right font-medium">YES / NO</th>
                       <th className="px-3 py-3 text-right font-medium">Vol 24h</th>
+                      <th className="px-3 py-3 text-right font-medium">Ends</th>
                       <th className="px-3 py-3 text-right font-medium">Edge</th>
                       <th className="px-3 py-3 text-center font-medium">Actions</th>
                     </tr>
@@ -1417,18 +1511,22 @@ export default function MarketClient() {
                                   {m.risk_tag.replace("-", " ")}
                                 </span>
                               )}
-                              <span className="text-slate-200 line-clamp-2">{m.title}</span>
+                              <span className="text-gray-900 line-clamp-2">{m.title}</span>
                             </div>
                           </td>
-                          <td className="px-3 py-3 text-center text-gray-500">{m.category.slice(0, 10)}</td>
+                          <td className="px-3 py-3 text-center text-gray-500 text-[11px]">{m.category.slice(0, 12)}</td>
                           <td className="px-3 py-3 text-right">
-                            <span className={m.probability > 60 ? "text-green-400" : m.probability < 40 ? "text-red-400" : "text-gray-700"}>
-                              {m.probability}%
-                            </span>
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className={`text-xs font-semibold ${m.probability > 60 ? "text-green-600" : m.probability < 40 ? "text-red-600" : "text-gray-700"}`}>
+                                Y: {(m.outcome_yes * 100).toFixed(0)}¢
+                              </span>
+                              <span className="text-[10px] text-gray-400">N: {(m.outcome_no * 100).toFixed(0)}¢</span>
+                            </div>
                           </td>
-                          <td className="px-3 py-3 text-right text-gray-500">${m.volume24h.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                          <td className="px-3 py-3 text-right text-gray-500 text-[11px]">${m.volume24h >= 1000 ? `${(m.volume24h/1000).toFixed(0)}k` : m.volume24h.toFixed(0)}</td>
+                          <td className="px-3 py-3 text-right text-gray-400 text-[10px]">{m.end_date ?? "—"}</td>
                           <td className="px-3 py-3 text-right">
-                            <span className={m.edge_pct > 15 ? "text-orange-400 font-bold" : m.edge_pct > 8 ? "text-yellow-400" : "text-gray-500"}>
+                            <span className={m.edge_pct > 15 ? "text-[#FF4D00] font-bold" : m.edge_pct > 8 ? "text-yellow-600" : "text-gray-500"}>
                               {m.edge_pct}%
                             </span>
                           </td>
@@ -1452,7 +1550,7 @@ export default function MarketClient() {
                                 <TooltipTrigger asChild>
                                   <button
                                     onClick={() => openBuyPanel(m, "YES")}
-                                    className="text-xs bg-green-900/40 hover:bg-green-800/70 text-green-400 px-2 py-1 rounded-lg font-medium transition"
+                                    className="text-xs bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 px-2 py-1 rounded-lg font-medium transition"
                                   >
                                     Buy YES
                                   </button>
@@ -1465,7 +1563,7 @@ export default function MarketClient() {
                                 <TooltipTrigger asChild>
                                   <button
                                     onClick={() => openBuyPanel(m, "NO")}
-                                    className="text-xs bg-red-900/40 hover:bg-red-800/70 text-red-400 px-2 py-1 rounded-lg font-medium transition"
+                                    className="text-xs bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2 py-1 rounded-lg font-medium transition"
                                   >
                                     Buy NO
                                   </button>
@@ -1490,6 +1588,52 @@ export default function MarketClient() {
       ════════════════════════════════════════════ */}
       {activeTab === "Hot Opps" && (
         <div className="space-y-4">
+          {/* Shared buy panel — appears when a market is selected from Hot Opps */}
+          {buyMarket && (
+            <div className="bg-white border-2 border-[#FF4D00]/40 rounded-2xl p-5 space-y-4 shadow-md">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Buying on</p>
+                  <p className="text-sm font-semibold text-gray-900 leading-snug">{buyMarket.title}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-gray-500">{buyMarket.category}</span>
+                    <span className="text-xs text-gray-400">·</span>
+                    <span className="text-xs text-gray-500">Prob: {buyMarket.probability}%</span>
+                    <span className="text-xs text-gray-400">·</span>
+                    <span className={`text-xs font-bold ${buyMarket.edge_pct > 10 ? "text-[#FF4D00]" : "text-gray-500"}`}>Edge: {buyMarket.edge_pct}%</span>
+                  </div>
+                </div>
+                <button onClick={() => setBuyMarket(null)} className="text-gray-400 hover:text-gray-800 text-lg leading-none transition">×</button>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setBuyOutcome("YES")}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${buyOutcome === "YES" ? "bg-green-700 text-white" : "bg-gray-100 text-gray-600"}`}>
+                  YES <span className="font-mono text-xs opacity-80">@ {(buyMarket.outcome_yes * 100).toFixed(0)}¢</span>
+                </button>
+                <button onClick={() => setBuyOutcome("NO")}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${buyOutcome === "NO" ? "bg-red-700 text-white" : "bg-gray-100 text-gray-600"}`}>
+                  NO <span className="font-mono text-xs opacity-80">@ {(buyMarket.outcome_no * 100).toFixed(0)}¢</span>
+                </button>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Amount (USDC): <span className="font-semibold text-gray-900">${buyAmount}</span></label>
+                <input type="range" min={5} max={500} step={5} value={buyAmount} onChange={e => setBuyAmount(+e.target.value)} className="w-full accent-[#FF4D00] mb-2" />
+                <div className="flex gap-1">{[10,25,50,100,250].map(v => <button key={v} onClick={() => setBuyAmount(v)} className={`px-2 py-1 text-xs rounded transition ${buyAmount===v?"bg-[#FF4D00] text-white":"bg-gray-100 text-gray-600"}`}>${v}</button>)}</div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700 flex items-center gap-1">Paper Mode <HelpTip content="Paper = simulated trade only." /></span>
+                <button onClick={() => setBuyPaper(p => !p)} className={`relative w-10 h-5 rounded-full transition ${buyPaper ? "bg-purple-600" : "bg-green-700"}`}>
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${buyPaper ? "translate-x-5" : "translate-x-0.5"}`} />
+                </button>
+              </div>
+              {buySuccess && <p className={`text-sm text-center font-medium ${buySuccess.startsWith("✅") ? "text-green-600" : "text-red-600"}`}>{buySuccess}</p>}
+              <button onClick={handleDirectBuy} disabled={buySubmitting}
+                className="w-full bg-[#FF4D00] hover:bg-orange-600 py-3 rounded-xl text-sm font-bold transition disabled:opacity-50 text-white">
+                {buySubmitting ? "Processing…" : `Confirm ${buyPaper ? "Paper " : ""}Buy — $${buyAmount} ${buyOutcome}`}
+              </button>
+            </div>
+          )}
+
           <div className="flex gap-1 overflow-x-auto pb-1">
             {hotOppTabs.map(t => (
               <button
@@ -1530,7 +1674,7 @@ export default function MarketClient() {
                     </div>
                     <div className="bg-gray-100 rounded-lg p-2">
                       <p className="text-[10px] text-gray-400">Edge</p>
-                      <p className="text-sm font-bold text-orange-400">{m.edge_pct}%</p>
+                      <p className="text-sm font-bold text-[#FF4D00]">{m.edge_pct}%</p>
                     </div>
                     <div className="bg-gray-100 rounded-lg p-2">
                       <p className="text-[10px] text-gray-400">Vol 24h</p>
@@ -1541,19 +1685,19 @@ export default function MarketClient() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          onClick={() => { addLog(`🎯 ${m.title.slice(0,30)}… queued for YES buy`); }}
-                          className="flex-1 bg-green-900/40 hover:bg-green-800/60 text-green-400 text-xs py-1.5 rounded-lg font-medium transition"
+                          onClick={() => openBuyPanel(m, "YES")}
+                          className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 text-xs py-1.5 rounded-lg font-medium transition"
                         >
                           Buy YES @ {(m.outcome_yes * 100).toFixed(0)}¢
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent>Queue a YES buy on this market.</TooltipContent>
+                      <TooltipContent>Open buy panel for YES outcome on this market.</TooltipContent>
                     </Tooltip>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          onClick={() => { addLog(`🎯 ${m.title.slice(0,30)}… queued for NO buy`); }}
-                          className="flex-1 bg-red-900/40 hover:bg-red-800/60 text-red-400 text-xs py-1.5 rounded-lg font-medium transition"
+                          onClick={() => openBuyPanel(m, "NO")}
+                          className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs py-1.5 rounded-lg font-medium transition"
                         >
                           Buy NO @ {(m.outcome_no * 100).toFixed(0)}¢
                         </button>
@@ -1580,7 +1724,7 @@ export default function MarketClient() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Form */}
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 space-y-4">
-            <h3 className="font-semibold text-slate-200">
+            <h3 className="font-semibold text-gray-900">
               {editingDirective ? "Edit Directive" : "New Buy Directive"}
               <HelpTip content="Buy Directives are saved trading plans you can apply to the bot at any time." />
             </h3>
@@ -1730,7 +1874,7 @@ export default function MarketClient() {
                       </p>
                     </div>
                     <div className="flex gap-1">
-                      {d.paper_mode && <span className="text-[10px] bg-purple-900/60 text-purple-400 px-1.5 py-0.5 rounded-full">Paper</span>}
+                      {d.paper_mode && <span className="text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded-full">Paper</span>}
                       <StatusBadge status={d.risk_mix} />
                     </div>
                   </div>
@@ -1742,7 +1886,7 @@ export default function MarketClient() {
                   <div className="flex gap-2">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button onClick={() => applyDirective(d)} className="flex-1 bg-[#FF4D00]/20 hover:bg-[#FF4D00]/40 text-orange-400 text-xs py-1.5 rounded-lg font-medium transition">
+                        <button onClick={() => applyDirective(d)} className="flex-1 bg-[#FF4D00] hover:bg-orange-600 text-white text-xs py-1.5 rounded-lg font-medium transition">
                           ▶ Apply to Bot
                         </button>
                       </TooltipTrigger>
@@ -1752,7 +1896,7 @@ export default function MarketClient() {
                       className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">
                       ✏️ Edit
                     </button>
-                    <button onClick={() => deleteDirective(d.id!)} className="px-3 py-1.5 bg-red-900/30 hover:bg-red-900/60 text-red-400 text-xs rounded-lg transition">
+                    <button onClick={() => deleteDirective(d.id!)} className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs rounded-lg transition">
                       🗑
                     </button>
                   </div>
@@ -1769,7 +1913,7 @@ export default function MarketClient() {
       {activeTab === "Whale Watch" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-slate-200 flex items-center gap-1">
+            <h3 className="font-semibold text-gray-700 flex items-center gap-1">
               🐋 Whale Activity
               <HelpTip content="Large ($5k+) buys from sophisticated Polymarket wallets. Following whales is one of the most profitable strategies." />
             </h3>
@@ -1799,7 +1943,7 @@ export default function MarketClient() {
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
-                  <thead className="bg-gray-500">
+                  <thead className="bg-gray-50 border-b border-gray-200">
                     <tr className="text-gray-500">
                       <th className="px-4 py-3 text-left font-medium">Whale</th>
                       <th className="px-4 py-3 text-left font-medium">Market</th>
@@ -1815,10 +1959,10 @@ export default function MarketClient() {
                       .filter(w => whaleFilter === "all" || w.category.toLowerCase() === whaleFilter)
                       .map((w, i) => (
                         <tr key={i} className="border-t border-gray-100 hover:bg-gray-100/30">
-                          <td className="px-4 py-3 font-mono text-blue-400">{w.whale_address}</td>
+                          <td className="px-4 py-3 font-mono text-[#1E3A8A] font-semibold">{w.whale_address}</td>
                           <td className="px-4 py-3 max-w-[200px] truncate text-gray-700">{w.market_title}</td>
                           <td className="px-3 py-3 text-center">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${w.outcome === "YES" ? "bg-green-900/60 text-green-400" : "bg-red-900/60 text-red-400"}`}>
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${w.outcome === "YES" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                               {w.outcome}
                             </span>
                           </td>
@@ -1829,8 +1973,31 @@ export default function MarketClient() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <button
-                                  onClick={() => addLog(`🐋 Copying whale trade: ${w.outcome} on "${w.market_title.slice(0,30)}…"`)}
-                                  className="text-xs bg-blue-900/40 hover:bg-blue-800/60 text-blue-400 px-2 py-0.5 rounded transition"
+                                  onClick={async () => {
+                                  const copyAmt = Math.min(Math.max(w.amount_usd * 0.1, 5), 25);
+                                  const avgPx = w.shares > 0 ? w.amount_usd / w.shares : 0.5;
+                                  try {
+                                    const r = await fetch("/api/market/trades", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({
+                                        market_id: `whale_copy_${Date.now()}`,
+                                        market_title: w.market_title,
+                                        outcome: w.outcome as "YES" | "NO",
+                                        amount: copyAmt,
+                                        avg_price: Math.min(Math.max(avgPx, 0.01), 0.99),
+                                        category: w.category,
+                                        probability: w.outcome === "YES" ? 55 : 45,
+                                        paper_mode: paperMode,
+                                      }),
+                                    });
+                                    if (r.ok) {
+                                      addLog(`🐋 Copied: ${w.outcome} "${w.market_title.slice(0,35)}…" $${copyAmt.toFixed(0)} ${paperMode ? "(paper)" : "(live)"}`);
+                                      fetchTrades();
+                                    }
+                                  } catch { addLog("❌ Whale copy failed"); }
+                                }}
+                                  className="text-xs bg-blue-50 hover:bg-blue-100 text-[#1E3A8A] border border-blue-200 px-2 py-0.5 rounded transition"
                                 >
                                   Copy
                                 </button>
@@ -1854,7 +2021,7 @@ export default function MarketClient() {
       {activeTab === "Sim Compare" && (
         <div className="space-y-5">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-slate-200 flex items-center gap-1">
+            <h3 className="font-semibold text-gray-700 flex items-center gap-1">
               📊 Simulation Comparison
               <HelpTip content="Compare PNL curves from two saved simulation runs side by side to evaluate different strategies." />
             </h3>
@@ -1898,13 +2065,13 @@ export default function MarketClient() {
                   <div className="grid grid-cols-2 gap-4">
                     {[compareRunA, compareRunB].map((run, idx) => (
                       <div key={run.id} className={`bg-white border-2 rounded-2xl p-4 shadow-sm ${idx === 0 ? "border-[#FF4D00]/40" : "border-[#1E3A8A]/40"}`}>
-                        <p className={`text-xs font-bold mb-2 ${idx === 0 ? "text-orange-400" : "text-blue-400"}`}>
+                        <p className={`text-xs font-bold mb-2 ${idx === 0 ? "text-[#FF4D00]" : "text-[#1E3A8A]"}`}>
                           {idx === 0 ? "Run A" : "Run B"}: {run.name}
                         </p>
                         <div className="grid grid-cols-3 gap-2 text-center">
                           <div>
                             <p className="text-[10px] text-gray-400">Total PNL</p>
-                            <p className={`text-sm font-bold ${run.total_pnl >= 0 ? "text-green-400" : "text-red-400"}`}>
+                            <p className={`text-sm font-bold ${run.total_pnl >= 0 ? "text-green-600" : "text-red-600"}`}>
                               {run.total_pnl >= 0 ? "+" : ""}${run.total_pnl.toFixed(2)}
                             </p>
                           </div>
@@ -1963,7 +2130,7 @@ export default function MarketClient() {
                         if (compareA === run.id) setCompareA(null);
                         if (compareB === run.id) setCompareB(null);
                       }}
-                      className="text-xs text-red-500 hover:text-red-400 transition px-2 py-1 rounded hover:bg-red-900/20"
+                      className="text-xs text-red-500 hover:text-red-700 transition px-2 py-1 rounded hover:bg-red-50"
                     >
                       Delete
                     </button>
