@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,6 +9,7 @@ import {
   useDisconnect,
   useSignMessage,
   useBalance,
+  useReadContract,
 } from "wagmi";
 import { injected } from "wagmi/connectors";
 import {
@@ -156,12 +157,24 @@ export default function MarketClient() {
   const { connect, isPending: isConnecting } = useConnect();
   const { disconnect } = useDisconnect();
   const { signMessageAsync } = useSignMessage();
-  // Native balance (MATIC on Polygon - USDC requires useReadContract)
+  // Native balance (MATIC on Polygon)
   const { data: maticData } = useBalance({
     address,
     chainId: 137,
     query: { enabled: isConnected && !!address },
   });
+
+  // USDC balance via ERC-20 balanceOf (wagmi v3 useReadContract)
+  const USDC_POLYGON = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359" as const; // native USDC on Polygon
+  const { data: usdcRaw } = useReadContract({
+    address: USDC_POLYGON,
+    abi: [{ name: "balanceOf", type: "function", stateMutability: "view", inputs: [{ name: "account", type: "address" }], outputs: [{ name: "", type: "uint256" }] }] as const,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    chainId: 137,
+    query: { enabled: isConnected && !!address },
+  });
+  const usdcBalance = usdcRaw != null ? (Number(usdcRaw) / 1e6).toFixed(2) : null; // USDC has 6 decimals
 
   // Tabs
   const [activeTab, setActiveTab] = useState("Overview");
@@ -243,6 +256,11 @@ export default function MarketClient() {
   const [compareA, setCompareA] = useState<string | null>(null);
   const [compareB, setCompareB] = useState<string | null>(null);
 
+  // WebSocket live prices
+  const wsRef = useRef<WebSocket | null>(null);
+  const [wsConnected, setWsConnected] = useState(false);
+  const livePricesRef = useRef<Map<string, { yes: number; no: number }>>(new Map());
+
   // ── Effects ────────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -274,6 +292,96 @@ export default function MarketClient() {
     });
     setPnlChart(pts);
   }, [trades]);
+
+  // ── WebSocket for live price updates ───────────────────────────────────────
+
+  const subscribeToMarkets = useCallback((marketIds: string[]) => {
+    // Close any existing connection
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    if (marketIds.length === 0) return;
+
+    try {
+      const ws = new WebSocket("wss://ws-subscriptions-clob.polymarket.com/ws/market");
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        setWsConnected(true);
+        // Subscribe to price changes for loaded markets
+        // Polymarket WS expects: { type: "market", market: "<conditionId>" }
+        for (const id of marketIds.slice(0, 20)) {
+          ws.send(JSON.stringify({ type: "market", market: id }));
+        }
+        addLog("📡 Live price feed connected");
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          // Polymarket WS sends price_change events with asset_id and price
+          if (msg && msg.market) {
+            const marketId = msg.market;
+            const changes = Array.isArray(msg.data) ? msg.data : msg.data ? [msg.data] : [];
+            for (const change of changes) {
+              if (change.price != null) {
+                const existing = livePricesRef.current.get(marketId) || { yes: 0, no: 0 };
+                if (change.outcome === "Yes" || change.side === "BUY") {
+                  existing.yes = parseFloat(change.price);
+                  existing.no = 1 - existing.yes;
+                } else if (change.outcome === "No" || change.side === "SELL") {
+                  existing.no = parseFloat(change.price);
+                  existing.yes = 1 - existing.no;
+                }
+                livePricesRef.current.set(marketId, existing);
+              }
+            }
+
+            // Batch-update markets state every message (debounce handled by React batching)
+            setMarkets(prev => prev.map(m => {
+              const live = livePricesRef.current.get(m.id);
+              if (!live || (live.yes === 0 && live.no === 0)) return m;
+              return {
+                ...m,
+                outcome_yes: live.yes,
+                outcome_no: live.no,
+                probability: parseFloat((live.yes * 100).toFixed(1)),
+              };
+            }));
+          }
+        } catch {
+          // Ignore parse errors from non-JSON messages
+        }
+      };
+
+      ws.onerror = () => {
+        setWsConnected(false);
+      };
+
+      ws.onclose = () => {
+        setWsConnected(false);
+        wsRef.current = null;
+      };
+    } catch {
+      // WebSocket not available or blocked
+      setWsConnected(false);
+    }
+  }, []);
+
+  // Auto-subscribe when markets are loaded and tab is Markets or Hot Opps
+  useEffect(() => {
+    if (marketsLoaded && markets.length > 0 && (activeTab === "Markets" || activeTab === "Hot Opps")) {
+      const ids = markets.slice(0, 20).map(m => m.id);
+      subscribeToMarkets(ids);
+    }
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
+  }, [marketsLoaded, activeTab, subscribeToMarkets]);
 
   // ── Data fetchers ──────────────────────────────────────────────────────────
 
@@ -411,12 +519,12 @@ export default function MarketClient() {
         return;
       }
       // Sign nonce to verify ownership
-      const nonce = `Slate360 Market Robot verification: ${Date.now()}`;
-      const signature = await signMessageAsync({ message: nonce });
+      const message = `Slate360 Market Robot verification: ${Date.now()}`;
+      const signature = await signMessageAsync({ message });
       const res = await fetch("/api/market/wallet-connect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address, signature, nonce }),
+        body: JSON.stringify({ address, signature, message }),
       });
       if (res.ok) {
         setWalletVerified(true);
@@ -781,7 +889,7 @@ export default function MarketClient() {
                 <button
                   onClick={handleConnectWallet}
                   disabled={isConnecting}
-                  className="flex items-center gap-2 bg-[#1E3A8A] hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-50"
+                  className="flex items-center gap-2 bg-[#1E3A8A] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-50"
                 >
                   🦊 {isConnecting ? "Connecting…" : "Connect MetaMask"}
                 </button>
@@ -839,7 +947,7 @@ export default function MarketClient() {
                   <>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button onClick={handlePauseBot} className="flex-1 bg-yellow-700 hover:bg-yellow-600 py-2 rounded-lg text-sm font-bold transition">
+                        <button onClick={handlePauseBot} className="flex-1 bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded-lg text-sm font-bold transition">
                           {botPaused ? "▶ Resume" : "⏸ Pause"}
                         </button>
                       </TooltipTrigger>
@@ -1109,13 +1217,17 @@ export default function MarketClient() {
                     <span className="text-xs text-gray-500">Address</span>
                     <span className="font-mono text-xs bg-gray-100 text-gray-800 px-2 py-0.5 rounded">{address?.slice(0,6)}…{address?.slice(-4)}</span>
                   </div>
-                  {/* USDC balance: install @polymarket/clob-client to read ERC20 */}
-                  <a href={`https://polygonscan.com/address/${address}#tokentxns`}
-                    target="_blank" rel="noopener noreferrer"
-                    className="flex items-center justify-between hover:bg-gray-50 rounded px-1 -mx-1 transition">
+                  {/* USDC balance from ERC-20 useReadContract */}
+                  <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">USDC (Polygon)</span>
-                    <span className="text-xs text-[#1E3A8A] underline underline-offset-2">View on Polygonscan ↗</span>
-                  </a>
+                    {usdcBalance != null ? (
+                      <span className="font-mono text-xs text-green-600 font-semibold">${usdcBalance}</span>
+                    ) : (
+                      <a href={`https://polygonscan.com/address/${address}#tokentxns`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="text-xs text-[#1E3A8A] underline underline-offset-2">View on Polygonscan ↗</a>
+                    )}
+                  </div>
                   {maticData && (
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-500">MATIC (gas)</span>
@@ -1156,7 +1268,7 @@ export default function MarketClient() {
                   { text: "Paper mode ready — no wallet needed",            done: true },
                   { text: "Install MetaMask & click Connect above",          done: isConnected },
                   { text: "Switch MetaMask to Polygon (chainId 137)",        done: isConnected && chain?.id === 137 },
-                  { text: "Buy USDC on Polygon via Transak (link above)",    done: isConnected }, // USDC balance check: view on Polygonscan
+                  { text: "Buy USDC on Polygon via Transak (link above)",    done: usdcBalance != null && parseFloat(usdcBalance) > 0 },
                   { text: "Sign verification to enable live orders",         done: walletVerified },
                   { text: "Disable Paper Mode → bot trades with real USDC",  done: !paperMode && walletVerified },
                 ] as { text: string; done: boolean }[]).map((s, i) => (
@@ -1354,6 +1466,12 @@ export default function MarketClient() {
             <h3 className="font-semibold text-sm text-gray-800 flex items-center gap-1">
               Markets Explorer
               <HelpTip content="Search live Polymarket markets. Enter a keyword and click Search, then filter results." />
+              {wsConnected && (
+                <span className="ml-2 flex items-center gap-1 text-[10px] text-green-600 font-medium">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                  Live
+                </span>
+              )}
             </h3>
 
             {/* Search row */}
@@ -1497,9 +1615,9 @@ export default function MarketClient() {
                   </thead>
                   <tbody>
                     {loadingMarkets ? (
-                      <tr><td colSpan={6} className="text-center py-10 text-gray-400">Searching markets…</td></tr>
+                      <tr><td colSpan={7} className="text-center py-10 text-gray-400">Searching markets…</td></tr>
                     ) : filteredMarkets.length === 0 ? (
-                      <tr><td colSpan={6} className="text-center py-10 text-gray-400">No markets match — try a different search or fewer filters</td></tr>
+                      <tr><td colSpan={7} className="text-center py-10 text-gray-400">No markets match — try a different search or fewer filters</td></tr>
                     ) : (
                       filteredMarkets.slice(0, 60).map(m => (
                         <tr key={m.id} className="border-t border-gray-100 hover:bg-gray-100/30">
