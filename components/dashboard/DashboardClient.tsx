@@ -120,6 +120,28 @@ interface WidgetPref {
   order: number;
 }
 
+interface AccountOverview {
+  profile: {
+    name: string;
+    email: string;
+    orgName: string;
+    role: string;
+  };
+  billing: {
+    plan: string;
+    tier: Tier;
+    status: "active" | "trialing" | "past_due" | "canceled";
+    renewsOn: string | null;
+    purchasedCredits: number;
+    totalCreditsBalance: number;
+  };
+  usage: {
+    storageUsedGb: number;
+    storageLimitGb: number;
+    monthlyCredits: number;
+  };
+}
+
 /* ================================================================
    WIDGET META — source of truth for labels/icons
    ================================================================ */
@@ -491,6 +513,9 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [billingBusy, setBillingBusy] = useState<"portal" | "credits" | "upgrade" | null>(null);
   const [billingError, setBillingError] = useState<string | null>(null);
   const [billingNotice, setBillingNotice] = useState<{ ok: boolean; text: string } | null>(null);
+  const [accountOverview, setAccountOverview] = useState<AccountOverview | null>(null);
+  const [accountLoading, setAccountLoading] = useState(false);
+  const [accountError, setAccountError] = useState<string | null>(null);
 
   // ── SlateDrop floating window ───────────────────────────────
   const [slateDropOpen, setSlateDropOpen] = useState(false);
@@ -657,6 +682,29 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
       setBillingBusy(null);
     }
   }, [ent.tier, launchBillingFlow]);
+
+  const loadAccountOverview = useCallback(async () => {
+    setAccountLoading(true);
+    setAccountError(null);
+    try {
+      const res = await fetch("/api/account/overview", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error ?? "Unable to load account data");
+      }
+      setAccountOverview(data as AccountOverview);
+    } catch (error) {
+      setAccountError(error instanceof Error ? error.message : "Unable to load account data");
+    } finally {
+      setAccountLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "my-account") {
+      void loadAccountOverview();
+    }
+  }, [activeTab, loadAccountOverview]);
 
   const handleAddEvent = useCallback(() => {
     if (!newEventTitle.trim() || !calSelected) return;
@@ -859,8 +907,8 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           </div>
         )}
         {/* ── Welcome Section ── */}
-        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${activeTab !== "market" ? "mb-8" : "mb-4"}`}>
-          {activeTab !== "market" && (
+        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${activeTab !== "market" && activeTab !== "my-account" ? "mb-8" : "mb-4"}`}>
+          {activeTab !== "market" && activeTab !== "my-account" && (
             <div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: "#1E3A8A" }}>
                 {getGreeting()}, {user.name.split(" ")[0]} 👋
@@ -970,7 +1018,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
         {/* ════════ QUICK ACCESS / TAB NAVIGATION ════════ */}
         {(() => {
-          if (activeTab === "market") return null;
+          if (activeTab === "market" || activeTab === "my-account") return null;
           const navItems: Array<{ id: string; label: string; icon: LucideIcon; color: string; isCEOOnly?: boolean }> = [
             { id: "overview", label: "Dashboard", icon: LayoutDashboard, color: "#1E3A8A" },
             ...visibleTabs,
@@ -1786,7 +1834,173 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         {activeTab === "market" && (
           <MarketClient />
         )}
-        {activeTab !== "overview" && activeTab !== "market" && (() => {
+        {activeTab === "my-account" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 px-1">
+              <div>
+                <h2 className="text-2xl font-black text-gray-900">My Account</h2>
+                <p className="text-sm text-gray-500 mt-1">Profile, billing, and account controls.</p>
+              </div>
+              <button
+                onClick={() => void loadAccountOverview()}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                {accountLoading ? <Loader2 size={13} className="animate-spin" /> : <Activity size={13} />} Refresh
+              </button>
+            </div>
+
+            {accountError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
+                {accountError}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <WidgetCard icon={User} title="Account At A Glance" span="xl:col-span-2" action={
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                  {accountOverview?.profile.role ?? "member"}
+                </span>
+              }>
+                {accountLoading && !accountOverview ? (
+                  <div className="py-6 flex items-center justify-center text-sm text-gray-400">
+                    <Loader2 size={16} className="animate-spin mr-2" /> Loading account details…
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Name</p>
+                        <p className="text-sm font-semibold text-gray-900">{accountOverview?.profile.name ?? user.name}</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Email</p>
+                        <p className="text-sm font-semibold text-gray-900 truncate">{accountOverview?.profile.email ?? user.email}</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Organization</p>
+                        <p className="text-sm font-semibold text-gray-900">{accountOverview?.profile.orgName ?? "Slate360 Organization"}</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Role</p>
+                        <p className="text-sm font-semibold text-gray-900 capitalize">{accountOverview?.profile.role ?? "member"}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <button className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Simple View</button>
+                      <button className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Creator View</button>
+                      <button className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Project View</button>
+                    </div>
+                  </div>
+                )}
+              </WidgetCard>
+
+              <WidgetCard icon={CreditCard} title="Subscription & Billing" action={
+                <button
+                  onClick={handleOpenBillingPortal}
+                  className="text-[11px] font-semibold text-[#FF4D00] hover:underline"
+                >
+                  Manage Billing
+                </button>
+              }>
+                <div className="space-y-3">
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Current Plan</p>
+                    <p className="text-sm font-semibold text-gray-900">{accountOverview?.billing.plan ?? ent.label}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Status</p>
+                    <p className="text-sm font-semibold text-gray-900 capitalize">{accountOverview?.billing.status ?? "active"}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Renewal</p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {accountOverview?.billing.renewsOn ? new Date(accountOverview.billing.renewsOn).toLocaleDateString() : "Not available"}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleBuyCredits}
+                      className="flex-1 text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                      Buy Credits
+                    </button>
+                    <button
+                      onClick={handleUpgradePlan}
+                      className="flex-1 text-xs font-semibold py-2 rounded-lg text-white hover:opacity-90 transition-all"
+                      style={{ backgroundColor: "#FF4D00" }}
+                    >
+                      Upgrade
+                    </button>
+                  </div>
+                </div>
+              </WidgetCard>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <WidgetCard icon={Activity} title="Data & Storage">
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs text-gray-500">Storage used</span>
+                      <span className="text-xs font-bold text-gray-900">
+                        {(accountOverview?.usage.storageUsedGb ?? storageUsed).toFixed(1)} GB / {(accountOverview?.usage.storageLimitGb ?? ent.maxStorageGB).toLocaleString()} GB
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[#1E3A8A]"
+                        style={{ width: `${Math.min(((accountOverview?.usage.storageUsedGb ?? storageUsed) / (accountOverview?.usage.storageLimitGb ?? ent.maxStorageGB)) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Purchased Credits</p>
+                    <p className="text-sm font-semibold text-gray-900">{(accountOverview?.billing.purchasedCredits ?? 0).toLocaleString()}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Total Credit Balance</p>
+                    <p className="text-sm font-semibold text-gray-900">{(accountOverview?.billing.totalCreditsBalance ?? 0).toLocaleString()}</p>
+                  </div>
+                </div>
+              </WidgetCard>
+
+              <WidgetCard icon={Shield} title="Security & Access">
+                <div className="space-y-2">
+                  <Link href="/forgot-password" className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors">
+                    <span className="text-xs font-semibold text-gray-700">Reset password</span>
+                    <ArrowRight size={12} className="text-gray-400" />
+                  </Link>
+                  <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors text-left">
+                    <span className="text-xs font-semibold text-gray-700">2FA status</span>
+                    <span className="text-[11px] font-semibold text-gray-500">Coming soon</span>
+                  </button>
+                  <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors text-left">
+                    <span className="text-xs font-semibold text-gray-700">Recent sessions</span>
+                    <span className="text-[11px] font-semibold text-gray-500">Last 3</span>
+                  </button>
+                </div>
+              </WidgetCard>
+
+              <WidgetCard icon={Bell} title="Preferences">
+                <div className="space-y-2">
+                  <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors text-left">
+                    <span className="text-xs font-semibold text-gray-700">Theme</span>
+                    <span className="text-[11px] font-semibold text-gray-500">System</span>
+                  </button>
+                  <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors text-left">
+                    <span className="text-xs font-semibold text-gray-700">Default start tab</span>
+                    <span className="text-[11px] font-semibold text-gray-500">Dashboard</span>
+                  </button>
+                  <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors text-left">
+                    <span className="text-xs font-semibold text-gray-700">Notifications</span>
+                    <span className="text-[11px] font-semibold text-gray-500">Daily</span>
+                  </button>
+                </div>
+              </WidgetCard>
+            </div>
+          </div>
+        )}
+        {activeTab !== "overview" && activeTab !== "market" && activeTab !== "my-account" && (() => {
           const tab = visibleTabs.find((t) => t.id === activeTab);
           if (!tab) return null;
           return <TabWireframe tab={tab} onBack={() => setActiveTab("overview")} onOpenSlateDrop={openSlateDrop} />;
