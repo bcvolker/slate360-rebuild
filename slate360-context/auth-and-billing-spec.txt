@@ -1,0 +1,222 @@
+FILE: auth-and-billing-spec.txt
+
+TITLE: Slate360 Auth, Organizations, Plans, and Billing – Master Spec
+
+1. Stack & Philosophy
+
+- Auth: Supabase Auth (email + password, optional magic links/OAuth later).
+- DB: Supabase Postgres.
+- Frontend Integration: @supabase/auth-helpers-nextjs later; for now we’ll use a simple supabaseClient.
+- Billing: Stripe (Checkout + Billing Portal).
+- Plans & Access: `plans` table + `entitlements` JSON defining what each plan unlocks.
+- Goal: 
+  - Secure, standard flows (register, login, logout, forgot/reset password).
+  - Simple to understand for solo users AND organizations.
+  - Easy to gate dashboard tabs and expensive features by plan / per-user overrides.
+
+2. Core Data Model (High Level)
+
+We will eventually create these tables in Supabase:
+
+- users
+  - id (uuid, PK)
+  - email (unique)
+  - full_name (text)
+  - created_at, last_login_at (timestamp)
+  - is_ceo (boolean, default false) – used to gate the CEO tab for Brian only
+
+- organizations
+  - id (uuid, PK)
+  - name (text)
+  - owner_user_id (uuid → users.id)
+  - brand_color (text, optional) – for white-label theming
+  - logo_url (text, optional)
+  - plan_id (text → plans.id)
+  - stripe_customer_id (text, optional)
+
+- org_memberships
+  - id (uuid, PK)
+  - user_id (uuid → users.id)
+  - org_id (uuid → organizations.id)
+  - role (text: 'owner' | 'admin' | 'member' | 'viewer')
+  - overrides (jsonb, nullable) – per-user entitlements overrides; these can only RESTRICT vs plan defaults, never exceed.
+
+- plans
+  - id (text, PK e.g. 'starter', 'pro', 'enterprise')
+  - name (text)
+  - description (text)
+  - tier (text: 'free' | 'starter' | 'pro' | 'enterprise')
+  - stripe_price_id (text, nullable for enterprise/custom)
+  - entitlements (jsonb) – UserEntitlements structure (see Dashboard spec)
+
+- subscriptions
+  - id (uuid, PK)
+  - org_id (uuid → organizations.id)
+  - stripe_subscription_id (text)
+  - status (text: 'active' | 'trialing' | 'past_due' | 'canceled')
+  - current_period_end (timestamp)
+  - quantity (integer, if you ever want seat-based pricing)
+
+- usage_snapshots
+  - id (uuid, PK)
+  - org_id (uuid → organizations.id)
+  - storage_used_mb (integer)
+  - processing_credits_used (integer)
+  - created_at (timestamp)
+
+Optional (nice to have later):
+
+- login_audit
+  - id
+  - user_id
+  - ip
+  - user_agent
+  - created_at
+
+3. Plans & Entitlements JSON (Example)
+
+Plans live in the `plans` table and carry a JSON `entitlements` object that defines what the plan ALLOWS at maximum.
+
+Reference structure (this is the same shape used by the Dashboard store and Org Settings):
+
+  interface UserEntitlements {
+    // Tab access
+    canAccessHub: boolean;
+    canAccessContent: boolean;
+    canAccessDesign: boolean;
+    canAccessGeospatial: boolean;
+    canAccessVirtual: boolean;
+    canAccessReports: boolean;
+    canAccessAthlete: boolean;
+    canAccessCeo: boolean;      // true only for Brian / CEO
+    // Feature access
+    canRunProcessingJobs: boolean; // expensive cloud jobs
+    canInviteUsers: boolean;
+    canManageOrg: boolean;         // see Org Settings
+  }
+
+Example `plans` rows (conceptual):
+
+- Starter (id: 'starter')
+  - stripe_price_id: price_xxx
+  - entitlements:
+    {
+      "canAccessHub": true,
+      "canAccessContent": true,
+      "canAccessDesign": false,
+      "canAccessGeospatial": false,
+      "canAccessVirtual": false,
+      "canAccessReports": false,
+      "canAccessAthlete": false,
+      "canAccessCeo": false,
+      "canRunProcessingJobs": false,
+      "canInviteUsers": true,
+      "canManageOrg": true
+    }
+
+- Pro (id: 'pro')
+  - stripe_price_id: price_yyy
+  - entitlements:
+    {
+      "canAccessHub": true,
+      "canAccessContent": true,
+      "canAccessDesign": true,
+      "canAccessGeospatial": true,
+      "canAccessVirtual": true,
+      "canAccessReports": true,
+      "canAccessAthlete": false,
+      "canAccessCeo": false,
+      "canRunProcessingJobs": true,
+      "canInviteUsers": true,
+      "canManageOrg": true
+    }
+
+- Enterprise (id: 'enterprise')
+  - stripe_price_id: price_zzz (or null for custom)
+  - entitlements:
+    {
+      "canAccessHub": true,
+      "canAccessContent": true,
+      "canAccessDesign": true,
+      "canAccessGeospatial": true,
+      "canAccessVirtual": true,
+      "canAccessReports": true,
+      "canAccessAthlete": true,  // toggleable per customer
+      "canAccessCeo": false,     // only Brian gets CEO
+      "canRunProcessingJobs": true,
+      "canInviteUsers": true,
+      "canManageOrg": true
+    }
+
+- Internal CEO plan (id: 'ceo-internal')
+  - stripe_price_id: null
+  - entitlements: same as Enterprise but "canAccessCeo": true, used only by Brian.
+
+4. Auth Flows (User Experience)
+
+Public pages:
+- /     – marketing homepage ("Take a tour", "Start free", "Sign in").
+- /pricing – plans overview (Starter, Pro, Enterprise).
+- /take-a-tour – read-only demo experience (later).
+
+Auth pages:
+- /login           – email + password login.
+- /register        – account creation (creates user + org).
+- /forgot-password – request reset email.
+- /reset-password  – set new password after clicking email link.
+
+Post-login behavior:
+- If email not verified: show “Check your email to verify your account.”
+- Once verified:
+  - If user already belongs to an org with a plan → redirect to /dashboard.
+  - If user is brand new:
+    - Go to /onboarding where they can:
+      - choose “Explore free / Starter trial”, or
+      - pick a paid plan → Stripe Checkout.
+
+5. Security & Best Practices
+
+- HTTPS only (Vercel handles this).
+- Use httpOnly secure cookies (via Supabase auth helpers later).
+- Rate-limit login and forgot-password endpoints (middleware + Upstash later).
+- No plain-text passwords; Supabase manages hashing.
+- Require email verification before creating the default organization and membership.
+- Password reset via Supabase:
+  - /forgot-password calls supabase.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/reset-password` })
+  - /reset-password page calls supabase.auth.updateUser({ password: newPassword })
+
+6. Stripe Integration (Minimal Spec)
+
+Stripe objects:
+- Products/Prices in Stripe for Starter, Pro, Enterprise.
+- Each price’s ID is stored in the `plans.stripe_price_id`.
+
+Core endpoints:
+- /api/billing/create-checkout-session
+  - Input: planId, orgId, successUrl, cancelUrl
+  - Returns: Stripe Checkout URL
+- /api/billing/create-portal-session
+  - Input: orgId
+  - Returns: Stripe Billing Portal URL
+
+Webhooks (at /api/billing/webhook):
+- checkout.session.completed
+  - Create/update subscriptions row.
+  - Set organizations.plan_id based on purchased price.
+- customer.subscription.updated / customer.subscription.deleted
+  - Keep subscriptions table in sync; downgrade if needed at period end.
+
+7. Where This Connects to Dashboard / My Account / CEO
+
+- Dashboard: Reads entitlements from the plan + org membership to decide:
+  - which tabs to show in sidebar
+  - which “Upgrade” messages to display.
+- My Account:
+  - Shows “Current Plan”, renewal date, storage/credits usage.
+  - Provides “Manage billing” button → Stripe portal.
+  - Provides “Org Settings” link for admins (team + per-user toggles).
+- CEO:
+  - Can view/export plans table.
+  - Eventually can edit entitlements JSON per plan to create new bundles without code changes.
+
+END OF FILE

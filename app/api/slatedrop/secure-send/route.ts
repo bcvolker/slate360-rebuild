@@ -40,13 +40,14 @@ export async function POST(req: NextRequest) {
     // solo user fallback
   }
 
-  // Verify the file belongs to this org or user
+  // Verify the file belongs to this org or user (slatedrop_uploads)
   let fileQuery = supabase
-    .from("slatedrop_files")
-    .select("id, name, s3_key")
-    .eq("id", fileId);
+    .from("slatedrop_uploads")
+    .select("id, file_name, s3_key")
+    .eq("id", fileId)
+    .neq("status", "deleted");
 
-  fileQuery = orgId ? fileQuery.eq("org_id", orgId) : fileQuery.eq("created_by", user.id);
+  fileQuery = orgId ? fileQuery.eq("org_id", orgId) : fileQuery.eq("uploaded_by", user.id);
   const { data: file, error: fileErr } = await fileQuery.single();
 
   if (fileErr || !file) {
@@ -56,17 +57,18 @@ export async function POST(req: NextRequest) {
   const token = crypto.randomBytes(24).toString("hex");
   const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString();
 
-  const { error: insertErr } = await supabase.from("file_shares").insert({
+  const { error: insertErr } = await supabase.from("slate_drop_links").insert({
     file_id: fileId,
     token,
-    shared_by: user.id,
-    shared_with_email: email,
-    permission,
+    created_by: user.id,
+    role: permission,      // slate_drop_links uses 'role' instead of 'permission'
     expires_at: expiresAt,
+    org_id: orgId,
+    // shared_with_email is not a column in slate_drop_links — sent via email only
   });
 
   if (insertErr) {
-    // Table may not exist yet — still return the share URL for now
+    // Non-fatal — still return the share URL
     console.warn("[slatedrop/secure-send] insert failed:", insertErr.message);
   }
 
@@ -83,7 +85,7 @@ export async function POST(req: NextRequest) {
       type: "secure-send",
       to: email,
       senderName,
-      fileName: file.name,
+      fileName: file.file_name,
       shareUrl,
       permission,
       expiresAt,

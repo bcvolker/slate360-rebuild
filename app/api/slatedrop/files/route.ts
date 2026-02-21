@@ -1,6 +1,7 @@
 /**
  * GET /api/slatedrop/files?folderId=xxx
- * Returns files in a folder for the authenticated user's org.
+ * Returns files in a folder from slatedrop_uploads.
+ * Folder is detected by s3_key prefix: orgs/{namespace}/{folderId}/...
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -24,38 +25,41 @@ export async function GET(req: NextRequest) {
     orgId = data?.org_id ?? null;
   } catch { /* solo user */ }
 
+  // Build the s3_key prefix for this folder
+  // Format: orgs/{orgId ?? userId}/{folderId}/...
+  const namespace = orgId ?? user.id;
+  const s3Prefix = `orgs/${namespace}/${folderId}/`;
+
   let query = supabase
-    .from("slatedrop_files")
-    .select("id, name, size, type, folder_id, folder_path, s3_key, created_by, created_at, modified_at")
-    .eq("folder_id", folderId)
-    .eq("is_deleted", false)
-    .eq("is_pending", false)
-    .order("name", { ascending: true });
+    .from("slatedrop_uploads")
+    .select("id, file_name, file_size, file_type, s3_key, uploaded_by, created_at")
+    .eq("status", "active")
+    .like("s3_key", `${s3Prefix}%`)
+    .order("file_name", { ascending: true });
 
   if (orgId) {
     query = query.eq("org_id", orgId);
   } else {
-    query = query.eq("created_by", user.id);
+    query = query.eq("uploaded_by", user.id);
   }
 
   const { data: files, error } = await query;
 
   if (error) {
     console.error("[slatedrop/files] Error:", error.message);
-    // Table may not exist yet — return empty gracefully
+    // Table error — return empty gracefully
     return NextResponse.json({ files: [] });
   }
 
   return NextResponse.json({
     files: (files ?? []).map((f) => ({
       id: f.id,
-      name: f.name,
-      size: f.size,
-      type: f.type,
-      folderId: f.folder_id,
-      folderPath: f.folder_path,
+      name: f.file_name,
+      size: f.file_size,
+      type: f.file_type ?? "",
+      folderId,
       s3Key: f.s3_key,
-      modified: (f.modified_at ?? f.created_at ?? new Date().toISOString()).slice(0, 10),
+      modified: (f.created_at ?? new Date().toISOString()).slice(0, 10),
     })),
   });
 }

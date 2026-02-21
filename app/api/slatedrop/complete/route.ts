@@ -1,9 +1,9 @@
 /**
  * POST /api/slatedrop/complete
  * Called after client finishes uploading to S3.
- * Marks the file record as active.
+ * Marks the slatedrop_uploads record as active.
  *
- * Body: { fileId, s3Key } — fileId may be null if insert failed at upload-url
+ * Body: { fileId } — fileId may be null if insert failed at upload-url
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -29,11 +29,11 @@ export async function POST(req: NextRequest) {
   }
 
   let query = supabase
-    .from("slatedrop_files")
-    .update({ is_pending: false, modified_at: new Date().toISOString() })
+    .from("slatedrop_uploads")
+    .update({ status: "active" })
     .eq("id", fileId);
 
-  query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", user.id);
+  query = orgId ? query.eq("org_id", orgId) : query.eq("uploaded_by", user.id);
   const { error } = await query;
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

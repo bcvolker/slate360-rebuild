@@ -30,8 +30,8 @@ export async function DELETE(req: NextRequest) {
 
   // Fetch file to get s3_key
   const { data: file, error: fetchErr } = await supabase
-    .from("slatedrop_files")
-    .select("s3_key, created_by, org_id")
+    .from("slatedrop_uploads")
+    .select("s3_key, uploaded_by, org_id")
     .eq("id", fileId)
     .single();
 
@@ -39,18 +39,18 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
 
-  const authorized = orgId ? file.org_id === orgId : file.created_by === user.id;
+  const authorized = orgId ? file.org_id === orgId : file.uploaded_by === user.id;
   if (!authorized) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Soft-delete in Supabase
+  // Soft-delete in Supabase (set status = 'deleted')
   let softDeleteQuery = supabase
-    .from("slatedrop_files")
-    .update({ is_deleted: true })
+    .from("slatedrop_uploads")
+    .update({ status: "deleted" })
     .eq("id", fileId);
 
-  softDeleteQuery = orgId ? softDeleteQuery.eq("org_id", orgId) : softDeleteQuery.eq("created_by", user.id);
+  softDeleteQuery = orgId ? softDeleteQuery.eq("org_id", orgId) : softDeleteQuery.eq("uploaded_by", user.id);
   const { error: updateError } = await softDeleteQuery;
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });

@@ -29,12 +29,12 @@ export async function GET(req: NextRequest) {
   }
 
   let query = supabase
-    .from("slatedrop_files")
-    .select("name, s3_key, created_by")
+    .from("slatedrop_uploads")
+    .select("file_name, s3_key, uploaded_by")
     .eq("id", fileId)
-    .eq("is_deleted", false);
+    .neq("status", "deleted");
 
-  query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", user.id);
+  query = orgId ? query.eq("org_id", orgId) : query.eq("uploaded_by", user.id);
   const { data: file, error } = await query.single();
 
   if (error || !file) {
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
   const command = new GetObjectCommand({
     Bucket: BUCKET,
     Key: file.s3_key,
-    ResponseContentDisposition: `attachment; filename="${encodeURIComponent(file.name)}"`,
+    ResponseContentDisposition: `attachment; filename="${encodeURIComponent(file.file_name)}"`,
   });
 
   const url = await getSignedUrl(s3, command, { expiresIn: 3600 }); // 1 hour

@@ -32,15 +32,17 @@ export async function POST(req: NextRequest) {
     // solo user fallback
   }
 
-  // Fetch all non-deleted files in this folder
-  let query = supabase
-    .from("slatedrop_files")
-    .select("id, name, s3_key")
-    .eq("folder_id", folderId)
-    .eq("is_deleted", false)
-    .eq("is_pending", false);
+  // Find all active files for this folder by s3_key prefix
+  const namespace = orgId ?? user.id;
+  const s3Prefix = `orgs/${namespace}/${folderId}/`;
 
-  query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", user.id);
+  let query = supabase
+    .from("slatedrop_uploads")
+    .select("id, file_name, s3_key")
+    .eq("status", "active")
+    .like("s3_key", `${s3Prefix}%`);
+
+  query = orgId ? query.eq("org_id", orgId) : query.eq("uploaded_by", user.id);
   const { data: files, error } = await query;
 
   if (error) {
@@ -62,9 +64,9 @@ export async function POST(req: NextRequest) {
         const res = await fetch(url);
         if (!res.ok) return;
         const buffer = await res.arrayBuffer();
-        zip.file(file.name, buffer);
+        zip.file(file.file_name, buffer);
       } catch (e) {
-        console.warn(`[zip] skipped ${file.name}:`, e);
+        console.warn(`[zip] skipped ${file.file_name}:`, e);
       }
     })
   );

@@ -60,6 +60,7 @@ import {
   FileText,
   ArrowUpRight,
   X,
+  Home,
 } from "lucide-react";
 
 /* ================================================================
@@ -1001,75 +1002,162 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             {billingNotice.text}
           </div>
         )}
-        <div className="flex justify-end mb-6">
-          <div className="w-full sm:w-auto">
-            <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 sm:pb-0 whitespace-nowrap">
-            {/* Project selector */}
-            <div className="relative">
-              <button
-                onClick={() => setProjectDropdownOpen((v) => !v)}
-                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors"
-              >
-                <FolderOpen size={15} className="text-gray-400" />
-                <span className="sm:hidden">Project</span>
-                <span className="hidden sm:inline">{selectedProject === "all" ? "All projects" : demoProjects.find((p) => p.id === selectedProject)?.name ?? "All projects"}</span>
-                <ChevronDown size={14} className="text-gray-400" />
-              </button>
-              {projectDropdownOpen && (
-                <>
-                  <div className="fixed inset-0 z-30" onClick={() => setProjectDropdownOpen(false)} />
-                  <div className="absolute right-0 top-12 w-60 bg-white rounded-xl border border-gray-100 shadow-xl z-40 overflow-hidden">
-                    <button
-                      onClick={() => { setSelectedProject("all"); setProjectDropdownOpen(false); }}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === "all" ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}
-                    >
-                      All projects
-                    </button>
-                    {demoProjects.map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => { setSelectedProject(p.id); setProjectDropdownOpen(false); }}
-                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === p.id ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}
-                      >
-                        {p.name}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
 
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02]"
-              style={{ backgroundColor: "#FF4D00" }}
+        {/* ════════ TAB NAVIGATION BAR ════════ */}
+        <nav className="mb-6 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-1 min-w-max pb-1">
+            {/* Overview / Home tab */}
+            <button
+              onClick={() => setActiveTab("overview")}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
+                activeTab === "overview"
+                  ? "bg-white text-gray-900 shadow-sm border border-gray-200"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-white/60"
+              }`}
             >
-              <Plus size={15} />
-              <span className="sm:hidden">New</span>
-              <span className="hidden sm:inline">New Project</span>
-            </Link>
-            </div>
+              <Home size={14} />
+              Dashboard
+            </button>
+
+            <div className="w-px h-5 bg-gray-200 mx-1" />
+
+            {/* Module tabs */}
+            {visibleTabs
+              .filter((t) => t.id !== "my-account" && !t.isCEOOnly)
+              .map((tab) => {
+                const TabIcon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      if (tab.id === "slatedrop") { openSlateDrop(); return; }
+                      setActiveTab(tab.id);
+                    }}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
+                      isActive
+                        ? "bg-white text-gray-900 shadow-sm border border-gray-200"
+                        : "text-gray-500 hover:text-gray-700 hover:bg-white/60"
+                    }`}
+                  >
+                    <TabIcon size={14} style={{ color: isActive ? tab.color : undefined }} />
+                    {tab.label}
+                  </button>
+                );
+              })}
+
+            <div className="w-px h-5 bg-gray-200 mx-1" />
+
+            {/* My Account tab */}
+            <button
+              onClick={() => setActiveTab("my-account")}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
+                activeTab === "my-account"
+                  ? "bg-white text-gray-900 shadow-sm border border-gray-200"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-white/60"
+              }`}
+            >
+              <User size={14} />
+              My Account
+            </button>
+
+            {/* CEO-only tabs */}
+            {isCEO && visibleTabs
+              .filter((t) => t.isCEOOnly)
+              .map((tab) => {
+                const TabIcon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
+                      isActive
+                        ? "bg-white text-gray-900 shadow-sm border border-gray-200"
+                        : "text-gray-500 hover:text-gray-700 hover:bg-white/60"
+                    }`}
+                  >
+                    <TabIcon size={14} style={{ color: isActive ? tab.color : undefined }} />
+                    {tab.label}
+                  </button>
+                );
+              })}
           </div>
-        </div>
+        </nav>
 
         {/* ════════ OVERVIEW TAB CONTENT ════════ */}
         {activeTab === "overview" && (
         <>
+
+        {/* ════════ WELCOME BANNER + WORKSPACE QUICK-ACCESS ════════ */}
+        <div className="mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-5">
+            <div>
+              <h2 className="text-2xl font-black text-gray-900">Welcome back, {user.name.split(" ")[0]} 👋</h2>
+              <p className="text-sm text-gray-500 mt-1">Pick a module below or jump into a project to get started.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            {visibleTabs
+              .filter((t) => t.id !== "my-account" && !t.isCEOOnly)
+              .map((tab) => {
+                const TabIcon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      if (tab.id === "slatedrop") { openSlateDrop(); return; }
+                      setActiveTab(tab.id);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="group flex flex-col items-center gap-3 p-4 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-center"
+                  >
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center transition-all group-hover:scale-110"
+                      style={{ backgroundColor: `${tab.color}15` }}
+                    >
+                      <TabIcon size={22} style={{ color: tab.color }} />
+                    </div>
+                    <span className="text-xs font-semibold text-gray-700 group-hover:text-gray-900 leading-tight">{tab.label}</span>
+                  </button>
+                );
+              })}
+          </div>
+        </div>
+
         {/* ════════ PROJECT CAROUSEL ════════ */}
         <div className="relative mb-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-gray-900">Your Projects</h2>
-            <div className="flex gap-2">
-              <button
-                onClick={() => scrollCarousel(-1)}
-                className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-              >
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <button
+                  onClick={() => setProjectDropdownOpen((v) => !v)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:border-gray-300 transition-colors"
+                >
+                  <FolderOpen size={13} className="text-gray-400" />
+                  {selectedProject === "all" ? "All projects" : demoProjects.find((p) => p.id === selectedProject)?.name ?? "All projects"}
+                  <ChevronDown size={12} className="text-gray-400" />
+                </button>
+                {projectDropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-30" onClick={() => setProjectDropdownOpen(false)} />
+                    <div className="absolute right-0 top-10 w-56 bg-white rounded-xl border border-gray-100 shadow-xl z-40 overflow-hidden">
+                      <button onClick={() => { setSelectedProject("all"); setProjectDropdownOpen(false); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === "all" ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}>All projects</button>
+                      {demoProjects.map((p) => (
+                        <button key={p.id} onClick={() => { setSelectedProject(p.id); setProjectDropdownOpen(false); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === p.id ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}>{p.name}</button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+              <Link href="/dashboard" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: "#FF4D00" }}>
+                <Plus size={13} /> New Project
+              </Link>
+              <button onClick={() => scrollCarousel(-1)} className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                 <ChevronLeft size={16} />
               </button>
-              <button
-                onClick={() => scrollCarousel(1)}
-                className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-              >
+              <button onClick={() => scrollCarousel(1)} className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                 <ChevronRight size={16} />
               </button>
             </div>

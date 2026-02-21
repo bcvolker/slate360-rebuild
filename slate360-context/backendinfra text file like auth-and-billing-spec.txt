@@ -1,0 +1,335 @@
+
+
+4. Org Settings API stub (save in backend spec or auth-and-billing-spec.txt)
+// app/api/org/settings/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+// GET: Return plan entitlements + members + usage
+export async function GET() {
+  // TODO: read org from session, join users, plans, usage, overrides
+  const payload = {
+    members: [], // OrgMember[]
+    usage: {
+      storageUsedMB: 0,
+      storageLimitMB: 1024,
+      processingCreditsUsed: 0,
+      processingCreditsLimit: 1000,
+      activeMembers: 0,
+    },
+    planId: 'starter',
+    planName: 'Starter',
+    planTier: 'starter',
+    planEntitlements: {
+      canAccessHub: true,
+      canAccessContent: true,
+      canAccessDesign: false,
+      canAccessGeospatial: false,
+      canAccessVirtual: false,
+      canAccessReports: false,
+      canAccessAthlete: false,
+      canAccessCeo: false,
+      canRunProcessingJobs: false,
+      canInviteUsers: false,
+      canManageOrg: false,
+    },
+  };
+
+  return NextResponse.json(payload);
+}
+
+// POST: Save per-user overrides only
+export async function POST(req: NextRequest) {
+  const { overrides } = await req.json();
+  // overrides: { [memberId: string]: Partial<UserEntitlements> }
+
+  // TODO: validate caller is org admin, apply overrides in DB,
+  // and return updated OrgSettingsPayload
+
+  return NextResponse.json({ ok: true });
+}
+
+
+You don’t have to wire this now; just keep it in the spec file so Copilot knows what you intend.
+
+B. Auth + Account Creation + Login + Password Reset + Subscriptions
+
+(save this whole section into auth-and-billing-spec.txt)
+
+Here’s a practical architecture that’s secure, not over-complicated, and designed for B2B + solo users.
+
+1. Recommended Stack
+
+Because you’re already leaning on Supabase in other specs:
+
+Auth: Supabase Auth (email/password + optional magic links / OAuth later)
+
+Database: Supabase Postgres
+
+Frontend integration: @supabase/auth-helpers-nextjs
+
+Billing: Stripe (Checkout + Customer Portal)
+
+Plans & entitlements: plans table + entitlements JSON (already outlined)
+
+You could use Auth.js/NextAuth or Cognito, but Supabase keeps auth + DB in one place and simplifies your mental model.
+
+2. Core Data Model (high-level)
+
+Tables:
+
+users
+
+id (uuid)
+
+email, name
+
+created_at, last_login_at
+
+flags: is_ceo (true for you), optional is_support
+
+organizations
+
+id (uuid)
+
+name
+
+owner_user_id
+
+brand_color, logo_url
+
+plan_id (FK → plans)
+
+stripe_customer_id
+
+org_memberships
+
+id (uuid)
+
+user_id
+
+org_id
+
+role (owner | admin | member | viewer)
+
+overrides (jsonb) – per-user entitlements overrides
+
+plans
+
+id (text: starter, pro, enterprise)
+
+name, description
+
+stripe_price_id
+
+tier (free | starter | pro | enterprise)
+
+entitlements (jsonb) → default UserEntitlements for that plan
+
+subscriptions
+
+id (uuid)
+
+org_id
+
+stripe_subscription_id
+
+status (active | trialing | past_due | canceled)
+
+current_period_end
+
+quantity (for seat-based pricing if you ever want it)
+
+usage_snapshots
+
+id
+
+org_id
+
+storage_used_mb
+
+processing_credits_used
+
+created_at (for graphing)
+
+login_audit (optional but nice)
+
+id
+
+user_id
+
+ip, user_agent
+
+created_at
+
+Stripe webhooks will keep subscriptions and plan_id in sync with Stripe.
+
+3. Frontend Flows + Pages
+
+Public pages:
+
+/ – landing page with “Take a tour” + “Start free” + “Sign in”.
+
+/take-a-tour – uses demo account / demo workspaces (read-only).
+
+/pricing – plans grid, each with CTA → Stripe Checkout or “Start free”.
+
+Auth pages:
+
+/login – email + password login.
+
+/register – account creation.
+
+/forgot-password – user enters email, gets reset link.
+
+/reset-password?token=… – form to set new password.
+
+You can either:
+
+Use Supabase’s hosted auth UI, or
+
+Use custom React forms and call Supabase auth functions (more control, better branding).
+
+After a successful login:
+
+If user is verified & has org + plan → redirect to /dashboard.
+
+If user is new, no plan yet:
+
+Redirect to a short onboarding step: /onboarding
+
+Ask: “How do you plan to use Slate360?” (show use-case chips, not job titles).
+
+Let them pick “Explore for free” or “Choose a plan”.
+
+Then redirect to Stripe Checkout (for paid) or directly to a free Starter trial.
+
+4. Security Best Practices
+
+Use HTTPS everywhere (Vercel gives you this).
+
+Store session in httpOnly, secure cookies via auth-helpers-nextjs.
+
+Do rate limiting on login / forgot-password endpoints (later, with middleware/Upstash).
+
+Never store plain passwords – Supabase handles hashing.
+
+Implement email verification before granting full access:
+
+Show “Check your email to verify your account” step.
+
+Only after verify → create organization and default org_membership.
+
+Password reset:
+
+Use Supabase’s built-in password reset flow or your own:
+
+/forgot-password → send email with short-lived token.
+
+/reset-password → validate token, set new password, log user out of old sessions.
+
+Transparency:
+
+Always show plan name, renewal date, and what’s included under My Account → Billing.
+
+Clear wording on overages: “If you exceed X, we’ll pause high-cost tools and prompt you to upgrade.”
+
+5. Subscription + Stripe Integration (minimal spec)
+
+Stripe setup:
+
+Create 3–4 products/prices in Stripe:
+
+Starter (monthly)
+
+Pro (monthly)
+
+Enterprise (monthly or “Contact us” if you want custom)
+
+Each price maps to a plans.id row via stripe_price_id.
+
+User flow:
+
+From /pricing or /my-account/billing, user clicks “Upgrade to Pro”.
+
+Frontend calls /api/billing/create-checkout-session, sends:
+
+planId
+
+orgId
+
+success/cancel URLs
+
+Backend creates Stripe Checkout session with that price, associates org_id in client_reference_id or metadata.
+
+After payment, Stripe redirects back to your success_url:
+
+That page just shows a “Finishing setup…” spinner and calls your API to load latest subscriptions state.
+
+Webhooks:
+
+Implement a webhook handler at /api/billing/webhook:
+
+On checkout.session.completed:
+
+Create/update subscriptions row
+
+Set organizations.plan_id accordingly
+
+On customer.subscription.updated or canceled:
+
+Keep subscriptions in sync
+
+If canceled: maybe downgrade to Starter/free at period end.
+
+Billing Portal:
+
+Add a “Manage billing” button in My Account → Billing:
+
+Hits /api/billing/create-portal-session
+
+Stripe Billing Portal handles:
+
+Card updates
+
+Upgrades/downgrades
+
+Cancelation
+
+This keeps your code thin and Stripe does the heavy lifting.
+
+6. Persuasive UX Without Being Pushy
+
+On login/register pages:
+
+Brief, specific value copy:
+“In 5 minutes you can: upload a 360 tour, share a link, and get stakeholder comments.”
+
+Maybe a single testimonial or “Trusted by…” if you have it later.
+
+On dashboard for free/trial users:
+
+Usage panel that shows clearly what they get and what’s next:
+
+“You’ve used 2 of 5 workspaces in your free plan.”
+
+“Unlock unlimited workspaces and Geospatial tools with Pro.”
+
+On Org Settings / Usage:
+
+Don’t hide costs. Show:
+
+Storage usage bar
+
+Processing credits usage bar
+
+Clear “Upgrade plan” button (that routes to /pricing or contact for enterprise).
+
+On My Account → Billing:
+
+Show exactly:
+
+Current plan
+
+Next charge date / amount
+
+Optional add-ons (e.g., extra storage packs)

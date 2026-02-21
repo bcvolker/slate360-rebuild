@@ -29,11 +29,11 @@ export async function PATCH(req: NextRequest) {
   }
 
   let query = supabase
-    .from("slatedrop_files")
-    .update({ name: newName.trim(), modified_at: new Date().toISOString() })
+    .from("slatedrop_uploads")
+    .update({ file_name: newName.trim() })
     .eq("id", fileId);
 
-  query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", user.id);
+  query = orgId ? query.eq("org_id", orgId) : query.eq("uploaded_by", user.id);
   const { error } = await query;
 
   if (error) {

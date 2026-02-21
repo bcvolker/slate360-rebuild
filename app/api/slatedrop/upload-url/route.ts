@@ -1,9 +1,11 @@
 /**
  * POST /api/slatedrop/upload-url
- * Returns a presigned S3 PUT URL + a pending file record ID.
+ * Returns a presigned S3 PUT URL + a pending file record ID (slatedrop_uploads).
  * The client uploads directly to S3, then calls /api/slatedrop/complete.
  *
  * Body: { filename, contentType, size, folderId, folderPath }
+ * DB table: slatedrop_uploads (file_name, file_size, file_type, s3_key, org_id, uploaded_by, status)
+ * Folder is encoded in s3_key = "orgs/{namespace}/{folderId}/..." — no UUID folder_id needed.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -59,21 +61,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to generate upload URL" }, { status: 500 });
   }
 
-  // Insert a pending record in Supabase
+  // Insert a pending record into slatedrop_uploads
+  // folder is encoded in s3_key as: orgs/{namespace}/{folderId}/...
   const ext = filename.split(".").pop()?.toLowerCase() ?? "";
   const { data: fileRecord, error: dbError } = await supabase
-    .from("slatedrop_files")
+    .from("slatedrop_uploads")
     .insert({
-      name: filename,
-      size,
-      type: ext,
-      folder_id: folderId,
-      folder_path: folderPath ?? folderId,
+      file_name: filename,
+      file_size: size,
+      file_type: ext,
       s3_key: s3Key,
       org_id: orgId,
-      created_by: user.id,
-      is_pending: true,
-      is_deleted: false,
+      uploaded_by: user.id,
+      status: "pending",
+      // folder_id is a UUID FK in DB — we don't use it, filter by s3_key prefix instead
     })
     .select("id")
     .single();
