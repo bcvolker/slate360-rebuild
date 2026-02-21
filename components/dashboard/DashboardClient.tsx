@@ -1097,32 +1097,42 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               <p className="text-sm text-gray-500 mt-1">Pick a module below or jump into a project to get started.</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {visibleTabs
-              .filter((t) => t.id !== "my-account" && !t.isCEOOnly)
-              .map((tab) => {
-                const TabIcon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => {
-                      if (tab.id === "slatedrop") { openSlateDrop(); return; }
-                      setActiveTab(tab.id);
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="group flex flex-col items-center gap-3 p-4 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-center"
-                  >
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center transition-all group-hover:scale-110"
-                      style={{ backgroundColor: `${tab.color}15` }}
+          {prefShowDashboardTiles && (() => {
+            const moduleTabs = visibleTabs.filter((t) => t.id !== "my-account" && !t.isCEOOnly);
+            const count = moduleTabs.length;
+            // Tier-aware sizing: fewer modules → larger icons, more modules → compact
+            const iconSize = count <= 4 ? 26 : count <= 6 ? 22 : 18;
+            const iconBox = count <= 4 ? "w-14 h-14" : count <= 6 ? "w-12 h-12" : "w-10 h-10";
+            const iconRadius = count <= 4 ? "rounded-2xl" : "rounded-xl";
+            const labelSize = count <= 4 ? "text-sm" : count <= 6 ? "text-xs" : "text-[11px]";
+            const pad = count <= 4 ? "p-5" : count <= 6 ? "p-4" : "p-3";
+            return (
+              <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+                {moduleTabs.map((tab) => {
+                  const TabIcon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        if (tab.id === "slatedrop") { openSlateDrop(); return; }
+                        setActiveTab(tab.id);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className={`group flex-1 min-w-0 flex flex-col items-center gap-2.5 ${pad} rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-center`}
                     >
-                      <TabIcon size={22} style={{ color: tab.color }} />
-                    </div>
-                    <span className="text-xs font-semibold text-gray-700 group-hover:text-gray-900 leading-tight">{tab.label}</span>
-                  </button>
-                );
-              })}
-          </div>
+                      <div
+                        className={`${iconBox} ${iconRadius} flex items-center justify-center transition-all group-hover:scale-110`}
+                        style={{ backgroundColor: `${tab.color}15` }}
+                      >
+                        <TabIcon size={iconSize} style={{ color: tab.color }} />
+                      </div>
+                      <span className={`${labelSize} font-semibold text-gray-700 group-hover:text-gray-900 leading-tight whitespace-nowrap`}>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
 
         {/* ════════ PROJECT CAROUSEL ════════ */}
