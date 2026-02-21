@@ -4,6 +4,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3, BUCKET } from "@/lib/s3";
@@ -13,12 +14,14 @@ export async function GET(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const admin = createAdminClient();
+
   const fileId = req.nextUrl.searchParams.get("fileId");
   if (!fileId) return NextResponse.json({ error: "fileId required" }, { status: 400 });
 
   let orgId: string | null = null;
   try {
-    const { data } = await supabase
+    const { data } = await admin
       .from("organization_members")
       .select("org_id")
       .eq("user_id", user.id)
@@ -28,7 +31,7 @@ export async function GET(req: NextRequest) {
     // solo user fallback
   }
 
-  let query = supabase
+  let query = admin
     .from("slatedrop_uploads")
     .select("file_name, s3_key, uploaded_by")
     .eq("id", fileId)

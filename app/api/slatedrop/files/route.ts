@@ -5,11 +5,14 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const admin = createAdminClient();
 
   const folderId = req.nextUrl.searchParams.get("folderId");
   if (!folderId) return NextResponse.json({ error: "folderId required" }, { status: 400 });
@@ -17,7 +20,7 @@ export async function GET(req: NextRequest) {
   // Resolve org_id
   let orgId: string | null = null;
   try {
-    const { data } = await supabase
+    const { data } = await admin
       .from("organization_members")
       .select("org_id")
       .eq("user_id", user.id)
@@ -30,7 +33,7 @@ export async function GET(req: NextRequest) {
   const namespace = orgId ?? user.id;
   const s3Prefix = `orgs/${namespace}/${folderId}/`;
 
-  let query = supabase
+  let query = admin
     .from("slatedrop_uploads")
     .select("id, file_name, file_size, file_type, s3_key, uploaded_by, created_at")
     .eq("status", "active")

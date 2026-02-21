@@ -9,14 +9,19 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3, BUCKET, buildS3Key } from "@/lib/s3";
 
 export async function POST(req: NextRequest) {
+  // Auth check via cookie-based client
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Admin client for DB operations (bypasses RLS)
+  const admin = createAdminClient();
 
   const body = await req.json();
   const { filename, contentType, size, folderId, folderPath } = body as {
@@ -34,7 +39,7 @@ export async function POST(req: NextRequest) {
   // Resolve org_id
   let orgId: string | null = null;
   try {
-    const { data } = await supabase
+    const { data } = await admin
       .from("organization_members")
       .select("org_id")
       .eq("user_id", user.id)
@@ -64,7 +69,7 @@ export async function POST(req: NextRequest) {
   // Insert a pending record into slatedrop_uploads
   // folder is encoded in s3_key as: orgs/{namespace}/{folderId}/...
   const ext = filename.split(".").pop()?.toLowerCase() ?? "";
-  const { data: fileRecord, error: dbError } = await supabase
+  const { data: fileRecord, error: dbError } = await admin
     .from("slatedrop_uploads")
     .insert({
       file_name: filename,

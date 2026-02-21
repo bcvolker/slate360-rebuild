@@ -7,18 +7,21 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const admin = createAdminClient();
+
   const { fileId } = await req.json() as { fileId: string | null };
   if (!fileId) return NextResponse.json({ ok: true }); // already handled
 
   let orgId: string | null = null;
   try {
-    const { data } = await supabase
+    const { data } = await admin
       .from("organization_members")
       .select("org_id")
       .eq("user_id", user.id)
@@ -28,7 +31,7 @@ export async function POST(req: NextRequest) {
     // solo user fallback
   }
 
-  let query = supabase
+  let query = admin
     .from("slatedrop_uploads")
     .update({ status: "active" })
     .eq("id", fileId);

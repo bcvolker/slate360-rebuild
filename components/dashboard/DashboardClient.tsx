@@ -1003,7 +1003,8 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           </div>
         )}
 
-        {/* ════════ TAB NAVIGATION BAR ════════ */}
+        {/* ════════ TAB NAVIGATION BAR (hidden on overview — tiles serve as nav) ════════ */}
+        {activeTab !== "overview" && (
         <nav className="mb-6 overflow-x-auto scrollbar-hide">
           <div className="flex items-center gap-1 min-w-max pb-1">
             {/* Overview / Home tab */}
@@ -1084,6 +1085,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               })}
           </div>
         </nav>
+        )}
 
         {/* ════════ OVERVIEW TAB CONTENT ════════ */}
         {activeTab === "overview" && (
@@ -1098,17 +1100,18 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             </div>
           </div>
           {prefShowDashboardTiles && (() => {
-            const moduleTabs = visibleTabs.filter((t) => t.id !== "my-account" && !t.isCEOOnly);
-            const count = moduleTabs.length;
+            // Include all visible tabs: modules + My Account + CEO-only tabs
+            const allTiles = visibleTabs;
+            const count = allTiles.length;
             // Tier-aware sizing: fewer modules → larger icons, more modules → compact
-            const iconSize = count <= 4 ? 26 : count <= 6 ? 22 : 18;
-            const iconBox = count <= 4 ? "w-14 h-14" : count <= 6 ? "w-12 h-12" : "w-10 h-10";
-            const iconRadius = count <= 4 ? "rounded-2xl" : "rounded-xl";
+            const iconSize = count <= 4 ? 26 : count <= 6 ? 22 : count <= 10 ? 18 : 16;
+            const iconBox = count <= 4 ? "w-14 h-14" : count <= 6 ? "w-12 h-12" : count <= 10 ? "w-10 h-10" : "w-9 h-9";
+            const iconRadius = count <= 6 ? "rounded-2xl" : "rounded-xl";
             const labelSize = count <= 4 ? "text-sm" : count <= 6 ? "text-xs" : "text-[11px]";
-            const pad = count <= 4 ? "p-5" : count <= 6 ? "p-4" : "p-3";
+            const pad = count <= 4 ? "p-5" : count <= 6 ? "p-4" : count <= 10 ? "p-3" : "p-2.5";
             return (
-              <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
-                {moduleTabs.map((tab) => {
+              <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-1">
+                {allTiles.map((tab) => {
                   const TabIcon = tab.icon;
                   return (
                     <button
@@ -1118,7 +1121,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                         setActiveTab(tab.id);
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
-                      className={`group flex-1 min-w-0 flex flex-col items-center gap-2.5 ${pad} rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-center`}
+                      className={`group flex-1 min-w-0 flex flex-col items-center gap-2 ${pad} rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-center`}
                     >
                       <div
                         className={`${iconBox} ${iconRadius} flex items-center justify-center transition-all group-hover:scale-110`}

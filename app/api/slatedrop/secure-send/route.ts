@@ -5,12 +5,15 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import crypto from "node:crypto";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const admin = createAdminClient();
 
   const {
     fileId,
@@ -30,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   let orgId: string | null = null;
   try {
-    const { data } = await supabase
+    const { data } = await admin
       .from("organization_members")
       .select("org_id")
       .eq("user_id", user.id)
@@ -41,7 +44,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Verify the file belongs to this org or user (slatedrop_uploads)
-  let fileQuery = supabase
+  let fileQuery = admin
     .from("slatedrop_uploads")
     .select("id, file_name, s3_key")
     .eq("id", fileId)
@@ -57,7 +60,7 @@ export async function POST(req: NextRequest) {
   const token = crypto.randomBytes(24).toString("hex");
   const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString();
 
-  const { error: insertErr } = await supabase.from("slate_drop_links").insert({
+  const { error: insertErr } = await admin.from("slate_drop_links").insert({
     file_id: fileId,
     token,
     created_by: user.id,

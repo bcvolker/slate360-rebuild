@@ -5,6 +5,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { s3, BUCKET } from "@/lib/s3";
 
@@ -13,12 +14,14 @@ export async function DELETE(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const admin = createAdminClient();
+
   const { fileId } = await req.json() as { fileId: string };
   if (!fileId) return NextResponse.json({ error: "fileId required" }, { status: 400 });
 
   let orgId: string | null = null;
   try {
-    const { data } = await supabase
+    const { data } = await admin
       .from("organization_members")
       .select("org_id")
       .eq("user_id", user.id)
@@ -29,7 +32,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   // Fetch file to get s3_key
-  const { data: file, error: fetchErr } = await supabase
+  const { data: file, error: fetchErr } = await admin
     .from("slatedrop_uploads")
     .select("s3_key, uploaded_by, org_id")
     .eq("id", fileId)
@@ -45,7 +48,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   // Soft-delete in Supabase (set status = 'deleted')
-  let softDeleteQuery = supabase
+  let softDeleteQuery = admin
     .from("slatedrop_uploads")
     .update({ status: "deleted" })
     .eq("id", fileId);
