@@ -53,6 +53,9 @@ export async function POST(req: Request) {
 
     // Send the confirmation email via Resend
     const confirmUrl = linkData.properties?.action_link;
+    let emailSent = false;
+    let emailError: string | null = null;
+
     if (confirmUrl) {
       try {
         await sendConfirmationEmail({
@@ -60,17 +63,22 @@ export async function POST(req: Request) {
           name,
           confirmUrl,
         });
-      } catch (emailError) {
+        emailSent = true;
+      } catch (err: unknown) {
+        emailError = err instanceof Error ? err.message : String(err);
         console.error("Email send error:", emailError);
-        // User created + link generated, but email failed
-        // Return success anyway - they can request a new link
+        // Account was created, but email failed. Surface the real reason.
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: "Account created. Check your email for verification link.",
-      emailSent: !!confirmUrl,
+      message: emailSent
+        ? "Account created. Check your email for your verification link."
+        : "Account created, but the confirmation email could not be sent.",
+      emailSent,
+      // Only include error detail in non-production to aid debugging
+      ...(emailError && process.env.NODE_ENV !== "production" ? { emailError } : {}),
     });
 
   } catch (error) {

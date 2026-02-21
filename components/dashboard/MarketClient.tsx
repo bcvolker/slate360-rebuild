@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   useAccount,
   useConnect,
@@ -143,6 +145,9 @@ function StatusBadge({ status }: { status: string }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function MarketClient() {
+  const pathname = usePathname();
+  const isStandalonePage = pathname === "/market";
+
   // Wagmi
   const { address, isConnected, chain } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
@@ -188,6 +193,7 @@ export default function MarketClient() {
 
   // Markets Explorer
   const [markets, setMarkets] = useState<MarketListing[]>([]);
+  const [marketsLoaded, setMarketsLoaded] = useState(false);
   const [loadingMarkets, setLoadingMarkets] = useState(false);
   const [marketSearch, setMarketSearch] = useState("");
   const [mktCategory, setMktCategory] = useState("all");
@@ -196,6 +202,14 @@ export default function MarketClient() {
   const [mktMinVol, setMktMinVol] = useState(0);
   const [mktMinEdge, setMktMinEdge] = useState(0);
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
+
+  // Buy panel
+  const [buyMarket, setBuyMarket] = useState<MarketListing | null>(null);
+  const [buyOutcome, setBuyOutcome] = useState<"YES" | "NO">("YES");
+  const [buyAmount, setBuyAmount] = useState(25);
+  const [buyPaper, setBuyPaper] = useState(true);
+  const [buySubmitting, setBuySubmitting] = useState(false);
+  const [buySuccess, setBuySuccess] = useState("");
 
   // Hot Opps tab
   const [hotTab, setHotTab] = useState("All");
@@ -222,7 +236,7 @@ export default function MarketClient() {
 
   useEffect(() => {
     fetchTrades();
-    fetchMarkets();
+    // Markets are NOT auto-loaded — user triggers search
     loadDirectives();
     loadSimRuns();
   }, []);
@@ -267,39 +281,57 @@ export default function MarketClient() {
     }
   };
 
-  const fetchMarkets = async () => {
+  const fetchMarkets = async (keyword?: string) => {
     setLoadingMarkets(true);
     try {
+      const kw = keyword ?? marketSearch;
+      const params = new URLSearchParams({
+        limit: "80",
+        active: "true",
+        closed: "false",
+        order: "volume24hr",
+        ascending: "false",
+      });
+      if (kw.trim()) params.set("_q", kw.trim()); // used as client-side filter only (API doesn't support keyword)
       const res = await fetch(
-        "https://gamma-api.polymarket.com/markets?limit=100&active=true&closed=false&order=volume24hr&ascending=false",
-        { next: { revalidate: 60 } }
+        `https://gamma-api.polymarket.com/markets?${params.toString()}`,
+        { cache: "no-store" }
       );
       if (res.ok) {
         const data = await res.json();
-        const mapped: MarketListing[] = (data || []).slice(0, 80).map((m: Record<string, unknown>) => {
-          const prob = parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[0] : 0)) * 100;
-          const vol = parseFloat(String(m.volume24hr || 0));
-          const spread = m.outcomePrices ? Math.abs(parseFloat(String((m.outcomePrices as string[])[0])) - 0.5) : 0;
-          const edge = parseFloat((spread * 100 * 1.4).toFixed(1));
-          const tag: MarketListing["risk_tag"] =
-            edge > 20 ? "hot" :
-            prob > 80 || prob < 20 ? "high-risk" :
-            String(m.category || "").toLowerCase().includes("construction") ? "construction" :
-            vol > 50000 ? "high-potential" : null;
-          return {
-            id: String(m.id || m.conditionId || Math.random()),
-            title: String(m.question || m.title || ""),
-            category: String(m.category || "General"),
-            probability: parseFloat(prob.toFixed(1)),
-            volume24h: vol,
-            edge_pct: edge,
-            outcome_yes: parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[0] : 0)),
-            outcome_no: parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[1] : 0)),
-            bookmarked: bookmarks.has(String(m.id || m.conditionId)),
-            risk_tag: tag,
-          };
-        });
+        const mapped: MarketListing[] = (data || [])
+          .filter((m: Record<string, unknown>) => {
+            if (!kw.trim()) return true;
+            const title = String(m.question || m.title || "").toLowerCase();
+            const cat = String(m.category || "").toLowerCase();
+            return title.includes(kw.toLowerCase()) || cat.includes(kw.toLowerCase());
+          })
+          .slice(0, 80)
+          .map((m: Record<string, unknown>) => {
+            const prob = parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[0] : 0)) * 100;
+            const vol = parseFloat(String(m.volume24hr || 0));
+            const spread = m.outcomePrices ? Math.abs(parseFloat(String((m.outcomePrices as string[])[0])) - 0.5) : 0;
+            const edge = parseFloat((spread * 100 * 1.4).toFixed(1));
+            const tag: MarketListing["risk_tag"] =
+              edge > 20 ? "hot" :
+              prob > 80 || prob < 20 ? "high-risk" :
+              String(m.category || "").toLowerCase().includes("construction") ? "construction" :
+              vol > 50000 ? "high-potential" : null;
+            return {
+              id: String(m.id || m.conditionId || Math.random()),
+              title: String(m.question || m.title || ""),
+              category: String(m.category || "General"),
+              probability: parseFloat(prob.toFixed(1)),
+              volume24h: vol,
+              edge_pct: edge,
+              outcome_yes: parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[0] : 0)),
+              outcome_no: parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[1] : 0)),
+              bookmarked: bookmarks.has(String(m.id || m.conditionId)),
+              risk_tag: tag,
+            };
+          });
         setMarkets(mapped);
+        setMarketsLoaded(true);
       }
     } catch (e) {
       console.error("fetchMarkets", e);
@@ -471,6 +503,53 @@ export default function MarketClient() {
     });
   };
 
+  // ── Direct Buy ─────────────────────────────────────────────────────────────
+
+  const openBuyPanel = (market: MarketListing, outcome: "YES" | "NO" = "YES") => {
+    setBuyMarket(market);
+    setBuyOutcome(outcome);
+    setBuyAmount(25);
+    setBuySuccess("");
+    setBuyPaper(paperMode);
+  };
+
+  const handleDirectBuy = async () => {
+    if (!buyMarket) return;
+    setBuySubmitting(true);
+    setBuySuccess("");
+    try {
+      const price = buyOutcome === "YES" ? buyMarket.outcome_yes : buyMarket.outcome_no;
+      const avgPrice = price > 0 ? price : (buyMarket.probability / 100);
+      const res = await fetch("/api/market/trades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          market_id:    buyMarket.id,
+          market_title: buyMarket.title,
+          outcome:      buyOutcome,
+          amount:       buyAmount,
+          avg_price:    avgPrice,
+          category:     buyMarket.category,
+          probability:  buyMarket.probability,
+          paper_mode:   buyPaper,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setBuySuccess(`✅ ${buyPaper ? "Paper " : ""}Buy saved — ${(buyAmount / avgPrice).toFixed(1)} shares ${buyOutcome} @ $${avgPrice.toFixed(3)}`);
+        addLog(`🛒 Bought ${buyOutcome} on "${buyMarket.title.slice(0, 40)}…" — $${buyAmount} ${buyPaper ? "(paper)" : "(live)"}`);
+        await fetchTrades();
+        setTimeout(() => setBuyMarket(null), 2500);
+      } else {
+        setBuySuccess(`❌ ${data.error || "Buy failed"}`);
+      }
+    } catch (e: unknown) {
+      setBuySuccess(`❌ ${(e as Error).message}`);
+    } finally {
+      setBuySubmitting(false);
+    }
+  };
+
   // ── Directives CRUD ────────────────────────────────────────────────────────
 
   const loadDirectives = () => {
@@ -630,6 +709,19 @@ export default function MarketClient() {
 
   return (
     <div className="min-h-screen bg-[#0F1117] text-white">
+      {/* ── Back to Dashboard (standalone page only) ── */}
+      {isStandalonePage && (
+        <div className="mb-4 px-1">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition group"
+          >
+            <span className="group-hover:-translate-x-0.5 transition-transform">←</span>
+            Back to Dashboard
+          </Link>
+        </div>
+      )}
+
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 px-1">
         <div>
@@ -682,7 +774,7 @@ export default function MarketClient() {
             onClick={() => {
               setActiveTab(tab);
               if (tab === "Whale Watch" && whaleData.length === 0) fetchWhales();
-              if (tab === "Markets" && markets.length === 0) fetchMarkets();
+              // Markets tab: don't auto-load — user triggers search
             }}
             className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition border-b-2 -mb-px ${
               activeTab === tab
@@ -1030,139 +1122,301 @@ export default function MarketClient() {
       ════════════════════════════════════════════ */}
       {activeTab === "Markets" && (
         <div className="space-y-4">
-          {/* Filters */}
+
+          {/* ── Buy Panel (slides in when a market is selected) ── */}
+          {buyMarket && (
+            <div className="bg-slate-900 border border-[#FF4D00]/60 rounded-xl p-5 space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Buying on</p>
+                  <p className="text-sm font-semibold text-white leading-snug">{buyMarket.title}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-slate-400">{buyMarket.category}</span>
+                    <span className="text-xs text-slate-600">·</span>
+                    <span className="text-xs text-slate-400">Prob: {buyMarket.probability}%</span>
+                    <span className="text-xs text-slate-600">·</span>
+                    <span className={`text-xs font-bold ${buyMarket.edge_pct > 10 ? "text-orange-400" : "text-slate-400"}`}>Edge: {buyMarket.edge_pct}%</span>
+                  </div>
+                </div>
+                <button onClick={() => setBuyMarket(null)} className="text-slate-500 hover:text-white text-lg leading-none">×</button>
+              </div>
+
+              {/* YES / NO toggle */}
+              <div>
+                <label className="text-xs text-slate-400 mb-2 block">Outcome</label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setBuyOutcome("YES")}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${buyOutcome === "YES" ? "bg-green-700 text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+                  >
+                    YES &nbsp;
+                    <span className="font-mono text-xs opacity-80">@ {(buyMarket.outcome_yes * 100).toFixed(0)}¢</span>
+                  </button>
+                  <button
+                    onClick={() => setBuyOutcome("NO")}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${buyOutcome === "NO" ? "bg-red-700 text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+                  >
+                    NO &nbsp;
+                    <span className="font-mono text-xs opacity-80">@ {(buyMarket.outcome_no * 100).toFixed(0)}¢</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Amount + preview */}
+              <div>
+                <label className="text-xs text-slate-400 mb-1 block flex items-center gap-1">
+                  Amount (USDC): <span className="text-white font-mono">${buyAmount}</span>
+                  <HelpTip content="How much USDC to spend on this trade." />
+                </label>
+                <input
+                  type="range" min={5} max={500} step={5}
+                  value={buyAmount}
+                  onChange={e => setBuyAmount(+e.target.value)}
+                  className="w-full accent-[#FF4D00] mb-2"
+                />
+                <div className="flex gap-1">
+                  {[10, 25, 50, 100, 250].map(v => (
+                    <button key={v} onClick={() => setBuyAmount(v)}
+                      className={`px-2 py-1 text-xs rounded transition ${buyAmount === v ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+                    >${v}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Preview */}
+              {(() => {
+                const price = buyOutcome === "YES" ? buyMarket.outcome_yes : buyMarket.outcome_no;
+                const avgPrice = price > 0 ? price : (buyMarket.probability / 100);
+                const shares = buyAmount / avgPrice;
+                const payout = shares * 1;
+                const profit = payout - buyAmount;
+                return (
+                  <div className="grid grid-cols-3 gap-2 text-center bg-slate-800/50 rounded-lg p-3">
+                    <div>
+                      <p className="text-[10px] text-slate-500 mb-1">Shares</p>
+                      <p className="text-sm font-bold text-white">{shares.toFixed(1)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-500 mb-1">Max Payout</p>
+                      <p className="text-sm font-bold text-green-400">${payout.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-500 mb-1">Max Profit</p>
+                      <p className={`text-sm font-bold ${profit > 0 ? "text-green-400" : "text-red-400"}`}>
+                        {profit >= 0 ? "+" : ""}${profit.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Paper mode toggle */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-300 flex items-center gap-1">
+                  Paper Mode
+                  <HelpTip content="Paper mode saves the trade without spending real money. Ideal for testing." />
+                </span>
+                <button onClick={() => setBuyPaper(p => !p)}
+                  className={`relative w-10 h-5 rounded-full transition ${buyPaper ? "bg-purple-600" : "bg-green-700"}`}>
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${buyPaper ? "translate-x-5" : "translate-x-0.5"}`} />
+                </button>
+              </div>
+              <p className="text-xs text-center text-slate-500">
+                {buyPaper ? "📝 This will be saved as a paper (simulated) trade" : "⚠️ This will attempt a LIVE buy on Polymarket"}
+              </p>
+
+              {buySuccess && (
+                <p className={`text-sm text-center font-medium ${buySuccess.startsWith("✅") ? "text-green-400" : "text-red-400"}`}>
+                  {buySuccess}
+                </p>
+              )}
+
+              <button
+                onClick={handleDirectBuy}
+                disabled={buySubmitting}
+                className="w-full bg-[#FF4D00] hover:bg-orange-600 py-3 rounded-xl text-sm font-bold transition disabled:opacity-50"
+              >
+                {buySubmitting ? "Processing…" : `Confirm ${buyPaper ? "Paper " : ""}Buy — $${buyAmount} ${buyOutcome}`}
+              </button>
+            </div>
+          )}
+
+          {/* ── Search + Filters ── */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
             <h3 className="font-semibold text-sm text-slate-300 flex items-center gap-1">
               Markets Explorer
-              <HelpTip content="Browse live Polymarket markets. Filter by category, probability, volume, and edge to find opportunities." />
+              <HelpTip content="Search live Polymarket markets. Enter a keyword and click Search, then filter results." />
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">Search</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Bitcoin, construction…"
-                  value={marketSearch}
-                  onChange={e => setMarketSearch(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 outline-none focus:border-[#FF4D00]"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block flex items-center">
-                  Category
-                  <HelpTip content="Filter by Polymarket category." />
-                </label>
-                <select
-                  value={mktCategory}
-                  onChange={e => setMktCategory(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#FF4D00]"
-                >
-                  <option value="all">All Categories</option>
-                  {FOCUS_AREAS.map(a => <option key={a} value={a.toLowerCase()}>{a}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 mb-1 flex items-center">
-                  Min Edge %: {mktMinEdge}%
-                  <HelpTip content="Only show markets where the bot calculates at least this % edge." />
-                </label>
-                <input type="range" min={0} max={30} value={mktMinEdge} onChange={e => setMktMinEdge(+e.target.value)} className="w-full accent-[#FF4D00]" />
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 mb-1 flex items-center">
-                  Min Volume: ${mktMinVol.toLocaleString()}
-                  <HelpTip content="Minimum 24h trading volume. Higher = more liquid." />
-                </label>
-                <input type="range" min={0} max={100000} step={1000} value={mktMinVol} onChange={e => setMktMinVol(+e.target.value)} className="w-full accent-[#FF4D00]" />
-              </div>
+
+            {/* Search row */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Search markets — e.g. Bitcoin, construction, election…"
+                value={marketSearch}
+                onChange={e => setMarketSearch(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && fetchMarkets()}
+                className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-[#FF4D00]"
+              />
+              <button
+                onClick={() => fetchMarkets()}
+                disabled={loadingMarkets}
+                className="bg-[#FF4D00] hover:bg-orange-600 px-5 py-2 rounded-lg text-sm font-bold transition disabled:opacity-50 whitespace-nowrap"
+              >
+                {loadingMarkets ? "Searching…" : "🔍 Search"}
+              </button>
             </div>
-            <div className="flex gap-3 items-center text-xs text-slate-500">
-              <span>{filteredMarkets.length} markets shown</span>
-              <button onClick={fetchMarkets} className="text-slate-400 hover:text-white transition">↻ Refresh</button>
-            </div>
+
+            {/* Filter row (only shown after first load) */}
+            {marketsLoaded && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-800">
+                <div>
+                  <label className="text-xs text-slate-400 mb-1 block flex items-center">
+                    Category
+                    <HelpTip content="Filter results by Polymarket category." />
+                  </label>
+                  <select
+                    value={mktCategory}
+                    onChange={e => setMktCategory(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#FF4D00]"
+                  >
+                    <option value="all">All Categories</option>
+                    {FOCUS_AREAS.map(a => <option key={a} value={a.toLowerCase()}>{a}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400 mb-1 flex items-center">
+                    Min Edge %: {mktMinEdge}%
+                    <HelpTip content="Only show markets with at least this estimated edge." />
+                  </label>
+                  <input type="range" min={0} max={30} value={mktMinEdge} onChange={e => setMktMinEdge(+e.target.value)} className="w-full accent-[#FF4D00]" />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400 mb-1 flex items-center">
+                    Min Volume: ${mktMinVol.toLocaleString()}
+                    <HelpTip content="Minimum 24h trading volume. Higher = more liquid market." />
+                  </label>
+                  <input type="range" min={0} max={100000} step={1000} value={mktMinVol} onChange={e => setMktMinVol(+e.target.value)} className="w-full accent-[#FF4D00]" />
+                </div>
+              </div>
+            )}
+
+            {marketsLoaded && (
+              <div className="flex gap-3 items-center text-xs text-slate-500">
+                <span>{filteredMarkets.length} results</span>
+                <button onClick={() => fetchMarkets()} className="text-slate-400 hover:text-white transition">↻ Refresh</button>
+                <button onClick={() => { setMarkets([]); setMarketsLoaded(false); setMarketSearch(""); }} className="text-slate-600 hover:text-slate-400 transition">Clear</button>
+              </div>
+            )}
           </div>
 
-          {/* Table */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead className="bg-slate-800/50">
-                  <tr className="text-slate-400">
-                    <th className="px-4 py-3 text-left font-medium">Market</th>
-                    <th className="px-3 py-3 text-center font-medium">Cat.</th>
-                    <th className="px-3 py-3 text-right font-medium">Prob.</th>
-                    <th className="px-3 py-3 text-right font-medium">Vol 24h</th>
-                    <th className="px-3 py-3 text-right font-medium">Edge</th>
-                    <th className="px-3 py-3 text-center font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loadingMarkets ? (
-                    <tr><td colSpan={6} className="text-center py-8 text-slate-500">Loading markets…</td></tr>
-                  ) : filteredMarkets.length === 0 ? (
-                    <tr><td colSpan={6} className="text-center py-8 text-slate-500">No markets match filters</td></tr>
-                  ) : (
-                    filteredMarkets.slice(0, 50).map(m => (
-                      <tr key={m.id} className="border-t border-slate-800 hover:bg-slate-800/30">
-                        <td className="px-4 py-3 max-w-[240px]">
-                          <div className="flex items-start gap-2">
-                            {m.risk_tag && (
-                              <span style={{ background: RISK_COLORS[m.risk_tag] + "30", color: RISK_COLORS[m.risk_tag] }}
-                                className="text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase whitespace-nowrap mt-0.5">
-                                {m.risk_tag.replace("-", " ")}
-                              </span>
-                            )}
-                            <span className="text-slate-200 line-clamp-2">{m.title}</span>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 text-center text-slate-400">{m.category.slice(0, 10)}</td>
-                        <td className="px-3 py-3 text-right">
-                          <span className={m.probability > 60 ? "text-green-400" : m.probability < 40 ? "text-red-400" : "text-slate-300"}>
-                            {m.probability}%
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 text-right text-slate-400">${m.volume24h.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                        <td className="px-3 py-3 text-right">
-                          <span className={m.edge_pct > 15 ? "text-orange-400 font-bold" : m.edge_pct > 8 ? "text-yellow-400" : "text-slate-400"}>
-                            {m.edge_pct}%
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <div className="flex justify-center gap-2">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={() => toggleBookmark(m.id)}
-                                  className={`text-sm transition ${bookmarks.has(m.id) ? "text-yellow-400" : "text-slate-600 hover:text-yellow-400"}`}
-                                >
-                                  {bookmarks.has(m.id) ? "★" : "☆"}
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent>Bookmark this market to track it in Hot Opps.</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={() => {
-                                    addLog(`🎯 Quick-buy queued: ${m.title.slice(0, 40)}… YES @ ${m.probability}%`);
-                                    runScan();
-                                  }}
-                                  className="text-xs bg-[#FF4D00]/20 hover:bg-[#FF4D00]/40 text-orange-400 px-2 py-0.5 rounded transition"
-                                >
-                                  Buy YES
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent>Queue a buy on this market during the next scan.</TooltipContent>
-                            </Tooltip>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+          {/* ── Results ── */}
+          {!marketsLoaded && !loadingMarkets && (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-12 text-center">
+              <p className="text-3xl mb-3">🔍</p>
+              <p className="text-slate-300 font-medium mb-1">Search Polymarket</p>
+              <p className="text-slate-500 text-sm mb-5">Enter a keyword above and click Search to browse live prediction markets</p>
+              <button onClick={() => fetchMarkets("")} className="bg-[#1E3A8A] hover:bg-blue-700 px-6 py-2.5 rounded-lg text-sm font-semibold transition">
+                Load Top Markets
+              </button>
             </div>
-          </div>
+          )}
+
+          {marketsLoaded && (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead className="bg-slate-800/50">
+                    <tr className="text-slate-400">
+                      <th className="px-4 py-3 text-left font-medium">Market</th>
+                      <th className="px-3 py-3 text-center font-medium">Cat.</th>
+                      <th className="px-3 py-3 text-right font-medium">Prob.</th>
+                      <th className="px-3 py-3 text-right font-medium">Vol 24h</th>
+                      <th className="px-3 py-3 text-right font-medium">Edge</th>
+                      <th className="px-3 py-3 text-center font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loadingMarkets ? (
+                      <tr><td colSpan={6} className="text-center py-10 text-slate-500">Searching markets…</td></tr>
+                    ) : filteredMarkets.length === 0 ? (
+                      <tr><td colSpan={6} className="text-center py-10 text-slate-500">No markets match — try a different search or fewer filters</td></tr>
+                    ) : (
+                      filteredMarkets.slice(0, 60).map(m => (
+                        <tr key={m.id} className="border-t border-slate-800 hover:bg-slate-800/30">
+                          <td className="px-4 py-3 max-w-[260px]">
+                            <div className="flex items-start gap-2">
+                              {m.risk_tag && (
+                                <span style={{ background: RISK_COLORS[m.risk_tag] + "30", color: RISK_COLORS[m.risk_tag] }}
+                                  className="text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase whitespace-nowrap mt-0.5">
+                                  {m.risk_tag.replace("-", " ")}
+                                </span>
+                              )}
+                              <span className="text-slate-200 line-clamp-2">{m.title}</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 text-center text-slate-400">{m.category.slice(0, 10)}</td>
+                          <td className="px-3 py-3 text-right">
+                            <span className={m.probability > 60 ? "text-green-400" : m.probability < 40 ? "text-red-400" : "text-slate-300"}>
+                              {m.probability}%
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 text-right text-slate-400">${m.volume24h.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                          <td className="px-3 py-3 text-right">
+                            <span className={m.edge_pct > 15 ? "text-orange-400 font-bold" : m.edge_pct > 8 ? "text-yellow-400" : "text-slate-400"}>
+                              {m.edge_pct}%
+                            </span>
+                          </td>
+                          <td className="px-3 py-3">
+                            <div className="flex justify-center items-center gap-1.5 flex-wrap">
+                              {/* Bookmark */}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => toggleBookmark(m.id)}
+                                    className={`text-base leading-none transition ${bookmarks.has(m.id) ? "text-yellow-400" : "text-slate-600 hover:text-yellow-400"}`}
+                                  >
+                                    {bookmarks.has(m.id) ? "★" : "☆"}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>Bookmark for Hot Opps tracking.</TooltipContent>
+                              </Tooltip>
+
+                              {/* Buy YES */}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => openBuyPanel(m, "YES")}
+                                    className="text-xs bg-green-900/40 hover:bg-green-800/70 text-green-400 px-2 py-1 rounded-lg font-medium transition"
+                                  >
+                                    Buy YES
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>Open buy panel for YES outcome.</TooltipContent>
+                              </Tooltip>
+
+                              {/* Buy NO */}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => openBuyPanel(m, "NO")}
+                                    className="text-xs bg-red-900/40 hover:bg-red-800/70 text-red-400 px-2 py-1 rounded-lg font-medium transition"
+                                  >
+                                    Buy NO
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>Open buy panel for NO outcome.</TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

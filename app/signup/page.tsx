@@ -14,6 +14,7 @@ export default function SignupPage() {
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [emailSent, setEmailSent] = useState(true);
 
   const supabase = createClient();
 
@@ -38,6 +39,7 @@ export default function SignupPage() {
         return;
       }
 
+      setEmailSent(data.emailSent !== false);
       setDone(true);
     } catch {
       setError("Network error. Please try again.");
@@ -69,10 +71,34 @@ export default function SignupPage() {
         </div>
         <div className="flex-1 flex items-center justify-center px-4 py-12">
           <div className="w-full max-w-md bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center">
-            <CheckCircle2 size={48} className="mx-auto mb-4" style={{ color: "#FF4D00" }} />
-            <h2 className="text-2xl font-black mb-2" style={{ color: "#1E3A8A" }}>Check your email</h2>
-            <p className="text-gray-500 mb-4">We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account and access your dashboard.</p>
-            <p className="text-xs text-gray-400">Didn&apos;t get it? Check your spam folder or <button onClick={() => setDone(false)} className="text-[#FF4D00] underline">try again</button>.</p>
+            <CheckCircle2 size={48} className="mx-auto mb-4" style={{ color: emailSent ? "#FF4D00" : "#f59e0b" }} />
+            <h2 className="text-2xl font-black mb-2" style={{ color: "#1E3A8A" }}>
+              {emailSent ? "Check your email" : "Account created!"}
+            </h2>
+            {emailSent ? (
+              <>
+                <p className="text-gray-500 mb-4">
+                  We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
+                </p>
+                <p className="text-xs text-gray-400">
+                  Didn&apos;t get it? Check your spam folder or{" "}
+                  <button onClick={() => setDone(false)} className="text-[#FF4D00] underline">try again</button>.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-500 mb-4">
+                  Your account for <strong>{email}</strong> was created, but the confirmation email could not be delivered right now.
+                </p>
+                <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-4 text-left">
+                  <strong>What to do:</strong> Contact support or try logging in — your account may already be active.
+                  If you can&apos;t log in, the admin can manually confirm your account in the Supabase dashboard.
+                </p>
+                <Link href="/login" className="inline-block bg-[#FF4D00] text-white px-6 py-2.5 rounded-xl font-semibold text-sm">
+                  Try Logging In →
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
