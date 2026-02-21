@@ -1,12 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Check, ChevronRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { Check, ChevronRight, Loader2 } from "lucide-react";
 
 const tiers = [
   {
+    id: "creator",
     name: "Creator", price: "$79", annualPrice: "$66", per: "/mo",
     desc: "For solo visual content creators and small teams.",
     features: [
@@ -18,6 +20,7 @@ const tiers = [
     cta: "Start free trial", href: "/signup",
   },
   {
+    id: "model",
     name: "Model", price: "$199", annualPrice: "$166", per: "/mo",
     desc: "For architects, modelers, and drone operators.",
     features: [
@@ -30,6 +33,7 @@ const tiers = [
     cta: "Start free trial", href: "/signup",
   },
   {
+    id: "business",
     name: "Business", price: "$499", annualPrice: "$416", per: "/mo",
     desc: "Full platform for construction teams and contractors.",
     features: [
@@ -42,6 +46,7 @@ const tiers = [
     cta: "Start free trial", href: "/signup", highlight: true,
   },
   {
+    id: "enterprise",
     name: "Enterprise", price: "Custom", annualPrice: "Custom", per: "",
     desc: "For large firms, multi-team organizations, and government clients.",
     features: [
@@ -64,7 +69,58 @@ const faqs = [
 ];
 
 export default function PlansPage() {
+  const supabase = createClient();
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
+  const [busyTierId, setBusyTierId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [preselectedPlan, setPreselectedPlan] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get("plan");
+    const cycle = params.get("billing");
+    if (plan === "creator" || plan === "model" || plan === "business") {
+      setPreselectedPlan(plan);
+    }
+    if (cycle === "annual") {
+      setBilling("annual");
+    }
+  }, []);
+
+  async function handleCheckout(tierId: string) {
+    setError(null);
+    setBusyTierId(tierId);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        const redirectTo = `/plans?plan=${tierId}&billing=${billing}`;
+        window.location.href = `/login?redirectTo=${encodeURIComponent(redirectTo)}`;
+        return;
+      }
+
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier: tierId, billingCycle: billing }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data?.url) {
+        setError(data?.error ?? "Unable to start checkout");
+        return;
+      }
+
+      window.location.href = data.url;
+    } catch {
+      setError("Unable to start checkout");
+    } finally {
+      setBusyTierId(null);
+    }
+  }
+
   return (
     <div className="bg-white min-h-screen text-gray-900 antialiased">
       <Navbar />
@@ -80,6 +136,14 @@ export default function PlansPage() {
               </button>
             ))}
           </div>
+          {preselectedPlan && (
+            <p className="text-xs text-gray-500 mt-3">
+              Selected plan: <span className="font-semibold text-gray-700 capitalize">{preselectedPlan}</span>
+            </p>
+          )}
+          {error && (
+            <p className="text-sm text-red-600 mt-3">{error}</p>
+          )}
         </div>
       </section>
       <section className="pb-12 px-4 sm:px-6">
@@ -108,9 +172,20 @@ export default function PlansPage() {
                   ))}
                 </ul>
               </div>
-              <Link href={t.href} className={`flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-105 mt-2 ${t.highlight ? "text-white" : "border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`} style={t.highlight ? { backgroundColor: "#FF4D00" } : {}}>
-                {t.cta} {t.price !== "Custom" && <ChevronRight size={14} className="ml-1" />}
-              </Link>
+              {t.id === "enterprise" ? (
+                <Link href={t.href} className="flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-105 mt-2 border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50">
+                  {t.cta}
+                </Link>
+              ) : (
+                <button
+                  onClick={() => handleCheckout(t.id)}
+                  disabled={busyTierId !== null}
+                  className={`flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-105 mt-2 disabled:opacity-60 disabled:hover:scale-100 ${t.highlight ? "text-white" : "border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
+                  style={t.highlight ? { backgroundColor: "#FF4D00" } : {}}
+                >
+                  {busyTierId === t.id ? <Loader2 size={14} className="animate-spin" /> : <>{t.cta} <ChevronRight size={14} className="ml-1" /></>}
+                </button>
+              )}
             </div>
           ))}
         </div>

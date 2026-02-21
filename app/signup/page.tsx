@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
@@ -15,6 +15,20 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [emailSent, setEmailSent] = useState(true);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [selectedBilling, setSelectedBilling] = useState<"monthly" | "annual">("monthly");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get("plan");
+    const billing = params.get("billing");
+    if (plan) {
+      setSelectedPlan(plan);
+    }
+    if (billing === "annual") {
+      setSelectedBilling("annual");
+    }
+  }, []);
 
   const supabase = createClient();
 
@@ -80,6 +94,11 @@ export default function SignupPage() {
                 <p className="text-gray-500 mb-4">
                   We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
                 </p>
+                {selectedPlan && (
+                  <p className="text-xs text-gray-500 mb-3">
+                    Your {selectedPlan} ({selectedBilling}) selection is saved — after confirmation, sign in and continue checkout.
+                  </p>
+                )}
                 <p className="text-xs text-gray-400">
                   Didn&apos;t get it? Check your spam folder or{" "}
                   <button onClick={() => setDone(false)} className="text-[#FF4D00] underline">try again</button>.
@@ -119,6 +138,11 @@ export default function SignupPage() {
           <div className="mb-8">
             <h1 className="text-2xl font-black mb-1" style={{ color: "#1E3A8A" }}>Start your free trial</h1>
             <p className="text-sm text-gray-500">No credit card required. All modules included.</p>
+            {selectedPlan && (
+              <p className="text-xs text-gray-500 mt-2">
+                Plan selected: <span className="font-semibold text-gray-700 capitalize">{selectedPlan}</span> · {selectedBilling}
+              </p>
+            )}
           </div>
 
           <div className="space-y-3 mb-6">

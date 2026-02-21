@@ -315,7 +315,7 @@ export default function HomePage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                href="/signup"
+                href="/signup?plan=creator&billing=monthly"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-semibold text-base text-white transition-all hover:opacity-90 hover:scale-105"
                 style={{ backgroundColor: "#FF4D00" }}
               >
@@ -649,7 +649,11 @@ export default function HomePage() {
                   </ul>
                 </div>
                 <Link
-                  href={plan.price === "Custom" ? "mailto:hello@slate360.ai" : "/signup"}
+                  href={
+                    plan.price === "Custom"
+                      ? "mailto:hello@slate360.ai"
+                      : `/signup?plan=${plan.name.toLowerCase()}&billing=${billing}`
+                  }
                   className={`flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-105 mt-auto ${
                     plan.highlight
                       ? "text-white"
@@ -688,7 +692,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/signup"
+              href="/signup?plan=creator&billing=monthly"
               className="inline-flex items-center justify-center gap-2 px-9 py-4 rounded-full font-semibold text-base text-white transition-all hover:opacity-90 hover:scale-105"
               style={{ backgroundColor: "#FF4D00" }}
             >

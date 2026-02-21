@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
@@ -414,7 +414,7 @@ function TabWireframe({ tab, onBack, onOpenSlateDrop }: { tab: DashTab; onBack: 
         onClick={onBack}
         className="text-xs font-semibold text-gray-400 hover:text-gray-700 transition-colors flex items-center gap-1.5 mt-2"
       >
-        <ChevronLeft size={13} /> Back to Overview
+        <ChevronLeft size={13} /> Back to Dashboard
       </button>
     </div>
   );
@@ -488,16 +488,29 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(DEFAULT_WIDGET_PREFS);
   const [prefsDirty, setPrefsDirty] = useState(false);
   const [prefsSaving, setPrefsSaving] = useState(false);
+  const [billingBusy, setBillingBusy] = useState<"portal" | "credits" | "upgrade" | null>(null);
+  const [billingError, setBillingError] = useState<string | null>(null);
+  const [billingNotice, setBillingNotice] = useState<{ ok: boolean; text: string } | null>(null);
 
   // ── SlateDrop floating window ───────────────────────────────
   const [slateDropOpen, setSlateDropOpen] = useState(false);
   const [sdMinimized, setSdMinimized] = useState(false);
   const [sdPos, setSdPos] = useState({ x: 0, y: 0 });
   const [sdSize, setSdSize] = useState({ w: 1000, h: 680 });
+  const [sdIsMobile, setSdIsMobile] = useState(false);
   const sdDragMode = useRef<"title" | "resize" | null>(null);
   const sdDragStart = useRef({ clientX: 0, clientY: 0, startX: 0, startY: 0, startW: 0, startH: 0 });
 
   function openSlateDrop() {
+    const isMobile = window.innerWidth < 768;
+    setSdIsMobile(isMobile);
+    if (isMobile) {
+      setSdPos({ x: 0, y: 0 });
+      setSdSize({ w: window.innerWidth, h: window.innerHeight });
+      setSdMinimized(false);
+      setSlateDropOpen(true);
+      return;
+    }
     setSdPos({
       x: Math.max(0, (window.innerWidth - 1000) / 2),
       y: Math.max(10, (window.innerHeight - 680) / 4),
@@ -531,7 +544,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   function onSdPointerUp() { sdDragMode.current = null; }
 
   /* ── Load saved prefs from Supabase user metadata on mount ─── */
-  useState(() => {
+  useEffect(() => {
     supabase.auth.getUser().then(({ data: { user: u } }) => {
       const saved = u?.user_metadata?.dashboardWidgets as WidgetPref[] | undefined;
       if (saved && Array.isArray(saved) && saved.length > 0) {
@@ -543,7 +556,20 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         setWidgetPrefs(merged);
       }
     });
-  });
+  }, [supabase]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("billing") === "success") {
+      setBillingNotice({ ok: true, text: "Subscription updated successfully." });
+    } else if (params.get("billing") === "cancelled") {
+      setBillingNotice({ ok: false, text: "Checkout was cancelled." });
+    } else if (params.get("credits") === "success") {
+      setBillingNotice({ ok: true, text: "Credit purchase completed successfully." });
+    } else if (params.get("credits") === "cancelled") {
+      setBillingNotice({ ok: false, text: "Credit checkout was cancelled." });
+    }
+  }, []);
 
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -581,6 +607,56 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     await supabase.auth.signOut();
     window.location.href = "/login";
   }, [supabase]);
+
+  const launchBillingFlow = useCallback(async (endpoint: string, body?: Record<string, unknown>) => {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body ?? {}),
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.url) {
+      throw new Error(data?.error ?? "Unable to open billing flow");
+    }
+    window.location.href = data.url;
+  }, []);
+
+  const handleOpenBillingPortal = useCallback(async () => {
+    setBillingError(null);
+    setBillingBusy("portal");
+    try {
+      await launchBillingFlow("/api/billing/portal");
+    } catch (error) {
+      setBillingError(error instanceof Error ? error.message : "Unable to open billing portal");
+      setBillingBusy(null);
+    }
+  }, [launchBillingFlow]);
+
+  const handleBuyCredits = useCallback(async () => {
+    setBillingError(null);
+    setBillingBusy("credits");
+    try {
+      await launchBillingFlow("/api/billing/credits/checkout", { packId: "starter" });
+    } catch (error) {
+      setBillingError(error instanceof Error ? error.message : "Unable to start credit checkout");
+      setBillingBusy(null);
+    }
+  }, [launchBillingFlow]);
+
+  const handleUpgradePlan = useCallback(async () => {
+    setBillingError(null);
+    setBillingBusy("upgrade");
+    try {
+      const tier = ent.tier === "trial" ? "creator" : ent.tier === "creator" ? "model" : "business";
+      await launchBillingFlow("/api/billing/checkout", {
+        tier,
+        billingCycle: "monthly",
+      });
+    } catch (error) {
+      setBillingError(error instanceof Error ? error.message : "Unable to start upgrade checkout");
+      setBillingBusy(null);
+    }
+  }, [ent.tier, launchBillingFlow]);
 
   const handleAddEvent = useCallback(() => {
     if (!newEventTitle.trim() || !calSelected) return;
@@ -673,7 +749,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
      ================================================================ */
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
+    <div className="min-h-screen bg-[#F7F8FA] overflow-x-hidden">
       {/* ════════ TOP BAR ════════ */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
@@ -754,6 +830,13 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                         <Activity size={15} /> My Account
                       </Link>
                       <button
+                        onClick={handleOpenBillingPortal}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        {billingBusy === "portal" ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
+                        Billing & Payments
+                      </button>
+                      <button
                         onClick={handleSignOut}
                         className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
                       >
@@ -769,7 +852,12 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
       </header>
 
       {/* ════════ MAIN CONTENT ════════ */}
-      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-8 overflow-x-hidden">
+        {billingNotice && (
+          <div className={`mb-4 rounded-xl border px-4 py-3 text-sm ${billingNotice.ok ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
+            {billingNotice.text}
+          </div>
+        )}
         {/* ── Welcome Section ── */}
         <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${activeTab !== "market" ? "mb-8" : "mb-4"}`}>
           {activeTab !== "market" && (
@@ -782,21 +870,23 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </p>
             </div>
           )}
-          <div className={`flex items-center gap-3 ${activeTab === "market" ? "ml-auto" : ""}`}>
+          <div className={`w-full sm:w-auto ${activeTab === "market" ? "sm:ml-auto" : ""}`}>
+            <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 sm:pb-0 whitespace-nowrap">
             {/* ── Quick Access dropdown ── */}
             <div className="relative">
               <button
                 onClick={() => setQuickAccessOpen((v) => !v)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors"
               >
                 <LayoutDashboard size={15} className="text-gray-400" />
-                Quick Access
+                <span className="sm:hidden">Quick</span>
+                <span className="hidden sm:inline">Quick Access</span>
                 <ChevronDown size={14} className="text-gray-400" />
               </button>
               {quickAccessOpen && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setQuickAccessOpen(false)} />
-                  <div className="absolute left-0 top-12 w-56 bg-white rounded-xl border border-gray-100 shadow-xl z-40 overflow-hidden">
+                  <div className="absolute left-0 top-12 w-52 sm:w-56 bg-white rounded-xl border border-gray-100 shadow-xl z-40 overflow-hidden">
                     <button
                       onClick={() => { setActiveTab("overview"); setQuickAccessOpen(false); }}
                       className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors ${
@@ -804,7 +894,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                       }`}
                     >
                       <LayoutDashboard size={15} className="text-gray-400" />
-                      Overview
+                      Dashboard
                     </button>
                     {visibleTabs.map((vTab) => {
                       const VIcon = vTab.icon;
@@ -834,10 +924,11 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             <div className="relative">
               <button
                 onClick={() => setProjectDropdownOpen((v) => !v)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-gray-200 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors"
               >
                 <FolderOpen size={15} className="text-gray-400" />
-                {selectedProject === "all" ? "All projects" : demoProjects.find((p) => p.id === selectedProject)?.name ?? "All projects"}
+                <span className="sm:hidden">Project</span>
+                <span className="hidden sm:inline">{selectedProject === "all" ? "All projects" : demoProjects.find((p) => p.id === selectedProject)?.name ?? "All projects"}</span>
                 <ChevronDown size={14} className="text-gray-400" />
               </button>
               {projectDropdownOpen && (
@@ -866,11 +957,14 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
             <Link
               href="/dashboard"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02]"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02]"
               style={{ backgroundColor: "#FF4D00" }}
             >
-              <Plus size={15} /> New Project
+              <Plus size={15} />
+              <span className="sm:hidden">New</span>
+              <span className="hidden sm:inline">New Project</span>
             </Link>
+            </div>
           </div>
         </div>
 
@@ -878,7 +972,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         {(() => {
           if (activeTab === "market") return null;
           const navItems: Array<{ id: string; label: string; icon: LucideIcon; color: string; isCEOOnly?: boolean }> = [
-            { id: "overview", label: "Overview", icon: LayoutDashboard, color: "#1E3A8A" },
+            { id: "overview", label: "Dashboard", icon: LayoutDashboard, color: "#1E3A8A" },
             ...visibleTabs,
           ];
           const count = navItems.length;
@@ -888,15 +982,8 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           const lblSz = count <= 7 ? "text-xs" : count <= 10 ? "text-[11px]" : "text-[10px]";
           return (
             <div className="mb-8">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center mb-3">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Quick Access</p>
-                <button
-                  onClick={() => setCustomizeOpen(true)}
-                  className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 hover:text-[#FF4D00] transition-colors"
-                  title="Customize dashboard"
-                >
-                  <SlidersHorizontal size={12} /> Customize
-                </button>
               </div>
 
               {/* ── Mobile: horizontal snap-scroll dock ── */}
@@ -1186,14 +1273,32 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 </div>
               </div>
               {/* Quick actions */}
-              <div className="flex gap-2 pt-1">
-                <button className="flex-1 text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
-                  Buy credits
+              <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                <button
+                  onClick={handleBuyCredits}
+                  disabled={billingBusy !== null}
+                  className="flex-1 text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-60"
+                >
+                  {billingBusy === "credits" ? (
+                    <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span>
+                  ) : (
+                    "Buy credits"
+                  )}
                 </button>
-                <button className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-all hover:opacity-90" style={{ backgroundColor: "#FF4D00" }}>
-                  Upgrade plan
+                <button
+                  onClick={handleUpgradePlan}
+                  disabled={billingBusy !== null}
+                  className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-all hover:opacity-90 disabled:opacity-60"
+                  style={{ backgroundColor: "#FF4D00" }}
+                >
+                  {billingBusy === "upgrade" ? (
+                    <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span>
+                  ) : (
+                    "Upgrade plan"
+                  )}
                 </button>
               </div>
+              {billingError && <p className="text-[11px] text-red-500">{billingError}</p>}
             </div>
           </WidgetCard>
           );
@@ -1649,7 +1754,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   Get seat management, Project Hub, advanced analytics, and 30,000 credits per month.
                 </p>
                 <Link
-                  href="/plans"
+                  href="/plans?plan=business&billing=monthly"
                   className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02]"
                   style={{ backgroundColor: "#FF4D00" }}
                 >
@@ -1807,15 +1912,20 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
       {/* ════════ SLATEDROP FLOATING WINDOW ════════ */}
       {slateDropOpen && (
         <div
-          className="fixed z-[9999] flex flex-col rounded-2xl overflow-hidden shadow-[0_32px_80px_-12px_rgba(0,0,0,0.55)] border border-gray-700/70"
-          style={{ left: sdPos.x, top: sdPos.y, width: sdSize.w, height: sdMinimized ? "auto" : sdSize.h }}
+          className={`fixed z-[9999] flex flex-col overflow-hidden shadow-[0_32px_80px_-12px_rgba(0,0,0,0.55)] ${sdIsMobile ? "rounded-none border-0" : "rounded-2xl border border-gray-700/70"}`}
+          style={{
+            left: sdIsMobile ? 0 : sdPos.x,
+            top: sdIsMobile ? 0 : sdPos.y,
+            width: sdIsMobile ? "100vw" : sdSize.w,
+            height: sdMinimized ? "auto" : (sdIsMobile ? "100dvh" : sdSize.h),
+          }}
         >
           {/* ── Title bar / drag handle ── */}
           <div
-            className="flex items-center gap-3 px-4 h-11 bg-gray-900 select-none shrink-0 cursor-grab active:cursor-grabbing"
-            onPointerDown={onSdTitleDown}
-            onPointerMove={onSdPointerMove}
-            onPointerUp={onSdPointerUp}
+            className={`flex items-center gap-3 px-4 h-11 bg-gray-900 select-none shrink-0 ${sdIsMobile ? "" : "cursor-grab active:cursor-grabbing"}`}
+            onPointerDown={sdIsMobile ? undefined : onSdTitleDown}
+            onPointerMove={sdIsMobile ? undefined : onSdPointerMove}
+            onPointerUp={sdIsMobile ? undefined : onSdPointerUp}
           >
             {/* Traffic-light buttons */}
             <div className="flex items-center gap-1.5" onPointerDown={(e) => e.stopPropagation()}>
@@ -1831,11 +1941,11 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 className="w-3.5 h-3.5 rounded-full bg-yellow-400 hover:bg-yellow-300 transition-colors"
                 title={sdMinimized ? "Restore" : "Minimise"}
               />
-              <button
+              {!sdIsMobile && <button
                 onClick={() => { setSdSize({ w: window.innerWidth - 32, h: window.innerHeight - 32 }); setSdPos({ x: 16, y: 16 }); setSdMinimized(false); }}
                 className="w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-400 transition-colors"
                 title="Maximise"
-              />
+              />}
             </div>
             <FolderOpen size={14} className="text-[#FF4D00] ml-1 shrink-0" />
             <span className="text-[13px] font-semibold text-white/90 flex-1 text-center -ml-8 pointer-events-none">SlateDrop</span>
@@ -1849,7 +1959,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           )}
 
           {/* ── Resize handle (bottom-right corner) ── */}
-          {!sdMinimized && (
+          {!sdMinimized && !sdIsMobile && (
             <div
               className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize"
               style={{ background: "linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.18) 50%)" }}

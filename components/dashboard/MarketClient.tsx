@@ -112,7 +112,7 @@ const RISK_COLORS = {
   construction: "#1E3A8A",
 };
 
-const TABS = ["Overview", "Markets", "Hot Opps", "Directives", "Whale Watch", "Sim Compare"];
+const TABS = ["Dashboard", "Markets", "Hot Opps", "Directives", "Whale Watch", "Sim Compare"];
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
 
@@ -177,7 +177,7 @@ export default function MarketClient() {
   const usdcBalance = usdcRaw != null ? (Number(usdcRaw) / 1e6).toFixed(2) : null; // USDC has 6 decimals
 
   // Tabs
-  const [activeTab, setActiveTab] = useState("Overview");
+  const [activeTab, setActiveTab] = useState("Dashboard");
 
   // Bot state
   const [botRunning, setBotRunning] = useState(false);
@@ -722,7 +722,7 @@ export default function MarketClient() {
     setDirectivePaper(d.paper_mode);
     setPaperMode(d.paper_mode);
     addLog(`📋 Directive "${d.name}" applied to bot`);
-    setActiveTab("Overview");
+    setActiveTab("Dashboard");
   };
 
   const deleteDirective = (id: string) => {
@@ -922,10 +922,10 @@ export default function MarketClient() {
         ))}
       </div>
 
-      {/* ════════════════════════════════════════════
-          TAB: OVERVIEW
-      ════════════════════════════════════════════ */}
-      {activeTab === "Overview" && (
+        {/* ════════════════════════════════════════════
+          TAB: DASHBOARD
+        ════════════════════════════════════════════ */}
+        {activeTab === "Dashboard" && (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Left: Config + Controls */}
           <div className="xl:col-span-1 space-y-4">
@@ -2008,7 +2008,7 @@ export default function MarketClient() {
                           ▶ Apply to Bot
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent>Load this directive\'s settings into the bot and switch to Overview.</TooltipContent>
+                              <TooltipContent>Load this directive\'s settings into the bot and switch to Dashboard.</TooltipContent>
                     </Tooltip>
                     <button onClick={() => { setEditingDirective(d); setDirectiveName(d.name); setDirectiveAmount(d.amount); setDirectiveTimeframe(d.timeframe); setDirectiveBuysPerDay(d.buys_per_day); setDirectiveRisk(d.risk_mix); setDirectiveWhale(d.whale_follow); setDirectiveFocus(d.focus_areas); setDirectiveStrategy(d.profit_strategy); setDirectivePaper(d.paper_mode); }}
                       className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">

@@ -16,6 +16,27 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Billing Environment Variables
+
+To enable subscription checkout, credit purchases, and billing portal access, set:
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `NEXT_PUBLIC_APP_URL` (for success/cancel redirects)
+- `STRIPE_PRICE_CREATOR_MONTHLY`
+- `STRIPE_PRICE_CREATOR_ANNUAL`
+- `STRIPE_PRICE_MODEL_MONTHLY`
+- `STRIPE_PRICE_MODEL_ANNUAL`
+- `STRIPE_PRICE_BUSINESS_MONTHLY`
+- `STRIPE_PRICE_BUSINESS_ANNUAL`
+- `STRIPE_PRICE_CREDITS_STARTER`
+- `STRIPE_PRICE_CREDITS_GROWTH`
+- `STRIPE_PRICE_CREDITS_PRO`
+
+Stripe webhook endpoint:
+
+- `POST /api/stripe/webhook`
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

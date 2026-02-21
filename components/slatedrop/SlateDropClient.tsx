@@ -406,7 +406,11 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
   const ent = getEntitlements(tier);
   const supabase = createClient();
 
-  const folderTree = useMemo(() => buildFolderTree(tier), [tier]);
+  const [folderTree, setFolderTree] = useState<FolderNode[]>(() => buildFolderTree(tier));
+
+  useEffect(() => {
+    setFolderTree(buildFolderTree(tier));
+  }, [tier]);
 
   /* ── State ── */
   const [activeFolderId, setActiveFolderId] = useState("general");
@@ -442,6 +446,47 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
   const [toastMsg, setToastMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const addFolderToTree = useCallback((nodes: FolderNode[], parentId: string, newFolder: FolderNode): FolderNode[] => {
+    return nodes.map((node) => {
+      if (node.id === parentId) {
+        return { ...node, children: [...node.children, newFolder] };
+      }
+      if (node.children.length === 0) return node;
+      return { ...node, children: addFolderToTree(node.children, parentId, newFolder) };
+    });
+  }, []);
+
+  const renameFolderInTree = useCallback((nodes: FolderNode[], folderId: string, newName: string): FolderNode[] => {
+    return nodes.map((node) => {
+      if (node.id === folderId) {
+        return { ...node, name: newName };
+      }
+      if (node.children.length === 0) return node;
+      return { ...node, children: renameFolderInTree(node.children, folderId, newName) };
+    });
+  }, []);
+
+  const collectFolderIds = useCallback((node: FolderNode): string[] => {
+    const ids = [node.id];
+    for (const child of node.children) {
+      ids.push(...collectFolderIds(child));
+    }
+    return ids;
+  }, []);
+
+  const removeFolderFromTree = useCallback((nodes: FolderNode[], folderId: string): FolderNode[] => {
+    const next: FolderNode[] = [];
+    for (const node of nodes) {
+      if (node.id === folderId) continue;
+      if (node.children.length > 0) {
+        next.push({ ...node, children: removeFolderFromTree(node.children, folderId) });
+      } else {
+        next.push(node);
+      }
+    }
+    return next;
+  }, []);
 
   /* ── Load real files from API on folder change ── */
   useEffect(() => {
@@ -589,6 +634,57 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
     await supabase.auth.signOut();
     window.location.href = "/login";
   }, [supabase]);
+
+  const handleDownloadFile = useCallback(async (fileId: string, fileName: string) => {
+    try {
+      const res = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(fileId)}`);
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        showToast(data.error ?? `Download failed for ${fileName}`, false);
+        return;
+      }
+      window.open(data.url, "_blank", "noopener,noreferrer");
+      showToast(`Download started: ${fileName}`);
+    } catch {
+      showToast(`Download failed for ${fileName}`, false);
+    }
+  }, [showToast]);
+
+  const handleDownloadFolderZip = useCallback(async (folderId: string, folderName: string) => {
+    try {
+      const res = await fetch("/api/slatedrop/zip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folderId }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "ZIP failed" }));
+        showToast(err.error ?? "ZIP failed", false);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${folderName || "slatedrop-folder"}.zip`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      showToast(`ZIP downloaded: ${folderName}`);
+    } catch {
+      showToast(`ZIP failed for ${folderName}`, false);
+    }
+  }, [showToast]);
+
+  const copyToClipboard = useCallback(async (value: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      showToast(`${label} copied`);
+    } catch {
+      showToast(`Could not copy ${label.toLowerCase()}`, false);
+    }
+  }, [showToast]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -1087,15 +1183,25 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                 if (f) setPreviewFile(f);
                 closeContextMenu();
               }} />
-              <CtxItem icon={Download} label="Download" onClick={closeContextMenu} />
+              <CtxItem icon={Download} label="Download" onClick={() => {
+                const file = currentFiles.find((f) => f.id === contextMenu.target.id);
+                closeContextMenu();
+                if (file) handleDownloadFile(file.id, file.name);
+              }} />
               <CtxDivider />
               <CtxItem icon={Edit3} label="Rename" onClick={() => {
                 setRenameModal({ id: contextMenu.target.id, name: contextMenu.target.name, type: "file" });
                 setRenameValue(contextMenu.target.name);
                 closeContextMenu();
               }} />
-              <CtxItem icon={Copy} label="Copy" onClick={closeContextMenu} />
-              <CtxItem icon={Scissors} label="Move" onClick={closeContextMenu} />
+              <CtxItem icon={Copy} label="Copy" onClick={() => {
+                copyToClipboard(contextMenu.target.name, "File name");
+                closeContextMenu();
+              }} />
+              <CtxItem icon={Scissors} label="Move" onClick={() => {
+                showToast("Move workflow is not enabled yet", false);
+                closeContextMenu();
+              }} />
               <CtxDivider />
               <CtxItem
                 icon={Send}
@@ -1120,7 +1226,10 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                 setActiveFolderId(contextMenu.target.id);
                 closeContextMenu();
               }} />
-              <CtxItem icon={Download} label="Download as ZIP" onClick={closeContextMenu} />
+              <CtxItem icon={Download} label="Download as ZIP" onClick={() => {
+                closeContextMenu();
+                handleDownloadFolderZip(contextMenu.target.id, contextMenu.target.name);
+              }} />
               <CtxDivider />
               {!contextMenu.target.isSystem && (
                 <>
@@ -1129,8 +1238,14 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                     setRenameValue(contextMenu.target.name);
                     closeContextMenu();
                   }} />
-                  <CtxItem icon={Copy} label="Copy" onClick={closeContextMenu} />
-                  <CtxItem icon={Scissors} label="Move" onClick={closeContextMenu} />
+                  <CtxItem icon={Copy} label="Copy" onClick={() => {
+                    copyToClipboard(contextMenu.target.name, "Folder name");
+                    closeContextMenu();
+                  }} />
+                  <CtxItem icon={Scissors} label="Move" onClick={() => {
+                    showToast("Folder move is not enabled yet", false);
+                    closeContextMenu();
+                  }} />
                   <CtxDivider />
                 </>
               )}
@@ -1294,6 +1409,9 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                           return { ...prev, [activeFolderId]: fold.map(f => f.id === renameModal.id ? { ...f, name: renameValue.trim() } : f) };
                         });
                       } catch { /* best-effort */ }
+                    } else {
+                      setFolderTree(prev => renameFolderInTree(prev, renameModal.id, renameValue.trim()));
+                      showToast(`Folder renamed to "${renameValue.trim()}"`);
                     }
                     setRenameModal(null);
                   }}
@@ -1338,15 +1456,26 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                   onClick={() => {
                     if (!newFolderName.trim()) return;
                     const newId = `user-${Date.now()}`;
-                    // SlateDrop stores folders in a memo from tier — we need a user folders state.
-                    // For now add to a top-level user folder list via a custom event pattern:
-                    // add to local demoFiles so empty state shows correctly
-                    (demoFiles as Record<string, FileItem[]>)[newId] = [];
+                    const newFolder: FolderNode = {
+                      id: newId,
+                      name: newFolderName.trim(),
+                      isSystem: false,
+                      parentId: activeFolderId,
+                      children: [],
+                    };
+                    setFolderTree(prev => addFolderToTree(prev, activeFolderId, newFolder));
+                    setExpandedIds(prev => {
+                      const next = new Set(prev);
+                      next.add(activeFolderId);
+                      return next;
+                    });
+                    setRealFiles(prev => ({ ...prev, [newId]: [] }));
                     // Navigate to the new folder
                     setActiveFolderId(newId);
                     setNewFolderModal(false);
+                    const createdName = newFolderName.trim();
                     setNewFolderName("");
-                    showToast(`Folder "${newFolderName.trim()}" created`);
+                    showToast(`Folder "${createdName}" created`);
                   }}
                   disabled={!newFolderName.trim()}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
@@ -1395,6 +1524,24 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                         }));
                         showToast(`"${deleteConfirm.name}" deleted`);
                       } catch { showToast("Delete failed", false); }
+                    } else {
+                      const folderNode = findFolder(folderTree, deleteConfirm.id);
+                      if (!folderNode) {
+                        showToast("Folder not found", false);
+                        setDeleteConfirm(null);
+                        return;
+                      }
+                      const idsToDelete = collectFolderIds(folderNode);
+                      setFolderTree(prev => removeFolderFromTree(prev, deleteConfirm.id));
+                      setRealFiles(prev => {
+                        const next = { ...prev };
+                        idsToDelete.forEach((id) => { delete next[id]; });
+                        return next;
+                      });
+                      if (idsToDelete.includes(activeFolderId)) {
+                        setActiveFolderId(folderNode.parentId ?? "general");
+                      }
+                      showToast(`"${deleteConfirm.name}" deleted`);
                     }
                     setDeleteConfirm(null);
                   }}
@@ -1425,7 +1572,10 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100">
+                <button
+                  onClick={() => handleDownloadFile(previewFile.id, previewFile.name)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100"
+                >
                   <Download size={15} />
                 </button>
                 <button
