@@ -9,7 +9,7 @@ import {
   useDisconnect,
   useSignMessage,
 } from "wagmi";
-import { metaMask } from "wagmi/connectors";
+import { injected } from "wagmi/connectors";
 import {
   LineChart,
   Line,
@@ -201,6 +201,8 @@ export default function MarketClient() {
   const [mktProbMax, setMktProbMax] = useState(100);
   const [mktMinVol, setMktMinVol] = useState(0);
   const [mktMinEdge, setMktMinEdge] = useState(0);
+  const [mktRiskTag, setMktRiskTag] = useState<"all" | "hot" | "high-risk" | "construction" | "high-potential" | "none">("all");
+  const [mktSortBy, setMktSortBy] = useState<"volume" | "edge" | "probability" | "title">("volume");
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
 
   // Buy panel
@@ -292,9 +294,10 @@ export default function MarketClient() {
         order: "volume24hr",
         ascending: "false",
       });
-      if (kw.trim()) params.set("_q", kw.trim()); // used as client-side filter only (API doesn't support keyword)
+      if (kw.trim()) params.set("_q", kw.trim()); // used as client-side keyword filter
+      // Use server-side proxy to avoid CORS restrictions on Polymarket's API
       const res = await fetch(
-        `https://gamma-api.polymarket.com/markets?${params.toString()}`,
+        `/api/market/polymarket?${params.toString()}`,
         { cache: "no-store" }
       );
       if (res.ok) {
@@ -393,7 +396,7 @@ export default function MarketClient() {
     setWalletError("");
     try {
       if (!isConnected) {
-        connect({ connector: metaMask() });
+        connect({ connector: injected() });
         return;
       }
       // Sign nonce to verify ownership
@@ -667,15 +670,27 @@ export default function MarketClient() {
     ? ((trades.filter(t => t.pnl > 0).length / trades.length) * 100).toFixed(1)
     : "0";
 
-  const filteredMarkets = markets.filter(m => {
+  const filteredMarkets = (() => {
     const q = marketSearch.toLowerCase();
-    if (q && !m.title.toLowerCase().includes(q)) return false;
-    if (mktCategory !== "all" && m.category.toLowerCase() !== mktCategory.toLowerCase()) return false;
-    if (m.probability < mktProbMin || m.probability > mktProbMax) return false;
-    if (m.volume24h < mktMinVol) return false;
-    if (m.edge_pct < mktMinEdge) return false;
-    return true;
-  });
+    const filtered = markets.filter(m => {
+      if (q && !m.title.toLowerCase().includes(q) && !m.category.toLowerCase().includes(q)) return false;
+      if (mktCategory !== "all" && m.category.toLowerCase() !== mktCategory.toLowerCase()) return false;
+      if (m.probability < mktProbMin || m.probability > mktProbMax) return false;
+      if (m.volume24h < mktMinVol) return false;
+      if (m.edge_pct < mktMinEdge) return false;
+      if (mktRiskTag === "none" && m.risk_tag !== null) return false;
+      if (mktRiskTag !== "all" && mktRiskTag !== "none" && m.risk_tag !== mktRiskTag) return false;
+      return true;
+    });
+    return filtered.sort((a, b) => {
+      switch (mktSortBy) {
+        case "edge": return b.edge_pct - a.edge_pct;
+        case "probability": return b.probability - a.probability;
+        case "title": return a.title.localeCompare(b.title);
+        default: return b.volume24h - a.volume24h;
+      }
+    });
+  })();
 
   const hotOppTabs = ["All", "High Potential", "High Risk-High Reward", "Bookmarked", "Construction"];
   const hotFiltered = markets.filter(m => {
@@ -1269,34 +1284,84 @@ export default function MarketClient() {
 
             {/* Filter row (only shown after first load) */}
             {marketsLoaded && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-800">
-                <div>
-                  <label className="text-xs text-slate-400 mb-1 block flex items-center">
-                    Category
-                    <HelpTip content="Filter results by Polymarket category." />
-                  </label>
-                  <select
-                    value={mktCategory}
-                    onChange={e => setMktCategory(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#FF4D00]"
-                  >
-                    <option value="all">All Categories</option>
-                    {FOCUS_AREAS.map(a => <option key={a} value={a.toLowerCase()}>{a}</option>)}
-                  </select>
+              <div className="space-y-3 pt-1 border-t border-slate-800">
+                {/* Row 1: Category + Risk Tag + Sort */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block flex items-center gap-1">
+                      Category
+                      <HelpTip content="Filter by Polymarket category." />
+                    </label>
+                    <select
+                      value={mktCategory}
+                      onChange={e => setMktCategory(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#FF4D00]"
+                    >
+                      <option value="all">All Categories</option>
+                      {FOCUS_AREAS.map(a => <option key={a} value={a.toLowerCase()}>{a}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block flex items-center gap-1">
+                      Risk Tag
+                      <HelpTip content="Filter by computed risk classification." />
+                    </label>
+                    <select
+                      value={mktRiskTag}
+                      onChange={e => setMktRiskTag(e.target.value as typeof mktRiskTag)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#FF4D00]"
+                    >
+                      <option value="all">All Tags</option>
+                      <option value="hot">🔥 Hot (High Edge)</option>
+                      <option value="high-potential">📈 High Potential</option>
+                      <option value="high-risk">⚠️ High Risk</option>
+                      <option value="construction">🏗️ Construction</option>
+                      <option value="none">No Tag</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 block flex items-center gap-1">
+                      Sort By
+                      <HelpTip content="Sort the results table." />
+                    </label>
+                    <select
+                      value={mktSortBy}
+                      onChange={e => setMktSortBy(e.target.value as typeof mktSortBy)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#FF4D00]"
+                    >
+                      <option value="volume">24h Volume ↓</option>
+                      <option value="edge">Edge % ↓</option>
+                      <option value="probability">Probability ↓</option>
+                      <option value="title">Title A→Z</option>
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs text-slate-400 mb-1 flex items-center">
-                    Min Edge %: {mktMinEdge}%
-                    <HelpTip content="Only show markets with at least this estimated edge." />
-                  </label>
-                  <input type="range" min={0} max={30} value={mktMinEdge} onChange={e => setMktMinEdge(+e.target.value)} className="w-full accent-[#FF4D00]" />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-400 mb-1 flex items-center">
-                    Min Volume: ${mktMinVol.toLocaleString()}
-                    <HelpTip content="Minimum 24h trading volume. Higher = more liquid market." />
-                  </label>
-                  <input type="range" min={0} max={100000} step={1000} value={mktMinVol} onChange={e => setMktMinVol(+e.target.value)} className="w-full accent-[#FF4D00]" />
+                {/* Row 2: Range sliders */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 flex items-center gap-1">
+                      Min Edge %: {mktMinEdge}%
+                      <HelpTip content="Only show markets with at least this estimated edge." />
+                    </label>
+                    <input type="range" min={0} max={30} value={mktMinEdge} onChange={e => setMktMinEdge(+e.target.value)} className="w-full accent-[#FF4D00]" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 flex items-center gap-1">
+                      Min Volume: ${mktMinVol.toLocaleString()}
+                      <HelpTip content="Minimum 24h trading volume. Higher = more liquid." />
+                    </label>
+                    <input type="range" min={0} max={100000} step={1000} value={mktMinVol} onChange={e => setMktMinVol(+e.target.value)} className="w-full accent-[#FF4D00]" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 mb-1 flex items-center gap-1">
+                      Probability: {mktProbMin}%–{mktProbMax}%
+                      <HelpTip content="Filter by the YES outcome probability range." />
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input type="range" min={0} max={100} value={mktProbMin} onChange={e => setMktProbMin(Math.min(+e.target.value, mktProbMax - 1))} className="w-full accent-[#FF4D00]" />
+                      <input type="range" min={0} max={100} value={mktProbMax} onChange={e => setMktProbMax(Math.max(+e.target.value, mktProbMin + 1))} className="w-full accent-[#FF4D00]" />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

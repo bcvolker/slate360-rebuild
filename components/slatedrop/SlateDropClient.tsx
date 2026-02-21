@@ -108,7 +108,7 @@ function buildFolderTree(tier: Tier): FolderNode[] {
 
   const projectsFolder: FolderNode = {
     id: "projects",
-    name: "Projects",
+    name: "Project Sandbox",
     isSystem: true,
     icon: "🏗️",
     parentId: null,
@@ -171,24 +171,24 @@ function buildFolderTree(tier: Tier): FolderNode[] {
     case "business":
     case "enterprise":
       folders.push(
-        projectsFolder,
         tabFolders["design-studio"],
         tabFolders["content-studio"],
         tabFolders["360-tour-builder"],
         tabFolders["geospatial"],
         tabFolders["virtual-studio"],
-        tabFolders["analytics"]
+        tabFolders["analytics"],
+        projectsFolder
       );
       break;
     default: // trial — all visible
       folders.push(
-        projectsFolder,
         tabFolders["design-studio"],
         tabFolders["content-studio"],
         tabFolders["360-tour-builder"],
         tabFolders["geospatial"],
         tabFolders["virtual-studio"],
-        tabFolders["analytics"]
+        tabFolders["analytics"],
+        projectsFolder
       );
       break;
   }
@@ -410,7 +410,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
 
   /* ── State ── */
   const [activeFolderId, setActiveFolderId] = useState("general");
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(["projects", "proj-maple-heights"]));
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -435,14 +435,48 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "file" | "folder" } | null>(null);
   const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
 
+  // Real file state (loaded from API, keyed by folderId)
+  const [realFiles, setRealFiles] = useState<Record<string, FileItem[]>>({});
+  const [loadingFiles, setLoadingFiles] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  const [toastMsg, setToastMsg] = useState<{ text: string; ok: boolean } | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  /* ── Load real files from API on folder change ── */
+  useEffect(() => {
+    let cancelled = false;
+    const loadFiles = async () => {
+      setLoadingFiles(true);
+      try {
+        const res = await fetch(`/api/slatedrop/files?folderId=${activeFolderId}`);
+        if (res.ok && !cancelled) {
+          const { files } = await res.json();
+          if (files?.length) {
+            setRealFiles(prev => ({ ...prev, [activeFolderId]: files as FileItem[] }));
+          }
+        }
+      } catch { /* fallback to demo files */ }
+      finally { if (!cancelled) setLoadingFiles(false); }
+    };
+    loadFiles();
+    return () => { cancelled = true; };
+  }, [activeFolderId]);
+
+  /* ── Show toast helper ── */
+  const showToast = useCallback((text: string, ok = true) => {
+    setToastMsg({ text, ok });
+    setTimeout(() => setToastMsg(null), 3500);
+  }, []);
 
   /* ── Derived ── */
   const activeFolder = useMemo(() => findFolder(folderTree, activeFolderId), [folderTree, activeFolderId]);
   const breadcrumb = useMemo(() => findFolderPath(folderTree, activeFolderId) ?? ["SlateDrop"], [folderTree, activeFolderId]);
 
   const currentFiles = useMemo(() => {
-    let files = demoFiles[activeFolderId] ?? [];
+    // Prefer real files from API, fall back to demo data
+    const real = realFiles[activeFolderId];
+    let files = (real && real.length > 0) ? real : (demoFiles[activeFolderId] ?? []);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       files = files.filter((f) => f.name.toLowerCase().includes(q));
@@ -457,10 +491,78 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
         default: return 0;
       }
     });
-  }, [activeFolderId, searchQuery, sortKey, sortDir]);
+  }, [activeFolderId, realFiles, searchQuery, sortKey, sortDir]);
 
   const subFolders = activeFolder?.children ?? [];
   const storageUsed = tier === "trial" ? 1.2 : tier === "creator" ? 12 : tier === "model" ? 42 : 185;
+
+  /* ── Upload files helper (shared by drag-drop and file input) ── */
+  const uploadFiles = useCallback(async (fileList: FileList) => {
+    const files = Array.from(fileList);
+    if (!files.length) return;
+    const folderPath = breadcrumb.join("/") || activeFolderId;
+
+    for (const file of files) {
+      const key = `${file.name}-${Date.now()}`;
+      try {
+        // Step 1: get presigned S3 URL
+        const urlRes = await fetch("/api/slatedrop/upload-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type || "application/octet-stream",
+            size: file.size,
+            folderId: activeFolderId,
+            folderPath,
+          }),
+        });
+        if (!urlRes.ok) throw new Error("Failed to get upload URL");
+        const { uploadUrl, fileId } = await urlRes.json();
+
+        // Step 2: PUT to S3
+        setUploadProgress(prev => ({ ...prev, [key]: 10 }));
+        const putRes = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type || "application/octet-stream" },
+          body: file,
+        });
+        if (!putRes.ok) throw new Error("S3 upload failed");
+        setUploadProgress(prev => ({ ...prev, [key]: 80 }));
+
+        // Step 3: mark complete
+        await fetch("/api/slatedrop/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileId }),
+        });
+        setUploadProgress(prev => ({ ...prev, [key]: 100 }));
+
+        // Step 4: add to local state
+        const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+        const newFile: FileItem = {
+          id: fileId ?? key,
+          name: file.name,
+          size: file.size,
+          type: ext,
+          modified: new Date().toISOString().slice(0, 10),
+          folderId: activeFolderId,
+        };
+        setRealFiles(prev => ({
+          ...prev,
+          [activeFolderId]: [...(prev[activeFolderId] ?? []), newFile],
+        }));
+      } catch (err) {
+        console.error("[SlateDrop] upload error:", err);
+        showToast(`Failed to upload ${file.name}`, false);
+      } finally {
+        setTimeout(() => setUploadProgress(prev => {
+          const next = { ...prev }; delete next[key]; return next;
+        }), 1000);
+      }
+    }
+    showToast(`${files.length} file${files.length > 1 ? "s" : ""} uploaded`);
+  }, [activeFolderId, breadcrumb, showToast]);
 
   /* ── Handlers ── */
   const toggleExpand = useCallback((id: string) => {
@@ -491,12 +593,9 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    // In production: upload to S3 here
     const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      console.log(`[SlateDrop] Would upload ${files.length} file(s) to folder ${activeFolderId}`);
-    }
-  }, [activeFolderId]);
+    if (files.length > 0) uploadFiles(files);
+  }, [uploadFiles]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -532,6 +631,31 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
 
   return (
     <div className="h-screen flex flex-col bg-[#F7F8FA] overflow-hidden">
+      {/* Toast */}
+      {toastMsg && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-2 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold text-white transition-all ${
+          toastMsg.ok ? "bg-emerald-600" : "bg-red-500"
+        }`}>
+          {toastMsg.ok ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+          {toastMsg.text}
+        </div>
+      )}
+      {/* Upload progress indicators */}
+      {Object.entries(uploadProgress).length > 0 && (
+        <div className="fixed bottom-16 right-6 z-[200] space-y-2">
+          {Object.entries(uploadProgress).map(([key, pct]) => (
+            <div key={key} className="bg-white rounded-xl border border-gray-200 shadow-xl p-3 w-64">
+              <div className="flex items-center gap-2 mb-2">
+                <Loader2 size={13} className="animate-spin text-[#FF4D00]" />
+                <span className="text-xs text-gray-700 truncate">{key.split("-").slice(0, -1).join("-")}</span>
+              </div>
+              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-[#FF4D00] rounded-full transition-all" style={{ width: `${pct}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {/* ════════ TOP BAR ════════ */}
       <header className="shrink-0 bg-white border-b border-gray-100 z-30">
         <div className="flex items-center justify-between h-14 px-4">
@@ -606,9 +730,9 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
 
         {/* ── SIDEBAR ── */}
         <aside
-          className={`shrink-0 bg-white border-r border-gray-100 overflow-y-auto transition-all duration-200 z-50
+          className={`shrink-0 h-full bg-white border-r border-gray-100 overflow-y-auto transition-all duration-200 z-50
             ${mobileSidebarOpen ? "fixed inset-y-14 left-0 w-72 shadow-2xl" : "hidden"}
-            md:relative md:block
+            md:relative md:flex md:flex-col
             ${sidebarOpen ? "md:w-64 lg:w-72" : "md:w-0 md:overflow-hidden"}
           `}
         >
@@ -743,7 +867,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                 >
                   <Upload size={13} /> Upload
                 </button>
-                <input ref={fileInputRef} type="file" multiple className="hidden" onChange={() => {}} />
+                <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => { if (e.target.files?.length) uploadFiles(e.target.files); e.target.value = ""; }} />
 
                 {/* Download ZIP */}
                 {(activeFolderId.startsWith("proj-") || activeFolderId === "projects") && (
@@ -1100,7 +1224,23 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                     </select>
                   </div>
                   <button
-                    onClick={() => setShareSent(true)}
+                    onClick={async () => {
+                      if (!shareEmail.trim() || !shareModal) return;
+                      try {
+                        const res = await fetch("/api/slatedrop/secure-send", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            fileId: shareModal.id,
+                            email: shareEmail.trim(),
+                            permission: sharePerm === "edit" ? "download" : "view",
+                            expiryDays: shareExpiry === "never" ? 365 : parseInt(shareExpiry),
+                          }),
+                        });
+                        if (res.ok) setShareSent(true);
+                        else { const e = await res.json(); showToast(e.error ?? "Send failed", false); }
+                      } catch { showToast("Send failed", false); }
+                    }}
                     disabled={!shareEmail.trim()}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
                     style={{ backgroundColor: "#FF4D00" }}
@@ -1140,7 +1280,23 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                   Cancel
                 </button>
                 <button
-                  onClick={() => setRenameModal(null)}
+                  onClick={async () => {
+                    if (!renameValue.trim() || !renameModal) return;
+                    if (renameModal.type === "file") {
+                      try {
+                        await fetch("/api/slatedrop/rename", {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ fileId: renameModal.id, newName: renameValue.trim() }),
+                        });
+                        setRealFiles(prev => {
+                          const fold = prev[activeFolderId] ?? [];
+                          return { ...prev, [activeFolderId]: fold.map(f => f.id === renameModal.id ? { ...f, name: renameValue.trim() } : f) };
+                        });
+                      } catch { /* best-effort */ }
+                    }
+                    setRenameModal(null);
+                  }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
                   style={{ backgroundColor: "#FF4D00" }}
                 >
@@ -1179,7 +1335,19 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                   Cancel
                 </button>
                 <button
-                  onClick={() => { setNewFolderModal(false); setNewFolderName(""); }}
+                  onClick={() => {
+                    if (!newFolderName.trim()) return;
+                    const newId = `user-${Date.now()}`;
+                    // SlateDrop stores folders in a memo from tier — we need a user folders state.
+                    // For now add to a top-level user folder list via a custom event pattern:
+                    // add to local demoFiles so empty state shows correctly
+                    (demoFiles as Record<string, FileItem[]>)[newId] = [];
+                    // Navigate to the new folder
+                    setActiveFolderId(newId);
+                    setNewFolderModal(false);
+                    setNewFolderName("");
+                    showToast(`Folder "${newFolderName.trim()}" created`);
+                  }}
                   disabled={!newFolderName.trim()}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
                   style={{ backgroundColor: "#FF4D00" }}
@@ -1212,7 +1380,24 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                   Cancel
                 </button>
                 <button
-                  onClick={() => setDeleteConfirm(null)}
+                  onClick={async () => {
+                    if (!deleteConfirm) return;
+                    if (deleteConfirm.type === "file") {
+                      try {
+                        await fetch("/api/slatedrop/delete", {
+                          method: "DELETE",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ fileId: deleteConfirm.id }),
+                        });
+                        setRealFiles(prev => ({
+                          ...prev,
+                          [activeFolderId]: (prev[activeFolderId] ?? []).filter(f => f.id !== deleteConfirm.id),
+                        }));
+                        showToast(`"${deleteConfirm.name}" deleted`);
+                      } catch { showToast("Delete failed", false); }
+                    }
+                    setDeleteConfirm(null);
+                  }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
                 >
                   Delete
