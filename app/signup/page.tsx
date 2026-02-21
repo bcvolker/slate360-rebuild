@@ -21,24 +21,27 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const confirmUrl = `${window.location.origin}/auth/callback`;
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name },
-        emailRedirectTo: confirmUrl,
-      },
-    });
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
-      // Supabase sends the real confirmation email with a valid token link.
-      // We no longer send a separate Resend welcome email here because its
-      // CTA cannot include the auth token — only Supabase can generate that.
-      // To get branded emails, configure Supabase custom SMTP → Resend.
+
+    try {
+      // Use our custom API route that sends emails via Resend
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, name }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Signup failed");
+        setLoading(false);
+        return;
+      }
+
       setDone(true);
+    } catch {
+      setError("Network error. Please try again.");
+      setLoading(false);
     }
   }
 

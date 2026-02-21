@@ -103,6 +103,34 @@ export async function sendWelcomeEmail({
   });
 }
 
+/* ── Email: Confirmation (sent after signup to verify email) ── */
+export async function sendConfirmationEmail({
+  to,
+  name,
+  confirmUrl,
+}: {
+  to: string;
+  name?: string;
+  confirmUrl: string;
+}) {
+  const displayName = name ?? to.split("@")[0];
+  const body = `
+    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">Verify your email</h2>
+    <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
+      Hi${displayName ? ` ${displayName}` : ""}, thanks for signing up for Slate360! Please verify your email address by clicking the button below.
+    </p>
+    ${ctaButton("Verify my email →", confirmUrl)}
+    <p style="margin:20px 0 0;font-size:12px;color:#9ca3af;">
+      This link expires in 24 hours. If you didn't create a Slate360 account, you can safely ignore this email.
+    </p>`;
+  return getResend().emails.send({
+    from: FROM,
+    to,
+    subject: "Verify your Slate360 email",
+    html: brandedHtml("Verify your email", body),
+  });
+}
+
 /* ── Email: Secure Send / File Share ── */
 export async function sendSecureSendEmail({
   to,

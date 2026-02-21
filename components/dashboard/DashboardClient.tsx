@@ -4,6 +4,8 @@ import { useState, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
+import SlateDropClient from "@/components/slatedrop/SlateDropClient";
+import MarketClient from "@/components/dashboard/MarketClient";
 import {
   Search,
   Bell,
@@ -14,7 +16,6 @@ import {
   Plus,
   ArrowRight,
   Activity,
-  Bot,
   CreditCard,
   TrendingUp,
   Calendar as CalendarIcon,
@@ -46,6 +47,19 @@ import {
   CloudRain,
   Snowflake,
   type LucideIcon,
+  User,
+  Shield,
+  LayoutDashboard,
+  SlidersHorizontal,
+  GripVertical,
+  Eye,
+  EyeOff,
+  Maximize2,
+  Minimize2,
+  ChevronUp,
+  FileText,
+  ArrowUpRight,
+  X,
 } from "lucide-react";
 
 /* ================================================================
@@ -90,6 +104,46 @@ interface Job {
   progress: number;
   status: "completed" | "processing" | "queued" | "failed";
 }
+
+interface DashTab {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  color: string;
+  isCEOOnly?: boolean;
+}
+
+interface WidgetPref {
+  id: string;
+  visible: boolean;
+  expanded: boolean; // takes full row width
+  order: number;
+}
+
+/* ================================================================
+   WIDGET META — source of truth for labels/icons
+   ================================================================ */
+
+const WIDGET_META: { id: string; label: string; icon: LucideIcon; tierGate?: string }[] = [
+  { id: "slatedrop",    label: "SlateDrop",             icon: FolderOpen },
+  { id: "data-usage",   label: "Data Usage & Credits", icon: CreditCard },
+  { id: "processing",   label: "Processing Jobs",       icon: Cpu },
+  { id: "financial",    label: "Financial Snapshot",    icon: TrendingUp },
+  { id: "calendar",     label: "Calendar",              icon: CalendarIcon },
+  { id: "weather",      label: "Weather",               icon: Cloud },
+  { id: "continue",     label: "Continue Working",      icon: Clock },
+  { id: "contacts",     label: "Contacts",              icon: Users },
+  { id: "suggest",      label: "Suggest a Feature",     icon: Lightbulb },
+  { id: "seats",        label: "Seat Management",       icon: Users,       tierGate: "seats" },
+  { id: "upgrade",      label: "Upgrade Card",          icon: Zap,         tierGate: "no-seats" },
+];
+
+const DEFAULT_WIDGET_PREFS: WidgetPref[] = WIDGET_META.map((m, i) => ({
+  id: m.id,
+  visible: true,
+  expanded: m.id === "calendar" || m.id === "seats",
+  order: i,
+}));
 
 /* ================================================================
    DEMO DATA
@@ -312,6 +366,61 @@ function WidgetCard({
 }
 
 /* ================================================================
+   TAB WIREFRAME PLACEHOLDER
+   ================================================================ */
+
+function TabWireframe({ tab, onBack, onOpenSlateDrop }: { tab: DashTab; onBack: () => void; onOpenSlateDrop?: () => void }) {
+  const Icon = tab.icon;
+  const descMap: Record<string, string> = {
+    "project-hub":    "Centralized project management, RFIs, daily reports, and team coordination.",
+    "design-studio":  "3D modelling, BIM coordination, and real-time design collaboration.",
+    "content-studio": "Create and manage visual content, renderings, and marketing assets.",
+    "tours":          "Immersive 360° virtual tours for client presentations and remote inspections.",
+    "geospatial":     "Drone surveys, point clouds, GIS mapping, and geospatial data workflows.",
+    "virtual-studio": "Virtual production, site visualization, and simulation environments.",
+    "analytics":      "Project analytics, progress tracking, financial reporting, and insights.",
+    "slatedrop":      "Intelligent file management, delivery, and secure document sharing.",
+    "my-account":     "Manage your profile, subscription, billing, and account settings.",
+    "ceo":            "Platform-wide oversight, admin controls, and strategic metrics.",
+    "market":         "Marketplace listings, procurement workflows, and vendor management.",
+    "athlete360":     "Athletic performance tracking, recruitment tools, and 360° athlete profiles.",
+  };
+  const desc = descMap[tab.id] ?? `The ${tab.label} workspace is coming soon.`;
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div
+        className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-sm"
+        style={{ backgroundColor: `${tab.color}18`, color: tab.color }}
+      >
+        <Icon size={36} />
+      </div>
+      <h2 className="text-2xl font-black text-gray-900 mb-2">{tab.label}</h2>
+      {tab.isCEOOnly && (
+        <span className="inline-block mb-3 text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+          CEO Access Only
+        </span>
+      )}
+      <p className="text-sm text-gray-400 mb-8 max-w-sm leading-relaxed">{desc}</p>
+      {tab.id === "slatedrop" && (
+        <button
+          onClick={onOpenSlateDrop}
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 mb-4"
+          style={{ backgroundColor: "#FF4D00" }}
+        >
+          Open SlateDrop <ArrowRight size={15} />
+        </button>
+      )}
+      <button
+        onClick={onBack}
+        className="text-xs font-semibold text-gray-400 hover:text-gray-700 transition-colors flex items-center gap-1.5 mt-2"
+      >
+        <ChevronLeft size={13} /> Back to Overview
+      </button>
+    </div>
+  );
+}
+
+/* ================================================================
    MAIN DASHBOARD COMPONENT
    ================================================================ */
 
@@ -319,7 +428,43 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const ent = getEntitlements(tier);
   const supabase = createClient();
 
-  /* ── State ── */
+  // CEO / special-access check — only slate360ceo@gmail.com sees CEO tabs
+  const isCEO = user.email === "slate360ceo@gmail.com";
+
+  // Build the ordered, filtered tab list based on tier entitlements + identity
+  const visibleTabs: DashTab[] = ([
+    { id: "project-hub",    label: "Project Hub",    icon: LayoutDashboard, color: "#1E3A8A" },
+    { id: "design-studio",  label: "Design Studio",  icon: Palette,         color: "#FF4D00" },
+    { id: "content-studio", label: "Content Studio", icon: Layers,          color: "#1E3A8A" },
+    { id: "tours",          label: "360 Tours",      icon: Compass,         color: "#FF4D00" },
+    { id: "geospatial",     label: "Geospatial",     icon: Globe,           color: "#1E3A8A" },
+    { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#FF4D00" },
+    { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#1E3A8A" },
+    { id: "slatedrop",      label: "SlateDrop",      icon: FolderOpen,      color: "#FF4D00" },
+    { id: "my-account",     label: "My Account",     icon: User,            color: "#1E3A8A" },
+    ...(isCEO ? ([
+      { id: "ceo",        label: "CEO",        icon: Shield,      color: "#FF4D00", isCEOOnly: true },
+      { id: "market",     label: "Market",     icon: TrendingUp,  color: "#1E3A8A", isCEOOnly: true },
+      { id: "athlete360", label: "Athlete360", icon: Zap,         color: "#FF4D00", isCEOOnly: true },
+    ] as DashTab[]) : []),
+  ] as DashTab[]).filter((tab) => {
+    switch (tab.id) {
+      case "project-hub":    return ent.canAccessHub;
+      case "design-studio":  return ent.canAccessDesignStudio;
+      case "content-studio": return ent.canAccessContent;
+      case "tours":          return ent.canAccessTourBuilder;
+      case "geospatial":     return ent.canAccessGeospatial;
+      case "virtual-studio": return ent.canAccessVirtual;
+      case "analytics":      return ent.canAccessAnalytics;
+      case "slatedrop":      return ent.canViewSlateDropWidget;
+      case "my-account":     return true;
+      case "ceo":
+      case "market":
+      case "athlete360":     return isCEO;
+      default:               return false;
+    }
+  });
+
   const [selectedProject, setSelectedProject] = useState("all");
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -337,6 +482,67 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [suggestDone, setSuggestDone] = useState(false);
   const [weatherLogged, setWeatherLogged] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
+  const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(DEFAULT_WIDGET_PREFS);
+  const [prefsDirty, setPrefsDirty] = useState(false);
+  const [prefsSaving, setPrefsSaving] = useState(false);
+
+  // ── SlateDrop floating window ───────────────────────────────
+  const [slateDropOpen, setSlateDropOpen] = useState(false);
+  const [sdMinimized, setSdMinimized] = useState(false);
+  const [sdPos, setSdPos] = useState({ x: 0, y: 0 });
+  const [sdSize, setSdSize] = useState({ w: 1000, h: 680 });
+  const sdDragMode = useRef<"title" | "resize" | null>(null);
+  const sdDragStart = useRef({ clientX: 0, clientY: 0, startX: 0, startY: 0, startW: 0, startH: 0 });
+
+  function openSlateDrop() {
+    setSdPos({
+      x: Math.max(0, (window.innerWidth - 1000) / 2),
+      y: Math.max(10, (window.innerHeight - 680) / 4),
+    });
+    setSdSize({ w: 1000, h: 680 });
+    setSdMinimized(false);
+    setSlateDropOpen(true);
+  }
+
+  function onSdTitleDown(e: React.PointerEvent) {
+    sdDragMode.current = "title";
+    sdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: sdPos.x, startY: sdPos.y, startW: sdSize.w, startH: sdSize.h };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }
+  function onSdResizeDown(e: React.PointerEvent) {
+    sdDragMode.current = "resize";
+    sdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: sdPos.x, startY: sdPos.y, startW: sdSize.w, startH: sdSize.h };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    e.stopPropagation();
+  }
+  function onSdPointerMove(e: React.PointerEvent) {
+    if (!sdDragMode.current) return;
+    const dx = e.clientX - sdDragStart.current.clientX;
+    const dy = e.clientY - sdDragStart.current.clientY;
+    if (sdDragMode.current === "title") {
+      setSdPos({ x: sdDragStart.current.startX + dx, y: sdDragStart.current.startY + dy });
+    } else {
+      setSdSize({ w: Math.max(560, sdDragStart.current.startW + dx), h: Math.max(420, sdDragStart.current.startH + dy) });
+    }
+  }
+  function onSdPointerUp() { sdDragMode.current = null; }
+
+  /* ── Load saved prefs from Supabase user metadata on mount ─── */
+  useState(() => {
+    supabase.auth.getUser().then(({ data: { user: u } }) => {
+      const saved = u?.user_metadata?.dashboardWidgets as WidgetPref[] | undefined;
+      if (saved && Array.isArray(saved) && saved.length > 0) {
+        // Merge saved prefs with any new widgets added since last save
+        const merged = DEFAULT_WIDGET_PREFS.map((def) => {
+          const found = saved.find((s) => s.id === def.id);
+          return found ?? def;
+        });
+        setWidgetPrefs(merged);
+      }
+    });
+  });
 
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -421,6 +627,44 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     else setCalMonth((m) => m + 1);
   };
 
+  /* ── Pref helpers ── */
+  const toggleVisible = useCallback((id: string) => {
+    setWidgetPrefs((prev) => prev.map((p) => p.id === id ? { ...p, visible: !p.visible } : p));
+    setPrefsDirty(true);
+  }, []);
+  const toggleExpanded = useCallback((id: string) => {
+    setWidgetPrefs((prev) => prev.map((p) => p.id === id ? { ...p, expanded: !p.expanded } : p));
+    setPrefsDirty(true);
+  }, []);
+  const moveWidget = useCallback((id: string, dir: -1 | 1) => {
+    setWidgetPrefs((prev) => {
+      const arr = [...prev].sort((a, b) => a.order - b.order);
+      const idx = arr.findIndex((p) => p.id === id);
+      const target = idx + dir;
+      if (target < 0 || target >= arr.length) return prev;
+      const newArr = arr.map((p, i) => {
+        if (i === idx) return { ...p, order: arr[target].order };
+        if (i === target) return { ...p, order: arr[idx].order };
+        return p;
+      });
+      return newArr;
+    });
+    setPrefsDirty(true);
+  }, []);
+  const savePrefs = useCallback(async () => {
+    setPrefsSaving(true);
+    try {
+      await supabase.auth.updateUser({ data: { dashboardWidgets: widgetPrefs } });
+      setPrefsDirty(false);
+    } finally {
+      setPrefsSaving(false);
+    }
+  }, [supabase, widgetPrefs]);
+  const resetPrefs = useCallback(() => {
+    setWidgetPrefs(DEFAULT_WIDGET_PREFS);
+    setPrefsDirty(true);
+  }, []);
+
   const financialMax = Math.max(...demoFinancial.map((f) => f.credits));
 
   /* ================================================================
@@ -456,6 +700,14 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             <button className="relative w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">
               <Bell size={18} />
               <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#FF4D00]" />
+            </button>
+            <button
+              onClick={() => setCustomizeOpen(true)}
+              title="Customize dashboard"
+              className="relative w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-[#FF4D00] transition-colors"
+            >
+              <SlidersHorizontal size={18} />
+              {prefsDirty && <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-400" />}
             </button>
 
             {/* User avatar / menu */}
@@ -572,6 +824,133 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           </div>
         </div>
 
+        {/* ════════ QUICK ACCESS / TAB NAVIGATION ════════ */}
+        {(() => {
+          const navItems: Array<{ id: string; label: string; icon: LucideIcon; color: string; isCEOOnly?: boolean }> = [
+            { id: "overview", label: "Overview", icon: LayoutDashboard, color: "#1E3A8A" },
+            ...visibleTabs,
+          ];
+          const count = navItems.length;
+          const tileW = count <= 7 ? "w-[6.5rem]" : count <= 10 ? "w-[5.5rem]" : "w-[4.75rem]";
+          const icoBox = count <= 7 ? "w-11 h-11" : count <= 10 ? "w-10 h-10" : "w-9 h-9";
+          const icoSz = count <= 7 ? 20 : count <= 10 ? 18 : 15;
+          const lblSz = count <= 7 ? "text-xs" : count <= 10 ? "text-[11px]" : "text-[10px]";
+          return (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Quick Access</p>
+                <button
+                  onClick={() => setCustomizeOpen(true)}
+                  className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 hover:text-[#FF4D00] transition-colors"
+                  title="Customize dashboard"
+                >
+                  <SlidersHorizontal size={12} /> Customize
+                </button>
+              </div>
+
+              {/* ── Mobile: horizontal snap-scroll dock ── */}
+              <div className="sm:hidden -mx-4 px-4 overflow-x-auto scrollbar-hide pb-1" style={{ scrollbarWidth: "none" }}>
+                <div className="flex gap-2.5 w-max">
+                  {navItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    const isSlatedrop = item.id === "slatedrop";
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          if (isSlatedrop) { openSlateDrop(); }
+                          else { setActiveTab(item.id); }
+                        }}
+                        className={`flex flex-col items-center gap-1.5 py-3 px-2.5 rounded-2xl bg-white border shrink-0 w-[4.5rem] transition-all duration-200 active:scale-95 ${
+                          isActive
+                            ? "border-[#FF4D00] shadow-md -translate-y-0.5"
+                            : "border-gray-100 shadow-sm"
+                        } ${item.isCEOOnly ? "ring-1 ring-amber-200" : ""}`}
+                      >
+                        <div
+                          className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+                          style={
+                            isActive
+                              ? { backgroundColor: "#FF4D00", color: "#fff" }
+                              : { backgroundColor: `${item.color}1A`, color: item.color }
+                          }
+                        >
+                          <Icon size={16} />
+                        </div>
+                        <span
+                          className={`text-[10px] font-semibold text-center leading-tight truncate w-full transition-colors ${
+                            isActive ? "text-[#FF4D00]" : "text-gray-600"
+                          }`}
+                        >
+                          {item.label}
+                        </span>
+                        {item.isCEOOnly && (
+                          <span className="text-[7px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-1 py-0.5 rounded-full leading-none">
+                            CEO
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* ── Desktop: responsive wrap grid ── */}
+              <div className="hidden sm:flex flex-wrap justify-center gap-2.5">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  const isSlatedrop = item.id === "slatedrop";
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        if (isSlatedrop) {
+                          openSlateDrop();
+                        } else {
+                          setActiveTab(item.id);
+                        }
+                      }}
+                      className={`flex flex-col items-center gap-1.5 py-3.5 px-2 rounded-2xl bg-white border transition-all duration-200 group ${tileW} ${
+                        isActive
+                          ? "border-[#FF4D00] shadow-lg -translate-y-0.5"
+                          : "border-gray-100 hover:border-gray-200 hover:shadow-md hover:-translate-y-0.5"
+                      } ${item.isCEOOnly ? "ring-1 ring-amber-200" : ""}`}
+                    >
+                      <div
+                        className={`${icoBox} rounded-xl flex items-center justify-center transition-colors`}
+                        style={
+                          isActive
+                            ? { backgroundColor: "#FF4D00", color: "#fff" }
+                            : { backgroundColor: `${item.color}1A`, color: item.color }
+                        }
+                      >
+                        <Icon size={icoSz} />
+                      </div>
+                      <span
+                        className={`${lblSz} font-semibold text-center leading-tight transition-colors ${
+                          isActive ? "text-[#FF4D00]" : "text-gray-600 group-hover:text-gray-900"
+                        }`}
+                      >
+                        {item.label}
+                      </span>
+                      {item.isCEOOnly && (
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded-full leading-none">
+                          CEO
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ════════ OVERVIEW TAB CONTENT ════════ */}
+        {activeTab === "overview" && (
+        <>
         {/* ════════ PROJECT CAROUSEL ════════ */}
         <div className="relative mb-10">
           <div className="flex items-center justify-between mb-4">
@@ -655,11 +1034,74 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           </div>
         </div>
 
-        {/* ════════ WIDGET GRID ════════ */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {/* ════════ WIDGET GRID (data-driven, respects customization prefs) ════════ */}
+        {(() => {
+          // Compute which widgets are available for this tier
+          const available = new Set<string>([
+            ...(ent.canViewSlateDropWidget ? ["slatedrop"] : []),
+            "data-usage","processing","financial","calendar","weather","continue","contacts","suggest",
+            ...(ent.canManageSeats ? ["seats"] : ["upgrade"]),
+          ]);
 
-          {/* ──────── DATA USAGE & CREDITS ──────── */}
-          <WidgetCard icon={CreditCard} title="Data Usage & Credits" delay={0} action={
+          function getSpan(id: string, expanded: boolean): string {
+            if (id === "seats") return "md:col-span-2 xl:col-span-3";
+            if (id === "calendar") return expanded ? "md:col-span-2 xl:col-span-3" : "md:col-span-2 xl:col-span-2";
+            return expanded ? "md:col-span-2 xl:col-span-3" : "";
+          }
+
+          function renderWidget(id: string, expanded: boolean): React.ReactNode {
+            const span = getSpan(id, expanded);
+            switch (id) {
+
+              case "slatedrop": return (
+          <WidgetCard key={id} icon={FolderOpen} title="SlateDrop" span={span} delay={0} action={
+            <button
+              onClick={openSlateDrop}
+              className="text-[10px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-1"
+            >
+              Open <ArrowUpRight size={10} />
+            </button>
+          }>
+            <div className="space-y-4">
+              {/* Storage bar */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-gray-500">Storage used</span>
+                  <span className="text-xs font-bold text-gray-900">{storageUsed} GB / {ent.maxStorageGB} GB</span>
+                </div>
+                <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${Math.min((storageUsed / ent.maxStorageGB) * 100, 100)}%`,
+                      backgroundColor: (storageUsed / ent.maxStorageGB) > 0.85 ? "#EF4444" : "#FF4D00",
+                    }}
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1">{(ent.maxStorageGB - storageUsed).toFixed(1)} GB available</p>
+              </div>
+              {/* Recent files placeholder */}
+              <div className="space-y-2">
+                {["Welcome to SlateDrop.pdf", "Getting Started Guide.pdf", "stadium-model.glb"].map((name, i) => (
+                  <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <FileText size={13} className="text-gray-400 shrink-0" />
+                    <span className="text-[11px] text-gray-700 truncate flex-1">{name}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={openSlateDrop}
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
+                style={{ backgroundColor: "#FF4D00" }}
+              >
+                <FolderOpen size={13} /> Open SlateDrop
+              </button>
+            </div>
+          </WidgetCard>
+          );
+
+              case "data-usage": return (
+          <WidgetCard key={id} icon={CreditCard} title="Data Usage & Credits" span={span} delay={0} action={
             <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
               {ent.label}
             </span>
@@ -703,9 +1145,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </div>
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── PROCESSING JOBS ──────── */}
-          <WidgetCard icon={Cpu} title="Processing Jobs" delay={50} action={
+              case "processing": return (
+          <WidgetCard key={id} icon={Cpu} title="Processing Jobs" span={span} delay={50} action={
             <span className="text-[11px] text-gray-400 font-medium">{demoJobs.filter((j) => j.status === "processing").length} active</span>
           }>
             <div className="space-y-3">
@@ -739,9 +1182,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               ))}
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── FINANCIAL SNAPSHOT ──────── */}
-          <WidgetCard icon={TrendingUp} title="Financial Snapshot" delay={100} action={
+              case "financial": return (
+          <WidgetCard key={id} icon={TrendingUp} title="Financial Snapshot" span={span} delay={100} action={
             <span className="text-[11px] text-gray-400 font-medium">Last 6 months</span>
           }>
             <div className="space-y-4">
@@ -777,12 +1221,14 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </div>
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── CALENDAR ──────── */}
+              case "calendar": return (
           <WidgetCard
+            key={id}
             icon={CalendarIcon}
             title="Calendar"
-            span="md:col-span-2 xl:col-span-2"
+            span={span}
             delay={150}
             action={
               <button
@@ -876,9 +1322,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </div>
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── WEATHER ──────── */}
-          <WidgetCard icon={Cloud} title="Weather" delay={200} action={
+              case "weather": return (
+          <WidgetCard key={id} icon={Cloud} title="Weather" span={span} delay={200} action={
             <span className="text-[10px] text-gray-400 font-medium flex items-center gap-1"><MapPin size={10} />{demoWeather.location}</span>
           }>
             <div className="space-y-4">
@@ -943,9 +1390,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </button>
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── CONTINUE WORKING ──────── */}
-          <WidgetCard icon={Clock} title="Continue Working" delay={250} action={
+              case "continue": return (
+          <WidgetCard key={id} icon={Clock} title="Continue Working" span={span} delay={250} action={
             <Link href="/dashboard" className="text-[11px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-0.5">
               View all <ArrowRight size={11} />
             </Link>
@@ -972,9 +1420,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               })}
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── CONTACTS ──────── */}
-          <WidgetCard icon={Users} title="Contacts" delay={300} action={
+              case "contacts": return (
+          <WidgetCard key={id} icon={Users} title="Contacts" span={span} delay={300} action={
             <button className="text-[11px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-0.5">
               <UserPlus size={12} /> Add
             </button>
@@ -1015,9 +1464,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </div>
             </div>
           </WidgetCard>
+          );
 
-          {/* ──────── SUGGEST FEATURE ──────── */}
-          <WidgetCard icon={Lightbulb} title="Suggest a Feature" delay={350}>
+              case "suggest": return (
+          <WidgetCard key={id} icon={Lightbulb} title="Suggest a Feature" span={span} delay={350}>
             {suggestDone ? (
               <div className="text-center py-6">
                 <CheckCircle2 size={32} className="mx-auto mb-3 text-emerald-500" />
@@ -1075,13 +1525,14 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </div>
             )}
           </WidgetCard>
+          );
 
-          {/* ──────── SEAT MANAGEMENT (Business+ only) ──────── */}
-          {ent.canManageSeats && (
+              case "seats": return (
             <WidgetCard
+              key={id}
               icon={Users}
               title="Seat Management"
-              span="md:col-span-2 xl:col-span-3"
+              span={span}
               delay={400}
               action={
                 <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: "#FF4D00" }}>
@@ -1134,11 +1585,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 </div>
               </div>
             </WidgetCard>
-          )}
+          );
 
-          {/* Upgrade card for non-Business tiers */}
-          {!ent.canManageSeats && (
-            <WidgetCard icon={Zap} title="Unlock more power" delay={400}>
+              case "upgrade": return (
+            <WidgetCard key={id} icon={Zap} title="Unlock more power" span={span} delay={400}>
               <div className="text-center py-4">
                 <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#FF4D001A" }}>
                   <Zap size={24} style={{ color: "#FF4D00" }} />
@@ -1156,44 +1606,209 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 </Link>
               </div>
             </WidgetCard>
+          );
+
+              default: return null;
+            }
+          }
+
+          const orderedVisible = [...widgetPrefs]
+            .filter((p) => p.visible && available.has(p.id))
+            .sort((a, b) => a.order - b.order);
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {orderedVisible.map((p) => renderWidget(p.id, p.expanded))}
+            </div>
+          );
+        })()}
+
+        </>
+        )}
+
+        {/* ════════ SPECIFIC TAB WIREFRAME ════════ */}
+        {activeTab === "market" && (
+          <MarketClient user={user} tier={tier} />
+        )}
+        {activeTab !== "overview" && activeTab !== "market" && (() => {
+          const tab = visibleTabs.find((t) => t.id === activeTab);
+          if (!tab) return null;
+          return <TabWireframe tab={tab} onBack={() => setActiveTab("overview")} onOpenSlateDrop={openSlateDrop} />;
+        })()}
+      </main>
+
+      {/* ════════ CUSTOMIZE PANEL (right-side drawer) ════════ */}
+      {customizeOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/30 z-50 backdrop-blur-sm" onClick={() => setCustomizeOpen(false)} />
+          <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-white z-50 shadow-2xl flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div>
+                <h2 className="text-base font-black text-gray-900">Customize Dashboard</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Reorder, show or hide, and resize widgets</p>
+              </div>
+              <button onClick={() => setCustomizeOpen(false)} className="w-8 h-8 rounded-lg text-gray-400 hover:bg-gray-100 flex items-center justify-center transition-colors">
+                <XCircle size={18} />
+              </button>
+            </div>
+
+            {/* Widget list */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
+              {[...widgetPrefs].sort((a, b) => a.order - b.order).map((pref) => {
+                const meta = WIDGET_META.find((m) => m.id === pref.id);
+                if (!meta) return null;
+                // Hide tier-gated widgets the user can't access
+                if (meta.id === "seats" && !ent.canManageSeats) return null;
+                if (meta.id === "upgrade" && ent.canManageSeats) return null;
+                const Icon = meta.icon;
+                const pos = [...widgetPrefs].sort((a, b) => a.order - b.order).findIndex((p) => p.id === pref.id);
+                const total = widgetPrefs.length;
+                return (
+                  <div
+                    key={pref.id}
+                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                      pref.visible ? "border-gray-200 bg-white" : "border-gray-100 bg-gray-50 opacity-60"
+                    }`}
+                  >
+                    {/* Drag handle / order controls */}
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        onClick={() => moveWidget(pref.id, -1)}
+                        disabled={pos === 0}
+                        className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors"
+                      >
+                        <ChevronUp size={14} />
+                      </button>
+                      <button
+                        onClick={() => moveWidget(pref.id, 1)}
+                        disabled={pos >= total - 1}
+                        className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors"
+                      >
+                        <ChevronDown size={14} />
+                      </button>
+                    </div>
+
+                    {/* Icon */}
+                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+                      <Icon size={15} />
+                    </div>
+
+                    {/* Label */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-900">{meta.label}</p>
+                      <p className="text-[10px] text-gray-400">{pref.expanded ? "Full width" : "Normal"}</p>
+                    </div>
+
+                    {/* Expanded toggle */}
+                    <button
+                      onClick={() => toggleExpanded(pref.id)}
+                      title={pref.expanded ? "Shrink to normal" : "Expand to full width"}
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                        pref.expanded ? "bg-[#1E3A8A]/10 text-[#1E3A8A]" : "text-gray-300 hover:text-gray-500"
+                      }`}
+                    >
+                      {pref.expanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                    </button>
+
+                    {/* Visible toggle */}
+                    <button
+                      onClick={() => toggleVisible(pref.id)}
+                      title={pref.visible ? "Hide widget" : "Show widget"}
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                        pref.visible ? "bg-[#FF4D00]/10 text-[#FF4D00]" : "text-gray-300 hover:text-gray-500"
+                      }`}
+                    >
+                      {pref.visible ? <Eye size={13} /> : <EyeOff size={13} />}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Footer actions */}
+            <div className="px-6 py-4 border-t border-gray-100 space-y-2">
+              {prefsDirty && (
+                <p className="text-[10px] text-amber-600 text-center font-medium">You have unsaved changes</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={resetPrefs}
+                  className="flex-1 text-xs font-semibold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  Reset to default
+                </button>
+                <button
+                  onClick={async () => { await savePrefs(); setCustomizeOpen(false); }}
+                  disabled={prefsSaving || !prefsDirty}
+                  className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl text-white transition-all hover:opacity-90 disabled:opacity-50"
+                  style={{ backgroundColor: "#FF4D00" }}
+                >
+                  {prefsSaving ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
+                  {prefsSaving ? "Saving…" : "Save layout"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ════════ SLATEDROP FLOATING WINDOW ════════ */}
+      {slateDropOpen && (
+        <div
+          className="fixed z-[9999] flex flex-col rounded-2xl overflow-hidden shadow-[0_32px_80px_-12px_rgba(0,0,0,0.55)] border border-gray-700/70"
+          style={{ left: sdPos.x, top: sdPos.y, width: sdSize.w, height: sdMinimized ? "auto" : sdSize.h }}
+        >
+          {/* ── Title bar / drag handle ── */}
+          <div
+            className="flex items-center gap-3 px-4 h-11 bg-gray-900 select-none shrink-0 cursor-grab active:cursor-grabbing"
+            onPointerDown={onSdTitleDown}
+            onPointerMove={onSdPointerMove}
+            onPointerUp={onSdPointerUp}
+          >
+            {/* Traffic-light buttons */}
+            <div className="flex items-center gap-1.5" onPointerDown={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setSlateDropOpen(false)}
+                className="w-3.5 h-3.5 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center group transition-colors"
+                title="Close"
+              >
+                <X size={7} className="text-red-900 opacity-0 group-hover:opacity-100" />
+              </button>
+              <button
+                onClick={() => setSdMinimized((v) => !v)}
+                className="w-3.5 h-3.5 rounded-full bg-yellow-400 hover:bg-yellow-300 transition-colors"
+                title={sdMinimized ? "Restore" : "Minimise"}
+              />
+              <button
+                onClick={() => { setSdSize({ w: window.innerWidth - 32, h: window.innerHeight - 32 }); setSdPos({ x: 16, y: 16 }); setSdMinimized(false); }}
+                className="w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-400 transition-colors"
+                title="Maximise"
+              />
+            </div>
+            <FolderOpen size={14} className="text-[#FF4D00] ml-1 shrink-0" />
+            <span className="text-[13px] font-semibold text-white/90 flex-1 text-center -ml-8 pointer-events-none">SlateDrop</span>
+          </div>
+
+          {/* ── Embedded SlateDropClient ── */}
+          {!sdMinimized && (
+            <div className="flex-1 overflow-hidden">
+              <SlateDropClient user={user} tier={tier} />
+            </div>
+          )}
+
+          {/* ── Resize handle (bottom-right corner) ── */}
+          {!sdMinimized && (
+            <div
+              className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize"
+              style={{ background: "linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.18) 50%)" }}
+              onPointerDown={onSdResizeDown}
+              onPointerMove={onSdPointerMove}
+              onPointerUp={onSdPointerUp}
+            />
           )}
         </div>
-
-        {/* ── Quick Access Bar ── */}
-        <div className="mt-10 mb-4">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Access</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-8 gap-3">
-            {[
-              { icon: Palette, label: "Design Studio", href: "/features/design-studio", color: "#FF4D00" },
-              { icon: Layers, label: "Content Studio", href: "/features/content-studio", color: "#1E3A8A" },
-              { icon: Compass, label: "360 Tours", href: "/features/360-tour-builder", color: "#FF4D00" },
-              { icon: Globe, label: "Geospatial", href: "/features/geospatial-robotics", color: "#1E3A8A" },
-              { icon: Film, label: "Virtual Studio", href: "/features/virtual-studio", color: "#FF4D00" },
-              { icon: BarChart3, label: "Analytics", href: "/features/analytics-reports", color: "#1E3A8A" },
-              { icon: FolderOpen, label: "SlateDrop", href: "/features/slatedrop", color: "#FF4D00" },
-              { icon: Activity, label: "Project Hub", href: "/features/project-hub", color: "#1E3A8A" },
-              ...(user.email === "slate360ceo@gmail.com" ? [{ icon: Bot, label: "Market Robot", href: "/market", color: "#1E3A8A" }] : []),
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition-all group"
-                >
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors"
-                    style={{ backgroundColor: `${item.color}1A`, color: item.color }}
-                  >
-                    <Icon size={18} />
-                  </div>
-                  <span className="text-[11px] font-semibold text-gray-600 group-hover:text-gray-900 transition-colors text-center leading-tight">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </main>
+      )}
     </div>
   );
 }
