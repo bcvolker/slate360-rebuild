@@ -1628,7 +1628,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
         {/* ════════ SPECIFIC TAB WIREFRAME ════════ */}
         {activeTab === "market" && (
-          <MarketClient user={user} tier={tier} />
+          <MarketClient />
         )}
         {activeTab !== "overview" && activeTab !== "market" && (() => {
           const tab = visibleTabs.find((t) => t.id === activeTab);

@@ -1,1311 +1,1660 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { createClient } from "@/lib/supabase/client";
-import type { Tier } from "@/lib/entitlements";
+import React, { useState, useEffect, useRef } from "react";
 import {
-  Bot,
-  Activity,
-  Wallet,
-  ShieldAlert,
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
-  BarChart3,
-  Power,
-  OctagonX,
-  CheckCircle2,
-  Loader2,
-  Clock,
-  Zap,
-  Shield,
-  Flame,
-  ToggleLeft,
-  ToggleRight,
-  Copy,
-  CircleDot,
-  Crosshair,
+  useAccount,
+  useConnect,
+  useDisconnect,
+  useSignMessage,
+} from "wagmi";
+import { metaMask } from "wagmi/connectors";
+import {
   LineChart,
-  ShoppingCart,
-  Fish,
-  ArrowUpRight,
-  ArrowDownRight,
-  RefreshCw,
-} from "lucide-react";
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  Legend,
+  AreaChart,
+  Area,
+} from "recharts";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-/* ================================================================
-   TYPES
-   ================================================================ */
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface MarketProps {
-  user: { name: string; email: string; avatar?: string };
-  tier: Tier;
-}
-
-type BotStatus = "stopped" | "running" | "paper";
-type RiskLevel = "low" | "medium" | "high";
-type FocusArea =
-  | "all"
-  | "crypto"
-  | "politics"
-  | "sports"
-  | "weather"
-  | "economy";
-
-interface PortfolioMix {
-  low: number;
-  medium: number;
-  high: number;
-}
-
-interface BotConfig {
-  riskLevel: RiskLevel;
-  maxDailyLoss: number;
-  emergencyStopPct: number;
-  paperMode: boolean;
-  walletAddress: string | null;
-  botStatus: BotStatus;
-  portfolioMix: PortfolioMix;
-  focusAreas: FocusArea[];
-  whaleWatch: boolean;
-}
-
-interface HotOpportunity {
+interface MarketTrade {
   id: string;
-  question: string;
-  edge: number;
-  side: "YES" | "NO";
-  price: number;
-  volume: string;
+  market_id: string;
+  market_title: string;
+  outcome: string;
+  shares: number;
+  avg_price: number;
+  current_price: number;
+  pnl: number;
+  status: "open" | "closed" | "paper";
+  created_at: string;
+  category?: string;
+  probability?: number;
+  volume?: number;
+}
+
+interface BuyDirective {
+  id?: string;
+  name: string;
+  amount: number;
+  timeframe: string;
+  buys_per_day: number;
+  risk_mix: "conservative" | "balanced" | "aggressive";
+  whale_follow: boolean;
+  focus_areas: string[];
+  profit_strategy: "arbitrage" | "market-making" | "whale-copy" | "longshot";
+  paper_mode: boolean;
+  created_at?: string;
+}
+
+interface SimRun {
+  id: string;
+  name: string;
+  created_at: string;
+  config: BuyDirective;
+  pnl_data: { label: string; pnl: number }[];
+  total_pnl: number;
+  win_rate: number;
+  trade_count: number;
+}
+
+interface WhaleActivity {
+  whale_address: string;
+  market_title: string;
+  outcome: string;
+  shares: number;
+  amount_usd: number;
+  timestamp: string;
   category: string;
 }
 
-interface TradeRow {
+interface MarketListing {
   id: string;
-  question: string;
-  side: "YES" | "NO";
-  shares: number;
-  price: number;
-  total: number;
-  pnl: number | null;
-  status: "open" | "closed" | "cancelled";
-  paper_trade: boolean;
-  created_at: string;
-  reason?: string;
-}
-
-const DEFAULT_CONFIG: BotConfig = {
-  riskLevel: "low",
-  paperMode: true,
-  maxDailyLoss: 25,
-  emergencyStopPct: 15,
-  walletAddress: null,
-  botStatus: "stopped",
-  portfolioMix: { low: 60, medium: 30, high: 10 },
-  focusAreas: ["all"],
-  whaleWatch: false,
-};
-
-/* ================================================================
-   DEMO DATA
-   ================================================================ */
-
-const demoOpportunities: HotOpportunity[] = [
-  {
-    id: "h1",
-    question: "Will BTC hit $120k by March?",
-    edge: 4.2,
-    side: "YES",
-    price: 0.62,
-    volume: "$142k",
-    category: "Crypto",
-  },
-  {
-    id: "h2",
-    question: "Fed rate cut in Q2 2026?",
-    edge: 3.8,
-    side: "NO",
-    price: 0.38,
-    volume: "$89k",
-    category: "Economy",
-  },
-  {
-    id: "h3",
-    question: "Super Bowl LXII winner: Chiefs?",
-    edge: 2.9,
-    side: "YES",
-    price: 0.44,
-    volume: "$312k",
-    category: "Sports",
-  },
-];
-
-const CHART_DATA = [12, 18, 14, 22, 19, 28, 25, 32, 29, 35, 31, 38, 42, 39, 47];
-
-/* ================================================================
-   HELPERS
-   ================================================================ */
-
-function shortenAddress(addr: string): string {
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
-
-const statusConfig: Record<
-  BotStatus,
-  { label: string; color: string; bg: string; dot: string }
-> = {
-  stopped: {
-    label: "Stopped",
-    color: "text-red-600",
-    bg: "bg-red-50 border-red-200",
-    dot: "bg-red-500",
-  },
-  running: {
-    label: "Running",
-    color: "text-emerald-600",
-    bg: "bg-emerald-50 border-emerald-200",
-    dot: "bg-emerald-500",
-  },
-  paper: {
-    label: "Paper Trading",
-    color: "text-amber-600",
-    bg: "bg-amber-50 border-amber-200",
-    dot: "bg-amber-500",
-  },
-};
-
-const riskConfig: Record<
-  RiskLevel,
-  { label: string; desc: string; icon: typeof Shield; color: string }
-> = {
-  low: { label: "Low Risk", desc: "Tiny arbitrage & spreads", icon: Shield, color: "#059669" },
-  medium: { label: "Medium", desc: "Moderate positions", icon: Zap, color: "#D97706" },
-  high: { label: "High Risk", desc: "Aggressive trading", icon: Flame, color: "#DC2626" },
-};
-
-const focusOptions: { key: FocusArea; label: string; emoji: string }[] = [
-  { key: "all", label: "All Markets", emoji: "🌍" },
-  { key: "crypto", label: "Crypto", emoji: "₿" },
-  { key: "politics", label: "Politics", emoji: "🏛️" },
-  { key: "sports", label: "Sports", emoji: "⚽" },
-  { key: "weather", label: "Weather", emoji: "🌦️" },
-  { key: "economy", label: "Economy", emoji: "📈" },
-];
-
-/* ================================================================
-   CONFIRMATION DIALOG
-   ================================================================ */
-
-function ConfirmDialog({
-  open,
-  title,
-  description,
-  confirmLabel,
-  confirmColor,
-  onConfirm,
-  onCancel,
-}: {
-  open: boolean;
   title: string;
-  description: string;
-  confirmLabel: string;
-  confirmColor: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  if (!open) return null;
+  category: string;
+  probability: number;
+  volume24h: number;
+  edge_pct: number;
+  outcome_yes: number;
+  outcome_no: number;
+  bookmarked: boolean;
+  risk_tag: "hot" | "high-risk" | "construction" | "high-potential" | null;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const FOCUS_AREAS = [
+  "Construction", "Real Estate", "Politics", "Sports",
+  "Crypto", "Finance", "Science", "Tech", "Entertainment"
+];
+
+const RISK_COLORS = {
+  hot: "#FF4D00",
+  "high-risk": "#ef4444",
+  "high-potential": "#22c55e",
+  construction: "#1E3A8A",
+};
+
+const TABS = ["Overview", "Markets", "Hot Opps", "Directives", "Whale Watch", "Sim Compare"];
+
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
+function HelpTip({ content }: { content: string }) {
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative bg-white rounded-2xl border border-gray-200 shadow-2xl w-full max-w-md p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: `${confirmColor}1A`, color: confirmColor }}
-          >
-            <ShieldAlert size={20} />
-          </div>
-          <h3 className="text-lg font-bold text-gray-900">{title}</h3>
-        </div>
-        <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
-        <div className="flex items-center gap-3 pt-2">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
-            style={{ backgroundColor: confirmColor }}
-          >
-            {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-600 text-slate-300 text-[10px] cursor-help ml-1 select-none">?</span>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs text-xs">
+        {content}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
-/* ================================================================
-   MINI LINE CHART
-   ================================================================ */
-
-function MiniChart({ data, color }: { data: number[]; color: string }) {
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const range = max - min || 1;
-  const w = 100;
-  const h = 40;
-  const points = data
-    .map((v, i) => `${(i / (data.length - 1)) * w},${h - ((v - min) / range) * h}`)
-    .join(" ");
+function StatusBadge({ status }: { status: string }) {
+  const colors: Record<string, string> = {
+    open: "bg-green-900/60 text-green-300 border border-green-700",
+    closed: "bg-slate-700 text-slate-400",
+    paper: "bg-purple-900/60 text-purple-300 border border-purple-700",
+    connected: "bg-green-900/60 text-green-300",
+    disconnected: "bg-slate-700 text-slate-400",
+    running: "bg-orange-900/60 text-orange-300 border border-orange-700",
+    idle: "bg-slate-700 text-slate-400",
+  };
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-10" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id={`chartGrad-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity={0.2} />
-          <stop offset="100%" stopColor={color} stopOpacity={0} />
-        </linearGradient>
-      </defs>
-      <polygon
-        points={`0,${h} ${points} ${w},${h}`}
-        fill={`url(#chartGrad-${color.replace("#", "")})`}
-      />
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${colors[status] || colors.idle}`}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
   );
 }
 
-/* ================================================================
-   MAIN COMPONENT
-   ================================================================ */
+// ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function MarketClient({ user, tier }: MarketProps) {
-  const supabase = createClient();
+export default function MarketClient() {
+  // Wagmi
+  const { address, isConnected, chain } = useAccount();
+  const { connect, isPending: isConnecting } = useConnect();
+  const { disconnect } = useDisconnect();
+  const { signMessageAsync } = useSignMessage();
 
-  /* ── State ── */
-  const [config, setConfig] = useState<BotConfig>(DEFAULT_CONFIG);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [confirmStart, setConfirmStart] = useState(false);
-  const [confirmStop, setConfirmStop] = useState(false);
-  const [walletConnecting, setWalletConnecting] = useState(false);
-  const [copied, setCopied] = useState(false);
+  // Tabs
+  const [activeTab, setActiveTab] = useState("Overview");
+
+  // Bot state
+  const [botRunning, setBotRunning] = useState(false);
+  const [botPaused, setBotPaused] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [lastScan, setLastScan] = useState<string | null>(null);
-  const [scanResult, setScanResult] = useState<{
-    marketsScanned: number;
-    opportunitiesFound: number;
-    executedTrades: number;
-  } | null>(null);
-  const [trades, setTrades] = useState<TradeRow[]>([]);
-  const [tradesLoading, setTradesLoading] = useState(false);
-  const [opportunities, setOpportunities] =
-    useState<HotOpportunity[]>(demoOpportunities);
-  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const scanInterval = useRef<ReturnType<typeof setInterval> | null>(null);
-  const scanningRef = useRef(false);
+  const [scanLog, setScanLog] = useState<string[]>([]);
+  const logRef = useRef<HTMLDivElement>(null);
 
-  /* ── Computed ── */
-  const todayPnl = config.botStatus === "stopped" ? 0 : 47.3;
-  const totalBalance = config.walletAddress ? 1248.65 : 0;
-  const activePositions =
-    config.botStatus === "stopped"
-      ? 0
-      : trades.filter((t) => t.status === "open").length || 4;
-  const volume24h = config.botStatus === "stopped" ? 0 : 892.4;
-  const status = statusConfig[config.botStatus];
+  // Config
+  const [paperMode, setPaperMode] = useState(true);
+  const [maxPositions, setMaxPositions] = useState(5);
+  const [capitalAlloc, setCapitalAlloc] = useState(500);
+  const [minEdge, setMinEdge] = useState(3);
+  const [minVolume, setMinVolume] = useState(10000);
+  const [minProbLow, setMinProbLow] = useState(10);
+  const [minProbHigh, setMinProbHigh] = useState(90);
+  const [whaleFollow, setWhaleFollow] = useState(false);
+  const [riskMix, setRiskMix] = useState<"conservative" | "balanced" | "aggressive">("balanced");
+  const [focusAreas, setFocusAreas] = useState<string[]>(["Construction"]);
 
-  /* ── Load config from Supabase ── */
+  // Wallet
+  const [walletVerified, setWalletVerified] = useState(false);
+  const [walletError, setWalletError] = useState("");
+
+  // Trades & chart
+  const [trades, setTrades] = useState<MarketTrade[]>([]);
+  const [pnlChart, setPnlChart] = useState<{ label: string; pnl: number; cumPnl: number }[]>([]);
+  const [loadingTrades, setLoadingTrades] = useState(false);
+
+  // Whale watch
+  const [whaleData, setWhaleData] = useState<WhaleActivity[]>([]);
+  const [loadingWhales, setLoadingWhales] = useState(false);
+  const [whaleFilter, setWhaleFilter] = useState("all");
+
+  // Markets Explorer
+  const [markets, setMarkets] = useState<MarketListing[]>([]);
+  const [loadingMarkets, setLoadingMarkets] = useState(false);
+  const [marketSearch, setMarketSearch] = useState("");
+  const [mktCategory, setMktCategory] = useState("all");
+  const [mktProbMin, setMktProbMin] = useState(0);
+  const [mktProbMax, setMktProbMax] = useState(100);
+  const [mktMinVol, setMktMinVol] = useState(0);
+  const [mktMinEdge, setMktMinEdge] = useState(0);
+  const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
+
+  // Hot Opps tab
+  const [hotTab, setHotTab] = useState("All");
+
+  // Saved Directives
+  const [directives, setDirectives] = useState<BuyDirective[]>([]);
+  const [editingDirective, setEditingDirective] = useState<BuyDirective | null>(null);
+  const [directiveName, setDirectiveName] = useState("");
+  const [directiveAmount, setDirectiveAmount] = useState(100);
+  const [directiveTimeframe, setDirectiveTimeframe] = useState("1w");
+  const [directiveBuysPerDay, setDirectiveBuysPerDay] = useState(3);
+  const [directiveRisk, setDirectiveRisk] = useState<BuyDirective["risk_mix"]>("balanced");
+  const [directiveWhale, setDirectiveWhale] = useState(false);
+  const [directiveFocus, setDirectiveFocus] = useState<string[]>(["Construction"]);
+  const [directiveStrategy, setDirectiveStrategy] = useState<BuyDirective["profit_strategy"]>("arbitrage");
+  const [directivePaper, setDirectivePaper] = useState(true);
+
+  // Sim runs
+  const [simRuns, setSimRuns] = useState<SimRun[]>([]);
+  const [compareA, setCompareA] = useState<string | null>(null);
+  const [compareB, setCompareB] = useState<string | null>(null);
+
+  // ── Effects ────────────────────────────────────────────────────────────────
+
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user: u } }) => {
-      const saved = u?.user_metadata?.marketBotConfig as BotConfig | undefined;
-      if (saved && typeof saved === "object") {
-        setConfig({ ...DEFAULT_CONFIG, ...saved });
-      }
-      setLoading(false);
-    });
-  }, [supabase]);
-
-  /* ── Load trades from Supabase ── */
-  const loadTrades = useCallback(async () => {
-    setTradesLoading(true);
-    try {
-      const res = await fetch("/api/market/trades?limit=20");
-      if (res.ok) {
-        const data = await res.json();
-        setTrades(data.trades ?? []);
-      }
-    } catch {
-      /* silently handle */
-    } finally {
-      setTradesLoading(false);
-    }
+    fetchTrades();
+    fetchMarkets();
+    loadDirectives();
+    loadSimRuns();
   }, []);
 
   useEffect(() => {
-    loadTrades();
-  }, [loadTrades]);
+    if (logRef.current) {
+      logRef.current.scrollTop = logRef.current.scrollHeight;
+    }
+  }, [scanLog]);
 
-  /* ── Auto-save config ── */
-  const persistConfig = useCallback(
-    (next: BotConfig) => {
-      setConfig(next);
-      if (saveTimeout.current) clearTimeout(saveTimeout.current);
-      saveTimeout.current = setTimeout(async () => {
-        setSaving(true);
-        try {
-          await supabase.auth.updateUser({ data: { marketBotConfig: next } });
-        } finally {
-          setSaving(false);
-        }
-      }, 800);
-    },
-    [supabase],
-  );
-
-  const updateConfig = useCallback(
-    (patch: Partial<BotConfig>) => {
-      persistConfig({ ...config, ...patch });
-    },
-    [config, persistConfig],
-  );
-
-  /* ── Portfolio Mix (always sums to 100%) ── */
-  function handleMixChange(key: keyof PortfolioMix, value: number) {
-    const mix = { ...config.portfolioMix };
-    const old = mix[key];
-    const diff = value - old;
-    mix[key] = value;
-
-    const others = (Object.keys(mix) as (keyof PortfolioMix)[]).filter(
-      (k) => k !== key,
+  useEffect(() => {
+    // Build cumulative PNL chart from trades
+    const sorted = [...trades].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     );
-    const otherTotal = others.reduce((s, k) => s + mix[k], 0);
-    if (otherTotal > 0) {
-      for (const k of others) {
-        mix[k] = Math.max(0, Math.round(mix[k] - (diff * mix[k]) / otherTotal));
-      }
-    }
-    const total = mix.low + mix.medium + mix.high;
-    if (total !== 100) {
-      const adjust = others.find((k) => mix[k] > 0);
-      if (adjust) mix[adjust] += 100 - total;
-    }
-    updateConfig({ portfolioMix: mix });
-  }
+    let cum = 0;
+    const pts = sorted.map((t, i) => {
+      cum += t.pnl || 0;
+      return {
+        label: `Trade ${i + 1}`,
+        pnl: t.pnl || 0,
+        cumPnl: parseFloat(cum.toFixed(2)),
+      };
+    });
+    setPnlChart(pts);
+  }, [trades]);
 
-  /* ── Focus Areas ── */
-  function toggleFocus(area: FocusArea) {
-    let next: FocusArea[];
-    if (area === "all") {
-      next = ["all"];
-    } else {
-      const current = config.focusAreas.filter((a) => a !== "all");
-      next = current.includes(area)
-        ? current.filter((a) => a !== area)
-        : [...current, area];
-      if (next.length === 0) next = ["all"];
-    }
-    updateConfig({ focusAreas: next });
-  }
+  // ── Data fetchers ──────────────────────────────────────────────────────────
 
-  /* ── Scan ── */
-  const runScan = useCallback(async () => {
-    if (scanningRef.current) return;
-    scanningRef.current = true;
-    setScanning(true);
+  const fetchTrades = async () => {
+    setLoadingTrades(true);
     try {
-      const res = await fetch("/api/market/scan", { method: "POST" });
+      const res = await fetch("/api/market/trades");
       if (res.ok) {
         const data = await res.json();
-        setScanResult({
-          marketsScanned: data.marketsScanned,
-          opportunitiesFound: data.opportunitiesFound,
-          executedTrades: data.executedTrades,
-        });
-        setLastScan(new Date().toLocaleTimeString());
-
-        if (data.topOpportunities?.length > 0) {
-          setOpportunities(
-            data.topOpportunities
-              .slice(0, 3)
-              .map(
-                (o: {
-                  id: string;
-                  question: string;
-                  edge: number;
-                  yesPrice: number;
-                  noPrice: number;
-                  volume24h: number;
-                  category: string;
-                }) => ({
-                  id: o.id,
-                  question: o.question,
-                  edge: o.edge,
-                  side: o.yesPrice < o.noPrice ? "YES" : "NO",
-                  price: Math.min(o.yesPrice, o.noPrice),
-                  volume: `$${Math.round(o.volume24h / 1000)}k`,
-                  category:
-                    o.category.charAt(0).toUpperCase() + o.category.slice(1),
-                }),
-              ),
-          );
-        }
-
-        loadTrades();
+        setTrades(data.trades || []);
       }
-    } catch {
-      /* silently handle */
+    } catch (e) {
+      console.error("fetchTrades", e);
     } finally {
-      scanningRef.current = false;
+      setLoadingTrades(false);
+    }
+  };
+
+  const fetchMarkets = async () => {
+    setLoadingMarkets(true);
+    try {
+      const res = await fetch(
+        "https://gamma-api.polymarket.com/markets?limit=100&active=true&closed=false&order=volume24hr&ascending=false",
+        { next: { revalidate: 60 } }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const mapped: MarketListing[] = (data || []).slice(0, 80).map((m: Record<string, unknown>) => {
+          const prob = parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[0] : 0)) * 100;
+          const vol = parseFloat(String(m.volume24hr || 0));
+          const spread = m.outcomePrices ? Math.abs(parseFloat(String((m.outcomePrices as string[])[0])) - 0.5) : 0;
+          const edge = parseFloat((spread * 100 * 1.4).toFixed(1));
+          const tag: MarketListing["risk_tag"] =
+            edge > 20 ? "hot" :
+            prob > 80 || prob < 20 ? "high-risk" :
+            String(m.category || "").toLowerCase().includes("construction") ? "construction" :
+            vol > 50000 ? "high-potential" : null;
+          return {
+            id: String(m.id || m.conditionId || Math.random()),
+            title: String(m.question || m.title || ""),
+            category: String(m.category || "General"),
+            probability: parseFloat(prob.toFixed(1)),
+            volume24h: vol,
+            edge_pct: edge,
+            outcome_yes: parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[0] : 0)),
+            outcome_no: parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[1] : 0)),
+            bookmarked: bookmarks.has(String(m.id || m.conditionId)),
+            risk_tag: tag,
+          };
+        });
+        setMarkets(mapped);
+      }
+    } catch (e) {
+      console.error("fetchMarkets", e);
+    } finally {
+      setLoadingMarkets(false);
+    }
+  };
+
+  const fetchWhales = async () => {
+    setLoadingWhales(true);
+    try {
+      // Fetch large recent trades from Polymarket activity API
+      const res = await fetch(
+        "https://data-api.polymarket.com/activity?limit=50&side=BUY&minAmount=5000",
+        { next: { revalidate: 30 } }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const mapped: WhaleActivity[] = (data || []).slice(0, 30).map((a: Record<string, unknown>) => ({
+          whale_address: String(a.proxyWallet || a.user || "").slice(0, 10) + "…",
+          market_title: String(a.title || a.market || "Unknown market"),
+          outcome: String(a.side === "BUY" ? a.outcome || "YES" : a.outcome || "NO"),
+          shares: parseFloat(String(a.size || 0)),
+          amount_usd: parseFloat(String(a.usdcSize || a.amount || 0)),
+          timestamp: String(a.timestamp || new Date().toISOString()),
+          category: String(a.category || "General"),
+        }));
+        setWhaleData(mapped);
+      } else {
+        // Fallback: use top trades from our own DB
+        const r = await fetch("/api/market/trades");
+        if (r.ok) {
+          const d = await r.json();
+          const wh: WhaleActivity[] = (d.trades || [])
+            .filter((t: MarketTrade) => Math.abs(t.shares * t.avg_price) > 100)
+            .slice(0, 20)
+            .map((t: MarketTrade) => ({
+              whale_address: "0xbot…",
+              market_title: t.market_title,
+              outcome: t.outcome,
+              shares: t.shares,
+              amount_usd: t.shares * t.avg_price,
+              timestamp: t.created_at,
+              category: t.category || "General",
+            }));
+          setWhaleData(wh);
+        }
+      }
+    } catch (e) {
+      console.error("fetchWhales", e);
+    } finally {
+      setLoadingWhales(false);
+    }
+  };
+
+  // ── Wallet ─────────────────────────────────────────────────────────────────
+
+  const handleConnectWallet = async () => {
+    setWalletError("");
+    try {
+      if (!isConnected) {
+        connect({ connector: metaMask() });
+        return;
+      }
+      // Sign nonce to verify ownership
+      const nonce = `Slate360 Market Robot verification: ${Date.now()}`;
+      const signature = await signMessageAsync({ message: nonce });
+      const res = await fetch("/api/market/wallet-connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address, signature, nonce }),
+      });
+      if (res.ok) {
+        setWalletVerified(true);
+        addLog(`✅ Wallet verified: ${address}`);
+      } else {
+        const e = await res.json();
+        setWalletError(e.error || "Verification failed");
+      }
+    } catch (e: unknown) {
+      setWalletError((e as Error).message || "Connection failed");
+    }
+  };
+
+  // ── Bot controls ───────────────────────────────────────────────────────────
+
+  const addLog = (msg: string) => {
+    const ts = new Date().toLocaleTimeString();
+    setScanLog(prev => [`[${ts}] ${msg}`, ...prev].slice(0, 100));
+  };
+
+  const runScan = async () => {
+    setScanning(true);
+    addLog("🔍 Scanning Polymarket for opportunities…");
+    try {
+      const res = await fetch("/api/market/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paper_mode: paperMode,
+          max_positions: maxPositions,
+          capital_per_trade: capitalAlloc / maxPositions,
+          min_edge: minEdge / 100,
+          min_volume: minVolume,
+          min_probability: minProbLow / 100,
+          max_probability: minProbHigh / 100,
+          whale_follow: whaleFollow,
+          risk_mix: riskMix,
+          focus_areas: focusAreas,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        addLog(`✅ Scan complete — ${data.trades_executed || 0} trades executed`);
+        if (data.trades) {
+          data.trades.forEach((t: MarketTrade) => {
+            addLog(`  → ${t.outcome} on "${t.market_title?.slice(0, 40)}…" @ $${t.avg_price?.toFixed(3)}`);
+          });
+        }
+        setLastScan(new Date().toISOString());
+        await fetchTrades();
+      } else {
+        addLog(`❌ Scan failed: ${data.error || "Unknown error"}`);
+      }
+    } catch (e: unknown) {
+      addLog(`❌ Error: ${(e as Error).message}`);
+    } finally {
       setScanning(false);
     }
-  }, [loadTrades]);
+  };
 
-  /* ── Polling when bot is running ── */
-  useEffect(() => {
-    if (config.botStatus !== "stopped") {
-      runScan();
-      scanInterval.current = setInterval(runScan, 60_000);
-    } else {
-      if (scanInterval.current) {
-        clearInterval(scanInterval.current);
-        scanInterval.current = null;
-      }
+  const handleStartBot = async () => {
+    if (!paperMode && !walletVerified) {
+      addLog("⚠️ Wallet not verified — switching to paper mode");
+      setPaperMode(true);
     }
-    return () => {
-      if (scanInterval.current) clearInterval(scanInterval.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config.botStatus]);
+    setBotRunning(true);
+    setBotPaused(false);
+    addLog(`🤖 Bot started in ${paperMode ? "PAPER" : "LIVE"} mode`);
+    await runScan();
+  };
 
-  /* ── Actions ── */
-  function handleStart() {
-    const st: BotStatus = config.paperMode ? "paper" : "running";
-    updateConfig({ botStatus: st });
-    setConfirmStart(false);
-  }
+  const handlePauseBot = () => {
+    setBotPaused(p => !p);
+    addLog(botPaused ? "▶️ Bot resumed" : "⏸ Bot paused");
+  };
 
-  function handleStop() {
-    updateConfig({ botStatus: "stopped" });
-    setConfirmStop(false);
-    setScanResult(null);
-  }
+  const handleStopBot = () => {
+    setBotRunning(false);
+    setBotPaused(false);
+    addLog("⛔ Bot stopped");
+  };
 
-  async function handleConnectWallet() {
-    setWalletConnecting(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    const fakeAddr =
-      "0x" +
-      Array.from({ length: 40 }, () =>
-        Math.floor(Math.random() * 16).toString(16),
-      ).join("");
-    updateConfig({ walletAddress: fakeAddr });
-    setWalletConnecting(false);
-  }
+  // ── Focus areas toggle ─────────────────────────────────────────────────────
 
-  function handleCopyAddress() {
-    if (config.walletAddress) {
-      navigator.clipboard.writeText(config.walletAddress);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  }
-
-  /* ── Loading ── */
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-32">
-        <Loader2 size={28} className="animate-spin text-[#FF4D00]" />
-      </div>
+  const toggleFocus = (area: string) => {
+    setFocusAreas(prev =>
+      prev.includes(area) ? prev.filter(a => a !== area) : [...prev, area]
     );
-  }
+  };
 
-  /* ================================================================
-     RENDER
-     ================================================================ */
+  // ── Bookmarks ──────────────────────────────────────────────────────────────
+
+  const toggleBookmark = (id: string) => {
+    setBookmarks(prev => {
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+  };
+
+  // ── Directives CRUD ────────────────────────────────────────────────────────
+
+  const loadDirectives = () => {
+    try {
+      const saved = localStorage.getItem("slate360_directives");
+      if (saved) setDirectives(JSON.parse(saved));
+    } catch {}
+  };
+
+  const saveDirectives = (list: BuyDirective[]) => {
+    localStorage.setItem("slate360_directives", JSON.stringify(list));
+    setDirectives(list);
+  };
+
+  const handleSaveDirective = () => {
+    if (!directiveName.trim()) return;
+    const d: BuyDirective = {
+      id: editingDirective?.id || Date.now().toString(),
+      name: directiveName,
+      amount: directiveAmount,
+      timeframe: directiveTimeframe,
+      buys_per_day: directiveBuysPerDay,
+      risk_mix: directiveRisk,
+      whale_follow: directiveWhale,
+      focus_areas: directiveFocus,
+      profit_strategy: directiveStrategy,
+      paper_mode: directivePaper,
+      created_at: new Date().toISOString(),
+    };
+    const existing = directives.filter(x => x.id !== d.id);
+    saveDirectives([d, ...existing]);
+    resetDirectiveForm();
+    addLog(`💾 Directive "${d.name}" saved`);
+  };
+
+  const applyDirective = (d: BuyDirective) => {
+    setDirectiveAmount(d.amount);
+    setCapitalAlloc(d.amount);
+    setDirectiveBuysPerDay(d.buys_per_day);
+    setDirectiveRisk(d.risk_mix);
+    setRiskMix(d.risk_mix);
+    setDirectiveWhale(d.whale_follow);
+    setWhaleFollow(d.whale_follow);
+    setDirectiveFocus(d.focus_areas);
+    setFocusAreas(d.focus_areas);
+    setDirectiveStrategy(d.profit_strategy);
+    setDirectivePaper(d.paper_mode);
+    setPaperMode(d.paper_mode);
+    addLog(`📋 Directive "${d.name}" applied to bot`);
+    setActiveTab("Overview");
+  };
+
+  const deleteDirective = (id: string) => {
+    saveDirectives(directives.filter(d => d.id !== id));
+  };
+
+  const resetDirectiveForm = () => {
+    setEditingDirective(null);
+    setDirectiveName("");
+    setDirectiveAmount(100);
+    setDirectiveTimeframe("1w");
+    setDirectiveBuysPerDay(3);
+    setDirectiveRisk("balanced");
+    setDirectiveWhale(false);
+    setDirectiveFocus(["Construction"]);
+    setDirectiveStrategy("arbitrage");
+    setDirectivePaper(true);
+  };
+
+  // ── Sim runs ───────────────────────────────────────────────────────────────
+
+  const loadSimRuns = () => {
+    try {
+      const saved = localStorage.getItem("slate360_sim_runs");
+      if (saved) setSimRuns(JSON.parse(saved));
+    } catch {}
+  };
+
+  const saveCurrentSimRun = () => {
+    const runName = `Sim ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
+    const run: SimRun = {
+      id: Date.now().toString(),
+      name: runName,
+      created_at: new Date().toISOString(),
+      config: {
+        name: runName,
+        amount: capitalAlloc,
+        timeframe: "current",
+        buys_per_day: maxPositions,
+        risk_mix: riskMix,
+        whale_follow: whaleFollow,
+        focus_areas: focusAreas,
+        profit_strategy: "arbitrage",
+        paper_mode: paperMode,
+      },
+      pnl_data: pnlChart.map(p => ({ label: p.label, pnl: p.cumPnl })),
+      total_pnl: pnlChart.length > 0 ? pnlChart[pnlChart.length - 1].cumPnl : 0,
+      win_rate: trades.length > 0
+        ? parseFloat(((trades.filter(t => t.pnl > 0).length / trades.length) * 100).toFixed(1))
+        : 0,
+      trade_count: trades.length,
+    };
+    const existing = JSON.parse(localStorage.getItem("slate360_sim_runs") || "[]");
+    const updated = [run, ...existing].slice(0, 10);
+    localStorage.setItem("slate360_sim_runs", JSON.stringify(updated));
+    setSimRuns(updated);
+    addLog(`💾 Sim run saved: "${runName}"`);
+  };
+
+  // ── Computed ───────────────────────────────────────────────────────────────
+
+  const totalPnl = trades.reduce((s, t) => s + (t.pnl || 0), 0);
+  const openTrades = trades.filter(t => t.status === "open");
+  const winRate = trades.length > 0
+    ? ((trades.filter(t => t.pnl > 0).length / trades.length) * 100).toFixed(1)
+    : "0";
+
+  const filteredMarkets = markets.filter(m => {
+    const q = marketSearch.toLowerCase();
+    if (q && !m.title.toLowerCase().includes(q)) return false;
+    if (mktCategory !== "all" && m.category.toLowerCase() !== mktCategory.toLowerCase()) return false;
+    if (m.probability < mktProbMin || m.probability > mktProbMax) return false;
+    if (m.volume24h < mktMinVol) return false;
+    if (m.edge_pct < mktMinEdge) return false;
+    return true;
+  });
+
+  const hotOppTabs = ["All", "High Potential", "High Risk-High Reward", "Bookmarked", "Construction"];
+  const hotFiltered = markets.filter(m => {
+    if (hotTab === "All") return m.risk_tag !== null;
+    if (hotTab === "High Potential") return m.risk_tag === "high-potential";
+    if (hotTab === "High Risk-High Reward") return m.risk_tag === "high-risk";
+    if (hotTab === "Bookmarked") return bookmarks.has(m.id);
+    if (hotTab === "Construction") return m.risk_tag === "construction" || m.category.toLowerCase().includes("construction");
+    return true;
+  }).slice(0, 30);
+
+  const compareRunA = simRuns.find(r => r.id === compareA);
+  const compareRunB = simRuns.find(r => r.id === compareB);
+
+  const compareChartData = (() => {
+    if (!compareRunA && !compareRunB) return [];
+    const len = Math.max(
+      compareRunA?.pnl_data.length || 0,
+      compareRunB?.pnl_data.length || 0
+    );
+    return Array.from({ length: len }, (_, i) => ({
+      label: `T${i + 1}`,
+      a: compareRunA?.pnl_data[i]?.pnl ?? null,
+      b: compareRunB?.pnl_data[i]?.pnl ?? null,
+    }));
+  })();
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* ════════ WARNING BANNER ════════ */}
-      <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-red-50 border border-red-200">
-        <ShieldAlert size={18} className="text-red-600 shrink-0" />
-        <p className="text-sm font-semibold text-red-700 leading-snug">
-          This tool can lose real money. Start with small amounts and
-          paper-trading mode first.
-        </p>
-      </div>
-
-      {/* ════════ HEADER ════════ */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm"
-            style={{ backgroundColor: "#1E3A8A", color: "#fff" }}
-          >
-            <Bot size={24} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-              Market Robot
-            </h1>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Automated Polymarket trading
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <div
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-bold ${status.bg} ${status.color}`}
-          >
-            <span
-              className={`w-2 h-2 rounded-full ${status.dot} ${config.botStatus === "running" ? "animate-pulse" : ""}`}
-            />
-            {status.label}
-          </div>
-          {scanning && (
-            <span className="inline-flex items-center gap-1 text-[10px] text-[#FF4D00] font-semibold">
-              <RefreshCw size={10} className="animate-spin" /> Scanning…
-            </span>
-          )}
-          {saving && (
-            <span className="inline-flex items-center gap-1 text-[10px] text-gray-400">
-              <Loader2 size={10} className="animate-spin" /> Saving…
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* ════════ PERFORMANCE CARDS ════════ */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {/* P&L */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
-          <div className="flex items-center gap-2 mb-2">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{
-                backgroundColor: todayPnl >= 0 ? "#05966910" : "#DC262610",
-                color: todayPnl >= 0 ? "#059669" : "#DC2626",
-              }}
-            >
-              {todayPnl >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-            </div>
-            <span className="text-[11px] font-semibold text-gray-500">
-              Today P&amp;L
-            </span>
-          </div>
-          <p
-            className={`text-2xl sm:text-3xl font-black tracking-tight ${todayPnl >= 0 ? "text-emerald-600" : "text-red-600"}`}
-          >
-            {todayPnl >= 0 ? "+" : ""}${todayPnl.toFixed(2)}
-          </p>
-          <MiniChart data={CHART_DATA} color={todayPnl >= 0 ? "#059669" : "#DC2626"} />
-        </div>
-
-        {/* Balance */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
-          <div className="flex items-center gap-2 mb-2">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: "#1E3A8A1A", color: "#1E3A8A" }}
-            >
-              <DollarSign size={16} />
-            </div>
-            <span className="text-[11px] font-semibold text-gray-500">
-              Balance
-            </span>
-          </div>
-          <p className="text-2xl sm:text-3xl font-black tracking-tight text-gray-900">
-            $
-            {totalBalance.toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-            })}
-          </p>
-          <p className="text-[10px] text-gray-400 mt-1">
-            {config.walletAddress ? "Polygon USDC" : "No wallet"}
+    <div className="min-h-screen bg-[#0F1117] text-white">
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 px-1">
+        <div>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            🤖 Market Robot
+            <StatusBadge status={botRunning ? (botPaused ? "idle" : "running") : "idle"} />
+            {paperMode && <span className="text-xs bg-purple-900/60 text-purple-300 border border-purple-700 px-2 py-0.5 rounded-full">Paper Mode</span>}
+          </h1>
+          <p className="text-sm text-slate-400 mt-0.5">
+            AI-powered prediction market bot — {lastScan ? `Last scan: ${new Date(lastScan).toLocaleTimeString()}` : "Not scanned yet"}
           </p>
         </div>
 
-        {/* Positions */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
-          <div className="flex items-center gap-2 mb-2">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}
-            >
-              <BarChart3 size={16} />
-            </div>
-            <span className="text-[11px] font-semibold text-gray-500">
-              Positions
-            </span>
-          </div>
-          <p className="text-2xl sm:text-3xl font-black tracking-tight text-gray-900">
-            {activePositions}
-          </p>
-          <p className="text-[10px] text-gray-400 mt-1">
-            24h vol: ${volume24h.toFixed(0)}
-          </p>
-        </div>
-
-        {/* Scans */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
-          <div className="flex items-center gap-2 mb-2">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: "#7C3AED1A", color: "#7C3AED" }}
-            >
-              <Crosshair size={16} />
-            </div>
-            <span className="text-[11px] font-semibold text-gray-500">
-              Last Scan
-            </span>
-          </div>
-          <p className="text-lg font-black tracking-tight text-gray-900">
-            {lastScan ?? "—"}
-          </p>
-          <p className="text-[10px] text-gray-400 mt-1">
-            {scanResult
-              ? `${scanResult.marketsScanned} markets, ${scanResult.opportunitiesFound} opps`
-              : "Not scanned yet"}
-          </p>
-        </div>
-      </div>
-
-      {/* ════════ PERFORMANCE CHART PLACEHOLDER ════════ */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: "#1E3A8A1A", color: "#1E3A8A" }}
-            >
-              <LineChart size={18} />
-            </div>
-            <h2 className="text-sm font-bold text-gray-900">Performance</h2>
-          </div>
-          <div className="flex gap-1">
-            {["1D", "1W", "1M", "ALL"].map((p) => (
-              <button
-                key={p}
-                className="text-[10px] font-bold px-2.5 py-1 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="h-32 sm:h-48">
-          <MiniChart
-            data={[...CHART_DATA, ...CHART_DATA.map((v) => v + 8)]}
-            color="#1E3A8A"
-          />
-        </div>
-        <p className="text-[10px] text-gray-400 text-center mt-2">
-          Real chart data will populate once trades are running
-        </p>
-      </div>
-
-      {/* ════════ TWO-COLUMN: Controls + Wallet ════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* ── LEFT COLUMN ── */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* ── RISK CONTROLS ── */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}
-              >
-                <ShieldAlert size={18} />
-              </div>
-              <h2 className="text-sm font-bold text-gray-900">Risk Controls</h2>
-            </div>
-
-            {/* Risk Level */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              {(["low", "medium", "high"] as RiskLevel[]).map((level) => {
-                const rc = riskConfig[level];
-                const Icon = rc.icon;
-                const active = config.riskLevel === level;
-                return (
-                  <button
-                    key={level}
-                    onClick={() => updateConfig({ riskLevel: level })}
-                    className={`relative flex items-center gap-3 p-4 rounded-xl border-2 transition-all duration-200 text-left ${active ? "border-current shadow-md -translate-y-0.5" : "border-gray-100 hover:border-gray-200"}`}
-                    style={
-                      active ? { borderColor: rc.color, color: rc.color } : undefined
-                    }
-                  >
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${rc.color}1A`, color: rc.color }}
-                    >
-                      <Icon size={20} />
-                    </div>
-                    <div>
-                      <p className={`text-sm font-bold ${active ? "" : "text-gray-900"}`}>
-                        {rc.label}
-                      </p>
-                      <p className="text-[11px] text-gray-400 leading-snug">
-                        {rc.desc}
-                      </p>
-                    </div>
-                    {active && (
-                      <CheckCircle2
-                        size={16}
-                        className="absolute top-2.5 right-2.5"
-                        style={{ color: rc.color }}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Max Daily Loss */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Max daily loss
-                </label>
-                <span className="text-sm font-black text-gray-900">
-                  ${config.maxDailyLoss}
-                </span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={1}
-                value={config.maxDailyLoss}
-                onChange={(e) =>
-                  updateConfig({ maxDailyLoss: Number(e.target.value) })
-                }
-                className="w-full h-2 rounded-full appearance-none cursor-pointer accent-[#FF4D00]"
-                style={{
-                  background: `linear-gradient(to right, #FF4D00 0%, #FF4D00 ${config.maxDailyLoss}%, #e5e7eb ${config.maxDailyLoss}%, #e5e7eb 100%)`,
-                }}
-              />
-            </div>
-
-            {/* Emergency Stop */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Emergency stop if down
-                </label>
-                <span className="text-sm font-black text-gray-900">
-                  {config.emergencyStopPct}%
-                </span>
-              </div>
-              <input
-                type="range"
-                min={5}
-                max={50}
-                step={5}
-                value={config.emergencyStopPct}
-                onChange={(e) =>
-                  updateConfig({ emergencyStopPct: Number(e.target.value) })
-                }
-                className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, #DC2626 0%, #DC2626 ${((config.emergencyStopPct - 5) / 45) * 100}%, #e5e7eb ${((config.emergencyStopPct - 5) / 45) * 100}%, #e5e7eb 100%)`,
-                }}
-              />
-            </div>
-
-            {/* Paper Trading Toggle */}
-            <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100">
-              <div>
-                <p className="text-sm font-bold text-gray-900">
-                  Paper Trading Mode
-                </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">
-                  Use fake money — no real risk.
-                </p>
-              </div>
-              <button
-                onClick={() => updateConfig({ paperMode: !config.paperMode })}
-                className="shrink-0 transition-colors"
-                style={{ color: config.paperMode ? "#FF4D00" : "#D1D5DB" }}
-              >
-                {config.paperMode ? (
-                  <ToggleRight size={36} />
-                ) : (
-                  <ToggleLeft size={36} />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* ── PORTFOLIO MIX ── */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: "#1E3A8A1A", color: "#1E3A8A" }}
-              >
-                <BarChart3 size={18} />
-              </div>
-              <h2 className="text-sm font-bold text-gray-900">Portfolio Mix</h2>
-              <span className="ml-auto text-[10px] text-gray-400 font-semibold">
-                Must total 100%
+        {/* Wallet */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {isConnected ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400 font-mono bg-slate-800 px-2 py-1 rounded">
+                {address?.slice(0, 6)}…{address?.slice(-4)}
               </span>
+              {walletVerified
+                ? <span className="text-xs text-green-400 font-medium">✓ Verified</span>
+                : <button onClick={handleConnectWallet} className="text-xs bg-[#FF4D00] hover:bg-orange-600 px-3 py-1 rounded font-medium transition">Verify Signature</button>
+              }
+              <button onClick={() => { disconnect(); setWalletVerified(false); }} className="text-xs text-slate-500 hover:text-slate-300 px-2 py-1 rounded border border-slate-700">Disconnect</button>
             </div>
-
-            {(["low", "medium", "high"] as (keyof PortfolioMix)[]).map((key) => {
-              const rc = riskConfig[key];
-              const value = config.portfolioMix[key];
-              return (
-                <div key={key}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: rc.color }}
-                      />
-                      <span className="text-xs font-semibold text-gray-700">
-                        {rc.label}
-                      </span>
-                    </div>
-                    <span className="text-sm font-black" style={{ color: rc.color }}>
-                      {value}%
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    step={5}
-                    value={value}
-                    onChange={(e) => handleMixChange(key, Number(e.target.value))}
-                    className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                    style={{
-                      background: `linear-gradient(to right, ${rc.color} 0%, ${rc.color} ${value}%, #e5e7eb ${value}%, #e5e7eb 100%)`,
-                    }}
-                  />
-                </div>
-              );
-            })}
-
-            {/* Visual bar */}
-            <div className="flex rounded-full overflow-hidden h-3 mt-2">
-              <div
-                style={{
-                  width: `${config.portfolioMix.low}%`,
-                  backgroundColor: "#059669",
-                }}
-                className="transition-all duration-300"
-              />
-              <div
-                style={{
-                  width: `${config.portfolioMix.medium}%`,
-                  backgroundColor: "#D97706",
-                }}
-                className="transition-all duration-300"
-              />
-              <div
-                style={{
-                  width: `${config.portfolioMix.high}%`,
-                  backgroundColor: "#DC2626",
-                }}
-                className="transition-all duration-300"
-              />
-            </div>
-            <div className="flex justify-between text-[10px] text-gray-400">
-              <span>Low {config.portfolioMix.low}%</span>
-              <span>Med {config.portfolioMix.medium}%</span>
-              <span>High {config.portfolioMix.high}%</span>
-            </div>
-          </div>
-
-          {/* ── FOCUS AREAS ── */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}
-              >
-                <Crosshair size={18} />
-              </div>
-              <h2 className="text-sm font-bold text-gray-900">Focus Areas</h2>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {focusOptions.map((opt) => {
-                const active = config.focusAreas.includes(opt.key);
-                return (
-                  <button
-                    key={opt.key}
-                    onClick={() => toggleFocus(opt.key)}
-                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${active ? "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00] shadow-sm" : "border-gray-100 text-gray-600 hover:border-gray-200"}`}
-                  >
-                    <span className="text-base">{opt.emoji}</span>
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ── WHALE WATCH ── */}
-          <div className="flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-100">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: "#7C3AED1A", color: "#7C3AED" }}
-              >
-                <Fish size={18} />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-gray-900">Whale Watch</p>
-                <p className="text-[11px] text-gray-400">
-                  Follow large wallet moves for signal
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => updateConfig({ whaleWatch: !config.whaleWatch })}
-              className="shrink-0 transition-colors"
-              style={{ color: config.whaleWatch ? "#7C3AED" : "#D1D5DB" }}
-            >
-              {config.whaleWatch ? (
-                <ToggleRight size={36} />
-              ) : (
-                <ToggleLeft size={36} />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* ── RIGHT COLUMN: Wallet + Hot Opportunities ── */}
-        <div className="space-y-6">
-          {/* ── WALLET ── */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col">
-            <div className="flex items-center gap-3 mb-5">
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: "#1E3A8A1A", color: "#1E3A8A" }}
-              >
-                <Wallet size={18} />
-              </div>
-              <h2 className="text-sm font-bold text-gray-900">Wallet</h2>
-            </div>
-
-            {config.walletAddress ? (
-              <div className="space-y-4 flex-1">
-                <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
-                    Connected Address
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <CircleDot size={14} className="text-emerald-500" />
-                    <code className="text-sm font-bold text-gray-900 tracking-wide">
-                      {shortenAddress(config.walletAddress)}
-                    </code>
-                    <button
-                      onClick={handleCopyAddress}
-                      className="ml-auto text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      {copied ? (
-                        <CheckCircle2 size={14} className="text-emerald-500" />
-                      ) : (
-                        <Copy size={14} />
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
-                    Network
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center">
-                      <span className="text-[8px] font-bold text-white">P</span>
-                    </div>
-                    <span className="text-sm font-semibold text-gray-900">
-                      Polygon (MATIC)
-                    </span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => updateConfig({ walletAddress: null })}
-                  className="w-full py-2.5 rounded-xl text-xs font-semibold border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-red-500 transition-colors mt-auto"
-                >
-                  Disconnect Wallet
-                </button>
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center py-6">
-                <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-3">
-                  <Wallet size={24} className="text-gray-300" />
-                </div>
-                <p className="text-sm font-semibold text-gray-900 mb-1">
-                  No wallet connected
-                </p>
-                <p className="text-[11px] text-gray-400 mb-5 max-w-[200px] leading-snug">
-                  Connect a Polygon wallet for live trading.
-                </p>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <button
                   onClick={handleConnectWallet}
-                  disabled={walletConnecting}
-                  className="w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
-                  style={{ backgroundColor: "#1E3A8A" }}
+                  disabled={isConnecting}
+                  className="flex items-center gap-2 bg-[#1E3A8A] hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-50"
                 >
-                  {walletConnecting ? (
-                    <>
-                      <Loader2 size={15} className="animate-spin" /> Connecting…
-                    </>
-                  ) : (
-                    <>
-                      <Wallet size={15} /> Connect Wallet
-                    </>
-                  )}
+                  🦊 {isConnecting ? "Connecting…" : "Connect MetaMask"}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Connect your MetaMask wallet to enable live trading. Paper mode works without a wallet.</TooltipContent>
+            </Tooltip>
+          )}
+          {walletError && <p className="text-xs text-red-400">{walletError}</p>}
+        </div>
+      </div>
+
+      {/* ── Tabs ── */}
+      <div className="flex gap-1 mb-6 border-b border-slate-800 overflow-x-auto pb-px">
+        {TABS.map(tab => (
+          <button
+            key={tab}
+            onClick={() => {
+              setActiveTab(tab);
+              if (tab === "Whale Watch" && whaleData.length === 0) fetchWhales();
+              if (tab === "Markets" && markets.length === 0) fetchMarkets();
+            }}
+            className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition border-b-2 -mb-px ${
+              activeTab === tab
+                ? "border-[#FF4D00] text-[#FF4D00]"
+                : "border-transparent text-slate-400 hover:text-white"
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* ════════════════════════════════════════════
+          TAB: OVERVIEW
+      ════════════════════════════════════════════ */}
+      {activeTab === "Overview" && (
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Left: Config + Controls */}
+          <div className="xl:col-span-1 space-y-4">
+
+            {/* Bot Controls */}
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+              <h3 className="font-semibold text-sm text-slate-300 uppercase tracking-wider">Bot Controls</h3>
+              <div className="flex gap-2 flex-wrap">
+                {!botRunning ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button onClick={handleStartBot} className="flex-1 bg-[#FF4D00] hover:bg-orange-600 py-2 rounded-lg text-sm font-bold transition">
+                        ▶ Start Bot
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Start the market scanning bot with current settings.</TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button onClick={handlePauseBot} className="flex-1 bg-yellow-700 hover:bg-yellow-600 py-2 rounded-lg text-sm font-bold transition">
+                          {botPaused ? "▶ Resume" : "⏸ Pause"}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Pause or resume the bot without losing its state.</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button onClick={handleStopBot} className="flex-1 bg-red-900 hover:bg-red-700 py-2 rounded-lg text-sm font-bold transition">
+                          ⛔ Stop
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Stop the bot completely.</TooltipContent>
+                    </Tooltip>
+                  </>
+                )}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={runScan}
+                      disabled={scanning}
+                      className="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-sm font-bold transition disabled:opacity-50"
+                    >
+                      {scanning ? "🔍 Scanning…" : "🔍 Test Scan Now"}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Run a one-time scan immediately using current settings. Does not start the continuous bot.</TooltipContent>
+                </Tooltip>
+              </div>
+
+              {/* Paper Mode */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-300 flex items-center">
+                  Paper Mode
+                  <HelpTip content="Paper mode simulates trades without spending real money. Safe for testing strategies." />
+                </span>
+                <button
+                  onClick={() => setPaperMode(p => !p)}
+                  className={`relative w-10 h-5 rounded-full transition ${paperMode ? "bg-purple-600" : "bg-slate-600"}`}
+                >
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${paperMode ? "translate-x-5" : "translate-x-0.5"}`} />
                 </button>
               </div>
-            )}
+
+              {/* Save Sim Button */}
+              {trades.length > 0 && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={saveCurrentSimRun}
+                      className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 py-2 rounded-lg text-sm text-slate-300 transition"
+                    >
+                      💾 Save This Simulation Run
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Save a snapshot of current PNL chart + config for comparison later under "Sim Compare" tab.</TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+
+            {/* Bot Configuration */}
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+              <h3 className="font-semibold text-sm text-slate-300 uppercase tracking-wider">Configuration</h3>
+
+              {/* Capital */}
+              <div>
+                <label className="flex items-center text-xs text-slate-400 mb-1">
+                  Capital Allocation ($)
+                  <HelpTip content="Total USDC allocated for this bot session. Split across open positions." />
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range" min={50} max={5000} step={50}
+                    value={capitalAlloc}
+                    onChange={e => setCapitalAlloc(+e.target.value)}
+                    className="flex-1 accent-[#FF4D00]"
+                  />
+                  <span className="text-sm font-mono text-white w-16 text-right">${capitalAlloc}</span>
+                </div>
+              </div>
+
+              {/* Max Positions */}
+              <div>
+                <label className="flex items-center text-xs text-slate-400 mb-1">
+                  Max Open Positions
+                  <HelpTip content="Maximum number of simultaneous open bets. Capital is divided evenly." />
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range" min={1} max={20}
+                    value={maxPositions}
+                    onChange={e => setMaxPositions(+e.target.value)}
+                    className="flex-1 accent-[#FF4D00]"
+                  />
+                  <span className="text-sm font-mono text-white w-8 text-right">{maxPositions}</span>
+                </div>
+              </div>
+
+              {/* Min Edge */}
+              <div>
+                <label className="flex items-center text-xs text-slate-400 mb-1">
+                  Minimum Edge %
+                  <HelpTip content="Only enter trades where the bot detects at least this % edge over the market price." />
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range" min={1} max={20}
+                    value={minEdge}
+                    onChange={e => setMinEdge(+e.target.value)}
+                    className="flex-1 accent-[#FF4D00]"
+                  />
+                  <span className="text-sm font-mono text-white w-10 text-right">{minEdge}%</span>
+                </div>
+              </div>
+
+              {/* Min Volume */}
+              <div>
+                <label className="flex items-center text-xs text-slate-400 mb-1">
+                  Min 24h Volume ($)
+                  <HelpTip content="Ignore markets with low liquidity. Higher volume = easier to enter/exit positions." />
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range" min={1000} max={500000} step={1000}
+                    value={minVolume}
+                    onChange={e => setMinVolume(+e.target.value)}
+                    className="flex-1 accent-[#FF4D00]"
+                  />
+                  <span className="text-xs font-mono text-white w-20 text-right">${minVolume.toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Probability range */}
+              <div>
+                <label className="flex items-center text-xs text-slate-400 mb-1">
+                  Probability Range: {minProbLow}% – {minProbHigh}%
+                  <HelpTip content="Only trade markets where YES probability is within this range. Avoids near-certain outcomes with no value." />
+                </label>
+                <div className="flex gap-2">
+                  <input type="range" min={0} max={50} value={minProbLow} onChange={e => setMinProbLow(+e.target.value)} className="flex-1 accent-[#FF4D00]" />
+                  <input type="range" min={50} max={100} value={minProbHigh} onChange={e => setMinProbHigh(+e.target.value)} className="flex-1 accent-[#FF4D00]" />
+                </div>
+              </div>
+
+              {/* Risk Mix */}
+              <div>
+                <label className="flex items-center text-xs text-slate-400 mb-2">
+                  Risk Mix
+                  <HelpTip content="Adjusts the bot's appetite for risk. Conservative = safer but lower return. Aggressive = higher upside with more losses." />
+                </label>
+                <div className="flex gap-1">
+                  {(["conservative", "balanced", "aggressive"] as const).map(r => (
+                    <button
+                      key={r}
+                      onClick={() => setRiskMix(r)}
+                      className={`flex-1 py-1 text-xs rounded-lg font-medium transition ${riskMix === r ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+                    >
+                      {r.charAt(0).toUpperCase() + r.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Whale Follow */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-300 flex items-center">
+                  Follow Whale Wallets
+                  <HelpTip content="Mirror large ($5k+) trades from sophisticated market participants detected on-chain." />
+                </span>
+                <button
+                  onClick={() => setWhaleFollow(w => !w)}
+                  className={`relative w-10 h-5 rounded-full transition ${whaleFollow ? "bg-[#1E3A8A]" : "bg-slate-600"}`}
+                >
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${whaleFollow ? "translate-x-5" : "translate-x-0.5"}`} />
+                </button>
+              </div>
+
+              {/* Focus Areas */}
+              <div>
+                <label className="flex items-center text-xs text-slate-400 mb-2">
+                  Focus Areas
+                  <HelpTip content="Restrict the bot to markets in these categories. Construction is your primary domain." />
+                </label>
+                <div className="flex flex-wrap gap-1">
+                  {FOCUS_AREAS.map(area => (
+                    <button
+                      key={area}
+                      onClick={() => toggleFocus(area)}
+                      className={`px-2 py-0.5 text-xs rounded-full transition ${focusAreas.includes(area) ? "bg-[#1E3A8A] text-blue-200" : "bg-slate-800 text-slate-500 hover:bg-slate-700"}`}
+                    >
+                      {area}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* ── HOT OPPORTUNITIES ── */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}
-              >
-                <Zap size={18} />
-              </div>
-              <h2 className="text-sm font-bold text-gray-900">
-                Hot Opportunities
-              </h2>
-            </div>
-            <div className="space-y-3">
-              {opportunities.map((opp) => (
-                <div
-                  key={opp.id}
-                  className="p-4 rounded-xl border border-gray-100 hover:border-[#FF4D00]/30 hover:shadow-sm transition-all space-y-2"
-                >
-                  <p className="text-[13px] font-semibold text-gray-900 leading-snug">
-                    {opp.question}
-                  </p>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FF4D00]/10 text-[#FF4D00]">
-                      {opp.edge}% edge
-                    </span>
-                    <span
-                      className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${opp.side === "YES" ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}
-                    >
-                      {opp.side} @ ${opp.price.toFixed(2)}
-                    </span>
-                    <span className="text-[10px] text-gray-400">
-                      {opp.volume} vol
-                    </span>
-                    <span className="text-[10px] text-gray-400">
-                      • {opp.category}
-                    </span>
-                  </div>
-                  <button
-                    className="w-full mt-1 py-2 rounded-lg text-xs font-bold text-white transition-all hover:opacity-90"
-                    style={{ backgroundColor: "#FF4D00" }}
-                  >
-                    <ShoppingCart size={12} className="inline mr-1 -mt-0.5" />{" "}
-                    Auto Buy
-                  </button>
+          {/* Right: Stats + Chart + Log */}
+          <div className="xl:col-span-2 space-y-4">
+            {/* Stats row */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: "Total PNL", value: `${totalPnl >= 0 ? "+" : ""}$${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? "text-green-400" : "text-red-400" },
+                { label: "Open Positions", value: openTrades.length, color: "text-white" },
+                { label: "Win Rate", value: `${winRate}%`, color: parseFloat(winRate) >= 50 ? "text-green-400" : "text-red-400" },
+                { label: "Total Trades", value: trades.length, color: "text-white" },
+              ].map(stat => (
+                <div key={stat.label} className="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                  <p className="text-xs text-slate-400">{stat.label}</p>
+                  <p className={`text-xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* ════════ ACTION BUTTONS ════════ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <button
-          onClick={() => setConfirmStart(true)}
-          disabled={config.botStatus !== "stopped"}
-          className="flex items-center justify-center gap-3 py-5 rounded-2xl text-lg font-black text-white transition-all hover:opacity-90 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none"
-          style={{ backgroundColor: "#059669" }}
-        >
-          <Power size={22} />
-          {config.botStatus === "stopped"
-            ? "START ROBOT"
-            : config.paperMode
-              ? "PAPER MODE ACTIVE"
-              : "ROBOT RUNNING"}
-        </button>
-        <button
-          onClick={() => setConfirmStop(true)}
-          disabled={config.botStatus === "stopped"}
-          className="flex items-center justify-center gap-3 py-5 rounded-2xl text-lg font-black text-white transition-all hover:opacity-90 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-none"
-          style={{ backgroundColor: "#DC2626" }}
-        >
-          <OctagonX size={22} /> EMERGENCY STOP
-        </button>
-      </div>
-
-      {/* ════════ TRADE HISTORY TABLE ════════ */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}
-            >
-              <Activity size={18} />
+            {/* PNL Chart */}
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-sm text-slate-300">
+                  Cumulative PNL
+                  <HelpTip content="Running sum of all trade profits/losses over time. Slope up = profitable strategy." />
+                </h3>
+                <button onClick={fetchTrades} className="text-xs text-slate-500 hover:text-slate-300 transition">↻ Refresh</button>
+              </div>
+              {pnlChart.length > 0 ? (
+                <ResponsiveContainer width="100%" height={220}>
+                  <AreaChart data={pnlChart} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="pnlGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#FF4D00" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#FF4D00" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#64748b" }} />
+                    <YAxis tick={{ fontSize: 10, fill: "#64748b" }} tickFormatter={v => `$${v}`} />
+                    <RechartsTooltip
+                      contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
+                      formatter={(v: number | undefined) => [`$${(v ?? 0).toFixed(2)}`, "Cum. PNL"]}
+                    />
+                    <Area type="monotone" dataKey="cumPnl" stroke="#FF4D00" fill="url(#pnlGrad)" strokeWidth={2} dot={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[220px] flex items-center justify-center text-slate-500 text-sm">
+                  {loadingTrades ? "Loading trade data…" : "No trades yet — run a scan to populate this chart"}
+                </div>
+              )}
             </div>
-            <h2 className="text-sm font-bold text-gray-900">Trade History</h2>
+
+            {/* Activity Log */}
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <h3 className="font-semibold text-sm text-slate-300 mb-2">Activity Log</h3>
+              <div ref={logRef} className="bg-black/40 rounded-lg p-3 h-36 overflow-y-auto font-mono text-xs space-y-0.5">
+                {scanLog.length === 0
+                  ? <span className="text-slate-600">No activity yet…</span>
+                  : scanLog.map((l, i) => (
+                    <div key={i} className={`${l.includes("✅") ? "text-green-400" : l.includes("❌") ? "text-red-400" : l.includes("⚠️") ? "text-yellow-400" : "text-slate-400"}`}>
+                      {l}
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+
+            {/* Open Positions */}
+            {openTrades.length > 0 && (
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                <h3 className="font-semibold text-sm text-slate-300 mb-3">Open Positions</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-slate-500 border-b border-slate-800">
+                        <th className="pb-2 text-left font-medium">Market</th>
+                        <th className="pb-2 text-left font-medium">Outcome</th>
+                        <th className="pb-2 text-right font-medium">Shares</th>
+                        <th className="pb-2 text-right font-medium">Avg Price</th>
+                        <th className="pb-2 text-right font-medium">Current</th>
+                        <th className="pb-2 text-right font-medium">PNL</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {openTrades.map(t => (
+                        <tr key={t.id} className="border-b border-slate-800/50">
+                          <td className="py-2 pr-2 max-w-[180px] truncate text-slate-300">{t.market_title}</td>
+                          <td className="py-2 pr-2">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${t.outcome === "YES" ? "bg-green-900/60 text-green-400" : "bg-red-900/60 text-red-400"}`}>{t.outcome}</span>
+                          </td>
+                          <td className="py-2 text-right font-mono">{Number(t.shares).toFixed(1)}</td>
+                          <td className="py-2 text-right font-mono">${Number(t.avg_price).toFixed(3)}</td>
+                          <td className="py-2 text-right font-mono">${Number(t.current_price).toFixed(3)}</td>
+                          <td className={`py-2 text-right font-mono font-bold ${t.pnl >= 0 ? "text-green-400" : "text-red-400"}`}>
+                            {t.pnl >= 0 ? "+" : ""}${Number(t.pnl).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
-          <button
-            onClick={loadTrades}
-            disabled={tradesLoading}
-            className="text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-[#FF4D00] transition-colors flex items-center gap-1"
-          >
-            <RefreshCw size={10} className={tradesLoading ? "animate-spin" : ""} />{" "}
-            Refresh
-          </button>
         </div>
+      )}
 
-        {trades.length > 0 ? (
-          <div className="overflow-x-auto -mx-2 px-2">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-3 pr-4">
-                    Market
-                  </th>
-                  <th className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-3 pr-4">
-                    Side
-                  </th>
-                  <th className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-3 pr-4">
-                    Shares
-                  </th>
-                  <th className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-3 pr-4">
-                    Price
-                  </th>
-                  <th className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-3 pr-4">
-                    Total
-                  </th>
-                  <th className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-3 pr-4">
-                    P&amp;L
-                  </th>
-                  <th className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-3">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {trades.map((t) => (
-                  <tr
-                    key={t.id}
-                    className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
-                  >
-                    <td className="py-3 pr-4">
-                      <p className="text-[12px] text-gray-800 font-medium leading-snug max-w-[200px] truncate">
-                        {t.question}
-                      </p>
-                      <p className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
-                        <Clock size={9} />{" "}
-                        {new Date(t.created_at).toLocaleString()}
-                        {t.paper_trade && (
-                          <span className="ml-1 text-amber-500 font-bold">
-                            PAPER
-                          </span>
-                        )}
-                      </p>
-                    </td>
-                    <td className="py-3 pr-4">
-                      <span
-                        className={`text-[11px] font-bold ${t.side === "YES" ? "text-emerald-600" : "text-red-600"}`}
-                      >
-                        {t.side === "YES" ? (
-                          <ArrowUpRight size={11} className="inline -mt-0.5" />
-                        ) : (
-                          <ArrowDownRight size={11} className="inline -mt-0.5" />
-                        )}
-                        {t.side}
-                      </span>
-                    </td>
-                    <td className="py-3 pr-4 text-[12px] text-gray-700 font-semibold">
-                      {t.shares}
-                    </td>
-                    <td className="py-3 pr-4 text-[12px] text-gray-700">
-                      ${t.price.toFixed(2)}
-                    </td>
-                    <td className="py-3 pr-4 text-[12px] text-gray-900 font-bold">
-                      ${t.total.toFixed(2)}
-                    </td>
-                    <td className="py-3 pr-4">
-                      {t.pnl !== null ? (
-                        <span
-                          className={`text-[12px] font-bold ${t.pnl >= 0 ? "text-emerald-600" : "text-red-600"}`}
-                        >
-                          {t.pnl >= 0 ? "+" : ""}${t.pnl.toFixed(2)}
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-gray-400">—</span>
-                      )}
-                    </td>
-                    <td className="py-3">
-                      <span
-                        className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                          t.status === "open"
-                            ? "bg-blue-50 text-blue-600"
-                            : t.status === "closed"
-                              ? "bg-emerald-50 text-emerald-600"
-                              : "bg-gray-100 text-gray-500"
-                        }`}
-                      >
-                        {t.status}
-                      </span>
-                    </td>
+      {/* ════════════════════════════════════════════
+          TAB: MARKETS EXPLORER
+      ════════════════════════════════════════════ */}
+      {activeTab === "Markets" && (
+        <div className="space-y-4">
+          {/* Filters */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+            <h3 className="font-semibold text-sm text-slate-300 flex items-center gap-1">
+              Markets Explorer
+              <HelpTip content="Browse live Polymarket markets. Filter by category, probability, volume, and edge to find opportunities." />
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div>
+                <label className="text-xs text-slate-400 mb-1 block">Search</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Bitcoin, construction…"
+                  value={marketSearch}
+                  onChange={e => setMarketSearch(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 outline-none focus:border-[#FF4D00]"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-slate-400 mb-1 block flex items-center">
+                  Category
+                  <HelpTip content="Filter by Polymarket category." />
+                </label>
+                <select
+                  value={mktCategory}
+                  onChange={e => setMktCategory(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#FF4D00]"
+                >
+                  <option value="all">All Categories</option>
+                  {FOCUS_AREAS.map(a => <option key={a} value={a.toLowerCase()}>{a}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-slate-400 mb-1 flex items-center">
+                  Min Edge %: {mktMinEdge}%
+                  <HelpTip content="Only show markets where the bot calculates at least this % edge." />
+                </label>
+                <input type="range" min={0} max={30} value={mktMinEdge} onChange={e => setMktMinEdge(+e.target.value)} className="w-full accent-[#FF4D00]" />
+              </div>
+              <div>
+                <label className="text-xs text-slate-400 mb-1 flex items-center">
+                  Min Volume: ${mktMinVol.toLocaleString()}
+                  <HelpTip content="Minimum 24h trading volume. Higher = more liquid." />
+                </label>
+                <input type="range" min={0} max={100000} step={1000} value={mktMinVol} onChange={e => setMktMinVol(+e.target.value)} className="w-full accent-[#FF4D00]" />
+              </div>
+            </div>
+            <div className="flex gap-3 items-center text-xs text-slate-500">
+              <span>{filteredMarkets.length} markets shown</span>
+              <button onClick={fetchMarkets} className="text-slate-400 hover:text-white transition">↻ Refresh</button>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead className="bg-slate-800/50">
+                  <tr className="text-slate-400">
+                    <th className="px-4 py-3 text-left font-medium">Market</th>
+                    <th className="px-3 py-3 text-center font-medium">Cat.</th>
+                    <th className="px-3 py-3 text-right font-medium">Prob.</th>
+                    <th className="px-3 py-3 text-right font-medium">Vol 24h</th>
+                    <th className="px-3 py-3 text-right font-medium">Edge</th>
+                    <th className="px-3 py-3 text-center font-medium">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {loadingMarkets ? (
+                    <tr><td colSpan={6} className="text-center py-8 text-slate-500">Loading markets…</td></tr>
+                  ) : filteredMarkets.length === 0 ? (
+                    <tr><td colSpan={6} className="text-center py-8 text-slate-500">No markets match filters</td></tr>
+                  ) : (
+                    filteredMarkets.slice(0, 50).map(m => (
+                      <tr key={m.id} className="border-t border-slate-800 hover:bg-slate-800/30">
+                        <td className="px-4 py-3 max-w-[240px]">
+                          <div className="flex items-start gap-2">
+                            {m.risk_tag && (
+                              <span style={{ background: RISK_COLORS[m.risk_tag] + "30", color: RISK_COLORS[m.risk_tag] }}
+                                className="text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase whitespace-nowrap mt-0.5">
+                                {m.risk_tag.replace("-", " ")}
+                              </span>
+                            )}
+                            <span className="text-slate-200 line-clamp-2">{m.title}</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-3 text-center text-slate-400">{m.category.slice(0, 10)}</td>
+                        <td className="px-3 py-3 text-right">
+                          <span className={m.probability > 60 ? "text-green-400" : m.probability < 40 ? "text-red-400" : "text-slate-300"}>
+                            {m.probability}%
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-right text-slate-400">${m.volume24h.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                        <td className="px-3 py-3 text-right">
+                          <span className={m.edge_pct > 15 ? "text-orange-400 font-bold" : m.edge_pct > 8 ? "text-yellow-400" : "text-slate-400"}>
+                            {m.edge_pct}%
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <div className="flex justify-center gap-2">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => toggleBookmark(m.id)}
+                                  className={`text-sm transition ${bookmarks.has(m.id) ? "text-yellow-400" : "text-slate-600 hover:text-yellow-400"}`}
+                                >
+                                  {bookmarks.has(m.id) ? "★" : "☆"}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>Bookmark this market to track it in Hot Opps.</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => {
+                                    addLog(`🎯 Quick-buy queued: ${m.title.slice(0, 40)}… YES @ ${m.probability}%`);
+                                    runScan();
+                                  }}
+                                  className="text-xs bg-[#FF4D00]/20 hover:bg-[#FF4D00]/40 text-orange-400 px-2 py-0.5 rounded transition"
+                                >
+                                  Buy YES
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>Queue a buy on this market during the next scan.</TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        ) : (
-          <div className="py-12 text-center">
-            <Activity size={32} className="mx-auto text-gray-200 mb-3" />
-            <p className="text-sm font-semibold text-gray-500">No trades yet</p>
-            <p className="text-[11px] text-gray-400 mt-1">
-              Start the robot to begin automatic scanning and trading
-            </p>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* ════════ CONFIRMATION DIALOGS ════════ */}
-      <ConfirmDialog
-        open={confirmStart}
-        title={config.paperMode ? "Start Paper Trading?" : "Start Live Trading?"}
-        description={
-          config.paperMode
-            ? "The robot will scan Polymarket every 60 seconds and execute paper trades. No real funds at risk."
-            : `The robot will trade with REAL money. Max daily loss: $${config.maxDailyLoss}. Emergency stop at ${config.emergencyStopPct}% drawdown.`
-        }
-        confirmLabel={config.paperMode ? "Start Paper Trading" : "Start Live Trading"}
-        confirmColor={config.paperMode ? "#D97706" : "#059669"}
-        onConfirm={handleStart}
-        onCancel={() => setConfirmStart(false)}
-      />
-      <ConfirmDialog
-        open={confirmStop}
-        title="Emergency Stop"
-        description="This will immediately stop scanning and close all pending orders."
-        confirmLabel="Stop Everything"
-        confirmColor="#DC2626"
-        onConfirm={handleStop}
-        onCancel={() => setConfirmStop(false)}
-      />
+      {/* ════════════════════════════════════════════
+          TAB: HOT OPPORTUNITIES
+      ════════════════════════════════════════════ */}
+      {activeTab === "Hot Opps" && (
+        <div className="space-y-4">
+          <div className="flex gap-1 overflow-x-auto pb-1">
+            {hotOppTabs.map(t => (
+              <button
+                key={t}
+                onClick={() => setHotTab(t)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition ${hotTab === t ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          {loadingMarkets ? (
+            <div className="text-center py-12 text-slate-500">Loading…</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {hotFiltered.map(m => (
+                <div key={m.id} className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition">
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <p className="text-sm text-white font-medium line-clamp-2 flex-1">{m.title}</p>
+                    <button onClick={() => toggleBookmark(m.id)} className={`text-lg flex-shrink-0 ${bookmarks.has(m.id) ? "text-yellow-400" : "text-slate-700 hover:text-yellow-400"}`}>
+                      {bookmarks.has(m.id) ? "★" : "☆"}
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    {m.risk_tag && (
+                      <span style={{ background: RISK_COLORS[m.risk_tag] + "25", color: RISK_COLORS[m.risk_tag], borderColor: RISK_COLORS[m.risk_tag] + "60" }}
+                        className="text-[10px] px-2 py-0.5 rounded-full font-bold border uppercase">
+                        {m.risk_tag.replace("-", " ")}
+                      </span>
+                    )}
+                    <span className="text-xs text-slate-400">{m.category}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mb-3 text-center">
+                    <div className="bg-slate-800 rounded-lg p-2">
+                      <p className="text-[10px] text-slate-500">Prob.</p>
+                      <p className={`text-sm font-bold ${m.probability > 60 ? "text-green-400" : m.probability < 40 ? "text-red-400" : "text-white"}`}>{m.probability}%</p>
+                    </div>
+                    <div className="bg-slate-800 rounded-lg p-2">
+                      <p className="text-[10px] text-slate-500">Edge</p>
+                      <p className="text-sm font-bold text-orange-400">{m.edge_pct}%</p>
+                    </div>
+                    <div className="bg-slate-800 rounded-lg p-2">
+                      <p className="text-[10px] text-slate-500">Vol 24h</p>
+                      <p className="text-sm font-bold text-white">${(m.volume24h / 1000).toFixed(0)}k</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => { addLog(`🎯 ${m.title.slice(0,30)}… queued for YES buy`); }}
+                          className="flex-1 bg-green-900/40 hover:bg-green-800/60 text-green-400 text-xs py-1.5 rounded-lg font-medium transition"
+                        >
+                          Buy YES @ {(m.outcome_yes * 100).toFixed(0)}¢
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Queue a YES buy on this market.</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => { addLog(`🎯 ${m.title.slice(0,30)}… queued for NO buy`); }}
+                          className="flex-1 bg-red-900/40 hover:bg-red-800/60 text-red-400 text-xs py-1.5 rounded-lg font-medium transition"
+                        >
+                          Buy NO @ {(m.outcome_no * 100).toFixed(0)}¢
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Queue a NO buy on this market.</TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+              ))}
+              {hotFiltered.length === 0 && (
+                <div className="col-span-3 text-center py-12 text-slate-500">
+                  No opportunities in this category yet. Try refreshing markets.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════
+          TAB: SAVED DIRECTIVES
+      ════════════════════════════════════════════ */}
+      {activeTab === "Directives" && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Form */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+            <h3 className="font-semibold text-slate-200">
+              {editingDirective ? "Edit Directive" : "New Buy Directive"}
+              <HelpTip content="Buy Directives are saved trading plans you can apply to the bot at any time." />
+            </h3>
+
+            <div>
+              <label className="text-xs text-slate-400 mb-1 block">Directive Name</label>
+              <input
+                type="text" placeholder="e.g. Construction Arbitrage Q3"
+                value={directiveName}
+                onChange={e => setDirectiveName(e.target.value)}
+                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-[#FF4D00]"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-slate-400 mb-1 flex items-center">
+                  Amount ($)
+                  <HelpTip content="Total capital for this directive's session." />
+                </label>
+                <input
+                  type="number" min={10} max={10000}
+                  value={directiveAmount}
+                  onChange={e => setDirectiveAmount(+e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-[#FF4D00]"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-slate-400 mb-1 flex items-center">
+                  Timeframe
+                  <HelpTip content="How long this directive runs before auto-stopping." />
+                </label>
+                <select
+                  value={directiveTimeframe}
+                  onChange={e => setDirectiveTimeframe(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-[#FF4D00]"
+                >
+                  {["1d", "3d", "1w", "2w", "1m"].map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 mb-1 flex items-center">
+                Buys per Day: {directiveBuysPerDay}
+                <HelpTip content="How many new positions to open each day." />
+              </label>
+              <input type="range" min={1} max={20} value={directiveBuysPerDay} onChange={e => setDirectiveBuysPerDay(+e.target.value)} className="w-full accent-[#FF4D00]" />
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 mb-2 flex items-center">
+                Risk Mix
+                <HelpTip content="Conservative = low risk/reward. Aggressive = high risk/reward." />
+              </label>
+              <div className="flex gap-1">
+                {(["conservative", "balanced", "aggressive"] as const).map(r => (
+                  <button key={r} onClick={() => setDirectiveRisk(r)}
+                    className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${directiveRisk === r ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}>
+                    {r.charAt(0).toUpperCase() + r.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 mb-2 flex items-center">
+                Profit Strategy
+                <HelpTip content="Arbitrage: exploit mispricing. Market-making: provide liquidity. Whale-copy: follow big players. Longshot: bet on unlikely outcomes with high payouts." />
+              </label>
+              <div className="grid grid-cols-2 gap-1">
+                {(["arbitrage", "market-making", "whale-copy", "longshot"] as const).map(s => (
+                  <button key={s} onClick={() => setDirectiveStrategy(s)}
+                    className={`py-1.5 text-xs rounded-lg font-medium transition ${directiveStrategy === s ? "bg-[#1E3A8A] text-blue-200" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}>
+                    {s.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase())}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 mb-2 flex items-center">
+                Focus Areas
+                <HelpTip content="Market categories this directive targets." />
+              </label>
+              <div className="flex flex-wrap gap-1">
+                {FOCUS_AREAS.map(area => (
+                  <button key={area} onClick={() => setDirectiveFocus(prev => prev.includes(area) ? prev.filter(a => a !== area) : [...prev, area])}
+                    className={`px-2 py-0.5 text-xs rounded-full transition ${directiveFocus.includes(area) ? "bg-[#1E3A8A] text-blue-200" : "bg-slate-800 text-slate-500 hover:bg-slate-700"}`}>
+                    {area}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-300 flex items-center">
+                Follow Whales
+                <HelpTip content="Mirror large trades in these markets." />
+              </span>
+              <button onClick={() => setDirectiveWhale(w => !w)}
+                className={`relative w-10 h-5 rounded-full transition ${directiveWhale ? "bg-[#1E3A8A]" : "bg-slate-600"}`}>
+                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${directiveWhale ? "translate-x-5" : "translate-x-0.5"}`} />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-300 flex items-center">
+                Paper Mode
+                <HelpTip content="Simulate this directive without spending real funds." />
+              </span>
+              <button onClick={() => setDirectivePaper(p => !p)}
+                className={`relative w-10 h-5 rounded-full transition ${directivePaper ? "bg-purple-600" : "bg-slate-600"}`}>
+                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${directivePaper ? "translate-x-5" : "translate-x-0.5"}`} />
+              </button>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={handleSaveDirective}
+                disabled={!directiveName.trim()}
+                className="flex-1 bg-[#FF4D00] hover:bg-orange-600 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40"
+              >
+                💾 Save Directive
+              </button>
+              {editingDirective && (
+                <button onClick={resetDirectiveForm} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition">Cancel</button>
+              )}
+            </div>
+          </div>
+
+          {/* Saved list */}
+          <div className="space-y-3">
+            <h3 className="font-semibold text-slate-300">Saved Directives ({directives.length})</h3>
+            {directives.length === 0 ? (
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-500 text-sm">
+                No saved directives yet. Create one on the left.
+              </div>
+            ) : (
+              directives.map(d => (
+                <div key={d.id} className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{d.name}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        ${d.amount} · {d.timeframe} · {d.buys_per_day}/day · {d.profit_strategy}
+                      </p>
+                    </div>
+                    <div className="flex gap-1">
+                      {d.paper_mode && <span className="text-[10px] bg-purple-900/60 text-purple-400 px-1.5 py-0.5 rounded-full">Paper</span>}
+                      <StatusBadge status={d.risk_mix} />
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {d.focus_areas.map(a => (
+                      <span key={a} className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded-full">{a}</span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button onClick={() => applyDirective(d)} className="flex-1 bg-[#FF4D00]/20 hover:bg-[#FF4D00]/40 text-orange-400 text-xs py-1.5 rounded-lg font-medium transition">
+                          ▶ Apply to Bot
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Load this directive\'s settings into the bot and switch to Overview.</TooltipContent>
+                    </Tooltip>
+                    <button onClick={() => { setEditingDirective(d); setDirectiveName(d.name); setDirectiveAmount(d.amount); setDirectiveTimeframe(d.timeframe); setDirectiveBuysPerDay(d.buys_per_day); setDirectiveRisk(d.risk_mix); setDirectiveWhale(d.whale_follow); setDirectiveFocus(d.focus_areas); setDirectiveStrategy(d.profit_strategy); setDirectivePaper(d.paper_mode); }}
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">
+                      ✏️ Edit
+                    </button>
+                    <button onClick={() => deleteDirective(d.id!)} className="px-3 py-1.5 bg-red-900/30 hover:bg-red-900/60 text-red-400 text-xs rounded-lg transition">
+                      🗑
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════
+          TAB: WHALE WATCH
+      ════════════════════════════════════════════ */}
+      {activeTab === "Whale Watch" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-slate-200 flex items-center gap-1">
+              🐋 Whale Activity
+              <HelpTip content="Large ($5k+) buys from sophisticated Polymarket wallets. Following whales is one of the most profitable strategies." />
+            </h3>
+            <div className="flex gap-2 items-center">
+              <select value={whaleFilter} onChange={e => setWhaleFilter(e.target.value)}
+                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-[#FF4D00]">
+                <option value="all">All Categories</option>
+                {FOCUS_AREAS.map(a => <option key={a} value={a.toLowerCase()}>{a}</option>)}
+              </select>
+              <button onClick={fetchWhales} disabled={loadingWhales}
+                className="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-slate-300 transition disabled:opacity-50">
+                {loadingWhales ? "Loading…" : "↻ Refresh"}
+              </button>
+            </div>
+          </div>
+
+          {loadingWhales ? (
+            <div className="text-center py-12 text-slate-500">Fetching whale activity…</div>
+          ) : whaleData.length === 0 ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+              <p className="text-slate-400 text-sm mb-3">No whale activity loaded yet</p>
+              <button onClick={fetchWhales} className="bg-[#1E3A8A] hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition">
+                🐋 Load Whale Data
+              </button>
+            </div>
+          ) : (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead className="bg-slate-800/50">
+                    <tr className="text-slate-400">
+                      <th className="px-4 py-3 text-left font-medium">Whale</th>
+                      <th className="px-4 py-3 text-left font-medium">Market</th>
+                      <th className="px-3 py-3 text-center font-medium">Outcome</th>
+                      <th className="px-3 py-3 text-right font-medium">Shares</th>
+                      <th className="px-3 py-3 text-right font-medium">Amount</th>
+                      <th className="px-3 py-3 text-right font-medium">Time</th>
+                      <th className="px-3 py-3 text-center font-medium">Copy</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {whaleData
+                      .filter(w => whaleFilter === "all" || w.category.toLowerCase() === whaleFilter)
+                      .map((w, i) => (
+                        <tr key={i} className="border-t border-slate-800 hover:bg-slate-800/30">
+                          <td className="px-4 py-3 font-mono text-blue-400">{w.whale_address}</td>
+                          <td className="px-4 py-3 max-w-[200px] truncate text-slate-300">{w.market_title}</td>
+                          <td className="px-3 py-3 text-center">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${w.outcome === "YES" ? "bg-green-900/60 text-green-400" : "bg-red-900/60 text-red-400"}`}>
+                              {w.outcome}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 text-right font-mono text-slate-300">{Number(w.shares).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                          <td className="px-3 py-3 text-right font-mono text-white font-bold">${Number(w.amount_usd).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                          <td className="px-3 py-3 text-right text-slate-500">{new Date(w.timestamp).toLocaleTimeString()}</td>
+                          <td className="px-3 py-3 text-center">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => addLog(`🐋 Copying whale trade: ${w.outcome} on "${w.market_title.slice(0,30)}…"`)}
+                                  className="text-xs bg-blue-900/40 hover:bg-blue-800/60 text-blue-400 px-2 py-0.5 rounded transition"
+                                >
+                                  Copy
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>Queue a copy of this whale\'s trade for the next scan.</TooltipContent>
+                            </Tooltip>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════
+          TAB: SIM COMPARE
+      ════════════════════════════════════════════ */}
+      {activeTab === "Sim Compare" && (
+        <div className="space-y-5">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-slate-200 flex items-center gap-1">
+              📊 Simulation Comparison
+              <HelpTip content="Compare PNL curves from two saved simulation runs side by side to evaluate different strategies." />
+            </h3>
+            {trades.length > 0 && (
+              <button onClick={saveCurrentSimRun}
+                className="bg-[#FF4D00] hover:bg-orange-600 px-4 py-2 rounded-lg text-sm font-bold transition">
+                💾 Save Current Sim
+              </button>
+            )}
+          </div>
+
+          {simRuns.length < 2 ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+              <p className="text-slate-400 text-sm mb-2">You need at least 2 saved simulation runs to compare</p>
+              <p className="text-slate-600 text-xs">Run the bot in paper mode with different configs, then save each run</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-slate-400 mb-1 block">Run A</label>
+                  <select value={compareA || ""} onChange={e => setCompareA(e.target.value || null)}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-[#FF4D00]">
+                    <option value="">— Select run A —</option>
+                    {simRuns.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400 mb-1 block">Run B</label>
+                  <select value={compareB || ""} onChange={e => setCompareB(e.target.value || null)}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-[#FF4D00]">
+                    <option value="">— Select run B —</option>
+                    {simRuns.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {compareRunA && compareRunB && (
+                <>
+                  {/* Stats comparison */}
+                  <div className="grid grid-cols-2 gap-4">
+                    {[compareRunA, compareRunB].map((run, idx) => (
+                      <div key={run.id} className={`bg-slate-900 border rounded-xl p-4 ${idx === 0 ? "border-[#FF4D00]/40" : "border-blue-700/40"}`}>
+                        <p className={`text-xs font-bold mb-2 ${idx === 0 ? "text-orange-400" : "text-blue-400"}`}>
+                          {idx === 0 ? "Run A" : "Run B"}: {run.name}
+                        </p>
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          <div>
+                            <p className="text-[10px] text-slate-500">Total PNL</p>
+                            <p className={`text-sm font-bold ${run.total_pnl >= 0 ? "text-green-400" : "text-red-400"}`}>
+                              {run.total_pnl >= 0 ? "+" : ""}${run.total_pnl.toFixed(2)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-500">Win Rate</p>
+                            <p className="text-sm font-bold text-white">{run.win_rate}%</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-slate-500">Trades</p>
+                            <p className="text-sm font-bold text-white">{run.trade_count}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Compare chart */}
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                    <h4 className="text-sm font-semibold text-slate-300 mb-3">Cumulative PNL Comparison</h4>
+                    {compareChartData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={260}>
+                        <LineChart data={compareChartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                          <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#64748b" }} />
+                          <YAxis tick={{ fontSize: 10, fill: "#64748b" }} tickFormatter={v => `$${v}`} />
+                          <RechartsTooltip
+                            contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
+                            formatter={(v: number | undefined) => [`$${(v ?? 0)?.toFixed(2)}`, ""]}
+                          />
+                          <Legend />
+                          <Line type="monotone" dataKey="a" name={compareRunA.name.slice(0, 20)} stroke="#FF4D00" strokeWidth={2} dot={false} connectNulls />
+                          <Line type="monotone" dataKey="b" name={compareRunB.name.slice(0, 20)} stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-[260px] flex items-center justify-center text-slate-500 text-sm">No PNL data in selected runs</div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Run list */}
+              <div className="space-y-2">
+                <h4 className="text-xs text-slate-400 font-medium uppercase tracking-wider">All Saved Runs ({simRuns.length})</h4>
+                {simRuns.map(run => (
+                  <div key={run.id} className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm text-white font-medium">{run.name}</p>
+                      <p className="text-xs text-slate-500">{run.trade_count} trades · {run.win_rate}% win rate · ${run.total_pnl.toFixed(2)} PNL · {run.config.risk_mix}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const updated = simRuns.filter(r => r.id !== run.id);
+                        localStorage.setItem("slate360_sim_runs", JSON.stringify(updated));
+                        setSimRuns(updated);
+                        if (compareA === run.id) setCompareA(null);
+                        if (compareB === run.id) setCompareB(null);
+                      }}
+                      className="text-xs text-red-500 hover:text-red-400 transition px-2 py-1 rounded hover:bg-red-900/20"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
