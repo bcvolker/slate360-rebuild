@@ -139,7 +139,15 @@ interface AccountOverview {
     storageUsedGb: number;
     storageLimitGb: number;
     monthlyCredits: number;
+    projectsCount: number;
+    modelsCount: number;
+    toursCount: number;
+    docsCount: number;
   };
+  sessions: Array<{ id: string; device: string; ip: string; lastActive: string }>;
+  auditLog: Array<{ id: string; action: string; actor: string; createdAt: string }>;
+  apiKeys: Array<{ id: string; label: string; lastFour: string; createdAt: string }>;
+  isAdmin: boolean;
 }
 
 /* ================================================================
@@ -516,6 +524,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [accountOverview, setAccountOverview] = useState<AccountOverview | null>(null);
   const [accountLoading, setAccountLoading] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
+  const [apiKeyLabel, setApiKeyLabel] = useState("");
+  const [apiKeyBusy, setApiKeyBusy] = useState<"create" | string | null>(null);
+  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
+  const [generatedApiKey, setGeneratedApiKey] = useState<string | null>(null);
 
   // ── SlateDrop floating window ───────────────────────────────
   const [slateDropOpen, setSlateDropOpen] = useState(false);
@@ -699,6 +711,73 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
       setAccountLoading(false);
     }
   }, []);
+
+  const copyText = useCallback(async (value: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setBillingNotice({ ok: true, text: `${label} copied` });
+      setTimeout(() => setBillingNotice(null), 2500);
+    } catch {
+      setBillingNotice({ ok: false, text: `Unable to copy ${label.toLowerCase()}` });
+      setTimeout(() => setBillingNotice(null), 2500);
+    }
+  }, []);
+
+  const applyLayoutPreset = useCallback(async (preset: "simple" | "creator" | "project") => {
+    const mappedTab = preset === "creator" ? "content-studio" : preset === "project" ? "project-hub" : "overview";
+    try {
+      await supabase.auth.updateUser({
+        data: {
+          dashboardPreset: preset,
+          defaultTab: mappedTab,
+        },
+      });
+      setBillingNotice({ ok: true, text: `${preset.charAt(0).toUpperCase() + preset.slice(1)} view saved.` });
+    } catch {
+      setBillingNotice({ ok: false, text: "Could not save preset" });
+    }
+  }, [supabase]);
+
+  const handleGenerateApiKey = useCallback(async () => {
+    setApiKeyError(null);
+    setGeneratedApiKey(null);
+    setApiKeyBusy("create");
+    try {
+      const res = await fetch("/api/account/api-keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label: apiKeyLabel.trim() || "General Key" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error ?? "Failed to create API key");
+      }
+      setGeneratedApiKey(data?.key?.raw ?? null);
+      setApiKeyLabel("");
+      await loadAccountOverview();
+    } catch (error) {
+      setApiKeyError(error instanceof Error ? error.message : "Failed to create API key");
+    } finally {
+      setApiKeyBusy(null);
+    }
+  }, [apiKeyLabel, loadAccountOverview]);
+
+  const handleRevokeApiKey = useCallback(async (id: string) => {
+    setApiKeyError(null);
+    setApiKeyBusy(id);
+    try {
+      const res = await fetch(`/api/account/api-keys/${id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error ?? "Failed to revoke API key");
+      }
+      await loadAccountOverview();
+    } catch (error) {
+      setApiKeyError(error instanceof Error ? error.message : "Failed to revoke API key");
+    } finally {
+      setApiKeyBusy(null);
+    }
+  }, [loadAccountOverview]);
 
   useEffect(() => {
     if (activeTab === "my-account") {
@@ -1836,6 +1915,15 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         )}
         {activeTab === "my-account" && (
           <div className="space-y-6">
+            {(() => {
+              const usagePct = accountOverview
+                ? accountOverview.usage.storageUsedGb / Math.max(accountOverview.usage.storageLimitGb, 1)
+                : storageUsed / Math.max(ent.maxStorageGB, 1);
+              const usageHealth = usagePct < 0.7 ? "Healthy" : usagePct < 0.9 ? "Watch" : "Critical";
+              const usageHealthClass = usagePct < 0.7 ? "text-emerald-600 bg-emerald-50 border-emerald-200" : usagePct < 0.9 ? "text-amber-600 bg-amber-50 border-amber-200" : "text-red-600 bg-red-50 border-red-200";
+              const isAdmin = accountOverview?.isAdmin ?? false;
+              return (
+                <>
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 px-1">
               <div>
                 <h2 className="text-2xl font-black text-gray-900">My Account</h2>
@@ -1855,10 +1943,16 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </div>
             )}
 
+            {apiKeyError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
+                {apiKeyError}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               <WidgetCard icon={User} title="Account At A Glance" span="xl:col-span-2" action={
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                  {accountOverview?.profile.role ?? "member"}
+                <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${usageHealthClass}`}>
+                  {usageHealth}
                 </span>
               }>
                 {accountLoading && !accountOverview ? (
@@ -1885,10 +1979,19 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                         <p className="text-sm font-semibold text-gray-900 capitalize">{accountOverview?.profile.role ?? "member"}</p>
                       </div>
                     </div>
+                    <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between gap-2">
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Storage Health</p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {(accountOverview?.usage.storageUsedGb ?? storageUsed).toFixed(1)} / {(accountOverview?.usage.storageLimitGb ?? ent.maxStorageGB).toFixed(0)} GB
+                        </p>
+                      </div>
+                      <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${usageHealthClass}`}>{usageHealth}</span>
+                    </div>
                     <div className="flex flex-wrap gap-2 pt-1">
-                      <button className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Simple View</button>
-                      <button className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Creator View</button>
-                      <button className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Project View</button>
+                      <button onClick={() => void applyLayoutPreset("simple")} className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Simple View</button>
+                      <button onClick={() => void applyLayoutPreset("creator")} className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Creator View</button>
+                      <button onClick={() => void applyLayoutPreset("project")} className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Project View</button>
                     </div>
                   </div>
                 )}
@@ -1917,21 +2020,25 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                       {accountOverview?.billing.renewsOn ? new Date(accountOverview.billing.renewsOn).toLocaleDateString() : "Not available"}
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleBuyCredits}
-                      className="flex-1 text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-                    >
-                      Buy Credits
-                    </button>
-                    <button
-                      onClick={handleUpgradePlan}
-                      className="flex-1 text-xs font-semibold py-2 rounded-lg text-white hover:opacity-90 transition-all"
-                      style={{ backgroundColor: "#FF4D00" }}
-                    >
-                      Upgrade
-                    </button>
-                  </div>
+                  {isAdmin ? (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleBuyCredits}
+                        className="flex-1 text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        Buy Credits
+                      </button>
+                      <button
+                        onClick={handleUpgradePlan}
+                        className="flex-1 text-xs font-semibold py-2 rounded-lg text-white hover:opacity-90 transition-all"
+                        style={{ backgroundColor: "#FF4D00" }}
+                      >
+                        Upgrade
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-gray-500">Billing controls are available for owner/admin roles.</p>
+                  )}
                 </div>
               </WidgetCard>
             </div>
@@ -1961,6 +2068,25 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Total Credit Balance</p>
                     <p className="text-sm font-semibold text-gray-900">{(accountOverview?.billing.totalCreditsBalance ?? 0).toLocaleString()}</p>
                   </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Projects</p>
+                      <p className="text-sm font-semibold text-gray-900">{(accountOverview?.usage.projectsCount ?? 0).toLocaleString()}</p>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Models</p>
+                      <p className="text-sm font-semibold text-gray-900">{(accountOverview?.usage.modelsCount ?? 0).toLocaleString()}</p>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Tours</p>
+                      <p className="text-sm font-semibold text-gray-900">{(accountOverview?.usage.toursCount ?? 0).toLocaleString()}</p>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider">Documents</p>
+                      <p className="text-sm font-semibold text-gray-900">{(accountOverview?.usage.docsCount ?? 0).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <button className="w-full text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Download my data</button>
                 </div>
               </WidgetCard>
 
@@ -1974,10 +2100,23 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                     <span className="text-xs font-semibold text-gray-700">2FA status</span>
                     <span className="text-[11px] font-semibold text-gray-500">Coming soon</span>
                   </button>
-                  <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors text-left">
-                    <span className="text-xs font-semibold text-gray-700">Recent sessions</span>
-                    <span className="text-[11px] font-semibold text-gray-500">Last 3</span>
-                  </button>
+                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-gray-700">Recent sessions</span>
+                      <span className="text-[11px] font-semibold text-gray-500">Last 3</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {(accountOverview?.sessions ?? []).slice(0, 3).map((session) => (
+                        <div key={session.id} className="flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-semibold text-gray-700 truncate">{session.device}</p>
+                            <p className="text-[10px] text-gray-400">{session.ip}</p>
+                          </div>
+                          <p className="text-[10px] text-gray-400 shrink-0">{new Date(session.lastActive).toLocaleDateString()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </WidgetCard>
 
@@ -1997,7 +2136,86 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   </button>
                 </div>
               </WidgetCard>
+
+              {isAdmin && (
+                <WidgetCard icon={FileText} title="API & Integrations" span="md:col-span-2 xl:col-span-2">
+                  <div className="space-y-3">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        value={apiKeyLabel}
+                        onChange={(e) => setApiKeyLabel(e.target.value)}
+                        placeholder="Key label (e.g. CI Runner)"
+                        className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00]"
+                      />
+                      <button
+                        onClick={() => void handleGenerateApiKey()}
+                        disabled={apiKeyBusy === "create"}
+                        className="px-3 py-2 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-all disabled:opacity-60"
+                        style={{ backgroundColor: "#FF4D00" }}
+                      >
+                        {apiKeyBusy === "create" ? "Generating…" : "Generate Key"}
+                      </button>
+                    </div>
+                    {generatedApiKey && (
+                      <div className="p-3 rounded-xl border border-amber-200 bg-amber-50">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 mb-1">Copy now — shown once</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-mono text-amber-800 truncate flex-1">{generatedApiKey}</p>
+                          <button onClick={() => void copyText(generatedApiKey, "API key")} className="text-[11px] font-semibold text-amber-700 hover:underline">Copy</button>
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      {(accountOverview?.apiKeys ?? []).length === 0 ? (
+                        <p className="text-xs text-gray-400">No active API keys yet.</p>
+                      ) : (
+                        (accountOverview?.apiKeys ?? []).map((key) => (
+                          <div key={key.id} className="p-3 rounded-xl border border-gray-100 bg-gray-50 flex items-center gap-3">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-gray-800 truncate">{key.label}</p>
+                              <p className="text-[10px] text-gray-400">••••{key.lastFour} · {new Date(key.createdAt).toLocaleDateString()}</p>
+                            </div>
+                            <button
+                              onClick={() => void copyText(`••••${key.lastFour}`, "Key reference")}
+                              className="text-[11px] font-semibold text-gray-500 hover:text-gray-700"
+                            >
+                              Copy
+                            </button>
+                            <button
+                              onClick={() => void handleRevokeApiKey(key.id)}
+                              disabled={apiKeyBusy === key.id}
+                              className="text-[11px] font-semibold text-red-500 hover:text-red-600 disabled:opacity-60"
+                            >
+                              {apiKeyBusy === key.id ? "Revoking…" : "Revoke"}
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </WidgetCard>
+              )}
+
+              {isAdmin && (
+                <WidgetCard icon={Shield} title="Audit Log">
+                  <div className="space-y-2">
+                    {(accountOverview?.auditLog ?? []).length === 0 ? (
+                      <p className="text-xs text-gray-400">No recent sensitive actions.</p>
+                    ) : (
+                      (accountOverview?.auditLog ?? []).slice(0, 5).map((event) => (
+                        <div key={event.id} className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+                          <p className="text-xs font-semibold text-gray-800">{event.action}</p>
+                          <p className="text-[10px] text-gray-400">{event.actor} · {new Date(event.createdAt).toLocaleString()}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </WidgetCard>
+              )}
             </div>
+                </>
+              );
+            })()}
           </div>
         )}
         {activeTab !== "overview" && activeTab !== "market" && activeTab !== "my-account" && (() => {
