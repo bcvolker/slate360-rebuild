@@ -116,7 +116,7 @@ function HelpTip({ content }: { content: string }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-600 text-slate-300 text-[10px] cursor-help ml-1 select-none">?</span>
+        <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-300 text-gray-700 text-[10px] cursor-help ml-1 select-none">?</span>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs text-xs">
         {content}
@@ -127,13 +127,13 @@ function HelpTip({ content }: { content: string }) {
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    open: "bg-green-900/60 text-green-300 border border-green-700",
-    closed: "bg-slate-700 text-slate-400",
-    paper: "bg-purple-900/60 text-purple-300 border border-purple-700",
+    open: "bg-green-100 text-green-700 border border-green-200",
+    closed: "bg-gray-200 text-gray-500",
+    paper: "bg-purple-100 text-purple-700 border border-purple-200",
     connected: "bg-green-900/60 text-green-300",
-    disconnected: "bg-slate-700 text-slate-400",
-    running: "bg-orange-900/60 text-orange-300 border border-orange-700",
-    idle: "bg-slate-700 text-slate-400",
+    disconnected: "bg-gray-200 text-gray-500",
+    running: "bg-orange-100 text-orange-700 border border-orange-200",
+    idle: "bg-gray-200 text-gray-500",
   };
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${colors[status] || colors.idle}`}>
@@ -348,7 +348,7 @@ export default function MarketClient() {
     try {
       // Fetch large recent trades from Polymarket activity API
       const res = await fetch(
-        "https://data-api.polymarket.com/activity?limit=50&side=BUY&minAmount=5000",
+        "/api/market/whales",
         { next: { revalidate: 30 } }
       );
       if (res.ok) {
@@ -723,13 +723,13 @@ export default function MarketClient() {
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#0F1117] text-white">
+    <div className="text-gray-900">
       {/* ── Back to Dashboard (standalone page only) ── */}
       {isStandalonePage && (
         <div className="mb-4 px-1">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition group"
+            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#FF4D00] transition group font-medium"
           >
             <span className="group-hover:-translate-x-0.5 transition-transform">←</span>
             Back to Dashboard
@@ -740,12 +740,12 @@ export default function MarketClient() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 px-1">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             🤖 Market Robot
             <StatusBadge status={botRunning ? (botPaused ? "idle" : "running") : "idle"} />
-            {paperMode && <span className="text-xs bg-purple-900/60 text-purple-300 border border-purple-700 px-2 py-0.5 rounded-full">Paper Mode</span>}
+            {paperMode && <span className="text-xs bg-purple-100 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full">Paper Mode</span>}
           </h1>
-          <p className="text-sm text-slate-400 mt-0.5">
+          <p className="text-sm text-gray-500 mt-0.5">
             AI-powered prediction market bot — {lastScan ? `Last scan: ${new Date(lastScan).toLocaleTimeString()}` : "Not scanned yet"}
           </p>
         </div>
@@ -754,14 +754,14 @@ export default function MarketClient() {
         <div className="flex items-center gap-2 flex-wrap">
           {isConnected ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 font-mono bg-slate-800 px-2 py-1 rounded">
+              <span className="text-xs text-gray-600 font-mono bg-gray-100 px-2 py-1 rounded-lg">
                 {address?.slice(0, 6)}…{address?.slice(-4)}
               </span>
               {walletVerified
                 ? <span className="text-xs text-green-400 font-medium">✓ Verified</span>
                 : <button onClick={handleConnectWallet} className="text-xs bg-[#FF4D00] hover:bg-orange-600 px-3 py-1 rounded font-medium transition">Verify Signature</button>
               }
-              <button onClick={() => { disconnect(); setWalletVerified(false); }} className="text-xs text-slate-500 hover:text-slate-300 px-2 py-1 rounded border border-slate-700">Disconnect</button>
+              <button onClick={() => { disconnect(); setWalletVerified(false); }} className="text-xs text-gray-500 hover:text-gray-800 px-2 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition">Disconnect</button>
             </div>
           ) : (
             <Tooltip>
@@ -782,7 +782,7 @@ export default function MarketClient() {
       </div>
 
       {/* ── Tabs ── */}
-      <div className="flex gap-1 mb-6 border-b border-slate-800 overflow-x-auto pb-px">
+      <div className="flex gap-1 mb-6 border-b border-gray-200 overflow-x-auto pb-px">
         {TABS.map(tab => (
           <button
             key={tab}
@@ -794,7 +794,7 @@ export default function MarketClient() {
             className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition border-b-2 -mb-px ${
               activeTab === tab
                 ? "border-[#FF4D00] text-[#FF4D00]"
-                : "border-transparent text-slate-400 hover:text-white"
+                : "border-transparent text-gray-500 hover:text-gray-900"
             }`}
           >
             {tab}
@@ -811,8 +811,8 @@ export default function MarketClient() {
           <div className="xl:col-span-1 space-y-4">
 
             {/* Bot Controls */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-              <h3 className="font-semibold text-sm text-slate-300 uppercase tracking-wider">Bot Controls</h3>
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-3">
+              <h3 className="font-semibold text-xs text-gray-400 uppercase tracking-widest">Bot Controls</h3>
               <div className="flex gap-2 flex-wrap">
                 {!botRunning ? (
                   <Tooltip>
@@ -848,7 +848,7 @@ export default function MarketClient() {
                     <button
                       onClick={runScan}
                       disabled={scanning}
-                      className="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-sm font-bold transition disabled:opacity-50"
+                      className="flex-1 bg-gray-200 hover:bg-gray-300 py-2 rounded-lg text-sm font-bold transition disabled:opacity-50"
                     >
                       {scanning ? "🔍 Scanning…" : "🔍 Test Scan Now"}
                     </button>
@@ -859,13 +859,13 @@ export default function MarketClient() {
 
               {/* Paper Mode */}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-300 flex items-center">
+                <span className="text-sm text-gray-700 flex items-center">
                   Paper Mode
                   <HelpTip content="Paper mode simulates trades without spending real money. Safe for testing strategies." />
                 </span>
                 <button
                   onClick={() => setPaperMode(p => !p)}
-                  className={`relative w-10 h-5 rounded-full transition ${paperMode ? "bg-purple-600" : "bg-slate-600"}`}
+                  className={`relative w-10 h-5 rounded-full transition ${paperMode ? "bg-purple-600" : "bg-gray-300"}`}
                 >
                   <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${paperMode ? "translate-x-5" : "translate-x-0.5"}`} />
                 </button>
@@ -877,7 +877,7 @@ export default function MarketClient() {
                   <TooltipTrigger asChild>
                     <button
                       onClick={saveCurrentSimRun}
-                      className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 py-2 rounded-lg text-sm text-slate-300 transition"
+                      className="w-full bg-gray-100 hover:bg-gray-200 border border-gray-200 py-2 rounded-lg text-sm text-gray-700 transition"
                     >
                       💾 Save This Simulation Run
                     </button>
@@ -888,12 +888,12 @@ export default function MarketClient() {
             </div>
 
             {/* Bot Configuration */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-              <h3 className="font-semibold text-sm text-slate-300 uppercase tracking-wider">Configuration</h3>
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-3">
+              <h3 className="font-semibold text-xs text-gray-400 uppercase tracking-widest">Configuration</h3>
 
               {/* Capital */}
               <div>
-                <label className="flex items-center text-xs text-slate-400 mb-1">
+                <label className="flex items-center text-xs text-gray-500 mb-1">
                   Capital Allocation ($)
                   <HelpTip content="Total USDC allocated for this bot session. Split across open positions." />
                 </label>
@@ -904,13 +904,13 @@ export default function MarketClient() {
                     onChange={e => setCapitalAlloc(+e.target.value)}
                     className="flex-1 accent-[#FF4D00]"
                   />
-                  <span className="text-sm font-mono text-white w-16 text-right">${capitalAlloc}</span>
+                  <span className="text-sm font-mono text-gray-900 w-16 text-right">${capitalAlloc}</span>
                 </div>
               </div>
 
               {/* Max Positions */}
               <div>
-                <label className="flex items-center text-xs text-slate-400 mb-1">
+                <label className="flex items-center text-xs text-gray-500 mb-1">
                   Max Open Positions
                   <HelpTip content="Maximum number of simultaneous open bets. Capital is divided evenly." />
                 </label>
@@ -921,13 +921,13 @@ export default function MarketClient() {
                     onChange={e => setMaxPositions(+e.target.value)}
                     className="flex-1 accent-[#FF4D00]"
                   />
-                  <span className="text-sm font-mono text-white w-8 text-right">{maxPositions}</span>
+                  <span className="text-sm font-mono text-gray-900 w-8 text-right">{maxPositions}</span>
                 </div>
               </div>
 
               {/* Min Edge */}
               <div>
-                <label className="flex items-center text-xs text-slate-400 mb-1">
+                <label className="flex items-center text-xs text-gray-500 mb-1">
                   Minimum Edge %
                   <HelpTip content="Only enter trades where the bot detects at least this % edge over the market price." />
                 </label>
@@ -938,13 +938,13 @@ export default function MarketClient() {
                     onChange={e => setMinEdge(+e.target.value)}
                     className="flex-1 accent-[#FF4D00]"
                   />
-                  <span className="text-sm font-mono text-white w-10 text-right">{minEdge}%</span>
+                  <span className="text-sm font-mono text-gray-900 w-10 text-right">{minEdge}%</span>
                 </div>
               </div>
 
               {/* Min Volume */}
               <div>
-                <label className="flex items-center text-xs text-slate-400 mb-1">
+                <label className="flex items-center text-xs text-gray-500 mb-1">
                   Min 24h Volume ($)
                   <HelpTip content="Ignore markets with low liquidity. Higher volume = easier to enter/exit positions." />
                 </label>
@@ -955,13 +955,13 @@ export default function MarketClient() {
                     onChange={e => setMinVolume(+e.target.value)}
                     className="flex-1 accent-[#FF4D00]"
                   />
-                  <span className="text-xs font-mono text-white w-20 text-right">${minVolume.toLocaleString()}</span>
+                  <span className="text-xs font-mono text-gray-900 w-20 text-right">${minVolume.toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Probability range */}
               <div>
-                <label className="flex items-center text-xs text-slate-400 mb-1">
+                <label className="flex items-center text-xs text-gray-500 mb-1">
                   Probability Range: {minProbLow}% – {minProbHigh}%
                   <HelpTip content="Only trade markets where YES probability is within this range. Avoids near-certain outcomes with no value." />
                 </label>
@@ -973,7 +973,7 @@ export default function MarketClient() {
 
               {/* Risk Mix */}
               <div>
-                <label className="flex items-center text-xs text-slate-400 mb-2">
+                <label className="flex items-center text-xs text-gray-500 mb-2">
                   Risk Mix
                   <HelpTip content="Adjusts the bot's appetite for risk. Conservative = safer but lower return. Aggressive = higher upside with more losses." />
                 </label>
@@ -982,7 +982,7 @@ export default function MarketClient() {
                     <button
                       key={r}
                       onClick={() => setRiskMix(r)}
-                      className={`flex-1 py-1 text-xs rounded-lg font-medium transition ${riskMix === r ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+                      className={`flex-1 py-1 text-xs rounded-lg font-medium transition ${riskMix === r ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
                     >
                       {r.charAt(0).toUpperCase() + r.slice(1)}
                     </button>
@@ -992,13 +992,13 @@ export default function MarketClient() {
 
               {/* Whale Follow */}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-300 flex items-center">
+                <span className="text-sm text-gray-700 flex items-center">
                   Follow Whale Wallets
                   <HelpTip content="Mirror large ($5k+) trades from sophisticated market participants detected on-chain." />
                 </span>
                 <button
                   onClick={() => setWhaleFollow(w => !w)}
-                  className={`relative w-10 h-5 rounded-full transition ${whaleFollow ? "bg-[#1E3A8A]" : "bg-slate-600"}`}
+                  className={`relative w-10 h-5 rounded-full transition ${whaleFollow ? "bg-[#1E3A8A]" : "bg-gray-300"}`}
                 >
                   <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${whaleFollow ? "translate-x-5" : "translate-x-0.5"}`} />
                 </button>
@@ -1006,7 +1006,7 @@ export default function MarketClient() {
 
               {/* Focus Areas */}
               <div>
-                <label className="flex items-center text-xs text-slate-400 mb-2">
+                <label className="flex items-center text-xs text-gray-500 mb-2">
                   Focus Areas
                   <HelpTip content="Restrict the bot to markets in these categories. Construction is your primary domain." />
                 </label>
@@ -1015,7 +1015,7 @@ export default function MarketClient() {
                     <button
                       key={area}
                       onClick={() => toggleFocus(area)}
-                      className={`px-2 py-0.5 text-xs rounded-full transition ${focusAreas.includes(area) ? "bg-[#1E3A8A] text-blue-200" : "bg-slate-800 text-slate-500 hover:bg-slate-700"}`}
+                      className={`px-2 py-0.5 text-xs rounded-full transition ${focusAreas.includes(area) ? "bg-[#1E3A8A] text-blue-200" : "bg-gray-100 text-gray-400 hover:bg-gray-200"}`}
                     >
                       {area}
                     </button>
@@ -1031,25 +1031,25 @@ export default function MarketClient() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { label: "Total PNL", value: `${totalPnl >= 0 ? "+" : ""}$${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? "text-green-400" : "text-red-400" },
-                { label: "Open Positions", value: openTrades.length, color: "text-white" },
+                { label: "Open Positions", value: openTrades.length, color: "text-gray-900" },
                 { label: "Win Rate", value: `${winRate}%`, color: parseFloat(winRate) >= 50 ? "text-green-400" : "text-red-400" },
-                { label: "Total Trades", value: trades.length, color: "text-white" },
+                { label: "Total Trades", value: trades.length, color: "text-gray-900" },
               ].map(stat => (
-                <div key={stat.label} className="bg-slate-900 border border-slate-800 rounded-xl p-3">
-                  <p className="text-xs text-slate-400">{stat.label}</p>
+                <div key={stat.label} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-3">
+                  <p className="text-xs text-gray-500">{stat.label}</p>
                   <p className={`text-xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>
                 </div>
               ))}
             </div>
 
             {/* PNL Chart */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-sm text-slate-300">
+                <h3 className="font-semibold text-sm text-gray-800">
                   Cumulative PNL
                   <HelpTip content="Running sum of all trade profits/losses over time. Slope up = profitable strategy." />
                 </h3>
-                <button onClick={fetchTrades} className="text-xs text-slate-500 hover:text-slate-300 transition">↻ Refresh</button>
+                <button onClick={fetchTrades} className="text-xs text-gray-400 hover:text-gray-700 transition">↻ Refresh</button>
               </div>
               {pnlChart.length > 0 ? (
                 <ResponsiveContainer width="100%" height={220}>
@@ -1060,31 +1060,31 @@ export default function MarketClient() {
                         <stop offset="95%" stopColor="#FF4D00" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#64748b" }} />
-                    <YAxis tick={{ fontSize: 10, fill: "#64748b" }} tickFormatter={v => `$${v}`} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6b7280" }} />
+                    <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} tickFormatter={v => `$${v}`} />
                     <RechartsTooltip
-                      contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
+                      contentStyle={{ background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: 8, color: "#111827" }}
                       formatter={(v: number | undefined) => [`$${(v ?? 0).toFixed(2)}`, "Cum. PNL"]}
                     />
                     <Area type="monotone" dataKey="cumPnl" stroke="#FF4D00" fill="url(#pnlGrad)" strokeWidth={2} dot={false} />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[220px] flex items-center justify-center text-slate-500 text-sm">
+                <div className="h-[220px] flex items-center justify-center text-gray-400 text-sm">
                   {loadingTrades ? "Loading trade data…" : "No trades yet — run a scan to populate this chart"}
                 </div>
               )}
             </div>
 
             {/* Activity Log */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <h3 className="font-semibold text-sm text-slate-300 mb-2">Activity Log</h3>
-              <div ref={logRef} className="bg-black/40 rounded-lg p-3 h-36 overflow-y-auto font-mono text-xs space-y-0.5">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
+              <h3 className="font-semibold text-sm text-gray-700 mb-2">Activity Log</h3>
+              <div ref={logRef} className="bg-gray-50 border border-gray-100 rounded-lg p-3 h-36 overflow-y-auto font-mono text-xs space-y-0.5">
                 {scanLog.length === 0
-                  ? <span className="text-slate-600">No activity yet…</span>
+                  ? <span className="text-gray-400">No activity yet…</span>
                   : scanLog.map((l, i) => (
-                    <div key={i} className={`${l.includes("✅") ? "text-green-400" : l.includes("❌") ? "text-red-400" : l.includes("⚠️") ? "text-yellow-400" : "text-slate-400"}`}>
+                    <div key={i} className={`${l.includes("✅") ? "text-green-600" : l.includes("❌") ? "text-red-600" : l.includes("⚠️") ? "text-yellow-600" : "text-gray-500"}`}>
                       {l}
                     </div>
                   ))
@@ -1094,12 +1094,12 @@ export default function MarketClient() {
 
             {/* Open Positions */}
             {openTrades.length > 0 && (
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-                <h3 className="font-semibold text-sm text-slate-300 mb-3">Open Positions</h3>
+              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
+                <h3 className="font-semibold text-sm text-gray-700 mb-3">Open Positions</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="text-slate-500 border-b border-slate-800">
+                      <tr className="text-gray-400 border-b border-gray-200">
                         <th className="pb-2 text-left font-medium">Market</th>
                         <th className="pb-2 text-left font-medium">Outcome</th>
                         <th className="pb-2 text-right font-medium">Shares</th>
@@ -1110,15 +1110,15 @@ export default function MarketClient() {
                     </thead>
                     <tbody>
                       {openTrades.map(t => (
-                        <tr key={t.id} className="border-b border-slate-800/50">
-                          <td className="py-2 pr-2 max-w-[180px] truncate text-slate-300">{t.market_title}</td>
+                        <tr key={t.id} className="border-b border-gray-200/50">
+                          <td className="py-2 pr-2 max-w-[180px] truncate text-gray-700">{t.market_title}</td>
                           <td className="py-2 pr-2">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${t.outcome === "YES" ? "bg-green-900/60 text-green-400" : "bg-red-900/60 text-red-400"}`}>{t.outcome}</span>
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${t.outcome === "YES" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{t.outcome}</span>
                           </td>
                           <td className="py-2 text-right font-mono">{Number(t.shares).toFixed(1)}</td>
                           <td className="py-2 text-right font-mono">${Number(t.avg_price).toFixed(3)}</td>
                           <td className="py-2 text-right font-mono">${Number(t.current_price).toFixed(3)}</td>
-                          <td className={`py-2 text-right font-mono font-bold ${t.pnl >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          <td className={`py-2 text-right font-mono font-bold ${t.pnl >= 0 ? "text-green-600" : "text-red-600"}`}>
                             {t.pnl >= 0 ? "+" : ""}${Number(t.pnl).toFixed(2)}
                           </td>
                         </tr>
@@ -1140,36 +1140,36 @@ export default function MarketClient() {
 
           {/* ── Buy Panel (slides in when a market is selected) ── */}
           {buyMarket && (
-            <div className="bg-slate-900 border border-[#FF4D00]/60 rounded-xl p-5 space-y-4">
+            <div className="bg-white border-2 border-[#FF4D00]/40 rounded-2xl p-5 space-y-4 shadow-md">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Buying on</p>
-                  <p className="text-sm font-semibold text-white leading-snug">{buyMarket.title}</p>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Buying on</p>
+                  <p className="text-sm font-semibold text-gray-900 leading-snug">{buyMarket.title}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-slate-400">{buyMarket.category}</span>
-                    <span className="text-xs text-slate-600">·</span>
-                    <span className="text-xs text-slate-400">Prob: {buyMarket.probability}%</span>
-                    <span className="text-xs text-slate-600">·</span>
-                    <span className={`text-xs font-bold ${buyMarket.edge_pct > 10 ? "text-orange-400" : "text-slate-400"}`}>Edge: {buyMarket.edge_pct}%</span>
+                    <span className="text-xs text-gray-500">{buyMarket.category}</span>
+                    <span className="text-xs text-gray-400">·</span>
+                    <span className="text-xs text-gray-500">Prob: {buyMarket.probability}%</span>
+                    <span className="text-xs text-gray-400">·</span>
+                    <span className={`text-xs font-bold ${buyMarket.edge_pct > 10 ? "text-orange-400" : "text-gray-500"}`}>Edge: {buyMarket.edge_pct}%</span>
                   </div>
                 </div>
-                <button onClick={() => setBuyMarket(null)} className="text-slate-500 hover:text-white text-lg leading-none">×</button>
+                <button onClick={() => setBuyMarket(null)} className="text-gray-400 hover:text-gray-800 text-lg leading-none transition">×</button>
               </div>
 
               {/* YES / NO toggle */}
               <div>
-                <label className="text-xs text-slate-400 mb-2 block">Outcome</label>
+                <label className="text-xs text-gray-500 mb-2 block">Outcome</label>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setBuyOutcome("YES")}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${buyOutcome === "YES" ? "bg-green-700 text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${buyOutcome === "YES" ? "bg-green-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
                   >
                     YES &nbsp;
                     <span className="font-mono text-xs opacity-80">@ {(buyMarket.outcome_yes * 100).toFixed(0)}¢</span>
                   </button>
                   <button
                     onClick={() => setBuyOutcome("NO")}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${buyOutcome === "NO" ? "bg-red-700 text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${buyOutcome === "NO" ? "bg-red-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
                   >
                     NO &nbsp;
                     <span className="font-mono text-xs opacity-80">@ {(buyMarket.outcome_no * 100).toFixed(0)}¢</span>
@@ -1179,8 +1179,8 @@ export default function MarketClient() {
 
               {/* Amount + preview */}
               <div>
-                <label className="text-xs text-slate-400 mb-1 block flex items-center gap-1">
-                  Amount (USDC): <span className="text-white font-mono">${buyAmount}</span>
+                <label className="text-xs text-gray-500 mb-1 block flex items-center">
+                  Amount (USDC): <span className="text-gray-900 font-semibold font-mono">${buyAmount}</span>
                   <HelpTip content="How much USDC to spend on this trade." />
                 </label>
                 <input
@@ -1192,7 +1192,7 @@ export default function MarketClient() {
                 <div className="flex gap-1">
                   {[10, 25, 50, 100, 250].map(v => (
                     <button key={v} onClick={() => setBuyAmount(v)}
-                      className={`px-2 py-1 text-xs rounded transition ${buyAmount === v ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+                      className={`px-2 py-1 text-xs rounded transition ${buyAmount === v ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
                     >${v}</button>
                   ))}
                 </div>
@@ -1206,17 +1206,17 @@ export default function MarketClient() {
                 const payout = shares * 1;
                 const profit = payout - buyAmount;
                 return (
-                  <div className="grid grid-cols-3 gap-2 text-center bg-slate-800/50 rounded-lg p-3">
+                  <div className="grid grid-cols-3 gap-2 text-center bg-gray-100/50 rounded-lg p-3">
                     <div>
-                      <p className="text-[10px] text-slate-500 mb-1">Shares</p>
-                      <p className="text-sm font-bold text-white">{shares.toFixed(1)}</p>
+                      <p className="text-[10px] text-gray-400 mb-1">Shares</p>
+                      <p className="text-sm font-bold text-gray-900">{shares.toFixed(1)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-slate-500 mb-1">Max Payout</p>
+                      <p className="text-[10px] text-gray-400 mb-1">Max Payout</p>
                       <p className="text-sm font-bold text-green-400">${payout.toFixed(2)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-slate-500 mb-1">Max Profit</p>
+                      <p className="text-[10px] text-gray-400 mb-1">Max Profit</p>
                       <p className={`text-sm font-bold ${profit > 0 ? "text-green-400" : "text-red-400"}`}>
                         {profit >= 0 ? "+" : ""}${profit.toFixed(2)}
                       </p>
@@ -1227,7 +1227,7 @@ export default function MarketClient() {
 
               {/* Paper mode toggle */}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-300 flex items-center gap-1">
+                <span className="text-sm text-gray-700 flex items-center gap-1">
                   Paper Mode
                   <HelpTip content="Paper mode saves the trade without spending real money. Ideal for testing." />
                 </span>
@@ -1236,7 +1236,7 @@ export default function MarketClient() {
                   <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${buyPaper ? "translate-x-5" : "translate-x-0.5"}`} />
                 </button>
               </div>
-              <p className="text-xs text-center text-slate-500">
+              <p className="text-xs text-center text-gray-400">
                 {buyPaper ? "📝 This will be saved as a paper (simulated) trade" : "⚠️ This will attempt a LIVE buy on Polymarket"}
               </p>
 
@@ -1257,8 +1257,8 @@ export default function MarketClient() {
           )}
 
           {/* ── Search + Filters ── */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-            <h3 className="font-semibold text-sm text-slate-300 flex items-center gap-1">
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-3">
+            <h3 className="font-semibold text-sm text-gray-800 flex items-center gap-1">
               Markets Explorer
               <HelpTip content="Search live Polymarket markets. Enter a keyword and click Search, then filter results." />
             </h3>
@@ -1271,7 +1271,7 @@ export default function MarketClient() {
                 value={marketSearch}
                 onChange={e => setMarketSearch(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && fetchMarkets()}
-                className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-[#FF4D00]"
+                className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#FF4D00]"
               />
               <button
                 onClick={() => fetchMarkets()}
@@ -1284,32 +1284,32 @@ export default function MarketClient() {
 
             {/* Filter row (only shown after first load) */}
             {marketsLoaded && (
-              <div className="space-y-3 pt-1 border-t border-slate-800">
+              <div className="space-y-3 pt-1 border-t border-gray-100">
                 {/* Row 1: Category + Risk Tag + Sort */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block flex items-center gap-1">
+                    <label className="text-xs text-gray-500 mb-1 block flex items-center">
                       Category
                       <HelpTip content="Filter by Polymarket category." />
                     </label>
                     <select
                       value={mktCategory}
                       onChange={e => setMktCategory(e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#FF4D00]"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
                     >
                       <option value="all">All Categories</option>
                       {FOCUS_AREAS.map(a => <option key={a} value={a.toLowerCase()}>{a}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block flex items-center gap-1">
+                    <label className="text-xs text-gray-500 mb-1 block flex items-center">
                       Risk Tag
                       <HelpTip content="Filter by computed risk classification." />
                     </label>
                     <select
                       value={mktRiskTag}
                       onChange={e => setMktRiskTag(e.target.value as typeof mktRiskTag)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#FF4D00]"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
                     >
                       <option value="all">All Tags</option>
                       <option value="hot">🔥 Hot (High Edge)</option>
@@ -1320,14 +1320,14 @@ export default function MarketClient() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block flex items-center gap-1">
+                    <label className="text-xs text-gray-500 mb-1 block flex items-center">
                       Sort By
                       <HelpTip content="Sort the results table." />
                     </label>
                     <select
                       value={mktSortBy}
                       onChange={e => setMktSortBy(e.target.value as typeof mktSortBy)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#FF4D00]"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
                     >
                       <option value="volume">24h Volume ↓</option>
                       <option value="edge">Edge % ↓</option>
@@ -1339,21 +1339,21 @@ export default function MarketClient() {
                 {/* Row 2: Range sliders */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 flex items-center gap-1">
+                    <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
                       Min Edge %: {mktMinEdge}%
                       <HelpTip content="Only show markets with at least this estimated edge." />
                     </label>
                     <input type="range" min={0} max={30} value={mktMinEdge} onChange={e => setMktMinEdge(+e.target.value)} className="w-full accent-[#FF4D00]" />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 flex items-center gap-1">
+                    <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
                       Min Volume: ${mktMinVol.toLocaleString()}
                       <HelpTip content="Minimum 24h trading volume. Higher = more liquid." />
                     </label>
                     <input type="range" min={0} max={100000} step={1000} value={mktMinVol} onChange={e => setMktMinVol(+e.target.value)} className="w-full accent-[#FF4D00]" />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 flex items-center gap-1">
+                    <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
                       Probability: {mktProbMin}%–{mktProbMax}%
                       <HelpTip content="Filter by the YES outcome probability range." />
                     </label>
@@ -1367,20 +1367,20 @@ export default function MarketClient() {
             )}
 
             {marketsLoaded && (
-              <div className="flex gap-3 items-center text-xs text-slate-500">
+              <div className="flex gap-3 items-center text-xs text-gray-400">
                 <span>{filteredMarkets.length} results</span>
-                <button onClick={() => fetchMarkets()} className="text-slate-400 hover:text-white transition">↻ Refresh</button>
-                <button onClick={() => { setMarkets([]); setMarketsLoaded(false); setMarketSearch(""); }} className="text-slate-600 hover:text-slate-400 transition">Clear</button>
+                <button onClick={() => fetchMarkets()} className="text-gray-500 hover:text-gray-900 transition">↻ Refresh</button>
+                <button onClick={() => { setMarkets([]); setMarketsLoaded(false); setMarketSearch(""); }} className="text-gray-400 hover:text-gray-500 transition">Clear</button>
               </div>
             )}
           </div>
 
           {/* ── Results ── */}
           {!marketsLoaded && !loadingMarkets && (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-12 text-center">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-12 text-center">
               <p className="text-3xl mb-3">🔍</p>
-              <p className="text-slate-300 font-medium mb-1">Search Polymarket</p>
-              <p className="text-slate-500 text-sm mb-5">Enter a keyword above and click Search to browse live prediction markets</p>
+              <p className="text-gray-700 font-medium mb-1">Search Polymarket</p>
+              <p className="text-gray-400 text-sm mb-5">Enter a keyword above and click Search to browse live prediction markets</p>
               <button onClick={() => fetchMarkets("")} className="bg-[#1E3A8A] hover:bg-blue-700 px-6 py-2.5 rounded-lg text-sm font-semibold transition">
                 Load Top Markets
               </button>
@@ -1388,11 +1388,11 @@ export default function MarketClient() {
           )}
 
           {marketsLoaded && (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
-                  <thead className="bg-slate-800/50">
-                    <tr className="text-slate-400">
+                  <thead className="bg-gray-500">
+                    <tr className="text-gray-500">
                       <th className="px-4 py-3 text-left font-medium">Market</th>
                       <th className="px-3 py-3 text-center font-medium">Cat.</th>
                       <th className="px-3 py-3 text-right font-medium">Prob.</th>
@@ -1403,12 +1403,12 @@ export default function MarketClient() {
                   </thead>
                   <tbody>
                     {loadingMarkets ? (
-                      <tr><td colSpan={6} className="text-center py-10 text-slate-500">Searching markets…</td></tr>
+                      <tr><td colSpan={6} className="text-center py-10 text-gray-400">Searching markets…</td></tr>
                     ) : filteredMarkets.length === 0 ? (
-                      <tr><td colSpan={6} className="text-center py-10 text-slate-500">No markets match — try a different search or fewer filters</td></tr>
+                      <tr><td colSpan={6} className="text-center py-10 text-gray-400">No markets match — try a different search or fewer filters</td></tr>
                     ) : (
                       filteredMarkets.slice(0, 60).map(m => (
-                        <tr key={m.id} className="border-t border-slate-800 hover:bg-slate-800/30">
+                        <tr key={m.id} className="border-t border-gray-100 hover:bg-gray-100/30">
                           <td className="px-4 py-3 max-w-[260px]">
                             <div className="flex items-start gap-2">
                               {m.risk_tag && (
@@ -1420,15 +1420,15 @@ export default function MarketClient() {
                               <span className="text-slate-200 line-clamp-2">{m.title}</span>
                             </div>
                           </td>
-                          <td className="px-3 py-3 text-center text-slate-400">{m.category.slice(0, 10)}</td>
+                          <td className="px-3 py-3 text-center text-gray-500">{m.category.slice(0, 10)}</td>
                           <td className="px-3 py-3 text-right">
-                            <span className={m.probability > 60 ? "text-green-400" : m.probability < 40 ? "text-red-400" : "text-slate-300"}>
+                            <span className={m.probability > 60 ? "text-green-400" : m.probability < 40 ? "text-red-400" : "text-gray-700"}>
                               {m.probability}%
                             </span>
                           </td>
-                          <td className="px-3 py-3 text-right text-slate-400">${m.volume24h.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                          <td className="px-3 py-3 text-right text-gray-500">${m.volume24h.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
                           <td className="px-3 py-3 text-right">
-                            <span className={m.edge_pct > 15 ? "text-orange-400 font-bold" : m.edge_pct > 8 ? "text-yellow-400" : "text-slate-400"}>
+                            <span className={m.edge_pct > 15 ? "text-orange-400 font-bold" : m.edge_pct > 8 ? "text-yellow-400" : "text-gray-500"}>
                               {m.edge_pct}%
                             </span>
                           </td>
@@ -1439,7 +1439,7 @@ export default function MarketClient() {
                                 <TooltipTrigger asChild>
                                   <button
                                     onClick={() => toggleBookmark(m.id)}
-                                    className={`text-base leading-none transition ${bookmarks.has(m.id) ? "text-yellow-400" : "text-slate-600 hover:text-yellow-400"}`}
+                                    className={`text-base leading-none transition ${bookmarks.has(m.id) ? "text-yellow-400" : "text-gray-400 hover:text-yellow-400"}`}
                                   >
                                     {bookmarks.has(m.id) ? "★" : "☆"}
                                   </button>
@@ -1495,7 +1495,7 @@ export default function MarketClient() {
               <button
                 key={t}
                 onClick={() => setHotTab(t)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition ${hotTab === t ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition ${hotTab === t ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
               >
                 {t}
               </button>
@@ -1503,13 +1503,13 @@ export default function MarketClient() {
           </div>
 
           {loadingMarkets ? (
-            <div className="text-center py-12 text-slate-500">Loading…</div>
+            <div className="text-center py-12 text-gray-400">Loading…</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {hotFiltered.map(m => (
-                <div key={m.id} className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition">
+                <div key={m.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 hover:border-gray-200 transition">
                   <div className="flex items-start justify-between gap-2 mb-3">
-                    <p className="text-sm text-white font-medium line-clamp-2 flex-1">{m.title}</p>
+                    <p className="text-sm text-gray-900 font-medium line-clamp-2 flex-1">{m.title}</p>
                     <button onClick={() => toggleBookmark(m.id)} className={`text-lg flex-shrink-0 ${bookmarks.has(m.id) ? "text-yellow-400" : "text-slate-700 hover:text-yellow-400"}`}>
                       {bookmarks.has(m.id) ? "★" : "☆"}
                     </button>
@@ -1521,20 +1521,20 @@ export default function MarketClient() {
                         {m.risk_tag.replace("-", " ")}
                       </span>
                     )}
-                    <span className="text-xs text-slate-400">{m.category}</span>
+                    <span className="text-xs text-gray-500">{m.category}</span>
                   </div>
                   <div className="grid grid-cols-3 gap-2 mb-3 text-center">
-                    <div className="bg-slate-800 rounded-lg p-2">
-                      <p className="text-[10px] text-slate-500">Prob.</p>
-                      <p className={`text-sm font-bold ${m.probability > 60 ? "text-green-400" : m.probability < 40 ? "text-red-400" : "text-white"}`}>{m.probability}%</p>
+                    <div className="bg-gray-100 rounded-lg p-2">
+                      <p className="text-[10px] text-gray-400">Prob.</p>
+                      <p className={`text-sm font-bold ${m.probability > 60 ? "text-green-600" : m.probability < 40 ? "text-red-600" : "text-gray-900"}`}>{m.probability}%</p>
                     </div>
-                    <div className="bg-slate-800 rounded-lg p-2">
-                      <p className="text-[10px] text-slate-500">Edge</p>
+                    <div className="bg-gray-100 rounded-lg p-2">
+                      <p className="text-[10px] text-gray-400">Edge</p>
                       <p className="text-sm font-bold text-orange-400">{m.edge_pct}%</p>
                     </div>
-                    <div className="bg-slate-800 rounded-lg p-2">
-                      <p className="text-[10px] text-slate-500">Vol 24h</p>
-                      <p className="text-sm font-bold text-white">${(m.volume24h / 1000).toFixed(0)}k</p>
+                    <div className="bg-gray-100 rounded-lg p-2">
+                      <p className="text-[10px] text-gray-400">Vol 24h</p>
+                      <p className="text-sm font-bold text-gray-900">${(m.volume24h / 1000).toFixed(0)}k</p>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -1564,7 +1564,7 @@ export default function MarketClient() {
                 </div>
               ))}
               {hotFiltered.length === 0 && (
-                <div className="col-span-3 text-center py-12 text-slate-500">
+                <div className="col-span-3 text-center py-12 text-gray-400">
                   No opportunities in this category yet. Try refreshing markets.
                 </div>
               )}
@@ -1579,25 +1579,25 @@ export default function MarketClient() {
       {activeTab === "Directives" && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Form */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 space-y-4">
             <h3 className="font-semibold text-slate-200">
               {editingDirective ? "Edit Directive" : "New Buy Directive"}
               <HelpTip content="Buy Directives are saved trading plans you can apply to the bot at any time." />
             </h3>
 
             <div>
-              <label className="text-xs text-slate-400 mb-1 block">Directive Name</label>
+              <label className="text-xs text-gray-500 mb-1 block">Directive Name</label>
               <input
                 type="text" placeholder="e.g. Construction Arbitrage Q3"
                 value={directiveName}
                 onChange={e => setDirectiveName(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-[#FF4D00]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#FF4D00]"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-slate-400 mb-1 flex items-center">
+                <label className="text-xs text-gray-500 mb-1 flex items-center">
                   Amount ($)
                   <HelpTip content="Total capital for this directive's session." />
                 </label>
@@ -1605,18 +1605,18 @@ export default function MarketClient() {
                   type="number" min={10} max={10000}
                   value={directiveAmount}
                   onChange={e => setDirectiveAmount(+e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-[#FF4D00]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-400 mb-1 flex items-center">
+                <label className="text-xs text-gray-500 mb-1 flex items-center">
                   Timeframe
                   <HelpTip content="How long this directive runs before auto-stopping." />
                 </label>
                 <select
                   value={directiveTimeframe}
                   onChange={e => setDirectiveTimeframe(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-[#FF4D00]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
                 >
                   {["1d", "3d", "1w", "2w", "1m"].map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -1624,7 +1624,7 @@ export default function MarketClient() {
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 mb-1 flex items-center">
+              <label className="text-xs text-gray-500 mb-1 flex items-center">
                 Buys per Day: {directiveBuysPerDay}
                 <HelpTip content="How many new positions to open each day." />
               </label>
@@ -1632,14 +1632,14 @@ export default function MarketClient() {
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 mb-2 flex items-center">
+              <label className="text-xs text-gray-500 mb-2 flex items-center">
                 Risk Mix
                 <HelpTip content="Conservative = low risk/reward. Aggressive = high risk/reward." />
               </label>
               <div className="flex gap-1">
                 {(["conservative", "balanced", "aggressive"] as const).map(r => (
                   <button key={r} onClick={() => setDirectiveRisk(r)}
-                    className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${directiveRisk === r ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}>
+                    className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${directiveRisk === r ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
                     {r.charAt(0).toUpperCase() + r.slice(1)}
                   </button>
                 ))}
@@ -1647,14 +1647,14 @@ export default function MarketClient() {
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 mb-2 flex items-center">
+              <label className="text-xs text-gray-500 mb-2 flex items-center">
                 Profit Strategy
                 <HelpTip content="Arbitrage: exploit mispricing. Market-making: provide liquidity. Whale-copy: follow big players. Longshot: bet on unlikely outcomes with high payouts." />
               </label>
               <div className="grid grid-cols-2 gap-1">
                 {(["arbitrage", "market-making", "whale-copy", "longshot"] as const).map(s => (
                   <button key={s} onClick={() => setDirectiveStrategy(s)}
-                    className={`py-1.5 text-xs rounded-lg font-medium transition ${directiveStrategy === s ? "bg-[#1E3A8A] text-blue-200" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}>
+                    className={`py-1.5 text-xs rounded-lg font-medium transition ${directiveStrategy === s ? "bg-[#1E3A8A] text-blue-200" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
                     {s.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase())}
                   </button>
                 ))}
@@ -1662,14 +1662,14 @@ export default function MarketClient() {
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 mb-2 flex items-center">
+              <label className="text-xs text-gray-500 mb-2 flex items-center">
                 Focus Areas
                 <HelpTip content="Market categories this directive targets." />
               </label>
               <div className="flex flex-wrap gap-1">
                 {FOCUS_AREAS.map(area => (
                   <button key={area} onClick={() => setDirectiveFocus(prev => prev.includes(area) ? prev.filter(a => a !== area) : [...prev, area])}
-                    className={`px-2 py-0.5 text-xs rounded-full transition ${directiveFocus.includes(area) ? "bg-[#1E3A8A] text-blue-200" : "bg-slate-800 text-slate-500 hover:bg-slate-700"}`}>
+                    className={`px-2 py-0.5 text-xs rounded-full transition ${directiveFocus.includes(area) ? "bg-[#1E3A8A] text-blue-200" : "bg-gray-100 text-gray-400 hover:bg-gray-200"}`}>
                     {area}
                   </button>
                 ))}
@@ -1677,23 +1677,23 @@ export default function MarketClient() {
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-300 flex items-center">
+              <span className="text-sm text-gray-700 flex items-center">
                 Follow Whales
                 <HelpTip content="Mirror large trades in these markets." />
               </span>
               <button onClick={() => setDirectiveWhale(w => !w)}
-                className={`relative w-10 h-5 rounded-full transition ${directiveWhale ? "bg-[#1E3A8A]" : "bg-slate-600"}`}>
+                className={`relative w-10 h-5 rounded-full transition ${directiveWhale ? "bg-[#1E3A8A]" : "bg-gray-300"}`}>
                 <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${directiveWhale ? "translate-x-5" : "translate-x-0.5"}`} />
               </button>
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-300 flex items-center">
+              <span className="text-sm text-gray-700 flex items-center">
                 Paper Mode
                 <HelpTip content="Simulate this directive without spending real funds." />
               </span>
               <button onClick={() => setDirectivePaper(p => !p)}
-                className={`relative w-10 h-5 rounded-full transition ${directivePaper ? "bg-purple-600" : "bg-slate-600"}`}>
+                className={`relative w-10 h-5 rounded-full transition ${directivePaper ? "bg-purple-600" : "bg-gray-300"}`}>
                 <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${directivePaper ? "translate-x-5" : "translate-x-0.5"}`} />
               </button>
             </div>
@@ -1707,25 +1707,25 @@ export default function MarketClient() {
                 💾 Save Directive
               </button>
               {editingDirective && (
-                <button onClick={resetDirectiveForm} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition">Cancel</button>
+                <button onClick={resetDirectiveForm} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition">Cancel</button>
               )}
             </div>
           </div>
 
           {/* Saved list */}
           <div className="space-y-3">
-            <h3 className="font-semibold text-slate-300">Saved Directives ({directives.length})</h3>
+            <h3 className="font-semibold text-gray-700">Saved Directives ({directives.length})</h3>
             {directives.length === 0 ? (
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-500 text-sm">
+              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 text-center text-gray-400 text-sm">
                 No saved directives yet. Create one on the left.
               </div>
             ) : (
               directives.map(d => (
-                <div key={d.id} className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                <div key={d.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
-                      <p className="text-sm font-semibold text-white">{d.name}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-sm font-semibold text-gray-900">{d.name}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
                         ${d.amount} · {d.timeframe} · {d.buys_per_day}/day · {d.profit_strategy}
                       </p>
                     </div>
@@ -1736,7 +1736,7 @@ export default function MarketClient() {
                   </div>
                   <div className="flex flex-wrap gap-1 mb-3">
                     {d.focus_areas.map(a => (
-                      <span key={a} className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded-full">{a}</span>
+                      <span key={a} className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">{a}</span>
                     ))}
                   </div>
                   <div className="flex gap-2">
@@ -1749,7 +1749,7 @@ export default function MarketClient() {
                       <TooltipContent>Load this directive\'s settings into the bot and switch to Overview.</TooltipContent>
                     </Tooltip>
                     <button onClick={() => { setEditingDirective(d); setDirectiveName(d.name); setDirectiveAmount(d.amount); setDirectiveTimeframe(d.timeframe); setDirectiveBuysPerDay(d.buys_per_day); setDirectiveRisk(d.risk_mix); setDirectiveWhale(d.whale_follow); setDirectiveFocus(d.focus_areas); setDirectiveStrategy(d.profit_strategy); setDirectivePaper(d.paper_mode); }}
-                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">
                       ✏️ Edit
                     </button>
                     <button onClick={() => deleteDirective(d.id!)} className="px-3 py-1.5 bg-red-900/30 hover:bg-red-900/60 text-red-400 text-xs rounded-lg transition">
@@ -1775,32 +1775,32 @@ export default function MarketClient() {
             </h3>
             <div className="flex gap-2 items-center">
               <select value={whaleFilter} onChange={e => setWhaleFilter(e.target.value)}
-                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-[#FF4D00]">
+                className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-900 outline-none focus:border-[#FF4D00]">
                 <option value="all">All Categories</option>
                 {FOCUS_AREAS.map(a => <option key={a} value={a.toLowerCase()}>{a}</option>)}
               </select>
               <button onClick={fetchWhales} disabled={loadingWhales}
-                className="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-slate-300 transition disabled:opacity-50">
+                className="bg-gray-100 hover:bg-gray-200 border border-gray-200 px-3 py-1.5 rounded-lg text-xs text-gray-700 transition disabled:opacity-50">
                 {loadingWhales ? "Loading…" : "↻ Refresh"}
               </button>
             </div>
           </div>
 
           {loadingWhales ? (
-            <div className="text-center py-12 text-slate-500">Fetching whale activity…</div>
+            <div className="text-center py-12 text-gray-400">Fetching whale activity…</div>
           ) : whaleData.length === 0 ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-              <p className="text-slate-400 text-sm mb-3">No whale activity loaded yet</p>
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8 text-center">
+              <p className="text-gray-500 text-sm mb-3">No whale activity loaded yet</p>
               <button onClick={fetchWhales} className="bg-[#1E3A8A] hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition">
                 🐋 Load Whale Data
               </button>
             </div>
           ) : (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
-                  <thead className="bg-slate-800/50">
-                    <tr className="text-slate-400">
+                  <thead className="bg-gray-500">
+                    <tr className="text-gray-500">
                       <th className="px-4 py-3 text-left font-medium">Whale</th>
                       <th className="px-4 py-3 text-left font-medium">Market</th>
                       <th className="px-3 py-3 text-center font-medium">Outcome</th>
@@ -1814,17 +1814,17 @@ export default function MarketClient() {
                     {whaleData
                       .filter(w => whaleFilter === "all" || w.category.toLowerCase() === whaleFilter)
                       .map((w, i) => (
-                        <tr key={i} className="border-t border-slate-800 hover:bg-slate-800/30">
+                        <tr key={i} className="border-t border-gray-100 hover:bg-gray-100/30">
                           <td className="px-4 py-3 font-mono text-blue-400">{w.whale_address}</td>
-                          <td className="px-4 py-3 max-w-[200px] truncate text-slate-300">{w.market_title}</td>
+                          <td className="px-4 py-3 max-w-[200px] truncate text-gray-700">{w.market_title}</td>
                           <td className="px-3 py-3 text-center">
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${w.outcome === "YES" ? "bg-green-900/60 text-green-400" : "bg-red-900/60 text-red-400"}`}>
                               {w.outcome}
                             </span>
                           </td>
-                          <td className="px-3 py-3 text-right font-mono text-slate-300">{Number(w.shares).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                          <td className="px-3 py-3 text-right font-mono text-white font-bold">${Number(w.amount_usd).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                          <td className="px-3 py-3 text-right text-slate-500">{new Date(w.timestamp).toLocaleTimeString()}</td>
+                          <td className="px-3 py-3 text-right font-mono text-gray-700">{Number(w.shares).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                          <td className="px-3 py-3 text-right font-mono text-gray-900 font-bold">${Number(w.amount_usd).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                          <td className="px-3 py-3 text-right text-gray-400">{new Date(w.timestamp).toLocaleTimeString()}</td>
                           <td className="px-3 py-3 text-center">
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -1867,25 +1867,25 @@ export default function MarketClient() {
           </div>
 
           {simRuns.length < 2 ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-              <p className="text-slate-400 text-sm mb-2">You need at least 2 saved simulation runs to compare</p>
-              <p className="text-slate-600 text-xs">Run the bot in paper mode with different configs, then save each run</p>
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8 text-center">
+              <p className="text-gray-500 text-sm mb-2">You need at least 2 saved simulation runs to compare</p>
+              <p className="text-gray-400 text-xs">Run the bot in paper mode with different configs, then save each run</p>
             </div>
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">Run A</label>
+                  <label className="text-xs text-gray-500 mb-1 block">Run A</label>
                   <select value={compareA || ""} onChange={e => setCompareA(e.target.value || null)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-[#FF4D00]">
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]">
                     <option value="">— Select run A —</option>
                     {simRuns.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 mb-1 block">Run B</label>
+                  <label className="text-xs text-gray-500 mb-1 block">Run B</label>
                   <select value={compareB || ""} onChange={e => setCompareB(e.target.value || null)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-[#FF4D00]">
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]">
                     <option value="">— Select run B —</option>
                     {simRuns.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
@@ -1897,24 +1897,24 @@ export default function MarketClient() {
                   {/* Stats comparison */}
                   <div className="grid grid-cols-2 gap-4">
                     {[compareRunA, compareRunB].map((run, idx) => (
-                      <div key={run.id} className={`bg-slate-900 border rounded-xl p-4 ${idx === 0 ? "border-[#FF4D00]/40" : "border-blue-700/40"}`}>
+                      <div key={run.id} className={`bg-white border-2 rounded-2xl p-4 shadow-sm ${idx === 0 ? "border-[#FF4D00]/40" : "border-[#1E3A8A]/40"}`}>
                         <p className={`text-xs font-bold mb-2 ${idx === 0 ? "text-orange-400" : "text-blue-400"}`}>
                           {idx === 0 ? "Run A" : "Run B"}: {run.name}
                         </p>
                         <div className="grid grid-cols-3 gap-2 text-center">
                           <div>
-                            <p className="text-[10px] text-slate-500">Total PNL</p>
+                            <p className="text-[10px] text-gray-400">Total PNL</p>
                             <p className={`text-sm font-bold ${run.total_pnl >= 0 ? "text-green-400" : "text-red-400"}`}>
                               {run.total_pnl >= 0 ? "+" : ""}${run.total_pnl.toFixed(2)}
                             </p>
                           </div>
                           <div>
-                            <p className="text-[10px] text-slate-500">Win Rate</p>
-                            <p className="text-sm font-bold text-white">{run.win_rate}%</p>
+                            <p className="text-[10px] text-gray-400">Win Rate</p>
+                            <p className="text-sm font-bold text-gray-900">{run.win_rate}%</p>
                           </div>
                           <div>
-                            <p className="text-[10px] text-slate-500">Trades</p>
-                            <p className="text-sm font-bold text-white">{run.trade_count}</p>
+                            <p className="text-[10px] text-gray-400">Trades</p>
+                            <p className="text-sm font-bold text-gray-900">{run.trade_count}</p>
                           </div>
                         </div>
                       </div>
@@ -1922,16 +1922,16 @@ export default function MarketClient() {
                   </div>
 
                   {/* Compare chart */}
-                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-                    <h4 className="text-sm font-semibold text-slate-300 mb-3">Cumulative PNL Comparison</h4>
+                  <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Cumulative PNL Comparison</h4>
                     {compareChartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height={260}>
                         <LineChart data={compareChartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                          <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#64748b" }} />
-                          <YAxis tick={{ fontSize: 10, fill: "#64748b" }} tickFormatter={v => `$${v}`} />
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6b7280" }} />
+                          <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} tickFormatter={v => `$${v}`} />
                           <RechartsTooltip
-                            contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}
+                            contentStyle={{ background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: 8, color: "#111827" }}
                             formatter={(v: number | undefined) => [`$${(v ?? 0)?.toFixed(2)}`, ""]}
                           />
                           <Legend />
@@ -1940,7 +1940,7 @@ export default function MarketClient() {
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-[260px] flex items-center justify-center text-slate-500 text-sm">No PNL data in selected runs</div>
+                      <div className="h-[260px] flex items-center justify-center text-gray-400 text-sm">No PNL data in selected runs</div>
                     )}
                   </div>
                 </>
@@ -1948,12 +1948,12 @@ export default function MarketClient() {
 
               {/* Run list */}
               <div className="space-y-2">
-                <h4 className="text-xs text-slate-400 font-medium uppercase tracking-wider">All Saved Runs ({simRuns.length})</h4>
+                <h4 className="text-xs text-gray-500 font-medium uppercase tracking-wider">All Saved Runs ({simRuns.length})</h4>
                 {simRuns.map(run => (
-                  <div key={run.id} className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                  <div key={run.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm text-white font-medium">{run.name}</p>
-                      <p className="text-xs text-slate-500">{run.trade_count} trades · {run.win_rate}% win rate · ${run.total_pnl.toFixed(2)} PNL · {run.config.risk_mix}</p>
+                      <p className="text-sm text-gray-800 font-medium">{run.name}</p>
+                      <p className="text-xs text-gray-400">{run.trade_count} trades · {run.win_rate}% win rate · ${run.total_pnl.toFixed(2)} PNL · {run.config.risk_mix}</p>
                     </div>
                     <button
                       onClick={() => {
