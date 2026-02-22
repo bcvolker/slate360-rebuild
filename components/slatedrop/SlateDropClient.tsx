@@ -73,9 +73,45 @@ interface FileItem {
   type: string;
   modified: string;
   folderId: string;
+  s3Key?: string;
   thumbnail?: string;
   locked?: boolean;
 }
+
+type DbFile = {
+  type: "file";
+  id: string;
+  file_name: string;
+  s3_key: string;
+  file_type: string;
+  size: number;
+  modified: string;
+  folderId: string;
+  thumbnail?: string;
+  locked?: boolean;
+};
+
+type Folder = {
+  type: "folder";
+  id: string;
+  path: string;
+  name: string;
+  isSystem?: boolean;
+};
+
+type DemoFile = {
+  type: "demo";
+  id: string;
+  file_name: string;
+  file_type: string;
+  size: number;
+  modified: string;
+  folderId: string;
+  thumbnail?: string;
+  locked?: boolean;
+};
+
+type SlateDropItem = DbFile | Folder | DemoFile;
 
 type ViewMode = "grid" | "list";
 type SortKey = "name" | "modified" | "size" | "type";
@@ -84,7 +120,7 @@ type SortDir = "asc" | "desc";
 interface ContextMenu {
   x: number;
   y: number;
-  target: { type: "file" | "folder"; id: string; name: string; isSystem?: boolean };
+  target: SlateDropItem;
 }
 
 /* ================================================================
@@ -427,7 +463,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   // Modals
-  const [shareModal, setShareModal] = useState<{ name: string; id: string } | null>(null);
+  const [shareModal, setShareModal] = useState<DbFile | null>(null);
   const [shareEmail, setShareEmail] = useState("");
   const [sharePerm, setSharePerm] = useState<"view" | "edit">("view");
   const [shareExpiry, setShareExpiry] = useState("7");
@@ -437,7 +473,10 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
   const [newFolderModal, setNewFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "file" | "folder" } | null>(null);
-  const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
+  const [previewFile, setPreviewFile] = useState<DbFile | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   // Real file state (loaded from API, keyed by folderId)
   const [realFiles, setRealFiles] = useState<Record<string, FileItem[]>>({});
@@ -495,6 +534,18 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
     setTimeout(() => setToastMsg(null), 3500);
   }, []);
 
+  const closeShareModal = useCallback(() => {
+    setShareModal(null);
+    setShareSent(false);
+    setShareEmail("");
+  }, []);
+
+  const openShareModal = useCallback((file: DbFile) => {
+    setShareModal(file);
+    setShareSent(false);
+    setShareEmail("");
+  }, []);
+
   const refreshFolderFiles = useCallback(async (folderId: string) => {
     setLoadingFiles(true);
     try {
@@ -545,6 +596,77 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
     });
   }, [activeFolderId, realFiles, filesLoadErrorByFolder, searchQuery, sortKey, sortDir]);
 
+  const hasLoadedCurrentFolderFromDb = useMemo(() => {
+    const hasLoaded = Object.prototype.hasOwnProperty.call(realFiles, activeFolderId);
+    const hasError = filesLoadErrorByFolder[activeFolderId] === true;
+    return hasLoaded && !hasError;
+  }, [activeFolderId, realFiles, filesLoadErrorByFolder]);
+
+  const toSlateDropItemFromFile = useCallback((file: FileItem): SlateDropItem => {
+    if (hasLoadedCurrentFolderFromDb) {
+      return {
+        type: "file",
+        id: file.id,
+        file_name: file.name,
+        s3_key: file.s3Key ?? "",
+        file_type: file.type,
+        size: file.size,
+        modified: file.modified,
+        folderId: file.folderId,
+        thumbnail: file.thumbnail,
+        locked: file.locked,
+      };
+    }
+
+    return {
+      type: "demo",
+      id: file.id,
+      file_name: file.name,
+      file_type: file.type,
+      size: file.size,
+      modified: file.modified,
+      folderId: file.folderId,
+      thumbnail: file.thumbnail,
+      locked: file.locked,
+    };
+  }, [hasLoadedCurrentFolderFromDb]);
+
+  useEffect(() => {
+    if (!previewFile) {
+      setPreviewUrl(null);
+      setPreviewError(null);
+      setPreviewLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    const fetchPreviewUrl = async () => {
+      setPreviewLoading(true);
+      setPreviewError(null);
+      try {
+        const res = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(previewFile.id)}`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.url) {
+          throw new Error(data.error ?? "Preview unavailable");
+        }
+        if (!cancelled) setPreviewUrl(data.url);
+      } catch (error) {
+        if (!cancelled) {
+          setPreviewUrl(null);
+          setPreviewError(error instanceof Error ? error.message : "Preview unavailable");
+        }
+      } finally {
+        if (!cancelled) setPreviewLoading(false);
+      }
+    };
+
+    void fetchPreviewUrl();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [previewFile]);
+
   const subFolders = activeFolder?.children ?? [];
   const storageUsed = tier === "trial" ? 1.2 : tier === "creator" ? 12 : tier === "model" ? 42 : 185;
 
@@ -570,7 +692,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
           }),
         });
         if (!urlRes.ok) throw new Error("Failed to get upload URL");
-        const { uploadUrl, fileId } = await urlRes.json();
+        const { uploadUrl, fileId, s3Key } = await urlRes.json();
         if (!uploadUrl || !fileId) throw new Error("Upload reservation failed");
 
         // Step 2: PUT to S3
@@ -601,6 +723,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
           type: ext,
           modified: new Date().toISOString().slice(0, 10),
           folderId: activeFolderId,
+          s3Key: s3Key ?? undefined,
         };
         setRealFiles(prev => ({
           ...prev,
@@ -1024,7 +1147,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                         setSelectedFiles(new Set());
                         if (!expandedIds.has(activeFolderId)) toggleExpand(activeFolderId);
                       }}
-                      onContextMenu={(e) => handleContextMenu(e, { type: "folder", id: sf.id, name: sf.name, isSystem: sf.isSystem })}
+                      onContextMenu={(e) => handleContextMenu(e, { type: "folder", id: sf.id, path: sf.id, name: sf.name, isSystem: sf.isSystem })}
                       className="flex items-center gap-2.5 p-3 rounded-xl border border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm transition-all text-left group"
                     >
                       <Folder size={18} className="text-[#1E3A8A] shrink-0" />
@@ -1050,12 +1173,16 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                   const Icon = getFileIcon(file.type);
                   const color = getFileColor(file.type);
                   const isSelected = selectedFiles.has(file.id);
+                  const fileItem = toSlateDropItemFromFile(file);
                   return (
                     <div
                       key={file.id}
                       onClick={() => toggleFileSelect(file.id)}
-                      onDoubleClick={() => setPreviewFile(file)}
-                      onContextMenu={(e) => handleContextMenu(e, { type: "file", id: file.id, name: file.name })}
+                      onDoubleClick={() => {
+                        if (fileItem.type === "file") setPreviewFile(fileItem);
+                        else showToast("Preview works for uploaded files only", false);
+                      }}
+                      onContextMenu={(e) => handleContextMenu(e, fileItem)}
                       className={`group relative rounded-xl border overflow-hidden cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${
                         isSelected ? "border-[#FF4D00] ring-2 ring-[#FF4D00]/20 bg-[#FF4D00]/5" : "border-gray-100 bg-white hover:border-gray-200"
                       }`}
@@ -1083,7 +1210,8 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setPreviewFile(file);
+                              if (fileItem.type === "file") setPreviewFile(fileItem);
+                              else showToast("Preview works for uploaded files only", false);
                             }}
                             className="w-6 h-6 rounded-md bg-white/90 shadow-sm flex items-center justify-center text-gray-500 hover:text-[#FF4D00] transition-colors"
                           >
@@ -1092,7 +1220,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleContextMenu(e, { type: "file", id: file.id, name: file.name });
+                              handleContextMenu(e, fileItem);
                             }}
                             className="w-6 h-6 rounded-md bg-white/90 shadow-sm flex items-center justify-center text-gray-500 hover:text-[#FF4D00] transition-colors"
                           >
@@ -1132,12 +1260,16 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                   const Icon = getFileIcon(file.type);
                   const color = getFileColor(file.type);
                   const isSelected = selectedFiles.has(file.id);
+                  const fileItem = toSlateDropItemFromFile(file);
                   return (
                     <div
                       key={file.id}
                       onClick={() => toggleFileSelect(file.id)}
-                      onDoubleClick={() => setPreviewFile(file)}
-                      onContextMenu={(e) => handleContextMenu(e, { type: "file", id: file.id, name: file.name })}
+                      onDoubleClick={() => {
+                        if (fileItem.type === "file") setPreviewFile(fileItem);
+                        else showToast("Preview works for uploaded files only", false);
+                      }}
+                      onContextMenu={(e) => handleContextMenu(e, fileItem)}
                       className={`grid grid-cols-[1fr_100px_120px_80px] gap-4 px-4 py-3 border-b border-gray-50 cursor-pointer transition-colors group ${
                         isSelected ? "bg-[#FF4D00]/5" : "hover:bg-gray-50"
                       }`}
@@ -1190,100 +1322,100 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
-          {contextMenu.target.type === "file" && (
-            <>
-              <CtxItem icon={Eye} label="Preview" onClick={() => {
-                const f = currentFiles.find((f) => f.id === contextMenu.target.id);
-                if (f) setPreviewFile(f);
-                closeContextMenu();
-              }} />
-              <CtxItem icon={Download} label="Download" onClick={() => {
-                const file = currentFiles.find((f) => f.id === contextMenu.target.id);
-                closeContextMenu();
-                if (file) handleDownloadFile(file.id, file.name);
-              }} />
-              <CtxDivider />
-              <CtxItem icon={Edit3} label="Rename" onClick={() => {
-                setRenameModal({ id: contextMenu.target.id, name: contextMenu.target.name, type: "file" });
-                setRenameValue(contextMenu.target.name);
-                closeContextMenu();
-              }} />
-              <CtxItem icon={Copy} label="Copy" onClick={() => {
-                copyToClipboard(contextMenu.target.name, "File name");
-                closeContextMenu();
-              }} />
-              <CtxItem icon={Scissors} label="Move" onClick={() => {
-                showToast("Move workflow is not enabled yet", false);
-                closeContextMenu();
-              }} />
-              <CtxDivider />
-              <CtxItem
-                icon={Send}
-                label="Secure Send"
-                accent
-                onClick={() => {
-                  setShareModal({ name: contextMenu.target.name, id: contextMenu.target.id });
-                  setShareSent(false);
+          {contextMenu.target.type === "file" && (() => {
+            const target = contextMenu.target;
+            return (
+              <>
+                <CtxItem icon={Eye} label="Preview" onClick={() => {
+                  setPreviewFile(target);
                   closeContextMenu();
-                }}
-              />
-              <CtxDivider />
-              <CtxItem icon={Trash2} label="Delete" danger onClick={() => {
-                setDeleteConfirm({ id: contextMenu.target.id, name: contextMenu.target.name, type: "file" });
-                closeContextMenu();
-              }} />
-            </>
-          )}
-          {contextMenu.target.type === "folder" && (
-            <>
-              <CtxItem icon={FolderOpen} label="Open" onClick={() => {
-                setActiveFolderId(contextMenu.target.id);
-                closeContextMenu();
-              }} />
-              <CtxItem icon={Download} label="Download as ZIP" onClick={() => {
-                closeContextMenu();
-                handleDownloadFolderZip(contextMenu.target.id, contextMenu.target.name);
-              }} />
-              <CtxDivider />
-              {!contextMenu.target.isSystem && (
-                <>
-                  <CtxItem icon={Edit3} label="Rename" onClick={() => {
-                    setRenameModal({ id: contextMenu.target.id, name: contextMenu.target.name, type: "folder" });
-                    setRenameValue(contextMenu.target.name);
-                    closeContextMenu();
-                  }} />
-                  <CtxItem icon={Copy} label="Copy" onClick={() => {
-                    copyToClipboard(contextMenu.target.name, "Folder name");
-                    closeContextMenu();
-                  }} />
-                  <CtxItem icon={Scissors} label="Move" onClick={() => {
-                    showToast("Folder move is not enabled yet", false);
-                    closeContextMenu();
-                  }} />
-                  <CtxDivider />
-                </>
-              )}
-              <CtxItem
-                icon={Send}
-                label="Secure Send"
-                accent
-                onClick={() => {
-                  setShareModal({ name: contextMenu.target.name, id: contextMenu.target.id });
-                  setShareSent(false);
+                }} />
+                <CtxItem icon={Download} label="Download" onClick={() => {
+                  const file = currentFiles.find((f) => f.id === target.id);
                   closeContextMenu();
-                }}
-              />
-              {!contextMenu.target.isSystem && (
-                <>
-                  <CtxDivider />
-                  <CtxItem icon={Trash2} label="Delete" danger onClick={() => {
-                    setDeleteConfirm({ id: contextMenu.target.id, name: contextMenu.target.name, type: "folder" });
+                  if (file) handleDownloadFile(file.id, file.name);
+                }} />
+                <CtxDivider />
+                <CtxItem icon={Edit3} label="Rename" onClick={() => {
+                  setRenameModal({ id: target.id, name: target.file_name, type: "file" });
+                  setRenameValue(target.file_name);
+                  closeContextMenu();
+                }} />
+                <CtxItem icon={Copy} label="Copy" onClick={() => {
+                  copyToClipboard(target.file_name, "File name");
+                  closeContextMenu();
+                }} />
+                <CtxItem icon={Scissors} label="Move" onClick={() => {
+                  showToast("Move workflow is not enabled yet", false);
+                  closeContextMenu();
+                }} />
+                <CtxDivider />
+                <CtxItem
+                  icon={Send}
+                  label="Secure Send"
+                  accent
+                  onClick={() => {
+                    openShareModal(target);
                     closeContextMenu();
-                  }} />
-                </>
-              )}
-            </>
-          )}
+                  }}
+                />
+                <CtxDivider />
+                <CtxItem icon={Trash2} label="Delete" danger onClick={() => {
+                  setDeleteConfirm({ id: target.id, name: target.file_name, type: "file" });
+                  closeContextMenu();
+                }} />
+              </>
+            );
+          })()}
+          {contextMenu.target.type === "demo" && (() => {
+            const target = contextMenu.target;
+            return (
+              <>
+                <CtxItem icon={Copy} label="Copy" onClick={() => {
+                  copyToClipboard(target.file_name, "File name");
+                  closeContextMenu();
+                }} />
+              </>
+            );
+          })()}
+          {contextMenu.target.type === "folder" && (() => {
+            const target = contextMenu.target;
+            return (
+              <>
+                <CtxItem icon={FolderOpen} label="Open" onClick={() => {
+                  setActiveFolderId(target.id);
+                  closeContextMenu();
+                }} />
+                <CtxItem icon={Download} label="Download as ZIP" onClick={() => {
+                  closeContextMenu();
+                  handleDownloadFolderZip(target.id, target.name);
+                }} />
+                <CtxDivider />
+                {!target.isSystem && (
+                  <>
+                    <CtxItem icon={Edit3} label="Rename" onClick={() => {
+                      setRenameModal({ id: target.id, name: target.name, type: "folder" });
+                      setRenameValue(target.name);
+                      closeContextMenu();
+                    }} />
+                    <CtxItem icon={Copy} label="Copy" onClick={() => {
+                      copyToClipboard(target.name, "Folder name");
+                      closeContextMenu();
+                    }} />
+                  </>
+                )}
+                {!target.isSystem && (
+                  <>
+                    <CtxDivider />
+                    <CtxItem icon={Trash2} label="Delete" danger onClick={() => {
+                      setDeleteConfirm({ id: target.id, name: target.name, type: "folder" });
+                      closeContextMenu();
+                    }} />
+                  </>
+                )}
+              </>
+            );
+          })()}
         </div>
       )}
 
@@ -1291,14 +1423,14 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
 
       {/* Secure Send Modal */}
       {shareModal && (
-        <ModalBackdrop onClose={() => setShareModal(null)}>
+        <ModalBackdrop onClose={closeShareModal}>
           <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div>
                 <h3 className="text-base font-bold text-gray-900">Secure Send</h3>
-                <p className="text-xs text-gray-400 mt-0.5">Share &quot;{shareModal.name}&quot;</p>
+                <p className="text-xs text-gray-400 mt-0.5">Share &quot;{shareModal.file_name}&quot;</p>
               </div>
-              <button onClick={() => setShareModal(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100">
+              <button onClick={closeShareModal} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100">
                 <X size={16} />
               </button>
             </div>
@@ -1366,7 +1498,12 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                             expiryDays: shareExpiry === "never" ? 365 : parseInt(shareExpiry),
                           }),
                         });
-                        if (res.ok) setShareSent(true);
+                        if (res.ok) {
+                          setShareSent(true);
+                          setTimeout(() => {
+                            closeShareModal();
+                          }, 2000);
+                        }
                         else { const e = await res.json(); showToast(e.error ?? "Send failed", false); }
                       } catch { showToast("Send failed", false); }
                     }}
@@ -1589,26 +1726,25 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div className="flex items-center gap-3 min-w-0">
                 {(() => {
-                  const Icon = getFileIcon(previewFile.type);
-                  const color = getFileColor(previewFile.type);
+                  const Icon = getFileIcon(previewFile.file_type);
+                  const color = getFileColor(previewFile.file_type);
                   return <Icon size={18} style={{ color }} />;
                 })()}
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-gray-900 truncate">{previewFile.name}</p>
+                  <p className="text-sm font-bold text-gray-900 truncate">{previewFile.file_name}</p>
                   <p className="text-[10px] text-gray-400">{formatBytes(previewFile.size)} · {formatDate(previewFile.modified)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => handleDownloadFile(previewFile.id, previewFile.name)}
+                  onClick={() => handleDownloadFile(previewFile.id, previewFile.file_name)}
                   className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100"
                 >
                   <Download size={15} />
                 </button>
                 <button
                   onClick={() => {
-                    setShareModal({ name: previewFile.name, id: previewFile.id });
-                    setShareSent(false);
+                    openShareModal(previewFile);
                     setPreviewFile(null);
                   }}
                   className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100"
@@ -1624,13 +1760,29 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
               </div>
             </div>
             <div className="flex items-center justify-center bg-gray-50 min-h-[300px] p-8">
-              {previewFile.thumbnail ? (
-                <img src={previewFile.thumbnail} alt={previewFile.name} className="max-h-[400px] rounded-lg shadow-md object-contain" />
+              {previewLoading ? (
+                <div className="text-center">
+                  <Loader2 size={32} className="mx-auto mb-3 animate-spin text-[#FF4D00]" />
+                  <p className="text-sm text-gray-500 font-medium">Loading preview…</p>
+                </div>
+              ) : previewError ? (
+                <div className="text-center">
+                  <p className="text-sm text-gray-500 font-medium">Preview not available</p>
+                  <p className="text-xs text-gray-400 mt-1">{previewError}</p>
+                </div>
+              ) : previewUrl && previewFile.file_type.toLowerCase() === "pdf" ? (
+                <iframe
+                  src={previewUrl}
+                  title={previewFile.file_name}
+                  className="w-full h-[460px] rounded-lg border border-gray-200 bg-white"
+                />
+              ) : previewUrl && ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(previewFile.file_type.toLowerCase()) ? (
+                <img src={previewUrl} alt={previewFile.file_name} className="max-h-[400px] rounded-lg shadow-md object-contain" />
               ) : (
                 <div className="text-center">
                   {(() => {
-                    const Icon = getFileIcon(previewFile.type);
-                    const color = getFileColor(previewFile.type);
+                    const Icon = getFileIcon(previewFile.file_type);
+                    const color = getFileColor(previewFile.file_type);
                     return (
                       <>
                         <Icon size={56} style={{ color }} className="mx-auto mb-4 opacity-50" />
