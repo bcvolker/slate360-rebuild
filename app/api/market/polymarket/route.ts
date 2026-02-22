@@ -10,9 +10,13 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
 
-  // Strip internal _q param (used for client-side keyword filter only)
+  // If there's a search query, we can't use it directly on Gamma API,
+  // but we can increase the limit to get more results to filter client-side
   const forwardParams = new URLSearchParams(searchParams);
-  forwardParams.delete("_q");
+  if (forwardParams.has("_q")) {
+    forwardParams.delete("_q");
+    forwardParams.set("limit", "500");
+  }
 
   const upstreamUrl = `https://gamma-api.polymarket.com/markets?${forwardParams.toString()}`;
 

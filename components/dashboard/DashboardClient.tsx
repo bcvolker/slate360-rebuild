@@ -578,6 +578,8 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   }
   function onSdPointerUp() { sdDragMode.current = null; }
 
+  const [dashboardSummary, setDashboardSummary] = useState<{ recentFiles: any[]; storageUsed: number } | null>(null);
+
   /* ── Load saved prefs from Supabase user metadata on mount ─── */
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user: u } }) => {
@@ -591,6 +593,14 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         setWidgetPrefs(merged);
       }
     });
+
+    // Fetch dashboard summary
+    fetch("/api/dashboard/summary")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) setDashboardSummary(data);
+      })
+      .catch(console.error);
   }, [supabase]);
 
   useEffect(() => {
@@ -631,7 +641,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   );
 
   const creditsUsed = 1847;
-  const storageUsed = ent.tier === "trial" ? 1.2 : ent.tier === "creator" ? 12 : 45;
+  const storageUsed = dashboardSummary ? Number((dashboardSummary.storageUsed / (1024 * 1024 * 1024)).toFixed(2)) : (ent.tier === "trial" ? 1.2 : ent.tier === "creator" ? 12 : 45);
 
   /* ── Handlers ── */
   const scrollCarousel = useCallback((dir: number) => {
@@ -1285,14 +1295,18 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 </div>
                 <p className="text-[10px] text-gray-400 mt-1">{(ent.maxStorageGB - storageUsed).toFixed(1)} GB available</p>
               </div>
-              {/* Recent files placeholder */}
+              {/* Recent files */}
               <div className="space-y-2">
-                {["Welcome to SlateDrop.pdf", "Getting Started Guide.pdf", "stadium-model.glb"].map((name, i) => (
-                  <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <FileText size={13} className="text-gray-400 shrink-0" />
-                    <span className="text-[11px] text-gray-700 truncate flex-1">{name}</span>
-                  </div>
-                ))}
+                {dashboardSummary?.recentFiles && dashboardSummary.recentFiles.length > 0 ? (
+                  dashboardSummary.recentFiles.slice(0, 3).map((file, i) => (
+                    <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                      <FileText size={13} className="text-gray-400 shrink-0" />
+                      <span className="text-[11px] text-gray-700 truncate flex-1">{file.file_name}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-xs text-gray-400">No recent files</div>
+                )}
               </div>
               <button
                 onClick={openSlateDrop}

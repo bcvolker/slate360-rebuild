@@ -473,6 +473,8 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
   const [newFolderModal, setNewFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "file" | "folder" } | null>(null);
+  const [moveModal, setMoveModal] = useState<{ id: string; name: string; type: "file" } | null>(null);
+  const [moveTargetFolder, setMoveTargetFolder] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<DbFile | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -1346,7 +1348,8 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                   closeContextMenu();
                 }} />
                 <CtxItem icon={Scissors} label="Move" onClick={() => {
-                  showToast("Move workflow is not enabled yet", false);
+                  setMoveModal({ id: target.id, name: target.file_name, type: "file" });
+                  setMoveTargetFolder(activeFolderId);
                   closeContextMenu();
                 }} />
                 <CtxDivider />
@@ -1712,6 +1715,119 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
                 >
                   Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </ModalBackdrop>
+      )}
+
+      {/* Move Modal */}
+      {moveModal && (
+        <ModalBackdrop onClose={() => setMoveModal(null)}>
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div>
+                <h3 className="text-base font-bold text-gray-900">Move File</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Select destination for "{moveModal.name}"</p>
+              </div>
+              <button onClick={() => setMoveModal(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-xl p-2 mb-6">
+                {/* Simple flat list of folders for now */}
+                {(() => {
+                  const allFolders: { id: string; name: string; path: string }[] = [];
+                  const traverse = (nodes: FolderNode[], path = "") => {
+                    nodes.forEach(n => {
+                      const currentPath = path ? `${path}/${n.id}` : n.id;
+                      allFolders.push({ id: n.id, name: n.name, path: currentPath });
+                      traverse(n.children, currentPath);
+                    });
+                  };
+                  traverse(folderTree);
+                  return allFolders.map(f => (
+                    <button
+                      key={f.id}
+                      onClick={() => setMoveTargetFolder(f.id)}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left transition-colors ${
+                        moveTargetFolder === f.id ? "bg-[#FF4D00]/10 text-[#FF4D00] font-medium" : "hover:bg-gray-50 text-gray-700"
+                      }`}
+                    >
+                      <Folder size={16} className={moveTargetFolder === f.id ? "text-[#FF4D00]" : "text-gray-400"} />
+                      {f.name}
+                    </button>
+                  ));
+                })()}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setMoveModal(null)}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!moveTargetFolder || moveTargetFolder === activeFolderId) {
+                      setMoveModal(null);
+                      return;
+                    }
+                    
+                    // Find the target folder path
+                    let targetPath = moveTargetFolder;
+                    const findPath = (nodes: FolderNode[], id: string, currentPath = ""): string | null => {
+                      for (const n of nodes) {
+                        const p = currentPath ? `${currentPath}/${n.id}` : n.id;
+                        if (n.id === id) return p;
+                        const childPath = findPath(n.children, id, p);
+                        if (childPath) return childPath;
+                      }
+                      return null;
+                    };
+                    const fullPath = findPath(folderTree, moveTargetFolder) || moveTargetFolder;
+
+                    try {
+                      const res = await fetch("/api/slatedrop/move", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          fileId: moveModal.id,
+                          newFolderId: moveTargetFolder,
+                          newS3KeyPrefix: `orgs/default/${fullPath}` // Note: orgs/default is a placeholder, the API handles the real org prefix
+                        }),
+                      });
+                      
+                      if (!res.ok) throw new Error("Move failed");
+                      
+                      // Optimistically update UI
+                      setRealFiles(prev => {
+                        const next = { ...prev };
+                        if (next[activeFolderId]) {
+                          const fileToMove = next[activeFolderId].find(f => f.id === moveModal.id);
+                          if (fileToMove) {
+                            next[activeFolderId] = next[activeFolderId].filter(f => f.id !== moveModal.id);
+                            if (next[moveTargetFolder]) {
+                              next[moveTargetFolder] = [...next[moveTargetFolder], { ...fileToMove, folderId: moveTargetFolder }];
+                            }
+                          }
+                        }
+                        return next;
+                      });
+                      
+                      showToast(`Moved to folder`);
+                    } catch (err) {
+                      showToast("Failed to move file", false);
+                    }
+                    setMoveModal(null);
+                  }}
+                  disabled={!moveTargetFolder || moveTargetFolder === activeFolderId}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                  style={{ backgroundColor: "#FF4D00" }}
+                >
+                  Move Here
                 </button>
               </div>
             </div>

@@ -29,6 +29,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { createClient } from "@/lib/supabase/client";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -224,7 +225,7 @@ export default function MarketClient() {
   const [mktMinVol, setMktMinVol] = useState(0);
   const [mktMinEdge, setMktMinEdge] = useState(0);
   const [mktRiskTag, setMktRiskTag] = useState<"all" | "hot" | "high-risk" | "construction" | "high-potential" | "none">("all");
-  const [mktSortBy, setMktSortBy] = useState<"volume" | "edge" | "probability" | "title">("volume");
+  const [mktSortBy, setMktSortBy] = useState<"volume" | "edge" | "probability" | "title" | "endDate">("volume");
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
 
   // Buy panel
@@ -593,18 +594,66 @@ export default function MarketClient() {
     setBotRunning(true);
     setBotPaused(false);
     addLog(`🤖 Bot started in ${paperMode ? "PAPER" : "LIVE"} mode`);
+    
+    // Update user metadata so the server knows the bot is running
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const currentConfig = user.user_metadata?.marketBotConfig || {};
+        await supabase.auth.updateUser({
+          data: {
+            marketBotConfig: { ...currentConfig, botStatus: "running" }
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Failed to update bot status in metadata", e);
+    }
+
     await runScan();
   };
 
-  const handlePauseBot = () => {
-    setBotPaused(p => !p);
-    addLog(botPaused ? "▶️ Bot resumed" : "⏸ Bot paused");
+  const handlePauseBot = async () => {
+    const newPaused = !botPaused;
+    setBotPaused(newPaused);
+    addLog(newPaused ? "⏸ Bot paused" : "▶️ Bot resumed");
+    
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const currentConfig = user.user_metadata?.marketBotConfig || {};
+        await supabase.auth.updateUser({
+          data: {
+            marketBotConfig: { ...currentConfig, botStatus: newPaused ? "paused" : "running" }
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Failed to update bot status in metadata", e);
+    }
   };
 
-  const handleStopBot = () => {
+  const handleStopBot = async () => {
     setBotRunning(false);
     setBotPaused(false);
     addLog("⛔ Bot stopped");
+    
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const currentConfig = user.user_metadata?.marketBotConfig || {};
+        await supabase.auth.updateUser({
+          data: {
+            marketBotConfig: { ...currentConfig, botStatus: "stopped" }
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Failed to update bot status in metadata", e);
+    }
   };
 
   // ── Focus areas toggle ─────────────────────────────────────────────────────
@@ -807,6 +856,7 @@ export default function MarketClient() {
         case "edge": return b.edge_pct - a.edge_pct;
         case "probability": return b.probability - a.probability;
         case "title": return a.title.localeCompare(b.title);
+        case "endDate": return new Date(a.end_date || 0).getTime() - new Date(b.end_date || 0).getTime();
         default: return b.volume24h - a.volume24h;
       }
     });
@@ -1544,6 +1594,7 @@ export default function MarketClient() {
                       <option value="edge">Edge % ↓</option>
                       <option value="probability">Probability ↓</option>
                       <option value="title">Title A→Z</option>
+                      <option value="endDate">End Date ↑</option>
                     </select>
                   </div>
                 </div>

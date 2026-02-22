@@ -74,16 +74,15 @@ export async function POST(req: NextRequest) {
         .insert({
           user_id: user.id,
           market_id,
-          market_title,
-          outcome,
+          question: market_title,
+          side: outcome,
           shares,
-          avg_price,
-          current_price: avg_price,
-          pnl: 0,
+          price: avg_price,
           total: amount,
-          status: "paper",
-          category: category ?? "General",
-          probability: probability ?? null,
+          status: "open",
+          pnl: 0,
+          paper_trade: true,
+          reason: `Direct buy via Markets Explorer — ${category ?? "General"}, prob ${probability ?? "?"}%`,
         })
         .select()
         .single();
@@ -126,17 +125,15 @@ export async function POST(req: NextRequest) {
         .insert({
           user_id: user.id,
           market_id,
-          market_title,
-          outcome,
+          question: market_title,
+          side: outcome,
           shares,
-          avg_price,
-          current_price: avg_price,
-          pnl: 0,
+          price: avg_price,
           total: amount,
-          status: "paper",
-          category: category ?? "General",
-          probability: probability ?? null,
-          notes: "Saved as paper — CLOB credentials not configured",
+          status: "open",
+          pnl: 0,
+          paper_trade: true,
+          reason: `Saved as paper — CLOB credentials not configured`,
         })
         .select()
         .single();
