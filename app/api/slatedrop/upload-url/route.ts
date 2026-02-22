@@ -12,7 +12,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { s3, BUCKET, buildS3Key } from "@/lib/s3";
+import { s3, BUCKET } from "@/lib/s3";
+import { resolveNamespace, buildCanonicalS3Key } from "@/lib/slatedrop/storage";
 
 export async function POST(req: NextRequest) {
   // Auth check via cookie-based client
@@ -46,9 +47,9 @@ export async function POST(req: NextRequest) {
       .single();
     orgId = data?.org_id ?? null;
   } catch { /* no org — use user id as namespace */ }
-  const namespace = orgId ?? user.id;
+  const namespace = resolveNamespace(orgId, user.id);
 
-  const s3Key = buildS3Key(namespace, folderId, filename);
+  const s3Key = buildCanonicalS3Key(namespace, folderId, filename);
 
   // Generate presigned URL (15 min expiry)
   const command = new PutObjectCommand({

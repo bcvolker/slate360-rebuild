@@ -1015,8 +1015,8 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
         {/* ════════ TAB NAVIGATION BAR (hidden on overview — tiles serve as nav) ════════ */}
         {activeTab !== "overview" && (
-        <nav className="mb-6 overflow-x-auto scrollbar-hide">
-          <div className="flex items-center gap-1 min-w-max pb-1">
+        <nav className="mb-6">
+          <div className="flex flex-wrap items-center gap-2 pb-1">
             {/* Overview / Home tab */}
             <button
               onClick={() => setActiveTab("overview")}

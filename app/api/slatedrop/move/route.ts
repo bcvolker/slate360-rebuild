@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { s3, BUCKET } from "@/lib/s3";
+import { resolveNamespace, buildCanonicalS3Key } from "@/lib/slatedrop/storage";
 
 type MoveBody = {
   fileId: string;
@@ -73,9 +74,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const prefix = normalizePrefix(newS3KeyPrefix);
-  const safeName = sanitizeFilename(file.file_name ?? "file");
-  const newS3Key = `${prefix}/${Date.now()}_${safeName}`;
+  const namespace = resolveNamespace(orgId, user.id);
+  const newS3Key = buildCanonicalS3Key(namespace, newFolderId, file.file_name ?? "file");
 
   try {
     await s3.send(

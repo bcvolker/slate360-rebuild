@@ -34,8 +34,17 @@ export async function POST(req: NextRequest) {
       ? { ...DEFAULT_CONFIG, ...savedConfig }
       : DEFAULT_CONFIG;
 
+    // Read bot status from market_bot_settings table
+    const { data: botSettings } = await supabase
+      .from("market_bot_settings")
+      .select("status")
+      .eq("user_id", user.id)
+      .single();
+
+    const botStatus = botSettings?.status ?? "stopped";
+
     // Must be running or paper
-    if (config.botStatus === "stopped") {
+    if (botStatus === "stopped") {
       return NextResponse.json({ error: "Bot is stopped" }, { status: 400 });
     }
 
@@ -62,7 +71,7 @@ export async function POST(req: NextRequest) {
     // 5. Execute paper trades or return recommendations
     const executedTrades = [];
 
-    if (config.paperMode || config.botStatus === "paper") {
+    if (config.paperMode || botStatus === "paper") {
       for (const decision of tradeDecisions) {
         const trade = simulatePaperTrade(
           user.id,

@@ -6,6 +6,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveNamespace } from "@/lib/slatedrop/storage";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
@@ -29,8 +33,8 @@ export async function GET(req: NextRequest) {
   } catch { /* solo user */ }
 
   // Build the s3_key prefix for this folder
-  // Format: orgs/{orgId ?? userId}/{folderId}/...
-  const namespace = orgId ?? user.id;
+  // Format: orgs/{namespace}/{folderId}/...
+  const namespace = resolveNamespace(orgId, user.id);
   const s3Prefix = `orgs/${namespace}/${folderId}/`;
 
   let query = admin

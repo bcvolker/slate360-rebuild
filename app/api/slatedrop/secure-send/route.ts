@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import crypto from "node:crypto";
+import { sendSecureSendEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -79,21 +80,24 @@ export async function POST(req: NextRequest) {
   const publicBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? origin;
   const shareUrl = `${publicBaseUrl}/share/${token}`;
 
-  // Send branded Secure Send email via Resend (non-blocking, best-effort)
   const senderName = user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "A Slate360 user";
-  fetch(`${origin}/api/email/send`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      type: "secure-send",
+  
+  try {
+    await sendSecureSendEmail({
       to: email,
       senderName,
       fileName: file.file_name,
       shareUrl,
       permission,
       expiresAt,
-    }),
-  }).catch(() => {});
+    });
+  } catch (err) {
+    console.error("[slatedrop/secure-send] Email dispatch failed:", err);
+    return NextResponse.json(
+      { error: "Failed to send email. Please check your email provider configuration." },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ ok: true, shareUrl, token, expiresAt });
 }

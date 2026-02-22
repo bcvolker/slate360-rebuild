@@ -597,18 +597,13 @@ export default function MarketClient() {
     
     // Update user metadata so the server knows the bot is running
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const currentConfig = user.user_metadata?.marketBotConfig || {};
-        await supabase.auth.updateUser({
-          data: {
-            marketBotConfig: { ...currentConfig, botStatus: "running" }
-          }
-        });
-      }
+      await fetch("/api/market/bot-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "running" }),
+      });
     } catch (e) {
-      console.error("Failed to update bot status in metadata", e);
+      console.error("Failed to update bot status", e);
     }
 
     await runScan();
@@ -620,18 +615,13 @@ export default function MarketClient() {
     addLog(newPaused ? "⏸ Bot paused" : "▶️ Bot resumed");
     
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const currentConfig = user.user_metadata?.marketBotConfig || {};
-        await supabase.auth.updateUser({
-          data: {
-            marketBotConfig: { ...currentConfig, botStatus: newPaused ? "paused" : "running" }
-          }
-        });
-      }
+      await fetch("/api/market/bot-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newPaused ? "paused" : "running" }),
+      });
     } catch (e) {
-      console.error("Failed to update bot status in metadata", e);
+      console.error("Failed to update bot status", e);
     }
   };
 
@@ -641,18 +631,13 @@ export default function MarketClient() {
     addLog("⛔ Bot stopped");
     
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const currentConfig = user.user_metadata?.marketBotConfig || {};
-        await supabase.auth.updateUser({
-          data: {
-            marketBotConfig: { ...currentConfig, botStatus: "stopped" }
-          }
-        });
-      }
+      await fetch("/api/market/bot-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "stopped" }),
+      });
     } catch (e) {
-      console.error("Failed to update bot status in metadata", e);
+      console.error("Failed to update bot status", e);
     }
   };
 
