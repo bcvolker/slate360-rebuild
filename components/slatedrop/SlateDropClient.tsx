@@ -424,6 +424,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
   const [sharePerm, setSharePerm] = useState<"view" | "edit">("view");
   const [shareExpiry, setShareExpiry] = useState("7");
   const [shareSent, setShareSent] = useState(false);
+  const [newFolderModal, setNewFolderModal] = useState<{ parentId: string; name: string } | null>(null);
   const [renameModal, setRenameModal] = useState<{ id: string; name: string; type: "file" | "folder" } | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "file" | "folder" } | null>(null);
@@ -460,6 +461,25 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
     setShareSent(false);
     setShareEmail("");
   }, []);
+
+  const getProjectIdForFolder = useCallback(
+    (folderId: string): string | null => {
+      const projectIds = new Set(sandboxProjects.map((project) => project.id));
+      let cursor: string | null = folderId;
+      const seen = new Set<string>();
+
+      while (cursor && !seen.has(cursor)) {
+        if (projectIds.has(cursor)) return cursor;
+        seen.add(cursor);
+        const node = findFolder(folderTree, cursor);
+        if (!node) break;
+        cursor = node.parentId;
+      }
+
+      return null;
+    },
+    [folderTree, sandboxProjects]
+  );
 
   const refreshFolderFiles = useCallback(async (folderId: string) => {
     setLoadingFiles(true);
@@ -884,7 +904,14 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
 
             {/* New folder button */}
             <button
-              onClick={() => showToast("Folder creation is temporarily disabled until backend folder APIs are fully unified.", false)}
+              onClick={() => {
+                const projectId = getProjectIdForFolder(activeFolderId);
+                if (!projectId) {
+                  showToast("Choose a project folder first to create a new folder.", false);
+                  return;
+                }
+                setNewFolderModal({ parentId: activeFolderId, name: "" });
+              }}
               className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold text-white mb-3 transition-all hover:opacity-90"
               style={{ backgroundColor: "#FF4D00" }}
             >
@@ -1262,6 +1289,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
           })()}
           {contextMenu.target.type === "folder" && (() => {
             const target = contextMenu.target;
+            const isProjectNode = sandboxProjects.some((project) => project.id === target.id);
             return (
               <>
                 <CtxItem icon={FolderOpen} label="Open" onClick={() => {
@@ -1277,6 +1305,22 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                   copyToClipboard(target.name, "Folder name");
                   closeContextMenu();
                 }} />
+                {!target.isSystem && !isProjectNode && (
+                  <CtxItem icon={Edit3} label="Rename" onClick={() => {
+                    setRenameModal({ id: target.id, name: target.name, type: "folder" });
+                    setRenameValue(target.name);
+                    closeContextMenu();
+                  }} />
+                )}
+                {!target.isSystem && (
+                  <>
+                    <CtxDivider />
+                    <CtxItem icon={Trash2} label="Delete" danger onClick={() => {
+                      setDeleteConfirm({ id: target.id, name: target.name, type: "folder" });
+                      closeContextMenu();
+                    }} />
+                  </>
+                )}
               </>
             );
           })()}
@@ -1284,6 +1328,88 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
       )}
 
       {/* ════════ MODALS ════════ */}
+
+      {/* New Folder Modal */}
+      {newFolderModal && (
+        <ModalBackdrop onClose={() => setNewFolderModal(null)}>
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h3 className="text-base font-bold text-gray-900">New Folder</h3>
+              <button onClick={() => setNewFolderModal(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="p-6">
+              <input
+                type="text"
+                value={newFolderModal.name}
+                onChange={(e) => setNewFolderModal((prev) => (prev ? { ...prev, name: e.target.value } : prev))}
+                placeholder="Folder name"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all mb-4"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setNewFolderModal(null)}
+                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!newFolderModal) return;
+                    const folderName = newFolderModal.name.trim();
+                    if (!folderName) return;
+
+                    const projectId = getProjectIdForFolder(newFolderModal.parentId);
+                    if (!projectId) {
+                      showToast("Choose a project folder first to create a new folder.", false);
+                      return;
+                    }
+
+                    try {
+                      const res = await fetch("/api/slatedrop/folders", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          projectId,
+                          parentFolderId: newFolderModal.parentId === projectId ? null : newFolderModal.parentId,
+                          name: folderName,
+                        }),
+                      });
+                      if (!res.ok) {
+                        const err = await res.json().catch(() => ({ error: "Create folder failed" }));
+                        throw new Error(err.error ?? "Create folder failed");
+                      }
+                      const data = await res.json().catch(() => ({}));
+                      await refreshSandboxProjects();
+                      const createdFolderId = typeof data?.folder?.id === "string" ? data.folder.id : null;
+                      if (createdFolderId) {
+                        setExpandedIds((prev) => {
+                          const next = new Set(prev);
+                          next.add(projectId);
+                          next.add(newFolderModal.parentId);
+                          return next;
+                        });
+                        setActiveFolderId(createdFolderId);
+                      }
+                      showToast(`Folder \"${folderName}\" created`);
+                      setNewFolderModal(null);
+                    } catch (error) {
+                      showToast(error instanceof Error ? error.message : "Create folder failed", false);
+                    }
+                  }}
+                  disabled={!newFolderModal.name.trim()}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                  style={{ backgroundColor: "#FF4D00" }}
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          </div>
+        </ModalBackdrop>
+      )}
 
       {/* Secure Send Modal */}
       {shareModal && (
@@ -1433,7 +1559,21 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                         showToast(error instanceof Error ? error.message : "Rename failed", false);
                       }
                     } else {
-                      showToast("Folder rename is temporarily disabled until backend folder APIs are fully unified.", false);
+                      try {
+                        const res = await fetch("/api/slatedrop/folders", {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ folderId: renameModal.id, newName: renameValue.trim() }),
+                        });
+                        if (!res.ok) {
+                          const err = await res.json().catch(() => ({ error: "Rename failed" }));
+                          throw new Error(err.error ?? "Rename failed");
+                        }
+                        await refreshSandboxProjects();
+                        showToast(`Renamed to "${renameValue.trim()}"`);
+                      } catch (error) {
+                        showToast(error instanceof Error ? error.message : "Rename failed", false);
+                      }
                     }
                     setRenameModal(null);
                   }}
@@ -1522,7 +1662,31 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                       return;
                     }
 
-                    showToast("Folder deletion is temporarily disabled until backend folder APIs are fully unified.", false);
+                    try {
+                      const parentFolderId = findFolder(folderTree, deleteConfirm.id)?.parentId ?? "projects";
+                      const res = await fetch("/api/slatedrop/folders", {
+                        method: "DELETE",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ folderId: deleteConfirm.id }),
+                      });
+                      if (!res.ok) {
+                        const err = await res.json().catch(() => ({ error: "Delete failed" }));
+                        throw new Error(err.error ?? "Delete failed");
+                      }
+
+                      setRealFiles((prev) => {
+                        const next = { ...prev };
+                        delete next[deleteConfirm.id];
+                        return next;
+                      });
+                      await refreshSandboxProjects();
+                      if (activeFolderId === deleteConfirm.id) {
+                        setActiveFolderId(parentFolderId);
+                      }
+                      showToast(`Folder "${deleteConfirm.name}" deleted`);
+                    } catch (error) {
+                      showToast(error instanceof Error ? error.message : "Delete failed", false);
+                    }
                     setDeleteConfirm(null);
                   }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"

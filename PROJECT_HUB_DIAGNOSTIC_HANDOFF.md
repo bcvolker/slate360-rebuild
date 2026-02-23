@@ -87,6 +87,8 @@ Recent commits and intent:
 - **Current working tree (not yet committed at time of this doc generation):**
   - Hardened create rollback logic for org-less users in `app/api/projects/create/route.ts`.
   - Migrated deprecated map APIs in `components/dashboard/LocationMap.tsx` (see section 8).
+  - Added backend folder CRUD endpoint at `app/api/slatedrop/folders/route.ts` (`POST`, `PATCH`, `DELETE`).
+  - Re-wired `components/slatedrop/SlateDropClient.tsx` folder create/rename/delete to call backend APIs.
 
 ### Attempted Fix Matrix (include failures)
 
@@ -103,7 +105,7 @@ Recent commits and intent:
 | Create flow `role` -> `role_id` fix | Stop membership insert failure | Major improvement | Rollback path for org-less users still had edge case until later fix |
 | Create rollback hardening (org-less) | Prevent orphan/ghost projects | Improvement | Needs production validation under failure injection |
 | Maps deprecation migration in dashboard map | Remove warning noise and unstable APIs | Improvement | Not a root cause for Project Hub CRUD mismatch |
-| SlateDrop demo fallback removal (in progress) | Prevent local/demo state from masking backend truth | Improvement | Full backend folder CRUD parity still pending (create/rename/delete folder APIs) |
+| SlateDrop demo fallback removal + folder CRUD rewire | Prevent local/demo state from masking backend truth | Major improvement | Requires production validation of nested folder rename/delete and S3 cleanup behavior |
 
 ---
 
@@ -127,6 +129,7 @@ Recent commits and intent:
 - `components/slatedrop/SlateDropClient.tsx`
 - `app/slatedrop/page.tsx`
 - `app/api/slatedrop/project-folders/route.ts`
+- `app/api/slatedrop/folders/route.ts`
 - `app/api/slatedrop/project-audit-export/route.ts`
 
 ### Shared source-of-truth helper
@@ -146,10 +149,10 @@ Recent commits and intent:
 - `app/api/dashboard/widgets/route.ts` uses its own scope/filter path and formatting.
 - This can create **perception mismatch** (dashboard widgets vs hub/slatedrop), even if Hub itself is correct.
 
-### SlateDrop still includes demo-only local UX data
-- Historical issue: `components/slatedrop/SlateDropClient.tsx` included demo file arrays and local folder tree mutation utilities.
-- This could obscure debugging if mixed with live API state.
-- Current direction is to remove fallback demo file state and disable local-only folder mutations until backend folder CRUD is fully unified.
+### SlateDrop backend folder CRUD now wired
+- `components/slatedrop/SlateDropClient.tsx` now calls `/api/slatedrop/folders` for folder create/rename/delete.
+- Project-node deletion still routes to `DELETE /api/projects/[projectId]` as required.
+- Remaining risk is production-only data/permissions edge cases (nested descendants, path rewrites, S3 key cleanup) that need live validation.
 
 ---
 
@@ -222,7 +225,10 @@ Notes:
    - open project detail pages
    - delete project from hub and slatedrop
 2. Normalize every project read in dashboard widgets to `lib/projects/access.ts`.
-3. Remove or clearly gate demo data in `SlateDropClient` to avoid mixed-state confusion.
+3. Validate folder CRUD parity in production for nested folders:
+  - create under project root and nested folder
+  - rename folder with descendants
+  - delete folder with descendants + file cleanup
 4. Add explicit structured logging payloads for all project CRUD errors (`projectId`, `userId`, `orgId`, DB error code/message).
 5. Add an idempotent maintenance endpoint or job that backfills missing canonical folders for any project with `folder_count = 0`.
 
@@ -261,3 +267,45 @@ If you are another AI assistant reading this, please help with root-cause isolat
 5. **Report back with evidence**
   - Exact failing query/constraint/policy, affected file(s), and minimal reproducible path.
   - Avoid generic “works locally” conclusions; include environment-specific proof.
+
+---
+
+## 12) Latest Smoke Test Log (Feb 23, 2026)
+
+### Route-level API smoke (CLI)
+- Attempted `POST /api/slatedrop/folders` against local dev server using `SUPABASE_ACCESS_TOKEN` as Bearer token.
+- Result: `401 Unauthorized`.
+- Interpretation: this route currently relies on authenticated app-session cookies; a non-interactive CLI token was insufficient for route-level auth.
+
+### DB-level nested folder CRUD smoke (service role)
+- Executed deterministic create/rename/delete sequence in `project_folders` against an existing project:
+  1. Create custom parent folder under project root path.
+  2. Create custom child folder under parent.
+  3. Rename parent and rewrite descendant paths.
+  4. Delete parent+child and verify rows removed.
+- Result: PASS
+  - `renameCascadeOk: true`
+  - `deleteVerified: true`
+
+### What remains to fully close API parity
+- Run the same create/rename/delete-nested flow through UI or authenticated browser session to validate route-layer auth + S3 cleanup end-to-end.
+
+### Re-run verification (continuation session)
+- Re-ran route-level smoke against local Next server (`http://localhost:3000`) with `SUPABASE_ACCESS_TOKEN` Bearer header loaded from `.env.local`.
+- Result reproduced: `401` with body `{"error":"Unauthorized"}`.
+- Re-ran DB-level nested folder CRUD smoke with service role:
+  - `projectId: 592fdfcb-ca34-4a02-842f-73f33c7026ef`
+  - `runTag: smoke-1771880255567`
+  - `renameCascadeOk: true`
+  - `deleteVerified: true`
+
+---
+
+## 13) Cross-System Reference (Market Robot)
+
+- Related market backend verification is documented in `MARKET_ROBOT_DIAGNOSTIC_HANDOFF.md`.
+- That handoff now includes direct Supabase SQL submit evidence showing:
+  - migration for `public.market_directives` was executed against the live project,
+  - table/policies/RLS were verified,
+  - insert/update/delete SQL smoke checks passed.
+- This confirms Project Hub/SlateDrop issues are independent of the market directives backend migration path.

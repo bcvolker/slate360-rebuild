@@ -257,6 +257,11 @@ export default function MarketClient() {
   const [compareA, setCompareA] = useState<string | null>(null);
   const [compareB, setCompareB] = useState<string | null>(null);
 
+  // Display currency (amount math still executed in USD/USDC)
+  const [displayCurrency, setDisplayCurrency] = useState("USD");
+  const [fxRates, setFxRates] = useState<Record<string, number>>({ USD: 1 });
+  const [loadingFx, setLoadingFx] = useState(false);
+
   // WebSocket live prices
   const wsRef = useRef<WebSocket | null>(null);
   const [wsConnected, setWsConnected] = useState(false);
@@ -267,9 +272,53 @@ export default function MarketClient() {
   useEffect(() => {
     fetchTrades();
     // Markets are NOT auto-loaded — user triggers search
-    loadDirectives();
+    void loadDirectives();
     loadSimRuns();
   }, []);
+
+  useEffect(() => {
+    try {
+      const savedCurrency = localStorage.getItem("slate360_market_currency");
+      if (savedCurrency) {
+        setDisplayCurrency(savedCurrency);
+      }
+    } catch {
+      // ignore storage failures
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("slate360_market_currency", displayCurrency);
+    } catch {
+      // ignore storage failures
+    }
+  }, [displayCurrency]);
+
+  useEffect(() => {
+    if (displayCurrency === "USD") {
+      setFxRates((prev) => ({ ...prev, USD: 1 }));
+      return;
+    }
+
+    const run = async () => {
+      setLoadingFx(true);
+      try {
+        const res = await fetch("https://open.er-api.com/v6/latest/USD", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json() as { rates?: Record<string, number> };
+        if (data.rates) {
+          setFxRates((prev) => ({ ...prev, ...data.rates, USD: 1 }));
+        }
+      } catch {
+        // keep previous rates
+      } finally {
+        setLoadingFx(false);
+      }
+    };
+
+    void run();
+  }, [displayCurrency]);
 
   useEffect(() => {
     if (logRef.current) {
@@ -709,20 +758,36 @@ export default function MarketClient() {
 
   // ── Directives CRUD ────────────────────────────────────────────────────────
 
-  const loadDirectives = () => {
+  async function loadDirectives() {
+    try {
+      const res = await fetch("/api/market/directives", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json() as { directives?: BuyDirective[] };
+        setDirectives(data.directives ?? []);
+        return;
+      }
+    } catch {
+      // fallback below
+    }
+
     try {
       const saved = localStorage.getItem("slate360_directives");
-      if (saved) setDirectives(JSON.parse(saved));
-    } catch {}
-  };
+      if (saved) {
+        setDirectives(JSON.parse(saved));
+      }
+    } catch {
+      // ignore
+    }
+  }
 
   const saveDirectives = (list: BuyDirective[]) => {
     localStorage.setItem("slate360_directives", JSON.stringify(list));
     setDirectives(list);
   };
 
-  const handleSaveDirective = () => {
+  const handleSaveDirective = async () => {
     if (!directiveName.trim()) return;
+
     const d: BuyDirective = {
       id: editingDirective?.id || Date.now().toString(),
       name: directiveName,
@@ -736,8 +801,31 @@ export default function MarketClient() {
       paper_mode: directivePaper,
       created_at: new Date().toISOString(),
     };
-    const existing = directives.filter(x => x.id !== d.id);
-    saveDirectives([d, ...existing]);
+
+    try {
+      const method = editingDirective ? "PATCH" : "POST";
+      const res = await fetch("/api/market/directives", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(d),
+      });
+
+      if (res.ok) {
+        const data = await res.json() as { directive?: BuyDirective };
+        if (data.directive) {
+          const existing = directives.filter((x) => x.id !== data.directive?.id);
+          setDirectives([data.directive, ...existing]);
+          localStorage.setItem("slate360_directives", JSON.stringify([data.directive, ...existing]));
+        }
+      } else {
+        const existing = directives.filter((x) => x.id !== d.id);
+        saveDirectives([d, ...existing]);
+      }
+    } catch {
+      const existing = directives.filter((x) => x.id !== d.id);
+      saveDirectives([d, ...existing]);
+    }
+
     resetDirectiveForm();
     addLog(`💾 Directive "${d.name}" saved`);
   };
@@ -759,8 +847,22 @@ export default function MarketClient() {
     setActiveTab("Dashboard");
   };
 
-  const deleteDirective = (id: string) => {
-    saveDirectives(directives.filter(d => d.id !== id));
+  const deleteDirective = async (id: string) => {
+    const prev = directives;
+    const next = directives.filter((d) => d.id !== id);
+    setDirectives(next);
+    localStorage.setItem("slate360_directives", JSON.stringify(next));
+
+    try {
+      const res = await fetch(`/api/market/directives?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      if (!res.ok) {
+        setDirectives(prev);
+        localStorage.setItem("slate360_directives", JSON.stringify(prev));
+      }
+    } catch {
+      setDirectives(prev);
+      localStorage.setItem("slate360_directives", JSON.stringify(prev));
+    }
   };
 
   const resetDirectiveForm = () => {
@@ -778,12 +880,12 @@ export default function MarketClient() {
 
   // ── Sim runs ───────────────────────────────────────────────────────────────
 
-  const loadSimRuns = () => {
+  function loadSimRuns() {
     try {
       const saved = localStorage.getItem("slate360_sim_runs");
       if (saved) setSimRuns(JSON.parse(saved));
     } catch {}
-  };
+  }
 
   const saveCurrentSimRun = () => {
     const runName = `Sim ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
@@ -873,6 +975,20 @@ export default function MarketClient() {
     }));
   })();
 
+  const convertFromUsd = (usd: number) => {
+    const rate = fxRates[displayCurrency] ?? 1;
+    return usd * rate;
+  };
+
+  const formatMoney = (usd: number) => {
+    const value = convertFromUsd(usd);
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: displayCurrency,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────
@@ -907,6 +1023,19 @@ export default function MarketClient() {
 
         {/* Wallet */}
         <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1 bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
+            <span className="text-[10px] text-gray-500">Display</span>
+            <select
+              value={displayCurrency}
+              onChange={(e) => setDisplayCurrency(e.target.value)}
+              className="bg-transparent text-xs text-gray-700 outline-none"
+            >
+              {(["USD", "EUR", "GBP", "CAD", "AUD", "JPY"] as const).map((code) => (
+                <option key={code} value={code}>{code}</option>
+              ))}
+            </select>
+            {loadingFx && <span className="text-[10px] text-gray-400">…</span>}
+          </div>
           {isConnected ? (
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-600 font-mono bg-gray-100 px-2 py-1 rounded-lg">
@@ -1423,6 +1552,7 @@ export default function MarketClient() {
                   Amount (USDC): <span className="text-gray-900 font-semibold font-mono">${buyAmount}</span>
                   <HelpTip content="How much USDC to spend on this trade." />
                 </label>
+                <p className="text-[11px] text-gray-400 mb-2">Display value: {formatMoney(buyAmount)}</p>
                 <input
                   type="range" min={5} max={500} step={5}
                   value={buyAmount}
@@ -1445,21 +1575,36 @@ export default function MarketClient() {
                 const shares = buyAmount / avgPrice;
                 const payout = shares * 1;
                 const profit = payout - buyAmount;
+                const lose = -buyAmount;
+                const targetExitPrice = Math.min(0.99, avgPrice * 1.1);
+                const targetExitPnl = shares * (targetExitPrice - avgPrice);
                 return (
-                  <div className="grid grid-cols-3 gap-2 text-center bg-gray-100/50 rounded-lg p-3">
+                  <div className="space-y-2 bg-gray-100/50 rounded-lg p-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                     <div>
                       <p className="text-[10px] text-gray-400 mb-1">Shares</p>
                       <p className="text-sm font-bold text-gray-900">{shares.toFixed(1)}</p>
                     </div>
                     <div>
                       <p className="text-[10px] text-gray-400 mb-1">Max Payout</p>
-                      <p className="text-sm font-bold text-green-600">${payout.toFixed(2)}</p>
+                      <p className="text-sm font-bold text-green-600">{formatMoney(payout)}</p>
                     </div>
                     <div>
                       <p className="text-[10px] text-gray-400 mb-1">Max Profit</p>
                       <p className={`text-sm font-bold ${profit > 0 ? "text-green-600" : "text-red-600"}`}>
-                        {profit >= 0 ? "+" : ""}${profit.toFixed(2)}
+                        {profit >= 0 ? "+" : ""}{formatMoney(Math.abs(profit))}
                       </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 mb-1">Max Loss</p>
+                      <p className="text-sm font-bold text-red-600">-{formatMoney(Math.abs(lose))}</p>
+                    </div>
+                    </div>
+                    <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600 space-y-1">
+                      <p className="font-semibold text-gray-700">What-if scenarios</p>
+                      <p>If {buyOutcome} resolves true: <span className="font-semibold text-green-600">+{formatMoney(profit)}</span></p>
+                      <p>If {buyOutcome === "YES" ? "NO" : "YES"} resolves true: <span className="font-semibold text-red-600">-{formatMoney(buyAmount)}</span></p>
+                      <p>If price rises 10% and you exit early: <span className={`font-semibold ${targetExitPnl >= 0 ? "text-green-600" : "text-red-600"}`}>{targetExitPnl >= 0 ? "+" : "-"}{formatMoney(Math.abs(targetExitPnl))}</span></p>
                     </div>
                   </div>
                 );
@@ -1771,9 +1916,27 @@ export default function MarketClient() {
               </div>
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">Amount (USDC): <span className="font-semibold text-gray-900">${buyAmount}</span></label>
+                <p className="text-[11px] text-gray-400 mb-2">Display value: {formatMoney(buyAmount)}</p>
                 <input type="range" min={5} max={500} step={5} value={buyAmount} onChange={e => setBuyAmount(+e.target.value)} className="w-full accent-[#FF4D00] mb-2" />
                 <div className="flex gap-1">{[10,25,50,100,250].map(v => <button key={v} onClick={() => setBuyAmount(v)} className={`px-2 py-1 text-xs rounded transition ${buyAmount===v?"bg-[#FF4D00] text-white":"bg-gray-100 text-gray-600"}`}>${v}</button>)}</div>
               </div>
+              {(() => {
+                const price = buyOutcome === "YES" ? buyMarket.outcome_yes : buyMarket.outcome_no;
+                const avgPrice = price > 0 ? price : (buyMarket.probability / 100);
+                const shares = buyAmount / avgPrice;
+                const payout = shares;
+                const profit = payout - buyAmount;
+                const targetExitPrice = Math.min(0.99, avgPrice * 1.1);
+                const targetExitPnl = shares * (targetExitPrice - avgPrice);
+                return (
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600 space-y-1">
+                    <p className="font-semibold text-gray-700">What-if scenarios</p>
+                    <p>If {buyOutcome} resolves true: <span className="font-semibold text-green-600">+{formatMoney(profit)}</span></p>
+                    <p>If {buyOutcome === "YES" ? "NO" : "YES"} resolves true: <span className="font-semibold text-red-600">-{formatMoney(buyAmount)}</span></p>
+                    <p>If price rises 10% and you exit early: <span className={`font-semibold ${targetExitPnl >= 0 ? "text-green-600" : "text-red-600"}`}>{targetExitPnl >= 0 ? "+" : "-"}{formatMoney(Math.abs(targetExitPnl))}</span></p>
+                  </div>
+                );
+              })()}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-700 flex items-center gap-1">Paper Mode <HelpTip content="Paper = simulated trade only." /></span>
                 <button onClick={() => setBuyPaper(p => !p)} className={`relative w-10 h-5 rounded-full transition ${buyPaper ? "bg-purple-600" : "bg-green-700"}`}>
@@ -1899,6 +2062,7 @@ export default function MarketClient() {
                   Amount ($)
                   <HelpTip content="Total capital for this directive's session." />
                 </label>
+                <p className="text-[11px] text-gray-400 mb-1">Display value: {formatMoney(directiveAmount)}</p>
                 <input
                   type="number" min={10} max={10000}
                   value={directiveAmount}
@@ -2024,7 +2188,7 @@ export default function MarketClient() {
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{d.name}</p>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        ${d.amount} · {d.timeframe} · {d.buys_per_day}/day · {d.profit_strategy}
+                        {formatMoney(d.amount)} · {d.timeframe} · {d.buys_per_day}/day · {d.profit_strategy}
                       </p>
                     </div>
                     <div className="flex gap-1">
