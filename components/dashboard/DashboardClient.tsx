@@ -210,7 +210,7 @@ const WIDGET_META: { id: string; label: string; icon: LucideIcon; tierGate?: str
 const DEFAULT_WIDGET_PREFS: WidgetPref[] = WIDGET_META.map((m, i) => ({
   id: m.id,
   visible: true,
-  expanded: m.id === "calendar" || m.id === "seats" || m.id === "location",
+  expanded: m.id === "calendar" || m.id === "seats",
   order: i,
 }));
 
@@ -1218,86 +1218,6 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           </div>
         )}
 
-                {/* ════════ TAB NAVIGATION BAR ════════ */}
-        {activeTab === "overview" && (
-        <nav className="mb-6">
-          <div className="flex flex-wrap items-center gap-2 pb-1">
-            {/* Overview / Home tab */}
-            <button
-              onClick={() => setActiveTab("overview")}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
-                "bg-white text-gray-900 shadow-sm border border-gray-200"
-              }`}
-            >
-              <Home size={14} />
-              Dashboard
-            </button>
-
-            <div className="w-px h-5 bg-gray-200 mx-1" />
-
-            {/* Module tabs */}
-            {visibleTabs
-              .filter((t) => t.id !== "my-account" && !t.isCEOOnly)
-              .map((tab) => {
-                const TabIcon = tab.icon;
-                const isActive = false;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => {
-                      if (tab.id === "slatedrop") { openSlateDrop(); return; }
-                      setActiveTab(tab.id);
-                    }}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
-                      isActive
-                        ? "bg-white text-gray-900 shadow-sm border border-gray-200"
-                        : "text-gray-500 hover:text-gray-700 hover:bg-white/60"
-                    }`}
-                  >
-                    <TabIcon size={14} style={{ color: isActive ? tab.color : undefined }} />
-                    {tab.label}
-                  </button>
-                );
-              })}
-
-            <div className="w-px h-5 bg-gray-200 mx-1" />
-
-            {/* My Account tab */}
-            <button
-              onClick={() => setActiveTab("my-account")}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
-                "text-gray-500 hover:text-gray-700 hover:bg-white/60"
-              }`}
-            >
-              <User size={14} />
-              My Account
-            </button>
-
-            {/* CEO-only tabs */}
-            {isCEO && visibleTabs
-              .filter((t) => t.isCEOOnly)
-              .map((tab) => {
-                const TabIcon = tab.icon;
-                const isActive = false;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
-                      isActive
-                        ? "bg-white text-gray-900 shadow-sm border border-gray-200"
-                        : "text-gray-500 hover:text-gray-700 hover:bg-white/60"
-                    }`}
-                  >
-                    <TabIcon size={14} style={{ color: isActive ? tab.color : undefined }} />
-                    {tab.label}
-                  </button>
-                );
-              })}
-          </div>
-        </nav>
-        )}
-
         {activeTab !== "overview" && (
           <div className="mb-6">
             <button
@@ -1481,6 +1401,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           function getSpan(id: string, expanded: boolean): string {
             if (id === "seats") return "md:col-span-2 xl:col-span-3";
             if (id === "calendar") return expanded ? "md:col-span-2 xl:col-span-3" : "md:col-span-2 xl:col-span-2";
+            if (id === "location") return "";
             return expanded ? "md:col-span-2 xl:col-span-3" : "";
           }
 
