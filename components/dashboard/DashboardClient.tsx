@@ -574,6 +574,14 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const sdDragMode = useRef<"title" | "resize" | null>(null);
   const sdDragStart = useRef({ clientX: 0, clientY: 0, startX: 0, startY: 0, startW: 0, startH: 0 });
 
+  const [widgetPopoutId, setWidgetPopoutId] = useState<string | null>(null);
+  const [wdMinimized, setWdMinimized] = useState(false);
+  const [wdPos, setWdPos] = useState({ x: 0, y: 0 });
+  const [wdSize, setWdSize] = useState({ w: 900, h: 640 });
+  const [wdIsMobile, setWdIsMobile] = useState(false);
+  const wdDragMode = useRef<"title" | "resize" | null>(null);
+  const wdDragStart = useRef({ clientX: 0, clientY: 0, startX: 0, startY: 0, startW: 0, startH: 0 });
+
   function openSlateDrop() {
     const isMobile = window.innerWidth < 768;
     setSdIsMobile(isMobile);
@@ -615,6 +623,49 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     }
   }
   function onSdPointerUp() { sdDragMode.current = null; }
+
+  function openWidgetPopout(widgetId: string) {
+    const isMobile = window.innerWidth < 768;
+    setWdIsMobile(isMobile);
+    if (isMobile) {
+      setWdPos({ x: 0, y: 0 });
+      setWdSize({ w: window.innerWidth, h: window.innerHeight });
+      setWdMinimized(false);
+      setWidgetPopoutId(widgetId);
+      return;
+    }
+
+    setWdPos({
+      x: Math.max(0, (window.innerWidth - 900) / 2),
+      y: Math.max(10, (window.innerHeight - 640) / 4),
+    });
+    setWdSize({ w: 900, h: 640 });
+    setWdMinimized(false);
+    setWidgetPopoutId(widgetId);
+  }
+
+  function onWdTitleDown(e: React.PointerEvent) {
+    wdDragMode.current = "title";
+    wdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: wdPos.x, startY: wdPos.y, startW: wdSize.w, startH: wdSize.h };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }
+  function onWdResizeDown(e: React.PointerEvent) {
+    wdDragMode.current = "resize";
+    wdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: wdPos.x, startY: wdPos.y, startW: wdSize.w, startH: wdSize.h };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    e.stopPropagation();
+  }
+  function onWdPointerMove(e: React.PointerEvent) {
+    if (!wdDragMode.current) return;
+    const dx = e.clientX - wdDragStart.current.clientX;
+    const dy = e.clientY - wdDragStart.current.clientY;
+    if (wdDragMode.current === "title") {
+      setWdPos({ x: wdDragStart.current.startX + dx, y: wdDragStart.current.startY + dy });
+    } else {
+      setWdSize({ w: Math.max(560, wdDragStart.current.startW + dx), h: Math.max(420, wdDragStart.current.startH + dy) });
+    }
+  }
+  function onWdPointerUp() { wdDragMode.current = null; }
 
   const [dashboardSummary, setDashboardSummary] = useState<{ recentFiles: any[]; storageUsed: number } | null>(null);
   const [slateDropFiles, setSlateDropFiles] = useState<any[]>([]);
@@ -1401,7 +1452,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           function getSpan(id: string, expanded: boolean): string {
             if (id === "seats") return "md:col-span-2 xl:col-span-3";
             if (id === "calendar") return expanded ? "md:col-span-2 xl:col-span-3" : "md:col-span-2 xl:col-span-2";
-            if (id === "location") return "";
+            if (id === "location") return expanded ? "md:col-span-2" : "";
             return expanded ? "md:col-span-2 xl:col-span-3" : "";
           }
 
@@ -1411,7 +1462,11 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
               case "location": return (
                 <div key={id} className={span}>
-                  <LocationMap center={userCoords ?? undefined} locationLabel={liveWeather?.location} />
+                  <LocationMap
+                    center={userCoords ?? undefined}
+                    locationLabel={liveWeather?.location}
+                    contactRecipients={liveSeatMembers.map((member) => ({ name: member.name, email: member.email }))}
+                  />
                 </div>
               );
               case "slatedrop": return (
@@ -2021,10 +2076,93 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             .filter((p) => p.visible && available.has(p.id))
             .sort((a, b) => a.order - b.order);
 
+          const popoutMeta = widgetPopoutId ? WIDGET_META.find((item) => item.id === widgetPopoutId) : null;
+
           return (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {orderedVisible.map((p) => renderWidget(p.id, p.expanded))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {orderedVisible.map((p) => (
+                  <div key={p.id} className="relative group">
+                    {renderWidget(p.id, p.expanded)}
+                    <button
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openWidgetPopout(p.id);
+                      }}
+                      className="absolute top-3 right-3 z-10 h-7 w-7 rounded-lg border border-gray-200 bg-white/95 text-gray-500 hover:text-[#FF4D00] hover:border-[#FF4D00]/40 transition-colors flex items-center justify-center"
+                      title="Pop out widget"
+                    >
+                      <ArrowUpRight size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {widgetPopoutId && available.has(widgetPopoutId) && (
+                <div
+                  className={`fixed z-[10000] flex flex-col overflow-hidden shadow-[0_32px_80px_-12px_rgba(0,0,0,0.55)] ${wdIsMobile ? "rounded-none border-0" : "rounded-2xl border border-gray-700/70"}`}
+                  style={{
+                    left: wdIsMobile ? 0 : wdPos.x,
+                    top: wdIsMobile ? 0 : wdPos.y,
+                    width: wdIsMobile ? "100vw" : wdSize.w,
+                    height: wdMinimized ? "auto" : (wdIsMobile ? "100dvh" : wdSize.h),
+                  }}
+                >
+                  <div
+                    className={`flex items-center gap-3 px-4 h-11 bg-gray-900 select-none shrink-0 ${wdIsMobile ? "" : "cursor-grab active:cursor-grabbing"}`}
+                    onPointerDown={wdIsMobile ? undefined : onWdTitleDown}
+                    onPointerMove={wdIsMobile ? undefined : onWdPointerMove}
+                    onPointerUp={wdIsMobile ? undefined : onWdPointerUp}
+                  >
+                    <div className="flex items-center gap-1.5" onPointerDown={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => setWidgetPopoutId(null)}
+                        className="w-3.5 h-3.5 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center group transition-colors"
+                        title="Close"
+                      >
+                        <X size={7} className="text-red-900 opacity-0 group-hover:opacity-100" />
+                      </button>
+                      <button
+                        onClick={() => setWdMinimized((value) => !value)}
+                        className="w-3.5 h-3.5 rounded-full bg-yellow-400 hover:bg-yellow-300 transition-colors"
+                        title={wdMinimized ? "Restore" : "Minimise"}
+                      />
+                      {!wdIsMobile && (
+                        <button
+                          onClick={() => {
+                            setWdSize({ w: window.innerWidth - 32, h: window.innerHeight - 32 });
+                            setWdPos({ x: 16, y: 16 });
+                            setWdMinimized(false);
+                          }}
+                          className="w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-400 transition-colors"
+                          title="Maximise"
+                        />
+                      )}
+                    </div>
+                    <LayoutDashboard size={14} className="text-[#FF4D00] ml-1 shrink-0" />
+                    <span className="text-[13px] font-semibold text-white/90 flex-1 text-center -ml-8 pointer-events-none">
+                      {popoutMeta?.label ?? "Widget"}
+                    </span>
+                  </div>
+
+                  {!wdMinimized && (
+                    <div className="flex-1 overflow-auto bg-[#F7F8FA] p-4">
+                      {renderWidget(widgetPopoutId, true)}
+                    </div>
+                  )}
+
+                  {!wdMinimized && !wdIsMobile && (
+                    <div
+                      className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize"
+                      style={{ background: "linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.18) 50%)" }}
+                      onPointerDown={onWdResizeDown}
+                      onPointerMove={onWdPointerMove}
+                      onPointerUp={onWdPointerUp}
+                    />
+                  )}
+                </div>
+              )}
+            </>
           );
         })()}
 

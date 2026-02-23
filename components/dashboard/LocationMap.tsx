@@ -1,14 +1,33 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { APIProvider, Map, Marker } from "@vis.gl/react-google-maps";
-import { CheckCircle2, Copy, Download, Loader2, MapPin, PenTool, Save, Send, Trash2 } from "lucide-react";
+import { APIProvider, Map, Marker, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
+import {
+  CheckCircle2,
+  Circle,
+  Copy,
+  Download,
+  Loader2,
+  LocateFixed,
+  MapPin,
+  Minus,
+  MousePointer2,
+  PenTool,
+  Pentagon,
+  RectangleHorizontal,
+  Save,
+  Search,
+  Send,
+  Trash2,
+  Workflow,
+} from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 type LocationMapProps = {
   center?: { lat: number; lng: number };
   locationLabel?: string;
+  contactRecipients?: Array<{ name: string; email?: string; phone?: string }>;
 };
 
 type ProjectOption = {
@@ -22,28 +41,576 @@ type FolderOption = {
   path: string;
 };
 
-export default function LocationMap({ center, locationLabel }: LocationMapProps) {
+type AddressSuggestion = {
+  placeId: string;
+  description: string;
+};
+
+type DrawTool = "select" | "marker" | "line" | "arrow" | "rectangle" | "circle" | "polygon";
+
+type OverlayRecord = {
+  id: string;
+  overlay: any;
+  kind: string;
+  arrow: boolean;
+  listeners: Array<{ remove: () => void }>;
+};
+
+const DRAW_MODE_BY_TOOL: Record<DrawTool, string | null> = {
+  select: null,
+  marker: "marker",
+  line: "polyline",
+  arrow: "polyline",
+  rectangle: "rectangle",
+  circle: "circle",
+  polygon: "polygon",
+};
+
+function applyStyleToOverlay(
+  overlay: any,
+  kind: string,
+  style: { strokeColor: string; fillColor: string; strokeWeight: number },
+  arrow = false
+) {
+  if (!overlay || typeof overlay.setOptions !== "function") return;
+
+  if (kind === "marker") {
+    return;
+  }
+
+  if (kind === "polyline") {
+    overlay.setOptions({
+      strokeColor: style.strokeColor,
+      strokeWeight: style.strokeWeight,
+      editable: true,
+      draggable: true,
+      icons: arrow
+        ? [
+            {
+              icon: {
+                path: (window as any).google?.maps?.SymbolPath?.FORWARD_CLOSED_ARROW,
+                scale: 3,
+                strokeColor: style.strokeColor,
+              },
+              offset: "100%",
+            },
+          ]
+        : [],
+    });
+    return;
+  }
+
+  if (kind === "polygon") {
+    overlay.setOptions({
+      strokeColor: style.strokeColor,
+      strokeWeight: style.strokeWeight,
+      fillColor: style.fillColor,
+      fillOpacity: 0.18,
+      editable: true,
+      draggable: true,
+    });
+    return;
+  }
+
+  if (kind === "rectangle" || kind === "circle") {
+    overlay.setOptions({
+      strokeColor: style.strokeColor,
+      strokeWeight: style.strokeWeight,
+      fillColor: style.fillColor,
+      fillOpacity: 0.18,
+      editable: true,
+      draggable: true,
+    });
+  }
+}
+
+function DrawController({
+  setStatus,
+  strokeColor,
+  fillColor,
+  strokeWeight,
+  setStrokeColor,
+  setFillColor,
+  setStrokeWeight,
+  setAddressQuery,
+  setMapCenter,
+}: {
+  setStatus: (value: { ok: boolean; text: string } | null) => void;
+  strokeColor: string;
+  fillColor: string;
+  strokeWeight: number;
+  setStrokeColor: (value: string) => void;
+  setFillColor: (value: string) => void;
+  setStrokeWeight: (value: number) => void;
+  setAddressQuery: (value: string) => void;
+  setMapCenter: (value: { lat: number; lng: number }) => void;
+}) {
+  const map = useMap();
+  const placesLibrary = useMapsLibrary("places");
+  const drawingLibrary = useMapsLibrary("drawing");
+
+  const [tool, setTool] = useState<DrawTool>("select");
+  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
+  const [isResolvingAddress, setIsResolvingAddress] = useState(false);
+  const [addressInput, setAddressInput] = useState("");
+
+  const drawingManagerRef = useRef<any>(null);
+  const overlaysRef = useRef<OverlayRecord[]>([]);
+  const selectedOverlayIdRef = useRef<string | null>(null);
+  const selectedToolRef = useRef<DrawTool>("select");
+  const placesSvcRef = useRef<any>(null);
+
+  const setDrawingTool = (next: DrawTool) => {
+    setTool(next);
+    selectedToolRef.current = next;
+    const manager = drawingManagerRef.current;
+    if (manager && typeof manager.setDrawingMode === "function") {
+      manager.setDrawingMode(DRAW_MODE_BY_TOOL[next]);
+    }
+  };
+
+  const attachOverlayListeners = (record: OverlayRecord) => {
+    const listeners: Array<{ remove: () => void }> = [];
+    const mapsApi = (window as any).google?.maps;
+    if (!mapsApi?.event) return listeners;
+
+    listeners.push(
+      mapsApi.event.addListener(record.overlay, "click", () => {
+        selectedOverlayIdRef.current = record.id;
+        applyStyleToOverlay(record.overlay, record.kind, { strokeColor, fillColor, strokeWeight }, record.arrow);
+      })
+    );
+
+    return listeners;
+  };
+
+  const clearMarkup = () => {
+    overlaysRef.current.forEach((record) => {
+      record.listeners.forEach((listener) => listener.remove());
+      if (record.overlay && typeof record.overlay.setMap === "function") {
+        record.overlay.setMap(null);
+      }
+    });
+    overlaysRef.current = [];
+    selectedOverlayIdRef.current = null;
+    setStatus({ ok: true, text: "Markup cleared." });
+  };
+
+  useEffect(() => {
+    if (!placesLibrary) return;
+    if (!placesSvcRef.current) {
+      placesSvcRef.current = new placesLibrary.AutocompleteService();
+    }
+  }, [placesLibrary]);
+
+  useEffect(() => {
+    if (!map || !drawingLibrary || !(window as any).google?.maps) return;
+    const mapsApi = (window as any).google.maps;
+
+    if (!drawingManagerRef.current) {
+      drawingManagerRef.current = new mapsApi.drawing.DrawingManager({
+        drawingControl: false,
+        drawingMode: null,
+        markerOptions: {
+          draggable: true,
+        },
+        polylineOptions: {
+          strokeColor,
+          strokeWeight,
+          editable: true,
+          draggable: true,
+        },
+        polygonOptions: {
+          strokeColor,
+          strokeWeight,
+          fillColor,
+          fillOpacity: 0.18,
+          editable: true,
+          draggable: true,
+        },
+        rectangleOptions: {
+          strokeColor,
+          strokeWeight,
+          fillColor,
+          fillOpacity: 0.18,
+          editable: true,
+          draggable: true,
+        },
+        circleOptions: {
+          strokeColor,
+          strokeWeight,
+          fillColor,
+          fillOpacity: 0.18,
+          editable: true,
+          draggable: true,
+        },
+      });
+    }
+
+    const manager = drawingManagerRef.current;
+    manager.setMap(map);
+
+    const overlayListener = mapsApi.event.addListener(manager, "overlaycomplete", (event: any) => {
+      const id = `${Date.now()}-${Math.round(Math.random() * 100000)}`;
+      const isArrow = selectedToolRef.current === "arrow" && event.type === "polyline";
+      const record: OverlayRecord = {
+        id,
+        overlay: event.overlay,
+        kind: event.type,
+        arrow: isArrow,
+        listeners: [],
+      };
+
+      applyStyleToOverlay(event.overlay, event.type, { strokeColor, fillColor, strokeWeight }, isArrow);
+      record.listeners = attachOverlayListeners(record);
+      overlaysRef.current = [...overlaysRef.current, record];
+      selectedOverlayIdRef.current = id;
+
+      if (selectedToolRef.current === "marker") {
+        manager.setDrawingMode(null);
+        setTool("select");
+        selectedToolRef.current = "select";
+      }
+    });
+
+    return () => {
+      overlayListener?.remove?.();
+      manager.setMap(null);
+    };
+  }, [drawingLibrary, map, strokeColor, fillColor, strokeWeight]);
+
+  useEffect(() => {
+    const manager = drawingManagerRef.current;
+    if (!manager) return;
+
+    manager.setOptions({
+      polylineOptions: {
+        strokeColor,
+        strokeWeight,
+        editable: true,
+        draggable: true,
+      },
+      polygonOptions: {
+        strokeColor,
+        strokeWeight,
+        fillColor,
+        fillOpacity: 0.18,
+        editable: true,
+        draggable: true,
+      },
+      rectangleOptions: {
+        strokeColor,
+        strokeWeight,
+        fillColor,
+        fillOpacity: 0.18,
+        editable: true,
+        draggable: true,
+      },
+      circleOptions: {
+        strokeColor,
+        strokeWeight,
+        fillColor,
+        fillOpacity: 0.18,
+        editable: true,
+        draggable: true,
+      },
+    });
+
+    const selectedId = selectedOverlayIdRef.current;
+    if (!selectedId) return;
+    const selected = overlaysRef.current.find((record) => record.id === selectedId);
+    if (selected) {
+      applyStyleToOverlay(selected.overlay, selected.kind, { strokeColor, fillColor, strokeWeight }, selected.arrow);
+    }
+  }, [fillColor, strokeColor, strokeWeight]);
+
+  useEffect(() => {
+    const trimmed = addressInput.trim();
+    if (!trimmed || trimmed.length < 3 || !placesSvcRef.current) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      placesSvcRef.current.getPlacePredictions(
+        {
+          input: trimmed,
+          types: ["geocode"],
+        },
+        (predictions: any[] | null, status: string) => {
+          if (status !== "OK" || !Array.isArray(predictions)) {
+            setSuggestions([]);
+            return;
+          }
+
+          setSuggestions(
+            predictions.slice(0, 6).map((prediction) => ({
+              placeId: prediction.place_id,
+              description: prediction.description,
+            }))
+          );
+        }
+      );
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [addressInput]);
+
+  const goToCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setStatus({ ok: false, text: "Geolocation is not available on this browser." });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const next = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setMapCenter(next);
+        setAddressQuery(`${next.lat.toFixed(5)}, ${next.lng.toFixed(5)}`);
+        map?.panTo(next);
+        map?.setZoom(15);
+      },
+      () => setStatus({ ok: false, text: "Unable to determine current location." })
+    );
+  };
+
+  const selectAddress = async (suggestion: AddressSuggestion) => {
+    if (!map || !placesLibrary) {
+      setStatus({ ok: false, text: "Map is still loading. Try again." });
+      return;
+    }
+
+    setIsResolvingAddress(true);
+    try {
+      const service = new placesLibrary.PlacesService(map);
+      await new Promise<void>((resolve, reject) => {
+        service.getDetails(
+          {
+            placeId: suggestion.placeId,
+            fields: ["formatted_address", "geometry"],
+          },
+          (place: any, status: string) => {
+            if (status !== "OK" || !place?.geometry?.location) {
+              reject(new Error("Place lookup failed"));
+              return;
+            }
+
+            const location = place.geometry.location;
+            const lat = typeof location.lat === "function" ? location.lat() : Number(location.lat);
+            const lng = typeof location.lng === "function" ? location.lng() : Number(location.lng);
+            const next = { lat, lng };
+
+            setMapCenter(next);
+            setAddressQuery(place.formatted_address ?? suggestion.description);
+            setAddressInput(place.formatted_address ?? suggestion.description);
+            map.panTo(next);
+            map.setZoom(16);
+            setSuggestions([]);
+            resolve();
+          }
+        );
+      });
+    } catch {
+      setStatus({ ok: false, text: "Could not locate that address." });
+    } finally {
+      setIsResolvingAddress(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/60 space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+          <div className="relative">
+            <div className="flex items-center rounded-lg border border-gray-200 bg-white px-2.5 py-2">
+              <Search size={13} className="text-gray-400 mr-1.5" />
+              <input
+                type="text"
+                value={addressInput}
+                onChange={(event) => {
+                  setAddressInput(event.target.value);
+                  setAddressQuery(event.target.value);
+                }}
+                placeholder="Search address (autocomplete)"
+                className="w-full text-xs text-gray-700 bg-transparent outline-none"
+              />
+            </div>
+            {suggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-20 rounded-lg border border-gray-200 bg-white shadow-sm max-h-44 overflow-auto">
+                {suggestions.map((suggestion) => (
+                  <button
+                    key={suggestion.placeId}
+                    onClick={() => void selectAddress(suggestion)}
+                    className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                  >
+                    {suggestion.description}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={goToCurrentLocation}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+              title="Use current location"
+            >
+              <LocateFixed size={12} /> Locate
+            </button>
+            <span className="text-[10px] text-gray-500 px-1">{isResolvingAddress ? "Finding address…" : ""}</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button
+            type="button"
+            onClick={() => setDrawingTool("select")}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "select" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+          >
+            <MousePointer2 size={12} /> Select
+          </button>
+          <button
+            type="button"
+            onClick={() => setDrawingTool("line")}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "line" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+          >
+            <Minus size={12} /> Line
+          </button>
+          <button
+            type="button"
+            onClick={() => setDrawingTool("arrow")}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "arrow" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+          >
+            <Workflow size={12} /> Arrow
+          </button>
+          <button
+            type="button"
+            onClick={() => setDrawingTool("rectangle")}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "rectangle" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+          >
+            <RectangleHorizontal size={12} /> Box
+          </button>
+          <button
+            type="button"
+            onClick={() => setDrawingTool("circle")}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "circle" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+          >
+            <Circle size={12} /> Circle
+          </button>
+          <button
+            type="button"
+            onClick={() => setDrawingTool("polygon")}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "polygon" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+          >
+            <Pentagon size={12} /> Polygon
+          </button>
+          <button
+            type="button"
+            onClick={() => setDrawingTool("marker")}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "marker" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+          >
+            <MapPin size={12} /> Pin
+          </button>
+          <button
+            type="button"
+            onClick={clearMarkup}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[11px] font-semibold text-gray-600 hover:bg-gray-100"
+          >
+            <Trash2 size={12} /> Clear
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2">
+            <span className="text-[10px] font-semibold text-gray-500">Stroke</span>
+            <input
+              type="color"
+              value={strokeColor}
+              onChange={(event) => setStrokeColor(event.target.value)}
+              className="h-5 w-7 bg-transparent border-0 p-0"
+            />
+          </div>
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2">
+            <span className="text-[10px] font-semibold text-gray-500">Fill</span>
+            <input
+              type="color"
+              value={fillColor}
+              onChange={(event) => setFillColor(event.target.value)}
+              className="h-5 w-7 bg-transparent border-0 p-0"
+            />
+          </div>
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2 sm:col-span-2">
+            <span className="text-[10px] font-semibold text-gray-500">Width</span>
+            <input
+              type="range"
+              min={1}
+              max={10}
+              value={strokeWeight}
+              onChange={(event) => setStrokeWeight(Number(event.target.value))}
+              className="w-full"
+            />
+            <span className="text-[10px] text-gray-500 w-5 text-right">{strokeWeight}</span>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default function LocationMap({ center, locationLabel, contactRecipients = [] }: LocationMapProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
-  const [markupMode, setMarkupMode] = useState(false);
-  const [markers, setMarkers] = useState<Array<{ id: string; lat: number; lng: number }>>([]);
+  const [isExportingAudit, setIsExportingAudit] = useState(false);
+  const [strokeColor, setStrokeColor] = useState("#FF4D00");
+  const [fillColor, setFillColor] = useState("#1E3A8A");
+  const [strokeWeight, setStrokeWeight] = useState(3);
   const [projects, setProjects] = useState<ProjectOption[]>([]);
   const [folders, setFolders] = useState<FolderOption[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState("");
-  const [recipientEmail, setRecipientEmail] = useState("");
+  const [recipientMode, setRecipientMode] = useState<"email" | "phone">("email");
+  const [recipientValue, setRecipientValue] = useState("");
+  const [selectedContact, setSelectedContact] = useState("");
+  const [addressQuery, setAddressQuery] = useState(locationLabel ?? "");
   const [lastFileId, setLastFileId] = useState<string | null>(null);
   const [lastShareUrl, setLastShareUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
+  const [mapCenter, setMapCenter] = useState(center ?? { lat: 40.7128, lng: -74.0060 });
   const mapRef = useRef<HTMLDivElement>(null);
 
-  const defaultCenter = center ?? { lat: 40.7128, lng: -74.0060 };
+  useEffect(() => {
+    if (center) setMapCenter(center);
+  }, [center]);
+
+  useEffect(() => {
+    if (locationLabel && !addressQuery) {
+      setAddressQuery(locationLabel);
+    }
+  }, [locationLabel, addressQuery]);
 
   const selectedFolder = useMemo(
     () => folders.find((folder) => folder.id === selectedFolderId) ?? null,
     [folders, selectedFolderId]
   );
+
+  const recipientOptions = useMemo(() => {
+    return contactRecipients.reduce<Array<{ label: string; email?: string; phone?: string }>>((acc, contact) => {
+      const email = contact.email?.trim();
+      const phone = contact.phone?.trim();
+      if (!email && !phone) return acc;
+      acc.push({
+        label: `${contact.name}${email ? ` · ${email}` : phone ? ` · ${phone}` : ""}`,
+        email,
+        phone,
+      });
+      return acc;
+    }, []);
+  }, [contactRecipients]);
 
   useEffect(() => {
     let cancelled = false;
@@ -232,8 +799,9 @@ export default function LocationMap({ center, locationLabel }: LocationMapProps)
   };
 
   const handleSendShareLink = async () => {
-    if (!recipientEmail.trim()) {
-      setStatus({ ok: false, text: "Recipient email is required." });
+    const recipient = recipientValue.trim();
+    if (!recipient) {
+      setStatus({ ok: false, text: recipientMode === "email" ? "Recipient email is required." : "Recipient phone is required." });
       return;
     }
     if (!lastFileId) {
@@ -250,7 +818,8 @@ export default function LocationMap({ center, locationLabel }: LocationMapProps)
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fileId: lastFileId,
-          email: recipientEmail.trim(),
+          email: recipientMode === "email" ? recipient : undefined,
+          phone: recipientMode === "phone" ? recipient : undefined,
           permission: "download",
           expiryDays: 7,
         }),
@@ -262,7 +831,14 @@ export default function LocationMap({ center, locationLabel }: LocationMapProps)
       }
 
       setLastShareUrl(data.shareUrl as string);
-      setStatus({ ok: true, text: "Secure link sent and ready to copy." });
+      setStatus({
+        ok: true,
+        text: recipientMode === "email" ? "Secure email link sent and ready to copy." : "Share link generated for phone delivery. Use Copy or SMS.",
+      });
+
+      if (recipientMode === "phone" && data?.smsUrl) {
+        window.open(data.smsUrl as string, "_blank");
+      }
     } catch (error) {
       console.error("Failed to send secure link", error);
       setStatus({ ok: false, text: "Could not send secure link." });
@@ -281,18 +857,47 @@ export default function LocationMap({ center, locationLabel }: LocationMapProps)
     }
   };
 
-  const handleMapClick = (event: unknown) => {
-    if (!markupMode) return;
-    const detail = (event as { detail?: { latLng?: { lat?: number | (() => number); lng?: number | (() => number) } } })?.detail;
-    const latValue = detail?.latLng?.lat;
-    const lngValue = detail?.latLng?.lng;
+  const handleExportAuditPackage = async () => {
+    if (!selectedProjectId) {
+      setStatus({ ok: false, text: "Select a project before exporting an audit package." });
+      return;
+    }
 
-    const lat = typeof latValue === "function" ? latValue() : latValue;
-    const lng = typeof lngValue === "function" ? lngValue() : lngValue;
+    setIsExportingAudit(true);
+    setStatus(null);
 
-    if (typeof lat !== "number" || typeof lng !== "number") return;
+    try {
+      const res = await fetch("/api/slatedrop/project-audit-export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId: selectedProjectId }),
+      });
 
-    setMarkers((prev) => [...prev, { id: `${Date.now()}-${prev.length}`, lat, lng }]);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error ?? "Unable to export audit package");
+      }
+
+      const blob = await res.blob();
+      const projectName = projects.find((project) => project.id === selectedProjectId)?.name ?? "project";
+      const filename = `${projectName.replace(/[^a-zA-Z0-9._-]+/g, "-")}-audit-package-${new Date().toISOString().slice(0, 10)}.zip`;
+
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+
+      setStatus({ ok: true, text: "Audit package exported successfully." });
+    } catch (error) {
+      console.error("Failed to export audit package", error);
+      setStatus({ ok: false, text: "Could not export audit package." });
+    } finally {
+      setIsExportingAudit(false);
+    }
   };
 
   return (
@@ -304,24 +909,13 @@ export default function LocationMap({ center, locationLabel }: LocationMapProps)
           </div>
           <div>
             <h3 className="text-sm font-bold text-gray-900">Site Location</h3>
-            <p className="text-[10px] text-gray-500">{locationLabel ?? "Interactive Map & Markup"}</p>
+            <p className="text-[10px] text-gray-500">{locationLabel ?? "Interactive map search, markup, and sharing"}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setMarkupMode((prev) => !prev)}
-            className={`p-1.5 rounded-lg transition-colors ${markupMode ? "text-[#FF4D00] bg-[#FF4D00]/10" : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"}`}
-            title={markupMode ? "Disable markup" : "Enable markup"}
-          >
-            <PenTool size={14} />
-          </button>
-          <button
-            onClick={() => setMarkers([])}
-            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-            title="Clear markup"
-          >
-            <Trash2 size={14} />
-          </button>
+          <div className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-500">
+            <PenTool size={12} /> Markup tools enabled
+          </div>
           <button 
             onClick={handleDownloadPDF}
             disabled={isDownloading}
@@ -358,14 +952,53 @@ export default function LocationMap({ center, locationLabel }: LocationMapProps)
           </select>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
-          <input
-            type="email"
-            placeholder="recipient@email.com"
-            value={recipientEmail}
-            onChange={(event) => setRecipientEmail(event.target.value)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <select
+            value={selectedContact}
+            onChange={(event) => {
+              const value = event.target.value;
+              setSelectedContact(value);
+              if (!value) return;
+              const found = recipientOptions.find((option) => option.label === value);
+              if (!found) return;
+              if (found.email) {
+                setRecipientMode("email");
+                setRecipientValue(found.email);
+              } else if (found.phone) {
+                setRecipientMode("phone");
+                setRecipientValue(found.phone);
+              }
+            }}
             className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
-          />
+          >
+            <option value="">Pick contact recipient (optional)</option>
+            {recipientOptions.map((option) => (
+              <option key={option.label} value={option.label}>{option.label}</option>
+            ))}
+          </select>
+          <div className="grid grid-cols-[auto_1fr] gap-2">
+            <select
+              value={recipientMode}
+              onChange={(event) => setRecipientMode(event.target.value as "email" | "phone")}
+              className="rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
+            >
+              <option value="email">Email</option>
+              <option value="phone">Phone</option>
+            </select>
+            <input
+              type={recipientMode === "email" ? "email" : "tel"}
+              placeholder={recipientMode === "email" ? "recipient@email.com" : "+1 555-123-4567"}
+              value={recipientValue}
+              onChange={(event) => setRecipientValue(event.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+          <div className="text-[10px] text-gray-500 flex items-center">
+            Save your marked-up map to a project folder, then send a secure link by email or phone.
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleSaveToFolder}
@@ -390,12 +1023,24 @@ export default function LocationMap({ center, locationLabel }: LocationMapProps)
             >
               <Copy size={12} /> Copy
             </button>
+            <button
+              onClick={handleExportAuditPackage}
+              disabled={isExportingAudit}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-40"
+              title="Download complete project audit package"
+            >
+              {isExportingAudit ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />} Audit ZIP
+            </button>
+            {lastShareUrl && recipientMode === "phone" && (
+              <a
+                href={`sms:${encodeURIComponent(recipientValue.trim())}?body=${encodeURIComponent(`Project location and markup: ${lastShareUrl}`)}`}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+              >
+                SMS
+              </a>
+            )}
           </div>
         </div>
-
-        <p className="text-[10px] text-gray-500">
-          {markupMode ? "Markup enabled: click the map to drop markers." : "Enable markup to add markers, then save to a project folder."}
-        </p>
         {status && (
           <p className={`text-[10px] flex items-center gap-1 ${status.ok ? "text-emerald-600" : "text-red-600"}`}>
             {status.ok ? <CheckCircle2 size={11} /> : null}
@@ -405,18 +1050,26 @@ export default function LocationMap({ center, locationLabel }: LocationMapProps)
       </div>
       
       <div className="flex-1 relative min-h-[220px]" ref={mapRef}>
-        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
+        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""} libraries={["places", "drawing"]}>
+          <DrawController
+            setStatus={setStatus}
+            strokeColor={strokeColor}
+            fillColor={fillColor}
+            strokeWeight={strokeWeight}
+            setStrokeColor={setStrokeColor}
+            setFillColor={setFillColor}
+            setStrokeWeight={setStrokeWeight}
+            setAddressQuery={setAddressQuery}
+            setMapCenter={setMapCenter}
+          />
           <Map
             defaultZoom={13}
-            defaultCenter={defaultCenter}
+            defaultCenter={mapCenter}
+            center={mapCenter}
             gestureHandling={"greedy"}
             disableDefaultUI={true}
-            onClick={handleMapClick}
           >
-            <Marker position={defaultCenter} />
-            {markers.map((marker) => (
-              <Marker key={marker.id} position={{ lat: marker.lat, lng: marker.lng }} />
-            ))}
+            <Marker position={mapCenter} />
           </Map>
         </APIProvider>
       </div>

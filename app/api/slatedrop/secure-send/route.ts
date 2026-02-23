@@ -1,7 +1,7 @@
 /**
  * POST /api/slatedrop/secure-send
  * Creates a time-limited share token for a file and returns the share URL.
- * Body: { fileId, email, permission, expiryDays }
+ * Body: { fileId, email?, phone?, permission, expiryDays }
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -19,17 +19,19 @@ export async function POST(req: NextRequest) {
   const {
     fileId,
     email,
+    phone,
     permission = "view",
     expiryDays = 7,
   } = await req.json() as {
     fileId: string;
-    email: string;
+    email?: string;
+    phone?: string;
     permission?: "view" | "download";
     expiryDays?: number;
   };
 
-  if (!fileId || !email) {
-    return NextResponse.json({ error: "fileId and email are required" }, { status: 400 });
+  if (!fileId || (!email && !phone)) {
+    return NextResponse.json({ error: "fileId and either email or phone are required" }, { status: 400 });
   }
 
   let orgId: string | null = null;
@@ -82,22 +84,28 @@ export async function POST(req: NextRequest) {
 
   const senderName = user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "A Slate360 user";
   
-  try {
-    await sendSecureSendEmail({
-      to: email,
-      senderName,
-      fileName: file.file_name,
-      shareUrl,
-      permission,
-      expiresAt,
-    });
-  } catch (err) {
-    console.error("[slatedrop/secure-send] Email dispatch failed:", err);
-    return NextResponse.json(
-      { error: "Failed to send email. Please check your email provider configuration." },
-      { status: 500 }
-    );
+  if (email) {
+    try {
+      await sendSecureSendEmail({
+        to: email,
+        senderName,
+        fileName: file.file_name,
+        shareUrl,
+        permission,
+        expiresAt,
+      });
+    } catch (err) {
+      console.error("[slatedrop/secure-send] Email dispatch failed:", err);
+      return NextResponse.json(
+        { error: "Failed to send email. Please check your email provider configuration." },
+        { status: 500 }
+      );
+    }
   }
 
-  return NextResponse.json({ ok: true, shareUrl, token, expiresAt });
+  const smsUrl = phone
+    ? `sms:${encodeURIComponent(phone)}?body=${encodeURIComponent(`Slate360 project map: ${shareUrl}`)}`
+    : null;
+
+  return NextResponse.json({ ok: true, shareUrl, token, expiresAt, smsUrl });
 }
