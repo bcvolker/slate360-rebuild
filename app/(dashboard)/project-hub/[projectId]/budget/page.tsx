@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 type BudgetRow = {
@@ -52,6 +53,31 @@ export default async function BudgetPage({
 
   const budgetRows = (rows ?? []) as BudgetRow[];
 
+  async function seedBudgetLine() {
+    "use server";
+
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      redirect(`/login?redirectTo=${encodeURIComponent(`/project-hub/${projectId}/budget`)}`);
+    }
+
+    const nextCode = `01-${String(budgetRows.length + 1).padStart(2, "0")}`;
+
+    await supabase.from("project_budgets").insert({
+      project_id: projectId,
+      cost_code: nextCode,
+      description: "Demo budget line item",
+      budget_amount: 10000,
+      committed_amount: 2500,
+    });
+
+    revalidatePath(`/project-hub/${projectId}/budget`);
+  }
+
   return (
     <section className="space-y-4">
       <header>
@@ -74,7 +100,15 @@ export default async function BudgetPage({
             {budgetRows.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-500">
-                  No budget lines yet.
+                  <p>No budget lines yet.</p>
+                  <form action={seedBudgetLine} className="mt-3">
+                    <button
+                      type="submit"
+                      className="rounded-md bg-[#FF4D00] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#E64500]"
+                    >
+                      Add Demo Budget Line
+                    </button>
+                  </form>
                 </td>
               </tr>
             ) : (

@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 type TaskRow = {
@@ -54,6 +55,35 @@ export default async function SchedulePage({
 
   const rows = (tasks ?? []) as TaskRow[];
 
+  async function seedScheduleTask() {
+    "use server";
+
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      redirect(`/login?redirectTo=${encodeURIComponent(`/project-hub/${projectId}/schedule`)}`);
+    }
+
+    const now = new Date();
+    const start = now.toISOString().slice(0, 10);
+    const endDate = new Date(now);
+    endDate.setDate(endDate.getDate() + 7);
+    const end = endDate.toISOString().slice(0, 10);
+
+    await supabase.from("project_tasks").insert({
+      project_id: projectId,
+      name: "Demo task: Site walk + initial coordination",
+      start_date: start,
+      end_date: end,
+      status: "in_progress",
+    });
+
+    revalidatePath(`/project-hub/${projectId}/schedule`);
+  }
+
   return (
     <section className="space-y-4">
       <header>
@@ -62,7 +92,17 @@ export default async function SchedulePage({
       </header>
 
       {rows.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-sm text-gray-500">No tasks scheduled yet.</div>
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-sm text-gray-500">
+          <p>No tasks scheduled yet.</p>
+          <form action={seedScheduleTask} className="mt-3">
+            <button
+              type="submit"
+              className="rounded-md bg-[#FF4D00] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#E64500]"
+            >
+              Add Demo Task
+            </button>
+          </form>
+        </div>
       ) : (
         <div className="space-y-3">
           {rows.map((task) => (
