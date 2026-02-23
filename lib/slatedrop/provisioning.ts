@@ -38,6 +38,9 @@ export async function provisionProjectFolders(
   }));
 
   const { data, error } = await admin.from("project_folders").insert(rows).select("id, name");
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("[provisioning] project_folders insert failed:", error.message, error.details, error.hint);
+    throw new Error(`Folder provisioning failed: ${error.message}`);
+  }
   return data;
 }

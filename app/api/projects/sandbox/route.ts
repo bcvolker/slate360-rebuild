@@ -46,18 +46,26 @@ export async function GET() {
     return NextResponse.json({ projects: [] });
   }
 
-  let foldersQuery = admin
-    .from("project_folders")
-    .select("id, name, parent_id, is_system, folder_path")
-    .in("parent_id", projectIds)
-    .order("name", { ascending: true });
+  let folders: Array<{ id: string; name: string; parent_id: string; is_system: boolean; folder_path: string | null }> = [];
 
-  foldersQuery = orgId ? foldersQuery.eq("org_id", orgId) : foldersQuery.eq("created_by", user.id);
+  try {
+    let foldersQuery = admin
+      .from("project_folders")
+      .select("id, name, parent_id, is_system, folder_path")
+      .in("parent_id", projectIds)
+      .order("name", { ascending: true });
 
-  const { data: folders } = await foldersQuery;
+    foldersQuery = orgId ? foldersQuery.eq("org_id", orgId) : foldersQuery.eq("created_by", user.id);
+
+    const { data } = await foldersQuery;
+    folders = data ?? [];
+  } catch (folderError) {
+    // project_folders table may not exist yet — return projects without folder tree
+    console.error("[api/projects/sandbox] folder query error:", folderError);
+  }
 
   const folderMap: Record<string, Array<{ id: string; name: string; isSystem: boolean; path: string | null }>> = {};
-  for (const folder of folders ?? []) {
+  for (const folder of folders) {
     const key = folder.parent_id;
     if (!folderMap[key]) folderMap[key] = [];
     folderMap[key].push({

@@ -122,23 +122,28 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   }
 
   if (updates.name) {
-    let foldersQuery = admin
-      .from("project_folders")
-      .select("id, folder_path")
-      .eq("parent_id", projectId);
-
-    foldersQuery = orgId ? foldersQuery.eq("org_id", orgId) : foldersQuery.eq("created_by", user.id);
-
-    const { data: folders } = await foldersQuery;
-    for (const folder of folders ?? []) {
-      const oldPath = folder.folder_path ?? "";
-      const match = oldPath.match(/^(?:Project Sandbox|Projects)\/[^/]+\/(.+)$/i);
-      if (!match) continue;
-      const tail = match[1];
-      await admin
+    try {
+      let foldersQuery = admin
         .from("project_folders")
-        .update({ folder_path: `Project Sandbox/${updates.name}/${tail}` })
-        .eq("id", folder.id);
+        .select("id, folder_path")
+        .eq("parent_id", projectId);
+
+      foldersQuery = orgId ? foldersQuery.eq("org_id", orgId) : foldersQuery.eq("created_by", user.id);
+
+      const { data: folders } = await foldersQuery;
+      for (const folder of folders ?? []) {
+        const oldPath = folder.folder_path ?? "";
+        const match = oldPath.match(/^(?:Project Sandbox|Projects)\/[^/]+\/(.+)$/i);
+        if (!match) continue;
+        const tail = match[1];
+        await admin
+          .from("project_folders")
+          .update({ folder_path: `Project Sandbox/${updates.name}/${tail}` })
+          .eq("id", folder.id);
+      }
+    } catch (renameError) {
+      // Non-blocking: folder path rename failure doesn't invalidate the project update
+      console.error("[api/projects/PATCH] folder rename error:", renameError);
     }
   }
 
@@ -177,43 +182,63 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Project name confirmation does not match" }, { status: 400 });
   }
 
-  let foldersQuery = admin
-    .from("project_folders")
-    .select("id")
-    .eq("parent_id", projectId);
+  // --- Attempt folder & file cleanup (non-blocking for project delete) ---
+  try {
+    let foldersQuery = admin
+      .from("project_folders")
+      .select("id")
+      .eq("parent_id", projectId);
 
-  foldersQuery = orgId ? foldersQuery.eq("org_id", orgId) : foldersQuery.eq("created_by", user.id);
+    foldersQuery = orgId ? foldersQuery.eq("org_id", orgId) : foldersQuery.eq("created_by", user.id);
 
-  const { data: folders } = await foldersQuery;
-  const folderIds = (folders ?? []).map((folder) => folder.id).filter(Boolean);
+    const { data: folders } = await foldersQuery;
+    const folderIds = (folders ?? []).map((folder) => folder.id).filter(Boolean);
 
-  if (folderIds.length > 0) {
-    const namespace = resolveNamespace(orgId, user.id);
-    const prefixFilters = folderIds.map((folderId) => `s3_key.like.orgs/${namespace}/${folderId}/%`);
+    if (folderIds.length > 0) {
+      const namespace = resolveNamespace(orgId, user.id);
 
-    let filesQuery = admin
-      .from("slatedrop_uploads")
-      .select("id, s3_key")
-      .neq("status", "deleted")
-      .or(prefixFilters.join(","));
+      // Build individual LIKE filters for each folder's S3 prefix
+      const prefixFilters = folderIds.map((folderId) => `s3_key.like.orgs/${namespace}/${folderId}/%`);
 
-    filesQuery = orgId ? filesQuery.eq("org_id", orgId) : filesQuery.eq("uploaded_by", user.id);
+      let filesQuery = admin
+        .from("slatedrop_uploads")
+        .select("id, s3_key")
+        .neq("status", "deleted");
 
-    const { data: files } = await filesQuery;
-
-    for (const file of files ?? []) {
-      try {
-        await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: file.s3_key }));
-      } catch {
+      // Supabase .or() with more than ~50 conditions can fail, batch if needed
+      if (prefixFilters.length <= 50) {
+        filesQuery = filesQuery.or(prefixFilters.join(","));
       }
-    }
 
-    if ((files ?? []).length > 0) {
-      const fileIds = (files ?? []).map((file) => file.id);
-      await admin.from("slatedrop_uploads").delete().in("id", fileIds);
-    }
+      filesQuery = orgId ? filesQuery.eq("org_id", orgId) : filesQuery.eq("uploaded_by", user.id);
 
-    await admin.from("project_folders").delete().in("id", folderIds);
+      const { data: files } = await filesQuery;
+
+      for (const file of files ?? []) {
+        try {
+          await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: file.s3_key }));
+        } catch {
+          // S3 delete failure is non-critical
+        }
+      }
+
+      if ((files ?? []).length > 0) {
+        const fileIds = (files ?? []).map((file) => file.id);
+        await admin.from("slatedrop_uploads").delete().in("id", fileIds);
+      }
+
+      await admin.from("project_folders").delete().in("id", folderIds);
+    }
+  } catch (cleanupError) {
+    // Log but don't block project deletion if folder/file cleanup fails
+    console.error("[api/projects/DELETE] folder cleanup error (non-blocking):", cleanupError);
+  }
+
+  // --- Delete project_members explicitly (belt + suspenders alongside CASCADE) ---
+  try {
+    await admin.from("project_members").delete().eq("project_id", projectId);
+  } catch {
+    // CASCADE will handle this anyway
   }
 
   let deleteProjectQuery = admin.from("projects").delete().eq("id", projectId);
