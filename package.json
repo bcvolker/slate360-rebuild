@@ -28,6 +28,7 @@
     "radix-ui": "^1.4.3",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
+    "react-grid-layout": "^2.2.2",
     "recharts": "^3.7.0",
     "resend": "^6.9.2",
     "stripe": "^20.3.1",

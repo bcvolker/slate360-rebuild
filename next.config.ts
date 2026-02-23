@@ -9,7 +9,6 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       // Legacy URL aliases → correct feature pages
-      { source: "/project-hub", destination: "/features/project-hub", permanent: false },
       { source: "/design-studio", destination: "/features/design-studio", permanent: false },
       { source: "/content-studio", destination: "/features/content-studio", permanent: false },
       { source: "/virtual-studio", destination: "/features/virtual-studio", permanent: false },
