@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveNamespace } from "@/lib/slatedrop/storage";
 import DrawingsViewerClient from "@/components/project-hub/DrawingsViewerClient";
 import { resolveProjectFolderIdByName } from "@/lib/slatedrop/projectArtifacts";
+import { getScopedProjectForUser } from "@/lib/projects/access";
 
 type UploadRow = {
   id: string;
@@ -38,11 +39,7 @@ export default async function DrawingsPage({
 
   const orgId = membership?.org_id ?? null;
 
-  const { data: project } = await admin
-    .from("projects")
-    .select("id")
-    .eq("id", projectId)
-    .single();
+  const { project } = await getScopedProjectForUser(user.id, projectId, "id");
 
   if (!project) {
     notFound();

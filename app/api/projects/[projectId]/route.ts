@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveNamespace } from "@/lib/slatedrop/storage";
 import { s3, BUCKET } from "@/lib/s3";
+import { getScopedProjectForUser, resolveProjectScope } from "@/lib/projects/access";
 
 type RouteContext = {
   params: Promise<{ projectId: string }>;
@@ -37,7 +38,7 @@ async function getAuthScope() {
 
 export async function GET(_req: NextRequest, context: RouteContext) {
   const { projectId } = await context.params;
-  const { user, admin, orgId } = await getAuthScope();
+  const { user } = await getAuthScope();
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   if (!uuidRegex.test(projectId)) {
@@ -46,27 +47,31 @@ export async function GET(_req: NextRequest, context: RouteContext) {
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let query = admin
-    .from("projects")
-    .select("id, name, description, metadata, status, created_at")
-    .eq("id", projectId)
-    .limit(1);
+  const { project, error } = await getScopedProjectForUser(
+    user.id,
+    projectId,
+    "id, name, description, metadata, status, created_at"
+  );
 
-  query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", user.id);
-
-  const { data, error } = await query.single();
-  if (error || !data) {
+  if (error || !project) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ project: data });
+  return NextResponse.json({ project });
 }
 
 export async function PATCH(req: NextRequest, context: RouteContext) {
   const { projectId } = await context.params;
-  const { user, admin, orgId } = await getAuthScope();
+  const { user } = await getAuthScope();
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { admin, orgId } = await resolveProjectScope(user.id);
+
+  const { project: scopedProject } = await getScopedProjectForUser(user.id, projectId, "id");
+  if (!scopedProject) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
 
   const body = (await req.json().catch(() => ({}))) as {
     name?: string;
@@ -106,14 +111,12 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "No valid updates provided" }, { status: 400 });
   }
 
-  let query = admin
+  const query = admin
     .from("projects")
     .update(updates)
     .eq("id", projectId)
     .select("id, name, description, metadata, status, created_at")
     .limit(1);
-
-  query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", user.id);
 
   const { data, error } = await query.single();
 
@@ -152,9 +155,11 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
 
 export async function DELETE(req: NextRequest, context: RouteContext) {
   const { projectId } = await context.params;
-  const { user, admin, orgId } = await getAuthScope();
+  const { user } = await getAuthScope();
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { admin, orgId } = await resolveProjectScope(user.id);
 
   const body = (await req.json().catch(() => ({}))) as {
     confirmText?: string;
@@ -165,15 +170,8 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Type DELETE to confirm" }, { status: 400 });
   }
 
-  let projectQuery = admin
-    .from("projects")
-    .select("id, name")
-    .eq("id", projectId)
-    .limit(1);
-
-  projectQuery = orgId ? projectQuery.eq("org_id", orgId) : projectQuery.eq("created_by", user.id);
-
-  const { data: project } = await projectQuery.single();
+  const { project: scopedProject } = await getScopedProjectForUser(user.id, projectId, "id, name");
+  const project = scopedProject as { id: string; name: string } | null;
   if (!project) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
@@ -241,12 +239,25 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     // CASCADE will handle this anyway
   }
 
-  let deleteProjectQuery = admin.from("projects").delete().eq("id", projectId);
-  deleteProjectQuery = orgId ? deleteProjectQuery.eq("org_id", orgId) : deleteProjectQuery.eq("created_by", user.id);
+  // --- Delete rows from tables with NO ACTION FK constraints before deleting project ---
+  try {
+    await admin.from("unified_files").delete().eq("project_id", projectId);
+  } catch (error) {
+    console.error("[api/projects/DELETE] unified_files cleanup error:", error);
+  }
+
+  try {
+    await admin.from("file_folders").delete().eq("project_id", projectId);
+  } catch (error) {
+    console.error("[api/projects/DELETE] file_folders cleanup error:", error);
+  }
+
+  const deleteProjectQuery = admin.from("projects").delete().eq("id", projectId);
   const { error } = await deleteProjectQuery;
 
   if (error) {
-    return NextResponse.json({ error: "Failed to delete project" }, { status: 500 });
+    console.error("[api/projects/DELETE] project delete failed:", error.message, error.details, error.hint);
+    return NextResponse.json({ error: `Failed to delete project: ${error.message}` }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

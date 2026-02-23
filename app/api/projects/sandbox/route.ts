@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { listScopedProjectsForUser, resolveProjectScope } from "@/lib/projects/access";
+import { provisionProjectFolders } from "@/lib/slatedrop/provisioning";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
   const supabase = await createClient();
-  const admin = createAdminClient();
 
   const {
     data: { user },
@@ -17,26 +17,8 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let orgId: string | null = null;
-  try {
-    const { data } = await admin
-      .from("organization_members")
-      .select("org_id")
-      .eq("user_id", user.id)
-      .single();
-    orgId = data?.org_id ?? null;
-  } catch {
-    orgId = null;
-  }
-
-  let projectsQuery = admin
-    .from("projects")
-    .select("id, name, description, status, created_at")
-    .order("created_at", { ascending: false });
-
-  projectsQuery = orgId ? projectsQuery.eq("org_id", orgId) : projectsQuery.eq("created_by", user.id);
-
-  const { data: projects, error: projectError } = await projectsQuery;
+  const { admin, orgId } = await resolveProjectScope(user.id);
+  const { projects, error: projectError } = await listScopedProjectsForUser(user.id);
   if (projectError) {
     return NextResponse.json({ error: "Failed to load projects" }, { status: 500 });
   }
@@ -49,19 +31,46 @@ export async function GET() {
   let folders: Array<{ id: string; name: string; project_id: string; is_system: boolean; folder_path: string | null }> = [];
 
   try {
-    let foldersQuery = admin
+    const foldersQuery = admin
       .from("project_folders")
       .select("id, name, project_id, is_system, folder_path")
       .in("project_id", projectIds)
       .order("name", { ascending: true });
-
-    foldersQuery = orgId ? foldersQuery.eq("org_id", orgId) : foldersQuery.eq("created_by", user.id);
 
     const { data } = await foldersQuery;
     folders = data ?? [];
   } catch (folderError) {
     // project_folders table may not exist yet — return projects without folder tree
     console.error("[api/projects/sandbox] folder query error:", folderError);
+  }
+
+  const folderCountByProject = new Map<string, number>();
+  for (const folder of folders) {
+    folderCountByProject.set(folder.project_id, (folderCountByProject.get(folder.project_id) ?? 0) + 1);
+  }
+
+  const missingFolderProjects = (projects ?? []).filter((project) => (folderCountByProject.get(project.id) ?? 0) === 0);
+
+  if (missingFolderProjects.length > 0) {
+    for (const project of missingFolderProjects) {
+      try {
+        await provisionProjectFolders(project.id, project.name, project.org_id ?? orgId, project.created_by);
+      } catch (error) {
+        console.error("[api/projects/sandbox] auto-provision failed:", project.id, error);
+      }
+    }
+
+    try {
+      const { data: refreshed } = await admin
+        .from("project_folders")
+        .select("id, name, project_id, is_system, folder_path")
+        .in("project_id", projectIds)
+        .order("name", { ascending: true });
+
+      folders = refreshed ?? folders;
+    } catch {
+      // keep previous folder state
+    }
   }
 
   const folderMap: Record<string, Array<{ id: string; name: string; isSystem: boolean; path: string | null }>> = {};

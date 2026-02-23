@@ -439,31 +439,29 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
   const supabase = createClient();
 
   const [folderTree, setFolderTree] = useState<FolderNode[]>(() => buildFolderTree(tier));
+  const [sandboxProjects, setSandboxProjects] = useState<SandboxProject[]>([]);
 
   useEffect(() => {
     setFolderTree(buildFolderTree(tier));
   }, [tier]);
 
-  useEffect(() => {
-    let cancelled = false;
+  const refreshSandboxProjects = useCallback(async () => {
+    try {
+      const response = await fetch("/api/projects/sandbox", { cache: "no-store" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) return;
 
-    const loadSandbox = async () => {
-      try {
-        const response = await fetch("/api/projects/sandbox", { cache: "no-store" });
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok || cancelled) return;
-        const projects = Array.isArray(payload?.projects) ? (payload.projects as SandboxProject[]) : [];
-        setFolderTree((prev) => withSandboxProjects(prev, projects));
-      } catch {
-      }
-    };
-
-    void loadSandbox();
-
-    return () => {
-      cancelled = true;
-    };
+      const projects = Array.isArray(payload?.projects) ? (payload.projects as SandboxProject[]) : [];
+      setSandboxProjects(projects);
+      setFolderTree(withSandboxProjects(buildFolderTree(tier), projects));
+    } catch {
+      // non-blocking
+    }
   }, [tier]);
+
+  useEffect(() => {
+    void refreshSandboxProjects();
+  }, [refreshSandboxProjects]);
 
   /* ── State ── */
   const [activeFolderId, setActiveFolderId] = useState("general");
@@ -1709,6 +1707,33 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                         showToast(`"${deleteConfirm.name}" deleted`);
                       } catch (error) { showToast(error instanceof Error ? error.message : "Delete failed", false); }
                     } else {
+                      const sandboxProject = sandboxProjects.find((project) => project.id === deleteConfirm.id);
+                      if (sandboxProject) {
+                        try {
+                          const res = await fetch(`/api/projects/${deleteConfirm.id}`, {
+                            method: "DELETE",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              confirmText: "DELETE",
+                              confirmName: deleteConfirm.name,
+                            }),
+                          });
+
+                          if (!res.ok) {
+                            const err = await res.json().catch(() => ({ error: "Delete failed" }));
+                            throw new Error(err.error ?? "Delete failed");
+                          }
+
+                          await refreshSandboxProjects();
+                          showToast(`Project "${deleteConfirm.name}" deleted`);
+                        } catch (error) {
+                          showToast(error instanceof Error ? error.message : "Delete failed", false);
+                        }
+
+                        setDeleteConfirm(null);
+                        return;
+                      }
+
                       const folderNode = findFolder(folderTree, deleteConfirm.id);
                       if (!folderNode) {
                         showToast("Folder not found", false);

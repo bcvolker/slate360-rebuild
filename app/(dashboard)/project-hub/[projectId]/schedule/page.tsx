@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getScopedProjectForUser } from "@/lib/projects/access";
 
 type TaskRow = {
   id: string;
@@ -41,7 +42,7 @@ export default async function SchedulePage({
     redirect(`/login?redirectTo=${encodeURIComponent(`/project-hub/${projectId}/schedule`)}`);
   }
 
-  const { data: project } = await supabase.from("projects").select("id").eq("id", projectId).single();
+  const { project } = await getScopedProjectForUser(user.id, projectId, "id");
   if (!project) {
     notFound();
   }

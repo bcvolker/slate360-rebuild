@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getScopedProjectForUser } from "@/lib/projects/access";
 
 const TABS = [
   { label: "Overview", href: "" },
@@ -33,11 +34,8 @@ export default async function ProjectDetailLayout({
     redirect(`/login?redirectTo=${encodeURIComponent(`/project-hub/${projectId}`)}`);
   }
 
-  const { data: project } = await supabase
-    .from("projects")
-    .select("id, name, status")
-    .eq("id", projectId)
-    .single();
+  const { project: scopedProject } = await getScopedProjectForUser(user.id, projectId, "id, name, status");
+  const project = scopedProject as { id: string; name: string; status: string } | null;
 
   if (!project) {
     notFound();

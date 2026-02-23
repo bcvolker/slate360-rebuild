@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProjectFileExplorer from "@/components/slatedrop/ProjectFileExplorer";
+import { getScopedProjectForUser } from "@/lib/projects/access";
 
 export default async function ProjectFilesPage({
   params,
@@ -18,11 +19,7 @@ export default async function ProjectFilesPage({
     redirect(`/login?redirectTo=${encodeURIComponent(`/project-hub/${projectId}/files`)}`);
   }
 
-  const { data: project } = await supabase
-    .from("projects")
-    .select("id, name")
-    .eq("id", projectId)
-    .single();
+  const { project } = await getScopedProjectForUser(user.id, projectId, "id, name");
 
   if (!project) {
     notFound();
