@@ -30,11 +30,12 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protect /dashboard & /slatedrop — redirect to login if not authenticated
+  // Protect /dashboard, /slatedrop & /project-hub — redirect to login if not authenticated
   if (
     !user &&
     (request.nextUrl.pathname.startsWith("/dashboard") ||
-      request.nextUrl.pathname.startsWith("/slatedrop"))
+      request.nextUrl.pathname.startsWith("/slatedrop") ||
+      request.nextUrl.pathname.startsWith("/project-hub"))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
