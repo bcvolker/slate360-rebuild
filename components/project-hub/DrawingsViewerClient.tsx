@@ -55,12 +55,28 @@ export default function DrawingsViewerClient({ files }: { files: DrawingFile[] }
   }, [files]);
 
   const activeUrl = useMemo(() => (activeFile ? urlMap[activeFile.id] : null), [activeFile, urlMap]);
+  const showingDemo = files.length === 0 && demoFiles.length > 0;
 
   return (
     <section className="space-y-4">
       <header>
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Drawings</p>
-        <h2 className="text-lg font-black text-gray-900">Plans & Drawings</h2>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Drawings</p>
+            <h2 className="text-lg font-black text-gray-900">Plans & Drawings</h2>
+          </div>
+          {showingDemo && (
+            <button
+              onClick={() => {
+                setDemoFiles([]);
+                setActiveFile(null);
+              }}
+              className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+            >
+              Clear Demo
+            </button>
+          )}
+        </div>
       </header>
 
       {loading ? (

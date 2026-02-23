@@ -1312,6 +1312,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                       key={tab.id}
                       onClick={() => {
                         if (tab.id === "slatedrop") { openSlateDrop(); return; }
+                        if (tab.id === "project-hub") { window.location.href = "/project-hub"; return; }
                         setActiveTab(tab.id);
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
@@ -2542,7 +2543,19 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             })()}
           </div>
         )}
-        {activeTab !== "overview" && activeTab !== "market" && activeTab !== "my-account" && (() => {
+        {activeTab === "project-hub" && (
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h3 className="text-base font-black text-gray-900">Open Project Hub</h3>
+            <p className="mt-1 text-sm text-gray-500">Project Hub now runs in its dedicated workspace route.</p>
+            <a
+              href="/project-hub"
+              className="mt-4 inline-flex items-center rounded-lg bg-[#FF4D00] px-3 py-2 text-xs font-semibold text-white hover:bg-[#E64500]"
+            >
+              Go to Project Hub
+            </a>
+          </div>
+        )}
+        {activeTab !== "overview" && activeTab !== "market" && activeTab !== "my-account" && activeTab !== "project-hub" && (() => {
           const tab = visibleTabs.find((t) => t.id === activeTab);
           if (!tab) return null;
           return <TabWireframe tab={tab} onBack={() => setActiveTab("overview")} onOpenSlateDrop={openSlateDrop} />;

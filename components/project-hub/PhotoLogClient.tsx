@@ -15,6 +15,7 @@ export default function PhotoLogClient({ files }: { files: PhotoFile[] }) {
   const [demoPhotos, setDemoPhotos] = useState<PhotoFile[]>([]);
 
   const visibleFiles = files.length > 0 ? files : demoPhotos;
+  const showingDemo = files.length === 0 && demoPhotos.length > 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -62,12 +63,22 @@ export default function PhotoLogClient({ files }: { files: PhotoFile[] }) {
           <h2 className="text-lg font-black text-gray-900">Photo Log</h2>
         </div>
 
-        <button
-          onClick={() => setToast("Photo Report PDF Generating...")}
-          className="rounded-lg bg-[#FF4D00] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#E64500]"
-        >
-          Generate Photo Report
-        </button>
+        <div className="flex items-center gap-2">
+          {showingDemo && (
+            <button
+              onClick={() => setDemoPhotos([])}
+              className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+            >
+              Clear Demo
+            </button>
+          )}
+          <button
+            onClick={() => setToast("Photo Report PDF Generating...")}
+            className="rounded-lg bg-[#FF4D00] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#E64500]"
+          >
+            Generate Photo Report
+          </button>
+        </div>
       </div>
 
       {loading ? (
