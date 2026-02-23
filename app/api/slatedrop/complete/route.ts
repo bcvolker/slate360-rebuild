@@ -8,16 +8,56 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveNamespace } from "@/lib/slatedrop/storage";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const admin = createAdminClient();
 
-  const { fileId } = await req.json() as { fileId: string | null };
+  const {
+    fileId,
+    publicToken,
+  } = (await req.json()) as { fileId: string | null; publicToken?: string };
   if (!fileId) return NextResponse.json({ ok: true }); // already handled
+
+  if (publicToken) {
+    const { data: linkRow } = await admin
+      .from("project_external_links")
+      .select("project_id, folder_id, created_by, expires_at")
+      .eq("token", publicToken)
+      .maybeSingle();
+
+    if (!linkRow) return NextResponse.json({ error: "Invalid upload token" }, { status: 403 });
+    if (linkRow.expires_at && new Date(linkRow.expires_at).getTime() < Date.now()) {
+      return NextResponse.json({ error: "Upload token expired" }, { status: 403 });
+    }
+
+    const { data: project } = await admin
+      .from("projects")
+      .select("org_id")
+      .eq("id", linkRow.project_id)
+      .single();
+
+    const namespace = resolveNamespace(project?.org_id ?? null, linkRow.created_by);
+    const prefix = `orgs/${namespace}/${linkRow.folder_id}/`;
+
+    const { error } = await admin
+      .from("slatedrop_uploads")
+      .update({ status: "active" })
+      .eq("id", fileId)
+      .like("s3_key", `${prefix}%`);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let orgId: string | null = null;
   try {

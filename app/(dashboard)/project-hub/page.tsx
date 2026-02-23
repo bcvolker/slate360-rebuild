@@ -1,9 +1,11 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
-import { Lock, Loader2, Plus, X } from "lucide-react";
+import { Lock, Loader2, Plus } from "lucide-react";
+import Link from "next/link";
+import CreateProjectWizard, { type CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
 
 type ProjectRow = {
   id: string;
@@ -40,8 +42,6 @@ export default function ProjectHubPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -113,33 +113,22 @@ export default function ProjectHubPage() {
     return () => window.clearTimeout(timeout);
   }, [toast]);
 
-  const onCreate = async (event: FormEvent) => {
-    event.preventDefault();
-
+  const onCreate = async (payload: CreateProjectPayload) => {
     setError(null);
-    if (!name.trim()) {
-      setError("Project name is required.");
-      return;
-    }
 
     setCreating(true);
     try {
       const response = await fetch("/api/projects/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          description: description.trim(),
-        }),
+        body: JSON.stringify(payload),
       });
 
-      const payload = await response.json().catch(() => ({}));
+      const result = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload?.error ?? "Failed to create project");
+        throw new Error(result?.error ?? "Failed to create project");
       }
 
-      setName("");
-      setDescription("");
       setModalOpen(false);
       setToast("Project created successfully.");
       await loadProjects();
@@ -219,82 +208,29 @@ export default function ProjectHubPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {projects.map((project) => (
-                <article key={project.id} className="rounded-xl border border-gray-200 p-4 bg-gray-50/60">
-                  <h2 className="font-bold text-gray-900 text-sm truncate">{project.name}</h2>
-                  <p className="text-xs text-gray-500 mt-1 min-h-[32px]">{project.description || "No description"}</p>
-                  <div className="mt-3 flex items-center justify-between text-[11px] text-gray-500">
-                    <span className="inline-flex rounded-full border border-gray-200 px-2 py-0.5 uppercase tracking-wide">{project.status}</span>
-                    <span>{new Date(project.created_at).toLocaleDateString()}</span>
-                  </div>
-                </article>
+                <Link key={project.id} href={`/project-hub/${project.id}`}>
+                  <article className="rounded-xl border border-gray-200 p-4 bg-gray-50/60 hover:border-[#FF4D00]/30 hover:bg-[#FF4D00]/5 transition">
+                    <h2 className="font-bold text-gray-900 text-sm truncate">{project.name}</h2>
+                    <p className="text-xs text-gray-500 mt-1 min-h-[32px]">{project.description || "No description"}</p>
+                    <div className="mt-3 flex items-center justify-between text-[11px] text-gray-500">
+                      <span className="inline-flex rounded-full border border-gray-200 px-2 py-0.5 uppercase tracking-wide">{project.status}</span>
+                      <span>{new Date(project.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </article>
+                </Link>
               ))}
             </div>
           )}
         </div>
       </div>
 
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setModalOpen(false)}>
-          <div className="absolute inset-0 bg-black/35 backdrop-blur-sm" />
-          <form
-            onSubmit={onCreate}
-            onClick={(event) => event.stopPropagation()}
-            className="relative w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-gray-900">Create New Project</h3>
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="h-8 w-8 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 flex items-center justify-center"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Project Name</label>
-                <input
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="e.g. Maple Heights Residence"
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00]"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Description</label>
-                <textarea
-                  value={description}
-                  onChange={(event) => setDescription(event.target.value)}
-                  placeholder="Optional description"
-                  rows={3}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00]"
-                />
-              </div>
-            </div>
-
-            <div className="mt-5 flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={creating}
-                className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor: "#FF4D00" }}
-              >
-                {creating ? <Loader2 size={13} className="animate-spin" /> : null}
-                {creating ? "Creating…" : "Create Project"}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+      <CreateProjectWizard
+        open={modalOpen}
+        creating={creating}
+        error={error}
+        onClose={() => setModalOpen(false)}
+        onSubmit={onCreate}
+      />
 
       {toast && (
         <div className="fixed bottom-5 right-5 z-[70] rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 shadow-lg">

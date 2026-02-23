@@ -17,10 +17,12 @@ export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => ({}))) as {
     name?: string;
     description?: string;
+    metadata?: Record<string, unknown>;
   };
 
   const name = body.name?.trim();
   const description = body.description?.trim() || null;
+  const metadata = body.metadata && typeof body.metadata === "object" ? body.metadata : {};
 
   if (!name) {
     return NextResponse.json({ error: "Project name is required" }, { status: 400 });
@@ -48,10 +50,11 @@ export async function POST(req: NextRequest) {
       org_id: orgId,
       name,
       description,
+      metadata,
       status: "active",
       created_by: user.id,
     })
-    .select("id, name, description, status, created_at")
+    .select("id, name, description, metadata, status, created_at")
     .single();
 
   if (projectError || !createdProject) {

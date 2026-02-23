@@ -16,40 +16,77 @@ import { s3, BUCKET } from "@/lib/s3";
 import { resolveNamespace, buildCanonicalS3Key } from "@/lib/slatedrop/storage";
 
 export async function POST(req: NextRequest) {
-  // Auth check via cookie-based client
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  // Admin client for DB operations (bypasses RLS)
   const admin = createAdminClient();
 
   const body = await req.json();
-  const { filename, contentType, size, folderId, folderPath } = body as {
+  const { filename, contentType, size, folderId, folderPath, publicToken } = body as {
     filename: string;
     contentType: string;
     size: number;
     folderId: string;
     folderPath: string;
+    publicToken?: string;
   };
 
   if (!filename || !contentType || !folderId) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  // Resolve org_id
-  let orgId: string | null = null;
-  try {
-    const { data } = await admin
-      .from("organization_members")
-      .select("org_id")
-      .eq("user_id", user.id)
-      .single();
-    orgId = data?.org_id ?? null;
-  } catch { /* no org — use user id as namespace */ }
-  const namespace = resolveNamespace(orgId, user.id);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const s3Key = buildCanonicalS3Key(namespace, folderId, filename);
+  let effectiveFolderId = folderId;
+  let effectiveOrgId: string | null = null;
+  let effectiveUploadedBy: string | null = user?.id ?? null;
+
+  if (publicToken) {
+    const { data: linkRow } = await admin
+      .from("project_external_links")
+      .select("project_id, folder_id, created_by, expires_at")
+      .eq("token", publicToken)
+      .maybeSingle();
+
+    if (!linkRow) {
+      return NextResponse.json({ error: "Invalid upload token" }, { status: 403 });
+    }
+
+    if (linkRow.expires_at && new Date(linkRow.expires_at).getTime() < Date.now()) {
+      return NextResponse.json({ error: "Upload token expired" }, { status: 403 });
+    }
+
+    const { data: project } = await admin
+      .from("projects")
+      .select("org_id")
+      .eq("id", linkRow.project_id)
+      .single();
+
+    effectiveFolderId = linkRow.folder_id;
+    effectiveOrgId = project?.org_id ?? null;
+    effectiveUploadedBy = linkRow.created_by;
+  } else {
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    try {
+      const { data } = await admin
+        .from("organization_members")
+        .select("org_id")
+        .eq("user_id", user.id)
+        .single();
+      effectiveOrgId = data?.org_id ?? null;
+    } catch {
+      // no org — use user id namespace fallback
+    }
+  }
+
+  if (!effectiveUploadedBy) {
+    return NextResponse.json({ error: "Unable to resolve uploader" }, { status: 400 });
+  }
+
+  const namespace = resolveNamespace(effectiveOrgId, effectiveUploadedBy);
+
+  const s3Key = buildCanonicalS3Key(namespace, effectiveFolderId, filename);
 
   // Generate presigned URL (15 min expiry)
   const command = new PutObjectCommand({
@@ -77,8 +114,8 @@ export async function POST(req: NextRequest) {
       file_size: size,
       file_type: ext,
       s3_key: s3Key,
-      org_id: orgId,
-      uploaded_by: user.id,
+      org_id: effectiveOrgId,
+      uploaded_by: effectiveUploadedBy,
       status: "pending",
       // folder_id is a UUID FK in DB — we don't use it, filter by s3_key prefix instead
     })
