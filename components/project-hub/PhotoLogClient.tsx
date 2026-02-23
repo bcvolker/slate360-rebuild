@@ -12,6 +12,9 @@ export default function PhotoLogClient({ files }: { files: PhotoFile[] }) {
   const [urlMap, setUrlMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
+  const [demoPhotos, setDemoPhotos] = useState<PhotoFile[]>([]);
+
+  const visibleFiles = files.length > 0 ? files : demoPhotos;
 
   useEffect(() => {
     let cancelled = false;
@@ -71,11 +74,24 @@ export default function PhotoLogClient({ files }: { files: PhotoFile[] }) {
         <div className="rounded-2xl border border-gray-200 bg-white p-8 text-sm text-gray-500">
           <Loader2 size={16} className="mr-2 inline animate-spin" /> Loading photos…
         </div>
-      ) : files.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-sm text-gray-500">No photos found in Photos.</div>
+      ) : visibleFiles.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-sm text-gray-500">
+          <p>No photos found in Photos.</p>
+          <button
+            onClick={() =>
+              setDemoPhotos([
+                { id: "demo-photo-1", name: "Demo Exterior Progress.jpg" },
+                { id: "demo-photo-2", name: "Demo Interior Framing.jpg" },
+              ])
+            }
+            className="mt-3 rounded-md bg-[#FF4D00] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#E64500]"
+          >
+            Add Demo Photos
+          </button>
+        </div>
       ) : (
         <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
-          {files.map((file) => (
+          {visibleFiles.map((file) => (
             <article key={file.id} className="mb-4 break-inside-avoid overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
               {urlMap[file.id] ? (
                 <img src={urlMap[file.id]} alt={file.name} className="h-auto w-full object-cover" />

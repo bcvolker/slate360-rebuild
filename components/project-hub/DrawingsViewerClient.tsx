@@ -18,6 +18,9 @@ export default function DrawingsViewerClient({ files }: { files: DrawingFile[] }
   const [urlMap, setUrlMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [activeFile, setActiveFile] = useState<DrawingFile | null>(null);
+  const [demoFiles, setDemoFiles] = useState<DrawingFile[]>([]);
+
+  const visibleFiles = useMemo(() => (files.length > 0 ? files : demoFiles), [files, demoFiles]);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,11 +67,27 @@ export default function DrawingsViewerClient({ files }: { files: DrawingFile[] }
         <div className="rounded-2xl border border-gray-200 bg-white p-8 text-sm text-gray-500">
           <Loader2 size={16} className="mr-2 inline animate-spin" /> Loading drawing previews…
         </div>
-      ) : files.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-sm text-gray-500">No PDFs found in Drawings.</div>
+      ) : visibleFiles.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-sm text-gray-500">
+          <p>No PDFs found in Drawings.</p>
+          <button
+            onClick={() =>
+              setDemoFiles([
+                {
+                  id: "demo-drawing-1",
+                  name: "Demo Site Plan A1.pdf",
+                  createdAt: new Date().toISOString(),
+                },
+              ])
+            }
+            className="mt-3 rounded-md bg-[#FF4D00] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#E64500]"
+          >
+            Add Demo Drawing
+          </button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {files.map((file) => {
+          {visibleFiles.map((file) => {
             const fileUrl = urlMap[file.id];
             return (
               <button
