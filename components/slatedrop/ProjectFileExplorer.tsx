@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Folder, FileText } from "lucide-react";
+import { Loader2, Folder, FileText, Link as LinkIcon, Check } from "lucide-react";
 
 type FolderRow = {
   id: string;
@@ -31,6 +31,10 @@ export default function ProjectFileExplorer({
   const [filesLoading, setFilesLoading] = useState(false);
   const [files, setFiles] = useState<FileRow[]>([]);
 
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -59,9 +63,13 @@ export default function ProjectFileExplorer({
   useEffect(() => {
     if (!activeFolderId) {
       setFiles([]);
+      setGeneratedLink(null);
+      setCopied(false);
       return;
     }
 
+    setGeneratedLink(null);
+    setCopied(false);
     let cancelled = false;
 
     const loadFiles = async () => {
@@ -86,6 +94,37 @@ export default function ProjectFileExplorer({
   }, [activeFolderId]);
 
   const activeFolder = useMemo(() => folders.find((folder) => folder.id === activeFolderId) ?? null, [folders, activeFolderId]);
+
+  const handleGenerateLink = async () => {
+    if (!activeFolderId) return;
+    setIsGeneratingLink(true);
+    setGeneratedLink(null);
+    setCopied(false);
+    try {
+      const res = await fetch("/api/slatedrop/request-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId, folderId: activeFolderId }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        const fullUrl = `${window.location.origin}${data.url}`;
+        setGeneratedLink(fullUrl);
+      }
+    } catch (err) {
+      console.error("Failed to generate link", err);
+    } finally {
+      setIsGeneratingLink(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (generatedLink) {
+      navigator.clipboard.writeText(generatedLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <div className="grid min-h-[65vh] grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
@@ -125,8 +164,38 @@ export default function ProjectFileExplorer({
       </aside>
 
       <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-        <h2 className="text-sm font-black text-gray-900">{activeFolder?.name ?? "Files"}</h2>
-        <p className="mt-1 text-xs text-gray-500">{activeFolder?.path ?? "Select a folder to view files"}</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-sm font-black text-gray-900">{activeFolder?.name ?? "Files"}</h2>
+            <p className="mt-1 text-xs text-gray-500">{activeFolder?.path ?? "Select a folder to view files"}</p>
+          </div>
+          {activeFolderId && (
+            <button
+              onClick={handleGenerateLink}
+              disabled={isGeneratingLink}
+              className="flex items-center gap-2 rounded-lg bg-[#FF4D00] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#E64500] disabled:opacity-50"
+            >
+              {isGeneratingLink ? <Loader2 size={14} className="animate-spin" /> : <LinkIcon size={14} />}
+              Request Link
+            </button>
+          )}
+        </div>
+
+        {generatedLink && (
+          <div className="mt-4 flex items-center justify-between rounded-xl border border-green-200 bg-green-50 px-3 py-2">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-green-800">Public Upload Link Generated</p>
+              <p className="truncate text-xs text-green-600">{generatedLink}</p>
+            </div>
+            <button
+              onClick={handleCopy}
+              className="ml-3 flex shrink-0 items-center gap-1 rounded-md bg-white px-2 py-1 text-xs font-medium text-green-700 shadow-sm ring-1 ring-inset ring-green-200 hover:bg-green-50"
+            >
+              {copied ? <Check size={12} /> : <LinkIcon size={12} />}
+              {copied ? "Copied!" : "Copy"}
+            </button>
+          </div>
+        )}
 
         <div className="mt-4 space-y-2">
           {filesLoading ? (
