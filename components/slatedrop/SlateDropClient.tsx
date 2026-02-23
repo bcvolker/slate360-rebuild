@@ -109,19 +109,7 @@ type Folder = {
   isSystem?: boolean;
 };
 
-type DemoFile = {
-  type: "demo";
-  id: string;
-  file_name: string;
-  file_type: string;
-  size: number;
-  modified: string;
-  folderId: string;
-  thumbnail?: string;
-  locked?: boolean;
-};
-
-type SlateDropItem = DbFile | Folder | DemoFile;
+type SlateDropItem = DbFile | Folder;
 
 type ViewMode = "grid" | "list";
 type SortKey = "name" | "modified" | "size" | "type";
@@ -200,55 +188,8 @@ function buildFolderTree(tier: Tier): FolderNode[] {
       break;
   }
 
-  // Add user-created sample folder
-  folders.push({
-    id: "user-folder-1",
-    name: "My Exports",
-    isSystem: false,
-    children: [],
-    parentId: null,
-  });
-
   return folders;
 }
-
-const demoFiles: Record<string, FileItem[]> = {
-  general: [
-    { id: "f1", name: "Welcome to SlateDrop.pdf", size: 245000, type: "pdf", modified: "2026-02-18", folderId: "general" },
-    { id: "f2", name: "Getting Started Guide.pdf", size: 1200000, type: "pdf", modified: "2026-02-15", folderId: "general" },
-  ],
-  "design-studio": [
-    { id: "f3", name: "stadium-model.glb", size: 3600000, type: "glb", modified: "2026-02-20", folderId: "design-studio", thumbnail: "/uploads/pletchers.jpg" },
-    { id: "f4", name: "floor-plan-v3.dwg", size: 8900000, type: "dwg", modified: "2026-02-19", folderId: "design-studio" },
-    { id: "f5", name: "structural-review.pdf", size: 4500000, type: "pdf", modified: "2026-02-17", folderId: "design-studio" },
-  ],
-  "content-studio": [
-    { id: "f6", name: "marketing-brochure.psd", size: 15000000, type: "psd", modified: "2026-02-19", folderId: "content-studio" },
-    { id: "f7", name: "client-presentation.pptx", size: 6700000, type: "pptx", modified: "2026-02-18", folderId: "content-studio" },
-  ],
-  "360-tour-builder": [
-    { id: "f8", name: "pletchers-panorama.jpg", size: 18000000, type: "jpg", modified: "2026-02-20", folderId: "360-tour-builder", thumbnail: "/uploads/pletchers.jpg" },
-    { id: "f9", name: "lobby-360.jpg", size: 22000000, type: "jpg", modified: "2026-02-19", folderId: "360-tour-builder" },
-  ],
-  geospatial: [
-    { id: "f10", name: "site-survey-lidar.las", size: 95000000, type: "las", modified: "2026-02-16", folderId: "geospatial" },
-    { id: "f11", name: "drone-ortho.tif", size: 45000000, type: "tif", modified: "2026-02-15", folderId: "geospatial" },
-  ],
-  "p1-docs": [
-    { id: "f12", name: "Contract-Maple-Heights.pdf", size: 3200000, type: "pdf", modified: "2026-02-10", folderId: "p1-docs" },
-    { id: "f13", name: "Insurance-Certificate.pdf", size: 890000, type: "pdf", modified: "2026-02-08", folderId: "p1-docs" },
-  ],
-  "p1-photos": [
-    { id: "f14", name: "site-progress-feb.jpg", size: 4500000, type: "jpg", modified: "2026-02-19", folderId: "p1-photos", thumbnail: "/uploads/pletchers.jpg" },
-    { id: "f15", name: "foundation-pour.jpg", size: 5200000, type: "jpg", modified: "2026-02-14", folderId: "p1-photos" },
-  ],
-  "p1-models": [
-    { id: "f16", name: "maple-heights-v2.glb", size: 12000000, type: "glb", modified: "2026-02-18", folderId: "p1-models" },
-  ],
-  "user-folder-1": [
-    { id: "f17", name: "project-archive-jan.zip", size: 250000000, type: "zip", modified: "2026-01-31", folderId: "user-folder-1" },
-  ],
-};
 
 /* ================================================================
    HELPERS
@@ -485,8 +426,6 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
   const [shareSent, setShareSent] = useState(false);
   const [renameModal, setRenameModal] = useState<{ id: string; name: string; type: "file" | "folder" } | null>(null);
   const [renameValue, setRenameValue] = useState("");
-  const [newFolderModal, setNewFolderModal] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "file" | "folder" } | null>(null);
   const [moveModal, setMoveModal] = useState<{ id: string; name: string; type: "file" } | null>(null);
   const [moveTargetFolder, setMoveTargetFolder] = useState<string | null>(null);
@@ -503,47 +442,6 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
   const [toastMsg, setToastMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const addFolderToTree = useCallback((nodes: FolderNode[], parentId: string, newFolder: FolderNode): FolderNode[] => {
-    return nodes.map((node) => {
-      if (node.id === parentId) {
-        return { ...node, children: [...node.children, newFolder] };
-      }
-      if (node.children.length === 0) return node;
-      return { ...node, children: addFolderToTree(node.children, parentId, newFolder) };
-    });
-  }, []);
-
-  const renameFolderInTree = useCallback((nodes: FolderNode[], folderId: string, newName: string): FolderNode[] => {
-    return nodes.map((node) => {
-      if (node.id === folderId) {
-        return { ...node, name: newName };
-      }
-      if (node.children.length === 0) return node;
-      return { ...node, children: renameFolderInTree(node.children, folderId, newName) };
-    });
-  }, []);
-
-  const collectFolderIds = useCallback((node: FolderNode): string[] => {
-    const ids = [node.id];
-    for (const child of node.children) {
-      ids.push(...collectFolderIds(child));
-    }
-    return ids;
-  }, []);
-
-  const removeFolderFromTree = useCallback((nodes: FolderNode[], folderId: string): FolderNode[] => {
-    const next: FolderNode[] = [];
-    for (const node of nodes) {
-      if (node.id === folderId) continue;
-      if (node.children.length > 0) {
-        next.push({ ...node, children: removeFolderFromTree(node.children, folderId) });
-      } else {
-        next.push(node);
-      }
-    }
-    return next;
-  }, []);
 
   /* ── Show toast helper ── */
   const showToast = useCallback((text: string, ok = true) => {
@@ -593,10 +491,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
 
   const currentFiles = useMemo(() => {
     const hasLoadedRealFolder = Object.prototype.hasOwnProperty.call(realFiles, activeFolderId);
-    const hasLoadError = filesLoadErrorByFolder[activeFolderId] === true;
-    let files = hasLoadedRealFolder
-      ? realFiles[activeFolderId] ?? []
-      : (hasLoadError ? (demoFiles[activeFolderId] ?? []) : []);
+    let files = hasLoadedRealFolder ? realFiles[activeFolderId] ?? [] : [];
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       files = files.filter((f) => f.name.toLowerCase().includes(q));
@@ -613,32 +508,12 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
     });
   }, [activeFolderId, realFiles, filesLoadErrorByFolder, searchQuery, sortKey, sortDir]);
 
-  const hasLoadedCurrentFolderFromDb = useMemo(() => {
-    const hasLoaded = Object.prototype.hasOwnProperty.call(realFiles, activeFolderId);
-    const hasError = filesLoadErrorByFolder[activeFolderId] === true;
-    return hasLoaded && !hasError;
-  }, [activeFolderId, realFiles, filesLoadErrorByFolder]);
-
   const toSlateDropItemFromFile = useCallback((file: FileItem): SlateDropItem => {
-    if (hasLoadedCurrentFolderFromDb) {
-      return {
-        type: "file",
-        id: file.id,
-        file_name: file.name,
-        s3_key: file.s3Key ?? "",
-        file_type: file.type,
-        size: file.size,
-        modified: file.modified,
-        folderId: file.folderId,
-        thumbnail: file.thumbnail,
-        locked: file.locked,
-      };
-    }
-
     return {
-      type: "demo",
+      type: "file",
       id: file.id,
       file_name: file.name,
+      s3_key: file.s3Key ?? "",
       file_type: file.type,
       size: file.size,
       modified: file.modified,
@@ -646,7 +521,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
       thumbnail: file.thumbnail,
       locked: file.locked,
     };
-  }, [hasLoadedCurrentFolderFromDb]);
+  }, []);
 
   useEffect(() => {
     if (!previewFile) {
@@ -1009,7 +884,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
 
             {/* New folder button */}
             <button
-              onClick={() => setNewFolderModal(true)}
+              onClick={() => showToast("Folder creation is temporarily disabled until backend folder APIs are fully unified.", false)}
               className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold text-white mb-3 transition-all hover:opacity-90"
               style={{ backgroundColor: "#FF4D00" }}
             >
@@ -1385,17 +1260,6 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
               </>
             );
           })()}
-          {contextMenu.target.type === "demo" && (() => {
-            const target = contextMenu.target;
-            return (
-              <>
-                <CtxItem icon={Copy} label="Copy" onClick={() => {
-                  copyToClipboard(target.file_name, "File name");
-                  closeContextMenu();
-                }} />
-              </>
-            );
-          })()}
           {contextMenu.target.type === "folder" && (() => {
             const target = contextMenu.target;
             return (
@@ -1409,28 +1273,10 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                   handleDownloadFolderZip(target.id, target.name);
                 }} />
                 <CtxDivider />
-                {!target.isSystem && (
-                  <>
-                    <CtxItem icon={Edit3} label="Rename" onClick={() => {
-                      setRenameModal({ id: target.id, name: target.name, type: "folder" });
-                      setRenameValue(target.name);
-                      closeContextMenu();
-                    }} />
-                    <CtxItem icon={Copy} label="Copy" onClick={() => {
-                      copyToClipboard(target.name, "Folder name");
-                      closeContextMenu();
-                    }} />
-                  </>
-                )}
-                {!target.isSystem && (
-                  <>
-                    <CtxDivider />
-                    <CtxItem icon={Trash2} label="Delete" danger onClick={() => {
-                      setDeleteConfirm({ id: target.id, name: target.name, type: "folder" });
-                      closeContextMenu();
-                    }} />
-                  </>
-                )}
+                <CtxItem icon={Copy} label="Copy" onClick={() => {
+                  copyToClipboard(target.name, "Folder name");
+                  closeContextMenu();
+                }} />
               </>
             );
           })()}
@@ -1587,8 +1433,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                         showToast(error instanceof Error ? error.message : "Rename failed", false);
                       }
                     } else {
-                      setFolderTree(prev => renameFolderInTree(prev, renameModal.id, renameValue.trim()));
-                      showToast(`Folder renamed to "${renameValue.trim()}"`);
+                      showToast("Folder rename is temporarily disabled until backend folder APIs are fully unified.", false);
                     }
                     setRenameModal(null);
                   }}
@@ -1596,69 +1441,6 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                   style={{ backgroundColor: "#FF4D00" }}
                 >
                   Rename
-                </button>
-              </div>
-            </div>
-          </div>
-        </ModalBackdrop>
-      )}
-
-      {/* New Folder Modal */}
-      {newFolderModal && (
-        <ModalBackdrop onClose={() => setNewFolderModal(false)}>
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="text-base font-bold text-gray-900">New Folder</h3>
-              <button onClick={() => setNewFolderModal(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100">
-                <X size={16} />
-              </button>
-            </div>
-            <div className="p-6">
-              <input
-                type="text"
-                placeholder="Folder name…"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all mb-4"
-                autoFocus
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setNewFolderModal(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    if (!newFolderName.trim()) return;
-                    const newId = `user-${Date.now()}`;
-                    const newFolder: FolderNode = {
-                      id: newId,
-                      name: newFolderName.trim(),
-                      isSystem: false,
-                      parentId: activeFolderId,
-                      children: [],
-                    };
-                    setFolderTree(prev => addFolderToTree(prev, activeFolderId, newFolder));
-                    setExpandedIds(prev => {
-                      const next = new Set(prev);
-                      next.add(activeFolderId);
-                      return next;
-                    });
-                    setRealFiles(prev => ({ ...prev, [newId]: [] }));
-                    // Navigate to the new folder
-                    setActiveFolderId(newId);
-                    setNewFolderModal(false);
-                    const createdName = newFolderName.trim();
-                    setNewFolderName("");
-                    showToast(`Folder "${createdName}" created`);
-                  }}
-                  disabled={!newFolderName.trim()}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: "#FF4D00" }}
-                >
-                  Create
                 </button>
               </div>
             </div>
@@ -1688,6 +1470,7 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                 <button
                   onClick={async () => {
                     if (!deleteConfirm) return;
+
                     if (deleteConfirm.type === "file") {
                       try {
                         const res = await fetch("/api/slatedrop/delete", {
@@ -1699,59 +1482,47 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
                           const err = await res.json().catch(() => ({ error: "Delete failed" }));
                           throw new Error(err.error ?? "Delete failed");
                         }
-                        setRealFiles(prev => ({
+                        setRealFiles((prev) => ({
                           ...prev,
-                          [activeFolderId]: (prev[activeFolderId] ?? []).filter(f => f.id !== deleteConfirm.id),
+                          [activeFolderId]: (prev[activeFolderId] ?? []).filter((f) => f.id !== deleteConfirm.id),
                         }));
                         await refreshFolderFiles(activeFolderId);
                         showToast(`"${deleteConfirm.name}" deleted`);
-                      } catch (error) { showToast(error instanceof Error ? error.message : "Delete failed", false); }
-                    } else {
-                      const sandboxProject = sandboxProjects.find((project) => project.id === deleteConfirm.id);
-                      if (sandboxProject) {
-                        try {
-                          const res = await fetch(`/api/projects/${deleteConfirm.id}`, {
-                            method: "DELETE",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              confirmText: "DELETE",
-                              confirmName: deleteConfirm.name,
-                            }),
-                          });
+                      } catch (error) {
+                        showToast(error instanceof Error ? error.message : "Delete failed", false);
+                      }
+                      setDeleteConfirm(null);
+                      return;
+                    }
 
-                          if (!res.ok) {
-                            const err = await res.json().catch(() => ({ error: "Delete failed" }));
-                            throw new Error(err.error ?? "Delete failed");
-                          }
+                    const sandboxProject = sandboxProjects.find((project) => project.id === deleteConfirm.id);
+                    if (sandboxProject) {
+                      try {
+                        const res = await fetch(`/api/projects/${deleteConfirm.id}`, {
+                          method: "DELETE",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            confirmText: "DELETE",
+                            confirmName: deleteConfirm.name,
+                          }),
+                        });
 
-                          await refreshSandboxProjects();
-                          showToast(`Project "${deleteConfirm.name}" deleted`);
-                        } catch (error) {
-                          showToast(error instanceof Error ? error.message : "Delete failed", false);
+                        if (!res.ok) {
+                          const err = await res.json().catch(() => ({ error: "Delete failed" }));
+                          throw new Error(err.error ?? "Delete failed");
                         }
 
-                        setDeleteConfirm(null);
-                        return;
+                        await refreshSandboxProjects();
+                        showToast(`Project "${deleteConfirm.name}" deleted`);
+                      } catch (error) {
+                        showToast(error instanceof Error ? error.message : "Delete failed", false);
                       }
 
-                      const folderNode = findFolder(folderTree, deleteConfirm.id);
-                      if (!folderNode) {
-                        showToast("Folder not found", false);
-                        setDeleteConfirm(null);
-                        return;
-                      }
-                      const idsToDelete = collectFolderIds(folderNode);
-                      setFolderTree(prev => removeFolderFromTree(prev, deleteConfirm.id));
-                      setRealFiles(prev => {
-                        const next = { ...prev };
-                        idsToDelete.forEach((id) => { delete next[id]; });
-                        return next;
-                      });
-                      if (idsToDelete.includes(activeFolderId)) {
-                        setActiveFolderId(folderNode.parentId ?? "general");
-                      }
-                      showToast(`"${deleteConfirm.name}" deleted`);
+                      setDeleteConfirm(null);
+                      return;
                     }
+
+                    showToast("Folder deletion is temporarily disabled until backend folder APIs are fully unified.", false);
                     setDeleteConfirm(null);
                   }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"

@@ -88,6 +88,23 @@ Recent commits and intent:
   - Hardened create rollback logic for org-less users in `app/api/projects/create/route.ts`.
   - Migrated deprecated map APIs in `components/dashboard/LocationMap.tsx` (see section 8).
 
+### Attempted Fix Matrix (include failures)
+
+| Attempt | Intent | Outcome | Why it did not fully resolve |
+|---|---|---|---|
+| Provisioning helper relocation/import fixes | Ensure folder provisioning runs | Partial | Did not address DB schema mismatch (`parent_id` vs `project_id`) |
+| Added `/project-hub` middleware guard | Ensure auth/session on route | Partial | Auth routing fixed, but CRUD still broken by DB/data issues |
+| Added `project_folders` migration | Ensure table exists | Partial | Production already had divergent schema; migration assumptions were wrong |
+| Route try/catch hardening | Prevent hard crashes | Partial | Masked failures but did not repair underlying data model mismatch |
+| `parent_id` -> `project_id` code sweep | Align with production schema | Major improvement | Existing missing-folder projects still needed backfill |
+| Project folder repair/backfill SQL | Restore folder structures | Partial | Some UI paths still read projects via inconsistent sources |
+| Unified scoped project helper (`lib/projects/access.ts`) | Single source for Hub/SlateDrop | Major improvement | Secondary sources (dashboard widgets, demo local client state) could still confuse visibility |
+| Delete cleanup for NO ACTION FK tables | Stop delete 500 | Major improvement | Additional hidden constraints/data can still fail deletes without detailed error traces |
+| Create flow `role` -> `role_id` fix | Stop membership insert failure | Major improvement | Rollback path for org-less users still had edge case until later fix |
+| Create rollback hardening (org-less) | Prevent orphan/ghost projects | Improvement | Needs production validation under failure injection |
+| Maps deprecation migration in dashboard map | Remove warning noise and unstable APIs | Improvement | Not a root cause for Project Hub CRUD mismatch |
+| SlateDrop demo fallback removal (in progress) | Prevent local/demo state from masking backend truth | Improvement | Full backend folder CRUD parity still pending (create/rename/delete folder APIs) |
+
 ---
 
 ## 5) Verified Files That Control Project Hub Behavior
@@ -130,8 +147,9 @@ Recent commits and intent:
 - This can create **perception mismatch** (dashboard widgets vs hub/slatedrop), even if Hub itself is correct.
 
 ### SlateDrop still includes demo-only local UX data
-- `components/slatedrop/SlateDropClient.tsx` has demo file arrays and local folder tree utilities.
-- Project nodes are now API-backed, but demo structures can still obscure debugging if mixed with real data.
+- Historical issue: `components/slatedrop/SlateDropClient.tsx` included demo file arrays and local folder tree mutation utilities.
+- This could obscure debugging if mixed with live API state.
+- Current direction is to remove fallback demo file state and disable local-only folder mutations until backend folder CRUD is fully unified.
 
 ---
 
@@ -213,3 +231,33 @@ Notes:
 ## 10) Summary for Handoff
 
 The dominant pattern behind the failures has been **schema drift + inconsistent source paths**. Project Hub and SlateDrop must continue to be pinned to the same scoped project APIs and helper (`lib/projects/access.ts`), and delete/create must stay aligned with production DB constraints (`project_id`, `role_id`, NO ACTION cleanup). The remaining risk is secondary views (dashboard widgets/demo paths) surfacing a different project subset and creating the appearance that "nothing matches".
+
+---
+
+## 11) Direct Request For Other AI Assistants
+
+If you are another AI assistant reading this, please help with root-cause isolation, not just surface patches.
+
+1. **Verify DB truth first**
+  - Confirm `projects`, `project_members`, `project_folders` schema and FK delete rules in the active environment.
+  - Confirm row-level data integrity for each failing project ID.
+
+2. **Trace one failing project end-to-end**
+  - Project appears in Hub carousel?
+  - Project appears in SlateDrop sandbox tree?
+  - Project detail route opens?
+  - Project delete API response/error detail?
+  - Folder count for that project and folder path quality?
+
+3. **Assume prior fixes may be partially correct but incomplete**
+  - Do not revert to older assumptions (`parent_id` as project FK, `role` vs `role_id`).
+  - Validate with live schema before changing code.
+
+4. **Prioritize these remaining unknowns**
+  - Any secondary project sources still bypassing `lib/projects/access.ts`
+  - Any local/demo client state still overriding API-backed state
+  - Any hidden FK/trigger/policy side-effects causing delete/create divergence
+
+5. **Report back with evidence**
+  - Exact failing query/constraint/policy, affected file(s), and minimal reproducible path.
+  - Avoid generic “works locally” conclusions; include environment-specific proof.
