@@ -38,6 +38,11 @@ async function getAuthScope() {
 export async function GET(_req: NextRequest, context: RouteContext) {
   const { projectId } = await context.params;
   const { user, admin, orgId } = await getAuthScope();
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  if (!uuidRegex.test(projectId)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

@@ -327,7 +327,7 @@ export default function ProjectHubPage() {
           </Link>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+        <div className="mb-6 flex flex-col justify-between gap-3 px-1 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               📋 Project Hub

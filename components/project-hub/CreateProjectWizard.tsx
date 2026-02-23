@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { APIProvider, Map, Marker } from "@vis.gl/react-google-maps";
+import { APIProvider, AdvancedMarker, Map } from "@vis.gl/react-google-maps";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, GripHorizontal, Loader2, MapPin, Plus, X } from "lucide-react";
 
@@ -72,6 +72,7 @@ export default function CreateProjectWizard({
   const [localError, setLocalError] = useState<string | null>(null);
 
   const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+  const stepLabels = ["Core Details", "Map & Address", "Budget & Scope", "Team & Contacts", "Review & Create"];
 
   const mapCenter = useMemo(
     () => ({ lat: lat ?? 39.5, lng: lng ?? -98.35 }),
@@ -86,6 +87,7 @@ export default function CreateProjectWizard({
   if (!open) return null;
 
   const canGoNext = currentStep !== 1 || Boolean(name.trim());
+  const currentStepLabel = stepLabels[currentStep - 1] ?? "Review";
 
   const toggleMember = (memberId: string) => {
     setTeamMemberIds((prev) =>
@@ -183,17 +185,17 @@ export default function CreateProjectWizard({
         dragMomentum={false}
         dragConstraints={{ left: -220, right: 220, top: -180, bottom: 180 }}
         onClick={(event) => event.stopPropagation()}
-        className="relative w-full max-w-3xl overflow-hidden rounded-3xl border border-white/60 bg-white/95 shadow-2xl backdrop-blur-md"
+        className="relative w-full max-w-3xl overflow-hidden rounded-3xl border border-slate-700 bg-slate-900/95 shadow-2xl backdrop-blur-xl"
       >
-        <div className="flex items-center justify-between border-b border-gray-200/80 bg-white/80 px-4 py-3">
-          <div className="flex items-center gap-2 text-gray-400">
+        <div className="flex items-center justify-between border-b border-slate-700 bg-slate-900/80 px-4 py-3">
+          <div className="flex items-center gap-2 text-slate-400">
             <GripHorizontal size={16} />
             <span className="text-xs font-semibold uppercase tracking-wide">Drag</span>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="h-8 w-8 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 flex items-center justify-center"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-slate-200"
           >
             <X size={16} />
           </button>
@@ -202,8 +204,8 @@ export default function CreateProjectWizard({
         <form onSubmit={submit} className="p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-gray-900">Super Project Wizard</h3>
-              <p className="text-xs text-gray-500 mt-1">Step {currentStep} of {totalSteps}</p>
+              <h3 className="text-base font-bold text-white">Super Project Wizard</h3>
+              <p className="mt-1 text-xs text-slate-400">Step {currentStep} of {totalSteps} · {currentStepLabel}</p>
             </div>
             <div className="flex items-center gap-1.5">
               {Array.from({ length: totalSteps }).map((_, index) => {
@@ -211,7 +213,7 @@ export default function CreateProjectWizard({
                 return (
                   <span
                     key={step}
-                    className={`h-2.5 w-2.5 rounded-full ${step <= currentStep ? "bg-[#FF4D00]" : "bg-gray-200"}`}
+                    className={`h-2.5 w-2.5 rounded-full ${step <= currentStep ? "bg-[#FF4D00]" : "bg-slate-700"}`}
                   />
                 );
               })}
@@ -222,29 +224,29 @@ export default function CreateProjectWizard({
             {currentStep === 1 && (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-600">Project Name *</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Project Name *</label>
                   <input
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     placeholder="e.g. Maple Heights Residence"
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00]"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-[#FF4D00] focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-600">Description</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Description</label>
                   <input
                     value={description}
                     onChange={(event) => setDescription(event.target.value)}
                     placeholder="Optional"
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00]"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-[#FF4D00] focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-600">Project Type</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Project Type</label>
                   <select
                     value={projectType}
                     onChange={(event) => setProjectType(event.target.value)}
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00]"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
                   >
                     <option value="ground-up">Ground-up</option>
                     <option value="renovation">Renovation</option>
@@ -253,11 +255,11 @@ export default function CreateProjectWizard({
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-600">Contract Type</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Contract Type</label>
                   <select
                     value={contractType}
                     onChange={(event) => setContractType(event.target.value)}
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00]"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
                   >
                     <option value="lump-sum">Lump Sum</option>
                     <option value="gmp">GMP</option>
@@ -269,31 +271,32 @@ export default function CreateProjectWizard({
             )}
 
             {currentStep === 2 && (
-              <div className="rounded-xl border border-gray-200 p-3">
+              <div className="rounded-xl border border-slate-700 bg-slate-800/60 p-3">
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold text-gray-700">Project Location</p>
-                    <p className="text-[11px] text-gray-500">Type an address or click map to set a pin</p>
+                    <p className="text-xs font-semibold text-slate-200">Project Location</p>
+                    <p className="text-[11px] text-slate-400">Type an address or click map to set a pin</p>
                   </div>
-                  <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2 py-0.5 text-[11px] text-gray-600">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-slate-600 px-2 py-0.5 text-[11px] text-slate-300">
                     <MapPin size={11} />
                     {lat && lng ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : "No pin set"}
                   </span>
                 </div>
 
                 <div className="mb-3">
-                  <label className="mb-1 block text-xs font-semibold text-gray-600">Address</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Address</label>
                   <input
                     value={address}
                     onChange={(event) => setAddress(event.target.value)}
                     placeholder="Manual address entry or reverse geocoded result"
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00]"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-[#FF4D00] focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
                   />
                 </div>
 
-                <div className="h-[280px] overflow-hidden rounded-xl border border-gray-200">
+                <div className="h-[280px] overflow-hidden rounded-xl border border-slate-700">
                   <APIProvider apiKey={googleMapsApiKey} libraries={["places"]}>
                     <Map
+                      mapId="DEMO_MAP_ID"
                       defaultCenter={mapCenter}
                       defaultZoom={4}
                       center={mapCenter}
@@ -301,7 +304,7 @@ export default function CreateProjectWizard({
                       disableDefaultUI
                       gestureHandling="greedy"
                     >
-                      {lat && lng ? <Marker position={{ lat, lng }} /> : null}
+                      {lat && lng ? <AdvancedMarker position={{ lat, lng }} /> : null}
                     </Map>
                   </APIProvider>
                 </div>
@@ -311,50 +314,50 @@ export default function CreateProjectWizard({
             {currentStep === 3 && (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-600">Estimated Budget</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Estimated Budget</label>
                   <input
                     value={estimatedBudget}
                     onChange={(event) => setEstimatedBudget(event.target.value)}
                     placeholder="e.g. $4,500,000"
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-600">Target Start Date</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Target Start Date</label>
                   <input
                     type="date"
                     value={targetStartDate}
                     onChange={(event) => setTargetStartDate(event.target.value)}
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-600">Target End Date</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Target End Date</label>
                   <input
                     type="date"
                     value={targetEndDate}
                     onChange={(event) => setTargetEndDate(event.target.value)}
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="mb-1 block text-xs font-semibold text-gray-600">Custom Project Phases</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Custom Project Phases</label>
                   <textarea
                     rows={4}
                     value={customPhases}
                     onChange={(event) => setCustomPhases(event.target.value)}
                     placeholder="One phase per line (e.g. Precon, Foundation, Framing...)"
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm resize-none"
+                    className="w-full resize-none rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="mb-1 block text-xs font-semibold text-gray-600">Scope</label>
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Scope</label>
                   <textarea
                     value={scope}
                     onChange={(event) => setScope(event.target.value)}
                     rows={3}
                     placeholder="Optional scope summary"
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm resize-none"
+                    className="w-full resize-none rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500"
                   />
                 </div>
               </div>
@@ -362,14 +365,14 @@ export default function CreateProjectWizard({
 
             {currentStep === 4 && (
               <div className="space-y-4">
-                <div className="rounded-xl border border-gray-200 p-3">
-                  <label className="mb-1 block text-xs font-semibold text-gray-600">Add Team Email</label>
+                <div className="rounded-xl border border-slate-700 bg-slate-800/60 p-3">
+                  <label className="mb-1 block text-xs font-semibold text-slate-300">Add Team Email</label>
                   <div className="flex items-center gap-2">
                     <input
                       value={emailInput}
                       onChange={(event) => setEmailInput(event.target.value)}
                       placeholder="name@company.com"
-                      className="flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm"
+                      className="flex-1 rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500"
                     />
                     <button
                       type="button"
@@ -386,7 +389,7 @@ export default function CreateProjectWizard({
                           key={email}
                           type="button"
                           onClick={() => removeTeamEmail(email)}
-                          className="rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] text-gray-700"
+                          className="rounded-full border border-slate-600 bg-slate-800 px-2 py-1 text-[11px] text-slate-200"
                         >
                           {email} ×
                         </button>
@@ -395,13 +398,13 @@ export default function CreateProjectWizard({
                   )}
                 </div>
 
-                <div className="rounded-xl border border-gray-200 p-3">
+                <div className="rounded-xl border border-slate-700 bg-slate-800/60 p-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold text-gray-700">Select from Contacts</p>
-                      <p className="text-[11px] text-gray-500">Mock list for now</p>
+                      <p className="text-xs font-semibold text-slate-200">Select from Contacts</p>
+                      <p className="text-[11px] text-slate-400">Mock list for now</p>
                     </div>
-                    <span className="rounded-full border border-gray-200 px-2 py-0.5 text-[11px] text-gray-600">
+                    <span className="rounded-full border border-slate-600 px-2 py-0.5 text-[11px] text-slate-300">
                       {selectedTeamSummary}
                     </span>
                   </div>
@@ -414,12 +417,12 @@ export default function CreateProjectWizard({
                           className={`flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2 text-sm transition ${
                             selected
                               ? "border-[#FF4D00]/40 bg-[#FF4D00]/10"
-                              : "border-gray-200 bg-white hover:bg-gray-50"
+                              : "border-slate-700 bg-slate-900 hover:bg-slate-800"
                           }`}
                         >
                           <div>
-                            <p className="font-semibold text-gray-800">{member.name}</p>
-                            <p className="text-xs text-gray-500">{member.role}</p>
+                            <p className="font-semibold text-slate-100">{member.name}</p>
+                            <p className="text-xs text-slate-400">{member.role}</p>
                           </div>
                           <input
                             type="checkbox"
@@ -436,24 +439,24 @@ export default function CreateProjectWizard({
             )}
 
             {currentStep === 5 && (
-              <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
-                <h4 className="font-bold text-gray-900">Review Project Setup</h4>
-                <p><span className="font-semibold text-gray-900">Name:</span> {name || "—"}</p>
-                <p><span className="font-semibold text-gray-900">Description:</span> {description || "—"}</p>
-                <p><span className="font-semibold text-gray-900">Type:</span> {projectType}</p>
-                <p><span className="font-semibold text-gray-900">Contract:</span> {contractType}</p>
-                <p><span className="font-semibold text-gray-900">Address:</span> {address || "—"}</p>
-                <p><span className="font-semibold text-gray-900">Coordinates:</span> {lat && lng ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : "—"}</p>
-                <p><span className="font-semibold text-gray-900">Budget:</span> {estimatedBudget || "—"}</p>
-                <p><span className="font-semibold text-gray-900">Schedule:</span> {targetStartDate || "—"} → {targetEndDate || "—"}</p>
-                <p><span className="font-semibold text-gray-900">Team:</span> {teamMemberIds.length + teamEmails.length} members/contacts</p>
-                <p className="text-xs text-gray-500">Canonical project folders will be auto-provisioned in the background.</p>
+              <div className="space-y-3 rounded-xl border border-slate-700 bg-slate-800/60 p-4 text-sm text-slate-200">
+                <h4 className="font-bold text-white">Review Project Setup</h4>
+                <p><span className="font-semibold text-white">Name:</span> {name || "—"}</p>
+                <p><span className="font-semibold text-white">Description:</span> {description || "—"}</p>
+                <p><span className="font-semibold text-white">Type:</span> {projectType}</p>
+                <p><span className="font-semibold text-white">Contract:</span> {contractType}</p>
+                <p><span className="font-semibold text-white">Address:</span> {address || "—"}</p>
+                <p><span className="font-semibold text-white">Coordinates:</span> {lat && lng ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : "—"}</p>
+                <p><span className="font-semibold text-white">Budget:</span> {estimatedBudget || "—"}</p>
+                <p><span className="font-semibold text-white">Schedule:</span> {targetStartDate || "—"} → {targetEndDate || "—"}</p>
+                <p><span className="font-semibold text-white">Team:</span> {teamMemberIds.length + teamEmails.length} members/contacts</p>
+                <p className="text-xs text-slate-400">Canonical project folders will be auto-provisioned in the background.</p>
               </div>
             )}
           </div>
 
           {(localError || error) ? (
-            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+            <div className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
               {localError || error}
             </div>
           ) : null}
@@ -464,7 +467,7 @@ export default function CreateProjectWizard({
                 <button
                   type="button"
                   onClick={prevStep}
-                  className="inline-flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+                  className="inline-flex items-center gap-1 rounded-xl border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800"
                 >
                   <ChevronLeft size={13} /> Back
                 </button>
@@ -475,7 +478,7 @@ export default function CreateProjectWizard({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+                className="rounded-xl border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800"
               >
                 Cancel
               </button>

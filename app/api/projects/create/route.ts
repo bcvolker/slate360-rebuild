@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { provisionProjectFolders } from "@/src/lib/slatedrop/provisioning";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -74,25 +75,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to create project membership" }, { status: 500 });
   }
 
-  const provisionResponse = await fetch(`${req.nextUrl.origin}/api/slatedrop/provision`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      cookie: req.headers.get("cookie") ?? "",
-    },
-    body: JSON.stringify({
-      projectId: createdProject.id,
-      projectName: createdProject.name,
-    }),
-  });
-
-  if (!provisionResponse.ok) {
+  try {
+    await provisionProjectFolders(createdProject.id, createdProject.name, orgId, user.id);
+  } catch (provisionError) {
     await admin.from("project_members").delete().eq("project_id", createdProject.id).eq("user_id", user.id);
     await admin.from("projects").delete().eq("id", createdProject.id).eq("org_id", orgId);
-
-    const provisionPayload = await provisionResponse.json().catch(() => ({}));
-    console.error("[api/projects/create] folder provisioning failed", provisionPayload);
-
+    console.error("[api/projects/create] folder provisioning failed", provisionError);
     return NextResponse.json(
       { error: "Project created but folder provisioning failed. Project was rolled back." },
       { status: 500 }
