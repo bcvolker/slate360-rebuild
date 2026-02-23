@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { APIProvider, Map, Marker, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
+import { APIProvider, AdvancedMarker, Map, useMap } from "@vis.gl/react-google-maps";
 import {
   CheckCircle2,
   Circle,
@@ -146,8 +146,7 @@ function DrawController({
   setMapCenter: (value: { lat: number; lng: number }) => void;
 }) {
   const map = useMap();
-  const placesLibrary = useMapsLibrary("places");
-  const drawingLibrary = useMapsLibrary("drawing");
+  const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
   const [tool, setTool] = useState<DrawTool>("select");
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
@@ -158,7 +157,6 @@ function DrawController({
   const overlaysRef = useRef<OverlayRecord[]>([]);
   const selectedOverlayIdRef = useRef<string | null>(null);
   const selectedToolRef = useRef<DrawTool>("select");
-  const placesSvcRef = useRef<any>(null);
 
   const setDrawingTool = (next: DrawTool) => {
     setTool(next);
@@ -197,15 +195,9 @@ function DrawController({
   };
 
   useEffect(() => {
-    if (!placesLibrary) return;
-    if (!placesSvcRef.current) {
-      placesSvcRef.current = new placesLibrary.AutocompleteService();
-    }
-  }, [placesLibrary]);
-
-  useEffect(() => {
-    if (!map || !drawingLibrary || !(window as any).google?.maps) return;
+    if (!map || !(window as any).google?.maps) return;
     const mapsApi = (window as any).google.maps;
+    if (!mapsApi?.drawing?.DrawingManager) return;
 
     if (!drawingManagerRef.current) {
       drawingManagerRef.current = new mapsApi.drawing.DrawingManager({
@@ -277,7 +269,7 @@ function DrawController({
       overlayListener?.remove?.();
       manager.setMap(null);
     };
-  }, [drawingLibrary, map, strokeColor, fillColor, strokeWeight]);
+  }, [map, strokeColor, fillColor, strokeWeight]);
 
   useEffect(() => {
     const manager = drawingManagerRef.current;
@@ -326,35 +318,46 @@ function DrawController({
 
   useEffect(() => {
     const trimmed = addressInput.trim();
-    if (!trimmed || trimmed.length < 3 || !placesSvcRef.current) {
+    if (!trimmed || trimmed.length < 3 || !mapsApiKey) {
       setSuggestions([]);
       return;
     }
 
     const timeout = window.setTimeout(() => {
-      placesSvcRef.current.getPlacePredictions(
-        {
-          input: trimmed,
-          types: ["geocode"],
-        },
-        (predictions: any[] | null, status: string) => {
-          if (status !== "OK" || !Array.isArray(predictions)) {
-            setSuggestions([]);
-            return;
-          }
+      const controller = new AbortController();
+      void fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(trimmed)}&key=${mapsApiKey}`,
+        { signal: controller.signal }
+      )
+        .then((response) => {
+          if (!response.ok) throw new Error("geocode_failed");
+          return response.json();
+        })
+        .then((payload: unknown) => {
+          const results =
+            payload && typeof payload === "object" && Array.isArray((payload as { results?: unknown[] }).results)
+              ? ((payload as { results: Array<{ place_id?: string; formatted_address?: string }> }).results)
+              : [];
 
           setSuggestions(
-            predictions.slice(0, 6).map((prediction) => ({
-              placeId: prediction.place_id,
-              description: prediction.description,
-            }))
+            results
+              .slice(0, 6)
+              .map((result) => ({
+                placeId: result.place_id ?? "",
+                description: result.formatted_address ?? "",
+              }))
+              .filter((result) => Boolean(result.placeId) && Boolean(result.description))
           );
-        }
-      );
+        })
+        .catch(() => {
+          setSuggestions([]);
+        });
+
+      return () => controller.abort();
     }, 250);
 
     return () => window.clearTimeout(timeout);
-  }, [addressInput]);
+  }, [addressInput, mapsApiKey]);
 
   const goToCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -378,41 +381,41 @@ function DrawController({
   };
 
   const selectAddress = async (suggestion: AddressSuggestion) => {
-    if (!map || !placesLibrary) {
+    if (!map || !mapsApiKey) {
       setStatus({ ok: false, text: "Map is still loading. Try again." });
       return;
     }
 
     setIsResolvingAddress(true);
     try {
-      const service = new placesLibrary.PlacesService(map);
-      await new Promise<void>((resolve, reject) => {
-        service.getDetails(
-          {
-            placeId: suggestion.placeId,
-            fields: ["formatted_address", "geometry"],
-          },
-          (place: any, status: string) => {
-            if (status !== "OK" || !place?.geometry?.location) {
-              reject(new Error("Place lookup failed"));
-              return;
-            }
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?place_id=${encodeURIComponent(suggestion.placeId)}&key=${mapsApiKey}`
+      );
+      if (!response.ok) {
+        throw new Error("Place lookup failed");
+      }
 
-            const location = place.geometry.location;
-            const lat = typeof location.lat === "function" ? location.lat() : Number(location.lat);
-            const lng = typeof location.lng === "function" ? location.lng() : Number(location.lng);
-            const next = { lat, lng };
+      const payload = (await response.json()) as {
+        results?: Array<{
+          formatted_address?: string;
+          geometry?: { location?: { lat?: number; lng?: number } };
+        }>;
+      };
 
-            setMapCenter(next);
-            setAddressQuery(place.formatted_address ?? suggestion.description);
-            setAddressInput(place.formatted_address ?? suggestion.description);
-            map.panTo(next);
-            map.setZoom(16);
-            setSuggestions([]);
-            resolve();
-          }
-        );
-      });
+      const result = Array.isArray(payload.results) ? payload.results[0] : undefined;
+      const location = result?.geometry?.location;
+      if (!location || typeof location.lat !== "number" || typeof location.lng !== "number") {
+        throw new Error("Place lookup failed");
+      }
+
+      const next = { lat: location.lat, lng: location.lng };
+
+      setMapCenter(next);
+      setAddressQuery(result?.formatted_address ?? suggestion.description);
+      setAddressInput(result?.formatted_address ?? suggestion.description);
+      map.panTo(next);
+      map.setZoom(16);
+      setSuggestions([]);
     } catch {
       setStatus({ ok: false, text: "Could not locate that address." });
     } finally {
@@ -1050,7 +1053,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       </div>
       
       <div className="flex-1 relative min-h-[220px]" ref={mapRef}>
-        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""} libraries={["places", "drawing"]}>
+        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
           <DrawController
             setStatus={setStatus}
             strokeColor={strokeColor}
@@ -1069,7 +1072,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
             gestureHandling={"greedy"}
             disableDefaultUI={true}
           >
-            <Marker position={mapCenter} />
+            <AdvancedMarker position={mapCenter} />
           </Map>
         </APIProvider>
       </div>

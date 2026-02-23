@@ -29,17 +29,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Project name is required" }, { status: 400 });
   }
 
-  let orgId: string | null = null;
-  try {
-    const { data } = await admin
-      .from("organization_members")
-      .select("org_id")
-      .eq("user_id", user.id)
-      .single();
-    orgId = data?.org_id ?? null;
-  } catch {
-    orgId = null;
-  }
+  const { data: membership } = await admin
+    .from("organization_members")
+    .select("org_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const orgId = membership?.org_id ?? null;
+
+  const rollbackProject = async (projectId: string) => {
+    let rollback = admin.from("projects").delete().eq("id", projectId);
+    rollback = orgId ? rollback.eq("org_id", orgId) : rollback.eq("created_by", user.id);
+    await rollback;
+  };
 
   const { data: createdProject, error: projectError } = await admin
     .from("projects")
@@ -67,7 +69,7 @@ export async function POST(req: NextRequest) {
   });
 
   if (memberError) {
-    await admin.from("projects").delete().eq("id", createdProject.id).eq("org_id", orgId);
+    await rollbackProject(createdProject.id);
     console.error("[api/projects/create] project member insert failed", memberError.message);
     return NextResponse.json({ error: "Failed to create project membership" }, { status: 500 });
   }
@@ -76,7 +78,7 @@ export async function POST(req: NextRequest) {
     await provisionProjectFolders(createdProject.id, createdProject.name, orgId, user.id);
   } catch (provisionError) {
     await admin.from("project_members").delete().eq("project_id", createdProject.id).eq("user_id", user.id);
-    await admin.from("projects").delete().eq("id", createdProject.id).eq("org_id", orgId);
+    await rollbackProject(createdProject.id);
     console.error("[api/projects/create] folder provisioning failed", provisionError);
     return NextResponse.json(
       { error: "Project created but folder provisioning failed. Project was rolled back." },
