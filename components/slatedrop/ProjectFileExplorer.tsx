@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Folder, FileText, Link as LinkIcon, Check } from "lucide-react";
+import { Loader2, Folder, FileText, Link as LinkIcon, Check, ArrowUpRight, Download } from "lucide-react";
 
 type FolderRow = {
   id: string;
@@ -15,6 +15,12 @@ type FileRow = {
   size: number;
   type: string;
   modified: string;
+};
+
+type LatestReport = {
+  id: string;
+  name: string;
+  url: string | null;
 };
 
 export default function ProjectFileExplorer({
@@ -32,8 +38,12 @@ export default function ProjectFileExplorer({
   const [files, setFiles] = useState<FileRow[]>([]);
 
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [isExportingCloseout, setIsExportingCloseout] = useState(false);
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [latestReport, setLatestReport] = useState<LatestReport | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportCopied, setReportCopied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,6 +104,53 @@ export default function ProjectFileExplorer({
   }, [activeFolderId]);
 
   const activeFolder = useMemo(() => folders.find((folder) => folder.id === activeFolderId) ?? null, [folders, activeFolderId]);
+  const activeFolderIsReports = (activeFolder?.name ?? "").toLowerCase() === "reports";
+
+  useEffect(() => {
+    if (!activeFolderIsReports || files.length === 0) {
+      setLatestReport(null);
+      setReportLoading(false);
+      setReportCopied(false);
+      return;
+    }
+
+    const candidates = files.filter((file) => {
+      const lower = file.name.toLowerCase();
+      return lower.endsWith(".pdf") && lower.includes("photo-report");
+    });
+
+    if (candidates.length === 0) {
+      setLatestReport(null);
+      setReportLoading(false);
+      setReportCopied(false);
+      return;
+    }
+
+    let cancelled = false;
+    const latest = candidates[0];
+
+    const loadLatestReportUrl = async () => {
+      setReportLoading(true);
+      try {
+        const response = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(latest.id)}`);
+        const payload = await response.json().catch(() => ({}));
+        if (cancelled) return;
+        setLatestReport({
+          id: latest.id,
+          name: latest.name,
+          url: response.ok && typeof payload?.url === "string" ? payload.url : null,
+        });
+      } finally {
+        if (!cancelled) setReportLoading(false);
+      }
+    };
+
+    void loadLatestReportUrl();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeFolderIsReports, files]);
 
   const handleGenerateLink = async () => {
     if (!activeFolderId) return;
@@ -123,6 +180,40 @@ export default function ProjectFileExplorer({
       navigator.clipboard.writeText(generatedLink);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleCopyReportLink = () => {
+    if (!latestReport?.url) return;
+    navigator.clipboard.writeText(latestReport.url);
+    setReportCopied(true);
+    setTimeout(() => setReportCopied(false), 1800);
+  };
+
+  const handleExportCloseout = async () => {
+    setIsExportingCloseout(true);
+    try {
+      const response = await fetch("/api/slatedrop/project-audit-export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId }),
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `project-closeout-${projectId}.zip`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsExportingCloseout(false);
     }
   };
 
@@ -164,21 +255,32 @@ export default function ProjectFileExplorer({
       </aside>
 
       <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-sm font-black text-gray-900">{activeFolder?.name ?? "Files"}</h2>
             <p className="mt-1 text-xs text-gray-500">{activeFolder?.path ?? "Select a folder to view files"}</p>
           </div>
-          {activeFolderId && (
+          <div className="flex items-center gap-2">
             <button
-              onClick={handleGenerateLink}
-              disabled={isGeneratingLink}
-              className="flex items-center gap-2 rounded-lg bg-[#FF4D00] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#E64500] disabled:opacity-50"
+              onClick={handleExportCloseout}
+              disabled={isExportingCloseout}
+              className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
             >
-              {isGeneratingLink ? <Loader2 size={14} className="animate-spin" /> : <LinkIcon size={14} />}
-              Request Link
+              {isExportingCloseout ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+              Export Closeout
             </button>
-          )}
+
+            {activeFolderId && (
+              <button
+                onClick={handleGenerateLink}
+                disabled={isGeneratingLink}
+                className="flex items-center gap-2 rounded-lg bg-[#FF4D00] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#E64500] disabled:opacity-50"
+              >
+                {isGeneratingLink ? <Loader2 size={14} className="animate-spin" /> : <LinkIcon size={14} />}
+                Request Link
+              </button>
+            )}
+          </div>
         </div>
 
         {generatedLink && (
@@ -194,6 +296,43 @@ export default function ProjectFileExplorer({
               {copied ? <Check size={12} /> : <LinkIcon size={12} />}
               {copied ? "Copied!" : "Copy"}
             </button>
+          </div>
+        )}
+
+        {activeFolderIsReports && latestReport && (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
+            <p className="text-xs font-semibold text-emerald-800">Latest Photo Report</p>
+            <p className="mt-1 truncate text-xs text-emerald-700">{latestReport.name}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <a
+                href={latestReport.url ?? "#"}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200"
+              >
+                <ArrowUpRight size={12} /> View
+              </a>
+              <a
+                href={latestReport.url ?? "#"}
+                download={latestReport.name}
+                className="inline-flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200"
+              >
+                <Download size={12} /> Download
+              </a>
+              <button
+                onClick={handleCopyReportLink}
+                disabled={!latestReport.url}
+                className="inline-flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 disabled:opacity-60"
+              >
+                {reportCopied ? <Check size={12} /> : <LinkIcon size={12} />}
+                {reportCopied ? "Copied" : "Copy Link"}
+              </button>
+            </div>
+            {reportLoading && (
+              <p className="mt-2 text-[11px] text-emerald-700">
+                <Loader2 size={12} className="mr-1 inline animate-spin" /> Loading signed URL…
+              </p>
+            )}
           </div>
         )}
 

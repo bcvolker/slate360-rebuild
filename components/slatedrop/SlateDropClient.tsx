@@ -66,6 +66,16 @@ interface FolderNode {
   parentId: string | null;
 }
 
+type SandboxProject = {
+  id: string;
+  name: string;
+  folders: Array<{
+    id: string;
+    name: string;
+    isSystem: boolean;
+  }>;
+};
+
 interface FileItem {
   id: string;
   name: string;
@@ -148,46 +158,7 @@ function buildFolderTree(tier: Tier): FolderNode[] {
     isSystem: true,
     icon: "🏗️",
     parentId: null,
-    children: [
-      {
-        id: "proj-maple-heights",
-        name: "Maple Heights Residence",
-        isSystem: false,
-        parentId: "projects",
-        children: [
-          { id: "p1-docs", name: "Documents", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-drawings", name: "Drawings", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-photos", name: "Photos", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-models", name: "3D Models", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-tours", name: "360 Tours", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-rfis", name: "RFIs", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-submittals", name: "Submittals", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-schedule", name: "Schedule", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-budget", name: "Budget", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-reports", name: "Reports", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-safety", name: "Safety", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-correspondence", name: "Correspondence", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-closeout", name: "Closeout", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-daily-logs", name: "Daily Logs", isSystem: true, children: [], parentId: "proj-maple-heights" },
-          { id: "p1-misc", name: "Misc", isSystem: false, children: [], parentId: "proj-maple-heights" },
-        ],
-      },
-      {
-        id: "proj-harbor-point",
-        name: "Harbor Point Office Tower",
-        isSystem: false,
-        parentId: "projects",
-        children: [
-          { id: "p2-docs", name: "Documents", isSystem: true, children: [], parentId: "proj-harbor-point" },
-          { id: "p2-drawings", name: "Drawings", isSystem: true, children: [], parentId: "proj-harbor-point" },
-          { id: "p2-photos", name: "Photos", isSystem: true, children: [], parentId: "proj-harbor-point" },
-          { id: "p2-models", name: "3D Models", isSystem: true, children: [], parentId: "proj-harbor-point" },
-          { id: "p2-tours", name: "360 Tours", isSystem: true, children: [], parentId: "proj-harbor-point" },
-          { id: "p2-rfis", name: "RFIs", isSystem: true, children: [], parentId: "proj-harbor-point" },
-          { id: "p2-submittals", name: "Submittals", isSystem: true, children: [], parentId: "proj-harbor-point" },
-        ],
-      },
-    ],
+    children: [],
   };
 
   let folders: FolderNode[] = [...always];
@@ -349,6 +320,31 @@ function findFolderPath(nodes: FolderNode[], id: string, path: string[] = []): s
   return null;
 }
 
+function withSandboxProjects(nodes: FolderNode[], projects: SandboxProject[]): FolderNode[] {
+  return nodes.map((node) => {
+    if (node.id !== "projects") {
+      if (node.children.length === 0) return node;
+      return { ...node, children: withSandboxProjects(node.children, projects) };
+    }
+
+    const projectNodes: FolderNode[] = projects.map((project) => ({
+      id: project.id,
+      name: project.name,
+      isSystem: false,
+      parentId: "projects",
+      children: project.folders.map((folder) => ({
+        id: folder.id,
+        name: folder.name,
+        isSystem: folder.isSystem,
+        parentId: project.id,
+        children: [],
+      })),
+    }));
+
+    return { ...node, children: projectNodes };
+  });
+}
+
 /* ================================================================
    SIDEBAR FOLDER TREE ITEM
    ================================================================ */
@@ -446,6 +442,27 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
 
   useEffect(() => {
     setFolderTree(buildFolderTree(tier));
+  }, [tier]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadSandbox = async () => {
+      try {
+        const response = await fetch("/api/projects/sandbox", { cache: "no-store" });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || cancelled) return;
+        const projects = Array.isArray(payload?.projects) ? (payload.projects as SandboxProject[]) : [];
+        setFolderTree((prev) => withSandboxProjects(prev, projects));
+      } catch {
+      }
+    };
+
+    void loadSandbox();
+
+    return () => {
+      cancelled = true;
+    };
   }, [tier]);
 
   /* ── State ── */

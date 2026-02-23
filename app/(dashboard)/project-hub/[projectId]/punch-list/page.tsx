@@ -1,10 +1,14 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import { Loader2, Mic, MicOff } from "lucide-react";
 
 export default function PunchListPage() {
+  const params = useParams<{ projectId: string }>();
+  const projectId = params?.projectId;
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("medium");
@@ -41,6 +45,10 @@ export default function PunchListPage() {
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (!projectId) {
+      setStatus("Project context missing.");
+      return;
+    }
     setSaving(true);
     setStatus(null);
 
@@ -48,13 +56,35 @@ export default function PunchListPage() {
       await SpeechRecognition.stopListening();
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      const res = await fetch(`/api/projects/${projectId}/records`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "PunchList",
+          title: title.trim() || `punch-${new Date().toISOString().slice(0, 10)}`,
+          content: [
+            `Priority: ${priority}`,
+            "",
+            description.trim(),
+          ].join("\n"),
+        }),
+      });
 
-    setSaving(false);
-    setStatus("Punch item captured locally (wire DB persistence in next phase).");
-    setTitle("");
-    setDescription("");
-    resetTranscript();
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(payload?.error ?? "Unable to save punch item");
+      }
+
+      setStatus("Punch item saved to project folders.");
+      setTitle("");
+      setDescription("");
+      resetTranscript();
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Unable to save punch item.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

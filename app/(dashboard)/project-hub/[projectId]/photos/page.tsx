@@ -9,6 +9,7 @@ type UploadRow = {
   id: string;
   file_name: string;
   file_type: string | null;
+  created_at?: string | null;
 };
 
 const IMAGE_TYPES = new Set(["jpg", "jpeg", "png", "gif", "webp", "svg", "heic", "bmp"]);
@@ -57,7 +58,7 @@ export default async function PhotosPage({
   }
 
   if (!photosFolderId) {
-    return <PhotoLogClient files={[]} />;
+    return <PhotoLogClient projectId={projectId} files={[]} />;
   }
 
   const namespace = resolveNamespace(orgId, user.id);
@@ -65,7 +66,7 @@ export default async function PhotosPage({
 
   let query = admin
     .from("slatedrop_uploads")
-    .select("id, file_name, file_type")
+    .select("id, file_name, file_type, created_at")
     .eq("status", "active")
     .like("s3_key", `${folderPrefix}%`)
     .order("created_at", { ascending: false });
@@ -79,7 +80,8 @@ export default async function PhotosPage({
     .map((file) => ({
       id: file.id,
       name: file.file_name,
+      createdAt: file.created_at ?? null,
     }));
 
-  return <PhotoLogClient files={photos} />;
+  return <PhotoLogClient projectId={projectId} files={photos} />;
 }

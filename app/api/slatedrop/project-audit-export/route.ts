@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     const { data: files } = await filesQuery;
 
     const relativeFolder = (folder.folder_path ?? folder.name)
-      .replace(/^Projects\//i, "")
+      .replace(/^(?:Project Sandbox|Projects)\//i, "")
       .replace(`${projectName}/`, "");
 
     const manifestFolder = {

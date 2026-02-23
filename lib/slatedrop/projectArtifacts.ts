@@ -8,6 +8,7 @@ export type ProjectArtifactKind =
   | "Submittal"
   | "PunchList"
   | "DailyLog"
+  | "PhotoReport"
   | "Budget"
   | "Schedule"
   | "Closeout";
@@ -17,6 +18,7 @@ const ARTIFACT_FOLDER_MAP: Record<ProjectArtifactKind, string> = {
   Submittal: "Submittals",
   PunchList: "Reports",
   DailyLog: "Daily Logs",
+  PhotoReport: "Reports",
   Budget: "Budget",
   Schedule: "Schedule",
   Closeout: "Closeout",
@@ -63,7 +65,7 @@ function extFromFilename(name: string): string {
 
 export async function saveProjectArtifact(
   projectId: string,
-  projectName: string,
+  _projectName: string,
   kind: ProjectArtifactKind,
   file: UploadableArtifactFile,
   user: ArtifactUser,
@@ -72,9 +74,13 @@ export async function saveProjectArtifact(
   const admin = createAdminClient();
 
   const folderName = resolveArtifactFolder(kind);
+  const folderId = await resolveProjectFolderIdByName(projectId, folderName, orgId, user.id);
+  if (!folderId) {
+    throw new Error(`Project folder not found for artifact kind: ${kind}`);
+  }
+
   const namespace = resolveNamespace(orgId, user.id);
-  const folderToken = `Projects/${projectName}/${folderName}`;
-  const s3Key = buildCanonicalS3Key(namespace, folderToken, file.name);
+  const s3Key = buildCanonicalS3Key(namespace, folderId, file.name);
 
   const body = Buffer.from(await file.arrayBuffer());
 
@@ -94,6 +100,7 @@ export async function saveProjectArtifact(
       file_size: file.size ?? body.byteLength,
       file_type: extFromFilename(file.name),
       s3_key: s3Key,
+      folder_id: folderId,
       org_id: orgId,
       uploaded_by: user.id,
       status: "active",

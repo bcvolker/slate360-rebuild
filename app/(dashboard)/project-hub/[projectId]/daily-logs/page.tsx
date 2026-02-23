@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useParams } from "next/navigation";
 import { CloudSun, Loader2, MapPin } from "lucide-react";
 
 function weatherCodeLabel(code: number): string {
@@ -15,6 +16,9 @@ function weatherCodeLabel(code: number): string {
 }
 
 export default function DailyLogsPage() {
+  const params = useParams<{ projectId: string }>();
+  const projectId = params?.projectId;
+
   const [entryDate, setEntryDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [summary, setSummary] = useState("");
   const [weatherText, setWeatherText] = useState("");
@@ -74,13 +78,45 @@ export default function DailyLogsPage() {
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (!projectId) {
+      setStatus("Project context missing.");
+      return;
+    }
     setSaving(true);
     setStatus(null);
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      const res = await fetch(`/api/projects/${projectId}/records`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "DailyLog",
+          title: `${entryDate}-daily-log`,
+          content: [
+            `Date: ${entryDate}`,
+            "",
+            "Summary:",
+            summary.trim(),
+            "",
+            "Weather:",
+            weatherText.trim(),
+          ].join("\n"),
+        }),
+      });
 
-    setSaving(false);
-    setStatus("Daily log captured locally (wire DB persistence in next phase).");
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(payload?.error ?? "Unable to save daily log");
+      }
+
+      setSummary("");
+      setWeatherText("");
+      setStatus("Daily log saved to project folders.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Unable to save daily log.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

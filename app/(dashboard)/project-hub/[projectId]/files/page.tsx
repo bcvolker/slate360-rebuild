@@ -28,14 +28,5 @@ export default async function ProjectFilesPage({
     notFound();
   }
 
-  const { data: projectFolderCandidate } = await supabase
-    .from("project_folders")
-    .select("id")
-    .eq("parent_id", projectId)
-    .eq("name", project.name)
-    .maybeSingle();
-
-  const rootFolderId = projectFolderCandidate?.id ?? projectId;
-
-  return <ProjectFileExplorer projectId={projectId} rootFolderId={rootFolderId} />;
+  return <ProjectFileExplorer projectId={projectId} rootFolderId={projectId} />;
 }

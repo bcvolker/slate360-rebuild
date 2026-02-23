@@ -1,17 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, FileImage } from "lucide-react";
+import { Loader2, FileImage, ArrowUpRight, Download, Check, Link as LinkIcon } from "lucide-react";
 
 type PhotoFile = {
   id: string;
   name: string;
+  createdAt?: string | null;
 };
 
-export default function PhotoLogClient({ files }: { files: PhotoFile[] }) {
+export default function PhotoLogClient({ projectId, files }: { projectId: string; files: PhotoFile[] }) {
   const [urlMap, setUrlMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [latestReport, setLatestReport] = useState<{ fileId: string; fileName: string; url: string | null } | null>(null);
+  const [copied, setCopied] = useState(false);
   const [demoPhotos, setDemoPhotos] = useState<PhotoFile[]>([]);
 
   const visibleFiles = files.length > 0 ? files : demoPhotos;
@@ -55,6 +59,53 @@ export default function PhotoLogClient({ files }: { files: PhotoFile[] }) {
     return () => window.clearTimeout(timeout);
   }, [toast]);
 
+  const generateReport = async () => {
+    setIsGeneratingReport(true);
+    setCopied(false);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/photo-report`, {
+        method: "POST",
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setToast(payload?.error ?? "Failed to generate photo report");
+        return;
+      }
+
+      const fileId = typeof payload?.fileId === "string" ? payload.fileId : "";
+      const fileName = typeof payload?.fileName === "string" ? payload.fileName : "photo-report.pdf";
+
+      let signedUrl: string | null = null;
+      if (fileId) {
+        const dlRes = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(fileId)}`);
+        const dlPayload = await dlRes.json().catch(() => ({}));
+        if (dlRes.ok && typeof dlPayload?.url === "string") {
+          signedUrl = dlPayload.url;
+        }
+      }
+
+      setLatestReport(fileId ? { fileId, fileName, url: signedUrl } : null);
+
+      setToast(`Photo report saved to Reports (${payload?.photoCount ?? 0} photos).`);
+    } catch {
+      setToast("Failed to generate photo report");
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
+  const copyReportLink = async () => {
+    if (!latestReport?.url) return;
+    try {
+      await navigator.clipboard.writeText(latestReport.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
+  };
+
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -73,13 +124,45 @@ export default function PhotoLogClient({ files }: { files: PhotoFile[] }) {
             </button>
           )}
           <button
-            onClick={() => setToast("Photo Report PDF Generating...")}
-            className="rounded-lg bg-[#FF4D00] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#E64500]"
+            onClick={generateReport}
+            disabled={isGeneratingReport || visibleFiles.length === 0}
+            className="rounded-lg bg-[#FF4D00] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#E64500] disabled:opacity-60"
           >
-            Generate Photo Report
+            {isGeneratingReport ? "Generating..." : "Generate Photo Report"}
           </button>
         </div>
       </div>
+
+      {latestReport && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
+          <p className="text-xs font-semibold text-emerald-800">Latest Photo Report</p>
+          <p className="mt-1 truncate text-xs text-emerald-700">{latestReport.fileName}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <a
+              href={latestReport.url ?? "#"}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200"
+            >
+              <ArrowUpRight size={12} /> View
+            </a>
+            <a
+              href={latestReport.url ?? "#"}
+              download={latestReport.fileName}
+              className="inline-flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200"
+            >
+              <Download size={12} /> Download
+            </a>
+            <button
+              onClick={copyReportLink}
+              disabled={!latestReport.url}
+              className="inline-flex items-center gap-1 rounded-md bg-white px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 disabled:opacity-60"
+            >
+              {copied ? <Check size={12} /> : <LinkIcon size={12} />} {copied ? "Copied" : "Copy Link"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-8 text-sm text-gray-500">

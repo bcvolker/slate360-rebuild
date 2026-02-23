@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   const rows = SYSTEM_FOLDERS.map((name) => ({
     name,
-    folder_path: `Projects/${projectName}/${name}`,
+    folder_path: `Project Sandbox/${projectName}/${name}`,
     parent_id: projectId,
     is_system: true,
     folder_type: name.toLowerCase().replace(/\s+/g, "_"),

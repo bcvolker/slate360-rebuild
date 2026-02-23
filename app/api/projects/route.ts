@@ -28,7 +28,7 @@ export async function GET() {
 
   let query = admin
     .from("projects")
-    .select("id, name, description, status, created_by, created_at")
+    .select("id, name, description, metadata, status, created_by, created_at")
     .order("created_at", { ascending: false });
 
   query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", user.id);
