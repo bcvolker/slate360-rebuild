@@ -1,6 +1,6 @@
 # Slate360 Diagnostic Report: The Circular Pattern & Persistence Failures
 
-> **Purpose**: Share this prompt with another AI coding assistant (Claude, ChatGPT, Gemini, etc.) to break us out of a "circular pattern" of development. 
+> **Purpose**: Share this prompt with another AI coding assistant (Claude, ChatGPT, Gemini, etc.) to break us out of a "circular pattern" of development.
 >
 > **The Core Challenge**: Every time we try to resolve a problem, the AI finds "obvious" issues in the code, implements a fix, the UI looks correct (often due to optimistic state updates), but the underlying problem remains unsolved. We are dealing with ghost files, zombie code, backend inconsistencies, or architectural conflicts that are masking the true root causes.
 >
@@ -8,49 +8,40 @@
 
 ---
 
-## The 4 Persistent Mysteries (Current State)
+## The 4 Persistent Mysteries (Current State & Updates)
 
-### Mystery 1: The Phantom Files (SlateDrop Upload & Move)
-**The Symptom**: 
-- When a user drags and drops a file into a folder, the UI shows a successful upload progress bar and the file appears in the folder. 
-- If the user right-clicks a file and selects "Move", the folder picker appears, the move succeeds, and the file disappears from the current folder and appears in the destination folder.
-- **THE CATCH**: If the user leaves the folder and returns (or refreshes the page), the files **disappear**. They are not in the destination folder.
+### Mystery 1: The Phantom Files (SlateDrop Upload & Move) - ✅ FIXED
+**Previous Symptom**: Files would upload/move in the UI but disappear on refresh.
+**The Fix Applied**: We centralized S3 key generation in `lib/slatedrop/storage.ts` and fixed the `uploadToS3` utility. The DB `s3_key` prefix matching now correctly aligns with the actual S3 upload paths. SlateDrop file persistence is now working properly.
 
-**The Clues & Suspects**:
-1. **Next.js App Router Caching**: Is `GET /api/slatedrop/files` being aggressively cached by Next.js? (There is no `export const dynamic = "force-dynamic"` in the route).
-2. **S3 Key vs Folder ID Mismatch**: The DB uses `s3_key` prefix matching (`LIKE 'orgs/default/folderId/%'`) to list files, but maybe the upload/move routes are saving the `s3_key` with a different prefix structure than the GET route expects?
-3. **Org ID Scoping**: Is the `org_id` being set to `null` on upload, but the GET request is strictly filtering by a specific `org_id` (or vice versa)?
-4. **Status stuck**: Are uploads stuck in `status: "pending"` because the `/api/slatedrop/complete` route is failing silently, and the GET route filters out pending files?
-
-### Mystery 2: The Black Hole of Emails (Critical Blocker)
+### Mystery 2: The Black Hole of Emails - ⚠️ PARTIALLY FIXED / ONGOING
 **The Symptom**:
-- **Account Creation is Impossible**: New users cannot sign up because the Supabase Auth confirmation email is *never received*. This has halted all development testing for new accounts.
-- **Secure Send Fails**: Right-clicking a file and using "Secure Send" shows a "Link Sent!" success modal, but the email (e.g., to `slatedrop360@gmail.com`) never arrives.
-
+- **Account Creation**: New users cannot sign up because the Supabase Auth confirmation email is *never received*.
+- **Secure Send Fails**: Right-clicking a file and using "Secure Send" shows a "Link Sent!" success modal, but the email never arrives.
+- **Recent Clue**: The last time a test email was successfully received via Resend to `slate360ceo@gmail.com` was Saturday 2/21/2026 09:11:56 UTC. Since then, no emails are going through.
+**What We Tried**: We migrated email dispatch to direct server-side execution using Resend (`app/api/email/send/route.ts`).
 **The Clues & Suspects**:
-1. **Supabase SMTP Limits**: Is Supabase still using the default built-in SMTP server, which heavily rate-limits emails (e.g., 3 per hour) and silently drops the rest?
-2. **Missing Provider Config**: Are we missing Resend/SendGrid API keys in the `.env.local`, or is the sender domain unverified?
-3. **Silent Catch Blocks**: Is the `/api/slatedrop/secure-send` route swallowing email dispatch errors in a `try/catch` block and returning `200 OK` to the frontend anyway?
+1. **Resend API Limits/Domain**: Is the Resend API key invalid, rate-limited, or is the sender domain unverified?
+2. **Supabase Auth Config**: Supabase Auth emails are handled by Supabase, not our custom Resend route. Is Supabase still using the default built-in SMTP server (which heavily rate-limits), or is the custom SMTP configuration in the Supabase Dashboard broken/missing?
 
-### Mystery 3: The Immortal Dashboard UI
+### Mystery 3: The Immortal Dashboard UI - ⚠️ ONGOING
 **The Symptom**:
-- The dashboard looks good, but **all of the dashboard tabs still have an extra quick access section with a horizontal scroll bar** that shouldn't be there.
-- Multiple attempts have been made to conditionally hide this (`activeTab === "overview"`), but the user still sees it across all tabs.
-
+- **Location Widget Missing**: The dashboard is missing a "Location widget".
+- **Unwanted Tab Navigation**: When navigating from the dashboard to a specific tab (e.g., Market Robot, Design Studio), there is still a list of quick access links at the top (Dashboard, Project Hub, Design Studio, Content Studio, 360 Tours, Geospatial, Virtual Studio, Analytics, SlateDrop, My Account, CEO, Market Robot, Athlete360). The user explicitly wants these removed from the tabs. The dashboard quick access links (tiles) are perfect, but the tabs themselves don't need this top navigation bar.
+**What We Tried**: We previously changed the Tab Navigation Bar (`components/dashboard/DashboardClient.tsx`) to use `flex-wrap` instead of `overflow-x-auto` to fix a horizontal scroll issue, but the user actually wants this entire navigation bar hidden when viewing a specific tab.
 **The Clues & Suspects**:
-1. **Component Confusion**: Is the user actually seeing the "Tab Navigation" (the row of icons to switch modules, which has `overflow-x-auto`) and mistaking it for the "Quick Access" tiles?
-2. **Zombie Layouts**: Is there a `layout.tsx` file (e.g., `app/dashboard/layout.tsx`) that is hardcoding a quick access component outside of the `DashboardClient.tsx` state?
-3. **Duplicate Rendering**: Are there two different components rendering similar-looking horizontal lists?
+1. **Conditional Rendering**: The Tab Navigation Bar is currently rendered when `activeTab !== "overview"`. It needs to be removed or hidden entirely, but how does the user navigate back to the overview if it's gone? (Maybe a global sidebar or a simple "Back to Dashboard" button is expected instead?)
+2. **Location Widget**: Where was the Location widget originally supposed to be rendered? Was it accidentally removed during a previous refactor?
 
-### Mystery 4: The Stubborn Market Robot
+### Mystery 4: The Stubborn Market Robot - ⚠️ ONGOING
 **The Symptom**:
-- Despite recent fixes (increasing Gamma API limits, adding sort options, fixing paper trade columns), the Market Robot page still exhibits all of its previous broken behaviors in practice.
-- Searches still fail to find obvious markets.
-- The Bot Scan still fails to recognize the bot is running.
-
+- The Market Robot tab is missing connectivity to Polymarket.
+- The search features don't work.
+- Running tests in paper mode doesn't make purchases or do anything.
+**What We Tried**: We migrated the Market Bot state to a persistent Supabase table (`market_bot_state`) and created a dedicated API route (`/api/market/bot-status`) to handle state.
 **The Clues & Suspects**:
-1. **Gamma API Limitations**: Does the Polymarket Gamma API completely ignore the `limit=500` parameter, meaning our server-side proxy still only gets the top 80 markets by volume, making client-side search useless?
-2. **Supabase `updateUser` Restrictions**: When the frontend calls `supabase.auth.updateUser({ data: { marketBotConfig: ... } })` to start the bot, is Supabase rejecting the metadata update because the cookie-based client lacks permission to update `user_metadata` without a specific trigger or service role?
+1. **Polymarket API Integration**: The `MarketClient.tsx` and `/api/market/polymarket` routes might be using mock data or failing to properly connect to the Gamma API.
+2. **Paper Trading Logic**: The paper trading execution logic might be stubbed out or failing silently without updating the user's paper balance or open positions.
 
 ---
 
@@ -60,6 +51,8 @@
 2. **Optimistic UI Updates**: We added React state updates to make the UI feel fast (e.g., instantly moving a file in the local array). This backfired by masking the fact that the backend API calls were failing or saving data incorrectly.
 3. **Column Remapping**: We ensured the frontend payload matches the DB schema (`file_name`, `file_size`, `s3_key`).
 4. **Type Strictness**: We implemented discriminated unions (`DbFile | Folder | DemoFile`) to prevent invalid operations on folders.
+5. **State Migration**: Moved Market Bot state from `user_metadata` to a dedicated `market_bot_state` table to avoid Supabase Auth update restrictions.
+6. **Email Migration**: Moved from client-side email triggering to a dedicated server-side Resend API route.
 
 ---
 
@@ -67,9 +60,8 @@
 
 Please analyze the clues above and answer the following:
 
-1. **The Caching Question**: In Next.js 15 App Router, if an API route like `GET /api/slatedrop/files` uses `createAdminClient()` (which doesn't rely on cookies in the same way `createClient` does), does Next.js statically cache the JSON response? How do we force it to fetch fresh DB data every time?
-2. **The Email Question**: What are the exact steps required to fix Supabase Auth confirmation emails? Is it purely a Supabase Dashboard configuration issue, or is there code missing?
-3. **The S3/DB Disconnect**: If an upload succeeds (S3 gets the file) but the DB query `LIKE 'orgs/default/folderId/%'` returns empty, what is the most likely mismatch in how the `s3_key` is generated during the upload presigned-url phase vs how it's queried?
-4. **The Dashboard Layout**: Where would a "horizontal scroll bar" section be hiding if it's not the `activeTab === "overview"` quick access grid? 
+1. **The Email Question**: Why did Resend emails stop working after 2/21/2026? What are the exact steps required to fix Supabase Auth confirmation emails? Is it purely a Supabase Dashboard configuration issue, or is there code missing?
+2. **The Dashboard Layout**: If we remove the `activeTab !== "overview"` navigation bar from the tabs, how should the user navigate back to the dashboard? Where is the code for the missing "Location widget"?
+3. **The Market Robot**: How do we establish actual connectivity to Polymarket for search and paper trading? What is missing in the current implementation?
 
 **Do not just provide a code snippet.** Explain the *architectural reason* why our previous fixes created a circular pattern, and how to break out of it.

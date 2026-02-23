@@ -27,10 +27,12 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
+    const admin = createAdminClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -69,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     // ── PAPER MODE ─────────────────────────────────────────────────────────
     if (paper_mode) {
-      const { data: trade, error } = await supabase
+      const { data: trade, error } = await admin
         .from("market_trades")
         .insert({
           user_id: user.id,
@@ -120,7 +122,7 @@ export async function POST(req: NextRequest) {
       // Credentials not set → fall back to paper + warn
       console.warn("[api/market/buy] CLOB credentials not configured — saving as paper trade");
 
-      const { data: trade, error } = await supabase
+      const { data: trade, error } = await admin
         .from("market_trades")
         .insert({
           user_id: user.id,

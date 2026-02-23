@@ -13,10 +13,8 @@ export async function GET(req: NextRequest) {
   // If there's a search query, we can't use it directly on Gamma API,
   // but we can increase the limit to get more results to filter client-side
   const forwardParams = new URLSearchParams(searchParams);
-  if (forwardParams.has("_q")) {
-    forwardParams.delete("_q");
-    forwardParams.set("limit", "500");
-  }
+  // Always fetch a large limit so client-side filtering works well
+  forwardParams.set("limit", "500");
 
   const upstreamUrl = `https://gamma-api.polymarket.com/markets?${forwardParams.toString()}`;
 

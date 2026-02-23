@@ -1,4 +1,8 @@
-/**
+const fs = require('fs');
+const path = './lib/email.ts';
+let content = fs.readFileSync(path, 'utf8');
+
+const newContent = `/**
  * lib/email.ts
  * Nodemailer email client + typed send helpers.
  * All outbound email from Slate360 flows through here.
@@ -27,12 +31,12 @@ function getTransporter() {
 
 /* ── Branded HTML wrapper ── */
 function brandedHtml(title: string, body: string): string {
-  return `<!DOCTYPE html>
+  return \`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${title}</title>
+  <title>\${title}</title>
 </head>
 <body style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f8fa;padding:40px 20px;">
@@ -53,7 +57,7 @@ function brandedHtml(title: string, body: string): string {
           <!-- Body -->
           <tr>
             <td style="padding:40px;">
-              ${body}
+              \${body}
             </td>
           </tr>
           <!-- Footer -->
@@ -61,8 +65,8 @@ function brandedHtml(title: string, body: string): string {
             <td style="padding:24px 40px;border-top:1px solid #f1f1f1;background:#fafafa;">
               <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.6;">
                 You're receiving this email because you have an account on
-                <a href="${APP_URL}" style="color:#FF4D00;text-decoration:none;">Slate360</a>.
-                &copy; ${new Date().getFullYear()} Slate360. All rights reserved.
+                <a href="\${APP_URL}" style="color:#FF4D00;text-decoration:none;">Slate360</a>.
+                &copy; \${new Date().getFullYear()} Slate360. All rights reserved.
               </p>
             </td>
           </tr>
@@ -71,18 +75,18 @@ function brandedHtml(title: string, body: string): string {
     </tr>
   </table>
 </body>
-</html>`;
+</html>\`;
 }
 
 /* ── Button helper ── */
 function ctaButton(label: string, href: string) {
-  return `<table cellpadding="0" cellspacing="0" style="margin:28px 0 8px;">
+  return \`<table cellpadding="0" cellspacing="0" style="margin:28px 0 8px;">
     <tr>
       <td style="background:#FF4D00;border-radius:10px;">
-        <a href="${href}" style="display:inline-block;padding:14px 32px;color:#fff;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:0.1px;">${label}</a>
+        <a href="\${href}" style="display:inline-block;padding:14px 32px;color:#fff;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:0.1px;">\${label}</a>
       </td>
     </tr>
-  </table>`;
+  </table>\`;
 }
 
 /* ── Email: Welcome (sent after email is confirmed) ── */
@@ -96,15 +100,15 @@ export async function sendWelcomeEmail({
   confirmUrl: string;
 }) {
   const displayName = name ?? to.split("@")[0];
-  const body = `
-    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">Welcome to Slate360${displayName ? `, ${displayName}` : ""}! 🎉</h2>
+  const body = \`
+    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">Welcome to Slate360\${displayName ? \`, \${displayName}\` : ""}! 🎉</h2>
     <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
       Your email has been verified and your account is ready. You now have access to your dashboard, SlateDrop file manager, and all Slate360 modules.
     </p>
-    ${ctaButton("Go to my dashboard →", confirmUrl)}
+    \${ctaButton("Go to my dashboard →", confirmUrl)}
     <p style="margin:20px 0 0;font-size:12px;color:#9ca3af;">
       If you didn't create a Slate360 account, you can safely ignore this email.
-    </p>`;
+    </p>\`;
   
   const transporter = getTransporter();
   return transporter.sendMail({
@@ -133,31 +137,31 @@ export async function sendSecureSendEmail({
   expiresAt?: string;
   message?: string;
 }) {
-  const body = `
-    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">${senderName} shared a file with you</h2>
+  const body = \`
+    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">\${senderName} shared a file with you</h2>
     <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
-      You have been granted <strong>${permission}</strong> access to the file <strong>${fileName}</strong> via SlateDrop.
+      You have been granted <strong>\${permission}</strong> access to the file <strong>\${fileName}</strong> via SlateDrop.
     </p>
-    ${
+    \${
       message
-        ? `<div style="margin:0 0 24px;padding:16px;background:#f3f4f6;border-left:4px solid #FF4D00;border-radius:4px;color:#4b5563;font-size:14px;font-style:italic;">"${message}"</div>`
+        ? \`<div style="margin:0 0 24px;padding:16px;background:#f3f4f6;border-left:4px solid #FF4D00;border-radius:4px;color:#4b5563;font-size:14px;font-style:italic;">"\${message}"</div>\`
         : ""
     }
-    ${ctaButton(permission === "download" ? "Download File" : "View File", shareUrl)}
-    ${
+    \${ctaButton(permission === "download" ? "Download File" : "View File", shareUrl)}
+    \${
       expiresAt
-        ? `<p style="margin:20px 0 0;font-size:12px;color:#ef4444;font-weight:600;">
-            ⚠️ This secure link expires on ${new Date(expiresAt).toLocaleDateString()}.
-           </p>`
+        ? \`<p style="margin:20px 0 0;font-size:12px;color:#ef4444;font-weight:600;">
+            ⚠️ This secure link expires on \${new Date(expiresAt).toLocaleDateString()}.
+           </p>\`
         : ""
     }
-  `;
+  \`;
 
   const transporter = getTransporter();
   return transporter.sendMail({
     from: FROM,
     to,
-    subject: `${senderName} shared "${fileName}" with you via SlateDrop`,
+    subject: \`\${senderName} shared "\${fileName}" with you via SlateDrop\`,
     html: brandedHtml("Secure File Share", body),
   });
 }
@@ -173,16 +177,16 @@ export async function sendPasswordResetEmail({
   resetUrl: string;
 }) {
   const displayName = name ?? to.split("@")[0];
-  const body = `
+  const body = \`
     <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">Reset your password</h2>
     <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
-      Hi ${displayName},<br/><br/>
+      Hi \${displayName},<br/><br/>
       We received a request to reset the password for your Slate360 account. Click the button below to choose a new password.
     </p>
-    ${ctaButton("Reset Password", resetUrl)}
+    \${ctaButton("Reset Password", resetUrl)}
     <p style="margin:20px 0 0;font-size:12px;color:#9ca3af;">
       If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
-    </p>`;
+    </p>\`;
 
   const transporter = getTransporter();
   return transporter.sendMail({
@@ -192,34 +196,7 @@ export async function sendPasswordResetEmail({
     html: brandedHtml("Password Reset", body),
   });
 }
+`;
 
-/* ── Email: Confirmation ── */
-export async function sendConfirmationEmail({
-  to,
-  name,
-  confirmUrl,
-}: {
-  to: string;
-  name?: string;
-  confirmUrl: string;
-}) {
-  const displayName = name ?? to.split("@")[0];
-  const body = `
-    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">Confirm your email</h2>
-    <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
-      Hi ${displayName},<br/><br/>
-      Please confirm your email address to complete your Slate360 registration.
-    </p>
-    ${ctaButton("Confirm Email", confirmUrl)}
-    <p style="margin:20px 0 0;font-size:12px;color:#9ca3af;">
-      If you didn't create a Slate360 account, you can safely ignore this email.
-    </p>`;
-
-  const transporter = getTransporter();
-  return transporter.sendMail({
-    from: FROM,
-    to,
-    subject: "Confirm your Slate360 email",
-    html: brandedHtml("Email Confirmation", body),
-  });
-}
+fs.writeFileSync(path, newContent);
+console.log('Patched Email');

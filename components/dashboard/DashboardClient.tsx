@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 import SlateDropClient from "@/components/slatedrop/SlateDropClient";
 import MarketClient from "@/components/dashboard/MarketClient";
+import LocationMap from "./LocationMap";
 import {
   Search,
   Bell,
@@ -579,6 +580,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   function onSdPointerUp() { sdDragMode.current = null; }
 
   const [dashboardSummary, setDashboardSummary] = useState<{ recentFiles: any[]; storageUsed: number } | null>(null);
+  const [slateDropFiles, setSlateDropFiles] = useState<any[]>([]);
 
   /* ── Load saved prefs from Supabase user metadata on mount ─── */
   useEffect(() => {
@@ -599,6 +601,38 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
       .then((res) => res.json())
       .then((data) => {
         if (!data.error) setDashboardSummary(data);
+      })
+      .catch(console.error);
+
+    // Fetch SlateDrop files
+    fetch("/api/slatedrop/files?folderId=general")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.files) setSlateDropFiles(data.files);
+      })
+      .catch(console.error);
+
+    // Fetch account overview for quotas
+    fetch("/api/account/overview")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) setAccountOverview(data);
+      })
+      .catch(console.error);
+
+    // Fetch SlateDrop files
+    fetch("/api/slatedrop/files?folderId=general")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.files) setSlateDropFiles(data.files);
+      })
+      .catch(console.error);
+
+    // Fetch account overview for quotas
+    fetch("/api/account/overview")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) setAccountOverview(data);
       })
       .catch(console.error);
   }, [supabase]);
@@ -640,7 +674,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     [calSelected, events]
   );
 
-  const creditsUsed = 1847;
+  const creditsUsed = accountOverview?.billing?.purchasedCredits ?? 0;
   const storageUsed = dashboardSummary ? Number((dashboardSummary.storageUsed / (1024 * 1024 * 1024)).toFixed(2)) : (ent.tier === "trial" ? 1.2 : ent.tier === "creator" ? 12 : 45);
 
   /* ── Handlers ── */
@@ -1013,17 +1047,15 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           </div>
         )}
 
-        {/* ════════ TAB NAVIGATION BAR (hidden on overview — tiles serve as nav) ════════ */}
-        {activeTab !== "overview" && (
+                {/* ════════ TAB NAVIGATION BAR ════════ */}
+        {activeTab === "overview" && (
         <nav className="mb-6">
           <div className="flex flex-wrap items-center gap-2 pb-1">
             {/* Overview / Home tab */}
             <button
               onClick={() => setActiveTab("overview")}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
-                activeTab === "overview"
-                  ? "bg-white text-gray-900 shadow-sm border border-gray-200"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-white/60"
+                "bg-white text-gray-900 shadow-sm border border-gray-200"
               }`}
             >
               <Home size={14} />
@@ -1037,7 +1069,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               .filter((t) => t.id !== "my-account" && !t.isCEOOnly)
               .map((tab) => {
                 const TabIcon = tab.icon;
-                const isActive = activeTab === tab.id;
+                const isActive = false;
                 return (
                   <button
                     key={tab.id}
@@ -1063,9 +1095,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             <button
               onClick={() => setActiveTab("my-account")}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
-                activeTab === "my-account"
-                  ? "bg-white text-gray-900 shadow-sm border border-gray-200"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-white/60"
+                "text-gray-500 hover:text-gray-700 hover:bg-white/60"
               }`}
             >
               <User size={14} />
@@ -1077,7 +1107,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               .filter((t) => t.isCEOOnly)
               .map((tab) => {
                 const TabIcon = tab.icon;
-                const isActive = activeTab === tab.id;
+                const isActive = false;
                 return (
                   <button
                     key={tab.id}
@@ -1095,6 +1125,18 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               })}
           </div>
         </nav>
+        )}
+
+        {activeTab !== "overview" && (
+          <div className="mb-6">
+            <button
+              onClick={() => setActiveTab("overview")}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200 shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-all"
+            >
+              <ChevronLeft size={16} />
+              Back to Dashboard
+            </button>
+          </div>
         )}
 
         {/* ════════ OVERVIEW TAB CONTENT ════════ */}
@@ -1254,6 +1296,8 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           // Compute which widgets are available for this tier
           const available = new Set<string>([
             ...(ent.canViewSlateDropWidget ? ["slatedrop"] : []),
+            "location",
+            "location",
             "data-usage","processing","financial","calendar","weather","continue","contacts","suggest",
             ...(ent.canManageSeats ? ["seats"] : ["upgrade"]),
           ]);
@@ -1268,6 +1312,16 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             const span = getSpan(id, expanded);
             switch (id) {
 
+              case "location": return (
+                <div key={id} className={span}>
+                  <LocationMap />
+                </div>
+              );
+              case "location": return (
+                <div key={id} className={span}>
+                  <LocationMap />
+                </div>
+              );
               case "slatedrop": return (
           <WidgetCard key={id} icon={FolderOpen} title="SlateDrop" span={span} delay={0} action={
             <button
@@ -1297,11 +1351,11 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </div>
               {/* Recent files */}
               <div className="space-y-2">
-                {dashboardSummary?.recentFiles && dashboardSummary.recentFiles.length > 0 ? (
-                  dashboardSummary.recentFiles.slice(0, 3).map((file, i) => (
+                {slateDropFiles && slateDropFiles.length > 0 ? (
+                  slateDropFiles.slice(0, 3).map((file, i) => (
                     <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
                       <FileText size={13} className="text-gray-400 shrink-0" />
-                      <span className="text-[11px] text-gray-700 truncate flex-1">{file.file_name}</span>
+                      <span className="text-[11px] text-gray-700 truncate flex-1">{file.name}</span>
                     </div>
                   ))
                 ) : (
