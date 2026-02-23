@@ -41,10 +41,6 @@ export async function POST(req: NextRequest) {
     orgId = null;
   }
 
-  if (!orgId) {
-    return NextResponse.json({ error: "Organization membership required" }, { status: 403 });
-  }
-
   const { data: createdProject, error: projectError } = await admin
     .from("projects")
     .insert({
@@ -66,7 +62,8 @@ export async function POST(req: NextRequest) {
   const { error: memberError } = await admin.from("project_members").insert({
     project_id: createdProject.id,
     user_id: user.id,
-    role: "owner",
+    role_id: "owner",
+    status: "active",
   });
 
   if (memberError) {
