@@ -9,6 +9,10 @@ const TABS = [
   { label: "Submittals", href: "submittals" },
   { label: "Daily Logs", href: "daily-logs" },
   { label: "Punch List", href: "punch-list" },
+  { label: "Drawings", href: "drawings" },
+  { label: "Photos", href: "photos" },
+  { label: "Budget", href: "budget" },
+  { label: "Schedule", href: "schedule" },
 ] as const;
 
 export default async function ProjectDetailLayout({

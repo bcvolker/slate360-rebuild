@@ -26,6 +26,26 @@ export function resolveArtifactFolder(kind: ProjectArtifactKind): string {
   return ARTIFACT_FOLDER_MAP[kind];
 }
 
+export async function resolveProjectFolderIdByName(projectId: string, folderName: string, orgId: string | null, userId: string) {
+  const admin = createAdminClient();
+
+  let query = admin
+    .from("project_folders")
+    .select("id")
+    .eq("parent_id", projectId)
+    .eq("name", folderName)
+    .limit(1);
+
+  query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", userId);
+
+  const { data, error } = await query.maybeSingle();
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data?.id ?? null;
+}
+
 type UploadableArtifactFile = {
   name: string;
   type?: string;
