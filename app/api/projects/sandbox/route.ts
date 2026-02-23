@@ -46,13 +46,13 @@ export async function GET() {
     return NextResponse.json({ projects: [] });
   }
 
-  let folders: Array<{ id: string; name: string; parent_id: string; is_system: boolean; folder_path: string | null }> = [];
+  let folders: Array<{ id: string; name: string; project_id: string; is_system: boolean; folder_path: string | null }> = [];
 
   try {
     let foldersQuery = admin
       .from("project_folders")
-      .select("id, name, parent_id, is_system, folder_path")
-      .in("parent_id", projectIds)
+      .select("id, name, project_id, is_system, folder_path")
+      .in("project_id", projectIds)
       .order("name", { ascending: true });
 
     foldersQuery = orgId ? foldersQuery.eq("org_id", orgId) : foldersQuery.eq("created_by", user.id);
@@ -66,7 +66,7 @@ export async function GET() {
 
   const folderMap: Record<string, Array<{ id: string; name: string; isSystem: boolean; path: string | null }>> = {};
   for (const folder of folders) {
-    const key = folder.parent_id;
+    const key = folder.project_id;
     if (!folderMap[key]) folderMap[key] = [];
     folderMap[key].push({
       id: folder.id,

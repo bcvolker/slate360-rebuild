@@ -34,8 +34,8 @@ export async function GET(req: NextRequest) {
 
   let query = admin
     .from("project_folders")
-    .select("id, name, folder_path, parent_id")
-    .eq("parent_id", projectId)
+    .select("id, name, folder_path, project_id")
+    .eq("project_id", projectId)
     .order("name", { ascending: true });
 
   query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", user.id);
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
       id: folder.id,
       name: folder.name,
       path: folder.folder_path ?? folder.name,
-      projectId: folder.parent_id,
+      projectId: folder.project_id,
     })),
   });
 }

@@ -126,7 +126,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       let foldersQuery = admin
         .from("project_folders")
         .select("id, folder_path")
-        .eq("parent_id", projectId);
+        .eq("project_id", projectId);
 
       foldersQuery = orgId ? foldersQuery.eq("org_id", orgId) : foldersQuery.eq("created_by", user.id);
 
@@ -187,7 +187,7 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     let foldersQuery = admin
       .from("project_folders")
       .select("id")
-      .eq("parent_id", projectId);
+      .eq("project_id", projectId);
 
     foldersQuery = orgId ? foldersQuery.eq("org_id", orgId) : foldersQuery.eq("created_by", user.id);
 

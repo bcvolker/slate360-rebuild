@@ -25,16 +25,18 @@ export async function provisionProjectFolders(
     "Misc",
   ];
 
-  const rows = SYSTEM_FOLDERS.map((name) => ({
+  const rows = SYSTEM_FOLDERS.map((name, idx) => ({
     name,
     folder_path: `Project Sandbox/${projectName}/${name}`,
-    parent_id: projectId,
+    project_id: projectId,
     is_system: true,
     folder_type: name.toLowerCase().replace(/\s+/g, "_"),
+    scope: "project",
     is_public: false,
     allow_upload: true,
     org_id: orgId,
     created_by: userId,
+    sort_order: idx,
   }));
 
   const { data, error } = await admin.from("project_folders").insert(rows).select("id, name");

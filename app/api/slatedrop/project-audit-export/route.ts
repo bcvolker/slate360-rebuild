@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   let foldersQuery = admin
     .from("project_folders")
     .select("id, name, folder_path")
-    .eq("parent_id", projectId)
+    .eq("project_id", projectId)
     .order("name", { ascending: true });
 
   foldersQuery = orgId ? foldersQuery.eq("org_id", orgId) : foldersQuery.eq("created_by", user.id);

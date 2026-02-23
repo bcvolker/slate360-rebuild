@@ -2,96 +2,53 @@
 -- project_folders: canonical folder structure per project.
 -- Referenced by provisioning, sandbox, artifacts, audit-export,
 -- file explorer, and project delete cascade.
+--
+-- NOTE: This migration documents the EXISTING production schema.
+-- The table was created directly in Supabase before migration tracking.
 -- ============================================================
 
 create table if not exists public.project_folders (
-  id uuid primary key default gen_random_uuid(),
+  id uuid primary key default uuid_generate_v4(),
+  project_id uuid references public.projects(id),
+  org_id uuid references public.organizations(id),
+  folder_path text not null,
   name text not null,
-  folder_path text,
-  parent_id uuid not null references public.projects(id) on delete cascade,
-  is_system boolean not null default false,
-  folder_type text,
-  is_public boolean not null default false,
-  allow_upload boolean not null default true,
-  org_id uuid,
-  created_by uuid not null,
-  created_at timestamptz not null default now()
+  color text,
+  is_public boolean default false,
+  allow_upload boolean default true,
+  allow_download boolean default true,
+  description text,
+  created_by uuid references public.profiles(id),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  scope text not null default 'project',
+  tab_tag text,
+  folder_type text default 'general',
+  icon text default 'folder',
+  sort_order integer default 0,
+  parent_id uuid, -- self-referencing for nested folders
+  is_system boolean default false,
+  metadata jsonb default '{}'::jsonb
 );
 
 alter table public.project_folders enable row level security;
 
--- SELECT: org members can read folders for their org's projects
-drop policy if exists project_folders_select_same_org on public.project_folders;
-create policy project_folders_select_same_org
+-- ALL policy: org members can access their org's project folders
+drop policy if exists "Org members can access project folders" on public.project_folders;
+create policy "Org members can access project folders"
 on public.project_folders
-for select
+for all
 using (
-  exists (
-    select 1
-    from public.projects p
-    join public.organization_members om on om.org_id = p.org_id
-    where p.id = project_folders.parent_id
-      and om.user_id = auth.uid()
-  )
-);
-
--- INSERT: org members can create folders in their org's projects
-drop policy if exists project_folders_insert_same_org on public.project_folders;
-create policy project_folders_insert_same_org
-on public.project_folders
-for insert
-with check (
-  exists (
-    select 1
-    from public.projects p
-    join public.organization_members om on om.org_id = p.org_id
-    where p.id = project_folders.parent_id
-      and om.user_id = auth.uid()
-  )
-);
-
--- UPDATE: org members can update folders in their org's projects
-drop policy if exists project_folders_update_same_org on public.project_folders;
-create policy project_folders_update_same_org
-on public.project_folders
-for update
-using (
-  exists (
-    select 1
-    from public.projects p
-    join public.organization_members om on om.org_id = p.org_id
-    where p.id = project_folders.parent_id
-      and om.user_id = auth.uid()
-  )
-)
-with check (
-  exists (
-    select 1
-    from public.projects p
-    join public.organization_members om on om.org_id = p.org_id
-    where p.id = project_folders.parent_id
-      and om.user_id = auth.uid()
-  )
-);
-
--- DELETE: org members can delete folders in their org's projects
-drop policy if exists project_folders_delete_same_org on public.project_folders;
-create policy project_folders_delete_same_org
-on public.project_folders
-for delete
-using (
-  exists (
-    select 1
-    from public.projects p
-    join public.organization_members om on om.org_id = p.org_id
-    where p.id = project_folders.parent_id
-      and om.user_id = auth.uid()
+  org_id in (
+    select om.org_id
+    from public.organization_members om
+    where om.user_id = auth.uid()
   )
 );
 
 -- Indexes for common query patterns
-create index if not exists idx_project_folders_parent_id
-  on public.project_folders(parent_id);
+create index if not exists idx_project_folders_project_id
+  on public.project_folders(project_id);
 
 create index if not exists idx_project_folders_org_id
   on public.project_folders(org_id);

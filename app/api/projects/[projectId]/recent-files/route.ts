@@ -39,7 +39,7 @@ export async function GET(
   const { data: folders, error: folderError } = await admin
     .from("project_folders")
     .select("id")
-    .eq("parent_id", projectId)
+    .eq("project_id", projectId)
     .order("name", { ascending: true });
 
   if (folderError) {
