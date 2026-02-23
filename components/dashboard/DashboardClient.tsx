@@ -99,6 +99,28 @@ interface Contact {
   color: string;
 }
 
+interface LiveWeatherState {
+  location: string;
+  current: {
+    temp: number;
+    condition: string;
+    humidity: number;
+    wind: number;
+    icon: "sun" | "cloud-sun" | "cloud" | "rain" | "snow";
+  };
+  forecast: Array<{
+    day: string;
+    hi: number;
+    lo: number;
+    icon: "sun" | "cloud-sun" | "cloud" | "rain" | "snow";
+    precip: number;
+  }>;
+  constructionAlerts: Array<{
+    message: string;
+    severity: "warning" | "caution" | "info";
+  }>;
+}
+
 interface Job {
   id: string;
   name: string;
@@ -152,12 +174,27 @@ interface AccountOverview {
   isAdmin: boolean;
 }
 
+interface DashboardWidgetsPayload {
+  projects: Project[];
+  jobs: Job[];
+  financial: Array<{ month: string; credits: number }>;
+  continueWorking: Array<{
+    title: string;
+    subtitle: string;
+    time: string;
+    kind: "design" | "tour" | "rfi" | "report" | "file";
+    href: string;
+  }>;
+  seats: Array<{ name: string; role: string; email: string; active: boolean }>;
+}
+
 /* ================================================================
    WIDGET META — source of truth for labels/icons
    ================================================================ */
 
 const WIDGET_META: { id: string; label: string; icon: LucideIcon; tierGate?: string }[] = [
   { id: "slatedrop",    label: "SlateDrop",             icon: FolderOpen },
+  { id: "location",     label: "Location",              icon: MapPin },
   { id: "data-usage",   label: "Data Usage & Credits", icon: CreditCard },
   { id: "processing",   label: "Processing Jobs",       icon: Cpu },
   { id: "financial",    label: "Financial Snapshot",    icon: TrendingUp },
@@ -173,7 +210,7 @@ const WIDGET_META: { id: string; label: string; icon: LucideIcon; tierGate?: str
 const DEFAULT_WIDGET_PREFS: WidgetPref[] = WIDGET_META.map((m, i) => ({
   id: m.id,
   visible: true,
-  expanded: m.id === "calendar" || m.id === "seats",
+  expanded: m.id === "calendar" || m.id === "seats" || m.id === "location",
   order: i,
 }));
 
@@ -496,7 +533,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
   const [calYear, setCalYear] = useState(new Date().getFullYear());
   const [calSelected, setCalSelected] = useState<string | null>(null);
-  const [events, setEvents] = useState<CalEvent[]>(demoEvents);
+  const [events, setEvents] = useState<CalEvent[]>([]);
   const [addingEvent, setAddingEvent] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState("");
   const [contactSearch, setContactSearch] = useState("");
@@ -581,6 +618,9 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
   const [dashboardSummary, setDashboardSummary] = useState<{ recentFiles: any[]; storageUsed: number } | null>(null);
   const [slateDropFiles, setSlateDropFiles] = useState<any[]>([]);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [liveWeather, setLiveWeather] = useState<LiveWeatherState | null>(null);
+  const [widgetsData, setWidgetsData] = useState<DashboardWidgetsPayload | null>(null);
 
   /* ── Load saved prefs from Supabase user metadata on mount ─── */
   useEffect(() => {
@@ -620,22 +660,126 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
       })
       .catch(console.error);
 
-    // Fetch SlateDrop files
-    fetch("/api/slatedrop/files?folderId=general")
+    // Fetch live widget datasets
+    fetch("/api/dashboard/widgets", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
-        if (data.files) setSlateDropFiles(data.files);
-      })
-      .catch(console.error);
-
-    // Fetch account overview for quotas
-    fetch("/api/account/overview")
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data.error) setAccountOverview(data);
+        if (!data.error) {
+          setWidgetsData({
+            projects: Array.isArray(data.projects) ? data.projects : [],
+            jobs: Array.isArray(data.jobs) ? data.jobs : [],
+            financial: Array.isArray(data.financial) ? data.financial : [],
+            continueWorking: Array.isArray(data.continueWorking) ? data.continueWorking : [],
+            seats: Array.isArray(data.seats) ? data.seats : [],
+          });
+        }
       })
       .catch(console.error);
   }, [supabase]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`dashboard_events_${user.email}`);
+      if (saved) {
+        const parsed = JSON.parse(saved) as CalEvent[];
+        if (Array.isArray(parsed)) setEvents(parsed);
+      }
+    } catch {
+      // ignore malformed saved events
+    }
+  }, [user.email]);
+
+  useEffect(() => {
+    localStorage.setItem(`dashboard_events_${user.email}`, JSON.stringify(events));
+  }, [events, user.email]);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setUserCoords({ lat, lng });
+
+        try {
+          const [weatherRes, geoRes] = await Promise.all([
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code&forecast_days=5&timezone=auto`),
+            fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lng}&count=1&language=en`),
+          ]);
+
+          if (!weatherRes.ok) return;
+
+          const weatherJson = await weatherRes.json();
+          const geoJson = geoRes.ok ? await geoRes.json() : null;
+
+          const weatherCodeToIcon = (code: number): "sun" | "cloud-sun" | "cloud" | "rain" | "snow" => {
+            if ([0].includes(code)) return "sun";
+            if ([1, 2].includes(code)) return "cloud-sun";
+            if ([3, 45, 48].includes(code)) return "cloud";
+            if ([71, 73, 75, 77, 85, 86].includes(code)) return "snow";
+            return "rain";
+          };
+
+          const weatherCodeToCondition = (code: number): string => {
+            if (code === 0) return "Clear";
+            if ([1, 2].includes(code)) return "Partly Cloudy";
+            if ([3, 45, 48].includes(code)) return "Cloudy";
+            if ([71, 73, 75, 77, 85, 86].includes(code)) return "Snow";
+            return "Rain";
+          };
+
+          const dailyCodes = weatherJson?.daily?.weather_code ?? [];
+          const dailyMax = weatherJson?.daily?.temperature_2m_max ?? [];
+          const dailyMin = weatherJson?.daily?.temperature_2m_min ?? [];
+          const dailyPrecip = weatherJson?.daily?.precipitation_probability_max ?? [];
+
+          const forecast = (weatherJson?.daily?.time ?? []).slice(0, 5).map((dateStr: string, index: number) => {
+            const day = new Date(`${dateStr}T12:00:00`).toLocaleDateString("en-US", { weekday: "short" });
+            return {
+              day,
+              hi: Math.round(Number(dailyMax[index] ?? 0) * 9 / 5 + 32),
+              lo: Math.round(Number(dailyMin[index] ?? 0) * 9 / 5 + 32),
+              icon: weatherCodeToIcon(Number(dailyCodes[index] ?? 1)),
+              precip: Number(dailyPrecip[index] ?? 0),
+            };
+          });
+
+          const locationName = geoJson?.results?.[0]
+            ? `${geoJson.results[0].name}${geoJson.results[0].admin1 ? `, ${geoJson.results[0].admin1}` : ""}`
+            : `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
+
+          const currentCode = Number(weatherJson?.current?.weather_code ?? 1);
+          const humidity = Number(weatherJson?.current?.relative_humidity_2m ?? 0);
+          const windMph = Number(weatherJson?.current?.wind_speed_10m ?? 0) * 0.621371;
+
+          const alerts: LiveWeatherState["constructionAlerts"] = [];
+          if (windMph >= 20) alerts.push({ message: `High wind risk (${Math.round(windMph)} mph) — review crane operations`, severity: "warning" });
+          if (forecast.some((f: { precip: number }) => f.precip >= 50)) alerts.push({ message: "High precipitation chance in the next 5 days — protect exposed work areas", severity: "caution" });
+          if (alerts.length === 0) alerts.push({ message: "No major weather construction risks detected", severity: "info" });
+
+          setLiveWeather({
+            location: locationName,
+            current: {
+              temp: Math.round(Number(weatherJson?.current?.temperature_2m ?? 0) * 9 / 5 + 32),
+              condition: weatherCodeToCondition(currentCode),
+              humidity,
+              wind: Math.round(windMph),
+              icon: weatherCodeToIcon(currentCode),
+            },
+            forecast,
+            constructionAlerts: alerts,
+          });
+        } catch {
+          // fail quietly; widget will use fallback
+        }
+      },
+      () => {
+        // location denied / unavailable
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+    );
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -659,20 +803,47 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   }, []);
 
+  const liveContacts = useMemo(() => {
+    const seeded: Contact[] = [
+      {
+        name: user.name,
+        role: "Account Owner",
+        project: accountOverview?.profile.orgName ?? "Organization",
+        initials: user.name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
+        color: "#1E3A8A",
+      },
+      ...((accountOverview?.sessions ?? []).slice(0, 6).map((session, index) => ({
+        name: session.device,
+        role: "Active Session",
+        project: "Current Workspace",
+        initials: `S${index + 1}`,
+        color: "#FF4D00",
+      }))),
+    ];
+
+    return seeded;
+  }, [user.name, accountOverview?.profile.orgName, accountOverview?.sessions]);
+
   const filteredContacts = useMemo(
     () =>
-      demoContacts.filter(
+      liveContacts.filter(
         (c) =>
           c.name.toLowerCase().includes(contactSearch.toLowerCase()) ||
           c.project.toLowerCase().includes(contactSearch.toLowerCase())
       ),
-    [contactSearch]
+    [contactSearch, liveContacts]
   );
 
   const selectedDayEvents = useMemo(
     () => (calSelected ? events.filter((e) => e.date === calSelected) : []),
     [calSelected, events]
   );
+
+  const liveProjects = widgetsData?.projects ?? [];
+  const liveJobs = widgetsData?.jobs ?? [];
+  const liveFinancial = widgetsData?.financial ?? [];
+  const liveContinueWorking = widgetsData?.continueWorking ?? [];
+  const liveSeatMembers = widgetsData?.seats ?? [];
 
   const creditsUsed = accountOverview?.billing?.purchasedCredits ?? 0;
   const storageUsed = dashboardSummary ? Number((dashboardSummary.storageUsed / (1024 * 1024 * 1024)).toFixed(2)) : (ent.tier === "trial" ? 1.2 : ent.tier === "creator" ? 12 : 45);
@@ -930,7 +1101,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     setPrefsDirty(true);
   }, []);
 
-  const financialMax = Math.max(...demoFinancial.map((f) => f.credits));
+  const financialMax = Math.max(1, ...liveFinancial.map((f) => f.credits));
 
   /* ================================================================
      RENDER
@@ -1201,7 +1372,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:border-gray-300 transition-colors"
                 >
                   <FolderOpen size={13} className="text-gray-400" />
-                  {selectedProject === "all" ? "All projects" : demoProjects.find((p) => p.id === selectedProject)?.name ?? "All projects"}
+                  {selectedProject === "all" ? "All projects" : liveProjects.find((p) => p.id === selectedProject)?.name ?? "All projects"}
                   <ChevronDown size={12} className="text-gray-400" />
                 </button>
                 {projectDropdownOpen && (
@@ -1209,7 +1380,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                     <div className="fixed inset-0 z-30" onClick={() => setProjectDropdownOpen(false)} />
                     <div className="absolute right-0 top-10 w-56 bg-white rounded-xl border border-gray-100 shadow-xl z-40 overflow-hidden">
                       <button onClick={() => { setSelectedProject("all"); setProjectDropdownOpen(false); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === "all" ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}>All projects</button>
-                      {demoProjects.map((p) => (
+                      {liveProjects.map((p) => (
                         <button key={p.id} onClick={() => { setSelectedProject(p.id); setProjectDropdownOpen(false); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === p.id ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}>{p.name}</button>
                       ))}
                     </div>
@@ -1233,7 +1404,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             className="flex gap-5 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide"
             style={{ scrollbarWidth: "none" }}
           >
-            {demoProjects.map((p) => (
+            {liveProjects.map((p) => (
               <Link
                 key={p.id}
                 href="/dashboard"
@@ -1281,6 +1452,12 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </Link>
             ))}
 
+            {liveProjects.length === 0 && (
+              <div className="snap-start shrink-0 w-full rounded-2xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+                No projects yet. Create a project in Project Hub to populate this dashboard.
+              </div>
+            )}
+
             {/* + New Project card */}
             <button className="snap-start shrink-0 w-[300px] h-[200px] rounded-2xl border-2 border-dashed border-gray-200 hover:border-[#FF4D00] flex flex-col items-center justify-center gap-3 text-gray-400 hover:text-[#FF4D00] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white/50">
               <div className="w-14 h-14 rounded-2xl border-2 border-dashed border-current flex items-center justify-center">
@@ -1296,7 +1473,6 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           // Compute which widgets are available for this tier
           const available = new Set<string>([
             ...(ent.canViewSlateDropWidget ? ["slatedrop"] : []),
-            "location",
             "location",
             "data-usage","processing","financial","calendar","weather","continue","contacts","suggest",
             ...(ent.canManageSeats ? ["seats"] : ["upgrade"]),
@@ -1314,12 +1490,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
               case "location": return (
                 <div key={id} className={span}>
-                  <LocationMap />
-                </div>
-              );
-              case "location": return (
-                <div key={id} className={span}>
-                  <LocationMap />
+                  <LocationMap center={userCoords ?? undefined} locationLabel={liveWeather?.location} />
                 </div>
               );
               case "slatedrop": return (
@@ -1440,10 +1611,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
               case "processing": return (
           <WidgetCard key={id} icon={Cpu} title="Processing Jobs" span={span} delay={50} action={
-            <span className="text-[11px] text-gray-400 font-medium">{demoJobs.filter((j) => j.status === "processing").length} active</span>
+            <span className="text-[11px] text-gray-400 font-medium">{liveJobs.filter((j) => j.status === "processing").length} active</span>
           }>
             <div className="space-y-3">
-              {demoJobs.map((job) => (
+              {liveJobs.map((job) => (
                 <div key={job.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/80 hover:bg-gray-100/80 transition-colors group">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${statusColor(job.status)}`}>
                     {statusIcon(job.status)}
@@ -1471,6 +1642,9 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   )}
                 </div>
               ))}
+              {liveJobs.length === 0 && (
+                <div className="text-center py-4 text-xs text-gray-400">No processing jobs right now</div>
+              )}
             </div>
           </WidgetCard>
           );
@@ -1482,7 +1656,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             <div className="space-y-4">
               {/* Bar chart */}
               <div className="flex items-end gap-2 h-28">
-                {demoFinancial.map((f, i) => (
+                {liveFinancial.map((f, i) => (
                   <div key={f.month} className="flex-1 flex flex-col items-center gap-1.5">
                     <span className="text-[9px] text-gray-400 font-medium">{f.credits > 0 ? `${(f.credits / 1000).toFixed(1)}k` : ""}</span>
                     <div className="w-full relative flex items-end justify-center" style={{ height: "80px" }}>
@@ -1490,24 +1664,27 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                         className="w-full max-w-[32px] rounded-t-md transition-all duration-700 ease-out hover:opacity-80"
                         style={{
                           height: `${(f.credits / financialMax) * 100}%`,
-                          backgroundColor: i === demoFinancial.length - 1 ? "#FF4D00" : "#1E3A8A",
-                          opacity: i === demoFinancial.length - 1 ? 1 : 0.6,
+                          backgroundColor: i === liveFinancial.length - 1 ? "#FF4D00" : "#1E3A8A",
+                          opacity: i === liveFinancial.length - 1 ? 1 : 0.6,
                         }}
                       />
                     </div>
                     <span className="text-[10px] text-gray-400">{f.month}</span>
                   </div>
                 ))}
+                {liveFinancial.length === 0 && (
+                  <div className="w-full text-center text-xs text-gray-400">No financial activity yet</div>
+                )}
               </div>
               {/* Stats */}
               <div className="flex gap-4 pt-2 border-t border-gray-100">
                 <div>
                   <p className="text-[10px] text-gray-400 font-medium">This month</p>
-                  <p className="text-sm font-bold text-gray-900">1,200 credits</p>
+                  <p className="text-sm font-bold text-gray-900">{(liveFinancial[liveFinancial.length - 1]?.credits ?? 0).toLocaleString()} credits</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-gray-400 font-medium">Avg / month</p>
-                  <p className="text-sm font-bold text-gray-900">2,483 credits</p>
+                  <p className="text-sm font-bold text-gray-900">{Math.round(liveFinancial.reduce((sum, point) => sum + point.credits, 0) / Math.max(liveFinancial.length, 1)).toLocaleString()} credits</p>
                 </div>
               </div>
             </div>
@@ -1617,29 +1794,29 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
               case "weather": return (
           <WidgetCard key={id} icon={Cloud} title="Weather" span={span} delay={200} action={
-            <span className="text-[10px] text-gray-400 font-medium flex items-center gap-1"><MapPin size={10} />{demoWeather.location}</span>
+            <span className="text-[10px] text-gray-400 font-medium flex items-center gap-1"><MapPin size={10} />{liveWeather?.location ?? "Location unavailable"}</span>
           }>
             <div className="space-y-4">
               {/* Current */}
               <div className="flex items-center gap-4">
                 <div className="text-center">
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-50 to-sky-50 flex items-center justify-center mb-1">
-                    <CloudSun size={28} className="text-amber-500" />
+                    {weatherIcon(liveWeather?.current.icon ?? "cloud-sun")}
                   </div>
                 </div>
                 <div>
-                  <p className="text-3xl font-black text-gray-900">{demoWeather.current.temp}°<span className="text-base font-normal text-gray-400">F</span></p>
-                  <p className="text-xs text-gray-500">{demoWeather.current.condition}</p>
+                  <p className="text-3xl font-black text-gray-900">{liveWeather?.current.temp ?? "--"}°<span className="text-base font-normal text-gray-400">F</span></p>
+                  <p className="text-xs text-gray-500">{liveWeather?.current.condition ?? "Unavailable"}</p>
                 </div>
                 <div className="ml-auto text-right space-y-1">
-                  <p className="text-[10px] text-gray-400 flex items-center gap-1 justify-end"><Droplets size={10} />{demoWeather.current.humidity}%</p>
-                  <p className="text-[10px] text-gray-400 flex items-center gap-1 justify-end"><Wind size={10} />{demoWeather.current.wind} mph</p>
+                  <p className="text-[10px] text-gray-400 flex items-center gap-1 justify-end"><Droplets size={10} />{liveWeather?.current.humidity ?? "--"}%</p>
+                  <p className="text-[10px] text-gray-400 flex items-center gap-1 justify-end"><Wind size={10} />{liveWeather?.current.wind ?? "--"} mph</p>
                 </div>
               </div>
 
               {/* 5-day forecast */}
               <div className="grid grid-cols-5 gap-1.5">
-                {demoWeather.forecast.map((f) => (
+                {(liveWeather?.forecast ?? demoWeather.forecast).map((f) => (
                   <div key={f.day} className="text-center p-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
                     <p className="text-[10px] text-gray-500 font-semibold mb-1">{f.day}</p>
                     {weatherIcon(f.icon)}
@@ -1654,7 +1831,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
               {/* Construction alerts */}
               <div className="space-y-1.5">
-                {demoWeather.constructionAlerts.map((a, i) => (
+                {(liveWeather?.constructionAlerts ?? demoWeather.constructionAlerts).map((a, i) => (
                   <div
                     key={i}
                     className={`flex items-start gap-2 p-2.5 rounded-xl text-xs ${
@@ -1690,8 +1867,16 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             </Link>
           }>
             <div className="space-y-2">
-              {demoContinueWorking.map((item, i) => {
-                const Icon = item.icon;
+              {liveContinueWorking.map((item, i) => {
+                const Icon = item.kind === "design"
+                  ? Palette
+                  : item.kind === "tour"
+                    ? Compass
+                    : item.kind === "rfi"
+                      ? MessageSquare
+                      : item.kind === "report"
+                        ? BarChart3
+                        : FileText;
                 return (
                   <Link
                     key={i}
@@ -1709,6 +1894,9 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   </Link>
                 );
               })}
+              {liveContinueWorking.length === 0 && (
+                <div className="text-center py-4 text-xs text-gray-400">No recent activity yet</div>
+              )}
             </div>
           </WidgetCard>
           );
@@ -1834,12 +2022,12 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               <div>
                 <div className="flex items-center gap-6 mb-5">
                   <div>
-                    <p className="text-2xl font-black text-gray-900">{demoSeatMembers.length}</p>
+                    <p className="text-2xl font-black text-gray-900">{liveSeatMembers.length}</p>
                     <p className="text-[10px] text-gray-400 font-medium">of {ent.maxSeats} seats used</p>
                   </div>
                   <div className="h-10 w-px bg-gray-100" />
                   <div>
-                    <p className="text-2xl font-black text-emerald-600">{demoSeatMembers.filter((m) => m.active).length}</p>
+                    <p className="text-2xl font-black text-emerald-600">{liveSeatMembers.filter((m) => m.active).length}</p>
                     <p className="text-[10px] text-gray-400 font-medium">Active now</p>
                   </div>
                 </div>
@@ -1854,7 +2042,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {demoSeatMembers.map((m, i) => (
+                      {liveSeatMembers.map((m, i) => (
                         <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                           <td className="py-3 pr-4 text-xs font-semibold text-gray-900">{m.name}</td>
                           <td className="py-3 pr-4 text-xs text-gray-500">{m.email}</td>
@@ -1871,6 +2059,11 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                           </td>
                         </tr>
                       ))}
+                      {liveSeatMembers.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="py-4 text-center text-xs text-gray-400">No seat members found for this organization</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>

@@ -1,4 +1,4 @@
-and process, track, and document in a project folder, then it is all an option to bring into a report. maybe weekly reports, the contractor might be hoping to bid for the job and wanted to make a video on the content creation studio section and edit some cool  1. Project Hub – Simplified Product Spec (Replace the old text file with this)
+1. Project Hub – Simplified Product Spec (Replace the old text file with this)
 
 Name: Project Hub
 Audience: People managing projects, teams, documents, and field activity.

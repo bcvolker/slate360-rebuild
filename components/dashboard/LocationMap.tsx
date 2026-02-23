@@ -6,12 +6,16 @@ import { MapPin, Download, PenTool, Loader2 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-export default function LocationMap() {
+type LocationMapProps = {
+  center?: { lat: number; lng: number };
+  locationLabel?: string;
+};
+
+export default function LocationMap({ center, locationLabel }: LocationMapProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
 
-  // Default to a central location (e.g., New York or a construction site)
-  const defaultCenter = { lat: 40.7128, lng: -74.0060 };
+  const defaultCenter = center ?? { lat: 40.7128, lng: -74.0060 };
 
   const handleDownloadPDF = async () => {
     if (!mapRef.current) return;
@@ -42,7 +46,7 @@ export default function LocationMap() {
           </div>
           <div>
             <h3 className="text-sm font-bold text-gray-900">Site Location</h3>
-            <p className="text-[10px] text-gray-500">Interactive Map & Markup</p>
+            <p className="text-[10px] text-gray-500">{locationLabel ?? "Interactive Map & Markup"}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -67,7 +71,6 @@ export default function LocationMap() {
             defaultCenter={defaultCenter}
             gestureHandling={"greedy"}
             disableDefaultUI={true}
-            mapId="DEMO_MAP_ID"
           >
             <Marker position={defaultCenter} />
           </Map>

@@ -28,11 +28,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Load config from user_metadata
+    const body = await req.json().catch(() => ({}));
+
+    // Load config from user_metadata and override with request payload from client controls.
     const savedConfig = user.user_metadata?.marketBotConfig;
-    const config: BotConfig = savedConfig
-      ? { ...DEFAULT_CONFIG, ...savedConfig }
-      : DEFAULT_CONFIG;
+    const config: BotConfig = {
+      ...(savedConfig ? { ...DEFAULT_CONFIG, ...savedConfig } : DEFAULT_CONFIG),
+      paperMode:
+        typeof body?.paper_mode === "boolean"
+          ? body.paper_mode
+          : (savedConfig?.paperMode ?? DEFAULT_CONFIG.paperMode),
+      whaleWatch:
+        typeof body?.whale_follow === "boolean"
+          ? body.whale_follow
+          : (savedConfig?.whaleWatch ?? DEFAULT_CONFIG.whaleWatch),
+      focusAreas: Array.isArray(body?.focus_areas) && body.focus_areas.length > 0
+        ? body.focus_areas.map((f: string) => String(f).toLowerCase())
+        : (savedConfig?.focusAreas ?? DEFAULT_CONFIG.focusAreas),
+    };
 
     // Read bot status from market_bot_settings table
     const { data: botSettings } = await supabase
@@ -43,8 +56,9 @@ export async function POST(req: NextRequest) {
 
     const botStatus = botSettings?.status ?? "stopped";
 
-    // Must be running or paper
-    if (botStatus === "stopped") {
+    // Must be running unless this is an explicit one-off paper test scan.
+    const oneOffPaperScan = config.paperMode === true;
+    if (botStatus === "stopped" && !oneOffPaperScan) {
       return NextResponse.json({ error: "Bot is stopped" }, { status: 400 });
     }
 
@@ -103,6 +117,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const normalizedTrades = executedTrades.map((trade) => ({
+      market_title: trade.question,
+      outcome: trade.side,
+      avg_price: trade.price,
+      shares: trade.shares,
+    }));
+
     return NextResponse.json({
       ok: true,
       scannedAt: new Date().toISOString(),
@@ -118,6 +139,8 @@ export async function POST(req: NextRequest) {
         edge: d.opp.edge,
       })),
       executedTrades: executedTrades.length,
+      trades_executed: executedTrades.length,
+      trades: normalizedTrades,
       dailyPnl,
     });
   } catch (err) {
