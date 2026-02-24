@@ -31,6 +31,10 @@ export interface BotConfig {
   riskLevel: RiskLevel;
   maxDailyLoss: number;
   emergencyStopPct: number;
+  maxTradesPerScan: number;
+  maxPositionUsd: number;
+  minOpportunityEdgePct: number;
+  maxCandidates: number;
   paperMode: boolean;
   walletAddress: string | null;
   botStatus: "stopped" | "running" | "paper";
@@ -75,6 +79,10 @@ export const DEFAULT_CONFIG: BotConfig = {
   paperMode: true,
   maxDailyLoss: 25,
   emergencyStopPct: 15,
+  maxTradesPerScan: 25,
+  maxPositionUsd: 250,
+  minOpportunityEdgePct: 1,
+  maxCandidates: 200,
   walletAddress: null,
   botStatus: "stopped",
   portfolioMix: { low: 60, medium: 30, high: 10 },
@@ -195,8 +203,11 @@ export function scoreOpportunities(
       const spread = Math.abs(1 - yesPrice - noPrice);
       const edge = spread * 100;
 
-      // Must have at least 1% edge
-      if (edge < 1) continue;
+      const minEdge = Number.isFinite(config.minOpportunityEdgePct)
+        ? Math.max(0, config.minOpportunityEdgePct)
+        : 1;
+
+      if (edge < minEdge) continue;
 
       const riskTier = assessRisk(spread, mkt.liquidity, mkt.volume24hr);
       const cat = categorize(mkt.question, mkt.category);
@@ -227,9 +238,13 @@ export function scoreOpportunities(
   }
 
   // Sort by edge descending, then confidence
+  const maxCandidates = Number.isFinite(config.maxCandidates)
+    ? Math.min(Math.max(Math.floor(config.maxCandidates), 1), 5000)
+    : 200;
+
   return opps
     .sort((a, b) => b.edge - a.edge || b.confidence - a.confidence)
-    .slice(0, 20);
+    .slice(0, maxCandidates);
 }
 
 /* ================================================================
@@ -281,7 +296,10 @@ export function decideTrades(
 
     // Position sizing based on portfolio mix and remaining budget
     const budgetForTier = (remainingBudget * mixPct) / 100;
-    const maxPositionSize = Math.min(budgetForTier * 0.3, 50); // Never more than $50 per trade
+    const configuredMaxPositionUsd = Number.isFinite(config.maxPositionUsd)
+      ? Math.max(config.maxPositionUsd, 1)
+      : 50;
+    const maxPositionSize = Math.min(budgetForTier * 0.3, configuredMaxPositionUsd);
     const shares = Math.max(1, Math.floor(maxPositionSize / price));
 
     if (shares * price < 1) continue; // Too small
@@ -293,8 +311,10 @@ export function decideTrades(
       reason: `${opp.edge}% edge, ${opp.confidence}% confidence, ${opp.riskTier} risk`,
     });
 
-    // Max 3 trades per scan
-    if (trades.length >= 3) break;
+    const maxTradesPerScan = Number.isFinite(config.maxTradesPerScan)
+      ? Math.max(1, Math.floor(config.maxTradesPerScan))
+      : 3;
+    if (trades.length >= maxTradesPerScan) break;
   }
 
   return trades;

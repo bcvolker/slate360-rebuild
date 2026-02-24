@@ -1,7 +1,17 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import type { ApiEnvelope, WhaleActivityViewModel } from "@/lib/market/contracts";
+import { mapWhaleRowToWhaleVM } from "@/lib/market/mappers";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+function noStoreJson<T>(body: ApiEnvelope<T>, init?: { status?: number }) {
+  return NextResponse.json(body, {
+    status: init?.status,
+    headers: { "Cache-Control": "no-store" },
+  });
+}
 
 export async function GET() {
   try {
@@ -11,7 +21,7 @@ export async function GET() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return noStoreJson({ ok: false, error: { code: "unauthorized", message: "Unauthorized" } }, { status: 401 });
     }
 
     const metadata = (user.user_metadata ?? {}) as {
@@ -60,9 +70,8 @@ export async function GET() {
         )
         .slice(0, 50);
 
-      return NextResponse.json(sorted, {
-        headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" },
-      });
+      const whales: WhaleActivityViewModel[] = sorted.map((row) => mapWhaleRowToWhaleVM(row));
+      return noStoreJson({ ok: true, data: { whales } });
     }
 
     const gammaFallback = await fetch(
@@ -75,9 +84,7 @@ export async function GET() {
     );
 
     if (!gammaFallback.ok) {
-      return NextResponse.json([], {
-        headers: { "Cache-Control": "public, s-maxage=10" },
-      });
+      return noStoreJson({ ok: true, data: { whales: [] } });
     }
 
     const gammaData = (await gammaFallback.json()) as Record<string, unknown>[];
@@ -99,12 +106,11 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json(synthetic, {
-      headers: { "Cache-Control": "public, s-maxage=20, stale-while-revalidate=30" },
-    });
+    const whales: WhaleActivityViewModel[] = synthetic.map((row) => mapWhaleRowToWhaleVM(row));
+    return noStoreJson({ ok: true, data: { whales } });
 
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: msg }, { status: 503 });
+    return noStoreJson({ ok: false, error: { code: "whales_fetch_failed", message: msg } }, { status: 503 });
   }
 }

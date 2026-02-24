@@ -29,6 +29,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+const DEFAULT_MIN_BUY_USD = 1;
+const DEFAULT_MAX_BUY_USD = 1_000_000;
+
+function getBuyLimits() {
+  const envMin = Number(process.env.MARKET_BUY_MIN_USD ?? DEFAULT_MIN_BUY_USD);
+  const envMax = Number(process.env.MARKET_BUY_MAX_USD ?? DEFAULT_MAX_BUY_USD);
+  const minBuyUsd = Number.isFinite(envMin) && envMin > 0 ? envMin : DEFAULT_MIN_BUY_USD;
+  const maxBuyUsd = Number.isFinite(envMax) && envMax >= minBuyUsd ? envMax : DEFAULT_MAX_BUY_USD;
+  return { minBuyUsd, maxBuyUsd };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -73,8 +84,16 @@ export async function POST(req: NextRequest) {
     if (!["YES", "NO"].includes(outcome)) {
       return NextResponse.json({ error: "Invalid outcome" }, { status: 400 });
     }
-    if (amount < 1 || amount > 10000) {
-      return NextResponse.json({ error: "Amount out of range ($1–$10,000)" }, { status: 400 });
+    const { minBuyUsd, maxBuyUsd } = getBuyLimits();
+    if (amount < minBuyUsd || amount > maxBuyUsd) {
+      return NextResponse.json(
+        {
+          error: `Amount out of range ($${minBuyUsd.toLocaleString()}–$${maxBuyUsd.toLocaleString()})`,
+          minBuyUsd,
+          maxBuyUsd,
+        },
+        { status: 400 }
+      );
     }
 
     const shares = parseFloat((amount / Math.max(avg_price, 0.01)).toFixed(4));

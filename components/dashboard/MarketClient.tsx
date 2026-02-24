@@ -30,20 +30,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { createClient } from "@/lib/supabase/client";
+import type {
+  ApiEnvelope,
+  MarketViewModel,
+  MarketSummaryViewModel,
+  SchedulerHealthViewModel,
+  TradeViewModel,
+  WhaleActivityViewModel,
+} from "@/lib/market/contracts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface MarketTrade {
-  id: string;
-  market_id: string;
-  market_title: string;
-  outcome: string;
-  shares: number;
-  avg_price: number;
-  current_price: number;
-  pnl: number;
-  status: "open" | "closed" | "paper";
-  created_at: string;
+interface MarketTrade extends TradeViewModel {
   category?: string;
   probability?: number;
   volume?: number;
@@ -74,74 +72,15 @@ interface SimRun {
   trade_count: number;
 }
 
-interface WhaleActivity {
-  whale_address: string;
-  market_title: string;
-  outcome: string;
-  shares: number;
-  amount_usd: number;
-  timestamp: string;
-  category: string;
-}
+type WhaleActivity = WhaleActivityViewModel;
 
-interface MarketListing {
-  id: string;
-  title: string;
-  category: string;
-  probability: number;
-  volume24h: number;
-  edge_pct: number;
-  outcome_yes: number;
-  outcome_no: number;
+interface MarketListing extends MarketViewModel {
   bookmarked: boolean;
-  risk_tag: "hot" | "high-risk" | "construction" | "high-potential" | null;
-  end_date?: string;
+  endDateLabel?: string;
   liquidity?: number;
 }
 
 type MarketSortKey = "volume" | "edge" | "probability" | "title" | "endDate";
-
-function asFiniteNumber(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return null;
-}
-
-function normalizeProbabilityToUnit(value: unknown): number | null {
-  const parsed = asFiniteNumber(value);
-  if (parsed === null) return null;
-  if (parsed >= 0 && parsed <= 1) return parsed;
-  if (parsed > 1 && parsed <= 100) return parsed / 100;
-  return null;
-}
-
-function normalizeOutcomePrices(raw: unknown, fallbackProbability: unknown) {
-  let yes = Array.isArray(raw) ? normalizeProbabilityToUnit(raw[0]) : null;
-  let no = Array.isArray(raw) ? normalizeProbabilityToUnit(raw[1]) : null;
-
-  if (!Array.isArray(raw) && typeof raw === "string") {
-    try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        yes = normalizeProbabilityToUnit(parsed[0]);
-        no = normalizeProbabilityToUnit(parsed[1]);
-      }
-    } catch {
-      // ignore malformed outcomePrices payload
-    }
-  }
-
-  if (yes === null) yes = normalizeProbabilityToUnit(fallbackProbability) ?? 0.5;
-  if (no === null) no = 1 - yes;
-
-  return {
-    yes: Math.min(0.99, Math.max(0.01, yes)),
-    no: Math.min(0.99, Math.max(0.01, no)),
-  };
-}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -157,7 +96,7 @@ const RISK_COLORS = {
   construction: "#1E3A8A",
 };
 
-const TABS = ["Dashboard", "Markets", "Hot Opps", "Directives", "Whale Watch", "Sim Compare"];
+const TABS = ["Dashboard", "Wallet & Performance", "Markets", "Hot Opps", "Directives", "Whale Watch", "Sim Compare"];
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
 
@@ -231,6 +170,7 @@ export default function MarketClient() {
   const [lastScan, setLastScan] = useState<string | null>(null);
   const [scanLog, setScanLog] = useState<string[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
+  const [appliedConfig, setAppliedConfig] = useState<Record<string, unknown> | null>(null);
 
   // Config
   const [paperMode, setPaperMode] = useState(true);
@@ -252,6 +192,12 @@ export default function MarketClient() {
   const [trades, setTrades] = useState<MarketTrade[]>([]);
   const [pnlChart, setPnlChart] = useState<{ label: string; pnl: number; cumPnl: number }[]>([]);
   const [loadingTrades, setLoadingTrades] = useState(false);
+  const [summary, setSummary] = useState<MarketSummaryViewModel | null>(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [schedulerHealth, setSchedulerHealth] = useState<SchedulerHealthViewModel | null>(null);
+  const [loadingSchedulerHealth, setLoadingSchedulerHealth] = useState(false);
+  const [schedulerHealthError, setSchedulerHealthError] = useState<string | null>(null);
 
   // Whale watch
   const [whaleData, setWhaleData] = useState<WhaleActivity[]>([]);
@@ -273,6 +219,8 @@ export default function MarketClient() {
   const [mktSortDir, setMktSortDir] = useState<"asc" | "desc">("desc");
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
   const [excludedMarketIds, setExcludedMarketIds] = useState<Set<string>>(new Set());
+  const [marketsPage, setMarketsPage] = useState(1);
+  const MARKETS_PAGE_SIZE = 50;
 
   // Buy panel
   const [buyMarket, setBuyMarket] = useState<MarketListing | null>(null);
@@ -317,6 +265,8 @@ export default function MarketClient() {
 
   useEffect(() => {
     fetchTrades();
+    void fetchSummary();
+    void fetchSchedulerHealth();
     // Markets are NOT auto-loaded — user triggers search
     void loadDirectives();
     loadSimRuns();
@@ -375,7 +325,7 @@ export default function MarketClient() {
   useEffect(() => {
     // Build cumulative PNL chart from trades
     const sorted = [...trades].sort(
-      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
     let cum = 0;
     const pts = sorted.map((t, i) => {
@@ -440,9 +390,9 @@ export default function MarketClient() {
               if (!live || (live.yes === 0 && live.no === 0)) return m;
               return {
                 ...m,
-                outcome_yes: live.yes,
-                outcome_no: live.no,
-                probability: parseFloat((live.yes * 100).toFixed(1)),
+                yesPrice: live.yes,
+                noPrice: live.no,
+                probabilityPct: parseFloat((live.yes * 100).toFixed(1)),
               };
             }));
           }
@@ -477,7 +427,7 @@ export default function MarketClient() {
         wsRef.current = null;
       }
     };
-  }, [marketsLoaded, activeTab, subscribeToMarkets]);
+  }, [marketsLoaded, markets, activeTab, subscribeToMarkets]);
 
   // ── Data fetchers ──────────────────────────────────────────────────────────
 
@@ -486,8 +436,8 @@ export default function MarketClient() {
     try {
       const res = await fetch("/api/market/trades");
       if (res.ok) {
-        const data = await res.json();
-        setTrades(data.trades || []);
+        const payload = await res.json() as ApiEnvelope<{ trades: TradeViewModel[] }>;
+        setTrades(payload.data?.trades ?? []);
       }
     } catch (e) {
       console.error("fetchTrades", e);
@@ -501,58 +451,47 @@ export default function MarketClient() {
     try {
       const kw = keyword ?? marketSearch;
       const params = new URLSearchParams({
-        limit: "80",
+        limit: "200",
         active: "true",
         closed: "false",
         order: "volume24hr",
         ascending: "false",
       });
-      if (kw.trim()) params.set("_q", kw.trim()); // used as client-side keyword filter
-      // Use server-side proxy to avoid CORS restrictions on Polymarket's API
-      const res = await fetch(
-        `/api/market/polymarket?${params.toString()}`,
-        { cache: "no-store" }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        const mapped: MarketListing[] = (data || [])
-          .filter((m: Record<string, unknown>) => {
-            if (!kw.trim()) return true;
-            const title = String(m.question || m.title || "").toLowerCase();
-            const cat = String(m.category || "").toLowerCase();
-            return title.includes(kw.toLowerCase()) || cat.includes(kw.toLowerCase());
-          })
-          .slice(0, 80)
-          .map((m: Record<string, unknown>, index: number) => {
-            const prices = normalizeOutcomePrices(m.outcomePrices, m.probability);
-            const prob = prices.yes * 100;
-            const vol = parseFloat(String(m.volume24hr || 0));
-            const spread = Math.abs(prices.yes - 0.5);
-            const edge = parseFloat((spread * 100 * 1.4).toFixed(1));
-            const tag: MarketListing["risk_tag"] =
-              edge > 20 ? "hot" :
-              prob > 80 || prob < 20 ? "high-risk" :
-              String(m.category || "").toLowerCase().includes("construction") ? "construction" :
-              vol > 50000 ? "high-potential" : null;
-            const id = String(m.id || m.conditionId || m.slug || `market-${index}-${Date.now()}`);
-            return {
-              id,
-              title: String(m.question || m.title || ""),
-              category: String(m.category || "General"),
-              probability: parseFloat(prob.toFixed(1)),
-              volume24h: vol,
-              edge_pct: edge,
-              outcome_yes: prices.yes,
-              outcome_no: prices.no,
-              end_date: m.endDate ? new Date(String(m.endDate)).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" }) : undefined,
-              liquidity: parseFloat(String(m.liquidity || m.volume || 0)),
-              bookmarked: bookmarks.has(id),
-              risk_tag: tag,
-            };
-          });
-        setMarkets(mapped);
-        setMarketsLoaded(true);
-      }
+
+      let cursor: string | undefined;
+      let pageCount = 0;
+      const merged: MarketViewModel[] = [];
+
+      do {
+        const pageParams = new URLSearchParams(params);
+        if (cursor) pageParams.set("cursor", cursor);
+
+        const res = await fetch(`/api/market/polymarket?${pageParams.toString()}`, { cache: "no-store" });
+        if (!res.ok) break;
+
+        const payload = await res.json() as ApiEnvelope<{ markets: MarketViewModel[]; nextCursor?: string }>;
+        const pageMarkets = payload.data?.markets ?? [];
+        merged.push(...pageMarkets);
+        cursor = payload.data?.nextCursor;
+        pageCount += 1;
+      } while (cursor && pageCount < 3);
+
+      const query = kw.trim().toLowerCase();
+      const mapped: MarketListing[] = merged
+        .filter((market) => {
+          if (!query) return true;
+          return market.title.toLowerCase().includes(query) || market.category.toLowerCase().includes(query);
+        })
+        .map((market) => ({
+          ...market,
+          bookmarked: bookmarks.has(market.id),
+          endDateLabel: market.endDate ? new Date(market.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" }) : undefined,
+          liquidity: market.liquidityUsd,
+        }));
+
+      setMarkets(mapped);
+      setMarketsPage(1);
+      setMarketsLoaded(true);
     } catch (e) {
       console.error("fetchMarkets", e);
     } finally {
@@ -563,47 +502,51 @@ export default function MarketClient() {
   const fetchWhales = async () => {
     setLoadingWhales(true);
     try {
-      // Fetch large recent trades from Polymarket activity API
-      const res = await fetch(
-        "/api/market/whales",
-        { next: { revalidate: 30 } }
-      );
+      const res = await fetch("/api/market/whales", { cache: "no-store" });
       if (res.ok) {
-        const data = await res.json();
-        const mapped: WhaleActivity[] = (data || []).slice(0, 30).map((a: Record<string, unknown>) => ({
-          whale_address: String(a.proxyWallet || a.user || "").slice(0, 10) + "…",
-          market_title: String(a.title || a.market || "Unknown market"),
-          outcome: String(a.side === "BUY" ? a.outcome || "YES" : a.outcome || "NO"),
-          shares: parseFloat(String(a.size || 0)),
-          amount_usd: parseFloat(String(a.usdcSize || a.amount || 0)),
-          timestamp: String(a.timestamp || new Date().toISOString()),
-          category: String(a.category || "General"),
-        }));
-        setWhaleData(mapped);
-      } else {
-        // Fallback: use top trades from our own DB
-        const r = await fetch("/api/market/trades");
-        if (r.ok) {
-          const d = await r.json();
-          const wh: WhaleActivity[] = (d.trades || [])
-            .filter((t: MarketTrade) => Math.abs(t.shares * t.avg_price) > 100)
-            .slice(0, 20)
-            .map((t: MarketTrade) => ({
-              whale_address: "0xbot…",
-              market_title: t.market_title,
-              outcome: t.outcome,
-              shares: t.shares,
-              amount_usd: t.shares * t.avg_price,
-              timestamp: t.created_at,
-              category: t.category || "General",
-            }));
-          setWhaleData(wh);
-        }
+        const payload = await res.json() as ApiEnvelope<{ whales: WhaleActivityViewModel[] }>;
+        setWhaleData(payload.data?.whales ?? []);
       }
     } catch (e) {
       console.error("fetchWhales", e);
     } finally {
       setLoadingWhales(false);
+    }
+  };
+
+  const fetchSummary = async () => {
+    setLoadingSummary(true);
+    setSummaryError(null);
+    try {
+      const res = await fetch("/api/market/summary", { cache: "no-store" });
+      const payload = await res.json() as ApiEnvelope<MarketSummaryViewModel>;
+      if (!res.ok || !payload.ok) {
+        setSummaryError(payload.error?.message ?? "Failed to load wallet and performance summary");
+        return;
+      }
+      setSummary(payload.data ?? null);
+    } catch (e) {
+      setSummaryError(e instanceof Error ? e.message : "Failed to load wallet and performance summary");
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
+
+  const fetchSchedulerHealth = async () => {
+    setLoadingSchedulerHealth(true);
+    setSchedulerHealthError(null);
+    try {
+      const res = await fetch("/api/market/scheduler/health", { cache: "no-store" });
+      const payload = await res.json() as ApiEnvelope<SchedulerHealthViewModel>;
+      if (!res.ok || !payload.ok) {
+        setSchedulerHealthError(payload.error?.message ?? "Failed to load scheduler health");
+        return;
+      }
+      setSchedulerHealth(payload.data ?? null);
+    } catch (e) {
+      setSchedulerHealthError(e instanceof Error ? e.message : "Failed to load scheduler health");
+    } finally {
+      setLoadingSchedulerHealth(false);
     }
   };
 
@@ -665,16 +608,26 @@ export default function MarketClient() {
       });
       const data = await res.json();
       if (res.ok) {
-        addLog(`✅ Scan complete — ${data.trades_executed || 0} trades executed`);
-        if (data.trades) {
-          data.trades.forEach((t: MarketTrade) => {
-            addLog(`  → ${t.outcome} on "${t.market_title?.slice(0, 40)}…" @ $${t.avg_price?.toFixed(3)}`);
+        const scanPayload = data as ApiEnvelope<{
+          executed: TradeViewModel[];
+          appliedConfig?: Record<string, unknown>;
+        }>;
+        const scanTrades = scanPayload.data?.executed ?? [];
+        const executedCount = scanTrades.length;
+        addLog(`✅ Scan complete — ${executedCount} trades executed`);
+        if (scanTrades.length > 0) {
+          scanTrades.forEach((t) => {
+            addLog(`  → ${t.outcome} on "${t.marketTitle?.slice(0, 40)}…" @ $${t.avgPrice?.toFixed(3)}`);
           });
         }
+        setAppliedConfig(scanPayload.data?.appliedConfig ?? null);
         setLastScan(new Date().toISOString());
         await fetchTrades();
+        await fetchSummary();
+        await fetchSchedulerHealth();
       } else {
-        addLog(`❌ Scan failed: ${data.error || "Unknown error"}`);
+        const errorMessage = (data as ApiEnvelope<unknown>)?.error?.message ?? "Unknown error";
+        addLog(`❌ Scan failed: ${errorMessage}`);
       }
     } catch (e: unknown) {
       addLog(`❌ Error: ${(e as Error).message}`);
@@ -699,6 +652,7 @@ export default function MarketClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "running" }),
       });
+      await fetchSchedulerHealth();
     } catch (e) {
       console.error("Failed to update bot status", e);
     }
@@ -717,6 +671,7 @@ export default function MarketClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newPaused ? "paused" : "running" }),
       });
+      await fetchSchedulerHealth();
     } catch (e) {
       console.error("Failed to update bot status", e);
     }
@@ -733,6 +688,7 @@ export default function MarketClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "stopped" }),
       });
+      await fetchSchedulerHealth();
     } catch (e) {
       console.error("Failed to update bot status", e);
     }
@@ -822,6 +778,47 @@ export default function MarketClient() {
     }
   };
 
+  const applyBeginnerBotPreset = (preset: "starter" | "balanced" | "active") => {
+    if (preset === "starter") {
+      setPaperMode(true);
+      setCapitalAlloc(250);
+      setMaxPositions(3);
+      setMinEdge(5);
+      setMinVolume(25000);
+      setMinProbLow(20);
+      setMinProbHigh(80);
+      setRiskMix("conservative");
+      setWhaleFollow(false);
+      addLog("🧭 Preset applied: Starter (safe paper setup)");
+      return;
+    }
+
+    if (preset === "balanced") {
+      setPaperMode(true);
+      setCapitalAlloc(500);
+      setMaxPositions(5);
+      setMinEdge(3);
+      setMinVolume(10000);
+      setMinProbLow(10);
+      setMinProbHigh(90);
+      setRiskMix("balanced");
+      setWhaleFollow(false);
+      addLog("🧭 Preset applied: Balanced");
+      return;
+    }
+
+    setPaperMode(true);
+    setCapitalAlloc(900);
+    setMaxPositions(10);
+    setMinEdge(2);
+    setMinVolume(5000);
+    setMinProbLow(5);
+    setMinProbHigh(95);
+    setRiskMix("aggressive");
+    setWhaleFollow(true);
+    addLog("🧭 Preset applied: Active (higher volume paper setup)");
+  };
+
   const handleDirectBuy = async () => {
     if (!buyMarket) return;
     setBuySubmitting(true);
@@ -830,8 +827,8 @@ export default function MarketClient() {
       const marketId = String(buyMarket.id ?? "").trim();
       const marketTitle = String(buyMarket.title ?? "").trim() || `${buyMarket.category || "General"} market`;
       const normalizedAmount = Number(buyAmount);
-      const rawPrice = buyOutcome === "YES" ? buyMarket.outcome_yes : buyMarket.outcome_no;
-      const fallbackPrice = Number(buyMarket.probability) / 100;
+      const rawPrice = buyOutcome === "YES" ? buyMarket.yesPrice : buyMarket.noPrice;
+      const fallbackPrice = Number(buyMarket.probabilityPct) / 100;
       const avgPrice = Number.isFinite(rawPrice) && rawPrice > 0
         ? rawPrice
         : Number.isFinite(fallbackPrice) && fallbackPrice > 0
@@ -853,7 +850,7 @@ export default function MarketClient() {
           amount:         normalizedAmount,
           avg_price:      avgPrice,
           category:       buyMarket.category,
-          probability:    buyMarket.probability,
+          probability:    buyMarket.probabilityPct,
           paper_mode:     buyPaper,
           wallet_address: address ?? null,
         }),
@@ -1044,6 +1041,17 @@ export default function MarketClient() {
   const winRate = trades.length > 0
     ? ((trades.filter(t => t.pnl > 0).length / trades.length) * 100).toFixed(1)
     : "0";
+  const recentOutcomes = trades.slice(0, 8);
+  const summaryMode = summary?.mode ?? (paperMode ? "paper" : "live");
+  const schedulerStatus = schedulerHealth?.status ?? "stopped";
+  const schedulerStatusTone =
+    schedulerStatus === "running"
+      ? "bg-green-100 text-green-700 border-green-200"
+      : schedulerStatus === "paper"
+        ? "bg-purple-100 text-purple-700 border-purple-200"
+        : schedulerStatus === "paused"
+          ? "bg-amber-100 text-amber-700 border-amber-200"
+          : "bg-gray-100 text-gray-600 border-gray-200";
 
   const filteredMarkets = (() => {
     const q = marketSearch.toLowerCase();
@@ -1051,33 +1059,42 @@ export default function MarketClient() {
       if (excludedMarketIds.has(m.id)) return false;
       if (q && !m.title.toLowerCase().includes(q) && !m.category.toLowerCase().includes(q)) return false;
       if (mktCategory !== "all" && m.category.toLowerCase() !== mktCategory.toLowerCase()) return false;
-      if (m.probability < mktProbMin || m.probability > mktProbMax) return false;
-      if (m.volume24h < mktMinVol) return false;
-      if (m.edge_pct < mktMinEdge) return false;
-      if (mktRiskTag === "none" && m.risk_tag !== null) return false;
-      if (mktRiskTag !== "all" && mktRiskTag !== "none" && m.risk_tag !== mktRiskTag) return false;
+      if (m.probabilityPct < mktProbMin || m.probabilityPct > mktProbMax) return false;
+      if (m.volume24hUsd < mktMinVol) return false;
+      if (m.edgePct < mktMinEdge) return false;
+      if (mktRiskTag === "none" && m.riskTag !== null) return false;
+      if (mktRiskTag !== "all" && mktRiskTag !== "none" && m.riskTag !== mktRiskTag) return false;
       return true;
     });
     const sorted = filtered.sort((a, b) => {
       switch (mktSortBy) {
-        case "edge": return a.edge_pct - b.edge_pct;
-        case "probability": return a.probability - b.probability;
+        case "edge": return a.edgePct - b.edgePct;
+        case "probability": return a.probabilityPct - b.probabilityPct;
         case "title": return a.title.localeCompare(b.title);
-        case "endDate": return new Date(a.end_date || 0).getTime() - new Date(b.end_date || 0).getTime();
-        default: return a.volume24h - b.volume24h;
+        case "endDate": return new Date(a.endDate || 0).getTime() - new Date(b.endDate || 0).getTime();
+        default: return a.volume24hUsd - b.volume24hUsd;
       }
     });
 
     return mktSortDir === "asc" ? sorted : sorted.reverse();
   })();
 
+  const marketsTotalPages = Math.max(1, Math.ceil(filteredMarkets.length / MARKETS_PAGE_SIZE));
+  const pagedMarkets = filteredMarkets.slice((marketsPage - 1) * MARKETS_PAGE_SIZE, marketsPage * MARKETS_PAGE_SIZE);
+
+  useEffect(() => {
+    if (marketsPage > marketsTotalPages) {
+      setMarketsPage(marketsTotalPages);
+    }
+  }, [marketsPage, marketsTotalPages]);
+
   const buyPayloadIssues = useMemo(() => {
     if (!buyMarket) return [] as string[];
     const issues: string[] = [];
     const marketId = String(buyMarket.id ?? "").trim();
     const normalizedAmount = Number(buyAmount);
-    const rawPrice = buyOutcome === "YES" ? buyMarket.outcome_yes : buyMarket.outcome_no;
-    const fallbackPrice = Number(buyMarket.probability) / 100;
+    const rawPrice = buyOutcome === "YES" ? buyMarket.yesPrice : buyMarket.noPrice;
+    const fallbackPrice = Number(buyMarket.probabilityPct) / 100;
     const avgPrice = Number.isFinite(rawPrice) && rawPrice > 0
       ? rawPrice
       : Number.isFinite(fallbackPrice) && fallbackPrice > 0
@@ -1095,13 +1112,13 @@ export default function MarketClient() {
   const hotOppTabs = ["All", "High Potential", "High Risk-High Reward", "Bookmarked", "Construction"];
   const hotFiltered = markets.filter(m => {
     if (excludedMarketIds.has(m.id)) return false;
-    if (hotTab === "All") return m.risk_tag !== null;
-    if (hotTab === "High Potential") return m.risk_tag === "high-potential";
-    if (hotTab === "High Risk-High Reward") return m.risk_tag === "high-risk";
+    if (hotTab === "All") return true;
+    if (hotTab === "High Potential") return m.riskTag === "high-potential";
+    if (hotTab === "High Risk-High Reward") return m.riskTag === "high-risk";
     if (hotTab === "Bookmarked") return bookmarks.has(m.id);
-    if (hotTab === "Construction") return m.risk_tag === "construction" || m.category.toLowerCase().includes("construction");
+    if (hotTab === "Construction") return m.riskTag === "construction" || m.category.toLowerCase().includes("construction");
     return true;
-  }).slice(0, 30);
+  });
 
   const compareRunA = simRuns.find(r => r.id === compareA);
   const compareRunB = simRuns.find(r => r.id === compareB);
@@ -1217,6 +1234,10 @@ export default function MarketClient() {
             onClick={() => {
               setActiveTab(tab);
               if (tab === "Whale Watch" && whaleData.length === 0) fetchWhales();
+              if (tab === "Wallet & Performance") {
+                fetchSummary();
+                fetchSchedulerHealth();
+              }
               // Markets tab: don't auto-load — user triggers search
             }}
             className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition border-b-2 -mb-px ${
@@ -1241,12 +1262,28 @@ export default function MarketClient() {
             {/* Bot Controls */}
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-3">
               <h3 className="font-semibold text-xs text-gray-400 uppercase tracking-widest">Bot Controls</h3>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-lg border border-gray-100 bg-gray-50 px-2 py-1.5">
+                  <p className="text-[10px] text-gray-500">Mode</p>
+                  <p className="text-xs font-semibold text-gray-900">{paperMode ? "Paper" : "Live"}</p>
+                </div>
+                <div className="rounded-lg border border-gray-100 bg-gray-50 px-2 py-1.5">
+                  <p className="text-[10px] text-gray-500">Bot</p>
+                  <p className="text-xs font-semibold text-gray-900">{botRunning ? (botPaused ? "Paused" : "Running") : "Stopped"}</p>
+                </div>
+                <div className="rounded-lg border border-gray-100 bg-gray-50 px-2 py-1.5">
+                  <p className="text-[10px] text-gray-500">Last Scan</p>
+                  <p className="text-xs font-semibold text-gray-900">{lastScan ? new Date(lastScan).toLocaleTimeString() : "—"}</p>
+                </div>
+              </div>
+
               <div className="flex gap-2 flex-wrap">
                 {!botRunning ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button onClick={handleStartBot} className="flex-1 bg-[#FF4D00] hover:bg-orange-600 py-2 rounded-lg text-sm font-bold transition">
-                        ▶ Start Bot
+                        ▶ Start Autopilot
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>Start the market scanning bot with current settings.</TooltipContent>
@@ -1278,7 +1315,7 @@ export default function MarketClient() {
                       disabled={scanning}
                       className="flex-1 bg-gray-200 hover:bg-gray-300 py-2 rounded-lg text-sm font-bold transition disabled:opacity-50"
                     >
-                      {scanning ? "🔍 Scanning…" : "🔍 Test Scan Now"}
+                      {scanning ? "🔍 Scanning…" : "🔍 Run One Scan"}
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>Run a one-time scan immediately using current settings. Does not start the continuous bot.</TooltipContent>
@@ -1310,20 +1347,50 @@ export default function MarketClient() {
                       💾 Save This Simulation Run
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent>Save a snapshot of current PNL chart + config for comparison later under "Sim Compare" tab.</TooltipContent>
+                  <TooltipContent>Save a snapshot of the current profit/loss chart and settings for comparison later.</TooltipContent>
                 </Tooltip>
               )}
             </div>
 
             {/* Bot Configuration */}
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-3">
-              <h3 className="font-semibold text-xs text-gray-400 uppercase tracking-widest">Configuration</h3>
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-semibold text-xs text-gray-400 uppercase tracking-widest">Configuration</h3>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">Safe preset defaults</span>
+              </div>
+
+              <div>
+                <label className="flex items-center text-xs text-gray-500 mb-2">
+                  Quick Setup
+                  <HelpTip content="Choose a preset to configure position count, filters, and risk in one click." />
+                </label>
+                <div className="grid grid-cols-3 gap-1">
+                  <button
+                    onClick={() => applyBeginnerBotPreset("starter")}
+                    className="py-1.5 text-xs rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition"
+                  >
+                    Starter
+                  </button>
+                  <button
+                    onClick={() => applyBeginnerBotPreset("balanced")}
+                    className="py-1.5 text-xs rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition"
+                  >
+                    Balanced
+                  </button>
+                  <button
+                    onClick={() => applyBeginnerBotPreset("active")}
+                    className="py-1.5 text-xs rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition"
+                  >
+                    Active
+                  </button>
+                </div>
+              </div>
 
               {/* Capital */}
               <div>
                 <label className="flex items-center text-xs text-gray-500 mb-1">
-                  Capital Allocation ($)
-                  <HelpTip content="Total USDC allocated for this bot session. Split across open positions." />
+                  Session Budget ($)
+                  <HelpTip content="Total paper/live budget used by the bot for this session." />
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -1356,8 +1423,8 @@ export default function MarketClient() {
               {/* Min Edge */}
               <div>
                 <label className="flex items-center text-xs text-gray-500 mb-1">
-                  Minimum Edge %
-                  <HelpTip content="Only enter trades where the bot detects at least this % edge over the market price." />
+                  Minimum Estimated Advantage %
+                  <HelpTip content="Only enter trades where the bot detects at least this estimated advantage over current market pricing." />
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -1450,15 +1517,110 @@ export default function MarketClient() {
                   ))}
                 </div>
               </div>
+
+              {appliedConfig && (
+                <details className="rounded-xl border border-gray-200 bg-gray-50 p-3 group">
+                  <summary className="text-[11px] font-semibold text-gray-700 cursor-pointer list-none flex items-center justify-between">
+                    Applied by backend
+                    <span className="text-[10px] text-gray-400 group-open:rotate-180 transition">⌃</span>
+                  </summary>
+                  <pre className="mt-2 text-[10px] text-gray-600 whitespace-pre-wrap break-words">{JSON.stringify(appliedConfig, null, 2)}</pre>
+                </details>
+              )}
             </div>
           </div>
 
           {/* Right: Stats + Chart + Log */}
           <div className="xl:col-span-2 space-y-4">
+            <div className="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-2xl shadow-sm p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-gray-900 flex items-center">
+                  Control Center
+                  <HelpTip content="Command summary for current bot mode, performance, and scheduler state." />
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Core performance + scheduler health in one place.</p>
+                <div className="mt-2 flex items-center gap-4 text-[11px] text-gray-500">
+                  <span className="flex items-center gap-1">Today P/L<HelpTip content="Net realized and unrealized profit/loss for today in your selected display currency." />: <span className={`font-semibold ${(summary?.todayProfitLossUsd ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>{summary ? formatMoney(summary.todayProfitLossUsd) : "—"}</span></span>
+                  <span className="flex items-center gap-1">Win Rate<HelpTip content="Percentage of trades with positive profit/loss." />: <span className="font-semibold text-gray-800">{summary ? `${summary.winRatePct.toFixed(1)}%` : "—"}</span></span>
+                  <span className="flex items-center gap-1">Balance<HelpTip content="Starting balance plus cumulative profit/loss." />: <span className="font-semibold text-gray-900">{summary ? formatMoney(summary.currentBalanceUsd) : "—"}</span></span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    await Promise.all([fetchSummary(), fetchSchedulerHealth()]);
+                    setActiveTab("Wallet & Performance");
+                  }}
+                  className="bg-[#1E3A8A] hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition"
+                >
+                  Open Wallet & Performance
+                </button>
+                <button
+                  onClick={() => {
+                    fetchSummary();
+                    fetchSchedulerHealth();
+                  }}
+                  className="text-xs text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-3 py-2 transition"
+                >
+                  Refresh Overview
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-800 flex items-center">
+                    Scheduler Health
+                    <HelpTip content="Server-side automation heartbeat for directive-driven scans and execution." />
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">Autopilot cadence, daily run totals, and latest runtime state.</p>
+                </div>
+                <span className={`text-[11px] px-2.5 py-1 rounded-full border font-semibold ${schedulerStatusTone}`}>
+                  {schedulerStatus.toUpperCase()}
+                </span>
+              </div>
+
+              {schedulerHealthError ? (
+                <p className="text-xs text-red-600 mt-3">{schedulerHealthError}</p>
+              ) : loadingSchedulerHealth && !schedulerHealth ? (
+                <p className="text-xs text-gray-400 mt-3">Loading scheduler health…</p>
+              ) : (
+                <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                    <p className="text-[11px] text-gray-500 flex items-center">Runs Today <HelpTip content="How many scheduler cycles were attempted today for this user." /></p>
+                    <p className="text-lg font-semibold text-gray-900">{schedulerHealth?.runsToday ?? 0}</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                    <p className="text-[11px] text-gray-500 flex items-center">Trades Today <HelpTip content="Number of trades executed by scheduler automation today." /></p>
+                    <p className="text-lg font-semibold text-gray-900">{schedulerHealth?.tradesToday ?? 0}</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                    <p className="text-[11px] text-gray-500 flex items-center">Target Frequency <HelpTip content="Planned interval between scheduler runs, derived from buys/day and global limits." /></p>
+                    <p className="text-lg font-semibold text-gray-900">{schedulerHealth?.runFrequencySeconds ?? 0}s</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                    <p className="text-[11px] text-gray-500 flex items-center">Next Eligible Run <HelpTip content="Earliest time the scheduler can execute again without violating run interval constraints." /></p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {schedulerHealth?.nextEligibleRunIso
+                        ? new Date(schedulerHealth.nextEligibleRunIso).toLocaleTimeString()
+                        : "—"}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {schedulerHealth?.lastError && (
+                <p className="mt-3 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  Last error: {schedulerHealth.lastError}
+                </p>
+              )}
+            </div>
+
             {/* Stats row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: "Total PNL", value: `${totalPnl >= 0 ? "+" : ""}$${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? "text-green-600" : "text-red-600" },
+                { label: "Total Profit / Loss", value: `${totalPnl >= 0 ? "+" : ""}$${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? "text-green-600" : "text-red-600" },
                 { label: "Open Positions", value: openTrades.length, color: "text-gray-900" },
                 { label: "Win Rate", value: `${winRate}%`, color: parseFloat(winRate) >= 50 ? "text-green-600" : "text-red-600" },
                 { label: "Total Trades", value: trades.length, color: "text-gray-900" },
@@ -1470,12 +1632,12 @@ export default function MarketClient() {
               ))}
             </div>
 
-            {/* PNL Chart */}
+            {/* Profit and loss chart */}
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-sm text-gray-800">
-                  Cumulative PNL
-                  <HelpTip content="Running sum of all trade profits/losses over time. Slope up = profitable strategy." />
+                  Profit and Loss Over Time
+                  <HelpTip content="Running total of profits and losses over time." />
                 </h3>
                 <button onClick={fetchTrades} className="text-xs text-gray-400 hover:text-gray-700 transition">↻ Refresh</button>
               </div>
@@ -1493,7 +1655,7 @@ export default function MarketClient() {
                     <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} tickFormatter={v => `$${v}`} />
                     <RechartsTooltip
                       contentStyle={{ background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: 8, color: "#111827" }}
-                      formatter={(v: number | undefined) => [`$${(v ?? 0).toFixed(2)}`, "Cum. PNL"]}
+                      formatter={(v: number | undefined) => [`$${(v ?? 0).toFixed(2)}`, "Profit / Loss"]}
                     />
                     <Area type="monotone" dataKey="cumPnl" stroke="#FF4D00" fill="url(#pnlGrad)" strokeWidth={2} dot={false} />
                   </AreaChart>
@@ -1525,7 +1687,6 @@ export default function MarketClient() {
                     <span className="text-xs text-gray-500">Address</span>
                     <span className="font-mono text-xs bg-gray-100 text-gray-800 px-2 py-0.5 rounded">{address?.slice(0,6)}…{address?.slice(-4)}</span>
                   </div>
-                  {/* USDC balance from ERC-20 useReadContract */}
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">USDC (Polygon)</span>
                     {usdcBalance != null ? (
@@ -1565,47 +1726,19 @@ export default function MarketClient() {
               )}
             </div>
 
-            {/* Wallet Setup Guide */}
-            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-              <h3 className="font-semibold text-xs text-[#1E3A8A] mb-2 flex items-center gap-1">
-                📋 Live Trading Setup
-                <HelpTip content="Follow these 6 steps to go from paper trading to real Polymarket trades." />
-              </h3>
-              <ol className="space-y-1.5">
-                {([
-                  { text: "Paper mode ready — no wallet needed",            done: true },
-                  { text: "Install MetaMask & click Connect above",          done: isConnected },
-                  { text: "Switch MetaMask to Polygon (chainId 137)",        done: isConnected && chain?.id === 137 },
-                  { text: "Buy USDC on Polygon via Transak (link above)",    done: usdcBalance != null && parseFloat(usdcBalance) > 0 },
-                  { text: "Sign verification to enable live orders",         done: walletVerified },
-                  { text: "Disable Paper Mode → bot trades with real USDC",  done: !paperMode && walletVerified },
-                ] as { text: string; done: boolean }[]).map((s, i) => (
-                  <li key={i} className="flex items-start gap-1.5">
-                    <span className={`w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5 ${
-                      s.done ? "bg-green-100 text-green-700" : "bg-white border border-gray-300 text-gray-400"
-                    }`}>{s.done ? "✓" : i + 1}</span>
-                    <span className={`text-[11px] leading-snug ${s.done ? "text-green-700" : "text-gray-500"}`}>{s.text}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-
-            {/* Activity Log */}
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
-              <h3 className="font-semibold text-sm text-gray-700 mb-2">Activity Log</h3>
+              <h3 className="font-semibold text-sm text-gray-700 mb-2">What the Bot Is Doing</h3>
               <div ref={logRef} className="bg-gray-50 border border-gray-100 rounded-lg p-3 h-48 overflow-y-auto font-mono text-xs space-y-0.5">
                 {scanLog.length === 0
-                  ? <span className="text-gray-400">No activity yet…</span>
+                  ? <span className="text-gray-400">No actions yet. Start the bot or run a test scan.</span>
                   : scanLog.map((l, i) => (
                     <div key={i} className={`${l.includes("✅") ? "text-green-600" : l.includes("❌") ? "text-red-600" : l.includes("⚠️") ? "text-yellow-600" : "text-gray-500"}`}>
                       {l}
                     </div>
-                  ))
-                }
+                  ))}
               </div>
             </div>
 
-            {/* Open Positions */}
             {openTrades.length > 0 && (
               <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
                 <h3 className="font-semibold text-sm text-gray-700 mb-3">Open Positions</h3>
@@ -1618,19 +1751,19 @@ export default function MarketClient() {
                         <th className="pb-2 text-right font-medium">Shares</th>
                         <th className="pb-2 text-right font-medium">Avg Price</th>
                         <th className="pb-2 text-right font-medium">Current</th>
-                        <th className="pb-2 text-right font-medium">PNL</th>
+                        <th className="pb-2 text-right font-medium">Profit / Loss</th>
                       </tr>
                     </thead>
                     <tbody>
                       {openTrades.map(t => (
                         <tr key={t.id} className="border-b border-gray-200/50">
-                          <td className="py-2 pr-2 max-w-[180px] truncate text-gray-700">{t.market_title}</td>
+                          <td className="py-2 pr-2 max-w-[180px] truncate text-gray-700">{t.marketTitle}</td>
                           <td className="py-2 pr-2">
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${t.outcome === "YES" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{t.outcome}</span>
                           </td>
                           <td className="py-2 text-right font-mono">{Number(t.shares).toFixed(1)}</td>
-                          <td className="py-2 text-right font-mono">${Number(t.avg_price).toFixed(3)}</td>
-                          <td className="py-2 text-right font-mono">${Number(t.current_price).toFixed(3)}</td>
+                          <td className="py-2 text-right font-mono">${Number(t.avgPrice).toFixed(3)}</td>
+                          <td className="py-2 text-right font-mono">${Number(t.currentPrice).toFixed(3)}</td>
                           <td className={`py-2 text-right font-mono font-bold ${t.pnl >= 0 ? "text-green-600" : "text-red-600"}`}>
                             {t.pnl >= 0 ? "+" : ""}${Number(t.pnl).toFixed(2)}
                           </td>
@@ -1641,6 +1774,142 @@ export default function MarketClient() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════
+          TAB: WALLET & PERFORMANCE
+      ════════════════════════════════════════════ */}
+      {activeTab === "Wallet & Performance" && (
+        <div className="space-y-4">
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 flex items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`text-[11px] px-2.5 py-1 rounded-full border font-semibold ${summaryMode === "paper" ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-green-100 text-green-700 border-green-200"}`}>
+                  {summaryMode === "paper" ? "Paper Mode" : "Live Mode"}
+                </span>
+                <StatusBadge status={botPaused ? "idle" : botRunning ? "running" : "idle"} />
+              </div>
+              <p className="text-sm font-medium text-gray-800">
+                {summaryMode === "paper" ? "Paper trading: safe practice" : "Live trading: connected"}
+              </p>
+              {summaryMode === "live" && (!isConnected || usdcBalance == null) && (
+                <p className="text-xs text-amber-600 mt-1">Live balance not connected yet.</p>
+              )}
+            </div>
+            <button onClick={fetchSummary} className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg px-3 py-1.5">
+              ↻ Refresh Summary
+            </button>
+          </div>
+
+          {summaryError && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
+              {summaryError}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-3">
+              <h3 className="text-sm font-semibold text-gray-800">Wallet Snapshot</h3>
+              {loadingSummary && !summary ? (
+                <p className="text-sm text-gray-400">Loading wallet snapshot…</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                    <p className="text-xs text-gray-500">Starting Balance</p>
+                    <p className="text-lg font-semibold text-gray-900">{formatMoney(summary?.startingBalanceUsd ?? 0)}</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                    <p className="text-xs text-gray-500">Current Balance</p>
+                    <p className="text-lg font-semibold text-gray-900">{formatMoney(summary?.currentBalanceUsd ?? 0)}</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                    <p className="text-xs text-gray-500">Available Cash</p>
+                    <p className="text-lg font-semibold text-gray-900">{formatMoney(summary?.availableCashUsd ?? 0)}</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                    <p className="text-xs text-gray-500">Total Profit / Loss</p>
+                    <p className={`text-lg font-semibold ${(summary?.totalProfitLossUsd ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
+                      {(summary?.totalProfitLossUsd ?? 0) >= 0 ? "+" : ""}{formatMoney(summary?.totalProfitLossUsd ?? 0)}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-3">
+              <h3 className="text-sm font-semibold text-gray-800">Performance Metrics</h3>
+              {loadingSummary && !summary ? (
+                <p className="text-sm text-gray-400">Loading performance metrics…</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Today Profit / Loss</p><p className={`font-semibold ${(summary?.todayProfitLossUsd ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>{formatMoney(summary?.todayProfitLossUsd ?? 0)}</p></div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Open Positions</p><p className="font-semibold text-gray-900">{summary?.openPositions ?? 0}</p></div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Total Trades</p><p className="font-semibold text-gray-900">{summary?.totalTrades ?? 0}</p></div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Win Rate</p><p className="font-semibold text-gray-900">{(summary?.winRatePct ?? 0).toFixed(1)}%</p></div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Average Trade Size</p><p className="font-semibold text-gray-900">{formatMoney(summary?.averageTradeUsd ?? 0)}</p></div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Average Profit per Trade</p><p className="font-semibold text-gray-900">{formatMoney(summary?.averageProfitUsd ?? 0)}</p></div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Best Day</p><p className="font-semibold text-green-600">{formatMoney(summary?.bestDayUsd ?? 0)}</p></div>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Worst Day</p><p className="font-semibold text-red-600">{formatMoney(summary?.worstDayUsd ?? 0)}</p></div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3">Recent Outcomes</h3>
+              {recentOutcomes.length === 0 ? (
+                <p className="text-sm text-gray-400">No trades yet.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-gray-400 border-b border-gray-200">
+                        <th className="pb-2 text-left font-medium">Market</th>
+                        <th className="pb-2 text-left font-medium">Result</th>
+                        <th className="pb-2 text-right font-medium">Profit / Loss</th>
+                        <th className="pb-2 text-right font-medium">When</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentOutcomes.map((trade) => (
+                        <tr key={trade.id} className="border-b border-gray-100">
+                          <td className="py-2 pr-2 max-w-[220px] truncate text-gray-700">{trade.marketTitle}</td>
+                          <td className="py-2 pr-2 text-gray-600">{trade.status === "closed" ? "Closed" : "Open"}</td>
+                          <td className={`py-2 text-right font-mono ${(trade.pnl ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
+                            {(trade.pnl ?? 0) >= 0 ? "+" : ""}{formatMoney(trade.pnl ?? 0)}
+                          </td>
+                          <td className="py-2 text-right text-gray-400">{new Date(trade.createdAt).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3">What the Bot Did Recently</h3>
+              <div className="bg-gray-50 border border-gray-100 rounded-lg p-3 h-56 overflow-y-auto font-mono text-xs space-y-1">
+                {scanLog.length === 0
+                  ? <span className="text-gray-400">No recent bot actions yet.</span>
+                  : scanLog.slice(0, 12).map((line, index) => (
+                    <div key={index} className={`${line.includes("✅") ? "text-green-600" : line.includes("❌") ? "text-red-600" : line.includes("⚠️") ? "text-yellow-600" : "text-gray-500"}`}>
+                      {line}
+                    </div>
+                  ))}
+              </div>
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-gray-600">
+                  Last Run: {summary?.lastRunIso ? new Date(summary.lastRunIso).toLocaleString() : "Not available"}
+                </div>
+                <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-gray-600">
+                  Run Frequency: {summary?.runFrequencySeconds != null ? `${summary.runFrequencySeconds}s` : "Not enough history"}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -1661,9 +1930,9 @@ export default function MarketClient() {
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs text-gray-500">{buyMarket.category}</span>
                     <span className="text-xs text-gray-400">·</span>
-                    <span className="text-xs text-gray-500">Prob: {buyMarket.probability}%</span>
+                    <span className="text-xs text-gray-500">Prob: {buyMarket.probabilityPct}%</span>
                     <span className="text-xs text-gray-400">·</span>
-                    <span className={`text-xs font-bold ${buyMarket.edge_pct > 10 ? "text-[#FF4D00]" : "text-gray-500"}`}>Edge: {buyMarket.edge_pct}%</span>
+                    <span className={`text-xs font-bold ${buyMarket.edgePct > 10 ? "text-[#FF4D00]" : "text-gray-500"}`}>Advantage: {buyMarket.edgePct}%</span>
                   </div>
                 </div>
                 <button onClick={() => setBuyMarket(null)} className="text-gray-400 hover:text-gray-800 text-lg leading-none transition">×</button>
@@ -1678,14 +1947,14 @@ export default function MarketClient() {
                     className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${buyOutcome === "YES" ? "bg-green-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
                   >
                     YES &nbsp;
-                    <span className="font-mono text-xs opacity-80">@ {(buyMarket.outcome_yes * 100).toFixed(0)}¢</span>
+                    <span className="font-mono text-xs opacity-80">@ {(buyMarket.yesPrice * 100).toFixed(0)}¢</span>
                   </button>
                   <button
                     onClick={() => setBuyOutcome("NO")}
                     className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${buyOutcome === "NO" ? "bg-red-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
                   >
                     NO &nbsp;
-                    <span className="font-mono text-xs opacity-80">@ {(buyMarket.outcome_no * 100).toFixed(0)}¢</span>
+                    <span className="font-mono text-xs opacity-80">@ {(buyMarket.noPrice * 100).toFixed(0)}¢</span>
                   </button>
                 </div>
               </div>
@@ -1714,8 +1983,8 @@ export default function MarketClient() {
 
               {/* Preview */}
               {(() => {
-                const price = buyOutcome === "YES" ? buyMarket.outcome_yes : buyMarket.outcome_no;
-                const avgPrice = price > 0 ? price : (buyMarket.probability / 100);
+                const price = buyOutcome === "YES" ? buyMarket.yesPrice : buyMarket.noPrice;
+                const avgPrice = price > 0 ? price : (buyMarket.probabilityPct / 100);
                 const shares = buyAmount / avgPrice;
                 const payout = shares * 1;
                 const profit = payout - buyAmount;
@@ -1859,7 +2128,7 @@ export default function MarketClient() {
                       className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
                     >
                       <option value="all">All Tags</option>
-                      <option value="hot">🔥 Hot (High Edge)</option>
+                      <option value="hot">🔥 Hot (High Advantage)</option>
                       <option value="high-potential">📈 High Potential</option>
                       <option value="high-risk">⚠️ High Risk</option>
                       <option value="construction">🏗️ Construction</option>
@@ -1881,7 +2150,7 @@ export default function MarketClient() {
                       className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
                     >
                       <option value="volume">24h Volume ↓</option>
-                      <option value="edge">Edge % ↓</option>
+                      <option value="edge">Estimated Advantage % ↓</option>
                       <option value="probability">Probability ↓</option>
                       <option value="title">Title A→Z</option>
                       <option value="endDate">End Date ↑</option>
@@ -1898,8 +2167,8 @@ export default function MarketClient() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                      Min Edge %: {mktMinEdge}%
-                      <HelpTip content="Only show markets with at least this estimated edge." />
+                      Min Estimated Advantage %: {mktMinEdge}%
+                      <HelpTip content="Only show markets with at least this estimated advantage." />
                     </label>
                     <input type="range" min={0} max={30} value={mktMinEdge} onChange={e => setMktMinEdge(+e.target.value)} className="w-full accent-[#FF4D00]" />
                   </div>
@@ -1940,6 +2209,7 @@ export default function MarketClient() {
                   setMktMinEdge(0);
                   setMktSortBy("volume");
                   setMktSortDir("desc");
+                  setMarketsPage(1);
                 }} className="text-gray-400 hover:text-gray-500 transition">Clear</button>
               </div>
             )}
@@ -1959,6 +2229,25 @@ export default function MarketClient() {
 
           {marketsLoaded && (
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 text-xs text-gray-500">
+                <span>Page {marketsPage} of {marketsTotalPages}</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setMarketsPage((prev) => Math.max(1, prev - 1))}
+                    disabled={marketsPage <= 1}
+                    className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    onClick={() => setMarketsPage((prev) => Math.min(marketsTotalPages, prev + 1))}
+                    disabled={marketsPage >= marketsTotalPages}
+                    className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead className="bg-gray-50 border-b border-gray-200">
@@ -1977,7 +2266,7 @@ export default function MarketClient() {
                         <button onClick={() => setSortBy("endDate")} className="hover:text-gray-700 transition">Ends {mktSortBy === "endDate" ? (mktSortDir === "asc" ? "↑" : "↓") : ""}</button>
                       </th>
                       <th className="px-3 py-3 text-right font-medium">
-                        <button onClick={() => setSortBy("edge")} className="hover:text-gray-700 transition">Edge {mktSortBy === "edge" ? (mktSortDir === "asc" ? "↑" : "↓") : ""}</button>
+                        <button onClick={() => setSortBy("edge")} className="hover:text-gray-700 transition">Advantage {mktSortBy === "edge" ? (mktSortDir === "asc" ? "↑" : "↓") : ""}</button>
                       </th>
                       <th className="px-3 py-3 text-center font-medium">Actions</th>
                     </tr>
@@ -1988,14 +2277,14 @@ export default function MarketClient() {
                     ) : filteredMarkets.length === 0 ? (
                       <tr><td colSpan={7} className="text-center py-10 text-gray-400">No markets match — try a different search or fewer filters</td></tr>
                     ) : (
-                      filteredMarkets.slice(0, 60).map(m => (
+                      pagedMarkets.map(m => (
                         <tr key={m.id} className="border-t border-gray-100 hover:bg-gray-100/30">
                           <td className="px-4 py-3 max-w-[260px]">
                             <div className="flex items-start gap-2">
-                              {m.risk_tag && (
-                                <span style={{ background: RISK_COLORS[m.risk_tag] + "30", color: RISK_COLORS[m.risk_tag] }}
+                              {m.riskTag && (
+                                <span style={{ background: RISK_COLORS[m.riskTag] + "30", color: RISK_COLORS[m.riskTag] }}
                                   className="text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase whitespace-nowrap mt-0.5">
-                                  {m.risk_tag.replace("-", " ")}
+                                  {m.riskTag.replace("-", " ")}
                                 </span>
                               )}
                               <span className="text-gray-900 line-clamp-2">{m.title}</span>
@@ -2004,17 +2293,17 @@ export default function MarketClient() {
                           <td className="px-3 py-3 text-center text-gray-500 text-[11px]">{m.category.slice(0, 12)}</td>
                           <td className="px-3 py-3 text-right">
                             <div className="flex flex-col items-end gap-0.5">
-                              <span className={`text-xs font-semibold ${m.probability > 60 ? "text-green-600" : m.probability < 40 ? "text-red-600" : "text-gray-700"}`}>
-                                Y: {(m.outcome_yes * 100).toFixed(0)}¢
+                              <span className={`text-xs font-semibold ${m.probabilityPct > 60 ? "text-green-600" : m.probabilityPct < 40 ? "text-red-600" : "text-gray-700"}`}>
+                                Y: {(m.yesPrice * 100).toFixed(0)}¢
                               </span>
-                              <span className="text-[10px] text-gray-400">N: {(m.outcome_no * 100).toFixed(0)}¢</span>
+                              <span className="text-[10px] text-gray-400">N: {(m.noPrice * 100).toFixed(0)}¢</span>
                             </div>
                           </td>
-                          <td className="px-3 py-3 text-right text-gray-500 text-[11px]">${m.volume24h >= 1000 ? `${(m.volume24h/1000).toFixed(0)}k` : m.volume24h.toFixed(0)}</td>
-                          <td className="px-3 py-3 text-right text-gray-400 text-[10px]">{m.end_date ?? "—"}</td>
+                          <td className="px-3 py-3 text-right text-gray-500 text-[11px]">${m.volume24hUsd >= 1000 ? `${(m.volume24hUsd/1000).toFixed(0)}k` : m.volume24hUsd.toFixed(0)}</td>
+                          <td className="px-3 py-3 text-right text-gray-400 text-[10px]">{m.endDateLabel ?? "—"}</td>
                           <td className="px-3 py-3 text-right">
-                            <span className={m.edge_pct > 15 ? "text-[#FF4D00] font-bold" : m.edge_pct > 8 ? "text-yellow-600" : "text-gray-500"}>
-                              {m.edge_pct}%
+                            <span className={m.edgePct > 15 ? "text-[#FF4D00] font-bold" : m.edgePct > 8 ? "text-yellow-600" : "text-gray-500"}>
+                              {m.edgePct}%
                             </span>
                           </td>
                           <td className="px-3 py-3">
@@ -2030,18 +2319,6 @@ export default function MarketClient() {
                                   </button>
                                 </TooltipTrigger>
                                 <TooltipContent>{bookmarks.has(m.id) ? "Unfollow market" : "Follow market"}</TooltipContent>
-                              </Tooltip>
-
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <button
-                                    onClick={() => openBuyPanel(m, "YES")}
-                                    className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2 py-1 rounded-lg font-medium transition"
-                                  >
-                                    Details
-                                  </button>
-                                </TooltipTrigger>
-                                <TooltipContent>Open details and trade panel.</TooltipContent>
                               </Tooltip>
 
                               {/* Buy YES */}
@@ -2109,9 +2386,9 @@ export default function MarketClient() {
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs text-gray-500">{buyMarket.category}</span>
                     <span className="text-xs text-gray-400">·</span>
-                    <span className="text-xs text-gray-500">Prob: {buyMarket.probability}%</span>
+                    <span className="text-xs text-gray-500">Prob: {buyMarket.probabilityPct}%</span>
                     <span className="text-xs text-gray-400">·</span>
-                    <span className={`text-xs font-bold ${buyMarket.edge_pct > 10 ? "text-[#FF4D00]" : "text-gray-500"}`}>Edge: {buyMarket.edge_pct}%</span>
+                    <span className={`text-xs font-bold ${buyMarket.edgePct > 10 ? "text-[#FF4D00]" : "text-gray-500"}`}>Advantage: {buyMarket.edgePct}%</span>
                   </div>
                 </div>
                 <button onClick={() => setBuyMarket(null)} className="text-gray-400 hover:text-gray-800 text-lg leading-none transition">×</button>
@@ -2119,11 +2396,11 @@ export default function MarketClient() {
               <div className="flex gap-2">
                 <button onClick={() => setBuyOutcome("YES")}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${buyOutcome === "YES" ? "bg-green-700 text-white" : "bg-gray-100 text-gray-600"}`}>
-                  YES <span className="font-mono text-xs opacity-80">@ {(buyMarket.outcome_yes * 100).toFixed(0)}¢</span>
+                  YES <span className="font-mono text-xs opacity-80">@ {(buyMarket.yesPrice * 100).toFixed(0)}¢</span>
                 </button>
                 <button onClick={() => setBuyOutcome("NO")}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${buyOutcome === "NO" ? "bg-red-700 text-white" : "bg-gray-100 text-gray-600"}`}>
-                  NO <span className="font-mono text-xs opacity-80">@ {(buyMarket.outcome_no * 100).toFixed(0)}¢</span>
+                  NO <span className="font-mono text-xs opacity-80">@ {(buyMarket.noPrice * 100).toFixed(0)}¢</span>
                 </button>
               </div>
               <div>
@@ -2133,8 +2410,8 @@ export default function MarketClient() {
                 <div className="flex gap-1">{[10,25,50,100,250].map(v => <button key={v} onClick={() => setBuyAmount(v)} className={`px-2 py-1 text-xs rounded transition ${buyAmount===v?"bg-[#FF4D00] text-white":"bg-gray-100 text-gray-600"}`}>${v}</button>)}</div>
               </div>
               {(() => {
-                const price = buyOutcome === "YES" ? buyMarket.outcome_yes : buyMarket.outcome_no;
-                const avgPrice = price > 0 ? price : (buyMarket.probability / 100);
+                const price = buyOutcome === "YES" ? buyMarket.yesPrice : buyMarket.noPrice;
+                const avgPrice = price > 0 ? price : (buyMarket.probabilityPct / 100);
                 const shares = buyAmount / avgPrice;
                 const payout = shares;
                 const profit = payout - buyAmount;
@@ -2189,10 +2466,10 @@ export default function MarketClient() {
                     </button>
                   </div>
                   <div className="flex items-center gap-2 mb-3 flex-wrap">
-                    {m.risk_tag && (
-                      <span style={{ background: RISK_COLORS[m.risk_tag] + "25", color: RISK_COLORS[m.risk_tag], borderColor: RISK_COLORS[m.risk_tag] + "60" }}
+                    {m.riskTag && (
+                      <span style={{ background: RISK_COLORS[m.riskTag] + "25", color: RISK_COLORS[m.riskTag], borderColor: RISK_COLORS[m.riskTag] + "60" }}
                         className="text-[10px] px-2 py-0.5 rounded-full font-bold border uppercase">
-                        {m.risk_tag.replace("-", " ")}
+                        {m.riskTag.replace("-", " ")}
                       </span>
                     )}
                     <span className="text-xs text-gray-500">{m.category}</span>
@@ -2200,15 +2477,15 @@ export default function MarketClient() {
                   <div className="grid grid-cols-3 gap-2 mb-3 text-center">
                     <div className="bg-gray-100 rounded-lg p-2">
                       <p className="text-[10px] text-gray-400">Prob.</p>
-                      <p className={`text-sm font-bold ${m.probability > 60 ? "text-green-600" : m.probability < 40 ? "text-red-600" : "text-gray-900"}`}>{m.probability}%</p>
+                      <p className={`text-sm font-bold ${m.probabilityPct > 60 ? "text-green-600" : m.probabilityPct < 40 ? "text-red-600" : "text-gray-900"}`}>{m.probabilityPct}%</p>
                     </div>
                     <div className="bg-gray-100 rounded-lg p-2">
-                      <p className="text-[10px] text-gray-400">Edge</p>
-                      <p className="text-sm font-bold text-[#FF4D00]">{m.edge_pct}%</p>
+                      <p className="text-[10px] text-gray-400">Advantage</p>
+                      <p className="text-sm font-bold text-[#FF4D00]">{m.edgePct}%</p>
                     </div>
                     <div className="bg-gray-100 rounded-lg p-2">
                       <p className="text-[10px] text-gray-400">Vol 24h</p>
-                      <p className="text-sm font-bold text-gray-900">${(m.volume24h / 1000).toFixed(0)}k</p>
+                      <p className="text-sm font-bold text-gray-900">${(m.volume24hUsd / 1000).toFixed(0)}k</p>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -2218,7 +2495,7 @@ export default function MarketClient() {
                           onClick={() => openBuyPanel(m, "YES")}
                           className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 text-xs py-1.5 rounded-lg font-medium transition"
                         >
-                          Buy YES @ {(m.outcome_yes * 100).toFixed(0)}¢
+                          Buy YES @ {(m.yesPrice * 100).toFixed(0)}¢
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>Open buy panel for YES outcome on this market.</TooltipContent>
@@ -2229,7 +2506,7 @@ export default function MarketClient() {
                           onClick={() => openBuyPanel(m, "NO")}
                           className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs py-1.5 rounded-lg font-medium transition"
                         >
-                          Buy NO @ {(m.outcome_no * 100).toFixed(0)}¢
+                          Buy NO @ {(m.noPrice * 100).toFixed(0)}¢
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>Queue a NO buy on this market.</TooltipContent>
@@ -2490,30 +2767,30 @@ export default function MarketClient() {
                       .filter(w => whaleFilter === "all" || w.category.toLowerCase() === whaleFilter)
                       .map((w, i) => (
                         <tr key={i} className="border-t border-gray-100 hover:bg-gray-100/30">
-                          <td className="px-4 py-3 font-mono text-[#1E3A8A] font-semibold">{w.whale_address}</td>
-                          <td className="px-4 py-3 max-w-[200px] truncate text-gray-700">{w.market_title}</td>
+                          <td className="px-4 py-3 font-mono text-[#1E3A8A] font-semibold">{w.whaleAddress}</td>
+                          <td className="px-4 py-3 max-w-[200px] truncate text-gray-700">{w.marketTitle}</td>
                           <td className="px-3 py-3 text-center">
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${w.outcome === "YES" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                               {w.outcome}
                             </span>
                           </td>
                           <td className="px-3 py-3 text-right font-mono text-gray-700">{Number(w.shares).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                          <td className="px-3 py-3 text-right font-mono text-gray-900 font-bold">${Number(w.amount_usd).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                          <td className="px-3 py-3 text-right font-mono text-gray-900 font-bold">${Number(w.amountUsd).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
                           <td className="px-3 py-3 text-right text-gray-400">{new Date(w.timestamp).toLocaleTimeString()}</td>
                           <td className="px-3 py-3 text-center">
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <button
                                   onClick={async () => {
-                                  const copyAmt = Math.min(Math.max(w.amount_usd * 0.1, 5), 25);
-                                  const avgPx = w.shares > 0 ? w.amount_usd / w.shares : 0.5;
+                                  const copyAmt = Math.min(Math.max(w.amountUsd * 0.1, 5), 25);
+                                  const avgPx = w.shares > 0 ? w.amountUsd / w.shares : 0.5;
                                   try {
                                     const r = await fetch("/api/market/trades", {
                                       method: "POST",
                                       headers: { "Content-Type": "application/json" },
                                       body: JSON.stringify({
                                         market_id: `whale_copy_${Date.now()}`,
-                                        market_title: w.market_title,
+                                        market_title: w.marketTitle,
                                         outcome: w.outcome as "YES" | "NO",
                                         amount: copyAmt,
                                         avg_price: Math.min(Math.max(avgPx, 0.01), 0.99),
@@ -2523,7 +2800,7 @@ export default function MarketClient() {
                                       }),
                                     });
                                     if (r.ok) {
-                                      addLog(`🐋 Copied: ${w.outcome} "${w.market_title.slice(0,35)}…" $${copyAmt.toFixed(0)} ${paperMode ? "(paper)" : "(live)"}`);
+                                      addLog(`🐋 Copied: ${w.outcome} "${w.marketTitle.slice(0,35)}…" $${copyAmt.toFixed(0)} ${paperMode ? "(paper)" : "(live)"}`);
                                       fetchTrades();
                                     }
                                   } catch { addLog("❌ Whale copy failed"); }
@@ -2601,7 +2878,7 @@ export default function MarketClient() {
                         </p>
                         <div className="grid grid-cols-3 gap-2 text-center">
                           <div>
-                            <p className="text-[10px] text-gray-400">Total PNL</p>
+                            <p className="text-[10px] text-gray-400">Total Profit / Loss</p>
                             <p className={`text-sm font-bold ${run.total_pnl >= 0 ? "text-green-600" : "text-red-600"}`}>
                               {run.total_pnl >= 0 ? "+" : ""}${run.total_pnl.toFixed(2)}
                             </p>
@@ -2621,7 +2898,7 @@ export default function MarketClient() {
 
                   {/* Compare chart */}
                   <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Cumulative PNL Comparison</h4>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Cumulative Profit / Loss Comparison</h4>
                     {compareChartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height={260}>
                         <LineChart data={compareChartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
@@ -2638,7 +2915,7 @@ export default function MarketClient() {
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-[260px] flex items-center justify-center text-gray-400 text-sm">No PNL data in selected runs</div>
+                      <div className="h-[260px] flex items-center justify-center text-gray-400 text-sm">No profit/loss data in selected runs</div>
                     )}
                   </div>
                 </>
@@ -2651,7 +2928,7 @@ export default function MarketClient() {
                   <div key={run.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between gap-3">
                     <div>
                       <p className="text-sm text-gray-800 font-medium">{run.name}</p>
-                      <p className="text-xs text-gray-400">{run.trade_count} trades · {run.win_rate}% win rate · ${run.total_pnl.toFixed(2)} PNL · {run.config.risk_mix}</p>
+                      <p className="text-xs text-gray-400">{run.trade_count} trades · {run.win_rate}% win rate · ${run.total_pnl.toFixed(2)} profit/loss · {run.config.risk_mix}</p>
                     </div>
                     <button
                       onClick={() => {
