@@ -34,17 +34,18 @@ Observed failures:
 
 ### Supabase tables referenced in code
 - `market_trades`
-- `market_bot_settings`
-- `market_bot_state` (legacy/partial reference in docs; not in active API routes)
+- `market_bot_runtime`
+- `market_bot_directives`
 
 ### Migration coverage present in repo
 - `supabase/migrations/20260222000000_market_bot_settings.sql`
-  - Creates `market_bot_settings`
+  - Creates `market_bot_settings` (legacy, to be removed)
   - Enables RLS and basic SELECT/UPDATE/INSERT policies for own `user_id`
 
 Migration coverage missing in repo (for active runtime tables):
 - No local migration found for `market_trades`
-- No local migration found for `market_bot_state`
+- No local migration found for `market_bot_runtime`
+- No local migration found for `market_bot_directives`
 
 ---
 
@@ -78,8 +79,8 @@ Missing for live Polymarket CLOB mode:
 
 ### Supabase table existence check (service role)
 - `market_trades`: exists
-- `market_bot_settings`: exists
-- `market_bot_state`: exists
+- `market_bot_runtime`: exists
+- `market_bot_directives`: exists
 
 ---
 
@@ -149,7 +150,7 @@ Missing for live Polymarket CLOB mode:
 
 Supabase confirmed in use for market robot:
 - Auth gate on almost all market routes (`supabase.auth.getUser()`)
-- Data persistence in `market_trades`, `market_bot_settings`
+- Data persistence in `market_trades`, `market_bot_runtime`, `market_bot_directives`
 - Wallet metadata persisted on `auth.users.user_metadata.marketBotConfig`
 
 S3/AWS in market robot path:
@@ -223,9 +224,9 @@ Load/scale for “large numbers of buys”:
 -- existence and row counts
 select 'market_trades' as table_name, count(*) from public.market_trades
 union all
-select 'market_bot_settings', count(*) from public.market_bot_settings
+select 'market_bot_runtime', count(*) from public.market_bot_runtime
 union all
-select 'market_bot_state', count(*) from public.market_bot_state;
+select 'market_bot_directives', count(*) from public.market_bot_directives;
 
 -- most recent trades for visual contract check
 select *
@@ -235,7 +236,7 @@ limit 20;
 
 -- bot status rows
 select *
-from public.market_bot_settings
+from public.market_bot_runtime
 order by updated_at desc
 limit 20;
 ```

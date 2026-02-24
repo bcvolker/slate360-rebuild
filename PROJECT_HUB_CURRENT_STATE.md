@@ -15,7 +15,7 @@ Scope: Read-only repository audit for Project Hub rebuild preparation.
   - `app/api/account/overview/route.ts`
   - `app/api/slatedrop/project-audit-export/route.ts`
 - **Migration evidence in this repo:**
-  - No local migration file found creating `projects` (only `supabase/migrations/20260222000000_market_bot_settings.sql` exists).
+  - No local migration file found creating `projects` (only `supabase/migrations/20260222000000_market_bot_settings.sql` exists, which is legacy).
 - **Conclusion:**
   - Table is **expected by application code**, but exact DDL is **not present in this repo’s migrations**.
 

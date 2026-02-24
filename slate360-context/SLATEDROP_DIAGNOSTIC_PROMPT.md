@@ -38,7 +38,7 @@
 - The Market Robot tab is missing connectivity to Polymarket.
 - The search features don't work.
 - Running tests in paper mode doesn't make purchases or do anything.
-**What We Tried**: We migrated the Market Bot state to a persistent Supabase table (`market_bot_state`) and created a dedicated API route (`/api/market/bot-status`) to handle state.
+**What We Tried**: We migrated the Market Bot state to a persistent Supabase table (`market_bot_runtime`) and created a dedicated API route (`/api/market/bot-status`) to handle state.
 **The Clues & Suspects**:
 1. **Polymarket API Integration**: The `MarketClient.tsx` and `/api/market/polymarket` routes might be using mock data or failing to properly connect to the Gamma API.
 2. **Paper Trading Logic**: The paper trading execution logic might be stubbed out or failing silently without updating the user's paper balance or open positions.
@@ -51,7 +51,7 @@
 2. **Optimistic UI Updates**: We added React state updates to make the UI feel fast (e.g., instantly moving a file in the local array). This backfired by masking the fact that the backend API calls were failing or saving data incorrectly.
 3. **Column Remapping**: We ensured the frontend payload matches the DB schema (`file_name`, `file_size`, `s3_key`).
 4. **Type Strictness**: We implemented discriminated unions (`DbFile | Folder | DemoFile`) to prevent invalid operations on folders.
-5. **State Migration**: Moved Market Bot state from `user_metadata` to a dedicated `market_bot_state` table to avoid Supabase Auth update restrictions.
+5. **State Migration**: Moved Market Bot state from `user_metadata` to a dedicated `market_bot_runtime` table to avoid Supabase Auth update restrictions.
 6. **Email Migration**: Moved from client-side email triggering to a dedicated server-side Resend API route.
 
 ---
