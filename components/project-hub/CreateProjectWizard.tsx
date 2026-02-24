@@ -185,11 +185,8 @@ export default function CreateProjectWizard({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/35 backdrop-blur-sm" />
       <motion.div
-        drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={0}
         onClick={(event) => event.stopPropagation()}
-        className="relative w-full max-w-3xl overflow-hidden rounded-3xl border border-slate-700 bg-slate-900/95 shadow-2xl backdrop-blur-xl"
+        className="relative w-full max-w-3xl overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl text-slate-100"
       >
         <motion.div
           drag
@@ -237,7 +234,7 @@ export default function CreateProjectWizard({
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     placeholder="e.g. Maple Heights Residence"
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-[#FF4D00] focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]"
                   />
                 </div>
                 <div>
@@ -246,7 +243,7 @@ export default function CreateProjectWizard({
                     value={description}
                     onChange={(event) => setDescription(event.target.value)}
                     placeholder="Optional"
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-[#FF4D00] focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]"
                   />
                 </div>
                 <div>
@@ -254,7 +251,7 @@ export default function CreateProjectWizard({
                   <select
                     value={projectType}
                     onChange={(event) => setProjectType(event.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]"
                   >
                     <option value="ground-up">Ground-up</option>
                     <option value="renovation">Renovation</option>
@@ -267,7 +264,7 @@ export default function CreateProjectWizard({
                   <select
                     value={contractType}
                     onChange={(event) => setContractType(event.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]"
                   >
                     <option value="lump-sum">Lump Sum</option>
                     <option value="gmp">GMP</option>
@@ -302,7 +299,7 @@ export default function CreateProjectWizard({
                     value={address}
                     onChange={(event) => setAddress(event.target.value)}
                     placeholder="Manual address entry or reverse geocoded result"
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-[#FF4D00] focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]"
                   />
                 </div>
 
@@ -374,7 +371,7 @@ export default function CreateProjectWizard({
                     value={estimatedBudget}
                     onChange={(event) => setEstimatedBudget(event.target.value)}
                     placeholder="e.g. $4,500,000"
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]"
                   />
                 </div>
                 <div>
@@ -383,7 +380,7 @@ export default function CreateProjectWizard({
                     type="date"
                     value={targetStartDate}
                     onChange={(event) => setTargetStartDate(event.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]"
                   />
                 </div>
                 <div>
@@ -392,7 +389,7 @@ export default function CreateProjectWizard({
                     type="date"
                     value={targetEndDate}
                     onChange={(event) => setTargetEndDate(event.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -403,7 +400,7 @@ export default function CreateProjectWizard({
                     value={customPhases}
                     onChange={(event) => setCustomPhases(event.target.value)}
                     placeholder="One phase per line (e.g. Precon, Foundation, Framing...)"
-                    className="w-full resize-none rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -413,7 +410,7 @@ export default function CreateProjectWizard({
                     onChange={(event) => setScope(event.target.value)}
                     rows={3}
                     placeholder="Optional scope summary"
-                    className="w-full resize-none rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]"
                   />
                 </div>
               </div>
@@ -428,7 +425,7 @@ export default function CreateProjectWizard({
                       value={emailInput}
                       onChange={(event) => setEmailInput(event.target.value)}
                       placeholder="name@company.com"
-                      className="flex-1 rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500"
+                      className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]"
                     />
                     <button
                       type="button"

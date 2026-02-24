@@ -740,18 +740,10 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       useCORS: true,
       scale: 2,
       backgroundColor: "#ffffff",
-      onclone: (clonedDoc: Document) => {
-        // html2canvas cannot parse oklch() CSS function — strip problematic
-        // custom properties from :root so the clone doesn't crash.
-        const root = clonedDoc.documentElement;
-        root.style.setProperty("--background", "#ffffff");
-        root.style.setProperty("--foreground", "#0a0a0a");
-        root.style.setProperty("--border", "#e5e5e5");
-        root.style.setProperty("--ring", "#737373");
-        root.style.setProperty("--input", "#e5e5e5");
-        root.style.setProperty("--primary", "#171717");
-        root.style.setProperty("--primary-foreground", "#fafafa");
-        root.style.setProperty("--destructive", "#ef4444");
+      onclone: (clonedDoc) => {
+        const style = clonedDoc.createElement("style");
+        style.innerHTML = "* { color: #000000 !important; background-color: transparent; }";
+        clonedDoc.head.appendChild(style);
       },
     });
 

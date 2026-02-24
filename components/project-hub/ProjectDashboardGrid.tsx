@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Responsive, WidthProvider, type Layout, type ResponsiveLayouts } from "react-grid-layout/legacy";
+import { Responsive, WidthProvider, type ResponsiveLayouts } from "react-grid-layout/legacy";
 import { Loader2, Plus, CloudSun, Link as LinkIcon, Check } from "lucide-react";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -34,30 +34,11 @@ type WeatherData = {
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-const DEFAULT_LAYOUTS: ResponsiveLayouts = {
+const STRICT_LAYOUTS: ResponsiveLayouts = {
   lg: [
-    { i: "projectInfo", x: 0, y: 0, w: 4, h: 4, minW: 3, minH: 3 },
-    { i: "weather", x: 4, y: 0, w: 4, h: 4, minW: 3, minH: 3 },
-    { i: "recentFiles", x: 8, y: 0, w: 4, h: 5, minW: 4, minH: 4 },
-    { i: "quickActions", x: 0, y: 4, w: 8, h: 3, minW: 4, minH: 3 },
-  ],
-  md: [
-    { i: "projectInfo", x: 0, y: 0, w: 5, h: 4, minW: 4, minH: 3 },
-    { i: "weather", x: 5, y: 0, w: 5, h: 4, minW: 4, minH: 3 },
-    { i: "recentFiles", x: 0, y: 4, w: 10, h: 5, minW: 5, minH: 4 },
-    { i: "quickActions", x: 0, y: 9, w: 10, h: 3, minW: 5, minH: 3 },
-  ],
-  sm: [
-    { i: "projectInfo", x: 0, y: 0, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "weather", x: 0, y: 4, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "recentFiles", x: 0, y: 8, w: 6, h: 5, minW: 4, minH: 4 },
-    { i: "quickActions", x: 0, y: 13, w: 6, h: 3, minW: 4, minH: 3 },
-  ],
-  xs: [
-    { i: "projectInfo", x: 0, y: 0, w: 4, h: 4, minW: 4, minH: 3 },
-    { i: "weather", x: 0, y: 4, w: 4, h: 4, minW: 4, minH: 3 },
-    { i: "recentFiles", x: 0, y: 8, w: 4, h: 5, minW: 4, minH: 4 },
-    { i: "quickActions", x: 0, y: 13, w: 4, h: 3, minW: 4, minH: 3 },
+    { i: "info", x: 0, y: 0, w: 4, h: 2 },
+    { i: "weather", x: 4, y: 0, w: 4, h: 2 },
+    { i: "files", x: 0, y: 2, w: 8, h: 3 },
   ],
 };
 
@@ -110,18 +91,6 @@ function projectLocationLabel(metadata: Record<string, unknown> | null): string 
   return "Not set";
 }
 
-function widgetShell(title: string, children: React.ReactNode) {
-  return (
-    <div className="h-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-black text-gray-900">{title}</h2>
-        <span className="drag-handle cursor-move text-[10px] font-semibold uppercase tracking-wide text-gray-400">Drag</span>
-      </div>
-      {children}
-    </div>
-  );
-}
-
 export default function ProjectDashboardGrid({
   projectId,
   project,
@@ -129,7 +98,6 @@ export default function ProjectDashboardGrid({
   projectId: string;
   project: ProjectData;
 }) {
-  const [layouts, setLayouts] = useState<ResponsiveLayouts>(DEFAULT_LAYOUTS);
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
   const [filesLoading, setFilesLoading] = useState(true);
 
@@ -140,21 +108,6 @@ export default function ProjectDashboardGrid({
   const [linkLoading, setLinkLoading] = useState(false);
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-
-  const storageKey = useMemo(() => `project-hub-layout:${projectId}`, [projectId]);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as ResponsiveLayouts;
-      if (parsed && typeof parsed === "object") {
-        setLayouts(parsed);
-      }
-    } catch {
-      setLayouts(DEFAULT_LAYOUTS);
-    }
-  }, [storageKey]);
 
   useEffect(() => {
     if (!projectId) return;
@@ -285,124 +238,111 @@ export default function ProjectDashboardGrid({
 
       <ResponsiveGridLayout
         className="layout"
-        layouts={layouts}
-        onLayoutChange={(_, allLayouts) => {
-          setLayouts(allLayouts);
-          localStorage.setItem(storageKey, JSON.stringify(allLayouts));
-        }}
+        layouts={STRICT_LAYOUTS}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4 }}
         rowHeight={42}
         margin={[12, 12]}
-        draggableHandle=".drag-handle"
       >
-        <div key="projectInfo">
-          {widgetShell(
-            "Project Info",
-            <div className="space-y-2 text-sm text-gray-700">
-              <p>
-                <span className="font-semibold text-gray-900">Name:</span> {project.name}
-              </p>
-              <p>
-                <span className="font-semibold text-gray-900">Status:</span> {project.status}
-              </p>
-              <p className="truncate">
-                <span className="font-semibold text-gray-900">Location:</span>{" "}
-                {projectLocationLabel(project.metadata)}
-              </p>
+        <div key="info" className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 overflow-hidden flex flex-col">
+          <h2 className="mb-3 text-sm font-black text-gray-900">Project Info</h2>
+          <div className="space-y-2 text-sm text-gray-700">
+            <p>
+              <span className="font-semibold text-gray-900">Name:</span> {project.name}
+            </p>
+            <p>
+              <span className="font-semibold text-gray-900">Status:</span> {project.status}
+            </p>
+            <p className="truncate">
+              <span className="font-semibold text-gray-900">Location:</span>{" "}
+              {projectLocationLabel(project.metadata)}
+            </p>
+          </div>
+        </div>
+
+        <div key="weather" className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 overflow-hidden flex flex-col">
+          <h2 className="mb-3 text-sm font-black text-gray-900">Weather</h2>
+          {weatherLoading ? (
+            <div className="flex h-[120px] items-center justify-center text-sm text-gray-500">
+              <Loader2 size={16} className="mr-2 animate-spin" /> Fetching weather…
             </div>
-          )}
-        </div>
-
-        <div key="weather">
-          {widgetShell(
-            "Weather",
-            weatherLoading ? (
-              <div className="flex h-[120px] items-center justify-center text-sm text-gray-500">
-                <Loader2 size={16} className="mr-2 animate-spin" /> Fetching weather…
+          ) : weather ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-2xl font-black text-gray-900">
+                <CloudSun size={24} className="text-[#FF4D00]" />
+                {Math.round(weather.temperature)}°C
               </div>
-            ) : weather ? (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-2xl font-black text-gray-900">
-                  <CloudSun size={24} className="text-[#FF4D00]" />
-                  {Math.round(weather.temperature)}°C
-                </div>
-                <p className="text-sm text-gray-600">{describeWeatherCode(weather.code)}</p>
-                <p className="text-xs text-gray-500">Wind {Math.round(weather.windSpeed)} km/h</p>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">Set project latitude/longitude in metadata to show live weather.</p>
-            )
-          )}
-        </div>
-
-        <div key="recentFiles">
-          {widgetShell(
-            "Recent Files",
-            filesLoading ? (
-              <div className="flex h-[130px] items-center justify-center text-sm text-gray-500">
-                <Loader2 size={16} className="mr-2 animate-spin" /> Loading files…
-              </div>
-            ) : recentFiles.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-200 p-4 text-sm text-gray-500">No uploads yet.</div>
-            ) : (
-              <ul className="space-y-2">
-                {recentFiles.slice(0, 5).map((file) => (
-                  <li key={file.id} className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
-                    <p className="truncate text-sm font-semibold text-gray-800">{file.name}</p>
-                    <p className="mt-0.5 text-[11px] uppercase tracking-wide text-gray-500">
-                      {file.type || "file"}
-                      {file.createdAt ? ` • ${new Date(file.createdAt).toLocaleDateString()}` : ""}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )
-          )}
-        </div>
-
-        <div key="quickActions">
-          {widgetShell(
-            "Quick Actions",
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <Link
-                  href={`/project-hub/${projectId}/rfis`}
-                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                >
-                  <Plus size={13} /> + New RFI
-                </Link>
-                <Link
-                  href={`/project-hub/${projectId}/photos`}
-                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                >
-                  <Plus size={13} /> + Add Photo
-                </Link>
-                <button
-                  onClick={requestFiles}
-                  disabled={linkLoading || folders.length === 0}
-                  className="inline-flex items-center gap-1 rounded-lg bg-[#FF4D00] px-3 py-2 text-xs font-semibold text-white hover:bg-[#E64500] disabled:opacity-50"
-                >
-                  {linkLoading ? <Loader2 size={13} className="animate-spin" /> : <LinkIcon size={13} />} + Request Files
-                </button>
-              </div>
-
-              {generatedLink && (
-                <div className="flex items-center justify-between rounded-xl border border-green-200 bg-green-50 px-3 py-2">
-                  <p className="truncate text-xs font-medium text-green-700">{generatedLink}</p>
-                  <button
-                    onClick={copyLink}
-                    className="ml-2 inline-flex shrink-0 items-center gap-1 rounded-md bg-white px-2 py-1 text-xs font-semibold text-green-700 ring-1 ring-green-200"
-                  >
-                    {copied ? <Check size={12} /> : <LinkIcon size={12} />}
-                    {copied ? "Copied" : "Copy"}
-                  </button>
-                </div>
-              )}
+              <p className="text-sm text-gray-600">{describeWeatherCode(weather.code)}</p>
+              <p className="text-xs text-gray-500">Wind {Math.round(weather.windSpeed)} km/h</p>
             </div>
+          ) : (
+            <p className="text-sm text-gray-500">Set project latitude/longitude in metadata to show live weather.</p>
+          )}
+        </div>
+
+        <div key="files" className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 overflow-hidden flex flex-col">
+          <h2 className="mb-3 text-sm font-black text-gray-900">Recent Files</h2>
+          {filesLoading ? (
+            <div className="flex h-[130px] items-center justify-center text-sm text-gray-500">
+              <Loader2 size={16} className="mr-2 animate-spin" /> Loading files…
+            </div>
+          ) : recentFiles.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-gray-200 p-4 text-sm text-gray-500">No uploads yet.</div>
+          ) : (
+            <ul className="space-y-2">
+              {recentFiles.slice(0, 5).map((file) => (
+                <li key={file.id} className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
+                  <p className="truncate text-sm font-semibold text-gray-800">{file.name}</p>
+                  <p className="mt-0.5 text-[11px] uppercase tracking-wide text-gray-500">
+                    {file.type || "file"}
+                    {file.createdAt ? ` • ${new Date(file.createdAt).toLocaleDateString()}` : ""}
+                  </p>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       </ResponsiveGridLayout>
+
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 overflow-hidden flex flex-col">
+        <h2 className="mb-3 text-sm font-black text-gray-900">Quick Actions</h2>
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={`/project-hub/${projectId}/rfis`}
+              className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              <Plus size={13} /> + New RFI
+            </Link>
+            <Link
+              href={`/project-hub/${projectId}/photos`}
+              className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              <Plus size={13} /> + Add Photo
+            </Link>
+            <button
+              onClick={requestFiles}
+              disabled={linkLoading || folders.length === 0}
+              className="inline-flex items-center gap-1 rounded-lg bg-[#FF4D00] px-3 py-2 text-xs font-semibold text-white hover:bg-[#E64500] disabled:opacity-50"
+            >
+              {linkLoading ? <Loader2 size={13} className="animate-spin" /> : <LinkIcon size={13} />} + Request Files
+            </button>
+          </div>
+
+          {generatedLink && (
+            <div className="flex items-center justify-between rounded-xl border border-green-200 bg-green-50 px-3 py-2">
+              <p className="truncate text-xs font-medium text-green-700">{generatedLink}</p>
+              <button
+                onClick={copyLink}
+                className="ml-2 inline-flex shrink-0 items-center gap-1 rounded-md bg-white px-2 py-1 text-xs font-semibold text-green-700 ring-1 ring-green-200"
+              >
+                {copied ? <Check size={12} /> : <LinkIcon size={12} />}
+                {copied ? "Copied" : "Copy"}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </section>
   );
 }
