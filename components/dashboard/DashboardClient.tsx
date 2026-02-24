@@ -758,7 +758,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         try {
           const [weatherRes, geoRes] = await Promise.all([
             fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code&forecast_days=5&timezone=auto`),
-            fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lng}&count=1&language=en`),
+            fetch(`/api/weather/reverse-geocode?lat=${lat}&lng=${lng}`),
           ]);
 
           if (!weatherRes.ok) return;

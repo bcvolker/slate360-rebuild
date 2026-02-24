@@ -99,6 +99,48 @@ interface MarketListing {
   liquidity?: number;
 }
 
+function asFiniteNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+function normalizeProbabilityToUnit(value: unknown): number | null {
+  const parsed = asFiniteNumber(value);
+  if (parsed === null) return null;
+  if (parsed >= 0 && parsed <= 1) return parsed;
+  if (parsed > 1 && parsed <= 100) return parsed / 100;
+  return null;
+}
+
+function normalizeOutcomePrices(raw: unknown, fallbackProbability: unknown) {
+  let yes = Array.isArray(raw) ? normalizeProbabilityToUnit(raw[0]) : null;
+  let no = Array.isArray(raw) ? normalizeProbabilityToUnit(raw[1]) : null;
+
+  if (!Array.isArray(raw) && typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        yes = normalizeProbabilityToUnit(parsed[0]);
+        no = normalizeProbabilityToUnit(parsed[1]);
+      }
+    } catch {
+      // ignore malformed outcomePrices payload
+    }
+  }
+
+  if (yes === null) yes = normalizeProbabilityToUnit(fallbackProbability) ?? 0.5;
+  if (no === null) no = 1 - yes;
+
+  return {
+    yes: Math.min(0.99, Math.max(0.01, yes)),
+    no: Math.min(0.99, Math.max(0.01, no)),
+  };
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const FOCUS_AREAS = [
@@ -227,6 +269,7 @@ export default function MarketClient() {
   const [mktRiskTag, setMktRiskTag] = useState<"all" | "hot" | "high-risk" | "construction" | "high-potential" | "none">("all");
   const [mktSortBy, setMktSortBy] = useState<"volume" | "edge" | "probability" | "title" | "endDate">("volume");
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
+  const [excludedMarketIds, setExcludedMarketIds] = useState<Set<string>>(new Set());
 
   // Buy panel
   const [buyMarket, setBuyMarket] = useState<MarketListing | null>(null);
@@ -477,28 +520,30 @@ export default function MarketClient() {
             return title.includes(kw.toLowerCase()) || cat.includes(kw.toLowerCase());
           })
           .slice(0, 80)
-          .map((m: Record<string, unknown>) => {
-            const prob = parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[0] : 0)) * 100;
+          .map((m: Record<string, unknown>, index: number) => {
+            const prices = normalizeOutcomePrices(m.outcomePrices, m.probability);
+            const prob = prices.yes * 100;
             const vol = parseFloat(String(m.volume24hr || 0));
-            const spread = m.outcomePrices ? Math.abs(parseFloat(String((m.outcomePrices as string[])[0])) - 0.5) : 0;
+            const spread = Math.abs(prices.yes - 0.5);
             const edge = parseFloat((spread * 100 * 1.4).toFixed(1));
             const tag: MarketListing["risk_tag"] =
               edge > 20 ? "hot" :
               prob > 80 || prob < 20 ? "high-risk" :
               String(m.category || "").toLowerCase().includes("construction") ? "construction" :
               vol > 50000 ? "high-potential" : null;
+            const id = String(m.id || m.conditionId || m.slug || `market-${index}-${Date.now()}`);
             return {
-              id: String(m.id || m.conditionId || Math.random()),
+              id,
               title: String(m.question || m.title || ""),
               category: String(m.category || "General"),
               probability: parseFloat(prob.toFixed(1)),
               volume24h: vol,
               edge_pct: edge,
-              outcome_yes: parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[0] : 0)),
-              outcome_no: parseFloat(String(m.outcomePrices ? (m.outcomePrices as string[])[1] : 0)),
+              outcome_yes: prices.yes,
+              outcome_no: prices.no,
               end_date: m.endDate ? new Date(String(m.endDate)).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" }) : undefined,
               liquidity: parseFloat(String(m.liquidity || m.volume || 0)),
-              bookmarked: bookmarks.has(String(m.id || m.conditionId)),
+              bookmarked: bookmarks.has(id),
               risk_tag: tag,
             };
           });
@@ -944,6 +989,7 @@ export default function MarketClient() {
   const filteredMarkets = (() => {
     const q = marketSearch.toLowerCase();
     const filtered = markets.filter(m => {
+      if (excludedMarketIds.has(m.id)) return false;
       if (q && !m.title.toLowerCase().includes(q) && !m.category.toLowerCase().includes(q)) return false;
       if (mktCategory !== "all" && m.category.toLowerCase() !== mktCategory.toLowerCase()) return false;
       if (m.probability < mktProbMin || m.probability > mktProbMax) return false;
@@ -966,6 +1012,7 @@ export default function MarketClient() {
 
   const hotOppTabs = ["All", "High Potential", "High Risk-High Reward", "Bookmarked", "Construction"];
   const hotFiltered = markets.filter(m => {
+    if (excludedMarketIds.has(m.id)) return false;
     if (hotTab === "All") return m.risk_tag !== null;
     if (hotTab === "High Potential") return m.risk_tag === "high-potential";
     if (hotTab === "High Risk-High Reward") return m.risk_tag === "high-risk";
@@ -1856,7 +1903,19 @@ export default function MarketClient() {
                                     {bookmarks.has(m.id) ? "★" : "☆"}
                                   </button>
                                 </TooltipTrigger>
-                                <TooltipContent>Bookmark for Hot Opps tracking.</TooltipContent>
+                                <TooltipContent>{bookmarks.has(m.id) ? "Unfollow market" : "Follow market"}</TooltipContent>
+                              </Tooltip>
+
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => openBuyPanel(m, "YES")}
+                                    className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2 py-1 rounded-lg font-medium transition"
+                                  >
+                                    Details
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>Open details and trade panel.</TooltipContent>
                               </Tooltip>
 
                               {/* Buy YES */}
@@ -1883,6 +1942,18 @@ export default function MarketClient() {
                                   </button>
                                 </TooltipTrigger>
                                 <TooltipContent>Open buy panel for NO outcome.</TooltipContent>
+                              </Tooltip>
+
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => setExcludedMarketIds((prev) => new Set(prev).add(m.id))}
+                                    className="text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 px-2 py-1 rounded-lg font-medium transition"
+                                  >
+                                    Exclude
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>Hide this market from current lists.</TooltipContent>
                               </Tooltip>
                             </div>
                           </td>
