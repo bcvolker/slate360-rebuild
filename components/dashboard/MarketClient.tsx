@@ -723,16 +723,30 @@ export default function MarketClient() {
     setBuySubmitting(true);
     setBuySuccess("");
     try {
-      const price = buyOutcome === "YES" ? buyMarket.outcome_yes : buyMarket.outcome_no;
-      const avgPrice = price > 0 ? price : (buyMarket.probability / 100);
+      const marketId = String(buyMarket.id ?? "").trim();
+      const marketTitle = String(buyMarket.title ?? "").trim() || `${buyMarket.category || "General"} market`;
+      const normalizedAmount = Number(buyAmount);
+      const rawPrice = buyOutcome === "YES" ? buyMarket.outcome_yes : buyMarket.outcome_no;
+      const fallbackPrice = Number(buyMarket.probability) / 100;
+      const avgPrice = Number.isFinite(rawPrice) && rawPrice > 0
+        ? rawPrice
+        : Number.isFinite(fallbackPrice) && fallbackPrice > 0
+          ? fallbackPrice
+          : NaN;
+
+      if (!marketId || !Number.isFinite(normalizedAmount) || normalizedAmount <= 0 || !Number.isFinite(avgPrice) || avgPrice <= 0) {
+        setBuySuccess("❌ Buy payload invalid. Refresh markets and try again.");
+        return;
+      }
+
       const res = await fetch("/api/market/buy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          market_id:      buyMarket.id,
-          market_title:   buyMarket.title,
+          market_id:      marketId,
+          market_title:   marketTitle,
           outcome:        buyOutcome,
-          amount:         buyAmount,
+          amount:         normalizedAmount,
           avg_price:      avgPrice,
           category:       buyMarket.category,
           probability:    buyMarket.probability,
@@ -742,12 +756,13 @@ export default function MarketClient() {
       });
       const data = await res.json();
       if (res.ok) {
-        setBuySuccess(`✅ ${buyPaper ? "Paper " : ""}Buy saved — ${(buyAmount / avgPrice).toFixed(1)} shares ${buyOutcome} @ $${avgPrice.toFixed(3)}`);
-        addLog(`🛒 Bought ${buyOutcome} on "${buyMarket.title.slice(0, 40)}…" — $${buyAmount} ${buyPaper ? "(paper)" : "(live)"}`);
+        setBuySuccess(`✅ ${buyPaper ? "Paper " : ""}Buy saved — ${(normalizedAmount / avgPrice).toFixed(1)} shares ${buyOutcome} @ $${avgPrice.toFixed(3)}`);
+        addLog(`🛒 Bought ${buyOutcome} on "${marketTitle.slice(0, 40)}…" — $${normalizedAmount} ${buyPaper ? "(paper)" : "(live)"}`);
         await fetchTrades();
         setTimeout(() => setBuyMarket(null), 2500);
       } else {
-        setBuySuccess(`❌ ${data.error || "Buy failed"}`);
+        const missing = Array.isArray(data?.missingFields) ? ` (${data.missingFields.join(", ")})` : "";
+        setBuySuccess(`❌ ${data.error || "Buy failed"}${missing}`);
       }
     } catch (e: unknown) {
       setBuySuccess(`❌ ${(e as Error).message}`);

@@ -56,8 +56,19 @@ export async function POST(req: NextRequest) {
     } = body;
 
     // ── Validation ─────────────────────────────────────────────────────────
-    if (!market_id || !market_title || !outcome || !amount || avg_price == null) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const missingFields: string[] = [];
+
+    if (!market_id || String(market_id).trim().length === 0) missingFields.push("market_id");
+    if (!market_title || String(market_title).trim().length === 0) missingFields.push("market_title");
+    if (!outcome) missingFields.push("outcome");
+    if (typeof amount !== "number" || !Number.isFinite(amount)) missingFields.push("amount");
+    if (typeof avg_price !== "number" || !Number.isFinite(avg_price)) missingFields.push("avg_price");
+
+    if (missingFields.length > 0) {
+      return NextResponse.json(
+        { error: "Missing or invalid required fields", missingFields },
+        { status: 400 }
+      );
     }
     if (!["YES", "NO"].includes(outcome)) {
       return NextResponse.json({ error: "Invalid outcome" }, { status: 400 });

@@ -55,7 +55,7 @@ export default async function PhotosPage({
   }
 
   if (!photosFolderId) {
-    return <PhotoLogClient projectId={projectId} files={[]} />;
+    return <PhotoLogClient files={[]} />;
   }
 
   const namespace = resolveNamespace(orgId, user.id);
@@ -80,5 +80,5 @@ export default async function PhotosPage({
       createdAt: file.created_at ?? null,
     }));
 
-  return <PhotoLogClient projectId={projectId} files={photos} />;
+  return <PhotoLogClient files={photos} />;
 }
