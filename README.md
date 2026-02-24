@@ -16,6 +16,124 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Market Robot High-Volume Runbook
+
+This project includes a paper-mode burst harness for testing scheduler throughput and strategy behavior under load.
+
+### 1) Required env for scheduler burst tests
+
+- `MARKET_SCHEDULER_SECRET` (required by `/api/market/scheduler/tick`)
+- `MARKET_SCHEDULER_MAX_USERS_PER_TICK`
+- `MARKET_SCHEDULER_CONCURRENCY`
+- `MARKET_SCHEDULER_MAX_TRADES_PER_SCAN`
+- `MARKET_SCHEDULER_MAX_MARKET_LIMIT`
+- `MARKET_SCHEDULER_MIN_INTERVAL_SECONDS`
+- `MARKET_SCHEDULER_MAX_INTERVAL_SECONDS`
+- `MARKET_SCAN_MAX_MARKET_LIMIT`
+- `MARKET_BUY_MIN_USD`
+- `MARKET_BUY_MAX_USD`
+
+### 2) Volume profiles (starting points)
+
+Low volume:
+
+```bash
+MARKET_SCHEDULER_MAX_USERS_PER_TICK=50
+MARKET_SCHEDULER_CONCURRENCY=6
+MARKET_SCHEDULER_MAX_TRADES_PER_SCAN=80
+MARKET_SCHEDULER_MAX_MARKET_LIMIT=2000
+MARKET_SCAN_MAX_MARKET_LIMIT=2000
+```
+
+Medium volume:
+
+```bash
+MARKET_SCHEDULER_MAX_USERS_PER_TICK=150
+MARKET_SCHEDULER_CONCURRENCY=12
+MARKET_SCHEDULER_MAX_TRADES_PER_SCAN=250
+MARKET_SCHEDULER_MAX_MARKET_LIMIT=5000
+MARKET_SCAN_MAX_MARKET_LIMIT=5000
+```
+
+High volume (paper-mode benchmark profile):
+
+```bash
+MARKET_SCHEDULER_MAX_USERS_PER_TICK=300
+MARKET_SCHEDULER_CONCURRENCY=24
+MARKET_SCHEDULER_MAX_TRADES_PER_SCAN=600
+MARKET_SCHEDULER_MAX_MARKET_LIMIT=8000
+MARKET_SCAN_MAX_MARKET_LIMIT=12000
+```
+
+### 3) Run burst benchmark
+
+Start app server in one terminal:
+
+```bash
+npm run dev
+```
+
+Run burst benchmark in another terminal:
+
+```bash
+MARKET_BASE_URL=http://localhost:3000 \
+MARKET_SCHEDULER_SECRET=your_secret \
+BURST_REQUESTS=60 \
+BURST_CONCURRENCY=12 \
+BURST_TIMEOUT_MS=30000 \
+npm run market:burst:test
+```
+
+Optional tuning flags:
+
+- `BURST_DELAY_MS` (default `0`)
+- `BURST_REQUESTS` (default `30`)
+- `BURST_CONCURRENCY` (default `6`)
+- `BURST_TIMEOUT_MS` (default `30000`)
+
+Result export flags:
+
+- `OUTPUT_FORMAT` (`none` | `json` | `csv`, default `none`)
+- `OUTPUT_FILE` (required when `OUTPUT_FORMAT` is `json` or `csv`)
+
+Example JSON export:
+
+```bash
+MARKET_BASE_URL=http://localhost:3000 \
+MARKET_SCHEDULER_SECRET=your_secret \
+BURST_REQUESTS=80 \
+BURST_CONCURRENCY=16 \
+OUTPUT_FORMAT=json \
+OUTPUT_FILE=tmp/market-burst/run-$(date +%Y%m%d-%H%M%S).json \
+npm run market:burst:test
+```
+
+Example CSV export:
+
+```bash
+MARKET_BASE_URL=http://localhost:3000 \
+MARKET_SCHEDULER_SECRET=your_secret \
+BURST_REQUESTS=80 \
+BURST_CONCURRENCY=16 \
+OUTPUT_FORMAT=csv \
+OUTPUT_FILE=tmp/market-burst/run-$(date +%Y%m%d-%H%M%S).csv \
+npm run market:burst:test
+```
+
+### 4) How to interpret results
+
+- `Success Rate` should stay near 100% for stable operation.
+- `Latency p95` should remain predictable when increasing concurrency.
+- `Trade Throughput` helps compare config changes for strategy data collection.
+- If failures appear, check the printed failure breakdown and scheduler runtime state (`last_error`, `last_error_at`).
+
+### 5) Safety notes for burst testing
+
+- Run burst tests in paper mode only.
+- Start with medium profile, then move to high profile in increments.
+- Increase one variable at a time (concurrency, users/tick, or trades/scan) so performance deltas are attributable.
+- Keep `MARKET_BUY_MAX_USD` conservative during research to avoid unrealistic simulations.
+
 ## Billing Environment Variables
 
 To enable subscription checkout, credit purchases, and billing portal access, set:
