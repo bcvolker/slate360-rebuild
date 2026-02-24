@@ -1444,6 +1444,8 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                         if (tab.id === "slatedrop") { openSlateDrop(); return; }
                         if (tab.id === "integrations") { router.push("/integrations"); return; }
                         if (tab.id === "project-hub") { router.push("/project-hub"); return; }
+                        if (tab.id === "analytics") { router.push("/analytics"); return; }
+                        if (tab.id === "ceo") { router.push("/ceo"); return; }
                         setActiveTab(tab.id);
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
@@ -2719,7 +2721,31 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             </Link>
           </div>
         )}
-        {activeTab !== "overview" && activeTab !== "market" && activeTab !== "my-account" && activeTab !== "project-hub" && activeTab !== "integrations" && (() => {
+        {activeTab === "analytics" && (
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h3 className="text-base font-black text-gray-900">Open Analytics &amp; Reports</h3>
+            <p className="mt-1 text-sm text-gray-500">Analytics &amp; Reports now runs in its dedicated workspace route.</p>
+            <Link
+              href="/analytics"
+              className="mt-4 inline-flex items-center rounded-lg bg-[#1E3A8A] px-3 py-2 text-xs font-semibold text-white hover:bg-[#162D69]"
+            >
+              Go to Analytics
+            </Link>
+          </div>
+        )}
+        {activeTab === "ceo" && (
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h3 className="text-base font-black text-gray-900">Open CEO Command Center</h3>
+            <p className="mt-1 text-sm text-gray-500">The CEO Command Center now runs in its dedicated workspace route.</p>
+            <Link
+              href="/ceo"
+              className="mt-4 inline-flex items-center rounded-lg bg-[#FF4D00] px-3 py-2 text-xs font-semibold text-white hover:bg-[#E64500]"
+            >
+              Go to CEO Command Center
+            </Link>
+          </div>
+        )}
+        {activeTab !== "overview" && activeTab !== "market" && activeTab !== "my-account" && activeTab !== "project-hub" && activeTab !== "integrations" && activeTab !== "analytics" && activeTab !== "ceo" && (() => {
           const tab = visibleTabs.find((t) => t.id === activeTab);
           if (!tab) return null;
           return <TabWireframe tab={tab} onBack={() => setActiveTab("overview")} onOpenSlateDrop={openSlateDrop} />;
