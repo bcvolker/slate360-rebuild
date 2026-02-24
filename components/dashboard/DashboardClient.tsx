@@ -189,6 +189,14 @@ interface DashboardWidgetsPayload {
   seats: Array<{ name: string; role: string; email: string; active: boolean }>;
 }
 
+type InboxNotification = {
+  id: string;
+  project_id: string;
+  title: string;
+  message: string;
+  created_at: string;
+};
+
 /* ================================================================
    WIDGET META — source of truth for labels/icons
    ================================================================ */
@@ -566,6 +574,9 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [prefNotification, setPrefNotification] = useState<"off" | "daily" | "weekly">("daily");
   const [prefImportantAlerts, setPrefImportantAlerts] = useState(true);
   const [prefShowDashboardTiles, setPrefShowDashboardTiles] = useState(true);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState<InboxNotification[]>([]);
 
   // ── SlateDrop floating window ───────────────────────────────
   const [slateDropOpen, setSlateDropOpen] = useState(false);
@@ -625,6 +636,39 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     }
   }
   function onSdPointerUp() { sdDragMode.current = null; }
+
+  const loadUnreadNotifications = useCallback(async () => {
+    setNotificationsLoading(true);
+    try {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+
+      if (!authUser) {
+        setUnreadNotifications([]);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("project_notifications")
+        .select("id, project_id, title, message, created_at")
+        .eq("user_id", authUser.id)
+        .eq("is_read", false)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      setUnreadNotifications((data ?? []) as InboxNotification[]);
+    } catch {
+      setUnreadNotifications([]);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!notificationsOpen) return;
+    void loadUnreadNotifications();
+  }, [notificationsOpen, loadUnreadNotifications]);
 
   function openWidgetPopout(widgetId: string) {
     const isMobile = window.innerWidth < 768;
@@ -1186,10 +1230,54 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
           {/* Right — Notifications + User */}
           <div className="flex items-center gap-3">
-            <button className="relative w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">
+            <button
+              onClick={() => setNotificationsOpen((v) => !v)}
+              className="relative w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+            >
               <Bell size={18} />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#FF4D00]" />
+              {unreadNotifications.length > 0 ? (
+                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#FF4D00]" />
+              ) : null}
             </button>
+            {notificationsOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setNotificationsOpen(false)} />
+                <div className="absolute right-24 top-14 z-50 w-[340px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                  <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                    <p className="text-sm font-bold text-gray-900">Notifications</p>
+                    <button
+                      onClick={() => void loadUnreadNotifications()}
+                      className="text-xs font-semibold text-[#FF4D00] hover:opacity-80"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+
+                  <div className="max-h-[360px] overflow-y-auto">
+                    {notificationsLoading ? (
+                      <div className="px-4 py-6 text-sm text-gray-500">
+                        <Loader2 size={14} className="mr-2 inline animate-spin" /> Loading…
+                      </div>
+                    ) : unreadNotifications.length === 0 ? (
+                      <div className="px-4 py-6 text-sm text-gray-500">No unread alerts.</div>
+                    ) : (
+                      unreadNotifications.map((notification) => (
+                        <Link
+                          key={notification.id}
+                          href={`/project-hub/${notification.project_id}`}
+                          onClick={() => setNotificationsOpen(false)}
+                          className="block border-b border-gray-50 px-4 py-3 hover:bg-gray-50"
+                        >
+                          <p className="text-sm font-semibold text-gray-800">{notification.title}</p>
+                          <p className="mt-0.5 text-xs text-gray-600">{notification.message}</p>
+                          <p className="mt-1 text-[11px] text-gray-400">{new Date(notification.created_at).toLocaleString()}</p>
+                        </Link>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
             <button
               onClick={() => setCustomizeOpen(true)}
               title="Customize dashboard"

@@ -25,6 +25,7 @@ export default function ProjectRFIsPage() {
   const [question, setQuestion] = useState("");
   const [status, setStatus] = useState("Open");
   const [attachment, setAttachment] = useState<File | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   const load = async () => {
     if (!projectId) return;
@@ -46,6 +47,32 @@ export default function ProjectRFIsPage() {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timeout = window.setTimeout(() => setToast(null), 3600);
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
+
+  const sendToClient = async (rfiId: string) => {
+    if (!projectId) return;
+
+    try {
+      const res = await fetch(`/api/projects/${projectId}/external-links`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetType: "RFI", targetId: rfiId, expiresInDays: 14 }),
+      });
+
+      const payload = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (!res.ok || !payload.url) throw new Error(payload.error ?? "Failed to generate link");
+
+      await navigator.clipboard.writeText(payload.url);
+      setToast(`Shareable link copied: ${payload.url}`);
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Failed to generate client link");
+    }
+  };
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -113,6 +140,7 @@ export default function ProjectRFIsPage() {
                 <th className="px-4 py-3">Question</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Created</th>
+                <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -122,12 +150,24 @@ export default function ProjectRFIsPage() {
                   <td className="px-4 py-3 text-gray-700">{row.question}</td>
                   <td className="px-4 py-3 text-gray-700">{row.status}</td>
                   <td className="px-4 py-3 text-gray-500">{new Date(row.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => void sendToClient(row.id)}
+                      className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                    >
+                      Send to Client
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
+
+      {toast ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{toast}</div>
+      ) : null}
 
       {open ? (
         <div className="fixed inset-0 z-50" onClick={() => setOpen(false)}>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Responsive, WidthProvider, type ResponsiveLayouts } from "react-grid-layout/legacy";
-import { Loader2, CloudSun } from "lucide-react";
+import { Loader2, CloudSun, MapPin, Maximize2, Minimize2 } from "lucide-react";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
@@ -33,24 +33,24 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const DEFAULT_LAYOUTS: ResponsiveLayouts = {
   lg: [
-    { i: "project-info", x: 0, y: 0, w: 4, h: 4, minW: 3, minH: 3 },
-    { i: "weather", x: 4, y: 0, w: 4, h: 4, minW: 3, minH: 3 },
-    { i: "recent-files", x: 8, y: 0, w: 4, h: 4, minW: 4, minH: 3 },
+    { i: "project-info", x: 0, y: 0, w: 4, h: 2, minW: 3, minH: 2 },
+    { i: "weather", x: 4, y: 0, w: 4, h: 2, minW: 3, minH: 2 },
+    { i: "recent-files", x: 8, y: 0, w: 4, h: 2, minW: 4, minH: 2 },
   ],
   md: [
-    { i: "project-info", x: 0, y: 0, w: 5, h: 4, minW: 4, minH: 3 },
-    { i: "weather", x: 5, y: 0, w: 5, h: 4, minW: 4, minH: 3 },
-    { i: "recent-files", x: 0, y: 4, w: 10, h: 4, minW: 5, minH: 3 },
+    { i: "project-info", x: 0, y: 0, w: 4, h: 2, minW: 3, minH: 2 },
+    { i: "weather", x: 4, y: 0, w: 4, h: 2, minW: 3, minH: 2 },
+    { i: "recent-files", x: 0, y: 2, w: 8, h: 2, minW: 4, minH: 2 },
   ],
   sm: [
-    { i: "project-info", x: 0, y: 0, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "weather", x: 0, y: 4, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "recent-files", x: 0, y: 8, w: 6, h: 4, minW: 4, minH: 3 },
+    { i: "project-info", x: 0, y: 0, w: 6, h: 2, minW: 4, minH: 2 },
+    { i: "weather", x: 0, y: 2, w: 6, h: 2, minW: 4, minH: 2 },
+    { i: "recent-files", x: 0, y: 4, w: 6, h: 2, minW: 4, minH: 2 },
   ],
   xs: [
-    { i: "project-info", x: 0, y: 0, w: 4, h: 4, minW: 4, minH: 3 },
-    { i: "weather", x: 0, y: 4, w: 4, h: 4, minW: 4, minH: 3 },
-    { i: "recent-files", x: 0, y: 8, w: 4, h: 4, minW: 4, minH: 3 },
+    { i: "project-info", x: 0, y: 0, w: 4, h: 2, minW: 4, minH: 2 },
+    { i: "weather", x: 0, y: 2, w: 4, h: 2, minW: 4, minH: 2 },
+    { i: "recent-files", x: 0, y: 4, w: 4, h: 2, minW: 4, minH: 2 },
   ],
 };
 
@@ -95,6 +95,7 @@ export default function ProjectOverviewPage() {
   const [weather, setWeather] = useState<WeatherState>(null);
   const [loading, setLoading] = useState(true);
   const [layouts, setLayouts] = useState<ResponsiveLayouts>(DEFAULT_LAYOUTS);
+  const [mapExpanded, setMapExpanded] = useState(false);
 
   const storageKey = useMemo(() => (projectId ? `project-dashboard-layout:${projectId}` : null), [projectId]);
 
@@ -210,6 +211,11 @@ export default function ProjectOverviewPage() {
   const address = location && typeof location === "object"
     ? String((location as Record<string, unknown>).address ?? "Not set")
     : "Not set";
+  const lat = location && typeof location === "object" ? toNum((location as Record<string, unknown>).lat) : null;
+  const lng = location && typeof location === "object" ? toNum((location as Record<string, unknown>).lng) : null;
+  const mapUrl = lat !== null && lng !== null
+    ? `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.01}%2C${lat - 0.01}%2C${lng + 0.01}%2C${lat + 0.01}&layer=mapnik&marker=${lat}%2C${lng}`
+    : null;
 
   return (
     <section className="space-y-4">
@@ -238,6 +244,33 @@ export default function ProjectOverviewPage() {
               <p><span className="font-semibold text-gray-900">Name:</span> {project?.name ?? "Unknown project"}</p>
               <p><span className="font-semibold text-gray-900">Description:</span> {project?.description ?? "No description"}</p>
               <p><span className="font-semibold text-gray-900">Address:</span> {address || "Not set"}</p>
+
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-2.5">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    <MapPin size={12} /> Location Map
+                  </p>
+                  {mapUrl ? (
+                    <button
+                      onClick={() => setMapExpanded((value) => !value)}
+                      className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] font-semibold text-gray-600 hover:bg-gray-50"
+                    >
+                      {mapExpanded ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
+                      {mapExpanded ? "Collapse" : "Expand"}
+                    </button>
+                  ) : null}
+                </div>
+                {mapUrl ? (
+                  <iframe
+                    title="Project Location"
+                    src={mapUrl}
+                    className={`w-full rounded-lg border border-gray-200 ${mapExpanded ? "h-56" : "h-28"}`}
+                    loading="lazy"
+                  />
+                ) : (
+                  <p className="text-xs text-gray-500">Map unavailable (set valid project latitude/longitude).</p>
+                )}
+              </div>
             </div>
           )}
         </div>

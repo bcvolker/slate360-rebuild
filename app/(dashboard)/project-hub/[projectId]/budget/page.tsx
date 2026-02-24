@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { Loader2, Plus, X } from "lucide-react";
+import { CheckCircle2, Loader2, Plus, Save, X } from "lucide-react";
 
 type BudgetRow = {
   id: string;
@@ -24,7 +24,9 @@ export default function ProjectBudgetPage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [snapshotSaving, setSnapshotSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [costCode, setCostCode] = useState("");
   const [description, setDescription] = useState("");
   const [budgetAmount, setBudgetAmount] = useState("0");
@@ -97,6 +99,59 @@ export default function ProjectBudgetPage() {
     }
   };
 
+  const onSaveSnapshot = async () => {
+    if (!projectId || rows.length === 0) return;
+
+    setSnapshotSaving(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const escapeCsv = (value: string) => {
+        const escaped = value.replace(/"/g, '""');
+        return `"${escaped}"`;
+      };
+
+      const csvRows = [
+        ["Cost Code", "Description", "Budget", "Spent", "Variance"],
+        ...rows.map((row) => {
+          const budget = Number(row.budget_amount ?? 0);
+          const spent = Number(row.spent_amount ?? 0);
+          const variance = budget - spent;
+          return [
+            row.cost_code,
+            row.description ?? "",
+            budget.toFixed(2),
+            spent.toFixed(2),
+            variance.toFixed(2),
+          ];
+        }),
+      ];
+
+      const csv = csvRows.map((line) => line.map((cell) => escapeCsv(String(cell))).join(",")).join("\n");
+      const file = new File([csv], `budget-snapshot-${new Date().toISOString().slice(0, 10)}.csv`, {
+        type: "text/csv",
+      });
+
+      const formData = new FormData();
+      formData.set("file", file);
+
+      const res = await fetch(`/api/projects/${projectId}/budget/snapshot`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const payload = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(payload.error ?? "Failed to save snapshot");
+
+      setNotice("Budget snapshot saved to Files.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save snapshot");
+    } finally {
+      setSnapshotSaving(false);
+    }
+  };
+
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-3">
@@ -112,7 +167,21 @@ export default function ProjectBudgetPage() {
         </button>
       </div>
 
+      <button
+        onClick={() => void onSaveSnapshot()}
+        disabled={snapshotSaving || rows.length === 0}
+        className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
+      >
+        {snapshotSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+        {snapshotSaving ? "Saving Snapshot…" : "Save Snapshot to Files"}
+      </button>
+
       {error ? <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div> : null}
+      {notice ? (
+        <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          <CheckCircle2 size={14} /> {notice}
+        </div>
+      ) : null}
 
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
         {loading ? (
