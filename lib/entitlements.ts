@@ -10,6 +10,8 @@ export interface Entitlements {
   canAccessGeospatial: boolean;
   canAccessVirtual: boolean;
   canAccessAnalytics: boolean;
+  canAccessReports: boolean;
+  canAccessCeo: boolean;
   canManageSeats: boolean;
   canViewSlateDropWidget: boolean;
   maxCredits: number;
@@ -29,6 +31,8 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
     canAccessGeospatial: true,
     canAccessVirtual: true,
     canAccessAnalytics: true,
+    canAccessReports: true,
+    canAccessCeo: false,
     canManageSeats: false,
     canViewSlateDropWidget: true,
     maxCredits: 500,
@@ -46,6 +50,8 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
     canAccessGeospatial: false,
     canAccessVirtual: false,
     canAccessAnalytics: false,
+    canAccessReports: false,
+    canAccessCeo: false,
     canManageSeats: false,
     canViewSlateDropWidget: true,
     maxCredits: 6000,
@@ -63,6 +69,8 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
     canAccessGeospatial: true,
     canAccessVirtual: true,
     canAccessAnalytics: false,
+    canAccessReports: false,
+    canAccessCeo: false,
     canManageSeats: false,
     canViewSlateDropWidget: true,
     maxCredits: 15000,
@@ -80,6 +88,8 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
     canAccessGeospatial: true,
     canAccessVirtual: true,
     canAccessAnalytics: true,
+    canAccessReports: true,
+    canAccessCeo: false,
     canManageSeats: true,
     canViewSlateDropWidget: true,
     maxCredits: 30000,
@@ -97,6 +107,8 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
     canAccessGeospatial: true,
     canAccessVirtual: true,
     canAccessAnalytics: true,
+    canAccessReports: true,
+    canAccessCeo: true,
     canManageSeats: true,
     canViewSlateDropWidget: true,
     maxCredits: 100000,
