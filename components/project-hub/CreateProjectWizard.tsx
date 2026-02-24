@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { APIProvider, AdvancedMarker, Map } from "@vis.gl/react-google-maps";
+import { APIProvider, AdvancedMarker, ControlPosition, Map, MapControl } from "@vis.gl/react-google-maps";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, GripHorizontal, Loader2, MapPin, Plus, X } from "lucide-react";
 
@@ -61,13 +61,17 @@ export default function CreateProjectWizard({
   const [estimatedBudget, setEstimatedBudget] = useState("");
   const [targetStartDate, setTargetStartDate] = useState("");
   const [targetEndDate, setTargetEndDate] = useState("");
-  const [customPhases, setCustomPhases] = useState("");
+  const [customPhases, setCustomPhases] = useState(
+    "1. Preconstruction\n2. Site Work & Foundation\n3. Framing & Structure\n4. MEP Rough-in\n5. Finishes\n6. Closeout"
+  );
   const [teamMemberIds, setTeamMemberIds] = useState<string[]>([]);
   const [teamEmails, setTeamEmails] = useState<string[]>([]);
   const [emailInput, setEmailInput] = useState("");
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
   const [address, setAddress] = useState("");
+  const [mapType, setMapType] = useState<"roadmap" | "satellite">("roadmap");
+  const [mapZoom, setMapZoom] = useState(4);
   const [currentStep, setCurrentStep] = useState(1);
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -181,13 +185,17 @@ export default function CreateProjectWizard({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/35 backdrop-blur-sm" />
       <motion.div
-        drag
-        dragMomentum={false}
-        dragConstraints={{ left: -220, right: 220, top: -180, bottom: 180 }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0}
         onClick={(event) => event.stopPropagation()}
         className="relative w-full max-w-3xl overflow-hidden rounded-3xl border border-slate-700 bg-slate-900/95 shadow-2xl backdrop-blur-xl"
       >
-        <div className="flex items-center justify-between border-b border-slate-700 bg-slate-900/80 px-4 py-3">
+        <motion.div
+          drag
+          dragMomentum={false}
+          className="flex items-center justify-between border-b border-slate-700 bg-slate-900/80 px-4 py-3"
+        >
           <div className="flex items-center gap-2 text-slate-400">
             <GripHorizontal size={16} />
             <span className="text-xs font-semibold uppercase tracking-wide">Drag</span>
@@ -199,7 +207,7 @@ export default function CreateProjectWizard({
           >
             <X size={16} />
           </button>
-        </div>
+        </motion.div>
 
         <form onSubmit={submit} className="p-6">
           <div className="flex items-center justify-between gap-3">
@@ -265,6 +273,11 @@ export default function CreateProjectWizard({
                     <option value="gmp">GMP</option>
                     <option value="cost-plus">Cost Plus</option>
                     <option value="time-material">Time &amp; Material</option>
+                    <option value="cmar">CMAR (Construction Manager at Risk)</option>
+                    <option value="design-build">Design-Build</option>
+                    <option value="ipd">IPD (Integrated Project Delivery)</option>
+                    <option value="joc">JOC (Job Order Contracting)</option>
+                    <option value="unit-price">Unit Price</option>
                   </select>
                 </div>
               </div>
@@ -300,10 +313,52 @@ export default function CreateProjectWizard({
                       defaultCenter={mapCenter}
                       defaultZoom={4}
                       center={mapCenter}
+                      zoom={mapZoom}
+                      mapTypeId={mapType}
                       onClick={handleMapClick}
                       disableDefaultUI
                       gestureHandling="greedy"
                     >
+                      <MapControl position={ControlPosition.TOP_RIGHT}>
+                        <div className="m-2 flex flex-col gap-2 rounded-lg border border-slate-700 bg-slate-900/90 p-2">
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setMapType("roadmap")}
+                              className={`rounded-md px-2 py-1 text-[11px] font-semibold ${
+                                mapType === "roadmap" ? "bg-[#FF4D00] text-white" : "bg-slate-700 text-slate-200"
+                              }`}
+                            >
+                              Roadmap
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setMapType("satellite")}
+                              className={`rounded-md px-2 py-1 text-[11px] font-semibold ${
+                                mapType === "satellite" ? "bg-[#FF4D00] text-white" : "bg-slate-700 text-slate-200"
+                              }`}
+                            >
+                              Satellite
+                            </button>
+                          </div>
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setMapZoom((prev) => Math.max(1, prev - 1))}
+                              className="rounded-md bg-slate-700 px-2 py-1 text-xs font-semibold text-slate-200"
+                            >
+                              −
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setMapZoom((prev) => Math.min(20, prev + 1))}
+                              className="rounded-md bg-slate-700 px-2 py-1 text-xs font-semibold text-slate-200"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      </MapControl>
                       {lat && lng ? <AdvancedMarker position={{ lat, lng }} /> : null}
                     </Map>
                   </APIProvider>
@@ -342,8 +397,9 @@ export default function CreateProjectWizard({
                 </div>
                 <div className="md:col-span-2">
                   <label className="mb-1 block text-xs font-semibold text-slate-300">Custom Project Phases</label>
+                  <p className="mb-2 text-[11px] text-slate-400">Default phase sequence is prefilled below — edit the text block directly (one phase per line) to customize order and wording.</p>
                   <textarea
-                    rows={4}
+                    rows={7}
                     value={customPhases}
                     onChange={(event) => setCustomPhases(event.target.value)}
                     placeholder="One phase per line (e.g. Precon, Foundation, Framing...)"
