@@ -365,3 +365,52 @@ If any step fails, capture:
 - network response body for failing `/api/market/*` call.
 
 That evidence is sufficient for targeted follow-up fixes.
+
+---
+
+## 13) Release Changelog (Feb 24, 2026)
+
+### Commit `0f45cf7` — Add market burst report exports and runbook guidance
+
+Scope:
+- Added paper-mode burst benchmark harness:
+  - `scripts/market-burst-test.mjs`
+- Added npm script:
+  - `market:burst:test` in `package.json`
+- Added high-volume runbook and benchmarking guidance:
+  - `README.md`
+
+Highlights:
+- Burst scheduler tick benchmarking against `/api/market/scheduler/tick`
+- Configurable request count, concurrency, timeout, delay
+- Persistent export support for strategy trend analysis:
+  - `OUTPUT_FORMAT=none|json|csv`
+  - `OUTPUT_FILE=...`
+
+### Commit `b625327` — Finalize market robot scheduler, contracts, and API/UI alignment
+
+Scope:
+- Added scheduler endpoints:
+  - `app/api/market/scheduler/tick/route.ts`
+  - `app/api/market/scheduler/health/route.ts`
+- Added summary endpoint:
+  - `app/api/market/summary/route.ts`
+- Added shared market contracts and mappers:
+  - `lib/market/contracts.ts`
+  - `lib/market/mappers.ts`
+- Added scheduler execution engine:
+  - `lib/market/scheduler.ts`
+- Updated market API routes and dashboard UI for normalized envelopes/contracts and runtime state integration.
+- Added runtime/trade migration coverage:
+  - `supabase/migrations/20260224093000_market_trades.sql`
+  - `supabase/migrations/20260224123000_market_bot_runtime.sql`
+  - `supabase/migrations/20260224170000_market_bot_runtime_state.sql`
+
+Highlights:
+- Throughput/scalability hardening (bounded scheduler concurrency, market fetch caching, larger bounded limits)
+- Improved scan request parsing and server-side enforcement for strategy controls
+- Beginner-friendly control center and scheduler health UX with explanatory hover tips
+- Better trade/whale/market shape normalization across API + UI
+
+Repository state:
+- Both commits are pushed to `main`.
