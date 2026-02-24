@@ -14,6 +14,16 @@ export async function GET(req: NextRequest) {
   upstream.searchParams.set("count", "1");
   upstream.searchParams.set("language", "en");
 
+  const fallback = {
+    results: [
+      {
+        name: `${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}`,
+        latitude: Number(lat),
+        longitude: Number(lng),
+      },
+    ],
+  };
+
   try {
     const res = await fetch(upstream.toString(), {
       headers: {
@@ -24,7 +34,9 @@ export async function GET(req: NextRequest) {
     });
 
     if (!res.ok) {
-      return NextResponse.json({ error: "Upstream geocode failed", status: res.status }, { status: 502 });
+      return NextResponse.json(fallback, {
+        headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+      });
     }
 
     const data = await res.json();
@@ -32,6 +44,8 @@ export async function GET(req: NextRequest) {
       headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=1800" },
     });
   } catch {
-    return NextResponse.json({ error: "Reverse geocode request failed" }, { status: 503 });
+    return NextResponse.json(fallback, {
+      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+    });
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -98,6 +98,8 @@ interface MarketListing {
   end_date?: string;
   liquidity?: number;
 }
+
+type MarketSortKey = "volume" | "edge" | "probability" | "title" | "endDate";
 
 function asFiniteNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -267,7 +269,8 @@ export default function MarketClient() {
   const [mktMinVol, setMktMinVol] = useState(0);
   const [mktMinEdge, setMktMinEdge] = useState(0);
   const [mktRiskTag, setMktRiskTag] = useState<"all" | "hot" | "high-risk" | "construction" | "high-potential" | "none">("all");
-  const [mktSortBy, setMktSortBy] = useState<"volume" | "edge" | "probability" | "title" | "endDate">("volume");
+  const [mktSortBy, setMktSortBy] = useState<MarketSortKey>("volume");
+  const [mktSortDir, setMktSortDir] = useState<"asc" | "desc">("desc");
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
   const [excludedMarketIds, setExcludedMarketIds] = useState<Set<string>>(new Set());
 
@@ -763,6 +766,62 @@ export default function MarketClient() {
     setBuyPaper(paperMode);
   };
 
+  const defaultSortDirection = (key: MarketSortKey): "asc" | "desc" => {
+    if (key === "title" || key === "endDate") return "asc";
+    return "desc";
+  };
+
+  const setSortBy = (key: MarketSortKey) => {
+    if (mktSortBy === key) {
+      setMktSortDir(prev => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setMktSortBy(key);
+    setMktSortDir(defaultSortDirection(key));
+  };
+
+  const applyQuickMarketPreset = (preset: "construction" | "high-volume" | "mispriced" | "closing-soon" | "crypto") => {
+    if (preset === "construction") {
+      setMarketSearch("construction");
+      setMktCategory("all");
+      setMktRiskTag("construction");
+      setMktMinVol(5000);
+      setMktMinEdge(3);
+      setMktSortBy("edge");
+      setMktSortDir("desc");
+      return;
+    }
+    if (preset === "high-volume") {
+      setMktMinVol(25000);
+      setMktMinEdge(0);
+      setMktRiskTag("all");
+      setMktSortBy("volume");
+      setMktSortDir("desc");
+      return;
+    }
+    if (preset === "mispriced") {
+      setMktMinEdge(10);
+      setMktProbMin(20);
+      setMktProbMax(80);
+      setMktSortBy("edge");
+      setMktSortDir("desc");
+      return;
+    }
+    if (preset === "closing-soon") {
+      setMktSortBy("endDate");
+      setMktSortDir("asc");
+      setMktMinVol(1000);
+      return;
+    }
+    if (preset === "crypto") {
+      setMarketSearch("crypto bitcoin ethereum");
+      setMktCategory("all");
+      setMktRiskTag("all");
+      setMktSortBy("volume");
+      setMktSortDir("desc");
+    }
+  };
+
   const handleDirectBuy = async () => {
     if (!buyMarket) return;
     setBuySubmitting(true);
@@ -779,8 +838,8 @@ export default function MarketClient() {
           ? fallbackPrice
           : NaN;
 
-      if (!marketId || !Number.isFinite(normalizedAmount) || normalizedAmount <= 0 || !Number.isFinite(avgPrice) || avgPrice <= 0) {
-        setBuySuccess("❌ Buy payload invalid. Refresh markets and try again.");
+      if (!buyPayloadReady) {
+        setBuySuccess(`❌ Buy payload invalid (${buyPayloadIssues.join(", ")}). Refresh markets and try again.`);
         return;
       }
 
@@ -999,16 +1058,39 @@ export default function MarketClient() {
       if (mktRiskTag !== "all" && mktRiskTag !== "none" && m.risk_tag !== mktRiskTag) return false;
       return true;
     });
-    return filtered.sort((a, b) => {
+    const sorted = filtered.sort((a, b) => {
       switch (mktSortBy) {
-        case "edge": return b.edge_pct - a.edge_pct;
-        case "probability": return b.probability - a.probability;
+        case "edge": return a.edge_pct - b.edge_pct;
+        case "probability": return a.probability - b.probability;
         case "title": return a.title.localeCompare(b.title);
         case "endDate": return new Date(a.end_date || 0).getTime() - new Date(b.end_date || 0).getTime();
-        default: return b.volume24h - a.volume24h;
+        default: return a.volume24h - b.volume24h;
       }
     });
+
+    return mktSortDir === "asc" ? sorted : sorted.reverse();
   })();
+
+  const buyPayloadIssues = useMemo(() => {
+    if (!buyMarket) return [] as string[];
+    const issues: string[] = [];
+    const marketId = String(buyMarket.id ?? "").trim();
+    const normalizedAmount = Number(buyAmount);
+    const rawPrice = buyOutcome === "YES" ? buyMarket.outcome_yes : buyMarket.outcome_no;
+    const fallbackPrice = Number(buyMarket.probability) / 100;
+    const avgPrice = Number.isFinite(rawPrice) && rawPrice > 0
+      ? rawPrice
+      : Number.isFinite(fallbackPrice) && fallbackPrice > 0
+        ? fallbackPrice
+        : NaN;
+
+    if (!marketId) issues.push("market_id missing");
+    if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) issues.push("amount invalid");
+    if (!Number.isFinite(avgPrice) || avgPrice <= 0) issues.push("price invalid");
+    return issues;
+  }, [buyAmount, buyMarket, buyOutcome]);
+
+  const buyPayloadReady = buyPayloadIssues.length === 0;
 
   const hotOppTabs = ["All", "High Potential", "High Risk-High Reward", "Bookmarked", "Construction"];
   const hotFiltered = markets.filter(m => {
@@ -1693,9 +1775,13 @@ export default function MarketClient() {
                 </p>
               )}
 
+              {!buyPayloadReady && (
+                <p className="text-xs text-center text-red-500">Disabled: {buyPayloadIssues.join(", ")}</p>
+              )}
+
               <button
                 onClick={handleDirectBuy}
-                disabled={buySubmitting}
+                disabled={buySubmitting || !buyPayloadReady}
                 className="w-full bg-[#FF4D00] hover:bg-orange-600 py-3 rounded-xl text-sm font-bold transition disabled:opacity-50"
               >
                 {buySubmitting ? "Processing…" : `Confirm ${buyPaper ? "Paper " : ""}Buy — $${buyAmount} ${buyOutcome}`}
@@ -1738,6 +1824,14 @@ export default function MarketClient() {
             {/* Filter row (only shown after first load) */}
             {marketsLoaded && (
               <div className="space-y-3 pt-1 border-t border-gray-100">
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => applyQuickMarketPreset("construction")} className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-[11px] hover:bg-gray-200 transition">🏗️ Construction</button>
+                  <button onClick={() => applyQuickMarketPreset("high-volume")} className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-[11px] hover:bg-gray-200 transition">💧 High Volume</button>
+                  <button onClick={() => applyQuickMarketPreset("mispriced")} className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-[11px] hover:bg-gray-200 transition">⚖️ Mispriced</button>
+                  <button onClick={() => applyQuickMarketPreset("closing-soon")} className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-[11px] hover:bg-gray-200 transition">⏳ Closing Soon</button>
+                  <button onClick={() => applyQuickMarketPreset("crypto")} className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-[11px] hover:bg-gray-200 transition">₿ Crypto</button>
+                </div>
+
                 {/* Row 1: Category + Risk Tag + Sort */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
@@ -1779,7 +1873,11 @@ export default function MarketClient() {
                     </label>
                     <select
                       value={mktSortBy}
-                      onChange={e => setMktSortBy(e.target.value as typeof mktSortBy)}
+                      onChange={e => {
+                        const key = e.target.value as MarketSortKey;
+                        setMktSortBy(key);
+                        setMktSortDir(defaultSortDirection(key));
+                      }}
                       className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
                     >
                       <option value="volume">24h Volume ↓</option>
@@ -1788,6 +1886,12 @@ export default function MarketClient() {
                       <option value="title">Title A→Z</option>
                       <option value="endDate">End Date ↑</option>
                     </select>
+                    <button
+                      onClick={() => setMktSortDir(prev => (prev === "asc" ? "desc" : "asc"))}
+                      className="mt-2 text-xs text-gray-600 hover:text-gray-900 transition"
+                    >
+                      Direction: {mktSortDir === "asc" ? "↑ Asc" : "↓ Desc"}
+                    </button>
                   </div>
                 </div>
                 {/* Row 2: Range sliders */}
@@ -1824,7 +1928,19 @@ export default function MarketClient() {
               <div className="flex gap-3 items-center text-xs text-gray-400">
                 <span>{filteredMarkets.length} results</span>
                 <button onClick={() => fetchMarkets()} className="text-gray-500 hover:text-gray-900 transition">↻ Refresh</button>
-                <button onClick={() => { setMarkets([]); setMarketsLoaded(false); setMarketSearch(""); }} className="text-gray-400 hover:text-gray-500 transition">Clear</button>
+                <button onClick={() => {
+                  setMarkets([]);
+                  setMarketsLoaded(false);
+                  setMarketSearch("");
+                  setMktCategory("all");
+                  setMktRiskTag("all");
+                  setMktProbMin(0);
+                  setMktProbMax(100);
+                  setMktMinVol(0);
+                  setMktMinEdge(0);
+                  setMktSortBy("volume");
+                  setMktSortDir("desc");
+                }} className="text-gray-400 hover:text-gray-500 transition">Clear</button>
               </div>
             )}
           </div>
@@ -1847,12 +1963,22 @@ export default function MarketClient() {
                 <table className="w-full text-xs">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr className="text-gray-500">
-                      <th className="px-4 py-3 text-left font-medium">Market</th>
+                      <th className="px-4 py-3 text-left font-medium">
+                        <button onClick={() => setSortBy("title")} className="hover:text-gray-700 transition">Market {mktSortBy === "title" ? (mktSortDir === "asc" ? "↑" : "↓") : ""}</button>
+                      </th>
                       <th className="px-3 py-3 text-center font-medium">Cat.</th>
-                      <th className="px-3 py-3 text-right font-medium">YES / NO</th>
-                      <th className="px-3 py-3 text-right font-medium">Vol 24h</th>
-                      <th className="px-3 py-3 text-right font-medium">Ends</th>
-                      <th className="px-3 py-3 text-right font-medium">Edge</th>
+                      <th className="px-3 py-3 text-right font-medium">
+                        <button onClick={() => setSortBy("probability")} className="hover:text-gray-700 transition">YES / NO {mktSortBy === "probability" ? (mktSortDir === "asc" ? "↑" : "↓") : ""}</button>
+                      </th>
+                      <th className="px-3 py-3 text-right font-medium">
+                        <button onClick={() => setSortBy("volume")} className="hover:text-gray-700 transition">Vol 24h {mktSortBy === "volume" ? (mktSortDir === "asc" ? "↑" : "↓") : ""}</button>
+                      </th>
+                      <th className="px-3 py-3 text-right font-medium">
+                        <button onClick={() => setSortBy("endDate")} className="hover:text-gray-700 transition">Ends {mktSortBy === "endDate" ? (mktSortDir === "asc" ? "↑" : "↓") : ""}</button>
+                      </th>
+                      <th className="px-3 py-3 text-right font-medium">
+                        <button onClick={() => setSortBy("edge")} className="hover:text-gray-700 transition">Edge {mktSortBy === "edge" ? (mktSortDir === "asc" ? "↑" : "↓") : ""}</button>
+                      </th>
                       <th className="px-3 py-3 text-center font-medium">Actions</th>
                     </tr>
                   </thead>
@@ -2030,7 +2156,8 @@ export default function MarketClient() {
                 </button>
               </div>
               {buySuccess && <p className={`text-sm text-center font-medium ${buySuccess.startsWith("✅") ? "text-green-600" : "text-red-600"}`}>{buySuccess}</p>}
-              <button onClick={handleDirectBuy} disabled={buySubmitting}
+              {!buyPayloadReady && <p className="text-xs text-center text-red-500">Disabled: {buyPayloadIssues.join(", ")}</p>}
+              <button onClick={handleDirectBuy} disabled={buySubmitting || !buyPayloadReady}
                 className="w-full bg-[#FF4D00] hover:bg-orange-600 py-3 rounded-xl text-sm font-bold transition disabled:opacity-50 text-white">
                 {buySubmitting ? "Processing…" : `Confirm ${buyPaper ? "Paper " : ""}Buy — $${buyAmount} ${buyOutcome}`}
               </button>

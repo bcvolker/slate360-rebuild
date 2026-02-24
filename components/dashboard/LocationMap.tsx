@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { APIProvider, AdvancedMarker, Map, Marker, useMap } from "@vis.gl/react-google-maps";
+import { APIProvider, AdvancedMarker, Map, useMap } from "@vis.gl/react-google-maps";
 import {
   CheckCircle2,
   Circle,
@@ -565,7 +565,7 @@ function DrawController({
 }
 
 export default function LocationMap({ center, locationLabel, contactRecipients = [] }: LocationMapProps) {
-  const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || "";
+  const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID";
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -1070,11 +1070,11 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
             defaultZoom={13}
             defaultCenter={mapCenter}
             center={mapCenter}
-            mapId={mapId || undefined}
+            mapId={mapId}
             gestureHandling={"greedy"}
             disableDefaultUI={true}
           >
-            {mapId ? <AdvancedMarker position={mapCenter} /> : <Marker position={mapCenter} />}
+            <AdvancedMarker position={mapCenter} />
           </Map>
         </APIProvider>
       </div>
