@@ -63,6 +63,7 @@ import {
   ArrowUpRight,
   X,
   Home,
+  Plug,
 } from "lucide-react";
 
 /* ================================================================
@@ -195,6 +196,11 @@ type InboxNotification = {
   title: string;
   message: string;
   created_at: string;
+};
+
+type SlateDropFolderQuickView = {
+  name: string;
+  description: string;
 };
 
 /* ================================================================
@@ -451,6 +457,7 @@ function TabWireframe({ tab, onBack, onOpenSlateDrop }: { tab: DashTab; onBack: 
     "virtual-studio": "Virtual production, site visualization, and simulation environments.",
     "analytics":      "Project analytics, progress tracking, financial reporting, and insights.",
     "slatedrop":      "Intelligent file management, delivery, and secure document sharing.",
+    "integrations":   "Connect external systems, map data syncs, and monitor integration health.",
     "my-account":     "Manage your profile, subscription, billing, and account settings.",
     "ceo":            "Platform-wide oversight, admin controls, and strategic metrics.",
     "market":         "Marketplace listings, procurement workflows, and vendor management.",
@@ -513,6 +520,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#FF4D00" },
     { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#1E3A8A" },
     { id: "slatedrop",      label: "SlateDrop",      icon: FolderOpen,      color: "#FF4D00" },
+    { id: "integrations",   label: "Integrations",   icon: Plug,            color: "#1E3A8A" },
     { id: "my-account",     label: "My Account",     icon: User,            color: "#1E3A8A" },
     ...(isCEO ? ([
       { id: "ceo",        label: "CEO",        icon: Shield,      color: "#FF4D00", isCEOOnly: true },
@@ -529,6 +537,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
       case "virtual-studio": return ent.canAccessVirtual;
       case "analytics":      return ent.canAccessAnalytics;
       case "slatedrop":      return ent.canViewSlateDropWidget;
+      case "integrations":   return true;
       case "my-account":     return true;
       case "ceo":
       case "market":
@@ -715,6 +724,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
   const [dashboardSummary, setDashboardSummary] = useState<{ recentFiles: any[]; storageUsed: number } | null>(null);
   const [slateDropFiles, setSlateDropFiles] = useState<any[]>([]);
+  const [slateDropWidgetView, setSlateDropWidgetView] = useState<"recent" | "folders">("recent");
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [liveWeather, setLiveWeather] = useState<LiveWeatherState | null>(null);
   const [widgetsData, setWidgetsData] = useState<DashboardWidgetsPayload | null>(null);
@@ -944,6 +954,29 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
   const creditsUsed = accountOverview?.billing?.purchasedCredits ?? 0;
   const storageUsed = dashboardSummary ? Number((dashboardSummary.storageUsed / (1024 * 1024 * 1024)).toFixed(2)) : (ent.tier === "trial" ? 1.2 : ent.tier === "creator" ? 12 : 45);
+  const slateDropFolderQuickView: SlateDropFolderQuickView[] = useMemo(() => {
+    const base: SlateDropFolderQuickView[] = [
+      { name: "Project Sandbox", description: "Shared cross-module workspace" },
+    ];
+
+    if (["model", "business", "enterprise"].includes(ent.tier)) {
+      base.push({ name: "Design Studio", description: "Models, plans, and redlines" });
+      base.push({ name: "Geospatial", description: "Drone, GIS, and point clouds" });
+      base.push({ name: "Virtual Studio", description: "Simulation and immersive assets" });
+    }
+
+    if (["creator", "model", "business", "enterprise"].includes(ent.tier)) {
+      base.push({ name: "Content Studio", description: "Media, exports, and brand assets" });
+      base.push({ name: "360 Tours", description: "Tour captures and annotations" });
+    }
+
+    if (["business", "enterprise"].includes(ent.tier)) {
+      base.push({ name: "Project Hub", description: "RFIs, submittals, reports, photos" });
+      base.push({ name: "Analytics", description: "Dashboards, snapshots, and exports" });
+    }
+
+    return base;
+  }, [ent.tier]);
 
   /* ── Handlers ── */
   const scrollCarousel = useCallback((dir: number) => {
@@ -1329,6 +1362,13 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                       >
                         <Activity size={15} /> My Account
                       </Link>
+                      <Link
+                        href="/integrations"
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <Plug size={15} /> Integrations
+                      </Link>
                       <button
                         onClick={handleOpenBillingPortal}
                         className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
@@ -1402,6 +1442,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                       key={tab.id}
                       onClick={() => {
                         if (tab.id === "slatedrop") { openSlateDrop(); return; }
+                        if (tab.id === "integrations") { router.push("/integrations"); return; }
                         if (tab.id === "project-hub") { router.push("/project-hub"); return; }
                         setActiveTab(tab.id);
                         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1562,12 +1603,20 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               );
               case "slatedrop": return (
           <WidgetCard key={id} icon={FolderOpen} title="SlateDrop" span={span} delay={0} action={
-            <button
-              onClick={openSlateDrop}
-              className="text-[10px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-1"
-            >
-              Open <ArrowUpRight size={10} />
-            </button>
+            <div className="inline-flex items-center rounded-lg border border-gray-200 p-0.5">
+              <button
+                onClick={() => setSlateDropWidgetView("recent")}
+                className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors ${slateDropWidgetView === "recent" ? "bg-[#FF4D00] text-white" : "text-gray-600 hover:bg-gray-100"}`}
+              >
+                Recent
+              </button>
+              <button
+                onClick={() => setSlateDropWidgetView("folders")}
+                className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors ${slateDropWidgetView === "folders" ? "bg-[#1E3A8A] text-white" : "text-gray-600 hover:bg-gray-100"}`}
+              >
+                Folder View
+              </button>
+            </div>
           }>
             <div className="space-y-4">
               {/* Storage bar */}
@@ -1587,19 +1636,32 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 </div>
                 <p className="text-[10px] text-gray-400 mt-1">{(ent.maxStorageGB - storageUsed).toFixed(1)} GB available</p>
               </div>
-              {/* Recent files */}
-              <div className="space-y-2">
-                {slateDropFiles && slateDropFiles.length > 0 ? (
-                  slateDropFiles.slice(0, 3).map((file, i) => (
-                    <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                      <FileText size={13} className="text-gray-400 shrink-0" />
-                      <span className="text-[11px] text-gray-700 truncate flex-1">{file.name}</span>
+              {slateDropWidgetView === "recent" ? (
+                <div className="space-y-2">
+                  {slateDropFiles && slateDropFiles.length > 0 ? (
+                    slateDropFiles.slice(0, 3).map((file, i) => (
+                      <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <FileText size={13} className="text-gray-400 shrink-0" />
+                        <span className="text-[11px] text-gray-700 truncate flex-1">{file.name}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-xs text-gray-400">No recent files</div>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2">
+                  {slateDropFolderQuickView.map((folder) => (
+                    <div key={folder.name} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                      <p className="text-[11px] font-semibold text-gray-800 flex items-center gap-1.5">
+                        <FolderOpen size={12} className="text-[#FF4D00]" /> {folder.name}
+                      </p>
+                      <p className="text-[10px] text-gray-500 mt-1">{folder.description}</p>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4 text-xs text-gray-400">No recent files</div>
-                )}
-              </div>
+                  ))}
+                  <p className="text-[10px] text-gray-400">Unlocked based on your {ent.label} plan.</p>
+                </div>
+              )}
               <button
                 onClick={openSlateDrop}
                 className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
@@ -2645,7 +2707,19 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             </Link>
           </div>
         )}
-        {activeTab !== "overview" && activeTab !== "market" && activeTab !== "my-account" && activeTab !== "project-hub" && (() => {
+        {activeTab === "integrations" && (
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h3 className="text-base font-black text-gray-900">Open Integrations</h3>
+            <p className="mt-1 text-sm text-gray-500">Integrations now runs in its dedicated workspace route.</p>
+            <Link
+              href="/integrations"
+              className="mt-4 inline-flex items-center rounded-lg bg-[#1E3A8A] px-3 py-2 text-xs font-semibold text-white hover:bg-[#162D69]"
+            >
+              Go to Integrations
+            </Link>
+          </div>
+        )}
+        {activeTab !== "overview" && activeTab !== "market" && activeTab !== "my-account" && activeTab !== "project-hub" && activeTab !== "integrations" && (() => {
           const tab = visibleTabs.find((t) => t.id === activeTab);
           if (!tab) return null;
           return <TabWireframe tab={tab} onBack={() => setActiveTab("overview")} onOpenSlateDrop={openSlateDrop} />;

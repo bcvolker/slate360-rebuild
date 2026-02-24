@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { APIProvider, AdvancedMarker, Map, useMap } from "@vis.gl/react-google-maps";
 import {
   CheckCircle2,
@@ -10,6 +10,8 @@ import {
   Loader2,
   LocateFixed,
   MapPin,
+  Maximize2,
+  Minimize2,
   Minus,
   MousePointer2,
   PenTool,
@@ -585,11 +587,47 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   const [lastShareUrl, setLastShareUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const [mapCenter, setMapCenter] = useState(center ?? { lat: 40.7128, lng: -74.0060 });
+  const [isThreeD, setIsThreeD] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
+
+  const requestCurrentLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setStatus({ ok: false, text: "Geolocation is not supported in this browser." });
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const nextCenter = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setMapCenter(nextCenter);
+        setStatus({ ok: true, text: "Map centered to your current location." });
+        setIsLocating(false);
+      },
+      () => {
+        setStatus({ ok: false, text: "Unable to retrieve your current location." });
+        setIsLocating(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+      }
+    );
+  }, []);
 
   useEffect(() => {
     if (center) setMapCenter(center);
   }, [center]);
+
+  useEffect(() => {
+    if (center) return;
+    requestCurrentLocation();
+  }, [center, requestCurrentLocation]);
 
   useEffect(() => {
     if (locationLabel && !addressQuery) {
@@ -904,6 +942,73 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     }
   };
 
+  const renderMapCanvas = (mode: "inline" | "expanded") => {
+    const isModal = mode === "expanded";
+    return (
+      <div className={`relative ${isModal ? "h-full min-h-[70vh]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
+        <div className="absolute left-3 top-3 z-20 inline-flex items-center gap-1 rounded-xl border border-white/70 bg-white/95 p-1 shadow-sm backdrop-blur">
+          <button
+            type="button"
+            onClick={() => setIsThreeD(false)}
+            className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${!isThreeD ? "bg-[#1E3A8A] text-white" : "text-gray-600 hover:bg-gray-100"}`}
+          >
+            2D
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsThreeD(true)}
+            className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${isThreeD ? "bg-[#FF4D00] text-white" : "text-gray-600 hover:bg-gray-100"}`}
+          >
+            3D
+          </button>
+          <button
+            type="button"
+            onClick={requestCurrentLocation}
+            className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
+            disabled={isLocating}
+          >
+            {isLocating ? <Loader2 size={10} className="animate-spin" /> : <LocateFixed size={10} />}
+            Find Me
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsExpanded((value) => !value)}
+            className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
+          >
+            {isModal ? <Minimize2 size={10} /> : <Maximize2 size={10} />}
+            {isModal ? "Collapse" : "Expand"}
+          </button>
+        </div>
+
+        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
+          <DrawController
+            setStatus={setStatus}
+            strokeColor={strokeColor}
+            fillColor={fillColor}
+            strokeWeight={strokeWeight}
+            setStrokeColor={setStrokeColor}
+            setFillColor={setFillColor}
+            setStrokeWeight={setStrokeWeight}
+            setAddressQuery={setAddressQuery}
+            setMapCenter={setMapCenter}
+          />
+          <Map
+            defaultZoom={13}
+            defaultCenter={mapCenter}
+            center={mapCenter}
+            mapId={mapId}
+            gestureHandling={"greedy"}
+            disableDefaultUI={true}
+            mapTypeId={isThreeD ? "satellite" : "roadmap"}
+            tilt={isThreeD ? 45 : 0}
+          >
+            <AdvancedMarker position={mapCenter} />
+          </Map>
+        </APIProvider>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
@@ -931,153 +1036,143 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
         </div>
       </div>
 
-      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/60 space-y-2">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <select
-            value={selectedProjectId}
-            onChange={(event) => setSelectedProjectId(event.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
-          >
-            <option value="">Select project</option>
-            {projects.map((project) => (
-              <option key={project.id} value={project.id}>{project.name}</option>
-            ))}
-          </select>
-          <select
-            value={selectedFolderId}
-            onChange={(event) => setSelectedFolderId(event.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
-            disabled={!selectedProjectId || folders.length === 0}
-          >
-            <option value="">Select folder</option>
-            {folders.map((folder) => (
-              <option key={folder.id} value={folder.id}>{folder.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <select
-            value={selectedContact}
-            onChange={(event) => {
-              const value = event.target.value;
-              setSelectedContact(value);
-              if (!value) return;
-              const found = recipientOptions.find((option) => option.label === value);
-              if (!found) return;
-              if (found.email) {
-                setRecipientMode("email");
-                setRecipientValue(found.email);
-              } else if (found.phone) {
-                setRecipientMode("phone");
-                setRecipientValue(found.phone);
-              }
-            }}
-            className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
-          >
-            <option value="">Pick contact recipient (optional)</option>
-            {recipientOptions.map((option) => (
-              <option key={option.label} value={option.label}>{option.label}</option>
-            ))}
-          </select>
-          <div className="grid grid-cols-[auto_1fr] gap-2">
+      <details className="px-4 py-3 border-b border-gray-100 bg-gray-50/60" open={false}>
+        <summary className="cursor-pointer list-none flex items-center justify-between text-xs font-semibold text-gray-600">
+          Share, save, and delivery controls
+          <span className="text-[10px] text-gray-400">Optional</span>
+        </summary>
+        <div className="space-y-2 pt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <select
-              value={recipientMode}
-              onChange={(event) => setRecipientMode(event.target.value as "email" | "phone")}
-              className="rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
-            >
-              <option value="email">Email</option>
-              <option value="phone">Phone</option>
-            </select>
-            <input
-              type={recipientMode === "email" ? "email" : "tel"}
-              placeholder={recipientMode === "email" ? "recipient@email.com" : "+1 555-123-4567"}
-              value={recipientValue}
-              onChange={(event) => setRecipientValue(event.target.value)}
+              value={selectedProjectId}
+              onChange={(event) => setSelectedProjectId(event.target.value)}
               className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
-            />
+            >
+              <option value="">Select project</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>{project.name}</option>
+              ))}
+            </select>
+            <select
+              value={selectedFolderId}
+              onChange={(event) => setSelectedFolderId(event.target.value)}
+              className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
+              disabled={!selectedProjectId || folders.length === 0}
+            >
+              <option value="">Select folder</option>
+              {folders.map((folder) => (
+                <option key={folder.id} value={folder.id}>{folder.name}</option>
+              ))}
+            </select>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
-          <div className="text-[10px] text-gray-500 flex items-center">
-            Save your marked-up map to a project folder, then send a secure link by email or phone.
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleSaveToFolder}
-              disabled={isSaving}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <select
+              value={selectedContact}
+              onChange={(event) => {
+                const value = event.target.value;
+                setSelectedContact(value);
+                if (!value) return;
+                const found = recipientOptions.find((option) => option.label === value);
+                if (!found) return;
+                if (found.email) {
+                  setRecipientMode("email");
+                  setRecipientValue(found.email);
+                } else if (found.phone) {
+                  setRecipientMode("phone");
+                  setRecipientValue(found.phone);
+                }
+              }}
+              className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
             >
-              {isSaving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />} Save
-            </button>
-            <button
-              onClick={handleSendShareLink}
-              disabled={isSharing}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
-              style={{ backgroundColor: "#FF4D00" }}
-            >
-              {isSharing ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Send Link
-            </button>
-            <button
-              onClick={handleCopyShareLink}
-              disabled={!lastShareUrl}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-40"
-              title="Copy last generated link"
-            >
-              <Copy size={12} /> Copy
-            </button>
-            <button
-              onClick={handleExportAuditPackage}
-              disabled={isExportingAudit}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-40"
-              title="Download complete project audit package"
-            >
-              {isExportingAudit ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />} Audit ZIP
-            </button>
-            {lastShareUrl && recipientMode === "phone" && (
-              <a
-                href={`sms:${encodeURIComponent(recipientValue.trim())}?body=${encodeURIComponent(`Project location and markup: ${lastShareUrl}`)}`}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+              <option value="">Pick contact recipient (optional)</option>
+              {recipientOptions.map((option) => (
+                <option key={option.label} value={option.label}>{option.label}</option>
+              ))}
+            </select>
+            <div className="grid grid-cols-[auto_1fr] gap-2">
+              <select
+                value={recipientMode}
+                onChange={(event) => setRecipientMode(event.target.value as "email" | "phone")}
+                className="rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
               >
-                SMS
-              </a>
-            )}
+                <option value="email">Email</option>
+                <option value="phone">Phone</option>
+              </select>
+              <input
+                type={recipientMode === "email" ? "email" : "tel"}
+                placeholder={recipientMode === "email" ? "recipient@email.com" : "+1 555-123-4567"}
+                value={recipientValue}
+                onChange={(event) => setRecipientValue(event.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+            <div className="text-[10px] text-gray-500 flex items-center">
+              Save your marked-up map to a project folder, then send a secure link by email or phone.
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSaveToFolder}
+                disabled={isSaving}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+              >
+                {isSaving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />} Save
+              </button>
+              <button
+                onClick={handleSendShareLink}
+                disabled={isSharing}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                style={{ backgroundColor: "#FF4D00" }}
+              >
+                {isSharing ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Send Link
+              </button>
+              <button
+                onClick={handleCopyShareLink}
+                disabled={!lastShareUrl}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-40"
+                title="Copy last generated link"
+              >
+                <Copy size={12} /> Copy
+              </button>
+              <button
+                onClick={handleExportAuditPackage}
+                disabled={isExportingAudit}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-40"
+                title="Download complete project audit package"
+              >
+                {isExportingAudit ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />} Audit ZIP
+              </button>
+              {lastShareUrl && recipientMode === "phone" && (
+                <a
+                  href={`sms:${encodeURIComponent(recipientValue.trim())}?body=${encodeURIComponent(`Project location and markup: ${lastShareUrl}`)}`}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                >
+                  SMS
+                </a>
+              )}
+            </div>
+          </div>
+          {status && (
+            <p className={`text-[10px] flex items-center gap-1 ${status.ok ? "text-emerald-600" : "text-red-600"}`}>
+              {status.ok ? <CheckCircle2 size={11} /> : null}
+              {status.text}
+            </p>
+          )}
+        </div>
+      </details>
+
+      {renderMapCanvas("inline")}
+
+      {isExpanded && (
+        <div className="fixed inset-0 z-[120] bg-black/55 backdrop-blur-sm p-4 sm:p-8">
+          <div className="h-full w-full rounded-2xl border border-white/20 bg-white overflow-hidden shadow-2xl">
+            {renderMapCanvas("expanded")}
           </div>
         </div>
-        {status && (
-          <p className={`text-[10px] flex items-center gap-1 ${status.ok ? "text-emerald-600" : "text-red-600"}`}>
-            {status.ok ? <CheckCircle2 size={11} /> : null}
-            {status.text}
-          </p>
-        )}
-      </div>
-      
-      <div className="flex-1 relative min-h-[220px]" ref={mapRef}>
-        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
-          <DrawController
-            setStatus={setStatus}
-            strokeColor={strokeColor}
-            fillColor={fillColor}
-            strokeWeight={strokeWeight}
-            setStrokeColor={setStrokeColor}
-            setFillColor={setFillColor}
-            setStrokeWeight={setStrokeWeight}
-            setAddressQuery={setAddressQuery}
-            setMapCenter={setMapCenter}
-          />
-          <Map
-            defaultZoom={13}
-            defaultCenter={mapCenter}
-            center={mapCenter}
-            mapId={mapId}
-            gestureHandling={"greedy"}
-            disableDefaultUI={true}
-          >
-            <AdvancedMarker position={mapCenter} />
-          </Map>
-        </APIProvider>
-      </div>
+      )}
     </div>
   );
 }
