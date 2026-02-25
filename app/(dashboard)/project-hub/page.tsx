@@ -312,7 +312,7 @@ export default function ProjectHubPage() {
                     onDragEnd={handleDragEnd}
                     className={`transition-all duration-300 cursor-grab active:cursor-grabbing ${dragIdx === idx ? "opacity-50 scale-95" : ""} ${isExpanded ? "md:col-span-3" : ""}`}
                   >
-                    <LocationMap />
+                    <LocationMap compact />
                   </div>
                 );
               }
@@ -352,9 +352,23 @@ export default function ProjectHubPage() {
                         <p className="text-xs text-gray-500">Access your project files, share links, and manage uploads.</p>
                         <div className={`flex-1 rounded-xl bg-gray-50 border border-gray-100 p-4 flex flex-col justify-between ${isExpanded ? "min-h-[240px]" : "min-h-[100px]"}`}>
                           <div className="space-y-2">
-                            <div className="flex items-center justify-between text-xs"><span className="text-gray-500">Recent files</span><span className="font-semibold text-gray-700">—</span></div>
-                            <div className="flex items-center justify-between text-xs"><span className="text-gray-500">Shared links</span><span className="font-semibold text-gray-700">—</span></div>
-                            {isExpanded && <div className="flex items-center justify-between text-xs"><span className="text-gray-500">Pending uploads</span><span className="font-semibold text-gray-700">—</span></div>}
+                            <div className="flex items-center gap-2.5 p-2 rounded-lg bg-white border border-gray-100">
+                              <FolderOpen size={13} className="text-[#FF4D00] shrink-0" />
+                              <span className="text-[11px] text-gray-700 truncate flex-1">Project Sandboxes</span>
+                            </div>
+                            <div className="flex items-center gap-2.5 p-2 rounded-lg bg-white border border-gray-100">
+                              <FolderOpen size={13} className="text-[#FF4D00] shrink-0" />
+                              <span className="text-[11px] text-gray-700 truncate flex-1">Shared with Me</span>
+                            </div>
+                            {isExpanded && (
+                              <>
+                                <div className="flex items-center gap-2.5 p-2 rounded-lg bg-white border border-gray-100">
+                                  <FolderOpen size={13} className="text-[#FF4D00] shrink-0" />
+                                  <span className="text-[11px] text-gray-700 truncate flex-1">Recent Uploads</span>
+                                </div>
+                                <p className="text-[10px] text-gray-400 mt-1">Manage all files across projects from SlateDrop.</p>
+                              </>
+                            )}
                           </div>
                           <Link href="/slatedrop" className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-[#FF4D00] text-white text-xs font-bold hover:bg-[#E64500] transition-colors mt-3">
                             <FolderOpen size={14} /> Open SlateDrop

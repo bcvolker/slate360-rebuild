@@ -55,6 +55,8 @@ import {
 interface SlateDropProps {
   user: { name: string; email: string };
   tier: Tier;
+  /** When provided, auto-navigate to this project's sandbox folder on mount. */
+  initialProjectId?: string;
 }
 
 interface FolderNode {
@@ -375,7 +377,7 @@ function FolderTreeItem({
    MAIN COMPONENT
    ================================================================ */
 
-export default function SlateDropClient({ user, tier }: SlateDropProps) {
+export default function SlateDropClient({ user, tier, initialProjectId }: SlateDropProps) {
   const ent = getEntitlements(tier);
   const supabase = createClient();
 
@@ -395,10 +397,19 @@ export default function SlateDropClient({ user, tier }: SlateDropProps) {
       const projects = Array.isArray(payload?.projects) ? (payload.projects as SandboxProject[]) : [];
       setSandboxProjects(projects);
       setFolderTree(withSandboxProjects(buildFolderTree(tier), projects));
+
+      // If an initialProjectId was provided, auto-select that project's sandbox folder
+      if (initialProjectId) {
+        const match = projects.find((p) => p.id === initialProjectId);
+        if (match) {
+          setActiveFolderId(match.id);
+          setExpandedIds((prev) => new Set([...prev, "project-sandboxes", match.id]));
+        }
+      }
     } catch {
       // non-blocking
     }
-  }, [tier]);
+  }, [tier, initialProjectId]);
 
   useEffect(() => {
     void refreshSandboxProjects();

@@ -28,6 +28,8 @@ type LocationMapProps = {
   center?: { lat: number; lng: number };
   locationLabel?: string;
   contactRecipients?: Array<{ name: string; email?: string; phone?: string }>;
+  /** When true, render a shorter preview card (no toolbar/share panel) suitable for widget grids. */
+  compact?: boolean;
 };
 
 type ProjectOption = {
@@ -564,7 +566,7 @@ function DrawController({
   );
 }
 
-export default function LocationMap({ center, locationLabel, contactRecipients = [] }: LocationMapProps) {
+export default function LocationMap({ center, locationLabel, contactRecipients = [], compact = false }: LocationMapProps) {
   const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID";
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -921,8 +923,9 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
 
   const renderMapCanvas = (mode: "inline" | "expanded") => {
     const isModal = mode === "expanded";
+    const showToolbar = isModal || !compact;
     return (
-      <div className={`relative ${isModal ? "h-full min-h-[70vh]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
+      <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
         <div className="absolute left-3 top-3 z-20 inline-flex items-center gap-1 rounded-xl border border-white/70 bg-white/95 p-1 shadow-sm backdrop-blur">
           <button
             type="button"
@@ -958,29 +961,33 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
         </div>
 
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
-          <DrawController
-            setStatus={setStatus}
-            strokeColor={strokeColor}
-            fillColor={fillColor}
-            strokeWeight={strokeWeight}
-            setStrokeColor={setStrokeColor}
-            setFillColor={setFillColor}
-            setStrokeWeight={setStrokeWeight}
-            setAddressQuery={setAddressQuery}
-            setMapCenter={setMapCenter}
-          />
-          <Map
-            defaultZoom={13}
-            defaultCenter={mapCenter}
-            center={mapCenter}
-            mapId={mapId}
-            gestureHandling={"greedy"}
-            disableDefaultUI={true}
-            mapTypeId={isThreeD ? "satellite" : "roadmap"}
-            tilt={isThreeD ? 45 : 0}
-          >
-            <AdvancedMarker position={mapCenter} />
-          </Map>
+          {showToolbar && (
+            <DrawController
+              setStatus={setStatus}
+              strokeColor={strokeColor}
+              fillColor={fillColor}
+              strokeWeight={strokeWeight}
+              setStrokeColor={setStrokeColor}
+              setFillColor={setFillColor}
+              setStrokeWeight={setStrokeWeight}
+              setAddressQuery={setAddressQuery}
+              setMapCenter={setMapCenter}
+            />
+          )}
+          <div className="flex-1 relative min-h-0">
+            <Map
+              defaultZoom={13}
+              defaultCenter={mapCenter}
+              center={mapCenter}
+              mapId={mapId}
+              gestureHandling={"greedy"}
+              disableDefaultUI={true}
+              mapTypeId={isThreeD ? "satellite" : "roadmap"}
+              tilt={isThreeD ? 45 : 0}
+            >
+              <AdvancedMarker position={mapCenter} />
+            </Map>
+          </div>
         </APIProvider>
       </div>
     );
@@ -1013,6 +1020,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
         </div>
       </div>
 
+      {!compact && (
       <details className="px-4 py-3 border-b border-gray-100 bg-gray-50/60" open={false}>
         <summary className="cursor-pointer list-none flex items-center justify-between text-xs font-semibold text-gray-600">
           Share, save, and delivery controls
@@ -1140,6 +1148,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
           )}
         </div>
       </details>
+      )}
 
       {!isExpanded && renderMapCanvas("inline")}
 

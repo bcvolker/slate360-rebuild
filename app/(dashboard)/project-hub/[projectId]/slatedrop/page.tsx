@@ -53,6 +53,7 @@ export default async function ProjectSlateDropPage({
         email: user.email ?? "",
       }}
       tier={tier}
+      initialProjectId={projectId}
     />
   );
 }
