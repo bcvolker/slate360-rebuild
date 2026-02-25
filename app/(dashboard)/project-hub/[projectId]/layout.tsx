@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getScopedProjectForUser } from "@/lib/projects/access";
+import QuickNav from "@/components/shared/QuickNav";
 
 const TABS = [
   { label: "Overview", href: "" },
@@ -45,6 +46,19 @@ export default async function ProjectDetailLayout({
     <div className="min-h-screen bg-[#F7F8FA]">
       <header className="sticky top-0 z-30 border-b border-gray-200 bg-white/90 backdrop-blur">
         <div className="mx-auto w-full max-w-7xl px-6 py-4 md:px-10">
+          {/* Top row: back button + quick nav */}
+          <div className="flex items-center justify-between mb-3">
+            <Link
+              href="/project-hub"
+              className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-[#FF4D00] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              Back to Project Hub
+            </Link>
+            <QuickNav />
+          </div>
+
+          {/* Project header */}
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Project Hub</p>
@@ -63,7 +77,7 @@ export default async function ProjectDetailLayout({
                   <li key={tab.label}>
                     <Link
                       href={href}
-                      className="inline-flex rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-300 hover:bg-gray-50"
+                      className="inline-flex rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-all hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm hover:-translate-y-px"
                     >
                       {tab.label}
                     </Link>
