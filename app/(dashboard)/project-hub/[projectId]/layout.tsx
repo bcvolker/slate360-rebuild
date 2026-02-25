@@ -44,17 +44,22 @@ export default async function ProjectDetailLayout({
 
   return (
     <div className="min-h-screen bg-[#ECEEF2]">
-      <header className="sticky top-0 z-30 border-b border-gray-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto w-full max-w-7xl px-6 py-4 md:px-10">
-          {/* Top row: back button + quick nav */}
+      <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/95 backdrop-blur-md">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-3 sm:py-4 md:px-10">
+          {/* Top row: logo + back button + quick nav */}
           <div className="flex items-center justify-between mb-3">
-            <Link
-              href="/project-hub"
-              className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-[#FF4D00] transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-              Back to Project Hub
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard" className="shrink-0">
+                <img src="/logo.svg" alt="Slate360" className="h-7 w-auto" />
+              </Link>
+              <Link
+                href="/project-hub"
+                className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-[#FF4D00] transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                Project Hub
+              </Link>
+            </div>
             <QuickNav />
           </div>
 
@@ -69,15 +74,15 @@ export default async function ProjectDetailLayout({
             </span>
           </div>
 
-          <nav className="mt-4 overflow-x-auto pb-1">
-            <ul className="flex min-w-max items-center gap-2">
+          <nav className="mt-4 overflow-x-auto pb-1 -mx-1">
+            <ul className="flex min-w-max items-center gap-1 sm:gap-2 px-1">
               {TABS.map((tab) => {
                 const href = tab.href ? `/project-hub/${projectId}/${tab.href}` : `/project-hub/${projectId}`;
                 return (
                   <li key={tab.label}>
                     <Link
                       href={href}
-                      className="inline-flex rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-all hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm hover:-translate-y-px"
+                      className="inline-flex rounded-full border border-gray-100 bg-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-gray-700 transition-all hover:border-[#FF4D00]/30 hover:bg-[#FF4D00]/5 hover:text-[#FF4D00] hover:shadow-sm hover:-translate-y-px whitespace-nowrap"
                     >
                       {tab.label}
                     </Link>
@@ -89,7 +94,7 @@ export default async function ProjectDetailLayout({
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl px-6 py-6 md:px-10 md:py-8">{children}</main>
+      <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-6 md:px-10 md:py-8">{children}</main>
     </div>
   );
 }

@@ -178,6 +178,9 @@ export default function MarketClient() {
   const [capitalAlloc, setCapitalAlloc] = useState(500);
   const [minEdge, setMinEdge] = useState(3);
   const [minVolume, setMinVolume] = useState(10000);
+
+  // Filter panel expanded state
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [minProbLow, setMinProbLow] = useState(10);
   const [minProbHigh, setMinProbHigh] = useState(90);
   const [whaleFollow, setWhaleFollow] = useState(false);
@@ -1156,15 +1159,18 @@ export default function MarketClient() {
 
   return (
     <div className="text-gray-900">
-      {/* ── Back to Dashboard (standalone page only) ── */}
+      {/* ── Standalone header with logo ── */}
       {isStandalonePage && (
-        <div className="mb-4 px-1">
+        <div className="mb-4 flex items-center gap-4 px-1">
+          <Link href="/dashboard" className="shrink-0">
+            <img src="/logo.svg" alt="Slate360" className="h-7 w-auto" />
+          </Link>
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#FF4D00] transition group font-medium"
+            className="hidden sm:inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#FF4D00] transition group font-medium"
           >
             <span className="group-hover:-translate-x-0.5 transition-transform">←</span>
-            Back to Dashboard
+            Dashboard
           </Link>
         </div>
       )}
@@ -1172,12 +1178,12 @@ export default function MarketClient() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900 flex items-center gap-2 flex-wrap">
             Market Robot
             <StatusBadge status={botRunning ? (botPaused ? "idle" : "running") : "idle"} />
             {paperMode && <span className="text-xs bg-purple-100 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full">Paper Mode</span>}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
             AI-powered prediction market bot — {lastScan ? `Last scan: ${new Date(lastScan).toLocaleTimeString()}` : "Not scanned yet"}
           </p>
         </div>
@@ -2078,117 +2084,164 @@ export default function MarketClient() {
                 value={marketSearch}
                 onChange={e => setMarketSearch(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && fetchMarkets()}
-                className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#FF4D00]"
+                className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#FF4D00] focus:ring-2 focus:ring-[#FF4D00]/10 transition-all"
               />
               <button
                 onClick={() => fetchMarkets()}
                 disabled={loadingMarkets}
-                className="bg-[#FF4D00] hover:bg-orange-600 px-5 py-2 rounded-lg text-sm font-bold transition disabled:opacity-50 whitespace-nowrap"
+                className="bg-[#FF4D00] hover:bg-orange-600 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition disabled:opacity-50 whitespace-nowrap"
               >
-                {loadingMarkets ? "Searching…" : "🔍 Search"}
+                {loadingMarkets ? "Searching…" : "Search"}
               </button>
             </div>
 
-            {/* Filter row (only shown after first load) */}
+            {/* Quick filter pills (always visible) */}
             {marketsLoaded && (
               <div className="space-y-3 pt-1 border-t border-gray-100">
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => applyQuickMarketPreset("construction")} className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-[11px] hover:bg-gray-200 transition">🏗️ Construction</button>
-                  <button onClick={() => applyQuickMarketPreset("high-volume")} className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-[11px] hover:bg-gray-200 transition">💧 High Volume</button>
-                  <button onClick={() => applyQuickMarketPreset("mispriced")} className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-[11px] hover:bg-gray-200 transition">⚖️ Mispriced</button>
-                  <button onClick={() => applyQuickMarketPreset("closing-soon")} className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-[11px] hover:bg-gray-200 transition">⏳ Closing Soon</button>
-                  <button onClick={() => applyQuickMarketPreset("crypto")} className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-[11px] hover:bg-gray-200 transition">₿ Crypto</button>
+                {/* Preset pills row */}
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { key: "construction", label: "Construction", icon: "🏗️" },
+                    { key: "high-volume", label: "High Volume", icon: "💧" },
+                    { key: "mispriced", label: "Mispriced", icon: "⚖️" },
+                    { key: "closing-soon", label: "Closing Soon", icon: "⏳" },
+                    { key: "crypto", label: "Crypto", icon: "₿" },
+                  ].map(p => (
+                    <button
+                      key={p.key}
+                      onClick={() => { applyQuickMarketPreset(p.key as "construction" | "high-volume" | "mispriced" | "closing-soon" | "crypto"); }}
+                      className="px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-700 text-xs font-semibold hover:border-[#FF4D00] hover:text-[#FF4D00] hover:bg-[#FF4D00]/5 transition-all flex items-center gap-1.5"
+                    >
+                      <span>{p.icon}</span> {p.label}
+                    </button>
+                  ))}
                 </div>
 
-                {/* Row 1: Category + Risk Tag + Sort */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block flex items-center">
-                      Category
-                      <HelpTip content="Filter by Polymarket category." />
-                    </label>
-                    <select
-                      value={mktCategory}
-                      onChange={e => setMktCategory(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
-                    >
-                      <option value="all">All Categories</option>
-                      {FOCUS_AREAS.map(a => <option key={a} value={a.toLowerCase()}>{a}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block flex items-center">
-                      Risk Tag
-                      <HelpTip content="Filter by computed risk classification." />
-                    </label>
-                    <select
-                      value={mktRiskTag}
-                      onChange={e => setMktRiskTag(e.target.value as typeof mktRiskTag)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
-                    >
-                      <option value="all">All Tags</option>
-                      <option value="hot">🔥 Hot (High Advantage)</option>
-                      <option value="high-potential">📈 High Potential</option>
-                      <option value="high-risk">⚠️ High Risk</option>
-                      <option value="construction">🏗️ Construction</option>
-                      <option value="none">No Tag</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block flex items-center">
-                      Sort By
-                      <HelpTip content="Sort the results table." />
-                    </label>
-                    <select
-                      value={mktSortBy}
-                      onChange={e => {
-                        const key = e.target.value as MarketSortKey;
-                        setMktSortBy(key);
-                        setMktSortDir(defaultSortDirection(key));
-                      }}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
-                    >
-                      <option value="volume">24h Volume ↓</option>
-                      <option value="edge">Estimated Advantage % ↓</option>
-                      <option value="probability">Probability ↓</option>
-                      <option value="title">Title A→Z</option>
-                      <option value="endDate">End Date ↑</option>
-                    </select>
-                    <button
-                      onClick={() => setMktSortDir(prev => (prev === "asc" ? "desc" : "asc"))}
-                      className="mt-2 text-xs text-gray-600 hover:text-gray-900 transition"
-                    >
-                      Direction: {mktSortDir === "asc" ? "↑ Asc" : "↓ Desc"}
-                    </button>
-                  </div>
+                {/* Active filter summary pills */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {mktCategory !== "all" && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#1E3A8A]/10 text-[#1E3A8A] text-[11px] font-semibold border border-[#1E3A8A]/20">
+                      {mktCategory} <button onClick={() => setMktCategory("all")} className="ml-0.5 hover:text-red-600">×</button>
+                    </span>
+                  )}
+                  {mktRiskTag !== "all" && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FF4D00]/10 text-[#FF4D00] text-[11px] font-semibold border border-[#FF4D00]/20">
+                      {mktRiskTag.replace("-", " ")} <button onClick={() => setMktRiskTag("all")} className="ml-0.5 hover:text-red-600">×</button>
+                    </span>
+                  )}
+                  {mktMinVol > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 text-[11px] font-semibold border border-gray-200">
+                      Vol ≥ ${(mktMinVol/1000).toFixed(0)}k <button onClick={() => setMktMinVol(0)} className="ml-0.5 hover:text-red-600">×</button>
+                    </span>
+                  )}
+                  {mktMinEdge > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 text-[11px] font-semibold border border-gray-200">
+                      Edge ≥ {mktMinEdge}% <button onClick={() => setMktMinEdge(0)} className="ml-0.5 hover:text-red-600">×</button>
+                    </span>
+                  )}
+                  {(mktProbMin > 0 || mktProbMax < 100) && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 text-[11px] font-semibold border border-gray-200">
+                      Prob {mktProbMin}–{mktProbMax}% <button onClick={() => { setMktProbMin(0); setMktProbMax(100); }} className="ml-0.5 hover:text-red-600">×</button>
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setFiltersExpanded(!filtersExpanded)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${filtersExpanded ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200"}`}
+                  >
+                    {filtersExpanded ? "Hide Filters ▲" : "More Filters ▼"}
+                  </button>
                 </div>
-                {/* Row 2: Range sliders */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                      Min Estimated Advantage %: {mktMinEdge}%
-                      <HelpTip content="Only show markets with at least this estimated advantage." />
-                    </label>
-                    <input type="range" min={0} max={30} value={mktMinEdge} onChange={e => setMktMinEdge(+e.target.value)} className="w-full accent-[#FF4D00]" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                      Min Volume: ${mktMinVol.toLocaleString()}
-                      <HelpTip content="Minimum 24h trading volume. Higher = more liquid." />
-                    </label>
-                    <input type="range" min={0} max={100000} step={1000} value={mktMinVol} onChange={e => setMktMinVol(+e.target.value)} className="w-full accent-[#FF4D00]" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                      Probability: {mktProbMin}%–{mktProbMax}%
-                      <HelpTip content="Filter by the YES outcome probability range." />
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input type="range" min={0} max={100} value={mktProbMin} onChange={e => setMktProbMin(Math.min(+e.target.value, mktProbMax - 1))} className="w-full accent-[#FF4D00]" />
-                      <input type="range" min={0} max={100} value={mktProbMax} onChange={e => setMktProbMax(Math.max(+e.target.value, mktProbMin + 1))} className="w-full accent-[#FF4D00]" />
+
+                {/* Expandable filter panel */}
+                {filtersExpanded && (
+                  <div className="bg-gray-50/80 rounded-xl border border-gray-100 p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                    {/* Category pills */}
+                    <div>
+                      <label className="text-xs text-gray-500 mb-2 block font-semibold">Category</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {["all", ...FOCUS_AREAS.map(a => a.toLowerCase())].map(cat => (
+                          <button
+                            key={cat}
+                            onClick={() => setMktCategory(cat)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${mktCategory === cat ? "bg-[#1E3A8A] text-white shadow-sm" : "bg-white border border-gray-200 text-gray-600 hover:border-[#1E3A8A]/40 hover:text-[#1E3A8A]"}`}
+                          >
+                            {cat === "all" ? "All" : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Risk tag pills */}
+                    <div>
+                      <label className="text-xs text-gray-500 mb-2 block font-semibold">Risk Classification</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          { value: "all", label: "All" },
+                          { value: "hot", label: "🔥 Hot" },
+                          { value: "high-potential", label: "📈 High Potential" },
+                          { value: "high-risk", label: "⚠️ High Risk" },
+                          { value: "construction", label: "🏗️ Construction" },
+                          { value: "none", label: "No Tag" },
+                        ].map(tag => (
+                          <button
+                            key={tag.value}
+                            onClick={() => setMktRiskTag(tag.value as typeof mktRiskTag)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${mktRiskTag === tag.value ? "bg-[#FF4D00] text-white shadow-sm" : "bg-white border border-gray-200 text-gray-600 hover:border-[#FF4D00]/40 hover:text-[#FF4D00]"}`}
+                          >
+                            {tag.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Sort pills */}
+                    <div>
+                      <label className="text-xs text-gray-500 mb-2 block font-semibold">Sort By</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          { key: "volume" as const, label: "Volume" },
+                          { key: "edge" as const, label: "Advantage %" },
+                          { key: "probability" as const, label: "Probability" },
+                          { key: "title" as const, label: "A→Z" },
+                          { key: "endDate" as const, label: "End Date" },
+                        ].map(s => (
+                          <button
+                            key={s.key}
+                            onClick={() => setMktSortBy(s.key)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1 ${mktSortBy === s.key ? "bg-gray-900 text-white shadow-sm" : "bg-white border border-gray-200 text-gray-600 hover:border-gray-400"}`}
+                          >
+                            {s.label} {mktSortBy === s.key && (mktSortDir === "asc" ? "↑" : "↓")}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Range sliders in a responsive grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 flex items-center gap-1 font-semibold">
+                          Min Advantage: {mktMinEdge}%
+                        </label>
+                        <input type="range" min={0} max={30} value={mktMinEdge} onChange={e => setMktMinEdge(+e.target.value)} className="w-full accent-[#FF4D00]" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 flex items-center gap-1 font-semibold">
+                          Min Volume: ${mktMinVol.toLocaleString()}
+                        </label>
+                        <input type="range" min={0} max={100000} step={1000} value={mktMinVol} onChange={e => setMktMinVol(+e.target.value)} className="w-full accent-[#FF4D00]" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 flex items-center gap-1 font-semibold">
+                          Probability: {mktProbMin}%–{mktProbMax}%
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input type="range" min={0} max={100} value={mktProbMin} onChange={e => setMktProbMin(Math.min(+e.target.value, mktProbMax - 1))} className="w-full accent-[#FF4D00]" />
+                          <input type="range" min={0} max={100} value={mktProbMax} onChange={e => setMktProbMax(Math.max(+e.target.value, mktProbMin + 1))} className="w-full accent-[#FF4D00]" />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 

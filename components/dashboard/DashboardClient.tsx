@@ -1241,10 +1241,10 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     <div className="min-h-screen bg-[#ECEEF2] overflow-x-hidden">
       {/* ════════ TOP BAR ════════ */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
           {/* Left — Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <img src="/logo.svg" alt="Slate360" className="h-7 w-auto" />
+            <img src="/logo.svg" alt="Slate360" className="h-6 sm:h-7 w-auto" />
           </Link>
 
           {/* Center — Search */}
@@ -1392,7 +1392,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
       </header>
 
       {/* ════════ MAIN CONTENT ════════ */}
-      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-8 overflow-x-hidden">
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden">
         {billingNotice && (
           <div className={`mb-4 rounded-xl border px-4 py-3 text-sm ${billingNotice.ok ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
             {billingNotice.text}

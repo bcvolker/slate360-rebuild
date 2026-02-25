@@ -125,14 +125,19 @@ export default function ProjectHubPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
+    <div className="min-h-screen bg-[#ECEEF2]">
 
       {/* ── Sticky top bar with back + quick-nav ──────────────────── */}
-      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-6 py-3 md:px-10 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-[#FF4D00] transition-colors">
-            <ChevronLeft size={16} /> Back to Dashboard
-          </Link>
+      <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/95 backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 md:px-10 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="shrink-0">
+              <img src="/logo.svg" alt="Slate360" className="h-7 w-auto" />
+            </Link>
+            <Link href="/dashboard" className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-[#FF4D00] transition-colors">
+              <ChevronLeft size={16} /> Dashboard
+            </Link>
+          </div>
           <div className="flex items-center gap-3">
             {/* Notifications */}
             <div className="relative">
@@ -198,37 +203,37 @@ export default function ProjectHubPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-6 py-6 md:px-10 md:py-8 space-y-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 md:px-10 md:py-8 space-y-6 sm:space-y-8">
 
         {/* ── Page header ──────────────────────────────────────────── */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-black text-gray-900 flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 flex items-center gap-3">
             <FolderKanban size={28} className="text-[#1E3A8A]" /> Project Hub
           </h1>
-          <button onClick={() => setWizardOpen(true)} className="flex items-center gap-2 rounded-xl bg-[#FF4D00] px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-[#E64500] transition-all hover:-translate-y-0.5 hover:shadow-xl">
+          <button onClick={() => setWizardOpen(true)} className="flex items-center justify-center gap-2 rounded-xl bg-[#FF4D00] px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-[#E64500] transition-all hover:-translate-y-0.5 hover:shadow-xl w-full sm:w-auto">
             <Plus size={16} /> New Project
           </button>
         </div>
 
         {/* ── Top Level Stats ──────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {[
             { icon: FolderKanban, bg: "bg-blue-50", text: "text-blue-600", value: projects.length, label: "Total Projects" },
             { icon: ClipboardList, bg: "bg-orange-50", text: "text-[#FF4D00]", value: "12", label: "Open RFIs" },
             { icon: CheckCircle2, bg: "bg-purple-50", text: "text-purple-600", value: "8", label: "Pending Submittals" },
             { icon: AlertTriangle, bg: "bg-red-50", text: "text-red-600", value: "3", label: "Overdue Tasks" },
           ].map(({ icon: SIcon, bg, text, value, label }) => (
-            <div key={label} className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4 hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5 transition-all">
-              <div className={`p-3 ${bg} ${text} rounded-xl`}><SIcon size={20} /></div>
-              <div><p className="text-2xl font-black text-gray-900">{value}</p><p className="text-xs font-semibold text-gray-500">{label}</p></div>
+            <div key={label} className="bg-white p-3 sm:p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-lg hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300">
+              <div className={`p-2.5 sm:p-3 ${bg} ${text} rounded-xl`}><SIcon size={20} /></div>
+              <div><p className="text-xl sm:text-2xl font-black text-gray-900">{value}</p><p className="text-[10px] sm:text-xs font-semibold text-gray-500">{label}</p></div>
             </div>
           ))}
         </div>
 
         {/* ── Tab Navigation ───────────────────────────────────────── */}
-        <div className="flex items-center gap-2 border-b border-gray-200 pb-px">
+        <div className="flex items-center gap-1 border-b border-gray-200 pb-px overflow-x-auto">
           {(["all", "my-work", "activity"] as const).map((tab) => (
-            <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 text-sm font-bold border-b-2 transition-colors ${activeTab === tab ? "border-[#FF4D00] text-[#FF4D00]" : "border-transparent text-gray-500 hover:text-gray-800"}`}>
+            <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 sm:px-4 py-2.5 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px rounded-t-lg transition-all ${activeTab === tab ? "border-[#FF4D00] text-[#FF4D00] bg-orange-50/50" : "border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50"}`}>
               {tab === "all" ? "All Projects" : tab === "my-work" ? "My Work" : "Activity Feed"}
             </button>
           ))}
