@@ -993,6 +993,40 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     );
   };
 
+  // In compact mode, render just the map canvas without the outer card shell
+  // (the parent WidgetCard provides the card wrapper)
+  if (compact) {
+    return (
+      <div className="flex flex-col h-full overflow-hidden -mx-6 -mb-0">
+        {renderMapCanvas("inline")}
+        {isExpanded && (
+          <div className="fixed inset-0 z-[120] bg-black/55 backdrop-blur-sm p-4 sm:p-8">
+            <div className="h-full w-full rounded-2xl border border-white/20 bg-white overflow-hidden shadow-2xl flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <MapPin size={16} className="text-blue-600" />
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-900">Site Location — Expanded</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(false)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+                >
+                  <Minimize2 size={12} /> Collapse
+                </button>
+              </div>
+              <div className="flex-1 relative min-h-0">
+                {renderMapCanvas("expanded")}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">

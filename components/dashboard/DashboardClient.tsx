@@ -583,7 +583,24 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [customizeOpen, setCustomizeOpen] = useState(false);
-  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(DEFAULT_WIDGET_PREFS);
+  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("slate360-dashboard-widgets");
+        if (cached) {
+          const parsed = JSON.parse(cached) as WidgetPref[];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // Merge cached with defaults so new widgets are included
+            return DEFAULT_WIDGET_PREFS.map((def) => {
+              const found = parsed.find((p) => p.id === def.id);
+              return found ?? def;
+            });
+          }
+        }
+      } catch { /* ignore */ }
+    }
+    return DEFAULT_WIDGET_PREFS;
+  });
   const [prefsDirty, setPrefsDirty] = useState(false);
   const [prefsSaving, setPrefsSaving] = useState(false);
   const [billingBusy, setBillingBusy] = useState<"portal" | "credits" | "upgrade" | null>(null);
@@ -752,12 +769,12 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     supabase.auth.getUser().then(({ data: { user: u } }) => {
       const saved = u?.user_metadata?.dashboardWidgets as WidgetPref[] | undefined;
       if (saved && Array.isArray(saved) && saved.length > 0) {
-        // Merge saved prefs with any new widgets added since last save
         const merged = DEFAULT_WIDGET_PREFS.map((def) => {
           const found = saved.find((s) => s.id === def.id);
           return found ?? def;
         });
         setWidgetPrefs(merged);
+        try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(merged)); } catch { /* ignore */ }
       }
     });
 
@@ -1213,11 +1230,19 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
   /* ── Pref helpers ── */
   const toggleVisible = useCallback((id: string) => {
-    setWidgetPrefs((prev) => prev.map((p) => p.id === id ? { ...p, visible: !p.visible } : p));
+    setWidgetPrefs((prev) => {
+      const next = prev.map((p) => p.id === id ? { ...p, visible: !p.visible } : p);
+      try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
     setPrefsDirty(true);
   }, []);
   const toggleExpanded = useCallback((id: string) => {
-    setWidgetPrefs((prev) => prev.map((p) => p.id === id ? { ...p, expanded: !p.expanded } : p));
+    setWidgetPrefs((prev) => {
+      const next = prev.map((p) => p.id === id ? { ...p, expanded: !p.expanded } : p);
+      try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
     setPrefsDirty(true);
   }, []);
   const moveWidget = useCallback((id: string, dir: -1 | 1) => {
@@ -1239,6 +1264,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     setPrefsSaving(true);
     try {
       await supabase.auth.updateUser({ data: { dashboardWidgets: widgetPrefs } });
+      try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(widgetPrefs)); } catch { /* ignore */ }
       setPrefsDirty(false);
     } finally {
       setPrefsSaving(false);
@@ -1612,21 +1638,30 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             const span = getSpan(id, expanded);
             const widgetColor = WIDGET_META.find((m) => m.id === id)?.color ?? "#FF4D00";
             const toggleExpand = inPopout ? undefined : () => {
-              setWidgetPrefs((prev) =>
-                prev.map((p) => (p.id === id ? { ...p, expanded: !p.expanded } : p))
-              );
+              setWidgetPrefs((prev) => {
+                const next = prev.map((p) => (p.id === id ? { ...p, expanded: !p.expanded } : p));
+                try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(next)); } catch { /* ignore */ }
+                return next;
+              });
               setPrefsDirty(true);
+              // Auto-open SlateDrop floating window when expanding the SlateDrop widget
+              if (id === "slatedrop" && !expanded) {
+                openSlateDrop();
+              }
             };
             switch (id) {
 
               case "location": return (
-                <div key={id} className={span}>
-                  <LocationMap
-                    center={userCoords ?? undefined}
-                    locationLabel={liveWeather?.location}
-                    contactRecipients={liveSeatMembers.map((member) => ({ name: member.name, email: member.email }))}
-                  />
-                </div>
+          <WidgetCard key={id} icon={MapPin} title="Location" span={span} delay={0} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded}>
+            <div className={expanded ? "min-h-[400px]" : "min-h-[200px]"}>
+              <LocationMap
+                center={userCoords ?? undefined}
+                locationLabel={liveWeather?.location}
+                contactRecipients={liveSeatMembers.map((member) => ({ name: member.name, email: member.email }))}
+                compact={!expanded}
+              />
+            </div>
+          </WidgetCard>
               );
               case "slatedrop": return (
           <WidgetCard key={id} icon={FolderOpen} title="SlateDrop" span={span} delay={0} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
@@ -1689,13 +1724,17 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   <p className="text-[10px] text-gray-400">Unlocked based on your {ent.label} plan.</p>
                 </div>
               )}
-              <button
-                onClick={openSlateDrop}
-                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
-                style={{ backgroundColor: "#FF4D00" }}
-              >
-                <FolderOpen size={13} /> Open SlateDrop
-              </button>
+              {!expanded ? (
+                <button
+                  onClick={openSlateDrop}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
+                  style={{ backgroundColor: "#FF4D00" }}
+                >
+                  <FolderOpen size={13} /> Open SlateDrop
+                </button>
+              ) : (
+                <p className="text-[10px] text-center text-gray-400">SlateDrop panel is now open below.</p>
+              )}
             </div>
           </WidgetCard>
           );
