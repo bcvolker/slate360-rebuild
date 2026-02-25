@@ -15,30 +15,16 @@ export async function GET(_req: NextRequest, context: RouteContext) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let orgId: string | null = null;
-  try {
-    const { data: orgData } = await admin
-      .from("organization_members")
-      .select("org_id")
-      .eq("user_id", user.id)
-      .single();
-    orgId = orgData?.org_id ?? null;
-  } catch {
-    // solo user
-  }
-  void orgId;
-
-  const { data: tasks, error } = await admin
+  const { data, error } = await admin
     .from("project_tasks")
-    .select("*")
+    .select("id, name, start_date, end_date, status, created_at")
     .eq("project_id", projectId)
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ tasks: tasks ?? [] });
+  return NextResponse.json({ tasks: data ?? [] });
 }
 
 export async function POST(req: NextRequest, context: RouteContext) {

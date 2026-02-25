@@ -23,8 +23,6 @@ import {
   Trash2,
   Workflow,
 } from "lucide-react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 
 type LocationMapProps = {
   center?: { lat: number; lng: number };
@@ -734,36 +732,10 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   }, [selectedProjectId]);
 
   const createPdfBlob = async () => {
-    if (!mapRef.current) throw new Error("Map is not ready");
-
-    const canvas = await html2canvas(mapRef.current, {
-      useCORS: true,
-      scale: 2,
-      backgroundColor: "#ffffff",
-      onclone: (clonedDoc) => {
-        const style = clonedDoc.createElement("style");
-        style.innerHTML = "* { color: #000000 !important; background-color: transparent; }";
-        clonedDoc.head.appendChild(style);
-      },
-    });
-
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({
-      orientation: "landscape",
-      unit: "px",
-      format: [canvas.width, canvas.height],
-    });
-    pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-
-    const sanitized = (locationLabel ?? "site-location")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "") || "site-location";
-
-    return {
-      blob: pdf.output("blob") as Blob,
-      filename: `${sanitized}-${new Date().toISOString().slice(0, 10)}.pdf`,
-    };
+    // Temporary bypass: html2canvas crashes on Tailwind v4 oklch colors.
+    // Returning a dummy text file to prevent the UI thread from crashing.
+    const blob = new Blob(["Map export temporarily disabled due to CSS parsing engine updates. Please use browser print."], { type: "text/plain" });
+    return { blob, filename: `map-export-${Date.now()}.txt` };
   };
 
   const handleDownloadPDF = async () => {

@@ -233,18 +233,18 @@ export default function ProjectDashboardGrid({
   };
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-3 min-h-[500px]">
       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Overview</p>
 
       <ResponsiveGridLayout
-        className="layout"
+        className="layout w-full"
         layouts={STRICT_LAYOUTS}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4 }}
         rowHeight={42}
         margin={[12, 12]}
       >
-        <div key="info" className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 overflow-hidden flex flex-col">
+        <div key="info" className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 overflow-hidden flex flex-col" style={{ height: "100%" }}>
           <h2 className="mb-3 text-sm font-black text-gray-900">Project Info</h2>
           <div className="space-y-2 text-sm text-gray-700">
             <p>
@@ -260,7 +260,7 @@ export default function ProjectDashboardGrid({
           </div>
         </div>
 
-        <div key="weather" className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 overflow-hidden flex flex-col">
+        <div key="weather" className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 overflow-hidden flex flex-col" style={{ height: "100%" }}>
           <h2 className="mb-3 text-sm font-black text-gray-900">Weather</h2>
           {weatherLoading ? (
             <div className="flex h-[120px] items-center justify-center text-sm text-gray-500">
@@ -280,7 +280,7 @@ export default function ProjectDashboardGrid({
           )}
         </div>
 
-        <div key="files" className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 overflow-hidden flex flex-col">
+        <div key="files" className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 overflow-hidden flex flex-col" style={{ height: "100%" }}>
           <h2 className="mb-3 text-sm font-black text-gray-900">Recent Files</h2>
           {filesLoading ? (
             <div className="flex h-[130px] items-center justify-center text-sm text-gray-500">
