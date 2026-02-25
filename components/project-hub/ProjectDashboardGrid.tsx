@@ -51,7 +51,7 @@ export default function ProjectDashboardGrid({ projectId, project }: { projectId
         <div key="files" className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
           <div className="drag-handle bg-gray-50 border-b border-gray-100 p-3 cursor-move flex items-center justify-between">
             <h3 className="font-black text-gray-800 text-sm">Recent SlateDrop Files</h3>
-            <Link href={`/project-hub/${projectId}/files`} className="text-xs text-[#FF4D00] font-bold hover:underline">View All</Link>
+            <Link href={`/project-hub/${projectId}/slatedrop`} className="text-xs text-[#FF4D00] font-bold hover:underline">View All</Link>
           </div>
           <div className="p-4 flex-1 overflow-auto">
             {files.length === 0 ? <p className="text-sm text-gray-400">No files yet.</p> : (

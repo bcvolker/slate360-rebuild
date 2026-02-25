@@ -207,19 +207,19 @@ type SlateDropFolderQuickView = {
    WIDGET META — source of truth for labels/icons
    ================================================================ */
 
-const WIDGET_META: { id: string; label: string; icon: LucideIcon; tierGate?: string }[] = [
-  { id: "slatedrop",    label: "SlateDrop",             icon: FolderOpen },
-  { id: "location",     label: "Location",              icon: MapPin },
-  { id: "data-usage",   label: "Data Usage & Credits", icon: CreditCard },
-  { id: "processing",   label: "Processing Jobs",       icon: Cpu },
-  { id: "financial",    label: "Financial Snapshot",    icon: TrendingUp },
-  { id: "calendar",     label: "Calendar",              icon: CalendarIcon },
-  { id: "weather",      label: "Weather",               icon: Cloud },
-  { id: "continue",     label: "Continue Working",      icon: Clock },
-  { id: "contacts",     label: "Contacts",              icon: Users },
-  { id: "suggest",      label: "Suggest a Feature",     icon: Lightbulb },
-  { id: "seats",        label: "Seat Management",       icon: Users,       tierGate: "seats" },
-  { id: "upgrade",      label: "Upgrade Card",          icon: Zap,         tierGate: "no-seats" },
+const WIDGET_META: { id: string; label: string; icon: LucideIcon; color: string; tierGate?: string }[] = [
+  { id: "slatedrop",    label: "SlateDrop",             icon: FolderOpen,     color: "#FF4D00" },
+  { id: "location",     label: "Location",              icon: MapPin,        color: "#1E3A8A" },
+  { id: "data-usage",   label: "Data Usage & Credits", icon: CreditCard,    color: "#059669" },
+  { id: "processing",   label: "Processing Jobs",       icon: Cpu,           color: "#D97706" },
+  { id: "financial",    label: "Financial Snapshot",    icon: TrendingUp,    color: "#1E3A8A" },
+  { id: "calendar",     label: "Calendar",              icon: CalendarIcon,  color: "#DC2626" },
+  { id: "weather",      label: "Weather",               icon: Cloud,         color: "#0891B2" },
+  { id: "continue",     label: "Continue Working",      icon: Clock,         color: "#FF4D00" },
+  { id: "contacts",     label: "Contacts",              icon: Users,         color: "#059669" },
+  { id: "suggest",      label: "Suggest a Feature",     icon: Lightbulb,     color: "#7C3AED" },
+  { id: "seats",        label: "Seat Management",       icon: Users,         color: "#1E3A8A", tierGate: "seats" },
+  { id: "upgrade",      label: "Upgrade Card",          icon: Zap,           color: "#FF4D00", tierGate: "no-seats" },
 ];
 
 const DEFAULT_WIDGET_PREFS: WidgetPref[] = WIDGET_META.map((m, i) => ({
@@ -412,6 +412,9 @@ function WidgetCard({
   span,
   children,
   delay = 0,
+  color = "#FF4D00",
+  onExpand,
+  isExpanded,
 }: {
   icon: LucideIcon;
   title: string;
@@ -419,23 +422,38 @@ function WidgetCard({
   span?: string;
   children: React.ReactNode;
   delay?: number;
+  color?: string;
+  onExpand?: () => void;
+  isExpanded?: boolean;
 }) {
   return (
     <div
-      className={`bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ${span ?? ""}`}
+      className={`bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300 flex flex-col ${span ?? ""}`}
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
           <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: `${color}1A`, color }}
           >
-            <Icon size={18} />
+            <Icon size={20} />
           </div>
           <h3 className="text-sm font-bold text-gray-900">{title}</h3>
         </div>
-        {action}
+        <div className="flex items-center gap-2">
+          {action}
+          {onExpand && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onExpand(); }}
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+              title={isExpanded ? "Collapse" : "Expand"}
+            >
+              {isExpanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+            </button>
+          )}
+          <GripVertical size={14} className="text-gray-300" />
+        </div>
       </div>
       {children}
     </div>
@@ -1590,8 +1608,15 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             return expanded ? "md:col-span-2 xl:col-span-3" : "";
           }
 
-          function renderWidget(id: string, expanded: boolean): React.ReactNode {
+          function renderWidget(id: string, expanded: boolean, inPopout = false): React.ReactNode {
             const span = getSpan(id, expanded);
+            const widgetColor = WIDGET_META.find((m) => m.id === id)?.color ?? "#FF4D00";
+            const toggleExpand = inPopout ? undefined : () => {
+              setWidgetPrefs((prev) =>
+                prev.map((p) => (p.id === id ? { ...p, expanded: !p.expanded } : p))
+              );
+              setPrefsDirty(true);
+            };
             switch (id) {
 
               case "location": return (
@@ -1604,7 +1629,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 </div>
               );
               case "slatedrop": return (
-          <WidgetCard key={id} icon={FolderOpen} title="SlateDrop" span={span} delay={0} action={
+          <WidgetCard key={id} icon={FolderOpen} title="SlateDrop" span={span} delay={0} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
             <div className="inline-flex items-center rounded-lg border border-gray-200 p-0.5">
               <button
                 onClick={() => setSlateDropWidgetView("recent")}
@@ -1676,7 +1701,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "data-usage": return (
-          <WidgetCard key={id} icon={CreditCard} title="Data Usage & Credits" span={span} delay={0} action={
+          <WidgetCard key={id} icon={CreditCard} title="Data Usage & Credits" span={span} delay={0} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
             <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
               {ent.label}
             </span>
@@ -1741,7 +1766,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "processing": return (
-          <WidgetCard key={id} icon={Cpu} title="Processing Jobs" span={span} delay={50} action={
+          <WidgetCard key={id} icon={Cpu} title="Processing Jobs" span={span} delay={50} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
             <span className="text-[11px] text-gray-400 font-medium">{liveJobs.filter((j) => j.status === "processing").length} active</span>
           }>
             <div className="space-y-3">
@@ -1781,7 +1806,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "financial": return (
-          <WidgetCard key={id} icon={TrendingUp} title="Financial Snapshot" span={span} delay={100} action={
+          <WidgetCard key={id} icon={TrendingUp} title="Financial Snapshot" span={span} delay={100} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
             <span className="text-[11px] text-gray-400 font-medium">Last 6 months</span>
           }>
             <div className="space-y-4">
@@ -1829,6 +1854,9 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             title="Calendar"
             span={span}
             delay={150}
+            color={widgetColor}
+            onExpand={toggleExpand}
+            isExpanded={expanded}
             action={
               <button
                 onClick={() => { setAddingEvent(true); if (!calSelected) setCalSelected(todayStr); }}
@@ -1924,7 +1952,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "weather": return (
-          <WidgetCard key={id} icon={Cloud} title="Weather" span={span} delay={200} action={
+          <WidgetCard key={id} icon={Cloud} title="Weather" span={span} delay={200} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
             <span className="text-[10px] text-gray-400 font-medium flex items-center gap-1"><MapPin size={10} />{liveWeather?.location ?? "Location unavailable"}</span>
           }>
             <div className="space-y-4">
@@ -1992,7 +2020,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "continue": return (
-          <WidgetCard key={id} icon={Clock} title="Continue Working" span={span} delay={250} action={
+          <WidgetCard key={id} icon={Clock} title="Continue Working" span={span} delay={250} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
             <Link href="/dashboard" className="text-[11px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-0.5">
               View all <ArrowRight size={11} />
             </Link>
@@ -2033,7 +2061,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "contacts": return (
-          <WidgetCard key={id} icon={Users} title="Contacts" span={span} delay={300} action={
+          <WidgetCard key={id} icon={Users} title="Contacts" span={span} delay={300} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
             <button className="text-[11px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-0.5">
               <UserPlus size={12} /> Add
             </button>
@@ -2077,7 +2105,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "suggest": return (
-          <WidgetCard key={id} icon={Lightbulb} title="Suggest a Feature" span={span} delay={350}>
+          <WidgetCard key={id} icon={Lightbulb} title="Suggest a Feature" span={span} delay={350} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded}>
             {suggestDone ? (
               <div className="text-center py-6">
                 <CheckCircle2 size={32} className="mx-auto mb-3 text-emerald-500" />
@@ -2144,6 +2172,9 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               title="Seat Management"
               span={span}
               delay={400}
+              color={widgetColor}
+              onExpand={toggleExpand}
+              isExpanded={expanded}
               action={
                 <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: "#FF4D00" }}>
                   <UserPlus size={13} /> Invite member
@@ -2203,7 +2234,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "upgrade": return (
-            <WidgetCard key={id} icon={Zap} title="Unlock more power" span={span} delay={400}>
+            <WidgetCard key={id} icon={Zap} title="Unlock more power" span={span} delay={400} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded}>
               <div className="text-center py-4">
                 <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#FF4D001A" }}>
                   <Zap size={24} style={{ color: "#FF4D00" }} />
@@ -2239,16 +2270,6 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 {orderedVisible.map((p) => (
                   <div key={p.id} className="relative group">
                     {renderWidget(p.id, p.expanded)}
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        openWidgetPopout(p.id);
-                      }}
-                      className="absolute top-3 right-3 z-10 h-7 w-7 rounded-lg border border-gray-200 bg-white/95 text-gray-500 hover:text-[#FF4D00] hover:border-[#FF4D00]/40 transition-colors flex items-center justify-center"
-                      title="Pop out widget"
-                    >
-                      <ArrowUpRight size={13} />
-                    </button>
                   </div>
                 ))}
               </div>
@@ -2302,7 +2323,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
                   {!wdMinimized && (
                     <div className="flex-1 overflow-auto bg-[#ECEEF2] p-4">
-                      {renderWidget(widgetPopoutId, true)}
+                      {renderWidget(widgetPopoutId, true, true)}
                     </div>
                   )}
 
@@ -2805,7 +2826,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                     </div>
 
                     {/* Icon */}
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${meta.color}1A`, color: meta.color }}>
                       <Icon size={15} />
                     </div>
 

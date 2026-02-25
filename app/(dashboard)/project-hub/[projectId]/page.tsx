@@ -53,7 +53,7 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
     { label: "Daily Logs", href: `/project-hub/${projectId}/daily-logs`, Icon: BookOpen },
     { label: "Photos", href: `/project-hub/${projectId}/photos`, Icon: Camera },
     { label: "Drawings", href: `/project-hub/${projectId}/drawings`, Icon: Pencil },
-    { label: "Files", href: `/project-hub/${projectId}/files`, Icon: MapPin },
+    { label: "SlateDrop", href: `/project-hub/${projectId}/slatedrop`, Icon: MapPin },
     { label: "Punch List", href: `/project-hub/${projectId}/punch-list`, Icon: ShieldAlert },
   ];
 

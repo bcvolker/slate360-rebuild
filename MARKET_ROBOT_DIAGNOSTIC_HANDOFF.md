@@ -34,18 +34,17 @@ Observed failures:
 
 ### Supabase tables referenced in code
 - `market_trades`
-- `market_bot_runtime`
-- `market_bot_directives`
+- `market_bot_settings`
+- `market_bot_state` (legacy/partial reference in docs; not in active API routes)
 
 ### Migration coverage present in repo
 - `supabase/migrations/20260222000000_market_bot_settings.sql`
-  - Creates `market_bot_settings` (legacy, to be removed)
+  - Creates `market_bot_settings`
   - Enables RLS and basic SELECT/UPDATE/INSERT policies for own `user_id`
 
 Migration coverage missing in repo (for active runtime tables):
 - No local migration found for `market_trades`
-- No local migration found for `market_bot_runtime`
-- No local migration found for `market_bot_directives`
+- No local migration found for `market_bot_state`
 
 ---
 
@@ -79,8 +78,8 @@ Missing for live Polymarket CLOB mode:
 
 ### Supabase table existence check (service role)
 - `market_trades`: exists
-- `market_bot_runtime`: exists
-- `market_bot_directives`: exists
+- `market_bot_settings`: exists
+- `market_bot_state`: exists
 
 ---
 
@@ -150,7 +149,7 @@ Missing for live Polymarket CLOB mode:
 
 Supabase confirmed in use for market robot:
 - Auth gate on almost all market routes (`supabase.auth.getUser()`)
-- Data persistence in `market_trades`, `market_bot_runtime`, `market_bot_directives`
+- Data persistence in `market_trades`, `market_bot_settings`
 - Wallet metadata persisted on `auth.users.user_metadata.marketBotConfig`
 
 S3/AWS in market robot path:
@@ -224,9 +223,9 @@ Load/scale for “large numbers of buys”:
 -- existence and row counts
 select 'market_trades' as table_name, count(*) from public.market_trades
 union all
-select 'market_bot_runtime', count(*) from public.market_bot_runtime
+select 'market_bot_settings', count(*) from public.market_bot_settings
 union all
-select 'market_bot_directives', count(*) from public.market_bot_directives;
+select 'market_bot_state', count(*) from public.market_bot_state;
 
 -- most recent trades for visual contract check
 select *
@@ -236,7 +235,7 @@ limit 20;
 
 -- bot status rows
 select *
-from public.market_bot_runtime
+from public.market_bot_settings
 order by updated_at desc
 limit 20;
 ```
@@ -366,52 +365,3 @@ If any step fails, capture:
 - network response body for failing `/api/market/*` call.
 
 That evidence is sufficient for targeted follow-up fixes.
-
----
-
-## 13) Release Changelog (Feb 24, 2026)
-
-### Commit `0f45cf7` — Add market burst report exports and runbook guidance
-
-Scope:
-- Added paper-mode burst benchmark harness:
-  - `scripts/market-burst-test.mjs`
-- Added npm script:
-  - `market:burst:test` in `package.json`
-- Added high-volume runbook and benchmarking guidance:
-  - `README.md`
-
-Highlights:
-- Burst scheduler tick benchmarking against `/api/market/scheduler/tick`
-- Configurable request count, concurrency, timeout, delay
-- Persistent export support for strategy trend analysis:
-  - `OUTPUT_FORMAT=none|json|csv`
-  - `OUTPUT_FILE=...`
-
-### Commit `b625327` — Finalize market robot scheduler, contracts, and API/UI alignment
-
-Scope:
-- Added scheduler endpoints:
-  - `app/api/market/scheduler/tick/route.ts`
-  - `app/api/market/scheduler/health/route.ts`
-- Added summary endpoint:
-  - `app/api/market/summary/route.ts`
-- Added shared market contracts and mappers:
-  - `lib/market/contracts.ts`
-  - `lib/market/mappers.ts`
-- Added scheduler execution engine:
-  - `lib/market/scheduler.ts`
-- Updated market API routes and dashboard UI for normalized envelopes/contracts and runtime state integration.
-- Added runtime/trade migration coverage:
-  - `supabase/migrations/20260224093000_market_trades.sql`
-  - `supabase/migrations/20260224123000_market_bot_runtime.sql`
-  - `supabase/migrations/20260224170000_market_bot_runtime_state.sql`
-
-Highlights:
-- Throughput/scalability hardening (bounded scheduler concurrency, market fetch caching, larger bounded limits)
-- Improved scan request parsing and server-side enforcement for strategy controls
-- Beginner-friendly control center and scheduler health UX with explanatory hover tips
-- Better trade/whale/market shape normalization across API + UI
-
-Repository state:
-- Both commits are pushed to `main`.

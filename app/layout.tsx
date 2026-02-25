@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
-import "react-grid-layout/css/styles.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Web3Providers from "@/components/Web3Providers";
 
