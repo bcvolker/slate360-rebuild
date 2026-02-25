@@ -89,7 +89,7 @@ export default function PunchListPage() {
 
   return (
     <div className="mx-auto w-full max-w-xl">
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
         <h2 className="text-base font-black text-gray-900">Punch List Item</h2>
         <p className="mt-1 text-xs text-gray-500">Mobile-first issue capture with voice dictation.</p>
 

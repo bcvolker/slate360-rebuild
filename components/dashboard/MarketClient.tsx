@@ -1170,14 +1170,14 @@ export default function MarketClient() {
       )}
 
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 px-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            🤖 Market Robot
+          <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
+            Market Robot
             <StatusBadge status={botRunning ? (botPaused ? "idle" : "running") : "idle"} />
             {paperMode && <span className="text-xs bg-purple-100 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full">Paper Mode</span>}
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-gray-500 mt-1">
             AI-powered prediction market bot — {lastScan ? `Last scan: ${new Date(lastScan).toLocaleTimeString()}` : "Not scanned yet"}
           </p>
         </div>
@@ -1238,12 +1238,11 @@ export default function MarketClient() {
                 fetchSummary();
                 fetchSchedulerHealth();
               }
-              // Markets tab: don't auto-load — user triggers search
             }}
-            className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition border-b-2 -mb-px ${
+            className={`px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-all border-b-2 -mb-px rounded-t-lg ${
               activeTab === tab
-                ? "border-[#FF4D00] text-[#FF4D00]"
-                : "border-transparent text-gray-500 hover:text-gray-900"
+                ? "border-[#FF4D00] text-[#FF4D00] bg-orange-50/50"
+                : "border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50"
             }`}
           >
             {tab}

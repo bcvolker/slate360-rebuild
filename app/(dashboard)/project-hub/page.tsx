@@ -7,9 +7,10 @@ import {
   ChevronLeft, ChevronDown, Plus, FolderKanban, Loader2, ClipboardList,
   CheckCircle2, AlertTriangle, FolderOpen, MapPin, CreditCard, Cpu, Lightbulb,
   Bell, GripVertical, LayoutDashboard, Palette, Layers, Compass, Globe, Film,
-  BarChart3, Plug, User, Shield, X,
+  BarChart3, Plug, User, Shield, X, Maximize2, Minimize2,
 } from "lucide-react";
 import CreateProjectWizard, { CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
+import { APIProvider, Map as GoogleMap } from "@vis.gl/react-google-maps";
 
 /* ── Quick-nav items shared across pages ─────────────────────────── */
 const QUICK_NAV = [
@@ -64,6 +65,7 @@ export default function ProjectHubPage() {
   });
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [expandedWidget, setExpandedWidget] = useState<string | null>(null);
 
   useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(widgetOrder)); } catch {} }, [widgetOrder]);
 
@@ -289,93 +291,181 @@ export default function ProjectHubPage() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {visibleWidgets.map((w, idx) => {
               const Icon = w.icon;
+              const isExpanded = expandedWidget === w.id;
               return (
                 <div
                   key={w.id}
-                  draggable
+                  draggable={!isExpanded}
                   onDragStart={() => handleDragStart(idx)}
                   onDragOver={(e) => handleDragOver(e, idx)}
                   onDragEnd={handleDragEnd}
-                  className={`bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 cursor-grab active:cursor-grabbing ${dragIdx === idx ? "opacity-50 scale-95" : ""}`}
+                  className={`bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:border-gray-200 transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col ${dragIdx === idx ? "opacity-50 scale-95" : ""} ${isExpanded ? "md:col-span-3 min-h-[420px]" : "min-h-[280px]"}`}
                 >
-                  <div className="flex items-center justify-between mb-4">
+                  {/* Widget header */}
+                  <div className="flex items-center justify-between px-6 pt-5 pb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${w.color}1A`, color: w.color }}>
-                        <Icon size={18} />
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${w.color}1A`, color: w.color }}>
+                        <Icon size={20} />
                       </div>
                       <h3 className="text-sm font-bold text-gray-900">{w.label}</h3>
                     </div>
-                    <GripVertical size={14} className="text-gray-300" />
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setExpandedWidget(isExpanded ? null : w.id); }}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                        title={isExpanded ? "Collapse" : "Expand"}
+                      >
+                        {isExpanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                      </button>
+                      <GripVertical size={14} className="text-gray-300" />
+                    </div>
                   </div>
-                  <div className="space-y-3">
+                  {/* Widget body */}
+                  <div className="px-6 pb-5 flex-1 flex flex-col gap-3">
                     {w.id === "slatedrop" && (
                       <>
                         <p className="text-xs text-gray-500">Access your project files, share links, and manage uploads.</p>
-                        <Link href="/slatedrop" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FF4D00] text-white text-xs font-semibold hover:bg-[#E64500] transition-colors">
-                          <FolderOpen size={13} /> Open SlateDrop
-                        </Link>
+                        <div className={`flex-1 rounded-xl bg-gray-50 border border-gray-100 p-4 flex flex-col justify-between ${isExpanded ? "min-h-[240px]" : "min-h-[100px]"}`}>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs"><span className="text-gray-500">Recent files</span><span className="font-semibold text-gray-700">—</span></div>
+                            <div className="flex items-center justify-between text-xs"><span className="text-gray-500">Shared links</span><span className="font-semibold text-gray-700">—</span></div>
+                            {isExpanded && <div className="flex items-center justify-between text-xs"><span className="text-gray-500">Pending uploads</span><span className="font-semibold text-gray-700">—</span></div>}
+                          </div>
+                          <Link href="/slatedrop" className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-[#FF4D00] text-white text-xs font-bold hover:bg-[#E64500] transition-colors mt-3">
+                            <FolderOpen size={14} /> Open SlateDrop
+                          </Link>
+                        </div>
                       </>
                     )}
                     {w.id === "location" && (
                       <>
                         <p className="text-xs text-gray-500">View project sites, satellite imagery, and location context.</p>
-                        <div className="h-20 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center text-xs text-blue-400">Map Preview</div>
+                        <div className={`flex-1 rounded-xl border border-gray-100 overflow-hidden ${isExpanded ? "min-h-[300px]" : "min-h-[140px]"}`}>
+                          <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
+                            <GoogleMap
+                              mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID"}
+                              defaultCenter={{ lat: 39.5, lng: -98.35 }}
+                              defaultZoom={4}
+                              disableDefaultUI={!isExpanded}
+                              style={{ width: "100%", height: "100%" }}
+                            />
+                          </APIProvider>
+                        </div>
                       </>
                     )}
                     {w.id === "data-usage" && (
                       <>
-                        <div className="flex items-center justify-between text-xs"><span className="text-gray-500">Storage</span><span className="font-bold text-gray-900">2.4 GB / 50 GB</span></div>
-                        <div className="h-2 rounded-full bg-gray-100 overflow-hidden"><div className="h-full rounded-full bg-[#059669]" style={{ width: "5%" }} /></div>
-                        <div className="flex items-center justify-between text-xs"><span className="text-gray-500">Credits</span><span className="font-bold text-gray-900">47 remaining</span></div>
+                        <div className={`flex-1 rounded-xl bg-gray-50 border border-gray-100 p-4 flex flex-col gap-4 ${isExpanded ? "min-h-[240px]" : "min-h-[100px]"}`}>
+                          <div>
+                            <div className="flex items-center justify-between text-xs mb-1.5"><span className="text-gray-500">Storage</span><span className="font-bold text-gray-900">2.4 GB / 50 GB</span></div>
+                            <div className="h-2.5 rounded-full bg-gray-200 overflow-hidden"><div className="h-full rounded-full bg-[#059669] transition-all" style={{ width: "5%" }} /></div>
+                          </div>
+                          <div>
+                            <div className="flex items-center justify-between text-xs mb-1.5"><span className="text-gray-500">Credits</span><span className="font-bold text-gray-900">47 remaining</span></div>
+                            <div className="h-2.5 rounded-full bg-gray-200 overflow-hidden"><div className="h-full rounded-full bg-[#FF4D00] transition-all" style={{ width: "47%" }} /></div>
+                          </div>
+                          {isExpanded && (
+                            <div className="mt-2 space-y-2 text-xs text-gray-500">
+                              <div className="flex justify-between"><span>Processing credits used this month</span><span className="font-semibold text-gray-900">3</span></div>
+                              <div className="flex justify-between"><span>Files uploaded this month</span><span className="font-semibold text-gray-900">12</span></div>
+                              <div className="flex justify-between"><span>Bandwidth used</span><span className="font-semibold text-gray-900">480 MB</span></div>
+                            </div>
+                          )}
+                        </div>
                       </>
                     )}
                     {w.id === "processing" && (
                       <>
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/80">
-                          <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs"><Cpu size={13} /></div>
-                          <div className="flex-1 min-w-0"><p className="text-xs font-semibold text-gray-900">No active jobs</p><p className="text-[10px] text-gray-400">Start from Design Studio or Content Studio</p></div>
+                        <div className={`flex-1 rounded-xl bg-gray-50 border border-gray-100 p-4 flex flex-col gap-3 ${isExpanded ? "min-h-[240px]" : "min-h-[100px]"}`}>
+                          <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-100">
+                            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center"><Cpu size={14} /></div>
+                            <div className="flex-1 min-w-0"><p className="text-xs font-semibold text-gray-900">No active jobs</p><p className="text-[10px] text-gray-400">Start from Design Studio or Content Studio</p></div>
+                          </div>
+                          {isExpanded && (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-100">
+                                <div className="w-8 h-8 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center"><CheckCircle2 size={14} /></div>
+                                <div className="flex-1 min-w-0"><p className="text-xs font-semibold text-gray-700">Recent: No completed jobs</p><p className="text-[10px] text-gray-400">Your job history will appear here</p></div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </>
                     )}
                     {w.id === "suggest" && (
                       <>
                         <p className="text-xs text-gray-500">Have an idea? Help us build the features you need.</p>
-                        <button className="w-full py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
-                          <Lightbulb size={13} className="inline mr-1.5" /> Submit Suggestion
-                        </button>
+                        <div className={`flex-1 rounded-xl bg-gray-50 border border-gray-100 p-4 flex flex-col justify-between ${isExpanded ? "min-h-[240px]" : "min-h-[100px]"}`}>
+                          {isExpanded ? (
+                            <div className="space-y-3">
+                              <input placeholder="Feature title..." className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00] outline-none" />
+                              <textarea placeholder="Describe your idea..." rows={3} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00] outline-none resize-none" />
+                            </div>
+                          ) : (
+                            <p className="text-xs text-gray-400">Click expand to write a suggestion</p>
+                          )}
+                          <button className="w-full py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:border-gray-300 transition-all mt-3">
+                            <Lightbulb size={13} className="inline mr-1.5" /> Submit Suggestion
+                          </button>
+                        </div>
                       </>
                     )}
                     {w.id === "weather" && (
                       <>
-                        <p className="text-xs text-gray-500">Live weather for your project sites.</p>
-                        <div className="flex items-center gap-3"><span className="text-2xl">☀️</span><div><p className="text-sm font-bold text-gray-900">72°F</p><p className="text-[10px] text-gray-400">Partly Cloudy</p></div></div>
+                        <div className={`flex-1 rounded-xl bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-100 p-4 flex flex-col justify-center items-center gap-2 ${isExpanded ? "min-h-[240px]" : "min-h-[100px]"}`}>
+                          <span className="text-4xl">☀️</span>
+                          <p className="text-xl font-black text-gray-900">72°F</p>
+                          <p className="text-xs text-gray-500">Partly Cloudy</p>
+                          {isExpanded && (
+                            <div className="mt-3 grid grid-cols-3 gap-4 text-center w-full max-w-xs">
+                              <div><p className="text-[10px] text-gray-400">Wind</p><p className="text-xs font-bold text-gray-700">8 mph</p></div>
+                              <div><p className="text-[10px] text-gray-400">Humidity</p><p className="text-xs font-bold text-gray-700">42%</p></div>
+                              <div><p className="text-[10px] text-gray-400">UV Index</p><p className="text-xs font-bold text-gray-700">6</p></div>
+                            </div>
+                          )}
+                        </div>
                       </>
                     )}
                     {w.id === "financial" && (
                       <>
-                        <p className="text-xs text-gray-500">Portfolio budget overview and trends.</p>
-                        <div className="h-16 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 flex items-center justify-center text-xs text-blue-400">Chart Preview</div>
+                        <div className={`flex-1 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 p-4 flex flex-col justify-center items-center ${isExpanded ? "min-h-[240px]" : "min-h-[100px]"}`}>
+                          <BarChart3 size={28} className="text-blue-300 mb-2" />
+                          <p className="text-xs text-blue-400 text-center">Portfolio budget overview and trends</p>
+                          {isExpanded && (
+                            <div className="mt-4 w-full space-y-2 text-xs">
+                              <div className="flex justify-between"><span className="text-gray-500">Total Portfolio Budget</span><span className="font-bold text-gray-900">—</span></div>
+                              <div className="flex justify-between"><span className="text-gray-500">Spent</span><span className="font-bold text-gray-900">—</span></div>
+                              <div className="flex justify-between"><span className="text-gray-500">Remaining</span><span className="font-bold text-gray-900">—</span></div>
+                            </div>
+                          )}
+                        </div>
                       </>
                     )}
                     {w.id === "calendar" && (
                       <>
-                        <p className="text-xs text-gray-500">Upcoming milestones and deadlines.</p>
-                        <p className="text-xs font-semibold text-gray-700">No upcoming events</p>
+                        <div className={`flex-1 rounded-xl bg-gray-50 border border-gray-100 p-4 flex flex-col gap-2 ${isExpanded ? "min-h-[240px]" : "min-h-[100px]"}`}>
+                          <p className="text-xs text-gray-500">Upcoming milestones and deadlines.</p>
+                          <p className="text-xs font-semibold text-gray-400 mt-2">No upcoming events</p>
+                        </div>
                       </>
                     )}
                     {w.id === "contacts" && (
                       <>
-                        <p className="text-xs text-gray-500">Quick access to team and external contacts.</p>
-                        <p className="text-xs font-semibold text-gray-700">0 contacts</p>
+                        <div className={`flex-1 rounded-xl bg-gray-50 border border-gray-100 p-4 flex flex-col gap-2 ${isExpanded ? "min-h-[240px]" : "min-h-[100px]"}`}>
+                          <p className="text-xs text-gray-500">Quick access to team and external contacts.</p>
+                          <p className="text-xs font-semibold text-gray-400 mt-2">0 contacts</p>
+                        </div>
                       </>
                     )}
                     {w.id === "continue" && (
                       <>
-                        <p className="text-xs text-gray-500">Pick up where you left off.</p>
-                        <p className="text-xs font-semibold text-gray-700">No recent activity</p>
+                        <div className={`flex-1 rounded-xl bg-gray-50 border border-gray-100 p-4 flex flex-col gap-2 ${isExpanded ? "min-h-[240px]" : "min-h-[100px]"}`}>
+                          <p className="text-xs text-gray-500">Pick up where you left off.</p>
+                          <p className="text-xs font-semibold text-gray-400 mt-2">No recent activity</p>
+                        </div>
                       </>
                     )}
                   </div>

@@ -160,7 +160,7 @@ export default function ProjectSchedulePage() {
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         {loading ? (
           <div className="p-6 text-sm text-gray-500">
             <Loader2 size={16} className="mr-2 inline animate-spin" /> Loading tasks…

@@ -140,7 +140,7 @@ export default function ProjectPhotosPage() {
       </div>
 
       {loading ? (
-        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-sm text-gray-500">
+        <div className="rounded-2xl border border-gray-100 bg-white p-8 text-sm text-gray-500">
           <Loader2 size={16} className="mr-2 inline animate-spin" /> Loading photos…
         </div>
       ) : orderedFiles.length === 0 ? (
@@ -150,7 +150,7 @@ export default function ProjectPhotosPage() {
       ) : (
         <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
           {orderedFiles.map((file) => (
-            <article key={file.id} className="mb-4 break-inside-avoid overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <article key={file.id} className="mb-4 break-inside-avoid overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
               {urlMap[file.id] ? (
                 <img src={urlMap[file.id]} alt={file.name} className="h-auto w-full object-cover" />
               ) : (

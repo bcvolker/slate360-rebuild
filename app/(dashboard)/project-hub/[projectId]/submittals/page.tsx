@@ -125,7 +125,7 @@ export default function ProjectSubmittalsPage() {
 
       {error ? <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div> : null}
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         {loading ? (
           <div className="p-6 text-sm text-gray-500">
             <Loader2 size={16} className="mr-2 inline animate-spin" /> Loading submittals…

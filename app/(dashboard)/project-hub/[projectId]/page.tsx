@@ -64,7 +64,7 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         {stats.map(({ label, value, sub, href, color, Icon }) => (
-          <Link key={label} href={href} className="group rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-gray-300 transition-all flex flex-col gap-2">
+          <Link key={label} href={href} className="group rounded-2xl border border-gray-100 bg-white p-4 shadow-sm hover:shadow-md hover:border-gray-300 transition-all flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <Icon size={16} style={{ color }} />
               <ChevronRight size={12} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
@@ -86,7 +86,7 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
 
         {/* Schedule snapshot + tool quick-links */}
         <div className="flex flex-col gap-4">
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-black text-gray-900 flex items-center gap-2">
                 <CalendarCheck2 size={14} className="text-[#FF4D00]" /> Upcoming Schedule
@@ -110,7 +110,7 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
             )}
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
             <h3 className="text-sm font-black text-gray-900 mb-3">All Tools</h3>
             <div className="grid grid-cols-3 gap-2">
               {toolLinks.map(({ label, href, Icon }) => (

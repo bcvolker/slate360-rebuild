@@ -1238,7 +1238,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
      ================================================================ */
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] overflow-x-hidden">
+    <div className="min-h-screen bg-[#ECEEF2] overflow-x-hidden">
       {/* ════════ TOP BAR ════════ */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
@@ -2301,7 +2301,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   </div>
 
                   {!wdMinimized && (
-                    <div className="flex-1 overflow-auto bg-[#F7F8FA] p-4">
+                    <div className="flex-1 overflow-auto bg-[#ECEEF2] p-4">
                       {renderWidget(widgetPopoutId, true)}
                     </div>
                   )}
