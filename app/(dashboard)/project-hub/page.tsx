@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { ChevronLeft, Plus, FolderKanban, Loader2 } from "lucide-react";
 import CreateProjectWizard, { CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
