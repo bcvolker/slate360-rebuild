@@ -13,6 +13,7 @@
     "@aws-sdk/client-s3": "^3.995.0",
     "@aws-sdk/lib-storage": "^3.995.0",
     "@aws-sdk/s3-request-presigner": "^3.995.0",
+    "@base-org/account": "^2.5.2",
     "@coinbase/wallet-sdk": "^4.3.7",
     "@metamask/sdk": "^0.33.1",
     "@supabase/ssr": "^0.8.0",
