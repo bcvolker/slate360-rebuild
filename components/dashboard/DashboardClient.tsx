@@ -428,7 +428,7 @@ function WidgetCard({
 }) {
   return (
     <div
-      className={`bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300 flex flex-col ${span ?? ""}`}
+      className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-lg hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300 flex flex-col ${span ?? ""}`}
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className="flex items-center justify-between mb-5">

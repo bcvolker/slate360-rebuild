@@ -20,8 +20,8 @@ export default async function MarketPage() {
   if (user.email !== CEO_EMAIL) redirect("/dashboard");
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-[#ECEEF2]">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <MarketClient />
       </div>
     </div>

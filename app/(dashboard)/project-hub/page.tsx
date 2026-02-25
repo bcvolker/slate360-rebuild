@@ -10,7 +10,7 @@ import {
   BarChart3, Plug, User, Shield, X, Maximize2, Minimize2,
 } from "lucide-react";
 import CreateProjectWizard, { CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
-import { APIProvider, Map as GoogleMap } from "@vis.gl/react-google-maps";
+import LocationMap from "@/components/dashboard/LocationMap";
 
 /* ── Quick-nav items shared across pages ─────────────────────────── */
 const QUICK_NAV = [
@@ -128,8 +128,8 @@ export default function ProjectHubPage() {
     <div className="min-h-screen bg-[#ECEEF2]">
 
       {/* ── Sticky top bar with back + quick-nav ──────────────────── */}
-      <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/95 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 md:px-10 flex items-center justify-between">
+      <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-md">
+        <div className="mx-auto max-w-[1440px] px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="shrink-0">
               <img src="/logo.svg" alt="Slate360" className="h-7 w-auto" />
@@ -203,7 +203,7 @@ export default function ProjectHubPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 md:px-10 md:py-8 space-y-6 sm:space-y-8">
+      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
 
         {/* ── Page header ──────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -233,7 +233,7 @@ export default function ProjectHubPage() {
         {/* ── Tab Navigation ───────────────────────────────────────── */}
         <div className="flex items-center gap-1 border-b border-gray-200 pb-px overflow-x-auto">
           {(["all", "my-work", "activity"] as const).map((tab) => (
-            <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 sm:px-4 py-2.5 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px rounded-t-lg transition-all ${activeTab === tab ? "border-[#FF4D00] text-[#FF4D00] bg-orange-50/50" : "border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50"}`}>
+            <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 sm:px-5 py-3 text-sm sm:text-base font-bold whitespace-nowrap border-b-3 -mb-px rounded-t-lg transition-all ${activeTab === tab ? "border-[#FF4D00] text-[#FF4D00] bg-orange-50/50" : "border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50"}`}>
               {tab === "all" ? "All Projects" : tab === "my-work" ? "My Work" : "Activity Feed"}
             </button>
           ))}
@@ -300,6 +300,23 @@ export default function ProjectHubPage() {
             {visibleWidgets.map((w, idx) => {
               const Icon = w.icon;
               const isExpanded = expandedWidget === w.id;
+
+              /* Location widget renders its own self-contained card (LocationMap has built-in header, markup tools, etc.) */
+              if (w.id === "location") {
+                return (
+                  <div
+                    key={w.id}
+                    draggable={!isExpanded}
+                    onDragStart={() => handleDragStart(idx)}
+                    onDragOver={(e) => handleDragOver(e, idx)}
+                    onDragEnd={handleDragEnd}
+                    className={`transition-all duration-300 cursor-grab active:cursor-grabbing ${dragIdx === idx ? "opacity-50 scale-95" : ""} ${isExpanded ? "md:col-span-3" : ""}`}
+                  >
+                    <LocationMap />
+                  </div>
+                );
+              }
+
               return (
                 <div
                   key={w.id}
@@ -342,22 +359,6 @@ export default function ProjectHubPage() {
                           <Link href="/slatedrop" className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-[#FF4D00] text-white text-xs font-bold hover:bg-[#E64500] transition-colors mt-3">
                             <FolderOpen size={14} /> Open SlateDrop
                           </Link>
-                        </div>
-                      </>
-                    )}
-                    {w.id === "location" && (
-                      <>
-                        <p className="text-xs text-gray-500">View project sites, satellite imagery, and location context.</p>
-                        <div className={`flex-1 rounded-xl border border-gray-100 overflow-hidden ${isExpanded ? "min-h-[300px]" : "min-h-[140px]"}`}>
-                          <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
-                            <GoogleMap
-                              mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID"}
-                              defaultCenter={{ lat: 39.5, lng: -98.35 }}
-                              defaultZoom={4}
-                              disableDefaultUI={!isExpanded}
-                              style={{ width: "100%", height: "100%" }}
-                            />
-                          </APIProvider>
                         </div>
                       </>
                     )}
