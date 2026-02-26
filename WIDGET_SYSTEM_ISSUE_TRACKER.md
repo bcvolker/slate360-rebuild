@@ -194,6 +194,18 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
   - If `/dashboard` and `/project-hub` both show this marker on widget cards, both routes are using the same shared widget renderer.
   - If one route does not show it, that route is still on a divergent render path (or different host/runtime).
 
+### 2026-02-26 — Session L (Uniform Sizing + Map-First Correction)
+- New clue interpretation:
+  - User confirmed shared `WidgetCard` probe label appears on both Dashboard and Project Hub widgets.
+  - This proves renderer unification exists; remaining inconsistency is in child body sizing and location-widget control density.
+- Targeted fixes applied:
+  - `components/widgets/WidgetCard.tsx`
+    - Unexpanded cards now use fixed uniform height (`h-[320px] min-h-[320px]`).
+    - Widget body now renders in a constrained `flex-1 min-h-0 overflow-hidden` container for consistent cross-widget layout.
+  - `components/dashboard/LocationMap.tsx`
+    - Heavy toolbar (`DrawController`) now appears only when `controlsExpanded` is true in both inline and expanded modes.
+    - Makes compact location widget genuinely map-first by default instead of toolbar-first.
+
 ## Next Actions
 
 1. Run the revised block-isolation test strategy and log concrete measurements/screenshots for both routes.

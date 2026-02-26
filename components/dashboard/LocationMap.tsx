@@ -1320,7 +1320,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
 
   const renderMapCanvas = (mode: "inline" | "expanded") => {
     const isModal = mode === "expanded";
-    const showToolbar = isModal ? controlsExpanded : true;
+    const showToolbar = controlsExpanded;
     const toolbarShellClass = isModal
       ? "shrink-0 max-h-[16vh] overflow-y-auto"
       : "shrink-0";

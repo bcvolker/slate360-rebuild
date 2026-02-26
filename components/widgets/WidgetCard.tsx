@@ -60,8 +60,8 @@ export default function WidgetCard({
       className={[
         "bg-white rounded-2xl border border-gray-100 shadow-sm p-6",
         "hover:shadow-lg hover:border-gray-200 transition-all duration-300 flex flex-col",
-        // Pin all unexpanded cards to the same minimum height so the widget grid stays uniform
-        !isExpanded ? "min-h-[260px]" : "",
+        // Pin all unexpanded cards to the exact same height so the widget grid stays uniform
+        !isExpanded ? "h-[320px] min-h-[320px]" : "",
         isDraggable && !isExpanded
           ? "cursor-grab active:cursor-grabbing"
           : "",
@@ -110,7 +110,7 @@ export default function WidgetCard({
       </div>
 
       {/* ── Body ────────────────────────────────────────────────── */}
-      {children}
+      <div className="flex-1 min-h-0 overflow-hidden">{children}</div>
     </div>
   );
 }

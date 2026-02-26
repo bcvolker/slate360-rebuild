@@ -56,7 +56,7 @@ results.push(
 results.push(
   check(
     "Expanded map-first controls behavior",
-    locationMap.includes("const showToolbar = isModal ? controlsExpanded : true;"),
+    locationMap.includes("const showToolbar = controlsExpanded;"),
     "Expanded mode collapses controls by default"
   )
 );
