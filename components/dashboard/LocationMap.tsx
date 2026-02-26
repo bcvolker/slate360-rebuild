@@ -1359,8 +1359,8 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                 disableDefaultUI={true}
                 mapTypeId={isThreeD ? "satellite" : "roadmap"}
                 tilt={isThreeD ? 45 : 0}
-                headingInteractionEnabled={isThreeD}
-                tiltInteractionEnabled={isThreeD}
+                headingInteractionEnabled={true}
+                tiltInteractionEnabled={true}
               >
                 <Marker position={mapCenter} />
               </Map>
