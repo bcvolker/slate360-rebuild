@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Web3Providers from "@/components/Web3Providers";
@@ -31,7 +32,9 @@ export default function RootLayout({
         <Web3Providers>
           <TooltipProvider>
             {children}
-            <BuildRuntimeBadge />
+            <Suspense fallback={null}>
+              <BuildRuntimeBadge />
+            </Suspense>
           </TooltipProvider>
         </Web3Providers>
       </body>
