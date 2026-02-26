@@ -168,10 +168,12 @@ function DrawController({
 }) {
   
   const map = useMap();
+  console.log("DrawController map:", map ? "loaded" : "null");
   const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   const geocodingLib = useMapsLibrary("geocoding");
   const placesLib = useMapsLibrary("places");
   const routesLib = useMapsLibrary("routes");
+  const drawingLib = useMapsLibrary("drawing");
 
   const geocoder = useMemo(() => geocodingLib ? new geocodingLib.Geocoder() : null, [geocodingLib]);
   const autocompleteService = useMemo(() => placesLib ? new placesLib.AutocompleteService() : null, [placesLib]);
@@ -243,16 +245,15 @@ function DrawController({
   // Initialise directions service + renderer only in directions mode
   useEffect(() => {
     if (mapMode !== "directions") return;
-    if (!map || !(window as any).google?.maps) return;
-    const mapsApi = (window as any).google.maps;
+    if (!map || !routesLib) return;
     // directionsService is now a useMemo hook
     if (!directionsRendererRef.current) {
-      directionsRendererRef.current = new mapsApi.DirectionsRenderer({
+      directionsRendererRef.current = new routesLib.DirectionsRenderer({
         suppressMarkers: false,
         polylineOptions: { strokeColor: "#FF4D00", strokeWeight: 4, strokeOpacity: 0.85 },
       });
     }
-  }, [map, mapMode]);
+  }, [map, mapMode, routesLib]);
 
   // Cleanup directions renderer on unmount
   useEffect(() => {
@@ -295,7 +296,7 @@ function DrawController({
         }
       }
     );
-  }, [map, setStatus]);
+  }, [map, setStatus, directionsService, routesLib]);
 
   const clearDirections = () => {
     if (directionsRendererRef.current) {
@@ -383,12 +384,11 @@ function DrawController({
   };
 
   useEffect(() => {
-    if (!map || !(window as any).google?.maps) return;
+    if (!map || !drawingLib) return;
     const mapsApi = (window as any).google.maps;
-    if (!mapsApi?.drawing?.DrawingManager) return;
 
     if (!drawingManagerRef.current) {
-      drawingManagerRef.current = new mapsApi.drawing.DrawingManager({
+      drawingManagerRef.current = new drawingLib.DrawingManager({
         drawingControl: false,
         drawingMode: null,
         markerOptions: {
@@ -457,7 +457,7 @@ function DrawController({
       overlayListener?.remove?.();
       manager.setMap(null);
     };
-  }, [map, strokeColor, fillColor, strokeWeight]);
+  }, [map, strokeColor, fillColor, strokeWeight, drawingLib]);
 
   useEffect(() => {
     const manager = drawingManagerRef.current;
@@ -1260,7 +1260,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     const toolbarShellClass = "shrink-0 overflow-visible";
     return (
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
-        <APIProvider apiKey={mapsApiKey}>
+        <APIProvider apiKey={mapsApiKey} libraries={["places", "drawing", "geometry", "routes"]}>
           {showToolbar && (
             <div ref={controlsPanelRef} className={toolbarShellClass}>
               <DrawController
@@ -1354,7 +1354,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                 style={{ width: '100%', height: '100%' }}
                 defaultZoom={13}
                 defaultCenter={mapCenter}
-                center={mapCenter}
                 mapId={mapId}
                 gestureHandling={"greedy"}
                 disableDefaultUI={true}
