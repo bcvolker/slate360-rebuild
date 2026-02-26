@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Web3Providers from "@/components/Web3Providers";
+import BuildRuntimeBadge from "@/components/shared/BuildRuntimeBadge";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +29,10 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth" data-build="2026-02-26-v3" suppressHydrationWarning>
       <body className={`${geistSans.variable} antialiased`} suppressHydrationWarning>
         <Web3Providers>
-          <TooltipProvider>{children}</TooltipProvider>
+          <TooltipProvider>
+            {children}
+            <BuildRuntimeBadge />
+          </TooltipProvider>
         </Web3Providers>
       </body>
     </html>
