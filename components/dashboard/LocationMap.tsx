@@ -144,7 +144,24 @@ type RouteData = {
   distance: string;
   duration: string;
   googleMapsUrl: string;
+  encodedPolyline?: string;
 };
+
+/** Decode a Google-encoded polyline string into lat/lng pairs. */
+function decodePolyline(encoded: string): Array<{ lat: number; lng: number }> {
+  const points: Array<{ lat: number; lng: number }> = [];
+  let index = 0, lat = 0, lng = 0;
+  while (index < encoded.length) {
+    let shift = 0, result = 0, byte: number;
+    do { byte = encoded.charCodeAt(index++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
+    lat += result & 1 ? ~(result >> 1) : result >> 1;
+    shift = 0; result = 0;
+    do { byte = encoded.charCodeAt(index++) - 63; result |= (byte & 0x1f) << shift; shift += 5; } while (byte >= 0x20);
+    lng += result & 1 ? ~(result >> 1) : result >> 1;
+    points.push({ lat: lat / 1e5, lng: lng / 1e5 });
+  }
+  return points;
+}
 
 function buildGoogleMapsUrl(origin: string, dest: string, mode: TravelMode): string {
   const modeMap: Record<TravelMode, string> = { DRIVING: "driving", WALKING: "walking", BICYCLING: "bicycling", TRANSIT: "transit" };
@@ -187,12 +204,10 @@ function DrawController({
   const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   const geocodingLib = useMapsLibrary("geocoding");
   const placesLib = useMapsLibrary("places");
-  const routesLib = useMapsLibrary("routes");
   const drawingLib = useMapsLibrary("drawing");
 
   const geocoder = useMemo(() => geocodingLib ? new geocodingLib.Geocoder() : null, [geocodingLib]);
   const autocompleteService = useMemo(() => placesLib ? new placesLib.AutocompleteService() : null, [placesLib]);
-  const directionsService = useMemo(() => routesLib ? new routesLib.DirectionsService() : null, [routesLib]);
 
 
   const [tool, setTool] = useState<DrawTool>("select");
@@ -214,8 +229,8 @@ function DrawController({
   const [travelMode, setTravelMode] = useState<TravelMode>("DRIVING");
   const [routeInfo, setRouteInfo] = useState<{ distance: string; duration: string } | null>(null);
   const [isLoadingRoute, setIsLoadingRoute] = useState(false);
-  const directionsRendererRef = useRef<any>(null);
-  const directionsServiceRef = useRef<any>(null);
+  const routePolylineRef = useRef<google.maps.Polyline | null>(null);
+  const routeMarkersRef = useRef<google.maps.Marker[]>([]);
 
   
 
@@ -257,74 +272,96 @@ function DrawController({
     return () => window.clearTimeout(timeout);
   }, [destInput, mapsApiKey]);
 
-  // Initialise directions service + renderer only in directions mode
-  useEffect(() => {
-    if (mapMode !== "directions") return;
-    if (!map || !routesLib) return;
-    // directionsService is now a useMemo hook
-    if (!directionsRendererRef.current) {
-      directionsRendererRef.current = new routesLib.DirectionsRenderer({
-        suppressMarkers: false,
-        polylineOptions: { strokeColor: "#FF4D00", strokeWeight: 4, strokeOpacity: 0.85 },
-      });
-    }
-  }, [map, mapMode, routesLib]);
-
-  // Cleanup directions renderer on unmount
+  // Cleanup route polyline + markers on unmount
   useEffect(() => {
     return () => {
-      if (directionsRendererRef.current) {
-        directionsRendererRef.current.setMap(null);
-      }
+      routePolylineRef.current?.setMap(null);
+      routeMarkersRef.current.forEach((m) => m.setMap(null));
     };
   }, []);
 
+  const clearRouteDisplay = () => {
+    routePolylineRef.current?.setMap(null);
+    routePolylineRef.current = null;
+    routeMarkersRef.current.forEach((m) => m.setMap(null));
+    routeMarkersRef.current = [];
+  };
+
   const getDirections = useCallback(async (origin: string, dest: string, mode: TravelMode) => {
     if (!map || !origin.trim() || !dest.trim()) return;
-    if (!directionsService || !routesLib) return;
-    if (!directionsRendererRef.current) {
-      directionsRendererRef.current = new routesLib.DirectionsRenderer({
-        suppressMarkers: false,
-        polylineOptions: { strokeColor: "#FF4D00", strokeWeight: 4, strokeOpacity: 0.85 },
-      });
-    }
 
     setIsLoadingRoute(true);
-    directionsRendererRef.current.setMap(map);
+    setStatus(null);
 
     try {
-      const result = await directionsService.route({
-        origin: origin.trim(),
-        destination: dest.trim(),
-        travelMode: mode as unknown as google.maps.TravelMode,
+      const res = await fetch("/api/directions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ origin: origin.trim(), destination: dest.trim(), travelMode: mode }),
       });
-      setIsLoadingRoute(false);
-      if (result?.routes?.[0]) {
-        directionsRendererRef.current.setDirections(result);
-        const leg = result.routes[0].legs[0];
-        const dist = leg.distance?.text ?? "";
-        const dur = leg.duration?.text ?? "";
-        setRouteInfo({ distance: dist, duration: dur });
-        const gmapsUrl = buildGoogleMapsUrl(origin, dest, mode);
-        onRouteReady({ origin, destination: dest, travelMode: mode, distance: dist, duration: dur, googleMapsUrl: gmapsUrl });
-        setStatus({ ok: true, text: `Route: ${dist} · ${dur}` });
-      } else {
-        setRouteInfo(null);
-        setStatus({ ok: false, text: "Could not find a route between those locations." });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.encodedPolyline) {
+        throw new Error(data.error || "Could not find a route between those locations.");
       }
+
+      // Clear any previous route display
+      clearRouteDisplay();
+
+      // Decode and render polyline on the map
+      const path = decodePolyline(data.encodedPolyline);
+      const polyline = new google.maps.Polyline({
+        path,
+        strokeColor: "#FF4D00",
+        strokeWeight: 4,
+        strokeOpacity: 0.85,
+        map,
+      });
+      routePolylineRef.current = polyline;
+
+      // Add A / B markers at start and end
+      const startMarker = new google.maps.Marker({
+        position: path[0],
+        map,
+        label: { text: "A", color: "white", fontWeight: "bold", fontSize: "12px" },
+      });
+      const endMarker = new google.maps.Marker({
+        position: path[path.length - 1],
+        map,
+        label: { text: "B", color: "white", fontWeight: "bold", fontSize: "12px" },
+      });
+      routeMarkersRef.current = [startMarker, endMarker];
+
+      // Fit the map bounds to show the entire route
+      const bounds = new google.maps.LatLngBounds();
+      path.forEach((p) => bounds.extend(p));
+      map.fitBounds(bounds, 50);
+
+      const dist = data.distance as string;
+      const dur = data.duration as string;
+      setRouteInfo({ distance: dist, duration: dur });
+      const gmapsUrl = buildGoogleMapsUrl(origin, dest, mode);
+      onRouteReady({
+        origin,
+        destination: dest,
+        travelMode: mode,
+        distance: dist,
+        duration: dur,
+        googleMapsUrl: gmapsUrl,
+        encodedPolyline: data.encodedPolyline,
+      });
+      setStatus({ ok: true, text: `Route: ${dist} · ${dur}` });
     } catch (err: any) {
-      setIsLoadingRoute(false);
       setRouteInfo(null);
-      const msg = err?.message || "Could not find a route between those locations.";
-      setStatus({ ok: false, text: msg });
+      setStatus({ ok: false, text: err?.message || "Could not calculate route." });
+    } finally {
+      setIsLoadingRoute(false);
     }
-  }, [map, setStatus, directionsService, routesLib, onRouteReady]);
+  }, [map, setStatus, onRouteReady]);
 
   const clearDirections = () => {
-    if (directionsRendererRef.current) {
-      directionsRendererRef.current.setDirections({ routes: [] });
-      directionsRendererRef.current.setMap(null);
-    }
+    clearRouteDisplay();
     setOriginInput("");
     setDestInput("");
     setRouteInfo(null);
@@ -1187,64 +1224,68 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
 
   const createPdfBlob = async () => {
     const { default: jsPDF } = await import("jspdf");
-    const { default: html2canvas } = await import("html2canvas");
     const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 10;
 
-    // Try capturing the map canvas
-    let mapImgData: string | null = null;
-    if (mapCanvasRef.current) {
-      try {
-        const canvas = await html2canvas(mapCanvasRef.current, {
-          useCORS: true,
-          allowTaint: true,
-          scale: 2,
-          backgroundColor: "#ffffff",
-          ignoreElements: (el) => {
-            // Skip elements that may use oklch or other unsupported CSS
-            return el.tagName === "STYLE" || el.classList?.contains("gm-style-pbc");
-          },
-        });
-        mapImgData = canvas.toDataURL("image/jpeg", 0.92);
-      } catch (e) {
-        console.warn("html2canvas failed, generating text-only PDF", e);
-      }
+    // ── Build Static Maps API URL ──────────────────────────────
+    const staticParams = new URLSearchParams();
+    staticParams.set("center", `${mapCenter.lat},${mapCenter.lng}`);
+    staticParams.set("zoom", "13");
+    staticParams.set("size", "800x450");
+    staticParams.set("maptype", isThreeD ? "satellite" : "roadmap");
+
+    if (routeData?.encodedPolyline) {
+      staticParams.set("path", `weight:4|color:0xFF4D00FF|enc:${routeData.encodedPolyline}`);
+      staticParams.append("markers", `color:green|label:A|${routeData.origin}`);
+      staticParams.append("markers", `color:red|label:B|${routeData.destination}`);
+    } else {
+      staticParams.append("markers", `color:red|${mapCenter.lat},${mapCenter.lng}`);
     }
 
-    if (mapImgData) {
-      // Full-width map image
-      const margin = 8;
-      const imgW = pageW - margin * 2;
-      const imgH = pageH * 0.65;
-      pdf.addImage(mapImgData, "JPEG", margin, margin, imgW, imgH);
+    // Fetch map image from our server-side proxy (avoids CORS / oklch issues)
+    let mapImgData: string | null = null;
+    try {
+      const imgRes = await fetch(`/api/static-map?${staticParams.toString()}`);
+      if (imgRes.ok) {
+        const imgBlob = await imgRes.blob();
+        const reader = new FileReader();
+        mapImgData = await new Promise<string>((resolve, reject) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(imgBlob);
+        });
+      }
+    } catch (e) {
+      console.warn("Static map fetch failed, using text-only PDF", e);
+    }
 
-      // Info text below the map
-      let y = margin + imgH + 8;
-      pdf.setFontSize(14);
+    // ── Compose PDF ───────────────────────────────────────────
+    if (mapImgData) {
+      const imgW = pageW - margin * 2;
+      const imgH = pageH * 0.60;
+      pdf.addImage(mapImgData, "PNG", margin, margin, imgW, imgH);
+
+      let y = margin + imgH + 6;
+      pdf.setFontSize(13);
       pdf.setFont("helvetica", "bold");
-      pdf.text("SLATE360 — Map Export", margin, y);
-      y += 7;
+      pdf.text("SLATE360 — Map Export", margin, y); y += 6;
       pdf.setFontSize(9);
       pdf.setFont("helvetica", "normal");
-      pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
-      y += 5;
-      if (addressQuery) {
-        pdf.text(`Location: ${addressQuery}`, margin, y);
-        y += 5;
-      }
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, y); y += 4;
+      if (addressQuery) { pdf.text(`Location: ${addressQuery}`, margin, y); y += 4; }
+      pdf.text(`Center: ${mapCenter.lat.toFixed(6)}, ${mapCenter.lng.toFixed(6)}`, margin, y); y += 5;
 
       if (routeData) {
-        y += 2;
         pdf.setFont("helvetica", "bold");
-        pdf.text("Directions", margin, y);
-        y += 5;
+        pdf.text("Directions", margin, y); y += 5;
         pdf.setFont("helvetica", "normal");
         pdf.text(`From: ${routeData.origin}`, margin, y); y += 4;
         pdf.text(`To: ${routeData.destination}`, margin, y); y += 4;
         pdf.text(`Mode: ${routeData.travelMode}  ·  Distance: ${routeData.distance}  ·  Duration: ${routeData.duration}`, margin, y); y += 5;
         pdf.setTextColor(0, 102, 204);
-        pdf.textWithLink(routeData.googleMapsUrl, margin, y, { url: routeData.googleMapsUrl });
+        pdf.textWithLink("Open in Google Maps", margin, y, { url: routeData.googleMapsUrl });
         pdf.setTextColor(0, 0, 0);
       }
     } else {
