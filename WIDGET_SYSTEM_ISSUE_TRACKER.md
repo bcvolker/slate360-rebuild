@@ -238,6 +238,18 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
     - Added explicit map canvas minimum heights (`min-h-[180px]` inline, `min-h-[55vh]` expanded) to prevent map collapse.
     - Directions service/renderer initialization now only occurs in directions mode to reduce unnecessary deprecation noise in normal markup flow.
 
+### 2026-02-26 — Session O (Strict Map-First + Autopopulate Hardening)
+- User requirement refinement:
+  - Unexpanded widget should hide controls and dedicate most space to map.
+  - Expanded state should expose slim toolbar at top.
+  - Address field must reliably resolve and pan on typed input.
+- Additional shared fixes in `components/dashboard/LocationMap.tsx`:
+  - Unexpanded mode now hides toolbar entirely (`showToolbar` only in expanded mode).
+  - Expanded mode keeps slim top control bar and exposes tools there.
+  - Search suggestions now no longer discard entries lacking `place_id`.
+  - Added Enter-key geocode fallback (`resolveAddressQuery`) for typed address autopopulate + pan/zoom.
+  - Map interaction tuned for 3D navigation with `headingInteractionEnabled` and `tiltInteractionEnabled` when 3D is enabled.
+
 ## Next Actions
 
 1. Run the revised block-isolation test strategy and log concrete measurements/screenshots for both routes.

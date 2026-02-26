@@ -512,11 +512,11 @@ function DrawController({
           setSuggestions(
             results
               .slice(0, 6)
-              .map((result) => ({
-                placeId: result.place_id ?? "",
+              .map((result, index) => ({
+                placeId: result.place_id ?? `${trimmed}-${index}`,
                 description: result.formatted_address ?? "",
               }))
-              .filter((result) => Boolean(result.placeId) && Boolean(result.description))
+              .filter((result) => Boolean(result.description))
           );
         })
         .catch(() => {
@@ -550,9 +550,52 @@ function DrawController({
     );
   };
 
+  const resolveAddressQuery = async (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed || !mapsApiKey || !map) return;
+
+    setIsResolvingAddress(true);
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(trimmed)}&key=${mapsApiKey}`
+      );
+      if (!response.ok) throw new Error("geocode_failed");
+
+      const payload = (await response.json()) as {
+        results?: Array<{
+          formatted_address?: string;
+          geometry?: { location?: { lat?: number; lng?: number } };
+        }>;
+      };
+
+      const result = Array.isArray(payload.results) ? payload.results[0] : undefined;
+      const location = result?.geometry?.location;
+      if (!location || typeof location.lat !== "number" || typeof location.lng !== "number") {
+        throw new Error("place_lookup_failed");
+      }
+
+      const next = { lat: location.lat, lng: location.lng };
+      setMapCenter(next);
+      setAddressQuery(result?.formatted_address ?? trimmed);
+      setAddressInput(result?.formatted_address ?? trimmed);
+      setSuggestions([]);
+      map.panTo(next);
+      map.setZoom(16);
+    } catch {
+      setStatus({ ok: false, text: "Could not locate that address." });
+    } finally {
+      setIsResolvingAddress(false);
+    }
+  };
+
   const selectAddress = async (suggestion: AddressSuggestion) => {
     if (!map || !mapsApiKey) {
       setStatus({ ok: false, text: "Map is still loading. Try again." });
+      return;
+    }
+
+    if (!suggestion.placeId || suggestion.placeId.includes("-")) {
+      await resolveAddressQuery(suggestion.description);
       return;
     }
 
@@ -616,6 +659,12 @@ function DrawController({
                 onChange={(event) => {
                   setAddressInput(event.target.value);
                   setAddressQuery(event.target.value);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void resolveAddressQuery(addressInput);
+                  }
                 }}
                 placeholder="Search address"
                 className="w-full text-xs text-gray-700 bg-transparent outline-none"
@@ -953,7 +1002,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
 
   useEffect(() => {
     if (isExpanded) {
-      setControlsExpanded(false);
+      setControlsExpanded(true);
     }
   }, [isExpanded]);
 
@@ -1298,7 +1347,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
 
   const renderMapCanvas = (mode: "inline" | "expanded") => {
     const isModal = mode === "expanded";
-    const showToolbar = true;
+    const showToolbar = isModal;
     const toolbarShellClass = isModal
       ? "shrink-0 max-h-[16vh] overflow-y-auto"
       : "shrink-0";
@@ -1306,38 +1355,33 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
       <div ref={controlsHeaderRef} className="z-20 border-b border-gray-100 bg-white/95 px-3 py-2 backdrop-blur-sm">
           <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => setIsThreeD(false)}
-              className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${!isThreeD ? "bg-[#1E3A8A] text-white" : "text-gray-600 hover:bg-gray-100"}`}
-            >
-              2D
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsThreeD(true)}
-              className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${isThreeD ? "bg-[#FF4D00] text-white" : "text-gray-600 hover:bg-gray-100"}`}
-            >
-              Satellite
-            </button>
-            <button
-              type="button"
-              onClick={requestCurrentLocation}
-              className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
-              disabled={isLocating}
-            >
-              {isLocating ? <Loader2 size={10} className="animate-spin" /> : <LocateFixed size={10} />}
-              Find Me
-            </button>
-            <button
-              type="button"
-              onClick={() => setControlsExpanded((value) => !value)}
-              className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
-              title={controlsExpanded ? "Collapse controls" : "Expand controls"}
-            >
-              <ArrowUpDown size={10} />
-              {controlsExpanded ? "Hide Controls" : "Show Controls"}
-            </button>
+            {isModal && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsThreeD(false)}
+                  className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${!isThreeD ? "bg-[#1E3A8A] text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                >
+                  2D
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsThreeD(true)}
+                  className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${isThreeD ? "bg-[#FF4D00] text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                >
+                  3D
+                </button>
+                <button
+                  type="button"
+                  onClick={requestCurrentLocation}
+                  className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
+                  disabled={isLocating}
+                >
+                  {isLocating ? <Loader2 size={10} className="animate-spin" /> : <LocateFixed size={10} />}
+                  Find Me
+                </button>
+              </>
+            )}
             <button
               type="button"
               onClick={() => setIsExpanded((value) => !value)}
@@ -1347,11 +1391,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
               {isModal ? "Collapse" : "Expand"}
             </button>
           </div>
-          <p className="mt-1 text-[10px] text-gray-500">
-            {controlsExpanded
-              ? "Controls are expanded. Collapse to maximize map space."
-              : "Map-first mode. Expand controls to access search, tools, and share options."}
-          </p>
+          <p className="mt-1 text-[10px] text-gray-500">{isModal ? "Slim toolbar controls are available at the top." : "Map-first preview."}</p>
         </div>
 
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
@@ -1379,8 +1419,10 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
               mapId={mapId}
               gestureHandling={"greedy"}
               disableDefaultUI={true}
-              mapTypeId={isThreeD ? "satellite" : "roadmap"}
+              mapTypeId={"roadmap"}
               tilt={isThreeD ? 45 : 0}
+              headingInteractionEnabled={isThreeD}
+              tiltInteractionEnabled={isThreeD}
             >
               <AdvancedMarker position={mapCenter} />
             </Map>
