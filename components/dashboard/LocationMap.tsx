@@ -137,6 +137,20 @@ function applyStyleToOverlay(
   }
 }
 
+type RouteData = {
+  origin: string;
+  destination: string;
+  travelMode: TravelMode;
+  distance: string;
+  duration: string;
+  googleMapsUrl: string;
+};
+
+function buildGoogleMapsUrl(origin: string, dest: string, mode: TravelMode): string {
+  const modeMap: Record<TravelMode, string> = { DRIVING: "driving", WALKING: "walking", BICYCLING: "bicycling", TRANSIT: "transit" };
+  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(dest)}&travelmode=${modeMap[mode]}`;
+}
+
 function DrawController({
   setStatus,
   strokeColor,
@@ -151,6 +165,7 @@ function DrawController({
   isThreeD,
   setIsThreeD,
   onToggleSharePanel,
+  onRouteReady,
 }: {
   setStatus: (value: { ok: boolean; text: string } | null) => void;
   strokeColor: string;
@@ -165,6 +180,7 @@ function DrawController({
   isThreeD: boolean;
   setIsThreeD: (val: boolean) => void;
   onToggleSharePanel: () => void;
+  onRouteReady: (data: RouteData | null) => void;
 }) {
   
   const map = useMap("main-map");
@@ -287,8 +303,12 @@ function DrawController({
         if (status === "OK" && result?.routes?.[0]) {
           directionsRendererRef.current.setDirections(result);
           const leg = result.routes[0].legs[0];
-          setRouteInfo({ distance: leg.distance?.text ?? "", duration: leg.duration?.text ?? "" });
-          setStatus({ ok: true, text: `Route: ${leg.distance?.text} · ${leg.duration?.text}` });
+          const dist = leg.distance?.text ?? "";
+          const dur = leg.duration?.text ?? "";
+          setRouteInfo({ distance: dist, duration: dur });
+          const gmapsUrl = buildGoogleMapsUrl(origin, dest, mode);
+          onRouteReady({ origin, destination: dest, travelMode: mode, distance: dist, duration: dur, googleMapsUrl: gmapsUrl });
+          setStatus({ ok: true, text: `Route: ${dist} · ${dur}` });
         } else {
           setRouteInfo(null);
           setStatus({ ok: false, text: "Could not find a route between those locations." });
@@ -305,6 +325,7 @@ function DrawController({
     setOriginInput("");
     setDestInput("");
     setRouteInfo(null);
+    onRouteReady(null);
     setStatus(null);
     setOriginSuggestions([]);
     setDestSuggestions([]);
@@ -843,11 +864,46 @@ function DrawController({
             </button>
           )}
           {routeInfo && (
-            <div className="flex items-center gap-1.5 rounded-md bg-emerald-50 border border-emerald-100 px-2 py-1 ml-auto">
-              <span className="text-[10px] font-bold text-emerald-800">{routeInfo.distance}</span>
-              <span className="text-[9px] text-emerald-400">·</span>
-              <span className="text-[10px] font-semibold text-emerald-700">{routeInfo.duration}</span>
-            </div>
+            <>
+              <div className="flex items-center gap-1.5 rounded-md bg-emerald-50 border border-emerald-100 px-2 py-1">
+                <span className="text-[10px] font-bold text-emerald-800">{routeInfo.distance}</span>
+                <span className="text-[9px] text-emerald-400">·</span>
+                <span className="text-[10px] font-semibold text-emerald-700">{routeInfo.duration}</span>
+              </div>
+              <a
+                href={buildGoogleMapsUrl(originInput, destInput, travelMode)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-1 rounded-md bg-[#FF4D00] px-2 py-1 text-[10px] font-semibold text-white hover:opacity-90"
+                title="Open in Google Maps"
+              >
+                <Navigation size={10} /> Navigate
+              </a>
+              <button
+                type="button"
+                onClick={async () => {
+                  const url = buildGoogleMapsUrl(originInput, destInput, travelMode);
+                  try {
+                    await navigator.clipboard.writeText(url);
+                    setStatus({ ok: true, text: "Route link copied to clipboard." });
+                  } catch {
+                    setStatus({ ok: false, text: "Could not copy link." });
+                  }
+                }}
+                className="inline-flex items-center justify-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100"
+                title="Copy route link"
+              >
+                <Copy size={10} /> Copy Link
+              </button>
+              <button
+                type="button"
+                onClick={onToggleSharePanel}
+                className="inline-flex items-center justify-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100"
+                title="Share route"
+              >
+                <Share size={10} /> Share
+              </button>
+            </>
           )}
         </div>
       )}
@@ -912,6 +968,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   const [showSharePanel, setShowSharePanel] = useState(false);
   const [controlsExpanded, setControlsExpanded] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [routeData, setRouteData] = useState<RouteData | null>(null);
   const [widgetDiagEnabled, setWidgetDiagEnabled] = useState(false);
   const [diagTick, setDiagTick] = useState(0);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -1126,9 +1183,31 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   }, [selectedProjectId]);
 
   const createPdfBlob = async () => {
-    // Temporary bypass: html2canvas crashes on Tailwind v4 oklch colors.
-    // Returning a dummy text file to prevent the UI thread from crashing.
-    const blob = new Blob(["Map export temporarily disabled due to CSS parsing engine updates. Please use browser print."], { type: "text/plain" });
+    const lines: string[] = [
+      "SLATE360 — Map Export",
+      `Generated: ${new Date().toLocaleString()}`,
+      `Location: ${addressQuery || "N/A"}`,
+      `Center: ${mapCenter.lat.toFixed(6)}, ${mapCenter.lng.toFixed(6)}`,
+      "",
+    ];
+
+    if (routeData) {
+      lines.push(
+        "--- Directions ---",
+        `From: ${routeData.origin}`,
+        `To: ${routeData.destination}`,
+        `Mode: ${routeData.travelMode}`,
+        `Distance: ${routeData.distance}`,
+        `Duration: ${routeData.duration}`,
+        "",
+        `Google Maps Link: ${routeData.googleMapsUrl}`,
+        "",
+      );
+    }
+
+    lines.push("Tip: Open the Google Maps link above to navigate in real-time.");
+
+    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
     return { blob, filename: `map-export-${Date.now()}.txt` };
   };
 
@@ -1217,47 +1296,54 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       setStatus({ ok: false, text: recipientMode === "email" ? "Recipient email is required." : "Recipient phone is required." });
       return;
     }
-    if (!lastFileId) {
-      setStatus({ ok: false, text: "Save the map to a project folder first." });
+
+    // If we have a saved file, share via secure link
+    if (lastFileId) {
+      setIsSharing(true);
+      setStatus(null);
+      try {
+        const res = await fetch("/api/slatedrop/secure-send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileId: lastFileId,
+            email: recipientMode === "email" ? recipient : undefined,
+            phone: recipientMode === "phone" ? recipient : undefined,
+            permission: "download",
+            expiryDays: 7,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.shareUrl) throw new Error(data?.error ?? "Failed to generate share link");
+        setLastShareUrl(data.shareUrl as string);
+        setStatus({ ok: true, text: recipientMode === "email" ? "Secure email link sent." : "Share link generated for phone delivery." });
+        if (recipientMode === "phone" && data?.smsUrl) window.open(data.smsUrl as string, "_blank");
+      } catch (error) {
+        console.error("Failed to send secure link", error);
+        setStatus({ ok: false, text: "Could not send secure link." });
+      } finally {
+        setIsSharing(false);
+      }
       return;
     }
 
-    setIsSharing(true);
-    setStatus(null);
-
-    try {
-      const res = await fetch("/api/slatedrop/secure-send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileId: lastFileId,
-          email: recipientMode === "email" ? recipient : undefined,
-          phone: recipientMode === "phone" ? recipient : undefined,
-          permission: "download",
-          expiryDays: 7,
-        }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.shareUrl) {
-        throw new Error(data?.error ?? "Failed to generate share link");
+    // Fallback: if route data exists, share Google Maps directions link directly
+    if (routeData) {
+      const shareUrl = routeData.googleMapsUrl;
+      if (recipientMode === "phone") {
+        const smsBody = encodeURIComponent(`Directions from ${routeData.origin} to ${routeData.destination} (${routeData.distance}, ${routeData.duration}): ${shareUrl}`);
+        window.open(`sms:${recipient}?body=${smsBody}`, "_blank");
+        setStatus({ ok: true, text: "SMS opened with route link." });
+      } else {
+        const mailSubject = encodeURIComponent("Directions via Slate360");
+        const mailBody = encodeURIComponent(`Here are directions from ${routeData.origin} to ${routeData.destination}:\n\nMode: ${routeData.travelMode}\nDistance: ${routeData.distance}\nDuration: ${routeData.duration}\n\nOpen in Google Maps: ${shareUrl}`);
+        window.open(`mailto:${recipient}?subject=${mailSubject}&body=${mailBody}`, "_blank");
+        setStatus({ ok: true, text: "Email opened with route link." });
       }
-
-      setLastShareUrl(data.shareUrl as string);
-      setStatus({
-        ok: true,
-        text: recipientMode === "email" ? "Secure email link sent and ready to copy." : "Share link generated for phone delivery. Use Copy or SMS.",
-      });
-
-      if (recipientMode === "phone" && data?.smsUrl) {
-        window.open(data.smsUrl as string, "_blank");
-      }
-    } catch (error) {
-      console.error("Failed to send secure link", error);
-      setStatus({ ok: false, text: "Could not send secure link." });
-    } finally {
-      setIsSharing(false);
+      return;
     }
+
+    setStatus({ ok: false, text: "Save the map to a project folder first, or get directions to share a route link." });
   };
 
   const handleCopyShareLink = async () => {
@@ -1337,12 +1423,18 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                 isThreeD={isThreeD}
                 setIsThreeD={setIsThreeD}
                 onToggleSharePanel={() => setShowSharePanel(!showSharePanel)}
+                onRouteReady={setRouteData}
               />
             </div>
           )}
 
           {showSharePanel && showToolbar && (
             <div className="border-b border-gray-100 bg-white px-6 py-2.5 shadow-sm z-10 relative">
+              {routeData && (
+                <div className="mb-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1.5 text-[10px] text-blue-900">
+                  <span className="font-semibold">Route:</span> {routeData.origin} &rarr; {routeData.destination} &middot; {routeData.distance} &middot; {routeData.duration} &middot; {routeData.travelMode.toLowerCase()}
+                </div>
+              )}
               <div className="flex flex-wrap items-center gap-2">
                 <select
                   value={selectedProjectId}
@@ -1386,7 +1478,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                 />
                 <button
                   onClick={handleSendShareLink}
-                  disabled={isSharing || !lastFileId || !recipientValue}
+                  disabled={isSharing || (!lastFileId && !routeData) || !recipientValue}
                   className="inline-flex items-center justify-center gap-1 rounded-md bg-[#FF4D00] px-2 py-1 text-[11px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
                 >
                   {isSharing ? <Loader2 size={10} className="animate-spin" /> : <Send size={10} />} Send
