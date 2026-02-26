@@ -2,6 +2,7 @@
 
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { APIProvider, AdvancedMarker, Map, useMap } from "@vis.gl/react-google-maps";
+import { usePathname } from "next/navigation";
 import {
   ArrowUpDown,
   Bike,
@@ -897,6 +898,7 @@ function DrawController({
 }
 
 export default function LocationMap({ center, locationLabel, contactRecipients = [], compact = false }: LocationMapProps) {
+  const pathname = usePathname();
   const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID";
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -921,7 +923,12 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   const [isExpanded, setIsExpanded] = useState(false);
   const [controlsExpanded, setControlsExpanded] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [widgetDiagEnabled, setWidgetDiagEnabled] = useState(false);
+  const [diagTick, setDiagTick] = useState(0);
   const mapRef = useRef<HTMLDivElement>(null);
+  const controlsHeaderRef = useRef<HTMLDivElement>(null);
+  const controlsPanelRef = useRef<HTMLDivElement>(null);
+  const mapCanvasRef = useRef<HTMLDivElement>(null);
 
   const requestCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -971,6 +978,59 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       setControlsExpanded(false);
     }
   }, [isExpanded]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const enabled = params.get("widgetDiag") === "1";
+    setWidgetDiagEnabled(enabled);
+  }, []);
+
+  useEffect(() => {
+    if (!widgetDiagEnabled) return;
+    const id = window.setInterval(() => setDiagTick((v) => v + 1), 1200);
+    return () => window.clearInterval(id);
+  }, [widgetDiagEnabled]);
+
+  const diagSnapshot = useMemo(() => {
+    if (!widgetDiagEnabled || typeof window === "undefined") return null;
+
+    const mapHeight = Math.round(mapCanvasRef.current?.getBoundingClientRect().height ?? 0);
+    const topBarHeight = Math.round(controlsHeaderRef.current?.getBoundingClientRect().height ?? 0);
+    const panelHeight = Math.round(controlsPanelRef.current?.getBoundingClientRect().height ?? 0);
+    const total = mapHeight + topBarHeight + panelHeight;
+    const mapPct = total > 0 ? Math.round((mapHeight / total) * 100) : 0;
+
+    let dashboardPrefs = "missing";
+    let hubPrefs = "missing";
+    try {
+      dashboardPrefs = localStorage.getItem("slate360-dashboard-widgets") ? "present" : "missing";
+      hubPrefs = localStorage.getItem("slate360-hub-widgets") ? "present" : "missing";
+    } catch {
+      dashboardPrefs = "blocked";
+      hubPrefs = "blocked";
+    }
+
+    return {
+      route: pathname,
+      compact,
+      isExpanded,
+      controlsExpanded,
+      isThreeD,
+      mapHeight,
+      topBarHeight,
+      panelHeight,
+      mapPct,
+      dashboardPrefs,
+      hubPrefs,
+      tick: diagTick,
+    };
+  }, [widgetDiagEnabled, pathname, compact, isExpanded, controlsExpanded, isThreeD, diagTick]);
+
+  useEffect(() => {
+    if (!widgetDiagEnabled || !diagSnapshot) return;
+    console.info("[widget-diag][location]", diagSnapshot);
+  }, [widgetDiagEnabled, diagSnapshot]);
 
   const selectedFolder = useMemo(
     () => folders.find((folder) => folder.id === selectedFolderId) ?? null,
@@ -1266,7 +1326,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       : "shrink-0";
     return (
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
-        <div className="z-20 border-b border-gray-100 bg-white/95 px-3 py-2 backdrop-blur-sm">
+      <div ref={controlsHeaderRef} className="z-20 border-b border-gray-100 bg-white/95 px-3 py-2 backdrop-blur-sm">
           <div className="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
@@ -1318,7 +1378,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
 
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
           {showToolbar && (
-            <div className={toolbarShellClass}>
+            <div ref={controlsPanelRef} className={toolbarShellClass}>
               <DrawController
                 setStatus={setStatus}
                 strokeColor={strokeColor}
@@ -1332,7 +1392,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
               />
             </div>
           )}
-          <div className="flex-1 relative min-h-0">
+          <div ref={mapCanvasRef} className="flex-1 relative min-h-0">
             <Map
               defaultZoom={13}
               defaultCenter={mapCenter}
@@ -1357,6 +1417,13 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     return (
       <div className="flex flex-col h-full overflow-hidden -mx-6 -mb-0">
         {renderMapCanvas("inline")}
+        {widgetDiagEnabled && diagSnapshot && (
+          <div className="px-2 pb-2">
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-[10px] text-amber-900">
+              diag route={diagSnapshot.route} compact={String(diagSnapshot.compact)} expanded={String(diagSnapshot.isExpanded)} controls={String(diagSnapshot.controlsExpanded)} sat={String(diagSnapshot.isThreeD)} map={diagSnapshot.mapPct}% (h={diagSnapshot.mapHeight}) dStore={diagSnapshot.dashboardPrefs} hStore={diagSnapshot.hubPrefs}
+            </div>
+          </div>
+        )}
         {isExpanded && (
           <div className="fixed inset-0 z-[120] bg-black/55 backdrop-blur-sm p-4 sm:p-8">
             <div className="h-full w-full rounded-2xl border border-white/20 bg-white overflow-hidden shadow-2xl flex flex-col">
@@ -1543,6 +1610,14 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       )}
 
       {!isExpanded && renderMapCanvas("inline")}
+
+      {widgetDiagEnabled && diagSnapshot && (
+        <div className="px-3 pb-2">
+          <div className="rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-[10px] text-amber-900">
+            diag route={diagSnapshot.route} compact={String(diagSnapshot.compact)} expanded={String(diagSnapshot.isExpanded)} controls={String(diagSnapshot.controlsExpanded)} sat={String(diagSnapshot.isThreeD)} map={diagSnapshot.mapPct}% (h={diagSnapshot.mapHeight}) dStore={diagSnapshot.dashboardPrefs} hStore={diagSnapshot.hubPrefs}
+          </div>
+        </div>
+      )}
 
       {isExpanded && (
         <div className="fixed inset-0 z-[120] bg-black/55 backdrop-blur-sm p-4 sm:p-8">

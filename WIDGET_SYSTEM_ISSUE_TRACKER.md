@@ -16,6 +16,7 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
 | W-004 | Widget platform parity | Project Hub project-level dashboard differs from shared widget system | `ProjectDashboardGrid` still uses separate `react-grid-layout` implementation | Fixed in code | `components/project-hub/ProjectDashboardGrid.tsx` |
 | W-005 | Deploy visibility | New changes not visible consistently across environments | Suspected stale CDN/browser/server cache + deploy propagation timing | Monitoring | `next.config.ts`, `app/deploy-check/page.tsx`, `app/api/deploy-info/route.ts` |
 | W-006 | Dashboard/Hub parity regression | Dashboard location widget defaults differ from Project Hub and expanded map can collapse to a small sliver while UI dominates | Runtime behavior divergence in control-panel/layout state and widget sizing defaults | In progress | `components/dashboard/LocationMap.tsx`, `components/project-hub/ProjectDashboardGrid.tsx` |
+| W-007 | Google Maps API deprecation | Browser console shows deprecations for `DirectionsService` and `DirectionsRenderer` and map styling/tilt warnings | Legacy routes API usage and mapId + raster/tilt limitations in current implementation | In progress | `components/dashboard/LocationMap.tsx` |
 
 ## Change Log
 
@@ -40,6 +41,15 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
   - Compact/unexpanded widget always exposes toolbar/search path.
   - Expanded control panel gets strict max-height with overflow.
   - Project-level widget defaults normalized to uniform size until explicitly expanded.
+
+### 2026-02-26 — Session D
+- Added runtime diagnostics mode to `LocationMap` behind `?widgetDiag=1`.
+- Added structural block-isolation test runner: `scripts/widget-block-isolation-test.mjs`.
+- Executed test runner + lint + build:
+  - Structural checks passed: `8/8`.
+  - Lint passed.
+  - Build passed (existing unrelated wallet connector warnings remain).
+- Captured that Google Maps console warnings are real deprecations/behavior notices and should be migrated, but they are not direct proof of the route-level parity mismatch.
 
 ## Validation Notes
 
@@ -72,6 +82,22 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
   4. Build/version fingerprint check (conflict detection):
     - Compare active commit SHA + marker from `/api/deploy-info` with UI behavior in each route.
     - If SHA matches but behavior differs, block is in route-specific runtime state, not deploy caching.
+
+  ## Test Execution (2026-02-26)
+
+  - Structural path test:
+    - Command: `node scripts/widget-block-isolation-test.mjs`
+    - Result: `8/8 PASS`
+    - Confirms all active route paths import shared `LocationMap` and expected map-first defaults exist in source.
+
+  - Validation test:
+    - Command: `npm run lint -- --max-warnings=0 && npm run build`
+    - Result: Pass
+    - Note: Existing market connector dependency warnings remain unchanged.
+
+  - Runtime/manual diagnostic mode:
+    - Append `?widgetDiag=1` to dashboard or project hub URL.
+    - Widget prints route/state/layout snapshot (map % height, control state, storage key presence) in-widget and to console.
 
 ## Next Actions
 
