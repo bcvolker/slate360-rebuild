@@ -294,6 +294,20 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
   - Expanded mode: single slim toolbar row with address/search controls available.
   - No hidden competing headers/layout blocks in expanded state.
 
+### 2026-02-26 — Session S (Runtime Config Diagnosis + UX Labeling)
+- New user signal:
+  - Header should read "Site Location".
+  - Search field too narrow/unlabeled.
+  - Map and autocomplete still nonfunctional in live environment.
+- Fixes and diagnostics applied:
+  - Updated widget labels to `Site Location` in shared metadata and project grid metadata.
+  - In condensed toolbar, widened address input and added explicit `Address` label.
+  - Added explicit runtime fallback when Google Maps key is missing:
+    - `LocationMap` now shows a clear in-widget message if `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` is absent at runtime.
+  - Added `mapsApiKeyPresent` to location diagnostics snapshot.
+- Primary hypothesis now:
+  - If map remains blank and autocomplete fails with the new fallback message visible, issue is deployment env configuration (missing or invalid Google Maps public key), not widget layout path.
+
 ## Next Actions
 
 1. Run the revised block-isolation test strategy and log concrete measurements/screenshots for both routes.

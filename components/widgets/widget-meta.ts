@@ -43,7 +43,7 @@ export interface WidgetMeta {
 
 export const WIDGET_META: WidgetMeta[] = [
   { id: "slatedrop",  label: "SlateDrop",            icon: FolderOpen,   color: "#FF4D00" },
-  { id: "location",   label: "Location",             icon: MapPin,       color: "#1E3A8A" },
+  { id: "location",   label: "Site Location",        icon: MapPin,       color: "#1E3A8A" },
   { id: "data-usage", label: "Data Usage & Credits",  icon: CreditCard,   color: "#059669" },
   { id: "processing", label: "Processing Jobs",       icon: Cpu,          color: "#D97706" },
   { id: "financial",  label: "Financial Snapshot",    icon: TrendingUp,   color: "#1E3A8A" },

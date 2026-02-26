@@ -38,7 +38,7 @@ type RecentFile = {
 
 const PROJECT_WIDGET_META: WidgetMeta[] = [
   { id: "project-info", label: "Project Info", icon: Info, color: "#1E3A8A" },
-  { id: "location", label: "Location", icon: MapPin, color: "#1E3A8A" },
+  { id: "location", label: "Site Location", icon: MapPin, color: "#1E3A8A" },
   { id: "weather", label: "Weather", icon: Sun, color: "#0891B2" },
   { id: "slatedrop", label: "SlateDrop", icon: FolderOpen, color: "#FF4D00" },
   { id: "continue", label: "Continue Working", icon: Clock, color: "#FF4D00" },

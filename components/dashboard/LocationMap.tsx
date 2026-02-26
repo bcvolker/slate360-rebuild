@@ -660,8 +660,9 @@ function DrawController({
     return (
       <div className="border-b border-gray-100 bg-gray-50/60 px-2 py-1.5 overflow-visible">
         <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap">
-          <div className="relative min-w-[230px]">
+          <div className="relative min-w-[340px]">
             <div className="flex items-center rounded-md border border-gray-200 bg-white px-2 py-1">
+              <span className="mr-1 text-[10px] font-semibold text-gray-500">Address</span>
               <Search size={11} className="text-gray-400 mr-1" />
               <input
                 type="text"
@@ -676,7 +677,7 @@ function DrawController({
                     void resolveAddressQuery(addressInput);
                   }
                 }}
-                placeholder="Search address"
+                placeholder="Type address"
                 className="w-full text-[11px] text-gray-700 bg-transparent outline-none"
               />
             </div>
@@ -1041,7 +1042,8 @@ function DrawController({
 
 export default function LocationMap({ center, locationLabel, contactRecipients = [], compact = false, expanded = false }: LocationMapProps) {
   const pathname = usePathname();
-  const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID";
+  const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || undefined;
+  const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -1161,6 +1163,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       isExpanded: expandedView,
       controlsExpanded,
       isThreeD,
+      mapsApiKeyPresent: Boolean(mapsApiKey),
       mapHeight,
       topBarHeight,
       panelHeight,
@@ -1169,7 +1172,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       hubPrefs,
       tick: diagTick,
     };
-  }, [widgetDiagEnabled, pathname, compact, expandedView, controlsExpanded, isThreeD, diagTick]);
+  }, [widgetDiagEnabled, pathname, compact, expandedView, controlsExpanded, isThreeD, diagTick, mapsApiKey]);
 
   useEffect(() => {
     if (!widgetDiagEnabled || !diagSnapshot) return;
@@ -1468,7 +1471,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     const toolbarShellClass = "shrink-0 overflow-visible";
     return (
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
-        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
+        <APIProvider apiKey={mapsApiKey}>
           {showToolbar && (
             <div ref={controlsPanelRef} className={toolbarShellClass}>
               <DrawController
@@ -1486,20 +1489,28 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
             </div>
           )}
           <div ref={mapCanvasRef} className={`flex-1 relative min-h-0 ${isModal ? "min-h-[55vh]" : "min-h-[180px]"}`}>
-            <Map
-              defaultZoom={13}
-              defaultCenter={mapCenter}
-              center={mapCenter}
-              mapId={mapId}
-              gestureHandling={"greedy"}
-              disableDefaultUI={true}
-              mapTypeId={isThreeD ? "satellite" : "roadmap"}
-              tilt={isThreeD ? 45 : 0}
-              headingInteractionEnabled={isThreeD}
-              tiltInteractionEnabled={isThreeD}
-            >
-              <AdvancedMarker position={mapCenter} />
-            </Map>
+            {mapsApiKey ? (
+              <Map
+                defaultZoom={13}
+                defaultCenter={mapCenter}
+                center={mapCenter}
+                mapId={mapId}
+                gestureHandling={"greedy"}
+                disableDefaultUI={true}
+                mapTypeId={isThreeD ? "satellite" : "roadmap"}
+                tilt={isThreeD ? 45 : 0}
+                headingInteractionEnabled={isThreeD}
+                tiltInteractionEnabled={isThreeD}
+              >
+                <AdvancedMarker position={mapCenter} />
+              </Map>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 text-center">
+                <p className="text-xs font-semibold text-amber-900">
+                  Google Maps key missing in deployment (`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`).
+                </p>
+              </div>
+            )}
           </div>
         </APIProvider>
       </div>
