@@ -1466,47 +1466,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     const toolbarShellClass = "shrink-0 overflow-visible";
     return (
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
-      <div ref={controlsHeaderRef} className="z-20 border-b border-gray-100 bg-white/95 px-3 py-2 backdrop-blur-sm">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {isModal && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setIsThreeD(false)}
-                  className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${!isThreeD ? "bg-[#1E3A8A] text-white" : "text-gray-600 hover:bg-gray-100"}`}
-                >
-                  2D
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsThreeD(true)}
-                  className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${isThreeD ? "bg-[#FF4D00] text-white" : "text-gray-600 hover:bg-gray-100"}`}
-                >
-                  3D
-                </button>
-                <button
-                  type="button"
-                  onClick={requestCurrentLocation}
-                  className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
-                  disabled={isLocating}
-                >
-                  {isLocating ? <Loader2 size={10} className="animate-spin" /> : <LocateFixed size={10} />}
-                  Find Me
-                </button>
-              </>
-            )}
-            <button
-              type="button"
-              onClick={() => setIsExpanded((value) => !value)}
-              className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
-            >
-              {isModal ? <Minimize2 size={10} /> : <Maximize2 size={10} />}
-              {isModal ? "Collapse" : "Expand"}
-            </button>
-          </div>
-          <p className="mt-1 text-[10px] text-gray-500">{isModal ? "Slim toolbar controls are available at the top." : "Map-first preview."}</p>
-        </div>
-
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
           {showToolbar && (
             <div ref={controlsPanelRef} className={toolbarShellClass}>

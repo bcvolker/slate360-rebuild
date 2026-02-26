@@ -72,10 +72,6 @@ export default function WidgetCard({
         .join(" ")}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="mb-3 inline-flex items-center rounded-md border border-fuchsia-300 bg-fuchsia-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-fuchsia-900">
-        Unified Widget Card · Probe U1
-      </div>
-
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">

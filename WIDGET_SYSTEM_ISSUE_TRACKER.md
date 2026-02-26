@@ -262,6 +262,22 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
   - Unexpanded mode remains map-only (`showToolbar` only when expanded).
   - Restored map type switching (`satellite` for 3D, `roadmap` for 2D).
 
+### 2026-02-26 — Session Q (Duplicate Header/Expand Conflict Removal)
+- New user clue confirmed root conflict:
+  - Location widget rendered overlapping chrome layers (WidgetCard header + internal LocationMap header), creating redundant header text and duplicate expand controls.
+- Fixes applied:
+  - `components/dashboard/LocationMap.tsx`
+    - Removed internal canvas header row entirely from shared render path.
+    - Removed internal expand/collapse button to keep a single expansion owner (WidgetCard / modal shell).
+    - Kept toolbar rendering only in expanded mode.
+  - Cleanup of temporary diagnostics UI:
+    - Removed shared WidgetCard probe label.
+    - Removed temporary homepage/login probe banners.
+- Expected outcome:
+  - One header only for the location widget card.
+  - One expand control path only.
+  - No extra top chrome consuming map area in compact mode.
+
 ## Next Actions
 
 1. Run the revised block-isolation test strategy and log concrete measurements/screenshots for both routes.
