@@ -450,6 +450,72 @@ function DrawController({
         manager.setDrawingMode(null);
         setTool("select");
         selectedToolRef.current = "select";
+        
+        if (event.type === "marker" || event.type === "polygon" || event.type === "rectangle" || event.type === "circle" || event.type === "polyline") {
+        let lat, lng;
+        if (event.type === "marker" || event.type === "polygon" || event.type === "rectangle" || event.type === "circle" || event.type === "polyline") {
+        let lat, lng;
+        if (event.type === "marker") {
+          const pos = event.overlay.getPosition();
+          if (pos) { lat = pos.lat(); lng = pos.lng(); }
+        } else if (event.type === "circle") {
+          const center = event.overlay.getCenter();
+          if (center) { lat = center.lat(); lng = center.lng(); }
+        } else if (event.type === "rectangle") {
+          const bounds = event.overlay.getBounds();
+          if (bounds) { const center = bounds.getCenter(); lat = center.lat(); lng = center.lng(); }
+        } else if (event.type === "polygon" || event.type === "polyline") {
+          const path = event.overlay.getPath();
+          if (path && path.getLength() > 0) {
+            const first = path.getAt(0);
+            lat = first.lat(); lng = first.lng();
+          }
+        }
+        
+        if (lat !== undefined && lng !== undefined) {
+          const coordStr = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+          setAddressInput(coordStr);
+          setAddressQuery(coordStr);
+          setMapCenter({ lat, lng });
+        }
+      }
+      
+      if (event.type === "marker") {
+          const pos = event.overlay.getPosition();
+          if (pos) { lat = pos.lat(); lng = pos.lng(); }
+        } else if (event.type === "circle") {
+          const center = event.overlay.getCenter();
+          if (center) { lat = center.lat(); lng = center.lng(); }
+        } else if (event.type === "rectangle") {
+          const bounds = event.overlay.getBounds();
+          if (bounds) { const center = bounds.getCenter(); lat = center.lat(); lng = center.lng(); }
+        } else if (event.type === "polygon" || event.type === "polyline") {
+          const path = event.overlay.getPath();
+          if (path && path.getLength() > 0) {
+            const first = path.getAt(0);
+            lat = first.lat(); lng = first.lng();
+          }
+        }
+        
+        if (lat !== undefined && lng !== undefined) {
+          const coordStr = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+          setAddressInput(coordStr);
+          setAddressQuery(coordStr);
+          setMapCenter({ lat, lng });
+        }
+      }
+      
+      if (event.type === "marker") {
+          const pos = event.overlay.getPosition();
+          if (pos) {
+            const lat = pos.lat();
+            const lng = pos.lng();
+            const coordStr = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            setAddressInput(coordStr);
+            setAddressQuery(coordStr);
+            setMapCenter({ lat, lng });
+          }
+        }
       }
     });
 
@@ -541,6 +607,7 @@ function DrawController({
         };
         setMapCenter(next);
         setAddressQuery(`${next.lat.toFixed(5)}, ${next.lng.toFixed(5)}`);
+        setAddressInput(`${next.lat.toFixed(5)}, ${next.lng.toFixed(5)}`);
         map?.panTo(next);
         map?.setZoom(15);
       },
@@ -830,9 +897,18 @@ function DrawController({
 
 function MapUpdater({ center }: { center: { lat: number; lng: number } }) {
   const map = useMap("main-map");
+  const prevCenterRef = useRef<{lat: number, lng: number} | null>(null);
+  
   useEffect(() => {
     if (map && center) {
-      map.panTo(center);
+      // Only pan if the center actually changed significantly to avoid fighting user navigation
+      if (!prevCenterRef.current || 
+          Math.abs(prevCenterRef.current.lat - center.lat) > 0.0001 || 
+          Math.abs(prevCenterRef.current.lng - center.lng) > 0.0001) {
+        console.log("MapUpdater panning to:", center);
+        map.panTo(center);
+        prevCenterRef.current = center;
+      }
     }
   }, [map, center]);
   return null;
@@ -887,6 +963,8 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
           lng: position.coords.longitude,
         };
         setMapCenter(nextCenter);
+        const coordStr = `${nextCenter.lat.toFixed(5)}, ${nextCenter.lng.toFixed(5)}`;
+        setAddressQuery(coordStr);
         setStatus({ ok: true, text: "Map centered to your current location." });
         setIsLocating(false);
       },
