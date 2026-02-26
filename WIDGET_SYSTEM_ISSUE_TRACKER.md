@@ -187,6 +187,13 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
   - Public probes visible + no protected changes => auth/session/runtime route branch issue.
   - Public + protected probes visible but behavior still wrong => remaining widget runtime bug (actionable in current code path).
 
+### 2026-02-26 — Session K (Shared Widget Renderer Probe)
+- Added a temporary always-visible marker directly in shared widget shell:
+  - `components/widgets/WidgetCard.tsx` now renders `Unified Widget Card · Probe U1`.
+- Diagnostic value:
+  - If `/dashboard` and `/project-hub` both show this marker on widget cards, both routes are using the same shared widget renderer.
+  - If one route does not show it, that route is still on a divergent render path (or different host/runtime).
+
 ## Next Actions
 
 1. Run the revised block-isolation test strategy and log concrete measurements/screenshots for both routes.
