@@ -8,6 +8,16 @@ import { getEntitlements, type Tier } from "@/lib/entitlements";
 import SlateDropClient from "@/components/slatedrop/SlateDropClient";
 import MarketClient from "@/components/dashboard/MarketClient";
 import LocationMap from "./LocationMap";
+import WidgetCard from "@/components/widgets/WidgetCard";
+import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
+import {
+  WIDGET_META,
+  type WidgetPref,
+  type WidgetMeta,
+  getWidgetSpan,
+  buildDefaultPrefs,
+  DASHBOARD_STORAGE_KEY,
+} from "@/components/widgets/widget-meta";
 import {
   Search,
   Bell,
@@ -139,12 +149,7 @@ interface DashTab {
   isCEOOnly?: boolean;
 }
 
-interface WidgetPref {
-  id: string;
-  visible: boolean;
-  expanded: boolean; // takes full row width
-  order: number;
-}
+// WidgetPref — imported from @/components/widgets/widget-meta
 
 interface AccountOverview {
   profile: {
@@ -204,30 +209,10 @@ type SlateDropFolderQuickView = {
 };
 
 /* ================================================================
-   WIDGET META — source of truth for labels/icons
+   WIDGET META — imported from @/components/widgets/widget-meta
    ================================================================ */
 
-const WIDGET_META: { id: string; label: string; icon: LucideIcon; color: string; tierGate?: string }[] = [
-  { id: "slatedrop",    label: "SlateDrop",             icon: FolderOpen,    color: "#FF4D00" },
-  { id: "location",     label: "Location",              icon: MapPin,        color: "#1E3A8A" },
-  { id: "data-usage",   label: "Data Usage & Credits", icon: CreditCard,    color: "#059669" },
-  { id: "processing",   label: "Processing Jobs",       icon: Cpu,           color: "#D97706" },
-  { id: "financial",    label: "Financial Snapshot",    icon: TrendingUp,    color: "#1E3A8A" },
-  { id: "calendar",     label: "Calendar",              icon: CalendarIcon,  color: "#DC2626" },
-  { id: "weather",      label: "Weather",               icon: Cloud,         color: "#0891B2" },
-  { id: "continue",     label: "Continue Working",      icon: Clock,         color: "#FF4D00" },
-  { id: "contacts",     label: "Contacts",              icon: Users,         color: "#059669" },
-  { id: "suggest",      label: "Suggest a Feature",     icon: Lightbulb,     color: "#7C3AED" },
-  { id: "seats",        label: "Seat Management",       icon: Users,         color: "#1E3A8A", tierGate: "seats" },
-  { id: "upgrade",      label: "Upgrade Card",          icon: Zap,           color: "#FF4D00", tierGate: "no-seats" },
-];
-
-const DEFAULT_WIDGET_PREFS: WidgetPref[] = WIDGET_META.map((m, i) => ({
-  id: m.id,
-  visible: true,
-  expanded: m.id === "calendar" || m.id === "seats",
-  order: i,
-}));
+const DEFAULT_WIDGET_PREFS: WidgetPref[] = buildDefaultPrefs({ expandedIds: ["calendar", "seats"] });
 
 /* ================================================================
    DEMO DATA
@@ -401,64 +386,9 @@ const projectTypeEmoji = (t: Project["type"]) => {
   }
 };
 
-/* ================================================================
-   WIDGET CARD WRAPPER
-   ================================================================ */
-
-function WidgetCard({
-  icon: Icon,
-  title,
-  action,
-  span,
-  children,
-  delay = 0,
-  color = "#FF4D00",
-  onExpand,
-  isExpanded,
-}: {
-  icon: LucideIcon;
-  title: string;
-  action?: React.ReactNode;
-  span?: string;
-  children: React.ReactNode;
-  delay?: number;
-  color?: string;
-  onExpand?: () => void;
-  isExpanded?: boolean;
-}) {
-  return (
-    <div
-      className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-lg hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300 flex flex-col ${span ?? ""}`}
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: `${color}1A`, color }}
-          >
-            <Icon size={20} />
-          </div>
-          <h3 className="text-sm font-bold text-gray-900">{title}</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          {action}
-          {onExpand && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onExpand(); }}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-              title={isExpanded ? "Collapse" : "Expand"}
-            >
-              {isExpanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
-            </button>
-          )}
-          <GripVertical size={14} className="text-gray-300" />
-        </div>
-      </div>
-      {children}
-    </div>
-  );
-}
+/* ════════════════════════════════════════════════════════════════
+   WIDGET CARD — imported from @/components/widgets/WidgetCard
+   ════════════════════════════════════════════════════════════════ */
 
 /* ================================================================
    TAB WIREFRAME PLACEHOLDER
@@ -586,7 +516,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(() => {
     if (typeof window !== "undefined") {
       try {
-        const cached = localStorage.getItem("slate360-dashboard-widgets");
+        const cached = localStorage.getItem(DASHBOARD_STORAGE_KEY);
         if (cached) {
           const parsed = JSON.parse(cached) as WidgetPref[];
           if (Array.isArray(parsed) && parsed.length > 0) {
@@ -602,6 +532,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   });
   const [prefsDirty, setPrefsDirty] = useState(false);
   const [prefsSaving, setPrefsSaving] = useState(false);
+  const [dashDragIdx, setDashDragIdx] = useState<number | null>(null);
   const [billingBusy, setBillingBusy] = useState<"portal" | "credits" | "upgrade" | null>(null);
   const [billingError, setBillingError] = useState<string | null>(null);
   const [billingNotice, setBillingNotice] = useState<{ ok: boolean; text: string } | null>(null);
@@ -773,7 +704,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           return found ?? def;
         });
         setWidgetPrefs(merged);
-        try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(merged)); } catch { /* ignore */ }
+        try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(merged)); } catch { /* ignore */ }
       }
     });
 
@@ -1231,7 +1162,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const toggleVisible = useCallback((id: string) => {
     setWidgetPrefs((prev) => {
       const next = prev.map((p) => p.id === id ? { ...p, visible: !p.visible } : p);
-      try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(next)); } catch { /* ignore */ }
+      try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
       return next;
     });
     setPrefsDirty(true);
@@ -1239,7 +1170,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const toggleExpanded = useCallback((id: string) => {
     setWidgetPrefs((prev) => {
       const next = prev.map((p) => p.id === id ? { ...p, expanded: !p.expanded } : p);
-      try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(next)); } catch { /* ignore */ }
+      try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
       return next;
     });
     setPrefsDirty(true);
@@ -1255,7 +1186,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         if (i === target) return { ...p, order: arr[idx].order };
         return p;
       });
-      try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(newArr)); } catch { /* ignore */ }
+      try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(newArr)); } catch { /* ignore */ }
       return newArr;
     });
     setPrefsDirty(true);
@@ -1264,7 +1195,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     setPrefsSaving(true);
     try {
       await supabase.auth.updateUser({ data: { dashboardWidgets: widgetPrefs } });
-      try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(widgetPrefs)); } catch { /* ignore */ }
+      try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(widgetPrefs)); } catch { /* ignore */ }
       setPrefsDirty(false);
     } finally {
       setPrefsSaving(false);
@@ -1272,9 +1203,40 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   }, [supabase, widgetPrefs]);
   const resetPrefs = useCallback(() => {
     setWidgetPrefs(DEFAULT_WIDGET_PREFS);
-    try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(DEFAULT_WIDGET_PREFS)); } catch { /* ignore */ }
+    try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(DEFAULT_WIDGET_PREFS)); } catch { /* ignore */ }
     setPrefsDirty(true);
   }, []);
+
+  /* ── Drag-and-drop reorder helpers for dashboard widget grid ── */
+  const handleDashDragStart = useCallback((idx: number) => setDashDragIdx(idx), []);
+  const handleDashDragOver = useCallback((e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    if (dashDragIdx === null || dashDragIdx === idx) return;
+    setWidgetPrefs((prev) => {
+      const vis = [...prev].filter((p) => p.visible).sort((a, b) => a.order - b.order);
+      const visIds = vis.map((p) => p.id);
+      const [moved] = visIds.splice(dashDragIdx, 1);
+      visIds.splice(idx, 0, moved);
+      const next = prev.map((p) => {
+        const visIdx = visIds.indexOf(p.id);
+        return visIdx >= 0 ? { ...p, order: visIdx } : p;
+      });
+      try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+    setDashDragIdx(idx);
+    setPrefsDirty(true);
+  }, [dashDragIdx]);
+  const handleDashDragEnd = useCallback(() => setDashDragIdx(null), []);
+
+  /* ── Tier-filtered meta for customization drawer ── */
+  const drawerMeta = useMemo(() => {
+    return WIDGET_META.filter((m) => {
+      if (m.id === "seats" && !ent.canManageSeats) return false;
+      if (m.id === "upgrade" && ent.canManageSeats) return false;
+      return true;
+    });
+  }, [ent.canManageSeats]);
 
   const financialMax = Math.max(1, ...liveFinancial.map((f) => f.credits));
 
@@ -1628,27 +1590,16 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             ...(ent.canManageSeats ? ["seats"] : ["upgrade"]),
           ]);
 
-          function getSpan(id: string, expanded: boolean): string {
-            if (id === "seats") return "md:col-span-2 xl:col-span-3";
-            if (id === "calendar") return expanded ? "md:col-span-2 xl:col-span-3" : "md:col-span-2 xl:col-span-2";
-            if (id === "location") return expanded ? "md:col-span-2" : "";
-            return expanded ? "md:col-span-2 xl:col-span-3" : "";
-          }
-
           function renderWidget(id: string, expanded: boolean, inPopout = false): React.ReactNode {
-            const span = getSpan(id, expanded);
+            const span = getWidgetSpan(id, expanded);
             const widgetColor = WIDGET_META.find((m) => m.id === id)?.color ?? "#FF4D00";
             const toggleExpand = inPopout ? undefined : () => {
               setWidgetPrefs((prev) => {
                 const next = prev.map((p) => (p.id === id ? { ...p, expanded: !p.expanded } : p));
-                try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(next)); } catch { /* ignore */ }
+                try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
                 return next;
               });
               setPrefsDirty(true);
-              // Auto-open SlateDrop floating window when expanding the SlateDrop widget
-              if (id === "slatedrop" && !expanded) {
-                openSlateDrop();
-              }
             };
             switch (id) {
 
@@ -1725,17 +1676,12 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   <p className="text-[10px] text-gray-400">Unlocked based on your {ent.label} plan.</p>
                 </div>
               )}
-              {!expanded ? (
-                <button
-                  onClick={openSlateDrop}
-                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
-                  style={{ backgroundColor: "#FF4D00" }}
-                >
-                  <FolderOpen size={13} /> Open SlateDrop
-                </button>
-              ) : (
-                <p className="text-[10px] text-center text-gray-400">SlateDrop panel is now open below.</p>
+              {expanded && (
+                <div className="mt-2 text-xs text-gray-500">
+                  <p className="text-[10px] text-gray-400">Pending uploads — </p>
+                </div>
               )}
+              <p className="text-[10px] text-gray-400">Open full SlateDrop from the main navigation.</p>
             </div>
           </WidgetCard>
           );
@@ -2307,19 +2253,16 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           return (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {orderedVisible.map((p) => (
-                  <div key={p.id} className="relative group">
+                {orderedVisible.map((p, idx) => (
+                  <div
+                    key={p.id}
+                    draggable={!p.expanded}
+                    onDragStart={() => handleDashDragStart(idx)}
+                    onDragOver={(e) => handleDashDragOver(e, idx)}
+                    onDragEnd={handleDashDragEnd}
+                    className={`${p.expanded ? "" : "cursor-grab active:cursor-grabbing"} ${dashDragIdx === idx ? "opacity-50 scale-95" : ""} ${getWidgetSpan(p.id, p.expanded)} transition-all duration-200`}
+                  >
                     {renderWidget(p.id, p.expanded)}
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        openWidgetPopout(p.id);
-                      }}
-                      className="absolute top-3 right-3 z-10 h-7 w-7 rounded-lg border border-gray-200 bg-white/95 text-gray-500 hover:text-[#FF4D00] hover:border-[#FF4D00]/40 transition-colors flex items-center justify-center"
-                      title="Pop out widget"
-                    >
-                      <ArrowUpRight size={13} />
-                    </button>
                   </div>
                 ))}
               </div>
@@ -2823,121 +2766,22 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         })()}
       </main>
 
-      {/* ════════ CUSTOMIZE PANEL (right-side drawer) ════════ */}
-      {customizeOpen && (
-        <>
-          <div className="fixed inset-0 bg-black/30 z-50 backdrop-blur-sm" onClick={() => setCustomizeOpen(false)} />
-          <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-white z-50 shadow-2xl flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-              <div>
-                <h2 className="text-base font-black text-gray-900">Customize Dashboard</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Reorder, show or hide, and resize widgets</p>
-              </div>
-              <button onClick={() => setCustomizeOpen(false)} className="w-8 h-8 rounded-lg text-gray-400 hover:bg-gray-100 flex items-center justify-center transition-colors">
-                <XCircle size={18} />
-              </button>
-            </div>
-
-            {/* Widget list */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
-              {[...widgetPrefs].sort((a, b) => a.order - b.order).map((pref) => {
-                const meta = WIDGET_META.find((m) => m.id === pref.id);
-                if (!meta) return null;
-                // Hide tier-gated widgets the user can't access
-                if (meta.id === "seats" && !ent.canManageSeats) return null;
-                if (meta.id === "upgrade" && ent.canManageSeats) return null;
-                const Icon = meta.icon;
-                const pos = [...widgetPrefs].sort((a, b) => a.order - b.order).findIndex((p) => p.id === pref.id);
-                const total = widgetPrefs.length;
-                return (
-                  <div
-                    key={pref.id}
-                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                      pref.visible ? "border-gray-200 bg-white" : "border-gray-100 bg-gray-50 opacity-60"
-                    }`}
-                  >
-                    {/* Drag handle / order controls */}
-                    <div className="flex flex-col gap-0.5">
-                      <button
-                        onClick={() => moveWidget(pref.id, -1)}
-                        disabled={pos === 0}
-                        className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors"
-                      >
-                        <ChevronUp size={14} />
-                      </button>
-                      <button
-                        onClick={() => moveWidget(pref.id, 1)}
-                        disabled={pos >= total - 1}
-                        className="text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors"
-                      >
-                        <ChevronDown size={14} />
-                      </button>
-                    </div>
-
-                    {/* Icon */}
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${meta.color}1A`, color: meta.color }}>
-                      <Icon size={15} />
-                    </div>
-
-                    {/* Label */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-gray-900">{meta.label}</p>
-                      <p className="text-[10px] text-gray-400">{pref.expanded ? "Full width" : "Normal"}</p>
-                    </div>
-
-                    {/* Expanded toggle */}
-                    <button
-                      onClick={() => toggleExpanded(pref.id)}
-                      title={pref.expanded ? "Shrink to normal" : "Expand to full width"}
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
-                        pref.expanded ? "bg-[#1E3A8A]/10 text-[#1E3A8A]" : "text-gray-300 hover:text-gray-500"
-                      }`}
-                    >
-                      {pref.expanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
-                    </button>
-
-                    {/* Visible toggle */}
-                    <button
-                      onClick={() => toggleVisible(pref.id)}
-                      title={pref.visible ? "Hide widget" : "Show widget"}
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
-                        pref.visible ? "bg-[#FF4D00]/10 text-[#FF4D00]" : "text-gray-300 hover:text-gray-500"
-                      }`}
-                    >
-                      {pref.visible ? <Eye size={13} /> : <EyeOff size={13} />}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Footer actions */}
-            <div className="px-6 py-4 border-t border-gray-100 space-y-2">
-              {prefsDirty && (
-                <p className="text-[10px] text-amber-600 text-center font-medium">You have unsaved changes</p>
-              )}
-              <div className="flex gap-2">
-                <button
-                  onClick={resetPrefs}
-                  className="flex-1 text-xs font-semibold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-                >
-                  Reset to default
-                </button>
-                <button
-                  onClick={async () => { await savePrefs(); setCustomizeOpen(false); }}
-                  disabled={prefsSaving || !prefsDirty}
-                  className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl text-white transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: "#FF4D00" }}
-                >
-                  {prefsSaving ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
-                  {prefsSaving ? "Saving…" : "Save layout"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      {/* ════════ CUSTOMIZE PANEL (shared drawer) ════════ */}
+      <WidgetCustomizeDrawer
+        open={customizeOpen}
+        onClose={() => setCustomizeOpen(false)}
+        title="Customize Dashboard"
+        subtitle="Reorder, show or hide, and resize widgets"
+        widgetPrefs={widgetPrefs}
+        widgetMeta={drawerMeta}
+        onToggleVisible={toggleVisible}
+        onToggleExpanded={toggleExpanded}
+        onMoveOrder={moveWidget}
+        onReset={resetPrefs}
+        onSave={async () => { await savePrefs(); setCustomizeOpen(false); }}
+        saving={prefsSaving}
+        dirty={prefsDirty}
+      />
 
       {/* ════════ SLATEDROP FLOATING WINDOW ════════ */}
       {slateDropOpen && (
