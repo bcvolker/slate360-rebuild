@@ -606,10 +606,13 @@ function DrawController({
           lng: position.coords.longitude,
         };
         setMapCenter(next);
-        setAddressQuery(`${next.lat.toFixed(5)}, ${next.lng.toFixed(5)}`);
-        setAddressInput(`${next.lat.toFixed(5)}, ${next.lng.toFixed(5)}`);
-        map?.panTo(next);
-        map?.setZoom(15);
+        const coordStr = `${next.lat.toFixed(5)}, ${next.lng.toFixed(5)}`;
+        setAddressQuery(coordStr);
+        setAddressInput(coordStr);
+        if (map) {
+          map.panTo(next);
+          map.setZoom(15);
+        }
       },
       () => setStatus({ ok: false, text: "Unable to determine current location." })
     );
