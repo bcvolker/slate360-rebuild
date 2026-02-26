@@ -10,7 +10,7 @@ const features = [
     href: "/features/design-studio" },
   { key: "project-hub", icon: "📋", label: "Manage", title: "Project Hub", accent: "#1E3A8A",
     desc: "Command center for every project — RFIs, submittals, budgets, schedules, and team coordination in one place.",
-    href: "/features/project-hub" },
+    href: "/project-hub" },
   { key: "content-studio", icon: "🎨", label: "Create", title: "Content Studio", accent: "#FF4D00",
     desc: "Branded reports, bid packages, social posts, and client microsites from your live project data.",
     href: "/features/content-studio" },

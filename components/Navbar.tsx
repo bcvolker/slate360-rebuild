@@ -15,7 +15,7 @@ const features = [
   },
   {
     label: "Project Hub",
-    href: "/features/project-hub",
+    href: "/project-hub",
     desc: "RFIs, submittals, budgets & scheduling",
     icon: "📋",
   },

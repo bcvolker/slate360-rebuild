@@ -3,7 +3,7 @@ import Link from "next/link";
 
 const features = [
   { label: "Design Studio", href: "/features/design-studio" },
-  { label: "Project Hub", href: "/features/project-hub" },
+  { label: "Project Hub", href: "/project-hub" },
   { label: "Content Studio", href: "/features/content-studio" },
   { label: "360 Tour Builder", href: "/features/360-tour-builder" },
   { label: "Geospatial & Robotics", href: "/features/geospatial-robotics" },
