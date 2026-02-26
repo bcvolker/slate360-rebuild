@@ -43,6 +43,7 @@ import {
   buildDefaultPrefs,
   HUB_STORAGE_KEY,
 } from "@/components/widgets/widget-meta";
+import { loadWidgetPrefs, saveWidgetPrefs } from "@/components/widgets/widget-prefs-storage";
 import {
   WeatherWidgetBody,
   FinancialWidgetBody,
@@ -123,41 +124,10 @@ export default function ProjectHubPage() {
   const [slateDropFiles, setSlateDropFiles] = useState<{ name: string }[]>([]);
   const [slateDropWidgetView, setSlateDropWidgetView] = useState<"recent" | "folders">("folders");
 
-  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const s = localStorage.getItem(HUB_STORAGE_KEY);
-        if (s) {
-          const parsed = JSON.parse(s);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            if (typeof parsed[0] === "string") {
-              return DEFAULT_HUB_PREFS.map((def) => ({
-                ...def,
-                visible: (parsed as string[]).includes(def.id),
-                order: (parsed as string[]).includes(def.id)
-                  ? (parsed as string[]).indexOf(def.id)
-                  : def.order + 100,
-              }));
-            }
-            return DEFAULT_HUB_PREFS.map((def) => {
-              const found = (parsed as WidgetPref[]).find((p) => p.id === def.id);
-              return found ?? def;
-            });
-          }
-        }
-      } catch {
-        // ignore
-      }
-    }
-    return DEFAULT_HUB_PREFS;
-  });
+  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(() => loadWidgetPrefs(HUB_STORAGE_KEY, DEFAULT_HUB_PREFS));
 
   useEffect(() => {
-    try {
-      localStorage.setItem(HUB_STORAGE_KEY, JSON.stringify(widgetPrefs));
-    } catch {
-      // ignore
-    }
+    saveWidgetPrefs(HUB_STORAGE_KEY, widgetPrefs);
   }, [widgetPrefs]);
 
   const orderedVisible = useMemo(

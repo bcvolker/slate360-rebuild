@@ -19,6 +19,12 @@ import {
   DASHBOARD_STORAGE_KEY,
 } from "@/components/widgets/widget-meta";
 import {
+  loadWidgetPrefs,
+  mergeWidgetPrefs,
+  saveWidgetPrefs,
+  WIDGET_PREFS_SCHEMA_VERSION,
+} from "@/components/widgets/widget-prefs-storage";
+import {
   Search,
   Bell,
   LogOut,
@@ -513,23 +519,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [customizeOpen, setCustomizeOpen] = useState(false);
-  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const cached = localStorage.getItem(DASHBOARD_STORAGE_KEY);
-        if (cached) {
-          const parsed = JSON.parse(cached) as WidgetPref[];
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return DEFAULT_WIDGET_PREFS.map((def) => {
-              const found = parsed.find((p) => p.id === def.id);
-              return found ?? def;
-            });
-          }
-        }
-      } catch { /* ignore */ }
-    }
-    return DEFAULT_WIDGET_PREFS;
-  });
+  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(() => loadWidgetPrefs(DASHBOARD_STORAGE_KEY, DEFAULT_WIDGET_PREFS));
   const [prefsDirty, setPrefsDirty] = useState(false);
   const [prefsSaving, setPrefsSaving] = useState(false);
   const [dashDragIdx, setDashDragIdx] = useState<number | null>(null);
@@ -698,13 +688,11 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user: u } }) => {
       const saved = u?.user_metadata?.dashboardWidgets as WidgetPref[] | undefined;
-      if (saved && Array.isArray(saved) && saved.length > 0) {
-        const merged = DEFAULT_WIDGET_PREFS.map((def) => {
-          const found = saved.find((s) => s.id === def.id);
-          return found ?? def;
-        });
+      const savedVersion = Number(u?.user_metadata?.dashboardWidgetsVersion ?? 0);
+      if (savedVersion === WIDGET_PREFS_SCHEMA_VERSION && saved && Array.isArray(saved) && saved.length > 0) {
+        const merged = mergeWidgetPrefs(DEFAULT_WIDGET_PREFS, saved);
         setWidgetPrefs(merged);
-        try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(merged)); } catch { /* ignore */ }
+        saveWidgetPrefs(DASHBOARD_STORAGE_KEY, merged);
       }
     });
 
@@ -1162,7 +1150,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const toggleVisible = useCallback((id: string) => {
     setWidgetPrefs((prev) => {
       const next = prev.map((p) => p.id === id ? { ...p, visible: !p.visible } : p);
-      try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      saveWidgetPrefs(DASHBOARD_STORAGE_KEY, next);
       return next;
     });
     setPrefsDirty(true);
@@ -1170,7 +1158,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const toggleExpanded = useCallback((id: string) => {
     setWidgetPrefs((prev) => {
       const next = prev.map((p) => p.id === id ? { ...p, expanded: !p.expanded } : p);
-      try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      saveWidgetPrefs(DASHBOARD_STORAGE_KEY, next);
       return next;
     });
     setPrefsDirty(true);
@@ -1186,7 +1174,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         if (i === target) return { ...p, order: arr[idx].order };
         return p;
       });
-      try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(newArr)); } catch { /* ignore */ }
+      saveWidgetPrefs(DASHBOARD_STORAGE_KEY, newArr);
       return newArr;
     });
     setPrefsDirty(true);
@@ -1194,8 +1182,13 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const savePrefs = useCallback(async () => {
     setPrefsSaving(true);
     try {
-      await supabase.auth.updateUser({ data: { dashboardWidgets: widgetPrefs } });
-      try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(widgetPrefs)); } catch { /* ignore */ }
+      await supabase.auth.updateUser({
+        data: {
+          dashboardWidgets: widgetPrefs,
+          dashboardWidgetsVersion: WIDGET_PREFS_SCHEMA_VERSION,
+        },
+      });
+      saveWidgetPrefs(DASHBOARD_STORAGE_KEY, widgetPrefs);
       setPrefsDirty(false);
     } finally {
       setPrefsSaving(false);
@@ -1203,7 +1196,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   }, [supabase, widgetPrefs]);
   const resetPrefs = useCallback(() => {
     setWidgetPrefs(DEFAULT_WIDGET_PREFS);
-    try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(DEFAULT_WIDGET_PREFS)); } catch { /* ignore */ }
+    saveWidgetPrefs(DASHBOARD_STORAGE_KEY, DEFAULT_WIDGET_PREFS);
     setPrefsDirty(true);
   }, []);
 
@@ -1221,7 +1214,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         const visIdx = visIds.indexOf(p.id);
         return visIdx >= 0 ? { ...p, order: visIdx } : p;
       });
-      try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      saveWidgetPrefs(DASHBOARD_STORAGE_KEY, next);
       return next;
     });
     setDashDragIdx(idx);

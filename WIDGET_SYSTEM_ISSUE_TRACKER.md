@@ -17,6 +17,7 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
 | W-005 | Deploy visibility | New changes not visible consistently across environments | Suspected stale CDN/browser/server cache + deploy propagation timing | Monitoring | `next.config.ts`, `app/deploy-check/page.tsx`, `app/api/deploy-info/route.ts` |
 | W-006 | Dashboard/Hub parity regression | Dashboard location widget defaults differ from Project Hub and expanded map can collapse to a small sliver while UI dominates | Runtime behavior divergence in control-panel/layout state and widget sizing defaults | Fixed in code (re-verify live) | `components/dashboard/LocationMap.tsx`, `components/project-hub/ProjectDashboardGrid.tsx`, `app/(dashboard)/project-hub/page.tsx` |
 | W-007 | Google Maps API deprecation | Browser console shows deprecations for `DirectionsService` and `DirectionsRenderer` and map styling/tilt warnings | Legacy routes API usage and mapId + raster/tilt limitations in current implementation | In progress | `components/dashboard/LocationMap.tsx` |
+| W-008 | Widget state masking new UI | New widget behavior appears unchanged despite deploys | Persisted widget prefs (localStorage / user metadata) can replay stale layout/visibility/order state across routes | Fixed in code (schema reset) | `components/widgets/widget-prefs-storage.ts`, `components/dashboard/DashboardClient.tsx`, `app/(dashboard)/project-hub/page.tsx`, `components/project-hub/ProjectDashboardGrid.tsx` |
 
 ## Change Log
 
@@ -130,6 +131,17 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
   - Disabled drag on the location widget card (`draggable={!w.expanded && w.id !== "location"}`) so map pan/drag gestures are not hijacked by HTML5 card drag.
 - Post-fix structural validation:
   - `node scripts/widget-block-isolation-test.mjs` => `8/8 PASS`.
+
+### 2026-02-26 — Session G
+- Unified widget preference persistence under a shared, schema-versioned storage path:
+  - Added `components/widgets/widget-prefs-storage.ts`.
+  - Standardized load/save/merge behavior for dashboard, project hub, and project-level hub widgets.
+- Added schema guard for Supabase user metadata widget prefs in dashboard:
+  - Dashboard now only hydrates saved metadata prefs when `dashboardWidgetsVersion` matches current schema.
+  - Save path now writes both `dashboardWidgets` and `dashboardWidgetsVersion`.
+- Expected impact:
+  - Prevents stale persisted widget state from masking route-level UI changes after deploy.
+  - Forces deterministic defaults for this schema version while keeping future saves consistent.
 
 ## Next Actions
 

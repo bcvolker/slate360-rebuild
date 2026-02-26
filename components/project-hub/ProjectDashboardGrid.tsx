@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import WidgetCard from "@/components/widgets/WidgetCard";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
+import { loadWidgetPrefs, saveWidgetPrefs, WIDGET_PREFS_SCHEMA_VERSION } from "@/components/widgets/widget-prefs-storage";
 import {
   ContinueWidgetBody,
   WeatherWidgetBody,
@@ -68,25 +69,9 @@ export default function ProjectDashboardGrid({
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
 
-  const storageKey = `slate360-project-widgets-${projectId}`;
+  const storageKey = `slate360-project-widgets-v${WIDGET_PREFS_SCHEMA_VERSION}-${projectId}`;
 
-  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(() => {
-    if (typeof window === "undefined") return buildProjectDefaultPrefs();
-    try {
-      const cached = localStorage.getItem(storageKey);
-      if (!cached) return buildProjectDefaultPrefs();
-      const parsed = JSON.parse(cached) as WidgetPref[];
-      if (!Array.isArray(parsed) || parsed.length === 0) return buildProjectDefaultPrefs();
-      return buildProjectDefaultPrefs().map((def) => {
-        const existing = parsed.find((entry) => entry.id === def.id);
-        return existing
-          ? { ...def, visible: !!existing.visible, expanded: !!existing.expanded, order: existing.order }
-          : def;
-      });
-    } catch {
-      return buildProjectDefaultPrefs();
-    }
-  });
+  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(() => loadWidgetPrefs(storageKey, buildProjectDefaultPrefs()));
 
   useEffect(() => {
     let active = true;
@@ -106,11 +91,7 @@ export default function ProjectDashboardGrid({
   }, [projectId]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(widgetPrefs));
-    } catch {
-      // ignore local storage write failures
-    }
+    saveWidgetPrefs(storageKey, widgetPrefs);
   }, [storageKey, widgetPrefs]);
 
   const orderedVisible = useMemo(
