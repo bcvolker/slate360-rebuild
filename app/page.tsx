@@ -312,7 +312,6 @@ export default function HomePage() {
             <p className="text-base sm:text-xl text-gray-500 leading-relaxed mb-5 sm:mb-8">
               Manage building projects administratively and visually — one
               elegant platform for professionals who build, design, and deliver.
-              <span className="block mt-2 text-xs font-mono text-orange-400">▸ v4 deploy test — if visible, pipeline confirmed</span>
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
