@@ -48,6 +48,64 @@ function buildFolderTreeIds(rows: FolderRow[], rootId: string): string[] {
   return output;
 }
 
+export async function GET(req: NextRequest) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const projectId = req.nextUrl.searchParams.get("projectId")?.trim() ?? "";
+  const { admin, orgId } = await resolveProjectScope(user.id);
+
+  let query = admin
+    .from("project_folders")
+    .select("id, name, project_id, folder_path")
+    .order("name", { ascending: true })
+    .limit(200);
+
+  if (projectId) {
+    query = query.eq("project_id", projectId);
+  }
+
+  query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", user.id);
+
+  const { data, error } = await query;
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  const folders = (data ?? []).map((folder) => ({
+    id: folder.id,
+    name: folder.name,
+    project_id: folder.project_id,
+    folder_path: folder.folder_path,
+    file_count: 0,
+  }));
+
+  return NextResponse.json({ folders });
+}
+
+export async function HEAD(req: NextRequest) {
+  const response = await GET(req);
+  return new NextResponse(null, {
+    status: response.status,
+    headers: response.headers,
+  });
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      Allow: "GET,HEAD,POST,PATCH,DELETE,OPTIONS",
+      "Access-Control-Allow-Methods": "GET,HEAD,POST,PATCH,DELETE,OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
+  });
+}
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const {

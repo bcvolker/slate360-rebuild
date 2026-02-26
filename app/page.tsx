@@ -35,11 +35,10 @@ const ModelViewer = dynamic(() => import("@/components/ModelViewerClient"), {
 const platforms = [
   {
     key: "project-hub",
-    icon: "📋",
+    href: "/project-hub",
     label: "Manage",
     title: "Project Hub",
     desc: "Command center for every project — RFIs, submittals, budgets, schedules, and team coordination in one place.",
-    href: "/features/project-hub",
     accent: "#1E3A8A",
     bg: "from-blue-50 to-white",
   },
