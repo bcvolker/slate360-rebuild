@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { APIProvider, Marker, Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { usePathname } from "next/navigation";
 import {
   ArrowUpDown,
@@ -292,30 +292,33 @@ function DrawController({
     setIsLoadingRoute(true);
     directionsRendererRef.current.setMap(map);
 
-    directionsService.route(
-      {
+    try {
+      const result = await directionsService.route({
         origin: origin.trim(),
         destination: dest.trim(),
-        travelMode: mode as any,
-      },
-      (result: any, status: string) => {
-        setIsLoadingRoute(false);
-        if (status === "OK" && result?.routes?.[0]) {
-          directionsRendererRef.current.setDirections(result);
-          const leg = result.routes[0].legs[0];
-          const dist = leg.distance?.text ?? "";
-          const dur = leg.duration?.text ?? "";
-          setRouteInfo({ distance: dist, duration: dur });
-          const gmapsUrl = buildGoogleMapsUrl(origin, dest, mode);
-          onRouteReady({ origin, destination: dest, travelMode: mode, distance: dist, duration: dur, googleMapsUrl: gmapsUrl });
-          setStatus({ ok: true, text: `Route: ${dist} · ${dur}` });
-        } else {
-          setRouteInfo(null);
-          setStatus({ ok: false, text: "Could not find a route between those locations." });
-        }
+        travelMode: mode as unknown as google.maps.TravelMode,
+      });
+      setIsLoadingRoute(false);
+      if (result?.routes?.[0]) {
+        directionsRendererRef.current.setDirections(result);
+        const leg = result.routes[0].legs[0];
+        const dist = leg.distance?.text ?? "";
+        const dur = leg.duration?.text ?? "";
+        setRouteInfo({ distance: dist, duration: dur });
+        const gmapsUrl = buildGoogleMapsUrl(origin, dest, mode);
+        onRouteReady({ origin, destination: dest, travelMode: mode, distance: dist, duration: dur, googleMapsUrl: gmapsUrl });
+        setStatus({ ok: true, text: `Route: ${dist} · ${dur}` });
+      } else {
+        setRouteInfo(null);
+        setStatus({ ok: false, text: "Could not find a route between those locations." });
       }
-    );
-  }, [map, setStatus, directionsService, routesLib]);
+    } catch (err: any) {
+      setIsLoadingRoute(false);
+      setRouteInfo(null);
+      const msg = err?.message || "Could not find a route between those locations.";
+      setStatus({ ok: false, text: msg });
+    }
+  }, [map, setStatus, directionsService, routesLib, onRouteReady]);
 
   const clearDirections = () => {
     if (directionsRendererRef.current) {
@@ -1183,32 +1186,97 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   }, [selectedProjectId]);
 
   const createPdfBlob = async () => {
-    const lines: string[] = [
-      "SLATE360 — Map Export",
-      `Generated: ${new Date().toLocaleString()}`,
-      `Location: ${addressQuery || "N/A"}`,
-      `Center: ${mapCenter.lat.toFixed(6)}, ${mapCenter.lng.toFixed(6)}`,
-      "",
-    ];
+    const { default: jsPDF } = await import("jspdf");
+    const { default: html2canvas } = await import("html2canvas");
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
 
-    if (routeData) {
-      lines.push(
-        "--- Directions ---",
-        `From: ${routeData.origin}`,
-        `To: ${routeData.destination}`,
-        `Mode: ${routeData.travelMode}`,
-        `Distance: ${routeData.distance}`,
-        `Duration: ${routeData.duration}`,
-        "",
-        `Google Maps Link: ${routeData.googleMapsUrl}`,
-        "",
-      );
+    // Try capturing the map canvas
+    let mapImgData: string | null = null;
+    if (mapCanvasRef.current) {
+      try {
+        const canvas = await html2canvas(mapCanvasRef.current, {
+          useCORS: true,
+          allowTaint: true,
+          scale: 2,
+          backgroundColor: "#ffffff",
+          ignoreElements: (el) => {
+            // Skip elements that may use oklch or other unsupported CSS
+            return el.tagName === "STYLE" || el.classList?.contains("gm-style-pbc");
+          },
+        });
+        mapImgData = canvas.toDataURL("image/jpeg", 0.92);
+      } catch (e) {
+        console.warn("html2canvas failed, generating text-only PDF", e);
+      }
     }
 
-    lines.push("Tip: Open the Google Maps link above to navigate in real-time.");
+    if (mapImgData) {
+      // Full-width map image
+      const margin = 8;
+      const imgW = pageW - margin * 2;
+      const imgH = pageH * 0.65;
+      pdf.addImage(mapImgData, "JPEG", margin, margin, imgW, imgH);
 
-    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
-    return { blob, filename: `map-export-${Date.now()}.txt` };
+      // Info text below the map
+      let y = margin + imgH + 8;
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("SLATE360 — Map Export", margin, y);
+      y += 7;
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
+      y += 5;
+      if (addressQuery) {
+        pdf.text(`Location: ${addressQuery}`, margin, y);
+        y += 5;
+      }
+
+      if (routeData) {
+        y += 2;
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Directions", margin, y);
+        y += 5;
+        pdf.setFont("helvetica", "normal");
+        pdf.text(`From: ${routeData.origin}`, margin, y); y += 4;
+        pdf.text(`To: ${routeData.destination}`, margin, y); y += 4;
+        pdf.text(`Mode: ${routeData.travelMode}  ·  Distance: ${routeData.distance}  ·  Duration: ${routeData.duration}`, margin, y); y += 5;
+        pdf.setTextColor(0, 102, 204);
+        pdf.textWithLink(routeData.googleMapsUrl, margin, y, { url: routeData.googleMapsUrl });
+        pdf.setTextColor(0, 0, 0);
+      }
+    } else {
+      // Fallback text-only layout
+      let y = 20;
+      pdf.setFontSize(18);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("SLATE360 — Map Export", 14, y); y += 10;
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, 14, y); y += 6;
+      pdf.text(`Location: ${addressQuery || "N/A"}`, 14, y); y += 6;
+      pdf.text(`Center: ${mapCenter.lat.toFixed(6)}, ${mapCenter.lng.toFixed(6)}`, 14, y); y += 8;
+
+      if (routeData) {
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Directions", 14, y); y += 6;
+        pdf.setFont("helvetica", "normal");
+        pdf.text(`From: ${routeData.origin}`, 14, y); y += 5;
+        pdf.text(`To: ${routeData.destination}`, 14, y); y += 5;
+        pdf.text(`Mode: ${routeData.travelMode}  ·  Distance: ${routeData.distance}  ·  Duration: ${routeData.duration}`, 14, y); y += 6;
+        pdf.setTextColor(0, 102, 204);
+        pdf.textWithLink(`Open in Google Maps: ${routeData.googleMapsUrl}`, 14, y, { url: routeData.googleMapsUrl });
+        pdf.setTextColor(0, 0, 0);
+        y += 8;
+      }
+
+      pdf.text("Tip: Open the Google Maps link to navigate in real-time.", 14, y);
+    }
+
+    const blob = pdf.output("blob");
+    return { blob, filename: `map-export-${Date.now()}.pdf` };
   };
 
   const handleDownloadPDF = async () => {
@@ -1517,7 +1585,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                 tiltInteractionEnabled={true}
                 headingInteractionEnabled={true}
               >
-                <Marker position={mapCenter} />
               </Map>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 text-center">
