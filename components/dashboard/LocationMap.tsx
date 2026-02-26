@@ -167,7 +167,7 @@ function DrawController({
   onToggleSharePanel: () => void;
 }) {
   
-  const map = useMap();
+  const map = useMap("main-map");
   console.log("DrawController map:", map ? "loaded" : "null");
   const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   const geocodingLib = useMapsLibrary("geocoding");
@@ -1350,6 +1350,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
           <div ref={mapCanvasRef} className={`flex-1 relative min-h-0 ${isModal ? "min-h-[55vh]" : "min-h-[180px]"}`}>
             {mapsApiKey ? (
               <Map
+                id="main-map"
                 className="w-full h-full absolute inset-0"
                 style={{ width: '100%', height: '100%' }}
                 defaultZoom={13}
