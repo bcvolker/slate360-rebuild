@@ -296,11 +296,6 @@ export default function HomePage() {
     <div className="bg-white min-h-screen text-gray-900 antialiased">
       <Navbar />
 
-      {/* ── TEST CANARY — remove after confirming deploy ── */}
-      <div style={{background:"#FF4D00",color:"#fff",textAlign:"center",padding:"10px",fontWeight:700,fontSize:"14px",letterSpacing:"0.05em"}}>
-        🚧 DEPLOY CANARY — BUILD 2026-02-26-v4 — REMOVE AFTER CONFIRMING 🚧
-      </div>
-
       {/* ────── HERO — full viewport ────── */}
       <section className="min-h-[100dvh] flex flex-col justify-center pt-16 pb-[max(env(safe-area-inset-bottom),1rem)] px-6 sm:px-10 lg:px-16 bg-gradient-to-br from-blue-50/40 via-white to-orange-50/30">
         <div className="max-w-[88rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-14 items-center py-4 lg:py-0">
