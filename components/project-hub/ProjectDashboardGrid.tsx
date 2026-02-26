@@ -176,7 +176,7 @@ export default function ProjectDashboardGrid({
 
     if (id === "location") {
       return (
-        <div className={expanded ? "min-h-[420px] flex flex-col" : "flex-1 flex flex-col"}>
+        <div className={expanded ? "min-h-[420px] flex flex-col" : "min-h-[200px] flex flex-col"}>
           <LocationMap
             locationLabel={project.metadata?.location}
             compact={!expanded}
@@ -261,7 +261,7 @@ export default function ProjectDashboardGrid({
               span={getProjectWidgetSpan(pref.id, pref.expanded)}
               onExpand={() => toggleExpanded(pref.id)}
               isExpanded={pref.expanded}
-              draggable={!pref.expanded}
+              draggable={!pref.expanded && pref.id !== "location"}
               onDragStart={() => handleDragStart(idx)}
               onDragOver={(e) => handleDragOver(e, idx)}
               onDragEnd={handleDragEnd}
