@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="scroll-smooth" data-build="2026-02-26-v3">
       <body className={`${geistSans.variable} antialiased`}>
         <Web3Providers>
           <TooltipProvider>{children}</TooltipProvider>
