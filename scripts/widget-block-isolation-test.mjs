@@ -56,8 +56,8 @@ results.push(
 results.push(
   check(
     "Expanded map-first controls behavior",
-    locationMap.includes("const showToolbar = controlsExpanded;"),
-    "Expanded mode collapses controls by default"
+    locationMap.includes("const showToolbar = true;") && locationMap.includes("condensed={!controlsExpanded}"),
+    "Compact controls stay visible while advanced tools remain collapsed by default"
   )
 );
 

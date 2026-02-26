@@ -144,6 +144,7 @@ function DrawController({
   setStrokeWeight,
   setAddressQuery,
   setMapCenter,
+  condensed,
 }: {
   setStatus: (value: { ok: boolean; text: string } | null) => void;
   strokeColor: string;
@@ -154,6 +155,7 @@ function DrawController({
   setStrokeWeight: (value: number) => void;
   setAddressQuery: (value: string) => void;
   setMapCenter: (value: { lat: number; lng: number }) => void;
+  condensed: boolean;
 }) {
   const map = useMap();
   const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
@@ -601,7 +603,8 @@ function DrawController({
   return (
     <>
       {/* ── Mode toggle ─────────────────────────────────────────── */}
-      <div className="flex items-center gap-1 px-4 pt-3 pb-0">
+      {!condensed && (
+      <div className="flex items-center gap-1 px-3 pt-2 pb-0">
         <button
           type="button"
           onClick={() => setMapMode("markup")}
@@ -625,13 +628,14 @@ function DrawController({
           <Navigation size={11} /> Directions
         </button>
       </div>
+      )}
 
       {/* ── Markup panel ────────────────────────────────────────── */}
-      {mapMode === "markup" && (
-      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/60 space-y-2">
+      {(condensed || mapMode === "markup") && (
+      <div className={`border-b border-gray-100 bg-gray-50/60 ${condensed ? "px-3 py-2" : "px-4 py-3"} space-y-2`}>
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
           <div className="relative">
-            <div className="flex items-center rounded-lg border border-gray-200 bg-white px-2.5 py-2">
+            <div className={`flex items-center rounded-lg border border-gray-200 bg-white ${condensed ? "px-2 py-1.5" : "px-2.5 py-2"}`}>
               <Search size={13} className="text-gray-400 mr-1.5" />
               <input
                 type="text"
@@ -662,7 +666,7 @@ function DrawController({
             <button
               type="button"
               onClick={goToCurrentLocation}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+              className={`inline-flex items-center justify-center gap-1 rounded-lg border border-gray-200 ${condensed ? "px-2 py-1.5 text-[11px]" : "px-2.5 py-2 text-xs"} font-semibold text-gray-700 hover:bg-gray-100`}
               title="Use current location"
             >
               <LocateFixed size={12} /> Locate
@@ -671,6 +675,8 @@ function DrawController({
           </div>
         </div>
 
+        {!condensed && (
+        <>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <button
             type="button"
@@ -762,6 +768,8 @@ function DrawController({
             <span className="text-[10px] text-gray-500 w-5 text-right">{strokeWeight}</span>
           </div>
         </div>
+        </>
+        )}
       </div>
       )}{/* end markup panel */}
 
@@ -1320,7 +1328,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
 
   const renderMapCanvas = (mode: "inline" | "expanded") => {
     const isModal = mode === "expanded";
-    const showToolbar = controlsExpanded;
+    const showToolbar = true;
     const toolbarShellClass = isModal
       ? "shrink-0 max-h-[16vh] overflow-y-auto"
       : "shrink-0";
@@ -1389,6 +1397,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                 setStrokeWeight={setStrokeWeight}
                 setAddressQuery={setAddressQuery}
                 setMapCenter={setMapCenter}
+                condensed={!controlsExpanded}
               />
             </div>
           )}
@@ -1401,7 +1410,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
               gestureHandling={"greedy"}
               disableDefaultUI={true}
               mapTypeId={isThreeD ? "satellite" : "roadmap"}
-              tilt={isThreeD ? 45 : 0}
+              tilt={0}
             >
               <AdvancedMarker position={mapCenter} />
             </Map>

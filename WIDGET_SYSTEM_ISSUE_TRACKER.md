@@ -206,6 +206,25 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
     - Heavy toolbar (`DrawController`) now appears only when `controlsExpanded` is true in both inline and expanded modes.
     - Makes compact location widget genuinely map-first by default instead of toolbar-first.
 
+### 2026-02-26 — Session M (SlateDrop Folder UX + Condensed Location Controls)
+- User feedback after Session L:
+  - Widget sizing is now consistent.
+  - SlateDrop expand behavior still not defaulting to folder structure.
+  - Location map controls still too large and address autocomplete not consistently accessible in compact mode.
+- Fixes applied:
+  - `components/dashboard/DashboardClient.tsx`
+    - SlateDrop widget default view changed to `folders`.
+    - Expanding SlateDrop now forces `folders` view to surface tier-gated structure immediately.
+  - `app/(dashboard)/project-hub/page.tsx`
+    - Expanding SlateDrop now forces `folders` view for consistent behavior with dashboard.
+  - `components/dashboard/LocationMap.tsx`
+    - Introduced condensed control mode in shared `DrawController`.
+    - Address search/autocomplete + locate are always visible in compact mode.
+    - Heavy tools (markup tool grid/style controls + mode switcher) remain collapsed until `Show Controls` is enabled.
+    - Removed forced map `tilt` to reduce camera/tilt warnings and improve map interaction predictability.
+  - `scripts/widget-block-isolation-test.mjs`
+    - Updated expectation for new condensed-controls model.
+
 ## Next Actions
 
 1. Run the revised block-isolation test strategy and log concrete measurements/screenshots for both routes.

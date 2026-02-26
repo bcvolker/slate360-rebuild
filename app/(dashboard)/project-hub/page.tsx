@@ -233,6 +233,9 @@ export default function ProjectHubPage() {
   };
 
   const toggleWidgetExpanded = (id: string) => {
+    if (id === "slatedrop") {
+      setSlateDropWidgetView("folders");
+    }
     setWidgetPrefs((prev) =>
       prev.map((p) => (p.id === id ? { ...p, expanded: !p.expanded } : p))
     );

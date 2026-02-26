@@ -679,7 +679,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
   const [dashboardSummary, setDashboardSummary] = useState<{ recentFiles: any[]; storageUsed: number } | null>(null);
   const [slateDropFiles, setSlateDropFiles] = useState<any[]>([]);
-  const [slateDropWidgetView, setSlateDropWidgetView] = useState<"recent" | "folders">("recent");
+  const [slateDropWidgetView, setSlateDropWidgetView] = useState<"recent" | "folders">("folders");
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [liveWeather, setLiveWeather] = useState<LiveWeatherState | null>(null);
   const [widgetsData, setWidgetsData] = useState<DashboardWidgetsPayload | null>(null);
@@ -1587,6 +1587,9 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             const span = getWidgetSpan(id, expanded);
             const widgetColor = WIDGET_META.find((m) => m.id === id)?.color ?? "#FF4D00";
             const toggleExpand = inPopout ? undefined : () => {
+              if (id === "slatedrop") {
+                setSlateDropWidgetView("folders");
+              }
               setWidgetPrefs((prev) => {
                 const next = prev.map((p) => (p.id === id ? { ...p, expanded: !p.expanded } : p));
                 try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
