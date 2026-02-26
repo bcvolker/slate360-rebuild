@@ -1,70 +1,292 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Responsive, WidthProvider } from "react-grid-layout/legacy";
-import { CloudSun, FileText } from "lucide-react";
+import {
+  Clock,
+  FileText,
+  FolderOpen,
+  Info,
+  MapPin,
+  SlidersHorizontal,
+  Sun,
+} from "lucide-react";
+import WidgetCard from "@/components/widgets/WidgetCard";
+import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
+import {
+  ContinueWidgetBody,
+  WeatherWidgetBody,
+} from "@/components/widgets/WidgetBodies";
+import type { WidgetMeta, WidgetPref } from "@/components/widgets/widget-meta";
+import LocationMap from "@/components/dashboard/LocationMap";
 
-// INJECTING CSS DIRECTLY TO PREVENT WHITE WIREFRAME COLLAPSE
-const injectedCSS = `
-  .react-grid-layout { position: relative; transition: height 200ms ease; }
-  .react-grid-item { transition: all 200ms ease; transition-property: left, top; }
-  .react-grid-item.cssTransforms { transition-property: transform; }
-  .react-grid-item.resizing { z-index: 1; will-change: width, height; }
-  .react-grid-item.react-draggable-dragging { transition: none; z-index: 3; will-change: transform; }
-  .react-grid-item.react-grid-placeholder { background: #FF4D00; opacity: 0.2; transition-duration: 100ms; z-index: 2; border-radius: 1rem; }
-`;
+type ProjectGridProject = {
+  name?: string;
+  description?: string | null;
+  status?: string;
+  created_at?: string;
+  metadata?: {
+    location?: string;
+  };
+};
 
-const ResponsiveGridLayout = WidthProvider(Responsive);
+type RecentFile = {
+  id: string;
+  name: string;
+};
 
-export default function ProjectDashboardGrid({ projectId, project }: { projectId: string, project: any }) {
-  const [files, setFiles] = useState<any[]>([]);
+const PROJECT_WIDGET_META: WidgetMeta[] = [
+  { id: "project-info", label: "Project Info", icon: Info, color: "#1E3A8A" },
+  { id: "location", label: "Location", icon: MapPin, color: "#1E3A8A" },
+  { id: "weather", label: "Weather", icon: Sun, color: "#0891B2" },
+  { id: "slatedrop", label: "SlateDrop", icon: FolderOpen, color: "#FF4D00" },
+  { id: "continue", label: "Continue Working", icon: Clock, color: "#FF4D00" },
+];
+
+function buildProjectDefaultPrefs(): WidgetPref[] {
+  return PROJECT_WIDGET_META.map((widget, index) => ({
+    id: widget.id,
+    visible: true,
+    expanded: widget.id === "location",
+    order: index,
+  }));
+}
+
+function getProjectWidgetSpan(id: string, expanded: boolean): string {
+  if (id === "location" || id === "slatedrop") {
+    return expanded ? "md:col-span-2" : "md:col-span-2";
+  }
+  return expanded ? "md:col-span-2" : "";
+}
+
+export default function ProjectDashboardGrid({
+  projectId,
+  project,
+}: {
+  projectId: string;
+  project: ProjectGridProject;
+}) {
+  const [files, setFiles] = useState<RecentFile[]>([]);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  const storageKey = `slate360-project-widgets-${projectId}`;
+
+  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(() => {
+    if (typeof window === "undefined") return buildProjectDefaultPrefs();
+    try {
+      const cached = localStorage.getItem(storageKey);
+      if (!cached) return buildProjectDefaultPrefs();
+      const parsed = JSON.parse(cached) as WidgetPref[];
+      if (!Array.isArray(parsed) || parsed.length === 0) return buildProjectDefaultPrefs();
+      return buildProjectDefaultPrefs().map((def) => {
+        const existing = parsed.find((entry) => entry.id === def.id);
+        return existing
+          ? { ...def, visible: !!existing.visible, expanded: !!existing.expanded, order: existing.order }
+          : def;
+      });
+    } catch {
+      return buildProjectDefaultPrefs();
+    }
+  });
 
   useEffect(() => {
-    fetch(`/api/projects/${projectId}/recent-files`).then(r => r.json()).then(d => setFiles(d.files || []));
+    let active = true;
+    void fetch(`/api/projects/${projectId}/recent-files`, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((payload: { files?: RecentFile[] }) => {
+        if (!active) return;
+        setFiles(Array.isArray(payload.files) ? payload.files : []);
+      })
+      .catch(() => {
+        if (!active) return;
+        setFiles([]);
+      });
+    return () => {
+      active = false;
+    };
   }, [projectId]);
 
-  const layouts = { lg: [ { i: "info", x: 0, y: 0, w: 4, h: 2 }, { i: "weather", x: 4, y: 0, w: 4, h: 2 }, { i: "files", x: 0, y: 2, w: 8, h: 2 } ] };
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(widgetPrefs));
+    } catch {
+      // ignore local storage write failures
+    }
+  }, [storageKey, widgetPrefs]);
+
+  const orderedVisible = useMemo(
+    () => [...widgetPrefs].filter((pref) => pref.visible).sort((a, b) => a.order - b.order),
+    [widgetPrefs],
+  );
+
+  const toggleVisible = useCallback((id: string) => {
+    setWidgetPrefs((prev) => prev.map((pref) => (pref.id === id ? { ...pref, visible: !pref.visible } : pref)));
+  }, []);
+
+  const toggleExpanded = useCallback((id: string) => {
+    setWidgetPrefs((prev) => prev.map((pref) => (pref.id === id ? { ...pref, expanded: !pref.expanded } : pref)));
+  }, []);
+
+  const moveOrder = useCallback((id: string, dir: -1 | 1) => {
+    setWidgetPrefs((prev) => {
+      const sorted = [...prev].sort((a, b) => a.order - b.order);
+      const idx = sorted.findIndex((pref) => pref.id === id);
+      const target = idx + dir;
+      if (idx < 0 || target < 0 || target >= sorted.length) return prev;
+      return sorted.map((pref, i) => {
+        if (i === idx) return { ...pref, order: sorted[target].order };
+        if (i === target) return { ...pref, order: sorted[idx].order };
+        return pref;
+      });
+    });
+  }, []);
+
+  const handleDragStart = useCallback((idx: number) => setDragIdx(idx), []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    if (dragIdx === null || dragIdx === idx) return;
+    setWidgetPrefs((prev) => {
+      const visible = [...prev].filter((pref) => pref.visible).sort((a, b) => a.order - b.order);
+      const ids = visible.map((pref) => pref.id);
+      const [moved] = ids.splice(dragIdx, 1);
+      ids.splice(idx, 0, moved);
+      return prev.map((pref) => {
+        const visibleIndex = ids.indexOf(pref.id);
+        return visibleIndex >= 0 ? { ...pref, order: visibleIndex } : pref;
+      });
+    });
+    setDragIdx(idx);
+  }, [dragIdx]);
+
+  const handleDragEnd = useCallback(() => setDragIdx(null), []);
+
+  const renderBody = (id: string, expanded: boolean) => {
+    if (id === "project-info") {
+      return (
+        <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 flex-1">
+          <p className="text-lg font-black text-[#1E3A8A]">{project.name ?? "Project"}</p>
+          <p className="text-sm text-gray-500 mt-1">{project.description || "No description provided."}</p>
+          <div className="mt-4 flex items-center justify-between text-[11px] text-gray-400">
+            <span>Status: {project.status ?? "active"}</span>
+            <span>{project.created_at ? new Date(project.created_at).toLocaleDateString() : ""}</span>
+          </div>
+        </div>
+      );
+    }
+
+    if (id === "location") {
+      return (
+        <div className={expanded ? "min-h-[420px] flex flex-col" : "flex-1 flex flex-col"}>
+          <LocationMap
+            locationLabel={project.metadata?.location}
+            compact={!expanded}
+          />
+        </div>
+      );
+    }
+
+    if (id === "weather") {
+      return <WeatherWidgetBody tempF={72} condition="Project site weather" expanded={expanded} />;
+    }
+
+    if (id === "slatedrop") {
+      return (
+        <div className="space-y-3 flex-1">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-gray-500">Recent project files</p>
+            <Link
+              href={`/project-hub/${projectId}/slatedrop`}
+              className="text-[11px] font-bold text-[#FF4D00] hover:underline"
+            >
+              View All
+            </Link>
+          </div>
+          {files.length === 0 ? (
+            <p className="text-xs text-gray-400 rounded-xl border border-gray-100 bg-gray-50 p-3">No files yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {files.slice(0, expanded ? 8 : 4).map((file) => (
+                <li
+                  key={file.id}
+                  className="flex items-center gap-2.5 p-2.5 rounded-lg bg-gray-50 border border-gray-100"
+                >
+                  <FileText size={13} className="text-gray-400 shrink-0" />
+                  <span className="text-xs font-semibold text-gray-700 truncate">{file.name}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    }
+
+    if (id === "continue") {
+      return (
+        <ContinueWidgetBody
+          items={[
+            { title: "Open RFIs", subtitle: "Review pending requests", href: `/project-hub/${projectId}/rfis` },
+            { title: "Review budget updates", subtitle: "Check new spend entries", href: `/project-hub/${projectId}/budget` },
+            { title: "Open drawings", subtitle: "Continue markup", href: `/project-hub/${projectId}/drawings` },
+          ]}
+        />
+      );
+    }
+
+    return null;
+  };
 
   return (
-    <div className="w-full min-h-[600px]">
-      <style>{injectedCSS}</style>
-      
-      <ResponsiveGridLayout className="layout w-full" layouts={layouts} breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }} cols={{ lg: 12, md: 10, sm: 6, xs: 4 }} rowHeight={100} margin={[20, 20]} draggableHandle=".drag-handle">
-        
-        <div key="info" className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
-          <div className="drag-handle bg-gray-50 border-b border-gray-100 p-3 cursor-move flex items-center justify-between"><h3 className="font-black text-gray-800 text-sm">Project Info</h3></div>
-          <div className="p-4 flex-1">
-            <p className="text-xl font-bold text-[#1E3A8A]">{project.name}</p>
-            <p className="text-sm text-gray-500 mt-2">{project.description || "No description"}</p>
-          </div>
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-black text-gray-900">Project Widgets</h2>
+        <button
+          onClick={() => setCustomizeOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          <SlidersHorizontal size={14} />
+          Customize
+        </button>
+      </div>
 
-        <div key="weather" className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
-          <div className="drag-handle bg-gray-50 border-b border-gray-100 p-3 cursor-move flex items-center justify-between"><h3 className="font-black text-gray-800 text-sm">Weather</h3></div>
-          <div className="p-4 flex-1 flex flex-col justify-center items-center text-center">
-            <CloudSun size={32} className="text-[#FF4D00] mb-2" />
-            <p className="text-gray-500 text-sm">Live Weather Integration Active</p>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {orderedVisible.map((pref, idx) => {
+          const meta = PROJECT_WIDGET_META.find((widget) => widget.id === pref.id);
+          if (!meta) return null;
+          return (
+            <WidgetCard
+              key={pref.id}
+              icon={meta.icon}
+              title={meta.label}
+              color={meta.color}
+              span={getProjectWidgetSpan(pref.id, pref.expanded)}
+              onExpand={() => toggleExpanded(pref.id)}
+              isExpanded={pref.expanded}
+              draggable={!pref.expanded}
+              onDragStart={() => handleDragStart(idx)}
+              onDragOver={(e) => handleDragOver(e, idx)}
+              onDragEnd={handleDragEnd}
+              isDragging={dragIdx === idx}
+            >
+              {renderBody(pref.id, pref.expanded)}
+            </WidgetCard>
+          );
+        })}
+      </div>
 
-        <div key="files" className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
-          <div className="drag-handle bg-gray-50 border-b border-gray-100 p-3 cursor-move flex items-center justify-between">
-            <h3 className="font-black text-gray-800 text-sm">Recent SlateDrop Files</h3>
-            <Link href={`/project-hub/${projectId}/slatedrop`} className="text-xs text-[#FF4D00] font-bold hover:underline">View All</Link>
-          </div>
-          <div className="p-4 flex-1 overflow-auto">
-            {files.length === 0 ? <p className="text-sm text-gray-400">No files yet.</p> : (
-              <ul className="space-y-2">
-                {files.slice(0,3).map(f => (
-                  <li key={f.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-100"><FileText size={14} className="text-gray-400"/><span className="text-sm font-semibold text-gray-700 truncate">{f.name}</span></li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-
-      </ResponsiveGridLayout>
+      <WidgetCustomizeDrawer
+        open={customizeOpen}
+        onClose={() => setCustomizeOpen(false)}
+        title="Customize Project Widgets"
+        subtitle="Reorder, show/hide, and resize widgets"
+        widgetPrefs={widgetPrefs}
+        widgetMeta={PROJECT_WIDGET_META}
+        onToggleVisible={toggleVisible}
+        onToggleExpanded={toggleExpanded}
+        onMoveOrder={moveOrder}
+        onReset={() => setWidgetPrefs(buildProjectDefaultPrefs())}
+      />
     </div>
   );
 }

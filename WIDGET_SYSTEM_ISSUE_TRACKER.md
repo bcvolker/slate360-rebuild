@@ -13,7 +13,7 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
 | W-001 | Location widget | Search/autocomplete missing in unexpanded widget | `LocationMap` compact mode hid toolbar/search controls | Fixed in code | `components/dashboard/LocationMap.tsx` |
 | W-002 | Location widget | Expanded state does not keep map as primary visual focus | Controls and map layout were not constrained for modal density | Fixed in code | `components/dashboard/LocationMap.tsx` |
 | W-003 | Location widget | Default view did not open in satellite | `isThreeD` initialized to false | Fixed in code | `components/dashboard/LocationMap.tsx` |
-| W-004 | Widget platform parity | Project Hub project-level dashboard differs from shared widget system | `ProjectDashboardGrid` still uses separate `react-grid-layout` implementation | Open | `components/project-hub/ProjectDashboardGrid.tsx` |
+| W-004 | Widget platform parity | Project Hub project-level dashboard differs from shared widget system | `ProjectDashboardGrid` still uses separate `react-grid-layout` implementation | Fixed in code | `components/project-hub/ProjectDashboardGrid.tsx` |
 | W-005 | Deploy visibility | New changes not visible consistently across environments | Suspected stale CDN/browser/server cache + deploy propagation timing | Monitoring | `next.config.ts`, `app/deploy-check/page.tsx`, `app/api/deploy-info/route.ts` |
 
 ## Change Log
@@ -27,6 +27,11 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
 - Confirmed backend environment variables exist for Supabase and AWS in local environment.
 - Confirmed CLI tooling (`supabase`, `aws`, `psql`) is not installed in container yet.
 
+### 2026-02-26 — Session B
+- Replaced `ProjectDashboardGrid` legacy `react-grid-layout` implementation with shared widget primitives.
+- Added project-level widget customization drawer, reorder drag/drop, visibility toggles, and expand behavior parity.
+- Wired project-level location widget to shared `LocationMap` so compact/expanded controls and satellite default are consistent.
+
 ## Validation Notes
 
 - Manual validation checklist (pending full QA):
@@ -38,6 +43,6 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
 
 ## Next Actions
 
-1. Unify `ProjectDashboardGrid` onto shared widget primitives (`WidgetCard`, shared prefs/meta/body patterns).
-2. Add a lightweight widget system regression checklist and run it before each deploy.
-3. Add deploy diagnostics to release flow (marker + commit SHA verification post-deploy).
+1. Add a lightweight widget system regression checklist and run it before each deploy.
+2. Add deploy diagnostics to release flow (marker + commit SHA verification post-deploy).
+3. Consider merging project-specific widget metadata into a shared typed registry to remove duplicated per-page definitions.
