@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { APIProvider, AdvancedMarker, Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
+import { APIProvider, Marker, Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { usePathname } from "next/navigation";
 import {
   ArrowUpDown,
@@ -632,7 +632,7 @@ function DrawController({
   ];
 
   return (
-    <div className="border-b border-gray-100 bg-gray-50/60 px-2 py-1.5 overflow-visible">
+    <div className="border-b border-gray-100 bg-gray-50/60 px-6 py-1.5 overflow-visible">
       <div className="flex flex-wrap items-center gap-1">
         {/* Address Search */}
         <div className="relative flex-1 min-w-[120px]">
@@ -1282,7 +1282,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
           )}
 
           {showSharePanel && showToolbar && (
-            <div className="border-b border-gray-100 bg-white px-3 py-2.5 shadow-sm z-10 relative">
+            <div className="border-b border-gray-100 bg-white px-6 py-2.5 shadow-sm z-10 relative">
               <div className="flex flex-wrap items-center gap-2">
                 <select
                   value={selectedProjectId}
@@ -1350,6 +1350,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
           <div ref={mapCanvasRef} className={`flex-1 relative min-h-0 ${isModal ? "min-h-[55vh]" : "min-h-[180px]"}`}>
             {mapsApiKey ? (
               <Map
+                className="w-full h-full absolute inset-0"
                 style={{ width: '100%', height: '100%' }}
                 defaultZoom={13}
                 defaultCenter={mapCenter}
@@ -1362,7 +1363,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                 headingInteractionEnabled={isThreeD}
                 tiltInteractionEnabled={isThreeD}
               >
-                <AdvancedMarker position={mapCenter} />
+                <Marker position={mapCenter} />
               </Map>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-4 text-center">
