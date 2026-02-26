@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { APIProvider, AdvancedMarker, Map, useMap } from "@vis.gl/react-google-maps";
+import { APIProvider, AdvancedMarker, Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { usePathname } from "next/navigation";
 import {
   ArrowUpDown,
@@ -166,8 +166,17 @@ function DrawController({
   setIsThreeD: (val: boolean) => void;
   onToggleSharePanel: () => void;
 }) {
+  
   const map = useMap();
   const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+  const geocodingLib = useMapsLibrary("geocoding");
+  const placesLib = useMapsLibrary("places");
+  const routesLib = useMapsLibrary("routes");
+
+  const geocoder = useMemo(() => geocodingLib ? new geocodingLib.Geocoder() : null, [geocodingLib]);
+  const autocompleteService = useMemo(() => placesLib ? new placesLib.AutocompleteService() : null, [placesLib]);
+  const directionsService = useMemo(() => routesLib ? new routesLib.DirectionsService() : null, [routesLib]);
+
 
   const [tool, setTool] = useState<DrawTool>("select");
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
@@ -191,32 +200,23 @@ function DrawController({
   const directionsRendererRef = useRef<any>(null);
   const directionsServiceRef = useRef<any>(null);
 
-  const geocode = async (request: any): Promise<any[]> => {
-    const mapsApi = (window as any).google?.maps;
-    if (!mapsApi) throw new Error("Maps API not loaded");
-    const geocoder = new mapsApi.Geocoder();
-    return new Promise((resolve, reject) => {
-      geocoder.geocode(request, (results: any, status: string) => {
-        if (status === "OK") resolve(results);
-        else reject(new Error(status));
-      });
-    });
-  };
-
+  
 
   // origin autocomplete
   useEffect(() => {
     const trimmed = originInput.trim();
     if (!trimmed || trimmed.length < 3 || !mapsApiKey) { setOriginSuggestions([]); return; }
     const timeout = window.setTimeout(() => {
-      geocode({ address: trimmed })
-        .then((results) => {
+      if (!autocompleteService) return;
+      autocompleteService.getPlacePredictions({ input: trimmed }, (predictions, status) => {
+        if (status === "OK" && predictions) {
           setOriginSuggestions(
-            results.slice(0, 5)
-              .map((r: any) => ({ placeId: r.place_id ?? "", description: r.formatted_address ?? "" }))
-              .filter((s: AddressSuggestion) => s.placeId && s.description)
+            predictions.slice(0, 5).map(p => ({ placeId: p.place_id, description: p.description }))
           );
-        }).catch(() => setOriginSuggestions([]));
+        } else {
+          setOriginSuggestions([]);
+        }
+      });
     }, 250);
     return () => window.clearTimeout(timeout);
   }, [originInput, mapsApiKey]);
@@ -226,14 +226,16 @@ function DrawController({
     const trimmed = destInput.trim();
     if (!trimmed || trimmed.length < 3 || !mapsApiKey) { setDestSuggestions([]); return; }
     const timeout = window.setTimeout(() => {
-      geocode({ address: trimmed })
-        .then((results) => {
+      if (!autocompleteService) return;
+      autocompleteService.getPlacePredictions({ input: trimmed }, (predictions, status) => {
+        if (status === "OK" && predictions) {
           setDestSuggestions(
-            results.slice(0, 5)
-              .map((r: any) => ({ placeId: r.place_id ?? "", description: r.formatted_address ?? "" }))
-              .filter((s: AddressSuggestion) => s.placeId && s.description)
+            predictions.slice(0, 5).map(p => ({ placeId: p.place_id, description: p.description }))
           );
-        }).catch(() => setDestSuggestions([]));
+        } else {
+          setDestSuggestions([]);
+        }
+      });
     }, 250);
     return () => window.clearTimeout(timeout);
   }, [destInput, mapsApiKey]);
@@ -243,9 +245,7 @@ function DrawController({
     if (mapMode !== "directions") return;
     if (!map || !(window as any).google?.maps) return;
     const mapsApi = (window as any).google.maps;
-    if (!directionsServiceRef.current) {
-      directionsServiceRef.current = new mapsApi.DirectionsService();
-    }
+    // directionsService is now a useMemo hook
     if (!directionsRendererRef.current) {
       directionsRendererRef.current = new mapsApi.DirectionsRenderer({
         suppressMarkers: false,
@@ -265,11 +265,9 @@ function DrawController({
 
   const getDirections = useCallback(async (origin: string, dest: string, mode: TravelMode) => {
     if (!map || !origin.trim() || !dest.trim()) return;
-    const mapsApi = (window as any).google?.maps;
-    if (!mapsApi || !directionsServiceRef.current) return;
-
+    if (!directionsService || !routesLib) return;
     if (!directionsRendererRef.current) {
-      directionsRendererRef.current = new mapsApi.DirectionsRenderer({
+      directionsRendererRef.current = new routesLib.DirectionsRenderer({
         suppressMarkers: false,
         polylineOptions: { strokeColor: "#FF4D00", strokeWeight: 4, strokeOpacity: 0.85 },
       });
@@ -278,11 +276,11 @@ function DrawController({
     setIsLoadingRoute(true);
     directionsRendererRef.current.setMap(map);
 
-    directionsServiceRef.current.route(
+    directionsService.route(
       {
         origin: origin.trim(),
         destination: dest.trim(),
-        travelMode: mapsApi.TravelMode[mode],
+        travelMode: mode as any,
       },
       (result: any, status: string) => {
         setIsLoadingRoute(false);
@@ -514,27 +512,20 @@ function DrawController({
     }
 
     const timeout = window.setTimeout(() => {
-      const controller = new AbortController();
-      geocode({ address: trimmed })
-        .then((results) => {
+      if (!autocompleteService) return;
+      autocompleteService.getPlacePredictions({ input: trimmed }, (predictions, status) => {
+        if (status === "OK" && predictions) {
           setSuggestions(
-            results.slice(0, 6)
-              .map((result: any, index: number) => ({
-                placeId: result.place_id ?? `${trimmed}-${index}`,
-                description: result.formatted_address ?? "",
-              }))
-              .filter((result: any) => Boolean(result.description))
+            predictions.slice(0, 6).map(p => ({ placeId: p.place_id, description: p.description }))
           );
-        })
-        .catch(() => {
+        } else {
           setSuggestions([]);
-        });
-
-      return () => controller.abort();
+        }
+      });
     }, 250);
 
     return () => window.clearTimeout(timeout);
-  }, [addressInput, mapsApiKey]);
+  }, [addressInput, mapsApiKey, autocompleteService]);
 
   const goToCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -563,12 +554,11 @@ function DrawController({
 
     setIsResolvingAddress(true);
     try {
-      const results = await geocode({ address: trimmed });
-      const result = results[0];
+      if (!geocoder) throw new Error("Geocoder not loaded");
+      const response = await geocoder.geocode({ address: trimmed });
+      const result = response.results[0];
       const location = result?.geometry?.location;
-      if (!location || typeof location.lat !== "function" || typeof location.lng !== "function") {
-        throw new Error("place_lookup_failed");
-      }
+      if (!location) throw new Error("place_lookup_failed");
       const lat = location.lat();
       const lng = location.lng();
 
@@ -599,12 +589,11 @@ function DrawController({
 
     setIsResolvingAddress(true);
     try {
-      const results = await geocode({ placeId: suggestion.placeId });
-      const result = results[0];
+      if (!geocoder) throw new Error("Geocoder not loaded");
+      const response = await geocoder.geocode({ placeId: suggestion.placeId });
+      const result = response.results[0];
       const location = result?.geometry?.location;
-      if (!location || typeof location.lat !== "function" || typeof location.lng !== "function") {
-        throw new Error("Place lookup failed");
-      }
+      if (!location) throw new Error("Place lookup failed");
       const lat = location.lat();
       const lng = location.lng();
 
@@ -644,12 +633,11 @@ function DrawController({
 
   return (
     <div className="border-b border-gray-100 bg-gray-50/60 px-2 py-1.5 overflow-visible">
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1">
         {/* Address Search */}
-        <div className="relative w-48 shrink-0">
-          <div className="flex items-center rounded-md border border-gray-200 bg-white px-2 py-1">
-            <span className="mr-1 text-[10px] font-semibold text-gray-500">Address</span>
-            <Search size={11} className="text-gray-400 mr-1" />
+        <div className="relative flex-1 min-w-[120px]">
+          <div className="flex items-center rounded-md border border-gray-200 bg-white px-1.5 py-1">
+            <Search size={11} className="text-gray-400 mr-1 shrink-0" />
             <input
               type="text"
               value={addressInput}
@@ -663,8 +651,8 @@ function DrawController({
                   void resolveAddressQuery(addressInput);
                 }
               }}
-              placeholder="Type address"
-              className="w-full text-[11px] text-gray-700 bg-transparent outline-none pl-0.5"
+              placeholder="Address..."
+              className="w-full text-[10px] text-gray-700 bg-transparent outline-none"
             />
           </div>
           {suggestions.length > 0 && (
@@ -673,7 +661,7 @@ function DrawController({
                 <button
                   key={suggestion.placeId}
                   onClick={() => void selectAddress(suggestion)}
-                  className="w-full text-left px-2 py-1.5 text-[11px] text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                  className="w-full text-left px-2 py-1.5 text-[10px] text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
                 >
                   {suggestion.description}
                 </button>
@@ -683,24 +671,24 @@ function DrawController({
         </div>
 
         {/* Locate */}
-        <button onClick={goToCurrentLocation} className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100" title="Use current location">
-          <LocateFixed size={10} />
+        <button onClick={goToCurrentLocation} className="inline-flex items-center justify-center w-6 h-6 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 shrink-0" title="Use current location">
+          <LocateFixed size={11} />
         </button>
 
         {/* Mode Toggle */}
         <div className="flex items-center rounded-md border border-gray-200 bg-white p-0.5 shrink-0">
-          <button onClick={() => setMapMode("markup")} className={`px-2 py-0.5 text-[10px] font-semibold rounded-sm ${mapMode === "markup" ? "bg-gray-100 text-gray-800" : "text-gray-500 hover:text-gray-700"}`}>Markup</button>
-          <button onClick={() => setMapMode("directions")} className={`px-2 py-0.5 text-[10px] font-semibold rounded-sm ${mapMode === "directions" ? "bg-gray-100 text-gray-800" : "text-gray-500 hover:text-gray-700"}`}>Directions</button>
+          <button onClick={() => setMapMode("markup")} className={`px-1.5 py-0.5 text-[9px] font-semibold rounded-sm ${mapMode === "markup" ? "bg-gray-100 text-gray-800" : "text-gray-500 hover:text-gray-700"}`}>Markup</button>
+          <button onClick={() => setMapMode("directions")} className={`px-1.5 py-0.5 text-[9px] font-semibold rounded-sm ${mapMode === "directions" ? "bg-gray-100 text-gray-800" : "text-gray-500 hover:text-gray-700"}`}>Directions</button>
         </div>
 
         {/* 3D Toggle */}
-        <button onClick={() => setIsThreeD(!isThreeD)} className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${isThreeD ? "border-[#1E3A8A] text-[#1E3A8A] bg-[#1E3A8A]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}>
+        <button onClick={() => setIsThreeD(!isThreeD)} className={`inline-flex items-center justify-center px-1.5 h-6 rounded-md border text-[9px] font-semibold shrink-0 ${isThreeD ? "border-[#1E3A8A] text-[#1E3A8A] bg-[#1E3A8A]/10" : "border-gray-200 text-gray-600 bg-white hover:bg-gray-100"}`}>
           3D
         </button>
 
         {/* Share Toggle */}
-        <button onClick={onToggleSharePanel} className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100 ml-auto">
-          <Share size={10} /> Share / Save
+        <button onClick={onToggleSharePanel} className="inline-flex items-center justify-center gap-1 px-1.5 h-6 rounded-md border border-gray-200 bg-white text-[9px] font-semibold text-gray-700 hover:bg-gray-100 shrink-0">
+          <Share size={10} /> Share
         </button>
       </div>
 
@@ -1362,6 +1350,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
           <div ref={mapCanvasRef} className={`flex-1 relative min-h-0 ${isModal ? "min-h-[55vh]" : "min-h-[180px]"}`}>
             {mapsApiKey ? (
               <Map
+                style={{ width: '100%', height: '100%' }}
                 defaultZoom={13}
                 defaultCenter={mapCenter}
                 center={mapCenter}
