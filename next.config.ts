@@ -6,6 +6,22 @@ const nextConfig: NextConfig = {
     contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
+  async headers() {
+    return [
+      {
+        // HTML pages only — force CDN + browsers to revalidate on every visit.
+        // Static JS/CSS chunks have content-hashed filenames and keep their own
+        // immutable cache headers set by Next.js automatically.
+        source: "/:path((?!_next/static|_next/image|favicon).*)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=0, must-revalidate",
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       // Legacy URL aliases → correct feature pages
