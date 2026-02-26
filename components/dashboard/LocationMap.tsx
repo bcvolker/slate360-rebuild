@@ -919,7 +919,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   const [mapCenter, setMapCenter] = useState(center ?? { lat: 40.7128, lng: -74.0060 });
   const [isThreeD, setIsThreeD] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [controlsExpanded, setControlsExpanded] = useState(true);
+  const [controlsExpanded, setControlsExpanded] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -965,6 +965,12 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       setAddressQuery(locationLabel);
     }
   }, [locationLabel, addressQuery]);
+
+  useEffect(() => {
+    if (isExpanded) {
+      setControlsExpanded(false);
+    }
+  }, [isExpanded]);
 
   const selectedFolder = useMemo(
     () => folders.find((folder) => folder.id === selectedFolderId) ?? null,
@@ -1254,9 +1260,9 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
 
   const renderMapCanvas = (mode: "inline" | "expanded") => {
     const isModal = mode === "expanded";
-    const showToolbar = !compact || controlsExpanded;
+    const showToolbar = isModal ? controlsExpanded : true;
     const toolbarShellClass = isModal
-      ? "shrink-0 min-h-[84px] max-h-[22vh] overflow-auto"
+      ? "shrink-0 max-h-[16vh] overflow-y-auto"
       : "shrink-0";
     return (
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
@@ -1303,6 +1309,11 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
               {isModal ? "Collapse" : "Expand"}
             </button>
           </div>
+          <p className="mt-1 text-[10px] text-gray-500">
+            {controlsExpanded
+              ? "Controls are expanded. Collapse to maximize map space."
+              : "Map-first mode. Expand controls to access search, tools, and share options."}
+          </p>
         </div>
 
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>

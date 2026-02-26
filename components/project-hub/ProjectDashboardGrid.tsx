@@ -47,15 +47,13 @@ function buildProjectDefaultPrefs(): WidgetPref[] {
   return PROJECT_WIDGET_META.map((widget, index) => ({
     id: widget.id,
     visible: true,
-    expanded: widget.id === "location",
+    expanded: false,
     order: index,
   }));
 }
 
 function getProjectWidgetSpan(id: string, expanded: boolean): string {
-  if (id === "location" || id === "slatedrop") {
-    return expanded ? "md:col-span-2" : "md:col-span-2";
-  }
+  if (id === "location" || id === "slatedrop") return expanded ? "md:col-span-2" : "";
   return expanded ? "md:col-span-2" : "";
 }
 
