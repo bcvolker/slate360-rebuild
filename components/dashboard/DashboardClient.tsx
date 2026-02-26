@@ -2249,7 +2249,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 {orderedVisible.map((p, idx) => (
                   <div
                     key={p.id}
-                    draggable={!p.expanded}
+                    draggable={!p.expanded && p.id !== "location"}
                     onDragStart={() => handleDashDragStart(idx)}
                     onDragOver={(e) => handleDashDragOver(e, idx)}
                     onDragEnd={handleDashDragEnd}

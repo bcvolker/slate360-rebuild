@@ -143,6 +143,15 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
   - Prevents stale persisted widget state from masking route-level UI changes after deploy.
   - Forces deterministic defaults for this schema version while keeping future saves consistent.
 
+### 2026-02-26 — Session H
+- Identified remaining drag-interception blocker on Dashboard route:
+  - The dashboard widget grid wrapper itself remained draggable for collapsed widgets, including `location`.
+  - This can hijack pointer drag gestures before Google Maps pan receives them.
+- Applied final parity patch:
+  - `components/dashboard/DashboardClient.tsx`: `draggable={!p.expanded && p.id !== "location"}` at grid wrapper level.
+- Result:
+  - Location map pan/drag is now excluded from card/grid drag interception on Dashboard, `/project-hub`, and `/project-hub/[projectId]` paths.
+
 ## Next Actions
 
 1. Run the revised block-isolation test strategy and log concrete measurements/screenshots for both routes.
