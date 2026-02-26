@@ -40,7 +40,9 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString(), {
+      headers: { "Referer": "https://www.slate360.ai/" },
+    });
     if (!response.ok) {
       console.error(
         "Static Maps API error:",

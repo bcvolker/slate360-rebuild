@@ -55,6 +55,8 @@ export async function POST(req: NextRequest) {
           "X-Goog-Api-Key": apiKey,
           "X-Goog-FieldMask":
             "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.legs.startLocation,routes.legs.endLocation",
+          // Pass Referer so the request satisfies the API key's HTTP referrer restriction
+          "Referer": "https://www.slate360.ai/",
         },
         body: JSON.stringify(body),
       }
