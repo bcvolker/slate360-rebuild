@@ -15,7 +15,7 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
 | W-003 | Location widget | Default view did not open in satellite | `isThreeD` initialized to false | Fixed in code | `components/dashboard/LocationMap.tsx` |
 | W-004 | Widget platform parity | Project Hub project-level dashboard differs from shared widget system | `ProjectDashboardGrid` still uses separate `react-grid-layout` implementation | Fixed in code | `components/project-hub/ProjectDashboardGrid.tsx` |
 | W-005 | Deploy visibility | New changes not visible consistently across environments | Suspected stale CDN/browser/server cache + deploy propagation timing | Monitoring | `next.config.ts`, `app/deploy-check/page.tsx`, `app/api/deploy-info/route.ts` |
-| W-006 | Dashboard/Hub parity regression | Dashboard location widget defaults differ from Project Hub and expanded map can collapse to a small sliver while UI dominates | Runtime behavior divergence in control-panel/layout state and widget sizing defaults | In progress | `components/dashboard/LocationMap.tsx`, `components/project-hub/ProjectDashboardGrid.tsx` |
+| W-006 | Dashboard/Hub parity regression | Dashboard location widget defaults differ from Project Hub and expanded map can collapse to a small sliver while UI dominates | Runtime behavior divergence in control-panel/layout state and widget sizing defaults | Fixed in code (re-verify live) | `components/dashboard/LocationMap.tsx`, `components/project-hub/ProjectDashboardGrid.tsx`, `app/(dashboard)/project-hub/page.tsx` |
 | W-007 | Google Maps API deprecation | Browser console shows deprecations for `DirectionsService` and `DirectionsRenderer` and map styling/tilt warnings | Legacy routes API usage and mapId + raster/tilt limitations in current implementation | In progress | `components/dashboard/LocationMap.tsx` |
 
 ## Change Log
@@ -120,6 +120,16 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
     1. Vercel protection bypass token,
     2. Temporary disabling of deployment protection,
     3. Running authenticated `vercel curl` with project access.
+
+### 2026-02-26 — Session F
+- New clue confirmed from live probing + user observation:
+  - `/dashboard` and `/project-hub` are app-auth gated (redirect to `/login`), so bypass token alone cannot validate post-login UI.
+  - Project Hub location widget remained non-interactive/sliver in collapsed mode on `/project-hub` route.
+- Root-cause fix applied in route-specific widget wrapper:
+  - Set collapsed location widget minimum height to `min-h-[200px]` in `app/(dashboard)/project-hub/page.tsx` to avoid sliver collapse.
+  - Disabled drag on the location widget card (`draggable={!w.expanded && w.id !== "location"}`) so map pan/drag gestures are not hijacked by HTML5 card drag.
+- Post-fix structural validation:
+  - `node scripts/widget-block-isolation-test.mjs` => `8/8 PASS`.
 
 ## Next Actions
 

@@ -353,7 +353,7 @@ export default function ProjectHubPage() {
 
     if (id === "location") {
       return (
-        <div className={isExpanded ? "min-h-[400px] flex flex-col" : "flex flex-col flex-1"}>
+        <div className={isExpanded ? "min-h-[400px] flex flex-col" : "min-h-[200px] flex flex-col"}>
           <LocationMap compact={!isExpanded} />
         </div>
       );
@@ -613,7 +613,7 @@ export default function ProjectHubPage() {
                 span={getWidgetSpan(w.id, w.expanded)}
                 onExpand={() => toggleWidgetExpanded(w.id)}
                 isExpanded={w.expanded}
-                draggable={!w.expanded}
+                draggable={!w.expanded && w.id !== "location"}
                 onDragStart={() => handleDragStart(idx)}
                 onDragOver={(e) => handleDragOver(e, idx)}
                 onDragEnd={handleDragEnd}
