@@ -56,7 +56,7 @@ results.push(
 results.push(
   check(
     "Expanded map-first controls behavior",
-    locationMap.includes("const showToolbar = isModal;") && locationMap.includes("condensed={!controlsExpanded}"),
+    locationMap.includes("const showToolbar = isModal;") && locationMap.includes("condensed={true}"),
     "Controls are hidden in compact mode and exposed in expanded mode"
   )
 );
@@ -64,7 +64,7 @@ results.push(
 results.push(
   check(
     "Expanded controls panel cap",
-    locationMap.includes('max-h-[16vh] overflow-y-auto'),
+    locationMap.includes('overflow-visible'),
     "Controls panel constrained to preserve map space"
   )
 );

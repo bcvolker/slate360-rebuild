@@ -250,6 +250,18 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
   - Added Enter-key geocode fallback (`resolveAddressQuery`) for typed address autopopulate + pan/zoom.
   - Map interaction tuned for 3D navigation with `headingInteractionEnabled` and `tiltInteractionEnabled` when 3D is enabled.
 
+### 2026-02-26 — Session P (One-Line Expanded Toolbar Enforcement)
+- Follow-up user requirement:
+  - Expanded controls must stay compact in a single slim row.
+  - Unexpanded mode should remain map-only.
+  - 3D and address autopopulate should be restored and reliable.
+- Applied updates to shared `LocationMap`:
+  - `DrawController` now has a dedicated condensed one-line toolbar branch with horizontal scroll and minimal button sizing.
+  - Autocomplete dropdown runs from the one-line search control with elevated z-index and visible overflow.
+  - Expanded mode always uses condensed toolbar rendering (`condensed={true}`) to avoid vertical control sprawl.
+  - Unexpanded mode remains map-only (`showToolbar` only when expanded).
+  - Restored map type switching (`satellite` for 3D, `roadmap` for 2D).
+
 ## Next Actions
 
 1. Run the revised block-isolation test strategy and log concrete measurements/screenshots for both routes.

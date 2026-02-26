@@ -644,6 +644,119 @@ function DrawController({
     { id: "TRANSIT",  label: "Transit", icon: <Train size={11} /> },
   ];
 
+  if (condensed) {
+    const TOOLBAR_TOOLS: Array<{ id: DrawTool; label: string; icon: ReactNode }> = [
+      { id: "select", label: "Select", icon: <MousePointer2 size={11} /> },
+      { id: "line", label: "Line", icon: <Minus size={11} /> },
+      { id: "arrow", label: "Arrow", icon: <Workflow size={11} /> },
+      { id: "rectangle", label: "Box", icon: <RectangleHorizontal size={11} /> },
+      { id: "circle", label: "Circle", icon: <Circle size={11} /> },
+      { id: "polygon", label: "Polygon", icon: <Pentagon size={11} /> },
+      { id: "marker", label: "Pin", icon: <MapPin size={11} /> },
+    ];
+
+    return (
+      <div className="border-b border-gray-100 bg-gray-50/60 px-2 py-1.5 overflow-visible">
+        <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap">
+          <div className="relative min-w-[230px]">
+            <div className="flex items-center rounded-md border border-gray-200 bg-white px-2 py-1">
+              <Search size={11} className="text-gray-400 mr-1" />
+              <input
+                type="text"
+                value={addressInput}
+                onChange={(event) => {
+                  setAddressInput(event.target.value);
+                  setAddressQuery(event.target.value);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void resolveAddressQuery(addressInput);
+                  }
+                }}
+                placeholder="Search address"
+                className="w-full text-[11px] text-gray-700 bg-transparent outline-none"
+              />
+            </div>
+            {suggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-40 rounded-md border border-gray-200 bg-white shadow-sm max-h-44 overflow-auto">
+                {suggestions.map((suggestion) => (
+                  <button
+                    key={suggestion.placeId}
+                    onClick={() => void selectAddress(suggestion)}
+                    className="w-full text-left px-2 py-1.5 text-[11px] text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                  >
+                    {suggestion.description}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={goToCurrentLocation}
+            className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
+            title="Use current location"
+          >
+            <LocateFixed size={10} /> Locate
+          </button>
+
+          {TOOLBAR_TOOLS.map((toolButton) => (
+            <button
+              key={toolButton.id}
+              type="button"
+              onClick={() => setDrawingTool(toolButton.id)}
+              className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === toolButton.id ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+            >
+              {toolButton.icon} {toolButton.label}
+            </button>
+          ))}
+
+          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1">
+            <span className="text-[9px] font-semibold text-gray-500">S</span>
+            <input
+              type="color"
+              value={strokeColor}
+              onChange={(event) => setStrokeColor(event.target.value)}
+              className="h-4 w-5 bg-transparent border-0 p-0"
+            />
+          </div>
+
+          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1">
+            <span className="text-[9px] font-semibold text-gray-500">F</span>
+            <input
+              type="color"
+              value={fillColor}
+              onChange={(event) => setFillColor(event.target.value)}
+              className="h-4 w-5 bg-transparent border-0 p-0"
+            />
+          </div>
+
+          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 min-w-[92px]">
+            <span className="text-[9px] font-semibold text-gray-500">W</span>
+            <input
+              type="range"
+              min={1}
+              max={10}
+              value={strokeWeight}
+              onChange={(event) => setStrokeWeight(Number(event.target.value))}
+              className="w-full"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={clearMarkup}
+            className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100"
+          >
+            <Trash2 size={10} /> Clear
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* ── Markup panel ────────────────────────────────────────── */}
@@ -1003,6 +1116,8 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   useEffect(() => {
     if (isExpanded) {
       setControlsExpanded(true);
+    } else {
+      setControlsExpanded(false);
     }
   }, [isExpanded]);
 
@@ -1348,9 +1463,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   const renderMapCanvas = (mode: "inline" | "expanded") => {
     const isModal = mode === "expanded";
     const showToolbar = isModal;
-    const toolbarShellClass = isModal
-      ? "shrink-0 max-h-[16vh] overflow-y-auto"
-      : "shrink-0";
+    const toolbarShellClass = "shrink-0 overflow-visible";
     return (
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
       <div ref={controlsHeaderRef} className="z-20 border-b border-gray-100 bg-white/95 px-3 py-2 backdrop-blur-sm">
@@ -1407,7 +1520,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                 setStrokeWeight={setStrokeWeight}
                 setAddressQuery={setAddressQuery}
                 setMapCenter={setMapCenter}
-                condensed={!controlsExpanded}
+                condensed={true}
               />
             </div>
           )}
@@ -1419,7 +1532,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
               mapId={mapId}
               gestureHandling={"greedy"}
               disableDefaultUI={true}
-              mapTypeId={"roadmap"}
+              mapTypeId={isThreeD ? "satellite" : "roadmap"}
               tilt={isThreeD ? 45 : 0}
               headingInteractionEnabled={isThreeD}
               tiltInteractionEnabled={isThreeD}
