@@ -917,8 +917,9 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   const [lastShareUrl, setLastShareUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const [mapCenter, setMapCenter] = useState(center ?? { lat: 40.7128, lng: -74.0060 });
-  const [isThreeD, setIsThreeD] = useState(false);
+  const [isThreeD, setIsThreeD] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [controlsExpanded, setControlsExpanded] = useState(true);
   const [isLocating, setIsLocating] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -1253,56 +1254,72 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
 
   const renderMapCanvas = (mode: "inline" | "expanded") => {
     const isModal = mode === "expanded";
-    const showToolbar = isModal || !compact;
+    const showToolbar = !compact || controlsExpanded;
+    const toolbarShellClass = isModal
+      ? "shrink-0 min-h-[84px] max-h-[22vh] overflow-auto"
+      : "shrink-0";
     return (
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
-        <div className="absolute left-3 top-3 z-20 inline-flex items-center gap-1 rounded-xl border border-white/70 bg-white/95 p-1 shadow-sm backdrop-blur">
-          <button
-            type="button"
-            onClick={() => setIsThreeD(false)}
-            className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${!isThreeD ? "bg-[#1E3A8A] text-white" : "text-gray-600 hover:bg-gray-100"}`}
-          >
-            2D
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsThreeD(true)}
-            className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${isThreeD ? "bg-[#FF4D00] text-white" : "text-gray-600 hover:bg-gray-100"}`}
-          >
-            3D
-          </button>
-          <button
-            type="button"
-            onClick={requestCurrentLocation}
-            className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
-            disabled={isLocating}
-          >
-            {isLocating ? <Loader2 size={10} className="animate-spin" /> : <LocateFixed size={10} />}
-            Find Me
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsExpanded((value) => !value)}
-            className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
-          >
-            {isModal ? <Minimize2 size={10} /> : <Maximize2 size={10} />}
-            {isModal ? "Collapse" : "Expand"}
-          </button>
+        <div className="z-20 border-b border-gray-100 bg-white/95 px-3 py-2 backdrop-blur-sm">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setIsThreeD(false)}
+              className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${!isThreeD ? "bg-[#1E3A8A] text-white" : "text-gray-600 hover:bg-gray-100"}`}
+            >
+              2D
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsThreeD(true)}
+              className={`rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${isThreeD ? "bg-[#FF4D00] text-white" : "text-gray-600 hover:bg-gray-100"}`}
+            >
+              Satellite
+            </button>
+            <button
+              type="button"
+              onClick={requestCurrentLocation}
+              className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
+              disabled={isLocating}
+            >
+              {isLocating ? <Loader2 size={10} className="animate-spin" /> : <LocateFixed size={10} />}
+              Find Me
+            </button>
+            <button
+              type="button"
+              onClick={() => setControlsExpanded((value) => !value)}
+              className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
+              title={controlsExpanded ? "Collapse controls" : "Expand controls"}
+            >
+              <ArrowUpDown size={10} />
+              {controlsExpanded ? "Hide Controls" : "Show Controls"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsExpanded((value) => !value)}
+              className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
+            >
+              {isModal ? <Minimize2 size={10} /> : <Maximize2 size={10} />}
+              {isModal ? "Collapse" : "Expand"}
+            </button>
+          </div>
         </div>
 
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
           {showToolbar && (
-            <DrawController
-              setStatus={setStatus}
-              strokeColor={strokeColor}
-              fillColor={fillColor}
-              strokeWeight={strokeWeight}
-              setStrokeColor={setStrokeColor}
-              setFillColor={setFillColor}
-              setStrokeWeight={setStrokeWeight}
-              setAddressQuery={setAddressQuery}
-              setMapCenter={setMapCenter}
-            />
+            <div className={toolbarShellClass}>
+              <DrawController
+                setStatus={setStatus}
+                strokeColor={strokeColor}
+                fillColor={fillColor}
+                strokeWeight={strokeWeight}
+                setStrokeColor={setStrokeColor}
+                setFillColor={setFillColor}
+                setStrokeWeight={setStrokeWeight}
+                setAddressQuery={setAddressQuery}
+                setMapCenter={setMapCenter}
+              />
+            </div>
           )}
           <div className="flex-1 relative min-h-0">
             <Map
