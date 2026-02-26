@@ -161,6 +161,7 @@ export default function ProjectDashboardGrid({
           <LocationMap
             locationLabel={project.metadata?.location}
             compact={!expanded}
+            expanded={expanded}
           />
         </div>
       );

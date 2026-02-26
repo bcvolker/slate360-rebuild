@@ -278,6 +278,22 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
   - One expand control path only.
   - No extra top chrome consuming map area in compact mode.
 
+### 2026-02-26 — Session R (Single Render Path Refactor)
+- Severe-issue root cause identified:
+  - `LocationMap` still contained a legacy non-compact branch with additional header/details chrome and separate expansion assumptions.
+  - Widget-level expansion (`WidgetCard`) was routing into this branch in expanded state, causing missing search field, oversized controls, and inconsistent map rendering behavior.
+- Refactor applied:
+  - Added explicit `expanded` prop to shared `LocationMap`.
+  - Updated all three call sites to pass `expanded`:
+    - `components/dashboard/DashboardClient.tsx`
+    - `app/(dashboard)/project-hub/page.tsx`
+    - `components/project-hub/ProjectDashboardGrid.tsx`
+  - Removed legacy non-compact rendering branch from `LocationMap` and kept one unified widget-first render path.
+- Expected outcome:
+  - Compact mode: map-first view with no toolbar.
+  - Expanded mode: single slim toolbar row with address/search controls available.
+  - No hidden competing headers/layout blocks in expanded state.
+
 ## Next Actions
 
 1. Run the revised block-isolation test strategy and log concrete measurements/screenshots for both routes.

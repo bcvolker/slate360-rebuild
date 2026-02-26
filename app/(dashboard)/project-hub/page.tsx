@@ -327,7 +327,7 @@ export default function ProjectHubPage() {
     if (id === "location") {
       return (
         <div className={isExpanded ? "min-h-[400px] flex flex-col" : "min-h-[200px] flex flex-col"}>
-          <LocationMap compact={!isExpanded} />
+          <LocationMap compact={!isExpanded} expanded={isExpanded} />
         </div>
       );
     }

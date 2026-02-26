@@ -1607,6 +1607,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 locationLabel={liveWeather?.location}
                 contactRecipients={liveSeatMembers.map((member) => ({ name: member.name, email: member.email }))}
                 compact={!expanded}
+                expanded={expanded}
               />
             </div>
           </WidgetCard>

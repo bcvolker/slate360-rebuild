@@ -37,6 +37,8 @@ type LocationMapProps = {
   contactRecipients?: Array<{ name: string; email?: string; phone?: string }>;
   /** When true, render a shorter preview card (no toolbar/share panel) suitable for widget grids. */
   compact?: boolean;
+  /** When true, render expanded map mode for widget containers. */
+  expanded?: boolean;
 };
 
 type ProjectOption = {
@@ -1037,7 +1039,7 @@ function DrawController({
   );
 }
 
-export default function LocationMap({ center, locationLabel, contactRecipients = [], compact = false }: LocationMapProps) {
+export default function LocationMap({ center, locationLabel, contactRecipients = [], compact = false, expanded = false }: LocationMapProps) {
   const pathname = usePathname();
   const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID";
   const [isDownloading, setIsDownloading] = useState(false);
@@ -1060,7 +1062,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const [mapCenter, setMapCenter] = useState(center ?? { lat: 40.7128, lng: -74.0060 });
   const [isThreeD, setIsThreeD] = useState(true);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [controlsExpanded, setControlsExpanded] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [widgetDiagEnabled, setWidgetDiagEnabled] = useState(false);
@@ -1069,6 +1070,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   const controlsHeaderRef = useRef<HTMLDivElement>(null);
   const controlsPanelRef = useRef<HTMLDivElement>(null);
   const mapCanvasRef = useRef<HTMLDivElement>(null);
+  const expandedView = expanded;
 
   const requestCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -1114,12 +1116,12 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   }, [locationLabel, addressQuery]);
 
   useEffect(() => {
-    if (isExpanded) {
+    if (expandedView) {
       setControlsExpanded(true);
     } else {
       setControlsExpanded(false);
     }
-  }, [isExpanded]);
+  }, [expandedView]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1156,7 +1158,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     return {
       route: pathname,
       compact,
-      isExpanded,
+      isExpanded: expandedView,
       controlsExpanded,
       isThreeD,
       mapHeight,
@@ -1167,7 +1169,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       hubPrefs,
       tick: diagTick,
     };
-  }, [widgetDiagEnabled, pathname, compact, isExpanded, controlsExpanded, isThreeD, diagTick]);
+  }, [widgetDiagEnabled, pathname, compact, expandedView, controlsExpanded, isThreeD, diagTick]);
 
   useEffect(() => {
     if (!widgetDiagEnabled || !diagSnapshot) return;
@@ -1504,235 +1506,13 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     );
   };
 
-  // In compact mode, render just the map canvas without the outer card shell
-  // (the parent WidgetCard provides the card wrapper)
-  if (compact) {
-    return (
-      <div className="flex flex-col h-full overflow-hidden -mx-6 -mb-0">
-        {renderMapCanvas("inline")}
-        {widgetDiagEnabled && diagSnapshot && (
-          <div className="px-2 pb-2">
-            <div className="rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-[10px] text-amber-900">
-              diag route={diagSnapshot.route} compact={String(diagSnapshot.compact)} expanded={String(diagSnapshot.isExpanded)} controls={String(diagSnapshot.controlsExpanded)} sat={String(diagSnapshot.isThreeD)} map={diagSnapshot.mapPct}% (h={diagSnapshot.mapHeight}) dStore={diagSnapshot.dashboardPrefs} hStore={diagSnapshot.hubPrefs}
-            </div>
-          </div>
-        )}
-        {isExpanded && (
-          <div className="fixed inset-0 z-[120] bg-black/55 backdrop-blur-sm p-4 sm:p-8">
-            <div className="h-full w-full rounded-2xl border border-white/20 bg-white overflow-hidden shadow-2xl flex flex-col">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <MapPin size={16} className="text-blue-600" />
-                  </div>
-                  <h3 className="text-sm font-bold text-gray-900">Site Location — Expanded</h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsExpanded(false)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-                >
-                  <Minimize2 size={12} /> Collapse
-                </button>
-              </div>
-              <div className="flex-1 relative min-h-0">
-                {renderMapCanvas("expanded")}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col h-full bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-            <MapPin size={16} className="text-blue-600" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-gray-900">Site Location</h3>
-            <p className="text-[10px] text-gray-500">{locationLabel ?? "Interactive map search, markup, and sharing"}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-500">
-            <PenTool size={12} /> Markup tools enabled
-          </div>
-          <button 
-            onClick={handleDownloadPDF}
-            disabled={isDownloading}
-            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50" 
-            title="Download PDF"
-          >
-            {isDownloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-          </button>
-        </div>
-      </div>
-
-      {!compact && (
-      <details className="px-4 py-3 border-b border-gray-100 bg-gray-50/60" open={false}>
-        <summary className="cursor-pointer list-none flex items-center justify-between text-xs font-semibold text-gray-600">
-          Share, save, and delivery controls
-          <span className="text-[10px] text-gray-400">Optional</span>
-        </summary>
-        <div className="space-y-2 pt-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <select
-              value={selectedProjectId}
-              onChange={(event) => setSelectedProjectId(event.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
-            >
-              <option value="">Select project</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id}>{project.name}</option>
-              ))}
-            </select>
-            <select
-              value={selectedFolderId}
-              onChange={(event) => setSelectedFolderId(event.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
-              disabled={!selectedProjectId || folders.length === 0}
-            >
-              <option value="">Select folder</option>
-              {folders.map((folder) => (
-                <option key={folder.id} value={folder.id}>{folder.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <select
-              value={selectedContact}
-              onChange={(event) => {
-                const value = event.target.value;
-                setSelectedContact(value);
-                if (!value) return;
-                const found = recipientOptions.find((option) => option.label === value);
-                if (!found) return;
-                if (found.email) {
-                  setRecipientMode("email");
-                  setRecipientValue(found.email);
-                } else if (found.phone) {
-                  setRecipientMode("phone");
-                  setRecipientValue(found.phone);
-                }
-              }}
-              className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
-            >
-              <option value="">Pick contact recipient (optional)</option>
-              {recipientOptions.map((option) => (
-                <option key={option.label} value={option.label}>{option.label}</option>
-              ))}
-            </select>
-            <div className="grid grid-cols-[auto_1fr] gap-2">
-              <select
-                value={recipientMode}
-                onChange={(event) => setRecipientMode(event.target.value as "email" | "phone")}
-                className="rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
-              >
-                <option value="email">Email</option>
-                <option value="phone">Phone</option>
-              </select>
-              <input
-                type={recipientMode === "email" ? "email" : "tel"}
-                placeholder={recipientMode === "email" ? "recipient@email.com" : "+1 555-123-4567"}
-                value={recipientValue}
-                onChange={(event) => setRecipientValue(event.target.value)}
-                className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-700"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
-            <div className="text-[10px] text-gray-500 flex items-center">
-              Save your marked-up map to a project folder, then send a secure link by email or phone.
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleSaveToFolder}
-                disabled={isSaving}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-              >
-                {isSaving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />} Save
-              </button>
-              <button
-                onClick={handleSendShareLink}
-                disabled={isSharing}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor: "#FF4D00" }}
-              >
-                {isSharing ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Send Link
-              </button>
-              <button
-                onClick={handleCopyShareLink}
-                disabled={!lastShareUrl}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-40"
-                title="Copy last generated link"
-              >
-                <Copy size={12} /> Copy
-              </button>
-              <button
-                onClick={handleExportAuditPackage}
-                disabled={isExportingAudit}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-40"
-                title="Download complete project audit package"
-              >
-                {isExportingAudit ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />} Audit ZIP
-              </button>
-              {lastShareUrl && recipientMode === "phone" && (
-                <a
-                  href={`sms:${encodeURIComponent(recipientValue.trim())}?body=${encodeURIComponent(`Project location and markup: ${lastShareUrl}`)}`}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-                >
-                  SMS
-                </a>
-              )}
-            </div>
-          </div>
-          {status && (
-            <p className={`text-[10px] flex items-center gap-1 ${status.ok ? "text-emerald-600" : "text-red-600"}`}>
-              {status.ok ? <CheckCircle2 size={11} /> : null}
-              {status.text}
-            </p>
-          )}
-        </div>
-      </details>
-      )}
-
-      {!isExpanded && renderMapCanvas("inline")}
-
+    <div className="flex flex-col h-full overflow-hidden -mx-6 -mb-0">
+      {renderMapCanvas(expandedView ? "expanded" : "inline")}
       {widgetDiagEnabled && diagSnapshot && (
-        <div className="px-3 pb-2">
+        <div className="px-2 pb-2">
           <div className="rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-[10px] text-amber-900">
             diag route={diagSnapshot.route} compact={String(diagSnapshot.compact)} expanded={String(diagSnapshot.isExpanded)} controls={String(diagSnapshot.controlsExpanded)} sat={String(diagSnapshot.isThreeD)} map={diagSnapshot.mapPct}% (h={diagSnapshot.mapHeight}) dStore={diagSnapshot.dashboardPrefs} hStore={diagSnapshot.hubPrefs}
-          </div>
-        </div>
-      )}
-
-      {isExpanded && (
-        <div className="fixed inset-0 z-[120] bg-black/55 backdrop-blur-sm p-4 sm:p-8">
-          <div className="h-full w-full rounded-2xl border border-white/20 bg-white overflow-hidden shadow-2xl flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <MapPin size={16} className="text-blue-600" />
-                </div>
-                <h3 className="text-sm font-bold text-gray-900">Site Location — Expanded</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsExpanded(false)}
-                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-              >
-                <Minimize2 size={12} /> Collapse
-              </button>
-            </div>
-            <div className="flex-1 relative min-h-0">
-              {renderMapCanvas("expanded")}
-            </div>
           </div>
         </div>
       )}
