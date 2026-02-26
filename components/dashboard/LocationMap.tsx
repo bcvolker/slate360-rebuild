@@ -1,8 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { APIProvider, AdvancedMarker, Map, useMap } from "@vis.gl/react-google-maps";
 import {
+  ArrowUpDown,
+  Bike,
+  Car,
   CheckCircle2,
   Circle,
   Copy,
@@ -14,13 +17,16 @@ import {
   Minimize2,
   Minus,
   MousePointer2,
+  Navigation,
   PenTool,
   Pentagon,
   RectangleHorizontal,
   Save,
   Search,
   Send,
+  Train,
   Trash2,
+  User,
   Workflow,
 } from "lucide-react";
 
@@ -49,6 +55,7 @@ type AddressSuggestion = {
 };
 
 type DrawTool = "select" | "marker" | "line" | "arrow" | "rectangle" | "circle" | "polygon";
+type TravelMode = "DRIVING" | "WALKING" | "BICYCLING" | "TRANSIT";
 
 type OverlayRecord = {
   id: string;
@@ -159,6 +166,163 @@ function DrawController({
   const overlaysRef = useRef<OverlayRecord[]>([]);
   const selectedOverlayIdRef = useRef<string | null>(null);
   const selectedToolRef = useRef<DrawTool>("select");
+
+  // ── Directions mode state ──────────────────────────────────────
+  const [mapMode, setMapMode] = useState<"markup" | "directions">("markup");
+  const [originInput, setOriginInput] = useState("");
+  const [destInput, setDestInput] = useState("");
+  const [originSuggestions, setOriginSuggestions] = useState<AddressSuggestion[]>([]);
+  const [destSuggestions, setDestSuggestions] = useState<AddressSuggestion[]>([]);
+  const [travelMode, setTravelMode] = useState<TravelMode>("DRIVING");
+  const [routeInfo, setRouteInfo] = useState<{ distance: string; duration: string } | null>(null);
+  const [isLoadingRoute, setIsLoadingRoute] = useState(false);
+  const directionsRendererRef = useRef<any>(null);
+  const directionsServiceRef = useRef<any>(null);
+
+  // origin autocomplete
+  useEffect(() => {
+    const trimmed = originInput.trim();
+    if (!trimmed || trimmed.length < 3 || !mapsApiKey) { setOriginSuggestions([]); return; }
+    const timeout = window.setTimeout(() => {
+      void fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(trimmed)}&key=${mapsApiKey}`)
+        .then((r) => r.json())
+        .then((data: any) => {
+          setOriginSuggestions(
+            (data.results ?? []).slice(0, 5)
+              .map((r: any) => ({ placeId: r.place_id ?? "", description: r.formatted_address ?? "" }))
+              .filter((s: AddressSuggestion) => s.placeId && s.description)
+          );
+        }).catch(() => setOriginSuggestions([]));
+    }, 250);
+    return () => window.clearTimeout(timeout);
+  }, [originInput, mapsApiKey]);
+
+  // destination autocomplete
+  useEffect(() => {
+    const trimmed = destInput.trim();
+    if (!trimmed || trimmed.length < 3 || !mapsApiKey) { setDestSuggestions([]); return; }
+    const timeout = window.setTimeout(() => {
+      void fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(trimmed)}&key=${mapsApiKey}`)
+        .then((r) => r.json())
+        .then((data: any) => {
+          setDestSuggestions(
+            (data.results ?? []).slice(0, 5)
+              .map((r: any) => ({ placeId: r.place_id ?? "", description: r.formatted_address ?? "" }))
+              .filter((s: AddressSuggestion) => s.placeId && s.description)
+          );
+        }).catch(() => setDestSuggestions([]));
+    }, 250);
+    return () => window.clearTimeout(timeout);
+  }, [destInput, mapsApiKey]);
+
+  // Initialise directions service + renderer when map is ready
+  useEffect(() => {
+    if (!map || !(window as any).google?.maps) return;
+    const mapsApi = (window as any).google.maps;
+    if (!directionsServiceRef.current) {
+      directionsServiceRef.current = new mapsApi.DirectionsService();
+    }
+    if (!directionsRendererRef.current) {
+      directionsRendererRef.current = new mapsApi.DirectionsRenderer({
+        suppressMarkers: false,
+        polylineOptions: { strokeColor: "#FF4D00", strokeWeight: 4, strokeOpacity: 0.85 },
+      });
+    }
+  }, [map]);
+
+  // Cleanup directions renderer on unmount
+  useEffect(() => {
+    return () => {
+      if (directionsRendererRef.current) {
+        directionsRendererRef.current.setMap(null);
+      }
+    };
+  }, []);
+
+  const getDirections = useCallback(async (origin: string, dest: string, mode: TravelMode) => {
+    if (!map || !origin.trim() || !dest.trim()) return;
+    const mapsApi = (window as any).google?.maps;
+    if (!mapsApi || !directionsServiceRef.current) return;
+
+    if (!directionsRendererRef.current) {
+      directionsRendererRef.current = new mapsApi.DirectionsRenderer({
+        suppressMarkers: false,
+        polylineOptions: { strokeColor: "#FF4D00", strokeWeight: 4, strokeOpacity: 0.85 },
+      });
+    }
+
+    setIsLoadingRoute(true);
+    directionsRendererRef.current.setMap(map);
+
+    directionsServiceRef.current.route(
+      {
+        origin: origin.trim(),
+        destination: dest.trim(),
+        travelMode: mapsApi.TravelMode[mode],
+      },
+      (result: any, status: string) => {
+        setIsLoadingRoute(false);
+        if (status === "OK" && result?.routes?.[0]) {
+          directionsRendererRef.current.setDirections(result);
+          const leg = result.routes[0].legs[0];
+          setRouteInfo({ distance: leg.distance?.text ?? "", duration: leg.duration?.text ?? "" });
+          setStatus({ ok: true, text: `Route: ${leg.distance?.text} · ${leg.duration?.text}` });
+        } else {
+          setRouteInfo(null);
+          setStatus({ ok: false, text: "Could not find a route between those locations." });
+        }
+      }
+    );
+  }, [map, setStatus]);
+
+  const clearDirections = () => {
+    if (directionsRendererRef.current) {
+      directionsRendererRef.current.setDirections({ routes: [] });
+      directionsRendererRef.current.setMap(null);
+    }
+    setOriginInput("");
+    setDestInput("");
+    setRouteInfo(null);
+    setStatus(null);
+    setOriginSuggestions([]);
+    setDestSuggestions([]);
+  };
+
+  const swapAddresses = () => {
+    const prev = originInput;
+    setOriginInput(destInput);
+    setDestInput(prev);
+    setOriginSuggestions([]);
+    setDestSuggestions([]);
+  };
+
+  const goToCurrentLocationForOrigin = () => {
+    if (!navigator.geolocation) {
+      setStatus({ ok: false, text: "Geolocation not available." });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const label = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+        setOriginInput(label);
+        setOriginSuggestions([]);
+        if (destInput.trim()) void getDirections(label, destInput, travelMode);
+      },
+      () => setStatus({ ok: false, text: "Unable to determine current location." })
+    );
+  };
+
+  const selectOriginSug = async (suggestion: AddressSuggestion) => {
+    setOriginInput(suggestion.description);
+    setOriginSuggestions([]);
+    if (destInput.trim()) await getDirections(suggestion.description, destInput, travelMode);
+  };
+
+  const selectDestSug = async (suggestion: AddressSuggestion) => {
+    setDestInput(suggestion.description);
+    setDestSuggestions([]);
+    if (originInput.trim()) await getDirections(originInput, suggestion.description, travelMode);
+  };
 
   const setDrawingTool = (next: DrawTool) => {
     setTool(next);
@@ -425,8 +589,44 @@ function DrawController({
     }
   };
 
+  // Travel mode meta
+  const TRAVEL_MODES: { id: TravelMode; label: string; icon: ReactNode }[] = [
+    { id: "DRIVING",  label: "Drive",   icon: <Car size={11} /> },
+    { id: "WALKING",  label: "Walk",    icon: <User size={11} /> },
+    { id: "BICYCLING",label: "Cycle",   icon: <Bike size={11} /> },
+    { id: "TRANSIT",  label: "Transit", icon: <Train size={11} /> },
+  ];
+
   return (
     <>
+      {/* ── Mode toggle ─────────────────────────────────────────── */}
+      <div className="flex items-center gap-1 px-4 pt-3 pb-0">
+        <button
+          type="button"
+          onClick={() => setMapMode("markup")}
+          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+            mapMode === "markup"
+              ? "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00]"
+              : "border-gray-200 text-gray-500 hover:bg-gray-100"
+          }`}
+        >
+          <PenTool size={11} /> Markup
+        </button>
+        <button
+          type="button"
+          onClick={() => setMapMode("directions")}
+          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+            mapMode === "directions"
+              ? "border-[#1E3A8A] bg-[#1E3A8A]/10 text-[#1E3A8A]"
+              : "border-gray-200 text-gray-500 hover:bg-gray-100"
+          }`}
+        >
+          <Navigation size={11} /> Directions
+        </button>
+      </div>
+
+      {/* ── Markup panel ────────────────────────────────────────── */}
+      {mapMode === "markup" && (
       <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/60 space-y-2">
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
           <div className="relative">
@@ -562,6 +762,136 @@ function DrawController({
           </div>
         </div>
       </div>
+      )}{/* end markup panel */}
+
+      {/* ── Directions panel ────────────────────────────────────── */}
+      {mapMode === "directions" && (
+        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/60 space-y-3">
+
+          {/* Travel mode selector */}
+          <div className="flex items-center gap-1 flex-wrap">
+            {TRAVEL_MODES.map(({ id, label, icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => {
+                  setTravelMode(id);
+                  if (originInput.trim() && destInput.trim()) void getDirections(originInput, destInput, id);
+                }}
+                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
+                  travelMode === id
+                    ? "border-[#1E3A8A] bg-[#1E3A8A]/10 text-[#1E3A8A]"
+                    : "border-gray-200 text-gray-500 hover:bg-gray-100"
+                }`}
+              >
+                {icon} {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Origin */}
+          <div className="relative">
+            <div className="flex items-center rounded-lg border border-gray-200 bg-white px-2.5 py-2 gap-2 focus-within:border-[#1E3A8A] focus-within:ring-1 focus-within:ring-[#1E3A8A]/30 transition-all">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+              <input
+                type="text"
+                value={originInput}
+                onChange={(e) => setOriginInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && destInput.trim()) void getDirections(originInput, destInput, travelMode); }}
+                placeholder="Starting point…"
+                className="flex-1 text-xs text-gray-700 bg-transparent outline-none"
+              />
+              <button
+                type="button"
+                onClick={goToCurrentLocationForOrigin}
+                className="text-gray-400 hover:text-[#FF4D00] transition-colors"
+                title="Use my current location"
+              >
+                <LocateFixed size={12} />
+              </button>
+            </div>
+            {originSuggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 rounded-lg border border-gray-200 bg-white shadow-md max-h-40 overflow-auto">
+                {originSuggestions.map((s) => (
+                  <button key={s.placeId} type="button" onClick={() => void selectOriginSug(s)}
+                    className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                    {s.description}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Swap button + Destination */}
+          <div className="flex items-start gap-2">
+            <button
+              type="button"
+              onClick={swapAddresses}
+              className="mt-1.5 w-7 h-7 shrink-0 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              title="Swap origin and destination"
+            >
+              <ArrowUpDown size={11} />
+            </button>
+            <div className="relative flex-1">
+              <div className="flex items-center rounded-lg border border-gray-200 bg-white px-2.5 py-2 gap-2 focus-within:border-[#1E3A8A] focus-within:ring-1 focus-within:ring-[#1E3A8A]/30 transition-all">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#FF4D00] shrink-0" />
+                <input
+                  type="text"
+                  value={destInput}
+                  onChange={(e) => setDestInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && originInput.trim()) void getDirections(originInput, destInput, travelMode); }}
+                  placeholder="Destination…"
+                  className="flex-1 text-xs text-gray-700 bg-transparent outline-none"
+                />
+              </div>
+              {destSuggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 rounded-lg border border-gray-200 bg-white shadow-md max-h-40 overflow-auto">
+                  {destSuggestions.map((s) => (
+                    <button key={s.placeId} type="button" onClick={() => void selectDestSug(s)}
+                      className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                      {s.description}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Get Directions + Clear */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => { if (originInput.trim() && destInput.trim()) void getDirections(originInput, destInput, travelMode); }}
+              disabled={!originInput.trim() || !destInput.trim() || isLoadingRoute}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#1E3A8A] px-3 py-2 text-xs font-semibold text-white hover:bg-[#1a3270] disabled:opacity-50 transition-colors"
+            >
+              {isLoadingRoute ? <Loader2 size={11} className="animate-spin" /> : <Navigation size={11} />}
+              {isLoadingRoute ? "Finding route…" : "Get Directions"}
+            </button>
+            {(originInput || destInput || routeInfo) && (
+              <button
+                type="button"
+                onClick={clearDirections}
+                className="inline-flex items-center justify-center gap-1 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+                title="Clear route"
+              >
+                <Trash2 size={11} /> Clear
+              </button>
+            )}
+          </div>
+
+          {/* Route result badge */}
+          {routeInfo && (
+            <div className="flex items-center gap-3 rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2.5">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+              <span className="text-xs font-bold text-emerald-800">{routeInfo.distance}</span>
+              <span className="text-[10px] text-emerald-400">·</span>
+              <span className="text-xs font-semibold text-emerald-700">{routeInfo.duration}</span>
+              <span className="text-[10px] text-emerald-500 ml-auto capitalize">{travelMode.toLowerCase()}</span>
+            </div>
+          )}
+        </div>
+      )}{/* end directions panel */}
     </>
   );
 }

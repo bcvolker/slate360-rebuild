@@ -60,6 +60,8 @@ export default function WidgetCard({
       className={[
         "bg-white rounded-2xl border border-gray-100 shadow-sm p-6",
         "hover:shadow-lg hover:border-gray-200 transition-all duration-300 flex flex-col",
+        // Pin all unexpanded cards to the same minimum height so the widget grid stays uniform
+        !isExpanded ? "min-h-[260px]" : "",
         isDraggable && !isExpanded
           ? "cursor-grab active:cursor-grabbing"
           : "",

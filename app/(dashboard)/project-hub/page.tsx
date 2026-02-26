@@ -43,6 +43,16 @@ import {
   buildDefaultPrefs,
   HUB_STORAGE_KEY,
 } from "@/components/widgets/widget-meta";
+import {
+  WeatherWidgetBody,
+  FinancialWidgetBody,
+  CalendarWidgetBody,
+  ContactsWidgetBody,
+  ContinueWidgetBody,
+  ProcessingWidgetBody,
+  SuggestWidgetBody,
+  DataUsageWidgetBody,
+} from "@/components/widgets/WidgetBodies";
 
 const QUICK_NAV = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -343,129 +353,42 @@ export default function ProjectHubPage() {
 
     if (id === "location") {
       return (
-        <div className={isExpanded ? "min-h-[400px]" : "min-h-[200px]"}>
+        <div className={isExpanded ? "min-h-[400px] flex flex-col" : "flex flex-col flex-1"}>
           <LocationMap compact={!isExpanded} />
         </div>
       );
     }
 
     if (id === "data-usage") {
-      return (
-        <div className={`space-y-5 ${isExpanded ? "min-h-[260px]" : ""}`}>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-500 font-medium">Credits used</span>
-              <span className="text-xs font-bold text-gray-900">53 / 100</span>
-            </div>
-            <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-              <div className="h-full rounded-full bg-[#FF4D00]" style={{ width: "53%" }} />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-500 font-medium">Storage</span>
-              <span className="text-xs font-bold text-gray-900">2.4 GB / 50 GB</span>
-            </div>
-            <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-              <div className="h-full rounded-full bg-[#1E3A8A]" style={{ width: "5%" }} />
-            </div>
-          </div>
-        </div>
-      );
+      return <DataUsageWidgetBody />;
     }
 
     if (id === "processing") {
-      return (
-        <div className={`space-y-3 ${isExpanded ? "min-h-[260px]" : ""}`}>
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Cpu size={14} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-gray-900">No active jobs</p>
-              <p className="text-[10px] text-gray-400">Start from Design Studio or Content Studio</p>
-            </div>
-          </div>
-        </div>
-      );
+      return <ProcessingWidgetBody />;
     }
 
     if (id === "suggest") {
-      return (
-        <div className={`space-y-3 ${isExpanded ? "min-h-[260px]" : ""}`}>
-          <p className="text-xs text-gray-500">Have an idea? Help us build the features you need.</p>
-          {isExpanded && (
-            <>
-              <input
-                placeholder="Feature title..."
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00] outline-none"
-              />
-              <textarea
-                placeholder="Describe your idea..."
-                rows={3}
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00] outline-none resize-none"
-              />
-            </>
-          )}
-          <button className="w-full py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:border-gray-300 transition-all">
-            <Lightbulb size={13} className="inline mr-1.5" /> Submit Suggestion
-          </button>
-        </div>
-      );
+      return <SuggestWidgetBody expanded={isExpanded} />;
     }
 
     if (id === "weather") {
-      return (
-        <div
-          className={`rounded-xl bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-100 p-4 flex flex-col justify-center items-center gap-2 ${
-            isExpanded ? "min-h-[240px]" : "min-h-[120px]"
-          }`}
-        >
-          <span className="text-4xl">☀️</span>
-          <p className="text-xl font-black text-gray-900">72°F</p>
-          <p className="text-xs text-gray-500">Partly Cloudy</p>
-        </div>
-      );
+      return <WeatherWidgetBody tempF={72} expanded={isExpanded} />;
     }
 
     if (id === "financial") {
-      return (
-        <div
-          className={`rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 p-4 flex flex-col justify-center items-center ${
-            isExpanded ? "min-h-[240px]" : "min-h-[120px]"
-          }`}
-        >
-          <BarChart3 size={28} className="text-blue-300 mb-2" />
-          <p className="text-xs text-blue-400 text-center">Portfolio budget overview and trends</p>
-        </div>
-      );
+      return <FinancialWidgetBody expanded={isExpanded} />;
     }
 
     if (id === "calendar") {
-      return (
-        <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 min-h-[120px]">
-          <p className="text-xs text-gray-500">Upcoming milestones and deadlines.</p>
-          <p className="text-xs font-semibold text-gray-400 mt-2">No upcoming events</p>
-        </div>
-      );
+      return <CalendarWidgetBody />;
     }
 
     if (id === "contacts") {
-      return (
-        <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 min-h-[120px]">
-          <p className="text-xs text-gray-500">Quick access to team and external contacts.</p>
-          <p className="text-xs font-semibold text-gray-400 mt-2">0 contacts</p>
-        </div>
-      );
+      return <ContactsWidgetBody />;
     }
 
     if (id === "continue") {
-      return (
-        <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 min-h-[120px]">
-          <p className="text-xs text-gray-500">Pick up where you left off.</p>
-          <p className="text-xs font-semibold text-gray-400 mt-2">No recent activity</p>
-        </div>
-      );
+      return <ContinueWidgetBody />;
     }
 
     return null;
