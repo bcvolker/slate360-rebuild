@@ -293,24 +293,68 @@ function DrawController({
     setIsLoadingRoute(true);
     setStatus(null);
 
+    const modeMap: Record<string, string> = {
+      DRIVING: "DRIVE",
+      WALKING: "WALK",
+      BICYCLING: "BICYCLE",
+      TRANSIT: "TRANSIT",
+    };
+
+    const body: Record<string, unknown> = {
+      origin: { address: origin.trim() },
+      destination: { address: dest.trim() },
+      travelMode: modeMap[mode] || "DRIVE",
+      polylineEncoding: "ENCODED_POLYLINE",
+      computeAlternativeRoutes: false,
+    };
+    if (mode !== "TRANSIT") {
+      body.routingPreference = "TRAFFIC_AWARE";
+    }
+
     try {
-      const res = await fetch("/api/directions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ origin: origin.trim(), destination: dest.trim(), travelMode: mode }),
-      });
+      const res = await fetch(
+        "https://routes.googleapis.com/directions/v2:computeRoutes",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": mapsApiKey,
+            "X-Goog-FieldMask":
+              "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.legs.startLocation,routes.legs.endLocation",
+          },
+          body: JSON.stringify(body),
+        }
+      );
 
       const data = await res.json();
 
-      if (!res.ok || !data.encodedPolyline) {
-        throw new Error(data.error || "Could not find a route between those locations.");
+      if (!res.ok || !data.routes?.[0]?.polyline?.encodedPolyline) {
+        const msg = data?.error?.message || "Could not find a route between those locations.";
+        throw new Error(msg);
       }
+
+      const route = data.routes[0];
+      const encodedPoly: string = route.polyline.encodedPolyline;
+      const distanceMeters: number = route.distanceMeters || 0;
+      const durationStr: string = route.duration || "0s";
+      const durationSeconds = parseInt(durationStr.replace("s", ""), 10) || 0;
+
+      // Format distance
+      const distanceMiles = distanceMeters / 1609.344;
+      const dist = distanceMiles >= 0.1
+        ? `${distanceMiles.toFixed(1)} mi`
+        : `${Math.round(distanceMeters * 3.28084)} ft`;
+
+      // Format duration
+      const hours = Math.floor(durationSeconds / 3600);
+      const minutes = Math.ceil((durationSeconds % 3600) / 60);
+      const dur = hours > 0 ? `${hours} hr ${minutes} min` : `${minutes} min`;
 
       // Clear any previous route display
       clearRouteDisplay();
 
       // Decode and render polyline on the map
-      const path = decodePolyline(data.encodedPolyline);
+      const path = decodePolyline(encodedPoly);
       const polyline = new google.maps.Polyline({
         path,
         strokeColor: "#FF4D00",
@@ -338,8 +382,6 @@ function DrawController({
       path.forEach((p) => bounds.extend(p));
       map.fitBounds(bounds, 50);
 
-      const dist = data.distance as string;
-      const dur = data.duration as string;
       setRouteInfo({ distance: dist, duration: dur });
       const gmapsUrl = buildGoogleMapsUrl(origin, dest, mode);
       onRouteReady({
@@ -349,7 +391,7 @@ function DrawController({
         distance: dist,
         duration: dur,
         googleMapsUrl: gmapsUrl,
-        encodedPolyline: data.encodedPolyline,
+        encodedPolyline: encodedPoly,
       });
       setStatus({ ok: true, text: `Route: ${dist} · ${dur}` });
     } catch (err: any) {
@@ -1514,7 +1556,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     const toolbarShellClass = "shrink-0 overflow-visible";
     return (
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
-        <APIProvider apiKey={mapsApiKey} libraries={["places", "drawing", "geometry", "routes"]}>
+        <APIProvider apiKey={mapsApiKey} libraries={["places", "drawing", "geometry"]}>
           <MapUpdater center={mapCenter} isThreeD={isThreeD} />
           {showToolbar && (
             <div ref={controlsPanelRef} className={toolbarShellClass}>
