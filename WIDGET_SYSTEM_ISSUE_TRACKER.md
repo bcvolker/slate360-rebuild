@@ -99,6 +99,28 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
     - Append `?widgetDiag=1` to dashboard or project hub URL.
     - Widget prints route/state/layout snapshot (map % height, control state, storage key presence) in-widget and to console.
 
+  ### 2026-02-26 — Session E
+  - Verified git lineage and remote sync:
+    - `HEAD` == `origin/main` at commit `a351af2` during test run.
+  - Verified deployment linkage:
+    - GitHub commit status for `main` shows Vercel success and latest deployment URL.
+  - Probed deployment endpoints via curl:
+    - `/api/deploy-info`, `/deploy-check`, and `/project-hub` return `401 Authentication Required` due Vercel deployment protection.
+    - This blocks unauthenticated external verification of live page payloads from automation.
+  - Route conflict scan:
+    - Normalized route collision scan reports `0` duplicate routes.
+    - Redirect audit shows only `app/features/project-hub/page.tsx` redirecting to `/project-hub`.
+  - Build artifact validation:
+    - Compiled server/client chunks include latest `LocationMap` strings and behavior markers (`Satellite`, `Map-first mode`, diagnostics labels), proving changes are present in build output.
+
+  ## Additional Blocking Constraint
+
+  - Vercel deployment protection currently prevents anonymous endpoint probing from automation.
+  - To fully verify live production behavior from tooling, one of these is required:
+    1. Vercel protection bypass token,
+    2. Temporary disabling of deployment protection,
+    3. Running authenticated `vercel curl` with project access.
+
 ## Next Actions
 
 1. Run the revised block-isolation test strategy and log concrete measurements/screenshots for both routes.
