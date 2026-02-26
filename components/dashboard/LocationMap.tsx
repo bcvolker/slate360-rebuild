@@ -24,6 +24,7 @@ import {
   RectangleHorizontal,
   Save,
   Search,
+  Share,
   Send,
   Train,
   Trash2,
@@ -147,6 +148,9 @@ function DrawController({
   setAddressQuery,
   setMapCenter,
   condensed,
+  isThreeD,
+  setIsThreeD,
+  onToggleSharePanel,
 }: {
   setStatus: (value: { ok: boolean; text: string } | null) => void;
   strokeColor: string;
@@ -158,6 +162,9 @@ function DrawController({
   setAddressQuery: (value: string) => void;
   setMapCenter: (value: { lat: number; lng: number }) => void;
   condensed: boolean;
+  isThreeD: boolean;
+  setIsThreeD: (val: boolean) => void;
+  onToggleSharePanel: () => void;
 }) {
   const map = useMap();
   const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
@@ -184,16 +191,28 @@ function DrawController({
   const directionsRendererRef = useRef<any>(null);
   const directionsServiceRef = useRef<any>(null);
 
+  const geocode = async (request: any): Promise<any[]> => {
+    const mapsApi = (window as any).google?.maps;
+    if (!mapsApi) throw new Error("Maps API not loaded");
+    const geocoder = new mapsApi.Geocoder();
+    return new Promise((resolve, reject) => {
+      geocoder.geocode(request, (results: any, status: string) => {
+        if (status === "OK") resolve(results);
+        else reject(new Error(status));
+      });
+    });
+  };
+
+
   // origin autocomplete
   useEffect(() => {
     const trimmed = originInput.trim();
     if (!trimmed || trimmed.length < 3 || !mapsApiKey) { setOriginSuggestions([]); return; }
     const timeout = window.setTimeout(() => {
-      void fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(trimmed)}&key=${mapsApiKey}`)
-        .then((r) => r.json())
-        .then((data: any) => {
+      geocode({ address: trimmed })
+        .then((results) => {
           setOriginSuggestions(
-            (data.results ?? []).slice(0, 5)
+            results.slice(0, 5)
               .map((r: any) => ({ placeId: r.place_id ?? "", description: r.formatted_address ?? "" }))
               .filter((s: AddressSuggestion) => s.placeId && s.description)
           );
@@ -207,11 +226,10 @@ function DrawController({
     const trimmed = destInput.trim();
     if (!trimmed || trimmed.length < 3 || !mapsApiKey) { setDestSuggestions([]); return; }
     const timeout = window.setTimeout(() => {
-      void fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(trimmed)}&key=${mapsApiKey}`)
-        .then((r) => r.json())
-        .then((data: any) => {
+      geocode({ address: trimmed })
+        .then((results) => {
           setDestSuggestions(
-            (data.results ?? []).slice(0, 5)
+            results.slice(0, 5)
               .map((r: any) => ({ placeId: r.place_id ?? "", description: r.formatted_address ?? "" }))
               .filter((s: AddressSuggestion) => s.placeId && s.description)
           );
@@ -497,28 +515,15 @@ function DrawController({
 
     const timeout = window.setTimeout(() => {
       const controller = new AbortController();
-      void fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(trimmed)}&key=${mapsApiKey}`,
-        { signal: controller.signal }
-      )
-        .then((response) => {
-          if (!response.ok) throw new Error("geocode_failed");
-          return response.json();
-        })
-        .then((payload: unknown) => {
-          const results =
-            payload && typeof payload === "object" && Array.isArray((payload as { results?: unknown[] }).results)
-              ? ((payload as { results: Array<{ place_id?: string; formatted_address?: string }> }).results)
-              : [];
-
+      geocode({ address: trimmed })
+        .then((results) => {
           setSuggestions(
-            results
-              .slice(0, 6)
-              .map((result, index) => ({
+            results.slice(0, 6)
+              .map((result: any, index: number) => ({
                 placeId: result.place_id ?? `${trimmed}-${index}`,
                 description: result.formatted_address ?? "",
               }))
-              .filter((result) => Boolean(result.description))
+              .filter((result: any) => Boolean(result.description))
           );
         })
         .catch(() => {
@@ -558,25 +563,16 @@ function DrawController({
 
     setIsResolvingAddress(true);
     try {
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(trimmed)}&key=${mapsApiKey}`
-      );
-      if (!response.ok) throw new Error("geocode_failed");
-
-      const payload = (await response.json()) as {
-        results?: Array<{
-          formatted_address?: string;
-          geometry?: { location?: { lat?: number; lng?: number } };
-        }>;
-      };
-
-      const result = Array.isArray(payload.results) ? payload.results[0] : undefined;
+      const results = await geocode({ address: trimmed });
+      const result = results[0];
       const location = result?.geometry?.location;
-      if (!location || typeof location.lat !== "number" || typeof location.lng !== "number") {
+      if (!location || typeof location.lat !== "function" || typeof location.lng !== "function") {
         throw new Error("place_lookup_failed");
       }
+      const lat = location.lat();
+      const lng = location.lng();
 
-      const next = { lat: location.lat, lng: location.lng };
+      const next = { lat, lng };
       setMapCenter(next);
       setAddressQuery(result?.formatted_address ?? trimmed);
       setAddressInput(result?.formatted_address ?? trimmed);
@@ -603,27 +599,16 @@ function DrawController({
 
     setIsResolvingAddress(true);
     try {
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?place_id=${encodeURIComponent(suggestion.placeId)}&key=${mapsApiKey}`
-      );
-      if (!response.ok) {
-        throw new Error("Place lookup failed");
-      }
-
-      const payload = (await response.json()) as {
-        results?: Array<{
-          formatted_address?: string;
-          geometry?: { location?: { lat?: number; lng?: number } };
-        }>;
-      };
-
-      const result = Array.isArray(payload.results) ? payload.results[0] : undefined;
+      const results = await geocode({ placeId: suggestion.placeId });
+      const result = results[0];
       const location = result?.geometry?.location;
-      if (!location || typeof location.lat !== "number" || typeof location.lng !== "number") {
+      if (!location || typeof location.lat !== "function" || typeof location.lng !== "function") {
         throw new Error("Place lookup failed");
       }
+      const lat = location.lat();
+      const lng = location.lng();
 
-      const next = { lat: location.lat, lng: location.lng };
+      const next = { lat, lng };
 
       setMapCenter(next);
       setAddressQuery(result?.formatted_address ?? suggestion.description);
@@ -646,275 +631,118 @@ function DrawController({
     { id: "TRANSIT",  label: "Transit", icon: <Train size={11} /> },
   ];
 
-  if (condensed) {
-    const TOOLBAR_TOOLS: Array<{ id: DrawTool; label: string; icon: ReactNode }> = [
-      { id: "select", label: "Select", icon: <MousePointer2 size={11} /> },
-      { id: "line", label: "Line", icon: <Minus size={11} /> },
-      { id: "arrow", label: "Arrow", icon: <Workflow size={11} /> },
-      { id: "rectangle", label: "Box", icon: <RectangleHorizontal size={11} /> },
-      { id: "circle", label: "Circle", icon: <Circle size={11} /> },
-      { id: "polygon", label: "Polygon", icon: <Pentagon size={11} /> },
-      { id: "marker", label: "Pin", icon: <MapPin size={11} /> },
-    ];
 
-    return (
-      <div className="border-b border-gray-100 bg-gray-50/60 px-2 py-1.5 overflow-visible">
-        <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap">
-          <div className="relative min-w-[340px]">
-            <div className="flex items-center rounded-md border border-gray-200 bg-white px-2 py-1">
-              <span className="mr-1 text-[10px] font-semibold text-gray-500">Address</span>
-              <Search size={11} className="text-gray-400 mr-1" />
-              <input
-                type="text"
-                value={addressInput}
-                onChange={(event) => {
-                  setAddressInput(event.target.value);
-                  setAddressQuery(event.target.value);
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    void resolveAddressQuery(addressInput);
-                  }
-                }}
-                placeholder="Type address"
-                className="w-full text-[11px] text-gray-700 bg-transparent outline-none"
-              />
-            </div>
-            {suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-40 rounded-md border border-gray-200 bg-white shadow-sm max-h-44 overflow-auto">
-                {suggestions.map((suggestion) => (
-                  <button
-                    key={suggestion.placeId}
-                    onClick={() => void selectAddress(suggestion)}
-                    className="w-full text-left px-2 py-1.5 text-[11px] text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                  >
-                    {suggestion.description}
-                  </button>
-                ))}
-              </div>
-            )}
+  const TOOLBAR_TOOLS: Array<{ id: DrawTool; label: string; icon: ReactNode }> = [
+    { id: "select", label: "Select", icon: <MousePointer2 size={12} /> },
+    { id: "line", label: "Line", icon: <Minus size={12} /> },
+    { id: "arrow", label: "Arrow", icon: <Workflow size={12} /> },
+    { id: "rectangle", label: "Box", icon: <RectangleHorizontal size={12} /> },
+    { id: "circle", label: "Circle", icon: <Circle size={12} /> },
+    { id: "polygon", label: "Polygon", icon: <Pentagon size={12} /> },
+    { id: "marker", label: "Pin", icon: <MapPin size={12} /> },
+  ];
+
+  return (
+    <div className="border-b border-gray-100 bg-gray-50/60 px-2 py-1.5 overflow-visible">
+      <div className="flex flex-wrap items-center gap-1.5">
+        {/* Address Search */}
+        <div className="relative w-48 shrink-0">
+          <div className="flex items-center rounded-md border border-gray-200 bg-white px-2 py-1">
+            <span className="mr-1 text-[10px] font-semibold text-gray-500">Address</span>
+            <Search size={11} className="text-gray-400 mr-1" />
+            <input
+              type="text"
+              value={addressInput}
+              onChange={(event) => {
+                setAddressInput(event.target.value);
+                setAddressQuery(event.target.value);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  void resolveAddressQuery(addressInput);
+                }
+              }}
+              placeholder="Type address"
+              className="w-full text-[11px] text-gray-700 bg-transparent outline-none pl-0.5"
+            />
           </div>
+          {suggestions.length > 0 && (
+            <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-40 rounded-md border border-gray-200 bg-white shadow-sm max-h-44 overflow-auto">
+              {suggestions.map((suggestion) => (
+                <button
+                  key={suggestion.placeId}
+                  onClick={() => void selectAddress(suggestion)}
+                  className="w-full text-left px-2 py-1.5 text-[11px] text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                >
+                  {suggestion.description}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
-          <button
-            type="button"
-            onClick={goToCurrentLocation}
-            className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100"
-            title="Use current location"
-          >
-            <LocateFixed size={10} /> Locate
-          </button>
+        {/* Locate */}
+        <button onClick={goToCurrentLocation} className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100" title="Use current location">
+          <LocateFixed size={10} />
+        </button>
 
+        {/* Mode Toggle */}
+        <div className="flex items-center rounded-md border border-gray-200 bg-white p-0.5 shrink-0">
+          <button onClick={() => setMapMode("markup")} className={`px-2 py-0.5 text-[10px] font-semibold rounded-sm ${mapMode === "markup" ? "bg-gray-100 text-gray-800" : "text-gray-500 hover:text-gray-700"}`}>Markup</button>
+          <button onClick={() => setMapMode("directions")} className={`px-2 py-0.5 text-[10px] font-semibold rounded-sm ${mapMode === "directions" ? "bg-gray-100 text-gray-800" : "text-gray-500 hover:text-gray-700"}`}>Directions</button>
+        </div>
+
+        {/* 3D Toggle */}
+        <button onClick={() => setIsThreeD(!isThreeD)} className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${isThreeD ? "border-[#1E3A8A] text-[#1E3A8A] bg-[#1E3A8A]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}>
+          3D
+        </button>
+
+        {/* Share Toggle */}
+        <button onClick={onToggleSharePanel} className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-700 hover:bg-gray-100 ml-auto">
+          <Share size={10} /> Share / Save
+        </button>
+      </div>
+
+      {/* Markup Tools Row */}
+      {mapMode === "markup" && (
+        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
           {TOOLBAR_TOOLS.map((toolButton) => (
             <button
               key={toolButton.id}
               type="button"
               onClick={() => setDrawingTool(toolButton.id)}
-              className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === toolButton.id ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+              className={`inline-flex items-center justify-center w-6 h-6 rounded-md border ${tool === toolButton.id ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+              title={toolButton.label}
             >
-              {toolButton.icon} {toolButton.label}
+              {toolButton.icon}
             </button>
           ))}
-
-          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1">
+          <div className="w-px h-4 bg-gray-200 mx-1" />
+          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-1.5 py-0.5">
             <span className="text-[9px] font-semibold text-gray-500">S</span>
-            <input
-              type="color"
-              value={strokeColor}
-              onChange={(event) => setStrokeColor(event.target.value)}
-              className="h-4 w-5 bg-transparent border-0 p-0"
-            />
+            <input type="color" value={strokeColor} onChange={(e) => setStrokeColor(e.target.value)} className="h-4 w-4 bg-transparent border-0 p-0" />
           </div>
-
-          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1">
+          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-1.5 py-0.5">
             <span className="text-[9px] font-semibold text-gray-500">F</span>
-            <input
-              type="color"
-              value={fillColor}
-              onChange={(event) => setFillColor(event.target.value)}
-              className="h-4 w-5 bg-transparent border-0 p-0"
-            />
+            <input type="color" value={fillColor} onChange={(e) => setFillColor(e.target.value)} className="h-4 w-4 bg-transparent border-0 p-0" />
           </div>
-
-          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 min-w-[92px]">
+          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-1.5 py-0.5 w-20">
             <span className="text-[9px] font-semibold text-gray-500">W</span>
-            <input
-              type="range"
-              min={1}
-              max={10}
-              value={strokeWeight}
-              onChange={(event) => setStrokeWeight(Number(event.target.value))}
-              className="w-full"
-            />
+            <input type="range" min={1} max={10} value={strokeWeight} onChange={(e) => setStrokeWeight(Number(e.target.value))} className="w-full" />
           </div>
-
-          <button
-            type="button"
-            onClick={clearMarkup}
-            className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100"
-          >
+          <button type="button" onClick={clearMarkup} className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100 ml-auto">
             <Trash2 size={10} /> Clear
           </button>
         </div>
-      </div>
-    );
-  }
+      )}
 
-  return (
-    <>
-      {/* ── Markup panel ────────────────────────────────────────── */}
-      {(condensed || mapMode === "markup") && (
-      <div className={`border-b border-gray-100 bg-gray-50/60 ${condensed ? "px-3 py-2" : "px-4 py-3"} space-y-2`}>
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
-          <div className="relative">
-            <div className={`flex items-center rounded-lg border border-gray-200 bg-white ${condensed ? "px-2 py-1.5" : "px-2.5 py-2"}`}>
-              <Search size={13} className="text-gray-400 mr-1.5" />
-              <input
-                type="text"
-                value={addressInput}
-                onChange={(event) => {
-                  setAddressInput(event.target.value);
-                  setAddressQuery(event.target.value);
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    void resolveAddressQuery(addressInput);
-                  }
-                }}
-                placeholder="Search address"
-                className="w-full text-xs text-gray-700 bg-transparent outline-none"
-              />
-            </div>
-            {suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-20 rounded-lg border border-gray-200 bg-white shadow-sm max-h-44 overflow-auto">
-                {suggestions.map((suggestion) => (
-                  <button
-                    key={suggestion.placeId}
-                    onClick={() => void selectAddress(suggestion)}
-                    className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                  >
-                    {suggestion.description}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={goToCurrentLocation}
-              className={`inline-flex items-center justify-center gap-1 rounded-lg border border-gray-200 ${condensed ? "px-2 py-1.5 text-[11px]" : "px-2.5 py-2 text-xs"} font-semibold text-gray-700 hover:bg-gray-100`}
-              title="Use current location"
-            >
-              <LocateFixed size={12} /> Locate
-            </button>
-            <span className="text-[10px] text-gray-500 px-1">{isResolvingAddress ? "Finding address…" : ""}</span>
-          </div>
-        </div>
-
-        {!condensed && (
-        <div className="overflow-x-auto">
-        <div className="flex items-center gap-1.5 whitespace-nowrap pb-0.5">
-          <button
-            type="button"
-            onClick={() => setDrawingTool("select")}
-            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "select" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
-          >
-            <MousePointer2 size={12} /> Select
-          </button>
-          <button
-            type="button"
-            onClick={() => setDrawingTool("line")}
-            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "line" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
-          >
-            <Minus size={12} /> Line
-          </button>
-          <button
-            type="button"
-            onClick={() => setDrawingTool("arrow")}
-            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "arrow" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
-          >
-            <Workflow size={12} /> Arrow
-          </button>
-          <button
-            type="button"
-            onClick={() => setDrawingTool("rectangle")}
-            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "rectangle" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
-          >
-            <RectangleHorizontal size={12} /> Box
-          </button>
-          <button
-            type="button"
-            onClick={() => setDrawingTool("circle")}
-            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "circle" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
-          >
-            <Circle size={12} /> Circle
-          </button>
-          <button
-            type="button"
-            onClick={() => setDrawingTool("polygon")}
-            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "polygon" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
-          >
-            <Pentagon size={12} /> Polygon
-          </button>
-          <button
-            type="button"
-            onClick={() => setDrawingTool("marker")}
-            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "marker" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
-          >
-            <MapPin size={12} /> Pin
-          </button>
-          <button
-            type="button"
-            onClick={clearMarkup}
-            className="inline-flex items-center justify-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100"
-          >
-            <Trash2 size={12} /> Clear
-          </button>
-          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1">
-            <span className="text-[10px] font-semibold text-gray-500">S</span>
-            <input
-              type="color"
-              value={strokeColor}
-              onChange={(event) => setStrokeColor(event.target.value)}
-              className="h-4 w-6 bg-transparent border-0 p-0"
-            />
-          </div>
-          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1">
-            <span className="text-[10px] font-semibold text-gray-500">F</span>
-            <input
-              type="color"
-              value={fillColor}
-              onChange={(event) => setFillColor(event.target.value)}
-              className="h-4 w-6 bg-transparent border-0 p-0"
-            />
-          </div>
-          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 min-w-[112px]">
-            <span className="text-[10px] font-semibold text-gray-500">W</span>
-            <input
-              type="range"
-              min={1}
-              max={10}
-              value={strokeWeight}
-              onChange={(event) => setStrokeWeight(Number(event.target.value))}
-              className="w-full"
-            />
-            <span className="text-[10px] text-gray-500 w-5 text-right">{strokeWeight}</span>
-          </div>
-        </div>
-        </div>
-        )}
-      </div>
-      )}{/* end markup panel */}
-
-      {/* ── Directions panel ────────────────────────────────────── */}
+      {/* Directions Row */}
       {mapMode === "directions" && (
-        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/60 space-y-3">
-
+        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
           {/* Travel mode selector */}
-          <div className="flex items-center gap-1 flex-wrap">
-            {TRAVEL_MODES.map(({ id, label, icon }) => (
+          <div className="flex items-center gap-1">
+            {TRAVEL_MODES.map(({ id, icon, label }) => (
               <button
                 key={id}
                 type="button"
@@ -922,123 +750,95 @@ function DrawController({
                   setTravelMode(id);
                   if (originInput.trim() && destInput.trim()) void getDirections(originInput, destInput, id);
                 }}
-                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
+                className={`inline-flex items-center justify-center w-6 h-6 rounded-md border transition-colors ${
                   travelMode === id
                     ? "border-[#1E3A8A] bg-[#1E3A8A]/10 text-[#1E3A8A]"
                     : "border-gray-200 text-gray-500 hover:bg-gray-100"
                 }`}
+                title={label}
               >
-                {icon} {label}
+                {icon}
               </button>
             ))}
           </div>
-
+          <div className="w-px h-4 bg-gray-200 mx-1" />
           {/* Origin */}
-          <div className="relative">
-            <div className="flex items-center rounded-lg border border-gray-200 bg-white px-2.5 py-2 gap-2 focus-within:border-[#1E3A8A] focus-within:ring-1 focus-within:ring-[#1E3A8A]/30 transition-all">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+          <div className="relative w-32 shrink-0">
+            <div className="flex items-center rounded-md border border-gray-200 bg-white px-1.5 py-1 gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
               <input
                 type="text"
                 value={originInput}
                 onChange={(e) => setOriginInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && destInput.trim()) void getDirections(originInput, destInput, travelMode); }}
-                placeholder="Starting point…"
-                className="flex-1 text-xs text-gray-700 bg-transparent outline-none"
+                placeholder="Start…"
+                className="flex-1 text-[10px] text-gray-700 bg-transparent outline-none"
               />
-              <button
-                type="button"
-                onClick={goToCurrentLocationForOrigin}
-                className="text-gray-400 hover:text-[#FF4D00] transition-colors"
-                title="Use my current location"
-              >
-                <LocateFixed size={12} />
-              </button>
             </div>
             {originSuggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 rounded-lg border border-gray-200 bg-white shadow-md max-h-40 overflow-auto">
+              <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 rounded-md border border-gray-200 bg-white shadow-md max-h-40 overflow-auto">
                 {originSuggestions.map((s) => (
                   <button key={s.placeId} type="button" onClick={() => void selectOriginSug(s)}
-                    className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                    className="w-full text-left px-2 py-1.5 text-[10px] text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
                     {s.description}
                   </button>
                 ))}
               </div>
             )}
           </div>
-
-          {/* Swap button + Destination */}
-          <div className="flex items-start gap-2">
-            <button
-              type="button"
-              onClick={swapAddresses}
-              className="mt-1.5 w-7 h-7 shrink-0 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-              title="Swap origin and destination"
-            >
-              <ArrowUpDown size={11} />
-            </button>
-            <div className="relative flex-1">
-              <div className="flex items-center rounded-lg border border-gray-200 bg-white px-2.5 py-2 gap-2 focus-within:border-[#1E3A8A] focus-within:ring-1 focus-within:ring-[#1E3A8A]/30 transition-all">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#FF4D00] shrink-0" />
-                <input
-                  type="text"
-                  value={destInput}
-                  onChange={(e) => setDestInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && originInput.trim()) void getDirections(originInput, destInput, travelMode); }}
-                  placeholder="Destination…"
-                  className="flex-1 text-xs text-gray-700 bg-transparent outline-none"
-                />
-              </div>
-              {destSuggestions.length > 0 && (
-                <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 rounded-lg border border-gray-200 bg-white shadow-md max-h-40 overflow-auto">
-                  {destSuggestions.map((s) => (
-                    <button key={s.placeId} type="button" onClick={() => void selectDestSug(s)}
-                      className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
-                      {s.description}
-                    </button>
-                  ))}
-                </div>
-              )}
+          <button type="button" onClick={swapAddresses} className="w-5 h-5 shrink-0 rounded-md border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100">
+            <ArrowUpDown size={9} />
+          </button>
+          {/* Destination */}
+          <div className="relative w-32 shrink-0">
+            <div className="flex items-center rounded-md border border-gray-200 bg-white px-1.5 py-1 gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#FF4D00] shrink-0" />
+              <input
+                type="text"
+                value={destInput}
+                onChange={(e) => setDestInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && originInput.trim()) void getDirections(originInput, destInput, travelMode); }}
+                placeholder="End…"
+                className="flex-1 text-[10px] text-gray-700 bg-transparent outline-none"
+              />
             </div>
-          </div>
-
-          {/* Get Directions + Clear */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => { if (originInput.trim() && destInput.trim()) void getDirections(originInput, destInput, travelMode); }}
-              disabled={!originInput.trim() || !destInput.trim() || isLoadingRoute}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#1E3A8A] px-3 py-2 text-xs font-semibold text-white hover:bg-[#1a3270] disabled:opacity-50 transition-colors"
-            >
-              {isLoadingRoute ? <Loader2 size={11} className="animate-spin" /> : <Navigation size={11} />}
-              {isLoadingRoute ? "Finding route…" : "Get Directions"}
-            </button>
-            {(originInput || destInput || routeInfo) && (
-              <button
-                type="button"
-                onClick={clearDirections}
-                className="inline-flex items-center justify-center gap-1 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
-                title="Clear route"
-              >
-                <Trash2 size={11} /> Clear
-              </button>
+            {destSuggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 rounded-md border border-gray-200 bg-white shadow-md max-h-40 overflow-auto">
+                {destSuggestions.map((s) => (
+                  <button key={s.placeId} type="button" onClick={() => void selectDestSug(s)}
+                    className="w-full text-left px-2 py-1.5 text-[10px] text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                    {s.description}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
-
-          {/* Route result badge */}
+          <button
+            type="button"
+            onClick={() => { if (originInput.trim() && destInput.trim()) void getDirections(originInput, destInput, travelMode); }}
+            disabled={!originInput.trim() || !destInput.trim() || isLoadingRoute}
+            className="inline-flex items-center justify-center gap-1 rounded-md bg-[#1E3A8A] px-2 py-1 text-[10px] font-semibold text-white hover:bg-[#1a3270] disabled:opacity-50"
+          >
+            {isLoadingRoute ? <Loader2 size={10} className="animate-spin" /> : <Navigation size={10} />} Go
+          </button>
+          {(originInput || destInput || routeInfo) && (
+            <button type="button" onClick={clearDirections} className="inline-flex items-center justify-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100">
+              <Trash2 size={10} />
+            </button>
+          )}
           {routeInfo && (
-            <div className="flex items-center gap-3 rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2.5">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              <span className="text-xs font-bold text-emerald-800">{routeInfo.distance}</span>
-              <span className="text-[10px] text-emerald-400">·</span>
-              <span className="text-xs font-semibold text-emerald-700">{routeInfo.duration}</span>
-              <span className="text-[10px] text-emerald-500 ml-auto capitalize">{travelMode.toLowerCase()}</span>
+            <div className="flex items-center gap-1.5 rounded-md bg-emerald-50 border border-emerald-100 px-2 py-1 ml-auto">
+              <span className="text-[10px] font-bold text-emerald-800">{routeInfo.distance}</span>
+              <span className="text-[9px] text-emerald-400">·</span>
+              <span className="text-[10px] font-semibold text-emerald-700">{routeInfo.duration}</span>
             </div>
           )}
         </div>
-      )}{/* end directions panel */}
-    </>
+      )}
+    </div>
   );
 }
+
 
 export default function LocationMap({ center, locationLabel, contactRecipients = [], compact = false, expanded = false }: LocationMapProps) {
   const pathname = usePathname();
@@ -1064,6 +864,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const [mapCenter, setMapCenter] = useState(center ?? { lat: 40.7128, lng: -74.0060 });
   const [isThreeD, setIsThreeD] = useState(true);
+  const [showSharePanel, setShowSharePanel] = useState(false);
   const [controlsExpanded, setControlsExpanded] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [widgetDiagEnabled, setWidgetDiagEnabled] = useState(false);
@@ -1485,9 +1286,79 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                 setAddressQuery={setAddressQuery}
                 setMapCenter={setMapCenter}
                 condensed={true}
+                isThreeD={isThreeD}
+                setIsThreeD={setIsThreeD}
+                onToggleSharePanel={() => setShowSharePanel(!showSharePanel)}
               />
             </div>
           )}
+
+          {showSharePanel && showToolbar && (
+            <div className="border-b border-gray-100 bg-white px-3 py-2.5 shadow-sm z-10 relative">
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={selectedProjectId}
+                  onChange={(event) => setSelectedProjectId(event.target.value)}
+                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-700 w-32"
+                >
+                  <option value="">Select project</option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>{project.name}</option>
+                  ))}
+                </select>
+                <select
+                  value={selectedFolderId}
+                  onChange={(event) => setSelectedFolderId(event.target.value)}
+                  disabled={!selectedProjectId || folders.length === 0}
+                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-700 w-32 disabled:opacity-50"
+                >
+                  <option value="">Select folder</option>
+                  {folders.map((folder) => (
+                    <option key={folder.id} value={folder.id}>{folder.name}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleSaveToFolder}
+                  disabled={isSaving || !selectedFolderId}
+                  className="inline-flex items-center justify-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                >
+                  {isSaving ? <Loader2 size={10} className="animate-spin" /> : <Save size={10} />} Save
+                </button>
+                <div className="w-px h-4 bg-gray-200 mx-1" />
+                <div className="flex items-center rounded-md border border-gray-200 bg-white p-0.5">
+                  <button onClick={() => setRecipientMode("email")} className={`px-2 py-0.5 text-[10px] font-semibold rounded-sm ${recipientMode === "email" ? "bg-gray-100 text-gray-800" : "text-gray-500 hover:text-gray-700"}`}>Email</button>
+                  <button onClick={() => setRecipientMode("phone")} className={`px-2 py-0.5 text-[10px] font-semibold rounded-sm ${recipientMode === "phone" ? "bg-gray-100 text-gray-800" : "text-gray-500 hover:text-gray-700"}`}>SMS</button>
+                </div>
+                <input
+                  type={recipientMode === "email" ? "email" : "tel"}
+                  value={recipientValue}
+                  onChange={(e) => setRecipientValue(e.target.value)}
+                  placeholder={recipientMode === "email" ? "client@example.com" : "+1 (555) 000-0000"}
+                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-700 w-32 outline-none focus:border-[#1E3A8A]"
+                />
+                <button
+                  onClick={handleSendShareLink}
+                  disabled={isSharing || !lastFileId || !recipientValue}
+                  className="inline-flex items-center justify-center gap-1 rounded-md bg-[#FF4D00] px-2 py-1 text-[11px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                >
+                  {isSharing ? <Loader2 size={10} className="animate-spin" /> : <Send size={10} />} Send
+                </button>
+                <button
+                  onClick={handleDownloadPDF}
+                  disabled={isDownloading}
+                  className="inline-flex items-center justify-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50 ml-auto"
+                >
+                  {isDownloading ? <Loader2 size={10} className="animate-spin" /> : <Download size={10} />} PDF
+                </button>
+              </div>
+              {status && (
+                <div className={`mt-2 text-[10px] font-medium ${status.ok ? "text-emerald-600" : "text-red-600"}`}>
+                  {status.text}
+                </div>
+              )}
+            </div>
+          )}
+
           <div ref={mapCanvasRef} className={`flex-1 relative min-h-0 ${isModal ? "min-h-[55vh]" : "min-h-[180px]"}`}>
             {mapsApiKey ? (
               <Map
