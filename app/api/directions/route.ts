@@ -1,12 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Server-side proxy for the Google Routes API v2.
- * Replaces the deprecated client-side DirectionsService which returns REQUEST_DENIED
- * when the legacy "Directions API" is not enabled in the GCP project.
+ * Server-side directions endpoint.
  *
- * Requires: "Routes API" enabled in Google Cloud Console.
+ * Uses Google Geocoding API (to resolve addresses → coordinates) and
+ * OSRM (free, open-source routing engine) for the actual route polyline.
+ *
+ * This avoids the Google Routes API / Directions API, which are blocked
+ * by this project's API key restrictions (API_KEY_SERVICE_BLOCKED).
  */
+
+async function geocodeAddress(
+  address: string,
+  apiKey: string
+): Promise<{ lat: number; lng: number } | null> {
+  // If already looks like "lat, lng", parse directly
+  const coordMatch = address.match(
+    /^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/
+  );
+  if (coordMatch) {
+    return {
+      lat: parseFloat(coordMatch[1]),
+      lng: parseFloat(coordMatch[2]),
+    };
+  }
+
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+    address
+  )}&key=${apiKey}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.status === "OK" && data.results?.[0]?.geometry?.location) {
+    return data.results[0].geometry.location;
+  }
+  return null;
+}
+
+const OSRM_PROFILE: Record<string, string> = {
+  DRIVING: "driving",
+  WALKING: "foot",
+  BICYCLING: "bicycle",
+  TRANSIT: "driving", // OSRM has no transit; fall back to driving
+};
+
 export async function POST(req: NextRequest) {
   try {
     const { origin, destination, travelMode } = await req.json();
@@ -26,61 +62,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const modeMap: Record<string, string> = {
-      DRIVING: "DRIVE",
-      WALKING: "WALK",
-      BICYCLING: "BICYCLE",
-      TRANSIT: "TRANSIT",
-    };
+    // 1. Geocode both addresses in parallel
+    const [originCoord, destCoord] = await Promise.all([
+      geocodeAddress(origin, apiKey),
+      geocodeAddress(destination, apiKey),
+    ]);
 
-    const body: Record<string, unknown> = {
-      origin: { address: origin },
-      destination: { address: destination },
-      travelMode: modeMap[travelMode] || "DRIVE",
-      polylineEncoding: "ENCODED_POLYLINE",
-      computeAlternativeRoutes: false,
-    };
-
-    // TRAFFIC_AWARE is not supported for TRANSIT
-    if (travelMode !== "TRANSIT") {
-      body.routingPreference = "TRAFFIC_AWARE";
-    }
-
-    const res = await fetch(
-      "https://routes.googleapis.com/directions/v2:computeRoutes",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": apiKey,
-          "X-Goog-FieldMask":
-            "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.legs.startLocation,routes.legs.endLocation",
-          // Pass Referer so the request satisfies the API key's HTTP referrer restriction
-          "Referer": "https://www.slate360.ai/",
-        },
-        body: JSON.stringify(body),
-      }
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      const msg = data?.error?.message || "Routes API request failed";
-      console.error("Routes API error:", JSON.stringify(data?.error));
-      return NextResponse.json({ error: msg }, { status: res.status });
-    }
-
-    if (!data.routes?.[0]) {
+    if (!originCoord) {
       return NextResponse.json(
-        { error: "No route found between those locations." },
+        { error: `Could not find location: "${origin}"` },
+        { status: 400 }
+      );
+    }
+    if (!destCoord) {
+      return NextResponse.json(
+        { error: `Could not find location: "${destination}"` },
+        { status: 400 }
+      );
+    }
+
+    // 2. Get route from OSRM (free, no API key)
+    const profile = OSRM_PROFILE[travelMode] || "driving";
+    const osrmUrl = `https://router.project-osrm.org/route/v1/${profile}/${originCoord.lng},${originCoord.lat};${destCoord.lng},${destCoord.lat}?overview=full&geometries=polyline`;
+
+    const osrmRes = await fetch(osrmUrl);
+    const osrmData = await osrmRes.json();
+
+    if (osrmData.code !== "Ok" || !osrmData.routes?.[0]) {
+      return NextResponse.json(
+        { error: "Could not find a route between those locations." },
         { status: 404 }
       );
     }
 
-    const route = data.routes[0];
-    const distanceMeters: number = route.distanceMeters || 0;
-    const durationStr: string = route.duration || "0s";
-    const durationSeconds = parseInt(durationStr.replace("s", ""), 10) || 0;
+    const route = osrmData.routes[0];
+    const distanceMeters: number = route.distance || 0;
+    const durationSeconds: number = Math.round(route.duration || 0);
 
     // Format distance
     const distanceMiles = distanceMeters / 1609.344;
@@ -96,13 +113,13 @@ export async function POST(req: NextRequest) {
       hours > 0 ? `${hours} hr ${minutes} min` : `${minutes} min`;
 
     return NextResponse.json({
-      encodedPolyline: route.polyline?.encodedPolyline || "",
+      encodedPolyline: route.geometry || "",
       distance,
       duration,
       distanceMeters,
       durationSeconds,
-      startLocation: route.legs?.[0]?.startLocation?.latLng,
-      endLocation: route.legs?.[0]?.endLocation?.latLng,
+      startLocation: originCoord,
+      endLocation: destCoord,
     });
   } catch (error: unknown) {
     const message =
