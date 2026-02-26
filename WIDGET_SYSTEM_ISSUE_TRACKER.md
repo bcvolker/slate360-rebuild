@@ -152,6 +152,41 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
 - Result:
   - Location map pan/drag is now excluded from card/grid drag interception on Dashboard, `/project-hub`, and `/project-hub/[projectId]` paths.
 
+### 2026-02-26 — Session I
+- Build diagnostics phase:
+  - Added runtime build badge (`?buildDiag=1`) and hit a production build failure.
+  - Root cause: `useSearchParams` in the global badge component required `Suspense` boundary during `/_not-found` prerender.
+  - Fix shipped in `app/layout.tsx` with `<Suspense fallback={null}>` around `BuildRuntimeBadge`.
+  - Local `npm run build` now passes with full static generation.
+
+### 2026-02-26 — Session J (Visibility Mapping Expansion)
+- User still reports no visible UI changes despite successful deployments.
+- Added temporary high-visibility probes outside widget surfaces to map what deployment/domain is actually being served:
+  - `app/page.tsx`: fixed probe chip (`TEMP VIS PROBE HOME · 2026-02-26-P1 · <host>`).
+  - `app/login/page.tsx`: top probe strip (`TEMP VIS PROBE LOGIN · 2026-02-26-P1`).
+  - `app/layout.tsx`: bumped root html marker to `data-build="2026-02-26-v4-probe"`.
+- Purpose:
+  - If probes are not visible on `/` and `/login`, traffic is not reaching the expected deployment.
+  - If probes are visible on `/` and `/login` but not protected app routes, blocker is auth/session/route-level runtime branching.
+
+## Temporary Probe Test Matrix (Current)
+
+1. Public route probe check:
+  - Open `/` and verify the bottom-left fuchsia probe chip appears.
+  - Open `/login` and verify the top fuchsia probe strip appears.
+
+2. Runtime identity check:
+  - Append `?buildDiag=1` and confirm badge values for `host`, `html-build`, `commit`, `marker`, `branch`.
+
+3. Protected route behavior check (authenticated session):
+  - Open `/dashboard?widgetDiag=1` and `/project-hub?widgetDiag=1` while logged in.
+  - Confirm location widget interactions and compare diag output state.
+
+4. Interpretation:
+  - No public probes visible => wrong deployment/domain.
+  - Public probes visible + no protected changes => auth/session/runtime route branch issue.
+  - Public + protected probes visible but behavior still wrong => remaining widget runtime bug (actionable in current code path).
+
 ## Next Actions
 
 1. Run the revised block-isolation test strategy and log concrete measurements/screenshots for both routes.

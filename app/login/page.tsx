@@ -52,6 +52,9 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="px-4 py-1 text-[11px] font-semibold text-fuchsia-900 bg-fuchsia-100 border-b border-fuchsia-200 text-center">
+        TEMP VIS PROBE LOGIN · 2026-02-26-P1
+      </div>
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-100">
         <Link href="/" className="flex items-center gap-2">

@@ -286,13 +286,18 @@ export default function HomePage() {
   const [modalCard, setModalCard] = useState<string | null>(null);
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [mounted, setMounted] = useState(false);
+  const [probeHost, setProbeHost] = useState("server");
 
   useEffect(() => {
     setMounted(true);
+    setProbeHost(window.location.host);
   }, []);
 
   return (
     <div className="bg-white min-h-screen text-gray-900 antialiased">
+      <div className="fixed bottom-3 left-3 z-[120] rounded-lg border border-fuchsia-300 bg-fuchsia-50 px-3 py-2 text-[11px] font-semibold text-fuchsia-900 shadow-lg">
+        TEMP VIS PROBE HOME · 2026-02-26-P1 · {probeHost}
+      </div>
       <Navbar />
 
       {/* ────── HERO — full viewport ────── */}
