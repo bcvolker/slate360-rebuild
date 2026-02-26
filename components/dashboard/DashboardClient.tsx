@@ -208,7 +208,7 @@ type SlateDropFolderQuickView = {
    ================================================================ */
 
 const WIDGET_META: { id: string; label: string; icon: LucideIcon; color: string; tierGate?: string }[] = [
-  { id: "slatedrop",    label: "SlateDrop",             icon: FolderOpen,     color: "#FF4D00" },
+  { id: "slatedrop",    label: "SlateDrop",             icon: FolderOpen,    color: "#FF4D00" },
   { id: "location",     label: "Location",              icon: MapPin,        color: "#1E3A8A" },
   { id: "data-usage",   label: "Data Usage & Credits", icon: CreditCard,    color: "#059669" },
   { id: "processing",   label: "Processing Jobs",       icon: Cpu,           color: "#D97706" },
@@ -590,7 +590,6 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         if (cached) {
           const parsed = JSON.parse(cached) as WidgetPref[];
           if (Array.isArray(parsed) && parsed.length > 0) {
-            // Merge cached with defaults so new widgets are included
             return DEFAULT_WIDGET_PREFS.map((def) => {
               const found = parsed.find((p) => p.id === def.id);
               return found ?? def;
@@ -1256,6 +1255,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         if (i === target) return { ...p, order: arr[idx].order };
         return p;
       });
+      try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(newArr)); } catch { /* ignore */ }
       return newArr;
     });
     setPrefsDirty(true);
@@ -1272,6 +1272,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   }, [supabase, widgetPrefs]);
   const resetPrefs = useCallback(() => {
     setWidgetPrefs(DEFAULT_WIDGET_PREFS);
+    try { localStorage.setItem("slate360-dashboard-widgets", JSON.stringify(DEFAULT_WIDGET_PREFS)); } catch { /* ignore */ }
     setPrefsDirty(true);
   }, []);
 
@@ -2309,6 +2310,16 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 {orderedVisible.map((p) => (
                   <div key={p.id} className="relative group">
                     {renderWidget(p.id, p.expanded)}
+                    <button
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openWidgetPopout(p.id);
+                      }}
+                      className="absolute top-3 right-3 z-10 h-7 w-7 rounded-lg border border-gray-200 bg-white/95 text-gray-500 hover:text-[#FF4D00] hover:border-[#FF4D00]/40 transition-colors flex items-center justify-center"
+                      title="Pop out widget"
+                    >
+                      <ArrowUpRight size={13} />
+                    </button>
                   </div>
                 ))}
               </div>

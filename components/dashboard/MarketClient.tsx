@@ -1178,7 +1178,7 @@ export default function MarketClient() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 flex items-center gap-2 flex-wrap">
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900 flex items-center gap-2 flex-wrap">
             Market Robot
             <StatusBadge status={botRunning ? (botPaused ? "idle" : "running") : "idle"} />
             {paperMode && <span className="text-xs bg-purple-100 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full">Paper Mode</span>}
@@ -1245,7 +1245,7 @@ export default function MarketClient() {
                 fetchSchedulerHealth();
               }
             }}
-            className={`px-4 sm:px-5 py-3 text-sm sm:text-base font-bold whitespace-nowrap transition-all border-b-3 -mb-px rounded-t-lg ${
+            className={`px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-all border-b-2 -mb-px rounded-t-lg ${
               activeTab === tab
                 ? "border-[#FF4D00] text-[#FF4D00] bg-orange-50/50"
                 : "border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50"
