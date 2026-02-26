@@ -218,8 +218,9 @@ function DrawController({
     return () => window.clearTimeout(timeout);
   }, [destInput, mapsApiKey]);
 
-  // Initialise directions service + renderer when map is ready
+  // Initialise directions service + renderer only in directions mode
   useEffect(() => {
+    if (mapMode !== "directions") return;
     if (!map || !(window as any).google?.maps) return;
     const mapsApi = (window as any).google.maps;
     if (!directionsServiceRef.current) {
@@ -231,7 +232,7 @@ function DrawController({
         polylineOptions: { strokeColor: "#FF4D00", strokeWeight: 4, strokeOpacity: 0.85 },
       });
     }
-  }, [map]);
+  }, [map, mapMode]);
 
   // Cleanup directions renderer on unmount
   useEffect(() => {
@@ -602,34 +603,6 @@ function DrawController({
 
   return (
     <>
-      {/* ── Mode toggle ─────────────────────────────────────────── */}
-      {!condensed && (
-      <div className="flex items-center gap-1 px-3 pt-2 pb-0">
-        <button
-          type="button"
-          onClick={() => setMapMode("markup")}
-          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-semibold transition-colors ${
-            mapMode === "markup"
-              ? "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00]"
-              : "border-gray-200 text-gray-500 hover:bg-gray-100"
-          }`}
-        >
-          <PenTool size={11} /> Markup
-        </button>
-        <button
-          type="button"
-          onClick={() => setMapMode("directions")}
-          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-semibold transition-colors ${
-            mapMode === "directions"
-              ? "border-[#1E3A8A] bg-[#1E3A8A]/10 text-[#1E3A8A]"
-              : "border-gray-200 text-gray-500 hover:bg-gray-100"
-          }`}
-        >
-          <Navigation size={11} /> Directions
-        </button>
-      </div>
-      )}
-
       {/* ── Markup panel ────────────────────────────────────────── */}
       {(condensed || mapMode === "markup") && (
       <div className={`border-b border-gray-100 bg-gray-50/60 ${condensed ? "px-3 py-2" : "px-4 py-3"} space-y-2`}>
@@ -644,7 +617,7 @@ function DrawController({
                   setAddressInput(event.target.value);
                   setAddressQuery(event.target.value);
                 }}
-                placeholder="Search address (autocomplete)"
+                placeholder="Search address"
                 className="w-full text-xs text-gray-700 bg-transparent outline-none"
               />
             </div>
@@ -676,87 +649,84 @@ function DrawController({
         </div>
 
         {!condensed && (
-        <>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="overflow-x-auto">
+        <div className="flex items-center gap-1.5 whitespace-nowrap pb-0.5">
           <button
             type="button"
             onClick={() => setDrawingTool("select")}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "select" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "select" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
           >
             <MousePointer2 size={12} /> Select
           </button>
           <button
             type="button"
             onClick={() => setDrawingTool("line")}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "line" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "line" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
           >
             <Minus size={12} /> Line
           </button>
           <button
             type="button"
             onClick={() => setDrawingTool("arrow")}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "arrow" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "arrow" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
           >
             <Workflow size={12} /> Arrow
           </button>
           <button
             type="button"
             onClick={() => setDrawingTool("rectangle")}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "rectangle" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "rectangle" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
           >
             <RectangleHorizontal size={12} /> Box
           </button>
           <button
             type="button"
             onClick={() => setDrawingTool("circle")}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "circle" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "circle" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
           >
             <Circle size={12} /> Circle
           </button>
           <button
             type="button"
             onClick={() => setDrawingTool("polygon")}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "polygon" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "polygon" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
           >
             <Pentagon size={12} /> Polygon
           </button>
           <button
             type="button"
             onClick={() => setDrawingTool("marker")}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] font-semibold ${tool === "marker" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
+            className={`inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${tool === "marker" ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
           >
             <MapPin size={12} /> Pin
           </button>
           <button
             type="button"
             onClick={clearMarkup}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-2 text-[11px] font-semibold text-gray-600 hover:bg-gray-100"
+            className="inline-flex items-center justify-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100"
           >
             <Trash2 size={12} /> Clear
           </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2">
-            <span className="text-[10px] font-semibold text-gray-500">Stroke</span>
+          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1">
+            <span className="text-[10px] font-semibold text-gray-500">S</span>
             <input
               type="color"
               value={strokeColor}
               onChange={(event) => setStrokeColor(event.target.value)}
-              className="h-5 w-7 bg-transparent border-0 p-0"
+              className="h-4 w-6 bg-transparent border-0 p-0"
             />
           </div>
-          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2">
-            <span className="text-[10px] font-semibold text-gray-500">Fill</span>
+          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1">
+            <span className="text-[10px] font-semibold text-gray-500">F</span>
             <input
               type="color"
               value={fillColor}
               onChange={(event) => setFillColor(event.target.value)}
-              className="h-5 w-7 bg-transparent border-0 p-0"
+              className="h-4 w-6 bg-transparent border-0 p-0"
             />
           </div>
-          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2 sm:col-span-2">
-            <span className="text-[10px] font-semibold text-gray-500">Width</span>
+          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 min-w-[112px]">
+            <span className="text-[10px] font-semibold text-gray-500">W</span>
             <input
               type="range"
               min={1}
@@ -768,7 +738,7 @@ function DrawController({
             <span className="text-[10px] text-gray-500 w-5 text-right">{strokeWeight}</span>
           </div>
         </div>
-        </>
+        </div>
         )}
       </div>
       )}{/* end markup panel */}
@@ -1401,7 +1371,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
               />
             </div>
           )}
-          <div ref={mapCanvasRef} className="flex-1 relative min-h-0">
+          <div ref={mapCanvasRef} className={`flex-1 relative min-h-0 ${isModal ? "min-h-[55vh]" : "min-h-[180px]"}`}>
             <Map
               defaultZoom={13}
               defaultCenter={mapCenter}
@@ -1410,7 +1380,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
               gestureHandling={"greedy"}
               disableDefaultUI={true}
               mapTypeId={isThreeD ? "satellite" : "roadmap"}
-              tilt={0}
+              tilt={isThreeD ? 45 : 0}
             >
               <AdvancedMarker position={mapCenter} />
             </Map>

@@ -225,6 +225,19 @@ Unify Dashboard and Project Hub widgets so they share the same behavior, sizing,
   - `scripts/widget-block-isolation-test.mjs`
     - Updated expectation for new condensed-controls model.
 
+### 2026-02-26 — Session N (Location Control-Line Redesign)
+- User-reported follow-up:
+  - Address field wording should not surface "autocomplete" helper copy.
+  - Controls still consume too much vertical space.
+  - 3D map appearance regressed; map can appear missing when controls dominate.
+- Refinements applied to shared `LocationMap`:
+  - `components/dashboard/LocationMap.tsx`
+    - Removed "autocomplete" wording in search placeholder (`Search address`).
+    - Controls redesigned into a compact single horizontal tool line when expanded controls are shown.
+    - Restored 3D tilt behavior (`tilt={isThreeD ? 45 : 0}`) while keeping compact defaults.
+    - Added explicit map canvas minimum heights (`min-h-[180px]` inline, `min-h-[55vh]` expanded) to prevent map collapse.
+    - Directions service/renderer initialization now only occurs in directions mode to reduce unnecessary deprecation noise in normal markup flow.
+
 ## Next Actions
 
 1. Run the revised block-isolation test strategy and log concrete measurements/screenshots for both routes.
