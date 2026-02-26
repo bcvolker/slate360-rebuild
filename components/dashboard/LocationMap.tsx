@@ -828,6 +828,16 @@ function DrawController({
 }
 
 
+function MapUpdater({ center }: { center: { lat: number; lng: number } }) {
+  const map = useMap("main-map");
+  useEffect(() => {
+    if (map && center) {
+      map.panTo(center);
+    }
+  }, [map, center]);
+  return null;
+}
+
 export default function LocationMap({ center, locationLabel, contactRecipients = [], compact = false, expanded = false }: LocationMapProps) {
   const pathname = usePathname();
   const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || undefined;
@@ -1261,6 +1271,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     return (
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
         <APIProvider apiKey={mapsApiKey} libraries={["places", "drawing", "geometry", "routes"]}>
+          <MapUpdater center={mapCenter} />
           {showToolbar && (
             <div ref={controlsPanelRef} className={toolbarShellClass}>
               <DrawController
