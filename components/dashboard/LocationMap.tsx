@@ -168,7 +168,6 @@ function DrawController({
 }) {
   
   const map = useMap("main-map");
-  console.log("DrawController map:", map ? "loaded" : "null");
   const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   const geocodingLib = useMapsLibrary("geocoding");
   const placesLib = useMapsLibrary("places");
@@ -446,76 +445,35 @@ function DrawController({
       overlaysRef.current = [...overlaysRef.current, record];
       selectedOverlayIdRef.current = id;
 
-      if (selectedToolRef.current === "marker") {
-        manager.setDrawingMode(null);
-        setTool("select");
-        selectedToolRef.current = "select";
-        
-        if (event.type === "marker" || event.type === "polygon" || event.type === "rectangle" || event.type === "circle" || event.type === "polyline") {
-        let lat, lng;
-        if (event.type === "marker" || event.type === "polygon" || event.type === "rectangle" || event.type === "circle" || event.type === "polyline") {
-        let lat, lng;
+      // Extract coordinates from any overlay type and populate the address bar
+      {
+        let lat: number | undefined, lng: number | undefined;
         if (event.type === "marker") {
           const pos = event.overlay.getPosition();
           if (pos) { lat = pos.lat(); lng = pos.lng(); }
         } else if (event.type === "circle") {
-          const center = event.overlay.getCenter();
-          if (center) { lat = center.lat(); lng = center.lng(); }
+          const c = event.overlay.getCenter();
+          if (c) { lat = c.lat(); lng = c.lng(); }
         } else if (event.type === "rectangle") {
-          const bounds = event.overlay.getBounds();
-          if (bounds) { const center = bounds.getCenter(); lat = center.lat(); lng = center.lng(); }
+          const b = event.overlay.getBounds();
+          if (b) { const c = b.getCenter(); lat = c.lat(); lng = c.lng(); }
         } else if (event.type === "polygon" || event.type === "polyline") {
-          const path = event.overlay.getPath();
-          if (path && path.getLength() > 0) {
-            const first = path.getAt(0);
-            lat = first.lat(); lng = first.lng();
-          }
+          const p = event.overlay.getPath();
+          if (p && p.getLength() > 0) { const f = p.getAt(0); lat = f.lat(); lng = f.lng(); }
         }
-        
         if (lat !== undefined && lng !== undefined) {
           const coordStr = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
           setAddressInput(coordStr);
           setAddressQuery(coordStr);
-          setMapCenter({ lat, lng });
+          setStatus({ ok: true, text: `Markup placed at ${coordStr}` });
         }
       }
-      
-      if (event.type === "marker") {
-          const pos = event.overlay.getPosition();
-          if (pos) { lat = pos.lat(); lng = pos.lng(); }
-        } else if (event.type === "circle") {
-          const center = event.overlay.getCenter();
-          if (center) { lat = center.lat(); lng = center.lng(); }
-        } else if (event.type === "rectangle") {
-          const bounds = event.overlay.getBounds();
-          if (bounds) { const center = bounds.getCenter(); lat = center.lat(); lng = center.lng(); }
-        } else if (event.type === "polygon" || event.type === "polyline") {
-          const path = event.overlay.getPath();
-          if (path && path.getLength() > 0) {
-            const first = path.getAt(0);
-            lat = first.lat(); lng = first.lng();
-          }
-        }
-        
-        if (lat !== undefined && lng !== undefined) {
-          const coordStr = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-          setAddressInput(coordStr);
-          setAddressQuery(coordStr);
-          setMapCenter({ lat, lng });
-        }
-      }
-      
-      if (event.type === "marker") {
-          const pos = event.overlay.getPosition();
-          if (pos) {
-            const lat = pos.lat();
-            const lng = pos.lng();
-            const coordStr = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-            setAddressInput(coordStr);
-            setAddressQuery(coordStr);
-            setMapCenter({ lat, lng });
-          }
-        }
+
+      // Reset to select tool after placing a marker
+      if (selectedToolRef.current === "marker") {
+        manager.setDrawingMode(null);
+        setTool("select");
+        selectedToolRef.current = "select";
       }
     });
 
@@ -898,22 +856,32 @@ function DrawController({
 }
 
 
-function MapUpdater({ center }: { center: { lat: number; lng: number } }) {
+function MapUpdater({ center, isThreeD }: { center: { lat: number; lng: number }; isThreeD: boolean }) {
   const map = useMap("main-map");
   const prevCenterRef = useRef<{lat: number, lng: number} | null>(null);
+  const prevThreeDRef = useRef<boolean | null>(null);
   
+  // Pan to new center only when the center state actually changes
   useEffect(() => {
     if (map && center) {
-      // Only pan if the center actually changed significantly to avoid fighting user navigation
       if (!prevCenterRef.current || 
           Math.abs(prevCenterRef.current.lat - center.lat) > 0.0001 || 
           Math.abs(prevCenterRef.current.lng - center.lng) > 0.0001) {
-        console.log("MapUpdater panning to:", center);
         map.panTo(center);
         prevCenterRef.current = center;
       }
     }
   }, [map, center]);
+
+  // Update map type and tilt when 3D mode changes
+  useEffect(() => {
+    if (!map) return;
+    if (prevThreeDRef.current === isThreeD) return;
+    prevThreeDRef.current = isThreeD;
+    map.setMapTypeId(isThreeD ? "satellite" : "roadmap");
+    map.setTilt(isThreeD ? 45 : 0);
+  }, [map, isThreeD]);
+
   return null;
 }
 
@@ -1352,7 +1320,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     return (
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
         <APIProvider apiKey={mapsApiKey} libraries={["places", "drawing", "geometry", "routes"]}>
-          <MapUpdater center={mapCenter} />
+          <MapUpdater center={mapCenter} isThreeD={isThreeD} />
           {showToolbar && (
             <div ref={controlsPanelRef} className={toolbarShellClass}>
               <DrawController
@@ -1449,11 +1417,13 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                 defaultCenter={mapCenter}
                 mapId={mapId}
                 gestureHandling={"greedy"}
-                disableDefaultUI={true}
-                mapTypeId={isThreeD ? "satellite" : "roadmap"}
-                tilt={isThreeD ? 45 : 0}
-                headingInteractionEnabled={true}
+                disableDefaultUI={false}
+                zoomControl={true}
+                streetViewControl={false}
+                fullscreenControl={false}
+                mapTypeControl={false}
                 tiltInteractionEnabled={true}
+                headingInteractionEnabled={true}
               >
                 <Marker position={mapCenter} />
               </Map>
