@@ -18,7 +18,8 @@ import {
   ContinueWidgetBody,
   WeatherWidgetBody,
 } from "@/components/widgets/WidgetBodies";
-import type { WidgetMeta, WidgetPref } from "@/components/widgets/widget-meta";
+import type { WidgetMeta, WidgetPref, WidgetSize } from "@/components/widgets/widget-meta";
+import { getWidgetSpan } from "@/components/widgets/widget-meta";
 import LocationMap from "@/components/dashboard/LocationMap";
 
 type ProjectGridProject = {
@@ -48,14 +49,9 @@ function buildProjectDefaultPrefs(): WidgetPref[] {
   return PROJECT_WIDGET_META.map((widget, index) => ({
     id: widget.id,
     visible: true,
-    expanded: false,
+    size: "default" as WidgetSize,
     order: index,
   }));
-}
-
-function getProjectWidgetSpan(id: string, expanded: boolean): string {
-  if (id === "location" || id === "slatedrop") return expanded ? "md:col-span-2" : "";
-  return expanded ? "md:col-span-2" : "";
 }
 
 export default function ProjectDashboardGrid({
@@ -103,8 +99,8 @@ export default function ProjectDashboardGrid({
     setWidgetPrefs((prev) => prev.map((pref) => (pref.id === id ? { ...pref, visible: !pref.visible } : pref)));
   }, []);
 
-  const toggleExpanded = useCallback((id: string) => {
-    setWidgetPrefs((prev) => prev.map((pref) => (pref.id === id ? { ...pref, expanded: !pref.expanded } : pref)));
+  const setWidgetSize = useCallback((id: string, newSize: WidgetSize) => {
+    setWidgetPrefs((prev) => prev.map((pref) => (pref.id === id ? { ...pref, size: newSize } : pref)));
   }, []);
 
   const moveOrder = useCallback((id: string, dir: -1 | 1) => {
@@ -141,7 +137,7 @@ export default function ProjectDashboardGrid({
 
   const handleDragEnd = useCallback(() => setDragIdx(null), []);
 
-  const renderBody = (id: string, expanded: boolean) => {
+  const renderBody = (id: string, isExpanded: boolean) => {
     if (id === "project-info") {
       return (
         <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 flex-1">
@@ -157,18 +153,18 @@ export default function ProjectDashboardGrid({
 
     if (id === "location") {
       return (
-        <div className={expanded ? "min-h-[420px] flex flex-col" : "min-h-[200px] flex flex-col"}>
+        <div className={isExpanded ? "min-h-[420px] flex flex-col" : "min-h-[200px] flex flex-col"}>
           <LocationMap
             locationLabel={project.metadata?.location}
-            compact={!expanded}
-            expanded={expanded}
+            compact={!isExpanded}
+            expanded={isExpanded}
           />
         </div>
       );
     }
 
     if (id === "weather") {
-      return <WeatherWidgetBody tempF={72} condition="Project site weather" expanded={expanded} />;
+      return <WeatherWidgetBody tempF={72} condition="Project site weather" expanded={isExpanded} />;
     }
 
     if (id === "slatedrop") {
@@ -187,7 +183,7 @@ export default function ProjectDashboardGrid({
             <p className="text-xs text-gray-400 rounded-xl border border-gray-100 bg-gray-50 p-3">No files yet.</p>
           ) : (
             <ul className="space-y-2">
-              {files.slice(0, expanded ? 8 : 4).map((file) => (
+              {files.slice(0, isExpanded ? 8 : 4).map((file) => (
                 <li
                   key={file.id}
                   className="flex items-center gap-2.5 p-2.5 rounded-lg bg-gray-50 border border-gray-100"
@@ -240,16 +236,16 @@ export default function ProjectDashboardGrid({
               icon={meta.icon}
               title={meta.label}
               color={meta.color}
-              span={getProjectWidgetSpan(pref.id, pref.expanded)}
-              onExpand={() => toggleExpanded(pref.id)}
-              isExpanded={pref.expanded}
-              draggable={!pref.expanded && pref.id !== "location"}
+              span={getWidgetSpan(pref.id, pref.size)}
+              onSetSize={(s) => setWidgetSize(pref.id, s)}
+              size={pref.size}
+              draggable={pref.size === "default" && pref.id !== "location"}
               onDragStart={() => handleDragStart(idx)}
               onDragOver={(e) => handleDragOver(e, idx)}
               onDragEnd={handleDragEnd}
               isDragging={dragIdx === idx}
             >
-              {renderBody(pref.id, pref.expanded)}
+              {renderBody(pref.id, pref.size !== "default")}
             </WidgetCard>
           );
         })}
@@ -263,7 +259,7 @@ export default function ProjectDashboardGrid({
         widgetPrefs={widgetPrefs}
         widgetMeta={PROJECT_WIDGET_META}
         onToggleVisible={toggleVisible}
-        onToggleExpanded={toggleExpanded}
+        onSetSize={setWidgetSize}
         onMoveOrder={moveOrder}
         onReset={() => setWidgetPrefs(buildProjectDefaultPrefs())}
       />
