@@ -1,6 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  webpack: (config, { isServer }) => {
+    // Wagmi connectors pull in optional peer deps that aren't needed at runtime
+    // (MetaMask SDK → React-Native async-storage, porto connector, Safe connector).
+    // Tell webpack to silently stub them out so the build doesn't fail.
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        "@react-native-async-storage/async-storage": false,
+        "porto/internal": false,
+      };
+    }
+    return config;
+  },
   images: {
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
