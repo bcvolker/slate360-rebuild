@@ -1,28 +1,44 @@
 /**
  * lib/email.ts
- * Nodemailer email client + typed send helpers.
+ * Resend email client + typed send helpers.
  * All outbound email from Slate360 flows through here.
  */
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 export const FROM = process.env.EMAIL_FROM ?? "Slate360 <noreply@slate360.ai>";
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.ai";
 
-/** Lazy getter — only instantiates when actually sending, avoids build-time throw */
-function getTransporter() {
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  if (!user || !pass) throw new Error("SMTP_USER or SMTP_PASS is not set");
-  
-  return nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: {
-      user,
-      pass,
-    },
+/** Lazy singleton — only instantiates when actually sending */
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (_resend) return _resend;
+  const key = process.env.RESEND_API_KEY;
+  if (!key) throw new Error("RESEND_API_KEY is not set");
+  _resend = new Resend(key);
+  return _resend;
+}
+
+/** Wrapper that sends via Resend and throws on failure */
+async function sendEmail({
+  to,
+  subject,
+  html,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+}) {
+  const resend = getResend();
+  const { data, error } = await resend.emails.send({
+    from: FROM,
+    to,
+    subject,
+    html,
   });
+  if (error) {
+    throw new Error(`Resend error: ${error.message}`);
+  }
+  return data;
 }
 
 /* ── Branded HTML wrapper ── */
@@ -106,9 +122,7 @@ export async function sendWelcomeEmail({
       If you didn't create a Slate360 account, you can safely ignore this email.
     </p>`;
   
-  const transporter = getTransporter();
-  return transporter.sendMail({
-    from: FROM,
+  return sendEmail({
     to,
     subject: "Welcome to Slate360! 🎉",
     html: brandedHtml("Welcome to Slate360", body),
@@ -153,9 +167,7 @@ export async function sendSecureSendEmail({
     }
   `;
 
-  const transporter = getTransporter();
-  return transporter.sendMail({
-    from: FROM,
+  return sendEmail({
     to,
     subject: `${senderName} shared "${fileName}" with you via SlateDrop`,
     html: brandedHtml("Secure File Share", body),
@@ -184,9 +196,7 @@ export async function sendPasswordResetEmail({
       If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
     </p>`;
 
-  const transporter = getTransporter();
-  return transporter.sendMail({
-    from: FROM,
+  return sendEmail({
     to,
     subject: "Reset your Slate360 password",
     html: brandedHtml("Password Reset", body),
@@ -215,9 +225,7 @@ export async function sendConfirmationEmail({
       If you didn't create a Slate360 account, you can safely ignore this email.
     </p>`;
 
-  const transporter = getTransporter();
-  return transporter.sendMail({
-    from: FROM,
+  return sendEmail({
     to,
     subject: "Confirm your Slate360 email",
     html: brandedHtml("Email Confirmation", body),
