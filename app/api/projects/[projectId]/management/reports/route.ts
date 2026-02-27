@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getScopedProjectForUser } from "@/lib/projects/access";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3, BUCKET } from "@/lib/s3";
+import { buildCanonicalS3Key, resolveNamespace } from "@/lib/slatedrop/storage";
 
 type Params = { projectId: string };
 
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<Param
     admin.from("project_tasks").select("id,name,status,percent_complete,start_date,end_date,priority").eq("project_id", projectId).limit(100),
     admin.from("project_budgets").select("cost_code,description,category,budget_amount,spent_amount,change_order_amount").eq("project_id", projectId).limit(200),
     admin.from("project_daily_logs").select("id,log_date,weather,summary,manpower_count").eq("project_id", projectId).order("log_date",{ascending:false}).limit(10),
-    admin.from("project_punch_items").select("id,title,status,priority,assigned_to").eq("project_id", projectId).limit(100),
+    admin.from("project_punch_items").select("id,title,status,priority,assignee").eq("project_id", projectId).limit(100),
   ]);
 
   const rfis    = rfisRes.status  === "fulfilled" ? (rfisRes.value.data  ?? []) : [];
@@ -103,14 +104,40 @@ export async function POST(req: NextRequest, { params }: { params: Promise<Param
         dailyLogs: logs.map((l) => ({ date: l.log_date, weather: l.weather, summary: l.summary, manpower: l.manpower_count })),
       }),
       ...(sections.includes("punch-list") && {
-        punchList: punch.map((p) => ({ title: p.title, status: p.status, priority: p.priority, assignedTo: p.assigned_to })),
+        punchList: punch.map((p) => ({ title: p.title, status: p.status, priority: p.priority, assignedTo: p.assignee })),
       }),
     },
   };
 
+  let orgId: string | null = null;
+  try {
+    const { data } = await admin
+      .from("organization_members")
+      .select("org_id")
+      .eq("user_id", user.id)
+      .single();
+    orgId = data?.org_id ?? null;
+  } catch {
+    orgId = null;
+  }
+
   // Save JSON report to S3
   const safeTitle = reportType.replace(/[^a-zA-Z0-9]/g,"_");
-  const s3Key = `projects/${projectId}/reports/${Date.now()}_${safeTitle}.json`;
+  const reportFileName = `${Date.now()}_${safeTitle}.json`;
+  const namespace = resolveNamespace(orgId, user.id);
+
+  const { data: reportFolder } = await admin
+    .from("project_folders")
+    .select("id")
+    .eq("project_id", projectId)
+    .eq("name", "Reports")
+    .limit(1)
+    .maybeSingle();
+
+  const s3Key = reportFolder?.id
+    ? buildCanonicalS3Key(namespace, reportFolder.id, reportFileName)
+    : `projects/${projectId}/reports/${reportFileName}`;
+
   const body64 = JSON.stringify(reportData, null, 2);
   await s3.send(new PutObjectCommand({
     Bucket: BUCKET, Key: s3Key,
@@ -119,7 +146,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<Param
     Metadata: { "project-id": projectId, "report-type": reportType, "generated-by": user.id },
   }));
 
-  const fileUrl = `https://${BUCKET}.s3.amazonaws.com/${s3Key}`;
+  const { data: uploadRow, error: uploadErr } = await admin
+    .from("slatedrop_uploads")
+    .insert({
+      file_name: reportFileName,
+      file_size: Buffer.byteLength(body64),
+      file_type: "json",
+      s3_key: s3Key,
+      folder_id: reportFolder?.id ?? null,
+      org_id: orgId,
+      uploaded_by: user.id,
+      status: "active",
+    })
+    .select("id")
+    .single();
+
+  if (uploadErr) {
+    return NextResponse.json({ error: uploadErr.message }, { status: 500 });
+  }
+
+  const fileUrl = `/api/slatedrop/download?fileId=${encodeURIComponent(uploadRow.id)}`;
 
   // Save to database
   const { data: saved } = await admin.from("project_contracts").insert({
@@ -128,6 +174,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<Param
     contract_type: `Report: ${reportType}`,
     status: "Final",
     file_url: fileUrl,
+    file_upload_id: uploadRow.id,
     notes: `Auto-generated ${reportType} report. Sections: ${sections.join(", ")}`,
   }).select().single();
 

@@ -254,7 +254,7 @@ export default function SignupPage() {
                 />
                 <span className="text-xs text-gray-600 leading-relaxed">
                   I agree to the{" "}
-                  <Link href="/terms" target="_blank" className="font-semibold text-[#1E3A8A] underline hover:text-[#FF4D00]">Terms of Service</Link>{" "}
+                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#1E3A8A] underline hover:text-[#FF4D00]">Terms of Service</Link>{" "}
                   <span className="text-red-500 font-bold">*</span>
                 </span>
               </label>
@@ -268,7 +268,7 @@ export default function SignupPage() {
                 />
                 <span className="text-xs text-gray-600 leading-relaxed">
                   I agree to the{" "}
-                  <Link href="/privacy" target="_blank" className="font-semibold text-[#1E3A8A] underline hover:text-[#FF4D00]">Privacy Policy</Link>{" "}
+                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#1E3A8A] underline hover:text-[#FF4D00]">Privacy Policy</Link>{" "}
                   and consent to receiving product updates{" "}
                   <span className="text-red-500 font-bold">*</span>
                 </span>

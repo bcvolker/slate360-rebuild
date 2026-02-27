@@ -21,6 +21,7 @@ type Contract = {
   id: string; title: string; contract_type: string | null; parties: string | null;
   executed_date: string | null; contract_value: number | null; status: string;
   summary: string | null; key_requirements: string | null; file_url: string | null;
+  file_upload_id: string | null;
   notes: string | null; created_at: string;
 };
 
@@ -225,6 +226,25 @@ export default function ProjectManagementPage() {
       showToast("Contract analyzed — key requirements extracted");
       await loadContracts();
     } finally { setAnalyzingId(null); }
+  };
+
+  const openContractFile = async (contract: Contract) => {
+    try {
+      if (contract.file_upload_id) {
+        const res = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(contract.file_upload_id)}`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.url) throw new Error(data.error ?? "Unable to open file");
+        window.open(data.url as string, "_blank", "noopener,noreferrer");
+        return;
+      }
+      if (contract.file_url) {
+        window.open(contract.file_url, "_blank", "noopener,noreferrer");
+        return;
+      }
+      showToast("No file attached");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Unable to open file");
+    }
   };
 
   /* ─ Report Generator ─────────────────────────────────────────── */
@@ -568,10 +588,13 @@ export default function ProjectManagementPage() {
                           )}
 
                           <div className="flex flex-wrap gap-2 pt-1">
-                            {c.file_url && (
-                              <a href={c.file_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">
+                            {(c.file_upload_id || c.file_url) && (
+                              <button
+                                onClick={() => void openContractFile(c)}
+                                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"
+                              >
                                 <Download size={12} /> Download
-                              </a>
+                              </button>
                             )}
                             {!c.summary && (
                               <button onClick={() => void analyzeContract(c)} disabled={analyzingId === c.id}
