@@ -77,7 +77,7 @@ export async function POST(req: Request) {
         ? "Account created. Check your email for your verification link."
         : "Account created, but the confirmation email could not be sent.",
       emailSent,
-      // Include error detail for debugging
+      // Include error detail for server logs; always return to client for debugging
       ...(emailError ? { emailError } : {}),
     });
 
