@@ -15,6 +15,8 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [emailSent, setEmailSent] = useState(true);
+  const [resending, setResending] = useState(false);
+  const [resendResult, setResendResult] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedBilling, setSelectedBilling] = useState<"monthly" | "annual">("monthly");
 
@@ -48,6 +50,13 @@ export default function SignupPage() {
       const data = await res.json();
 
       if (!res.ok) {
+        // If account already exists, offer to resend confirmation
+        if (res.status === 409) {
+          setDone(true);
+          setEmailSent(false);
+          setLoading(false);
+          return;
+        }
         setError(data.error || "Signup failed");
         setLoading(false);
         return;
@@ -58,6 +67,29 @@ export default function SignupPage() {
     } catch {
       setError("Network error. Please try again.");
       setLoading(false);
+    }
+  }
+
+  async function handleResendConfirmation() {
+    setResending(true);
+    setResendResult(null);
+    try {
+      const res = await fetch("/api/auth/resend-confirmation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResendResult("Confirmation email sent! Check your inbox.");
+        setEmailSent(true);
+      } else {
+        setResendResult(data.error || "Failed to resend. Try again later.");
+      }
+    } catch {
+      setResendResult("Network error. Please try again.");
+    } finally {
+      setResending(false);
     }
   }
 
@@ -101,21 +133,38 @@ export default function SignupPage() {
                 )}
                 <p className="text-xs text-gray-400">
                   Didn&apos;t get it? Check your spam folder or{" "}
-                  <button onClick={() => setDone(false)} className="text-[#FF4D00] underline">try again</button>.
+                  <button onClick={handleResendConfirmation} disabled={resending} className="text-[#FF4D00] underline disabled:opacity-50">
+                    {resending ? "sending…" : "resend it"}
+                  </button>.
                 </p>
+                {resendResult && (
+                  <p className={`text-xs mt-2 ${resendResult.includes("sent") ? "text-green-600" : "text-red-500"}`}>
+                    {resendResult}
+                  </p>
+                )}
               </>
             ) : (
               <>
                 <p className="text-gray-500 mb-4">
                   Your account for <strong>{email}</strong> was created, but the confirmation email could not be delivered right now.
                 </p>
-                <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-4 text-left">
-                  <strong>What to do:</strong> Contact support or try logging in — your account may already be active.
-                  If you can&apos;t log in, the admin can manually confirm your account in the Supabase dashboard.
+                {resendResult && (
+                  <p className={`text-sm rounded-lg px-4 py-3 mb-4 ${resendResult.includes("sent") ? "text-green-700 bg-green-50 border border-green-200" : "text-red-700 bg-red-50 border border-red-200"}`}>
+                    {resendResult}
+                  </p>
+                )}
+                <button
+                  onClick={handleResendConfirmation}
+                  disabled={resending}
+                  className="inline-block bg-[#FF4D00] text-white px-6 py-2.5 rounded-xl font-semibold text-sm disabled:opacity-50 mb-3"
+                >
+                  {resending ? "Sending…" : "Resend Confirmation Email"}
+                </button>
+                <p className="text-xs text-gray-400">
+                  Or{" "}
+                  <Link href="/login" className="text-[#FF4D00] underline">try logging in</Link>
+                  {" "}— your account may already be active.
                 </p>
-                <Link href="/login" className="inline-block bg-[#FF4D00] text-white px-6 py-2.5 rounded-xl font-semibold text-sm">
-                  Try Logging In →
-                </Link>
               </>
             )}
           </div>
