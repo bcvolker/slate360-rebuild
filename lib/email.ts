@@ -203,6 +203,57 @@ export async function sendPasswordResetEmail({
   });
 }
 
+/* ── Email: External response request (RFI/Submittal/Document) ── */
+export async function sendExternalResponseRequestEmail({
+  to,
+  senderName,
+  projectName,
+  itemType,
+  itemTitle,
+  responseUrl,
+  expiresAt,
+  message,
+}: {
+  to: string;
+  senderName: string;
+  projectName: string;
+  itemType: "RFI" | "Submittal" | "Document";
+  itemTitle: string;
+  responseUrl: string;
+  expiresAt?: string;
+  message?: string;
+}) {
+  const body = `
+    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">Response requested for ${itemType}</h2>
+    <p style="margin:0 0 18px;color:#6b7280;font-size:15px;line-height:1.7;">
+      ${senderName} requested your response in <strong>${projectName}</strong>.
+    </p>
+    <div style="margin:0 0 20px;padding:14px 16px;background:#f3f4f6;border-left:4px solid #1E3A8A;border-radius:6px;">
+      <p style="margin:0;color:#374151;font-size:13px;"><strong>${itemType}:</strong> ${itemTitle}</p>
+      ${
+        message
+          ? `<p style="margin:10px 0 0;color:#4b5563;font-size:13px;">${message}</p>`
+          : ""
+      }
+    </div>
+    ${ctaButton("Review & Respond Securely", responseUrl)}
+    <p style="margin:14px 0 0;font-size:12px;color:#6b7280;">
+      No Slate360 account is required to respond.
+    </p>
+    ${
+      expiresAt
+        ? `<p style="margin:8px 0 0;font-size:12px;color:#ef4444;font-weight:600;">This link expires on ${new Date(expiresAt).toLocaleDateString()}.</p>`
+        : ""
+    }
+  `;
+
+  return sendEmail({
+    to,
+    subject: `${senderName} requested your response on ${itemType}: ${itemTitle}`,
+    html: brandedHtml("Slate360 Response Request", body),
+  });
+}
+
 /* ── Email: Confirmation ── */
 export async function sendConfirmationEmail({
   to,

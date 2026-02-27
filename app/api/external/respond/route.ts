@@ -5,7 +5,7 @@ import { saveProjectArtifact } from "@/lib/slatedrop/projectArtifacts";
 type ExternalLinkRow = {
   id: string;
   project_id: string;
-  target_type: "RFI" | "Submittal";
+  target_type: "RFI" | "Submittal" | "Document";
   target_id: string;
   token: string;
   expires_at: string | null;
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
 
   const { data: submittal } = await admin
     .from("project_submittals")
-    .select("id, title, spec_section, status")
+    .select("id, title, spec_section, status, document_type, document_code, stakeholder_email, amount, version_number, sent_at, last_response_at, response_decision")
     .eq("id", typedLink.target_id)
     .maybeSingle();
 
@@ -74,11 +74,21 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     item: {
-      type: "Submittal",
+      type: typedLink.target_type,
       id: submittal.id,
       title: submittal.title,
       body: submittal.spec_section || "No spec section provided",
       status: submittal.status,
+      metadata: {
+        document_type: submittal.document_type,
+        document_code: submittal.document_code,
+        stakeholder_email: submittal.stakeholder_email,
+        amount: submittal.amount,
+        version_number: submittal.version_number,
+        sent_at: submittal.sent_at,
+        last_response_at: submittal.last_response_at,
+        response_decision: submittal.response_decision,
+      },
     },
     project,
   });
@@ -90,6 +100,7 @@ export async function POST(req: NextRequest) {
 
   const token = String(formData.get("token") ?? "").trim();
   const responseText = String(formData.get("response_text") ?? "").trim();
+  const decision = String(formData.get("decision") ?? "").trim();
   const upload = formData.get("file");
 
   if (!token || !responseText) {
@@ -119,18 +130,33 @@ export async function POST(req: NextRequest) {
 
   if (projectError || !project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
+  const decisionLabel = decision || "comment";
+
   if (typedLink.target_type === "RFI") {
+    const nextStatus = decisionLabel === "approve" ? "Answered" : decisionLabel === "reject" ? "In Review" : "Answered";
     const { error } = await admin
       .from("project_rfis")
-      .update({ status: "Answered", response_text: responseText })
+      .update({ status: nextStatus, response_text: `[${decisionLabel}] ${responseText}` })
       .eq("id", typedLink.target_id)
       .eq("project_id", typedLink.project_id);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   } else {
+    const nextStatus = decisionLabel === "approve"
+      ? "Approved"
+      : decisionLabel === "reject"
+        ? "Rejected"
+        : "In Review";
+
     const { error } = await admin
       .from("project_submittals")
-      .update({ status: "Answered", response_text: responseText })
+      .update({
+        status: nextStatus,
+        response_text: responseText,
+        response_decision: decisionLabel,
+        last_response_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", typedLink.target_id)
       .eq("project_id", typedLink.project_id);
 
@@ -158,8 +184,11 @@ export async function POST(req: NextRequest) {
   const { error: notifyError } = await admin.from("project_notifications").insert({
     user_id: project.created_by,
     project_id: project.id,
-    title: `${typedLink.target_type} answered`,
-    message: `An external response was submitted for ${typedLink.target_type} ${typedLink.target_id}.`,
+    title: `${typedLink.target_type} response received`,
+    message: `External stakeholder submitted a ${decisionLabel} response for ${typedLink.target_type}.`,
+    link_path: typedLink.target_type === "RFI"
+      ? `/project-hub/${project.id}/rfis`
+      : `/project-hub/${project.id}/submittals`,
     is_read: false,
   });
 

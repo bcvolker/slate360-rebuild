@@ -13,6 +13,7 @@ import {
   sendWelcomeEmail,
   sendSecureSendEmail,
   sendPasswordResetEmail,
+  sendExternalResponseRequestEmail,
 } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
@@ -45,6 +46,19 @@ export async function POST(req: NextRequest) {
           to: body.to,
           name: body.name,
           resetUrl: body.resetUrl,
+        });
+        break;
+
+      case "external-response-request":
+        await sendExternalResponseRequestEmail({
+          to: body.to,
+          senderName: body.senderName,
+          projectName: body.projectName,
+          itemType: body.itemType,
+          itemTitle: body.itemTitle,
+          responseUrl: body.responseUrl,
+          expiresAt: body.expiresAt,
+          message: body.message,
         });
         break;
 

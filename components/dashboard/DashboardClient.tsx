@@ -207,6 +207,7 @@ type InboxNotification = {
   project_id: string;
   title: string;
   message: string;
+  link_path?: string | null;
   created_at: string;
 };
 
@@ -614,7 +615,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
       const { data } = await supabase
         .from("project_notifications")
-        .select("id, project_id, title, message, created_at")
+        .select("id, project_id, title, message, link_path, created_at")
         .eq("user_id", authUser.id)
         .eq("is_read", false)
         .order("created_at", { ascending: false })
@@ -1296,7 +1297,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                       unreadNotifications.map((notification) => (
                         <Link
                           key={notification.id}
-                          href={`/project-hub/${notification.project_id}`}
+                          href={notification.link_path || `/project-hub/${notification.project_id}`}
                           onClick={() => setNotificationsOpen(false)}
                           className="block border-b border-gray-50 px-4 py-3 hover:bg-gray-50"
                         >

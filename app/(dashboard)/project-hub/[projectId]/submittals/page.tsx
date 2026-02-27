@@ -30,6 +30,14 @@ type Submittal = {
   received_date: string | null;
   required_date: string | null;
   response_text: string | null;
+  document_type: string | null;
+  document_code: string | null;
+  stakeholder_email: string | null;
+  amount: number | null;
+  version_number: number | null;
+  sent_at: string | null;
+  last_response_at: string | null;
+  response_decision: string | null;
   created_at: string;
   updated_at: string | null;
 };
@@ -37,6 +45,11 @@ type Submittal = {
 type FormData = {
   title: string;
   spec_section: string;
+  document_type: string;
+  document_code: string;
+  stakeholder_email: string;
+  amount: string;
+  version_number: string;
   status: string;
   due_date: string;
   responsible_contractor: string;
@@ -46,6 +59,36 @@ type FormData = {
   required_date: string;
   response_text: string;
 };
+
+const DOCUMENT_TYPES = [
+  "Submittal",
+  "Invoice",
+  "Schedule of Values (SOV)",
+  "Pay Application",
+  "Change Order",
+  "Lien Waiver",
+  "AIA Contract",
+  "AIA Payment Form",
+  "AIA Admin Form",
+  "Other",
+] as const;
+
+const DOCUMENT_CODE_OPTIONS = [
+  "",
+  "G701 – Change Order",
+  "G702 – Application & Certificate for Payment",
+  "G703 – Continuation Sheet / SOV",
+  "G704 – Certificate of Substantial Completion",
+  "G706 – Affidavit of Payment of Debts and Claims",
+  "G706A – Affidavit of Release of Liens",
+  "G707 – Consent of Surety to Final Payment",
+  "G710 – Supplemental Instructions",
+  "G716 – Request for Information",
+  "A101 – Owner/Contractor Agreement (Stipulated Sum)",
+  "A102 – Owner/Contractor Agreement (Cost Plus GMP)",
+  "A201 – General Conditions",
+  "Custom",
+] as const;
 
 const STATUSES = ["Pending", "Submitted", "Approved", "Approved as Noted", "Revise and Resubmit", "Rejected", "Closed"];
 
@@ -60,7 +103,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const EMPTY_FORM: FormData = {
-  title: "", spec_section: "", status: "Pending", due_date: "",
+  title: "", spec_section: "", document_type: "Submittal", document_code: "", stakeholder_email: "", amount: "0", version_number: "1", status: "Pending", due_date: "",
   responsible_contractor: "", revision_number: "0", lead_time_days: "",
   received_date: "", required_date: "", response_text: "",
 };
@@ -79,6 +122,7 @@ export default function ProjectSubmittalsPage() {
   const [attachment, setAttachment] = useState<File | null>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterDocType, setFilterDocType] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -98,10 +142,11 @@ export default function ProjectSubmittalsPage() {
 
   const filtered = useMemo(() => {
     let list = rows;
-    if (search) { const q = search.toLowerCase(); list = list.filter((r) => r.title.toLowerCase().includes(q) || r.spec_section?.toLowerCase().includes(q) || r.responsible_contractor?.toLowerCase().includes(q)); }
+    if (search) { const q = search.toLowerCase(); list = list.filter((r) => r.title.toLowerCase().includes(q) || r.spec_section?.toLowerCase().includes(q) || r.responsible_contractor?.toLowerCase().includes(q) || r.document_type?.toLowerCase().includes(q) || r.document_code?.toLowerCase().includes(q) || r.stakeholder_email?.toLowerCase().includes(q)); }
     if (filterStatus !== "all") list = list.filter((r) => r.status === filterStatus);
+    if (filterDocType !== "all") list = list.filter((r) => (r.document_type ?? "Submittal") === filterDocType);
     return list;
-  }, [rows, search, filterStatus]);
+  }, [rows, search, filterStatus, filterDocType]);
 
   const stats = useMemo(() => ({
     total: rows.length,
@@ -116,18 +161,23 @@ export default function ProjectSubmittalsPage() {
     setSaving(true);
     try {
       if (editingId) {
-        const res = await fetch(`/api/projects/${projectId}/submittals`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: editingId, ...form, revision_number: Number(form.revision_number) || 0, lead_time_days: form.lead_time_days ? Number(form.lead_time_days) : null }) });
+        const res = await fetch(`/api/projects/${projectId}/submittals`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: editingId, ...form, revision_number: Number(form.revision_number) || 0, lead_time_days: form.lead_time_days ? Number(form.lead_time_days) : null, amount: Number(form.amount) || 0, version_number: Number(form.version_number) || 1 }) });
         if (!res.ok) throw new Error("Failed");
         setToast("Submittal updated");
       } else {
         const fd = new FormData();
         fd.set("title", form.title); fd.set("spec_section", form.spec_section); fd.set("status", form.status);
+        fd.set("document_type", form.document_type);
+        fd.set("document_code", form.document_code);
+        fd.set("stakeholder_email", form.stakeholder_email);
+        fd.set("amount", String(Number(form.amount) || 0));
+        fd.set("version_number", String(Number(form.version_number) || 1));
         if (attachment) fd.set("file", attachment);
         const res = await fetch(`/api/projects/${projectId}/submittals`, { method: "POST", body: fd });
         if (!res.ok) throw new Error("Failed");
         const data = await res.json();
         if (data.submittal?.id && (form.due_date || form.responsible_contractor || form.required_date)) {
-          await fetch(`/api/projects/${projectId}/submittals`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: data.submittal.id, due_date: form.due_date || null, responsible_contractor: form.responsible_contractor || null, required_date: form.required_date || null, lead_time_days: form.lead_time_days ? Number(form.lead_time_days) : null }) });
+          await fetch(`/api/projects/${projectId}/submittals`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: data.submittal.id, due_date: form.due_date || null, responsible_contractor: form.responsible_contractor || null, required_date: form.required_date || null, lead_time_days: form.lead_time_days ? Number(form.lead_time_days) : null, amount: Number(form.amount) || 0, version_number: Number(form.version_number) || 1, stakeholder_email: form.stakeholder_email || null }) });
         }
         setToast("Submittal created");
       }
@@ -153,19 +203,52 @@ export default function ProjectSubmittalsPage() {
     } catch { setToast("Error updating status"); }
   };
 
-  const sendToClient = async (subId: string) => {
+  const sendToClient = async (sub: Submittal) => {
     if (!projectId) return;
     try {
-      const res = await fetch(`/api/projects/${projectId}/external-links`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ targetType: "Submittal", targetId: subId, expiresInDays: 14 }) });
+      const stakeholderEmail = window.prompt("Stakeholder email address", sub.stakeholder_email ?? "")?.trim() ?? "";
+      const message = window.prompt("Optional message to include in the request email", "Please review and respond.")?.trim() ?? "";
+      const res = await fetch(`/api/projects/${projectId}/external-links`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetType: "Document",
+          targetId: sub.id,
+          expiresInDays: 14,
+          recipientEmail: stakeholderEmail || undefined,
+          message: message || undefined,
+        }),
+      });
       const payload = await res.json();
       if (!res.ok || !payload.url) throw new Error(payload.error ?? "Failed");
       await navigator.clipboard.writeText(payload.url);
-      setToast("Shareable link copied to clipboard");
+      setToast(payload.emailed ? "Secure response request emailed and link copied" : "Shareable link copied to clipboard");
     } catch (err) { setToast(err instanceof Error ? err.message : "Failed"); }
   };
 
+  const saveAsCopy = async (sub: Submittal) => {
+    if (!projectId) return;
+    try {
+      const fd = new FormData();
+      fd.set("title", `${sub.title} (Copy)`);
+      fd.set("spec_section", sub.spec_section ?? "");
+      fd.set("status", "Pending");
+      fd.set("document_type", sub.document_type ?? "Submittal");
+      fd.set("document_code", sub.document_code ?? "");
+      fd.set("stakeholder_email", sub.stakeholder_email ?? "");
+      fd.set("amount", String(Number(sub.amount ?? 0)));
+      fd.set("version_number", String((sub.version_number ?? 1) + 1));
+      const res = await fetch(`/api/projects/${projectId}/submittals`, { method: "POST", body: fd });
+      if (!res.ok) throw new Error("Failed to save as copy");
+      setToast("Saved as new document version");
+      await load();
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Failed to save as copy");
+    }
+  };
+
   const startEdit = (sub: Submittal) => {
-    setForm({ title: sub.title, spec_section: sub.spec_section ?? "", status: sub.status, due_date: sub.due_date ?? "", responsible_contractor: sub.responsible_contractor ?? "", revision_number: String(sub.revision_number ?? 0), lead_time_days: sub.lead_time_days ? String(sub.lead_time_days) : "", received_date: sub.received_date ?? "", required_date: sub.required_date ?? "", response_text: sub.response_text ?? "" });
+    setForm({ title: sub.title, spec_section: sub.spec_section ?? "", document_type: sub.document_type ?? "Submittal", document_code: sub.document_code ?? "", stakeholder_email: sub.stakeholder_email ?? "", amount: String(Number(sub.amount ?? 0)), version_number: String(sub.version_number ?? 1), status: sub.status, due_date: sub.due_date ?? "", responsible_contractor: sub.responsible_contractor ?? "", revision_number: String(sub.revision_number ?? 0), lead_time_days: sub.lead_time_days ? String(sub.lead_time_days) : "", received_date: sub.received_date ?? "", required_date: sub.required_date ?? "", response_text: sub.response_text ?? "" });
     setEditingId(sub.id); setShowCreate(true);
   };
 
@@ -219,6 +302,13 @@ export default function ProjectSubmittalsPage() {
               {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
+          <div>
+            <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-gray-500">Document Type</label>
+            <select value={filterDocType} onChange={(e) => setFilterDocType(e.target.value)} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm outline-none">
+              <option value="all">All</option>
+              {DOCUMENT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
         </div>
       )}
 
@@ -243,7 +333,11 @@ export default function ProjectSubmittalsPage() {
                   <span className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${STATUS_COLORS[sub.status] ?? "bg-gray-100 text-gray-600"}`}>{sub.status}</span>
                   <div className="flex-1 min-w-0">
                     <span className="truncate text-sm font-semibold text-gray-900">{sub.title}</span>
-                    {sub.spec_section && <p className="mt-0.5 text-xs text-gray-500">Spec: {sub.spec_section}</p>}
+                    <p className="mt-0.5 text-xs text-gray-500">
+                      {sub.document_type ?? "Submittal"}
+                      {sub.document_code ? ` · ${sub.document_code}` : ""}
+                      {sub.spec_section ? ` · Spec: ${sub.spec_section}` : ""}
+                    </p>
                   </div>
                   {(sub.revision_number ?? 0) > 0 && <span className="hidden sm:inline-flex shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600">Rev {sub.revision_number}</span>}
                   {sub.responsible_contractor && <span className="hidden md:inline-flex shrink-0 items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600"><User size={9} /> {sub.responsible_contractor}</span>}
@@ -253,7 +347,7 @@ export default function ProjectSubmittalsPage() {
                 {isExp && (
                   <div className="border-t border-gray-100 bg-gray-50/50 p-4 space-y-4">
                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                      {([["Status", sub.status], ["Spec Section", sub.spec_section || "—"], ["Revision", String(sub.revision_number ?? 0)], ["Contractor", sub.responsible_contractor || "—"], ["Due Date", sub.due_date ? new Date(sub.due_date).toLocaleDateString() : "—"], ["Required Date", sub.required_date ? new Date(sub.required_date).toLocaleDateString() : "—"], ["Lead Time", sub.lead_time_days ? `${sub.lead_time_days} days` : "—"], ["Created", new Date(sub.created_at).toLocaleDateString()]] as [string, string][]).map(([l, v]) => (
+                      {([ ["Type", sub.document_type || "Submittal"], ["Doc Code", sub.document_code || "—"], ["Amount", sub.amount ? `$${Number(sub.amount).toLocaleString()}` : "—"], ["Version", String(sub.version_number ?? 1)], ["Status", sub.status], ["Spec Section", sub.spec_section || "—"], ["Revision", String(sub.revision_number ?? 0)], ["Contractor", sub.responsible_contractor || "—"], ["Due Date", sub.due_date ? new Date(sub.due_date).toLocaleDateString() : "—"], ["Required Date", sub.required_date ? new Date(sub.required_date).toLocaleDateString() : "—"], ["Lead Time", sub.lead_time_days ? `${sub.lead_time_days} days` : "—"], ["Sent", sub.sent_at ? new Date(sub.sent_at).toLocaleString() : "—"], ["Response", sub.last_response_at ? new Date(sub.last_response_at).toLocaleString() : "—"], ["Stakeholder", sub.stakeholder_email || "—"], ["Created", new Date(sub.created_at).toLocaleDateString()]] as [string, string][]).map(([l, v]) => (
                         <div key={l}><p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">{l}</p><p className="mt-0.5 text-sm font-semibold text-gray-900">{v}</p></div>
                       ))}
                     </div>
@@ -261,7 +355,8 @@ export default function ProjectSubmittalsPage() {
                     <div className="flex flex-wrap items-center gap-2 pt-2">
                       {sub.status !== "Approved" && sub.status !== "Closed" && <button onClick={() => quickStatus(sub, "Approved")} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition">Approve</button>}
                       {sub.status !== "Closed" && <button onClick={() => quickStatus(sub, "Closed")} className="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition">Close</button>}
-                      <button onClick={() => void sendToClient(sub.id)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"><Send size={12} /> Send to Client</button>
+                      <button onClick={() => void sendToClient(sub)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"><Send size={12} /> Send</button>
+                      <button onClick={() => void saveAsCopy(sub)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">Save As</button>
                       <button onClick={() => startEdit(sub)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">Edit</button>
                       <button onClick={() => handleDelete(sub.id)} className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition ml-auto"><Trash2 size={12} /> Delete</button>
                     </div>
@@ -284,8 +379,34 @@ export default function ProjectSubmittalsPage() {
             <div className="space-y-5 p-6">
               <div><label className="mb-1 block text-xs font-bold text-gray-700">Title *</label><input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]/30" /></div>
               <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-gray-700">Document Type</label>
+                  <select value={form.document_type} onChange={(e) => setForm({ ...form, document_type: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none">
+                    {DOCUMENT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-gray-700">AIA / Form Code</label>
+                  <input
+                    list="document-code-options"
+                    value={form.document_code}
+                    onChange={(e) => setForm({ ...form, document_code: e.target.value })}
+                    placeholder="Select or type"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]/30"
+                  />
+                  <datalist id="document-code-options">
+                    {DOCUMENT_CODE_OPTIONS.map((c) => <option key={c} value={c} />)}
+                  </datalist>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div><label className="mb-1 block text-xs font-bold text-gray-700">Spec Section</label><input type="text" value={form.spec_section} onChange={(e) => setForm({ ...form, spec_section: e.target.value })} placeholder="e.g. 03 30 00" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]/30" /></div>
                 <div><label className="mb-1 block text-xs font-bold text-gray-700">Status</label><select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none">{STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}</select></div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div><label className="mb-1 block text-xs font-bold text-gray-700">Amount ($)</label><input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} min="0" step="0.01" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]/30" /></div>
+                <div><label className="mb-1 block text-xs font-bold text-gray-700">Version</label><input type="number" value={form.version_number} onChange={(e) => setForm({ ...form, version_number: e.target.value })} min="1" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]/30" /></div>
+                <div><label className="mb-1 block text-xs font-bold text-gray-700">Stakeholder Email</label><input type="email" value={form.stakeholder_email} onChange={(e) => setForm({ ...form, stakeholder_email: e.target.value })} placeholder="client@company.com" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]/30" /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="mb-1 block text-xs font-bold text-gray-700">Responsible Contractor</label><input type="text" value={form.responsible_contractor} onChange={(e) => setForm({ ...form, responsible_contractor: e.target.value })} placeholder="Company name" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]/30" /></div>

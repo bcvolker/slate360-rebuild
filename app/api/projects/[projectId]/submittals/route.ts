@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest, context: RouteContext) {
 
   const { data, error } = await admin
     .from("project_submittals")
-    .select("id, title, spec_section, status, due_date, responsible_contractor, revision_number, lead_time_days, received_date, required_date, response_text, created_at, updated_at")
+    .select("id, title, spec_section, status, due_date, responsible_contractor, revision_number, lead_time_days, received_date, required_date, response_text, document_type, document_code, stakeholder_email, amount, version_number, sent_at, last_response_at, response_decision, created_at, updated_at")
     .eq("project_id", projectId)
     .order("created_at", { ascending: false });
 
@@ -50,6 +50,11 @@ export async function POST(req: NextRequest, context: RouteContext) {
   const title = String(formData.get("title") ?? "").trim();
   const specSection = String(formData.get("spec_section") ?? "").trim();
   const status = String(formData.get("status") ?? "Pending").trim() || "Pending";
+  const documentType = String(formData.get("document_type") ?? "Submittal").trim() || "Submittal";
+  const documentCode = String(formData.get("document_code") ?? "").trim();
+  const stakeholderEmail = String(formData.get("stakeholder_email") ?? "").trim();
+  const amount = Number(formData.get("amount") ?? 0);
+  const versionNumber = Number(formData.get("version_number") ?? 1) || 1;
   const upload = formData.get("file");
 
   if (!title) {
@@ -63,9 +68,14 @@ export async function POST(req: NextRequest, context: RouteContext) {
       title,
       spec_section: specSection || null,
       status,
+      document_type: documentType,
+      document_code: documentCode || null,
+      stakeholder_email: stakeholderEmail || null,
+      amount,
+      version_number: versionNumber,
       created_by: user.id,
     })
-    .select("id, title, spec_section, status, created_at")
+    .select("id, title, spec_section, status, document_type, document_code, stakeholder_email, amount, version_number, created_at")
     .single();
 
   if (createError) return NextResponse.json({ error: createError.message }, { status: 500 });
@@ -126,13 +136,21 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   if (body.received_date !== undefined) updates.received_date = body.received_date ? String(body.received_date) : null;
   if (body.required_date !== undefined) updates.required_date = body.required_date ? String(body.required_date) : null;
   if (body.response_text !== undefined) updates.response_text = body.response_text ? String(body.response_text).trim() : null;
+  if (body.document_type !== undefined) updates.document_type = body.document_type ? String(body.document_type).trim() : "Submittal";
+  if (body.document_code !== undefined) updates.document_code = body.document_code ? String(body.document_code).trim() : null;
+  if (body.stakeholder_email !== undefined) updates.stakeholder_email = body.stakeholder_email ? String(body.stakeholder_email).trim() : null;
+  if (body.amount !== undefined) updates.amount = Number(body.amount) || 0;
+  if (body.version_number !== undefined) updates.version_number = Number(body.version_number) || 1;
+  if (body.sent_at !== undefined) updates.sent_at = body.sent_at ? String(body.sent_at) : null;
+  if (body.last_response_at !== undefined) updates.last_response_at = body.last_response_at ? String(body.last_response_at) : null;
+  if (body.response_decision !== undefined) updates.response_decision = body.response_decision ? String(body.response_decision).trim() : null;
 
   const { data, error } = await admin
     .from("project_submittals")
     .update(updates)
     .eq("id", id)
     .eq("project_id", projectId)
-    .select("id, title, spec_section, status, due_date, responsible_contractor, revision_number, lead_time_days, received_date, required_date, response_text, created_at, updated_at")
+    .select("id, title, spec_section, status, due_date, responsible_contractor, revision_number, lead_time_days, received_date, required_date, response_text, document_type, document_code, stakeholder_email, amount, version_number, sent_at, last_response_at, response_decision, created_at, updated_at")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
