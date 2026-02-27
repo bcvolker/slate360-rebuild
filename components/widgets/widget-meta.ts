@@ -22,11 +22,15 @@ import {
 
 /* ── Types ───────────────────────────────────────────────────── */
 
+export type WidgetSize = "default" | "sm" | "md" | "lg";
+
 export interface WidgetPref {
   id: string;
   visible: boolean;
-  /** When true the widget spans the full row */
-  expanded: boolean;
+  /** Widget display size */
+  size: WidgetSize;
+  /** @deprecated — kept for migration only; use `size` instead */
+  expanded?: boolean;
   order: number;
 }
 
@@ -58,13 +62,42 @@ export const WIDGET_META: WidgetMeta[] = [
 
 /* ── Grid-span helper (consistent across dashboard & hub) ──── */
 
-export function getWidgetSpan(id: string, expanded: boolean): string {
-  if (id === "seats") return "md:col-span-2 xl:col-span-3";
-  if (id === "calendar")
-    return expanded
-      ? "md:col-span-2 xl:col-span-3"
-      : "md:col-span-2";
-  return expanded ? "md:col-span-2 xl:col-span-3" : "";
+export function getWidgetSpan(id: string, size: WidgetSize): string {
+  switch (size) {
+    case "sm":
+      // Small square: spans 1 column (same as default but taller)
+      return "";
+    case "md":
+      // Medium square: spans 2 columns
+      return "md:col-span-2";
+    case "lg":
+      // Large: spans full row (3 columns on xl)
+      return "md:col-span-2 xl:col-span-3";
+    default:
+      // Default: standard single column
+      if (id === "seats") return "md:col-span-2 xl:col-span-3";
+      return "";
+  }
+}
+
+/** Height class for each size */
+export function getWidgetHeight(size: WidgetSize): string {
+  switch (size) {
+    case "sm":  return "h-[420px] min-h-[420px]";
+    case "md":  return "h-[520px] min-h-[520px]";
+    case "lg":  return "h-[calc(100vh-180px)] min-h-[600px]";
+    default:    return "h-[320px] min-h-[320px]";
+  }
+}
+
+/** Human-readable label */
+export function getWidgetSizeLabel(size: WidgetSize): string {
+  switch (size) {
+    case "sm":  return "Small";
+    case "md":  return "Medium";
+    case "lg":  return "Large";
+    default:    return "Default";
+  }
 }
 
 /* ── Default-pref builder ────────────────────────────────────── */
@@ -78,9 +111,7 @@ export function buildDefaultPrefs(opts?: {
     visible: opts?.visibleOnly
       ? opts.visibleOnly.includes(m.id)
       : true,
-    expanded: opts?.expandedIds
-      ? opts.expandedIds.includes(m.id)
-      : m.id === "calendar" || m.id === "seats",
+    size: (opts?.expandedIds?.includes(m.id) ? "md" : "default") as WidgetSize,
     order: i,
   }));
 }

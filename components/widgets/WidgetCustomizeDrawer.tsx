@@ -10,15 +10,16 @@ import React from "react";
 import {
   ChevronUp,
   ChevronDown,
-  Maximize2,
-  Minimize2,
   Eye,
   EyeOff,
   X,
   Loader2,
   CheckCircle2,
 } from "lucide-react";
-import type { WidgetPref, WidgetMeta } from "./widget-meta";
+import type { WidgetPref, WidgetMeta, WidgetSize } from "./widget-meta";
+import { getWidgetSizeLabel } from "./widget-meta";
+
+const SIZE_CYCLE: WidgetSize[] = ["default", "sm", "md", "lg"];
 
 export interface WidgetCustomizeDrawerProps {
   open: boolean;
@@ -30,7 +31,7 @@ export interface WidgetCustomizeDrawerProps {
   /** Meta array – may already be filtered for tier */
   widgetMeta: WidgetMeta[];
   onToggleVisible: (id: string) => void;
-  onToggleExpanded: (id: string) => void;
+  onSetSize: (id: string, size: WidgetSize) => void;
   onMoveOrder: (id: string, dir: -1 | 1) => void;
   onReset: () => void;
   /** Optional "Save layout" action for Supabase persistence */
@@ -47,7 +48,7 @@ export default function WidgetCustomizeDrawer({
   widgetPrefs,
   widgetMeta,
   onToggleVisible,
-  onToggleExpanded,
+  onSetSize,
   onMoveOrder,
   onReset,
   onSave,
@@ -135,30 +136,28 @@ export default function WidgetCustomizeDrawer({
                     {meta.label}
                   </p>
                   <p className="text-[10px] text-gray-400">
-                    {pref.expanded ? "Full width" : "Normal"}
+                    {getWidgetSizeLabel(pref.size)}
                   </p>
                 </div>
 
-                {/* Expand toggle */}
-                <button
-                  onClick={() => onToggleExpanded(pref.id)}
-                  title={
-                    pref.expanded
-                      ? "Shrink to normal"
-                      : "Expand to full width"
-                  }
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
-                    pref.expanded
-                      ? "bg-[#1E3A8A]/10 text-[#1E3A8A]"
-                      : "text-gray-300 hover:text-gray-500"
-                  }`}
-                >
-                  {pref.expanded ? (
-                    <Minimize2 size={13} />
-                  ) : (
-                    <Maximize2 size={13} />
-                  )}
-                </button>
+                {/* Size selector — D / S / M / L */}
+                <div className="flex gap-0.5">
+                  {SIZE_CYCLE.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => onSetSize(pref.id, s)}
+                      className={[
+                        "w-6 h-6 rounded text-[9px] font-bold flex items-center justify-center transition-colors",
+                        pref.size === s
+                          ? "bg-[#1E3A8A]/10 text-[#1E3A8A]"
+                          : "text-gray-300 hover:text-gray-500 hover:bg-gray-100",
+                      ].join(" ")}
+                      title={getWidgetSizeLabel(s)}
+                    >
+                      {s === "default" ? "D" : s.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
 
                 {/* Visible toggle */}
                 <button

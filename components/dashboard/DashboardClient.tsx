@@ -14,6 +14,7 @@ import {
   WIDGET_META,
   type WidgetPref,
   type WidgetMeta,
+  type WidgetSize,
   getWidgetSpan,
   buildDefaultPrefs,
   DASHBOARD_STORAGE_KEY,
@@ -474,7 +475,6 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#FF4D00" },
     { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#1E3A8A" },
     { id: "slatedrop",      label: "SlateDrop",      icon: FolderOpen,      color: "#FF4D00" },
-    { id: "integrations",   label: "Integrations",   icon: Plug,            color: "#1E3A8A" },
     { id: "my-account",     label: "My Account",     icon: User,            color: "#1E3A8A" },
     ...(isCEO ? ([
       { id: "ceo",        label: "CEO",        icon: Shield,      color: "#FF4D00", isCEOOnly: true },
@@ -491,7 +491,6 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
       case "virtual-studio": return ent.canAccessVirtual;
       case "analytics":      return ent.canAccessAnalytics;
       case "slatedrop":      return ent.canViewSlateDropWidget;
-      case "integrations":   return true;
       case "my-account":     return true;
       case "ceo":
       case "market":
@@ -1155,9 +1154,9 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     });
     setPrefsDirty(true);
   }, []);
-  const toggleExpanded = useCallback((id: string) => {
+  const setWidgetSize = useCallback((id: string, newSize: WidgetSize) => {
     setWidgetPrefs((prev) => {
-      const next = prev.map((p) => p.id === id ? { ...p, expanded: !p.expanded } : p);
+      const next = prev.map((p) => p.id === id ? { ...p, size: newSize } : p);
       saveWidgetPrefs(DASHBOARD_STORAGE_KEY, next);
       return next;
     });
@@ -1442,7 +1441,6 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                       key={tab.id}
                       onClick={() => {
                         if (tab.id === "slatedrop") { openSlateDrop(); return; }
-                        if (tab.id === "integrations") { router.push("/integrations"); return; }
                         if (tab.id === "project-hub") { router.push("/project-hub"); return; }
                         if (tab.id === "analytics") { router.push("/analytics"); return; }
                         if (tab.id === "ceo") { router.push("/ceo"); return; }
@@ -1583,15 +1581,16 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             ...(ent.canManageSeats ? ["seats"] : ["upgrade"]),
           ]);
 
-          function renderWidget(id: string, expanded: boolean, inPopout = false): React.ReactNode {
-            const span = getWidgetSpan(id, expanded);
+          function renderWidget(id: string, widgetSize: WidgetSize, inPopout = false): React.ReactNode {
+            const span = getWidgetSpan(id, widgetSize);
             const widgetColor = WIDGET_META.find((m) => m.id === id)?.color ?? "#FF4D00";
-            const toggleExpand = inPopout ? undefined : () => {
+            const isExpanded = widgetSize !== "default";
+            const handleSetSize = inPopout ? undefined : (s: WidgetSize) => {
               if (id === "slatedrop") {
                 setSlateDropWidgetView("folders");
               }
               setWidgetPrefs((prev) => {
-                const next = prev.map((p) => (p.id === id ? { ...p, expanded: !p.expanded } : p));
+                const next = prev.map((p) => (p.id === id ? { ...p, size: s } : p));
                 try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
                 return next;
               });
@@ -1600,20 +1599,20 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             switch (id) {
 
               case "location": return (
-          <WidgetCard key={id} icon={MapPin} title="Location" span={span} delay={0} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded}>
-            <div className={expanded ? "min-h-[400px]" : "min-h-[200px]"}>
+          <WidgetCard key={id} icon={MapPin} title="Location" span={span} delay={0} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}>
+            <div className={isExpanded ? "min-h-[400px]" : "min-h-[200px]"}>
               <LocationMap
                 center={userCoords ?? undefined}
                 locationLabel={liveWeather?.location}
                 contactRecipients={liveSeatMembers.map((member) => ({ name: member.name, email: member.email }))}
-                compact={!expanded}
-                expanded={expanded}
+                compact={!isExpanded}
+                expanded={isExpanded}
               />
             </div>
           </WidgetCard>
               );
               case "slatedrop": return (
-          <WidgetCard key={id} icon={FolderOpen} title="SlateDrop" span={span} delay={0} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
+          <WidgetCard key={id} icon={FolderOpen} title="SlateDrop" span={span} delay={0} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
             <div className="inline-flex items-center rounded-lg border border-gray-200 p-0.5">
               <button
                 onClick={() => setSlateDropWidgetView("recent")}
@@ -1673,7 +1672,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   <p className="text-[10px] text-gray-400">Unlocked based on your {ent.label} plan.</p>
                 </div>
               )}
-              {expanded && (
+              {isExpanded && (
                 <div className="mt-2 text-xs text-gray-500">
                   <p className="text-[10px] text-gray-400">Pending uploads — </p>
                 </div>
@@ -1684,7 +1683,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "data-usage": return (
-          <WidgetCard key={id} icon={CreditCard} title="Data Usage & Credits" span={span} delay={0} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
+          <WidgetCard key={id} icon={CreditCard} title="Data Usage & Credits" span={span} delay={0} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
             <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
               {ent.label}
             </span>
@@ -1749,7 +1748,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "processing": return (
-          <WidgetCard key={id} icon={Cpu} title="Processing Jobs" span={span} delay={50} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
+          <WidgetCard key={id} icon={Cpu} title="Processing Jobs" span={span} delay={50} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
             <span className="text-[11px] text-gray-400 font-medium">{liveJobs.filter((j) => j.status === "processing").length} active</span>
           }>
             <div className="space-y-3">
@@ -1789,7 +1788,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "financial": return (
-          <WidgetCard key={id} icon={TrendingUp} title="Financial Snapshot" span={span} delay={100} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
+          <WidgetCard key={id} icon={TrendingUp} title="Financial Snapshot" span={span} delay={100} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
             <span className="text-[11px] text-gray-400 font-medium">Last 6 months</span>
           }>
             <div className="space-y-4">
@@ -1838,8 +1837,8 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             span={span}
             delay={150}
             color={widgetColor}
-            onExpand={toggleExpand}
-            isExpanded={expanded}
+            onSetSize={handleSetSize}
+            size={widgetSize}
             action={
               <button
                 onClick={() => { setAddingEvent(true); if (!calSelected) setCalSelected(todayStr); }}
@@ -1935,7 +1934,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "weather": return (
-          <WidgetCard key={id} icon={Cloud} title="Weather" span={span} delay={200} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
+          <WidgetCard key={id} icon={Cloud} title="Weather" span={span} delay={200} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
             <span className="text-[10px] text-gray-400 font-medium flex items-center gap-1"><MapPin size={10} />{liveWeather?.location ?? "Location unavailable"}</span>
           }>
             <div className="space-y-4">
@@ -2003,7 +2002,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "continue": return (
-          <WidgetCard key={id} icon={Clock} title="Continue Working" span={span} delay={250} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
+          <WidgetCard key={id} icon={Clock} title="Continue Working" span={span} delay={250} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
             <Link href="/dashboard" className="text-[11px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-0.5">
               View all <ArrowRight size={11} />
             </Link>
@@ -2044,7 +2043,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "contacts": return (
-          <WidgetCard key={id} icon={Users} title="Contacts" span={span} delay={300} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded} action={
+          <WidgetCard key={id} icon={Users} title="Contacts" span={span} delay={300} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
             <button className="text-[11px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-0.5">
               <UserPlus size={12} /> Add
             </button>
@@ -2088,7 +2087,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "suggest": return (
-          <WidgetCard key={id} icon={Lightbulb} title="Suggest a Feature" span={span} delay={350} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded}>
+          <WidgetCard key={id} icon={Lightbulb} title="Suggest a Feature" span={span} delay={350} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}>
             {suggestDone ? (
               <div className="text-center py-6">
                 <CheckCircle2 size={32} className="mx-auto mb-3 text-emerald-500" />
@@ -2156,8 +2155,8 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               span={span}
               delay={400}
               color={widgetColor}
-              onExpand={toggleExpand}
-              isExpanded={expanded}
+              onSetSize={handleSetSize}
+              size={widgetSize}
               action={
                 <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: "#FF4D00" }}>
                   <UserPlus size={13} /> Invite member
@@ -2217,7 +2216,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           );
 
               case "upgrade": return (
-            <WidgetCard key={id} icon={Zap} title="Unlock more power" span={span} delay={400} color={widgetColor} onExpand={toggleExpand} isExpanded={expanded}>
+            <WidgetCard key={id} icon={Zap} title="Unlock more power" span={span} delay={400} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}>
               <div className="text-center py-4">
                 <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#FF4D001A" }}>
                   <Zap size={24} style={{ color: "#FF4D00" }} />
@@ -2253,13 +2252,13 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 {orderedVisible.map((p, idx) => (
                   <div
                     key={p.id}
-                    draggable={!p.expanded && p.id !== "location"}
+                    draggable={p.size === "default" && p.id !== "location"}
                     onDragStart={() => handleDashDragStart(idx)}
                     onDragOver={(e) => handleDashDragOver(e, idx)}
                     onDragEnd={handleDashDragEnd}
-                    className={`${p.expanded ? "" : "cursor-grab active:cursor-grabbing"} ${dashDragIdx === idx ? "opacity-50 scale-95" : ""} ${getWidgetSpan(p.id, p.expanded)} transition-all duration-200`}
+                    className={`${p.size !== "default" ? "" : "cursor-grab active:cursor-grabbing"} ${dashDragIdx === idx ? "opacity-50 scale-95" : ""} ${getWidgetSpan(p.id, p.size)} transition-all duration-200`}
                   >
-                    {renderWidget(p.id, p.expanded)}
+                    {renderWidget(p.id, p.size)}
                   </div>
                 ))}
               </div>
@@ -2313,7 +2312,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
                   {!wdMinimized && (
                     <div className="flex-1 overflow-auto bg-[#ECEEF2] p-4">
-                      {renderWidget(widgetPopoutId, true, true)}
+                      {renderWidget(widgetPopoutId, "lg", true)}
                     </div>
                   )}
 
@@ -2772,7 +2771,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         widgetPrefs={widgetPrefs}
         widgetMeta={drawerMeta}
         onToggleVisible={toggleVisible}
-        onToggleExpanded={toggleExpanded}
+        onSetSize={setWidgetSize}
         onMoveOrder={moveWidget}
         onReset={resetPrefs}
         onSave={async () => { await savePrefs(); setCustomizeOpen(false); }}

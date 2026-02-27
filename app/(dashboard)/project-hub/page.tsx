@@ -39,6 +39,7 @@ import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import {
   WIDGET_META,
   type WidgetPref,
+  type WidgetSize,
   getWidgetSpan,
   buildDefaultPrefs,
   HUB_STORAGE_KEY,
@@ -65,7 +66,6 @@ const QUICK_NAV = [
   { label: "Virtual Studio", href: "/virtual-studio", icon: Film },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "SlateDrop", href: "/slatedrop", icon: FolderOpen },
-  { label: "Integrations", href: "/integrations", icon: Plug },
   { label: "My Account", href: "/my-account", icon: User },
 ];
 
@@ -140,9 +140,9 @@ export default function ProjectHubPage() {
       orderedVisible
         .map((p) => {
           const widget = HUB_WIDGET_META.find((m) => m.id === p.id);
-          return widget ? { ...widget, expanded: p.expanded } : null;
+          return widget ? { ...widget, size: p.size } : null;
         })
-        .filter(Boolean) as (typeof HUB_WIDGET_META[number] & { expanded: boolean })[],
+        .filter(Boolean) as (typeof HUB_WIDGET_META[number] & { size: WidgetSize })[],
     [orderedVisible]
   );
 
@@ -177,6 +177,8 @@ export default function ProjectHubPage() {
     { id: "4", text: "Submittal #8 approved by architect", time: "3h ago", unread: false },
   ]);
   const unreadCount = notifications.filter((n) => n.unread).length;
+
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   const loadProjects = useCallback(async () => {
     try {
@@ -232,12 +234,12 @@ export default function ProjectHubPage() {
     );
   };
 
-  const toggleWidgetExpanded = (id: string) => {
+  const setWidgetSize = (id: string, newSize: WidgetSize) => {
     if (id === "slatedrop") {
       setSlateDropWidgetView("folders");
     }
     setWidgetPrefs((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, expanded: !p.expanded } : p))
+      prev.map((p) => (p.id === id ? { ...p, size: newSize } : p))
     );
   };
 
@@ -484,24 +486,40 @@ export default function ProjectHubPage() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {[
-            { icon: FolderKanban, bg: "bg-blue-50", text: "text-blue-600", value: projects.length, label: "Total Projects" },
-            { icon: ClipboardList, bg: "bg-orange-50", text: "text-[#FF4D00]", value: "12", label: "Open RFIs" },
-            { icon: CheckCircle2, bg: "bg-purple-50", text: "text-purple-600", value: "8", label: "Pending Submittals" },
-            { icon: AlertTriangle, bg: "bg-red-50", text: "text-red-600", value: "3", label: "Overdue Tasks" },
-          ].map(({ icon: SIcon, bg, text, value, label }) => (
-            <div
-              key={label}
-              className="bg-white p-3 sm:p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-lg hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300"
-            >
-              <div className={`p-2.5 sm:p-3 ${bg} ${text} rounded-xl`}>
-                <SIcon size={20} />
+            { id: "projects", icon: FolderKanban, bg: "bg-blue-50", text: "text-blue-600", value: projects.length, label: "Total Projects", detail: projects.length > 0 ? projects.slice(0, 4).map(p => p.name) : ["No projects yet — click 'New Project' to get started"] },
+            { id: "rfis", icon: ClipboardList, bg: "bg-orange-50", text: "text-[#FF4D00]", value: "—", label: "Open RFIs", detail: ["Track RFIs per project from the project dashboard", "Create RFIs, assign reviewers, track responses"] },
+            { id: "submittals", icon: CheckCircle2, bg: "bg-purple-50", text: "text-purple-600", value: "—", label: "Submittals", detail: ["Manage submittals from each project's Submittals tab", "Track approval status and revision history"] },
+            { id: "tasks", icon: AlertTriangle, bg: "bg-red-50", text: "text-red-600", value: "—", label: "Punch List", detail: ["View punch list items from each project", "Track completion status and assign corrective work"] },
+          ].map(({ id, icon: SIcon, bg, text, value, label, detail }) => {
+            const isOpen = expandedCard === id;
+            return (
+              <div key={label} className="flex flex-col">
+                <button
+                  onClick={() => setExpandedCard(isOpen ? null : id)}
+                  className={`bg-white p-3 sm:p-4 rounded-2xl border shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-left ${isOpen ? "border-gray-300 shadow-md" : "border-gray-100 hover:border-gray-200"}`}
+                >
+                  <div className={`p-2.5 sm:p-3 ${bg} ${text} rounded-xl shrink-0`}>
+                    <SIcon size={20} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xl sm:text-2xl font-black text-gray-900">{value}</p>
+                    <p className="text-[10px] sm:text-xs font-semibold text-gray-500">{label}</p>
+                  </div>
+                  <ChevronDown size={14} className={`text-gray-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                </button>
+                {isOpen && (
+                  <div className="mt-1 bg-white rounded-xl border border-gray-200 shadow-sm p-3 space-y-1.5 animate-in slide-in-from-top-1">
+                    {detail.map((d, i) => (
+                      <p key={i} className="text-xs text-gray-600 flex items-start gap-2">
+                        <span className="mt-1 w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
+                        {d}
+                      </p>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-black text-gray-900">{value}</p>
-                <p className="text-[10px] sm:text-xs font-semibold text-gray-500">{label}</p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="flex items-center gap-1 border-b border-gray-200 pb-px overflow-x-auto">
@@ -583,16 +601,16 @@ export default function ProjectHubPage() {
                 icon={w.icon}
                 title={w.label}
                 color={w.color}
-                span={getWidgetSpan(w.id, w.expanded)}
-                onExpand={() => toggleWidgetExpanded(w.id)}
-                isExpanded={w.expanded}
-                draggable={!w.expanded && w.id !== "location"}
+                span={getWidgetSpan(w.id, w.size)}
+                onSetSize={(s) => setWidgetSize(w.id, s)}
+                size={w.size}
+                draggable={w.size === "default" && w.id !== "location"}
                 onDragStart={() => handleDragStart(idx)}
                 onDragOver={(e) => handleDragOver(e, idx)}
                 onDragEnd={handleDragEnd}
                 isDragging={dragIdx === idx}
               >
-                {renderWidgetBody(w.id, w.expanded)}
+                {renderWidgetBody(w.id, w.size !== "default")}
               </WidgetCard>
             ))}
           </div>
@@ -607,7 +625,7 @@ export default function ProjectHubPage() {
         widgetPrefs={widgetPrefs}
         widgetMeta={HUB_WIDGET_META}
         onToggleVisible={toggleWidgetVisible}
-        onToggleExpanded={toggleWidgetExpanded}
+        onSetSize={setWidgetSize}
         onMoveOrder={moveWidgetOrder}
         onReset={() => setWidgetPrefs(DEFAULT_HUB_PREFS)}
       />

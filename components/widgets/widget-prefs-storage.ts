@@ -1,6 +1,6 @@
-import type { WidgetPref } from "@/components/widgets/widget-meta";
+import type { WidgetPref, WidgetSize } from "@/components/widgets/widget-meta";
 
-export const WIDGET_PREFS_SCHEMA_VERSION = 2;
+export const WIDGET_PREFS_SCHEMA_VERSION = 3;
 
 type StoredWidgetPrefs = {
   version: number;
@@ -10,14 +10,18 @@ type StoredWidgetPrefs = {
 export function mergeWidgetPrefs(defaults: WidgetPref[], incoming: WidgetPref[]): WidgetPref[] {
   return defaults.map((def) => {
     const found = incoming.find((entry) => entry.id === def.id);
-    return found
-      ? {
-          ...def,
-          visible: !!found.visible,
-          expanded: !!found.expanded,
-          order: typeof found.order === "number" ? found.order : def.order,
-        }
-      : def;
+    if (!found) return def;
+    // Migrate old `expanded` boolean → new `size` field
+    let size: WidgetSize = (found as any).size ?? "default";
+    if (!("size" in found) && typeof (found as any).expanded === "boolean") {
+      size = (found as any).expanded ? "md" : "default";
+    }
+    return {
+      ...def,
+      visible: !!found.visible,
+      size,
+      order: typeof found.order === "number" ? found.order : def.order,
+    };
   });
 }
 

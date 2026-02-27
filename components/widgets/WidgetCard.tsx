@@ -5,7 +5,7 @@
  *
  * Features:
  *  • Uniform visual treatment (rounded-2xl, border, shadow, p-6)
- *  • Single expand/collapse button (top-right)
+ *  • 4 sizes: default / sm / md / lg  (buttons in header)
  *  • Built-in HTML5 drag-and-drop support
  *  • Optional `action` slot for extra controls in the header
  * ═══════════════════════════════════════════════════════════════
@@ -13,20 +13,30 @@
 "use client";
 
 import React from "react";
-import { Maximize2, Minimize2, type LucideIcon } from "lucide-react";
+import { Minimize2, type LucideIcon } from "lucide-react";
+import type { WidgetSize } from "@/components/widgets/widget-meta";
+import { getWidgetHeight } from "@/components/widgets/widget-meta";
+
+const SIZE_OPTIONS: { value: WidgetSize; label: string }[] = [
+  { value: "sm", label: "S" },
+  { value: "md", label: "M" },
+  { value: "lg", label: "L" },
+];
 
 export interface WidgetCardProps {
   icon: LucideIcon;
   title: string;
-  /** Extra controls rendered to the left of the expand button */
+  /** Extra controls rendered to the left of the size buttons */
   action?: React.ReactNode;
   /** Column-span class for CSS grid (e.g. "md:col-span-2 xl:col-span-3") */
   span?: string;
   children: React.ReactNode;
   delay?: number;
   color?: string;
-  onExpand?: () => void;
-  isExpanded?: boolean;
+  /** Current widget size */
+  size?: WidgetSize;
+  /** Callback to change size */
+  onSetSize?: (size: WidgetSize) => void;
   /* ── drag support ─────────────────── */
   draggable?: boolean;
   onDragStart?: () => void;
@@ -43,26 +53,27 @@ export default function WidgetCard({
   children,
   delay = 0,
   color = "#FF4D00",
-  onExpand,
-  isExpanded,
+  size = "default",
+  onSetSize,
   draggable: isDraggable = false,
   onDragStart,
   onDragOver,
   onDragEnd,
   isDragging = false,
 }: WidgetCardProps) {
+  const isDefault = size === "default";
+
   return (
     <div
-      draggable={isDraggable && !isExpanded}
+      draggable={isDraggable && isDefault}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
       className={[
         "bg-white rounded-2xl border border-gray-100 shadow-sm p-6",
         "hover:shadow-lg hover:border-gray-200 transition-all duration-300 flex flex-col",
-        // Pin all unexpanded cards to the exact same height so the widget grid stays uniform
-        !isExpanded ? "h-[320px] min-h-[320px]" : "",
-        isDraggable && !isExpanded
+        getWidgetHeight(size),
+        isDraggable && isDefault
           ? "cursor-grab active:cursor-grabbing"
           : "",
         isDragging ? "opacity-50 scale-95" : "",
@@ -84,23 +95,43 @@ export default function WidgetCard({
           <h3 className="text-sm font-bold text-gray-900">{title}</h3>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {action}
-          {onExpand && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onExpand();
-              }}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-              title={isExpanded ? "Collapse" : "Expand"}
-            >
-              {isExpanded ? (
-                <Minimize2 size={13} />
-              ) : (
-                <Maximize2 size={13} />
+          {onSetSize && (
+            <>
+              {/* Size buttons – S / M / L */}
+              {SIZE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSetSize(size === opt.value ? "default" : opt.value);
+                  }}
+                  className={[
+                    "w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold transition-colors",
+                    size === opt.value
+                      ? "bg-[#1E3A8A]/10 text-[#1E3A8A]"
+                      : "text-gray-400 hover:bg-gray-100 hover:text-gray-600",
+                  ].join(" ")}
+                  title={`${opt.label === "S" ? "Small" : opt.label === "M" ? "Medium" : "Large"} size`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+              {/* Reset to default when expanded */}
+              {!isDefault && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSetSize("default");
+                  }}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors ml-0.5"
+                  title="Reset to default size"
+                >
+                  <Minimize2 size={13} />
+                </button>
               )}
-            </button>
+            </>
           )}
         </div>
       </div>
