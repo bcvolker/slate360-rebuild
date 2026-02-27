@@ -178,5 +178,5 @@ export async function POST(req: NextRequest, { params }: { params: Promise<Param
     notes: `Auto-generated ${reportType} report. Sections: ${sections.join(", ")}`,
   }).select().single();
 
-  return NextResponse.json({ ok: true, report: reportData, saved, fileUrl });
+  return NextResponse.json({ ok: true, report: reportData, saved, fileUrl, fileUploadId: uploadRow.id });
 }

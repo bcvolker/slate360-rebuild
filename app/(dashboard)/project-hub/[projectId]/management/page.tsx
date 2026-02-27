@@ -94,7 +94,7 @@ export default function ProjectManagementPage() {
   const [reportSections, setReportSections] = useState<string[]>(["schedule","budget","rfis"]);
   const [reportTitle, setReportTitle] = useState("");
   const [generatingReport, setGeneratingReport] = useState(false);
-  const [reportResult, setReportResult] = useState<{ title: string; summary: Record<string,unknown>; fileUrl: string } | null>(null);
+  const [reportResult, setReportResult] = useState<{ title: string; summary: Record<string,unknown>; fileUrl: string; fileUploadId?: string } | null>(null);
 
   const [activeTab, setActiveTab] = useState<Tab>("stakeholders");
   const [toast, setToast] = useState<string | null>(null);
@@ -201,30 +201,24 @@ export default function ProjectManagementPage() {
     setEditingCId(c.id); setShowCForm(true);
   };
 
-  /* ─ Fake AI Summary (placeholder — swap for real AI endpoint) ─── */
+  /* ─ Contract analysis (server-backed) ──────────────────────────── */
   const analyzeContract = async (c: Contract) => {
     if (!projectId) return;
     setAnalyzingId(c.id);
     try {
-      // Simulate AI analysis — in production swap with /api/ai/summarize
-      await new Promise((r) => setTimeout(r, 2000));
-      const fakeSummary = `This ${c.contract_type ?? "contract"} establishes a ${c.contract_value ? `$${Number(c.contract_value).toLocaleString()}` : "fixed-price"} agreement between the parties: ${c.parties ?? "Owner and Contractor"}. Key provisions include scope of work, payment schedule, change order procedures, and dispute resolution. The contract was ${c.executed_date ? `executed on ${new Date(c.executed_date).toLocaleDateString()}` : "not yet executed"}.`;
-      const fakeRequirements = JSON.stringify([
-        "Contractor must provide $2M general liability insurance",
-        "10-day written notice required for change orders",
-        "Substantial completion triggers 30-day punch list period",
-        "Retainage of 10% held until final completion",
-        "Disputes submitted to binding arbitration per AAA rules",
-        "Contractor responsible for all OSHA compliance on site",
-        "Owner has 14 days to approve or reject all submittals",
-      ]);
-      await fetch(`/api/projects/${projectId}/management/contracts`, {
+      const res = await fetch(`/api/projects/${projectId}/management/contracts/analyze`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: c.id, summary: fakeSummary, key_requirements: fakeRequirements }),
+        body: JSON.stringify({ contractId: c.id }),
       });
-      showToast("Contract analyzed — key requirements extracted");
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload.error ?? "Analysis failed");
+      }
+      showToast("Contract analyzed — requirements extracted");
       await loadContracts();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Analysis failed");
     } finally { setAnalyzingId(null); }
   };
 
@@ -247,6 +241,22 @@ export default function ProjectManagementPage() {
     }
   };
 
+  const openReportFile = async () => {
+    if (!reportResult) return;
+    try {
+      if (reportResult.fileUploadId) {
+        const res = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(reportResult.fileUploadId)}`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.url) throw new Error(data.error ?? "Unable to open report");
+        window.open(data.url as string, "_blank", "noopener,noreferrer");
+        return;
+      }
+      window.open(reportResult.fileUrl, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Unable to open report");
+    }
+  };
+
   /* ─ Report Generator ─────────────────────────────────────────── */
   const generateReport = async () => {
     if (!projectId) return;
@@ -258,8 +268,8 @@ export default function ProjectManagementPage() {
         body: JSON.stringify({ reportType, sections: reportSections, title: reportTitle || undefined }),
       });
       if (!res.ok) throw new Error((await res.json()).error);
-      const { report, fileUrl } = await res.json();
-      setReportResult({ title: report.title, summary: report.summary as Record<string,unknown>, fileUrl });
+      const { report, fileUrl, fileUploadId } = await res.json();
+      setReportResult({ title: report.title, summary: report.summary as Record<string,unknown>, fileUrl, fileUploadId });
       showToast("Report generated successfully");
     } catch (err) { showToast(err instanceof Error ? err.message : "Report generation failed"); }
     finally { setGeneratingReport(false); }
@@ -790,10 +800,10 @@ export default function ProjectManagementPage() {
                   <div className="border-t border-gray-100 pt-4 flex items-center justify-between">
                     <p className="text-xs text-gray-500">Report saved to project S3 archive</p>
                     <div className="flex items-center gap-2">
-                      <a href={reportResult.fileUrl} target="_blank" rel="noreferrer"
+                      <button onClick={() => void openReportFile()}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">
                         <Download size={12} /> Download JSON
-                      </a>
+                      </button>
                       <button onClick={() => setReportResult(null)}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">
                         New Report
