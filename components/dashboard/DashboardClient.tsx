@@ -1247,7 +1247,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             <img src="/logo.svg" alt="Slate360" className="h-6 sm:h-7 w-auto" />
           </Link>
 
-          {/* Center — Search */}
+          {/* Center — Search (desktop only) */}
           <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
             <div className="relative w-full">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -1261,21 +1261,22 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             </div>
           </div>
 
-          {/* Right — Notifications + User */}
-          <div className="flex items-center gap-3">
+          {/* Right — Notifications + Customize + User (compact on mobile) */}
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            {/* Notifications */}
             <button
               onClick={() => setNotificationsOpen((v) => !v)}
-              className="relative w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
             >
               <Bell size={18} />
               {unreadNotifications.length > 0 ? (
-                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#FF4D00]" />
+                <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-[#FF4D00]" />
               ) : null}
             </button>
             {notificationsOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setNotificationsOpen(false)} />
-                <div className="absolute right-24 top-14 z-50 w-[340px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                <div className="absolute right-4 sm:right-24 top-14 z-50 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
                   <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
                     <p className="text-sm font-bold text-gray-900">Notifications</p>
                     <button
@@ -1311,20 +1312,22 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 </div>
               </>
             )}
+
+            {/* Customize */}
             <button
               onClick={() => setCustomizeOpen(true)}
               title="Customize dashboard"
-              className="relative w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-[#FF4D00] transition-colors"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-[#FF4D00] transition-colors"
             >
               <SlidersHorizontal size={18} />
-              {prefsDirty && <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-400" />}
+              {prefsDirty && <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-amber-400" />}
             </button>
 
             {/* User avatar / menu */}
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen((v) => !v)}
-                className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-1.5 sm:gap-2.5 p-1 sm:pl-2 sm:pr-3 sm:py-1.5 rounded-xl hover:bg-gray-100 transition-colors"
               >
                 {user.avatar ? (
                   <img src={user.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -1337,7 +1340,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   <p className="text-xs font-semibold text-gray-900 leading-tight">{user.name}</p>
                   <p className="text-[10px] text-gray-400 leading-tight">{ent.label} plan</p>
                 </div>
-                <ChevronDown size={14} className="text-gray-400" />
+                <ChevronDown size={14} className="hidden sm:block text-gray-400" />
               </button>
 
               {userMenuOpen && (
@@ -1391,6 +1394,29 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         </div>
       </header>
 
+      {/* ════════ MOBILE NAVIGATE BAR — below header, above content ════════ */}
+      <div className="md:hidden sticky top-14 z-40 bg-[#ECEEF2] border-b border-gray-200 px-4 py-2 flex items-center justify-between">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+          {[
+            { label: "Dashboard", icon: Home, href: "/dashboard" },
+            { label: "Project Hub", icon: FolderOpen, href: "/project-hub" },
+            { label: "Analytics", icon: BarChart3, href: "/analytics" },
+            { label: "SlateDrop", icon: Layers, href: "/slatedrop" },
+          ].map((item) => {
+            const NavIcon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-xs font-semibold text-gray-700 hover:border-[#FF4D00]/40 hover:text-[#FF4D00] transition-all whitespace-nowrap shrink-0"
+              >
+                <NavIcon size={13} /> {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
       {/* ════════ MAIN CONTENT ════════ */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden">
         {billingNotice && (
@@ -1434,7 +1460,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             const labelSize = count <= 4 ? "text-sm" : count <= 6 ? "text-xs" : "text-[11px]";
             const pad = count <= 4 ? "p-5" : count <= 6 ? "p-4" : count <= 10 ? "p-3" : "p-2.5";
             return (
-              <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-1">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:flex gap-2 sm:gap-3 pb-1">
                 {allTiles.map((tab) => {
                   const TabIcon = tab.icon;
                   return (
@@ -1448,7 +1474,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                         setActiveTab(tab.id);
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
-                      className={`group flex-1 min-w-0 flex flex-col items-center gap-2 ${pad} rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-center`}
+                      className={`group md:flex-1 md:min-w-0 flex flex-col items-center gap-1.5 sm:gap-2 ${pad} rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-center`}
                     >
                       <div
                         className={`${iconBox} ${iconRadius} flex items-center justify-center transition-all group-hover:scale-110`}
@@ -1456,7 +1482,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                       >
                         <TabIcon size={iconSize} style={{ color: tab.color }} />
                       </div>
-                      <span className={`${labelSize} font-semibold text-gray-700 group-hover:text-gray-900 leading-tight whitespace-nowrap`}>{tab.label}</span>
+                      <span className={`${labelSize} font-semibold text-gray-700 group-hover:text-gray-900 leading-tight truncate max-w-full`}>{tab.label}</span>
                     </button>
                   );
                 })}

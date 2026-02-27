@@ -292,7 +292,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="bg-white min-h-screen text-gray-900 antialiased">
+    <div className="bg-white min-h-screen text-gray-900 antialiased overflow-x-hidden">
       <Navbar />
 
       {/* ────── HERO — full viewport ────── */}

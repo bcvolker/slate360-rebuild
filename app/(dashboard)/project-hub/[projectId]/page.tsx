@@ -20,24 +20,40 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
 
   const project = rawProject as any;
 
-  // Parallel stats queries
+  // Parallel stats queries — wrapped in try/catch to handle missing tables gracefully
   const admin = createAdminClient();
-  const [rfis, submittals, tasks, budget, members] = await Promise.all([
-    admin.from("project_rfis").select("id, status").eq("project_id", projectId),
-    admin.from("project_submittals").select("id, status").eq("project_id", projectId),
-    admin.from("project_tasks").select("id, status, name, start_date, end_date").eq("project_id", projectId).order("start_date", { ascending: true }).limit(20),
-    admin.from("project_budgets").select("total_budget, spent").eq("project_id", projectId).maybeSingle(),
-    admin.from("project_members").select("id").eq("project_id", projectId),
-  ]);
+  let rfisData: any[] = [];
+  let submittalsData: any[] = [];
+  let allTasks: any[] = [];
+  let budgetData: any = null;
+  let memberCount = 0;
 
-  const openRfis = (rfis.data ?? []).filter((r) => r.status === "open" || r.status === "Open").length;
-  const openSubmittals = (submittals.data ?? []).filter((s) => s.status !== "approved" && s.status !== "Approved").length;
-  const allTasks = tasks.data ?? [];
-  const pendingTasks = allTasks.filter((t) => t.status !== "Completed" && t.status !== "Done").length;
-  const memberCount = members.data?.length ?? 0;
+  try {
+    const safe = <T,>(p: PromiseLike<{ data: T | null }>): Promise<{ data: T | null }> =>
+      Promise.resolve(p).catch(() => ({ data: null }));
+
+    const [rfis, submittals, tasks, budget, members] = await Promise.all([
+      safe(admin.from("project_rfis").select("id, status").eq("project_id", projectId)),
+      safe(admin.from("project_submittals").select("id, status").eq("project_id", projectId)),
+      safe(admin.from("project_tasks").select("id, status, name, start_date, end_date").eq("project_id", projectId).order("start_date", { ascending: true }).limit(20)),
+      safe(admin.from("project_budgets").select("total_budget, spent").eq("project_id", projectId).maybeSingle()),
+      safe(admin.from("project_members").select("id").eq("project_id", projectId)),
+    ]);
+    rfisData = (rfis.data as any[]) ?? [];
+    submittalsData = (submittals.data as any[]) ?? [];
+    allTasks = (tasks.data as any[]) ?? [];
+    budgetData = budget.data;
+    memberCount = (members.data as any[] | null)?.length ?? 0;
+  } catch {
+    // If tables don't exist yet, gracefully degrade to zeros
+  }
+
+  const openRfis = rfisData.filter((r: any) => r.status === "open" || r.status === "Open").length;
+  const openSubmittals = submittalsData.filter((s: any) => s.status !== "approved" && s.status !== "Approved").length;
+  const pendingTasks = allTasks.filter((t: any) => t.status !== "Completed" && t.status !== "Done").length;
 
   const stats = [
-    { label: "Open RFIs", value: openRfis, sub: `${rfis.data?.length ?? 0} total`, href: `/project-hub/${projectId}/rfis`, color: "#1E3A8A", Icon: ClipboardList },
+    { label: "Open RFIs", value: openRfis, sub: `${rfisData.length} total`, href: `/project-hub/${projectId}/rfis`, color: "#1E3A8A", Icon: ClipboardList },
     { label: "Submittals", value: openSubmittals, sub: "pending review", href: `/project-hub/${projectId}/submittals`, color: "#7C3AED", Icon: FileCheck2 },
     { label: "Schedule Tasks", value: pendingTasks, sub: "active tasks", href: `/project-hub/${projectId}/schedule`, color: "#FF4D00", Icon: CalendarCheck2 },
     { label: "Budget", value: "View", sub: "Financials", href: `/project-hub/${projectId}/budget`, color: "#059669", Icon: DollarSign },
@@ -57,7 +73,7 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
     { label: "Punch List", href: `/project-hub/${projectId}/punch-list`, Icon: ShieldAlert },
   ];
 
-  const nextTasks = allTasks.filter((t) => t.status !== "Completed" && t.status !== "Done").slice(0, 4);
+  const nextTasks = allTasks.filter((t: any) => t.status !== "Completed" && t.status !== "Done").slice(0, 4);
 
   return (
     <div className="space-y-8">

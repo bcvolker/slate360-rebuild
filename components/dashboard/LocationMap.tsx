@@ -423,13 +423,64 @@ function DrawController({
 
     listeners.push(
       mapsApi.event.addListener(record.overlay, "click", () => {
+        // Deselect previous
+        const prevId = selectedOverlayIdRef.current;
+        if (prevId && prevId !== record.id) {
+          const prev = overlaysRef.current.find((r) => r.id === prevId);
+          if (prev) {
+            applyStyleToOverlay(prev.overlay, prev.kind, { strokeColor, fillColor, strokeWeight }, prev.arrow);
+          }
+        }
         selectedOverlayIdRef.current = record.id;
-        applyStyleToOverlay(record.overlay, record.kind, { strokeColor, fillColor, strokeWeight }, record.arrow);
+        // Highlight selected overlay
+        applyStyleToOverlay(record.overlay, record.kind, { strokeColor: "#2196F3", fillColor: "#2196F3", strokeWeight: strokeWeight + 1 }, record.arrow);
+        setStatus({ ok: true, text: "Shape selected — press Delete or Backspace to remove" });
       })
     );
 
     return listeners;
   };
+
+  /** Delete the currently selected overlay */
+  const deleteSelectedOverlay = useCallback(() => {
+    const selectedId = selectedOverlayIdRef.current;
+    if (!selectedId) return;
+
+    const idx = overlaysRef.current.findIndex((r) => r.id === selectedId);
+    if (idx === -1) return;
+
+    const record = overlaysRef.current[idx];
+    record.listeners.forEach((listener) => listener.remove());
+    if (record.overlay && typeof record.overlay.setMap === "function") {
+      record.overlay.setMap(null);
+    }
+
+    overlaysRef.current = overlaysRef.current.filter((r) => r.id !== selectedId);
+    selectedOverlayIdRef.current = null;
+    setStatus({ ok: true, text: "Shape deleted." });
+  }, [setStatus]);
+
+  // Keyboard listener for Delete / Backspace to remove selected overlay
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Delete" || e.key === "Backspace") {
+        // Don't delete if user is typing in an input
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        if (selectedOverlayIdRef.current) {
+          e.preventDefault();
+          deleteSelectedOverlay();
+        }
+      }
+      // Escape to deselect
+      if (e.key === "Escape") {
+        selectedOverlayIdRef.current = null;
+        setStatus(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [deleteSelectedOverlay, setStatus]);
 
   const clearMarkup = () => {
     overlaysRef.current.forEach((record) => {
@@ -527,6 +578,18 @@ function DrawController({
           setAddressInput(coordStr);
           setAddressQuery(coordStr);
           setStatus({ ok: true, text: `Markup placed at ${coordStr}` });
+          // Reverse-geocode to get a human-readable address alongside coordinates
+          if (geocoder) {
+            geocoder.geocode({ location: { lat, lng } }).then((response) => {
+              const result = response.results[0];
+              if (result?.formatted_address) {
+                const fullLabel = `${result.formatted_address} (${coordStr})`;
+                setAddressInput(fullLabel);
+                setAddressQuery(fullLabel);
+                setStatus({ ok: true, text: `Markup placed at ${result.formatted_address}` });
+              }
+            }).catch(() => { /* keep coordinate string as fallback */ });
+          }
         }
       }
 
@@ -808,6 +871,9 @@ function DrawController({
             <span className="text-[9px] font-semibold text-gray-500">W</span>
             <input type="range" min={1} max={10} value={strokeWeight} onChange={(e) => setStrokeWeight(Number(e.target.value))} className="w-full" />
           </div>
+          <button type="button" onClick={deleteSelectedOverlay} className="inline-flex items-center gap-1 rounded-md border border-red-200 px-2 py-1 text-[10px] font-semibold text-red-500 hover:bg-red-50 transition-colors" title="Delete selected shape (or press Delete key)">
+            <Trash2 size={10} /> Del
+          </button>
           <button type="button" onClick={clearMarkup} className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100 ml-auto">
             <Trash2 size={10} /> Clear
           </button>

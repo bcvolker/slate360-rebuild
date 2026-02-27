@@ -10,7 +10,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "market:burst:test": "node scripts/market-burst-test.mjs"
+    "market:burst:test": "node scripts/market-burst-test.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:mobile": "node scripts/mobile-smoke-http.mjs",
+    "test:e2e:mobile:playwright": "playwright test e2e/mobile-smoke.spec.ts",
+    "test:e2e:headed": "playwright test --headed",
+    "test:smoke:mobile": "node scripts/mobile-smoke-http.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.995.0",
@@ -54,6 +59,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@playwright/test": "^1.54.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.33",
     "@types/nodemailer": "^7.0.11",

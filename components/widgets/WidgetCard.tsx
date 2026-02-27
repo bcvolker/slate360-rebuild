@@ -17,20 +17,25 @@ import { Minimize2, type LucideIcon } from "lucide-react";
 import type { WidgetSize } from "@/components/widgets/widget-meta";
 import { getWidgetHeight } from "@/components/widgets/widget-meta";
 
-/** Size labels — S / M / L rendered as readable text glyphs */
-const SIZE_LABELS: Record<"sm" | "md" | "lg", string> = { sm: "S", md: "M", lg: "L" };
-function SizeIcon({ variant }: { variant: "sm" | "md" | "lg" }) {
+/**
+ * Horizontal-line expansion icons — 1 line = small, 2 = medium, 3 = large.
+ * Matches the desktop line-icon pattern for expand controls.
+ */
+function ExpansionIcon({ lines }: { lines: 1 | 2 | 3 }) {
+  const lineClass = "w-3 h-[1.5px] rounded-full bg-current";
   return (
-    <span style={{ fontSize: 10, fontWeight: 700, lineHeight: 1, letterSpacing: "0.02em", display: "block" }}>
-      {SIZE_LABELS[variant]}
+    <span className="flex flex-col items-center justify-center gap-[2.5px]">
+      {Array.from({ length: lines }).map((_, i) => (
+        <span key={i} className={lineClass} />
+      ))}
     </span>
   );
 }
 
-const SIZE_OPTIONS: { value: "sm" | "md" | "lg"; label: string }[] = [
-  { value: "sm", label: "S" },
-  { value: "md", label: "M" },
-  { value: "lg", label: "L" },
+const SIZE_OPTIONS: { value: "sm" | "md" | "lg"; lines: 1 | 2 | 3; label: string }[] = [
+  { value: "sm", lines: 1, label: "Small" },
+  { value: "md", lines: 2, label: "Medium" },
+  { value: "lg", lines: 3, label: "Large" },
 ];
 
 export interface WidgetCardProps {
@@ -109,7 +114,7 @@ export default function WidgetCard({
           {action}
           {onSetSize && (
             <>
-              {/* Size buttons – S / M / L labels */}
+              {/* Size buttons – horizontal line expansion icons */}
               <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
               {SIZE_OPTIONS.map((opt) => (
                 <button
@@ -124,9 +129,9 @@ export default function WidgetCard({
                       ? "bg-white shadow-sm text-[#1E3A8A]"
                       : "text-gray-400 hover:text-gray-600",
                   ].join(" ")}
-                  title={`${opt.label === "S" ? "Small" : opt.label === "M" ? "Medium" : "Large"} size`}
+                  title={`${opt.label} size`}
                 >
-                  <SizeIcon variant={opt.value} />
+                  <ExpansionIcon lines={opt.lines} />
                 </button>
               ))}
               </div>
