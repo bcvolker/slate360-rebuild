@@ -17,11 +17,19 @@
 
 import { useState } from "react";
 import {
+  ArrowUpRight,
   BarChart3,
+  Building2,
   CheckCircle2,
+  ChevronRight,
   Cpu,
+  DollarSign,
   Lightbulb,
   Loader2,
+  MapPin,
+  TrendingDown,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 
 /* ── Common body class helper ─────────────────────────────────── */
@@ -63,48 +71,99 @@ export function WeatherWidgetBody({
 /* ─────────────────────────────────────────────────────────────── *
  *  Financial Snapshot
  * ─────────────────────────────────────────────────────────────── */
-export function FinancialWidgetBody({ expanded = false }: { expanded?: boolean }) {
+export function FinancialWidgetBody({
+  totalBudget = 0,
+  totalSpent = 0,
+  changeOrders = 0,
+  projectCount = 0,
+  expanded = false,
+}: {
+  totalBudget?: number;
+  totalSpent?: number;
+  changeOrders?: number;
+  projectCount?: number;
+  expanded?: boolean;
+}) {
+  const fmtUsd = (v: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }).format(v);
+  const pct = totalBudget > 0 ? Math.min(100, Math.round((totalSpent / totalBudget) * 100)) : 0;
+  const revised = totalBudget + changeOrders;
+  const variance = revised - totalSpent;
+  const isOver = variance < 0;
+
+  if (totalBudget === 0) {
+    return (
+      <div className={["rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100", "p-4 flex flex-col justify-center items-center flex-1", expanded ? "min-h-[200px]" : ""].join(" ")}>
+        <BarChart3 size={28} className="text-blue-300 mb-2" />
+        <p className="text-xs text-blue-400 text-center">No budget data available yet</p>
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={[
-        "rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100",
-        "p-4 flex flex-col justify-center items-center flex-1",
-        expanded ? "min-h-[200px]" : "",
-      ].join(" ")}
-    >
-      <BarChart3 size={28} className="text-blue-300 mb-2" />
-      <p className="text-xs text-blue-400 text-center">Portfolio budget overview and trends</p>
+    <div className="rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 p-4 flex-1 space-y-3">
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-white/70 rounded-lg p-2">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Budget</p>
+          <p className="text-sm font-black text-gray-900">{fmtUsd(totalBudget)}</p>
+        </div>
+        <div className="bg-white/70 rounded-lg p-2">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Spent</p>
+          <p className="text-sm font-black text-gray-900">{fmtUsd(totalSpent)}</p>
+        </div>
+      </div>
+      <div>
+        <div className="flex justify-between mb-1">
+          <span className="text-[10px] text-gray-500">Spend Progress</span>
+          <span className="text-[10px] font-bold text-gray-700">{pct}%</span>
+        </div>
+        <div className="h-2 w-full bg-white/60 rounded-full overflow-hidden">
+          <div className={`h-full rounded-full transition-all ${pct > 90 ? "bg-red-500" : pct > 75 ? "bg-amber-400" : "bg-blue-500"}`} style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">{isOver ? <TrendingDown size={12} className="text-red-500" /> : <TrendingUp size={12} className="text-emerald-500" />}<span className={`text-[10px] font-bold ${isOver ? "text-red-600" : "text-emerald-600"}`}>{isOver ? "Over" : "Under"} {fmtUsd(Math.abs(variance))}</span></div>
+        {projectCount > 0 && <span className="text-[9px] text-gray-400">{projectCount} project{projectCount !== 1 ? "s" : ""}</span>}
+      </div>
     </div>
   );
 }
 
 /* ─────────────────────────────────────────────────────────────── *
- *  Calendar (placeholder until full implementation)
+ *  Calendar
  * ─────────────────────────────────────────────────────────────── */
 export function CalendarWidgetBody({
   events = [],
 }: {
-  events?: Array<{ title: string; date: string; color?: string }>;
+  events?: Array<{ title: string; date: string; color?: string; status?: string }>;
 }) {
-  return (
-    <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 flex-1 space-y-2">
-      <p className="text-xs text-gray-500">Upcoming milestones and deadlines.</p>
-      {events.length === 0 ? (
+  const today = new Date();
+  const sorted = [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const upcoming = sorted.filter((e) => new Date(e.date) >= new Date(today.toDateString()));
+  const display = upcoming.length > 0 ? upcoming : sorted;
+
+  if (display.length === 0) {
+    return (
+      <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 flex-1 flex flex-col items-center justify-center gap-2">
         <p className="text-xs font-semibold text-gray-400">No upcoming events</p>
-      ) : (
-        <ul className="space-y-1.5">
-          {events.slice(0, 4).map((ev, i) => (
-            <li key={i} className="flex items-center gap-2">
-              <span
-                className="w-2 h-2 rounded-full shrink-0"
-                style={{ backgroundColor: ev.color ?? "#1E3A8A" }}
-              />
-              <span className="text-xs text-gray-700 truncate flex-1">{ev.title}</span>
-              <span className="text-[10px] text-gray-400 shrink-0">{ev.date}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+        <p className="text-[10px] text-gray-400">Tasks with due dates will appear here</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 flex-1 space-y-1.5">
+      {display.slice(0, 5).map((ev, i) => {
+        const d = new Date(ev.date);
+        const isToday = d.toDateString() === today.toDateString();
+        const isPast = d < today && !isToday;
+        return (
+          <div key={i} className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${isToday ? "bg-[#FF4D00]/10 border border-[#FF4D00]/20" : isPast ? "opacity-50" : "bg-white border border-gray-100"}`}>
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ev.color ?? (isToday ? "#FF4D00" : "#1E3A8A") }} />
+            <span className="text-xs text-gray-700 truncate flex-1">{ev.title}</span>
+            <span className={`text-[9px] font-bold shrink-0 ${isToday ? "text-[#FF4D00]" : "text-gray-400"}`}>{isToday ? "Today" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -126,24 +185,90 @@ export function ContactsWidgetBody({
 }
 
 /* ─────────────────────────────────────────────────────────────── *
- *  Continue Working (placeholder until full implementation)
+ *  Continue Working
  * ─────────────────────────────────────────────────────────────── */
 export function ContinueWidgetBody({
   items = [],
 }: {
-  items?: Array<{ title: string; subtitle: string; href?: string }>;
+  items?: Array<{ title: string; subtitle: string; href?: string; icon?: string }>;
 }) {
+  if (items.length === 0) {
+    return (
+      <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 flex-1 flex flex-col items-center justify-center gap-2">
+        <p className="text-xs font-semibold text-gray-400">No recent activity</p>
+        <p className="text-[10px] text-gray-400">Open a project to start tracking</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 flex-1">
-      <p className="text-xs text-gray-500">Pick up where you left off.</p>
-      {items.length === 0 ? (
-        <p className="text-xs font-semibold text-gray-400 mt-2">No recent activity</p>
+    <div className="rounded-xl bg-gray-50 border border-gray-100 p-2 flex-1 space-y-1.5">
+      {items.slice(0, 4).map((it, i) => (
+        it.href ? (
+          <a key={i} href={it.href} className="flex items-center gap-2 rounded-lg border border-gray-100 bg-white px-3 py-2 hover:border-[#FF4D00]/30 hover:bg-orange-50/30 transition group">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-gray-800 truncate">{it.title}</p>
+              <p className="text-[9px] text-gray-400 truncate">{it.subtitle}</p>
+            </div>
+            <ChevronRight size={12} className="shrink-0 text-gray-300 group-hover:text-[#FF4D00] transition" />
+          </a>
+        ) : (
+          <div key={i} className="flex items-center gap-2 rounded-lg border border-gray-100 bg-white px-3 py-2">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-gray-800 truncate">{it.title}</p>
+              <p className="text-[9px] text-gray-400 truncate">{it.subtitle}</p>
+            </div>
+            <ArrowUpRight size={12} className="shrink-0 text-gray-300" />
+          </div>
+        )
+      ))}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────── *
+ *  Project Info
+ * ─────────────────────────────────────────────────────────────── */
+export function ProjectInfoWidgetBody({
+  projectName,
+  projectAddress,
+  status,
+  contractAmount,
+  teamCount,
+  expanded = false,
+}: {
+  projectName?: string;
+  projectAddress?: string;
+  status?: string;
+  contractAmount?: number;
+  teamCount?: number;
+  expanded?: boolean;
+}) {
+  const fmtUsd = (v: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }).format(v);
+  const statusColor: Record<string, string> = { Active: "text-emerald-600 bg-emerald-50", "On Hold": "text-amber-600 bg-amber-50", Completed: "text-blue-600 bg-blue-50", Planning: "text-purple-600 bg-purple-50" };
+
+  return (
+    <div className="rounded-xl bg-gradient-to-br from-slate-50 to-blue-50 border border-slate-100 p-4 flex-1 space-y-3">
+      {projectName ? (
+        <>
+          <div className="flex items-start gap-2">
+            <Building2 size={16} className="text-[#1E3A8A] mt-0.5 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-sm font-black text-gray-900 truncate">{projectName}</p>
+              {projectAddress && <p className="text-[10px] text-gray-500 flex items-center gap-1 mt-0.5"><MapPin size={9} />{projectAddress}</p>}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {status && <div className="bg-white/70 rounded-lg px-2 py-1.5"><p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Status</p><span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${statusColor[status] ?? "text-gray-600 bg-gray-100"}`}>{status}</span></div>}
+            {contractAmount !== undefined && contractAmount > 0 && <div className="bg-white/70 rounded-lg px-2 py-1.5"><p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Contract</p><p className="text-xs font-black text-gray-800 flex items-center gap-0.5"><DollarSign size={10} />{fmtUsd(contractAmount)}</p></div>}
+            {teamCount !== undefined && <div className="bg-white/70 rounded-lg px-2 py-1.5"><p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Team</p><p className="text-xs font-black text-gray-800 flex items-center gap-1"><Users size={10} />{teamCount}</p></div>}
+          </div>
+        </>
       ) : (
-        <ul className="mt-2 space-y-1.5">
-          {items.slice(0, 3).map((it, i) => (
-            <li key={i} className="text-xs text-gray-700 truncate">{it.title}</li>
-          ))}
-        </ul>
+        <div className={["flex flex-col items-center justify-center gap-2", expanded ? "min-h-[160px]" : ""].join(" ")}>
+          <Building2 size={24} className="text-slate-300" />
+          <p className="text-xs font-semibold text-gray-400">No project selected</p>
+        </div>
       )}
     </div>
   );
