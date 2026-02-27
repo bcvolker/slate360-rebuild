@@ -219,10 +219,10 @@ export default function ProjectDashboardGrid({
         <h2 className="text-lg font-black text-gray-900">Project Widgets</h2>
         <button
           onClick={() => setCustomizeOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+          title="Customize widgets"
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-[#1E3A8A] transition-colors"
         >
-          <SlidersHorizontal size={14} />
-          Customize
+          <SlidersHorizontal size={16} />
         </button>
       </div>
 
