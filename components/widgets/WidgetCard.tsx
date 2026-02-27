@@ -17,7 +17,32 @@ import { Minimize2, type LucideIcon } from "lucide-react";
 import type { WidgetSize } from "@/components/widgets/widget-meta";
 import { getWidgetHeight } from "@/components/widgets/widget-meta";
 
-const SIZE_OPTIONS: { value: WidgetSize; label: string }[] = [
+/** Subtle bar-height icons representing S / M / L sizes */
+function SizeIcon({ variant }: { variant: "sm" | "md" | "lg" }) {
+  const bars =
+    variant === "sm"
+      ? [{ w: 8, y: 7 }, { w: 6, y: 11 }]
+      : variant === "md"
+        ? [{ w: 10, y: 5 }, { w: 8, y: 9 }, { w: 6, y: 13 }]
+        : [{ w: 12, y: 4 }, { w: 10, y: 8 }, { w: 8, y: 12 }];
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      {bars.map((b, i) => (
+        <rect
+          key={i}
+          x={(16 - b.w) / 2}
+          y={b.y}
+          width={b.w}
+          height={1.6}
+          rx={0.8}
+          fill="currentColor"
+        />
+      ))}
+    </svg>
+  );
+}
+
+const SIZE_OPTIONS: { value: "sm" | "md" | "lg"; label: string }[] = [
   { value: "sm", label: "S" },
   { value: "md", label: "M" },
   { value: "lg", label: "L" },
@@ -99,7 +124,7 @@ export default function WidgetCard({
           {action}
           {onSetSize && (
             <>
-              {/* Size buttons – S / M / L */}
+              {/* Size buttons – subtle bar icons */}
               {SIZE_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
@@ -108,14 +133,14 @@ export default function WidgetCard({
                     onSetSize(size === opt.value ? "default" : opt.value);
                   }}
                   className={[
-                    "w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold transition-colors",
+                    "w-6 h-6 rounded-md flex items-center justify-center transition-colors",
                     size === opt.value
                       ? "bg-[#1E3A8A]/10 text-[#1E3A8A]"
-                      : "text-gray-400 hover:bg-gray-100 hover:text-gray-600",
+                      : "text-gray-300 hover:bg-gray-100 hover:text-gray-500",
                   ].join(" ")}
                   title={`${opt.label === "S" ? "Small" : opt.label === "M" ? "Medium" : "Large"} size`}
                 >
-                  {opt.label}
+                  <SizeIcon variant={opt.value} />
                 </button>
               ))}
               {/* Reset to default when expanded */}
