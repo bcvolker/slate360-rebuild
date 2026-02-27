@@ -15,6 +15,8 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [emailSent, setEmailSent] = useState(true);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [resending, setResending] = useState(false);
   const [resendResult, setResendResult] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
@@ -220,7 +222,7 @@ export default function SignupPage() {
 
           <form onSubmit={handleSignup} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Full name</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Full name *</label>
               <input type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Smith"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/30 focus:border-[#FF4D00] text-sm transition-all" />
             </div>
@@ -240,18 +242,45 @@ export default function SignupPage() {
                 </button>
               </div>
             </div>
-            <button type="submit" disabled={loading || !!oauthLoading}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm text-white transition-all hover:opacity-90 hover:scale-[1.02] disabled:opacity-50"
+            {/* Required agreements */}
+            <div className="space-y-2.5 pt-1">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  required
+                  checked={agreeTerms}
+                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-[#FF4D00] cursor-pointer"
+                />
+                <span className="text-xs text-gray-600 leading-relaxed">
+                  I agree to the{" "}
+                  <Link href="/terms" target="_blank" className="font-semibold text-[#1E3A8A] underline hover:text-[#FF4D00]">Terms of Service</Link>{" "}
+                  <span className="text-red-500 font-bold">*</span>
+                </span>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  required
+                  checked={agreePrivacy}
+                  onChange={(e) => setAgreePrivacy(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-[#FF4D00] cursor-pointer"
+                />
+                <span className="text-xs text-gray-600 leading-relaxed">
+                  I agree to the{" "}
+                  <Link href="/privacy" target="_blank" className="font-semibold text-[#1E3A8A] underline hover:text-[#FF4D00]">Privacy Policy</Link>{" "}
+                  and consent to receiving product updates{" "}
+                  <span className="text-red-500 font-bold">*</span>
+                </span>
+              </label>
+            </div>
+
+            <button type="submit" disabled={loading || !!oauthLoading || !agreeTerms || !agreePrivacy}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm text-white transition-all hover:opacity-90 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ backgroundColor: "#FF4D00" }}>
               {loading ? <Loader2 size={16} className="animate-spin" /> : <>Create account <ArrowRight size={15} /></>}
             </button>
           </form>
-
-          <p className="text-center text-xs text-gray-400 mt-6">
-            By creating an account you agree to our{" "}
-            <Link href="#" className="underline hover:text-gray-600">Terms</Link>{" "}and{" "}
-            <Link href="#" className="underline hover:text-gray-600">Privacy Policy</Link>.
-          </p>
         </div>
       </div>
     </div>

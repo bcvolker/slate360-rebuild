@@ -5,16 +5,17 @@ import { getScopedProjectForUser } from "@/lib/projects/access";
 import QuickNav from "@/components/shared/QuickNav";
 
 const TABS = [
-  { label: "Overview", href: "" },
-  { label: "Files", href: "files" },
-  { label: "RFIs", href: "rfis" },
+  { label: "Overview",   href: "" },
+  { label: "Files",      href: "files" },
+  { label: "RFIs",       href: "rfis" },
   { label: "Submittals", href: "submittals" },
   { label: "Daily Logs", href: "daily-logs" },
   { label: "Punch List", href: "punch-list" },
-  { label: "Drawings", href: "drawings" },
-  { label: "Photos", href: "photos" },
-  { label: "Budget", href: "budget" },
-  { label: "Schedule", href: "schedule" },
+  { label: "Drawings",   href: "drawings" },
+  { label: "Photos",     href: "photos" },
+  { label: "Budget",     href: "budget" },
+  { label: "Schedule",   href: "schedule" },
+  { label: "Management", href: "management" },
 ] as const;
 
 export default async function ProjectDetailLayout({

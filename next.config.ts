@@ -23,14 +23,30 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // HTML pages only — force CDN + browsers to revalidate on every visit.
-        // Static JS/CSS chunks have content-hashed filenames and keep their own
-        // immutable cache headers set by Next.js automatically.
         source: "/:path((?!_next/static|_next/image|favicon).*)",
         headers: [
+          { key: "Cache-Control",           value: "public, max-age=0, must-revalidate" },
+          { key: "X-Content-Type-Options",  value: "nosniff" },
+          { key: "X-Frame-Options",         value: "DENY" },
+          { key: "X-XSS-Protection",        value: "1; mode=block" },
+          { key: "Referrer-Policy",         value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy",      value: "camera=(), microphone=(), geolocation=(self)" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
           {
-            key: "Cache-Control",
-            value: "public, max-age=0, must-revalidate",
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com data:",
+              "img-src 'self' data: blob: https: http:",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.resend.com https://maps.googleapis.com https://api.openweathermap.org https://wttr.in https://nominatim.openstreetmap.org",
+              "frame-src 'none'",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "upgrade-insecure-requests",
+            ].join("; "),
           },
         ],
       },
