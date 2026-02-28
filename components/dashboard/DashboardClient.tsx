@@ -216,6 +216,14 @@ type SlateDropFolderQuickView = {
   description: string;
 };
 
+type DeployInfoPayload = {
+  marker?: string;
+  commit?: string | null;
+  branch?: string | null;
+  url?: string | null;
+  region?: string | null;
+};
+
 /* ================================================================
    WIDGET META — imported from @/components/widgets/widget-meta
    ================================================================ */
@@ -683,6 +691,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [liveWeather, setLiveWeather] = useState<LiveWeatherState | null>(null);
   const [widgetsData, setWidgetsData] = useState<DashboardWidgetsPayload | null>(null);
+  const [deployInfo, setDeployInfo] = useState<DeployInfoPayload | null>(null);
 
   /* ── Load saved prefs from Supabase user metadata on mount ─── */
   useEffect(() => {
@@ -719,6 +728,18 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         if (!data.error) setAccountOverview(data);
       })
       .catch(console.error);
+
+    // Fetch deployment identity for admin diagnostics
+    fetch("/api/deploy-info", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data?.error) {
+          setDeployInfo(data as DeployInfoPayload);
+        }
+      })
+      .catch(() => {
+        setDeployInfo(null);
+      });
 
     // Fetch live widget datasets
     fetch("/api/dashboard/widgets", { cache: "no-store" })
@@ -1398,6 +1419,19 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
 
       {/* ════════ MAIN CONTENT ════════ */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden">
+        {(hasCeoAccess || accountOverview?.isAdmin) && (
+          <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-[11px] text-blue-900">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span><span className="font-semibold">Runtime:</span> {deployInfo?.url ?? "unknown"}</span>
+              <span><span className="font-semibold">Branch:</span> {deployInfo?.branch ?? "unknown"}</span>
+              <span><span className="font-semibold">Commit:</span> {(deployInfo?.commit ?? "unknown").slice(0, 7)}</span>
+              <span><span className="font-semibold">Tier:</span> {ent.tier}</span>
+              <span><span className="font-semibold">Org:</span> {accountOverview?.profile.orgName ?? "unresolved"}</span>
+              <span><span className="font-semibold">Role:</span> {accountOverview?.profile.role ?? "unresolved"}</span>
+            </div>
+          </div>
+        )}
+
         {billingNotice && (
           <div className={`mb-4 rounded-xl border px-4 py-3 text-sm ${billingNotice.ok ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
             {billingNotice.text}

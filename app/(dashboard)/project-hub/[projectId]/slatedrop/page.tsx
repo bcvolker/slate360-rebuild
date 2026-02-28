@@ -1,8 +1,7 @@
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { getScopedProjectForUser } from "@/lib/projects/access";
 import SlateDropClient from "@/components/slatedrop/SlateDropClient";
-import type { Tier } from "@/lib/entitlements";
 
 export default async function ProjectSlateDropPage({
   params,
@@ -11,10 +10,7 @@ export default async function ProjectSlateDropPage({
 }) {
   const { projectId } = await params;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, tier } = await resolveServerOrgContext();
 
   if (!user) {
     redirect(`/login?redirectTo=${encodeURIComponent(`/project-hub/${projectId}/slatedrop`)}`);
@@ -24,23 +20,6 @@ export default async function ProjectSlateDropPage({
 
   if (!project) {
     notFound();
-  }
-
-  // Resolve org tier for entitlement gating
-  let tier: Tier = "trial";
-  try {
-    const { data } = await supabase
-      .from("organization_members")
-      .select("organizations(tier)")
-      .eq("user_id", user.id)
-      .single();
-    const org = data?.organizations as unknown;
-    if (org && typeof org === "object" && !Array.isArray(org)) {
-      const t = (org as { tier?: string }).tier;
-      if (t) tier = t as Tier;
-    }
-  } catch {
-    // default trial
   }
 
   return (
