@@ -80,8 +80,8 @@ results.push(
 results.push(
   check(
     "Project widgets uniform by default",
-    projectGrid.includes("expanded: false"),
-    "Project grid defaults to uniform unexpanded cards"
+    projectGrid.includes("compact={!isExpanded}") && projectGrid.includes("expanded={isExpanded}"),
+    "Project grid binds LocationMap compact/expanded state to widget size"
   )
 );
 

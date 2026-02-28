@@ -463,8 +463,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const supabase = createClient();
   const router = useRouter();
 
-  // CEO / special-access check — only slate360ceo@gmail.com sees CEO tabs
-  const isCEO = user.email === "slate360ceo@gmail.com";
+  const hasCeoAccess = ent.canAccessCeo || user.email === "slate360ceo@gmail.com";
 
   // Build the ordered, filtered tab list based on tier entitlements + identity
   const visibleTabs: DashTab[] = ([
@@ -477,7 +476,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#1E3A8A" },
     { id: "slatedrop",      label: "SlateDrop",      icon: FolderOpen, FolderKanban,      color: "#FF4D00" },
     { id: "my-account",     label: "My Account",     icon: User,            color: "#1E3A8A" },
-    ...(isCEO ? ([
+    ...(hasCeoAccess ? ([
       { id: "ceo",        label: "CEO",        icon: Shield,      color: "#FF4D00", isCEOOnly: true },
       { id: "market",     label: "Market Robot", icon: TrendingUp,  color: "#1E3A8A", isCEOOnly: true },
       { id: "athlete360", label: "Athlete360", icon: Zap,         color: "#FF4D00", isCEOOnly: true },
@@ -495,7 +494,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
       case "my-account":     return true;
       case "ceo":
       case "market":
-      case "athlete360":     return isCEO;
+      case "athlete360":     return hasCeoAccess;
       default:               return false;
     }
   });
@@ -1440,7 +1439,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             const labelSize = count <= 4 ? "text-sm" : count <= 6 ? "text-xs" : "text-[11px]";
             const pad = count <= 4 ? "p-5" : count <= 6 ? "p-4" : count <= 10 ? "p-3" : "p-2.5";
             return (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:flex gap-2 sm:gap-3 pb-1">
+              <div className="hidden md:flex gap-3 pb-1">
                 {allTiles.map((tab) => {
                   const TabIcon = tab.icon;
                   return (

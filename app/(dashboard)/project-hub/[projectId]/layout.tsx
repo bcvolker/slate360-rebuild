@@ -6,7 +6,7 @@ import QuickNav from "@/components/shared/QuickNav";
 
 const TABS = [
   { label: "Overview",   href: "" },
-  { label: "Files",      href: "files" },
+  { label: "Files",      href: "slatedrop" },
   { label: "RFIs",       href: "rfis" },
   { label: "Submittals", href: "submittals" },
   { label: "Daily Logs", href: "daily-logs" },

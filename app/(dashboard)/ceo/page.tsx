@@ -8,13 +8,15 @@ export const metadata = {
   title: "CEO Command Center — Slate360",
 };
 
-async function resolveTier(): Promise<{ tier: Tier; userExists: boolean }> {
+async function resolveTier(): Promise<{ tier: Tier; userExists: boolean; isSlateCeo: boolean }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { tier: "trial", userExists: false };
+  if (!user) return { tier: "trial", userExists: false, isSlateCeo: false };
+
+  const isSlateCeo = user.email === "slate360ceo@gmail.com";
 
   let tier: Tier = "trial";
   try {
@@ -33,15 +35,15 @@ async function resolveTier(): Promise<{ tier: Tier; userExists: boolean }> {
     // fallback to trial tier
   }
 
-  return { tier, userExists: true };
+  return { tier, userExists: true, isSlateCeo };
 }
 
 export default async function CeoPage() {
-  const { tier, userExists } = await resolveTier();
+  const { tier, userExists, isSlateCeo } = await resolveTier();
   if (!userExists) redirect("/login");
 
   const entitlements = getEntitlements(tier);
-  if (!entitlements.canAccessCeo) {
+  if (!entitlements.canAccessCeo && !isSlateCeo) {
     notFound();
   }
 

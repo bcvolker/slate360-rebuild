@@ -403,7 +403,7 @@ export default function SlateDropClient({ user, tier, initialProjectId }: SlateD
         const match = projects.find((p) => p.id === initialProjectId);
         if (match) {
           setActiveFolderId(match.id);
-          setExpandedIds((prev) => new Set([...prev, "project-sandboxes", match.id]));
+          setExpandedIds((prev) => new Set([...prev, "projects", match.id]));
         }
       }
     } catch {
