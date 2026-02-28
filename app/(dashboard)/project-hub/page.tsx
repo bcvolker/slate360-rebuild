@@ -19,14 +19,8 @@ import {
   Lightbulb,
   Bell,
   LayoutDashboard,
-  Palette,
-  Layers,
-  Compass,
-  Globe,
-  Film,
   BarChart3,
   Plug,
-  User,
   SlidersHorizontal,
   FileText,
 } from "lucide-react";
@@ -57,16 +51,11 @@ import {
 } from "@/components/widgets/WidgetBodies";
 
 const QUICK_NAV = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Dashboard",   href: "/dashboard",   icon: LayoutDashboard },
   { label: "Project Hub", href: "/project-hub", icon: FolderKanban },
-  { label: "Design Studio", href: "/design-studio", icon: Palette },
-  { label: "Content Studio", href: "/content-studio", icon: Layers },
-  { label: "360 Tours", href: "/tours", icon: Compass },
-  { label: "Geospatial", href: "/geospatial", icon: Globe },
-  { label: "Virtual Studio", href: "/virtual-studio", icon: Film },
-  { label: "Analytics", href: "/analytics", icon: BarChart3 },
-  { label: "SlateDrop", href: "/slatedrop", icon: FolderOpen },
-  { label: "My Account", href: "/my-account", icon: User },
+  { label: "Analytics",   href: "/analytics",   icon: BarChart3 },
+  { label: "SlateDrop",   href: "/slatedrop",   icon: FolderOpen },
+  { label: "Integrations", href: "/integrations", icon: Plug },
 ];
 
 const HUB_WIDGET_IDS = [

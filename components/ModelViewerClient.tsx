@@ -36,6 +36,7 @@ export default function ModelViewerClient({
     width: "100%",
     height: "100%",
     background: "transparent",
+    display: "block",
   };
 
   /* Imperatively set attributes that React's JSX doesn't reliably pass

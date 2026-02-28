@@ -1,14 +1,20 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   BarChart3,
   Brain,
+  ChevronDown,
+  ChevronLeft,
   Download,
   FileSpreadsheet,
   Layers,
+  LayoutDashboard,
   Loader2,
   PieChart,
+  FolderOpen, FolderKanban,
+  Plug,
 } from "lucide-react";
 import {
   ArcElement,
@@ -31,7 +37,16 @@ const SCOPES: Array<{ id: AnalyticsScope; label: string }> = [
   { id: "workspace", label: "Workspace" },
 ];
 
+const QUICK_NAV = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Project Hub", href: "/project-hub", icon: FolderKanban },
+  { label: "Analytics", href: "/analytics", icon: BarChart3 },
+  { label: "SlateDrop", href: "/slatedrop", icon: FolderOpen },
+  { label: "Integrations", href: "/integrations", icon: Plug },
+];
+
 export default function AnalyticsReportsClient({ tierLabel }: { tierLabel: string }) {
+  const [quickNavOpen, setQuickNavOpen] = useState(false);
   const {
     scope,
     metrics,
@@ -86,7 +101,60 @@ export default function AnalyticsReportsClient({ tierLabel }: { tierLabel: strin
   }, [metrics]);
 
   return (
-    <main className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 bg-[#0B1220] text-slate-100 min-h-screen">
+    <div className="min-h-screen bg-[#0B1220]">
+      {/* ════════ CONSISTENT TOP NAV ════════ */}
+      <header className="sticky top-0 z-40 border-b border-slate-800 bg-[#0B1220]/95 backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 md:px-10 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="shrink-0">
+              <img src="/logo.svg" alt="Slate360" className="h-7 w-auto brightness-0 invert" />
+            </Link>
+            <Link
+              href="/dashboard"
+              className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-[#FF6B35] transition-colors"
+            >
+              <ChevronLeft size={16} /> Dashboard
+            </Link>
+            <div className="hidden sm:block h-4 w-px bg-slate-700" />
+            <span className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-white">
+              <BarChart3 size={14} className="text-[#FF6B35]" /> Analytics &amp; Reports
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Quick navigate dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setQuickNavOpen((v) => !v)}
+                className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/60 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition-all"
+              >
+                <LayoutDashboard size={13} /> Navigate <ChevronDown size={11} />
+              </button>
+              {quickNavOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setQuickNavOpen(false)} />
+                  <div className="absolute right-0 top-11 z-50 w-52 rounded-2xl border border-slate-700 bg-[#121A2B] shadow-2xl py-2 overflow-hidden">
+                    {QUICK_NAV.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setQuickNavOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors"
+                        >
+                          <Icon size={14} /> {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+    <main className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 text-slate-100">
       <header className="rounded-2xl border border-slate-800 bg-[#121A2B] p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -217,5 +285,6 @@ export default function AnalyticsReportsClient({ tierLabel }: { tierLabel: strin
         </article>
       </section>
     </main>
+    </div>
   );
 }

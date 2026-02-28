@@ -43,7 +43,7 @@ import {
   Lightbulb,
   Clock,
   Cpu,
-  FolderOpen,
+  FolderOpen, FolderKanban,
   BarChart3,
   Zap,
   MapPin,
@@ -475,7 +475,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
     { id: "geospatial",     label: "Geospatial",     icon: Globe,           color: "#1E3A8A" },
     { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#FF4D00" },
     { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#1E3A8A" },
-    { id: "slatedrop",      label: "SlateDrop",      icon: FolderOpen,      color: "#FF4D00" },
+    { id: "slatedrop",      label: "SlateDrop",      icon: FolderOpen, FolderKanban,      color: "#FF4D00" },
     { id: "my-account",     label: "My Account",     icon: User,            color: "#1E3A8A" },
     ...(isCEO ? ([
       { id: "ceo",        label: "CEO",        icon: Shield,      color: "#FF4D00", isCEOOnly: true },
@@ -529,6 +529,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
   const [accountOverview, setAccountOverview] = useState<AccountOverview | null>(null);
   const [accountLoading, setAccountLoading] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [apiKeyLabel, setApiKeyLabel] = useState("");
   const [apiKeyBusy, setApiKeyBusy] = useState<"create" | string | null>(null);
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
@@ -1264,19 +1265,20 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           {/* Right — Notifications + Customize + User (compact on mobile) */}
           <div className="flex items-center gap-1.5 sm:gap-3">
             {/* Notifications */}
-            <button
-              onClick={() => setNotificationsOpen((v) => !v)}
-              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
-            >
-              <Bell size={18} />
-              {unreadNotifications.length > 0 ? (
-                <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-[#FF4D00]" />
-              ) : null}
-            </button>
-            {notificationsOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setNotificationsOpen(false)} />
-                <div className="absolute right-4 sm:right-24 top-14 z-50 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+            <div className="relative">
+              <button
+                onClick={() => setNotificationsOpen((v) => !v)}
+                className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+              >
+                <Bell size={18} />
+                {unreadNotifications.length > 0 ? (
+                  <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-[#FF4D00]" />
+                ) : null}
+              </button>
+              {notificationsOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setNotificationsOpen(false)} />
+                  <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
                   <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
                     <p className="text-sm font-bold text-gray-900">Notifications</p>
                     <button
@@ -1312,6 +1314,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 </div>
               </>
             )}
+            </div>
 
             {/* Customize */}
             <button
@@ -1394,29 +1397,6 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
         </div>
       </header>
 
-      {/* ════════ MOBILE NAVIGATE BAR — below header, above content ════════ */}
-      <div className="md:hidden sticky top-14 z-40 bg-[#ECEEF2] border-b border-gray-200 px-4 py-2 flex items-center justify-between">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-          {[
-            { label: "Dashboard", icon: Home, href: "/dashboard" },
-            { label: "Project Hub", icon: FolderOpen, href: "/project-hub" },
-            { label: "Analytics", icon: BarChart3, href: "/analytics" },
-            { label: "SlateDrop", icon: Layers, href: "/slatedrop" },
-          ].map((item) => {
-            const NavIcon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-xs font-semibold text-gray-700 hover:border-[#FF4D00]/40 hover:text-[#FF4D00] transition-all whitespace-nowrap shrink-0"
-              >
-                <NavIcon size={13} /> {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-
       {/* ════════ MAIN CONTENT ════════ */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden">
         {billingNotice && (
@@ -1489,6 +1469,64 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
               </div>
             );
           })()}
+        </div>
+
+        {/* ════════ MOBILE QUICK ACCESS — above Your Projects, mobile only ════════ */}
+        <div className="block md:hidden mb-6">
+          <div className="relative">
+            <button
+              onClick={() => setMobileNavOpen((v) => !v)}
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[#1E3A8A] to-[#162D69] text-white shadow-lg hover:shadow-xl transition-all active:scale-[0.99]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
+                  <LayoutDashboard size={16} />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-black tracking-wide">Quick Access</p>
+                  <p className="text-[11px] text-blue-200/80">Navigate modules &amp; tools</p>
+                </div>
+              </div>
+              <ChevronDown size={16} className={`transition-transform duration-200 ${mobileNavOpen ? "rotate-180" : ""}`} />
+            </button>
+            {mobileNavOpen && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setMobileNavOpen(false)} />
+                <div className="relative z-40 mt-2 rounded-2xl border border-gray-100 bg-white shadow-2xl overflow-hidden">
+                  {([
+                    { label: "Dashboard",   icon: Home,        href: "/dashboard",    color: "#1E3A8A", desc: "Overview, widgets & projects" },
+                    { label: "Project Hub", icon: FolderKanban, href: "/project-hub",  color: "#1E3A8A", desc: "RFIs, schedules & budgets" },
+                    { label: "Analytics",   icon: BarChart3,   href: "/analytics",    color: "#1E3A8A", desc: "Reports & performance insights" },
+                    { label: "SlateDrop",   icon: Layers,      href: "/slatedrop",    color: "#FF4D00", desc: "Files, folders & secure sharing" },
+                  ]).map((item) => {
+                    const NavIcon = item.icon as any;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileNavOpen(false)}
+                        className="flex items-center gap-3.5 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50 last:border-0"
+                      >
+                        <div
+                          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: `${item.color}18` }}
+                        >
+                          <NavIcon size={16} style={{ color: item.color }} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-gray-900 leading-tight">{item.label}</p>
+                          <p className="text-xs text-gray-500 leading-snug truncate">{item.desc}</p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                  <div className="px-4 py-3 bg-gradient-to-r from-[#FF4D00]/5 to-[#1E3A8A]/5 border-t border-gray-100">
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest text-center">Powered by Slate360</p>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* ════════ PROJECT CAROUSEL ════════ */}

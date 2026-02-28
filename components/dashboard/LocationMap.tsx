@@ -220,6 +220,15 @@ function DrawController({
   const selectedOverlayIdRef = useRef<string | null>(null);
   const selectedToolRef = useRef<DrawTool>("select");
 
+  // Keep refs in sync with current draw-style values so overlay listeners
+  // always read the latest colors (avoids stale closure on deselect).
+  const strokeColorRef = useRef(strokeColor);
+  const fillColorRef = useRef(fillColor);
+  const strokeWeightRef = useRef(strokeWeight);
+  strokeColorRef.current = strokeColor;
+  fillColorRef.current = fillColor;
+  strokeWeightRef.current = strokeWeight;
+
   // ── Directions mode state ──────────────────────────────────────
   const [mapMode, setMapMode] = useState<"markup" | "directions">("markup");
   const [originInput, setOriginInput] = useState("");
@@ -423,17 +432,17 @@ function DrawController({
 
     listeners.push(
       mapsApi.event.addListener(record.overlay, "click", () => {
-        // Deselect previous
+        // Deselect previous — read current colors from refs (not stale closure)
         const prevId = selectedOverlayIdRef.current;
         if (prevId && prevId !== record.id) {
           const prev = overlaysRef.current.find((r) => r.id === prevId);
           if (prev) {
-            applyStyleToOverlay(prev.overlay, prev.kind, { strokeColor, fillColor, strokeWeight }, prev.arrow);
+            applyStyleToOverlay(prev.overlay, prev.kind, { strokeColor: strokeColorRef.current, fillColor: fillColorRef.current, strokeWeight: strokeWeightRef.current }, prev.arrow);
           }
         }
         selectedOverlayIdRef.current = record.id;
         // Highlight selected overlay
-        applyStyleToOverlay(record.overlay, record.kind, { strokeColor: "#2196F3", fillColor: "#2196F3", strokeWeight: strokeWeight + 1 }, record.arrow);
+        applyStyleToOverlay(record.overlay, record.kind, { strokeColor: "#2196F3", fillColor: "#2196F3", strokeWeight: strokeWeightRef.current + 1 }, record.arrow);
         setStatus({ ok: true, text: "Shape selected — press Delete or Backspace to remove" });
       })
     );
@@ -784,233 +793,228 @@ function DrawController({
   ];
 
   return (
-    <div className="border-b border-gray-100 bg-gray-50/60 px-6 py-1.5 overflow-visible">
-      <div className="flex flex-wrap items-center gap-1">
-        {/* Address Search */}
-        <div className="relative flex-1 min-w-[120px]">
-          <div className="flex items-center rounded-md border border-gray-200 bg-white px-1.5 py-1">
-            <Search size={11} className="text-gray-400 mr-1 shrink-0" />
-            <input
-              type="text"
-              value={addressInput}
-              onChange={(event) => {
-                setAddressInput(event.target.value);
-                setAddressQuery(event.target.value);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  void resolveAddressQuery(addressInput);
-                }
-              }}
-              placeholder="Address..."
-              className="w-full text-[10px] text-gray-700 bg-transparent outline-none"
-            />
-          </div>
+    <div className="border-b border-gray-100 bg-white px-2 py-2 sm:px-4 flex flex-col gap-2 relative z-20">
+      {/* ── ROW 1: Search & Main Modes ── */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Search Input Group */}
+        <div className="relative flex-1 min-w-[200px] h-9 flex items-center rounded-lg border border-gray-200 bg-gray-50/50 hover:bg-white focus-within:bg-white focus-within:border-[#1E3A8A] focus-within:ring-1 focus-within:ring-[#1E3A8A]/20 transition-all px-2.5">
+          <Search size={14} className="text-gray-400 shrink-0" />
+          <input
+            type="text"
+            value={addressInput}
+            onChange={(event) => {
+              setAddressInput(event.target.value);
+              setAddressQuery(event.target.value);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                void resolveAddressQuery(addressInput);
+              }
+            }}
+            placeholder="Search location, address or coordinates..."
+            className="w-full h-full bg-transparent text-xs text-gray-800 outline-none placeholder:text-gray-400 ml-2"
+          />
+          <button
+            onClick={goToCurrentLocation}
+            className="ml-1 flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 text-gray-400 hover:text-[#1E3A8A] transition-colors"
+            title="Use current location"
+            type="button"
+          >
+            <LocateFixed size={13} />
+          </button>
+          
+          {/* Autocomplete Dropdown */}
           {suggestions.length > 0 && (
-            <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-40 rounded-md border border-gray-200 bg-white shadow-sm max-h-44 overflow-auto">
+            <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-48 overflow-auto rounded-xl border border-gray-200 bg-white shadow-xl">
               {suggestions.map((suggestion) => (
                 <button
                   key={suggestion.placeId}
                   onClick={() => void selectAddress(suggestion)}
-                  className="w-full text-left px-2 py-1.5 text-[10px] text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                  className="w-full flex items-start gap-2 border-b border-gray-50 px-3 py-2.5 text-left hover:bg-[#FF4D00]/5 transition-colors last:border-b-0 group"
+                  type="button"
                 >
-                  {suggestion.description}
+                  <MapPin size={14} className="mt-0.5 shrink-0 text-gray-400 group-hover:text-[#FF4D00]" />
+                  <span className="text-xs text-gray-700 leading-snug group-hover:text-gray-900">{suggestion.description}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Locate */}
-        <button onClick={goToCurrentLocation} className="inline-flex items-center justify-center w-6 h-6 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 shrink-0" title="Use current location">
-          <LocateFixed size={11} />
-        </button>
-
-        {/* Mode Toggle */}
-        <div className="flex items-center rounded-md border border-gray-200 bg-white p-0.5 shrink-0">
-          <button onClick={() => setMapMode("markup")} className={`px-1.5 py-0.5 text-[9px] font-semibold rounded-sm ${mapMode === "markup" ? "bg-gray-100 text-gray-800" : "text-gray-500 hover:text-gray-700"}`}>Markup</button>
-          <button onClick={() => setMapMode("directions")} className={`px-1.5 py-0.5 text-[9px] font-semibold rounded-sm ${mapMode === "directions" ? "bg-gray-100 text-gray-800" : "text-gray-500 hover:text-gray-700"}`}>Directions</button>
+        {/* Global Controls */}
+        <div className="flex bg-gray-100/80 p-1 rounded-lg border border-gray-200/60 shrink-0">
+          <button
+            onClick={() => setMapMode("markup")}
+            className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${mapMode === "markup" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Markup
+          </button>
+          <button
+            onClick={() => setMapMode("directions")}
+            className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${mapMode === "directions" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Directions
+          </button>
         </div>
 
-        {/* 3D Toggle */}
-        <button onClick={() => setIsThreeD(!isThreeD)} className={`inline-flex items-center justify-center px-1.5 h-6 rounded-md border text-[9px] font-semibold shrink-0 ${isThreeD ? "border-[#1E3A8A] text-[#1E3A8A] bg-[#1E3A8A]/10" : "border-gray-200 text-gray-600 bg-white hover:bg-gray-100"}`}>
-          3D
+        <button
+          onClick={() => setIsThreeD(!isThreeD)}
+          className={`h-9 px-3 flex items-center justify-center rounded-lg text-[11px] font-bold transition-all border ${isThreeD ? "bg-[#1E3A8A] border-[#1E3A8A] text-white" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"}`}
+        >
+          3D View
         </button>
 
-        {/* Share Toggle */}
-        <button onClick={onToggleSharePanel} className="inline-flex items-center justify-center gap-1 px-1.5 h-6 rounded-md border border-gray-200 bg-white text-[9px] font-semibold text-gray-700 hover:bg-gray-100 shrink-0">
-          <Share size={10} /> Share
+        <button
+          onClick={onToggleSharePanel}
+          className="h-9 px-3 flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white text-[11px] font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all ml-auto sm:ml-0"
+        >
+          <Share size={13} /> Share
         </button>
       </div>
 
-      {/* Markup Tools Row */}
+      {/* ── ROW 2: Contextual Tools ── */}
       {mapMode === "markup" && (
-        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-          {TOOLBAR_TOOLS.map((toolButton) => (
-            <button
-              key={toolButton.id}
-              type="button"
-              onClick={() => setDrawingTool(toolButton.id)}
-              className={`inline-flex items-center justify-center w-6 h-6 rounded-md border ${tool === toolButton.id ? "border-[#FF4D00] text-[#FF4D00] bg-[#FF4D00]/10" : "border-gray-200 text-gray-600 hover:bg-gray-100"}`}
-              title={toolButton.label}
-            >
-              {toolButton.icon}
-            </button>
-          ))}
-          <div className="w-px h-4 bg-gray-200 mx-1" />
-          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-1.5 py-0.5">
-            <span className="text-[9px] font-semibold text-gray-500">S</span>
-            <input type="color" value={strokeColor} onChange={(e) => setStrokeColor(e.target.value)} className="h-4 w-4 bg-transparent border-0 p-0" />
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <div className="flex items-center p-1 bg-gray-50 border border-gray-200 rounded-lg">
+            {TOOLBAR_TOOLS.map((toolButton) => (
+              <button
+                key={toolButton.id}
+                type="button"
+                onClick={() => setDrawingTool(toolButton.id)}
+                className={`flex items-center justify-center w-8 h-8 rounded-md transition-all ${tool === toolButton.id ? "bg-white border border-gray-200 text-[#FF4D00] shadow-sm" : "text-gray-500 hover:bg-gray-200/50 hover:text-gray-800"}`}
+                title={toolButton.label}
+              >
+                {toolButton.icon}
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-1.5 py-0.5">
-            <span className="text-[9px] font-semibold text-gray-500">F</span>
-            <input type="color" value={fillColor} onChange={(e) => setFillColor(e.target.value)} className="h-4 w-4 bg-transparent border-0 p-0" />
+
+          <div className="flex items-center gap-1.5 h-10 px-2.5 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+            <div className="flex items-center gap-1.5 mr-2">
+              <div className="w-5 h-5 rounded-full overflow-hidden border border-gray-300 shadow-inner flex items-center justify-center relative cursor-pointer group">
+                <input
+                  type="color"
+                  value={strokeColor}
+                  onChange={(e) => setStrokeColor(e.target.value)}
+                  className="absolute -inset-2 w-10 h-10 cursor-pointer opacity-0"
+                  title="Stroke Color"
+                />
+                <div className="w-full h-full" style={{ backgroundColor: strokeColor }} />
+              </div>
+              <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Line</span>
+            </div>
+            
+            <div className="flex items-center gap-1.5 mr-2 text-gray-300">|</div>
+
+            <div className="flex items-center gap-1.5 mr-2">
+              <div className="w-5 h-5 rounded-full overflow-hidden border border-gray-300 shadow-inner flex items-center justify-center relative cursor-pointer relative">
+                <input
+                  type="color"
+                  value={fillColor}
+                  onChange={(e) => setFillColor(e.target.value)}
+                  className="absolute -inset-2 w-10 h-10 cursor-pointer opacity-0"
+                  title="Fill Color"
+                />
+                <div className="w-full h-full" style={{ backgroundColor: fillColor }} />
+                {fillColor === "transparent" && (
+                  <div className="absolute inset-0 flex items-center justify-center text-red-500 bg-white">
+                    <X size={14} />
+                  </div>
+                )}
+              </div>
+              <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Fill</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-gray-300">|</div>
+
+            <div className="flex items-center gap-1.5 ml-2">
+              <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Size</span>
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={strokeWeight}
+                onChange={(e) => setStrokeWeight(Number(e.target.value))}
+                className="w-16 accent-gray-500"
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-white px-1.5 py-0.5 w-20">
-            <span className="text-[9px] font-semibold text-gray-500">W</span>
-            <input type="range" min={1} max={10} value={strokeWeight} onChange={(e) => setStrokeWeight(Number(e.target.value))} className="w-full" />
-          </div>
-          <button type="button" onClick={deleteSelectedOverlay} className="inline-flex items-center gap-1 rounded-md border border-red-200 px-2 py-1 text-[10px] font-semibold text-red-500 hover:bg-red-50 transition-colors" title="Delete selected shape (or press Delete key)">
-            <Trash2 size={10} /> Del
-          </button>
-          <button type="button" onClick={clearMarkup} className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100 ml-auto">
-            <Trash2 size={10} /> Clear
+
+          <button
+            onClick={() => setClearedCounter((c) => c + 1)}
+            className="h-10 px-3 flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all text-[11px] font-bold text-gray-600"
+            title="Clear all drawings"
+          >
+            <Eraser size={13} /> Clear
           </button>
         </div>
       )}
 
-      {/* Directions Row */}
       {mapMode === "directions" && (
-        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-          {/* Travel mode selector */}
-          <div className="flex items-center gap-1">
-            {TRAVEL_MODES.map(({ id, icon, label }) => (
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 pt-1">
+          <div className="flex flex-1 sm:flex-none items-center gap-1">
+            <div className="flex flex-col min-w-[200px] flex-1 gap-1">
+              <div className="relative flex items-center h-8 rounded-lg border border-gray-200 bg-gray-50/50 hover:bg-white focus-within:bg-white focus-within:border-[#1E3A8A] transition-all px-2 overflow-hidden">
+                <div className="w-2 h-2 rounded-full border-2 border-blue-500 shrink-0 mr-2" />
+                <input
+                  type="text"
+                  value={origin}
+                  onChange={(e) => setOrigin(e.target.value)}
+                  placeholder="Starting point"
+                  className="w-full bg-transparent text-xs text-gray-800 outline-none"
+                />
+              </div>
+              <div className="relative flex items-center h-8 rounded-lg border border-gray-200 bg-gray-50/50 hover:bg-white focus-within:bg-white focus-within:border-[#FF4D00] transition-all px-2 overflow-hidden">
+                <MapPin size={12} className="text-[#FF4D00] shrink-0 mr-2" />
+                <input
+                  type="text"
+                  value={dest}
+                  onChange={(e) => setDest(e.target.value)}
+                  placeholder="Destination"
+                  className="w-full bg-transparent text-xs text-gray-800 outline-none"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="flex items-center p-0.5 bg-gray-100 border border-gray-200 rounded-lg">
               <button
-                key={id}
-                type="button"
-                onClick={() => {
-                  setTravelMode(id);
-                  if (originInput.trim() && destInput.trim()) void getDirections(originInput, destInput, id);
-                }}
-                className={`inline-flex items-center justify-center w-6 h-6 rounded-md border transition-colors ${
-                  travelMode === id
-                    ? "border-[#1E3A8A] bg-[#1E3A8A]/10 text-[#1E3A8A]"
-                    : "border-gray-200 text-gray-500 hover:bg-gray-100"
-                }`}
-                title={label}
+                onClick={() => setTravelMode("DRIVING")}
+                className={`flex items-center justify-center h-8 px-3 rounded-md transition-all text-xs font-semibold ${travelMode === "DRIVING" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
               >
-                {icon}
+                Drive
               </button>
-            ))}
-          </div>
-          <div className="w-px h-4 bg-gray-200 mx-1" />
-          {/* Origin */}
-          <div className="relative w-32 shrink-0">
-            <div className="flex items-center rounded-md border border-gray-200 bg-white px-1.5 py-1 gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-              <input
-                type="text"
-                value={originInput}
-                onChange={(e) => setOriginInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && destInput.trim()) void getDirections(originInput, destInput, travelMode); }}
-                placeholder="Start…"
-                className="flex-1 text-[10px] text-gray-700 bg-transparent outline-none"
-              />
+              <button
+                onClick={() => setTravelMode("WALKING")}
+                className={`flex items-center justify-center h-8 px-3 rounded-md transition-all text-xs font-semibold ${travelMode === "WALKING" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+              >
+                Walk
+              </button>
             </div>
-            {originSuggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 rounded-md border border-gray-200 bg-white shadow-md max-h-40 overflow-auto">
-                {originSuggestions.map((s) => (
-                  <button key={s.placeId} type="button" onClick={() => void selectOriginSug(s)}
-                    className="w-full text-left px-2 py-1.5 text-[10px] text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
-                    {s.description}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <button type="button" onClick={swapAddresses} className="w-5 h-5 shrink-0 rounded-md border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100">
-            <ArrowUpDown size={9} />
-          </button>
-          {/* Destination */}
-          <div className="relative w-32 shrink-0">
-            <div className="flex items-center rounded-md border border-gray-200 bg-white px-1.5 py-1 gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#FF4D00] shrink-0" />
-              <input
-                type="text"
-                value={destInput}
-                onChange={(e) => setDestInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && originInput.trim()) void getDirections(originInput, destInput, travelMode); }}
-                placeholder="End…"
-                className="flex-1 text-[10px] text-gray-700 bg-transparent outline-none"
-              />
-            </div>
-            {destSuggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 rounded-md border border-gray-200 bg-white shadow-md max-h-40 overflow-auto">
-                {destSuggestions.map((s) => (
-                  <button key={s.placeId} type="button" onClick={() => void selectDestSug(s)}
-                    className="w-full text-left px-2 py-1.5 text-[10px] text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
-                    {s.description}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => { if (originInput.trim() && destInput.trim()) void getDirections(originInput, destInput, travelMode); }}
-            disabled={!originInput.trim() || !destInput.trim() || isLoadingRoute}
-            className="inline-flex items-center justify-center gap-1 rounded-md bg-[#1E3A8A] px-2 py-1 text-[10px] font-semibold text-white hover:bg-[#1a3270] disabled:opacity-50"
-          >
-            {isLoadingRoute ? <Loader2 size={10} className="animate-spin" /> : <Navigation size={10} />} Go
-          </button>
-          {(originInput || destInput || routeInfo) && (
-            <button type="button" onClick={clearDirections} className="inline-flex items-center justify-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100">
-              <Trash2 size={10} />
+            
+            <button
+              onClick={() => void renderDirections()}
+              disabled={routeLoading || !origin || !dest}
+              className="h-9 px-4 flex items-center justify-center gap-1.5 rounded-lg bg-[#FF4D00] text-xs font-bold text-white hover:bg-[#E64500] disabled:opacity-50 transition-all shadow-sm"
+            >
+              {routeLoading ? <Loader2 size={13} className="animate-spin" /> : "Calculate"}
             </button>
-          )}
-          {routeInfo && (
-            <>
-              <div className="flex items-center gap-1.5 rounded-md bg-emerald-50 border border-emerald-100 px-2 py-1">
-                <span className="text-[10px] font-bold text-emerald-800">{routeInfo.distance}</span>
-                <span className="text-[9px] text-emerald-400">·</span>
-                <span className="text-[10px] font-semibold text-emerald-700">{routeInfo.duration}</span>
-              </div>
-              <a
-                href={buildGoogleMapsUrl(originInput, destInput, travelMode)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-1 rounded-md bg-[#FF4D00] px-2 py-1 text-[10px] font-semibold text-white hover:opacity-90"
-                title="Open in Google Maps"
-              >
-                <Navigation size={10} /> Navigate
-              </a>
-              <button
-                type="button"
-                onClick={async () => {
-                  const url = buildGoogleMapsUrl(originInput, destInput, travelMode);
-                  try {
-                    await navigator.clipboard.writeText(url);
-                    setStatus({ ok: true, text: "Route link copied to clipboard." });
-                  } catch {
-                    setStatus({ ok: false, text: "Could not copy link." });
-                  }
-                }}
-                className="inline-flex items-center justify-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100"
-                title="Copy route link"
-              >
-                <Copy size={10} /> Copy Link
-              </button>
-              <button
-                type="button"
-                onClick={onToggleSharePanel}
-                className="inline-flex items-center justify-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100"
-                title="Share route"
-              >
-                <Share size={10} /> Share
-              </button>
-            </>
-          )}
+            
+            <button
+              onClick={() => {
+                setOrigin("");
+                setDest("");
+                setClearedCounter((c) => c + 1);
+                onRouteReady?.(null);
+              }}
+              className="h-9 w-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-all text-gray-500"
+              title="Clear Route"
+            >
+              <X size={15} />
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -1604,71 +1608,81 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
           )}
 
           {showSharePanel && showToolbar && (
-            <div className="border-b border-gray-100 bg-white px-6 py-2.5 shadow-sm z-10 relative">
+            <div className="relative z-10 border-b border-gray-100 bg-gray-50/50 px-2 py-2 sm:px-4 shadow-inner">
               {routeData && (
-                <div className="mb-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1.5 text-[10px] text-blue-900">
-                  <span className="font-semibold">Route:</span> {routeData.origin} &rarr; {routeData.destination} &middot; {routeData.distance} &middot; {routeData.duration} &middot; {routeData.travelMode.toLowerCase()}
+                <div className="mb-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900 shadow-sm flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                    <MapPin size={12} />
+                  </div>
+                  <span><span className="font-bold">Route Data:</span> {routeData.origin} &rarr; {routeData.destination} &middot; {routeData.distance} &middot; {routeData.duration} &middot; {routeData.travelMode.toLowerCase()}</span>
                 </div>
               )}
-              <div className="flex flex-wrap items-center gap-2">
-                <select
-                  value={selectedProjectId}
-                  onChange={(event) => setSelectedProjectId(event.target.value)}
-                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-700 w-32"
-                >
-                  <option value="">Select project</option>
-                  {projects.map((project) => (
-                    <option key={project.id} value={project.id}>{project.name}</option>
-                  ))}
-                </select>
-                <select
-                  value={selectedFolderId}
-                  onChange={(event) => setSelectedFolderId(event.target.value)}
-                  disabled={!selectedProjectId || folders.length === 0}
-                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-700 w-32 disabled:opacity-50"
-                >
-                  <option value="">Select folder</option>
-                  {folders.map((folder) => (
-                    <option key={folder.id} value={folder.id}>{folder.name}</option>
-                  ))}
-                </select>
-                <button
-                  onClick={handleSaveToFolder}
-                  disabled={isSaving || !selectedFolderId}
-                  className="inline-flex items-center justify-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-                >
-                  {isSaving ? <Loader2 size={10} className="animate-spin" /> : <Save size={10} />} Save
-                </button>
-                <div className="w-px h-4 bg-gray-200 mx-1" />
-                <div className="flex items-center rounded-md border border-gray-200 bg-white p-0.5">
-                  <button onClick={() => setRecipientMode("email")} className={`px-2 py-0.5 text-[10px] font-semibold rounded-sm ${recipientMode === "email" ? "bg-gray-100 text-gray-800" : "text-gray-500 hover:text-gray-700"}`}>Email</button>
-                  <button onClick={() => setRecipientMode("phone")} className={`px-2 py-0.5 text-[10px] font-semibold rounded-sm ${recipientMode === "phone" ? "bg-gray-100 text-gray-800" : "text-gray-500 hover:text-gray-700"}`}>SMS</button>
+              <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2">
+                <div className="flex flex-1 sm:flex-none items-center gap-2 bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
+                  <select
+                    value={selectedProjectId}
+                    onChange={(event) => setSelectedProjectId(event.target.value)}
+                    className="h-8 flex-1 sm:min-w-[130px] rounded-md border-0 bg-transparent px-2 text-xs font-medium text-gray-700 outline-none focus:ring-2 focus:ring-[#1E3A8A]/20"
+                  >
+                    <option value="">Select project</option>
+                    {projects.map((project) => (
+                      <option key={project.id} value={project.id}>{project.name}</option>
+                    ))}
+                  </select>
+                  <div className="w-px h-5 bg-gray-200" />
+                  <select
+                    value={selectedFolderId}
+                    onChange={(event) => setSelectedFolderId(event.target.value)}
+                    disabled={!selectedProjectId || folders.length === 0}
+                    className="h-8 flex-1 sm:min-w-[130px] rounded-md border-0 bg-transparent px-2 text-xs font-medium text-gray-700 outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 disabled:opacity-50"
+                  >
+                    <option value="">Select folder</option>
+                    {folders.map((folder) => (
+                      <option key={folder.id} value={folder.id}>{folder.name}</option>
+                    ))}
+                  </select>
+                  <div className="w-px h-5 bg-gray-200" />
+                  <button
+                    onClick={handleSaveToFolder}
+                    disabled={isSaving || !selectedFolderId}
+                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-bold text-[#FF4D00] hover:bg-[#FF4D00]/10 disabled:opacity-50 transition-colors"
+                  >
+                    {isSaving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />} Save
+                  </button>
                 </div>
-                <input
-                  type={recipientMode === "email" ? "email" : "tel"}
-                  value={recipientValue}
-                  onChange={(e) => setRecipientValue(e.target.value)}
-                  placeholder={recipientMode === "email" ? "client@example.com" : "+1 (555) 000-0000"}
-                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-700 w-32 outline-none focus:border-[#1E3A8A]"
-                />
-                <button
-                  onClick={handleSendShareLink}
-                  disabled={isSharing || (!lastFileId && !routeData) || !recipientValue}
-                  className="inline-flex items-center justify-center gap-1 rounded-md bg-[#FF4D00] px-2 py-1 text-[11px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
-                >
-                  {isSharing ? <Loader2 size={10} className="animate-spin" /> : <Send size={10} />} Send
-                </button>
+                
+                <div className="flex flex-1 sm:flex-none items-center gap-2 bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
+                  <div className="flex items-center bg-gray-100 rounded-md p-0.5 shrink-0">
+                    <button onClick={() => setRecipientMode("email")} className={`px-2.5 py-1 rounded-[4px] text-[10px] font-bold uppercase tracking-wider transition-colors ${recipientMode === "email" ? "bg-white text-gray-800 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Email</button>
+                    <button onClick={() => setRecipientMode("phone")} className={`px-2.5 py-1 rounded-[4px] text-[10px] font-bold uppercase tracking-wider transition-colors ${recipientMode === "phone" ? "bg-white text-gray-800 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>SMS</button>
+                  </div>
+                  <input
+                    type={recipientMode === "email" ? "email" : "tel"}
+                    value={recipientValue}
+                    onChange={(e) => setRecipientValue(e.target.value)}
+                    placeholder={recipientMode === "email" ? "client@example.com" : "+1 (555) 000-0000"}
+                    className="h-8 flex-1 sm:min-w-[150px] rounded-md border-0 bg-transparent px-2 text-xs font-medium text-gray-700 outline-none focus:ring-2 focus:ring-[#1E3A8A]/20"
+                  />
+                  <button
+                    onClick={handleSendShareLink}
+                    disabled={isSharing || (!lastFileId && !routeData) || !recipientValue}
+                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-[#1E3A8A] px-3 py-1 text-[11px] font-bold text-white hover:bg-[#162D69] disabled:opacity-50 transition-colors shadow-sm"
+                  >
+                    {isSharing ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Send
+                  </button>
+                </div>
+                
                 <button
                   onClick={handleDownloadPDF}
                   disabled={isDownloading}
-                  className="inline-flex items-center justify-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50 ml-auto"
+                  className="ml-auto inline-flex h-10 px-4 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-700 transition-colors hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 shadow-sm"
                 >
-                  {isDownloading ? <Loader2 size={10} className="animate-spin" /> : <Download size={10} />} PDF
+                  {isDownloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />} Download PDF
                 </button>
               </div>
               {status && (
-                <div className={`mt-2 text-[10px] font-medium ${status.ok ? "text-emerald-600" : "text-red-600"}`}>
-                  {status.text}
+                <div className={`mt-2 px-3 py-2 rounded-lg border text-xs font-bold flex items-center gap-2 ${status.ok ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-red-50 border-red-200 text-red-700"}`}>
+                  {status.ok ? <Save size={14} /> : <X size={14} />} {status.text}
                 </div>
               )}
             </div>

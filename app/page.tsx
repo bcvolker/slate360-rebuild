@@ -468,7 +468,7 @@ export default function HomePage() {
                             ? `${window.location.origin}/uploads/pletchers.jpg`
                             : "/uploads/pletchers.jpg"
                         )}&autoLoad=true`}
-                        className="w-full h-full border-0"
+                        className="w-full h-full border-0 block"
                         allowFullScreen
                         title="360 panorama"
                       />
@@ -772,7 +772,7 @@ export default function HomePage() {
             src={`https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent(
               `${window.location.origin}/uploads/pletchers.jpg`
             )}&autoLoad=true`}
-            className="w-full h-full border-0"
+            className="w-full h-full border-0 block"
             allowFullScreen
             title="360 panorama"
           />

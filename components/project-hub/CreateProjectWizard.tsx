@@ -145,7 +145,7 @@ export default function CreateProjectWizard({
         </div>
 
         {/* Body — scrollable */}
-        <form onSubmit={submit} className="flex-1 overflow-y-auto p-5 sm:p-6">
+        <form id="create-project-form" onSubmit={submit} className="flex-1 overflow-y-auto p-5 sm:p-6">
           {error && (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
               {error}
@@ -303,6 +303,7 @@ export default function CreateProjectWizard({
           ) : (
             <button
               type="submit"
+              form="create-project-form"
               disabled={creating || !name.trim()}
               className="inline-flex items-center gap-2 rounded-xl bg-[#FF4D00] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#E64500] disabled:opacity-50 transition-all"
             >

@@ -1,7 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Gauge, Percent, WalletCards, TrendingUp, Users2, SlidersHorizontal, CreditCard } from "lucide-react";
+import Link from "next/link";
+import { Gauge, Percent, WalletCards, TrendingUp, Users2, SlidersHorizontal, CreditCard, ChevronLeft, ChevronDown, LayoutDashboard, FolderKanban, BarChart3, FolderOpen, Plug } from "lucide-react";
+
+const QUICK_NAV = [
+  { label: "Dashboard",    href: "/dashboard",    icon: LayoutDashboard },
+  { label: "Project Hub",  href: "/project-hub",  icon: FolderKanban },
+  { label: "Analytics",    href: "/analytics",    icon: BarChart3 },
+  { label: "SlateDrop",    href: "/slatedrop",    icon: FolderOpen },
+  { label: "Integrations", href: "/integrations", icon: Plug },
+];
 
 const MOCK_METRICS = [
   { label: "MRR", value: "$128,400", icon: TrendingUp, accent: "#FF6B35" },
@@ -20,11 +29,59 @@ const PLANS = [
 
 export default function CeoCommandCenterClient() {
   const [priceLift, setPriceLift] = useState(10);
+  const [quickNavOpen, setQuickNavOpen] = useState(false);
   const baseMrr = 128400;
   const projectedMrr = useMemo(() => Math.round(baseMrr + priceLift * 190), [priceLift]);
 
   return (
-    <main className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 bg-[#0B1220] text-slate-100 min-h-screen">
+    <div className="min-h-screen bg-[#0B1220] text-slate-100">
+      <header className="sticky top-0 z-40 border-b border-slate-800 bg-[#0B1220]/95 backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 md:px-10 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="shrink-0">
+              <img src="/logo.svg" alt="Slate360" className="h-7 w-auto brightness-0 invert" />
+            </Link>
+            <Link
+              href="/dashboard"
+              className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-[#FF4D00] transition-colors"
+            >
+              <ChevronLeft size={16} /> Dashboard
+            </Link>
+            <span className="hidden sm:block text-slate-700">·</span>
+            <span className="hidden sm:block text-sm font-bold text-slate-200">CEO Command Center</span>
+          </div>
+          <div className="relative">
+            <button
+              onClick={() => setQuickNavOpen(!quickNavOpen)}
+              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:border-slate-600 transition-all"
+            >
+              <LayoutDashboard size={14} /> Navigate <ChevronDown size={12} />
+            </button>
+            {quickNavOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setQuickNavOpen(false)} />
+                <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-slate-700 bg-slate-800 shadow-2xl py-2 overflow-hidden">
+                  {QUICK_NAV.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setQuickNavOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-[#FF4D00]/10 hover:text-[#FF4D00] transition-colors"
+                      >
+                        <Icon size={14} /> {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
       <header className="rounded-2xl border border-slate-800 bg-[#121A2B] p-5">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">CEO Command Center</p>
         <h1 className="text-2xl font-black text-white">Executive Operations Console</h1>
@@ -93,5 +150,6 @@ export default function CeoCommandCenterClient() {
         </article>
       </section>
     </main>
+    </div>
   );
 }
