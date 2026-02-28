@@ -1,5 +1,4 @@
 "use client";
-
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { APIProvider, Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { usePathname } from "next/navigation";
@@ -17,6 +16,8 @@ import {
   Maximize2,
   Minimize2,
   Minus,
+  X,
+  Eraser,
   MousePointer2,
   Navigation,
   PenTool,
@@ -31,7 +32,6 @@ import {
   User,
   Workflow,
 } from "lucide-react";
-
 type LocationMapProps = {
   center?: { lat: number; lng: number };
   locationLabel?: string;
@@ -41,26 +41,21 @@ type LocationMapProps = {
   /** When true, render expanded map mode for widget containers. */
   expanded?: boolean;
 };
-
 type ProjectOption = {
   id: string;
   name: string;
 };
-
 type FolderOption = {
   id: string;
   name: string;
   path: string;
 };
-
 type AddressSuggestion = {
   placeId: string;
   description: string;
 };
-
 type DrawTool = "select" | "marker" | "line" | "arrow" | "rectangle" | "circle" | "polygon";
 type TravelMode = "DRIVING" | "WALKING" | "BICYCLING" | "TRANSIT";
-
 type OverlayRecord = {
   id: string;
   overlay: any;
@@ -68,7 +63,6 @@ type OverlayRecord = {
   arrow: boolean;
   listeners: Array<{ remove: () => void }>;
 };
-
 const DRAW_MODE_BY_TOOL: Record<DrawTool, string | null> = {
   select: null,
   marker: "marker",
@@ -78,7 +72,6 @@ const DRAW_MODE_BY_TOOL: Record<DrawTool, string | null> = {
   circle: "circle",
   polygon: "polygon",
 };
-
 function applyStyleToOverlay(
   overlay: any,
   kind: string,
@@ -86,11 +79,9 @@ function applyStyleToOverlay(
   arrow = false
 ) {
   if (!overlay || typeof overlay.setOptions !== "function") return;
-
   if (kind === "marker") {
     return;
   }
-
   if (kind === "polyline") {
     overlay.setOptions({
       strokeColor: style.strokeColor,
@@ -112,7 +103,6 @@ function applyStyleToOverlay(
     });
     return;
   }
-
   if (kind === "polygon") {
     overlay.setOptions({
       strokeColor: style.strokeColor,
@@ -124,7 +114,6 @@ function applyStyleToOverlay(
     });
     return;
   }
-
   if (kind === "rectangle" || kind === "circle") {
     overlay.setOptions({
       strokeColor: style.strokeColor,
@@ -136,7 +125,6 @@ function applyStyleToOverlay(
     });
   }
 }
-
 type RouteData = {
   origin: string;
   destination: string;
@@ -146,7 +134,6 @@ type RouteData = {
   googleMapsUrl: string;
   encodedPolyline?: string;
 };
-
 /** Decode a Google-encoded polyline string into lat/lng pairs. */
 function decodePolyline(encoded: string): Array<{ lat: number; lng: number }> {
   const points: Array<{ lat: number; lng: number }> = [];
@@ -162,12 +149,10 @@ function decodePolyline(encoded: string): Array<{ lat: number; lng: number }> {
   }
   return points;
 }
-
 function buildGoogleMapsUrl(origin: string, dest: string, mode: TravelMode): string {
   const modeMap: Record<TravelMode, string> = { DRIVING: "driving", WALKING: "walking", BICYCLING: "bicycling", TRANSIT: "transit" };
   return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(dest)}&travelmode=${modeMap[mode]}`;
 }
-
 function DrawController({
   setStatus,
   strokeColor,
@@ -199,27 +184,21 @@ function DrawController({
   onToggleSharePanel: () => void;
   onRouteReady: (data: RouteData | null) => void;
 }) {
-  
   const map = useMap("main-map");
   const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   const geocodingLib = useMapsLibrary("geocoding");
   const placesLib = useMapsLibrary("places");
   const drawingLib = useMapsLibrary("drawing");
-
   const geocoder = useMemo(() => geocodingLib ? new geocodingLib.Geocoder() : null, [geocodingLib]);
   const autocompleteService = useMemo(() => placesLib ? new placesLib.AutocompleteService() : null, [placesLib]);
-
-
   const [tool, setTool] = useState<DrawTool>("select");
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [isResolvingAddress, setIsResolvingAddress] = useState(false);
   const [addressInput, setAddressInput] = useState("");
-
   const drawingManagerRef = useRef<any>(null);
   const overlaysRef = useRef<OverlayRecord[]>([]);
   const selectedOverlayIdRef = useRef<string | null>(null);
   const selectedToolRef = useRef<DrawTool>("select");
-
   // Keep refs in sync with current draw-style values so overlay listeners
   // always read the latest colors (avoids stale closure on deselect).
   const strokeColorRef = useRef(strokeColor);
@@ -228,7 +207,6 @@ function DrawController({
   strokeColorRef.current = strokeColor;
   fillColorRef.current = fillColor;
   strokeWeightRef.current = strokeWeight;
-
   // ── Directions mode state ──────────────────────────────────────
   const [mapMode, setMapMode] = useState<"markup" | "directions">("markup");
   const [originInput, setOriginInput] = useState("");
@@ -240,9 +218,6 @@ function DrawController({
   const [isLoadingRoute, setIsLoadingRoute] = useState(false);
   const routePolylineRef = useRef<google.maps.Polyline | null>(null);
   const routeMarkersRef = useRef<google.maps.Marker[]>([]);
-
-  
-
   // origin autocomplete
   useEffect(() => {
     const trimmed = originInput.trim();
@@ -261,7 +236,6 @@ function DrawController({
     }, 250);
     return () => window.clearTimeout(timeout);
   }, [originInput, mapsApiKey]);
-
   // destination autocomplete
   useEffect(() => {
     const trimmed = destInput.trim();
@@ -280,7 +254,6 @@ function DrawController({
     }, 250);
     return () => window.clearTimeout(timeout);
   }, [destInput, mapsApiKey]);
-
   // Cleanup route polyline + markers on unmount
   useEffect(() => {
     return () => {
@@ -288,36 +261,28 @@ function DrawController({
       routeMarkersRef.current.forEach((m) => m.setMap(null));
     };
   }, []);
-
   const clearRouteDisplay = () => {
     routePolylineRef.current?.setMap(null);
     routePolylineRef.current = null;
     routeMarkersRef.current.forEach((m) => m.setMap(null));
     routeMarkersRef.current = [];
   };
-
   const getDirections = useCallback(async (origin: string, dest: string, mode: TravelMode) => {
-    if (!map || !origin.trim() || !dest.trim()) return;
-
+    if (!map || !originInput.trim() || !destInput.trim()) return;
     setIsLoadingRoute(true);
     setStatus(null);
-
     try {
       const res = await fetch("/api/directions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ origin: origin.trim(), destination: dest.trim(), travelMode: mode }),
       });
-
       const data = await res.json();
-
       if (!res.ok || !data.encodedPolyline) {
         throw new Error(data.error || "Could not find a route between those locations.");
       }
-
       // Clear any previous route display
       clearRouteDisplay();
-
       // Decode and render polyline on the map
       const path = decodePolyline(data.encodedPolyline);
       const polyline = new google.maps.Polyline({
@@ -328,7 +293,6 @@ function DrawController({
         map,
       });
       routePolylineRef.current = polyline;
-
       // Add A / B markers at start and end
       const startMarker = new google.maps.Marker({
         position: path[0],
@@ -341,12 +305,10 @@ function DrawController({
         label: { text: "B", color: "white", fontWeight: "bold", fontSize: "12px" },
       });
       routeMarkersRef.current = [startMarker, endMarker];
-
       // Fit the map bounds to show the entire route
       const bounds = new google.maps.LatLngBounds();
       path.forEach((p) => bounds.extend(p));
       map.fitBounds(bounds, 50);
-
       const dist = data.distance as string;
       const dur = data.duration as string;
       setRouteInfo({ distance: dist, duration: dur });
@@ -368,7 +330,6 @@ function DrawController({
       setIsLoadingRoute(false);
     }
   }, [map, setStatus, onRouteReady]);
-
   const clearDirections = () => {
     clearRouteDisplay();
     setOriginInput("");
@@ -379,7 +340,6 @@ function DrawController({
     setOriginSuggestions([]);
     setDestSuggestions([]);
   };
-
   const swapAddresses = () => {
     const prev = originInput;
     setOriginInput(destInput);
@@ -387,7 +347,6 @@ function DrawController({
     setOriginSuggestions([]);
     setDestSuggestions([]);
   };
-
   const goToCurrentLocationForOrigin = () => {
     if (!navigator.geolocation) {
       setStatus({ ok: false, text: "Geolocation not available." });
@@ -403,19 +362,16 @@ function DrawController({
       () => setStatus({ ok: false, text: "Unable to determine current location." })
     );
   };
-
   const selectOriginSug = async (suggestion: AddressSuggestion) => {
     setOriginInput(suggestion.description);
     setOriginSuggestions([]);
     if (destInput.trim()) await getDirections(suggestion.description, destInput, travelMode);
   };
-
   const selectDestSug = async (suggestion: AddressSuggestion) => {
     setDestInput(suggestion.description);
     setDestSuggestions([]);
     if (originInput.trim()) await getDirections(originInput, suggestion.description, travelMode);
   };
-
   const setDrawingTool = (next: DrawTool) => {
     setTool(next);
     selectedToolRef.current = next;
@@ -424,12 +380,10 @@ function DrawController({
       manager.setDrawingMode(DRAW_MODE_BY_TOOL[next]);
     }
   };
-
   const attachOverlayListeners = (record: OverlayRecord) => {
     const listeners: Array<{ remove: () => void }> = [];
     const mapsApi = (window as any).google?.maps;
     if (!mapsApi?.event) return listeners;
-
     listeners.push(
       mapsApi.event.addListener(record.overlay, "click", () => {
         // Deselect previous — read current colors from refs (not stale closure)
@@ -446,29 +400,23 @@ function DrawController({
         setStatus({ ok: true, text: "Shape selected — press Delete or Backspace to remove" });
       })
     );
-
     return listeners;
   };
-
   /** Delete the currently selected overlay */
   const deleteSelectedOverlay = useCallback(() => {
     const selectedId = selectedOverlayIdRef.current;
     if (!selectedId) return;
-
     const idx = overlaysRef.current.findIndex((r) => r.id === selectedId);
     if (idx === -1) return;
-
     const record = overlaysRef.current[idx];
     record.listeners.forEach((listener) => listener.remove());
     if (record.overlay && typeof record.overlay.setMap === "function") {
       record.overlay.setMap(null);
     }
-
     overlaysRef.current = overlaysRef.current.filter((r) => r.id !== selectedId);
     selectedOverlayIdRef.current = null;
     setStatus({ ok: true, text: "Shape deleted." });
   }, [setStatus]);
-
   // Keyboard listener for Delete / Backspace to remove selected overlay
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -490,7 +438,6 @@ function DrawController({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [deleteSelectedOverlay, setStatus]);
-
   const clearMarkup = () => {
     overlaysRef.current.forEach((record) => {
       record.listeners.forEach((listener) => listener.remove());
@@ -502,11 +449,9 @@ function DrawController({
     selectedOverlayIdRef.current = null;
     setStatus({ ok: true, text: "Markup cleared." });
   };
-
   useEffect(() => {
     if (!map || !drawingLib) return;
     const mapsApi = (window as any).google.maps;
-
     if (!drawingManagerRef.current) {
       drawingManagerRef.current = new drawingLib.DrawingManager({
         drawingControl: false,
@@ -546,10 +491,8 @@ function DrawController({
         },
       });
     }
-
     const manager = drawingManagerRef.current;
     manager.setMap(map);
-
     const overlayListener = mapsApi.event.addListener(manager, "overlaycomplete", (event: any) => {
       const id = `${Date.now()}-${Math.round(Math.random() * 100000)}`;
       const isArrow = selectedToolRef.current === "arrow" && event.type === "polyline";
@@ -560,12 +503,10 @@ function DrawController({
         arrow: isArrow,
         listeners: [],
       };
-
       applyStyleToOverlay(event.overlay, event.type, { strokeColor, fillColor, strokeWeight }, isArrow);
       record.listeners = attachOverlayListeners(record);
       overlaysRef.current = [...overlaysRef.current, record];
       selectedOverlayIdRef.current = id;
-
       // Extract coordinates from any overlay type and populate the address bar
       {
         let lat: number | undefined, lng: number | undefined;
@@ -601,7 +542,6 @@ function DrawController({
           }
         }
       }
-
       // Reset to select tool after placing a marker
       if (selectedToolRef.current === "marker") {
         manager.setDrawingMode(null);
@@ -609,17 +549,14 @@ function DrawController({
         selectedToolRef.current = "select";
       }
     });
-
     return () => {
       overlayListener?.remove?.();
       manager.setMap(null);
     };
   }, [map, strokeColor, fillColor, strokeWeight, drawingLib]);
-
   useEffect(() => {
     const manager = drawingManagerRef.current;
     if (!manager) return;
-
     manager.setOptions({
       polylineOptions: {
         strokeColor,
@@ -652,7 +589,6 @@ function DrawController({
         draggable: true,
       },
     });
-
     const selectedId = selectedOverlayIdRef.current;
     if (!selectedId) return;
     const selected = overlaysRef.current.find((record) => record.id === selectedId);
@@ -660,14 +596,12 @@ function DrawController({
       applyStyleToOverlay(selected.overlay, selected.kind, { strokeColor, fillColor, strokeWeight }, selected.arrow);
     }
   }, [fillColor, strokeColor, strokeWeight]);
-
   useEffect(() => {
     const trimmed = addressInput.trim();
     if (!trimmed || trimmed.length < 3 || !mapsApiKey) {
       setSuggestions([]);
       return;
     }
-
     const timeout = window.setTimeout(() => {
       if (!autocompleteService) return;
       autocompleteService.getPlacePredictions({ input: trimmed }, (predictions, status) => {
@@ -680,16 +614,13 @@ function DrawController({
         }
       });
     }, 250);
-
     return () => window.clearTimeout(timeout);
   }, [addressInput, mapsApiKey, autocompleteService]);
-
   const goToCurrentLocation = () => {
     if (!navigator.geolocation) {
       setStatus({ ok: false, text: "Geolocation is not available on this browser." });
       return;
     }
-
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const next = {
@@ -708,11 +639,9 @@ function DrawController({
       () => setStatus({ ok: false, text: "Unable to determine current location." })
     );
   };
-
   const resolveAddressQuery = async (query: string) => {
     const trimmed = query.trim();
     if (!trimmed || !mapsApiKey || !map) return;
-
     setIsResolvingAddress(true);
     try {
       if (!geocoder) throw new Error("Geocoder not loaded");
@@ -722,7 +651,6 @@ function DrawController({
       if (!location) throw new Error("place_lookup_failed");
       const lat = location.lat();
       const lng = location.lng();
-
       const next = { lat, lng };
       setMapCenter(next);
       setAddressQuery(result?.formatted_address ?? trimmed);
@@ -736,18 +664,15 @@ function DrawController({
       setIsResolvingAddress(false);
     }
   };
-
   const selectAddress = async (suggestion: AddressSuggestion) => {
     if (!map || !mapsApiKey) {
       setStatus({ ok: false, text: "Map is still loading. Try again." });
       return;
     }
-
     if (!suggestion.placeId || suggestion.placeId.includes("-")) {
       await resolveAddressQuery(suggestion.description);
       return;
     }
-
     setIsResolvingAddress(true);
     try {
       if (!geocoder) throw new Error("Geocoder not loaded");
@@ -757,9 +682,7 @@ function DrawController({
       if (!location) throw new Error("Place lookup failed");
       const lat = location.lat();
       const lng = location.lng();
-
       const next = { lat, lng };
-
       setMapCenter(next);
       setAddressQuery(result?.formatted_address ?? suggestion.description);
       setAddressInput(result?.formatted_address ?? suggestion.description);
@@ -772,7 +695,6 @@ function DrawController({
       setIsResolvingAddress(false);
     }
   };
-
   // Travel mode meta
   const TRAVEL_MODES: { id: TravelMode; label: string; icon: ReactNode }[] = [
     { id: "DRIVING",  label: "Drive",   icon: <Car size={11} /> },
@@ -780,8 +702,6 @@ function DrawController({
     { id: "BICYCLING",label: "Cycle",   icon: <Bike size={11} /> },
     { id: "TRANSIT",  label: "Transit", icon: <Train size={11} /> },
   ];
-
-
   const TOOLBAR_TOOLS: Array<{ id: DrawTool; label: string; icon: ReactNode }> = [
     { id: "select", label: "Select", icon: <MousePointer2 size={12} /> },
     { id: "line", label: "Line", icon: <Minus size={12} /> },
@@ -791,7 +711,6 @@ function DrawController({
     { id: "polygon", label: "Polygon", icon: <Pentagon size={12} /> },
     { id: "marker", label: "Pin", icon: <MapPin size={12} /> },
   ];
-
   return (
     <div className="border-b border-gray-100 bg-white px-2 py-2 sm:px-4 flex flex-col gap-2 relative z-20">
       {/* ── ROW 1: Search & Main Modes ── */}
@@ -823,7 +742,6 @@ function DrawController({
           >
             <LocateFixed size={13} />
           </button>
-          
           {/* Autocomplete Dropdown */}
           {suggestions.length > 0 && (
             <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-48 overflow-auto rounded-xl border border-gray-200 bg-white shadow-xl">
@@ -841,7 +759,6 @@ function DrawController({
             </div>
           )}
         </div>
-
         {/* Global Controls */}
         <div className="flex bg-gray-100/80 p-1 rounded-lg border border-gray-200/60 shrink-0">
           <button
@@ -857,14 +774,12 @@ function DrawController({
             Directions
           </button>
         </div>
-
         <button
           onClick={() => setIsThreeD(!isThreeD)}
           className={`h-9 px-3 flex items-center justify-center rounded-lg text-[11px] font-bold transition-all border ${isThreeD ? "bg-[#1E3A8A] border-[#1E3A8A] text-white" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"}`}
         >
           3D View
         </button>
-
         <button
           onClick={onToggleSharePanel}
           className="h-9 px-3 flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white text-[11px] font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all ml-auto sm:ml-0"
@@ -872,7 +787,6 @@ function DrawController({
           <Share size={13} /> Share
         </button>
       </div>
-
       {/* ── ROW 2: Contextual Tools ── */}
       {mapMode === "markup" && (
         <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -889,7 +803,6 @@ function DrawController({
               </button>
             ))}
           </div>
-
           <div className="flex items-center gap-1.5 h-10 px-2.5 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
             <div className="flex items-center gap-1.5 mr-2">
               <div className="w-5 h-5 rounded-full overflow-hidden border border-gray-300 shadow-inner flex items-center justify-center relative cursor-pointer group">
@@ -904,9 +817,7 @@ function DrawController({
               </div>
               <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Line</span>
             </div>
-            
             <div className="flex items-center gap-1.5 mr-2 text-gray-300">|</div>
-
             <div className="flex items-center gap-1.5 mr-2">
               <div className="w-5 h-5 rounded-full overflow-hidden border border-gray-300 shadow-inner flex items-center justify-center relative cursor-pointer relative">
                 <input
@@ -925,9 +836,7 @@ function DrawController({
               </div>
               <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Fill</span>
             </div>
-
             <div className="flex items-center gap-1.5 text-gray-300">|</div>
-
             <div className="flex items-center gap-1.5 ml-2">
               <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Size</span>
               <input
@@ -940,9 +849,8 @@ function DrawController({
               />
             </div>
           </div>
-
           <button
-            onClick={() => setClearedCounter((c) => c + 1)}
+            onClick={() => clearMarkup()}
             className="h-10 px-3 flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all text-[11px] font-bold text-gray-600"
             title="Clear all drawings"
           >
@@ -950,7 +858,6 @@ function DrawController({
           </button>
         </div>
       )}
-
       {mapMode === "directions" && (
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 pt-1">
           <div className="flex flex-1 sm:flex-none items-center gap-1">
@@ -959,8 +866,8 @@ function DrawController({
                 <div className="w-2 h-2 rounded-full border-2 border-blue-500 shrink-0 mr-2" />
                 <input
                   type="text"
-                  value={origin}
-                  onChange={(e) => setOrigin(e.target.value)}
+                  value={originInput}
+                  onChange={(e) => setOriginInput(e.target.value)}
                   placeholder="Starting point"
                   className="w-full bg-transparent text-xs text-gray-800 outline-none"
                 />
@@ -969,15 +876,14 @@ function DrawController({
                 <MapPin size={12} className="text-[#FF4D00] shrink-0 mr-2" />
                 <input
                   type="text"
-                  value={dest}
-                  onChange={(e) => setDest(e.target.value)}
+                  value={destInput}
+                  onChange={(e) => setDestInput(e.target.value)}
                   placeholder="Destination"
                   className="w-full bg-transparent text-xs text-gray-800 outline-none"
                 />
               </div>
             </div>
           </div>
-          
           <div className="flex items-center gap-2">
             <div className="flex items-center p-0.5 bg-gray-100 border border-gray-200 rounded-lg">
               <button
@@ -993,20 +899,16 @@ function DrawController({
                 Walk
               </button>
             </div>
-            
             <button
-              onClick={() => void renderDirections()}
-              disabled={routeLoading || !origin || !dest}
+              onClick={() => void getDirections(originInput, destInput, travelMode)}
+              disabled={isLoadingRoute || !originInput || !destInput}
               className="h-9 px-4 flex items-center justify-center gap-1.5 rounded-lg bg-[#FF4D00] text-xs font-bold text-white hover:bg-[#E64500] disabled:opacity-50 transition-all shadow-sm"
             >
-              {routeLoading ? <Loader2 size={13} className="animate-spin" /> : "Calculate"}
+              {isLoadingRoute ? <Loader2 size={13} className="animate-spin" /> : "Calculate"}
             </button>
-            
             <button
               onClick={() => {
-                setOrigin("");
-                setDest("");
-                setClearedCounter((c) => c + 1);
+                clearDirections();
                 onRouteReady?.(null);
               }}
               className="h-9 w-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-all text-gray-500"
@@ -1020,13 +922,10 @@ function DrawController({
     </div>
   );
 }
-
-
 function MapUpdater({ center, isThreeD }: { center: { lat: number; lng: number }; isThreeD: boolean }) {
   const map = useMap("main-map");
   const prevCenterRef = useRef<{lat: number, lng: number} | null>(null);
   const prevThreeDRef = useRef<boolean | null>(null);
-  
   // Pan to new center only when the center state actually changes
   useEffect(() => {
     if (map && center) {
@@ -1038,7 +937,6 @@ function MapUpdater({ center, isThreeD }: { center: { lat: number; lng: number }
       }
     }
   }, [map, center]);
-
   // Update map type and tilt when 3D mode changes
   useEffect(() => {
     if (!map) return;
@@ -1047,10 +945,8 @@ function MapUpdater({ center, isThreeD }: { center: { lat: number; lng: number }
     map.setMapTypeId(isThreeD ? "satellite" : "roadmap");
     map.setTilt(isThreeD ? 45 : 0);
   }, [map, isThreeD]);
-
   return null;
 }
-
 export default function LocationMap({ center, locationLabel, contactRecipients = [], compact = false, expanded = false }: LocationMapProps) {
   const pathname = usePathname();
   const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || undefined;
@@ -1086,13 +982,11 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   const controlsPanelRef = useRef<HTMLDivElement>(null);
   const mapCanvasRef = useRef<HTMLDivElement>(null);
   const expandedView = expanded;
-
   const requestCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setStatus({ ok: false, text: "Geolocation is not supported in this browser." });
       return;
     }
-
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -1116,22 +1010,18 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       }
     );
   }, []);
-
   useEffect(() => {
     if (center) setMapCenter(center);
   }, [center]);
-
   useEffect(() => {
     if (center) return;
     requestCurrentLocation();
   }, [center, requestCurrentLocation]);
-
   useEffect(() => {
     if (locationLabel && !addressQuery) {
       setAddressQuery(locationLabel);
     }
   }, [locationLabel, addressQuery]);
-
   useEffect(() => {
     if (expandedView) {
       setControlsExpanded(true);
@@ -1139,29 +1029,24 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       setControlsExpanded(false);
     }
   }, [expandedView]);
-
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const enabled = params.get("widgetDiag") === "1";
     setWidgetDiagEnabled(enabled);
   }, []);
-
   useEffect(() => {
     if (!widgetDiagEnabled) return;
     const id = window.setInterval(() => setDiagTick((v) => v + 1), 1200);
     return () => window.clearInterval(id);
   }, [widgetDiagEnabled]);
-
   const diagSnapshot = useMemo(() => {
     if (!widgetDiagEnabled || typeof window === "undefined") return null;
-
     const mapHeight = Math.round(mapCanvasRef.current?.getBoundingClientRect().height ?? 0);
     const topBarHeight = Math.round(controlsHeaderRef.current?.getBoundingClientRect().height ?? 0);
     const panelHeight = Math.round(controlsPanelRef.current?.getBoundingClientRect().height ?? 0);
     const total = mapHeight + topBarHeight + panelHeight;
     const mapPct = total > 0 ? Math.round((mapHeight / total) * 100) : 0;
-
     let dashboardPrefs = "missing";
     let hubPrefs = "missing";
     try {
@@ -1171,7 +1056,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       dashboardPrefs = "blocked";
       hubPrefs = "blocked";
     }
-
     return {
       route: pathname,
       compact,
@@ -1188,17 +1072,14 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       tick: diagTick,
     };
   }, [widgetDiagEnabled, pathname, compact, expandedView, controlsExpanded, isThreeD, diagTick, mapsApiKey]);
-
   useEffect(() => {
     if (!widgetDiagEnabled || !diagSnapshot) return;
     console.info("[widget-diag][location]", diagSnapshot);
   }, [widgetDiagEnabled, diagSnapshot]);
-
   const selectedFolder = useMemo(
     () => folders.find((folder) => folder.id === selectedFolderId) ?? null,
     [folders, selectedFolderId]
   );
-
   const recipientOptions = useMemo(() => {
     return contactRecipients.reduce<Array<{ label: string; email?: string; phone?: string }>>((acc, contact) => {
       const email = contact.email?.trim();
@@ -1212,10 +1093,8 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       return acc;
     }, []);
   }, [contactRecipients]);
-
   useEffect(() => {
     let cancelled = false;
-
     const loadProjects = async () => {
       try {
         const res = await fetch("/api/dashboard/widgets", { cache: "no-store" });
@@ -1223,7 +1102,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
         if (!res.ok || !Array.isArray(data?.projects)) {
           return;
         }
-
         if (cancelled) return;
         const normalized = (data.projects as Array<{ id: string; name: string }>).map((project) => ({
           id: project.id,
@@ -1237,24 +1115,19 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
         // silently ignore dashboard data load failures
       }
     };
-
     void loadProjects();
-
     return () => {
       cancelled = true;
     };
   }, []);
-
   useEffect(() => {
     let cancelled = false;
-
     const loadFolders = async () => {
       if (!selectedProjectId) {
         setFolders([]);
         setSelectedFolderId("");
         return;
       }
-
       try {
         const res = await fetch(`/api/slatedrop/project-folders?projectId=${encodeURIComponent(selectedProjectId)}`, { cache: "no-store" });
         const data = await res.json().catch(() => ({}));
@@ -1265,7 +1138,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
           }
           return;
         }
-
         if (cancelled) return;
         const normalized = (data.folders as FolderOption[]).map((folder) => ({
           id: folder.id,
@@ -1284,28 +1156,23 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
         }
       }
     };
-
     void loadFolders();
-
     return () => {
       cancelled = true;
     };
   }, [selectedProjectId]);
-
   const createPdfBlob = async () => {
     const { default: jsPDF } = await import("jspdf");
     const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
     const margin = 10;
-
     // ── Build Static Maps API URL ──────────────────────────────
     const staticParams = new URLSearchParams();
     staticParams.set("center", `${mapCenter.lat},${mapCenter.lng}`);
     staticParams.set("zoom", "13");
     staticParams.set("size", "800x450");
     staticParams.set("maptype", isThreeD ? "satellite" : "roadmap");
-
     if (routeData?.encodedPolyline) {
       staticParams.set("path", `weight:4|color:0xFF4D00FF|enc:${routeData.encodedPolyline}`);
       staticParams.append("markers", `color:green|label:A|${routeData.origin}`);
@@ -1313,7 +1180,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     } else {
       staticParams.append("markers", `color:red|${mapCenter.lat},${mapCenter.lng}`);
     }
-
     // Fetch map image from our server-side proxy (avoids CORS / oklch issues)
     let mapImgData: string | null = null;
     try {
@@ -1330,13 +1196,11 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     } catch (e) {
       console.warn("Static map fetch failed, using text-only PDF", e);
     }
-
     // ── Compose PDF ───────────────────────────────────────────
     if (mapImgData) {
       const imgW = pageW - margin * 2;
       const imgH = pageH * 0.60;
       pdf.addImage(mapImgData, "PNG", margin, margin, imgW, imgH);
-
       let y = margin + imgH + 6;
       pdf.setFontSize(13);
       pdf.setFont("helvetica", "bold");
@@ -1346,7 +1210,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, y); y += 4;
       if (addressQuery) { pdf.text(`Location: ${addressQuery}`, margin, y); y += 4; }
       pdf.text(`Center: ${mapCenter.lat.toFixed(6)}, ${mapCenter.lng.toFixed(6)}`, margin, y); y += 5;
-
       if (routeData) {
         pdf.setFont("helvetica", "bold");
         pdf.text("Directions", margin, y); y += 5;
@@ -1369,7 +1232,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       pdf.text(`Generated: ${new Date().toLocaleString()}`, 14, y); y += 6;
       pdf.text(`Location: ${addressQuery || "N/A"}`, 14, y); y += 6;
       pdf.text(`Center: ${mapCenter.lat.toFixed(6)}, ${mapCenter.lng.toFixed(6)}`, 14, y); y += 8;
-
       if (routeData) {
         pdf.setFont("helvetica", "bold");
         pdf.text("Directions", 14, y); y += 6;
@@ -1382,14 +1244,11 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
         pdf.setTextColor(0, 0, 0);
         y += 8;
       }
-
       pdf.text("Tip: Open the Google Maps link to navigate in real-time.", 14, y);
     }
-
     const blob = pdf.output("blob");
     return { blob, filename: `map-export-${Date.now()}.pdf` };
   };
-
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
     setStatus(null);
@@ -1411,19 +1270,15 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       setIsDownloading(false);
     }
   };
-
   const handleSaveToFolder = async () => {
     if (!selectedProjectId || !selectedFolderId || !selectedFolder) {
       setStatus({ ok: false, text: "Choose a project folder first." });
       return;
     }
-
     setIsSaving(true);
     setStatus(null);
-
     try {
       const { blob, filename } = await createPdfBlob();
-
       const urlRes = await fetch("/api/slatedrop/upload-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1435,12 +1290,10 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
           folderPath: selectedFolder.path,
         }),
       });
-
       const urlData = await urlRes.json().catch(() => ({}));
       if (!urlRes.ok || !urlData?.uploadUrl || !urlData?.fileId) {
         throw new Error(urlData?.error ?? "Failed to reserve upload");
       }
-
       const putRes = await fetch(urlData.uploadUrl as string, {
         method: "PUT",
         headers: { "Content-Type": "application/pdf" },
@@ -1449,7 +1302,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       if (!putRes.ok) {
         throw new Error("Upload failed");
       }
-
       const completeRes = await fetch("/api/slatedrop/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1458,7 +1310,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       if (!completeRes.ok) {
         throw new Error("Upload finalization failed");
       }
-
       setLastFileId(urlData.fileId as string);
       setStatus({ ok: true, text: `Saved to ${selectedFolder.name}.` });
     } catch (error) {
@@ -1468,14 +1319,12 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       setIsSaving(false);
     }
   };
-
   const handleSendShareLink = async () => {
     const recipient = recipientValue.trim();
     if (!recipient) {
       setStatus({ ok: false, text: recipientMode === "email" ? "Recipient email is required." : "Recipient phone is required." });
       return;
     }
-
     // If we have a saved file, share via secure link
     if (lastFileId) {
       setIsSharing(true);
@@ -1505,7 +1354,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       }
       return;
     }
-
     // Fallback: if route data exists, share Google Maps directions link directly
     if (routeData) {
       const shareUrl = routeData.googleMapsUrl;
@@ -1521,10 +1369,8 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       }
       return;
     }
-
     setStatus({ ok: false, text: "Save the map to a project folder first, or get directions to share a route link." });
   };
-
   const handleCopyShareLink = async () => {
     if (!lastShareUrl) return;
     try {
@@ -1534,32 +1380,26 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       setStatus({ ok: false, text: "Could not copy share link." });
     }
   };
-
   const handleExportAuditPackage = async () => {
     if (!selectedProjectId) {
       setStatus({ ok: false, text: "Select a project before exporting an audit package." });
       return;
     }
-
     setIsExportingAudit(true);
     setStatus(null);
-
     try {
       const res = await fetch("/api/slatedrop/project-audit-export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ projectId: selectedProjectId }),
       });
-
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.error ?? "Unable to export audit package");
       }
-
       const blob = await res.blob();
       const projectName = projects.find((project) => project.id === selectedProjectId)?.name ?? "project";
       const filename = `${projectName.replace(/[^a-zA-Z0-9._-]+/g, "-")}-audit-package-${new Date().toISOString().slice(0, 10)}.zip`;
-
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
@@ -1568,7 +1408,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(url);
-
       setStatus({ ok: true, text: "Audit package exported successfully." });
     } catch (error) {
       console.error("Failed to export audit package", error);
@@ -1577,7 +1416,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       setIsExportingAudit(false);
     }
   };
-
   const renderMapCanvas = (mode: "inline" | "expanded") => {
     const isModal = mode === "expanded";
     const showToolbar = isModal;
@@ -1606,7 +1444,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
               />
             </div>
           )}
-
           {showSharePanel && showToolbar && (
             <div className="relative z-10 border-b border-gray-100 bg-gray-50/50 px-2 py-2 sm:px-4 shadow-inner">
               {routeData && (
@@ -1650,7 +1487,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                     {isSaving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />} Save
                   </button>
                 </div>
-                
                 <div className="flex flex-1 sm:flex-none items-center gap-2 bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
                   <div className="flex items-center bg-gray-100 rounded-md p-0.5 shrink-0">
                     <button onClick={() => setRecipientMode("email")} className={`px-2.5 py-1 rounded-[4px] text-[10px] font-bold uppercase tracking-wider transition-colors ${recipientMode === "email" ? "bg-white text-gray-800 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Email</button>
@@ -1671,7 +1507,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                     {isSharing ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Send
                   </button>
                 </div>
-                
                 <button
                   onClick={handleDownloadPDF}
                   disabled={isDownloading}
@@ -1687,7 +1522,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
               )}
             </div>
           )}
-
           <div ref={mapCanvasRef} className={`flex-1 relative min-h-0 ${isModal ? "min-h-[55vh]" : "min-h-[180px]"}`}>
             {mapsApiKey ? (
               <Map
@@ -1719,7 +1553,6 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
       </div>
     );
   };
-
   return (
     <div className="flex flex-col h-full overflow-hidden -mx-6 -mb-0">
       {renderMapCanvas(expandedView ? "expanded" : "inline")}
