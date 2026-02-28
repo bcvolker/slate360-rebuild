@@ -882,13 +882,14 @@ export default function SlateDropClient({ user, tier, initialProjectId }: SlateD
 
         {/* ── SIDEBAR ── */}
         <aside
-          className={`shrink-0 h-full bg-white border-r border-gray-100 overflow-y-auto transition-all duration-200 z-50
-            ${mobileSidebarOpen ? "fixed inset-y-14 left-0 w-72 shadow-2xl" : "hidden"}
+          className={`shrink-0 bg-white border-r border-gray-100 overflow-y-auto overscroll-contain transition-all duration-200 z-50
+            ${mobileSidebarOpen ? "fixed top-14 bottom-0 left-0 w-72 shadow-2xl" : "hidden"}
             md:relative md:flex md:flex-col
+            md:h-full
             ${sidebarOpen ? "md:w-64 lg:w-72" : "md:w-0 md:overflow-hidden"}
           `}
         >
-          <div className="p-3">
+          <div className="p-3 pb-10">
             {/* Storage bar */}
             <div className="mb-4 p-3 rounded-xl bg-gray-50">
               <div className="flex items-center justify-between mb-2">

@@ -3,12 +3,7 @@ import type Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 import { getStripeClient } from "@/lib/stripe";
-
-type MemberRow = {
-  org_id: string;
-  role?: string | null;
-  organizations?: { id?: string; name?: string; tier?: string } | { id?: string; name?: string; tier?: string }[] | null;
-};
+import { resolveServerOrgContext } from "@/lib/server/org-context";
 
 type ApiKeyRow = {
   id: string;
@@ -31,42 +26,21 @@ type AuditRow = {
   created_at?: string | null;
 };
 
-function safeTier(rawTier?: string | null): Tier {
-  if (rawTier === "trial" || rawTier === "creator" || rawTier === "model" || rawTier === "business" || rawTier === "enterprise") {
-    return rawTier;
-  }
-  return "trial";
-}
-
 export async function GET() {
   try {
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const ctx = await resolveServerOrgContext();
+    const user = ctx.user;
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const membershipRes = await supabase
-      .from("organization_members")
-      .select("org_id, role, organizations(id,name,tier)")
-      .eq("user_id", user.id)
-      .limit(1);
-
-    const member = (membershipRes.data?.[0] as MemberRow | undefined) ?? null;
-    if (!member) {
-      return NextResponse.json({ error: "Organization membership not found" }, { status: 400 });
-    }
-
-    const orgRaw = member.organizations;
-    const org = Array.isArray(orgRaw) ? orgRaw[0] : orgRaw;
-
-    const tier = safeTier(org?.tier);
+    const tier: Tier = ctx.tier;
     const ent = getEntitlements(tier);
-    const role = member.role ?? "member";
-    const isAdmin = role === "owner" || role === "admin";
+    const role = ctx.role ?? "member";
+    const isAdmin = ctx.isAdmin;
+    const orgId = ctx.orgId;
 
     let purchasedCredits = 0;
     let totalCreditsBalance = 0;
@@ -79,56 +53,62 @@ export async function GET() {
     const auditLog: Array<{ id: string; action: string; actor: string; createdAt: string }> = [];
     const apiKeys: Array<{ id: string; label: string; lastFour: string; createdAt: string }> = [];
 
-    try {
-      const creditsRes = await supabase
-        .from("credits")
-        .select("purchased_balance")
-        .eq("org_id", member.org_id)
-        .single();
-      purchasedCredits = Number((creditsRes.data as { purchased_balance?: number } | null)?.purchased_balance ?? 0);
-    } catch {
-      // optional table/column; ignore
-    }
-
-    try {
-      const orgCreditsRes = await supabase
-        .from("organizations")
-        .select("credits_balance")
-        .eq("id", member.org_id)
-        .single();
-      totalCreditsBalance = Number((orgCreditsRes.data as { credits_balance?: number } | null)?.credits_balance ?? 0);
-      if (!purchasedCredits && totalCreditsBalance > 0) {
-        purchasedCredits = totalCreditsBalance;
+    if (orgId) {
+      try {
+        const creditsRes = await supabase
+          .from("credits")
+          .select("purchased_balance")
+          .eq("org_id", orgId)
+          .single();
+        purchasedCredits = Number((creditsRes.data as { purchased_balance?: number } | null)?.purchased_balance ?? 0);
+      } catch {
+        // optional table/column; ignore
       }
-    } catch {
-      // optional column; ignore
-    }
 
-    try {
-      const projectRes = await supabase
-        .from("projects")
-        .select("id", { count: "exact", head: true })
-        .eq("org_id", member.org_id);
-      projectsCount = projectRes.count ?? 0;
-    } catch {
-      // optional table
-    }
-
-    try {
-      const filesRes = await supabase
-        .from("slatedrop_files")
-        .select("id,file_type", { count: "exact" })
-        .eq("org_id", member.org_id)
-        .limit(1000);
-
-      const files = filesRes.data as Array<{ file_type?: string | null }> | null;
-      docsCount = filesRes.count ?? 0;
-      if (files && files.length > 0) {
-        modelsCount = files.filter((f) => ["glb", "obj", "stl", "fbx", "dwg"].includes(String(f.file_type ?? "").toLowerCase())).length;
-        toursCount = files.filter((f) => ["jpg", "jpeg", "png"].includes(String(f.file_type ?? "").toLowerCase())).length;
+      try {
+        const orgCreditsRes = await supabase
+          .from("organizations")
+          .select("credits_balance")
+          .eq("id", orgId)
+          .single();
+        totalCreditsBalance = Number((orgCreditsRes.data as { credits_balance?: number } | null)?.credits_balance ?? 0);
+        if (!purchasedCredits && totalCreditsBalance > 0) {
+          purchasedCredits = totalCreditsBalance;
+        }
+      } catch {
+        // optional column; ignore
       }
-    } catch {
-      // optional table
+    }
+
+    if (orgId) {
+      try {
+        const projectRes = await supabase
+          .from("projects")
+          .select("id", { count: "exact", head: true })
+          .eq("org_id", orgId);
+        projectsCount = projectRes.count ?? 0;
+      } catch {
+        // optional table
+      }
+    }
+
+    if (orgId) {
+      try {
+        const filesRes = await supabase
+          .from("slatedrop_files")
+          .select("id,file_type", { count: "exact" })
+          .eq("org_id", orgId)
+          .limit(1000);
+
+        const files = filesRes.data as Array<{ file_type?: string | null }> | null;
+        docsCount = filesRes.count ?? 0;
+        if (files && files.length > 0) {
+          modelsCount = files.filter((f) => ["glb", "obj", "stl", "fbx", "dwg"].includes(String(f.file_type ?? "").toLowerCase())).length;
+          toursCount = files.filter((f) => ["jpg", "jpeg", "png"].includes(String(f.file_type ?? "").toLowerCase())).length;
+        }
+      } catch {
+        // optional table
+      }
     }
 
     try {
@@ -160,52 +140,56 @@ export async function GET() {
     }
 
     if (isAdmin) {
-      try {
-        const auditRes = await supabase
-          .from("audit_log")
-          .select("id,action,actor,created_at")
-          .eq("org_id", member.org_id)
-          .order("created_at", { ascending: false })
-          .limit(5);
+      if (orgId) {
+        try {
+          const auditRes = await supabase
+            .from("audit_log")
+            .select("id,action,actor,created_at")
+            .eq("org_id", orgId)
+            .order("created_at", { ascending: false })
+            .limit(5);
 
-        const rows = (auditRes.data as AuditRow[] | null) ?? [];
-        rows.forEach((row, idx) => {
-          auditLog.push({
-            id: row.id ?? `audit-${idx}`,
-            action: row.action ?? "System event",
-            actor: row.actor ?? "System",
-            createdAt: row.created_at ?? new Date().toISOString(),
+          const rows = (auditRes.data as AuditRow[] | null) ?? [];
+          rows.forEach((row, idx) => {
+            auditLog.push({
+              id: row.id ?? `audit-${idx}`,
+              action: row.action ?? "System event",
+              actor: row.actor ?? "System",
+              createdAt: row.created_at ?? new Date().toISOString(),
+            });
           });
-        });
-      } catch {
-        auditLog.push({
-          id: "audit-fallback-plan",
-          action: "Plan details reviewed",
-          actor: user.email ?? "Admin",
-          createdAt: new Date().toISOString(),
-        });
+        } catch {
+          auditLog.push({
+            id: "audit-fallback-plan",
+            action: "Plan details reviewed",
+            actor: user.email ?? "Admin",
+            createdAt: new Date().toISOString(),
+          });
+        }
       }
 
-      try {
-        const keyRes = await supabase
-          .from("api_keys")
-          .select("id,label,last_four,created_at")
-          .eq("org_id", member.org_id)
-          .is("revoked_at", null)
-          .order("created_at", { ascending: false })
-          .limit(10);
+      if (orgId) {
+        try {
+          const keyRes = await supabase
+            .from("api_keys")
+            .select("id,label,last_four,created_at")
+            .eq("org_id", orgId)
+            .is("revoked_at", null)
+            .order("created_at", { ascending: false })
+            .limit(10);
 
-        const rows = (keyRes.data as ApiKeyRow[] | null) ?? [];
-        rows.forEach((row, idx) => {
-          apiKeys.push({
-            id: row.id,
-            label: row.label || `API Key ${idx + 1}`,
-            lastFour: row.last_four || "••••",
-            createdAt: row.created_at || new Date().toISOString(),
+          const rows = (keyRes.data as ApiKeyRow[] | null) ?? [];
+          rows.forEach((row, idx) => {
+            apiKeys.push({
+              id: row.id,
+              label: row.label || `API Key ${idx + 1}`,
+              lastFour: row.last_four || "••••",
+              createdAt: row.created_at || new Date().toISOString(),
+            });
           });
-        });
-      } catch {
-        // optional table
+        } catch {
+          // optional table
+        }
       }
     }
 
@@ -216,7 +200,9 @@ export async function GET() {
       try {
         const stripe = getStripeClient();
         const customerSearch = await stripe.customers.list({ email: user.email ?? "", limit: 20 });
-        const customer = customerSearch.data.find((c) => c.metadata?.org_id === member.org_id);
+        const customer = orgId
+          ? customerSearch.data.find((c) => c.metadata?.org_id === orgId)
+          : customerSearch.data[0];
 
         if (customer?.id) {
           const subs = await stripe.subscriptions.list({ customer: customer.id, limit: 5, status: "all" });
@@ -247,7 +233,7 @@ export async function GET() {
       profile: {
         name: (user.user_metadata?.full_name as string | undefined) ?? user.email?.split("@")[0] ?? "User",
         email: user.email ?? "",
-        orgName: org?.name ?? "Slate360 Organization",
+        orgName: ctx.orgName ?? "Slate360 Organization",
         role,
       },
       billing: {
