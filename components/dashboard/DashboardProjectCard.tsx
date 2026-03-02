@@ -13,11 +13,13 @@ import {
 } from "lucide-react";
 
 /* ─── Types ─────────────────────────────────────────────────── */
+type ProjectType = "3d" | "360" | "geo" | "plan";
+
 interface ProjectCardProject {
   id: string;
   name: string;
   status?: string;
-  type?: string;
+  type: ProjectType;
   location?: string;
   lastEdited?: string;
   thumbnail?: string;
@@ -25,7 +27,7 @@ interface ProjectCardProject {
 
 interface DashboardProjectCardProps {
   project: ProjectCardProject;
-  projectTypeEmoji: (type: ProjectCardProject["type"]) => string;
+  projectTypeEmoji: (type: ProjectType) => string;
   onDeleted?: () => void;
 }
 
