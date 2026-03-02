@@ -43,6 +43,31 @@ if (!EMAIL || !PASSWORD) {
   process.exit(1);
 }
 
+async function loginToSlateDrop(page) {
+  await page.goto(`${BASE_URL}/login?redirectTo=%2Fslatedrop`, { waitUntil: "domcontentloaded" });
+  await page.locator('input[type="email"]').fill(EMAIL);
+  await page.locator('input[type="password"]').fill(PASSWORD);
+  await page.locator('button[type="submit"]').click();
+
+  try {
+    await page.waitForURL(/\/slatedrop/, { timeout: 30000 });
+    return;
+  } catch {
+    const url = page.url();
+    const loginError = await page
+      .locator("div.bg-red-50")
+      .first()
+      .innerText()
+      .catch(() => "");
+    if (url.includes("/login")) {
+      throw new Error(
+        `Login failed for DIAG_ACCOUNT_EMAIL. ${loginError || "Check email/password and account access."}`
+      );
+    }
+    throw new Error("Login did not reach /slatedrop within timeout.");
+  }
+}
+
 async function runDesktopChecks(browser, report) {
   const context = await browser.newContext({ viewport: { width: 1365, height: 900 } });
   const page = await context.newPage();
@@ -63,11 +88,7 @@ async function runDesktopChecks(browser, report) {
     }
   });
 
-  await page.goto(`${BASE_URL}/login?redirectTo=%2Fslatedrop`, { waitUntil: "domcontentloaded" });
-  await page.locator('input[type="email"]').fill(EMAIL);
-  await page.locator('input[type="password"]').fill(PASSWORD);
-  await page.locator('button[type="submit"]').click();
-  await page.waitForURL(/\/slatedrop/, { timeout: 30000 });
+  await loginToSlateDrop(page);
 
   const accountOverviewRes = await page.request.get(`${BASE_URL}/api/account/overview`);
   const accountOverviewJson = await accountOverviewRes.json().catch(() => ({}));
@@ -169,11 +190,7 @@ async function runMobileChecks(browser, report) {
   const context = await browser.newContext({ ...devices["Pixel 7"] });
   const page = await context.newPage();
 
-  await page.goto(`${BASE_URL}/login?redirectTo=%2Fslatedrop`, { waitUntil: "domcontentloaded" });
-  await page.locator('input[type="email"]').fill(EMAIL);
-  await page.locator('input[type="password"]').fill(PASSWORD);
-  await page.locator('button[type="submit"]').click();
-  await page.waitForURL(/\/slatedrop/, { timeout: 30000 });
+  await loginToSlateDrop(page);
 
   const headerButtons = page.locator("header button");
   if ((await headerButtons.count()) > 0) {
