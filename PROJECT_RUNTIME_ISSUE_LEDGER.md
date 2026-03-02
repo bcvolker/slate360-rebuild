@@ -127,6 +127,11 @@ Current issue states:
 - Issue 3 (Sidebar reachability): **Resolved in authenticated stress check**
 - Issue 4 (Project page not opening): **Fixed — error boundary + loading state added**
 - Issue 5 (No 2-step delete UI): **Fixed — 3-dot menu + confirmation modal added**
+- Issue 6 (ep.split TypeError): **Fixed — String() guard on JSONB metadata**
+- Issue 7 (CSP data: URI violations): **Fixed — added data: to connect-src**
+- Issue 8 (Incomplete project deletion): **Fixed — removed scoped FK cleanup**
+- Issue 9 (SlateDrop widget inconsistency): **Fixed — added link to full SlateDrop UI**
+- Issue 10 (Dashboard delete menu missing): **Fixed — extracted DashboardProjectCard with 3-dot delete**
 
 ---
 
@@ -284,3 +289,113 @@ Suggested immediate continuation checklist:
 3. Re-test account overview for users with/without org membership rows.
 4. Re-test SlateDrop long-sidebar scrolling on mobile+desktop.
 5. Record pass/fail evidence in this file before next push.
+
+---
+
+## Issue 6 — `TypeError: ep.split is not a function` on project detail page
+
+### Symptoms
+- Console error `TypeError: ep.split is not a function` when rendering the project dashboard grid.
+- Affected the weather widget and location display in `ProjectDashboardGrid.tsx`.
+
+### Root cause
+- `project.metadata?.location` and `project.metadata?.address` come from a JSONB column. If the stored value is a non-string truthy value (number, object, array), calling `.split(",")` on it throws a TypeError.
+
+### Fix applied
+- Wrapped `locationStr` derivation in `String(...)` to coerce any JSONB value to a string.
+- Added `String(locationStr).split(",")[0]` guard at the weather widget usage site.
+
+### Files touched
+- `components/project-hub/ProjectDashboardGrid.tsx`
+
+### Elimination status
+- **Resolved** — all JSONB-derived location values are now coerced to string before `.split()`.
+
+---
+
+## Issue 7 — CSP violations for `data:` URIs and Google Maps static resources
+
+### Symptoms
+- Browser console shows CSP `connect-src` violations for `data:image/png;base64,...` from Google Maps shared-label-worker.
+- Additional warnings for `https://maps.gstatic.com` resources.
+
+### Root cause
+- `connect-src` in `next.config.ts` did not include `data:` or `https://maps.gstatic.com`.
+
+### Fix applied
+- Added `data:` and `https://maps.gstatic.com` to the `connect-src` directive in CSP headers.
+
+### Files touched
+- `next.config.ts`
+
+### Elimination status
+- **Resolved** — CSP now permits `data:` and `maps.gstatic.com` connections.
+
+---
+
+## Issue 8 — Incomplete project deletion (FK constraint blocks final delete)
+
+### Symptoms
+- Deleting a project via the API would appear to succeed but the project row remained in the database.
+- Console/server logs showed FK constraint violations from `project_folders` referencing the project.
+
+### Root cause
+- The DELETE handler in `/api/projects/[projectId]/route.ts` cleaned up `project_folders` rows using an org/user scope filter (`org_id` or `created_by`). But the FK constraint is on `project_id` only — if any folders were created by a different user or under a different org context, the scope filter missed them and the remaining FK references blocked the final `projects` row deletion.
+- The cleanup was wrapped in swallowed try/catch blocks, masking the underlying FK failure.
+
+### Fix applied
+- Removed org/user scoping from all FK cleanup queries — now deletes by `project_id` only.
+- Consolidated FK cleanup into a single loop over `["project_folders", "unified_files", "file_folders", "project_members"]`.
+- S3 file cleanup remains non-blocking (try/catch) since S3 failures shouldn't block deletion.
+
+### Files touched
+- `app/api/projects/[projectId]/route.ts`
+
+### Elimination status
+- **Resolved** — FK cleanup now removes all related rows regardless of who created them.
+
+---
+
+## Issue 9 — SlateDrop widget shows inline preview, not full SlateDrop UI
+
+### Symptoms
+- The SlateDrop widget on both the dashboard and project hub shows a mini file/folder preview with a static message "Open full SlateDrop from the main navigation" but provides no actual link or button to navigate to the full UI.
+- The project files tab (`/project-hub/[projectId]/slatedrop`) and the dashboard floating window correctly render the full `SlateDropClient`.
+
+### Root cause
+- The SlateDrop widget was designed as a read-only preview — no navigation link was ever added.
+
+### Fix applied
+- Replaced the static text with a `<Link href="/slatedrop">Open SlateDrop →</Link>` in both:
+  - `app/(dashboard)/project-hub/page.tsx`
+  - `components/dashboard/DashboardClient.tsx`
+
+### Files touched
+- `app/(dashboard)/project-hub/page.tsx`
+- `components/dashboard/DashboardClient.tsx`
+
+### Elimination status
+- **Resolved** — users can now click through to the full SlateDrop UI from any widget.
+
+---
+
+## Issue 10 — Dashboard project cards missing 3-dot menu with delete option
+
+### Symptoms
+- Dashboard project cards in the carousel were plain `<Link>` elements with no context menu.
+- Users could not delete projects from the dashboard — only from the project hub.
+
+### Root cause
+- Delete UI was implemented only on the project hub page cards (Issue 5), not replicated to the dashboard carousel cards.
+
+### Fix applied
+- Extracted `DashboardProjectCard` component with 3-dot menu, delete confirmation modal, and inline state management.
+- Replaced inline `<Link>` cards in `DashboardClient.tsx` with `<DashboardProjectCard>` instances.
+- On successful deletion, the project is optimistically removed from `widgetsData` state.
+
+### Files touched
+- `components/dashboard/DashboardProjectCard.tsx` (new)
+- `components/dashboard/DashboardClient.tsx` (import + replacement)
+
+### Elimination status
+- **Resolved** — dashboard project cards now have 3-dot menu with delete option matching the project hub pattern.

@@ -361,7 +361,9 @@ export default function ProjectHubPage() {
             <div className="text-[10px] text-gray-400">Pending uploads —</div>
           )}
 
-          <p className="text-[10px] text-gray-400">Open full SlateDrop from the main navigation.</p>
+          <Link href="/slatedrop" className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#FF4D00] hover:underline">
+            <FolderOpen size={10} /> Open SlateDrop →
+          </Link>
         </div>
       );
     }

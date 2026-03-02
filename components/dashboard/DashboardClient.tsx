@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 import SlateDropClient from "@/components/slatedrop/SlateDropClient";
 import MarketClient from "@/components/dashboard/MarketClient";
+import DashboardProjectCard from "@/components/dashboard/DashboardProjectCard";
 import LocationMap from "./LocationMap";
 import WidgetCard from "@/components/widgets/WidgetCard";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
@@ -1606,51 +1607,18 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             style={{ scrollbarWidth: "none" }}
           >
             {liveProjects.map((p) => (
-              <Link
+              <DashboardProjectCard
                 key={p.id}
-                href={`/project-hub/${p.id}`}
-                className="group snap-start shrink-0 w-[300px] h-[200px] rounded-2xl overflow-hidden relative border border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-              >
-                {/* Background */}
-                {p.thumbnail ? (
-                  <div
-                    className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-                    style={{ backgroundImage: `url(${p.thumbnail})` }}
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-                    <span className="text-6xl opacity-30 group-hover:opacity-50 transition-opacity">{projectTypeEmoji(p.type)}</span>
-                  </div>
-                )}
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                {/* Status badge */}
-                <div className="absolute top-3 right-3">
-                  <span
-                    className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
-                      p.status === "active"
-                        ? "bg-emerald-500/90 text-white"
-                        : p.status === "completed"
-                        ? "bg-blue-500/90 text-white"
-                        : "bg-amber-500/90 text-white"
-                    }`}
-                  >
-                    {p.status}
-                  </span>
-                </div>
-                {/* Type badge */}
-                <div className="absolute top-3 left-3">
-                  <span className="text-lg">{projectTypeEmoji(p.type)}</span>
-                </div>
-                {/* Info */}
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="text-white font-bold text-base mb-1 group-hover:text-[#FF4D00] transition-colors">{p.name}</h3>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[11px] text-white/60 flex items-center gap-1"><MapPin size={10} />{p.location}</span>
-                    <span className="text-[11px] text-white/40 flex items-center gap-1"><Clock size={10} />{p.lastEdited}</span>
-                  </div>
-                </div>
-              </Link>
+                project={p}
+                projectTypeEmoji={projectTypeEmoji}
+                onDeleted={() => {
+                  setWidgetsData((prev) =>
+                    prev
+                      ? { ...prev, projects: prev.projects.filter((pr) => pr.id !== p.id) }
+                      : prev
+                  );
+                }}
+              />
             ))}
 
             {liveProjects.length === 0 && (
@@ -1775,7 +1743,9 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   <p className="text-[10px] text-gray-400">Pending uploads — </p>
                 </div>
               )}
-              <p className="text-[10px] text-gray-400">Open full SlateDrop from the main navigation.</p>
+              <Link href="/slatedrop" className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#FF4D00] hover:underline">
+                <FolderOpen size={10} /> Open SlateDrop →
+              </Link>
             </div>
           </WidgetCard>
           );

@@ -182,7 +182,7 @@ export default function ProjectDashboardGrid({
   }, [dragIdx]);
 
   /* ── Derived stats ───────────────────────────────────────────── */
-  const locationStr   = profile.projectAddress || project.metadata?.location || project.metadata?.address || "";
+  const locationStr   = String(profile.projectAddress || project.metadata?.location || project.metadata?.address || "");
   const cityState     = [project.metadata?.city, project.metadata?.state].filter(Boolean).join(", ");
   const activeTasks   = tasks.filter((t) => t.status !== "Completed" && t.status !== "Done");
   const upcomingTasks = activeTasks.slice(0, 4);
@@ -264,7 +264,7 @@ export default function ProjectDashboardGrid({
       return (
         <WeatherWidgetBody
           emoji="⛅"
-          condition={locationStr ? `Weather near ${locationStr.split(",")[0]}` : "Project site"}
+          condition={locationStr ? `Weather near ${String(locationStr).split(",")[0]}` : "Project site"}
           expanded={isExpanded}
         />
       );

@@ -180,16 +180,13 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Project name confirmation does not match" }, { status: 400 });
   }
 
-  // --- Attempt folder & file cleanup (non-blocking for project delete) ---
+  // --- Attempt S3 file cleanup (non-blocking for project delete) ---
   try {
-    let foldersQuery = admin
+    const { data: folders } = await admin
       .from("project_folders")
       .select("id")
       .eq("project_id", projectId);
 
-    foldersQuery = orgId ? foldersQuery.eq("org_id", orgId) : foldersQuery.eq("created_by", user.id);
-
-    const { data: folders } = await foldersQuery;
     const folderIds = (folders ?? []).map((folder) => folder.id).filter(Boolean);
 
     if (folderIds.length > 0) {
@@ -224,32 +221,28 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
         const fileIds = (files ?? []).map((file) => file.id);
         await admin.from("slatedrop_uploads").delete().in("id", fileIds);
       }
-
-      await admin.from("project_folders").delete().in("id", folderIds);
     }
   } catch (cleanupError) {
-    // Log but don't block project deletion if folder/file cleanup fails
-    console.error("[api/projects/DELETE] folder cleanup error (non-blocking):", cleanupError);
+    // Log but don't block project deletion if S3/upload cleanup fails
+    console.error("[api/projects/DELETE] S3/upload cleanup error (non-blocking):", cleanupError);
   }
 
-  // --- Delete project_members explicitly (belt + suspenders alongside CASCADE) ---
-  try {
-    await admin.from("project_members").delete().eq("project_id", projectId);
-  } catch {
-    // CASCADE will handle this anyway
-  }
+  // --- Delete rows from tables with NO CASCADE FK constraints ---
+  // These MUST succeed before the project row can be deleted.
+  // Use admin client without org/user scope to ensure ALL rows are removed.
+  const fkCleanups = [
+    { table: "project_folders", label: "project_folders" },
+    { table: "unified_files", label: "unified_files" },
+    { table: "file_folders", label: "file_folders" },
+    { table: "project_members", label: "project_members" },
+  ];
 
-  // --- Delete rows from tables with NO ACTION FK constraints before deleting project ---
-  try {
-    await admin.from("unified_files").delete().eq("project_id", projectId);
-  } catch (error) {
-    console.error("[api/projects/DELETE] unified_files cleanup error:", error);
-  }
-
-  try {
-    await admin.from("file_folders").delete().eq("project_id", projectId);
-  } catch (error) {
-    console.error("[api/projects/DELETE] file_folders cleanup error:", error);
+  for (const { table, label } of fkCleanups) {
+    const { error: fkError } = await admin.from(table).delete().eq("project_id", projectId);
+    if (fkError) {
+      console.error(`[api/projects/DELETE] ${label} cleanup failed:`, fkError.message);
+      // Don't return early — try to continue, the final project delete will catch FK violations
+    }
   }
 
   const deleteProjectQuery = admin.from("projects").delete().eq("id", projectId);
