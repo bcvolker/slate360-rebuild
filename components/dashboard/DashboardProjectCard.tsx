@@ -25,7 +25,7 @@ interface ProjectCardProject {
 
 interface DashboardProjectCardProps {
   project: ProjectCardProject;
-  projectTypeEmoji: (type?: string) => string;
+  projectTypeEmoji: (type: ProjectCardProject["type"]) => string;
   onDeleted?: () => void;
 }
 
