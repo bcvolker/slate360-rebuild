@@ -599,26 +599,33 @@ export default function ProjectHubPage() {
                   <Link href={`/project-hub/${p.id}`} className="block">
                     {(() => {
                       const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-                      const pLat = (p.metadata as Record<string, Record<string, unknown>> | null)?.location?.lat;
-                      const pLng = (p.metadata as Record<string, Record<string, unknown>> | null)?.location?.lng;
-                      const staticMap = pLat && pLng && mapsKey
-                        ? `url("https://maps.googleapis.com/maps/api/staticmap?center=${pLat},${pLng}&zoom=16&size=600x300&scale=2&maptype=satellite&key=${mapsKey}")`
+                      const meta = (p.metadata ?? {}) as Record<string, unknown>;
+                      const locData = (meta.location ?? {}) as Record<string, unknown>;
+                      const pLat = typeof locData.lat === "number" ? locData.lat : null;
+                      const pLng = typeof locData.lng === "number" ? locData.lng : null;
+                      const staticMapUrl = pLat !== null && pLng !== null && mapsKey
+                        ? `https://maps.googleapis.com/maps/api/staticmap?center=${pLat},${pLng}&zoom=16&size=600x300&scale=2&maptype=satellite&key=${mapsKey}`
                         : null;
                       return (
-                        <div
-                          className="h-32 w-full p-4 flex flex-col justify-between relative bg-cover bg-center"
-                          style={{ backgroundImage: staticMap ?? undefined, background: staticMap ? undefined : "linear-gradient(to bottom right, #1E3A8A, #1e293b)" }}
-                        >
-                          {staticMap && <div className="absolute inset-0 bg-black/45 rounded-t-2xl" />}
-                          <div className="relative z-[1] flex items-start justify-between">
-                            <span />
-                            <div className="flex items-center gap-2">
+                        <div className="h-32 w-full relative overflow-hidden">
+                          {staticMapUrl ? (
+                            <div
+                              className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
+                              style={{ backgroundImage: `url(${staticMapUrl})` }}
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A] to-[#1e293b]" />
+                          )}
+                          {staticMapUrl && <div className="absolute inset-0 bg-black/45" />}
+                          <div className="absolute inset-0 p-4 flex flex-col justify-between">
+                            <div className="flex items-start justify-between">
+                              <span />
                               <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-md uppercase tracking-wider">
                                 {p.status}
                               </span>
                             </div>
+                            <h2 className="text-xl font-black text-white truncate">{p.name}</h2>
                           </div>
-                          <h2 className="relative z-[1] text-xl font-black text-white truncate">{p.name}</h2>
                         </div>
                       );
                     })()}

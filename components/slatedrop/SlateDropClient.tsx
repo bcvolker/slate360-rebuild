@@ -299,6 +299,7 @@ function FolderTreeItem({
   expandedIds,
   onSelect,
   onToggle,
+  onMenuClick,
 }: {
   node: FolderNode;
   depth: number;
@@ -306,56 +307,74 @@ function FolderTreeItem({
   expandedIds: Set<string>;
   onSelect: (id: string) => void;
   onToggle: (id: string) => void;
+  onMenuClick?: (node: FolderNode, e: React.MouseEvent<HTMLButtonElement>) => void;
 }) {
   const isExpanded = expandedIds.has(node.id);
   const isActive = activeFolderId === node.id;
   const hasChildren = node.children.length > 0;
+  const isProjectNode = node.parentId === "projects";
 
   return (
     <>
-      <button
-        onClick={() => {
-          onSelect(node.id);
-          if (hasChildren && !isExpanded) onToggle(node.id);
-        }}
-        className={`w-full flex items-center gap-2 py-1.5 pr-3 rounded-lg text-left transition-all text-[13px] group ${
-          isActive
-            ? "bg-[#FF4D00]/10 text-[#FF4D00] font-semibold"
-            : "text-gray-600 hover:bg-gray-100"
-        }`}
-        style={{ paddingLeft: `${12 + depth * 16}px` }}
-      >
-        {hasChildren ? (
+      <div className="relative group/tree-row">
+        <button
+          onClick={() => {
+            onSelect(node.id);
+            if (hasChildren && !isExpanded) onToggle(node.id);
+          }}
+          className={`w-full flex items-center gap-2 py-1.5 rounded-lg text-left transition-all text-[13px] group ${
+            isActive
+              ? "bg-[#FF4D00]/10 text-[#FF4D00] font-semibold"
+              : "text-gray-600 hover:bg-gray-100"
+          }`}
+          style={{ paddingLeft: `${12 + depth * 16}px`, paddingRight: isProjectNode ? "28px" : "12px" }}
+        >
+          {hasChildren ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggle(node.id);
+              }}
+              className="w-4 h-4 flex items-center justify-center shrink-0 text-gray-400 hover:text-gray-600"
+            >
+              <ChevronRight
+                size={12}
+                className={`transition-transform duration-150 ${isExpanded ? "rotate-90" : ""}`}
+              />
+            </button>
+          ) : (
+            <span className="w-4" />
+          )}
+
+          {node.icon ? (
+            <span className="text-sm shrink-0">{node.icon}</span>
+          ) : node.isSystem ? (
+            <Folder size={14} className="shrink-0 text-[#1E3A8A]" />
+          ) : (
+            <FolderOpen size={14} className="shrink-0 text-gray-400" />
+          )}
+
+          <span className="truncate flex-1">{node.name}</span>
+
+          {node.isSystem && (
+            <Lock size={9} className="shrink-0 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+          )}
+        </button>
+
+        {/* ── 3-dot button for project sandbox nodes ── */}
+        {isProjectNode && onMenuClick && (
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onToggle(node.id);
+              onMenuClick(node, e);
             }}
-            className="w-4 h-4 flex items-center justify-center shrink-0 text-gray-400 hover:text-gray-600"
+            className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover/tree-row:opacity-100 transition-opacity text-gray-400 hover:text-gray-700 hover:bg-gray-200"
+            title="Project options"
           >
-            <ChevronRight
-              size={12}
-              className={`transition-transform duration-150 ${isExpanded ? "rotate-90" : ""}`}
-            />
+            <MoreHorizontal size={11} />
           </button>
-        ) : (
-          <span className="w-4" />
         )}
-
-        {node.icon ? (
-          <span className="text-sm shrink-0">{node.icon}</span>
-        ) : node.isSystem ? (
-          <Folder size={14} className="shrink-0 text-[#1E3A8A]" />
-        ) : (
-          <FolderOpen size={14} className="shrink-0 text-gray-400" />
-        )}
-
-        <span className="truncate flex-1">{node.name}</span>
-
-        {node.isSystem && (
-          <Lock size={9} className="shrink-0 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
-        )}
-      </button>
+      </div>
 
       {isExpanded &&
         node.children.map((child) => (
@@ -367,6 +386,7 @@ function FolderTreeItem({
             expandedIds={expandedIds}
             onSelect={onSelect}
             onToggle={onToggle}
+            onMenuClick={onMenuClick}
           />
         ))}
     </>
@@ -945,6 +965,9 @@ export default function SlateDropClient({ user, tier, initialProjectId }: SlateD
                     setMobileSidebarOpen(false);
                   }}
                   onToggle={toggleExpand}
+                  onMenuClick={(node, e) => {
+                    handleContextMenu(e, { type: "folder", id: node.id, path: node.id, name: node.name, isSystem: node.isSystem });
+                  }}
                 />
               ))}
             </div>
@@ -1064,6 +1087,37 @@ export default function SlateDropClient({ user, tier, initialProjectId }: SlateD
                 </div>
               </div>
             )}
+
+            {/* ── Project banner when viewing a sandbox project root ── */}
+            {(() => {
+              const activeProject = sandboxProjects.find((proj) => proj.id === activeFolderId);
+              if (!activeProject) return null;
+              return (
+                <div className="mb-5 rounded-2xl border border-[#FF4D00]/20 bg-gradient-to-r from-[#FF4D00]/5 to-[#1E3A8A]/5 p-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Project Sandbox</p>
+                    <h3 className="text-base font-black text-gray-900">{activeProject.name}</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">{activeProject.folders.length} folder{activeProject.folders.length !== 1 ? "s" : ""} · Upload files or open in Project Hub to manage</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Link
+                      href={`/project-hub/${activeProject.id}`}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#FF4D00] text-white text-xs font-bold hover:bg-[#E64500] transition-colors"
+                    >
+                      <ArrowUpRight size={13} /> Project Hub
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setDeleteConfirm({ id: activeProject.id, name: activeProject.name, type: "folder" });
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 size={13} /> Delete
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Sub-folders */}
             {subFolders.length > 0 && (
@@ -1308,6 +1362,17 @@ export default function SlateDropClient({ user, tier, initialProjectId }: SlateD
                   setActiveFolderId(target.id);
                   closeContextMenu();
                 }} />
+                {isProjectNode && (
+                  <CtxItem
+                    icon={ArrowUpRight}
+                    label="Open in Project Hub"
+                    accent
+                    onClick={() => {
+                      closeContextMenu();
+                      window.location.href = `/project-hub/${target.id}`;
+                    }}
+                  />
+                )}
                 <CtxItem icon={Download} label="Download as ZIP" onClick={() => {
                   closeContextMenu();
                   handleDownloadFolderZip(target.id, target.name);
