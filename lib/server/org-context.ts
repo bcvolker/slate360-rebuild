@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/server";
 type MembershipRow = {
   org_id?: string | null;
   role?: string | null;
-  created_at?: string | null;
   organizations?:
     | { id?: string | null; name?: string | null; tier?: string | null }
     | Array<{ id?: string | null; name?: string | null; tier?: string | null }>
@@ -61,10 +60,9 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
   try {
     const { data } = await supabase
       .from("organization_members")
-      .select("org_id, role, created_at, organizations(id,name,tier)")
+      .select("org_id, role, organizations(id,name,tier)")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(10);
+      .limit(25);
 
     const rows = Array.isArray(data) ? (data as MembershipRow[]) : [];
 
