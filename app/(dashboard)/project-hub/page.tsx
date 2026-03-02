@@ -23,6 +23,9 @@ import {
   Plug,
   SlidersHorizontal,
   FileText,
+  MoreVertical,
+  Trash2,
+  X,
 } from "lucide-react";
 import CreateProjectWizard, {
   CreateProjectPayload,
@@ -168,6 +171,54 @@ export default function ProjectHubPage() {
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
+
+  /* ─── Delete flow state ──────────────────────────────────────── */
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteConfirmName, setDeleteConfirmName] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [cardMenuOpen, setCardMenuOpen] = useState<string | null>(null);
+
+  const openDeleteModal = (project: { id: string; name: string }) => {
+    setDeleteTarget(project);
+    setDeleteConfirmName("");
+    setDeleteError(null);
+    setCardMenuOpen(null);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteTarget(null);
+    setDeleteConfirmName("");
+    setDeleteError(null);
+  };
+
+  const handleDeleteProject = async () => {
+    if (!deleteTarget) return;
+    if (deleteConfirmName.trim() !== deleteTarget.name) {
+      setDeleteError("Project name does not match. Please type the exact name.");
+      return;
+    }
+    setDeleteLoading(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`/api/projects/${deleteTarget.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmText: "DELETE", confirmName: deleteConfirmName.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setDeleteError(data.error || "Failed to delete project.");
+        return;
+      }
+      closeDeleteModal();
+      await loadProjects();
+    } catch {
+      setDeleteError("Network error. Please try again.");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   const loadProjects = useCallback(async () => {
     try {
@@ -539,25 +590,65 @@ export default function ProjectHubPage() {
           ) : (
             <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory" style={{ scrollbarWidth: "none" }}>
               {projects.map((p) => (
-                <Link
+                <div
                   key={p.id}
-                  href={`/project-hub/${p.id}`}
                   className="group relative flex w-[340px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-xl hover:border-gray-300 hover:-translate-y-1 transition-all"
                 >
-                  <div className="h-32 w-full bg-gradient-to-br from-[#1E3A8A] to-slate-800 p-4 flex flex-col justify-between">
-                    <span className="self-end rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-md uppercase tracking-wider">
-                      {p.status}
-                    </span>
-                    <h2 className="text-xl font-black text-white truncate">{p.name}</h2>
+                  <Link href={`/project-hub/${p.id}`} className="block">
+                    <div className="h-32 w-full bg-gradient-to-br from-[#1E3A8A] to-slate-800 p-4 flex flex-col justify-between relative">
+                      <div className="flex items-start justify-between">
+                        <span />
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-md uppercase tracking-wider">
+                            {p.status}
+                          </span>
+                        </div>
+                      </div>
+                      <h2 className="text-xl font-black text-white truncate">{p.name}</h2>
+                    </div>
+                  </Link>
+
+                  {/* 3-dot menu button */}
+                  <div className="absolute top-2 left-2 z-10">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setCardMenuOpen(cardMenuOpen === p.id ? null : p.id);
+                      }}
+                      className="flex items-center justify-center w-7 h-7 rounded-lg bg-white/20 hover:bg-white/40 backdrop-blur-md transition-all text-white"
+                      title="Project options"
+                    >
+                      <MoreVertical size={14} />
+                    </button>
+
+                    {cardMenuOpen === p.id && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setCardMenuOpen(null)} />
+                        <div className="absolute left-0 top-9 z-50 w-48 rounded-xl border border-gray-200 bg-white shadow-2xl py-1 overflow-hidden">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              openDeleteModal({ id: p.id, name: p.name });
+                            }}
+                            className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors text-left"
+                          >
+                            <Trash2 size={14} /> Delete Project
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div className="p-5 flex-1 flex flex-col justify-between">
+
+                  <Link href={`/project-hub/${p.id}`} className="p-5 flex-1 flex flex-col justify-between">
                     <p className="text-sm text-gray-500 line-clamp-2">{p.description || "No description provided."}</p>
                     <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between text-xs font-semibold text-gray-400">
                       <span>Created: {new Date(p.created_at).toLocaleDateString()}</span>
                       <span className="text-[#FF4D00] group-hover:underline">Open Hub →</span>
                     </div>
-                  </div>
-                </Link>
+                  </Link>
+                </div>
               ))}
             </div>
           ))}
@@ -626,6 +717,95 @@ export default function ProjectHubPage() {
         onClose={() => setWizardOpen(false)}
         onSubmit={handleCreate}
       />
+
+      {/* ─── Delete Confirmation Modal ──────────────────────────── */}
+      {deleteTarget && (
+        <>
+          <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" onClick={closeDeleteModal} />
+          <div className="fixed inset-0 z-[61] flex items-center justify-center p-4">
+            <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              {/* Header */}
+              <div className="bg-red-50 border-b border-red-100 px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <AlertTriangle size={20} className="text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-gray-900">Delete Project</h3>
+                    <p className="text-xs text-gray-500">This action cannot be undone</p>
+                  </div>
+                </div>
+                <button onClick={closeDeleteModal} className="p-1 rounded-lg hover:bg-red-100 transition-colors">
+                  <X size={18} className="text-gray-500" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="px-6 py-5 space-y-4">
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Project to delete</p>
+                  <p className="text-sm font-black text-gray-900">{deleteTarget.name}</p>
+                </div>
+
+                <div className="text-sm text-gray-600 space-y-2">
+                  <p>Deleting this project will <span className="font-bold text-red-600">permanently</span> remove:</p>
+                  <ul className="text-xs text-gray-500 space-y-1 ml-4 list-disc">
+                    <li>All project files, folders, and uploads</li>
+                    <li>RFIs, submittals, daily logs, and punch list items</li>
+                    <li>Budget data, schedule, and stakeholder records</li>
+                    <li>All team member associations</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    Type <span className="font-black text-red-600">{deleteTarget.name}</span> to confirm
+                  </label>
+                  <input
+                    type="text"
+                    value={deleteConfirmName}
+                    onChange={(e) => {
+                      setDeleteConfirmName(e.target.value);
+                      setDeleteError(null);
+                    }}
+                    placeholder="Enter project name..."
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 outline-none transition-all"
+                    autoFocus
+                  />
+                </div>
+
+                {deleteError && (
+                  <p className="text-xs font-semibold text-red-600 bg-red-50 rounded-lg px-3 py-2">
+                    {deleteError}
+                  </p>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-end gap-3 bg-gray-50/50">
+                <button
+                  onClick={closeDeleteModal}
+                  className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+                  disabled={deleteLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteProject}
+                  disabled={deleteLoading || deleteConfirmName.trim() !== deleteTarget.name}
+                  className="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {deleteLoading ? (
+                    <><Loader2 size={14} className="animate-spin" /> Deleting...</>
+                  ) : (
+                    <><Trash2 size={14} /> Delete Permanently</>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

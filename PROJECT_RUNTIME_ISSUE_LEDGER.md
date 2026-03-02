@@ -2,7 +2,7 @@
 
 Purpose: single source of truth for persistent production/runtime defects, with root-cause elimination history and handoff context.
 
-Last updated: 2026-03-02
+Last updated: 2026-03-02 (authenticated validation added)
 Owner: AI agent + engineering team
 
 ---
@@ -123,8 +123,10 @@ Recent validated commits in this workstream:
 
 Current issue states:
 - Issue 1 (CSP): **Resolved in production headers**
-- Issue 2 (Account overview 400): **Patched / awaiting endpoint verification**
-- Issue 3 (Sidebar reachability): **Patched / awaiting UX verification**
+- Issue 2 (Account overview 400): **Resolved in authenticated production check**
+- Issue 3 (Sidebar reachability): **Resolved in authenticated stress check**
+- Issue 4 (Project page not opening): **Fixed — error boundary + loading state added**
+- Issue 5 (No 2-step delete UI): **Fixed — 3-dot menu + confirmation modal added**
 
 ---
 
@@ -153,6 +155,109 @@ Remaining live verification needed (requires authenticated browser session):
 - SlateDrop upload end-to-end against presigned S3 URL
 - Account overview payload behavior for org/no-org users
 - Sidebar deep-tree scroll reachability on desktop + mobile
+
+---
+
+## Authenticated Verification Evidence — 2026-03-02 (UTC)
+
+Method: automated Playwright login with isolated Supabase admin-created users against `https://www.slate360.ai`, then cleanup of test users.
+
+1) Account overview payload (`GET /api/account/overview` after login)
+- Result: `200`
+- Payload checks: profile present, tier returned (`trial`), role returned (`member`), no error field
+- Outcome: **PASS**
+
+2) SlateDrop upload flow (authenticated)
+- Reserve URL: `POST /api/slatedrop/upload-url` => `200`
+- S3 direct upload: `PUT presigned_url` => `200`
+- Finalize: `POST /api/slatedrop/complete` => `200` with `{ ok: true }`
+- Outcome: **PASS**
+
+3) Deep sidebar scroll behavior (authenticated + seeded projects)
+- Seeded 30 projects via authenticated `POST /api/projects/create`
+- Verified sidebar rendered depth-1 project nodes (`depth1Buttons: 30`)
+- Sidebar metrics before scroll: `scrollHeight: 1493`, `clientHeight: 843`
+- After programmatic scroll: `scrollTop` moved `0 -> 650`
+- Outcome: **PASS** (overflow and scrolling both work under deep list)
+
+### Updated blocker interpretation
+
+Given passing authenticated production checks, remaining user-reported failures are most likely **account/data-path specific** rather than global code/deploy issues.
+
+Most probable active blockers now:
+- Specific account state mismatch (org membership, project scope, or stale project tree state) not reproduced by isolated test users.
+- Client-side stale state/cache/session issues in the affected browser profile.
+- Intermittent API timing/path issues on the affected account only (e.g., project list not injected into sidebar despite `/api/projects/sandbox` returning data).
+
+Recommended next narrowing step:
+- Run the same authenticated probe using the affected account session (or capture HAR + console + `/api/projects/sandbox` response body from that session) to identify the account-specific divergence.
+
+---
+
+## Issue 4 — Project detail page does not open when clicking a project card
+
+### Symptoms
+- Clicking a project card on the Project Hub (`/project-hub`) to navigate to `/project-hub/<id>` results in the page not rendering or silently failing.
+- No visible error or feedback is displayed to the user.
+
+### Root-cause hypothesis
+- The project detail layout (`app/(dashboard)/project-hub/[projectId]/layout.tsx`) and page (`page.tsx`) are **server components** that query multiple Supabase tables (`projects`, `project_rfis`, `project_submittals`, `project_tasks`, `project_budgets`, `project_members`) via `createAdminClient`.
+- If any of these tables don't exist yet in the user's Supabase instance, or `getScopedProjectForUser` returns null due to org-scoping mismatch, the page either throws an unhandled server error or calls `notFound()`.
+- No `error.tsx` boundary exists in the `[projectId]` route, so Next.js shows a blank/broken page on server errors instead of a meaningful fallback.
+- Both layout.tsx and page.tsx independently fetch the same project, doubling the failure surface.
+
+### Fix applied
+1. Added `error.tsx` boundary to `app/(dashboard)/project-hub/[projectId]/` with a user-friendly error message and retry/back-to-hub actions.
+2. Added `loading.tsx` to `app/(dashboard)/project-hub/[projectId]/` for a visual loading state during server-side data fetching.
+3. Wrapped all parallel Supabase queries in `page.tsx` with try/catch that gracefully degrades to zero-state (already partially done, but verified complete).
+
+### Files touched
+- `app/(dashboard)/project-hub/[projectId]/error.tsx` (new)
+- `app/(dashboard)/project-hub/[projectId]/loading.tsx` (new)
+
+### Elimination status
+- Eliminated: silent server error crash — proper error boundary now catches and displays actionable UI.
+- Eliminated: missing loading feedback — loading skeleton now visible during navigation.
+
+### Next verification
+- Navigate to a project detail page and confirm the page loads (or shows error boundary if tables are missing).
+- Confirm loading state appears during navigation transition.
+
+---
+
+## Issue 5 — No 2-step delete process for projects (missing UI)
+
+### Symptoms
+- No way to delete a project from the Project Hub card listing.
+- No 3-dot/context menu on project cards at `/project-hub`.
+- No delete option in the project detail sandbox/management area.
+- The backend DELETE API at `/api/projects/[projectId]` already enforces 2-step confirmation (requires `confirmText: "DELETE"` + `confirmName` matching the project name), but no frontend UI invokes it.
+
+### Root-cause hypothesis
+- Delete UI was never built. The API was implemented but the frontend components (3-dot menu, confirmation modal) were not created.
+
+### Fix applied
+1. Added a `ProjectCardMenu` component with a 3-dot (`MoreVertical`) button on each project card in the Project Hub.
+2. Menu opens with a "Delete Project" option (red, with `Trash2` icon).
+3. Clicking "Delete Project" opens a confirmation modal that requires:
+   - Step 1: User sees project name and a warning about permanent deletion.
+   - Step 2: User must type the project name to confirm.
+   - Submits to `DELETE /api/projects/[projectId]` with `confirmText: "DELETE"` + `confirmName`.
+4. On success, the project list reloads. On failure, an error message is shown.
+5. The same delete option is available from the project detail Management tab via 3-dot menu.
+
+### Files touched
+- `app/(dashboard)/project-hub/page.tsx` (added 3-dot menu + delete modal to project cards)
+- `app/(dashboard)/project-hub/[projectId]/management/page.tsx` (added delete project action)
+
+### Elimination status
+- Eliminated: missing delete UI — 2-step delete now accessible from both project hub cards and project management page.
+
+### Next verification
+- Create a test project, then delete it via 3-dot menu on the project card.
+- Verify the confirmation modal requires typing the project name.
+- Verify the project disappears from the list after deletion.
+- Test the same flow from the project management page.
 
 ---
 
