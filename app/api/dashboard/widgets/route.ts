@@ -12,6 +12,8 @@ type ProjectItem = {
   status: "active" | "completed" | "on-hold";
   lastEdited: string;
   type: ProjectType;
+  lat: number | null;
+  lng: number | null;
 };
 
 type JobItem = {
@@ -110,14 +112,21 @@ export async function GET() {
       const { data } = await query;
       (data ?? []).forEach((row: Record<string, unknown>) => {
         const name = String(row.name ?? row.project_name ?? "Untitled Project");
+        const meta = (row.metadata ?? {}) as Record<string, unknown>;
+        const locData = (meta.location ?? {}) as Record<string, unknown>;
+        const lat = typeof locData.lat === "number" ? locData.lat : null;
+        const lng = typeof locData.lng === "number" ? locData.lng : null;
+        const address = typeof locData.address === "string" ? locData.address : "";
         projects.push({
           id: String(row.id ?? crypto.randomUUID()),
           name,
-          location: String(row.location ?? row.city ?? row.region ?? ""),
+          location: address || String(row.location ?? row.city ?? row.region ?? ""),
           thumbnail: String(row.thumbnail_url ?? row.cover_image ?? ""),
           status: toProjectStatus(String(row.status ?? "active")),
           lastEdited: humanizeTime(String(row.updated_at ?? row.created_at ?? "")),
           type: toProjectType(String(row.type ?? row.project_type ?? "plan")),
+          lat,
+          lng,
         });
       });
     } catch {

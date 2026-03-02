@@ -23,6 +23,8 @@ interface ProjectCardProject {
   location?: string;
   lastEdited?: string;
   thumbnail?: string;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 interface DashboardProjectCardProps {
@@ -70,12 +72,22 @@ export default function DashboardProjectCard({
     }
   };
 
+  const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  const staticMapUrl = p.lat && p.lng && mapsKey
+    ? `https://maps.googleapis.com/maps/api/staticmap?center=${p.lat},${p.lng}&zoom=16&size=600x300&scale=2&maptype=satellite&key=${mapsKey}`
+    : null;
+
   return (
     <>
       <div className="group snap-start shrink-0 w-[300px] h-[200px] rounded-2xl overflow-hidden relative border border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         {/* Background */}
         <Link href={`/project-hub/${p.id}`} className="absolute inset-0">
-          {p.thumbnail ? (
+          {staticMapUrl ? (
+            <div
+              className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
+              style={{ backgroundImage: `url(${staticMapUrl})` }}
+            />
+          ) : p.thumbnail ? (
             <div
               className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
               style={{ backgroundImage: `url(${p.thumbnail})` }}

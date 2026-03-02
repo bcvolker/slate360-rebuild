@@ -36,11 +36,11 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com https://ajax.googleapis.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com https://ajax.googleapis.com https://www.gstatic.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https: http:",
-              "connect-src 'self' data: https://*.supabase.co wss://*.supabase.co https://api.resend.com https://maps.googleapis.com https://maps.gstatic.com https://api.openweathermap.org https://api.open-meteo.com https://wttr.in https://nominatim.openstreetmap.org https://*.amazonaws.com",
+              "connect-src 'self' data: https://*.supabase.co wss://*.supabase.co https://api.resend.com https://maps.googleapis.com https://maps.gstatic.com https://www.gstatic.com https://ajax.googleapis.com https://api.openweathermap.org https://api.open-meteo.com https://wttr.in https://nominatim.openstreetmap.org https://*.amazonaws.com",
               "frame-src 'self' https://cdn.pannellum.org/",
               "worker-src 'self' blob:",
               "object-src 'none'",

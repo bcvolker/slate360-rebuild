@@ -597,17 +597,31 @@ export default function ProjectHubPage() {
                   className="group relative flex w-[340px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-xl hover:border-gray-300 hover:-translate-y-1 transition-all"
                 >
                   <Link href={`/project-hub/${p.id}`} className="block">
-                    <div className="h-32 w-full bg-gradient-to-br from-[#1E3A8A] to-slate-800 p-4 flex flex-col justify-between relative">
-                      <div className="flex items-start justify-between">
-                        <span />
-                        <div className="flex items-center gap-2">
-                          <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-md uppercase tracking-wider">
-                            {p.status}
-                          </span>
+                    {(() => {
+                      const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+                      const pLat = (p.metadata as Record<string, Record<string, unknown>> | null)?.location?.lat;
+                      const pLng = (p.metadata as Record<string, Record<string, unknown>> | null)?.location?.lng;
+                      const staticMap = pLat && pLng && mapsKey
+                        ? `url("https://maps.googleapis.com/maps/api/staticmap?center=${pLat},${pLng}&zoom=16&size=600x300&scale=2&maptype=satellite&key=${mapsKey}")`
+                        : null;
+                      return (
+                        <div
+                          className="h-32 w-full p-4 flex flex-col justify-between relative bg-cover bg-center"
+                          style={{ backgroundImage: staticMap ?? undefined, background: staticMap ? undefined : "linear-gradient(to bottom right, #1E3A8A, #1e293b)" }}
+                        >
+                          {staticMap && <div className="absolute inset-0 bg-black/45 rounded-t-2xl" />}
+                          <div className="relative z-[1] flex items-start justify-between">
+                            <span />
+                            <div className="flex items-center gap-2">
+                              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-md uppercase tracking-wider">
+                                {p.status}
+                              </span>
+                            </div>
+                          </div>
+                          <h2 className="relative z-[1] text-xl font-black text-white truncate">{p.name}</h2>
                         </div>
-                      </div>
-                      <h2 className="text-xl font-black text-white truncate">{p.name}</h2>
-                    </div>
+                      );
+                    })()}
                   </Link>
 
                   {/* 3-dot menu button */}

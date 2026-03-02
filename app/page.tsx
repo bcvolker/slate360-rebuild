@@ -356,15 +356,12 @@ export default function HomePage() {
                 >
                   <Maximize2 size={12} /> Expand
                 </button>
-              </div>
-              {/* Bottom bar */}
-              <div className="px-4 py-3 flex items-center justify-end bg-gray-900/90 backdrop-blur border-t border-white/10">
+                {/* Interact overlay — bottom-left */}
                 <button
                   onClick={() => setHeroInteractive((v) => !v)}
-                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white transition-all hover:opacity-90"
-                  style={{ backgroundColor: "#FF4D00" }}
+                  className="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-white transition-all hover:opacity-90 z-10 backdrop-blur-sm bg-black/40 border border-white/20 hover:bg-black/60"
                 >
-                  {heroInteractive ? "Lock Model" : "Navigate Model"}
+                  {heroInteractive ? "🔒 Lock" : "⊕ Interact"}
                 </button>
               </div>
             </div>
@@ -488,26 +485,20 @@ export default function HomePage() {
                   )}
                   {/* Bottom bar for interactive cards */}
                   {p.key === "design-studio" && (
-                    <div className="absolute bottom-0 left-0 right-0 px-4 py-2.5 flex items-center justify-end bg-gray-900/80 backdrop-blur border-t border-white/10 z-10">
-                      <button
-                        onClick={() => setDesignInteractive((v) => !v)}
-                        className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold text-white transition-all hover:opacity-90"
-                        style={{ backgroundColor: "#FF4D00" }}
-                      >
-                        {designInteractive ? "Lock Model" : "Navigate Model"}
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => setDesignInteractive((v) => !v)}
+                      className="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold text-white transition-all hover:opacity-90 z-10 backdrop-blur-sm bg-black/40 border border-white/20 hover:bg-black/60"
+                    >
+                      {designInteractive ? "🔒 Lock" : "⊕ Interact"}
+                    </button>
                   )}
                   {p.key === "360-tour-builder" && (
-                    <div className="absolute bottom-0 left-0 right-0 px-4 py-2.5 flex items-center justify-end bg-gray-900/80 backdrop-blur border-t border-white/10 z-10">
-                      <button
-                        onClick={() => setTourInteractive((v) => !v)}
-                        className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold text-white transition-all hover:opacity-90"
-                        style={{ backgroundColor: "#FF4D00" }}
-                      >
-                        {tourInteractive ? "Lock Tour" : "Navigate Tour"}
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => setTourInteractive((v) => !v)}
+                      className="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold text-white transition-all hover:opacity-90 z-10 backdrop-blur-sm bg-black/40 border border-white/20 hover:bg-black/60"
+                    >
+                      {tourInteractive ? "🔒 Lock" : "⊕ Interact"}
+                    </button>
                   )}
                 </div>
               </div>

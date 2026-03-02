@@ -101,6 +101,8 @@ interface Project {
   status: "active" | "completed" | "on-hold";
   lastEdited: string;
   type: "3d" | "360" | "geo" | "plan";
+  lat?: number | null;
+  lng?: number | null;
 }
 
 interface CalEvent {
