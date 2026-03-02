@@ -3,6 +3,7 @@ import "server-only";
 import type { User } from "@supabase/supabase-js";
 import type { Tier } from "@/lib/entitlements";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type MembershipRow = {
   org_id?: string | null;
@@ -39,6 +40,7 @@ export type ServerOrgContext = {
 
 export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
   const supabase = await createClient();
+  const admin = createAdminClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -58,7 +60,7 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
   const isSlateCeo = user.email === "slate360ceo@gmail.com";
 
   try {
-    const { data } = await supabase
+    const { data } = await admin
       .from("organization_members")
       .select("org_id, role, organizations(id,name,tier)")
       .eq("user_id", user.id)
@@ -81,14 +83,29 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
     const selected = [...rows].sort((a, b) => roleRank(a.role) - roleRank(b.role))[0];
     const orgRaw = selected.organizations;
     const org = Array.isArray(orgRaw) ? orgRaw[0] : orgRaw;
+    const orgId = selected.org_id ?? org?.id ?? null;
     const role = selected.role ?? null;
     const isAdmin = role === "owner" || role === "admin";
 
+    let resolvedOrgName = org?.name ?? null;
+    let resolvedTier = org?.tier ?? null;
+
+    if ((!resolvedOrgName || !resolvedTier) && orgId) {
+      const { data: orgRow } = await admin
+        .from("organizations")
+        .select("id,name,tier")
+        .eq("id", orgId)
+        .maybeSingle();
+
+      resolvedOrgName = resolvedOrgName ?? orgRow?.name ?? null;
+      resolvedTier = resolvedTier ?? orgRow?.tier ?? null;
+    }
+
     return {
       user,
-      tier: toTier(org?.tier),
-      orgId: selected.org_id ?? org?.id ?? null,
-      orgName: org?.name ?? null,
+      tier: toTier(resolvedTier),
+      orgId,
+      orgName: resolvedOrgName,
       role,
       isAdmin,
       isSlateCeo,
