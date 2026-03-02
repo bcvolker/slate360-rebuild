@@ -2,7 +2,7 @@
 
 Purpose: single source of truth for persistent production/runtime defects, with root-cause elimination history and handoff context.
 
-Last updated: 2026-02-28
+Last updated: 2026-03-02
 Owner: AI agent + engineering team
 
 ---
@@ -46,10 +46,9 @@ Recent validated commits in this workstream:
 
 ### Elimination status
 - Eliminated: “code not deployed” as primary cause (runtime commit already verified).
-- In-progress: confirming CSP header now includes new directives in production response headers.
+- Resolved: production headers now include required directives (`connect-src` for Open-Meteo + Amazon AWS, and `worker-src blob:`).
 
 ### Next verification
-- Inspect response headers from production page/API to confirm updated CSP string.
 - Retry SlateDrop upload and weather call in authenticated session.
 
 ---
@@ -123,9 +122,37 @@ Recent validated commits in this workstream:
 5. Mark issue state as `Resolved` only after production verification.
 
 Current issue states:
-- Issue 1 (CSP): **Patched / awaiting production verification**
+- Issue 1 (CSP): **Resolved in production headers**
 - Issue 2 (Account overview 400): **Patched / awaiting endpoint verification**
 - Issue 3 (Sidebar reachability): **Patched / awaiting UX verification**
+
+---
+
+## Verification Evidence — 2026-03-02 (UTC)
+
+Verification method: unauthenticated production header checks via curl from dev container.
+
+1) Root page headers (`GET /`)
+- Status: `200`
+- CSP includes:
+  - `connect-src ... https://api.open-meteo.com ... https://*.amazonaws.com`
+  - `worker-src 'self' blob:`
+- Result: **PASS** (CSP policy for reported runtime blockers is live in production)
+
+2) Account overview headers (`GET /api/account/overview`)
+- Status: `401` (expected without auth cookie)
+- CSP header present and includes same required directives as root page
+- Result: **PASS** for CSP propagation, **PENDING** for authenticated behavior verification
+
+3) Runtime deploy fingerprint (`GET /api/deploy-info`)
+- Returned commit: `7e368dad8d20ac5570eb955ad6b551c8d8e81c71`
+- Branch: `main`
+- Result: **PASS** (latest fix commit is serving in production runtime)
+
+Remaining live verification needed (requires authenticated browser session):
+- SlateDrop upload end-to-end against presigned S3 URL
+- Account overview payload behavior for org/no-org users
+- Sidebar deep-tree scroll reachability on desktop + mobile
 
 ---
 
