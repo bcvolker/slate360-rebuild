@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { APIProvider, AdvancedMarker, Map } from "@vis.gl/react-google-maps";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Loader2, MapPin, X, CheckCircle2 } from "lucide-react";
+import WizardLocationPicker, { type LocationPickerValue } from "./WizardLocationPicker";
 
 const PROJECT_TYPES = [
   { value: "ground-up", label: "Ground-Up Construction" },
@@ -45,55 +45,19 @@ export default function CreateProjectWizard({
   const [description, setDescription] = useState("");
   const [projectType, setProjectType] = useState("ground-up");
   const [contractType, setContractType] = useState("cmar");
-  const [address, setAddress] = useState("");
-  const [lat, setLat] = useState<number | null>(null);
-  const [lng, setLng] = useState<number | null>(null);
+  const [location, setLocation] = useState<LocationPickerValue>({ address: "", lat: null, lng: null, boundary: [] });
   const [step, setStep] = useState(1);
-  const [geocoding, setGeocoding] = useState(false);
-
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-  const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ?? "DEMO_MAP_ID";
-  const mapCenter = useMemo(() => ({ lat: lat ?? 39.5, lng: lng ?? -98.35 }), [lat, lng]);
 
   const prevOpen = useRef(open);
   useEffect(() => {
     if (open && !prevOpen.current) {
       setName(""); setDescription(""); setProjectType("ground-up");
-      setContractType("cmar"); setAddress(""); setLat(null); setLng(null); setStep(1);
+      setContractType("cmar");
+      setLocation({ address: "", lat: null, lng: null, boundary: [] });
+      setStep(1);
     }
     prevOpen.current = open;
   }, [open]);
-
-  const reverseGeocode = useCallback(async (la: number, lo: number) => {
-    setGeocoding(true);
-    try {
-      const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${la},${lo}&key=${apiKey}`);
-      const data = await res.json();
-      setAddress(data.status === "OK" && data.results?.[0] ? data.results[0].formatted_address : `${la.toFixed(5)}, ${lo.toFixed(5)}`);
-    } catch { setAddress(`${la.toFixed(5)}, ${lo.toFixed(5)}`); }
-    finally { setGeocoding(false); }
-  }, [apiKey]);
-
-  const forwardGeocode = useCallback(async (query: string) => {
-    if (!query.trim()) return;
-    setGeocoding(true);
-    try {
-      const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}`);
-      const data = await res.json();
-      if (data.status === "OK" && data.results?.[0]) {
-        const loc = data.results[0].geometry.location as { lat: number; lng: number };
-        setLat(loc.lat); setLng(loc.lng);
-        setAddress(data.results[0].formatted_address);
-      }
-    } catch { /* ignore */ }
-    finally { setGeocoding(false); }
-  }, [apiKey]);
-
-  const handleMapClick = useCallback((e: { detail: { latLng?: { lat: number; lng: number } | null } }) => {
-    const la = e.detail.latLng?.lat ?? null;
-    const lo = e.detail.latLng?.lng ?? null;
-    if (la !== null && lo !== null) { setLat(la); setLng(lo); void reverseGeocode(la, lo); }
-  }, [reverseGeocode]);
 
   if (!open) return null;
 
@@ -102,7 +66,20 @@ export default function CreateProjectWizard({
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    await onSubmit({ name: name.trim(), description: description.trim(), metadata: { projectType, contractType, location: { address, lat, lng } } });
+    await onSubmit({
+      name: name.trim(),
+      description: description.trim(),
+      metadata: {
+        projectType,
+        contractType,
+        location: {
+          address: location.address,
+          lat: location.lat,
+          lng: location.lng,
+          boundary: location.boundary,
+        },
+      },
+    });
   };
 
   const field = "w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#FF4D00] focus:ring-2 focus:ring-[#FF4D00]/20 focus:outline-none transition-all";
@@ -171,39 +148,24 @@ export default function CreateProjectWizard({
           )}
 
           {step === 3 && (
-            <div className="space-y-4">
-              <div>
-                <label className={label}>Project Address</label>
-                <div className="relative">
-                  <input
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void forwardGeocode(address); } }}
-                    placeholder="Type address and press Enter, or click the map…"
-                    className={`${field} pr-10`}
-                  />
-                  {geocoding && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />}
-                </div>
-                {lat !== null && lng !== null && (
-                  <p className="mt-1.5 text-[11px] text-gray-500 flex items-center gap-1.5">
-                    <MapPin size={11} className="text-[#FF4D00]" /> {lat.toFixed(5)}, {lng.toFixed(5)}
-                  </p>
-                )}
+            <div className="space-y-3">
+              <p className="text-xs text-gray-500">
+                Search for an address, click anywhere on the map to drop a pin, or use the <strong>polygon tool</strong> to outline the site boundary.
+              </p>
+              <div className="h-[360px] w-full rounded-xl border border-gray-200 overflow-hidden bg-gray-100">
+                <WizardLocationPicker value={location} onChange={setLocation} />
               </div>
-              <div className="h-[320px] w-full rounded-xl border border-gray-200 overflow-hidden bg-gray-100">
-                {apiKey ? (
-                  <APIProvider apiKey={apiKey}>
-                    <Map mapId={mapId} center={mapCenter} zoom={lat !== null && lng !== null ? 15 : 4} disableDefaultUI onClick={handleMapClick}>
-                      {lat !== null && lng !== null && <AdvancedMarker position={{ lat, lng }} />}
-                    </Map>
-                  </APIProvider>
-                ) : (
-                  <div className="h-full flex items-center justify-center text-xs text-gray-500 px-4 text-center">
-                    Google Maps is unavailable — NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not configured.
-                  </div>
-                )}
-              </div>
-              <p className="text-[10px] text-gray-400">Click the map to pin a location. The address auto-populates from the coordinates.</p>
+              {location.address && (
+                <p className="text-[11px] text-gray-500 flex items-center gap-1.5">
+                  <MapPin size={11} className="text-[#FF4D00] shrink-0" />
+                  {location.address}
+                  {location.lat !== null && location.lng !== null && (
+                    <span className="text-gray-400">
+                      ({location.lat.toFixed(5)}, {location.lng.toFixed(5)})
+                    </span>
+                  )}
+                </p>
+              )}
             </div>
           )}
 
@@ -215,7 +177,8 @@ export default function CreateProjectWizard({
                 { label: "Description", value: description || "—" },
                 { label: "Project Type", value: PROJECT_TYPES.find(t => t.value === projectType)?.label ?? projectType },
                 { label: "Contract Type", value: CONTRACT_TYPES.find(t => t.value === contractType)?.label ?? contractType },
-                { label: "Location", value: address || (lat !== null && lng !== null ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : "Not set") },
+                { label: "Location", value: location.address || (location.lat !== null && location.lng !== null ? `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}` : "Not set") },
+                { label: "Boundary", value: location.boundary.length > 0 ? `${location.boundary.length} point polygon` : "Not drawn" },
               ].map(({ label: l, value }) => (
                 <div key={l} className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
                   <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">{l}</p>
