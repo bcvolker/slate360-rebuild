@@ -93,6 +93,8 @@ interface DashboardProps {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
   isSlateCeo?: boolean;
+  /** True when user is in the slate360_staff table (invited by CEO). */
+  isSlateStaff?: boolean;
 }
 
 interface Project {
@@ -1291,7 +1293,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
           {/* Right — Nav + Notifications + Customize + User (compact on mobile) */}
           <div className="flex items-center gap-1.5 sm:gap-3">
             {/* QuickNav dropdown */}
-            <QuickNav tier={tier} isCeo={hasCeoAccess} />
+            <QuickNav tier={ent.tier} isCeo={hasCeoAccess} />
 
             {/* Notifications */}
             <div className="relative">

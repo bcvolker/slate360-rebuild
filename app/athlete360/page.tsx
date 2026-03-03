@@ -6,11 +6,11 @@ export const metadata = {
 };
 
 export default async function Athlete360Page() {
-  const { user, isSlateCeo } = await resolveServerOrgContext();
+  const { user, hasInternalAccess } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
-  // Athlete360 is a Slate360-internal product — access requires isSlateCeo or employee grant.
-  if (!isSlateCeo) {
+  // Athlete360 is a Slate360-internal product — access requires isSlateCeo or slate360_staff grant.
+  if (!hasInternalAccess) {
     notFound();
   }
 

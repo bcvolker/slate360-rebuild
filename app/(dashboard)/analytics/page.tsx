@@ -9,7 +9,7 @@ export const metadata = {
 };
 
 export default async function AnalyticsPage() {
-  const { user, tier, isSlateCeo } = await resolveServerOrgContext();
+  const { user, tier, isSlateCeo, hasInternalAccess } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
   const entitlements = getEntitlements(tier, { isSlateCeo });
@@ -41,7 +41,7 @@ export default async function AnalyticsPage() {
         avatar: user.user_metadata?.avatar_url,
       }}
       tier={tier}
-      isCeo={isSlateCeo}
+      isCeo={hasInternalAccess}
     />
   );
 }

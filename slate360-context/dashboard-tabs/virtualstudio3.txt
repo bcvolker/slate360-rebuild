@@ -1,0 +1,723 @@
+1. Concept: Simple Mental Model
+Virtual Studio = “Immersive Viewer” with 3 modes
+For any user (student, realtor, drone pilot, GC, architect):
+
+
+Explore – just orbit and look around (default, super simple)
+
+
+Compare – X-Ray slider: “Plan vs Reality” (BIM vs scan)
+
+
+Tour – watch or generate a guided fly-through / VR scene
+
+
+Everything fancy (Nerfstudio, Remotion, ONNX, AR.js, etc.) stays server-side and shows up as:
+
+
+“Generate tour”
+
+
+“Run QA check”
+
+
+“Render VR scene”
+…not as scary technical knobs. 
+
+
+
+2. UX Layout (Consistent With Other Tabs)
+Use the same dashboard pattern we’ve been using:
+
+
+Top bar – tab title, project selector, quick actions
+
+
+Center canvas – big 3D viewer (Three.js)
+
+
+Right floating panel – mode + tools (Explore / Compare / Tour)
+
+
+Bottom bar – primary action buttons (“Load scene”, “Save view”, “Share link”)
+
+
+For non-technical users, they mostly live in:
+
+
+Explore + Share link
+
+
+Tour → “Play tour”
+
+
+Power users (AEC) use:
+
+
+Compare → X-Ray slider
+
+
+Inspect → Add hotspot → Export report
+
+
+
+3. Feature Set (Simplified)
+For Everyone
+
+
+Load a scene (GLB/IFC/scan/360 tour entry)
+
+
+Orbit, pan, zoom
+
+
+Bookmark a viewpoint (camera preset)
+
+
+Share a read-only link or embed snippet
+
+
+Compare (Plan vs Reality)
+
+
+Load two models (e.g. BIM + drone scan)
+
+
+Drag the X-Ray slider to blend between them
+
+
+Toggle a simple “Show QA hotspots” layer (if they exist)
+
+
+Tour
+
+
+One click “Generate tour from this model” (Remotion / Nerfstudio behind the scenes) 
+
+
+“Play tour” inside the viewer
+
+
+Export MP4 or “Copy embed code”
+
+
+QA & Hotspots (Advanced but Simple)
+
+
+Click “Add hotspot” → click in 3D → small form:
+
+
+Title
+
+
+Type: Punchlist / Safety / Note
+
+
+Status: Open / In Review / Closed
+
+
+
+
+Export PDF report or send to Project Hub / Reports tab.
+
+
+Collab (Later, Optional)
+
+
+“Invite to session” → others see model and your “laser pointer” (cursors)
+
+
+This is where Supabase realtime cursors & “laser” effect plug in.
+
+
+
+4. Implementation Skeleton
+Below is a lean, consistent implementation you can hand to Copilot.
+4.1. State Store – lib/stores/useVirtualStudioStore.ts
+'use client';
+
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export type VirtualMode = 'explore' | 'compare' | 'tour';
+
+export interface Hotspot {
+  id: string;
+  label: string;
+  type: 'punchlist' | 'safety' | 'note';
+  position: [number, number, number];
+  status: 'open' | 'in_review' | 'closed';
+}
+
+interface VirtualStudioState {
+  // Scene / models
+  activeSceneId: string | null;
+  activeModelUrl: string | null;        // main model
+  comparisonModelUrl: string | null;    // optional scan for X-Ray
+
+  // UI
+  mode: VirtualMode;
+  xRayOpacity: number;                  // 0 = design, 1 = scan
+  hotspots: Hotspot[];
+  isLoading: boolean;
+
+  // Actions
+  setMode: (mode: VirtualMode) => void;
+  setActiveScene: (sceneId: string, modelUrl: string) => void;
+  setComparisonModel: (scanUrl: string | null) => void;
+  setXRayOpacity: (value: number) => void;
+  addHotspot: (hotspot: Omit<Hotspot, 'id'>) => void;
+  updateHotspotStatus: (id: string, status: Hotspot['status']) => void;
+  setLoading: (value: boolean) => void;
+
+  // Async workflows – wired to API routes
+  loadSceneById: (sceneId: string) => Promise<void>;
+  loadComparisonPair: (designId: string, scanId: string) => Promise<void>;
+  generateTour: () => Promise<void>;
+  exportReport: () => Promise<void>;
+}
+
+export const useVirtualStudioStore = create<VirtualStudioState>()(
+  persist(
+    (set, get) => ({
+      activeSceneId: null,
+      activeModelUrl: null,
+      comparisonModelUrl: null,
+      mode: 'explore',
+      xRayOpacity: 0.0,
+      hotspots: [],
+      isLoading: false,
+
+      setMode: (mode) => set({ mode }),
+      setActiveScene: (sceneId, modelUrl) =>
+        set({
+          activeSceneId: sceneId,
+          activeModelUrl: modelUrl,
+          comparisonModelUrl: null,
+          xRayOpacity: 0,
+        }),
+      setComparisonModel: (scanUrl) =>
+        set({ comparisonModelUrl: scanUrl ?? null, xRayOpacity: scanUrl ? 0.5 : 0 }),
+      setXRayOpacity: (value) => set({ xRayOpacity: value }),
+
+      addHotspot: (hotspot) =>
+        set((state) => ({
+          hotspots: [
+            ...state.hotspots,
+            { ...hotspot, id: `hs_${Date.now()}_${state.hotspots.length}` },
+          ],
+        })),
+
+      updateHotspotStatus: (id, status) =>
+        set((state) => ({
+          hotspots: state.hotspots.map((h) =>
+            h.id === id ? { ...h, status } : h
+          ),
+        })),
+
+      setLoading: (value) => set({ isLoading: value }),
+
+      // ---- Async workflows (simple contracts for your API) ----
+      loadSceneById: async (sceneId) => {
+        const { setLoading, setActiveScene } = get();
+        try {
+          setLoading(true);
+          const res = await fetch('/api/virtual-studio/load-scene', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sceneId }),
+          });
+          const data = await res.json();
+          setActiveScene(sceneId, data.modelUrl);
+        } finally {
+          setLoading(false);
+        }
+      },
+
+      loadComparisonPair: async (designId, scanId) => {
+        const { setLoading, setActiveScene, setComparisonModel } = get();
+        try {
+          setLoading(true);
+          const res = await fetch('/api/virtual-studio/load-comparison', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ designId, scanId }),
+          });
+          const data = await res.json();
+          setActiveScene(designId, data.designUrl);
+          setComparisonModel(data.scanUrl);
+        } finally {
+          setLoading(false);
+        }
+      },
+
+      generateTour: async () => {
+        const { activeSceneId } = get();
+        if (!activeSceneId) return;
+        await fetch('/api/virtual-studio/generate-tour', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sceneId: activeSceneId }),
+        });
+      },
+
+      exportReport: async () => {
+        const { activeSceneId } = get();
+        if (!activeSceneId) return;
+        await fetch('/api/virtual-studio/export-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sceneId: activeSceneId }),
+        });
+      },
+    }),
+    { name: 'virtual-studio-store' }
+  )
+);
+
+
+🔧 Copilot note:
+Add zustand to package.json and put this file at lib/stores/useVirtualStudioStore.ts.
+
+
+4.2. Page Entry – app/(dashboard)/virtual-studio/page.tsx
+'use client';
+
+import VirtualStudioShell from '@/components/virtual/VirtualStudioShell';
+
+export default function VirtualStudioPage() {
+  return <VirtualStudioShell />;
+}
+
+
+4.3. Shell Layout – components/virtual/VirtualStudioShell.tsx
+'use client';
+
+import { MessageSquare, Share2 } from 'lucide-react';
+import { useVirtualStudioStore } from '@/lib/stores/useVirtualStudioStore';
+import VirtualCanvas from './VirtualCanvas';
+import VirtualModePanel from './VirtualModePanel';
+import XRaySlider from './XRaySlider';
+import HotspotTray from './HotspotTray';
+
+export default function VirtualStudioShell() {
+  const { mode, isLoading } = useVirtualStudioStore();
+
+  return (
+    <div className="h-[calc(100vh-4rem)] w-full bg-slate-950 relative overflow-hidden rounded-2xl border border-slate-800">
+      {/* Top glass header */}
+      <header className="absolute top-3 left-3 right-3 h-12 bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-700 flex items-center justify-between px-4 z-20">
+        <div className="flex items-center gap-3">
+          <h1 className="font-orbitron font-bold text-sm md:text-base text-white">
+            Virtual Studio
+          </h1>
+          <span className="hidden md:inline text-[11px] text-slate-400">
+            Load a scene, compare, or watch a tour.
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition"
+          >
+            <Share2 className="w-3 h-3" />
+            Share link
+          </button>
+          <button
+            type="button"
+            className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center hover:scale-105 transition"
+            aria-label="Open collaboration chat"
+          >
+            <MessageSquare className="w-4 h-4 text-white" />
+          </button>
+        </div>
+      </header>
+
+      {/* 3D Canvas */}
+      <div className="absolute inset-0 z-0">
+        <VirtualCanvas />
+      </div>
+
+      {/* Right floating mode/tools panel */}
+      <div className="absolute top-20 right-3 z-20">
+        <VirtualModePanel />
+      </div>
+
+      {/* Bottom center: X-Ray slider visible only in compare mode */}
+      {mode === 'compare' && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full max-w-md z-20 px-4">
+          <XRaySlider />
+        </div>
+      )}
+
+      {/* Bottom left: hotspot tray for inspections */}
+      {mode !== 'tour' && (
+        <div className="absolute bottom-4 left-3 z-20 max-w-sm">
+          <HotspotTray />
+        </div>
+      )}
+
+      {/* Loading badge */}
+      {isLoading && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30">
+          <div className="px-3 py-1 rounded-full bg-slate-900/90 text-[11px] text-slate-200 border border-slate-700">
+            Loading scene…
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+4.4. The 3D Canvas – components/virtual/VirtualCanvas.tsx
+'use client';
+
+import { Canvas } from '@react-three/fiber';
+import { Environment, GizmoHelper, GizmoViewport, OrbitControls } from '@react-three/drei';
+import SceneLoader from './SceneLoader';
+
+export default function VirtualCanvas() {
+  return (
+    <Canvas
+      shadows
+      camera={{ position: [10, 8, 10], fov: 50 }}
+      className="bg-slate-950"
+    >
+      <color attach="background" args={['#020617']} />
+      <ambientLight intensity={0.4} />
+      <directionalLight
+        position={[10, 20, 10]}
+        intensity={1}
+        castShadow
+      />
+
+      <SceneLoader />
+
+      <OrbitControls enablePan enableZoom enableRotate />
+
+      <Environment preset="city" />
+
+      <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
+        <GizmoViewport
+          axisColors={['#f97373', '#4ade80', '#60a5fa']}
+          labelColor="#e5e7eb"
+        />
+      </GizmoHelper>
+    </Canvas>
+  );
+}
+
+
+4.5. Scene Loader with X-Ray Blend – components/virtual/SceneLoader.tsx
+'use client';
+
+import { useRef, Suspense } from 'react';
+import { useGLTF } from '@react-three/drei';
+import { useVirtualStudioStore } from '@/lib/stores/useVirtualStudioStore';
+
+function InnerScene() {
+  const { activeModelUrl, comparisonModelUrl, xRayOpacity } =
+    useVirtualStudioStore();
+
+  const primaryRef = useRef<any>(null);
+  const secondaryRef = useRef<any>(null);
+
+  const primary = useGLTF(activeModelUrl || '/sample-scenes/demo-building.glb');
+  const secondary =
+    comparisonModelUrl ? useGLTF(comparisonModelUrl) : null;
+
+  return (
+    <group>
+      {/* Primary model (design) */}
+      <primitive
+        ref={primaryRef}
+        object={primary.scene}
+        scale={1}
+        opacity={comparisonModelUrl ? 1 - xRayOpacity : 1}
+      />
+
+      {/* Comparison model (scan) */}
+      {secondary && (
+        <primitive
+          ref={secondaryRef}
+          object={secondary.scene}
+          scale={1}
+          position={[0, 0, 0]}
+          // You can add a wireframe material override if desired
+        />
+      )}
+    </group>
+  );
+}
+
+export default function SceneLoader() {
+  return (
+    <Suspense fallback={null}>
+      <InnerScene />
+    </Suspense>
+  );
+}
+
+
+Copilot note: later, you can swap useGLTF to your Draco/LOD pipeline to follow Grok’s performance suggestion. 
+
+
+4.6. Mode Panel – components/virtual/VirtualModePanel.tsx
+'use client';
+
+import { Film, Layers, PlayCircle, ScanSearch } from 'lucide-react';
+import { useVirtualStudioStore } from '@/lib/stores/useVirtualStudioStore';
+
+export default function VirtualModePanel() {
+  const {
+    mode,
+    setMode,
+    loadSceneById,
+    loadComparisonPair,
+    generateTour,
+  } = useVirtualStudioStore();
+
+  return (
+    <div className="bg-slate-900/85 backdrop-blur-md border border-slate-700 rounded-2xl p-3 flex flex-col gap-3 shadow-2xl w-56">
+      <p className="text-[11px] font-semibold tracking-wide text-slate-300 uppercase">
+        Modes
+      </p>
+      <div className="flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={() => setMode('explore')}
+          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs ${
+            mode === 'explore'
+              ? 'bg-slate-800 text-white'
+              : 'text-slate-300 hover:bg-slate-800/60'
+          }`}
+        >
+          <ScanSearch className="w-3.5 h-3.5" />
+          <span>Explore scene</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMode('compare')}
+          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs ${
+            mode === 'compare'
+              ? 'bg-slate-800 text-white'
+              : 'text-slate-300 hover:bg-slate-800/60'
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5" />
+          <span>Compare (X-Ray)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMode('tour')}
+          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs ${
+            mode === 'tour'
+              ? 'bg-slate-800 text-white'
+              : 'text-slate-300 hover:bg-slate-800/60'
+          }`}
+        >
+          <Film className="w-3.5 h-3.5" />
+          <span>Tour / VR</span>
+        </button>
+      </div>
+
+      <hr className="border-slate-700 my-2" />
+
+      <div className="space-y-2">
+        <p className="text-[11px] font-semibold tracking-wide text-slate-300 uppercase">
+          Quick actions
+        </p>
+        <button
+          type="button"
+          onClick={() => loadSceneById('sample-scene')}
+          className="w-full text-xs px-2.5 py-1.5 rounded-lg bg-slate-800/80 text-slate-100 hover:bg-slate-700"
+        >
+          Load sample scene
+        </button>
+        <button
+          type="button"
+          onClick={() => loadComparisonPair('sample-design', 'sample-scan')}
+          className="w-full text-xs px-2.5 py-1.5 rounded-lg bg-slate-800/80 text-slate-100 hover:bg-slate-700"
+        >
+          Load sample comparison
+        </button>
+        <button
+          type="button"
+          onClick={generateTour}
+          className="w-full flex items-center justify-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-500"
+        >
+          <PlayCircle className="w-3.5 h-3.5" />
+          <span>Generate tour</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
+4.7. X-Ray Slider – components/virtual/XRaySlider.tsx
+'use client';
+
+import { useVirtualStudioStore } from '@/lib/stores/useVirtualStudioStore';
+
+export default function XRaySlider() {
+  const { xRayOpacity, setXRayOpacity, comparisonModelUrl } =
+    useVirtualStudioStore();
+
+  if (!comparisonModelUrl) return null;
+
+  return (
+    <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700 rounded-2xl px-4 py-3 shadow-2xl">
+      <div className="flex justify-between text-[10px] font-semibold text-slate-300 mb-2">
+        <span className={xRayOpacity <= 0.5 ? 'text-blue-400' : ''}>
+          Design
+        </span>
+        <span className={xRayOpacity >= 0.5 ? 'text-emerald-400' : ''}>
+          Scan
+        </span>
+      </div>
+      <div className="relative h-2 bg-slate-800 rounded-full">
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={xRayOpacity}
+          onChange={(e) => setXRayOpacity(parseFloat(e.target.value))}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+        />
+        <div
+          className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow pointer-events-none transition-all"
+          style={{ left: `${xRayOpacity * 100}%` }}
+        />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-600 to-emerald-500" />
+      </div>
+      <p className="text-[10px] text-center text-slate-500 mt-2">
+        Drag to compare plan vs. reality.
+      </p>
+    </div>
+  );
+}
+
+
+4.8. Hotspot Tray – components/virtual/HotspotTray.tsx
+'use client';
+
+import { Plus } from 'lucide-react';
+import { useVirtualStudioStore } from '@/lib/stores/useVirtualStudioStore';
+
+export default function HotspotTray() {
+  const { hotspots, addHotspot, exportReport } = useVirtualStudioStore();
+
+  const handleAdd = () => {
+    // simple example: drop a hotspot at origin
+    addHotspot({
+      label: 'New note',
+      type: 'note',
+      position: [0, 0, 0],
+      status: 'open',
+    });
+  };
+
+  return (
+    <div className="bg-slate-900/85 backdrop-blur-md border border-slate-700 rounded-2xl p-3 shadow-2xl w-64">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[11px] font-semibold tracking-wide text-slate-300 uppercase">
+          Hotspots
+        </span>
+        <button
+          type="button"
+          onClick={handleAdd}
+          className="flex items-center gap-1 text-[11px] text-slate-100 px-2 py-0.5 rounded-full bg-slate-800 hover:bg-slate-700"
+        >
+          <Plus className="w-3 h-3" />
+          Add
+        </button>
+      </div>
+      <div className="max-h-32 overflow-y-auto space-y-1">
+        {hotspots.length === 0 && (
+          <p className="text-[11px] text-slate-500">
+            Click on the model and add notes or punchlist items.
+          </p>
+        )}
+        {hotspots.map((h) => (
+          <div
+            key={h.id}
+            className="flex items-center justify-between text-[11px] px-2 py-1 rounded-lg bg-slate-800/80 text-slate-100"
+          >
+            <span className="truncate">{h.label}</span>
+            <span className="text-[9px] uppercase text-slate-400">
+              {h.type}
+            </span>
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={exportReport}
+        className="mt-3 w-full text-[11px] px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-100 hover:bg-slate-700"
+      >
+        Export report
+      </button>
+    </div>
+  );
+}
+
+
+5. Simple API Contracts (for Copilot / backend)
+You can hand this summary to Copilot as “backend tasks”:
+
+
+POST /api/virtual-studio/load-scene
+
+
+Input: { sceneId: string }
+
+
+Output: { modelUrl: string } (signed S3 URL for GLB/IFC).
+
+
+
+
+POST /api/virtual-studio/load-comparison
+
+
+Input: { designId: string; scanId: string }
+
+
+Output: { designUrl: string; scanUrl: string } (Draco/LOD URLs). 
+
+
+
+
+POST /api/virtual-studio/generate-tour
+
+
+Input: { sceneId: string }
+
+
+Output (later): { tourUrl: string } or just 202 Accepted while Remotion/Nerfstudio runs.
+
+
+
+
+POST /api/virtual-studio/export-report
+
+
+Input: { sceneId: string }
+
+
+Output: PDF blob or { reportUrl: string } after jsPDF/sharp pipeline. 
+
+
+
+
+
+If you’d like, next step I can:
+
+
+Mirror this “Explore / Compare / Tour” pattern into the other tabs (Tour Builder, Geospatial, Content Studio) so everything feels like one unified product.
+

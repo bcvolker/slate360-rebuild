@@ -3,7 +3,7 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import VirtualStudioShell from "@/components/dashboard/VirtualStudioShell";
 
 export default async function VirtualStudioPage() {
-  const { user, tier, isSlateCeo } = await resolveServerOrgContext();
+  const { user, tier, isSlateCeo, hasInternalAccess } = await resolveServerOrgContext();
   if (!user) redirect("/login?redirectTo=/virtual-studio");
 
   return (
@@ -14,7 +14,7 @@ export default async function VirtualStudioPage() {
         avatar: user.user_metadata?.avatar_url ?? undefined,
       }}
       tier={tier}
-      isCeo={isSlateCeo}
+      isCeo={hasInternalAccess}
     />
   );
 }

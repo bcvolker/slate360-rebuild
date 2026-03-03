@@ -1,0 +1,834 @@
+1. Simplified Mental Model
+
+Instead of “NodeODM + ECS + Potree + PPK + RTKLIB,” this tab boils down to three modes that any user can understand:
+
+Plan a Mission (Simple)
+
+Draw an area on a map
+
+Choose altitude & overlap
+
+Export a file (KML/JSON) you can use in other tools or apps
+
+Optional: send to your mobile app via QR code later (backend endpoint is already supported by your spec).
+
+Process a Dataset (Advanced)
+
+Drag & drop images / LAS / etc. into a panel
+
+Watch upload and processing progress
+
+When complete, see:
+
+Orthomosaic on the map
+
+Link to 3D viewer for point cloud (PointCloud / Potree viewer)
+
+Share & Re-use (All users)
+
+One-click:
+
+Export KML / JSON / QR
+
+Send Panos to 360 Tour Builder
+
+Log volumes / areas to Reports & Analytics.
+
+We hide the heavy stuff (ECS, NodeODM, RTK/PPK, Potree) behind this simple surface. The tab feels like:
+
+“A map with a draw tool, a 3D viewer button, an upload drawer, and a few export buttons.”
+
+2. State Store – lib/useGeospatialStore.ts
+
+This is a simplified version of the Grok + Gemini combo:
+
+Keeps “missions”
+
+Handles simple/advanced mode
+
+Offers concurrency-safe upload
+
+Leaves heavy backend work to /api/geospatial/... endpoints.
+
+// lib/useGeospatialStore.ts
+'use client';
+
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import pLimit from 'p-limit';
+import { supabase } from '@/lib/supabase';
+
+export type MissionType = 'photogrammetry' | 'lidar' | 'robotics';
+export type MissionStatus = 'planning' | 'uploading' | 'processing' | 'complete' | 'failed';
+
+export interface Mission {
+  id: string;
+  name: string;
+  type: MissionType;
+  status: MissionStatus;
+  progress: number; // 0–100
+  polygon?: any; // GeoJSON
+  layers?: {
+    orthoUrl?: string;
+    cloudUrl?: string;
+  };
+  settings: {
+    altitude: number;
+    overlap: number;
+    rtk: boolean;
+    gsd: number;
+  };
+  createdAt?: string;
+}
+
+interface GeospatialState {
+  missions: Mission[];
+  activeMissionId: string | null;
+  viewMode: 'map' | 'cloud';
+  simpleMode: boolean;
+  isUploading: boolean;
+
+  // Derived helper
+  activeMission: () => Mission | undefined;
+
+  // Actions
+  setActiveMission: (id: string | null) => void;
+  addMission: (name?: string, type?: MissionType) => Promise<string>;
+  updateMission: (id: string, updates: Partial<Mission>) => void;
+  toggleViewMode: () => void;
+  toggleSimpleMode: () => void;
+  uploadDataset: (id: string, files: File[], rinexFiles?: File[]) => Promise<void>;
+}
+
+export const useGeospatialStore = create<GeospatialState>()(
+  persist(
+    (set, get) => ({
+      missions: [],
+      activeMissionId: null,
+      viewMode: 'map',
+      simpleMode: true,
+      isUploading: false,
+
+      activeMission: () =>
+        get().missions.find(m => m.id === get().activeMissionId),
+
+      setActiveMission: (id) => set({ activeMissionId: id }),
+
+      addMission: async (name, type = 'photogrammetry') => {
+        const { data: { user } } = await supabase.auth.getUser();
+        const payload = {
+          user_id: user?.id ?? null,
+          org_id: user?.user_metadata?.org_id ?? null,
+          name: name || 'Untitled Mission',
+          type,
+          status: 'planning' as MissionStatus,
+          progress: 0,
+          settings: {
+            altitude: 150,
+            overlap: 75,
+            rtk: false,
+            gsd: 1.5,
+          },
+        };
+
+        const { data, error } = await supabase
+          .from('geospatial_missions')
+          .insert(payload)
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        set((state) => ({
+          missions: [data as Mission, ...state.missions],
+          activeMissionId: data.id,
+        }));
+
+        return data.id as string;
+      },
+
+      updateMission: (id, updates) =>
+        set((state) => ({
+          missions: state.missions.map((m) =>
+            m.id === id ? { ...m, ...updates } : m
+          ),
+        })),
+
+      toggleViewMode: () =>
+        set((state) => ({
+          viewMode: state.viewMode === 'map' ? 'cloud' : 'map',
+        })),
+
+      toggleSimpleMode: () =>
+        set((state) => ({ simpleMode: !state.simpleMode })),
+
+      uploadDataset: async (id, files, rinexFiles) => {
+        if (!files.length) return;
+
+        const limit = pLimit(5); // prevent freezing with big image sets
+        set({ isUploading: true });
+        get().updateMission(id, { status: 'uploading', progress: 0 });
+
+        try {
+          // Presign all filenames once
+          const fileMeta = files.map((f) => ({ name: f.name, type: f.type }));
+          const presignRes = await fetch('/api/s3/presign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ missionId: id, files: fileMeta }),
+          });
+
+          if (!presignRes.ok) throw new Error('Failed to presign uploads');
+          const presigned = await presignRes.json() as { url: string; key: string }[];
+
+          let completed = 0;
+          const total = files.length;
+
+          await Promise.all(
+            files.map((file, index) =>
+              limit(async () => {
+                const target = presigned[index];
+                await fetch(target.url, {
+                  method: 'PUT',
+                  body: file,
+                });
+                completed += 1;
+                const uploadProgress = Math.round((completed / total) * 50); // first 50% = upload
+                get().updateMission(id, { progress: uploadProgress });
+              })
+            )
+          );
+
+          // Optional: RTK/PPK files only in Advanced mode
+          if (rinexFiles && rinexFiles.length && !get().simpleMode) {
+            const rinexMeta = rinexFiles.map((f) => ({ name: f.name, type: f.type }));
+            await fetch('/api/s3/presign-rinex', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ missionId: id, files: rinexMeta }),
+            });
+            // You can mirror the same pattern if you want client-side upload here too.
+          }
+
+          // Trigger processing pipeline
+          await fetch('/api/geospatial/process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              missionId: id,
+              fileCount: files.length,
+              hasPPK: !!rinexFiles?.length,
+            }),
+          });
+
+          get().updateMission(id, { status: 'processing', progress: 50 });
+        } catch (err) {
+          console.error(err);
+          get().updateMission(id, { status: 'failed' });
+        } finally {
+          set({ isUploading: false });
+        }
+      },
+    }),
+    {
+      name: 'geospatial-store',
+    }
+  )
+);
+
+3. Main Page – app/(dashboard)/geospatial/page.tsx
+
+This matches the rest of your dashboard structure:
+
+Shared DashboardToolbar
+
+Left rail = mission list + templates
+
+Center = map / cloud viewer
+
+Right rail = simple vs advanced settings
+
+Bottom = upload / processing drawer
+
+// app/(dashboard)/geospatial/page.tsx
+'use client';
+
+import { useEffect } from 'react';
+import { useGeospatialStore } from '@/lib/useGeospatialStore';
+import { supabase } from '@/lib/supabase';
+import { DashboardToolbar } from '@/components/dashboard/DashboardToolbar';
+import { HelpBeacon } from '@/components/dashboard/HelpBeacon';
+import { GeospatialCanvas } from '@/components/geospatial/GeospatialCanvas';
+import { GeospatialProcessingPanel } from '@/components/geospatial/ProcessingPanel';
+import { cn } from '@/lib/utils';
+
+export default function GeospatialPage() {
+  const {
+    missions,
+    setActiveMission,
+    activeMission,
+    toggleSimpleMode,
+    toggleViewMode,
+    simpleMode,
+    viewMode,
+  } = useGeospatialStore();
+
+  // Initial load from Supabase
+  useEffect(() => {
+    const loadMissions = async () => {
+      const { data, error } = await supabase
+        .from('geospatial_missions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        // hydrate store without overwriting local-only fields
+        // You can also add a dedicated action if you prefer.
+      }
+    };
+    loadMissions();
+  }, []);
+
+  // Make sure something is selected
+  useEffect(() => {
+    if (missions.length && !activeMission()) {
+      setActiveMission(missions[0].id);
+    }
+  }, [missions, activeMission, setActiveMission]);
+
+  return (
+    <div className="flex h-[calc(100vh-56px)] bg-slate-950 text-slate-50">
+      {/* Left rail: Mission list */}
+      <aside className="w-64 border-r border-slate-800 bg-slate-900/70 backdrop-blur-md flex flex-col">
+        <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+            Missions
+          </span>
+          <button
+            className="text-xs px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white"
+            onClick={() => {
+              // Quick-add with default name
+              useGeospatialStore.getState().addMission('New Mission');
+            }}
+          >
+            + New
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
+          {missions.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setActiveMission(m.id)}
+              className={cn(
+                'w-full text-left px-3 py-2 rounded-md text-xs border border-transparent hover:border-slate-600 hover:bg-slate-800/70',
+                activeMission()?.id === m.id && 'border-emerald-500 bg-slate-900'
+              )}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium text-slate-100 truncate">
+                  {m.name}
+                </span>
+                <span className="text-[10px] uppercase text-slate-400">
+                  {m.status}
+                </span>
+              </div>
+              <div className="mt-1 w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 transition-all"
+                  style={{ width: `${m.progress ?? 0}%` }}
+                />
+              </div>
+            </button>
+          ))}
+          {!missions.length && (
+            <p className="text-[11px] text-slate-500 px-1 pt-2">
+              No missions yet. Click <span className="font-semibold">+ New</span> to start.
+            </p>
+          )}
+        </div>
+
+        {/* Template quick actions */}
+        <div className="border-t border-slate-800 p-3">
+          <span className="block text-[11px] font-semibold text-slate-400 mb-2 uppercase tracking-wide">
+            Quick Templates
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            {['Site Grid', 'Roof', 'Stockpiles', 'Façade'].map((label) => (
+              <button
+                key={label}
+                className="text-[11px] px-2 py-2 rounded bg-slate-800/70 hover:bg-slate-700 text-slate-100"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <section className="flex-1 flex flex-col relative">
+        {/* Shared toolbar at top */}
+        <DashboardToolbar
+          title="Geospatial & Robotics"
+          subtitle={
+            simpleMode
+              ? 'Draw an area, set basic flight settings, export missions.'
+              : 'Upload datasets, inspect clouds, and export advanced results.'
+          }
+          leftActions={[
+            { id: 'save', label: 'Save', variant: 'ghost' },
+            { id: 'undo', label: 'Undo', variant: 'ghost' },
+          ]}
+          rightActions={[
+            { id: 'export', label: 'Export', variant: 'primary' },
+            { id: 'share', label: 'Share', variant: 'outline' },
+          ]}
+          extras={
+            <div className="flex items-center gap-2">
+              <button
+                className={cn(
+                  'text-xs px-2 py-1 rounded border border-slate-600',
+                  simpleMode && 'bg-slate-100 text-slate-900'
+                )}
+                onClick={toggleSimpleMode}
+              >
+                {simpleMode ? 'Simple Mode' : 'Advanced Mode'}
+              </button>
+              <button
+                className="text-xs px-2 py-1 rounded border border-slate-600"
+                onClick={toggleViewMode}
+              >
+                {viewMode === 'map' ? 'Switch to 3D Cloud' : 'Switch to Map'}
+              </button>
+            </div>
+          }
+        />
+
+        {/* Help beacon (step-by-step) */}
+        <HelpBeacon
+          steps={
+            simpleMode
+              ? ['Draw a polygon on the map', 'Set altitude & overlap', 'Export KML/JSON or QR']
+              : ['Drop images / LAS', 'Wait for processing', 'Toggle 3D cloud view']
+          }
+        />
+
+        <div className="flex flex-1 overflow-hidden">
+          {/* Center canvas */}
+          <div className="flex-1 relative">
+            <GeospatialCanvas />
+          </div>
+
+          {/* Right rail: settings */}
+          <aside className="w-72 border-l border-slate-800 bg-slate-900/70 backdrop-blur-md p-4 space-y-4">
+            <h3 className="text-sm font-semibold text-slate-100 mb-1">
+              {simpleMode ? 'Basic Flight Settings' : 'Advanced Options'}
+            </h3>
+
+            {simpleMode ? (
+              <>
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-400">Altitude (ft)</label>
+                  <input
+                    type="range"
+                    min={60}
+                    max={400}
+                    defaultValue={150}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[11px] text-slate-500">
+                    <span>Lower detail</span>
+                    <span>Higher detail</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-400">Overlap (%)</label>
+                  <input
+                    type="range"
+                    min={60}
+                    max={90}
+                    defaultValue={75}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[11px] text-slate-500">
+                    <span>Faster</span>
+                    <span>More photos</span>
+                  </div>
+                </div>
+
+                <button className="w-full mt-2 text-xs font-semibold px-3 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white">
+                  Export Mission (KML / JSON)
+                </button>
+
+                <button className="w-full mt-2 text-[11px] px-3 py-2 rounded border border-slate-700 text-slate-200 hover:bg-slate-800">
+                  Copy QR for Mobile App
+                </button>
+              </>
+            ) : (
+              <>
+                <label className="flex items-center justify-between text-xs text-slate-300">
+                  <span>RTK / PPK</span>
+                  <select className="ml-2 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs">
+                    <option>None</option>
+                    <option>Upload RINEX</option>
+                  </select>
+                </label>
+
+                <div className="space-y-1 mt-2">
+                  <label className="text-xs text-slate-400">Ground Sample Distance (cm/px)</label>
+                  <input
+                    type="number"
+                    defaultValue={1.5}
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1 mt-2">
+                  <label className="flex items-center gap-2 text-xs text-slate-300">
+                    <input type="checkbox" className="accent-emerald-500" />
+                    Alert on geofence/NO-FLY rule
+                  </label>
+                </div>
+
+                <button className="w-full mt-3 text-xs font-semibold px-3 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white">
+                  Export Mission & Settings
+                </button>
+
+                <button className="w-full mt-2 text-[11px] px-3 py-2 rounded border border-slate-700 text-slate-200 hover:bg-slate-800">
+                  Send 360 Panos to Tour Builder
+                </button>
+              </>
+            )}
+          </aside>
+        </div>
+
+        {/* Bottom processing drawer */}
+        <GeospatialProcessingPanel />
+      </section>
+    </div>
+  );
+}
+
+4. Canvas Switcher – GeospatialCanvas.tsx
+
+This decides: Map vs 3D Cloud based on the store.
+
+// components/geospatial/GeospatialCanvas.tsx
+'use client';
+
+import { useGeospatialStore } from '@/lib/useGeospatialStore';
+import { MapCanvas } from '@/components/geospatial/MapCanvas';
+import { PointCloudViewer } from '@/components/geospatial/PointCloudViewer';
+
+export function GeospatialCanvas() {
+  const { viewMode, simpleMode } = useGeospatialStore();
+
+  // In simple mode, always show map.
+  if (simpleMode || viewMode === 'map') {
+    return <MapCanvas />;
+  }
+
+  return <PointCloudViewer />;
+}
+
+5. Map with Drawing & SSR Fix – MapCanvas.tsx
+
+Uses next/dynamic for Leaflet to avoid SSR breakage (Gemini’s fix).
+
+Uses react-leaflet-draw for polygon drawing.
+
+Shows a simple “helper” overlay in simple mode.
+
+// components/geospatial/MapCanvas.tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+import { useGeospatialStore } from '@/lib/useGeospatialStore';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet-draw/dist/leaflet.draw.css';
+
+// Dynamic imports for Leaflet (avoid window undefined on SSR)
+const MapContainer = dynamic(
+  () => import('react-leaflet').then((m) => m.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import('react-leaflet').then((m) => m.TileLayer),
+  { ssr: false }
+);
+const FeatureGroup = dynamic(
+  () => import('react-leaflet').then((m) => m.FeatureGroup),
+  { ssr: false }
+);
+const EditControl = dynamic(
+  () => import('react-leaflet-draw').then((m) => m.EditControl),
+  { ssr: false }
+);
+
+export function MapCanvas() {
+  const { simpleMode, activeMission, updateMission } = useGeospatialStore();
+  const mission = activeMission();
+  const [ready, setReady] = useState(false);
+
+  // This flag gates rendering until client-side
+  useEffect(() => {
+    setReady(true);
+  }, []);
+
+  const handleCreated = (e: any) => {
+    const layer = e.layer;
+    const geojson = layer.toGeoJSON();
+    if (mission?.id) {
+      updateMission(mission.id, { polygon: geojson });
+    }
+  };
+
+  if (!ready) {
+    return <div className="h-full w-full bg-slate-950" />;
+  }
+
+  return (
+    <div className="h-full w-full relative">
+      <MapContainer
+        center={[33.4484, -112.074]} // Phoenix as default
+        zoom={16}
+        style={{ height: '100%', width: '100%' }}
+      >
+        {/* Free map tiles (no extra cost) */}
+        <TileLayer
+          attribution="&copy; OpenStreetMap contributors"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+
+        <FeatureGroup>
+          <EditControl
+            position="topright"
+            onCreated={handleCreated}
+            draw={{
+              polyline: false,
+              rectangle: false,
+              circle: false,
+              circlemarker: false,
+              marker: !simpleMode,
+              polygon: {
+                allowIntersection: false,
+                showArea: true,
+                shapeOptions: { color: '#38bdf8' }, // Tailwind cyan-500-ish
+              },
+            }}
+            edit={{
+              edit: true,
+              remove: true,
+            }}
+          />
+        </FeatureGroup>
+
+        {/* Future: overlay orthomosaic with ImageOverlay once layers.orthoUrl exists */}
+      </MapContainer>
+
+      {simpleMode && !mission?.polygon && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/90 border border-slate-700 text-xs text-slate-100 px-3 py-2 rounded-full shadow-lg">
+          Draw an area to define your mission.
+        </div>
+      )}
+    </div>
+  );
+}
+
+6. 3D Cloud Stub – PointCloudViewer.tsx
+
+This keeps the UI ready for Potree / Cesium / whatever you end up using, without locking you into an implementation right now.
+
+// components/geospatial/PointCloudViewer.tsx
+'use client';
+
+import { useGeospatialStore } from '@/lib/useGeospatialStore';
+
+export function PointCloudViewer() {
+  const { activeMission } = useGeospatialStore();
+  const mission = activeMission();
+
+  return (
+    <div className="h-full w-full relative bg-black flex items-center justify-center">
+      {mission?.layers?.cloudUrl ? (
+        <div className="text-xs text-slate-200 text-center space-y-2 px-4">
+          <p className="font-semibold">3D Point Cloud Viewer</p>
+          <p className="text-slate-400">
+            Placeholder: load your Potree / Cesium viewer here using:
+          </p>
+          <code className="block text-[10px] bg-slate-900 px-2 py-1 rounded border border-slate-700">
+            {mission.layers.cloudUrl}
+          </code>
+          <p className="text-slate-500 text-[11px]">
+            (In production, this area will show the actual 3D model with pan/zoom/orbit.)
+          </p>
+        </div>
+      ) : (
+        <p className="text-xs text-slate-400">
+          No processed cloud available yet. Upload data and wait for processing to finish.
+        </p>
+      )}
+      <div className="absolute bottom-4 right-4 text-[10px] text-slate-400 bg-black/60 px-2 py-1 rounded">
+        Tip: Use this view for volume checks, elevations, and clash review.
+      </div>
+    </div>
+  );
+}
+
+7. Processing Drawer – ProcessingPanel.tsx
+
+Simple for all users:
+
+Closed = “Process Data” button
+
+Open = Dropzone, optional RINEX, and progress bar.
+
+// components/geospatial/ProcessingPanel.tsx
+'use client';
+
+import { useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { useGeospatialStore } from '@/lib/useGeospatialStore';
+import { cn } from '@/lib/utils';
+
+export function GeospatialProcessingPanel() {
+  const { activeMission, uploadDataset, isUploading } = useGeospatialStore();
+  const mission = activeMission();
+  const [open, setOpen] = useState(false);
+  const [rinexFiles, setRinexFiles] = useState<File[]>([]);
+
+  const onDrop = (files: File[]) => {
+    if (!mission?.id) return;
+    uploadDataset(mission.id, files, rinexFiles);
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.jpg', '.jpeg', '.tif', '.tiff'],
+      'application/octet-stream': ['.las', '.laz'],
+    },
+  });
+
+  if (!mission) return null;
+
+  if (!open) {
+    return (
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
+        <button
+          onClick={() => setOpen(true)}
+          className="px-6 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-xl"
+        >
+          {mission.status === 'planning' ? 'Process Data' : 'View Processing'}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[380px] bg-slate-900/95 border border-slate-700 rounded-xl shadow-2xl">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+        <div>
+          <p className="text-xs font-semibold text-slate-100">
+            Upload Dataset
+          </p>
+          <p className="text-[11px] text-slate-400">
+            Images, scans, and optional RTK/PPK files.
+          </p>
+        </div>
+        <button
+          className="text-slate-400 hover:text-slate-100 text-xs"
+          onClick={() => setOpen(false)}
+        >
+          ✕
+        </button>
+      </div>
+
+      <div className="p-4 space-y-4">
+        <div
+          {...getRootProps()}
+          className={cn(
+            'border-2 border-dashed rounded-lg px-4 py-6 text-center text-xs cursor-pointer transition',
+            isDragActive
+              ? 'border-emerald-400 bg-emerald-950/40 text-emerald-200'
+              : 'border-slate-600 bg-slate-900 text-slate-300'
+          )}
+        >
+          <input {...getInputProps()} />
+          <p className="font-semibold mb-1">
+            {isDragActive ? 'Drop files to upload…' : 'Drag & drop files here'}
+          </p>
+          <p className="text-[11px] text-slate-400">
+            JPG / TIFF / LAS / LAZ. Large jobs are handled safely in the cloud.
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <label className="block text-[11px] text-slate-300">
+            RTK / PPK files (optional, Advanced)
+          </label>
+          <input
+            type="file"
+            multiple
+            onChange={(e) =>
+              setRinexFiles(Array.from(e.target.files || []))
+            }
+            className="w-full text-[11px] bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <div className="flex justify-between text-[11px] text-slate-400">
+            <span>Status: {mission.status}</span>
+            <span>{mission.progress ?? 0}%</span>
+          </div>
+          <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+            <div
+              className={cn(
+                'h-full rounded-full transition-all',
+                mission.status === 'failed'
+                  ? 'bg-red-500'
+                  : 'bg-emerald-500'
+              )}
+              style={{ width: `${mission.progress ?? 0}%` }}
+            />
+          </div>
+        </div>
+
+        {isUploading && (
+          <p className="text-[11px] text-emerald-300">
+            Uploading in the background. You can continue working in other tabs.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+8. What This Adds / Fixes vs the Raw Spec
+
+Using your Grok + Gemini spec as the foundation this version:
+
+Keeps everything simple for non-technical users
+
+Draw → Set → Export, all in one screen.
+
+“Process Data” is just a single button → drawer → drop files.
+
+Matches your Slate360 design language
+
+Same dark theme, Orbitron vibe via DashboardToolbar, HelpBeacon, side rails.
+
+Improves performance & stability
+
+Concurrency-limited uploads (no 500-file Promise.all bombs).
+
+Leaflet is dynamically imported to avoid SSR crashes.
+
+Prepares wow features without adding complexity
+
+Map draw tools, mission templates, 3D viewer placeholder, timeline/volume features can plug in later without changing UX.
+
+“Send 360 Panos to Tour Builder” button gives immediate cross-tab integration for contractors, realtors, or drone pilots.

@@ -7,12 +7,12 @@ export const metadata = {
 };
 
 export default async function MarketPage() {
-  const { user, isSlateCeo } = await resolveServerOrgContext();
+  const { user, hasInternalAccess } = await resolveServerOrgContext();
 
   if (!user) redirect("/login");
 
-  // Market Robot is a Slate360-internal tool — access requires isSlateCeo or employee grant.
-  if (!isSlateCeo) {
+  // Market Robot is a Slate360-internal tool — access requires isSlateCeo or slate360_staff grant.
+  if (!hasInternalAccess) {
     notFound();
   }
 

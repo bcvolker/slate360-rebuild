@@ -1,36 +1,48 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BarChart3,
-  Brain,
+  ChevronDown,
   Download,
-  FileSpreadsheet,
+  FileText,
   Layers,
   Loader2,
-  PieChart,
+  Plus,
+  Send,
 } from "lucide-react";
-import {
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  Chart as ChartJS,
-  Legend,
-  LinearScale,
-  Tooltip,
-} from "chart.js";
-import { Bar, Doughnut } from "react-chartjs-2";
-import { useAnalyticsStore, type AnalyticsScope } from "@/src/lib/useAnalyticsStore";
+import { useAnalyticsStore } from "@/src/lib/useAnalyticsStore";
 import DashboardTabShell from "@/components/shared/DashboardTabShell";
 import type { Tier } from "@/lib/entitlements";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
+const REPORT_TYPES = [
+  { id: "stakeholder-progress", label: "Stakeholder Progress Report", desc: "Overall project health, milestones, and key updates for clients and owners." },
+  { id: "rfi-summary",          label: "RFI Summary",                  desc: "Open, closed, and pending RFIs with response times and responsible parties." },
+  { id: "budget-review",        label: "Budget Review",                desc: "Committed costs, forecasts, change orders, and budget vs. actual variance." },
+  { id: "photo-log",            label: "Photo Log Report",             desc: "Dated progress photos organized by area, trade, or milestone." },
+  { id: "submittal-log",        label: "Submittal Log",                desc: "Full submittal register with status, review cycles, and approval dates." },
+  { id: "custom",               label: "Custom Report",                desc: "Choose specific data sections and arrange them to suite your needs." },
+];
 
-const SCOPES: Array<{ id: AnalyticsScope; label: string }> = [
-  { id: "projects", label: "Projects" },
-  { id: "tours", label: "Tours" },
-  { id: "media", label: "Media" },
-  { id: "workspace", label: "Workspace" },
+const DATA_SECTIONS = [
+  "Project Overview & Schedule Status",
+  "RFI Register",
+  "Submittal Log",
+  "Budget & Cost Summary",
+  "Daily Log Entries",
+  "Punch List",
+  "Progress Photos",
+  "Team & Contacts",
+  "Drawings Register",
+  "Observations Log",
+];
+
+const DATE_RANGES = [
+  { value: "last-7",    label: "Last 7 days" },
+  { value: "last-30",   label: "Last 30 days" },
+  { value: "last-90",   label: "Last 90 days" },
+  { value: "this-year", label: "This year" },
+  { value: "all-time",  label: "All time" },
 ];
 
 interface AnalyticsProps {
@@ -40,50 +52,28 @@ interface AnalyticsProps {
 }
 
 export default function AnalyticsReportsClient({ user, tier, isCeo = false }: AnalyticsProps) {
-  const {
-    scope,
-    metrics,
-    reports,
-    insightText,
-    loading,
-    exportState,
-    error,
-    setScope,
-    fetchSummary,
-    fetchReports,
-    generateInsight,
-    requestExport,
-  } = useAnalyticsStore();
+  const { reports, loading, exportState, error, fetchReports, requestExport } = useAnalyticsStore();
 
-  useEffect(() => {
-    void fetchSummary(scope);
-    void fetchReports(scope);
-  }, [scope, fetchSummary, fetchReports]);
+  const [selectedType, setSelectedType]       = useState(REPORT_TYPES[0].id);
+  const [selectedSections, setSelectedSections] = useState<string[]>(DATA_SECTIONS.slice(0, 5));
+  const [dateRange, setDateRange]             = useState("last-30");
+  const [building, setBuilding]               = useState(false);
+  const [typeOpen, setTypeOpen]               = useState(false);
 
-  const barData = useMemo(() => ({
-    labels: ["Project Activity", "Tour Engagement", "Media Ops", "Workspace Visits"],
-    datasets: [{
-      label: "Monthly Events",
-      data: [
-        Math.max(1, Math.round((metrics?.totalProjects ?? 0) * 1.8)),
-        Math.max(1, Math.round((metrics?.activeTours ?? 0) * 2.2)),
-        Math.max(1, Math.round((metrics?.mediaAssets ?? 0) / 4)),
-        Math.max(1, Math.round((metrics?.monthlyViews ?? 0) / 120)),
-      ],
-      backgroundColor: ["#FF6B35", "#3B82F6", "#1D4ED8", "#F97316"],
-      borderRadius: 8,
-    }],
-  }), [metrics]);
+  useEffect(() => { void fetchReports("projects"); }, [fetchReports]);
 
-  const doughnutData = useMemo(() => {
-    const used = metrics?.storageUsedGb ?? 0;
-    const limit = metrics?.storageLimitGb ?? 1;
-    const remaining = Math.max(limit - used, 0);
-    return {
-      labels: ["Used", "Remaining"],
-      datasets: [{ data: [used, remaining], backgroundColor: ["#FF6B35", "#1E3A8A"], borderWidth: 0 }],
-    };
-  }, [metrics]);
+  const selectedTypeObj = REPORT_TYPES.find((t) => t.id === selectedType) ?? REPORT_TYPES[0];
+
+  const toggleSection = (s: string) =>
+    setSelectedSections((prev) =>
+      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
+    );
+
+  const handleBuild = async () => {
+    setBuilding(true);
+    await requestExport("pdf", "projects");
+    setBuilding(false);
+  };
 
   return (
     <DashboardTabShell
@@ -95,127 +85,161 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false }: An
       status="live"
       isCeo={isCeo}
     >
-      {/* Scope header */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Analytics &amp; Reports</p>
-            <h2 className="text-2xl font-black text-gray-900">Performance Command View</h2>
-            <p className="mt-1 text-sm text-gray-500">Scope-specific insights and report exports.</p>
-          </div>
-          <div className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 p-1">
-            {SCOPES.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setScope(item.id)}
-                className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
-                  scope === item.id ? "bg-[#FF4D00] text-white" : "text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
 
-      {/* KPI cards */}
-      <section className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-2xl border border-gray-200 bg-white p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-400">Total Projects</p>
-          <p className="mt-1 text-2xl font-black text-gray-900">{metrics?.totalProjects ?? "--"}</p>
-        </article>
-        <article className="rounded-2xl border border-gray-200 bg-white p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-400">Storage Used</p>
-          <p className="mt-1 text-2xl font-black text-gray-900">{metrics ? `${metrics.storageUsedGb} GB` : "--"}</p>
-        </article>
-        <article className="rounded-2xl border border-gray-200 bg-white p-4">
-          <p className="text-xs uppercase tracking-wide text-gray-400">Monthly Views</p>
-          <p className="mt-1 text-2xl font-black text-gray-900">{metrics?.monthlyViews?.toLocaleString() ?? "--"}</p>
-        </article>
-      </section>
+      {/* ── Report Builder ─────────────────────────────────────── */}
+      <section className="rounded-2xl border border-gray-200 bg-white p-6">
+        <div className="mb-5">
+          <h2 className="text-lg font-black text-gray-900">Build a Report</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Pull data from your projects and generate a professional report to share with stakeholders. Built reports are stored in the Saved Reports section below.
+          </p>
+        </div>
 
-      {/* Charts */}
-      <section className="grid gap-6 lg:grid-cols-2">
-        <article className="rounded-2xl border border-gray-200 bg-white p-5">
-          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
-            <BarChart3 size={16} className="text-[#FF4D00]" /> Project Activity
-          </div>
-          <div className="h-72">
-            {loading.summary ? (
-              <div className="flex h-full items-center justify-center text-gray-400"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading chart...</div>
-            ) : (
-              <Bar data={barData} options={{ maintainAspectRatio: false, plugins: { legend: { labels: { color: "#374151" } } }, scales: { x: { ticks: { color: "#6B7280" } }, y: { ticks: { color: "#6B7280" } } } }} />
-            )}
-          </div>
-        </article>
-        <article className="rounded-2xl border border-gray-200 bg-white p-5">
-          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
-            <PieChart size={16} className="text-[#3B82F6]" /> Storage Usage
-          </div>
-          <div className="h-72">
-            {loading.summary ? (
-              <div className="flex h-full items-center justify-center text-gray-400"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading chart...</div>
-            ) : (
-              <Doughnut data={doughnutData} options={{ maintainAspectRatio: false, plugins: { legend: { labels: { color: "#374151" } } } }} />
-            )}
-          </div>
-        </article>
-      </section>
-
-      {/* Reports + AI Insight */}
-      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <article className="rounded-2xl border border-gray-200 bg-white p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-sm font-bold text-gray-900">
-              <Layers size={16} className="text-[#FF4D00]" /> Reports
-            </h2>
-            <div className="flex items-center gap-2">
-              <button onClick={() => void requestExport("pdf", scope)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
-                <Download size={12} /> Export PDF
+        <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
+          {/* Report type picker */}
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">Report Type</label>
+            <div className="relative">
+              <button
+                onClick={() => setTypeOpen(!typeOpen)}
+                className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-700 hover:border-gray-300 transition-colors"
+              >
+                {selectedTypeObj.label}
+                <ChevronDown size={14} className="shrink-0 text-gray-400" />
               </button>
-              <button onClick={() => void requestExport("csv", scope)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
-                <FileSpreadsheet size={12} /> Export CSV
-              </button>
+              {typeOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setTypeOpen(false)} />
+                  <div className="absolute left-0 top-full z-50 mt-1 w-80 rounded-2xl border border-gray-200 bg-white py-2 shadow-2xl">
+                    {REPORT_TYPES.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => { setSelectedType(t.id); setTypeOpen(false); }}
+                        className={`w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 ${selectedType === t.id ? "bg-[#FF4D00]/5" : ""}`}
+                      >
+                        <p className="text-sm font-semibold text-gray-900">{t.label}</p>
+                        <p className="mt-0.5 text-xs text-gray-400">{t.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
-          {loading.reports ? (
-            <div className="text-sm text-gray-400"><Loader2 className="mr-2 inline h-4 w-4 animate-spin" /> Loading reports...</div>
-          ) : (
-            <div className="space-y-2">
-              {reports.map((report) => (
-                <div key={report.id} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                  <p className="text-sm font-semibold text-gray-900">{report.title}</p>
-                  <p className="mt-0.5 text-xs text-gray-400">{new Date(report.createdAt).toLocaleString()} · {report.status}</p>
-                </div>
+
+          {/* Date range */}
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">Date Range</label>
+            <select
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
+            >
+              {DATE_RANGES.map((r) => (
+                <option key={r.value} value={r.value}>{r.label}</option>
               ))}
-            </div>
-          )}
-          {exportState.url && (
-            <p className="mt-3 text-xs text-emerald-600">Mock export ready: {exportState.url}</p>
-          )}
-        </article>
-        <article className="rounded-2xl border border-gray-200 bg-white p-5">
-          <h2 className="flex items-center gap-2 text-sm font-bold text-gray-900">
-            <Brain size={16} className="text-[#3B82F6]" /> AI Insight
+            </select>
+          </div>
+
+          {/* Build button */}
+          <div className="flex items-end">
+            <button
+              onClick={() => void handleBuild()}
+              disabled={building || selectedSections.length === 0}
+              className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-[#FF4D00] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#E04400] disabled:opacity-50 transition-colors"
+            >
+              {building ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+              Build Report
+            </button>
+          </div>
+        </div>
+
+        {/* Data sections selector */}
+        <div className="mt-5">
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Include Data Sections <span className="normal-case font-normal text-gray-400">({selectedSections.length} selected)</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {DATA_SECTIONS.map((s) => (
+              <button
+                key={s}
+                onClick={() => toggleSection(s)}
+                className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  selectedSections.includes(s)
+                    ? "border-[#1E3A8A] bg-[#1E3A8A]/5 text-[#1E3A8A]"
+                    : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {exportState.url && (
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+            <FileText size={16} className="shrink-0 text-emerald-600" />
+            <p className="text-sm font-semibold text-emerald-700">Report ready —</p>
+            <a href={exportState.url} className="text-sm text-emerald-600 underline">Download PDF</a>
+          </div>
+        )}
+      </section>
+
+      {/* ── Saved Reports ───────────────────────────────────────── */}
+      <section className="rounded-2xl border border-gray-200 bg-white p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-sm font-black text-gray-900">
+            <Layers size={15} className="text-[#FF4D00]" /> Saved Reports
           </h2>
           <button
-            onClick={() => void generateInsight(scope)}
-            className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#1E3A8A] px-3 py-2 text-xs font-semibold text-white hover:bg-[#162D69]"
-            disabled={loading.insight}
+            onClick={() => void requestExport("csv", "projects")}
+            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
           >
-            {loading.insight ? <Loader2 size={12} className="animate-spin" /> : <Brain size={12} />}
-            Generate AI Insight
+            <Download size={12} /> Export All (CSV)
           </button>
-          <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 min-h-28">
-            {insightText || "Click \"Generate AI Insight\" to create a scope-based recommendation."}
+        </div>
+
+        {loading.reports ? (
+          <div className="flex items-center gap-2 py-4 text-sm text-gray-400">
+            <Loader2 size={14} className="animate-spin" /> Loading reports…
           </div>
-        </article>
+        ) : reports.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-gray-200 py-10 text-center">
+            <FileText size={28} className="mx-auto mb-3 text-gray-300" />
+            <p className="text-sm font-semibold text-gray-500">No reports yet</p>
+            <p className="mt-1 text-xs text-gray-400">Build your first report above — it will appear here once generated.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {reports.map((report) => (
+              <div key={report.id} className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-gray-900">{report.title}</p>
+                  <p className="mt-0.5 text-xs text-gray-400">
+                    {new Date(report.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                    &nbsp;·&nbsp;{report.status}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    onClick={() => void requestExport("pdf", "projects")}
+                    className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <Download size={11} /> PDF
+                  </button>
+                  <button className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                    <Send size={11} /> Share
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </DashboardTabShell>
   );
 }
+

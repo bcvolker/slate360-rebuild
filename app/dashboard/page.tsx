@@ -7,7 +7,7 @@ export const metadata = {
 };
 
 export default async function DashboardPage() {
-  const { user, tier, isSlateCeo } = await resolveServerOrgContext();
+  const { user, tier, isSlateCeo, isSlateStaff } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
   return (
@@ -22,6 +22,7 @@ export default async function DashboardPage() {
       }}
       tier={tier}
       isSlateCeo={isSlateCeo}
+      isSlateStaff={isSlateStaff}
     />
   );
 }

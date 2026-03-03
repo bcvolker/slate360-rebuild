@@ -1,0 +1,648 @@
+1. Simplified Design Studio Spec (drop this into Designstudio.txt)
+
+Design Studio – Draft v1 (Simplified, Dashboard-Aligned)
+
+1. Purpose
+
+Design Studio is Slate360’s 3D workspace for anything related to models and drawings:
+
+Upload and convert scans (drone, LiDAR, 360 photos) into 3D models.
+
+Do light to advanced 3D/parametric design and markup.
+
+Prepare 3D print files and simple fabrication layouts.
+
+Generate visual reports (screenshots, flatness/thermal summaries) that can be used in Project Hub, Virtual Studio, or shared with clients.
+
+It must feel:
+
+Approachable to non-technical users (drag & drop, simple presets).
+
+Deep enough for power users (architects, modelers, fabricators).
+
+Consistent with all dashboard tabs (same top bar, same panel patterns, same “Simple vs Advanced” concept).
+
+Underlying tools should use open-source or free libraries wherever possible (Three.js, web-ifc, basic slicers, etc.), but the UI should hide that complexity.
+
+2. User Modes & Profiles
+
+Design Studio should adapt to the user’s Dashboard Profile (Starter / Pro / Expert, or similar):
+
+Starter View
+
+Goal: “Upload and get something usable with almost no learning curve.”
+
+Visible actions:
+
+Upload & Convert (drag & drop files).
+
+Quick Markup (measurements, simple shapes).
+
+Export & Share (download image/GLB, send to Virtual Studio).
+
+Hidden by default: parametric toolbars, print settings, analysis tools.
+
+Pro View
+
+Adds:
+
+Layer controls (BIM categories, point clouds, overlays).
+
+Basic modeling tools (move/rotate/scale, simple extrudes).
+
+Basic 3D Print prep (choose model, simple slicing presets).
+
+Attach to Project (link models to Project Hub records).
+
+Expert View
+
+Adds:
+
+Parametric tools and custom libraries.
+
+Advanced analysis (flatness, thermal overlays, clash review).
+
+Multi-user collaboration features if enabled by org.
+
+The profile selection lives in the Dashboard and Design Studio simply reads the current profile to decide which buttons/panels are visible.
+
+3. Main Layout (Consistent With Other Tabs)
+
+Use the same basic pattern for all “big” tabs (Project Hub, Virtual Studio, Design Studio):
+
+Top bar (shared DashboardShell):
+
+Tab title: Design Studio
+
+Project selector (optional)
+
+View switch: Simple / Advanced
+
+Basic actions:
+
+Save View
+
+Export
+
+Help (opens quick guide)
+
+Left side panel (collapsible):
+
+Assets & Versions
+
+Current project models (list with thumbnails)
+
+Upload button (drag & drop)
+
+Simple filters (Model / Scan / Print-ready)
+
+In Advanced mode, may also show:
+
+Version history / “Compare to previous”
+
+Center canvas (70–80% width)
+
+Three.js viewer:
+
+Orbit/pan/zoom
+
+Section planes (X/Y/Z)
+
+Measurement tool
+
+In Advanced mode:
+
+Layer toggles (e.g., BIM categories, scan overlay)
+
+Simple “ghost” view toggle (show/hide previous model)
+
+Right side panel (contextual tools)
+
+Changes with the selected mode:
+
+Model mode: transform, snap, basic parametric options
+
+Review mode: markup list, screenshot/export, comments
+
+Print mode: print settings, material profile, time/cost estimate
+
+Analysis mode (Advanced only): flatness/thermal controls
+
+Bottom bar (optional)
+
+Mode tabs: Upload · Model · Review · Print · Analysis
+
+Each mode is still just a different “tool preset” acting on the same canvas.
+
+4. Core Features (Organized by Mode)
+4.1 Upload (Simple, universal)
+
+Goals:
+
+Drag & drop experience.
+
+Automatic background processing where possible.
+
+Minimal decisions required.
+
+Features:
+
+Drag & drop zone (center or left panel).
+
+Allowed formats: .glb, .obj, .ifc, .stl, common point clouds, and basic image sets from drone cameras / photogrammetry apps.
+
+Simple options:
+
+“This is a Design Model”
+
+“This is a Scan / Point Cloud”
+
+Background processing:
+
+Convert to internal GLB.
+
+Generate thumbnail and low-poly preview.
+
+Store in project folder.
+
+4.2 Model (Everyday 3D work)
+
+Starter:
+
+Orbit, pan, zoom.
+
+Toggle simple section (slice through model).
+
+Place 3D markers and text notes.
+
+Take snapshots.
+
+Pro:
+
+Layer visibility (BIM categories / logical layers).
+
+Simple transform tools (move, rotate, scale).
+
+Snap to surfaces/points.
+
+Attach 2D drawings or PDFs as underlays on reference planes.
+
+Expert:
+
+Basic parametric tools UI:
+
+Edit dimensions of simple objects (height, width, depth).
+
+Replace components from a free library:
+
+Doors, windows, fixtures from CC0/open libraries.
+
+Model comparison:
+
+“Compare v1 vs v2” – color differences or an overlay.
+
+4.3 Review
+
+Full-screen “presentation” mode:
+
+Hide most tools, keep only:
+
+View presets (saved camera angles).
+
+Measure & markup tools.
+
+Comment list.
+
+“Send to Virtual Studio” button:
+
+One click creates a scene in Virtual Studio with this model and current view as the starting point.
+
+Export:
+
+View screenshot (PNG/JPEG).
+
+Simple GLB/OBJ export of current model.
+
+4.4 Print (3D Print Studio – simple first, advanced later)
+
+Starter:
+
+Pick model.
+
+Choose a preset:
+
+“Quick Draft”
+
+“Standard”
+
+“High quality”
+
+Get basic estimate:
+
+Print time
+
+Material estimate (for ballpark cost)
+
+Pro/Expert:
+
+Optional extra:
+
+Infill slider.
+
+Material type picker.
+
+Optional automatic split for small printers.
+
+Export:
+
+STL (for local slicer).
+
+Or send to “Print Queue” (if you later add multi-printer management).
+
+All of this uses free slicers/libraries behind the scenes where possible, but the UI stays minimal.
+
+4.5 Analysis (Advanced, but UI still clean)
+
+Only visible in Advanced view.
+
+Two main tools (to start):
+
+Flatness
+
+For concrete/ground surfaces:
+
+Choose a surface.
+
+System computes a color heatmap based on deviation from a reference plane.
+
+Show basic stats and a “Save Report” button.
+
+Export:
+
+Simple PDF giving max high/low and a small legend image.
+
+Thermal Overlay
+
+For models with associated thermal images:
+
+Show image on a plane or as a texture overlay.
+
+Allow simple palette selection (e.g., “Iron”, “Rainbow”).
+
+Export:
+
+Snapshot with measured hot/cold spots and a simple report.
+
+5. Integration With Other Tabs
+
+Dashboard
+
+Design Studio models appear as items in the project’s Assets section.
+
+Each model card can be opened directly in Design Studio, Virtual Studio, or attached to a Project Hub record.
+
+Project Hub
+
+From Design Studio, “Attach to Project Hub” links a model or snapshot to:
+
+RFIs
+
+Issues
+
+Change requests
+
+Project Hub can open Design Studio at a specific view for context.
+
+Virtual Studio
+
+“Send to Virtual Studio” creates or updates a Virtual Studio scene.
+
+X-Ray comparisons (BIM vs drone scan) can use Design Studio outputs directly.
+
+Content Studio (later)
+
+Export simple animations or orbit paths as clips for video editing.
+
+6. Performance & Safety
+
+Always load:
+
+A lightweight preview first.
+
+Defer heavy meshes and analysis until the user zooms in or enables Advanced tools.
+
+Heavy tasks:
+
+Upload → convert → generate thumbnails.
+
+Flatness/thermal calculations.
+
+Optional parametric conversions.
+
+These should be run as background jobs or API calls, with:
+
+Clear progress indicators.
+
+Safe fallbacks for users on slow machines.
+
+2. Copilot-Ready Structure & Skeleton Code
+
+Below is a lean scaffold you can hand to Copilot / Gemini so they know how to structure the files without over-engineering. It assumes:
+
+You already have a DashboardShell layout for all dashboard tabs.
+
+You want Design Studio as a sub-route: app/(dashboard)/design-studio/page.tsx.
+
+You’re using React state hooks for now (you can add Zustand later if needed).
+
+2.1 Suggested Files
+
+app/(dashboard)/design-studio/page.tsx
+
+components/design/DesignStudioShell.tsx
+
+components/design/LeftAssetPanel.tsx
+
+components/design/RightToolPanel.tsx
+
+components/design/DesignCanvas.tsx
+
+components/design/UploadPanel.tsx
+
+components/design/PrintPanel.tsx
+
+components/design/AnalysisPanel.tsx
+
+2.2 TypeScript: basic view state hook
+// lib/useDesignStudioView.ts
+"use client";
+
+import { useState } from "react";
+
+export type DesignMode = "upload" | "model" | "review" | "print" | "analysis";
+
+export interface DesignStudioViewState {
+  mode: DesignMode;
+  viewLevel: "simple" | "advanced";
+}
+
+export function useDesignStudioView(initial?: Partial<DesignStudioViewState>) {
+  const [mode, setMode] = useState<DesignMode>(initial?.mode ?? "model");
+  const [viewLevel, setViewLevel] = useState<"simple" | "advanced">(
+    initial?.viewLevel ?? "simple"
+  );
+
+  return {
+    mode,
+    viewLevel,
+    setMode,
+    setViewLevel,
+  };
+}
+
+2.3 Page entry
+// app/(dashboard)/design-studio/page.tsx
+"use client";
+
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { DesignStudioShell } from "@/components/design/DesignStudioShell";
+
+export default function DesignStudioPage() {
+  return (
+    <DashboardShell title="Design Studio">
+      <DesignStudioShell />
+    </DashboardShell>
+  );
+}
+
+2.4 DesignStudioShell layout
+// components/design/DesignStudioShell.tsx
+"use client";
+
+import { useDesignStudioView } from "@/lib/useDesignStudioView";
+import { LeftAssetPanel } from "./LeftAssetPanel";
+import { RightToolPanel } from "./RightToolPanel";
+import { DesignCanvas } from "./DesignCanvas";
+
+export function DesignStudioShell() {
+  const { mode, viewLevel, setMode, setViewLevel } = useDesignStudioView();
+
+  return (
+    <div className="flex h-[calc(100vh-4rem)] bg-slate-950 text-slate-100">
+      {/* Left */}
+      <LeftAssetPanel
+        mode={mode}
+        viewLevel={viewLevel}
+        onModeChange={setMode}
+      />
+
+      {/* Center Canvas */}
+      <div className="flex-1 relative border-x border-slate-800">
+        <DesignCanvas mode={mode} viewLevel={viewLevel} />
+      </div>
+
+      {/* Right Tools */}
+      <RightToolPanel
+        mode={mode}
+        viewLevel={viewLevel}
+        onViewLevelChange={setViewLevel}
+      />
+    </div>
+  );
+}
+
+2.5 Canvas stub
+// components/design/DesignCanvas.tsx
+"use client";
+
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import type { DesignMode } from "@/lib/useDesignStudioView";
+
+interface Props {
+  mode: DesignMode;
+  viewLevel: "simple" | "advanced";
+}
+
+export function DesignCanvas({ mode, viewLevel }: Props) {
+  return (
+    <Canvas camera={{ position: [5, 5, 5], fov: 45 }}>
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[10, 10, 10]} intensity={0.6} />
+      {/* Replace this with real model loader later */}
+      <mesh>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="#38bdf8" />
+      </mesh>
+      <OrbitControls enablePan enableZoom enableRotate />
+    </Canvas>
+  );
+}
+
+2.6 Panels as small, focused components
+
+Left panel (assets + mode buttons):
+
+// components/design/LeftAssetPanel.tsx
+"use client";
+
+import type { DesignMode } from "@/lib/useDesignStudioView";
+
+interface Props {
+  mode: DesignMode;
+  viewLevel: "simple" | "advanced";
+  onModeChange: (mode: DesignMode) => void;
+}
+
+const modes: { id: DesignMode; label: string }[] = [
+  { id: "upload", label: "Upload" },
+  { id: "model", label: "Model" },
+  { id: "review", label: "Review" },
+  { id: "print", label: "Print" },
+  { id: "analysis", label: "Analysis" },
+];
+
+export function LeftAssetPanel({ mode, onModeChange }: Props) {
+  return (
+    <aside className="w-72 border-r border-slate-800 bg-slate-900/80 backdrop-blur-md flex flex-col">
+      <div className="p-4 border-b border-slate-800">
+        <h2 className="font-semibold text-sm mb-2">Modes</h2>
+        <div className="flex flex-wrap gap-2">
+          {modes.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => onModeChange(m.id)}
+              className={`px-3 py-1 rounded-full text-xs ${
+                mode === m.id
+                  ? "bg-sky-500 text-white"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        <p className="text-xs text-slate-400 mb-2">Project Assets</p>
+        {/* Later: list project models with thumbnails */}
+        <div className="text-xs text-slate-500">
+          No models yet. Drag & drop files into the canvas or use Upload mode.
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+
+Right panel (view level + contextual tools):
+
+// components/design/RightToolPanel.tsx
+"use client";
+
+import type { DesignMode } from "@/lib/useDesignStudioView";
+
+interface Props {
+  mode: DesignMode;
+  viewLevel: "simple" | "advanced";
+  onViewLevelChange: (level: "simple" | "advanced") => void;
+}
+
+export function RightToolPanel({
+  mode,
+  viewLevel,
+  onViewLevelChange,
+}: Props) {
+  return (
+    <aside className="w-80 border-l border-slate-800 bg-slate-900/80 backdrop-blur-md flex flex-col">
+      {/* View level toggle */}
+      <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+        <span className="text-xs text-slate-400">View</span>
+        <div className="inline-flex rounded-full bg-slate-800 p-1 text-xs">
+          <button
+            onClick={() => onViewLevelChange("simple")}
+            className={`px-3 py-1 rounded-full ${
+              viewLevel === "simple"
+                ? "bg-slate-50 text-slate-900"
+                : "text-slate-300"
+            }`}
+          >
+            Simple
+          </button>
+          <button
+            onClick={() => onViewLevelChange("advanced")}
+            className={`px-3 py-1 rounded-full ${
+              viewLevel === "advanced"
+                ? "bg-slate-50 text-slate-900"
+                : "text-slate-300"
+            }`}
+          >
+            Advanced
+          </button>
+        </div>
+      </div>
+
+      {/* Contextual content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs text-slate-200">
+        {mode === "upload" && (
+          <div>
+            <h3 className="font-semibold mb-2">Upload & Convert</h3>
+            <p>Drag and drop files into the canvas area to start.</p>
+            <p className="mt-1 text-slate-400">
+              Supported: GLB, OBJ, IFC, STL, common point clouds, and photo sets
+              from drone flights.
+            </p>
+          </div>
+        )}
+
+        {mode === "model" && (
+          <div>
+            <h3 className="font-semibold mb-2">Model Tools</h3>
+            <ul className="list-disc list-inside space-y-1 text-slate-300">
+              <li>Orbit, pan, zoom the model.</li>
+              <li>Toggle section planes to slice through geometry.</li>
+              {viewLevel === "advanced" && (
+                <li>Enable extra layers and basic parametric controls.</li>
+              )}
+            </ul>
+          </div>
+        )}
+
+        {mode === "review" && (
+          <div>
+            <h3 className="font-semibold mb-2">Review & Share</h3>
+            <ul className="list-disc list-inside space-y-1 text-slate-300">
+              <li>Capture a snapshot of the current view.</li>
+              <li>Send this model to the Virtual Studio tab.</li>
+            </ul>
+          </div>
+        )}
+
+        {mode === "print" && (
+          <div>
+            <h3 className="font-semibold mb-2">3D Print Preview</h3>
+            <p>
+              Choose a print preset and export STL or send to a print queue in
+              a later version.
+            </p>
+          </div>
+        )}
+
+        {mode === "analysis" && (
+          <div>
+            <h3 className="font-semibold mb-2">Analysis</h3>
+            <p>Flatness and thermal tools appear here in Advanced view.</p>
+          </div>
+        )}
+      </div>
+    </aside>
+  );
+}
+
+
+If you like this approach, next steps could be:
+
+I repeat this same simple shell + mode + viewLevel pattern for Virtual Studio, Athlete360, 360 Builder, Geospatial, so everything feels like one family.
+
+Then you can hand each tab’s text file + these skeletons to Copilot/Gemini and tell them: “Fill in the internals, but do not change the shell/layout or the mode/viewLevel structure.”

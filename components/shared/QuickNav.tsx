@@ -54,7 +54,8 @@ interface QuickNavProps {
 
 export default function QuickNav({ tier, isCeo = false }: QuickNavProps) {
   const [open, setOpen] = useState(false);
-  const ent = tier ? getEntitlements(tier) : null;
+  // Use isCeo override so CEO users (and invited staff) see enterprise-gated nav items
+  const ent = tier ? getEntitlements(tier, { isSlateCeo: isCeo }) : null;
 
   const visibleItems = NAV_ITEMS.filter((item) => {
     if (item.ceoOnly && !isCeo) return false;

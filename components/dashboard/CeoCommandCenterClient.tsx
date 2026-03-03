@@ -32,9 +32,10 @@ const PLANS = [
 interface CeoProps {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
+  isCeo?: boolean;
 }
 
-export default function CeoCommandCenterClient({ user, tier }: CeoProps) {
+export default function CeoCommandCenterClient({ user, tier, isCeo = false }: CeoProps) {
   const [priceLift, setPriceLift] = useState(10);
   const baseMrr = 128400;
   const projectedMrr = useMemo(() => Math.round(baseMrr + priceLift * 190), [priceLift]);

@@ -1,0 +1,876 @@
+3. CEO TAB – UPDATED SUMMARY
+
+This builds directly on your CEO spec + earlier code, but clarifies how it fits with plans/entitlements and the broader business control center.
+
+3.1. Role of CEO Tab
+
+Only you can access it (canAccessCeo + email/role check).
+
+Single-page command center with three zones:
+
+Business Health – MRR, churn, margin, runway, active subscribers.
+
+Actions & Experiments – prioritized action list + simple pricing “what-if” slider.
+
+Controls – Plans & pricing, homepage/learn-more content assets, basic user/subscription controls (invite admins, open subscription views).
+
+3.2. Data Model (Frontend)
+
+CEO store holds:
+
+revenue: RevenueSnapshot – MRR, ARR, churn, net new MRR, active subs.
+
+costs: CostSnapshot – infra + other monthly costs.
+
+plans: PlanMetric[] – each plan summary (name, price, active orgs).
+
+contentAssets: ContentAsset[] – homepage + Learn More asset mapping.
+
+Simulation state:
+
+simFactor, simProjectedMrr, simActive
+
+Derived metrics:
+
+getGrossMargin()
+
+getRunwayMonths(cashOnHand)
+
+getActionItems() – textual suggestions (e.g., high churn, low margin).
+
+3.3. API Contracts
+
+GET /api/ceo/overview
+→ returns a CeoOverviewPayload with revenue, costs, plans, content assets.
+
+POST /api/ceo/action
+→ { action: string; payload?: any } – simple, generic action bus:
+
+apply_pricing_simulation
+
+upload_content_asset
+
+open_plan_editor
+
+open_invite_modal
+
+etc.
+
+3.4. Interaction with Plans & Entitlements
+
+Plans in CEO tab correspond to rows in plans (or billing_plans) table, each having:
+
+Name, Stripe price, description, recommended use.
+
+entitlements JSON that ultimately drives Dashboard’s subscriptionTier + UserEntitlements.
+
+You’ll later create a Plan Editor experience (modal or dedicated page) to modify the entitlements JSON per plan, but the CEO tab already surfaces summary metrics and “Edit” buttons that call open_plan_editor via runAction.
+
+4. CEO TAB – FULL CODE SCAFFOLDS
+4.1. lib/stores/useCeoStore.ts
+// lib/stores/useCeoStore.ts
+'use client';
+
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export interface RevenueSnapshot {
+  mrr: number;
+  arr: number;
+  netNewMrr: number;
+  churnRate: number;
+  activeSubscribers: number;
+}
+
+export interface CostSnapshot {
+  infraMonthly: number;
+  otherMonthly: number;
+}
+
+export interface PlanMetric {
+  id: string;
+  name: string;
+  pricePerMonth: number;
+  activeOrgs: number;
+}
+
+export interface ContentAsset {
+  id: string;
+  placement: string;
+  url: string;
+}
+
+export interface CeoOverviewPayload {
+  revenue: RevenueSnapshot;
+  costs: CostSnapshot;
+  plans: PlanMetric[];
+  contentAssets: ContentAsset[];
+}
+
+type Severity = 'info' | 'warning' | 'critical';
+
+export interface ActionItem {
+  label: string;
+  severity: Severity;
+  cta?: { label: string; action: string; payload?: any };
+}
+
+interface CeoState {
+  loading: boolean;
+  error: string | null;
+  revenue: RevenueSnapshot | null;
+  costs: CostSnapshot | null;
+  plans: PlanMetric[];
+  contentAssets: ContentAsset[];
+
+  // simulation
+  simActive: boolean;
+  simFactor: number; // 1.0 = no change
+  simProjectedMrr: number;
+
+  // core actions
+  hydrate: (payload: CeoOverviewPayload) => void;
+  setLoading: (value: boolean) => void;
+  setError: (value: string | null) => void;
+
+  toggleSimulation: () => void;
+  setSimFactor: (factor: number) => void;
+
+  getGrossMargin: () => number | null;
+  getRunwayMonths: (cashOnHand: number) => number | null;
+  getActionItems: () => ActionItem[];
+
+  // API wiring
+  runAction: (action: string, payload?: any) => Promise<void>;
+}
+
+export const useCeoStore = create<CeoState>()(
+  persist(
+    (set, get) => ({
+      loading: false,
+      error: null,
+      revenue: null,
+      costs: null,
+      plans: [],
+      contentAssets: [],
+      simActive: false,
+      simFactor: 1.0,
+      simProjectedMrr: 0,
+
+      hydrate: (payload) => {
+        set({
+          revenue: payload.revenue,
+          costs: payload.costs,
+          plans: payload.plans,
+          contentAssets: payload.contentAssets,
+          error: null,
+        });
+        const baseMrr = payload.revenue?.mrr ?? 0;
+        set((state) => ({
+          simProjectedMrr: baseMrr * state.simFactor,
+        }));
+      },
+
+      setLoading: (value) => set({ loading: value }),
+      setError: (value) => set({ error: value }),
+
+      toggleSimulation: () =>
+        set((state) => ({ simActive: !state.simActive })),
+
+      setSimFactor: (factor) => {
+        const baseMrr = get().revenue?.mrr ?? 0;
+        set({
+          simFactor: factor,
+          simProjectedMrr: baseMrr * factor,
+        });
+      },
+
+      getGrossMargin: () => {
+        const { revenue, costs } = get();
+        if (!revenue || !costs) return null;
+        const totalCosts = costs.infraMonthly + costs.otherMonthly;
+        if (revenue.mrr <= 0) return 0;
+        return (1 - totalCosts / revenue.mrr) * 100;
+      },
+
+      getRunwayMonths: (cashOnHand) => {
+        const { revenue, costs } = get();
+        if (!costs) return null;
+        const burn =
+          costs.infraMonthly + costs.otherMonthly - (revenue?.mrr ?? 0);
+        if (burn <= 0) return null; // profitable / no burn
+        return cashOnHand / burn;
+      },
+
+      getActionItems: () => {
+        const items: ActionItem[] = [];
+        const { revenue, costs } = get();
+        const margin = get().getGrossMargin();
+
+        if (!revenue || !costs) {
+          items.push({
+            label:
+              'Connect Stripe and infra cost tracking to unlock metrics.',
+            severity: 'info',
+            cta: { label: 'Open billing setup', action: 'open_billing' },
+          });
+          return items;
+        }
+
+        if (revenue.churnRate > 5) {
+          items.push({
+            label: `Churn is ${revenue.churnRate.toFixed(
+              1,
+            )}% – review onboarding & trial flows.`,
+            severity: 'warning',
+            cta: { label: 'View churn details', action: 'open_churn' },
+          });
+        }
+
+        if (margin !== null && margin < 70) {
+          items.push({
+            label: `Gross margin is ${margin.toFixed(
+              1,
+            )}% – consider adjusting quotas or pricing.`,
+            severity: 'critical',
+            cta: { label: 'Tune quotas', action: 'open_quotas' },
+          });
+        }
+
+        if (!items.length) {
+          items.push({
+            label: 'Metrics look healthy – focus on growth experiments.',
+            severity: 'info',
+          });
+        }
+
+        return items;
+      },
+
+      runAction: async (action, payload) => {
+        try {
+          const res = await fetch('/api/ceo/action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, payload }),
+          });
+          if (!res.ok) {
+            throw new Error(`Action failed: ${res.statusText}`);
+          }
+        } catch (err: any) {
+          set({ error: err.message || 'Action failed' });
+        }
+      },
+    }),
+    {
+      name: 'slate360-ceo-store',
+    },
+  ),
+);
+
+4.2. app/(dashboard)/ceo/page.tsx
+// app/(dashboard)/ceo/page.tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Shield,
+  DollarSign,
+  BarChart3,
+  AlertTriangle,
+  Users,
+} from 'lucide-react';
+import { useCeoStore } from '@/lib/stores/useCeoStore';
+
+export default function CeoPage() {
+  const router = useRouter();
+
+  const {
+    loading,
+    error,
+    revenue,
+    costs,
+    plans,
+    contentAssets,
+    hydrate,
+    setLoading,
+    setError,
+    simActive,
+    simFactor,
+    simProjectedMrr,
+    toggleSimulation,
+    setSimFactor,
+    getGrossMargin,
+    getRunwayMonths,
+    getActionItems,
+    runAction,
+  } = useCeoStore();
+
+  const [cashOnHand, setCashOnHand] = useState<number>(25000);
+  const grossMargin = getGrossMargin();
+  const runway = getRunwayMonths(cashOnHand);
+  const actionItems = getActionItems();
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/ceo/overview');
+        if (!res.ok) {
+          throw new Error('Failed to load CEO overview');
+        }
+        const payload = await res.json();
+        hydrate(payload);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load CEO overview');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [hydrate, setLoading, setError]);
+
+  // TODO: real auth guard – only you should see this.
+  // Example pattern:
+  // const { user } = useAuth();
+  // useEffect(() => {
+  //   if (!user || !user.isCeo) router.replace('/dashboard');
+  // }, [user, router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] bg-slate-950 text-slate-200">
+        Loading CEO Command Center…
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-50 flex flex-col">
+      {/* Header */}
+      <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900">
+        <div className="flex items-center gap-3">
+          <Shield className="w-5 h-5 text-emerald-400" />
+          <div>
+            <h1 className="font-semibold tracking-wide">
+              CEO Command Center
+            </h1>
+            <p className="text-xs text-slate-400">
+              Private control panel for Slate360 – you only.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-slate-300">
+          <label className="flex items-center gap-2">
+            <span>Cash on hand</span>
+            <input
+              type="number"
+              className="bg-slate-800 border border-slate-700 rounded px-2 py-1 w-24 text-right text-xs"
+              value={cashOnHand}
+              onChange={(e) =>
+                setCashOnHand(Number(e.target.value) || 0)
+              }
+            />
+          </label>
+        </div>
+      </header>
+
+      <main className="flex-1 p-6 space-y-6 overflow-y-auto">
+        {error && (
+          <div className="text-xs text-red-300 bg-red-900/20 border border-red-700 rounded px-3 py-2">
+            {error}
+          </div>
+        )}
+
+        {/* Zone A – Business Health */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4" />
+                <span>Revenue</span>
+              </span>
+            </div>
+            <div className="text-xl font-semibold">
+              ${revenue?.mrr?.toLocaleString() ?? '0'}
+              <span className="ml-1 text-xs text-slate-400">MRR</span>
+            </div>
+            <div className="text-[11px] text-slate-400">
+              Net +${revenue?.netNewMrr?.toLocaleString() ?? '0'}/month
+            </div>
+            <div className="text-[11px] text-slate-400">
+              Churn: {revenue ? `${revenue.churnRate.toFixed(1)}%` : '—'}
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                <span>Margin</span>
+              </span>
+            </div>
+            <div className="text-xl font-semibold">
+              {grossMargin !== null ? `${grossMargin.toFixed(1)}%` : '—'}
+            </div>
+            <div className="text-[11px] text-slate-400">
+              Infra: ${costs?.infraMonthly?.toFixed(0) ?? 0}/mo
+            </div>
+            <div className="text-[11px] text-slate-400">
+              Other: ${costs?.otherMonthly?.toFixed(0) ?? 0}/mo
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                <span>Runway</span>
+              </span>
+            </div>
+            <div className="text-xl font-semibold">
+              {runway !== null ? `${runway.toFixed(1)} mo` : '—'}
+            </div>
+            <div className="text-[11px] text-slate-400">
+              Active subscribers: {revenue?.activeSubscribers ?? 0}
+            </div>
+          </div>
+        </section>
+
+        {/* Zone B – Actions & Experiments */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Action list */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <h2 className="flex items-center gap-2 text-sm font-semibold mb-3">
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              Today’s Priority Actions
+            </h2>
+            <ul className="space-y-3 text-xs">
+              {actionItems.map((item, idx) => {
+                const bg =
+                  item.severity === 'critical'
+                    ? 'bg-red-900/30 border-red-700'
+                    : item.severity === 'warning'
+                    ? 'bg-amber-900/30 border-amber-700'
+                    : 'bg-emerald-900/20 border-emerald-700';
+                const textColor =
+                  item.severity === 'critical'
+                    ? 'text-red-200'
+                    : item.severity === 'warning'
+                    ? 'text-amber-100'
+                    : 'text-emerald-100';
+
+                return (
+                  <li
+                    key={idx}
+                    className={`border rounded-lg px-3 py-2 ${bg}`}
+                  >
+                    <p className={`font-medium ${textColor}`}>
+                      {item.label}
+                    </p>
+                    {item.cta && (
+                      <button
+                        className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px]"
+                        onClick={() =>
+                          runAction(item.cta!.action, item.cta!.payload)
+                        }
+                      >
+                        {item.cta.label}
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Pricing what-if simulator */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <h2 className="text-sm font-semibold mb-3">Pricing What-If</h2>
+            <p className="text-xs text-slate-400 mb-3">
+              Slide to test a global price adjustment. This is a quick sketch,
+              not a full A/B experiment.
+            </p>
+            <button
+              className="mb-3 inline-flex text-[11px] px-3 py-1 rounded border border-purple-500/60 bg-purple-900/30 hover:bg-purple-800/40"
+              onClick={toggleSimulation}
+            >
+              {simActive ? 'Hide simulator' : 'Show simulator'}
+            </button>
+
+            {simActive && (
+              <div className="space-y-3">
+                <label className="flex items-center justify-between text-xs">
+                  <span>Global price factor</span>
+                  <span className="font-mono">
+                    {simFactor.toFixed(2)}x
+                  </span>
+                </label>
+                <input
+                  type="range"
+                  min={0.8}
+                  max={1.5}
+                  step={0.05}
+                  value={simFactor}
+                  onChange={(e) =>
+                    setSimFactor(Number(e.target.value))
+                  }
+                  className="w-full"
+                />
+                <div className="text-xs">
+                  Projected MRR:{' '}
+                  <span className="font-semibold">
+                    ${simProjectedMrr.toFixed(0)}
+                  </span>
+                  {revenue && (
+                    <span className="ml-1 text-slate-400">
+                      (current ${revenue.mrr.toFixed(0)})
+                    </span>
+                  )}
+                </div>
+                <button
+                  className="w-full mt-2 py-2 text-xs rounded bg-purple-600 hover:bg-purple-500"
+                  onClick={() =>
+                    runAction('apply_pricing_simulation', {
+                      factor: simFactor,
+                    })
+                  }
+                >
+                  Save as draft pricing change
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Zone C – Controls: Pricing, Content, Users */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Pricing overview */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <h2 className="text-sm font-semibold mb-3">
+              Plans & Pricing
+            </h2>
+            <ul className="space-y-2 text-xs">
+              {plans.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex items-center justify-between bg-slate-800/60 rounded px-2 py-2"
+                >
+                  <div>
+                    <div className="font-medium">{p.name}</div>
+                    <div className="text-[11px] text-slate-400">
+                      ${p.pricePerMonth.toFixed(0)}/mo • {p.activeOrgs} orgs
+                    </div>
+                  </div>
+                  <button
+                    className="text-[11px] px-2 py-1 rounded bg-slate-700 hover:bg-slate-600"
+                    onClick={() =>
+                      runAction('open_plan_editor', { planId: p.id })
+                    }
+                  >
+                    Edit
+                  </button>
+                </li>
+              ))}
+              {!plans.length && (
+                <li className="text-[11px] text-slate-400">
+                  No plans loaded yet – connect billing.
+                </li>
+              )}
+            </ul>
+          </div>
+
+          {/* Content manager */}
+          <ContentManagerCard
+            contentAssets={contentAssets}
+            runAction={runAction}
+          />
+
+          {/* Users & subs */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Users & Subscriptions
+            </h2>
+            <div className="space-y-2 text-xs">
+              <button
+                className="w-full py-2 rounded bg-blue-600 hover:bg-blue-500"
+                onClick={() =>
+                  runAction('open_invite_modal', { role: 'org_admin' })
+                }
+              >
+                Invite new org / admin
+              </button>
+              <button
+                className="w-full py-2 rounded bg-slate-700 hover:bg-slate-600"
+                onClick={() => runAction('open_subscriptions')}
+              >
+                View subscriptions
+              </button>
+              <p className="text-[11px] text-slate-400">
+                This is where you invite people, manage subs, or delegate
+                limited admin access.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+function ContentManagerCard({
+  contentAssets,
+  runAction,
+}: {
+  contentAssets: ReturnType<typeof useCeoStore>['contentAssets'];
+  runAction: (action: string, payload?: any) => Promise<void>;
+}) {
+  const [file, setFile] = useState<File | null>(null);
+  const [placement, setPlacement] = useState('homepage-hero');
+
+  const handleUpload = () => {
+    if (!file) return;
+    // Real upload will be handled by a separate upload flow (S3/Supabase)
+    runAction('upload_content_asset', {
+      placement,
+      fileName: file.name,
+    });
+  };
+
+  return (
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <h2 className="text-sm font-semibold mb-3">Content Manager</h2>
+      <div className="space-y-2 text-xs mb-3">
+        <input
+          type="file"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          className="w-full text-[11px] file:mr-2 file:px-2 file:py-1 file:rounded file:bg-slate-700 file:text-slate-50"
+        />
+        <select
+          className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1"
+          value={placement}
+          onChange={(e) => setPlacement(e.target.value)}
+        >
+          <option value="homepage-hero">Homepage hero</option>
+          <option value="features-geospatial">Geospatial tile</option>
+          <option value="features-360">360 tour tile</option>
+          <option value="learn-more-design">
+            Design studio Learn More
+          </option>
+        </select>
+        <button
+          className="w-full py-2 rounded bg-emerald-600 hover:bg-emerald-500"
+          onClick={handleUpload}
+          disabled={!file}
+        >
+          Upload & attach
+        </button>
+      </div>
+      <div className="text-[11px] text-slate-400 mb-2">
+        These assets drive what shows on the homepage tiles and Learn More
+        pages, without redeploys.
+      </div>
+      <ul className="space-y-1 text-[11px] max-h-24 overflow-y-auto">
+        {contentAssets.map((a) => (
+          <li key={a.id}>
+            <span className="font-mono text-slate-300">
+              {a.placement}
+            </span>
+            <span className="text-slate-500"> – {a.url}</span>
+          </li>
+        ))}
+        {!contentAssets.length && (
+          <li className="text-slate-500">
+            No assets yet – upload one above.
+          </li>
+        )}
+      </ul>
+    </div>
+  );
+}
+
+4.3. CEO API Stubs
+
+app/api/ceo/overview/route.ts:
+
+// app/api/ceo/overview/route.ts
+import { NextResponse } from 'next/server';
+import type { CeoOverviewPayload } from '@/lib/stores/useCeoStore';
+
+// TODO: Replace with real Stripe/Supabase data.
+export async function GET() {
+  const payload: CeoOverviewPayload = {
+    revenue: {
+      mrr: 3200,
+      arr: 3200 * 12,
+      netNewMrr: 400,
+      churnRate: 4.2,
+      activeSubscribers: 18,
+    },
+    costs: {
+      infraMonthly: 250,
+      otherMonthly: 150,
+    },
+    plans: [
+      { id: 'starter', name: 'Starter', pricePerMonth: 49, activeOrgs: 10 },
+      { id: 'pro', name: 'Pro', pricePerMonth: 149, activeOrgs: 6 },
+      {
+        id: 'enterprise',
+        name: 'Enterprise',
+        pricePerMonth: 399,
+        activeOrgs: 2,
+      },
+    ],
+    contentAssets: [],
+  };
+
+  return NextResponse.json(payload);
+}
+
+
+app/api/ceo/action/route.ts:
+
+// app/api/ceo/action/route.ts
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+
+export async function POST(req: NextRequest) {
+  const { action, payload } = await req.json();
+
+  // TODO: wire these to real logic (Stripe, Supabase, storage).
+  switch (action) {
+    case 'open_billing':
+      // Could just be logged or used to trigger a UI event via websockets.
+      break;
+    case 'apply_pricing_simulation':
+      // persist draft pricing change request
+      console.log('Draft pricing change', payload);
+      break;
+    case 'upload_content_asset':
+      // real upload should be handled by a dedicated upload route
+      console.log('Requested content upload', payload);
+      break;
+    case 'open_plan_editor':
+      console.log('Open plan editor for', payload?.planId);
+      break;
+    case 'open_invite_modal':
+      console.log('Open invite modal with role', payload?.role);
+      break;
+    case 'open_subscriptions':
+      console.log('Open subscription management');
+      break;
+    default:
+      console.log('Unhandled CEO action', action, payload);
+  }
+
+  return NextResponse.json({ ok: true });
+}
+
+5. SAMPLE plans + entitlements JSON (FOR BACKEND)
+
+You mentioned wanting a plans table + entitlements JSON that the CEO tab can edit and the dashboard can consume. Here’s a simple shape you can give Copilot for Supabase / Postgres:
+
+5.1. Table: plans
+
+Columns (simplified):
+
+id (text, primary key) – e.g., 'starter', 'pro', 'enterprise'
+
+name (text)
+
+stripe_price_id (text)
+
+description (text)
+
+tier (text) – 'free' | 'starter' | 'pro' | 'enterprise'
+
+entitlements (jsonb)
+
+Example JSON rows (conceptually):
+
+[
+  {
+    "id": "starter",
+    "name": "Starter",
+    "stripe_price_id": "price_123_starter",
+    "description": "Hub + basic content tools for individuals.",
+    "tier": "starter",
+    "entitlements": {
+      "canAccessHub": true,
+      "canAccessContent": true,
+      "canAccessDesign": false,
+      "canAccessGeospatial": false,
+      "canAccessVirtual": false,
+      "canAccessReports": false,
+      "canAccessAthlete": false,
+      "canAccessCeo": false,
+      "canRunProcessingJobs": false,
+      "canInviteUsers": false,
+      "canManageOrg": false
+    }
+  },
+  {
+    "id": "pro",
+    "name": "Pro",
+    "stripe_price_id": "price_123_pro",
+    "description": "Add design, 360 tours, and geospatial tools.",
+    "tier": "pro",
+    "entitlements": {
+      "canAccessHub": true,
+      "canAccessContent": true,
+      "canAccessDesign": true,
+      "canAccessGeospatial": true,
+      "canAccessVirtual": true,
+      "canAccessReports": true,
+      "canAccessAthlete": false,
+      "canAccessCeo": false,
+      "canRunProcessingJobs": true,
+      "canInviteUsers": true,
+      "canManageOrg": false
+    }
+  },
+  {
+    "id": "enterprise",
+    "name": "Enterprise",
+    "stripe_price_id": "price_123_enterprise",
+    "description": "Full access, white-label, and team controls.",
+    "tier": "enterprise",
+    "entitlements": {
+      "canAccessHub": true,
+      "canAccessContent": true,
+      "canAccessDesign": true,
+      "canAccessGeospatial": true,
+      "canAccessVirtual": true,
+      "canAccessReports": true,
+      "canAccessAthlete": true,
+      "canAccessCeo": true,
+      "canRunProcessingJobs": true,
+      "canInviteUsers": true,
+      "canManageOrg": true
+    }
+  }
+]
+
+
+Later, your Org Settings / My Account UI will:
+
+Load entitlements from the plan.
+
+Apply per-user overrides (e.g., disable canRunProcessingJobs for interns).
+
+The final effective entitlements (plan + overrides) are what the dashboard store gets from /api/dashboard/session.
+
+If you’d like next, I can:
+
+Draft a minimal Org Settings page that:
+
+Lists team members
+
+Shows toggle switches for per-user entitlements
+
+Shows a usage bar and quick “upgrade” CTA
+
+Or take one of the other tabs (Project Hub, Design Studio, Tour Builder, etc.) and align its store + API contracts tightly with this dashboard/entitlements structure so everything feels unified.

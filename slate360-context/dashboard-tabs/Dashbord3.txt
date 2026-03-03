@@ -1,0 +1,896 @@
+1. DASHBOARD – UPDATED TECHNICAL SUMMARY (WITH ENTITLEMENTS)
+
+This builds on the simplified dashboard spec you already have, but now explicitly separates:
+
+UI complexity (profile/mode)
+
+Access rights (subscription tier + entitlements JSON)
+
+1.1. Role of the Dashboard
+
+Single entry point for all user types (solo, students, realtors, GC teams, universities, enterprise departments).
+
+Never mentions professions – just “workspaces” and “tools”.
+
+Every workspace tile can route into the right tab:
+
+Project Hub, Content Studio, 360 Tour Builder, Virtual Studio, Design, Athlete360, etc.
+
+1.2. Two Axes of Control
+
+A. UI Profile (per-user preference, not billing)
+
+profile: 'essentials' | 'standard' | 'advanced' | 'admin' | 'custom'
+
+Essentials – minimal UI, no right rail, fewer stats.
+
+Standard – adds right-rail metrics, more detail.
+
+Advanced – more detail (processing queues, etc.).
+
+Admin – shows org-level things when the user is an org admin.
+
+Custom – later you can let users toggle panels on/off.
+
+B. Subscription + Entitlements (per-org / per-user access)
+
+subscriptionTier: 'free' | 'starter' | 'pro' | 'enterprise'
+
+entitlements: UserEntitlements (a JSON object from the backend) controls what tabs and expensive actions each user can access.
+
+Example flags:
+
+export interface UserEntitlements {
+  // Tab access
+  canAccessHub: boolean;
+  canAccessContent: boolean;
+  canAccessDesign: boolean;
+  canAccessGeospatial: boolean;
+  canAccessVirtual: boolean;
+  canAccessReports: boolean;
+  canAccessAthlete: boolean;
+  canAccessCeo: boolean;
+
+  // Cost control / admin powers
+  canRunProcessingJobs: boolean; // expensive cloud work
+  canInviteUsers: boolean;
+  canManageOrg: boolean;
+}
+
+
+These come from:
+
+The user’s org + plan (plans table with entitlements JSON).
+
+Plus any per-user overrides set in Org Settings (admin UI).
+
+1.3. Dashboard Store Responsibilities
+
+The dashboard store now holds:
+
+Identity / access:
+
+userId, orgId, subscriptionTier, entitlements
+
+UI state:
+
+profile (UI complexity), selectedWorkspaceId
+
+Data:
+
+workspaces: WorkspaceTile[]
+
+metrics: DashboardMetrics (storage + processing jobs)
+
+usage: UsageMetrics (quota + cost breakdown)
+
+orgSettings?: OrgSettings (for branding, feature toggles)
+
+Actions:
+
+loadInitialData() – calls /api/dashboard/session to hydrate everything at once.
+
+setProfile() – user switches UI profile.
+
+selectWorkspace() – used by tiles to “focus” a workspace before routing.
+
+Simple setters for metrics, usage, workspaces, orgSettings (for future Org Settings / CEO interactions).
+
+All backend wiring (Supabase, Stripe, S3) happens in API routes, not in the store.
+
+1.4. Dashboard Layout + Page
+
+Route group layout: app/(dashboard)/layout.tsx
+
+Provides:
+
+Top bar (Slate360 logo, profile selector, search, notifications)
+
+Left rail (navigation placeholder – Copilot will connect to real routes)
+
+Optional right rail (metrics) for standard | advanced | admin.
+
+Children = actual tab content (Dashboard page, Hub, Content, etc.).
+
+Main dashboard page: app/(dashboard)/dashboard/page.tsx
+
+Shows:
+
+Header (“Your Workspaces” + quick actions).
+
+New-user empty state (call-to-action buttons).
+
+“Example workspaces” row (demo tiles flagged isDemo).
+
+“All workspaces” grid (click → set selected workspace → route to correctly-entitled tab).
+
+2. DASHBOARD – FULL CODE SCAFFOLDS
+2.1. lib/stores/useDashboardStore.ts
+// lib/stores/useDashboardStore.ts
+'use client';
+
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+
+export type DashboardProfile =
+  | 'essentials'
+  | 'standard'
+  | 'advanced'
+  | 'admin'
+  | 'custom';
+
+export type SubscriptionTier = 'free' | 'starter' | 'pro' | 'enterprise';
+
+export interface UserEntitlements {
+  // Tab access
+  canAccessHub: boolean;
+  canAccessContent: boolean;
+  canAccessDesign: boolean;
+  canAccessGeospatial: boolean;
+  canAccessVirtual: boolean;
+  canAccessReports: boolean;
+  canAccessAthlete: boolean;
+  canAccessCeo: boolean;
+
+  // Cost control / admin powers
+  canRunProcessingJobs: boolean;
+  canInviteUsers: boolean;
+  canManageOrg: boolean;
+}
+
+export interface WorkspaceTile {
+  id: string;
+  name: string;
+  description?: string;
+  thumbnailUrl?: string;
+  kind: 'project' | 'tour' | 'model' | 'folder' | 'mixed';
+  primaryTab:
+    | 'hub'
+    | 'content'
+    | 'design'
+    | 'geospatial'
+    | 'virtual'
+    | 'tourBuilder'
+    | 'reports'
+    | 'athlete'
+    | 'other';
+  status?: 'idle' | 'processing' | 'complete' | 'archived';
+  progress?: number;
+  isDemo?: boolean;
+  updatedAt?: string;
+}
+
+export interface DashboardMetrics {
+  storageUsedMB: number;
+  storageLimitMB: number;
+  processingJobs: {
+    id: string;
+    label: string;
+    progress: number;
+  }[];
+}
+
+export interface UsageMetrics {
+  storageUsedMB: number;
+  storageLimitMB: number;
+  processingCreditsUsed: number;
+  processingCreditsLimit: number;
+  costBreakdown: {
+    storage: number;
+    rendering: number;
+    aiRequests: number;
+  };
+}
+
+export interface OrgSettings {
+  orgId: string;
+  orgName: string;
+  brandColor?: string;
+  logoUrl?: string;
+  featureToggles: Record<string, boolean>; // e.g. { "virtualStudio": true }
+}
+
+export interface DashboardBootstrapPayload {
+  userId: string;
+  orgId?: string;
+  subscriptionTier: SubscriptionTier;
+  entitlements: UserEntitlements;
+  profile: DashboardProfile;
+  workspaces: WorkspaceTile[];
+  metrics: DashboardMetrics;
+  usage: UsageMetrics;
+  orgSettings?: OrgSettings;
+}
+
+export interface DashboardNotification {
+  id: string;
+  message: string;
+  type: 'info' | 'warning' | 'error';
+  createdAt: string;
+}
+
+interface DashboardState {
+  // Identity & access
+  userId: string | null;
+  orgId?: string | null;
+  subscriptionTier: SubscriptionTier;
+  entitlements: UserEntitlements;
+
+  // UI profile
+  profile: DashboardProfile;
+
+  // Data
+  workspaces: WorkspaceTile[];
+  metrics: DashboardMetrics;
+  usage: UsageMetrics | null;
+  orgSettings?: OrgSettings;
+
+  // UI selection & notifications
+  selectedWorkspaceId: string | null;
+  notifications: DashboardNotification[];
+
+  // Loading/error
+  loading: boolean;
+  error: string | null;
+
+  // Actions
+  setProfile: (profile: DashboardProfile) => void;
+  setWorkspaces: (items: WorkspaceTile[]) => void;
+  upsertWorkspace: (item: WorkspaceTile) => void;
+  setMetrics: (metrics: DashboardMetrics) => void;
+  setUsage: (usage: UsageMetrics) => void;
+  setOrgSettings: (settings: OrgSettings | undefined) => void;
+  selectWorkspace: (id: string | null) => void;
+
+  addNotification: (
+    message: string,
+    type?: DashboardNotification['type'],
+  ) => void;
+  clearNotification: (id: string) => void;
+
+  loadInitialData: () => Promise<void>;
+}
+
+const defaultEntitlements: UserEntitlements = {
+  canAccessHub: true,
+  canAccessContent: true,
+  canAccessDesign: false,
+  canAccessGeospatial: false,
+  canAccessVirtual: false,
+  canAccessReports: false,
+  canAccessAthlete: false,
+  canAccessCeo: false,
+  canRunProcessingJobs: false,
+  canInviteUsers: false,
+  canManageOrg: false,
+};
+
+const defaultMetrics: DashboardMetrics = {
+  storageUsedMB: 0,
+  storageLimitMB: 1024,
+  processingJobs: [],
+};
+
+const defaultUsage: UsageMetrics = {
+  storageUsedMB: 0,
+  storageLimitMB: 1024,
+  processingCreditsUsed: 0,
+  processingCreditsLimit: 1000,
+  costBreakdown: {
+    storage: 0,
+    rendering: 0,
+    aiRequests: 0,
+  },
+};
+
+export const useDashboardStore = create<DashboardState>()(
+  persist(
+    (set, get) => ({
+      // identity
+      userId: null,
+      orgId: null,
+      subscriptionTier: 'free',
+      entitlements: defaultEntitlements,
+
+      // UI
+      profile: 'essentials',
+
+      // data
+      workspaces: [],
+      metrics: defaultMetrics,
+      usage: null,
+      orgSettings: undefined,
+
+      // selection & notifications
+      selectedWorkspaceId: null,
+      notifications: [],
+
+      // status
+      loading: false,
+      error: null,
+
+      setProfile(profile) {
+        set({ profile });
+      },
+
+      setWorkspaces(items) {
+        set({ workspaces: items });
+      },
+
+      upsertWorkspace(item) {
+        const existing = get().workspaces;
+        const index = existing.findIndex((w) => w.id === item.id);
+        if (index === -1) {
+          set({ workspaces: [...existing, item] });
+        } else {
+          const next = [...existing];
+          next[index] = { ...next[index], ...item };
+          set({ workspaces: next });
+        }
+      },
+
+      setMetrics(metrics) {
+        set({ metrics });
+      },
+
+      setUsage(usage) {
+        set({ usage });
+      },
+
+      setOrgSettings(settings) {
+        set({ orgSettings: settings });
+      },
+
+      selectWorkspace(id) {
+        set({ selectedWorkspaceId: id });
+      },
+
+      addNotification(message, type = 'info') {
+        const notif: DashboardNotification = {
+          id: Date.now().toString(),
+          message,
+          type,
+          createdAt: new Date().toISOString(),
+        };
+        set((state) => ({
+          notifications: [...state.notifications, notif],
+        }));
+      },
+
+      clearNotification(id) {
+        set((state) => ({
+          notifications: state.notifications.filter((n) => n.id !== id),
+        }));
+      },
+
+      async loadInitialData() {
+        try {
+          set({ loading: true, error: null });
+
+          const res = await fetch('/api/dashboard/session', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!res.ok) {
+            throw new Error('Failed to load dashboard session');
+          }
+
+          const payload: DashboardBootstrapPayload = await res.json();
+
+          set({
+            userId: payload.userId,
+            orgId: payload.orgId ?? null,
+            subscriptionTier: payload.subscriptionTier,
+            entitlements: payload.entitlements || defaultEntitlements,
+            profile: payload.profile || 'essentials',
+            workspaces: payload.workspaces || [],
+            metrics: payload.metrics || defaultMetrics,
+            usage: payload.usage || defaultUsage,
+            orgSettings: payload.orgSettings,
+          });
+        } catch (err: any) {
+          set({
+            error: err?.message || 'Failed to load dashboard session',
+          });
+        } finally {
+          set({ loading: false });
+        }
+      },
+    }),
+    {
+      name: 'slate360-dashboard',
+      storage: createJSONStorage(() => localStorage),
+      // Only persist lightweight UI prefs client-side
+      partialize: (state) => ({
+        profile: state.profile,
+        selectedWorkspaceId: state.selectedWorkspaceId,
+      }),
+    },
+  ),
+);
+
+2.2. app/(dashboard)/layout.tsx
+// app/(dashboard)/layout.tsx
+'use client';
+
+import { ReactNode, useEffect } from 'react';
+import { Bell, Search } from 'lucide-react';
+import { useDashboardStore } from '@/lib/stores/useDashboardStore';
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const {
+    profile,
+    metrics,
+    notifications,
+    loadInitialData,
+    setProfile,
+    loading,
+  } = useDashboardStore();
+
+  useEffect(() => {
+    // Fetch dashboard session on first visit
+    loadInitialData();
+  }, [loadInitialData]);
+
+  const showRightRail =
+    profile === 'standard' || profile === 'advanced' || profile === 'admin';
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-50 flex flex-col">
+      {/* Top Bar */}
+      <header className="h-14 px-4 border-b border-slate-800 bg-slate-900 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="font-orbitron text-lg">Slate360</span>
+          <span className="text-xs text-slate-400">Dashboard</span>
+          {loading && (
+            <span className="ml-2 text-[11px] text-slate-500">
+              Loading…
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Quick search (stub) */}
+          <div className="hidden md:flex items-center gap-2 bg-slate-800 rounded-full px-3 py-1 text-xs">
+            <Search className="w-3 h-3 text-slate-400" />
+            <input
+              className="bg-transparent outline-none text-xs placeholder:text-slate-500"
+              placeholder="Search workspaces"
+            />
+          </div>
+
+          {/* Profile selector */}
+          <select
+            value={profile}
+            onChange={(e) =>
+              setProfile(e.target.value as Parameters<typeof setProfile>[0])
+            }
+            className="text-xs bg-slate-800 border border-slate-700 rounded-full px-3 py-1"
+          >
+            <option value="essentials">Essentials</option>
+            <option value="standard">Standard</option>
+            <option value="advanced">Advanced</option>
+            <option value="admin">Admin</option>
+            <option value="custom">Custom</option>
+          </select>
+
+          {/* Notification badge */}
+          <button className="relative w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+            <Bell className="w-4 h-4 text-slate-300" />
+            {notifications.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-[10px] rounded-full px-1">
+                {notifications.length}
+              </span>
+            )}
+          </button>
+        </div>
+      </header>
+
+      {/* Main layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Nav placeholder */}
+        <aside className="hidden md:flex w-56 border-r border-slate-800 bg-slate-900/80 flex-col">
+          <div className="px-4 py-3 text-xs font-semibold text-slate-400">
+            Navigation
+          </div>
+          <nav className="flex-1 px-2 space-y-1 text-sm">
+            {/* Copilot will convert these to real links (Project Hub, Content, etc.) */}
+            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800">
+              Overview
+            </button>
+            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800">
+              Workspaces
+            </button>
+            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800">
+              Library
+            </button>
+            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800">
+              Account
+            </button>
+          </nav>
+        </aside>
+
+        {/* Center content */}
+        <main className="flex-1 overflow-auto">{children}</main>
+
+        {/* Right metrics rail */}
+        {showRightRail && (
+          <aside className="hidden lg:flex w-64 border-l border-slate-800 bg-slate-900/80 flex-col">
+            <div className="px-4 py-3 text-xs font-semibold text-slate-400">
+              Overview
+            </div>
+            <div className="px-4 py-2 text-xs space-y-3">
+              <div>
+                <div className="text-[11px] text-slate-500 mb-1">
+                  Storage
+                </div>
+                <div className="text-sm">
+                  {metrics.storageUsedMB} / {metrics.storageLimitMB} MB
+                </div>
+                <div className="mt-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500"
+                    style={{
+                      width: `${
+                        (metrics.storageUsedMB /
+                          (metrics.storageLimitMB || 1)) *
+                        100
+                      }%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {metrics.processingJobs.length > 0 && (
+                <div>
+                  <div className="text-[11px] text-slate-500 mb-1">
+                    Processing
+                  </div>
+                  <div className="space-y-1">
+                    {metrics.processingJobs.map((job) => (
+                      <div key={job.id} className="text-[11px]">
+                        <div className="flex justify-between mb-0.5">
+                          <span className="truncate max-w-[140px]">
+                            {job.label}
+                          </span>
+                          <span>{job.progress}%</span>
+                        </div>
+                        <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-500"
+                            style={{ width: `${job.progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </aside>
+        )}
+      </div>
+    </div>
+  );
+}
+
+2.3. app/(dashboard)/dashboard/page.tsx
+// app/(dashboard)/dashboard/page.tsx
+'use client';
+
+import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { PlusCircle, FolderOpen, PlayCircle, ImageIcon } from 'lucide-react';
+import { useDashboardStore } from '@/lib/stores/useDashboardStore';
+
+export default function DashboardPage() {
+  const { workspaces, profile, selectWorkspace } = useDashboardStore();
+  const router = useRouter();
+
+  const hasWorkspaces = workspaces && workspaces.length > 0;
+  const demoWorkspaces = useMemo(
+    () => workspaces.filter((w) => w.isDemo),
+    [workspaces],
+  );
+
+  const handleTileClick = (id: string) => {
+    const workspace = workspaces.find((w) => w.id === id);
+    if (!workspace) return;
+
+    selectWorkspace(id);
+
+    // Very simple routing rule; Copilot can flesh this out + entitlements checks.
+    switch (workspace.primaryTab) {
+      case 'hub':
+        router.push('/hub');
+        break;
+      case 'content':
+        router.push('/content');
+        break;
+      case 'design':
+        router.push('/design-studio');
+        break;
+      case 'geospatial':
+        router.push('/geospatial');
+        break;
+      case 'virtual':
+        router.push('/virtual-studio');
+        break;
+      case 'tourBuilder':
+        router.push('/tour-builder');
+        break;
+      case 'reports':
+        router.push('/reports');
+        break;
+      case 'athlete':
+        router.push('/athlete360');
+        break;
+      default:
+        router.push('/hub');
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-4 p-4 lg:p-6">
+      {/* Header row */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <h1 className="text-xl md:text-2xl font-semibold">
+            Your Workspaces
+          </h1>
+          <p className="text-xs md:text-sm text-slate-400">
+            Start simple, then turn on more tools as you need them.
+          </p>
+        </div>
+
+        {/* Quick actions (hook these up later) */}
+        <div className="flex flex-wrap gap-2 text-xs">
+          <button className="flex items-center gap-1 px-3 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500">
+            <PlusCircle className="w-3 h-3" />
+            New workspace
+          </button>
+          <button className="flex items-center gap-1 px-3 py-2 rounded-full bg-slate-800 hover:bg-slate-700">
+            <FolderOpen className="w-3 h-3" />
+            Upload files
+          </button>
+          <button className="flex items-center gap-1 px-3 py-2 rounded-full bg-slate-800 hover:bg-slate-700">
+            <PlayCircle className="w-3 h-3" />
+            Open example
+          </button>
+        </div>
+      </div>
+
+      {/* Empty state for brand new users */}
+      {!hasWorkspaces && (
+        <div className="mt-8 rounded-2xl border border-dashed border-slate-700 bg-slate-900/60 p-8 text-center">
+          <h2 className="text-lg md:text-xl font-semibold mb-2">
+            Welcome to Slate360
+          </h2>
+          <p className="text-xs md:text-sm text-slate-400 mb-6 max-w-xl mx-auto">
+            Create a workspace, upload files, or open a ready-made example to
+            explore features. No technical setup required.
+          </p>
+          <div className="flex flex-wrap gap-3 justify-center text-xs">
+            <button className="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500">
+              Create first workspace
+            </button>
+            <button className="px-4 py-2 rounded-full bg-slate-800 hover:bg-slate-700">
+              Upload photos / videos
+            </button>
+            <button className="px-4 py-2 rounded-full bg-slate-800 hover:bg-slate-700">
+              Try a sample project
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Demo workspaces */}
+      {demoWorkspaces.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-semibold text-slate-200">
+              Example workspaces
+            </h2>
+            <span className="text-[11px] text-slate-500">
+              Preloaded for learning and testing
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {demoWorkspaces.map((ws) => (
+              <button
+                key={ws.id}
+                onClick={() => handleTileClick(ws.id)}
+                className="flex flex-col items-start text-left bg-slate-900/80 border border-slate-800 rounded-xl p-3 hover:border-emerald-500 hover:bg-slate-900 transition"
+              >
+                <div className="w-full h-28 mb-2 rounded-lg bg-slate-800 flex items-center justify-center">
+                  {ws.thumbnailUrl ? (
+                    <img
+                      src={ws.thumbnailUrl}
+                      alt={ws.name}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  ) : (
+                    <ImageIcon className="w-6 h-6 text-slate-500" />
+                  )}
+                </div>
+                <div className="text-sm font-semibold">{ws.name}</div>
+                {ws.description && (
+                  <div className="text-[11px] text-slate-400 line-clamp-2">
+                    {ws.description}
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* All workspaces */}
+      {hasWorkspaces && (
+        <section>
+          <div className="flex items-center justify-between mb-2 mt-2">
+            <h2 className="text-sm font-semibold text-slate-200">
+              All workspaces
+            </h2>
+            <span className="text-[11px] text-slate-500">
+              Profile:{' '}
+              <span className="capitalize">
+                {profile === 'admin' ? 'Admin' : profile}
+              </span>
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {workspaces.map((ws) => (
+              <button
+                key={ws.id}
+                onClick={() => handleTileClick(ws.id)}
+                className="flex flex-col items-start text-left bg-slate-900/60 border border-slate-800 rounded-xl p-3 hover:border-slate-600 hover:bg-slate-900 transition"
+              >
+                <div className="w-full h-24 mb-2 rounded-lg bg-slate-800 flex items-center justify-center">
+                  {ws.thumbnailUrl ? (
+                    <img
+                      src={ws.thumbnailUrl}
+                      alt={ws.name}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  ) : (
+                    <ImageIcon className="w-6 h-6 text-slate-500" />
+                  )}
+                </div>
+                <div className="text-sm font-semibold">{ws.name}</div>
+                {ws.updatedAt && (
+                  <div className="text-[11px] text-slate-500">
+                    Updated {new Date(ws.updatedAt).toLocaleDateString()}
+                  </div>
+                )}
+                {ws.status === 'processing' && (
+                  <div className="mt-1 w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-500"
+                      style={{ width: `${ws.progress ?? 0}%` }}
+                    />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+2.4. app/api/dashboard/session/route.ts (Bootstrap Stub)
+// app/api/dashboard/session/route.ts
+import { NextResponse } from 'next/server';
+import type {
+  DashboardBootstrapPayload,
+  SubscriptionTier,
+  UserEntitlements,
+  WorkspaceTile,
+  DashboardMetrics,
+  UsageMetrics,
+  OrgSettings,
+} from '@/lib/stores/useDashboardStore';
+
+// TODO: Replace all hardcoded values with real Supabase/Stripe queries.
+
+export async function GET() {
+  // Example entitlements for a Starter user
+  const entitlements: UserEntitlements = {
+    canAccessHub: true,
+    canAccessContent: true,
+    canAccessDesign: false,
+    canAccessGeospatial: false,
+    canAccessVirtual: false,
+    canAccessReports: false,
+    canAccessAthlete: false,
+    canAccessCeo: false,
+    canRunProcessingJobs: false,
+    canInviteUsers: false,
+    canManageOrg: false,
+  };
+
+  const subscriptionTier: SubscriptionTier = 'starter';
+
+  const workspaces: WorkspaceTile[] = [
+    {
+      id: 'demo-tour',
+      name: 'Sample Building Tour',
+      description: 'Explore a sample 360° building tour.',
+      thumbnailUrl: '/demo/sample-tour-thumb.jpg',
+      kind: 'tour',
+      primaryTab: 'tourBuilder',
+      status: 'complete',
+      progress: 100,
+      isDemo: true,
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
+  const metrics: DashboardMetrics = {
+    storageUsedMB: 120,
+    storageLimitMB: 1024,
+    processingJobs: [],
+  };
+
+  const usage: UsageMetrics = {
+    storageUsedMB: 120,
+    storageLimitMB: 1024,
+    processingCreditsUsed: 50,
+    processingCreditsLimit: 1000,
+    costBreakdown: {
+      storage: 3.5,
+      rendering: 12.0,
+      aiRequests: 1.2,
+    },
+  };
+
+  const orgSettings: OrgSettings = {
+    orgId: 'org_demo',
+    orgName: 'Demo Organization',
+    brandColor: '#3b82f6',
+    logoUrl: '/demo/demo-logo.png',
+    featureToggles: {
+      virtualStudio: false,
+      athlete360: false,
+    },
+  };
+
+  const payload: DashboardBootstrapPayload = {
+    userId: 'user_demo',
+    orgId: 'org_demo',
+    subscriptionTier,
+    entitlements,
+    profile: 'essentials',
+    workspaces,
+    metrics,
+    usage,
+    orgSettings,
+  };
+
+  return NextResponse.json(payload);
+}

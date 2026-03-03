@@ -1,0 +1,703 @@
+Copilot prompt (copy-paste this whole thing)
+
+PROMPT FOR COPILOT:
+
+I’m working in a Next.js 15 + TypeScript + Tailwind project with an App Router and a (dashboard) route group. I want you to:
+
+Install the dependencies:
+
+zustand
+
+chart.js
+
+react-chartjs-2
+
+Create a new analytics state store at lib/useAnalyticsStore.ts.
+
+Create a new page component for the Analytics & Reports tab at app/(dashboard)/analytics/page.tsx.
+
+Create four API route stubs:
+
+app/api/analytics/summary/route.ts
+
+app/api/analytics/reports/route.ts
+
+app/api/analytics/ai-insight/route.ts
+
+app/api/analytics/export/route.ts
+
+Make sure everything compiles with strict TypeScript and matches a dark Slate360-style UI (dark slate backgrounds, Orbitron headings if available, UNC-blue and copper accents, Lucide icons, Tailwind classes).
+
+Step 1 – Install dependencies
+
+Add these to package.json or run:
+
+npm install zustand chart.js react-chartjs-2
+
+
+Step 2 – Create lib/useAnalyticsStore.ts
+
+Create this file with the following content:
+
+// lib/useAnalyticsStore.ts
+"use client";
+
+import { create } from "zustand";
+
+export type AnalyticsScope = "projects" | "tours" | "media" | "workspace";
+
+export interface Kpi {
+  id: string;
+  label: string;
+  value: string | number;
+  delta?: string; // e.g. "+12% vs last month"
+}
+
+export interface ChartPoint {
+  label: string; // x-axis label
+  value: number; // y-axis value
+}
+
+export interface SnapshotSummary {
+  scope: AnalyticsScope;
+  title: string;
+  kpis: Kpi[];
+  chartLabel: string;
+  chartPoints: ChartPoint[];
+  aiInsight?: string; // optional, filled by AI
+}
+
+export interface SavedReport {
+  id: string;
+  title: string;
+  scope: AnalyticsScope;
+  createdAt: string;
+  downloadUrl?: string; // last exported PDF
+}
+
+interface AnalyticsState {
+  scope: AnalyticsScope;
+  loading: boolean;
+  snapshot: SnapshotSummary | null;
+  reports: SavedReport[];
+  advancedMode: boolean;
+
+  setScope: (scope: AnalyticsScope) => void;
+  toggleAdvancedMode: () => void;
+
+  loadSnapshot: () => Promise<void>;
+  loadReports: () => Promise<void>;
+
+  runAiInsight: () => Promise<void>;
+  exportReport: (format: "pdf" | "csv") => Promise<void>;
+}
+
+export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
+  scope: "projects",
+  loading: false,
+  snapshot: null,
+  reports: [],
+  advancedMode: false,
+
+  setScope: (scope) => set({ scope }),
+
+  toggleAdvancedMode: () =>
+    set((state) => ({ advancedMode: !state.advancedMode })),
+
+  loadSnapshot: async () => {
+    const { scope } = get();
+    set({ loading: true });
+
+    const res = await fetch(`/api/analytics/summary?scope=${scope}`, {
+      method: "GET",
+    });
+
+    if (!res.ok) {
+      console.error("Failed to load analytics snapshot");
+      set({ loading: false });
+      return;
+    }
+
+    const data: SnapshotSummary = await res.json();
+    set({ snapshot: data, loading: false });
+  },
+
+  loadReports: async () => {
+    set({ loading: true });
+    const res = await fetch("/api/analytics/reports", { method: "GET" });
+
+    if (!res.ok) {
+      console.error("Failed to load analytics reports");
+      set({ loading: false });
+      return;
+    }
+
+    const data: SavedReport[] = await res.json();
+    set({ reports: data, loading: false });
+  },
+
+  runAiInsight: async () => {
+    const { snapshot, scope } = get();
+    if (!snapshot) return;
+
+    set({ loading: true });
+
+    const res = await fetch("/api/analytics/ai-insight", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scope }),
+    });
+
+    if (!res.ok) {
+      console.error("Failed to run AI insight");
+      set({ loading: false });
+      return;
+    }
+
+    const { insight } = (await res.json()) as { insight: string };
+
+    set({
+      snapshot: { ...snapshot, aiInsight: insight },
+      loading: false,
+    });
+  },
+
+  exportReport: async (format) => {
+    const { scope } = get();
+    set({ loading: true });
+
+    const res = await fetch("/api/analytics/export", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scope, format }),
+    });
+
+    if (!res.ok) {
+      console.error("Failed to export analytics report");
+      set({ loading: false });
+      return;
+    }
+
+    const { url } = (await res.json()) as { url?: string };
+    // For now just open the URL; in a real app you might also update `reports`
+    if (url) {
+      if (typeof window !== "undefined") {
+        window.open(url, "_blank");
+      }
+    }
+
+    set({ loading: false });
+  },
+}));
+
+
+Step 3 – Create app/(dashboard)/analytics/page.tsx
+
+Create a new file app/(dashboard)/analytics/page.tsx with this content:
+
+// app/(dashboard)/analytics/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { useAnalyticsStore, AnalyticsScope } from "@/lib/useAnalyticsStore";
+import { motion } from "framer-motion";
+import {
+  Activity,
+  FileText,
+  Download,
+  Sparkles,
+  Loader2,
+} from "lucide-react";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+
+const SCOPE_LABELS: Record<AnalyticsScope, string> = {
+  projects: "Projects Overview",
+  tours: "Tours & 360 Engagement",
+  media: "Media & Exports",
+  workspace: "Workspace Usage",
+};
+
+export default function AnalyticsPage() {
+  const {
+    scope,
+    loading,
+    snapshot,
+    reports,
+    advancedMode,
+    setScope,
+    toggleAdvancedMode,
+    loadSnapshot,
+    loadReports,
+    runAiInsight,
+    exportReport,
+  } = useAnalyticsStore();
+
+  const [activeTab, setActiveTab] = useState<"overview" | "reports">(
+    "overview"
+  );
+
+  useEffect(() => {
+    // initial load
+    void loadSnapshot();
+    void loadReports();
+  }, [loadSnapshot, loadReports]);
+
+  const chartData =
+    snapshot && snapshot.chartPoints.length > 0
+      ? {
+          labels: snapshot.chartPoints.map((p) => p.label),
+          datasets: [
+            {
+              label: snapshot.chartLabel,
+              data: snapshot.chartPoints.map((p) => p.value),
+              backgroundColor: "#B87333", // copper
+            },
+          ],
+        }
+      : {
+          labels: [] as string[],
+          datasets: [] as any[],
+        };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
+      {/* Header / Toolbar */}
+      <header className="px-6 py-4 border-b border-slate-800 bg-slate-900 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <h1 className="font-orbitron font-bold text-xl text-[#7FB5FF]">
+            Analytics &amp; Reports
+          </h1>
+          <span className="text-xs text-slate-400">
+            See how your projects, tours, and media are performing.
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Scope selector */}
+          <select
+            value={scope}
+            onChange={(e) => setScope(e.target.value as AnalyticsScope)}
+            className="bg-slate-800 border border-slate-700 text-xs rounded-lg px-3 py-2"
+          >
+            <option value="projects">{SCOPE_LABELS.projects}</option>
+            <option value="tours">{SCOPE_LABELS.tours}</option>
+            <option value="media">{SCOPE_LABELS.media}</option>
+            <option value="workspace">{SCOPE_LABELS.workspace}</option>
+          </select>
+
+          {/* Simple / Advanced toggle */}
+          <button
+            onClick={toggleAdvancedMode}
+            className={`text-xs px-3 py-2 rounded-lg border ${
+              advancedMode
+                ? "border-emerald-400 text-emerald-300 bg-emerald-900/20"
+                : "border-slate-600 text-slate-300 bg-slate-800"
+            }`}
+          >
+            {advancedMode ? "Advanced Insights On" : "Simple View"}
+          </button>
+
+          {/* Tab buttons */}
+          <div className="flex gap-1 bg-slate-800 rounded-lg p-1 text-xs">
+            <button
+              onClick={() => setActiveTab("overview")}
+              className={`px-3 py-1 rounded ${
+                activeTab === "overview"
+                  ? "bg-[#B87333] text-white"
+                  : "text-slate-300"
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab("reports")}
+              className={`px-3 py-1 rounded ${
+                activeTab === "reports"
+                  ? "bg-[#B87333] text-white"
+                  : "text-slate-300"
+              }`}
+            >
+              Reports
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Body */}
+      <main className="flex-1 p-6 space-y-6">
+        {loading && (
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Updating analytics…
+          </div>
+        )}
+
+        {activeTab === "overview" && (
+          <motion.div
+            key="overview"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            {/* Quick actions */}
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => void loadSnapshot()}
+                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-xs font-semibold px-4 py-2 rounded-lg"
+              >
+                <Activity className="w-4 h-4" />
+                Refresh metrics
+              </button>
+              <button
+                onClick={() => void exportReport("pdf")}
+                className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-xs font-semibold px-4 py-2 rounded-lg"
+              >
+                <Download className="w-4 h-4" />
+                Quick PDF report
+              </button>
+              <button
+                onClick={() => void exportReport("csv")}
+                className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold px-4 py-2 rounded-lg"
+              >
+                <Download className="w-4 h-4" />
+                CSV export
+              </button>
+              {advancedMode && (
+                <button
+                  onClick={() => void runAiInsight()}
+                  className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold px-4 py-2 rounded-lg"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Run AI insight
+                </button>
+              )}
+            </div>
+
+            {/* KPIs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {(snapshot?.kpis ?? []).map((kpi) => (
+                <div
+                  key={kpi.id}
+                  className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3"
+                >
+                  <p className="text-xs text-slate-400 mb-1">{kpi.label}</p>
+                  <p className="text-lg font-semibold">{kpi.value}</p>
+                  {kpi.delta && (
+                    <p className="text-[11px] text-emerald-400 mt-1">
+                      {kpi.delta}
+                    </p>
+                  )}
+                </div>
+              ))}
+              {!snapshot && (
+                <div className="text-xs text-slate-500">
+                  No data yet. Click “Refresh metrics” to pull analytics from
+                  your active projects and tours.
+                </div>
+              )}
+            </div>
+
+            {/* Chart + AI insight */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-semibold">
+                    {snapshot?.chartLabel || "Activity over time"}
+                  </h2>
+                </div>
+                {snapshot && snapshot.chartPoints.length > 0 ? (
+                  <Bar data={chartData} />
+                ) : (
+                  <p className="text-xs text-slate-500">
+                    Metrics will appear here after you refresh.
+                  </p>
+                )}
+              </div>
+
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col">
+                <h2 className="text-sm font-semibold mb-2">Summary</h2>
+                <p className="text-xs text-slate-400 mb-2">
+                  A short, readable explanation of what’s happening in this
+                  snapshot.
+                </p>
+                <div className="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-200 whitespace-pre-wrap">
+                  {snapshot?.aiInsight ? (
+                    snapshot.aiInsight
+                  ) : (
+                    <span className="text-slate-500">
+                      Turn on “Advanced Insights” and click{" "}
+                      <span className="font-semibold">Run AI insight</span> to
+                      generate a plain-language explanation.
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === "reports" && (
+          <motion.div
+            key="reports"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold mb-1">Saved reports</h2>
+                <p className="text-xs text-slate-400">
+                  View or download reports you’ve generated from any scope.
+                </p>
+              </div>
+              <button
+                onClick={() => void exportReport("pdf")}
+                className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-xs font-semibold px-4 py-2 rounded-lg"
+              >
+                <FileText className="w-4 h-4" />
+                New quick report
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {reports.map((r) => (
+                <div
+                  key={r.id}
+                  className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between"
+                >
+                  <div>
+                    <h3 className="text-sm font-semibold mb-1">{r.title}</h3>
+                    <p className="text-[11px] text-slate-400 mb-2">
+                      Scope: {SCOPE_LABELS[r.scope]}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Created {new Date(r.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() =>
+                        r.downloadUrl && window.open(r.downloadUrl, "_blank")
+                      }
+                      className="flex-1 inline-flex items-center justify-center gap-1 bg-slate-800 hover:bg-slate-700 text-[11px] px-3 py-2 rounded"
+                    >
+                      <Download className="w-3 h-3" />
+                      Download
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {!reports.length && (
+                <p className="text-xs text-slate-500">
+                  No reports yet. Generate a quick report from the Overview tab
+                  and it will appear here.
+                </p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+
+Step 4 – Create API routes with simple placeholder data
+
+4.1 – app/api/analytics/summary/route.ts
+
+// app/api/analytics/summary/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { AnalyticsScope, SnapshotSummary } from "@/lib/useAnalyticsStore";
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const scope = (searchParams.get("scope") || "projects") as AnalyticsScope;
+
+  // Simple mock data – later, replace with real DB queries
+  const base: Omit<SnapshotSummary, "scope"> = {
+    title: "",
+    kpis: [],
+    chartLabel: "",
+    chartPoints: [],
+  };
+
+  let summary: SnapshotSummary;
+
+  if (scope === "projects") {
+    summary = {
+      scope,
+      ...base,
+      title: "Projects Overview – Demo",
+      kpis: [
+        { id: "active", label: "Active projects", value: 7, delta: "+2 vs last month" },
+        { id: "atRisk", label: "At-risk items", value: 3, delta: "-1 vs last month" },
+        { id: "closed", label: "Closed this month", value: 4 },
+        { id: "rfis", label: "Open RFIs", value: 12 },
+      ],
+      chartLabel: "Active projects per week",
+      chartPoints: [
+        { label: "Week 1", value: 3 },
+        { label: "Week 2", value: 4 },
+        { label: "Week 3", value: 6 },
+        { label: "Week 4", value: 7 },
+      ],
+    };
+  } else if (scope === "tours") {
+    summary = {
+      scope,
+      ...base,
+      title: "Tours & 360 Engagement – Demo",
+      kpis: [
+        { id: "activeTours", label: "Active tours", value: 5 },
+        { id: "views", label: "Views (30 days)", value: 842, delta: "+18%" },
+        { id: "avgTime", label: "Avg view time", value: "2:31" },
+        { id: "shares", label: "Shares", value: 56 },
+      ],
+      chartLabel: "Views per tour",
+      chartPoints: [
+        { label: "Tour A", value: 210 },
+        { label: "Tour B", value: 150 },
+        { label: "Tour C", value: 120 },
+        { label: "Tour D", value: 90 },
+      ],
+    };
+  } else if (scope === "media") {
+    summary = {
+      scope,
+      ...base,
+      title: "Media & Exports – Demo",
+      kpis: [
+        { id: "clips", label: "Rendered clips", value: 23 },
+        { id: "storage", label: "Storage used", value: "18.2 GB" },
+        { id: "lastRender", label: "Last render", value: "2 hours ago" },
+        { id: "failures", label: "Failed renders", value: 1 },
+      ],
+      chartLabel: "Renders per week",
+      chartPoints: [
+        { label: "Week 1", value: 3 },
+        { label: "Week 2", value: 7 },
+        { label: "Week 3", value: 5 },
+        { label: "Week 4", value: 8 },
+      ],
+    };
+  } else {
+    // workspace
+    summary = {
+      scope,
+      ...base,
+      title: "Workspace Usage – Demo",
+      kpis: [
+        { id: "users", label: "Active users", value: 14 },
+        { id: "sessions", label: "Sessions (7 days)", value: 62 },
+        { id: "avgSession", label: "Avg session length", value: "8:12" },
+        { id: "tabsUsed", label: "Tabs used", value: 5 },
+      ],
+      chartLabel: "Sessions per day",
+      chartPoints: [
+        { label: "Mon", value: 8 },
+        { label: "Tue", value: 10 },
+        { label: "Wed", value: 12 },
+        { label: "Thu", value: 16 },
+        { label: "Fri", value: 9 },
+        { label: "Sat", value: 4 },
+        { label: "Sun", value: 3 },
+      ],
+    };
+  }
+
+  return NextResponse.json(summary);
+}
+
+
+4.2 – app/api/analytics/reports/route.ts
+
+// app/api/analytics/reports/route.ts
+import { NextResponse } from "next/server";
+import { SavedReport } from "@/lib/useAnalyticsStore";
+
+export async function GET() {
+  // Mock reports; later replace with DB query
+  const reports: SavedReport[] = [
+    {
+      id: "rpt_demo_1",
+      title: "Monthly Projects Snapshot – Demo",
+      scope: "projects",
+      createdAt: new Date().toISOString(),
+      downloadUrl: "https://example.com/reports/rpt_demo_1.pdf",
+    },
+  ];
+
+  return NextResponse.json(reports);
+}
+
+
+4.3 – app/api/analytics/ai-insight/route.ts
+
+// app/api/analytics/ai-insight/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { AnalyticsScope } from "@/lib/useAnalyticsStore";
+
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  const scope = (body?.scope || "projects") as AnalyticsScope;
+
+  // Placeholder: later, call Gemini or another model with real data
+  const generic =
+    "This is a demo AI insight. Once wired to real data, this will summarize key trends, risks, and highlights for this scope.";
+
+  let insight = generic;
+
+  if (scope === "projects") {
+    insight =
+      "Most risk appears in a small number of at-risk items. Focus on closing RFIs on your largest projects to reduce overall risk.";
+  } else if (scope === "tours") {
+    insight =
+      "Engagement is concentrated in a few tours. Consider highlighting these tours on your website and using them as templates for new projects.";
+  } else if (scope === "media") {
+    insight =
+      "Render volume is steady with a small number of failures. Check failed jobs to ensure presets and inputs are consistent.";
+  } else if (scope === "workspace") {
+    insight =
+      "Most sessions are mid-length and occur on weekdays. Onboarding and training materials might help weekend users get more from the platform.";
+  }
+
+  return NextResponse.json({ insight });
+}
+
+
+4.4 – app/api/analytics/export/route.ts
+
+// app/api/analytics/export/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { AnalyticsScope } from "@/lib/useAnalyticsStore";
+
+interface ExportBody {
+  scope: AnalyticsScope;
+  format: "pdf" | "csv";
+}
+
+export async function POST(req: NextRequest) {
+  const body = (await req.json()) as ExportBody;
+
+  // Stub: in the future, trigger a real export (PDF/CSV) and upload to S3
+  const fakeUrl =
+    body.format === "pdf"
+      ? "https://example.com/reports/demo.pdf"
+      : "https://example.com/reports/demo.csv";
+
+  return NextResponse.json({ url: fakeUrl });
+}
+
+
+Please apply all of the above changes, ensure imports resolve, and fix any type errors so the project builds successfully.
