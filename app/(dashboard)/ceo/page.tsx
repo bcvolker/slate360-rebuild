@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import { getEntitlements } from "@/lib/entitlements";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import CeoCommandCenterClient from "@/components/dashboard/CeoCommandCenterClient";
 
@@ -11,8 +10,9 @@ export default async function CeoPage() {
   const { user, tier, isSlateCeo } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
-  const entitlements = getEntitlements(tier, { isSlateCeo });
-  if (!entitlements.canAccessCeo && !isSlateCeo) {
+  // CEO Command Center is a platform-admin tab — NOT gated by subscription tier.
+  // Access requires isSlateCeo (slate360ceo@gmail.com) or future slate360_staff grants.
+  if (!isSlateCeo) {
     notFound();
   }
 

@@ -51,7 +51,7 @@
 
 1. **Modular routing:** Each tab is a standalone Next.js page — no coupling between modules
 2. **Shared auth layer:** `withAuth()` / `withProjectAuth()` works for any new API route
-3. **Entitlements system:** `getEntitlements(tier, { isSlateCeo? })` cleanly gates any new module. CEO account gets enterprise entitlements regardless of DB tier.
+3. **Entitlements system:** `getEntitlements(tier, { isSlateCeo? })` cleanly gates module access. CEO account gets enterprise entitlements regardless of DB tier. **CEO/internal platform tabs (`/ceo`, `/market`, `/athlete360`) are gated by `isSlateCeo` directly — never via entitlements.**
 4. **SlateDrop as common storage:** All modules can save artifacts via `saveProjectArtifact()`
 5. **Shared UI patterns:** `ViewCustomizer`, `ChangeHistory`, `DashboardTabShell` are reusable
 6. **QuickNav centralized:** Single navigation dropdown shared across all tab pages, tier-gated
@@ -59,11 +59,13 @@
 
 ### Key Risks / Debt to Address Before Scale
 
-1. **DashboardClient.tsx (2,915 lines)** — Must decompose before adding more dashboard logic
+1. **DashboardClient.tsx (~2,953 lines)** — Must decompose before adding more dashboard logic
 2. **No shared `(dashboard)/layout.tsx`** — Each page re-implements header/nav. DashboardTabShell mitigates for new pages but legacy pages still diverge.
 3. **No activity log table** — `project_activity_log` needed for proper audit trails
 4. **No PWA infra** — Marketing claims PWA but nothing exists
 5. **Web3 packages always imported** — ~7 packages bloat bundle for non-Market pages
+6. **No org provisioning on signup** — No `/api/auth/webhook` route exists. New user org/tier setup relies on a Supabase DB trigger. If trigger is missing, new users get `orgId: null`, `tier: "trial"` fallback.
+7. **No `slate360_staff` table** — CEO tab employee grants not yet buildable. Currently only `slate360ceo@gmail.com` can access `/ceo`, `/market`, `/athlete360`.
 
 ---
 
@@ -562,6 +564,8 @@ Build in this order (by subscriber value and dependency chain):
 
 ### 4F. CEO Command Center
 
+**Access:** `slate360ceo@gmail.com` ONLY. This is a Slate360 platform-admin surface. No subscription tier grants access to this tab — it is not part of enterprise or any paid plan. Future: employee grant system via `slate360_staff` table.
+
 | Feature | Description | Priority |
 |---|---|---|
 | Business health dashboard | MRR, ARR, churn, runway | High |
@@ -569,8 +573,7 @@ Build in this order (by subscriber value and dependency chain):
 | Feature flags management | Enable/disable features per org | Medium |
 | Team/action item management | Task tracking for business operations | Medium |
 | Content management | Marketing content pipeline | Low |
-
-**Access:** `slate360ceo@gmail.com` only.
+| Employee access grants | Grant CEO tab access to Slate360 staff via `slate360_staff` table | High |
 
 ### 4G. Athlete360
 

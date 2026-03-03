@@ -169,15 +169,22 @@ const e = getEntitlements(user.tier, { isSlateCeo: true });
 ```
 
 ### CEO All-Access Override
-`getEntitlements()` accepts an optional second parameter: `options?: { isSlateCeo?: boolean }`. When `isSlateCeo` is `true`, the function returns enterprise-level entitlements regardless of the org's database tier. This ensures the CEO account (`slate360ceo@gmail.com`) always has full platform access.
+`getEntitlements()` accepts an optional second parameter: `options?: { isSlateCeo?: boolean }`. When `isSlateCeo` is `true`, the function returns enterprise-level entitlements regardless of the org's database tier. This ensures the CEO account (`slate360ceo@gmail.com`) always has full platform module access.
+
+**Important distinction:**
+- `isSlateCeo` override → affects module entitlements (analytics, hub, studio access, etc.)
+- CEO tab access (`/ceo`, `/market`, `/athlete360`) → gated by `isSlateCeo` **directly**, NOT via entitlements. These are platform-admin surfaces, never subscription features.
 
 **Flow:**
 1. `resolveServerOrgContext()` returns `isSlateCeo` (hardcoded email check: `user.email === "slate360ceo@gmail.com"`)
 2. Server pages pass `isSlateCeo` as `isCeo` prop to client components
 3. Client components call `getEntitlements(tier, { isSlateCeo: isCeo })` → gets enterprise entitlements
-4. All nav items, module access, and feature gates use the resolved entitlements
+4. All nav items and feature gates use the resolved entitlements
+5. CEO/internal tabs check `isSlateCeo` directly at the server page level
 
-Key flags: `canAccessHub`, `canAccessDesignStudio`, `canAccessContent`, `canAccessTourBuilder`, `canAccessGeospatial`, `canAccessVirtualStudio`, `canAccessAnalytics`, `canAccessCeo`, `canAccessMarket`, `canManageSeats`, `maxStorageGB`, `maxCredits`, `maxSeats`
+Key flags: `canAccessHub`, `canAccessDesignStudio`, `canAccessContent`, `canAccessTourBuilder`, `canAccessGeospatial`, `canAccessVirtual`, `canAccessAnalytics`, `canAccessReports`, `canManageSeats`, `canWhiteLabel`, `canViewSlateDropWidget`, `maxStorageGB`, `maxCredits`, `maxSeats`
+
+> **Note:** `canAccessCeo` does NOT exist in entitlements. The CEO Command Center (`/ceo`), Market Robot (`/market`), and Athlete360 (`/athlete360`) are Slate360-internal platform-admin tabs — access is gated solely by `isSlateCeo` from `resolveServerOrgContext()`, which checks `user.email === "slate360ceo@gmail.com"`. Future: employee grants from CEO tab will extend access via a `slate360_staff` table.
 
 ### Never Inline Tier Checks
 ```typescript
@@ -191,6 +198,9 @@ if (e.canAccessHub) { ... }
 // ✅ CORRECT (with CEO override)
 const e = getEntitlements(tier, { isSlateCeo });
 if (e.canAccessHub) { ... }
+
+// ✅ CORRECT (CEO/internal tabs — bypass entitlements entirely)
+if (!isSlateCeo) notFound(); // never use entitlements for /ceo, /market, /athlete360
 ```
 
 ---
@@ -270,6 +280,7 @@ These tables are required by Phases 1–3 in `FUTURE_FEATURES.md`. Do **not** cr
 | Table | Phase | Purpose |
 |---|---|---|
 | `project_activity_log` | 1 | Immutable activity feed for Project Hub |
+| `slate360_staff` | CEO tab | Slate360 employee emails granted CEO/internal tab access |
 | `slatedrop_audit_log` | 3E | File access/download audit trail |
 | `slatedrop_shares` | 3E | Shareable file/folder links with expiry |
 | `slatedrop_packs` | 3E | Downloadable project export packages |

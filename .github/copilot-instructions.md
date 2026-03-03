@@ -135,14 +135,16 @@ const e = getEntitlements(user.tier, { isSlateCeo: true });
 
 **CEO All-Access:** `resolveServerOrgContext()` returns `isSlateCeo` (true for `slate360ceo@gmail.com`). Pass as `isCeo` prop to client components. All shell components and DashboardTabShell accept `isCeo` and call `getEntitlements(tier, { isSlateCeo: isCeo })`.
 
+**CEO Tab ≠ Tier Feature:** `/ceo`, `/market`, `/athlete360` are platform-admin tabs. Gate with `if (!isSlateCeo) notFound()` — NEVER via `getEntitlements()`. No subscription tier including enterprise gives access. `canAccessCeo` does NOT exist in the `Entitlements` interface.
+
 Tiers and limits:
-| Tier | Hub | Storage | Credits/mo | Seats | Price |
-|---|---|---|---|---|---|
-| trial | ✅ | 5 GB | 500 | 1 | Free |
-| creator | ❌ | 40 GB | 6,000 | 1 | $79/mo |
-| model | ❌ | 150 GB | 15,000 | 1 | $199/mo |
-| business | ✅ | 750 GB | 30,000 | 25 | $499/mo |
-| enterprise | ✅ | 5 TB | 100,000 | 999 | Custom |
+| Tier | Hub | Seats | White-Label | Storage | Credits/mo | Price |
+|---|---|---|---|---|---|---|
+| trial | ✅ | 1 | ❌ | 5 GB | 500 | Free |
+| creator | ❌ | 1 | ❌ | 40 GB | 6,000 | $79/mo |
+| model | ❌ | 1 | ❌ | 150 GB | 15,000 | $199/mo |
+| business | ✅ | 25 | ❌ | 750 GB | 30,000 | $499/mo |
+| enterprise | ✅ | 999 | ✅ | 5 TB | 100,000 | Custom |
 
 ---
 

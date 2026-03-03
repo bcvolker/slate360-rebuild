@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import { getEntitlements } from "@/lib/entitlements";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 
 export const metadata = {
@@ -7,11 +6,11 @@ export const metadata = {
 };
 
 export default async function Athlete360Page() {
-  const { user, tier, isSlateCeo } = await resolveServerOrgContext();
+  const { user, isSlateCeo } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
-  const entitlements = getEntitlements(tier);
-  if (!entitlements.canAccessCeo && !isSlateCeo) {
+  // Athlete360 is a Slate360-internal product — access requires isSlateCeo or employee grant.
+  if (!isSlateCeo) {
     notFound();
   }
 

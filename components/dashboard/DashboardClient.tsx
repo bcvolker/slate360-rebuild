@@ -476,7 +476,8 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
   const supabase = createClient();
   const router = useRouter();
 
-  const hasCeoAccess = ent.canAccessCeo || isSlateCeo;
+  // CEO/internal tabs are gated by isSlateCeo only — never by subscription tier
+  const hasCeoAccess = isSlateCeo;
 
   // Build the ordered, filtered tab list based on tier entitlements + identity
   const visibleTabs: DashTab[] = ([

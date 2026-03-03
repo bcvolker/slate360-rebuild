@@ -11,8 +11,11 @@ export interface Entitlements {
   canAccessVirtual: boolean;
   canAccessAnalytics: boolean;
   canAccessReports: boolean;
-  canAccessCeo: boolean;
+  // NOTE: canAccessCeo is intentionally absent — CEO Command Center is a platform-admin tab,
+  // NOT a subscription tier feature. Access is controlled by isSlateCeo (resolveServerOrgContext)
+  // and future slate360_staff grants from the CEO tab. Never gate CEO tab via entitlements.
   canManageSeats: boolean;
+  canWhiteLabel: boolean; // enterprise only — white-label branding on deliverables
   canViewSlateDropWidget: boolean;
   maxCredits: number;
   maxStorageGB: number;
@@ -32,8 +35,8 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
     canAccessVirtual: true,
     canAccessAnalytics: true,
     canAccessReports: true,
-    canAccessCeo: false,
     canManageSeats: false,
+    canWhiteLabel: false,
     canViewSlateDropWidget: true,
     maxCredits: 500,
     maxStorageGB: 5,
@@ -51,8 +54,8 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
     canAccessVirtual: false,
     canAccessAnalytics: false,
     canAccessReports: false,
-    canAccessCeo: false,
     canManageSeats: false,
+    canWhiteLabel: false,
     canViewSlateDropWidget: true,
     maxCredits: 6000,
     maxStorageGB: 40,
@@ -70,8 +73,8 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
     canAccessVirtual: true,
     canAccessAnalytics: false,
     canAccessReports: false,
-    canAccessCeo: false,
     canManageSeats: false,
+    canWhiteLabel: false,
     canViewSlateDropWidget: true,
     maxCredits: 15000,
     maxStorageGB: 150,
@@ -89,8 +92,8 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
     canAccessVirtual: true,
     canAccessAnalytics: true,
     canAccessReports: true,
-    canAccessCeo: false,
     canManageSeats: true,
+    canWhiteLabel: false,
     canViewSlateDropWidget: true,
     maxCredits: 30000,
     maxStorageGB: 750,
@@ -108,8 +111,8 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
     canAccessVirtual: true,
     canAccessAnalytics: true,
     canAccessReports: true,
-    canAccessCeo: true,
-    canManageSeats: true,
+    canManageSeats: true,   // seat management for org admins
+    canWhiteLabel: true,    // white-label branding on deliverables
     canViewSlateDropWidget: true,
     maxCredits: 100000,
     maxStorageGB: 5000,

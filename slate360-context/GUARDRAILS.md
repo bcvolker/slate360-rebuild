@@ -32,6 +32,9 @@ All folder provisioning goes through `lib/slatedrop/provisioning.ts` and `POST /
 ### Rule 4: No New Entitlement System
 All tier checks use `getEntitlements(tier)` or `getEntitlements(tier, { isSlateCeo })` from `lib/entitlements.ts`. Never inline tier comparisons. The CEO override (`isSlateCeo`) returns enterprise entitlements regardless of DB tier.
 
+### Rule 4b: CEO Tab Is Not A Tier Feature
+The CEO Command Center (`/ceo`), Market Robot (`/market`), and Athlete360 (`/athlete360`) are Slate360-internal platform-admin routes. **Never gate these via `getEntitlements()`**. They are gated solely by `isSlateCeo` (and future `slate360_staff` employee grants). No subscription tier — including enterprise — gives access to these tabs. `canAccessCeo` does not exist in the `Entitlements` interface.
+
 ### Rule 5: No Orphan API Routes
 Every API route must use `withAuth()` or `withProjectAuth()`. No raw Supabase queries without auth checking.
 

@@ -164,10 +164,11 @@ const e = getEntitlements(user.tier);
 
 // CEO override (returns enterprise entitlements regardless of DB tier):
 const e = getEntitlements(user.tier, { isSlateCeo: true });
-// e.canAccessHub, e.canAccessDesignStudio, e.maxStorageGB, etc.
+// e.canAccessHub, e.canAccessDesignStudio, e.canWhiteLabel, e.maxStorageGB, etc.
 ```
 **Never** write `if (tier === 'business' || tier === 'enterprise')` — always use `getEntitlements()`.
 **CEO All-Access:** `resolveServerOrgContext()` returns `isSlateCeo`. Pass as `isCeo` to client components. All shell components and DashboardTabShell accept `isCeo` and call `getEntitlements(tier, { isSlateCeo: isCeo })`.
+**CEO Tab ≠ Tier feature:** `/ceo`, `/market`, `/athlete360` are platform-admin tabs gated by `isSlateCeo` directly. `canAccessCeo` does NOT exist in `Entitlements`. No tier including enterprise gives access.
 
 ### Rule 9: No Mock Data in Production UI
 Show proper empty/error states when data is unavailable.

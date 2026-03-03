@@ -92,6 +92,16 @@ Server page (resolveServerOrgContext → isSlateCeo)
 - **business/enterprise:** Portfolio-first layout — projects carousel prominent
 - **creator/model:** Content-first layout — creative tools prominent
 - **trial:** Gets Hub access + studio access for trial period
+- **CEO account (`slate360ceo@gmail.com`):** Gets enterprise entitlements via `isSlateCeo` override. Also gets access to platform-admin tabs (CEO, Market Robot, Athlete360) which are NOT available at any subscription tier.
+
+### CEO / Internal Tabs — Access Model
+| Tab | Route | Access Gate |
+|---|---|---|
+| CEO Command Center | `/(dashboard)/ceo` | `isSlateCeo` only — never tier |
+| Market Robot | `/market` | `isSlateCeo` only — never tier |
+| Athlete360 | `/athlete360` | `isSlateCeo` only — never tier |
+
+These tabs contain sensitive platform-admin and internal business data. No subscription tier — including enterprise — grants access. Future: employee grants from the CEO tab will extend access via a `slate360_staff` table (not yet built).
 
 ---
 

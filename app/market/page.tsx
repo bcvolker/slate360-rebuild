@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import { getEntitlements } from "@/lib/entitlements";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import MarketClient from "@/components/dashboard/MarketClient";
 
@@ -8,12 +7,12 @@ export const metadata = {
 };
 
 export default async function MarketPage() {
-  const { user, tier, isSlateCeo } = await resolveServerOrgContext();
+  const { user, isSlateCeo } = await resolveServerOrgContext();
 
   if (!user) redirect("/login");
 
-  const entitlements = getEntitlements(tier);
-  if (!entitlements.canAccessCeo && !isSlateCeo) {
+  // Market Robot is a Slate360-internal tool — access requires isSlateCeo or employee grant.
+  if (!isSlateCeo) {
     notFound();
   }
 
