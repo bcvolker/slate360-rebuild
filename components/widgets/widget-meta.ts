@@ -64,18 +64,15 @@ export const WIDGET_META: WidgetMeta[] = [
 
 export function getWidgetSpan(id: string, size: WidgetSize): string {
   switch (size) {
-    case "sm":
-      // Small square: spans 1 column (same as default but taller)
-      return "";
     case "md":
-      // Medium square: spans 2 columns
+      // Medium: spans 2 columns
       return "md:col-span-2";
     case "lg":
       // Large: spans full row (3 columns on xl)
       return "md:col-span-2 xl:col-span-3";
+    case "sm":
     default:
-      // Default: standard single column
-      if (id === "seats") return "md:col-span-2 xl:col-span-3";
+      // Small / default: standard single column for all widgets
       return "";
   }
 }
@@ -83,9 +80,9 @@ export function getWidgetSpan(id: string, size: WidgetSize): string {
 /** Height class for each size */
 export function getWidgetHeight(size: WidgetSize): string {
   switch (size) {
-    case "sm":  return "h-[420px] min-h-[420px]";
     case "md":  return "h-[520px] min-h-[520px]";
     case "lg":  return "h-[calc(100vh-180px)] min-h-[600px]";
+    case "sm":
     default:    return "h-[320px] min-h-[320px]";
   }
 }

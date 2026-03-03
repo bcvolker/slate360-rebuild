@@ -486,13 +486,13 @@ export default function ProjectDashboardGrid({
               span={getWidgetSpan(pref.id, pref.size)}
               onSetSize={(s) => setWidgetSize(pref.id, s)}
               size={pref.size}
-              draggable={pref.size === "default" && pref.id !== "location"}
+              draggable={(pref.size === "default" || pref.size === "sm") && pref.id !== "location"}
               onDragStart={() => handleDragStart(idx)}
               onDragOver={(e) => handleDragOver(e, idx)}
               onDragEnd={handleDragEnd}
               isDragging={dragIdx === idx}
             >
-              {renderBody(pref.id, pref.size !== "default")}
+              {renderBody(pref.id, pref.size !== "default" && pref.size !== "sm")}
             </WidgetCard>
           );
         })}

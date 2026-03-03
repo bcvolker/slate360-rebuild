@@ -1652,7 +1652,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
           function renderWidget(id: string, widgetSize: WidgetSize, inPopout = false): React.ReactNode {
             const span = getWidgetSpan(id, widgetSize);
             const widgetColor = WIDGET_META.find((m) => m.id === id)?.color ?? "#FF4D00";
-            const isExpanded = widgetSize !== "default";
+            const isExpanded = widgetSize !== "default" && widgetSize !== "sm";
             const handleSetSize = inPopout ? undefined : (s: WidgetSize) => {
               if (id === "slatedrop") {
                 setSlateDropWidgetView("folders");
@@ -1740,14 +1740,16 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                   <p className="text-[10px] text-gray-400">Unlocked based on your {ent.label} plan.</p>
                 </div>
               )}
+              {!isExpanded && (
+                <Link href="/slatedrop" className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#FF4D00] hover:underline">
+                  <FolderOpen size={10} /> Open SlateDrop →
+                </Link>
+              )}
               {isExpanded && (
-                <div className="mt-2 text-xs text-gray-500">
-                  <p className="text-[10px] text-gray-400">Pending uploads — </p>
+                <div className="flex-1 min-h-0 -mx-6 -mb-6 overflow-hidden border-t border-gray-100">
+                  <SlateDropClient user={user} tier={tier} />
                 </div>
               )}
-              <Link href="/slatedrop" className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#FF4D00] hover:underline">
-                <FolderOpen size={10} /> Open SlateDrop →
-              </Link>
             </div>
           </WidgetCard>
           );
@@ -2322,11 +2324,11 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                 {orderedVisible.map((p, idx) => (
                   <div
                     key={p.id}
-                    draggable={p.size === "default" && p.id !== "location"}
+                    draggable={(p.size === "default" || p.size === "sm") && p.id !== "location"}
                     onDragStart={() => handleDashDragStart(idx)}
                     onDragOver={(e) => handleDashDragOver(e, idx)}
                     onDragEnd={handleDashDragEnd}
-                    className={`${p.size !== "default" ? "" : "cursor-grab active:cursor-grabbing"} ${dashDragIdx === idx ? "opacity-50 scale-95" : ""} ${getWidgetSpan(p.id, p.size)} transition-all duration-200`}
+                    className={`${(p.size !== "default" && p.size !== "sm") ? "" : "cursor-grab active:cursor-grabbing"} ${dashDragIdx === idx ? "opacity-50 scale-95" : ""} ${getWidgetSpan(p.id, p.size)} transition-all duration-200`}
                   >
                     {renderWidget(p.id, p.size)}
                   </div>

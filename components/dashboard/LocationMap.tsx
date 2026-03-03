@@ -1174,15 +1174,60 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     // ── Build Static Maps API URL ──────────────────────────────
     const staticParams = new URLSearchParams();
     staticParams.set("center", `${mapCenter.lat},${mapCenter.lng}`);
-    staticParams.set("zoom", "13");
+    // Use the current map zoom level, falling back to 15 for satellite detail
+    const currentZoom = map?.getZoom?.() ?? 15;
+    staticParams.set("zoom", String(Math.round(currentZoom)));
     staticParams.set("size", "800x450");
-    staticParams.set("maptype", isThreeD ? "satellite" : "roadmap");
+    // Always use satellite for best PDF fidelity
+    staticParams.set("maptype", "satellite");
     if (routeData?.encodedPolyline) {
       staticParams.set("path", `weight:4|color:0xFF4D00FF|enc:${routeData.encodedPolyline}`);
       staticParams.append("markers", `color:green|label:A|${routeData.origin}`);
       staticParams.append("markers", `color:red|label:B|${routeData.destination}`);
     } else {
       staticParams.append("markers", `color:red|${mapCenter.lat},${mapCenter.lng}`);
+    }
+    // Include user-drawn markup overlays as static paths/markers
+    for (const rec of overlaysRef.current) {
+      try {
+        if (rec.kind === "marker") {
+          const pos = rec.overlay?.getPosition?.();
+          if (pos) {
+            staticParams.append("markers", `color:blue|${pos.lat()},${pos.lng()}`);
+          }
+        } else if (rec.kind === "polyline" || rec.kind === "polygon") {
+          const pathObj = rec.overlay?.getPath?.();
+          if (pathObj && typeof pathObj.getLength === "function" && pathObj.getLength() > 0) {
+            const coords: string[] = [];
+            for (let i = 0; i < pathObj.getLength(); i++) {
+              const pt = pathObj.getAt(i);
+              coords.push(`${pt.lat()},${pt.lng()}`);
+            }
+            if (rec.kind === "polygon" && coords.length > 0) coords.push(coords[0]); // close polygon
+            const fillHex = rec.kind === "polygon" ? "|fillcolor:0x1E3A8A30" : "";
+            staticParams.append("path", `weight:3|color:0x1E3A8AFF${fillHex}|${coords.join("|")}`);
+          }
+        } else if (rec.kind === "circle") {
+          const center = rec.overlay?.getCenter?.();
+          if (center) {
+            staticParams.append("markers", `color:blue|${center.lat()},${center.lng()}`);
+          }
+        } else if (rec.kind === "rectangle") {
+          const bounds = rec.overlay?.getBounds?.();
+          if (bounds) {
+            const ne = bounds.getNorthEast();
+            const sw = bounds.getSouthWest();
+            const coords = [
+              `${ne.lat()},${sw.lng()}`,
+              `${ne.lat()},${ne.lng()}`,
+              `${sw.lat()},${ne.lng()}`,
+              `${sw.lat()},${sw.lng()}`,
+              `${ne.lat()},${sw.lng()}`,
+            ];
+            staticParams.append("path", `weight:3|color:0x1E3A8AFF|fillcolor:0x1E3A8A30|${coords.join("|")}`);
+          }
+        }
+      } catch { /* overlay coordinate extraction failed — skip */ }
     }
     // Fetch map image from our server-side proxy (avoids CORS / oklch issues)
     let mapImgData: string | null = null;
@@ -1534,7 +1579,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                 style={{ width: '100%', height: '100%' }}
                 defaultZoom={13}
                 defaultCenter={mapCenter}
-                mapId={mapId}
+                mapId={isThreeD ? undefined : mapId}
                 gestureHandling={"greedy"}
                 disableDefaultUI={false}
                 zoomControl={true}

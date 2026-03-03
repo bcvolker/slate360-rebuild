@@ -32,10 +32,10 @@ function ExpansionIcon({ lines }: { lines: 1 | 2 | 3 }) {
   );
 }
 
-const SIZE_OPTIONS: { value: "sm" | "md" | "lg"; lines: 1 | 2 | 3; label: string }[] = [
-  { value: "sm", lines: 1, label: "Small" },
-  { value: "md", lines: 2, label: "Medium" },
-  { value: "lg", lines: 3, label: "Large" },
+const SIZE_OPTIONS: { value: WidgetSize; lines: 1 | 2 | 3; label: string }[] = [
+  { value: "default", lines: 1, label: "Small" },
+  { value: "md",      lines: 2, label: "Medium" },
+  { value: "lg",      lines: 3, label: "Large" },
 ];
 
 export interface WidgetCardProps {
@@ -76,11 +76,11 @@ export default function WidgetCard({
   onDragEnd,
   isDragging = false,
 }: WidgetCardProps) {
-  const isDefault = size === "default";
+  const isSmall = size === "default" || size === "sm";
 
   return (
     <div
-      draggable={isDraggable && isDefault}
+      draggable={isDraggable && isSmall}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
@@ -88,7 +88,7 @@ export default function WidgetCard({
         "bg-white rounded-2xl border border-gray-100 shadow-sm p-6",
         "hover:shadow-lg hover:border-gray-200 transition-all duration-300 flex flex-col",
         getWidgetHeight(size),
-        isDraggable && isDefault
+        isDraggable && isSmall
           ? "cursor-grab active:cursor-grabbing"
           : "",
         isDragging ? "opacity-50 scale-95" : "",
@@ -114,29 +114,34 @@ export default function WidgetCard({
           {action}
           {onSetSize && (
             <>
-              {/* Size buttons – horizontal line expansion icons */}
+              {/* Size buttons – 1 line = small (default), 2 = medium, 3 = large */}
               <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
-              {SIZE_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSetSize(size === opt.value ? "default" : opt.value);
-                  }}
-                  className={[
-                    "w-6 h-6 rounded-md flex items-center justify-center transition-all",
-                    size === opt.value
-                      ? "bg-white shadow-sm text-[#1E3A8A]"
-                      : "text-gray-400 hover:text-gray-600",
-                  ].join(" ")}
-                  title={`${opt.label} size`}
-                >
-                  <ExpansionIcon lines={opt.lines} />
-                </button>
-              ))}
+              {SIZE_OPTIONS.map((opt) => {
+                const isActive = opt.value === "default"
+                  ? isSmall
+                  : size === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSetSize(opt.value);
+                    }}
+                    className={[
+                      "w-6 h-6 rounded-md flex items-center justify-center transition-all",
+                      isActive
+                        ? "bg-white shadow-sm text-[#1E3A8A]"
+                        : "text-gray-400 hover:text-gray-600",
+                    ].join(" ")}
+                    title={`${opt.label} size`}
+                  >
+                    <ExpansionIcon lines={opt.lines} />
+                  </button>
+                );
+              })}
               </div>
               {/* Reset to default when expanded */}
-              {!isDefault && (
+              {!isSmall && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
