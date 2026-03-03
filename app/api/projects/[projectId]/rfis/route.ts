@@ -178,7 +178,7 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { admin } = await resolveProjectScope(user.id);
+  const { admin, orgId } = await resolveProjectScope(user.id);
   const { project } = await getScopedProjectForUser(user.id, projectId, "id");
   if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 

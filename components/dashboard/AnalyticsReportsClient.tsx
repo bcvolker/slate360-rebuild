@@ -25,17 +25,20 @@ const REPORT_TYPES = [
 ];
 
 const DATA_SECTIONS = [
-  "Project Overview & Schedule Status",
-  "RFI Register",
-  "Submittal Log",
-  "Budget & Cost Summary",
-  "Daily Log Entries",
-  "Punch List",
-  "Progress Photos",
-  "Team & Contacts",
-  "Drawings Register",
-  "Observations Log",
+  { id: "overview",    label: "Project Overview & Details" },
+  { id: "schedule",   label: "Schedule Status" },
+  { id: "rfi",        label: "RFI Register" },
+  { id: "submittal",  label: "Submittal Log" },
+  { id: "budget",     label: "Budget & Cost Summary" },
+  { id: "daily-logs", label: "Daily Log Entries" },
+  { id: "punch-list", label: "Punch List" },
+  { id: "observations", label: "Observations Log" },
+  { id: "contracts",  label: "Contracts" },
+  { id: "team",       label: "Team & Contacts" },
+  { id: "activity",   label: "Recent Activity" },
 ];
+
+type ProjectOption = { id: string; name: string; status: string; address: string | null };
 
 const DATE_RANGES = [
   { value: "last-7",    label: "Last 7 days" },
@@ -54,23 +57,46 @@ interface AnalyticsProps {
 export default function AnalyticsReportsClient({ user, tier, isCeo = false }: AnalyticsProps) {
   const { reports, loading, exportState, error, fetchReports, requestExport } = useAnalyticsStore();
 
-  const [selectedType, setSelectedType]       = useState(REPORT_TYPES[0].id);
-  const [selectedSections, setSelectedSections] = useState<string[]>(DATA_SECTIONS.slice(0, 5));
-  const [dateRange, setDateRange]             = useState("last-30");
-  const [building, setBuilding]               = useState(false);
-  const [typeOpen, setTypeOpen]               = useState(false);
+  const [selectedType, setSelectedType]         = useState(REPORT_TYPES[0].id);
+  const [selectedSections, setSelectedSections] = useState<string[]>(DATA_SECTIONS.slice(0, 6).map((s) => s.id));
+  const [dateRange, setDateRange]               = useState("last-30");
+  const [building, setBuilding]                 = useState(false);
+  const [typeOpen, setTypeOpen]                 = useState(false);
+  const [projects, setProjects]                 = useState<ProjectOption[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [projectsLoading, setProjectsLoading]   = useState(false);
 
   useEffect(() => { void fetchReports("projects"); }, [fetchReports]);
 
-  const selectedTypeObj = REPORT_TYPES.find((t) => t.id === selectedType) ?? REPORT_TYPES[0];
+  useEffect(() => {
+    setProjectsLoading(true);
+    fetch("/api/analytics/projects")
+      .then((r) => r.json())
+      .then((d) => {
+        const list = (d.projects ?? []) as ProjectOption[];
+        setProjects(list);
+        if (list.length > 0 && !selectedProjectId) setSelectedProjectId(list[0].id);
+      })
+      .catch(() => null)
+      .finally(() => setProjectsLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const toggleSection = (s: string) =>
+  const selectedTypeObj = REPORT_TYPES.find((t) => t.id === selectedType) ?? REPORT_TYPES[0];
+  const selectedProjectObj = projects.find((p) => p.id === selectedProjectId);
+
+  const toggleSection = (id: string) =>
     setSelectedSections((prev) =>
-      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
 
   const handleBuild = async () => {
+    if (!selectedProjectId) return;
     setBuilding(true);
+    // Fire real data fetch so the UI shows the data summary then request export
+    await fetch(
+      `/api/analytics/project-data?projectId=${selectedProjectId}&sections=${selectedSections.join(",")}&dateRange=${dateRange}`
+    );
     await requestExport("pdf", "projects");
     setBuilding(false);
   };
@@ -96,6 +122,33 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false }: An
           <p className="mt-1 text-sm text-gray-500">
             Pull data from your projects and generate a professional report to share with stakeholders. Built reports are stored in the Saved Reports section below.
           </p>
+        </div>
+
+        {/* Project selector */}
+        <div className="mb-4">
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-400">Project</label>
+          {projectsLoading ? (
+            <div className="flex h-10 items-center gap-2 text-sm text-gray-400"><Loader2 size={13} className="animate-spin" /> Loading projects…</div>
+          ) : projects.length === 0 ? (
+            <p className="text-sm text-gray-400">No projects found. Create a project in Project Hub first.</p>
+          ) : (
+            <select
+              value={selectedProjectId}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
+            >
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}{p.address ? ` — ${p.address}` : ""} ({p.status})
+                </option>
+              ))}
+            </select>
+          )}
+          {selectedProjectObj && (
+            <p className="mt-1 text-xs text-gray-400">
+              Data from all sections will be pulled from this project and filtered by the date range below.
+            </p>
+          )}
         </div>
 
         <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
@@ -148,7 +201,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false }: An
           <div className="flex items-end">
             <button
               onClick={() => void handleBuild()}
-              disabled={building || selectedSections.length === 0}
+              disabled={building || selectedSections.length === 0 || !selectedProjectId}
               className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-[#FF4D00] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#E04400] disabled:opacity-50 transition-colors"
             >
               {building ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
@@ -165,15 +218,15 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false }: An
           <div className="flex flex-wrap gap-2">
             {DATA_SECTIONS.map((s) => (
               <button
-                key={s}
-                onClick={() => toggleSection(s)}
+                key={s.id}
+                onClick={() => toggleSection(s.id)}
                 className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                  selectedSections.includes(s)
+                  selectedSections.includes(s.id)
                     ? "border-[#1E3A8A] bg-[#1E3A8A]/5 text-[#1E3A8A]"
                     : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
                 }`}
               >
-                {s}
+                {s.label}
               </button>
             ))}
           </div>
