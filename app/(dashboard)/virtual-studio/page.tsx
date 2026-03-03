@@ -1,14 +1,19 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
 import VirtualStudioShell from "@/components/dashboard/VirtualStudioShell";
 
 export default async function VirtualStudioPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const { user, tier } = await resolveServerOrgContext();
   if (!user) redirect("/login?redirectTo=/virtual-studio");
 
-  return <VirtualStudioShell />;
+  return (
+    <VirtualStudioShell
+      user={{
+        name: user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "User",
+        email: user.email ?? "",
+        avatar: user.user_metadata?.avatar_url ?? undefined,
+      }}
+      tier={tier}
+    />
+  );
 }

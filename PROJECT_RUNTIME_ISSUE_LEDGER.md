@@ -399,3 +399,48 @@ Suggested immediate continuation checklist:
 
 ### Elimination status
 - **Resolved** — dashboard project cards now have 3-dot menu with delete option matching the project hub pattern.
+
+---
+
+## Issue 11 — Dashboard tab standalone pages do not match dashboard UI/design
+
+### Symptoms
+- After clicking a tab (Design Studio, Content Studio, 360 Tours, Geospatial, Virtual Studio, My Account) from the dashboard, the navigated page looks visually inconsistent:
+  - Header is taller (two-row structure vs dashboard's single fixed-height row)
+  - Content area is narrow (`max-w-7xl` ≈ 1280px vs dashboard's `max-w-[1440px]`)
+  - Logo is `h-7` vs dashboard's `h-6 sm:h-7` (breakpoint-responsive)
+  - Header z-index is `z-40` vs dashboard's `z-50`
+  - No user avatar / tier badge in the top-right corner
+  - No Customize button visible
+  - "Back to Dashboard" link replaces the full right-side nav cluster
+  - Page content resembles the `/features/*` marketing pages (feature showcase grids with gradient banners) rather than an in-app placeholder
+- User reports: "nothing seems to be able to get those tabs to change" — reflects that small CSS tweaks do not converge visually because the structural mismatch (wrong container width + wrong header layout) dominates all appearance.
+
+### Root cause
+- `DashboardTabShell` (created 2026-03-03) used `max-w-7xl` and a two-row header instead of replicating the dashboard's `max-w-[1440px]` single-row header.
+- Server pages did not use `resolveServerOrgContext()` and did not pass `user` + `tier` to shell components, so the avatar/tier info was unavailable in the header.
+- Shell component content (feature grids, gradient banners, SlateDrop link cards) mirrored the home page `/features/*` section structure, which is wrong for a post-login in-app placeholder.
+
+### Fix applied (2026-03-03)
+- Rewrote `DashboardTabShell` to exactly match the dashboard header: `max-w-[1440px]`, `h-14 sm:h-16`, `z-50`, same logo size, user avatar + tier, QuickNav, disabled-state Customize button.
+- Updated all 6 server `page.tsx` files to use `resolveServerOrgContext()` and pass `user`+`tier` to shell components.
+- Rewrote all 6 shell components: Design Studio shows "Under Development" badge; all others show a minimal "Coming Soon" card — no feature showcase marketing content.
+- Standardized content area: `max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8`.
+
+### Files touched
+- `components/shared/DashboardTabShell.tsx` (rewritten)
+- `app/(dashboard)/design-studio/page.tsx`
+- `app/(dashboard)/content-studio/page.tsx`
+- `app/(dashboard)/tours/page.tsx`
+- `app/(dashboard)/geospatial/page.tsx`
+- `app/(dashboard)/virtual-studio/page.tsx`
+- `app/(dashboard)/my-account/page.tsx`
+- `components/dashboard/DesignStudioShell.tsx`
+- `components/dashboard/ContentStudioShell.tsx`
+- `components/dashboard/ToursShell.tsx`
+- `components/dashboard/GeospatialShell.tsx`
+- `components/dashboard/VirtualStudioShell.tsx`
+- `components/dashboard/MyAccountShell.tsx`
+
+### Elimination status
+- **Resolved** — all standalone tab pages now replicate the dashboard header exactly and show appropriate in-app placeholders.
