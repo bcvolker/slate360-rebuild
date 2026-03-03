@@ -226,7 +226,7 @@ Full HTML templates preserved in `slate360-context/SUPABASE_EMAIL_TEMPLATES.md`.
 `profiles`, `organizations`, `organization_members`
 
 ### Projects
-`projects`, `project_members`, `project_folders`, `project_rfis`, `project_submittals`, `project_tasks`, `project_budget_items`, `project_milestones`, `project_history_events`
+`projects`, `project_members`, `project_folders`, `project_rfis`, `project_submittals`, `project_tasks`, `project_budget_items`, `project_milestones`, `project_history_events`, `project_observations`
 
 ### Files
 `unified_files`, `file_folders` (legacy — migrating to `project_folders`), `external_response_links`

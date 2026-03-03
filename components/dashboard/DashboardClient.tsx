@@ -1484,12 +1484,25 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                       key={tab.id}
                       onClick={() => {
                         if (tab.id === "slatedrop") { openSlateDrop(); return; }
-                        if (tab.id === "project-hub") { router.push("/project-hub"); return; }
-                        if (tab.id === "analytics") { router.push("/analytics"); return; }
-                        if (tab.id === "ceo") { router.push("/ceo"); return; }
+                        // All tabs now have standalone routes
+                        const routeMap: Record<string, string> = {
+                          "project-hub": "/project-hub",
+                          "design-studio": "/design-studio",
+                          "content-studio": "/content-studio",
+                          "tours": "/tours",
+                          "geospatial": "/geospatial",
+                          "virtual-studio": "/virtual-studio",
+                          "analytics": "/analytics",
+                          "my-account": "/my-account",
+                          "ceo": "/ceo",
+                          "market": "/market",
+                          "athlete360": "/athlete360",
+                        };
+                        const route = routeMap[tab.id];
+                        if (route) { router.push(route); return; }
                         setActiveTab(tab.id);
                         window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}
+                      }}}
                       className={`group md:flex-1 md:min-w-0 flex flex-col items-center gap-1.5 sm:gap-2 ${pad} rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-center`}
                     >
                       <div
@@ -2827,9 +2840,33 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             </Link>
           </div>
         )}
+        {/* All remaining tabs now have standalone routes — show redirect card */}
         {activeTab !== "overview" && activeTab !== "market" && activeTab !== "my-account" && activeTab !== "project-hub" && activeTab !== "integrations" && activeTab !== "analytics" && activeTab !== "ceo" && (() => {
           const tab = visibleTabs.find((t) => t.id === activeTab);
           if (!tab) return null;
+          const routeMap: Record<string, string> = {
+            "design-studio": "/design-studio",
+            "content-studio": "/content-studio",
+            "tours": "/tours",
+            "geospatial": "/geospatial",
+            "virtual-studio": "/virtual-studio",
+          };
+          const route = routeMap[tab.id];
+          if (route) {
+            return (
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h3 className="text-base font-black text-gray-900">Open {tab.label}</h3>
+                <p className="mt-1 text-sm text-gray-500">{tab.label} now runs in its dedicated workspace route.</p>
+                <Link
+                  href={route}
+                  className="mt-4 inline-flex items-center rounded-lg px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
+                  style={{ backgroundColor: tab.color }}
+                >
+                  Go to {tab.label}
+                </Link>
+              </div>
+            );
+          }
           return <TabWireframe tab={tab} onBack={() => setActiveTab("overview")} onOpenSlateDrop={openSlateDrop} />;
         })()}
       </main>

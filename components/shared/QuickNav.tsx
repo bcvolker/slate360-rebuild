@@ -15,6 +15,9 @@ import {
   FolderOpen,
   Plug,
   User,
+  Shield,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
 
 const QUICK_NAV = [
@@ -27,8 +30,10 @@ const QUICK_NAV = [
   { label: "Virtual Studio", href: "/virtual-studio", icon: Film },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "SlateDrop", href: "/slatedrop", icon: FolderOpen },
-  { label: "Integrations", href: "/integrations", icon: Plug },
   { label: "My Account", href: "/my-account", icon: User },
+  { label: "CEO", href: "/ceo", icon: Shield },
+  { label: "Market Robot", href: "/market", icon: TrendingUp },
+  { label: "Athlete360", href: "/athlete360", icon: Zap },
 ];
 
 export default function QuickNav() {

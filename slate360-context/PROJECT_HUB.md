@@ -20,7 +20,8 @@
 /project-hub/[projectId]/drawings           ← Tier 3: Drawings (~450 lines)
 /project-hub/[projectId]/daily-logs         ← Tier 3: Daily Logs (~362 lines)
 /project-hub/[projectId]/punch-list         ← Tier 3: Punch List (~408 lines)
-/project-hub/[projectId]/management         ← Tier 3: Management (~934 lines)
+/project-hub/[projectId]/observations        ← Tier 3: Observations (~285 lines)
+/project-hub/[projectId]/management          ← Tier 3: Management (~934 lines)
 /project-hub/[projectId]/records            ← Tier 3: Records
 /project-hub/[projectId]/map               ← Tier 3: Map
 /project-hub/[projectId]/team              ← Tier 3: Team
@@ -75,6 +76,7 @@ const [historyItem, setHistoryItem] = useState<RFI | null>(null);
 | Photos | Reads SlateDrop | N/A — reads from folder | `/Photos/` |
 | Daily Logs | ❌ Text only | — | — |
 | Punch List | ❌ Text only | — | — |
+| Observations | ❌ Photos placeholder | 🟡 Planned (Records) | `/Records/` |
 
 > ⚠️ `ARTIFACT_FOLDER_MAP` has `DailyLog: "Daily Logs"` but no "Daily Logs" folder is provisioned on project create. See `ONGOING_ISSUES.md`.
 
@@ -175,6 +177,7 @@ const staticMapUrl = lat && lng && mapsKey
 | Drawings | ~450 | (files from SlateDrop) | DrawingsViewerClient.tsx, ViewCustomizer |
 | Daily Logs | ~362 | `GET/POST/DELETE /api/projects/[projectId]/daily-logs` | ViewCustomizer, ChangeHistory |
 | Punch List | ~408 | `GET/POST/DELETE /api/projects/[projectId]/punch-list` | ViewCustomizer, ChangeHistory |
+| Observations | ~285 | `GET/POST/PATCH/DELETE /api/projects/[projectId]/observations` | ViewCustomizer, ChangeHistory, ObservationForm |
 | Management | ~934 | Multiple (contracts, reports, stakeholders) | ViewCustomizer |
 | Records | — | `GET /api/projects/[projectId]/records` | — |
 
@@ -200,6 +203,8 @@ export default async function RFIsPage({ params }) {
 | PhotoLogClient | `components/project-hub/PhotoLogClient.tsx` | 129 |
 | ViewCustomizer | `components/project-hub/ViewCustomizer.tsx` | ~180 |
 | ChangeHistory | `components/project-hub/ChangeHistory.tsx` | ~140 |
+| ObservationsClient | `components/project-hub/ObservationsClient.tsx` | ~285 |
+| ObservationForm | `components/project-hub/ObservationForm.tsx` | ~145 |
 
 ---
 
@@ -219,6 +224,7 @@ export default async function RFIsPage({ params }) {
 | `/api/projects/[projectId]/schedule/snapshot` | GET | Schedule snapshot |
 | `/api/projects/[projectId]/daily-logs` | GET, POST, DELETE | Daily log CRUD |
 | `/api/projects/[projectId]/punch-list` | GET, POST, DELETE | Punch list CRUD |
+| `/api/projects/[projectId]/observations` | GET, POST, PATCH, DELETE | Observations CRUD (sentiment-based) |
 | `/api/projects/[projectId]/photos` | — | Photo management |
 | `/api/projects/[projectId]/photo-report` | GET | Photo report |
 | `/api/projects/[projectId]/records` | GET | Project records |
@@ -246,6 +252,7 @@ Key columns: `id`, `name`, `folder_path`, `parent_id`, `is_system`, `folder_type
 - `project_budget_items` — id, description, amount, category, project_id
 - `project_milestones` — id, name, date, project_id
 - `project_history_events` — id, event_type, description, project_id, created_at
+- `project_observations` — id, project_id, number (serial), title, description, sentiment (positive/negative/neutral), category, location_area, priority, status, photos (jsonb), notes, observed_at, resolved_at, created_by, created_at, updated_at
 
 ---
 

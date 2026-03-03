@@ -59,6 +59,9 @@ When PWA infrastructure is added (Phase 3), the service worker and manifest must
 ### Rule 13: No Standalone Routes Without SlateDrop Access
 All standalone apps that handle files must use SlateDrop as the file backbone. Never create a parallel file management system for a standalone app.
 
+### Rule 14: New Dashboard Tabs Use DashboardTabShell
+All new dashboard tab pages MUST use `DashboardTabShell` from `components/shared/DashboardTabShell.tsx`. This standardizes header, spacing, nav, and theme. Legacy tabs (DashboardClient, Analytics, CEO, Project Hub, SlateDrop, Market) will be migrated during Phase 0B decomposition.
+
 ---
 
 ## 2. Refactoring Priorities

@@ -11,7 +11,8 @@ export type ProjectArtifactKind =
   | "PhotoReport"
   | "Budget"
   | "Schedule"
-  | "Closeout";
+  | "Closeout"
+  | "Observation";
 
 const ARTIFACT_FOLDER_MAP: Record<ProjectArtifactKind, string> = {
   RFI: "RFIs",
@@ -22,6 +23,7 @@ const ARTIFACT_FOLDER_MAP: Record<ProjectArtifactKind, string> = {
   Budget: "Budget",
   Schedule: "Schedule",
   Closeout: "Closeout",
+  Observation: "Records",
 };
 
 export function resolveArtifactFolder(kind: ProjectArtifactKind): string {

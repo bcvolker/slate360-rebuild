@@ -6,6 +6,62 @@
 
 ---
 
+## Architecture Readiness Analysis
+
+### Tab Ecosystem — Current State (All 12 Tabs)
+
+| Tab | Route | Scaffolding | Content | Shell |
+|---|---|---|---|---|
+| Dashboard Home | `/(dashboard)` | ✅ `DashboardClient.tsx` | ✅ Built (SPA mega-component) | ❌ Own header |
+| Project Hub | `/project-hub` | ✅ Standalone layout | ✅ Built (3-tier structure) | ❌ Own header |
+| SlateDrop | `/slatedrop` | ✅ Standalone page | ✅ Built | ❌ Own header |
+| Design Studio | `/(dashboard)/design-studio` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared |
+| Content Studio | `/(dashboard)/content-studio` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared |
+| 360 Tours | `/(dashboard)/tours` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared |
+| Geospatial | `/(dashboard)/geospatial` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared |
+| Virtual Studio | `/(dashboard)/virtual-studio` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared |
+| Analytics | `/(dashboard)/analytics` | ✅ `AnalyticsReportsClient` | 🟡 Stub | ❌ Own header (dark theme) |
+| CEO | `/(dashboard)/ceo` | ✅ `CeoCommandCenterClient` | 🟡 Stub | ❌ Own header (dark theme) |
+| Market Robot | `/market` | ✅ `MarketClient.tsx` | ✅ Built | ❌ Own header |
+| Athlete360 | `/athlete360` | ✅ Standalone page | 🟡 Stub | ❌ Own header |
+| My Account | `/(dashboard)/my-account` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared |
+
+**Decisions made:**
+- `DashboardTabShell` (shared component) standardizes: `max-w-7xl`, `z-40`, `py-6 md:py-8`, `md:px-10`, logo `h-7`
+- New tabs USE `DashboardTabShell` automatically. Legacy tabs (Dashboard, Analytics, CEO, Project Hub, SlateDrop, Market) retain own headers until Phase 0B decomposition.
+- `QuickNav` (shared dropdown) now includes all 13 navigation targets.
+
+### Architecture Readiness for Future Phases
+
+| Phase | Architecture Ready? | Gaps |
+|---|---|---|
+| Phase 0 (Foundation) | ✅ Ready | Just execution work — no infra blockers |
+| Phase 1 (Project Hub) | ✅ Ready | Tool pages exist, need enhancement. Observations feature added. |
+| Phase 2 (Design Studio) | ✅ Shell ready | `DashboardTabShell` in place. Needs Zustand store + viewer stack. Route exists. |
+| Phase 3 (App Ecosystem) | 🟡 Partially ready | Standalone routes exist for 6 tabs. Missing: `manifest.webmanifest`, service worker, `org_feature_flags` table, per-app Stripe products. |
+| Phase 4 (Remaining Modules) | ✅ Shell ready | All 5 module routes scaffolded with `DashboardTabShell`. Each just needs content implementation. |
+| Phase 5 (Advanced) | 🟡 Partially ready | GPU pipeline, Redis, realtime — all require new infrastructure. No code blockers. |
+| Phase 6 (Native Apps) | 🔴 Not ready | Needs PWA foundation (Phase 3A) first. No Capacitor installed. |
+
+### Key Architectural Strengths
+
+1. **Modular routing:** Each tab is a standalone Next.js page — no coupling between modules
+2. **Shared auth layer:** `withAuth()` / `withProjectAuth()` works for any new API route
+3. **Entitlements system:** `getEntitlements(tier)` cleanly gates any new module
+4. **SlateDrop as common storage:** All modules can save artifacts via `saveProjectArtifact()`
+5. **Shared UI patterns:** `ViewCustomizer`, `ChangeHistory`, `DashboardTabShell` are reusable
+6. **QuickNav centralized:** Single navigation dropdown shared across all tab pages
+
+### Key Risks / Debt to Address Before Scale
+
+1. **DashboardClient.tsx (2,915 lines)** — Must decompose before adding more dashboard logic
+2. **No shared `(dashboard)/layout.tsx`** — Each page re-implements header/nav. DashboardTabShell mitigates for new pages but legacy pages still diverge.
+3. **No activity log table** — `project_activity_log` needed for proper audit trails
+4. **No PWA infra** — Marketing claims PWA but nothing exists
+5. **Web3 packages always imported** — ~7 packages bloat bundle for non-Market pages
+
+---
+
 ## How This Document Works
 
 Every feature ever discussed is preserved here, organized into **7 build phases** in safe dependency order. Each phase lists what to build, what it depends on, and what infrastructure it needs. No feature or idea has been removed — items from the original planning docs, competitor analysis (Procore), Design Studio vision docs, app ecosystem specs, SlateDrop "wow features," and GPU processing specs are all included, consolidated, and de-duplicated.

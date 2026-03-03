@@ -14,11 +14,12 @@
   /analytics                     ← Analytics tab (stub — 37 lines)
   /ceo                           ← CEO Command Center (stub — 20 lines)
   /integrations                  ← Integrations page (133 lines)
-  /design-studio                 ← NOT BUILT
-  /content-studio                ← NOT BUILT
-  /tour-builder                  ← NOT BUILT
-  /geospatial-robotics           ← NOT BUILT
-  /virtual-studio                ← NOT BUILT
+  /design-studio                 ← ✅ Scaffolded (DashboardTabShell)
+  /content-studio                ← ✅ Scaffolded (DashboardTabShell)
+  /tours                         ← ✅ Scaffolded (DashboardTabShell)
+  /geospatial                    ← ✅ Scaffolded (DashboardTabShell)
+  /virtual-studio                ← ✅ Scaffolded (DashboardTabShell)
+  /my-account                    ← ✅ Scaffolded (DashboardTabShell)
 ```
 
 **Dashboard entry point:** `app/dashboard/` redirects into the authenticated `(dashboard)` route group.
@@ -33,14 +34,32 @@
 | Dashboard Home | `/(dashboard)` | ✅ Built |
 | Project Hub | `/project-hub` | ✅ Built |
 | SlateDrop | `/slatedrop` | ✅ Built (standalone route) |
-| Design Studio | `/(dashboard)/design-studio` | ❌ Not built |
-| Content Studio | `/(dashboard)/content-studio` | ❌ Not built |
-| 360 Tour Builder | `/(dashboard)/tour-builder` | ❌ Not built |
-| Geospatial & Robotics | `/(dashboard)/geospatial-robotics` | ❌ Not built |
-| Virtual Studio | `/(dashboard)/virtual-studio` | ❌ Not built |
-| Analytics & Reports | `/(dashboard)/analytics-reports` | 🟡 Stub |
+| Design Studio | `/(dashboard)/design-studio` | ✅ Scaffolded |
+| Content Studio | `/(dashboard)/content-studio` | ✅ Scaffolded |
+| 360 Tour Builder | `/(dashboard)/tours` | ✅ Scaffolded |
+| Geospatial & Robotics | `/(dashboard)/geospatial` | ✅ Scaffolded |
+| Virtual Studio | `/(dashboard)/virtual-studio` | ✅ Scaffolded |
+| My Account | `/(dashboard)/my-account` | ✅ Scaffolded |
+| Analytics & Reports | `/(dashboard)/analytics` | 🟡 Stub |
 | CEO Command Center | `/(dashboard)/ceo` | 🟡 Stub |
 | Market | `/market` | ✅ Built |
+
+### DashboardTabShell (Shared)
+`components/shared/DashboardTabShell.tsx` — standardized wrapper for all new tab pages:
+- Consistent `max-w-7xl`, `z-40`, `py-6 md:py-8`, `md:px-10`
+- Props: `category`, `title`, `description`, `icon`, `accent`, `dark`, `headerActions`, `children`
+- Dark mode support for Analytics/CEO (dark theme with `bg-[#0B1220]`)
+- Includes logo, back link, QuickNav dropdown
+
+### New Shell Components
+| Component | File | Route |
+|---|---|---|
+| DesignStudioShell | `components/dashboard/DesignStudioShell.tsx` | `/design-studio` |
+| ContentStudioShell | `components/dashboard/ContentStudioShell.tsx` | `/content-studio` |
+| ToursShell | `components/dashboard/ToursShell.tsx` | `/tours` |
+| GeospatialShell | `components/dashboard/GeospatialShell.tsx` | `/geospatial` |
+| VirtualStudioShell | `components/dashboard/VirtualStudioShell.tsx` | `/virtual-studio` |
+| MyAccountShell | `components/dashboard/MyAccountShell.tsx` | `/my-account` |
 
 ### Hydration Guard (Critical — Never Remove)
 `app/(dashboard)/layout.tsx` renders client state only after `isClient && _hasHydrated`. This prevents React hydration mismatches.
@@ -64,12 +83,14 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 
 | Component | File | Lines | Status |
 |---|---|---|---|
+| DashboardTabShell | `components/shared/DashboardTabShell.tsx` | ~135 | ✅ Shared scaffold |
 | DashboardClient | `components/dashboard/DashboardClient.tsx` | 2,915 | ⚠️ Needs decomposition |
 | MarketClient | `components/dashboard/MarketClient.tsx` | 3,006 | ⚠️ Needs decomposition |
 | LocationMap | `components/dashboard/LocationMap.tsx` | 1,568 | ⚠️ Needs decomposition |
 | AnalyticsReportsClient | `components/dashboard/AnalyticsReportsClient.tsx` | 290 | ✅ OK |
 | DashboardProjectCard | `components/dashboard/DashboardProjectCard.tsx` | 275 | ✅ OK |
 | CeoCommandCenterClient | `components/dashboard/CeoCommandCenterClient.tsx` | 155 | ✅ OK |
+| QuickNav | `components/shared/QuickNav.tsx` | ~100 | ✅ 13 nav items |
 
 ### Decomposition Targets
 
