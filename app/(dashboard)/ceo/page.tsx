@@ -16,5 +16,14 @@ export default async function CeoPage() {
     notFound();
   }
 
-  return <CeoCommandCenterClient />;
+  return (
+    <CeoCommandCenterClient
+      user={{
+        name: user.user_metadata?.full_name ?? user.email ?? "User",
+        email: user.email ?? "",
+        avatar: user.user_metadata?.avatar_url,
+      }}
+      tier={tier}
+    />
+  );
 }

@@ -10,28 +10,13 @@ import {
   CreditCard,
   SlidersHorizontal,
   Activity,
-  Plug,
   Search,
   type LucideIcon,
 } from "lucide-react";
+import QuickNav from "@/components/shared/QuickNav";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 import { createClient } from "@/lib/supabase/client";
-
-/**
- * DashboardTabShell
- *
- * Wraps every standalone dashboard-tab page (Design Studio, Content Studio,
- * 360 Tours, Geospatial, Virtual Studio, My Account, etc.).
- *
- * Header is PIXEL-FOR-PIXEL identical to DashboardClient:
- *   max-w-[1440px]  h-14 sm:h-16  z-50  bg-white/95 backdrop-blur-md
- *   Left:   logo (h-6 sm:h-7)
- *   Center: search bar (read-only stub until module ships)
- *   Right:  Bell  |  Customize (→ WidgetCustomizeDrawer)  |  User + dropdown
- *
- * Content area: max-w-[1440px] px-4 sm:px-6 py-6 sm:py-8  (same as dashboard)
- */
 
 export type TabStatus = "coming-soon" | "under-development" | "live";
 
@@ -42,6 +27,7 @@ export interface DashboardTabShellProps {
   icon?: LucideIcon;
   accent?: string;
   status?: TabStatus;
+  isCeo?: boolean;
   children?: React.ReactNode;
 }
 
@@ -52,6 +38,7 @@ export default function DashboardTabShell({
   icon: Icon,
   accent = "#1E3A8A",
   status = "coming-soon",
+  isCeo = false,
   children,
 }: DashboardTabShellProps) {
   const ent = getEntitlements(tier);
@@ -69,14 +56,14 @@ export default function DashboardTabShell({
 
   const handleOpenBillingPortal = async () => {
     const res = await fetch("/api/billing/portal", { method: "POST" });
-    const data = await res.json() as { url?: string };
+    const data = (await res.json()) as { url?: string };
     if (data?.url) window.location.href = data.url;
   };
 
   return (
     <div className="min-h-screen bg-[#ECEEF2] overflow-x-hidden">
 
-      {/* TOP BAR — identical to DashboardClient */}
+      {/* TOP BAR */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
 
@@ -85,26 +72,29 @@ export default function DashboardTabShell({
             <img src="/logo.svg" alt="Slate360" className="h-6 sm:h-7 w-auto" />
           </Link>
 
-          {/* Center — Search bar (read-only stub until module ships) */}
+          {/* Center — Search bar (read-only stub) */}
           <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
             <div className="relative w-full">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 readOnly
-                placeholder={`Search ${title}…`}
+                placeholder={`Search ${title}\u2026`}
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50/50 text-sm cursor-default"
               />
             </div>
           </div>
 
-          {/* Right — Notifications + Customize + User */}
+          {/* Right — Nav + Notifications + Customize + User */}
           <div className="flex items-center gap-1.5 sm:gap-3">
+
+            {/* QuickNav dropdown + Back button */}
+            <QuickNav tier={tier} isCeo={isCeo} showBackButton />
 
             {/* Notifications bell */}
             <div className="relative">
               <button
-                onClick={() => { setNotificationsOpen(v => !v); setUserMenuOpen(false); }}
+                onClick={() => { setNotificationsOpen((v) => !v); setUserMenuOpen(false); }}
                 className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
               >
                 <Bell size={18} />
@@ -122,7 +112,7 @@ export default function DashboardTabShell({
               )}
             </div>
 
-            {/* Customize — wired to WidgetCustomizeDrawer */}
+            {/* Customize */}
             <button
               onClick={() => setCustomizeOpen(true)}
               title="Customize layout"
@@ -134,7 +124,7 @@ export default function DashboardTabShell({
             {/* User avatar + dropdown */}
             <div className="relative">
               <button
-                onClick={() => { setUserMenuOpen(v => !v); setNotificationsOpen(false); }}
+                onClick={() => { setUserMenuOpen((v) => !v); setNotificationsOpen(false); }}
                 className="flex items-center gap-1.5 sm:gap-2.5 p-1 sm:pl-2 sm:pr-3 sm:py-1.5 rounded-xl hover:bg-gray-100 transition-colors"
               >
                 {user.avatar ? (
@@ -164,18 +154,11 @@ export default function DashboardTabShell({
                     </div>
                     <div className="py-1">
                       <Link
-                        href="/dashboard"
+                        href="/my-account"
                         onClick={() => setUserMenuOpen(false)}
                         className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
                       >
                         <Activity size={15} /> My Account
-                      </Link>
-                      <Link
-                        href="/integrations"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-                      >
-                        <Plug size={15} /> Integrations
                       </Link>
                       <button
                         onClick={handleOpenBillingPortal}
@@ -198,7 +181,7 @@ export default function DashboardTabShell({
         </div>
       </header>
 
-      {/* MAIN — same container/spacing as DashboardClient */}
+      {/* MAIN */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden space-y-6">
 
         {/* Page-header row */}

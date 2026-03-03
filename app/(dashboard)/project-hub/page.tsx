@@ -18,9 +18,6 @@ import {
   Cpu,
   Lightbulb,
   Bell,
-  LayoutDashboard,
-  BarChart3,
-  Plug,
   SlidersHorizontal,
   FileText,
   MoreVertical,
@@ -52,14 +49,7 @@ import {
   SuggestWidgetBody,
   DataUsageWidgetBody,
 } from "@/components/widgets/WidgetBodies";
-
-const QUICK_NAV = [
-  { label: "Dashboard",   href: "/dashboard",   icon: LayoutDashboard },
-  { label: "Project Hub", href: "/project-hub", icon: FolderKanban },
-  { label: "Analytics",   href: "/analytics",   icon: BarChart3 },
-  { label: "SlateDrop",   href: "/slatedrop",   icon: FolderOpen },
-  { label: "Integrations", href: "/integrations", icon: Plug },
-];
+import QuickNav from "@/components/shared/QuickNav";
 
 const HUB_WIDGET_IDS = [
   "slatedrop",
@@ -106,7 +96,6 @@ export default function ProjectHubPage() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "my-work" | "activity">("all");
-  const [quickNavOpen, setQuickNavOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -439,7 +428,6 @@ export default function ProjectHubPage() {
               <button
                 onClick={() => {
                   setNotifOpen(!notifOpen);
-                  setQuickNavOpen(false);
                 }}
                 className="relative flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all"
               >
@@ -478,37 +466,7 @@ export default function ProjectHubPage() {
               )}
             </div>
 
-            <div className="relative">
-              <button
-                onClick={() => {
-                  setQuickNavOpen(!quickNavOpen);
-                  setNotifOpen(false);
-                }}
-                className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all"
-              >
-                <LayoutDashboard size={14} /> Navigate <ChevronDown size={12} />
-              </button>
-              {quickNavOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setQuickNavOpen(false)} />
-                  <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-gray-200 bg-white shadow-2xl py-2 overflow-hidden">
-                    {QUICK_NAV.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setQuickNavOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-[#FF4D00]/5 hover:text-[#FF4D00] transition-colors"
-                        >
-                          <Icon size={14} /> {item.label}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
+            <QuickNav showBackButton />
           </div>
         </div>
       </header>

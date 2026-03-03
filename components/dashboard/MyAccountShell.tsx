@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import DashboardTabShell from "@/components/shared/DashboardTabShell";
-import { User, CreditCard, Bell, Shield, ArrowRight } from "lucide-react";
+import { User, CreditCard, Bell, Shield, ArrowRight, Plug, Link2, CheckCircle2 } from "lucide-react";
 import type { Tier } from "@/lib/entitlements";
 
 const SECTIONS = [
@@ -11,12 +12,21 @@ const SECTIONS = [
   { icon: Shield,     label: "Security",               desc: "Change password, manage sessions, and configure two-factor auth." },
 ];
 
+const INTEGRATIONS = [
+  { id: "microsoft-project", name: "Microsoft Project", description: "Sync project schedules and milestone updates between Slate360 and Microsoft Project." },
+  { id: "foundation-software", name: "Foundation Software", description: "Connect job-cost data and accounting records with bidirectional sync placeholders." },
+  { id: "procore", name: "Procore", description: "Exchange RFIs, submittals, and progress details across both systems." },
+  { id: "autodesk", name: "Autodesk", description: "Bridge design and model context between Autodesk workflows and Slate360." },
+];
+
 interface Props {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
 }
 
 export default function MyAccountShell({ user, tier }: Props) {
+  const [connected, setConnected] = useState<Record<string, boolean>>({});
+
   return (
     <DashboardTabShell
       user={user}
@@ -77,6 +87,40 @@ export default function MyAccountShell({ user, tier }: Props) {
         >
           Open Portal <ArrowRight size={14} />
         </button>
+      </div>
+
+      {/* Integrations */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <Plug size={16} className="text-[#1E3A8A]" />
+          <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Integrations</h2>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {INTEGRATIONS.map((integration) => {
+            const isConnected = Boolean(connected[integration.id]);
+            return (
+              <article key={integration.id} className="rounded-2xl border border-gray-200 bg-white p-4">
+                <div className="mb-2 inline-flex rounded-lg border border-gray-200 bg-gray-50 p-2 text-gray-600">
+                  <Link2 size={16} />
+                </div>
+                <p className="text-sm font-bold text-gray-900">{integration.name}</p>
+                <p className="mt-0.5 text-xs text-gray-500 leading-relaxed">{integration.description}</p>
+                <div className="mt-3 flex items-center justify-between">
+                  <button
+                    onClick={() => setConnected((prev) => ({ ...prev, [integration.id]: !prev[integration.id] }))}
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#FF4D00] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#E64500]"
+                  >
+                    <CheckCircle2 size={14} />
+                    {isConnected ? "Connected" : "Connect"}
+                  </button>
+                  <span className={`text-xs font-semibold ${isConnected ? "text-emerald-700" : "text-gray-400"}`}>
+                    {isConnected ? "Ready" : "Not connected"}
+                  </span>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       </div>
     </DashboardTabShell>
   );

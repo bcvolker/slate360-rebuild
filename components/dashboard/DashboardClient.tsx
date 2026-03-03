@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
+import QuickNav from "@/components/shared/QuickNav";
 import SlateDropClient from "@/components/slatedrop/SlateDropClient";
 import MarketClient from "@/components/dashboard/MarketClient";
 import DashboardProjectCard from "@/components/dashboard/DashboardProjectCard";
@@ -1285,8 +1286,11 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
             </div>
           </div>
 
-          {/* Right — Notifications + Customize + User (compact on mobile) */}
+          {/* Right — Nav + Notifications + Customize + User (compact on mobile) */}
           <div className="flex items-center gap-1.5 sm:gap-3">
+            {/* QuickNav dropdown */}
+            <QuickNav tier={tier} isCeo={hasCeoAccess} />
+
             {/* Notifications */}
             <div className="relative">
               <button
@@ -1390,13 +1394,6 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <Activity size={15} /> My Account
-                      </Link>
-                      <Link
-                        href="/integrations"
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-                        onClick={() => setUserMenuOpen(false)}
-                      >
-                        <Plug size={15} /> Integrations
                       </Link>
                       <button
                         onClick={handleOpenBillingPortal}
