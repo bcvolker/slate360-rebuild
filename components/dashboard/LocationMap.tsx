@@ -168,11 +168,13 @@ function DrawController({
   setIsThreeD,
   onToggleSharePanel,
   onRouteReady,
+  overlaysRef,
 }: {
   setStatus: (value: { ok: boolean; text: string } | null) => void;
   strokeColor: string;
   fillColor: string;
   strokeWeight: number;
+  overlaysRef: React.MutableRefObject<OverlayRecord[]>;
   setStrokeColor: (value: string) => void;
   setFillColor: (value: string) => void;
   setStrokeWeight: (value: number) => void;
@@ -196,7 +198,6 @@ function DrawController({
   const [isResolvingAddress, setIsResolvingAddress] = useState(false);
   const [addressInput, setAddressInput] = useState("");
   const drawingManagerRef = useRef<any>(null);
-  const overlaysRef = useRef<OverlayRecord[]>([]);
   const selectedOverlayIdRef = useRef<string | null>(null);
   const selectedToolRef = useRef<DrawTool>("select");
   // Keep refs in sync with current draw-style values so overlay listeners
@@ -985,6 +986,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   const [diagTick, setDiagTick] = useState(0);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const overlaysRef = useRef<OverlayRecord[]>([]);
   const controlsHeaderRef = useRef<HTMLDivElement>(null);
   const controlsPanelRef = useRef<HTMLDivElement>(null);
   const mapCanvasRef = useRef<HTMLDivElement>(null);
@@ -1493,6 +1495,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                 setIsThreeD={setIsThreeD}
                 onToggleSharePanel={() => setShowSharePanel(!showSharePanel)}
                 onRouteReady={setRouteData}
+                overlaysRef={overlaysRef}
               />
             </div>
           )}
