@@ -187,10 +187,10 @@ function DrawController({
   const map = useMap("main-map");
   const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   const geocodingLib = useMapsLibrary("geocoding");
-  const placesLib = useMapsLibrary("places");
+  // Load places lib so AutocompleteSuggestion is available globally
+  useMapsLibrary("places");
   const drawingLib = useMapsLibrary("drawing");
   const geocoder = useMemo(() => geocodingLib ? new geocodingLib.Geocoder() : null, [geocodingLib]);
-  const autocompleteService = useMemo(() => placesLib ? new placesLib.AutocompleteService() : null, [placesLib]);
   const [tool, setTool] = useState<DrawTool>("select");
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [isResolvingAddress, setIsResolvingAddress] = useState(false);
@@ -218,39 +218,41 @@ function DrawController({
   const [isLoadingRoute, setIsLoadingRoute] = useState(false);
   const routePolylineRef = useRef<google.maps.Polyline | null>(null);
   const routeMarkersRef = useRef<google.maps.Marker[]>([]);
-  // origin autocomplete
+  // origin autocomplete (AutocompleteSuggestion API)
   useEffect(() => {
     const trimmed = originInput.trim();
     if (!trimmed || trimmed.length < 3 || !mapsApiKey) { setOriginSuggestions([]); return; }
-    const timeout = window.setTimeout(() => {
-      if (!autocompleteService) return;
-      autocompleteService.getPlacePredictions({ input: trimmed }, (predictions, status) => {
-        if (status === "OK" && predictions) {
-          setOriginSuggestions(
-            predictions.slice(0, 5).map(p => ({ placeId: p.place_id, description: p.description }))
-          );
-        } else {
-          setOriginSuggestions([]);
-        }
-      });
+    const g = (window as any).google?.maps?.places;
+    if (!g?.AutocompleteSuggestion) { setOriginSuggestions([]); return; }
+    const timeout = window.setTimeout(async () => {
+      try {
+        const response = await g.AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: trimmed });
+        setOriginSuggestions(
+          (response?.suggestions ?? []).slice(0, 5).map((s: any) => ({
+            placeId: s.placePrediction?.placeId ?? "",
+            description: s.placePrediction?.text?.text ?? s.placePrediction?.text ?? trimmed,
+          }))
+        );
+      } catch { setOriginSuggestions([]); }
     }, 250);
     return () => window.clearTimeout(timeout);
   }, [originInput, mapsApiKey]);
-  // destination autocomplete
+  // destination autocomplete (AutocompleteSuggestion API)
   useEffect(() => {
     const trimmed = destInput.trim();
     if (!trimmed || trimmed.length < 3 || !mapsApiKey) { setDestSuggestions([]); return; }
-    const timeout = window.setTimeout(() => {
-      if (!autocompleteService) return;
-      autocompleteService.getPlacePredictions({ input: trimmed }, (predictions, status) => {
-        if (status === "OK" && predictions) {
-          setDestSuggestions(
-            predictions.slice(0, 5).map(p => ({ placeId: p.place_id, description: p.description }))
-          );
-        } else {
-          setDestSuggestions([]);
-        }
-      });
+    const g = (window as any).google?.maps?.places;
+    if (!g?.AutocompleteSuggestion) { setDestSuggestions([]); return; }
+    const timeout = window.setTimeout(async () => {
+      try {
+        const response = await g.AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: trimmed });
+        setDestSuggestions(
+          (response?.suggestions ?? []).slice(0, 5).map((s: any) => ({
+            placeId: s.placePrediction?.placeId ?? "",
+            description: s.placePrediction?.text?.text ?? s.placePrediction?.text ?? trimmed,
+          }))
+        );
+      } catch { setDestSuggestions([]); }
     }, 250);
     return () => window.clearTimeout(timeout);
   }, [destInput, mapsApiKey]);
@@ -596,26 +598,28 @@ function DrawController({
       applyStyleToOverlay(selected.overlay, selected.kind, { strokeColor, fillColor, strokeWeight }, selected.arrow);
     }
   }, [fillColor, strokeColor, strokeWeight]);
+  // Address bar autocomplete (AutocompleteSuggestion API)
   useEffect(() => {
     const trimmed = addressInput.trim();
     if (!trimmed || trimmed.length < 3 || !mapsApiKey) {
       setSuggestions([]);
       return;
     }
-    const timeout = window.setTimeout(() => {
-      if (!autocompleteService) return;
-      autocompleteService.getPlacePredictions({ input: trimmed }, (predictions, status) => {
-        if (status === "OK" && predictions) {
-          setSuggestions(
-            predictions.slice(0, 6).map(p => ({ placeId: p.place_id, description: p.description }))
-          );
-        } else {
-          setSuggestions([]);
-        }
-      });
+    const g = (window as any).google?.maps?.places;
+    if (!g?.AutocompleteSuggestion) { setSuggestions([]); return; }
+    const timeout = window.setTimeout(async () => {
+      try {
+        const response = await g.AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: trimmed });
+        setSuggestions(
+          (response?.suggestions ?? []).slice(0, 6).map((s: any) => ({
+            placeId: s.placePrediction?.placeId ?? "",
+            description: s.placePrediction?.text?.text ?? s.placePrediction?.text ?? trimmed,
+          }))
+        );
+      } catch { setSuggestions([]); }
     }, 250);
     return () => window.clearTimeout(timeout);
-  }, [addressInput, mapsApiKey, autocompleteService]);
+  }, [addressInput, mapsApiKey]);
   const goToCurrentLocation = () => {
     if (!navigator.geolocation) {
       setStatus({ ok: false, text: "Geolocation is not available on this browser." });

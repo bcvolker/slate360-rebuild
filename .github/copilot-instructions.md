@@ -3,8 +3,8 @@
 **Last Updated:** 2026-03-02
 **Repo:** `bcvolker/slate360-rebuild` · branch: `main` · live: https://www.slate360.ai
 
-Before making any code change, read `CODEBASE_HEALTH_BLUEPRINT.md` in the project root.
-For full platform blueprints, see `slate360-context/` directory.
+Before making any code change, read `SLATE360_PROJECT_MEMORY.md` in the project root.
+For module-specific blueprints, see `slate360-context/` (one file per topic).
 
 ---
 
@@ -23,6 +23,7 @@ For full platform blueprints, see `slate360-context/` directory.
 11. **Entitlements single source of truth:** `lib/entitlements.ts` — never inline tier checks.
 12. **Canonical folder table:** `project_folders` (NOT `file_folders`) — migration in progress.
 13. **No mock data in production UI** — show proper empty/error state when Supabase env is missing.
+14. **Update context files** — after ANY code change, update the relevant `slate360-context/` blueprint if routes, components, APIs, DB tables, or features changed.
 
 ---
 
@@ -252,21 +253,20 @@ Show only when credits ≤ 20% remaining. Never pop-up. `SubtleCreditPurchase` c
 
 | File | Purpose |
 |---|---|
-| `CODEBASE_HEALTH_BLUEPRINT.md` | Full rules, phases, conventions |
+| `SLATE360_PROJECT_MEMORY.md` | **Master project memory — attach to new chats** |
 | `PROJECT_RUNTIME_ISSUE_LEDGER.md` | Runtime bug tracker |
-| `BACKEND_ACCESS.md` | Backend credentials + quick start |
-| `slate360-context/SLATEDROP_BLUEPRINT.md` | **Complete SlateDrop blueprint** |
-| `slate360-context/DASHBOARD_BLUEPRINT.md` | **Complete Dashboard blueprint** |
-| `slate360-context/PROJECT_HUB_BLUEPRINT.md` | **Complete Project Hub blueprint** |
-| `slate360-context/HOMEPAGE_BLUEPRINT.md` | **Complete Homepage blueprint** |
+| `slate360-context/DASHBOARD.md` | Dashboard blueprint |
+| `slate360-context/PROJECT_HUB.md` | Project Hub blueprint |
+| `slate360-context/SLATEDROP.md` | SlateDrop blueprint |
+| `slate360-context/WIDGETS.md` | Widget system blueprint |
+| `slate360-context/HOMEPAGE.md` | Homepage blueprint |
+| `slate360-context/BACKEND.md` | Backend, auth, billing, credits, DB, email |
+| `slate360-context/FUTURE_MODULES.md` | Unbuilt modules (Design Studio, CEO, Athlete360, etc.) |
+| `slate360-context/GUARDRAILS.md` | Code rules, refactoring priorities, tech debt |
 | `lib/entitlements.ts` | Tier → entitlements (single source of truth) |
 | `lib/server/api-auth.ts` | `withAuth()`, `withProjectAuth()` |
 | `lib/server/api-response.ts` | `ok()`, `badRequest()`, `unauthorized()`, `serverError()` |
 | `lib/types/api.ts` | `ProjectRouteContext`, `ApiErrorPayload` |
 | `lib/projects/access.ts` | `listScopedProjectsForUser()`, `getScopedProjectForUser()` |
 | `lib/server/org-context.ts` | `resolveServerOrgContext()` |
-| `components/slatedrop/SlateDropClient.tsx` | SlateDrop explorer UI (~2031 lines) |
-| `components/dashboard/DashboardProjectCard.tsx` | Project card with satellite map |
-| `components/project-hub/WizardLocationPicker.tsx` | Location picker (new Places API) |
-| `app/(dashboard)/project-hub/page.tsx` | Project Hub Tier 1 (~828 lines) |
 | `middleware.ts` | Auth session refresh on every request |

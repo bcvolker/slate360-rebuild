@@ -23,7 +23,13 @@ export async function GET(_req: NextRequest, context: RouteContext) {
     .eq("project_id", projectId)
     .order("created_at", { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  // If the table doesn't exist yet, return an empty list instead of 500
+  if (error) {
+    if (error.code === "42P01" || error.message?.includes("does not exist")) {
+      return NextResponse.json({ tasks: [] });
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ tasks: data ?? [] });
 }
 
