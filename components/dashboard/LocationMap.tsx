@@ -926,10 +926,12 @@ function DrawController({
     </div>
   );
 }
-function MapUpdater({ center, isThreeD }: { center: { lat: number; lng: number }; isThreeD: boolean }) {
+function MapUpdater({ center, isThreeD, mapInstanceRef }: { center: { lat: number; lng: number }; isThreeD: boolean; mapInstanceRef?: React.MutableRefObject<google.maps.Map | null> }) {
   const map = useMap("main-map");
   const prevCenterRef = useRef<{lat: number, lng: number} | null>(null);
   const prevThreeDRef = useRef<boolean | null>(null);
+  // Sync map instance to parent ref
+  useEffect(() => { if (mapInstanceRef) mapInstanceRef.current = map; }, [map, mapInstanceRef]);
   // Pan to new center only when the center state actually changes
   useEffect(() => {
     if (map && center) {
@@ -982,6 +984,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   const [widgetDiagEnabled, setWidgetDiagEnabled] = useState(false);
   const [diagTick, setDiagTick] = useState(0);
   const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const controlsHeaderRef = useRef<HTMLDivElement>(null);
   const controlsPanelRef = useRef<HTMLDivElement>(null);
   const mapCanvasRef = useRef<HTMLDivElement>(null);
@@ -1175,7 +1178,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     const staticParams = new URLSearchParams();
     staticParams.set("center", `${mapCenter.lat},${mapCenter.lng}`);
     // Use the current map zoom level, falling back to 15 for satellite detail
-    const currentZoom = map?.getZoom?.() ?? 15;
+    const currentZoom = mapInstanceRef.current?.getZoom?.() ?? 15;
     staticParams.set("zoom", String(Math.round(currentZoom)));
     staticParams.set("size", "800x450");
     // Always use satellite for best PDF fidelity
@@ -1472,7 +1475,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     return (
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
         <APIProvider apiKey={mapsApiKey} libraries={["places", "drawing", "geometry"]}>
-          <MapUpdater center={mapCenter} isThreeD={isThreeD} />
+          <MapUpdater center={mapCenter} isThreeD={isThreeD} mapInstanceRef={mapInstanceRef} />
           {showToolbar && (
             <div ref={controlsPanelRef} className={toolbarShellClass}>
               <DrawController
