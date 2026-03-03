@@ -30,7 +30,7 @@ Use exactly ONE client pattern per context:
 All folder provisioning goes through `lib/slatedrop/provisioning.ts` and `POST /api/slatedrop/provision`. Do not create new folder creation logic.
 
 ### Rule 4: No New Entitlement System
-All tier checks use `getEntitlements(tier)` from `lib/entitlements.ts`. Never inline tier comparisons.
+All tier checks use `getEntitlements(tier)` or `getEntitlements(tier, { isSlateCeo })` from `lib/entitlements.ts`. Never inline tier comparisons. The CEO override (`isSlateCeo`) returns enterprise entitlements regardless of DB tier.
 
 ### Rule 5: No Orphan API Routes
 Every API route must use `withAuth()` or `withProjectAuth()`. No raw Supabase queries without auth checking.
@@ -60,7 +60,7 @@ When PWA infrastructure is added (Phase 3), the service worker and manifest must
 All standalone apps that handle files must use SlateDrop as the file backbone. Never create a parallel file management system for a standalone app.
 
 ### Rule 14: New Dashboard Tabs Use DashboardTabShell
-All new dashboard tab pages MUST use `DashboardTabShell` from `components/shared/DashboardTabShell.tsx`. This standardizes header, spacing, nav, and theme. Legacy tabs (DashboardClient, Analytics, CEO, Project Hub, SlateDrop, Market) will be migrated during Phase 0B decomposition.
+All new dashboard tab pages MUST use `DashboardTabShell` from `components/shared/DashboardTabShell.tsx`. This standardizes header, spacing, nav, and theme. All shell components must accept and pass `isCeo` prop. Legacy tabs (DashboardClient, Project Hub, SlateDrop, Market) will be migrated during Phase 0B decomposition. Analytics and CEO have been migrated to DashboardTabShell (2026-03-04).
 
 ---
 

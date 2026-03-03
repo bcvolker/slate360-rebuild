@@ -7,13 +7,15 @@ import type { Tier } from "@/lib/entitlements";
 interface Props {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
+  isCeo?: boolean;
 }
 
-export default function GeospatialShell({ user, tier }: Props) {
+export default function GeospatialShell({ user, tier, isCeo }: Props) {
   return (
     <DashboardTabShell
       user={user}
       tier={tier}
+      isCeo={isCeo}
       title="Geospatial"
       icon={Globe}
       accent="#1E3A8A"

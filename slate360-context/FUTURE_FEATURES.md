@@ -12,24 +12,28 @@
 
 | Tab | Route | Scaffolding | Content | Shell |
 |---|---|---|---|---|
-| Dashboard Home | `/(dashboard)` | ✅ `DashboardClient.tsx` | ✅ Built (SPA mega-component) | ❌ Own header |
-| Project Hub | `/project-hub` | ✅ Standalone layout | ✅ Built (3-tier structure) | ❌ Own header |
-| SlateDrop | `/slatedrop` | ✅ Standalone page | ✅ Built | ❌ Own header |
-| Design Studio | `/(dashboard)/design-studio` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared |
-| Content Studio | `/(dashboard)/content-studio` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared |
-| 360 Tours | `/(dashboard)/tours` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared |
-| Geospatial | `/(dashboard)/geospatial` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared |
-| Virtual Studio | `/(dashboard)/virtual-studio` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared |
-| Analytics | `/(dashboard)/analytics` | ✅ `AnalyticsReportsClient` | 🟡 Stub | ❌ Own header (dark theme) |
-| CEO | `/(dashboard)/ceo` | ✅ `CeoCommandCenterClient` | 🟡 Stub | ❌ Own header (dark theme) |
-| Market Robot | `/market` | ✅ `MarketClient.tsx` | ✅ Built | ❌ Own header |
-| Athlete360 | `/athlete360` | ✅ Standalone page | 🟡 Stub | ❌ Own header |
-| My Account | `/(dashboard)/my-account` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared |
+| Dashboard Home | `/(dashboard)` | ✅ `DashboardClient.tsx` | ✅ Built (SPA mega-component) | ❌ Own header (has QuickNav) |
+| Project Hub | `/project-hub` | ✅ Standalone layout | ✅ Built (3-tier structure) | ❌ Own header (has QuickNav) |
+| SlateDrop | `/slatedrop` | ✅ Standalone page | ✅ Built | ❌ Own header (no QuickNav) |
+| Design Studio | `/(dashboard)/design-studio` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared (isCeo ✅) |
+| Content Studio | `/(dashboard)/content-studio` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared (isCeo ✅) |
+| 360 Tours | `/(dashboard)/tours` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared (isCeo ✅) |
+| Geospatial | `/(dashboard)/geospatial` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared (isCeo ✅) |
+| Virtual Studio | `/(dashboard)/virtual-studio` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared (isCeo ✅) |
+| Analytics | `/(dashboard)/analytics` | ✅ `DashboardTabShell` | 🟡 Stub (light theme) | ✅ Shared (isCeo ✅) |
+| CEO | `/(dashboard)/ceo` | ✅ `DashboardTabShell` | 🟡 Stub | ✅ Shared (isCeo ✅) |
+| Market Robot | `/market` | ✅ `MarketClient.tsx` | ✅ Built | ❌ Own header (no QuickNav) |
+| Athlete360 | `/athlete360` | ✅ Standalone page | 🟡 Stub | ❌ Own header (no QuickNav) |
+| My Account | `/(dashboard)/my-account` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared (isCeo ✅) |
 
 **Decisions made:**
-- `DashboardTabShell` (shared component) standardizes: `max-w-7xl`, `z-40`, `py-6 md:py-8`, `md:px-10`, logo `h-7`
-- New tabs USE `DashboardTabShell` automatically. Legacy tabs (Dashboard, Analytics, CEO, Project Hub, SlateDrop, Market) retain own headers until Phase 0B decomposition.
-- `QuickNav` (shared dropdown) now includes all 13 navigation targets.
+- `DashboardTabShell` (shared component) standardizes: light theme, `max-w-7xl` content, `z-50` header, back-to-dashboard link in top-left, QuickNav dropdown in top-right.
+- All new tabs USE `DashboardTabShell` automatically with `isCeo` prop.
+- Analytics converted from dark theme to light DashboardTabShell (2026-03-04).
+- CEO uses DashboardTabShell (light theme, 2026-03-03).
+- Legacy tabs (Dashboard, Project Hub, SlateDrop, Market) retain own headers until Phase 0B decomposition.
+- `QuickNav` (shared dropdown) includes all 13 navigation targets, tier-gated via `getEntitlements()`.
+- CEO account (`slate360ceo@gmail.com`) gets enterprise entitlements via `getEntitlements(tier, { isSlateCeo })` override.
 
 ### Architecture Readiness for Future Phases
 
@@ -47,10 +51,11 @@
 
 1. **Modular routing:** Each tab is a standalone Next.js page — no coupling between modules
 2. **Shared auth layer:** `withAuth()` / `withProjectAuth()` works for any new API route
-3. **Entitlements system:** `getEntitlements(tier)` cleanly gates any new module
+3. **Entitlements system:** `getEntitlements(tier, { isSlateCeo? })` cleanly gates any new module. CEO account gets enterprise entitlements regardless of DB tier.
 4. **SlateDrop as common storage:** All modules can save artifacts via `saveProjectArtifact()`
 5. **Shared UI patterns:** `ViewCustomizer`, `ChangeHistory`, `DashboardTabShell` are reusable
-6. **QuickNav centralized:** Single navigation dropdown shared across all tab pages
+6. **QuickNav centralized:** Single navigation dropdown shared across all tab pages, tier-gated
+7. **Consistent navigation:** DashboardTabShell provides uniform header (logo + back-link on left, QuickNav + user menu on right) with `isCeo` prop flowing from server through shells
 
 ### Key Risks / Debt to Address Before Scale
 

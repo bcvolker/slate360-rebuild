@@ -122,11 +122,18 @@ auth.uid() → organization_members.user_id → organization_members.org_id
 ```typescript
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 
+// Standard usage:
 const e = getEntitlements(user.tier);
+
+// CEO override (returns enterprise entitlements regardless of DB tier):
+const e = getEntitlements(user.tier, { isSlateCeo: true });
+
 // e.canAccessHub, e.canAccessDesignStudio, e.maxStorageGB, e.maxCredits, etc.
 ```
 
 **Never** write `if (tier === 'business' || tier === 'enterprise')` — always use `getEntitlements()`.
+
+**CEO All-Access:** `resolveServerOrgContext()` returns `isSlateCeo` (true for `slate360ceo@gmail.com`). Pass as `isCeo` prop to client components. All shell components and DashboardTabShell accept `isCeo` and call `getEntitlements(tier, { isSlateCeo: isCeo })`.
 
 Tiers and limits:
 | Tier | Hub | Storage | Credits/mo | Seats | Price |

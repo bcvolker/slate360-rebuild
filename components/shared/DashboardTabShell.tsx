@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   Bell,
   ChevronDown,
+  ChevronLeft,
   LogOut,
   CreditCard,
   SlidersHorizontal,
@@ -41,7 +42,7 @@ export default function DashboardTabShell({
   isCeo = false,
   children,
 }: DashboardTabShellProps) {
-  const ent = getEntitlements(tier);
+  const ent = getEntitlements(tier, { isSlateCeo: isCeo });
   const router = useRouter();
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -67,10 +68,18 @@ export default function DashboardTabShell({
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
 
-          {/* Left — Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2.5 shrink-0">
-            <img src="/logo.svg" alt="Slate360" className="h-6 sm:h-7 w-auto" />
-          </Link>
+          {/* Left — Logo + Back to Dashboard */}
+          <div className="flex items-center gap-3 shrink-0">
+            <Link href="/dashboard" className="flex items-center gap-2.5">
+              <img src="/logo.svg" alt="Slate360" className="h-6 sm:h-7 w-auto" />
+            </Link>
+            <Link
+              href="/dashboard"
+              className="hidden sm:flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-[#FF4D00] transition-colors"
+            >
+              <ChevronLeft size={14} /> Dashboard
+            </Link>
+          </div>
 
           {/* Center — Search bar (read-only stub) */}
           <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
@@ -85,11 +94,11 @@ export default function DashboardTabShell({
             </div>
           </div>
 
-          {/* Right — Nav + Notifications + Customize + User */}
+          {/* Right — QuickNav + Notifications + Customize + User */}
           <div className="flex items-center gap-1.5 sm:gap-3">
 
-            {/* QuickNav dropdown + Back button */}
-            <QuickNav tier={tier} isCeo={isCeo} showBackButton />
+            {/* QuickNav dropdown */}
+            <QuickNav tier={ent.tier} isCeo={isCeo} />
 
             {/* Notifications bell */}
             <div className="relative">

@@ -466,7 +466,7 @@ export default function ProjectHubPage() {
               )}
             </div>
 
-            <QuickNav showBackButton />
+            <QuickNav />
           </div>
         </div>
       </header>

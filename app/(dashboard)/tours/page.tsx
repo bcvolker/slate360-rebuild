@@ -3,7 +3,7 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import ToursShell from "@/components/dashboard/ToursShell";
 
 export default async function ToursPage() {
-  const { user, tier } = await resolveServerOrgContext();
+  const { user, tier, isSlateCeo } = await resolveServerOrgContext();
   if (!user) redirect("/login?redirectTo=/tours");
 
   return (
@@ -14,6 +14,7 @@ export default async function ToursPage() {
         avatar: user.user_metadata?.avatar_url ?? undefined,
       }}
       tier={tier}
+      isCeo={isSlateCeo}
     />
   );
 }

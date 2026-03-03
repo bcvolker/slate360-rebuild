@@ -57,8 +57,9 @@ auth.uid() → organization_members.user_id → organization_members.org_id
 ### Org Resolution
 ```typescript
 import { resolveServerOrgContext } from "@/lib/server/org-context";
-const { orgId, userId, role } = await resolveServerOrgContext();
+const { orgId, userId, role, tier, isSlateCeo } = await resolveServerOrgContext();
 // Returns deterministic defaults if org membership is missing
+// isSlateCeo = true when user.email === "slate360ceo@gmail.com"
 ```
 
 ---
@@ -159,8 +160,22 @@ Defined in `lib/billing.ts`:
 ```typescript
 // lib/entitlements.ts — 5 tiers, 18 entitlement flags
 import { getEntitlements, type Tier } from "@/lib/entitlements";
+
+// Standard usage:
 const e = getEntitlements(user.tier);
+
+// CEO override — returns enterprise entitlements regardless of DB tier:
+const e = getEntitlements(user.tier, { isSlateCeo: true });
 ```
+
+### CEO All-Access Override
+`getEntitlements()` accepts an optional second parameter: `options?: { isSlateCeo?: boolean }`. When `isSlateCeo` is `true`, the function returns enterprise-level entitlements regardless of the org's database tier. This ensures the CEO account (`slate360ceo@gmail.com`) always has full platform access.
+
+**Flow:**
+1. `resolveServerOrgContext()` returns `isSlateCeo` (hardcoded email check: `user.email === "slate360ceo@gmail.com"`)
+2. Server pages pass `isSlateCeo` as `isCeo` prop to client components
+3. Client components call `getEntitlements(tier, { isSlateCeo: isCeo })` → gets enterprise entitlements
+4. All nav items, module access, and feature gates use the resolved entitlements
 
 Key flags: `canAccessHub`, `canAccessDesignStudio`, `canAccessContent`, `canAccessTourBuilder`, `canAccessGeospatial`, `canAccessVirtualStudio`, `canAccessAnalytics`, `canAccessCeo`, `canAccessMarket`, `canManageSeats`, `maxStorageGB`, `maxCredits`, `maxSeats`
 
@@ -171,6 +186,10 @@ if (tier === 'business' || tier === 'enterprise') { ... }
 
 // ✅ CORRECT
 const e = getEntitlements(tier);
+if (e.canAccessHub) { ... }
+
+// ✅ CORRECT (with CEO override)
+const e = getEntitlements(tier, { isSlateCeo });
 if (e.canAccessHub) { ... }
 ```
 

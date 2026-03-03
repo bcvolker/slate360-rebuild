@@ -3,7 +3,7 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import MyAccountShell from "@/components/dashboard/MyAccountShell";
 
 export default async function MyAccountPage() {
-  const { user, tier } = await resolveServerOrgContext();
+  const { user, tier, isSlateCeo } = await resolveServerOrgContext();
   if (!user) redirect("/login?redirectTo=/my-account");
 
   return (
@@ -14,6 +14,7 @@ export default async function MyAccountPage() {
         avatar: user.user_metadata?.avatar_url ?? undefined,
       }}
       tier={tier}
+      isCeo={isSlateCeo}
     />
   );
 }

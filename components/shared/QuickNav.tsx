@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   ChevronDown,
-  ChevronLeft,
   LayoutDashboard,
   FolderKanban,
   Palette,
@@ -51,11 +50,9 @@ const NAV_ITEMS: NavItem[] = [
 interface QuickNavProps {
   tier?: Tier;
   isCeo?: boolean;
-  /** Show a "← Dashboard" back button alongside the dropdown */
-  showBackButton?: boolean;
 }
 
-export default function QuickNav({ tier, isCeo = false, showBackButton = false }: QuickNavProps) {
+export default function QuickNav({ tier, isCeo = false }: QuickNavProps) {
   const [open, setOpen] = useState(false);
   const ent = tier ? getEntitlements(tier) : null;
 
@@ -69,43 +66,33 @@ export default function QuickNav({ tier, isCeo = false, showBackButton = false }
   });
 
   return (
-    <div className="flex items-center gap-2">
-      {showBackButton && (
-        <Link
-          href="/dashboard"
-          className="hidden sm:flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-[#FF4D00] transition-colors"
-        >
-          <ChevronLeft size={14} /> Dashboard
-        </Link>
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all"
+      >
+        <LayoutDashboard size={14} /> Navigate <ChevronDown size={12} />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-gray-200 bg-white shadow-2xl py-2 overflow-hidden max-h-[70vh] overflow-y-auto">
+            {visibleItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-[#FF4D00]/5 hover:text-[#FF4D00] transition-colors"
+                >
+                  <Icon size={14} /> {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </>
       )}
-      <div className="relative">
-        <button
-          onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all"
-        >
-          <LayoutDashboard size={14} /> Navigate <ChevronDown size={12} />
-        </button>
-        {open && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-            <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-gray-200 bg-white shadow-2xl py-2 overflow-hidden max-h-[70vh] overflow-y-auto">
-              {visibleItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-[#FF4D00]/5 hover:text-[#FF4D00] transition-colors"
-                  >
-                    <Icon size={14} /> {item.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </>
-        )}
-      </div>
     </div>
   );
 }

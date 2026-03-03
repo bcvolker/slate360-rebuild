@@ -158,10 +158,16 @@ One component per file, one hook per file. A "project card" is not also a "delet
 ### Rule 8: Entitlements — Single Source of Truth
 ```typescript
 import { getEntitlements } from "@/lib/entitlements";
+
+// Standard usage:
 const e = getEntitlements(user.tier);
+
+// CEO override (returns enterprise entitlements regardless of DB tier):
+const e = getEntitlements(user.tier, { isSlateCeo: true });
 // e.canAccessHub, e.canAccessDesignStudio, e.maxStorageGB, etc.
 ```
 **Never** write `if (tier === 'business' || tier === 'enterprise')` — always use `getEntitlements()`.
+**CEO All-Access:** `resolveServerOrgContext()` returns `isSlateCeo`. Pass as `isCeo` to client components. All shell components and DashboardTabShell accept `isCeo` and call `getEntitlements(tier, { isSlateCeo: isCeo })`.
 
 ### Rule 9: No Mock Data in Production UI
 Show proper empty/error states when data is unavailable.

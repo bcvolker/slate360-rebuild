@@ -22,15 +22,17 @@ const INTEGRATIONS = [
 interface Props {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
+  isCeo?: boolean;
 }
 
-export default function MyAccountShell({ user, tier }: Props) {
+export default function MyAccountShell({ user, tier, isCeo }: Props) {
   const [connected, setConnected] = useState<Record<string, boolean>>({});
 
   return (
     <DashboardTabShell
       user={user}
       tier={tier}
+      isCeo={isCeo}
       title="My Account"
       icon={User}
       accent="#1E3A8A"

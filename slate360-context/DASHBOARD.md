@@ -1,6 +1,6 @@
 # Slate360 — Dashboard Blueprint
 
-**Last Updated:** 2026-03-03
+**Last Updated:** 2026-03-04
 **Context Maintenance:** Update this file whenever dashboard routes, components, widgets, or layout logic changes.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -11,8 +11,8 @@
 ```
 /(dashboard)                     ← Layout with sidebar + hydration guard
   /project-hub                   ← Project Hub (separate blueprint)
-  /analytics                     ← Analytics tab (stub — 37 lines)
-  /ceo                           ← CEO Command Center (stub — 20 lines)
+  /analytics                     ← Analytics & Reports (DashboardTabShell, light theme)
+  /ceo                           ← CEO Command Center (DashboardTabShell)
   /integrations                  ← Integrations page (133 lines)
   /design-studio                 ← ✅ Scaffolded (DashboardTabShell)
   /content-studio                ← ✅ Scaffolded (DashboardTabShell)
@@ -40,26 +40,50 @@
 | Geospatial & Robotics | `/(dashboard)/geospatial` | ✅ Scaffolded |
 | Virtual Studio | `/(dashboard)/virtual-studio` | ✅ Scaffolded |
 | My Account | `/(dashboard)/my-account` | ✅ Scaffolded |
-| Analytics & Reports | `/(dashboard)/analytics` | 🟡 Stub |
-| CEO Command Center | `/(dashboard)/ceo` | 🟡 Stub |
+| Analytics & Reports | `/(dashboard)/analytics` | ✅ DashboardTabShell |
+| CEO Command Center | `/(dashboard)/ceo` | ✅ DashboardTabShell |
 | Market | `/market` | ✅ Built |
 
 ### DashboardTabShell (Shared)
-`components/shared/DashboardTabShell.tsx` — standardized wrapper for all new tab pages:
-- Consistent `max-w-7xl`, `z-40`, `py-6 md:py-8`, `md:px-10`
-- Props: `category`, `title`, `description`, `icon`, `accent`, `dark`, `headerActions`, `children`
-- Dark mode support for Analytics/CEO (dark theme with `bg-[#0B1220]`)
-- Includes logo, back link, QuickNav dropdown
+`components/shared/DashboardTabShell.tsx` (~240 lines) — standardized wrapper for all tab pages:
 
-### New Shell Components
-| Component | File | Route |
-|---|---|---|
-| DesignStudioShell | `components/dashboard/DesignStudioShell.tsx` | `/design-studio` |
-| ContentStudioShell | `components/dashboard/ContentStudioShell.tsx` | `/content-studio` |
-| ToursShell | `components/dashboard/ToursShell.tsx` | `/tours` |
-| GeospatialShell | `components/dashboard/GeospatialShell.tsx` | `/geospatial` |
-| VirtualStudioShell | `components/dashboard/VirtualStudioShell.tsx` | `/virtual-studio` |
-| MyAccountShell | `components/dashboard/MyAccountShell.tsx` | `/my-account` |
+**Header Layout:**
+- **Left cluster:** Slate360 logo (links to `/dashboard`) + "← Dashboard" back link
+- **Center:** Search stub (future Command Palette)
+- **Right cluster:** QuickNav dropdown, Bell, Customize, User avatar with dropdown menu
+
+**Props:** `user`, `tier`, `title`, `icon`, `accent`, `status`, `isCeo?`, `children`
+
+**Tier/CEO Override:** Uses `getEntitlements(tier, { isSlateCeo: isCeo })` so the CEO account automatically gets enterprise-level navigation items regardless of DB tier.
+
+**Theme:** Light theme only (white/gray). Dark theme removed. All tabs use consistent light styling.
+
+### QuickNav (Shared Dropdown)
+`components/shared/QuickNav.tsx` (~100 lines) — tier-gated navigation dropdown:
+- Props: `tier?: Tier`, `isCeo?: boolean`
+- 13 navigation items, each with optional `gate` key mapping to Entitlements boolean
+- CEO-only items gated via `ceoOnly: true` flag
+- No back button — back-to-dashboard link is in the DashboardTabShell header left cluster
+
+### isCeo / isSlateCeo Flow
+All server pages destructure `isSlateCeo` from `resolveServerOrgContext()` and pass it as `isCeo` prop to their shell component. The shell component passes it to `DashboardTabShell`, which passes it to `QuickNav`.
+
+```
+Server page (resolveServerOrgContext → isSlateCeo)
+  → Shell component (isCeo prop)
+    → DashboardTabShell (isCeo prop → getEntitlements override)
+      → QuickNav (isCeo prop → shows CEO-only nav items)
+```
+
+### Shell Components (All Use DashboardTabShell)
+| Component | File | Route | Passes isCeo? |
+|---|---|---|---|
+| DesignStudioShell | `components/dashboard/DesignStudioShell.tsx` | `/design-studio` | ✅ |
+| ContentStudioShell | `components/dashboard/ContentStudioShell.tsx` | `/content-studio` | ✅ |
+| ToursShell | `components/dashboard/ToursShell.tsx` | `/tours` | ✅ |
+| GeospatialShell | `components/dashboard/GeospatialShell.tsx` | `/geospatial` | ✅ |
+| VirtualStudioShell | `components/dashboard/VirtualStudioShell.tsx` | `/virtual-studio` | ✅ |
+| MyAccountShell | `components/dashboard/MyAccountShell.tsx` | `/my-account` | ✅ |
 
 ### Hydration Guard (Critical — Never Remove)
 `app/(dashboard)/layout.tsx` renders client state only after `isClient && _hasHydrated`. This prevents React hydration mismatches.
@@ -83,14 +107,14 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 
 | Component | File | Lines | Status |
 |---|---|---|---|
-| DashboardTabShell | `components/shared/DashboardTabShell.tsx` | ~135 | ✅ Shared scaffold |
-| DashboardClient | `components/dashboard/DashboardClient.tsx` | 2,915 | ⚠️ Needs decomposition |
+| DashboardTabShell | `components/shared/DashboardTabShell.tsx` | ~240 | ✅ Shared scaffold (light theme, isCeo support) |
+| DashboardClient | `components/dashboard/DashboardClient.tsx` | ~2,953 | ⚠️ Needs decomposition |
 | MarketClient | `components/dashboard/MarketClient.tsx` | 3,006 | ⚠️ Needs decomposition |
 | LocationMap | `components/dashboard/LocationMap.tsx` | 1,568 | ⚠️ Needs decomposition |
-| AnalyticsReportsClient | `components/dashboard/AnalyticsReportsClient.tsx` | 290 | ✅ OK |
+| AnalyticsReportsClient | `components/dashboard/AnalyticsReportsClient.tsx` | ~290 | ✅ Uses DashboardTabShell (light theme) |
 | DashboardProjectCard | `components/dashboard/DashboardProjectCard.tsx` | 275 | ✅ OK |
 | CeoCommandCenterClient | `components/dashboard/CeoCommandCenterClient.tsx` | 155 | ✅ OK |
-| QuickNav | `components/shared/QuickNav.tsx` | ~100 | ✅ 13 nav items |
+| QuickNav | `components/shared/QuickNav.tsx` | ~100 | ✅ 13 nav items, tier-gated |
 
 ### Decomposition Targets
 

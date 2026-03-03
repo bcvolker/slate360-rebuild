@@ -119,7 +119,12 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
   },
 };
 
-export function getEntitlements(rawTier?: string | null): Entitlements {
+export function getEntitlements(rawTier?: string | null, options?: { isSlateCeo?: boolean }): Entitlements {
+  const isCeo = options?.isSlateCeo ?? false;
+  // Slate360 owner account always gets enterprise-level access
+  if (isCeo) {
+    return { tier: "enterprise", ...TIER_MAP.enterprise };
+  }
   const tier: Tier =
     rawTier && rawTier in TIER_MAP ? (rawTier as Tier) : "trial";
   return { tier, ...TIER_MAP[tier] };

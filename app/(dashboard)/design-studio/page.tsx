@@ -3,7 +3,7 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import DesignStudioShell from "@/components/dashboard/DesignStudioShell";
 
 export default async function DesignStudioPage() {
-  const { user, tier } = await resolveServerOrgContext();
+  const { user, tier, isSlateCeo } = await resolveServerOrgContext();
   if (!user) redirect("/login?redirectTo=/design-studio");
 
   return (
@@ -14,6 +14,7 @@ export default async function DesignStudioPage() {
         avatar: user.user_metadata?.avatar_url ?? undefined,
       }}
       tier={tier}
+      isCeo={isSlateCeo}
     />
   );
 }

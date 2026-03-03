@@ -7,13 +7,15 @@ import type { Tier } from "@/lib/entitlements";
 interface Props {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
+  isCeo?: boolean;
 }
 
-export default function VirtualStudioShell({ user, tier }: Props) {
+export default function VirtualStudioShell({ user, tier, isCeo }: Props) {
   return (
     <DashboardTabShell
       user={user}
       tier={tier}
+      isCeo={isCeo}
       title="Virtual Studio"
       icon={Film}
       accent="#FF4D00"

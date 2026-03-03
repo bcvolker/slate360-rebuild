@@ -11,7 +11,7 @@ export default async function CeoPage() {
   const { user, tier, isSlateCeo } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
-  const entitlements = getEntitlements(tier);
+  const entitlements = getEntitlements(tier, { isSlateCeo });
   if (!entitlements.canAccessCeo && !isSlateCeo) {
     notFound();
   }

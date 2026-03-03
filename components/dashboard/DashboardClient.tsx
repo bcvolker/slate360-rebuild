@@ -92,6 +92,7 @@ import {
 interface DashboardProps {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
+  isSlateCeo?: boolean;
 }
 
 interface Project {
@@ -470,12 +471,12 @@ function TabWireframe({ tab, onBack, onOpenSlateDrop }: { tab: DashTab; onBack: 
    MAIN DASHBOARD COMPONENT
    ================================================================ */
 
-export default function DashboardClient({ user, tier }: DashboardProps) {
-  const ent = getEntitlements(tier);
+export default function DashboardClient({ user, tier, isSlateCeo = false }: DashboardProps) {
+  const ent = getEntitlements(tier, { isSlateCeo });
   const supabase = createClient();
   const router = useRouter();
 
-  const hasCeoAccess = ent.canAccessCeo || user.email === "slate360ceo@gmail.com";
+  const hasCeoAccess = ent.canAccessCeo || isSlateCeo;
 
   // Build the ordered, filtered tab list based on tier entitlements + identity
   const visibleTabs: DashTab[] = ([
@@ -1268,7 +1269,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
           {/* Left — Logo */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0">
+          <Link href="/dashboard" className="flex items-center gap-2.5 shrink-0">
             <img src="/logo.svg" alt="Slate360" className="h-6 sm:h-7 w-auto" />
           </Link>
 

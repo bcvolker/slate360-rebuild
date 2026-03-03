@@ -7,13 +7,15 @@ import type { Tier } from "@/lib/entitlements";
 interface Props {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
+  isCeo?: boolean;
 }
 
-export default function DesignStudioShell({ user, tier }: Props) {
+export default function DesignStudioShell({ user, tier, isCeo }: Props) {
   return (
     <DashboardTabShell
       user={user}
       tier={tier}
+      isCeo={isCeo}
       title="Design Studio"
       icon={Palette}
       accent="#FF4D00"

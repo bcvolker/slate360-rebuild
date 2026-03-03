@@ -7,13 +7,15 @@ import type { Tier } from "@/lib/entitlements";
 interface Props {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
+  isCeo?: boolean;
 }
 
-export default function ContentStudioShell({ user, tier }: Props) {
+export default function ContentStudioShell({ user, tier, isCeo }: Props) {
   return (
     <DashboardTabShell
       user={user}
       tier={tier}
+      isCeo={isCeo}
       title="Content Studio"
       icon={Layers}
       accent="#1E3A8A"

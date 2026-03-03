@@ -3,7 +3,7 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import GeospatialShell from "@/components/dashboard/GeospatialShell";
 
 export default async function GeospatialPage() {
-  const { user, tier } = await resolveServerOrgContext();
+  const { user, tier, isSlateCeo } = await resolveServerOrgContext();
   if (!user) redirect("/login?redirectTo=/geospatial");
 
   return (
@@ -14,6 +14,7 @@ export default async function GeospatialPage() {
         avatar: user.user_metadata?.avatar_url ?? undefined,
       }}
       tier={tier}
+      isCeo={isSlateCeo}
     />
   );
 }
