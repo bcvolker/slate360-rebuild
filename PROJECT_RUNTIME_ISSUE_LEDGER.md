@@ -443,7 +443,38 @@ Suggested immediate continuation checklist:
 - `components/dashboard/MyAccountShell.tsx`
 
 ### Elimination status
-- **Partially resolved** — structural container (`max-w-[1440px]`, `h-14 sm:h-16`, `z-50`) corrected; shell content de-marketingised. Remaining issues addressed in Issue 12 below.
+- **Resolved** — all dashboard tab pages (standalone shells + Project Hub) now have pixel-for-pixel header parity with `DashboardClient`.
+
+---
+
+## Issue 13 — `next.config.ts` redirects override dashboard tab routes → sends users to marketing pages
+
+### Symptoms
+- Clicking Design Studio, Content Studio, Virtual Studio, Geospatial, or 360 Tours from the dashboard navigated to `/features/*` marketing pages instead of the authenticated in-app shell pages.
+- All code changes to shell components and route files had no visible effect in the deployed build — users literally could never see the `DashboardTabShell` pages.
+- User reported: "nothing seems to be able to get those tabs to change"
+
+### Root cause
+- `next.config.ts` → `async redirects()` contained explicit 307 redirects that existed **before** the `app/(dashboard)/*` routes were created:
+  ```
+  { source: "/design-studio",  destination: "/features/design-studio",      permanent: false },
+  { source: "/content-studio", destination: "/features/content-studio",    permanent: false },
+  { source: "/virtual-studio", destination: "/features/virtual-studio",    permanent: false },
+  { source: "/geospatial",     destination: "/features/geospatial-robotics", permanent: false },
+  ```
+- Next.js evaluates `redirects()` **before** routing to `app/` pages, so these 307s intercepted every request before the page component could render — making all shell/component/CSS changes invisible.
+
+### Fix applied (2026-03-03)
+- Removed the 4 redirect entries from `next.config.ts` `redirects()`.
+- Kept `/360-capture → /features/360-tour-builder` (no app route at `/360-capture`).
+- Added comments noting that these paths are now real dashboard routes.
+- Verified all 6 routes (`/design-studio`, `/content-studio`, `/virtual-studio`, `/geospatial`, `/tours`, `/my-account`) return `307 → /login?redirectTo=...` (auth guard) instead of `307 → /features/...`.
+
+### Files touched
+- `next.config.ts`
+
+### Elimination status
+- **Resolved** — dashboard tab routes now serve the authenticated shell pages.
 
 ---
 
