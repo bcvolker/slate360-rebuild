@@ -443,4 +443,40 @@ Suggested immediate continuation checklist:
 - `components/dashboard/MyAccountShell.tsx`
 
 ### Elimination status
-- **Resolved** — all standalone tab pages now replicate the dashboard header exactly and show appropriate in-app placeholders.
+- **Partially resolved** — structural container (`max-w-[1440px]`, `h-14 sm:h-16`, `z-50`) corrected; shell content de-marketingised. Remaining issues addressed in Issue 12 below.
+
+---
+
+## Issue 12 — Dashboard tab shells still missing notifications, user dropdown, working customize, and Project Hub `max-w-7xl`
+
+### Symptoms
+- After the Issue 11 partial fix, `DashboardTabShell` still differed from `DashboardClient`:
+  - No notifications bell in the header right-side cluster
+  - User avatar rendered as a static block — no dropdown, no sign-out, no billing link
+  - Customize (`SlidersHorizontal`) button was `disabled` with `cursor-not-allowed` — not wired to `WidgetCustomizeDrawer`
+  - Center slot had a breadcrumb (Dashboard › Tab Name) instead of a search bar
+- `app/(dashboard)/project-hub/page.tsx` still used `max-w-7xl` (≈1280px) vs dashboard's `max-w-[1440px]`, `py-3 md:px-10` in header, `z-40`, and `text-2xl sm:text-3xl` page title vs dashboard's `text-xl sm:text-2xl`
+- User reported: "I have been trying to get the dashboard tabs to match the UI of the actual dashboard but nothing seems to be able to get those tabs to change"
+
+### Root cause
+- `DashboardTabShell` was built as a static layout with no interactive state — it had no `useState`, no `useRouter`, and no `createClient` import. The disabled customize button was intentionally non-functional per the initial implementation but this was wrong — all interactive elements must match the dashboard.
+- Project Hub page was never updated when `DashboardClient` was standardised to `max-w-[1440px]`.
+
+### Fix applied (2026-03-03)
+- Rewrote `DashboardTabShell` with full interactive parity:
+  - Center: read-only search bar (same markup as dashboard, placeholder = `Search [Tab]…`)
+  - Right cluster: notifications bell → dropdown panel | customize button → `WidgetCustomizeDrawer` (empty prefs for unbuilt modules) | user avatar → full dropdown (sign out, billing, integrations)
+  - `handleSignOut` via `createClient().auth.signOut()` + `router.push('/login')`
+  - `handleOpenBillingPortal` via `POST /api/billing/portal`
+- Fixed `app/(dashboard)/project-hub/page.tsx`:
+  - Header: `z-40` → `z-50`, `max-w-7xl` → `max-w-[1440px]`, removed `py-3 md:px-10`, added `h-14 sm:h-16`
+  - Main: `max-w-7xl` → `max-w-[1440px]`, removed `md:px-10 md:py-8`, standardised to `py-6 sm:py-8`
+  - Page title: `text-2xl sm:text-3xl` → `text-xl sm:text-2xl`
+  - Added `overflow-x-hidden` to root div
+
+### Files touched
+- `components/shared/DashboardTabShell.tsx` (full rewrite)
+- `app/(dashboard)/project-hub/page.tsx` (header + main container fixes)
+
+### Elimination status
+- **Resolved** — all dashboard tab pages (standalone shells + Project Hub) now have pixel-for-pixel header parity with `DashboardClient`.

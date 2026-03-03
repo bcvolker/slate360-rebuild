@@ -412,9 +412,9 @@ export default function ProjectHubPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#ECEEF2]">
-      <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/95 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 md:px-10 flex items-center justify-between">
+    <div className="min-h-screen bg-[#ECEEF2] overflow-x-hidden">
+      <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-md">
+        <div className="mx-auto max-w-[1440px] px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="shrink-0">
               <img src="/logo.svg" alt="Slate360" className="h-7 w-auto" />
@@ -513,9 +513,9 @@ export default function ProjectHubPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 md:px-10 md:py-8 space-y-6 sm:space-y-8">
+      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900 flex items-center gap-3">
             <FolderKanban size={28} className="text-[#1E3A8A]" /> Project Hub
           </h1>
           <button

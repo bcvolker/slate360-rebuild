@@ -1,46 +1,47 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, SlidersHorizontal, type LucideIcon } from "lucide-react";
-import QuickNav from "@/components/shared/QuickNav";
+import { useRouter } from "next/navigation";
+import {
+  Bell,
+  ChevronDown,
+  LogOut,
+  CreditCard,
+  SlidersHorizontal,
+  Activity,
+  Plug,
+  Search,
+  type LucideIcon,
+} from "lucide-react";
+import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
+import { createClient } from "@/lib/supabase/client";
 
 /**
  * DashboardTabShell
  *
- * Shell for every standalone dashboard tab page (Design Studio, Content Studio,
+ * Wraps every standalone dashboard-tab page (Design Studio, Content Studio,
  * 360 Tours, Geospatial, Virtual Studio, My Account, etc.).
  *
- * Header replicates the dashboard EXACTLY:
- *   • max-w-[1440px]  h-14 sm:h-16  z-50  bg-white/95 backdrop-blur-md
- *   • Logo h-6 sm:h-7  (matches DashboardClient)
- *   • Center: breadcrumb  Dashboard › Tab Name
- *   • Right:  disabled Customize placeholder + QuickNav + user avatar + tier badge
+ * Header is PIXEL-FOR-PIXEL identical to DashboardClient:
+ *   max-w-[1440px]  h-14 sm:h-16  z-50  bg-white/95 backdrop-blur-md
+ *   Left:   logo (h-6 sm:h-7)
+ *   Center: search bar (read-only stub until module ships)
+ *   Right:  Bell  |  Customize (→ WidgetCustomizeDrawer)  |  User + dropdown
  *
- * Content area: max-w-[1440px] px-4 sm:px-6 py-6 sm:py-8 (matches DashboardClient main)
+ * Content area: max-w-[1440px] px-4 sm:px-6 py-6 sm:py-8  (same as dashboard)
  */
 
 export type TabStatus = "coming-soon" | "under-development" | "live";
 
 export interface DashboardTabShellProps {
-  /** Authenticated user — passed from server page via resolveServerOrgContext. */
   user: { name: string; email: string; avatar?: string };
-  /** User tier — used to render the plan badge. */
   tier: Tier;
-  /** Tab/page title shown in breadcrumb + page header. */
   title: string;
-  /** Optional Lucide icon shown in page header. */
   icon?: LucideIcon;
-  /** Accent colour for icon tint (default: #1E3A8A). */
   accent?: string;
-  /**
-   * Tab build status:
-   *   "coming-soon"        — grayed badge, neutrals (default)
-   *   "under-development"  — amber badge, active-work framing
-   *   "live"               — no badge, children rendered as-is
-   */
   status?: TabStatus;
-  /** Tab body content. */
   children?: React.ReactNode;
 }
 
@@ -54,76 +55,153 @@ export default function DashboardTabShell({
   children,
 }: DashboardTabShellProps) {
   const ent = getEntitlements(tier);
+  const router = useRouter();
+
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
+
+  const handleOpenBillingPortal = async () => {
+    const res = await fetch("/api/billing/portal", { method: "POST" });
+    const data = await res.json() as { url?: string };
+    if (data?.url) window.location.href = data.url;
+  };
 
   return (
     <div className="min-h-screen bg-[#ECEEF2] overflow-x-hidden">
 
-      {/* ════════ TOP BAR — exact replica of DashboardClient header ════════ */}
+      {/* TOP BAR — identical to DashboardClient */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
 
-          {/* Left — Logo (links home like dashboard) */}
+          {/* Left — Logo */}
           <Link href="/dashboard" className="flex items-center gap-2.5 shrink-0">
             <img src="/logo.svg" alt="Slate360" className="h-6 sm:h-7 w-auto" />
           </Link>
 
-          {/* Center — breadcrumb: Dashboard › Tab Name */}
-          <div className="hidden md:flex items-center gap-2 flex-1 mx-8 text-sm">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-1 font-semibold text-gray-400 hover:text-[#FF4D00] transition-colors"
-            >
-              <ChevronLeft size={15} />Dashboard
-            </Link>
-            <span className="text-gray-300">›</span>
-            {Icon && <Icon size={14} style={{ color: accent }} />}
-            <span className="font-semibold text-gray-700">{title}</span>
+          {/* Center — Search bar (read-only stub until module ships) */}
+          <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
+            <div className="relative w-full">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                readOnly
+                placeholder={`Search ${title}…`}
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50/50 text-sm cursor-default"
+              />
+            </div>
           </div>
 
-          {/* Right — Customize (disabled placeholder) + QuickNav + user avatar */}
+          {/* Right — Notifications + Customize + User */}
           <div className="flex items-center gap-1.5 sm:gap-3">
-            {/* Customize — disabled until module ships; matches layout slot of dashboard */}
+
+            {/* Notifications bell */}
+            <div className="relative">
+              <button
+                onClick={() => { setNotificationsOpen(v => !v); setUserMenuOpen(false); }}
+                className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+              >
+                <Bell size={18} />
+              </button>
+              {notificationsOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setNotificationsOpen(false)} />
+                  <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                    <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                      <p className="text-sm font-bold text-gray-900">Notifications</p>
+                    </div>
+                    <div className="px-4 py-6 text-sm text-gray-500">No unread alerts.</div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Customize — wired to WidgetCustomizeDrawer */}
             <button
-              disabled
-              title="Customize — available when this module launches"
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-gray-300 cursor-not-allowed"
+              onClick={() => setCustomizeOpen(true)}
+              title="Customize layout"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-[#FF4D00] transition-colors"
             >
               <SlidersHorizontal size={18} />
             </button>
 
-            {/* QuickNav dropdown */}
-            <QuickNav />
-
-            {/* User avatar + name + tier */}
-            <div className="flex items-center gap-1.5 sm:gap-2.5 p-1 sm:pl-2 sm:pr-3 sm:py-1.5 rounded-xl">
-              {user.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt=""
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-[#1E3A8A] flex items-center justify-center text-white text-xs font-bold">
-                  {user.name.charAt(0).toUpperCase()}
+            {/* User avatar + dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => { setUserMenuOpen(v => !v); setNotificationsOpen(false); }}
+                className="flex items-center gap-1.5 sm:gap-2.5 p-1 sm:pl-2 sm:pr-3 sm:py-1.5 rounded-xl hover:bg-gray-100 transition-colors"
+              >
+                {user.avatar ? (
+                  <img src={user.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-[#1E3A8A] flex items-center justify-center text-white text-xs font-bold">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="hidden sm:block text-left">
+                  <p className="text-xs font-semibold text-gray-900 leading-tight">{user.name}</p>
+                  <p className="text-[10px] text-gray-400 leading-tight">{ent.label} plan</p>
                 </div>
+                <ChevronDown size={14} className="hidden sm:block text-gray-400" />
+              </button>
+
+              {userMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+                  <div className="absolute right-0 top-12 w-56 bg-white rounded-xl border border-gray-100 shadow-xl z-50 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-semibold text-gray-900">{user.name}</p>
+                      <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                      <span className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white bg-[#FF4D00]">
+                        {ent.label}
+                      </span>
+                    </div>
+                    <div className="py-1">
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        <Activity size={15} /> My Account
+                      </Link>
+                      <Link
+                        href="/integrations"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        <Plug size={15} /> Integrations
+                      </Link>
+                      <button
+                        onClick={handleOpenBillingPortal}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        <CreditCard size={15} /> Billing &amp; Payments
+                      </button>
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut size={15} /> Sign out
+                      </button>
+                    </div>
+                  </div>
+                </>
               )}
-              <div className="hidden sm:block text-left">
-                <p className="text-xs font-semibold text-gray-900 leading-tight">
-                  {user.name}
-                </p>
-                <p className="text-[10px] text-gray-400 leading-tight">
-                  {ent.label} plan
-                </p>
-              </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* ════════ MAIN — same container as DashboardClient main ════════ */}
+      {/* MAIN — same container/spacing as DashboardClient */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden space-y-6">
 
-        {/* Page header row */}
+        {/* Page-header row */}
         <div className="flex items-center gap-4">
           {Icon && (
             <div
@@ -148,9 +226,22 @@ export default function DashboardTabShell({
           </div>
         </div>
 
-        {/* Tab body */}
         {children}
       </main>
+
+      {/* CUSTOMIZE DRAWER */}
+      <WidgetCustomizeDrawer
+        open={customizeOpen}
+        onClose={() => setCustomizeOpen(false)}
+        title={`Customize ${title}`}
+        subtitle="Widget customization will be available when this module launches"
+        widgetPrefs={[]}
+        widgetMeta={[]}
+        onToggleVisible={() => {}}
+        onSetSize={() => {}}
+        onMoveOrder={() => {}}
+        onReset={() => {}}
+      />
     </div>
   );
 }
