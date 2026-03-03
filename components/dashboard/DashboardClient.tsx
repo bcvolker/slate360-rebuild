@@ -1502,7 +1502,7 @@ export default function DashboardClient({ user, tier }: DashboardProps) {
                         if (route) { router.push(route); return; }
                         setActiveTab(tab.id);
                         window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}}
+                      }}
                       className={`group md:flex-1 md:min-w-0 flex flex-col items-center gap-1.5 sm:gap-2 ${pad} rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-center`}
                     >
                       <div
