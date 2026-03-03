@@ -246,6 +246,9 @@ Show only when credits ≤ 20% remaining. Never pop-up. `SubtleCreditPurchase` c
 | External stakeholder portal `/external/project/[token]` | ❌ Not built |
 | Google Routes API blocked by key restrictions | ⚠️ Using OSRM fallback |
 | `SlateDropClient.tsx` approaching 300-line limit | ⚠️ Extract FolderTreeItem, ContextMenu, FileGrid, NotificationTray |
+| PWA infrastructure | ❌ Not built (marketing pages claim PWA-ready) |
+| Standalone app subscription system | ❌ Not built (`org_feature_flags` table needed) |
+| Native app packaging (Capacitor) | ❌ Not started |
 
 ---
 
@@ -254,6 +257,7 @@ Show only when credits ≤ 20% remaining. Never pop-up. `SubtleCreditPurchase` c
 | File | Purpose |
 |---|---|
 | `SLATE360_PROJECT_MEMORY.md` | **Master project memory — attach to new chats** |
+| `slate360-context/FUTURE_FEATURES.md` | **Master build roadmap — 7-phase plan with dependency graph** |
 | `PROJECT_RUNTIME_ISSUE_LEDGER.md` | Runtime bug tracker |
 | `slate360-context/DASHBOARD.md` | Dashboard blueprint |
 | `slate360-context/PROJECT_HUB.md` | Project Hub blueprint |
@@ -261,7 +265,7 @@ Show only when credits ≤ 20% remaining. Never pop-up. `SubtleCreditPurchase` c
 | `slate360-context/WIDGETS.md` | Widget system blueprint |
 | `slate360-context/HOMEPAGE.md` | Homepage blueprint |
 | `slate360-context/BACKEND.md` | Backend, auth, billing, credits, DB, email |
-| `slate360-context/FUTURE_MODULES.md` | Unbuilt modules (Design Studio, CEO, Athlete360, etc.) |
+| `slate360-context/FUTURE_MODULES.md` | Unbuilt modules (Design Studio, CEO, Athlete360, App Ecosystem, etc.) |
 | `slate360-context/GUARDRAILS.md` | Code rules, refactoring priorities, tech debt |
 | `lib/entitlements.ts` | Tier → entitlements (single source of truth) |
 | `lib/server/api-auth.ts` | `withAuth()`, `withProjectAuth()` |

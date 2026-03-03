@@ -1,7 +1,8 @@
 # Slate360 — SlateDrop Blueprint
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-03
 **Context Maintenance:** Update this file whenever SlateDrop routes, components, API endpoints, folder structure, or file management behavior changes.
+**Cross-reference:** See `FUTURE_FEATURES.md` Phase 3E for SlateDrop wow features and SQL migrations.
 
 ---
 
@@ -161,7 +162,33 @@ Stored in `external_response_links` table for tracking external stakeholder uplo
 
 ---
 
-## 9. Data Retention Rules
+## 9. SlateDrop “Wow Features” Roadmap (Phase 3E)
+
+These features differentiate SlateDrop from basic cloud storage. Full SQL migrations are in `FUTURE_FEATURES.md` §Phase 3E.
+
+| Feature | Table/Column | Description |
+|---|---|---|
+| Share links (with expiry, PIN, download tracking) | `slatedrop_shares` | Public/private file sharing with analytics |
+| File versioning | `unified_files.version`, `version_group_id`, `is_latest` | Track file revisions, restore previous versions |
+| Audit trail | `slatedrop_audit_log` | Immutable log of view/download/share/delete events |
+| Full-text search | `unified_files.tags` (`text[]`) | Tag-based + filename search across all files |
+| Project packs | `slatedrop_packs` | Downloadable ZIP bundles curated per project |
+| Deep links | URL params | Direct link to any folder/file for email/chat sharing |
+| Offline queue | Service worker | Cache uploads when offline, sync when reconnected (Phase 3 PWA) |
+| File origin tracking | `unified_files.origin_tab`, `origin_route`, `origin_entity_id` | Know which module/entity created each file |
+
+### Planned Tables (Not Yet Created)
+See `BACKEND.md` §8b for the full list. SlateDrop-specific:
+- `slatedrop_audit_log` — immutable access log
+- `slatedrop_shares` — shareable links with expiry, PIN protection, download counts
+- `slatedrop_packs` — curated project export packages
+
+### SlateDrop as App Ecosystem Backbone
+All standalone apps (Design Studio, 360 Tour, Content Studio, etc.) use SlateDrop as their file storage backend. Standalone app subscribers get access to a scoped SlateDrop view showing only files relevant to their module (filtered by `origin_tab`).
+
+---
+
+## 10. Data Retention Rules
 
 | Event | Behavior |
 |---|---|
@@ -172,7 +199,7 @@ Stored in `external_response_links` table for tracking external stakeholder uplo
 
 ---
 
-## 10. Lib Files
+## 11. Lib Files
 
 | File | Purpose |
 |---|---|
@@ -183,7 +210,7 @@ Stored in `external_response_links` table for tracking external stakeholder uplo
 
 ---
 
-## 11. Context Maintenance Checklist
+## 12. Context Maintenance Checklist
 
 When making SlateDrop changes, update this file if:
 - [ ] API endpoints are added, renamed, or removed
@@ -193,3 +220,5 @@ When making SlateDrop changes, update this file if:
 - [ ] Storage limits or tier guards change
 - [ ] Sharing/external access behavior changes
 - [ ] Migration phases progress
+- [ ] Wow features are implemented (move from §9 to built sections)
+- [ ] New origin_tab values are registered

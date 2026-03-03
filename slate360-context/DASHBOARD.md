@@ -1,7 +1,8 @@
 # Slate360 — Dashboard Blueprint
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-03
 **Context Maintenance:** Update this file whenever dashboard routes, components, widgets, or layout logic changes.
+**Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
 ---
 
@@ -124,21 +125,32 @@ MapDrawing.tsx            → polygon/polyline drawing
 
 ---
 
-## 6. Dashboard Tabs — Build Order (Recommended)
+## 6. Dashboard Tabs — Build Order (Aligned to Phased Roadmap)
 
-When building remaining tabs, follow this order:
+Refer to `FUTURE_FEATURES.md` for the master 7-phase build plan. Dashboard tab construction maps to these phases:
 
-1. **Analytics & Reports** — expand existing stub, use Recharts for charts
-2. **CEO Command Center** — expand stub (spec in `FUTURE_MODULES.md`)
-3. **Design Studio** — 3D/2D workspace (spec in `FUTURE_MODULES.md`)
-4. **Content Studio** — media/content creation tools
-5. **360 Tour Builder** — Pannellum-based tour creator
-6. **Geospatial & Robotics** — drone flight planning, point cloud
-7. **Virtual Studio** — VR/immersive experience builder
+| Priority | Tab | Phase | Dependency |
+|---|---|---|---|
+| 1 | Project Hub (complete) | Phase 1 | Foundation (Phase 0) |
+| 2 | Design Studio | Phase 2 | Phase 0 decomposition |
+| 3 | 360 Tour Builder | Phase 4A | Design Studio viewer stack |
+| 4 | Content Studio | Phase 4B | SlateDrop integration |
+| 5 | Analytics & Reports | Phase 4C | Project Hub data |
+| 6 | Geospatial & Robotics | Phase 4D | GPU pipeline (Phase 5) |
+| 7 | Virtual Studio | Phase 4E | GPU pipeline (Phase 5) |
+| 8 | CEO Command Center | Phase 4F | Analytics data |
+
+### Standalone App Routing (Phase 3)
+Modules that are offered as standalone apps (Design Studio, 360 Tour, Content Studio) will also be accessible at top-level routes (e.g., `/design-studio`, `/tour-builder`) in addition to their `/(dashboard)` routes. Both routes render the same component — the standalone route skips the full dashboard sidebar and shows a simplified nav.
+
+### Sidebar Evolution (Future)
+- **Phase 3:** Add "Apps" section to sidebar showing user’s active standalone subscriptions
+- **Phase 3:** Add app directory link for discovering/subscribing to standalone modules
+- **Phase 4+:** Each new module appears in sidebar as it’s built
 
 Each new tab should:
 - Be a server component page with client component islands
-- Gate access via `getEntitlements(tier)`
+- Gate access via `getEntitlements(tier)` (merged with `org_feature_flags` in Phase 3)
 - Follow the `< 300 lines per file` rule
 - Share UI components from `components/ui/`
 

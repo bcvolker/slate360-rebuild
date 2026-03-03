@@ -1,18 +1,25 @@
 # Slate360 — Future Modules & Unbuilt Feature Specs
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-03
 **Context Maintenance:** Update this file whenever module specs change or modules begin construction. Once a module is built, move its section to the appropriate topic-specific blueprint.
+
+> **Build Roadmap:** See `FUTURE_FEATURES.md` for the phased build plan (7 phases), dependency graph, safe build order, and infrastructure checklist. This file contains the detailed specs for each unbuilt module.
+
+> **App Ecosystem:** Each module below can operate as both a Slate360 dashboard tab AND a standalone subscribable app. See `FUTURE_FEATURES.md` Phase 3 for the app ecosystem infrastructure (PWA foundation, standalone routes, subscription model, Capacitor native wrappers). Standalone app subscriptions use `org_feature_flags` table + expanded `getEntitlements()`. Users with a Slate360 tier subscription get integrated access; standalone subscribers get the module + basic SlateDrop storage.
 
 ---
 
 ## 1. Design Studio
 
-**Route:** `/(dashboard)/design-studio`
-**Tiers:** model, business, enterprise
-**Status:** ❌ Not built
+**Route:** `/(dashboard)/design-studio`  
+**Standalone Route:** `/design-studio` (standalone subscribers)  
+**Tiers:** model, business, enterprise  
+**Status:** ❌ Not built  
+**Build Phase:** Phase 2 in `FUTURE_FEATURES.md` — 11-step safe build order  
+**Standalone Pricing:** Part of Slate360 tiers; Plans PDF Tool standalone at $29–$99/mo
 
 ### Overview
-3D/2D workspace for construction design — combines 3D model viewing, 2D plan markup (Bluebeam-style), and fabrication output.
+3D/2D workspace for construction design — combines 3D model viewing, 2D plan markup (Bluebeam-style), digital twin processing, and fabrication output. Six project types auto-configure the workspace: 2D Design, 3D Design, 2D Plan Review, Smart PDF Tool, Digital Twin, 3D Print/Fabrication.
 
 ### User Profiles
 | Profile | Target |
@@ -22,45 +29,58 @@
 | Expert | Analysis tools + print/fabrication |
 
 ### Layout
-- **Left panel:** Model browser, layer tree, asset library
-- **Center canvas:** 3D viewport or 2D plan viewer
-- **Right panel:** Properties, inspector, comments
-- **Bottom bar:** Mode switcher (3D Model / 2D Plans / Analysis)
+- **Top bar:** Module title, project selector, Simple/Advanced toggle, undo/redo, save, export, share
+- **Left panel:** File browser (SlateDrop), asset library, versions/timeline, upload dropzone
+- **Center canvas:** Three.js / React Three Fiber viewport (3D) or PDF.js overlay (2D)
+- **Right panel:** Properties, inspector, comments — changes based on mode + selection
+- **Bottom bar:** Mode tabs: Upload · Design · Review · Print · Analyze · Animate
+
+### Viewer Stack (Open-Source)
+Three.js + React Three Fiber (base), xeokit (BIM/IFC), web-ifc (parsing), PDF.js (2D), SuperSplat (Gaussian Splats), OpenCascade.js + JSCAD (parametric), Kiri:Moto (slicer), Pannellum (360)
 
 ### Features
-1. **Upload & Convert** — GLB, OBJ, IFC, STL import
+1. **Upload & Convert** — GLB, OBJ, IFC, STL, DWG (via conversion), PDF import
 2. **3D Model View** — orbit, section cuts, measurements, annotations
 3. **2D Plans View** — Bluebeam-style PDF markup (highlight, measure, stamp, text)
-4. **Review/Collaboration** — comment threads pinned to model locations
-5. **Print/Fabrication** — 3D Print Lab integration
+4. **Review/Collaboration** — comment threads pinned to model locations; shareable review links
+5. **Print/Fabrication** — 3D Print Lab: repair, scale, split, connector library, CuraEngine WASM slicer
+6. **Digital Twin** — Upload wizard → quality tier → credit estimator → GPU processing → web viewer → timeline
+7. **Animation** — Camera path on 3D model → fly-through → MP4 export → auto-save to Content Studio
+8. **Sharing** — View links (no login) + review links (comment-back, writes to Project Hub as RFI)
 
-### 3D Print Lab (Sub-feature)
-- Multi-printer management (USB, LAN, cloud)
-- Auto-sectioning for large models
-- STL/OBJ mesh preparation
-- Print queue with status tracking
+### Safe Build Order
+Shell → SlateDrop panel → 3D viewer → 2D viewer → IFC/BIM → Upload pipeline → Review → Print Lab → Digital Twin → Animation → Sharing
+
+### Project Hub Integration
+- `projectHubId` reference in metadata; attach model versions to Daily Logs, RFIs, Submittals
+- Digital Twin Timeline: date-stamped versions, compare overlay/slider, morph timelapse MP4
 
 ### Competitive Positioning
-Replace: SketchUp (3D), Bluebeam (2D markup), Revit Viewer (BIM)
+Replace: SketchUp (3D), Bluebeam (2D markup), Revit Viewer (BIM), DroneDeploy (digital twins)
 
 ---
 
 ## 2. Content Studio
 
-**Route:** `/(dashboard)/content-studio`
-**Tiers:** creator, model, business, enterprise
-**Status:** ❌ Not built
+**Route:** `/(dashboard)/content-studio`  
+**Tiers:** creator, model, business, enterprise  
+**Status:** ❌ Not built  
+**Build Phase:** Phase 4B in `FUTURE_FEATURES.md`
 
 ### Overview
-Media creation and management tools — video editing, image processing, social media content generation for construction marketing.
+Media creation and management tools — photo report generation, video trimming, social media exports. Receives MP4 exports from Design Studio morph timelapse. Reads media from SlateDrop.
 
 ---
 
 ## 3. 360 Tour Builder
 
-**Route:** `/(dashboard)/tour-builder`
-**Tiers:** creator, model, business, enterprise
-**Status:** ❌ Not built
+**Route:** `/(dashboard)/tour-builder`  
+**Standalone Route:** `/tour-builder`  
+**Tiers:** creator, model, business, enterprise  
+**Status:** ❌ Not built  
+**Build Phase:** Phase 4A in `FUTURE_FEATURES.md`  
+**Standalone Pricing:** $25–$99/mo  
+**Native App:** `ai.slate360.tour` (Slate360 Tours)
 
 ### Overview
 Create 360° virtual tours from panoramic photos using Pannellum viewer.
@@ -68,8 +88,13 @@ Create 360° virtual tours from panoramic photos using Pannellum viewer.
 ### Key Requirements
 - Hotspot placement (link scenes, add info markers)
 - Tour sequencing and auto-play
-- Embed/share export
-- Free PWA concept: "Slate360 360 Tour" — standalone viewer for sharing tours
+- Floor plan mapping (upload PDF/image → drop pano pins on plan)
+- Shareable public tour links (`/tour/[token]`)
+- Multi-floor navigation
+- Progress comparison (same angle, different dates)
+- Hotspot → Punch List auto-create
+- Upload pipeline: Insta360/Ricoh Theta via web, desktop drag-drop, email-to-project, SlateDrop request links
+- Free standalone PWA for field crews to capture and view tours
 
 ---
 
@@ -262,9 +287,38 @@ CREATE TABLE slatedrop_uploads (
 
 ## 12. External Stakeholder Portal (Not Built)
 
-**Route:** `/external/project/[token]`
+**Route:** `/external/project/[token]`  
+**Build Phase:** Phase 1D in `FUTURE_FEATURES.md`
 
-Read-only project view for external stakeholders (clients, inspectors) without requiring Slate360 account.
+Read-only project view for external stakeholders (clients, inspectors) without requiring Slate360 account. Uses `slatedrop_shares`-style token system. Supports: view-only project summary, RFI response form, submittal approval (approve/reject with signature), daily log summary.
+
+---
+
+## 13. App Ecosystem Infrastructure (Not Built)
+
+**Build Phase:** Phase 3 + Phase 6 in `FUTURE_FEATURES.md`
+
+### Current State
+- **PWA:** Zero infrastructure (no manifest, no service worker, no next-pwa package). Marketing pages at `/features/ecosystem-apps` claim PWA but nothing is implemented.
+- **Native Apps:** No Capacitor, Expo, or React Native. No app store accounts.
+- **Standalone Subscriptions:** No `org_feature_flags` table. Entitlements only support tier-level gating.
+
+### What Needs to Be Built
+1. **PWA Foundation:** `manifest.webmanifest`, service worker, `next-pwa` package, install prompt
+2. **Standalone Routes:** Per-module routes that work independently of dashboard
+3. **Subscription Model:** `org_feature_flags` table, expanded `getEntitlements()`, standalone Stripe products
+4. **App Directory:** Functional `/apps` page replacing marketing-only `/features/ecosystem-apps`
+5. **Capacitor Wrappers:** iOS/Android shells for main app + key standalone apps
+6. **App Store Submission:** Apple ($99/yr) + Google ($25 one-time) developer accounts
+
+### Standalone Apps Planned
+| App | Bundle ID | Pricing |
+|---|---|---|
+| Slate360 (main) | `ai.slate360.app` | Tier-based |
+| SlateDrop | `ai.slate360.slatedrop` | $39–$99/mo |
+| 360 Tours | `ai.slate360.tour` | $25–$99/mo |
+| PunchWalk | `ai.slate360.punch` | $15–$49/mo |
+| Slate360 Capture | `ai.slate360.capture` | Free w/ Business+ |
 
 ---
 

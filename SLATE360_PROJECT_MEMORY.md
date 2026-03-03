@@ -1,10 +1,10 @@
 # Slate360 — Project Memory & New Chat Instructions
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-03
 **Repo:** `bcvolker/slate360-rebuild` · branch: `main` · live: https://www.slate360.ai
 **Owner:** bcvolker
 
-> **To start a new chat:** Attach this file. It contains everything an AI assistant needs to understand the project, codebase rules, backend access, and current build status. After reading this, the assistant should read the topic-specific blueprints in `slate360-context/` for the module being worked on.
+> **To start a new chat:** Attach this file. It contains everything an AI assistant needs to understand the project, codebase rules, backend access, and current build status. After reading this, the assistant should read the relevant topic blueprints in `slate360-context/` for the module being worked on, and `slate360-context/FUTURE_FEATURES.md` for the phased build roadmap.
 
 ---
 
@@ -194,13 +194,14 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 | File | Purpose |
 |---|---|
 | `SLATE360_PROJECT_MEMORY.md` | **This file** — master project memory |
+| `slate360-context/FUTURE_FEATURES.md` | **Master build roadmap** — 7-phase plan with dependency graph |
 | `slate360-context/DASHBOARD.md` | Dashboard blueprint |
 | `slate360-context/PROJECT_HUB.md` | Project Hub blueprint |
 | `slate360-context/SLATEDROP.md` | SlateDrop blueprint |
 | `slate360-context/WIDGETS.md` | Widget system blueprint |
 | `slate360-context/HOMEPAGE.md` | Homepage blueprint |
 | `slate360-context/BACKEND.md` | Backend infra, auth, billing, credits, email |
-| `slate360-context/FUTURE_MODULES.md` | Design Studio, Content Studio, CEO, Athlete360, etc. |
+| `slate360-context/FUTURE_MODULES.md` | Design Studio, Content Studio, CEO, Athlete360, App Ecosystem, etc. |
 | `PROJECT_RUNTIME_ISSUE_LEDGER.md` | Runtime bug tracker (Issues 1-10, all resolved) |
 | `lib/entitlements.ts` | Tier → entitlements (single source of truth) |
 | `lib/server/api-auth.ts` | `withAuth()`, `withProjectAuth()` |
@@ -247,6 +248,11 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 - Athlete360 (spec exists)
 - External stakeholder portal
 - GPU worker pipeline
+- **App ecosystem infrastructure** (PWA, standalone app subscriptions, native wrappers)
+- **`org_feature_flags` table** for standalone app entitlements
+- **Planned DB tables:** `project_activity_log`, `slatedrop_audit_log`, `slatedrop_shares`, `slatedrop_packs`, `org_credits`, `credits_ledger`
+
+See `slate360-context/FUTURE_FEATURES.md` for the full 7-phase build roadmap (Phase 0–7) with dependency graph and SQL migrations.
 
 ---
 

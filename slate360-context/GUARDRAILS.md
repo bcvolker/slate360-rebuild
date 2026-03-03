@@ -1,7 +1,8 @@
 # Slate360 — Code Guardrails & Refactoring Rules
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-03
 **Context Maintenance:** Update this file when new guardrails are established, known violations are fixed, or DB tables are added.
+**Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
 ---
 
@@ -45,6 +46,18 @@ Never remove `isClient && _hasHydrated` from `app/(dashboard)/layout.tsx`.
 
 ### Rule 9: Mobile-First
 All new UI must work on mobile viewports. Test at 375px width minimum.
+
+### Rule 10: Standalone Routes Share Auth
+Standalone app routes (e.g., `/design-studio`, `/tour-builder`) must use the same `withAuth()` / `withProjectAuth()` middleware as dashboard routes. Never create a parallel auth system for standalone apps.
+
+### Rule 11: Feature Flags via `org_feature_flags` Table
+When standalone app subscriptions are implemented (Phase 3), gating MUST use the merged entitlements pattern (`getEntitlements(tier, featureFlags)`). Never hardcode standalone access checks.
+
+### Rule 12: PWA Manifest Must Match Entitlements
+When PWA infrastructure is added (Phase 3), the service worker and manifest must respect the user’s active entitlements. Offline-cached routes must not include modules the user hasn’t subscribed to.
+
+### Rule 13: No Standalone Routes Without SlateDrop Access
+All standalone apps that handle files must use SlateDrop as the file backbone. Never create a parallel file management system for a standalone app.
 
 ---
 
@@ -137,3 +150,5 @@ When fixing tech debt, update this file if:
 - [ ] A dependency is consolidated or removed
 - [ ] A new guardrail is needed
 - [ ] A new DB table is discovered
+- [ ] Standalone app routing patterns are established
+- [ ] PWA infrastructure rules change

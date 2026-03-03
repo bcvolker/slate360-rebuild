@@ -1,7 +1,8 @@
 # Slate360 — Backend, Auth, Billing & Credits Blueprint
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-03
 **Context Maintenance:** Update this file whenever auth flows, billing logic, credit system, email templates, database tables, or RLS policies change.
+**Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
 ---
 
@@ -243,6 +244,66 @@ Full HTML templates preserved in `slate360-context/SUPABASE_EMAIL_TEMPLATES.md`.
 
 ---
 
+## 8b. Planned Database Tables (Not Yet Created)
+
+These tables are required by Phases 1–3 in `FUTURE_FEATURES.md`. Do **not** create them ad-hoc — use the SQL migrations documented in FUTURE_FEATURES.md §Phase 3E.
+
+| Table | Phase | Purpose |
+|---|---|---|
+| `project_activity_log` | 1 | Immutable activity feed for Project Hub |
+| `slatedrop_audit_log` | 3E | File access/download audit trail |
+| `slatedrop_shares` | 3E | Shareable file/folder links with expiry |
+| `slatedrop_packs` | 3E | Downloadable project export packages |
+| `org_feature_flags` | 3 | Per-org feature overrides for standalone app subscriptions |
+| `org_credits` | 3 | Dedicated credit tracking (supplements `organizations` columns) |
+| `credits_ledger` | 3 | Append-only credit transaction log |
+
+### Planned Column Additions (`unified_files`)
+| Column | Purpose |
+|---|---|
+| `origin_tab` | Source module (slatedrop, design-studio, etc.) |
+| `origin_route` | Page route where file was created |
+| `origin_entity_id` | Linked entity (RFI, submittal, etc.) |
+| `logical_id` | Groups file versions together |
+| `version` | Integer version counter |
+| `version_group_id` | UUID linking all versions of one file |
+| `is_latest` | Boolean flag for current version |
+| `tags` | `text[]` searchable tags |
+
+---
+
+## 8c. App Ecosystem Subscription Flow (Phase 3)
+
+Slate360 modules will be available as **standalone apps** subscribable independently from the full platform. This uses a merged entitlements model.
+
+### How It Works
+1. User signs up at `/apps/{app-slug}` or from the app directory at `/apps`
+2. `POST /api/apps/subscribe` creates a Stripe Checkout for the standalone product
+3. Webhook updates `org_feature_flags` row for that org + feature key
+4. `getEntitlements(tier)` is extended to merge `org_feature_flags` overrides with tier defaults
+5. User accesses the module at its standalone route (e.g., `/tour-builder`, `/design-studio`)
+
+### Planned API Routes
+| Route | Method | Purpose |
+|---|---|---|
+| `/api/apps/directory` | GET | List available standalone apps with pricing |
+| `/api/apps/subscribe` | POST | Create Stripe Checkout for standalone app |
+| `/api/apps/status` | GET | Check user's active standalone subscriptions |
+| `/api/credits/estimate` | POST | Estimate credit cost before processing |
+| `/api/credits/balance` | GET | Detailed credit breakdown (monthly + purchased) |
+
+### Entitlements Merge Pattern
+```typescript
+// Future pattern — do NOT implement until Phase 3
+function getEntitlements(tier: Tier, featureFlags?: Record<string, boolean>) {
+  const base = TIER_MAP[tier];
+  if (!featureFlags) return base;
+  return { ...base, ...featureFlags }; // flags override tier defaults
+}
+```
+
+---
+
 ## 9. AWS S3 Configuration
 
 - **Bucket:** `slate360-storage`
@@ -271,14 +332,15 @@ Configured in `next.config.ts`. Required directives:
 
 ---
 
-## 11. GPU Worker Pipeline (Future)
+## 11. GPU Worker Pipeline (Phase 5)
 
 Full deployment spec preserved in `slate360-context/GPU_WORKER_DEPLOYMENT.md`.
 
 Architecture: `Next.js API → Redis Queue → EC2 GPU Worker → S3`
 - Worker processes: COLMAP, OpenMVS, PDAL, gltf-pipeline, py3dtiles
 - Cost estimate: $105–$300/month (g4dn.xlarge spot instances)
-- Not yet deployed — awaiting GPU processing module build
+- Not yet deployed — blocked on Phase 2 (Design Studio) completion
+- Credit consumption: `consume_credits()` BEFORE enqueuing any job
 
 ---
 
