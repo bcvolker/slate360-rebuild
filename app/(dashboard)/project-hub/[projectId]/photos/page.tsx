@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Camera, ChevronLeft, ChevronRight, Download, FileImage, Grid3X3, Image, List, Loader2, Search, X, ZoomIn } from "lucide-react";
+import ViewCustomizer, { useViewPrefs } from "@/components/project-hub/ViewCustomizer";
 
 type FolderRow = { id: string; name: string };
 type PhotoFile = {
@@ -55,6 +56,7 @@ export default function ProjectPhotosPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortBy>("name");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [viewPrefs, setViewPrefs] = useViewPrefs(`viewprefs-photos-${projectId}`, []);
 
   // Lightbox state
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -228,6 +230,9 @@ export default function ProjectPhotosPage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Photos</p>
           <h2 className="text-lg font-black text-gray-900">Photo Log</h2>
+          <p className="mt-0.5 rounded-md bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-orange-600 ring-1 ring-orange-100 inline-block">
+            Saved to /Photos/
+          </p>
         </div>
         <button
           onClick={onGenerateReport}
@@ -324,6 +329,7 @@ export default function ProjectPhotosPage() {
             >
               <List size={14} />
             </button>
+            <ViewCustomizer storageKey={`viewprefs-photos-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
           </div>
         </div>
       )}

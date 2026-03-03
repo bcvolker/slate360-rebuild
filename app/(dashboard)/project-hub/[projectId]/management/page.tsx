@@ -10,6 +10,7 @@ import {
   Zap, ClipboardList, BarChart2, Calendar, Hash
 } from "lucide-react";
 import { useProjectProfile } from "@/lib/hooks/useProjectProfile";
+import ViewCustomizer, { useViewPrefs } from "@/components/project-hub/ViewCustomizer";
 
 /* ─── Types ─────────────────────────────────────────────────── */
 type Stakeholder = {
@@ -98,8 +99,7 @@ export default function ProjectManagementPage() {
   const [reportResult, setReportResult] = useState<{ title: string; summary: Record<string,unknown>; fileUrl: string; fileUploadId?: string } | null>(null);
 
   const [activeTab, setActiveTab] = useState<Tab>("stakeholders");
-  const [toast, setToast] = useState<string | null>(null);
-
+  const [toast, setToast] = useState<string | null>(null);  const [viewPrefs, setViewPrefs] = useViewPrefs(`viewprefs-management-${projectId}`, []);
   /* ─ Delete project ──────────────────────────────────────────── */
   const [showDeleteZone, setShowDeleteZone] = useState(false);
   const [deleteConfirmName, setDeleteConfirmName] = useState("");
@@ -346,6 +346,7 @@ export default function ProjectManagementPage() {
             className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
             <FolderOpen size={14} /> Project Files
           </Link>
+          <ViewCustomizer storageKey={`viewprefs-management-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
           <Link href={`/project-hub/${projectId}/submittals`}
             className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF4D00] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition">
             <FileText size={14} /> AIA Documents

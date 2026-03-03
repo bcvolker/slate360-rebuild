@@ -9,6 +9,7 @@ import {
   ChevronUp,
   Download,
   Filter,
+  History,
   Loader2,
   Plus,
   Search,
@@ -17,6 +18,8 @@ import {
   User,
   X,
 } from "lucide-react";
+import ViewCustomizer, { useViewPrefs } from "@/components/project-hub/ViewCustomizer";
+import ChangeHistory, { buildBaseHistory } from "@/components/project-hub/ChangeHistory";
 
 type Submittal = {
   id: string;
@@ -256,6 +259,8 @@ export default function ProjectSubmittalsPage() {
   const [filterDocType, setFilterDocType] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [historyItem, setHistoryItem] = useState<Submittal | null>(null);
+  const [viewPrefs, setViewPrefs] = useViewPrefs(`viewprefs-submittals-${projectId}`, []);
 
   const load = useCallback(async () => {
     if (!projectId) return;
@@ -405,6 +410,7 @@ export default function ProjectSubmittalsPage() {
         </div>
         <div className="flex items-center gap-2">
           <button onClick={exportCSV} disabled={rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40"><Download size={14} /> Export</button>
+          <ViewCustomizer storageKey={`viewprefs-submittals-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
           <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setAttachment(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF4D00] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition"><Plus size={15} /> New Submittal</button>
         </div>
       </div>
@@ -489,6 +495,7 @@ export default function ProjectSubmittalsPage() {
                       <button onClick={() => void sendToClient(sub)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"><Send size={12} /> Send</button>
                       <button onClick={() => void saveAsCopy(sub)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">Save As</button>
                       <button onClick={() => startEdit(sub)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">Edit</button>
+                      <button onClick={() => setHistoryItem(sub)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"><History size={12} /> History</button>
                       <button onClick={() => handleDelete(sub.id)} className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition ml-auto"><Trash2 size={12} /> Delete</button>
                     </div>
                   </div>
@@ -560,6 +567,14 @@ export default function ProjectSubmittalsPage() {
       )}
 
       {toast && <div className="fixed bottom-6 right-6 z-50 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 shadow-lg">{toast}</div>}
+
+      <ChangeHistory
+        open={historyItem !== null}
+        onClose={() => setHistoryItem(null)}
+        title={historyItem ? historyItem.title : ""}
+        entries={historyItem ? buildBaseHistory(historyItem) : []}
+        subfolder="Submittals"
+      />
     </section>
   );
 }

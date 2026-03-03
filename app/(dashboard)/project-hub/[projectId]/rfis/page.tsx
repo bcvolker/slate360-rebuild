@@ -10,6 +10,7 @@ import {
   DollarSign,
   Download,
   Filter,
+  History,
   Loader2,
   Plus,
   Search,
@@ -18,6 +19,8 @@ import {
   User,
   X,
 } from "lucide-react";
+import ViewCustomizer, { useViewPrefs } from "@/components/project-hub/ViewCustomizer";
+import ChangeHistory, { buildBaseHistory } from "@/components/project-hub/ChangeHistory";
 
 type RFI = {
   id: string;
@@ -82,6 +85,8 @@ export default function ProjectRFIsPage() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [historyItem, setHistoryItem] = useState<RFI | null>(null);
+  const [viewPrefs, setViewPrefs] = useViewPrefs(`viewprefs-rfis-${projectId}`, []);
 
   const load = useCallback(async () => {
     if (!projectId) return;
@@ -201,6 +206,7 @@ export default function ProjectRFIsPage() {
         </div>
         <div className="flex items-center gap-2">
           <button onClick={exportCSV} disabled={rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40"><Download size={14} /> Export</button>
+          <ViewCustomizer storageKey={`viewprefs-rfis-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
           <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setAttachment(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF4D00] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition"><Plus size={15} /> New RFI</button>
         </div>
       </div>
@@ -274,6 +280,7 @@ export default function ProjectRFIsPage() {
                       {rfi.status === "Closed" && <button onClick={() => quickStatus(rfi, "Open")} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">Reopen</button>}
                       <button onClick={() => void sendToClient(rfi.id)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"><Send size={12} /> Send to Client</button>
                       <button onClick={() => startEdit(rfi)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">Edit</button>
+                      <button onClick={() => setHistoryItem(rfi)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"><History size={12} /> History</button>
                       <button onClick={() => handleDelete(rfi.id)} className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition ml-auto"><Trash2 size={12} /> Delete</button>
                     </div>
                   </div>
@@ -320,6 +327,14 @@ export default function ProjectRFIsPage() {
       )}
 
       {toast && <div className="fixed bottom-6 right-6 z-50 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 shadow-lg">{toast}</div>}
+
+      <ChangeHistory
+        open={historyItem !== null}
+        onClose={() => setHistoryItem(null)}
+        title={historyItem ? historyItem.subject : ""}
+        entries={historyItem ? buildBaseHistory(historyItem) : []}
+        subfolder="RFIs"
+      />
     </section>
   );
 }

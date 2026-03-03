@@ -10,6 +10,7 @@ import {
   CloudSun,
   Download,
   HardHat,
+  History,
   Loader2,
   MapPin,
   Plus,
@@ -17,6 +18,8 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import ViewCustomizer, { useViewPrefs } from "@/components/project-hub/ViewCustomizer";
+import ChangeHistory, { buildBaseHistory } from "@/components/project-hub/ChangeHistory";
 
 /* ---------- helpers ---------- */
 function weatherCodeLabel(code: number): string {
@@ -103,6 +106,8 @@ export default function DailyLogsPage() {
   const [search, setSearch] = useState("");
   const [loadingWeather, setLoadingWeather] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [historyItem, setHistoryItem] = useState<DailyLog | null>(null);
+  const [viewPrefs, setViewPrefs] = useViewPrefs(`viewprefs-daily-logs-${projectId}`, []);
 
   const load = useCallback(async () => {
     if (!projectId) return;
@@ -206,6 +211,7 @@ export default function DailyLogsPage() {
         </div>
         <div className="flex items-center gap-2">
           <button onClick={exportCSV} disabled={logs.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40"><Download size={14} /> Export</button>
+          <ViewCustomizer storageKey={`viewprefs-daily-logs-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
           <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF4D00] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition"><Plus size={15} /> New Log Entry</button>
         </div>
       </div>
@@ -285,6 +291,7 @@ export default function DailyLogsPage() {
                     {/* Actions */}
                     <div className="flex items-center gap-2 pt-2">
                       <button onClick={() => startEdit(log)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">Edit</button>
+                      <button onClick={() => setHistoryItem(log)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"><History size={12} /> History</button>
                       <button onClick={() => handleDelete(log.id)} className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition ml-auto"><Trash2 size={12} /> Delete</button>
                     </div>
                   </div>
@@ -338,6 +345,14 @@ export default function DailyLogsPage() {
       )}
 
       {toast && <div className="fixed bottom-6 right-6 z-50 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 shadow-lg">{toast}</div>}
+
+      <ChangeHistory
+        open={historyItem !== null}
+        onClose={() => setHistoryItem(null)}
+        title={historyItem ? `Daily Log — ${historyItem.log_date}` : ""}
+        entries={historyItem ? buildBaseHistory(historyItem) : []}
+        subfolder="Daily Logs"
+      />
     </section>
   );
 }

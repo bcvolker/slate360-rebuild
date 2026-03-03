@@ -1,6 +1,6 @@
 # Slate360 — Project Hub Blueprint
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-13
 **Context Maintenance:** Update this file whenever Project Hub routes, components, API endpoints, tool views, or creation/deletion flows change.
 
 ---
@@ -10,17 +10,17 @@
 ```
 /project-hub                                ← Tier 1: all projects grid (834 lines — needs extraction)
 /project-hub/[projectId]                    ← Tier 2: project home (143 lines)
-/project-hub/[projectId]/rfis              ← Tier 3: RFIs (324 lines)
-/project-hub/[projectId]/submittals        ← Tier 3: Submittals (564 lines)
+/project-hub/[projectId]/rfis              ← Tier 3: RFIs (~340 lines)
+/project-hub/[projectId]/submittals        ← Tier 3: Submittals (~580 lines)
 /project-hub/[projectId]/documents          ← Tier 3: alias for slatedrop
 /project-hub/[projectId]/slatedrop          ← Tier 3: SlateDrop files (38 lines, embeds SlateDropClient)
-/project-hub/[projectId]/schedule           ← Tier 3: Schedule (451 lines)
-/project-hub/[projectId]/budget             ← Tier 3: Budget (407 lines)
-/project-hub/[projectId]/photos             ← Tier 3: Photos (593 lines)
-/project-hub/[projectId]/drawings           ← Tier 3: Drawings (442 lines)
-/project-hub/[projectId]/daily-logs         ← Tier 3: Daily Logs (343 lines)
-/project-hub/[projectId]/punch-list         ← Tier 3: Punch List (388 lines)
-/project-hub/[projectId]/management         ← Tier 3: Management (930 lines)
+/project-hub/[projectId]/schedule           ← Tier 3: Schedule (~472 lines)
+/project-hub/[projectId]/budget             ← Tier 3: Budget (~425 lines)
+/project-hub/[projectId]/photos             ← Tier 3: Photos (~601 lines)
+/project-hub/[projectId]/drawings           ← Tier 3: Drawings (~450 lines)
+/project-hub/[projectId]/daily-logs         ← Tier 3: Daily Logs (~362 lines)
+/project-hub/[projectId]/punch-list         ← Tier 3: Punch List (~408 lines)
+/project-hub/[projectId]/management         ← Tier 3: Management (~934 lines)
 /project-hub/[projectId]/records            ← Tier 3: Records
 /project-hub/[projectId]/map               ← Tier 3: Map
 /project-hub/[projectId]/team              ← Tier 3: Team
@@ -31,7 +31,56 @@
 
 ---
 
-## 2. Tier Gating
+## 2. Shared Project Hub Components
+
+### ViewCustomizer (`components/project-hub/ViewCustomizer.tsx`)
+- Hook: `useViewPrefs(storageKey, defaultCols)` — loads/saves preferences to localStorage
+- Component: density toggle (compact/normal/comfortable) + per-column visibility checkboxes
+- Storage key pattern: `viewprefs-{tool}-{projectId}`
+- Utility: `densityClass(density)` — returns Tailwind padding/text-size classes for table rows
+- **Present on:** ALL 9 tool pages
+
+```tsx
+const [viewPrefs, setViewPrefs] = useViewPrefs(`viewprefs-rfis-${projectId}`, defaultCols);
+<ViewCustomizer storageKey={`viewprefs-rfis-${projectId}`} cols={colDefs}
+  defaultCols={defaultCols} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
+```
+
+### ChangeHistory (`components/project-hub/ChangeHistory.tsx`)
+- Right-side slide-over panel showing a record's change timeline
+- Helper: `buildBaseHistory(record)` — derives `HistoryEntry[]` from `created_at`, `updated_at`, `closed_at`, `completed_at`
+- Shows SlateDrop subfolder indicator badge: `Saved to: /Projects/…/{subfolder}/`
+- **Present on:** RFIs, Submittals, Daily Logs, Punch List, Budget, Schedule (row-level History button)
+- **Not on:** Drawings, Photos (SlateDrop-backed, files *are* the history), Management (no single-record panel needed)
+- **Future:** Replace `buildBaseHistory` with full `project_activity_log` table for per-field diff tracking
+
+```tsx
+const [historyItem, setHistoryItem] = useState<RFI | null>(null);
+<ChangeHistory open={historyItem !== null} onClose={() => setHistoryItem(null)}
+  title={historyItem?.subject ?? ""}
+  entries={historyItem ? buildBaseHistory(historyItem) : []}
+  subfolder="RFIs" />
+```
+
+### SlateDrop Auto-Save Coverage
+
+| Page | Has File Uploads | SlateDrop Wired | Target Folder |
+|---|---|---|---|
+| RFIs | ✅ Yes | ✅ `saveProjectArtifact("RFI")` | `/RFIs/` |
+| Submittals | ✅ Yes | ✅ `saveProjectArtifact("Submittal")` | `/Submittals/` |
+| Budget | ✅ Snapshots | ✅ snapshot route | `/Budget/` |
+| Schedule | ✅ Snapshots | ✅ snapshot route | `/Schedule/` |
+| Contracts (Management) | ✅ Yes | ✅ Direct S3 + slatedrop_uploads | `/Submittals/` |
+| Drawings | Reads SlateDrop | N/A — reads from folder | `/Drawings/` |
+| Photos | Reads SlateDrop | N/A — reads from folder | `/Photos/` |
+| Daily Logs | ❌ Text only | — | — |
+| Punch List | ❌ Text only | — | — |
+
+> ⚠️ `ARTIFACT_FOLDER_MAP` has `DailyLog: "Daily Logs"` but no "Daily Logs" folder is provisioned on project create. See `ONGOING_ISSUES.md`.
+
+---
+
+## 3. Tier Gating
 
 | Tier | Access |
 |---|---|
@@ -45,7 +94,7 @@ Gate check: `getEntitlements(tier).canAccessHub`
 
 ---
 
-## 3. Project Creation Flow
+## 4. Project Creation Flow
 
 ```
 POST /api/projects/create
@@ -71,10 +120,11 @@ POST /api/projects/create
 /Projects/{projectId}/Budget/
 /Projects/{projectId}/Records/
 ```
+> ⚠️ No "Daily Logs" folder provisioned — see `ONGOING_ISSUES.md`.
 
 ---
 
-## 4. 2-Step Project Deletion
+## 5. 2-Step Project Deletion
 
 1. **Modal:** User types project name to confirm
 2. **API:** `DELETE /api/projects/[projectId]` with `{ confirmText: "DELETE", confirmName: "<projectName>" }`
@@ -88,7 +138,7 @@ Available from:
 
 ---
 
-## 5. Role Hierarchy
+## 6. Role Hierarchy
 
 ```
 owner/admin > project_manager > project_member > external_viewer
@@ -97,7 +147,7 @@ Stored in `project_members.role` per project + `organization_members.role` org-w
 
 ---
 
-## 6. Satellite Map Card Pattern
+## 7. Satellite Map Card Pattern
 
 Used in 3 places (Tier 1 cards, Tier 2 header, Dashboard cards):
 ```typescript
@@ -113,19 +163,19 @@ const staticMapUrl = lat && lng && mapsKey
 
 ---
 
-## 7. Tool Views — Current State
+## 8. Tool Views — Current State
 
 | Tool | Page Lines | API Route | Key Components |
 |---|---|---|---|
-| RFIs | 324 | `GET/POST/DELETE /api/projects/[projectId]/rfis` | Inline table + form |
-| Submittals | 564 | `GET/POST/DELETE /api/projects/[projectId]/submittals` | Inline table + form |
-| Budget | 407 | `GET/POST /api/projects/[projectId]/budget` | Inline table + snapshot |
-| Schedule | 451 | `GET/POST /api/projects/[projectId]/schedule` | Inline Gantt-style |
-| Photos | 593 | `GET /api/projects/[projectId]/photo-report` | PhotoLogClient.tsx |
-| Drawings | 442 | (files from SlateDrop) | DrawingsViewerClient.tsx |
-| Daily Logs | 343 | `GET/POST/DELETE /api/projects/[projectId]/daily-logs` | Inline form + list |
-| Punch List | 388 | `GET/POST/DELETE /api/projects/[projectId]/punch-list` | Inline table |
-| Management | 930 | Multiple (contracts, reports, stakeholders) | Inline forms |
+| RFIs | ~340 | `GET/POST/DELETE /api/projects/[projectId]/rfis` | ViewCustomizer, ChangeHistory |
+| Submittals | ~580 | `GET/POST/DELETE /api/projects/[projectId]/submittals` | ViewCustomizer, ChangeHistory |
+| Budget | ~425 | `GET/POST /api/projects/[projectId]/budget` | ViewCustomizer, ChangeHistory, snapshot |
+| Schedule | ~472 | `GET/POST /api/projects/[projectId]/schedule` | ViewCustomizer, ChangeHistory, snapshot |
+| Photos | ~601 | `GET /api/projects/[projectId]/photo-report` | PhotoLogClient.tsx, ViewCustomizer |
+| Drawings | ~450 | (files from SlateDrop) | DrawingsViewerClient.tsx, ViewCustomizer |
+| Daily Logs | ~362 | `GET/POST/DELETE /api/projects/[projectId]/daily-logs` | ViewCustomizer, ChangeHistory |
+| Punch List | ~408 | `GET/POST/DELETE /api/projects/[projectId]/punch-list` | ViewCustomizer, ChangeHistory |
+| Management | ~934 | Multiple (contracts, reports, stakeholders) | ViewCustomizer |
 | Records | — | `GET /api/projects/[projectId]/records` | — |
 
 **Refactoring pattern:** Each tool view should extract its table/form into a component under `components/project-hub/`:
@@ -139,7 +189,7 @@ export default async function RFIsPage({ params }) {
 
 ---
 
-## 8. Key Components
+## 9. Key Components
 
 | Component | File | Lines |
 |---|---|---|
@@ -148,10 +198,12 @@ export default async function RFIsPage({ params }) {
 | CreateProjectWizard | `components/project-hub/CreateProjectWizard.tsx` | 218 |
 | DrawingsViewerClient | `components/project-hub/DrawingsViewerClient.tsx` | 168 |
 | PhotoLogClient | `components/project-hub/PhotoLogClient.tsx` | 129 |
+| ViewCustomizer | `components/project-hub/ViewCustomizer.tsx` | ~180 |
+| ChangeHistory | `components/project-hub/ChangeHistory.tsx` | ~140 |
 
 ---
 
-## 9. API Routes
+## 10. API Routes
 
 | Endpoint | Method | Purpose |
 |---|---|---|
@@ -176,7 +228,7 @@ export default async function RFIsPage({ params }) {
 
 ---
 
-## 10. Database Tables
+## 11. Database Tables
 
 ### `projects`
 Key columns: `id`, `name`, `project_name`, `status`, `type`, `project_type`, `org_id`, `created_by`, `metadata` (JSONB — contains `location: {lat, lng}`, `address`), `thumbnail_url`, `cover_image`, `city`, `region`, `created_at`, `updated_at`
@@ -197,7 +249,7 @@ Key columns: `id`, `name`, `folder_path`, `parent_id`, `is_system`, `folder_type
 
 ---
 
-## 11. Status Pill Colors (Design Consistency)
+## 12. Status Pill Colors (Design Consistency)
 
 | Status | Color |
 |---|---|
@@ -209,7 +261,7 @@ Key columns: `id`, `name`, `folder_path`, `parent_id`, `is_system`, `folder_type
 
 ---
 
-## 12. Context Maintenance Checklist
+## 13. Context Maintenance Checklist
 
 When making Project Hub changes, update this file if:
 - [ ] Tool views are added, renamed, or restructured

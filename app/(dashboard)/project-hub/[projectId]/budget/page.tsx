@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import {
-  ChevronDown, ChevronUp, DollarSign, Download, Filter,
+  ChevronDown, ChevronUp, DollarSign, Download, Filter, History,
   Loader2, Pencil, Plus, Save, Search, Trash2,
   TrendingDown, TrendingUp, X, FileText,
 } from "lucide-react";
 import { useProjectProfile } from "@/lib/hooks/useProjectProfile";
+import ViewCustomizer, { useViewPrefs } from "@/components/project-hub/ViewCustomizer";
+import ChangeHistory, { buildBaseHistory } from "@/components/project-hub/ChangeHistory";
 
 type BudgetRow = {
   id: string; cost_code: string; description: string | null;
@@ -71,6 +73,8 @@ export default function ProjectBudgetPage() {
   const [toast, setToast] = useState<string | null>(null);
   const [showFromScratch, setShowFromScratch] = useState(false);
   const [scratchName, setScratchName] = useState("");
+  const [historyItem, setHistoryItem] = useState<BudgetRow | null>(null);
+  const [viewPrefs, setViewPrefs] = useViewPrefs(`viewprefs-budget-${projectId}`, ["cost_code","description","category","budget","revised","spent","variance"]);
 
   const load = useCallback(async () => {
     if (!projectId) return;
@@ -253,6 +257,7 @@ export default function ProjectBudgetPage() {
           </button>
           <button onClick={exportCSV} disabled={rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40"><Download size={14} /> Export</button>
           <button onClick={() => void onSaveSnapshot()} disabled={snapshotSaving || rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40">{snapshotSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Snapshot</button>
+          <ViewCustomizer storageKey={`viewprefs-budget-${projectId}`} cols={[{key:"cost_code",label:"Cost Code"},{key:"description",label:"Description"},{key:"category",label:"Category"},{key:"budget",label:"Budget"},{key:"revised",label:"Revised"},{key:"spent",label:"Spent"},{key:"variance",label:"Variance"}]} defaultCols={["cost_code","description","category","budget","revised","spent","variance"]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
         </div>
       </div>
 
@@ -339,6 +344,7 @@ export default function ProjectBudgetPage() {
                           <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                             <div className="inline-flex items-center gap-0.5">
                               <button onClick={() => { startEdit(row); setExpandedId(null); }} className={`rounded p-1 ${isEditing ? "text-[#FF4D00]" : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"}`} title="Edit"><Pencil size={12} /></button>
+                              <button onClick={() => setHistoryItem(row)} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600" title="History"><History size={12} /></button>
                               <button onClick={() => void handleDelete(row.id)} className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600" title="Delete"><Trash2 size={12} /></button>
                               {isExpanded ? <ChevronUp size={12} className="text-gray-400" /> : <ChevronDown size={12} className="text-gray-400" />}
                             </div>
@@ -402,6 +408,14 @@ export default function ProjectBudgetPage() {
       )}
 
       {toast && <div className="fixed bottom-6 right-6 z-50 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 shadow-lg">{toast}</div>}
+
+      <ChangeHistory
+        open={historyItem !== null}
+        onClose={() => setHistoryItem(null)}
+        title={historyItem ? `${historyItem.cost_code} — ${historyItem.description ?? ""}` : ""}
+        entries={historyItem ? buildBaseHistory(historyItem) : []}
+        subfolder="Budget"
+      />
     </section>
   );
 }

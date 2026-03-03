@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Document, Page, pdfjs } from "react-pdf";
 import { ChevronLeft, ChevronRight, Download, FileText, Loader2, Maximize2, Minimize2, Pin, Ruler, Search, X, ZoomIn, ZoomOut } from "lucide-react";
+import ViewCustomizer, { useViewPrefs } from "@/components/project-hub/ViewCustomizer";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
@@ -52,6 +53,7 @@ export default function ProjectDrawingsPage() {
   const [search, setSearch] = useState("");
   const [setFilter, setSetFilter] = useState<string>("All Sets");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [viewPrefs, setViewPrefs] = useViewPrefs(`viewprefs-drawings-${projectId}`, []);
 
   // Viewer state
   const [currentPage, setCurrentPage] = useState(1);
@@ -183,6 +185,9 @@ export default function ProjectDrawingsPage() {
           {Object.keys(setCounts).length > 0 && (
             <span>· {Object.keys(setCounts).length} set{Object.keys(setCounts).length !== 1 ? "s" : ""}</span>
           )}
+          <span className="ml-1 rounded-md bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-orange-600 ring-1 ring-orange-100">
+            Saved to /Drawings/
+          </span>
         </div>
       </header>
 
@@ -238,6 +243,7 @@ export default function ProjectDrawingsPage() {
             >
               List
             </button>
+            <ViewCustomizer storageKey={`viewprefs-drawings-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
           </div>
         </div>
       )}

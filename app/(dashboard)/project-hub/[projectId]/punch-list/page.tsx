@@ -11,6 +11,7 @@ import {
   Clock,
   Download,
   Filter,
+  History,
   Loader2,
   MapPin,
   Plus,
@@ -20,6 +21,8 @@ import {
   Wrench,
   X,
 } from "lucide-react";
+import ViewCustomizer, { useViewPrefs } from "@/components/project-hub/ViewCustomizer";
+import ChangeHistory, { buildBaseHistory } from "@/components/project-hub/ChangeHistory";
 
 /* ── Types ──────────────────────────────────────────────────────── */
 type PunchItem = {
@@ -93,6 +96,8 @@ export default function PunchListPage() {
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [historyItem, setHistoryItem] = useState<PunchItem | null>(null);
+  const [viewPrefs, setViewPrefs] = useViewPrefs(`viewprefs-punch-list-${projectId}`, []);
 
   /* ── Load ─────────────────────────────────────────────────────── */
   const load = useCallback(async () => {
@@ -193,6 +198,7 @@ export default function PunchListPage() {
           <button onClick={exportCSV} disabled={items.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40">
             <Download size={14} /> Export
           </button>
+          <ViewCustomizer storageKey={`viewprefs-punch-list-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
           <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF4D00] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition">
             <Plus size={15} /> New Item
           </button>
@@ -302,6 +308,7 @@ export default function PunchListPage() {
                       )}
                       {item.status === "Closed" && <button onClick={() => quickStatus(item, "Open")} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">Reopen</button>}
                       <button onClick={() => startEdit(item)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">Edit</button>
+                      <button onClick={() => setHistoryItem(item)} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"><History size={12} /> History</button>
                       <button onClick={() => handleDelete(item.id)} className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition ml-auto"><Trash2 size={12} /> Delete</button>
                     </div>
                   </div>
@@ -383,6 +390,14 @@ export default function PunchListPage() {
       )}
 
       {toast && <div className="fixed bottom-6 right-6 z-50 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 shadow-lg">{toast}</div>}
+
+      <ChangeHistory
+        open={historyItem !== null}
+        onClose={() => setHistoryItem(null)}
+        title={historyItem ? `#${historyItem.number} — ${historyItem.title}` : ""}
+        entries={historyItem ? buildBaseHistory({ ...historyItem, completed_at: historyItem.completed_at }) : []}
+        subfolder="Reports"
+      />
     </section>
   );
 }
