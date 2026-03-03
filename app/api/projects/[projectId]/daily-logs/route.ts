@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { withProjectAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import type { ProjectRouteContext } from "@/lib/types/api";
+import { logProjectActivity } from "@/lib/projects/activity-log";
 
 const SELECT =
   "id, project_id, log_date, summary, weather_temp, weather_condition, weather_wind, weather_precip, crew_counts, equipment, visitors, safety_observations, delays, photos, created_by, created_at, updated_at";
@@ -19,7 +20,7 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
   });
 
 export const POST = (req: NextRequest, ctx: ProjectRouteContext) =>
-  withProjectAuth(req, ctx, async ({ admin, projectId, user }) => {
+  withProjectAuth(req, ctx, async ({ admin, projectId, orgId, user }) => {
     const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
 
     const log_date = String(body.log_date ?? "").trim();
@@ -47,11 +48,24 @@ export const POST = (req: NextRequest, ctx: ProjectRouteContext) =>
       .single();
 
     if (error) return serverError(error.message);
+
+    await logProjectActivity({
+      projectId,
+      orgId,
+      actorId: user.id,
+      action: "project.daily_log.created",
+      entityType: "daily_log",
+      entityId: data.id,
+      metadata: {
+        logDate: data.log_date,
+      },
+    });
+
     return ok({ ok: true, log: data });
   });
 
 export const PATCH = (req: NextRequest, ctx: ProjectRouteContext) =>
-  withProjectAuth(req, ctx, async ({ admin, projectId }) => {
+  withProjectAuth(req, ctx, async ({ admin, projectId, orgId, user }) => {
     const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
     const id = String(body.id ?? "").trim();
     if (!id) return badRequest("Log id is required");
@@ -79,16 +93,39 @@ export const PATCH = (req: NextRequest, ctx: ProjectRouteContext) =>
       .single();
 
     if (error) return serverError(error.message);
+
+    await logProjectActivity({
+      projectId,
+      orgId,
+      actorId: user.id,
+      action: "project.daily_log.updated",
+      entityType: "daily_log",
+      entityId: data.id,
+      metadata: {
+        logDate: data.log_date,
+      },
+    });
+
     return ok({ ok: true, log: data });
   });
 
 export const DELETE = (req: NextRequest, ctx: ProjectRouteContext) =>
-  withProjectAuth(req, ctx, async ({ admin, projectId }) => {
+  withProjectAuth(req, ctx, async ({ admin, projectId, orgId, user }) => {
     const body = (await req.json().catch(() => ({}))) as { id?: string };
     const id = String(body.id ?? "").trim();
     if (!id) return badRequest("Log id is required");
 
     const { error } = await admin.from("project_daily_logs").delete().eq("id", id).eq("project_id", projectId);
     if (error) return serverError(error.message);
+
+    await logProjectActivity({
+      projectId,
+      orgId,
+      actorId: user.id,
+      action: "project.daily_log.deleted",
+      entityType: "daily_log",
+      entityId: id,
+    });
+
     return ok({ ok: true });
   });

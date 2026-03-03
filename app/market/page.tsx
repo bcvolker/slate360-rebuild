@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import MarketClient from "@/components/dashboard/MarketClient";
+import MarketProviders from "./MarketProviders";
 
 export const metadata = {
   title: "Market Robot — Slate360",
@@ -17,10 +18,12 @@ export default async function MarketPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#ECEEF2]">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <MarketClient />
+    <MarketProviders>
+      <div className="min-h-screen bg-[#ECEEF2]">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <MarketClient />
+        </div>
       </div>
-    </div>
+    </MarketProviders>
   );
 }

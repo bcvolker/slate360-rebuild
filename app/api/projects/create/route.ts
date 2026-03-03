@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { provisionProjectFolders } from "@/lib/slatedrop/provisioning";
+import { logProjectActivity } from "@/lib/projects/activity-log";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -85,6 +86,18 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+
+  await logProjectActivity({
+    projectId: createdProject.id,
+    orgId,
+    actorId: user.id,
+    action: "project.created",
+    entityType: "project",
+    entityId: createdProject.id,
+    metadata: {
+      name: createdProject.name,
+    },
+  });
 
   return NextResponse.json({
     ok: true,

@@ -20,7 +20,7 @@
 | 360 Tours | `/(dashboard)/tours` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared (isCeo ✅) |
 | Geospatial | `/(dashboard)/geospatial` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared (isCeo ✅) |
 | Virtual Studio | `/(dashboard)/virtual-studio` | ✅ `DashboardTabShell` | 🟡 Coming Soon scaffold | ✅ Shared (isCeo ✅) |
-| Analytics | `/(dashboard)/analytics` | ✅ `DashboardTabShell` | 🟡 Stub (light theme) | ✅ Shared (isCeo ✅) |
+| Analytics | `/(dashboard)/analytics` | ✅ `DashboardTabShell` | ✅ Report Builder v1 (UI) | ✅ Shared (isCeo ✅) |
 | CEO | `/(dashboard)/ceo` | ✅ `DashboardTabShell` | 🟡 Stub | ✅ Shared (isCeo ✅) |
 | Market Robot | `/market` | ✅ `MarketClient.tsx` | ✅ Built | ❌ Own header (no QuickNav) |
 | Athlete360 | `/athlete360` | ✅ Standalone page | 🟡 Stub | ❌ Own header (no QuickNav) |
@@ -34,6 +34,7 @@
 - Legacy tabs (Dashboard, Project Hub, SlateDrop, Market) retain own headers until Phase 0B decomposition.
 - `QuickNav` (shared dropdown) includes all 13 navigation targets, tier-gated via `getEntitlements()`.
 - CEO account (`slate360ceo@gmail.com`) gets enterprise entitlements via `getEntitlements(tier, { isSlateCeo })` override.
+- Internal-tab access (`/ceo`, `/market`, `/athlete360`) is gated via `hasInternalAccess = isSlateCeo || isSlateStaff`.
 
 ### Architecture Readiness for Future Phases
 
@@ -51,7 +52,7 @@
 
 1. **Modular routing:** Each tab is a standalone Next.js page — no coupling between modules
 2. **Shared auth layer:** `withAuth()` / `withProjectAuth()` works for any new API route
-3. **Entitlements system:** `getEntitlements(tier, { isSlateCeo? })` cleanly gates module access. CEO account gets enterprise entitlements regardless of DB tier. **CEO/internal platform tabs (`/ceo`, `/market`, `/athlete360`) are gated by `isSlateCeo` directly — never via entitlements.**
+3. **Entitlements system:** `getEntitlements(tier, { isSlateCeo? })` cleanly gates module access. CEO account gets enterprise entitlements regardless of DB tier. **CEO/internal platform tabs (`/ceo`, `/market`, `/athlete360`) are gated by `hasInternalAccess` directly — never via entitlements.**
 4. **SlateDrop as common storage:** All modules can save artifacts via `saveProjectArtifact()`
 5. **Shared UI patterns:** `ViewCustomizer`, `ChangeHistory`, `DashboardTabShell` are reusable
 6. **QuickNav centralized:** Single navigation dropdown shared across all tab pages, tier-gated
@@ -60,12 +61,12 @@
 ### Key Risks / Debt to Address Before Scale
 
 1. **DashboardClient.tsx (~2,953 lines)** — Must decompose before adding more dashboard logic
-2. **No shared `(dashboard)/layout.tsx`** — Each page re-implements header/nav. DashboardTabShell mitigates for new pages but legacy pages still diverge.
-3. **No activity log table** — `project_activity_log` needed for proper audit trails
-4. **No PWA infra** — Marketing claims PWA but nothing exists
-5. **Web3 packages always imported** — ~7 packages bloat bundle for non-Market pages
-6. **No org provisioning on signup** — No `/api/auth/webhook` route exists. New user org/tier setup relies on a Supabase DB trigger. If trigger is missing, new users get `orgId: null`, `tier: "trial"` fallback.
-7. **No `slate360_staff` table** — CEO tab employee grants not yet buildable. Currently only `slate360ceo@gmail.com` can access `/ceo`, `/market`, `/athlete360`.
+2. **Shared `(dashboard)/layout.tsx` only baseline-complete** — route-group layout now exists, but legacy pages still diverge on header/nav composition.
+3. **Activity log baseline now active in core tools** — `project_activity_log` migration + helper exist, with create/update/delete logging wired for RFIs, Submittals, Schedule, Budget, Punch List, Daily Logs, Observations, Records, and Management Contracts. Remaining project mutations should be phased in.
+4. **PWA/mobile infra now partially started** — manifest + mobile viewport/standalone metadata are in place; service worker/runtime caching still missing.
+5. **Web3 global load issue mitigated** — wagmi/react-query providers are now Market-scoped; keep future Web3 imports route-scoped.
+6. **Org provisioning fallback now implemented** — callback + dashboard fallback bootstrap added; webhook path still recommended for deterministic first-write provisioning.
+7. **`slate360_staff` table may be missing in some environments** — code has graceful fallback. If table is missing, only `slate360ceo@gmail.com` has internal-tab access.
 
 ---
 
@@ -136,6 +137,20 @@ These items unblock everything else. No new features until these are stable.
 | Recharts + Chart.js both present | Remove Chart.js, standardize on Recharts |
 | 7 Web3 packages always loaded | Lazy-load via `next/dynamic` only on `/market` pages |
 | PDF packages | Lazy-load only on report-generation pages |
+
+### 0F. Cross-Tab Customization System (Required)
+
+All tabs must implement a consistent customization layer per `slate360-context/dashboard-tabs/CUSTOMIZATION_SYSTEM.md`.
+
+| Requirement | Description |
+|---|---|
+| Movable regions | Drag-reorder cards, tool groups, and workspace sections |
+| Expandable/collapsible panels | Library, inspector, timeline/log panels |
+| Resizable panel splits | User-controlled panel widths/heights with bounds |
+| Mode presets | `simple`, `standard`, `advanced`, `custom` |
+| Persistence | Per-user, per-tab saved preferences with versioning |
+
+**What to do:** Implement shared preference shape/utilities, then apply to each tab shell and module workspace before advanced feature build-out.
 
 ---
 
@@ -348,7 +363,7 @@ This makes Slate360 modules individually subscribable and installable.
 
 | Task | What to Do |
 |---|---|
-| Create `public/manifest.webmanifest` | App name, icons, `display: standalone`, `start_url`, theme/bg colors (`#1E3A8A` / `#FF4D00`) |
+| Create `app/manifest.ts` (`/manifest.webmanifest`) | App name, icons, `display: standalone`, `start_url`, theme/bg colors (`#1E3A8A` / `#FF4D00`) |
 | Add manifest link to `app/layout.tsx` | `<link rel="manifest" href="/manifest.webmanifest">` + `themeColor` + `apple-touch-icon` |
 | Install `next-pwa` or `@ducanh2912/next-pwa` | Configure in `next.config.ts` with runtime caching strategies |
 | Create service worker config | Cache static assets, API responses for offline capability |
@@ -532,13 +547,14 @@ Build in this order (by subscriber value and dependency chain):
 
 | Feature | Description | Priority |
 |---|---|---|
-| Cross-project portfolio dashboard | See all projects' health at a glance | High |
-| Budget burn-rate chart | Budget consumed over time | High |
-| Schedule performance index (SPI) | Gantt-derived schedule health metric | Medium |
-| Subcontractor performance scorecard | Per-sub metrics across projects | Medium |
-| Custom report builder | Drag-drop widgets | Low |
+| Report type selection | Stakeholder, RFI, Budget, Photo Log, Submittal, Custom | High |
+| Data section selector | Include/exclude sections (RFI, submittals, budget, photos, etc.) | High |
+| Date range report generation | Build reports by period and scope | High |
+| Saved reports registry | Persist and list generated reports | High |
+| PDF download/share actions | Stakeholder-ready export and sharing workflow | High |
+| CSV export all | Bulk data export from reports section | Medium |
 | Automated weekly PDF report via email | Resend scheduled delivery | Medium |
-| Delay risk score | Weather + Gantt + dependency analysis | Low |
+| Delay risk score | Weather + schedule + dependency analysis | Low |
 | Labor zone heatmap | GPS check-in analytics | Low |
 
 ### 4D. Geospatial & Robotics
@@ -832,10 +848,10 @@ Phase 6 (Native Apps)                                │
 
 | Infrastructure | Current State | Needed For |
 |---|---|---|
-| `manifest.webmanifest` | ❌ Missing | PWA install, native wrapper |
+| `manifest.webmanifest` | ✅ Present (`app/manifest.ts`) | PWA install, native wrapper |
 | Service worker | ❌ Missing | Offline, caching, background sync |
 | `next-pwa` package | ❌ Not installed | Service worker generation |
-| `project_activity_log` table | ❌ Missing | Audit trail, ChangeHistory, notifications |
+| `project_activity_log` table | 🟡 Migration scaffolded | Audit trail, ChangeHistory, notifications |
 | `slatedrop_audit_log` table | ❌ Missing | SlateDrop file tracking |
 | `slatedrop_shares` table | ❌ Missing | Upload-only links, external portal |
 | `slatedrop_packs` table | ❌ Missing | Deliverable ZIP generation |

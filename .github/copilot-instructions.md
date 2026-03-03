@@ -4,7 +4,9 @@
 **Repo:** `bcvolker/slate360-rebuild` · branch: `main` · live: https://www.slate360.ai
 
 Before making any code change, read `SLATE360_PROJECT_MEMORY.md` in the project root.
-For module-specific blueprints, see `slate360-context/` (one file per topic).
+Then read `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`.
+For module-specific blueprints, see `slate360-context/` (one file per topic), and `slate360-context/dashboard-tabs/MODULE_REGISTRY.md` for canonical tab routes/gates/spec precedence.
+For tab UI behavior and layout persistence, use `slate360-context/dashboard-tabs/CUSTOMIZATION_SYSTEM.md`.
 
 ---
 
@@ -133,9 +135,11 @@ const e = getEntitlements(user.tier, { isSlateCeo: true });
 
 **Never** write `if (tier === 'business' || tier === 'enterprise')` — always use `getEntitlements()`.
 
-**CEO All-Access:** `resolveServerOrgContext()` returns `isSlateCeo` (true for `slate360ceo@gmail.com`). Pass as `isCeo` prop to client components. All shell components and DashboardTabShell accept `isCeo` and call `getEntitlements(tier, { isSlateCeo: isCeo })`.
+**CEO/Internal Access:** `resolveServerOrgContext()` returns `isSlateCeo`, `isSlateStaff`, and `hasInternalAccess`.
+- Use `hasInternalAccess` for gating `/ceo`, `/market`, `/athlete360`.
+- Use `isSlateCeo` only for entitlement override behavior.
 
-**CEO Tab ≠ Tier Feature:** `/ceo`, `/market`, `/athlete360` are platform-admin tabs. Gate with `if (!isSlateCeo) notFound()` — NEVER via `getEntitlements()`. No subscription tier including enterprise gives access. `canAccessCeo` does NOT exist in the `Entitlements` interface.
+**CEO Tab ≠ Tier Feature:** `/ceo`, `/market`, `/athlete360` are platform-admin tabs. Gate with `if (!hasInternalAccess) notFound()` — NEVER via `getEntitlements()`. No subscription tier including enterprise gives access. `canAccessCeo` does NOT exist in the `Entitlements` interface.
 
 Tiers and limits:
 | Tier | Hub | Seats | White-Label | Storage | Credits/mo | Price |

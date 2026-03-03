@@ -4,7 +4,7 @@
 **Repo:** `bcvolker/slate360-rebuild` · branch: `main` · live: https://www.slate360.ai
 **Owner:** bcvolker
 
-> **To start a new chat:** Attach this file. It contains everything an AI assistant needs to understand the project, codebase rules, backend access, and current build status. After reading this, the assistant should read the relevant topic blueprints in `slate360-context/` for the module being worked on, and `slate360-context/FUTURE_FEATURES.md` for the phased build roadmap.
+> **To start a new chat:** Attach this file. After reading it, the assistant should read `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`, then relevant topic blueprints in `slate360-context/`, `slate360-context/FUTURE_FEATURES.md`, and `slate360-context/dashboard-tabs/MODULE_REGISTRY.md`.
 
 ---
 
@@ -167,8 +167,10 @@ const e = getEntitlements(user.tier, { isSlateCeo: true });
 // e.canAccessHub, e.canAccessDesignStudio, e.canWhiteLabel, e.maxStorageGB, etc.
 ```
 **Never** write `if (tier === 'business' || tier === 'enterprise')` — always use `getEntitlements()`.
-**CEO All-Access:** `resolveServerOrgContext()` returns `isSlateCeo`. Pass as `isCeo` to client components. All shell components and DashboardTabShell accept `isCeo` and call `getEntitlements(tier, { isSlateCeo: isCeo })`.
-**CEO Tab ≠ Tier feature:** `/ceo`, `/market`, `/athlete360` are platform-admin tabs gated by `isSlateCeo` directly. `canAccessCeo` does NOT exist in `Entitlements`. No tier including enterprise gives access.
+**CEO/Internal Access:** `resolveServerOrgContext()` returns `isSlateCeo`, `isSlateStaff`, and `hasInternalAccess`.
+- Use `hasInternalAccess` to gate `/ceo`, `/market`, `/athlete360`.
+- Use `isSlateCeo` (not `isSlateStaff`) for entitlement override behavior when needed.
+**CEO Tab ≠ Tier feature:** `/ceo`, `/market`, `/athlete360` are platform-admin tabs. `canAccessCeo` does NOT exist in `Entitlements`. No tier including enterprise grants access.
 
 ### Rule 9: No Mock Data in Production UI
 Show proper empty/error states when data is unavailable.
@@ -202,6 +204,10 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 |---|---|
 | `SLATE360_PROJECT_MEMORY.md` | **This file** — master project memory |
 | `slate360-context/FUTURE_FEATURES.md` | **Master build roadmap** — 7-phase plan with dependency graph |
+| `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md` | Canonical new-chat startup + handoff protocol |
+| `slate360-context/dashboard-tabs/MODULE_REGISTRY.md` | Canonical tab route/gate/spec registry |
+| `slate360-context/dashboard-tabs/CUSTOMIZATION_SYSTEM.md` | Cross-tab layout/tool customization contract |
+| `slate360-context/ARCHITECTURE_READINESS_ACTIONS.md` | Immediate prebuild dependency checklist |
 | `slate360-context/DASHBOARD.md` | Dashboard blueprint |
 | `slate360-context/PROJECT_HUB.md` | Project Hub blueprint |
 | `slate360-context/SLATEDROP.md` | SlateDrop blueprint |

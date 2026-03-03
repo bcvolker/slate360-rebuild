@@ -65,12 +65,23 @@
 - CEO-only items gated via `ceoOnly: true` flag
 - No back button — back-to-dashboard link is in the DashboardTabShell header left cluster
 
-### isCeo / isSlateCeo Flow
-All server pages destructure `isSlateCeo` from `resolveServerOrgContext()` and pass it as `isCeo` prop to their shell component. The shell component passes it to `DashboardTabShell`, which passes it to `QuickNav`.
+### Cross-Tab Customization Contract
+All dashboard tabs must implement layout/tooling customization using:
+- `slate360-context/dashboard-tabs/CUSTOMIZATION_SYSTEM.md`
+- `slate360-context/dashboard-tabs/{tab}/IMPLEMENTATION_PLAN.md`
+
+Minimum required behaviors per tab: movable regions, expandable/collapsible sections, resizable panels where applicable, and persisted mode presets (`simple`, `standard`, `advanced`, `custom`).
+
+### isCeo / Internal Access Flow
+Server pages now resolve `isSlateCeo`, `isSlateStaff`, and `hasInternalAccess` from `resolveServerOrgContext()`.
+
+- Pass `isCeo={hasInternalAccess}` to shell components and `DashboardTabShell` for internal navigation visibility.
+- Keep entitlement override tied to true CEO identity only (`getEntitlements(tier, { isSlateCeo })`) when needed.
+- Use `hasInternalAccess` to gate internal platform tabs.
 
 ```
-Server page (resolveServerOrgContext → isSlateCeo)
-  → Shell component (isCeo prop)
+Server page (resolveServerOrgContext → hasInternalAccess)
+  → Shell component (isCeo prop from hasInternalAccess)
     → DashboardTabShell (isCeo prop → getEntitlements override)
       → QuickNav (isCeo prop → shows CEO-only nav items)
 ```
@@ -97,11 +108,11 @@ Server page (resolveServerOrgContext → isSlateCeo)
 ### CEO / Internal Tabs — Access Model
 | Tab | Route | Access Gate |
 |---|---|---|
-| CEO Command Center | `/(dashboard)/ceo` | `isSlateCeo` only — never tier |
-| Market Robot | `/market` | `isSlateCeo` only — never tier |
-| Athlete360 | `/athlete360` | `isSlateCeo` only — never tier |
+| CEO Command Center | `/(dashboard)/ceo` | `hasInternalAccess` — never tier |
+| Market Robot | `/market` | `hasInternalAccess` — never tier |
+| Athlete360 | `/athlete360` | `hasInternalAccess` — never tier |
 
-These tabs contain sensitive platform-admin and internal business data. No subscription tier — including enterprise — grants access. Future: employee grants from the CEO tab will extend access via a `slate360_staff` table (not yet built).
+These tabs contain sensitive platform-admin and internal business data. No subscription tier — including enterprise — grants access. `hasInternalAccess` is computed as `isSlateCeo || isSlateStaff`.
 
 ---
 
@@ -121,7 +132,7 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 | DashboardClient | `components/dashboard/DashboardClient.tsx` | ~2,953 | ⚠️ Needs decomposition |
 | MarketClient | `components/dashboard/MarketClient.tsx` | 3,006 | ⚠️ Needs decomposition |
 | LocationMap | `components/dashboard/LocationMap.tsx` | 1,568 | ⚠️ Needs decomposition |
-| AnalyticsReportsClient | `components/dashboard/AnalyticsReportsClient.tsx` | ~290 | ✅ Uses DashboardTabShell (light theme) |
+| AnalyticsReportsClient | `components/dashboard/AnalyticsReportsClient.tsx` | ~245 | ✅ Report builder UI (saved reports + export actions) |
 | DashboardProjectCard | `components/dashboard/DashboardProjectCard.tsx` | 275 | ✅ OK |
 | CeoCommandCenterClient | `components/dashboard/CeoCommandCenterClient.tsx` | 155 | ✅ OK |
 | QuickNav | `components/shared/QuickNav.tsx` | ~100 | ✅ 13 nav items, tier-gated |

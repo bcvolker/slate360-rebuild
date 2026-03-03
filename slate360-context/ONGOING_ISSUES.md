@@ -42,7 +42,6 @@ _No blocking issues at this time._
 |---|---|---|
 | No activity_log / audit_log table | `ChangeHistory` component currently derives history from `created_at` / `updated_at` fields only. A proper `project_activity_log` table with per-field diffs would enable full history. | Medium |
 | Daily logs CSV not auto-saved to SlateDrop | CSV exports for Daily Logs and Punch List are client-side only. Server-side auto-save to `/Daily Logs/` and `/Reports/` folders not yet implemented. | Low |
-| "Daily Logs" SlateDrop folder not provisioned | `ARTIFACT_FOLDER_MAP` maps `DailyLog → "Daily Logs"` but project provisioning only creates: Documents, Drawings, Photos, RFIs, Submittals, Schedule, Budget, Records. Add "Daily Logs" to the provisioning list or remap to "Records". | Low |
 | Contracts saved to /Submittals/ folder | Contract file uploads use the Submittals SlateDrop folder. Should use a dedicated /Documents/ or /Contracts/ subfolder. | Low |
 
 ### UI / UX

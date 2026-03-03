@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { withProjectAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import type { ProjectRouteContext } from "@/lib/types/api";
+import { logProjectActivity } from "@/lib/projects/activity-log";
 
 const SELECT =
   "id, number, title, description, status, priority, assignee, location_area, trade_category, due_date, photos, created_by, created_at, updated_at, completed_at";
@@ -21,7 +22,7 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 
 /* ── POST – create a new punch item ─────────────────────────────── */
 export const POST = (req: NextRequest, ctx: ProjectRouteContext) =>
-  withProjectAuth(req, ctx, async ({ admin, projectId, user }) => {
+  withProjectAuth(req, ctx, async ({ admin, projectId, orgId, user }) => {
     const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
     const title = String(body.title ?? "").trim();
     if (!title) return badRequest("Title is required");
@@ -45,12 +46,26 @@ export const POST = (req: NextRequest, ctx: ProjectRouteContext) =>
       .single();
 
     if (error) return serverError(error.message);
+
+    await logProjectActivity({
+      projectId,
+      orgId,
+      actorId: user.id,
+      action: "project.punch_item.created",
+      entityType: "punch_item",
+      entityId: data.id,
+      metadata: {
+        title: data.title,
+        status: data.status,
+      },
+    });
+
     return ok({ ok: true, item: data });
   });
 
 /* ── PATCH – update a punch item ────────────────────────────────── */
 export const PATCH = (req: NextRequest, ctx: ProjectRouteContext) =>
-  withProjectAuth(req, ctx, async ({ admin, projectId }) => {
+  withProjectAuth(req, ctx, async ({ admin, projectId, orgId, user }) => {
     const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
     const itemId = String(body.id ?? "").trim();
     if (!itemId) return badRequest("Item id is required");
@@ -80,12 +95,25 @@ export const PATCH = (req: NextRequest, ctx: ProjectRouteContext) =>
       .single();
 
     if (error) return serverError(error.message);
+
+    await logProjectActivity({
+      projectId,
+      orgId,
+      actorId: user.id,
+      action: "project.punch_item.updated",
+      entityType: "punch_item",
+      entityId: data.id,
+      metadata: {
+        status: data.status,
+      },
+    });
+
     return ok({ ok: true, item: data });
   });
 
 /* ── DELETE – remove a punch item ───────────────────────────────── */
 export const DELETE = (req: NextRequest, ctx: ProjectRouteContext) =>
-  withProjectAuth(req, ctx, async ({ admin, projectId }) => {
+  withProjectAuth(req, ctx, async ({ admin, projectId, orgId, user }) => {
     const body = (await req.json().catch(() => ({}))) as { id?: string };
     const itemId = String(body.id ?? "").trim();
     if (!itemId) return badRequest("Item id is required");
@@ -97,5 +125,15 @@ export const DELETE = (req: NextRequest, ctx: ProjectRouteContext) =>
       .eq("project_id", projectId);
 
     if (error) return serverError(error.message);
+
+    await logProjectActivity({
+      projectId,
+      orgId,
+      actorId: user.id,
+      action: "project.punch_item.deleted",
+      entityType: "punch_item",
+      entityId: itemId,
+    });
+
     return ok({ ok: true });
   });

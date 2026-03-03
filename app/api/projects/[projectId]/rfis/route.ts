@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getScopedProjectForUser, resolveProjectScope } from "@/lib/projects/access";
 import { saveProjectArtifact } from "@/lib/slatedrop/projectArtifacts";
+import { logProjectActivity } from "@/lib/projects/activity-log";
 
 type RouteContext = {
   params: Promise<{ projectId: string }>;
@@ -17,7 +18,7 @@ export async function GET(_req: NextRequest, context: RouteContext) {
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { admin } = await resolveProjectScope(user.id);
+  const { admin, orgId } = await resolveProjectScope(user.id);
   const { project } = await getScopedProjectForUser(user.id, projectId, "id");
   if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
@@ -97,6 +98,19 @@ export async function POST(req: NextRequest, context: RouteContext) {
     }
   }
 
+  await logProjectActivity({
+    projectId,
+    orgId,
+    actorId: user.id,
+    action: "project.rfi.created",
+    entityType: "rfi",
+    entityId: created.id,
+    metadata: {
+      subject: created.subject,
+      status: created.status,
+    },
+  });
+
   return NextResponse.json({ ok: true, rfi: created, artifact });
 }
 
@@ -107,7 +121,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { admin } = await resolveProjectScope(user.id);
+  const { admin, orgId } = await resolveProjectScope(user.id);
   const { project } = await getScopedProjectForUser(user.id, projectId, "id");
   if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
@@ -141,6 +155,19 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  await logProjectActivity({
+    projectId,
+    orgId,
+    actorId: user.id,
+    action: "project.rfi.updated",
+    entityType: "rfi",
+    entityId: data.id,
+    metadata: {
+      status: data.status,
+    },
+  });
+
   return NextResponse.json({ ok: true, rfi: data });
 }
 
@@ -161,5 +188,15 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
 
   const { error } = await admin.from("project_rfis").delete().eq("id", id).eq("project_id", projectId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  await logProjectActivity({
+    projectId,
+    orgId,
+    actorId: user.id,
+    action: "project.rfi.deleted",
+    entityType: "rfi",
+    entityId: id,
+  });
+
   return NextResponse.json({ ok: true });
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { ensureUserOrganization } from "@/lib/server/org-bootstrap";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -13,6 +14,10 @@ export async function GET(request: Request) {
       // Send branded welcome email after successful confirmation (non-blocking)
       try {
         const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await ensureUserOrganization(user);
+        }
+
         if (user?.email) {
           const { sendWelcomeEmail } = await import("@/lib/email");
           sendWelcomeEmail({

@@ -33,21 +33,39 @@ export function resolveArtifactFolder(kind: ProjectArtifactKind): string {
 export async function resolveProjectFolderIdByName(projectId: string, folderName: string, orgId: string | null, userId: string) {
   const admin = createAdminClient();
 
-  let query = admin
+  let byProjectQuery = admin
+    .from("project_folders")
+    .select("id")
+    .eq("project_id", projectId)
+    .eq("name", folderName)
+    .limit(1);
+
+  byProjectQuery = orgId ? byProjectQuery.eq("org_id", orgId) : byProjectQuery.eq("created_by", userId);
+
+  const { data: projectScopedData, error: projectScopedError } = await byProjectQuery.maybeSingle();
+  if (projectScopedError) {
+    throw new Error(projectScopedError.message);
+  }
+
+  if (projectScopedData?.id) {
+    return projectScopedData.id;
+  }
+
+  let legacyQuery = admin
     .from("project_folders")
     .select("id")
     .eq("parent_id", projectId)
     .eq("name", folderName)
     .limit(1);
 
-  query = orgId ? query.eq("org_id", orgId) : query.eq("created_by", userId);
+  legacyQuery = orgId ? legacyQuery.eq("org_id", orgId) : legacyQuery.eq("created_by", userId);
 
-  const { data, error } = await query.maybeSingle();
-  if (error) {
-    throw new Error(error.message);
+  const { data: legacyData, error: legacyError } = await legacyQuery.maybeSingle();
+  if (legacyError) {
+    throw new Error(legacyError.message);
   }
 
-  return data?.id ?? null;
+  return legacyData?.id ?? null;
 }
 
 type UploadableArtifactFile = {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { saveProjectArtifact, type ProjectArtifactKind } from "@/lib/slatedrop/projectArtifacts";
+import { logProjectActivity } from "@/lib/projects/activity-log";
 
 type RouteContext = {
   params: Promise<{ projectId: string }>;
@@ -96,6 +97,19 @@ export async function POST(req: NextRequest, context: RouteContext) {
       { id: user.id },
       orgId
     );
+
+    await logProjectActivity({
+      projectId,
+      orgId,
+      actorId: user.id,
+      action: "project.record.saved",
+      entityType: "record",
+      entityId: String((artifact as { upload?: { id?: string } })?.upload?.id ?? filename),
+      metadata: {
+        kind,
+        title,
+      },
+    });
 
     return NextResponse.json({ ok: true, artifact });
   } catch (error) {

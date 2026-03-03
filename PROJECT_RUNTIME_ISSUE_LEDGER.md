@@ -2,7 +2,7 @@
 
 Purpose: single source of truth for persistent production/runtime defects, with root-cause elimination history and handoff context.
 
-Last updated: 2026-03-02 (authenticated validation added)
+Last updated: 2026-03-03 (debt mitigation pass)
 Owner: AI agent + engineering team
 
 ---
@@ -132,6 +132,70 @@ Current issue states:
 - Issue 8 (Incomplete project deletion): **Fixed — removed scoped FK cleanup**
 - Issue 9 (SlateDrop widget inconsistency): **Fixed — added link to full SlateDrop UI**
 - Issue 10 (Dashboard delete menu missing): **Fixed — extracted DashboardProjectCard with 3-dot delete**
+- Issue 11 (Org bootstrap + Web3 + activity log debt): **Mitigated — fallback bootstrap route/callback, Market-scoped Web3 providers, activity-log table scaffold**
+
+---
+
+## Issue 11 — Signup/org bootstrap drift + global Web3 overhead + missing project activity log
+
+### Symptoms
+- Some authenticated users could resolve with `orgId: null` if provisioning webhook/trigger path was absent.
+- Web3 providers loaded globally despite Market-only usage.
+- No canonical `project_activity_log` table for cross-tool audit events.
+
+### Root-cause hypothesis
+- Provisioning relied primarily on external webhook infrastructure.
+- Root layout wrapped all routes in Web3 providers.
+- Activity logging existed conceptually but without schema + helper baseline.
+
+### Fix applied
+1. Added `ensureUserOrganization()` helper and wired fallback bootstrap in:
+  - `app/auth/callback/route.ts`
+  - `app/dashboard/page.tsx`
+  - `POST /api/auth/bootstrap-org`
+2. Removed global Web3 provider usage from root layout and scoped it to `app/market`.
+3. Added migration `20260303110000_project_activity_log.sql`, helper `lib/projects/activity-log.ts`, and initial usage in `app/api/projects/create/route.ts`.
+4. Expanded activity logging to core Project Hub CRUD routes:
+  - `app/api/projects/[projectId]/rfis/route.ts`
+  - `app/api/projects/[projectId]/submittals/route.ts`
+  - `app/api/projects/[projectId]/schedule/route.ts`
+  - `app/api/projects/[projectId]/budget/route.ts`
+  - `app/api/projects/[projectId]/punch-list/route.ts`
+  - `app/api/projects/[projectId]/daily-logs/route.ts`
+5. Added mobile/device metadata optimization for PWA install quality:
+  - viewport + Apple web app metadata in `app/layout.tsx`
+  - orientation/scope/categories in `app/manifest.ts`
+6. Hardened project wizard folder provisioning to ensure canonical project subfolder structure for all saved artifacts and fixed folder resolution by `project_id` with legacy fallback.
+
+### Files touched
+- `app/layout.tsx`
+- `app/market/MarketProviders.tsx`
+- `app/market/page.tsx`
+- `lib/server/org-bootstrap.ts`
+- `app/api/auth/bootstrap-org/route.ts`
+- `app/auth/callback/route.ts`
+- `app/dashboard/page.tsx`
+- `supabase/migrations/20260303110000_project_activity_log.sql`
+- `lib/projects/activity-log.ts`
+- `app/api/projects/create/route.ts`
+- `app/api/projects/[projectId]/rfis/route.ts`
+- `app/api/projects/[projectId]/submittals/route.ts`
+- `app/api/projects/[projectId]/schedule/route.ts`
+- `app/api/projects/[projectId]/budget/route.ts`
+- `app/api/projects/[projectId]/punch-list/route.ts`
+- `app/api/projects/[projectId]/daily-logs/route.ts`
+- `app/manifest.ts`
+- `lib/slatedrop/provisioning.ts`
+- `lib/slatedrop/projectArtifacts.ts`
+
+### Elimination status
+- Eliminated global Web3 mount overhead for non-Market routes.
+- Mitigated missing-org runtime path with authenticated fallback bootstrap.
+- Established project activity log baseline schema + write helper for phased rollout.
+- Expanded baseline coverage to core tool CRUD (RFI/Submittal/Schedule).
+- Expanded baseline coverage to core tool CRUD (RFI/Submittal/Schedule/Budget/Punch List/Daily Logs).
+- Improved mobile install/viewport behavior without changing feature UX.
+- Ensured newly created project wizard projects provision a complete, idempotent folder structure for downstream artifact persistence.
 
 ---
 

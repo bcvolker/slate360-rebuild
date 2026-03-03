@@ -53,7 +53,7 @@ const [viewPrefs, setViewPrefs] = useViewPrefs(`viewprefs-rfis-${projectId}`, de
 - Shows SlateDrop subfolder indicator badge: `Saved to: /Projects/…/{subfolder}/`
 - **Present on:** RFIs, Submittals, Daily Logs, Punch List, Budget, Schedule (row-level History button)
 - **Not on:** Drawings, Photos (SlateDrop-backed, files *are* the history), Management (no single-record panel needed)
-- **Future:** Replace `buildBaseHistory` with full `project_activity_log` table for per-field diff tracking
+- **Status:** `project_activity_log` write events are wired in core CRUD routes (RFIs, Submittals, Schedule, Budget, Punch List, Daily Logs, Observations, Records, Management Contracts). UI still uses `buildBaseHistory` until read-side integration is completed.
 
 ```tsx
 const [historyItem, setHistoryItem] = useState<RFI | null>(null);
@@ -74,11 +74,9 @@ const [historyItem, setHistoryItem] = useState<RFI | null>(null);
 | Contracts (Management) | ✅ Yes | ✅ Direct S3 + slatedrop_uploads | `/Submittals/` |
 | Drawings | Reads SlateDrop | N/A — reads from folder | `/Drawings/` |
 | Photos | Reads SlateDrop | N/A — reads from folder | `/Photos/` |
-| Daily Logs | ❌ Text only | — | — |
-| Punch List | ❌ Text only | — | — |
+| Daily Logs | ❌ Text only | ✅ Activity log writes wired | `/Daily Logs/` |
+| Punch List | ❌ Text only | ✅ Activity log writes wired | `/Reports/` |
 | Observations | ❌ Photos placeholder | 🟡 Planned (Records) | `/Records/` |
-
-> ⚠️ `ARTIFACT_FOLDER_MAP` has `DailyLog: "Daily Logs"` but no "Daily Logs" folder is provisioned on project create. See `ONGOING_ISSUES.md`.
 
 ---
 
@@ -102,7 +100,7 @@ Gate check: `getEntitlements(tier).canAccessHub`
 POST /api/projects/create
 → validates user auth + org membership
 → creates `projects` row (with metadata.location from WizardLocationPicker)
-→ provisions 8 SlateDrop subfolders (all is_system = true)
+→ provisions canonical SlateDrop project subfolders (all is_system = true)
 → returns { projectId }
 ```
 
@@ -116,13 +114,20 @@ POST /api/projects/create
 /Projects/{projectId}/Documents/
 /Projects/{projectId}/Drawings/
 /Projects/{projectId}/Photos/
+/Projects/{projectId}/3D Models/
+/Projects/{projectId}/360 Tours/
 /Projects/{projectId}/RFIs/
 /Projects/{projectId}/Submittals/
 /Projects/{projectId}/Schedule/
 /Projects/{projectId}/Budget/
+/Projects/{projectId}/Daily Logs/
+/Projects/{projectId}/Reports/
 /Projects/{projectId}/Records/
+/Projects/{projectId}/Safety/
+/Projects/{projectId}/Correspondence/
+/Projects/{projectId}/Closeout/
+/Projects/{projectId}/Misc/
 ```
-> ⚠️ No "Daily Logs" folder provisioned — see `ONGOING_ISSUES.md`.
 
 ---
 

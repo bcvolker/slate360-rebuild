@@ -5,8 +5,23 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getScopedProjectForUser } from "@/lib/projects/access";
 import { s3, BUCKET } from "@/lib/s3";
 import { buildCanonicalS3Key, resolveNamespace } from "@/lib/slatedrop/storage";
+import { logProjectActivity } from "@/lib/projects/activity-log";
 
 type Params = { projectId: string };
+
+async function resolveOrgId(userId: string): Promise<string | null> {
+  const admin = createAdminClient();
+  try {
+    const { data } = await admin
+      .from("organization_members")
+      .select("org_id")
+      .eq("user_id", userId)
+      .single();
+    return data?.org_id ?? null;
+  } catch {
+    return null;
+  }
+}
 
 async function authorize(projectId: string) {
   const supabase = await createClient();
@@ -48,6 +63,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<Param
   let fileUploadId: string | null = null;
 
   const admin = createAdminClient();
+  const orgId = await resolveOrgId(user.id);
 
   if (file && file.size > 0) {
     const MAX_FILE_SIZE = 25 * 1024 * 1024;
@@ -66,18 +82,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<Param
 
     const arrayBuffer = await file.arrayBuffer();
     const safeFileName = file.name.replace(/[^a-zA-Z0-9._\-() ]/g, "_");
-
-    let orgId: string | null = null;
-    try {
-      const { data } = await admin
-        .from("organization_members")
-        .select("org_id")
-        .eq("user_id", user.id)
-        .single();
-      orgId = data?.org_id ?? null;
-    } catch {
-      orgId = null;
-    }
 
     const namespace = resolveNamespace(orgId, user.id);
 
@@ -142,16 +146,31 @@ export async function POST(req: NextRequest, { params }: { params: Promise<Param
     .select()
     .single();
   if (dbErr) return NextResponse.json({ error: dbErr.message }, { status: 500 });
+
+  await logProjectActivity({
+    projectId,
+    orgId,
+    actorId: user.id,
+    action: "project.contract.created",
+    entityType: "contract",
+    entityId: data.id,
+    metadata: {
+      title: data.title,
+      status: data.status,
+    },
+  });
+
   return NextResponse.json({ contract: data }, { status: 201 });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<Params> }) {
   const { projectId } = await params;
-  const { error } = await authorize(projectId);
-  if (error) return error;
+  const { user, error } = await authorize(projectId);
+  if (error || !user) return error ?? NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await req.json() as Record<string, unknown>;
   const { id, ...fields } = body;
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+  const orgId = await resolveOrgId(user.id);
   const admin = createAdminClient();
   const { data, error: dbErr } = await admin
     .from("project_contracts")
@@ -161,16 +180,30 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<Para
     .select()
     .single();
   if (dbErr) return NextResponse.json({ error: dbErr.message }, { status: 500 });
+
+  await logProjectActivity({
+    projectId,
+    orgId,
+    actorId: user.id,
+    action: "project.contract.updated",
+    entityType: "contract",
+    entityId: String(id),
+    metadata: {
+      status: data.status,
+    },
+  });
+
   return NextResponse.json({ contract: data });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<Params> }) {
   const { projectId } = await params;
-  const { error } = await authorize(projectId);
-  if (error) return error;
+  const { user, error } = await authorize(projectId);
+  if (error || !user) return error ?? NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+  const orgId = await resolveOrgId(user.id);
   const admin = createAdminClient();
   const { error: dbErr } = await admin
     .from("project_contracts")
@@ -178,5 +211,15 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<Par
     .eq("id", id)
     .eq("project_id", projectId);
   if (dbErr) return NextResponse.json({ error: dbErr.message }, { status: 500 });
+
+  await logProjectActivity({
+    projectId,
+    orgId,
+    actorId: user.id,
+    action: "project.contract.deleted",
+    entityType: "contract",
+    entityId: id,
+  });
+
   return NextResponse.json({ ok: true });
 }

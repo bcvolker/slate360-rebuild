@@ -24,6 +24,11 @@ signup → Supabase triggers webhook →
   5. Grant 500 trial credits
 ```
 
+Fallback implemented in app runtime:
+- `app/auth/callback/route.ts` now calls `ensureUserOrganization()` after session exchange.
+- `app/dashboard/page.tsx` applies a second fallback bootstrap when `orgId` resolves `null`.
+- `POST /api/auth/bootstrap-org` is available for authenticated recovery calls.
+
 ### Middleware
 `middleware.ts` refreshes the auth session on every request. All `/(dashboard)` routes require authentication.
 
@@ -33,9 +38,11 @@ signup → Supabase triggers webhook →
 | `middleware.ts` | Session refresh |
 | `app/api/auth/resend-confirmation/route.ts` | Resend confirmation email |
 | `app/api/auth/signup/route.ts` | Signup handler |
+| `app/api/auth/bootstrap-org/route.ts` | Authenticated org bootstrap fallback |
 | `lib/supabase/client.ts` | Browser Supabase client |
 | `lib/supabase/server.ts` | Server Supabase client (respects RLS) |
 | `lib/supabase/admin.ts` | Admin client (bypasses RLS) |
+| `lib/server/org-bootstrap.ts` | Ensure org + owner membership exists |
 
 ---
 
@@ -173,18 +180,18 @@ const e = getEntitlements(user.tier, { isSlateCeo: true });
 
 **Important distinction:**
 - `isSlateCeo` override → affects module entitlements (analytics, hub, studio access, etc.)
-- CEO tab access (`/ceo`, `/market`, `/athlete360`) → gated by `isSlateCeo` **directly**, NOT via entitlements. These are platform-admin surfaces, never subscription features.
+- Internal platform tabs (`/ceo`, `/market`, `/athlete360`) → gated by `hasInternalAccess` (CEO or Slate360 staff), NOT via entitlements. These are platform-admin surfaces, never subscription features.
 
 **Flow:**
 1. `resolveServerOrgContext()` returns `isSlateCeo` (hardcoded email check: `user.email === "slate360ceo@gmail.com"`)
 2. Server pages pass `isSlateCeo` as `isCeo` prop to client components
 3. Client components call `getEntitlements(tier, { isSlateCeo: isCeo })` → gets enterprise entitlements
 4. All nav items and feature gates use the resolved entitlements
-5. CEO/internal tabs check `isSlateCeo` directly at the server page level
+5. CEO/internal tabs check `hasInternalAccess` at the server page level
 
 Key flags: `canAccessHub`, `canAccessDesignStudio`, `canAccessContent`, `canAccessTourBuilder`, `canAccessGeospatial`, `canAccessVirtual`, `canAccessAnalytics`, `canAccessReports`, `canManageSeats`, `canWhiteLabel`, `canViewSlateDropWidget`, `maxStorageGB`, `maxCredits`, `maxSeats`
 
-> **Note:** `canAccessCeo` does NOT exist in entitlements. The CEO Command Center (`/ceo`), Market Robot (`/market`), and Athlete360 (`/athlete360`) are Slate360-internal platform-admin tabs — access is gated solely by `isSlateCeo` from `resolveServerOrgContext()`, which checks `user.email === "slate360ceo@gmail.com"`. Future: employee grants from CEO tab will extend access via a `slate360_staff` table.
+> **Note:** `canAccessCeo` does NOT exist in entitlements. The CEO Command Center (`/ceo`), Market Robot (`/market`), and Athlete360 (`/athlete360`) are Slate360-internal platform-admin tabs — access is gated by `hasInternalAccess` from `resolveServerOrgContext()` (`isSlateCeo || isSlateStaff`).
 
 ### Never Inline Tier Checks
 ```typescript
@@ -200,7 +207,7 @@ const e = getEntitlements(tier, { isSlateCeo });
 if (e.canAccessHub) { ... }
 
 // ✅ CORRECT (CEO/internal tabs — bypass entitlements entirely)
-if (!isSlateCeo) notFound(); // never use entitlements for /ceo, /market, /athlete360
+if (!hasInternalAccess) notFound(); // never use entitlements for /ceo, /market, /athlete360
 ```
 
 ---
@@ -256,6 +263,9 @@ Full HTML templates preserved in `slate360-context/SUPABASE_EMAIL_TEMPLATES.md`.
 
 ### Projects
 `projects`, `project_members`, `project_folders`, `project_rfis`, `project_submittals`, `project_tasks`, `project_budget_items`, `project_milestones`, `project_history_events`, `project_observations`
+
+### Audit
+`project_activity_log`
 
 ### Files
 `unified_files`, `file_folders` (legacy — migrating to `project_folders`), `external_response_links`

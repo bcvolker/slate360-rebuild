@@ -1,14 +1,23 @@
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { redirect } from "next/navigation";
 import DashboardClient from "@/components/dashboard/DashboardClient";
+import { ensureUserOrganization } from "@/lib/server/org-bootstrap";
 
 export const metadata = {
   title: "Dashboard — Slate360",
 };
 
 export default async function DashboardPage() {
-  const { user, tier, isSlateCeo, isSlateStaff } = await resolveServerOrgContext();
+  const { user, tier, orgId, isSlateCeo, isSlateStaff } = await resolveServerOrgContext();
   if (!user) redirect("/login");
+
+  if (!orgId) {
+    try {
+      await ensureUserOrganization(user);
+    } catch (error) {
+      console.error("[dashboard] org bootstrap fallback failed", error);
+    }
+  }
 
   return (
     <DashboardClient
