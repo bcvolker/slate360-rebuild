@@ -509,7 +509,7 @@ export default function ProjectDashboardGrid({
       </div>
 
       {/* Widget grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {orderedVisible.map((pref, idx) => {
           const meta = PROJECT_WIDGET_META.find((w) => w.id === pref.id);
           if (!meta) return null;
