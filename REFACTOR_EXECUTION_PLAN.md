@@ -37,6 +37,7 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 
 2. **Slice B (in progress)**
    - ✅ Extracted SlateDrop action modals to `components/slatedrop/SlateDropActionModals.tsx`
+   - ✅ Extracted SlateDrop share/preview modals to `components/slatedrop/SlateDropSharePreviewModals.tsx`
    - 🔄 Keep narrowing `SlateDropClient` to layout/orchestration shell
 
 3. **Slice C**
@@ -55,7 +56,8 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Plan file created; starting Slice A next step (context-menu extraction + location normalization helper).
 - 2026-03-04: Completed context-menu extraction (`components/slatedrop/SlateDropContextMenu.tsx`) and location normalization helper (`lib/projects/location.ts`) with integrations in Project Hub card/map derivation and dashboard widgets data shaping.
 - 2026-03-04: Completed modal extraction slice for new folder/rename/delete/move flows into `components/slatedrop/SlateDropActionModals.tsx`; `SlateDropClient` now delegates those UI blocks to extracted component.
+- 2026-03-04: Completed share/preview modal extraction into `components/slatedrop/SlateDropSharePreviewModals.tsx`; `SlateDropClient` now delegates all modal surfaces except top-level shell orchestration.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~8–13 focused prompts, approximately 1.25–2.25 weeks at current pace.
+- **Remaining window:** ~7–11 focused prompts, approximately 1.0–2.0 weeks at current pace.
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.
