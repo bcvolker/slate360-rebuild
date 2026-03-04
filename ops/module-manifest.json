@@ -14,7 +14,9 @@
         "lib/hooks/useDashboardFloatingWindows.ts",
         "lib/hooks/useDashboardWidgetPrefs.ts",
         "components/dashboard/DashboardWidgetGrid.tsx",
-        "components/dashboard/DashboardWidgetPopout.tsx"
+        "components/dashboard/DashboardWidgetPopout.tsx",
+        "components/dashboard/DashboardDataUsageWidget.tsx",
+        "components/dashboard/DashboardProcessingWidget.tsx"
       ],
       "apis": [
         "/api/dashboard/widgets",

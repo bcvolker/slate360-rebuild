@@ -9,6 +9,8 @@ import DashboardHeader from "@/components/shared/DashboardHeader";
 import CreateProjectWizard, { type CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
 import MarketClient from "@/components/dashboard/MarketClient";
 import DashboardProjectCard from "@/components/dashboard/DashboardProjectCard";
+import DashboardDataUsageWidget from "@/components/dashboard/DashboardDataUsageWidget";
+import DashboardProcessingWidget from "@/components/dashboard/DashboardProcessingWidget";
 import DashboardWidgetGrid from "@/components/dashboard/DashboardWidgetGrid";
 import DashboardWidgetPopout from "@/components/dashboard/DashboardWidgetPopout";
 import SlateDropClient from "@/components/slatedrop/SlateDropClient";
@@ -1279,108 +1281,31 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
           );
 
               case "data-usage": return (
-          <WidgetCard key={id} icon={CreditCard} title="Data Usage & Credits" span={span} delay={0} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
-              {ent.label}
-            </span>
-          }>
-            <div className="space-y-5">
-              {/* Credits */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-500 font-medium">Credits used</span>
-                  <span className="text-xs font-bold text-gray-900">{creditsUsed.toLocaleString()} / {ent.maxCredits.toLocaleString()}</span>
-                </div>
-                <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: `${Math.min((creditsUsed / ent.maxCredits) * 100, 100)}%`, backgroundColor: "#FF4D00" }}
-                  />
-                </div>
-                <p className="text-[11px] text-gray-400 mt-1.5">{(ent.maxCredits - creditsUsed).toLocaleString()} credits remaining this period</p>
-              </div>
-              {/* Storage */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-500 font-medium">Storage</span>
-                  <span className="text-xs font-bold text-gray-900">{storageUsed} GB / {ent.maxStorageGB} GB</span>
-                </div>
-                <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-[#1E3A8A] transition-all duration-1000 ease-out"
-                    style={{ width: `${Math.min((storageUsed / ent.maxStorageGB) * 100, 100)}%` }}
-                  />
-                </div>
-              </div>
-              {/* Quick actions */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-1">
-                <button
-                  onClick={handleBuyCredits}
-                  disabled={billingBusy !== null}
-                  className="flex-1 text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-60"
-                >
-                  {billingBusy === "credits" ? (
-                    <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span>
-                  ) : (
-                    "Buy credits"
-                  )}
-                </button>
-                <button
-                  onClick={handleUpgradePlan}
-                  disabled={billingBusy !== null}
-                  className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-all hover:opacity-90 disabled:opacity-60"
-                  style={{ backgroundColor: "#FF4D00" }}
-                >
-                  {billingBusy === "upgrade" ? (
-                    <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span>
-                  ) : (
-                    "Upgrade plan"
-                  )}
-                </button>
-              </div>
-              {billingError && <p className="text-[11px] text-red-500">{billingError}</p>}
-            </div>
-          </WidgetCard>
+          <DashboardDataUsageWidget
+            span={span}
+            widgetColor={widgetColor}
+            widgetSize={widgetSize}
+            onSetSize={handleSetSize}
+            tierLabel={ent.label}
+            creditsUsed={creditsUsed}
+            maxCredits={ent.maxCredits}
+            storageUsed={storageUsed}
+            maxStorageGB={ent.maxStorageGB}
+            billingBusy={billingBusy}
+            billingError={billingError}
+            onBuyCredits={handleBuyCredits}
+            onUpgradePlan={handleUpgradePlan}
+          />
           );
 
               case "processing": return (
-          <WidgetCard key={id} icon={Cpu} title="Processing Jobs" span={span} delay={50} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
-            <span className="text-[11px] text-gray-400 font-medium">{liveJobs.filter((j) => j.status === "processing").length} active</span>
-          }>
-            <div className="space-y-3">
-              {liveJobs.map((job) => (
-                <div key={job.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/80 hover:bg-gray-100/80 transition-colors group">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${statusColor(job.status)}`}>
-                    {statusIcon(job.status)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-900 truncate">{job.name}</p>
-                    <p className="text-[10px] text-gray-400">{job.type}</p>
-                  </div>
-                  {job.status === "processing" && (
-                    <div className="w-16">
-                      <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{ width: `${job.progress}%`, backgroundColor: "#FF4D00" }}
-                        />
-                      </div>
-                      <p className="text-[9px] text-gray-400 text-right mt-0.5">{job.progress}%</p>
-                    </div>
-                  )}
-                  {job.status === "completed" && (
-                    <span className="text-[10px] text-emerald-600 font-medium">Done</span>
-                  )}
-                  {job.status === "queued" && (
-                    <span className="text-[10px] text-gray-400 font-medium">Queued</span>
-                  )}
-                </div>
-              ))}
-              {liveJobs.length === 0 && (
-                <div className="text-center py-4 text-xs text-gray-400">No processing jobs right now</div>
-              )}
-            </div>
-          </WidgetCard>
+          <DashboardProcessingWidget
+            span={span}
+            widgetColor={widgetColor}
+            widgetSize={widgetSize}
+            onSetSize={handleSetSize}
+            jobs={liveJobs}
+          />
           );
 
               case "financial": return (
