@@ -32,10 +32,11 @@
       "module": "dashboard",
       "severity": "high",
       "status": "fixed",
-      "rootCause": "LocationMap imports drawing library deprecated/removed in May 2026",
+      "rootCause": "LocationMap imported drawing library deprecated/removed in May 2026",
       "verification": [
-        "Search for useMapsLibrary(\"drawing\") returns zero results in LocationMap",
-        "Manual map drawing flows still function"
+        "grep -n 'useMapsLibrary.*drawing' components/dashboard/LocationMap.tsx returns no results",
+        "grep -n 'DrawingManager' components/dashboard/LocationMap.tsx returns no results",
+        "Manual map drawing flows still function for all 7 tools"
       ]
     },
     {
@@ -62,6 +63,55 @@
         "Dashboard widgets API and Project Hub Tier-1 map cards use shared resolveProjectLocation helper",
         "Wizard, dashboard location widget, and project cards render same location format"
       ]
+    },
+    {
+      "id": "BUG-022",
+      "title": "Trial tier entitlement misconfiguration — all modules granted",
+      "module": "entitlements",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "lib/entitlements.ts TIER_MAP trial entry had all canAccess* flags set to true; trial should only access Hub + SlateDrop per module table",
+      "verification": [
+        "grep -A 20 '\"trial\":' lib/entitlements.ts — confirm all canAccess* except canAccessHub and canViewSlateDropWidget are false",
+        "Trial user should see Upgrade prompt on any module tab"
+      ]
+    },
+    {
+      "id": "BUG-023",
+      "title": "Type duplication: dashboard types defined in both DashboardClient and useDashboardRuntimeData",
+      "module": "dashboard",
+      "severity": "medium",
+      "status": "open",
+      "rootCause": "DashboardWidgetsPayload, LiveWeatherState, DashboardProject, DashboardJob etc. defined identically in two files",
+      "verification": [
+        "lib/types/dashboard.ts exists and both DashboardClient.tsx and useDashboardRuntimeData.ts import from it",
+        "No duplicate type definitions in either component file"
+      ]
+    },
+    {
+      "id": "BUG-024",
+      "title": "Mock/demo data arrays in production DashboardClient component",
+      "module": "dashboard",
+      "severity": "medium",
+      "status": "open",
+      "rootCause": "8 demo data arrays (demoProjects, demoEvents, demoContacts, etc.) defined inline at lines 244-340 of DashboardClient.tsx violate Rule 9",
+      "verification": [
+        "grep -n 'const demo' components/dashboard/DashboardClient.tsx returns no results",
+        "lib/dashboard/demo-data.ts exists and exports the arrays OR proper empty states are used"
+      ]
+    },
+    {
+      "id": "BUG-025",
+      "title": "No error boundary on (dashboard) route group",
+      "module": "dashboard",
+      "severity": "medium",
+      "status": "open",
+      "rootCause": "No app/(dashboard)/error.tsx exists; a runtime crash in any tab component unmounts the entire dashboard",
+      "verification": [
+        "app/(dashboard)/error.tsx exists with reset function",
+        "Runtime error in a tab renders graceful fallback without dashboard unmount"
+      ]
     }
   ]
 }
+

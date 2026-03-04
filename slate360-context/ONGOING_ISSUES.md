@@ -1,6 +1,6 @@
 # Slate360 — Ongoing Issues & Known Tech Debt
 
-**Last Updated:** 2026-03-04 (Session 5 — BUG-013 fixed: Project Hub Tier-1 portfolio snapshot + /api/projects/summary; SlateDrop file-state hook extraction started)  
+**Last Updated:** 2026-03-04 (Session 6 — BUG-022 critical entitlement misconfiguration fixed; architecture audit completed; Phase 0G/0H quick wins documented; refactor core scope complete)  
 **Maintained by:** Development team — update whenever a bug is discovered or fixed.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -100,6 +100,14 @@ This was previously blamed on the Geospatial module, which is actually a "coming
 
 **Fix path:** Migrate `LocationMap.tsx` DrawingManager usage (markers, polylines, polygons, rectangles, circles) to native `google.maps` click-based implementations following the `WizardLocationPicker.tsx` pattern. Deadline: May 2026.
 
+### Structural Root Cause #6 — Entitlement Misconfiguration (BUG-022) — FIXED Session 6
+
+**Root cause:** The `TIER_MAP` in `lib/entitlements.ts` was initialized with all `canAccess*` flags set to `true` for the trial tier. This was either an oversight during initial scaffolding or intentional for stubbed modules, but it will immediately become a security hole when any paid module ships real functionality.
+
+**Fix applied Session 6:** The trial tier now correctly reflects the module access matrix from `copilot-instructions.md`: `canAccessHub: true`, `canViewSlateDropWidget: true`, all other module access flags `false`.
+
+**Lesson:** After every entitlement change or new module addition, cross-reference `lib/entitlements.ts` against the module access table in `copilot-instructions.md`.
+
 ### Structural Root Cause #6 — React Hydration #418 (BUG-017) — CONFIRMED FULLY FIXED
 
 **Status: ✅ Fixed.** Code audit Mar 4 2026 confirmed:
@@ -175,6 +183,10 @@ Progress update (Mar 4 2026): extracted `SlateDropContextMenu.tsx`, `SlateDropAc
 | BUG-019 | SlateDrop Widgets | **SlateDrop widget extra-click resolved:** Expanded dashboard and Tier 2 Project Hub widgets now mount embedded SlateDrop content directly and no longer require a redundant CTA click. | Medium | ✅ Fixed |
 | BUG-020 | SlateDrop / File Preview | **PDF files downloaded instead of opening inline preview.** Root cause: `app/api/slatedrop/download/route.ts` set `ResponseContentDisposition: 'attachment'` on ALL presigned URLs — forced browser to download regardless of iframe context. **Fixed session 3:** Added `mode` param; `mode=preview` → `inline` disposition. `SlateDropClient.fetchPreviewUrl` now calls `&mode=preview`. See FIX-016. | High | ✅ Fixed — session 3 |
 | BUG-021 | Location / Multiple Views | **Location widgets are inconsistent across the platform.** `WizardLocationPicker` (project creation step 3), `LocationMap` (dashboard widget), project address display in card/list views, and Project Hub Tier 2 project home render location data with mixed contracts/styles. Progress: shared `LocationDisplay` component is wired into dashboard/project-hub card views and shared `resolveProjectLocation` helper now normalizes metadata → label/lat/lng in Project Hub + dashboard widgets API; remaining map + wizard alignment pending. | Medium | 🟡 In progress |
+| BUG-022 | Entitlements | **CRITICAL: Trial tier was granting access to ALL modules.** `lib/entitlements.ts` trial tier had `canAccessDesignStudio: true`, `canAccessContent: true`, `canAccessTourBuilder: true`, `canAccessGeospatial: true`, `canAccessVirtual: true`, `canAccessAnalytics: true`, `canAccessReports: true` — all incorrect per module access table. Per spec: trial = Project Hub + SlateDrop only. Currently masked (all modules render stubs), but would have granted unauthorized access to paid features the moment any module shipped real UI. **FIXED Session 6: all seven flags set to `false` for trial tier.** | Critical | ✅ Fixed |
+| BUG-023 | Dashboard | **Type duplication across boundary: `DashboardWidgetsPayload`, `LiveWeatherState`, `DashboardProject`, `DashboardJob`, `CalEvent`, `Contact` are defined identically in both `DashboardClient.tsx` AND `lib/hooks/useDashboardRuntimeData.ts`.** TypeScript doesn't catch this as an error but it means divergence is one missed import away. Fix: create `lib/types/dashboard.ts` as shared source, update both files to import from it. See Phase 0H in FUTURE_FEATURES.md. | Medium | ⚠️ Logged |
+| BUG-024 | Dashboard | **8 mock data arrays exist in `DashboardClient.tsx` production component.** `demoProjects`, `demoEvents`, `demoContacts`, `demoJobs`, `demoFinancial`, `demoWeather`, `demoContinueWorking`, `demoSeatMembers` at lines 244–340 violate Rule 9 (no mock data in production UI). Fix: extract to `lib/dashboard/demo-data.ts` as named exports, or replace with proper empty/skeleton states. | Medium | ⚠️ Logged |
+| BUG-025 | Dashboard | **No error boundary on `(dashboard)` route group.** A runtime crash inside any tab component (e.g. `MarketClient`, `LocationMap`) unmounts the entire dashboard for the user. Fix: create `app/(dashboard)/error.tsx` (~15 lines) — Next.js App Router error boundary convention. Zero-risk addition. | Medium | ⚠️ Logged |
 
 ---
 
@@ -216,35 +228,42 @@ Progress update (Mar 4 2026): extracted `SlateDropContextMenu.tsx`, `SlateDropAc
 |---|---|---|
 | `file_folders` → `project_folders` Phase 2 | `app/(dashboard)/(design-studio)/...`, `app/api/projects/[projectId]/export-zip/`, audit service, cross-tab service | ⚠️ Pending |
 | AutocompleteService → `AutocompleteSuggestion.fetchAutocompleteSuggestions()` | `WizardLocationPicker.tsx` | ✅ Done |
-| DrawingManager → custom Polyline/Polygon | `components/dashboard/LocationMap.tsx` lines 194, 459, 1479 | 🔴 Open — May 2026 deadline (Geospatial module is a stub; source is LocationMap.tsx) |
+| DrawingManager → custom Polyline/Polygon | `components/dashboard/LocationMap.tsx` lines 194, 459, 1479 | ✅ Done — BUG-018 fixed Session 5/6. All 7 tools native; `drawing` library removed from APIProvider. No further migration required. |
 
 ---
 
 ## Refactor Continuation Snapshot (for new chat handoff)
 
-**Last synchronized:** 2026-03-04
+**Last synchronized:** 2026-03-04 (Session 6)
 
-### Next execution window
-- Planned horizon: **next 2–7 focused prompts**.
-- Scope for this window:
-	1. Continue Dashboard decomposition tranche from `DashboardClient.tsx` (**in progress**: floating window + widget prefs hooks extracted; widget grid/popout shells plus `data-usage`/`processing`/`financial` widget views extracted to dedicated components).
-	2. Execute BUG-018 migration in `components/dashboard/LocationMap.tsx` (remove DrawingManager dependency).
-	3. Run closure validation + docs synchronization for refactor completion criteria.
+### Refactor Status: CORE SCOPE COMPLETE
 
-### Completion expectation
-- If the above scope lands cleanly, the **active refactor program is expected to be complete**.
-- Any items remaining afterward are expected to be **post-refactor backlog**, not core refactor blockers.
+All original refactor blockers are done:
+- ✅ SlateDrop decomposition: 2,030 → 577 lines (7 components + 7 hooks extracted)
+- ✅ Dashboard widget extraction: 11 widget components + grid/popout shells extracted
+- ✅ Project Hub Slice C: ClientPage at 249 lines
+- ✅ BUG-018: DrawingManager fully removed from LocationMap.tsx
+- ✅ BUG-022: Trial tier entitlement misconfiguration fixed
+- ✅ All critical bugs (BUG-010 through BUG-021) resolved
 
-### Post-refactor backlog (expected residual)
-- Optional polish/perf passes (non-blocking cleanup).
-- Broader roadmap feature build-out from `FUTURE_FEATURES.md` Phases 1+.
-- Unrelated debt that is not part of Slice C / Dashboard tranche / BUG-018.
+### What Remains (Phase 0H — Code Health Pass)
 
-### Resume checklist for new chat
-1. Read `SLATE360_PROJECT_MEMORY.md`.
-2. Read `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`.
-3. Read `REFACTOR_EXECUTION_PLAN.md` and continue from the next incomplete slice.
-4. Keep per-slice cadence: implement → validate (`get_errors` + typecheck) → update context docs → commit/push.
+These are NOT blockers — they are quality improvements:
+1. `MarketClient.tsx` (3,006 lines) → highest priority decomposition, ~8 files
+2. `DashboardClient.tsx` (2,043 lines) → extract `renderWidget` closure + demo data + utility functions
+3. `LocationMap.tsx` (1,864 lines) → 5 sub-component extractions
+4. `management/page.tsx` (932 lines) → 3 tab components + 2 hooks
+5. 8 project tool pages (339–599 lines) → `ProjectToolLayout` wrapper + `useProjectCrudBase` hook
+6. BUG-023/024/025: type deduplication, demo data extraction, error boundary
+
+### Resume Checklist for New Chat
+1. Read `SLATE360_PROJECT_MEMORY.md` (master state).
+2. Read `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md` (start/end protocol).
+3. Read `slate360-context/FUTURE_FEATURES.md` Phase 0G/0H (next recommended work).
+4. Read `ops/bug-registry.json` + `ops/module-manifest.json` for machine-readable state.
+5. Run `get_errors` before making any changes.
+6. Choose ONE focused scope: Phase 0G quick win OR Phase 0H decomp OR Phase 1 feature.
+7. Per-task cadence: implement → `get_errors` → update context docs → commit/push.
 
 ---
 

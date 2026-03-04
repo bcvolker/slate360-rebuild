@@ -255,15 +255,24 @@ Show only when credits ≤ 20% remaining. Never pop-up. `SubtleCreditPurchase` c
 
 | Item | Status |
 |---|---|
+| `MarketClient.tsx` decomposition | ❌ 3,006 lines — highest priority decomp remaining |
+| `DashboardClient.tsx` full decomposition | ⚠️ 2,043 lines — `renderWidget` + demo data still need extraction |
+| `LocationMap.tsx` decomposition | ⚠️ 1,864 lines — BUG-018 fixed; structural decomp pending |
 | `file_folders` → `project_folders` migration Phase 2 | ⚠️ Pending (Design Studio, export-zip, audit, cross-tab service) |
-| Tier 3 Project Hub tool views (RFIs, Submittals, etc.) | ⚠️ Stubs exist, implementation pending |
+| `management/page.tsx` decomposition | ❌ 932 lines — 3 extractable tabs inline |
+| BUG-023: Type duplication (DashboardClient ↔ useDashboardRuntimeData) | ⚠️ Logged — create `lib/types/dashboard.ts` |
+| BUG-024: Mock data arrays in DashboardClient | ⚠️ Logged — move to `lib/dashboard/demo-data.ts` |
+| BUG-025: No error boundary on (dashboard) route group | ⚠️ Logged — create `app/(dashboard)/error.tsx` |
+| BUG-021: Location context inconsistency | 🟡 In progress |
 | Tier 2 Project Home overview cards | ⚠️ Partial |
 | External stakeholder portal `/external/project/[token]` | ❌ Not built |
-| Google Routes API blocked by key restrictions | ⚠️ Using OSRM fallback |
-| `SlateDropClient.tsx` approaching 300-line limit | ⚠️ Extract FolderTreeItem, ContextMenu, FileGrid, NotificationTray |
 | PWA infrastructure | ❌ Not built (marketing pages claim PWA-ready) |
 | Standalone app subscription system | ❌ Not built (`org_feature_flags` table needed) |
 | Native app packaging (Capacitor) | ❌ Not started |
+| Design token system (CSS variables for brand colors) | ❌ Hardcoded hex values everywhere |
+| `SlateDropClient.tsx` decomposition | ✅ Done — 577 lines (was 2,030) |
+| Tier 3 Project Hub tool views | ✅ All 9 built with CRUD, ViewCustomizer, ChangeHistory |
+| BUG-018 Google DrawingManager deprecation | ✅ Fixed — native google.maps drawing in LocationMap.tsx |
 
 ---
 
@@ -272,7 +281,10 @@ Show only when credits ≤ 20% remaining. Never pop-up. `SubtleCreditPurchase` c
 | File | Purpose |
 |---|---|
 | `SLATE360_PROJECT_MEMORY.md` | **Master project memory — attach to new chats** |
-| `slate360-context/FUTURE_FEATURES.md` | **Master build roadmap — 7-phase plan with dependency graph** |
+| `slate360-context/FUTURE_FEATURES.md` | **Master build roadmap — 7-phase plan with quick wins (Phase 0G/0H)** |
+| `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md` | **Full new-chat startup + end-of-chat protocol — read second** |
+| `slate360-context/ONGOING_ISSUES.md` | **Active bugs + tech debt + refactor status** |
+| `slate360-context/REVIEW_PROMPT_SONNET46.md` | Deep code health review prompt — use to start an audit session |
 | `PROJECT_RUNTIME_ISSUE_LEDGER.md` | Runtime bug tracker |
 | `slate360-context/DASHBOARD.md` | Dashboard blueprint |
 | `slate360-context/PROJECT_HUB.md` | Project Hub blueprint |
@@ -282,10 +294,7 @@ Show only when credits ≤ 20% remaining. Never pop-up. `SubtleCreditPurchase` c
 | `slate360-context/BACKEND.md` | Backend, auth, billing, credits, DB, email |
 | `slate360-context/FUTURE_MODULES.md` | Unbuilt modules (Design Studio, CEO, Athlete360, App Ecosystem, etc.) |
 | `slate360-context/GUARDRAILS.md` | Code rules, refactoring priorities, tech debt |
-| `lib/entitlements.ts` | Tier → entitlements (single source of truth) |
-| `lib/server/api-auth.ts` | `withAuth()`, `withProjectAuth()` |
-| `lib/server/api-response.ts` | `ok()`, `badRequest()`, `unauthorized()`, `serverError()` |
-| `lib/types/api.ts` | `ProjectRouteContext`, `ApiErrorPayload` |
-| `lib/projects/access.ts` | `listScopedProjectsForUser()`, `getScopedProjectForUser()` |
+| `ops/bug-registry.json` | Machine-readable bug list with verification steps |
+| `ops/module-manifest.json` | Machine-readable module routes/status |
 | `lib/server/org-context.ts` | `resolveServerOrgContext()` |
 | `middleware.ts` | Auth session refresh on every request |

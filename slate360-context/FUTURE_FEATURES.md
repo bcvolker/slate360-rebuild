@@ -1,6 +1,6 @@
 # Slate360 — Build Roadmap & Future Features
 
-**Last Updated:** 2026-03-04  
+**Last Updated:** 2026-03-04 (Session 6 — BUG-018 complete; all session recommendations logged; entitlement misconfiguration fixed; Phase 0G/0H added; Sonnet 4.6 review prompt written)  
 **Priority Order:** Foundation → Project Hub → Design Studio → App Ecosystem → Remaining Modules → Advanced Features → Native Apps  
 **Status Key:** ✅ Done · 🟢 In Progress · 🟡 Planned · 🔴 Not Started
 
@@ -10,8 +10,27 @@
 
 - Active refactor closure window is tracked in `REFACTOR_EXECUTION_PLAN.md` with a detailed 8–19 prompt execution map.
 - Current expectation: completing Slice C (Project Hub), the next Dashboard decomposition tranche, and BUG-018 (`LocationMap.tsx` DrawingManager removal) should complete the core refactor scope.
-- Mar 4 2026 update: BUG-018 has been completed in `LocationMap.tsx` (all drawing tools now native; DrawingManager/drawing library removed).
-- Work remaining after that window is expected to be roadmap delivery and optional optimization polish, not core refactor blockers.
+- Mar 4 2026 (Session 5): BUG-018 completed in `LocationMap.tsx` (all drawing tools now native; DrawingManager/drawing library removed).
+- Mar 4 2026 (Session 6): Critical entitlement misconfiguration fixed — `trial` tier was incorrectly granting access to ALL modules. Now correctly locked to `canAccessHub + canViewSlateDropWidget` only. Phase 0G (Quick Wins) and Phase 0H (Code Health Pass) added below.
+- Work remaining after the refactor window: Phase 0G/0H quick wins, then roadmap delivery. No more core refactor blockers.
+
+### Accurate File Sizes (March 4, 2026)
+
+| File | Lines | Status |
+|---|---|---|
+| `components/dashboard/MarketClient.tsx` | 3,006 | ❌ Not decomposed — highest priority |
+| `components/dashboard/DashboardClient.tsx` | 2,043 | ⚠️ Reduced from ~2,850; 3 more extractions needed |
+| `components/dashboard/LocationMap.tsx` | 1,864 | ⚠️ BUG-018 fixed; structural decomp still needed |
+| `app/(dashboard)/project-hub/[projectId]/management/page.tsx` | 932 | ❌ 3 extractable tabs still inline |
+| `app/page.tsx` | 780 | ❌ Over limit |
+| `app/(dashboard)/project-hub/[projectId]/photos/page.tsx` | 599 | ❌ Over limit |
+| `app/(dashboard)/project-hub/[projectId]/submittals/page.tsx` | 579 | ❌ Over limit |
+| `components/slatedrop/SlateDropClient.tsx` | 578 | ⚠️ Reduced from 2,030; near-compliant orchestrator |
+| `app/(dashboard)/project-hub/[projectId]/schedule/page.tsx` | 465 | ❌ Over limit |
+| `app/api/market/scan/route.ts` | 396 | ❌ Over limit |
+| `app/(dashboard)/project-hub/ClientPage.tsx` | 249 | ✅ Under 300 |
+| `lib/entitlements.ts` | 135 | ✅ Clean (misconfiguration fixed Session 6) |
+| `lib/server/api-auth.ts` | 137 | ✅ Clean |
 
 ---
 
@@ -160,6 +179,186 @@ All tabs must implement a consistent customization layer per `slate360-context/d
 | Persistence | Per-user, per-tab saved preferences with versioning |
 
 **What to do:** Implement shared preference shape/utilities, then apply to each tab shell and module workspace before advanced feature build-out.
+
+---
+
+## Phase 0G — Quick Wins Sprint (Safe, No-Risk Improvements)
+
+All items here can be done in one focused session with zero risk of breaking existing functionality. Each satisfies a specific guardrail or addresses a known issue.
+
+### Dashboard Quick Wins
+
+| Feature | Description | Effort |
+|---|---|---|
+| Quick Actions Row | Strip below the stats row: New RFI / New Submittal / Upload File / Add Daily Log — each opens the relevant modal/page | Low |
+| Overdue Items Strip | Compact horizontal chip list at top of dashboard: `3 Overdue RFIs · 1 Overdue Submittal` with click-through to project tool | Low |
+| At-Risk Projects Card | Summarize projects > 5% over budget or with overdue critical-path items with a distinct highlight color | Low |
+| Saved Views | Per-user saved dashboard layouts (widget order + visibility) persisted to Supabase `user_preferences` table | Medium |
+| Recent Client Sends Widget | Last N SlateDrop share links sent, with recipient + expiry info | Low |
+| Upcoming Deadlines Timeline | Compact 7-day ahead list from Schedule milestones and submittal due dates | Low |
+| Storage Warning Bar | Progress bar visible when org storage > 80% of tier limit — links to upgrade page | Low |
+| One-Click Project Home | Project cards on dashboard link directly to `/project-hub/[projectId]` overview, not just the hub grid | Low |
+
+### Project Hub Quick Wins
+
+| Feature | Description | Effort |
+|---|---|---|
+| SLA Timers on RFIs/Submittals | Show countdown from `due_date` — yellow at 48h, red at 0h — no new DB columns needed | Low |
+| Bulk Actions | Multi-select rows across RFIs/Submittals/Punch List → bulk status-change or delete | Medium |
+| Ball-in-Court Lane View | Simple column view (Your Court / Their Court) for RFIs + Submittals by `assigned_to` | Medium |
+| Email Transmittal Templates | Pre-filled email body when sharing RFI/Submittal via Resend | Medium |
+| Approval Matrix Presets | Org-level default reviewers/approvers per Submittal type (saves re-entering every time) | Medium |
+| Snapshot Weekly Report | Auto-assembled read-only PDF of open RFIs, submittals, punch items, budget delta — email to team | Medium |
+| Meeting Minutes → Action Items | Freeform text field on Daily Log tagged as meeting minutes; action items extracted to Punch List | Medium |
+| Constraint Log | Simple table of schedule constraints (material delivery, inspection hold, weather) linked to schedule items | Low |
+| Linked Records | Visual chips on RFI detail linking to related Submittals / Drawings / Budget items | Medium |
+| Submittal Package Builder | Group related submittals into a package ZIP with cover sheet — saves to SlateDrop `/Submittals/` | Medium |
+
+### Project Creation Wizard Quick Wins
+
+| Feature | Description | Effort |
+|---|---|---|
+| Project Templates | Pre-configured subfolder sets + optional default team for different project types (Residential, Commercial, etc.) | Medium |
+| Required Docs Checklist Seed | At wizard completion, auto-create checklist of expected docs (drawings, specs, geotech, permits) | Low |
+| Default Folder Plan Selector | Wizard step: choose from Standard / Commercial / Custom folder structure before provisioning | Low |
+| Team Invite at Creation | Add team members during wizard flow (sends invite emails via Resend) | Medium |
+| Budget/Schedule Baseline Upload | Optional step 5: upload baseline schedule (CSV/MS Project) and budget (CSV) | Low |
+| Geofence Preset | If location is set, auto-create a geofence radius for the Geospatial module | Low |
+| Clone From Existing Project | "Copy from Project" option that pre-fills settings, team, and folder structure | Medium |
+
+### SlateDrop Quick Wins
+
+| Feature | Description | Effort |
+|---|---|---|
+| File Request Links with Expiry | Token link with configurable expiry + MIME type filter → external party uploads directly to a folder | Medium |
+| Folder-Level Upload-Only Links | Share a folder with upload-only access — client can drop files but cannot view other contents | Medium |
+| Version History Panel | Slide-over showing all versions of a file with date/uploader/size + download/restore | Medium |
+| Send History / Audit Trail | Per-file view of all share events: who sent, to whom, when, and whether it was viewed/downloaded | Low |
+| Smart Collections | Saved virtual folders ("All PDFs in Documents" / "Unreviewed photos this week") using filter rules | Medium |
+| Expiring-Share Center | Single management page listing all active share links: file, recipient, expiry, revoke button | Low |
+| Saved Searches | Persist named searches ("All RFIs from Smith Electrical") as quick-access bookmarks | Low |
+| Bulk Rename + Metadata Tagging | Select multiple files → apply tag, rename pattern (prefix/suffix), or move to folder | Medium |
+| Deliverable Pack Builder | Drag files into a virtual "pack," generate a ZIP with manifest, and send a single share link | Medium |
+| External Upload Intake Inbox | Special folder that auto-routes incoming uploads by file type into appropriate subfolders | Medium |
+
+---
+
+## Phase 0H — Code Health Pass (Technical Debt Reduction)
+
+These items directly address anti-patterns identified in the March 4 2026 architecture audit. Each restores reliability and makes future AI-session edits safer and more accurate.
+
+### H1 — Create Shared Type Files (Missing Infrastructure)
+
+| File to Create | Types to Move | Current Duplication |
+|---|---|---|
+| `lib/types/dashboard.ts` | `DashboardProject`, `DashboardJob`, `DashboardWidgetsPayload`, `LiveWeatherState`, `CalEvent`, `Contact` | Defined in both `DashboardClient.tsx` AND `useDashboardRuntimeData.ts` |
+| `lib/types/project-hub.ts` | `Stakeholder`, `Contract`, `ProjectRfi`, `ProjectSubmittal`, `DailyLog`, `PunchItem` | Each defined inline in its own tool page — forces duplication in any shared usage |
+| `lib/types/slatedrop.ts` | `UnifiedFile`, `SlateFolderNode`, `ShareToken` | Scattered across hooks and components |
+
+**What to do:** Create each file, export types, update all imports. Zero behavior change.
+
+### H2 — Remove Demo/Mock Data from Production Components
+
+**Violation of Rule 9 (No mock data in production UI).**
+
+| Location | What | Fix |
+|---|---|---|
+| `DashboardClient.tsx` lines 244–340 | 8 demo data arrays: `demoProjects`, `demoEvents`, `demoContacts`, `demoJobs`, `demoFinancial`, `demoWeather`, `demoContinueWorking`, `demoSeatMembers` | Extract to `lib/dashboard/demo-data.ts` OR replace with proper empty states |
+
+### H3 — Extract Inline Sub-Components
+
+| Inline Component | File | Fix |
+|---|---|---|
+| `TabWireframe` function (~50 lines) | `DashboardClient.tsx` | Move to `components/dashboard/TabWireframe.tsx` |
+| `renderWidget` closure (~200 lines) | `DashboardClient.tsx` lines 1226–1430 | Extract to `components/dashboard/DashboardWidgetRenderer.tsx` |
+
+**Expected DashboardClient.tsx result after H2 + H3:** ~1,600 lines (down from 2,043). Further decomposition continues in Phase 0B.
+
+### H4 — Extract Pure Utility Functions
+
+| Function | File | Target |
+|---|---|---|
+| `getCalendarDays()` | `DashboardClient.tsx` ~line 353 | `lib/utils/calendar.ts` |
+| `statusColor()`, `statusIcon()`, `projectTypeEmoji()` | `DashboardClient.tsx` ~lines 370–407 | `lib/utils/project-status.ts` |
+| `densityClass()` | Various tool pages | `lib/utils/view-density.ts` |
+
+### H5 — Add Missing Error Boundary
+
+A runtime crash inside any tab component currently unmounts the entire dashboard.
+
+**What to do:** Create `app/(dashboard)/error.tsx` (~15 lines) — Next.js App Router convention catches route-level errors and renders a graceful fallback without unmounting the parent shell.
+
+```typescript
+// app/(dashboard)/error.tsx
+"use client";
+export default function DashboardError({ error, reset }: { error: Error; reset: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-64 gap-4">
+      <p className="text-sm text-destructive">Something went wrong in this tab.</p>
+      <button onClick={reset} className="text-sm text-blue-600 underline">Try again</button>
+    </div>
+  );
+}
+```
+
+### H6 — Replace `confirm()` Dialogs
+
+`app/(dashboard)/project-hub/[projectId]/management/page.tsx` lines ~189 and ~228 use browser-native `confirm()` — a blocking dialog inconsistent with the 2-step deletion pattern. Replace with the existing `ConfirmDialog` / toast + inline confirmation pattern.
+
+### H7 — Create `useProjectCrudBase` Hook Template
+
+All 8 tool pages independently reimplement the same ~80-line fetch/loading/error/form-state scaffolding. A shared `useProjectCrudBase<T>` hook would eliminate ~640 lines of duplicated code across the project tools and make adding new tools trivial.
+
+```typescript
+// lib/hooks/useProjectCrudBase.ts
+export function useProjectCrudBase<T>(endpoint: string, projectId: string) {
+  // fetch, loading, error, create, update, delete, form state
+  // returns: { items, loading, error, formOpen, openForm, submitForm, deleteItem }
+}
+```
+
+### H8 — Create `ProjectToolLayout` Component
+
+Every Tier 3 tool page renders its own breadcrumb, back-nav, page header, view customizer, and export button — ~40 lines of identical chrome per page (320 lines total).
+
+```typescript
+// components/project-hub/ProjectToolLayout.tsx
+// Props: title, projectId, actions?, children
+// Renders: breadcrumb, back link, title, view customizer slot, action slot, children
+```
+
+### H9 — Design Token Abstraction
+
+Hardcoded hex values `#FF4D00` (Slate orange) and `#1E3A8A` (Slate blue) appear across hundreds of instances. No CSS variables or Tailwind custom tokens defined.
+
+**What to do:** Add to `app/globals.css`:
+```css
+:root {
+  --slate-orange: #FF4D00;
+  --slate-blue: #1E3A8A;
+  --slate-orange-hover: #E04400;
+}
+```
+Then add to `tailwind.config.ts` colors. Long-term: required for white-label enterprise tier.
+
+---
+
+## Phase 0I — UI Consistency Sprint
+
+UI improvements identified from cross-section review. Safe to implement incrementally without breaking existing functionality.
+
+| Area | Recommendation | Priority |
+|---|---|---|
+| Top Bar Shell | Unify Dashboard + Project Hub headers — same height, logo position, nav pattern, user menu | High |
+| Button Hierarchy | Standardize: orange = primary action, blue-outline = secondary, ghost = tertiary. Currently mixed across modules | High |
+| Card Primitive | Create a shared `<Card>` with consistent padding (p-4), radius (rounded-xl), and shadow (shadow-sm) — replace ad-hoc implementations in widgets and Project Hub | Medium |
+| Table Header/Action Bar | Consistent pattern: left-aligned filters, right-aligned Export/Add buttons, sticky on scroll | High |
+| Empty States | Shared `<EmptyState icon title cta>` component — currently each tool page has its own one-off empty state | Medium |
+| Location Widget Toolbar | Compact grouping: drawing tools in one segmented control, map type in another, clear/export at far right. Sticky "status" line below toolbar showing current tool + last saved | Medium |
+| Module Identity Accents | Subtle left-border or badge on each module tab in the nav: Hub = blue, Design = purple, Content = pink, Tours = teal, Geo = green. No new themes required — Tailwind border colors | Low |
+| Map Control Contrast | Map overlay controls (drawing palette, search bar, layer switcher) need stronger background contrast against satellite imagery | Low |
+| Spacing + Corner Radius | Align 8px grid and `rounded-xl` (16px radius) consistently between Dashboard widgets and Project Hub cards | Medium |
+| Status Pills | Standardize color coding across RFIs, Submittals, Punch List: `open=blue`, `in-review=yellow`, `approved/closed=green`, `overdue=red` | Medium |
 
 ---
 

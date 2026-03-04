@@ -1,6 +1,6 @@
 # Slate360 — Project Memory & New Chat Instructions
 
-**Last Updated:** 2026-03-04
+**Last Updated:** 2026-03-04 (Session 6 — BUG-022 critical entitlement fix; Phase 0G/0H added; architecture audit complete; Sonnet 4.6 review prompt written; all handoff docs updated)
 **Repo:** `bcvolker/slate360-rebuild` · branch: `main` · live: https://www.slate360.ai
 **Owner:** bcvolker
 
@@ -237,28 +237,48 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 
 ### What's Working
 - Dashboard with 12-widget system (shared between Dashboard + Project Hub)
-- Project Hub Tier 1 (project grid), Tier 2 (project home), Tier 3 (9 tool views)
-- SlateDrop file management with S3 upload/download
+- Project Hub Tier 1 (project grid), Tier 2 (project home), Tier 3 (9 tool views all with CRUD)
+- SlateDrop file management with S3 upload/download, folder tree, preview, share links
 - Project create → 8 subfolder auto-provisioning
 - 2-step project deletion with confirmation
 - Auth flow (signup, login, password reset)
 - Billing (Stripe checkout, webhooks, credit system)
 - Shared widget system with localStorage persistence
-- Location map with satellite view, search, drawing tools, OSRM routing
+- Location map with satellite view, search, native drawing tools (all 7 tools — BUG-018 fixed), OSRM routing
 - Weather widget, credit tracker, activity feed
+- Shared `DashboardHeader` component unified across Dashboard + all tabs
 
-### What Needs Refactoring (Tech Debt)
+### Confirmed Accurate File Sizes (March 4, 2026)
+
+| File | Lines | Status |
+|---|---|---|
+| `components/dashboard/MarketClient.tsx` | 3,006 | ❌ Not decomposed — highest priority next |
+| `components/dashboard/DashboardClient.tsx` | 2,043 | ⚠️ Reduced from ~2,850; 3 more extractions needed |
+| `components/dashboard/LocationMap.tsx` | 1,864 | ⚠️ BUG-018 fixed; structural decomp pending |
+| `app/(dashboard)/project-hub/[projectId]/management/page.tsx` | 932 | ❌ 3 extractable tabs inline |
+| `app/page.tsx` (Homepage) | 780 | ❌ Over limit |
+| `app/(dashboard)/project-hub/[projectId]/photos/page.tsx` | 599 | ❌ Over limit |
+| `app/(dashboard)/project-hub/[projectId]/submittals/page.tsx` | 579 | ❌ Over limit |
+| `components/slatedrop/SlateDropClient.tsx` | 578 | ⚠️ Reduced from 2,030; near-compliant |
+| `app/(dashboard)/project-hub/[projectId]/schedule/page.tsx` | 465 | ❌ Over limit |
+| `app/api/market/scan/route.ts` | 396 | ❌ Over limit |
+| `app/(dashboard)/project-hub/ClientPage.tsx` | 249 | ✅ Under 300 |
+| `lib/entitlements.ts` | 135 | ✅ Clean (BUG-022 fixed Session 6) |
+| `lib/server/api-auth.ts` | 137 | ✅ Clean |
+
+### Open Technical Debt (Phase 0H)
 | Issue | Current | Target |
 |---|---|---|
-| `DashboardClient.tsx` | 2,852 lines | < 300 (decompose into ~10 files) |
-| `MarketClient.tsx` | 3,006 lines | < 300 (decompose into ~8 files) |
-| `SlateDropClient.tsx` | 2,030 lines | < 300 (decompose into ~7 files) |
-| `LocationMap.tsx` | 1,568 lines | < 300 (decompose into ~5 files) |
-| 9 Tier-3 page files | 300-930 lines each | < 300 (extract table/form components) |
-| `components/ui/` | 1 file (tooltip) | 15+ shared UI components |
-| `lib/hooks/` | 1 hook | 10+ extracted hooks |
-| `file_folders` → `project_folders` migration | Phase 1 done | Phase 2 pending |
-| Charts | Recharts + Chart.js both | Pick one |
+| `MarketClient.tsx` | 3,006 lines | ~8 files (tabs + hooks) — **highest priority** |
+| `DashboardClient.tsx` | 2,043 lines | ~1,600 after `renderWidget` + demo data extraction |
+| `LocationMap.tsx` | 1,864 lines | ~5 files (search, routing, drawing, share, container) |
+| `management/page.tsx` | 932 lines | 3 tab components + 2 hooks |
+| `app/page.tsx` (Homepage) | 780 lines | Section components |
+| 8 Project Tool pages | 339–599 lines each | `ProjectToolLayout` + `useProjectCrudBase` hook |
+| Type duplication (BUG-023) | Dashboard types in 2 files | `lib/types/dashboard.ts` |
+| Mock data in production (BUG-024) | 8 arrays in DashboardClient | `lib/dashboard/demo-data.ts` |
+| No error boundary (BUG-025) | None | `app/(dashboard)/error.tsx` |
+| No design tokens | 100s of hardcoded hex values | CSS variables + Tailwind custom colors |
 
 ### What's Not Built Yet
 - Design Studio, Content Studio, 360 Tour Builder
