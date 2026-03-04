@@ -5,14 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
-import { listSlateDropRootFolders } from "@/lib/slatedrop/folderTree";
 import DashboardHeader from "@/components/shared/DashboardHeader";
-import SlateDropClient from "@/components/slatedrop/SlateDropClient";
 import CreateProjectWizard, { type CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
 import MarketClient from "@/components/dashboard/MarketClient";
 import DashboardProjectCard from "@/components/dashboard/DashboardProjectCard";
 import LocationMap from "./LocationMap";
 import WidgetCard from "@/components/widgets/WidgetCard";
+import SlateDropWidgetBody from "@/components/widgets/SlateDropWidgetBody";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import {
   WIDGET_META,
@@ -699,8 +698,6 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
   function onWdPointerUp() { wdDragMode.current = null; }
 
   const [dashboardSummary, setDashboardSummary] = useState<{ recentFiles: any[]; storageUsed: number } | null>(null);
-  const [slateDropFiles, setSlateDropFiles] = useState<any[]>([]);
-  const [slateDropWidgetView, setSlateDropWidgetView] = useState<"recent" | "folders">("folders");
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [liveWeather, setLiveWeather] = useState<LiveWeatherState | null>(null);
   const [widgetsData, setWidgetsData] = useState<DashboardWidgetsPayload | null>(null);
@@ -723,14 +720,6 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
       .then((res) => res.json())
       .then((data) => {
         if (!data.error) setDashboardSummary(data);
-      })
-      .catch(console.error);
-
-    // Fetch SlateDrop files
-    fetch("/api/slatedrop/files?folderId=general")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.files) setSlateDropFiles(data.files);
       })
       .catch(console.error);
 
@@ -941,7 +930,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
 
   const creditsUsed = accountOverview?.billing?.purchasedCredits ?? 0;
   const storageUsed = dashboardSummary ? Number((dashboardSummary.storageUsed / (1024 * 1024 * 1024)).toFixed(2)) : (ent.tier === "trial" ? 1.2 : ent.tier === "creator" ? 12 : 45);
-  const slateDropRootFolders = useMemo(() => listSlateDropRootFolders(ent.tier), [ent.tier]);
+  
 
   /* ── Handlers ── */
   const scrollCarousel = useCallback((dir: number) => {
@@ -1515,9 +1504,6 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
             const widgetColor = WIDGET_META.find((m) => m.id === id)?.color ?? "#FF4D00";
             const isExpanded = widgetSize !== "default" && widgetSize !== "sm";
             const handleSetSize = inPopout ? undefined : (s: WidgetSize) => {
-              if (id === "slatedrop") {
-                setSlateDropWidgetView("folders");
-              }
               setWidgetPrefs((prev) => {
                 const next = prev.map((p) => (p.id === id ? { ...p, size: s } : p));
                 try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
@@ -1541,85 +1527,25 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
           </WidgetCard>
               );
               case "slatedrop": return (
-          <WidgetCard key={id} icon={FolderOpen} title="SlateDrop" span={span} delay={0} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
-            <div className="inline-flex items-center rounded-lg border border-gray-200 p-0.5">
-              <button
-                onClick={() => setSlateDropWidgetView("recent")}
-                className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors ${slateDropWidgetView === "recent" ? "bg-[#FF4D00] text-white" : "text-gray-600 hover:bg-gray-100"}`}
+          <WidgetCard
+            key={id}
+            icon={FolderOpen}
+            title="SlateDrop"
+            span={span}
+            delay={0}
+            color={widgetColor}
+            onSetSize={handleSetSize}
+            size={widgetSize}
+            action={
+              <Link
+                href="/slatedrop"
+                className="text-[11px] font-bold text-[#FF4D00] hover:underline"
               >
-                Recent
-              </button>
-              <button
-                onClick={() => setSlateDropWidgetView("folders")}
-                className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors ${slateDropWidgetView === "folders" ? "bg-[#1E3A8A] text-white" : "text-gray-600 hover:bg-gray-100"}`}
-              >
-                Folder View
-              </button>
-            </div>
-          }>
-            <div className="h-full flex flex-col min-h-0 space-y-4">
-              {/* Storage bar */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs text-gray-500">Storage used</span>
-                  <span className="text-xs font-bold text-gray-900">{storageUsed} GB / {ent.maxStorageGB} GB</span>
-                </div>
-                <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{
-                      width: `${Math.min((storageUsed / ent.maxStorageGB) * 100, 100)}%`,
-                      backgroundColor: (storageUsed / ent.maxStorageGB) > 0.85 ? "#EF4444" : "#FF4D00",
-                    }}
-                  />
-                </div>
-                <p className="text-[10px] text-gray-400 mt-1">{(ent.maxStorageGB - storageUsed).toFixed(1)} GB available</p>
-              </div>
-              {slateDropWidgetView === "recent" ? (
-                <div className="space-y-2">
-                  {slateDropFiles && slateDropFiles.length > 0 ? (
-                    slateDropFiles.slice(0, 3).map((file, i) => (
-                      <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                        <FileText size={13} className="text-gray-400 shrink-0" />
-                        <span className="text-[11px] text-gray-700 truncate flex-1">{file.name}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-4 text-xs text-gray-400">No recent files</div>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="grid grid-cols-3 gap-2">
-                    {slateDropRootFolders.map((folder) => (
-                      <div
-                        key={folder.id}
-                        className="rounded-xl border border-gray-200 bg-gray-50 px-2.5 py-2 flex flex-col items-center justify-center text-center"
-                        title={folder.name}
-                      >
-                        <div className="text-xl leading-none mb-1">{folder.icon ?? "📁"}</div>
-                        <p className="text-[10px] font-semibold text-gray-700 truncate w-full">
-                          {folder.name}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-[10px] text-gray-400">Unlocked based on your {ent.label} plan.</p>
-                </div>
-              )}
-              {!isExpanded && (
-                <Link href="/slatedrop" className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#FF4D00] hover:underline">
-                  <FolderOpen size={10} /> Open SlateDrop →
-                </Link>
-              )}
-              {isExpanded && (
-                <div className="flex-1 min-h-0 -mx-6 -mb-6 overflow-hidden border-t border-gray-100">
-                  <div className="h-full">
-                    <SlateDropClient user={user} tier={tier} embedded />
-                  </div>
-                </div>
-              )}
-            </div>
+                Open →
+              </Link>
+            }
+          >
+            <SlateDropWidgetBody user={user} tier={tier} />
           </WidgetCard>
           );
 

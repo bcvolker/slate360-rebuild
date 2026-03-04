@@ -33,8 +33,7 @@ import { getWidgetSpan } from "@/components/widgets/widget-meta";
 import LocationMap from "@/components/dashboard/LocationMap";
 import { useProjectProfile } from "@/lib/hooks/useProjectProfile";
 import type { Tier } from "@/lib/entitlements";
-import { listSlateDropRootFolders } from "@/lib/slatedrop/folderTree";
-import SlateDropClient from "@/components/slatedrop/SlateDropClient";
+import SlateDropWidgetBody from "@/components/widgets/SlateDropWidgetBody";
 
 /* ─── Types ──────────────────────────────────────────────────── */
 type ProjectGridProject = {
@@ -452,39 +451,7 @@ export default function ProjectDashboardGrid({
 
     /* SLATEDROP */
     if (id === "slatedrop") {
-      const rootFolders = listSlateDropRootFolders(tier);
-      return (
-        <div className="h-full flex flex-col min-h-0 space-y-3">
-          {!isExpanded && (
-            <>
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-gray-500">Folder view</p>
-                <Link href={`/project-hub/${projectId}/slatedrop`} className="text-[11px] font-bold text-[#FF4D00] hover:underline">Open →</Link>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {rootFolders.map((folder) => (
-                  <div
-                    key={folder.id}
-                    className="rounded-xl border border-gray-200 bg-gray-50 px-2.5 py-2 flex flex-col items-center justify-center text-center"
-                    title={folder.name}
-                  >
-                    <div className="text-xl leading-none mb-1">{folder.icon ?? "📁"}</div>
-                    <p className="text-[10px] font-semibold text-gray-700 truncate w-full">{folder.name}</p>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {isExpanded && (
-            <div className="flex-1 min-h-0 -mx-6 -mb-6 overflow-hidden border-t border-gray-100">
-              <div className="h-full">
-                <SlateDropClient user={user} tier={tier} initialProjectId={projectId} embedded />
-              </div>
-            </div>
-          )}
-        </div>
-      );
+      return <SlateDropWidgetBody user={user} tier={tier} initialProjectId={projectId} />;
     }
 
     /* CONTINUE WORKING */
