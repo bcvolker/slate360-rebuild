@@ -65,7 +65,7 @@ type OverlayRecord = {
 };
 const DRAW_MODE_BY_TOOL: Record<DrawTool, string | null> = {
   select: null,
-  marker: "marker",
+  marker: null,
   line: "polyline",
   arrow: "polyline",
   rectangle: "rectangle",
@@ -478,6 +478,57 @@ function DrawController({
     selectedOverlayIdRef.current = null;
     setStatus({ ok: true, text: "Markup cleared." });
   };
+  const syncAddressFromOverlayPoint = useCallback((lat: number, lng: number) => {
+    const coordStr = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    setAddressInput(coordStr);
+    setAddressQuery(coordStr);
+    setStatus({ ok: true, text: `Markup placed at ${coordStr}` });
+    if (geocoder) {
+      geocoder.geocode({ location: { lat, lng } }).then((response) => {
+        const result = response.results[0];
+        if (result?.formatted_address) {
+          const fullLabel = `${result.formatted_address} (${coordStr})`;
+          setAddressInput(fullLabel);
+          setAddressQuery(fullLabel);
+          setStatus({ ok: true, text: `Markup placed at ${result.formatted_address}` });
+        }
+      }).catch(() => {
+        // keep coordinate string as fallback
+      });
+    }
+  }, [geocoder, setAddressQuery, setStatus]);
+  useEffect(() => {
+    if (!map) return;
+    const mapsApi = (window as any).google?.maps;
+    if (!mapsApi?.event || !mapsApi?.Marker) return;
+    const mapClickListener = mapsApi.event.addListener(map, "click", (event: any) => {
+      if (selectedToolRef.current !== "marker") return;
+      const latLng = event?.latLng;
+      if (!latLng) return;
+      const marker = new mapsApi.Marker({
+        map,
+        position: latLng,
+        draggable: true,
+      });
+      const id = `${Date.now()}-${Math.round(Math.random() * 100000)}`;
+      const record: OverlayRecord = {
+        id,
+        overlay: marker,
+        kind: "marker",
+        arrow: false,
+        listeners: [],
+      };
+      record.listeners = attachOverlayListeners(record);
+      overlaysRef.current = [...overlaysRef.current, record];
+      selectedOverlayIdRef.current = id;
+      syncAddressFromOverlayPoint(latLng.lat(), latLng.lng());
+      setTool("select");
+      selectedToolRef.current = "select";
+    });
+    return () => {
+      mapClickListener?.remove?.();
+    };
+  }, [map, syncAddressFromOverlayPoint]);
   useEffect(() => {
     if (!map || !drawingLib) return;
     const mapsApi = (window as any).google.maps;
@@ -553,22 +604,7 @@ function DrawController({
           if (p && p.getLength() > 0) { const f = p.getAt(0); lat = f.lat(); lng = f.lng(); }
         }
         if (lat !== undefined && lng !== undefined) {
-          const coordStr = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-          setAddressInput(coordStr);
-          setAddressQuery(coordStr);
-          setStatus({ ok: true, text: `Markup placed at ${coordStr}` });
-          // Reverse-geocode to get a human-readable address alongside coordinates
-          if (geocoder) {
-            geocoder.geocode({ location: { lat, lng } }).then((response) => {
-              const result = response.results[0];
-              if (result?.formatted_address) {
-                const fullLabel = `${result.formatted_address} (${coordStr})`;
-                setAddressInput(fullLabel);
-                setAddressQuery(fullLabel);
-                setStatus({ ok: true, text: `Markup placed at ${result.formatted_address}` });
-              }
-            }).catch(() => { /* keep coordinate string as fallback */ });
-          }
+          syncAddressFromOverlayPoint(lat, lng);
         }
       }
       // Reset to select tool after placing a marker
@@ -582,7 +618,7 @@ function DrawController({
       overlayListener?.remove?.();
       manager.setMap(null);
     };
-  }, [map, strokeColor, fillColor, strokeWeight, drawingLib]);
+  }, [map, strokeColor, fillColor, strokeWeight, drawingLib, syncAddressFromOverlayPoint]);
   useEffect(() => {
     const manager = drawingManagerRef.current;
     if (!manager) return;
