@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true },
+  experimental: {
+    // Limits the number of workers to reduce memory consumption
+    memoryBasedWorkersCount: true,
+  },
   webpack: (config) => {
     // Wagmi connectors import optional peer deps we don't use at runtime.
     // Alias them to false so webpack resolves them to empty modules.

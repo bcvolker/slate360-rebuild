@@ -1,0 +1,11 @@
+   ▲ Next.js 15.5.12
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ✓ memoryBasedWorkersCount
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (133kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled successfully in 76s
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...

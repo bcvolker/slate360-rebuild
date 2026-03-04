@@ -516,8 +516,8 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
 
   const [selectedProject, setSelectedProject] = useState("all");
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
-  const [calMonth, setCalMonth] = useState(new Date().getMonth());
-  const [calYear, setCalYear] = useState(new Date().getFullYear());
+  const [calMonth, setCalMonth] = useState(0);
+  const [calYear, setCalYear] = useState(2026);
   const [calSelected, setCalSelected] = useState<string | null>(null);
   const [events, setEvents] = useState<CalEvent[]>([]);
   const [addingEvent, setAddingEvent] = useState(false);
@@ -1834,7 +1834,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
               {/* Events sidebar */}
               <div className="lg:w-64 lg:border-l lg:border-gray-100 lg:pl-6">
                 <h4 className="text-xs font-bold text-gray-900 mb-3">
-                  {calSelected ? new Date(calSelected + "T12:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" }) : "Upcoming events"}
+                  {isClient && calSelected ? new Date(calSelected + "T12:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" }) : "Upcoming events"}
                 </h4>
 
                 {/* Add event form */}
@@ -1863,7 +1863,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
                       <div>
                         <p className="text-xs font-semibold text-gray-900 leading-snug">{ev.title}</p>
                         <p className="text-[10px] text-gray-400">
-                          {new Date(ev.date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          {isClient ? new Date(ev.date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
                           {ev.project && ` · ${ev.project}`}
                         </p>
                       </div>
@@ -2518,7 +2518,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
                             <p className="text-[11px] font-semibold text-gray-700 truncate">{session.device}</p>
                             <p className="text-[10px] text-gray-400">{session.ip}</p>
                           </div>
-                          <p className="text-[10px] text-gray-400 shrink-0">{new Date(session.lastActive).toLocaleDateString()}</p>
+                          <p className="text-[10px] text-gray-400 shrink-0">{isClient && session.lastActive ? new Date(session.lastActive).toLocaleDateString() : ""}</p>
                         </div>
                       ))}
                     </div>
@@ -2607,7 +2607,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
                           <div key={key.id} className="p-3 rounded-xl border border-gray-100 bg-gray-50 flex items-center gap-3">
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-semibold text-gray-800 truncate">{key.label}</p>
-                              <p className="text-[10px] text-gray-400">••••{key.lastFour} · {new Date(key.createdAt).toLocaleDateString()}</p>
+                              <p className="text-[10px] text-gray-400">••••{key.lastFour} · {isClient && key.createdAt ? new Date(key.createdAt).toLocaleDateString() : ""}</p>
                             </div>
                             <button
                               onClick={() => void copyText(`••••${key.lastFour}`, "Key reference")}
@@ -2639,7 +2639,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
                       (accountOverview?.auditLog ?? []).slice(0, 5).map((event) => (
                         <div key={event.id} className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
                           <p className="text-xs font-semibold text-gray-800">{event.action}</p>
-                          <p className="text-[10px] text-gray-400">{event.actor} · {new Date(event.createdAt).toLocaleString()}</p>
+                          <p className="text-[10px] text-gray-400">{event.actor} · {isClient && event.createdAt ? new Date(event.createdAt).toLocaleString() : ""}</p>
                         </div>
                       ))
                     )}
