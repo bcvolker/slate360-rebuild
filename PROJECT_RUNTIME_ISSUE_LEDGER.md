@@ -577,6 +577,7 @@ Suggested immediate continuation checklist:
 
 ### Fix applied (2026-03-04)
 - Added a safe resolver supporting both string and object shapes for `metadata.location`.
+- Added support for numeric-string `lat`/`lng` values and JSON-stringified `metadata.location` payloads.
 - Passed `center` and a resolved `locationLabel` into `components/dashboard/LocationMap.tsx`.
 - Aligned expanded min-height from 420px → 400px to match dashboard widget sizing.
 
