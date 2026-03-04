@@ -35,6 +35,7 @@ SlateDrop is Slate360's file management system. It provides a full file explorer
 | SlateDropSidebar | `components/slatedrop/SlateDropSidebar.tsx` | ~200 | Extracted mobile overlay + sidebar storage/new-folder/folder-tree surface from `SlateDropClient` |
 | SlateDropTopBar | `components/slatedrop/SlateDropTopBar.tsx` | ~100 | Extracted top header shell (logo/nav/mobile toggle/user menu) from `SlateDropClient` |
 | SlateDropToolbar | `components/slatedrop/SlateDropToolbar.tsx` | ~120 | Extracted breadcrumb + search/sort/view/upload/ZIP controls from `SlateDropClient` |
+| SlateDrop client utils | `lib/slatedrop/client-utils.ts` | ~150 | Shared format/icon/tree/path helpers extracted from `SlateDropClient` |
 | ProjectFileExplorer | `components/slatedrop/ProjectFileExplorer.tsx` | 363 | Project-scoped file view |
 | useSlateDropFiles | `lib/hooks/useSlateDropFiles.ts` | ~110 | Extracted file loading/sorting state hook used by `SlateDropClient` |
 | useSlateDropUiState | `lib/hooks/useSlateDropUiState.ts` | ~130 | Extracted UI modal/context-menu/share/preview state hook used by `SlateDropClient` |

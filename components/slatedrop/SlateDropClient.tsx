@@ -4,6 +4,18 @@ import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 import { buildSlateDropBaseFolderTree, type SlateDropFolderNode as FolderNode } from "@/lib/slatedrop/folderTree";
+import {
+  findFolder,
+  findFolderIdPath,
+  findFolderPath,
+  flattenFolders,
+  formatBytes,
+  formatDate,
+  getFileColor,
+  getFileIcon,
+  withSandboxProjects,
+  type SandboxProjectTree,
+} from "@/lib/slatedrop/client-utils";
 import { useSlateDropFiles, type SlateDropFileItem } from "@/lib/hooks/useSlateDropFiles";
 import { useSlateDropUiState } from "@/lib/hooks/useSlateDropUiState";
 import SlateDropContextMenu from "@/components/slatedrop/SlateDropContextMenu";
@@ -17,18 +29,12 @@ import {
   ChevronDown,
   Plus,
   Download,
-  File,
-  FileText,
-  FileImage,
-  FileVideo,
-  FileArchive,
   File as FileGeneric,
   ArrowRight,
   Activity,
   Loader2,
   CheckCircle2,
   AlertTriangle,
-  type LucideIcon,
 } from "lucide-react";
 
 /* ================================================================
@@ -48,13 +54,9 @@ interface SlateDropProps {
 }
 
 type SandboxProject = {
-  id: string;
-  name: string;
-  folders: Array<{
-    id: string;
-    name: string;
-    isSystem: boolean;
-  }>;
+  id: SandboxProjectTree["id"];
+  name: SandboxProjectTree["name"];
+  folders: SandboxProjectTree["folders"];
 };
 
 type FileItem = SlateDropFileItem;
@@ -87,109 +89,6 @@ type SortKey = "name" | "modified" | "size" | "type";
 type SortDir = "asc" | "desc";
 
 /* ================================================================
-   DEMO DATA — tier-aware folder trees
-   ================================================================ */
-
-function buildFolderTree(tier: Tier): FolderNode[] {
-  return buildSlateDropBaseFolderTree(tier);
-}
-
-/* ================================================================
-   HELPERS
-   ================================================================ */
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${(bytes / Math.pow(k, i)).toFixed(i > 1 ? 1 : 0)} ${sizes[i]}`;
-}
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + "T12:00:00");
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
-function getFileIcon(type: string): LucideIcon {
-  switch (type) {
-    case "pdf": case "doc": case "docx": case "txt": return FileText;
-    case "jpg": case "jpeg": case "png": case "gif": case "tif": case "psd": return FileImage;
-    case "mp4": case "mov": case "avi": return FileVideo;
-    case "zip": case "rar": case "7z": return FileArchive;
-    default: return File;
-  }
-}
-
-function getFileColor(type: string): string {
-  switch (type) {
-    case "pdf": return "#EF4444";
-    case "jpg": case "jpeg": case "png": case "gif": case "tif": case "psd": return "#8B5CF6";
-    case "glb": case "obj": case "stl": case "dwg": case "fbx": return "#FF4D00";
-    case "mp4": case "mov": return "#3B82F6";
-    case "zip": case "rar": return "#059669";
-    case "las": case "laz": return "#D97706";
-    default: return "#6B7280";
-  }
-}
-
-function flattenFolders(nodes: FolderNode[], path: string[] = []): { node: FolderNode; path: string[] }[] {
-  const result: { node: FolderNode; path: string[] }[] = [];
-  for (const n of nodes) {
-    const p = [...path, n.name];
-    result.push({ node: n, path: p });
-    if (n.children.length > 0) {
-      result.push(...flattenFolders(n.children, p));
-    }
-  }
-  return result;
-}
-
-function findFolder(nodes: FolderNode[], id: string): FolderNode | null {
-  for (const n of nodes) {
-    if (n.id === id) return n;
-    const c = findFolder(n.children, id);
-    if (c) return c;
-  }
-  return null;
-}
-
-function findFolderPath(nodes: FolderNode[], id: string, path: string[] = []): string[] | null {
-  for (const n of nodes) {
-    const p = [...path, n.name];
-    if (n.id === id) return p;
-    const c = findFolderPath(n.children, id, p);
-    if (c) return c;
-  }
-  return null;
-}
-
-function withSandboxProjects(nodes: FolderNode[], projects: SandboxProject[]): FolderNode[] {
-  return nodes.map((node) => {
-    if (node.id !== "projects") {
-      if (node.children.length === 0) return node;
-      return { ...node, children: withSandboxProjects(node.children, projects) };
-    }
-
-    const projectNodes: FolderNode[] = projects.map((project) => ({
-      id: project.id,
-      name: project.name,
-      isSystem: false,
-      parentId: "projects",
-      children: project.folders.map((folder) => ({
-        id: folder.id,
-        name: folder.name,
-        isSystem: folder.isSystem,
-        parentId: project.id,
-        children: [],
-      })),
-    }));
-
-    return { ...node, children: projectNodes };
-  });
-}
-
-/* ================================================================
    MAIN COMPONENT
    ================================================================ */
 
@@ -197,11 +96,11 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
   const ent = getEntitlements(tier);
   const supabase = createClient();
 
-  const [folderTree, setFolderTree] = useState<FolderNode[]>(() => buildFolderTree(tier));
+  const [folderTree, setFolderTree] = useState<FolderNode[]>(() => buildSlateDropBaseFolderTree(tier));
   const [sandboxProjects, setSandboxProjects] = useState<SandboxProject[]>([]);
 
   useEffect(() => {
-    setFolderTree(buildFolderTree(tier));
+    setFolderTree(buildSlateDropBaseFolderTree(tier));
   }, [tier]);
 
   const refreshSandboxProjects = useCallback(async () => {
@@ -212,7 +111,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
 
       const projects = Array.isArray(payload?.projects) ? (payload.projects as SandboxProject[]) : [];
       setSandboxProjects(projects);
-      setFolderTree(withSandboxProjects(buildFolderTree(tier), projects));
+      setFolderTree(withSandboxProjects(buildSlateDropBaseFolderTree(tier), projects));
 
       // If an initialProjectId was provided, auto-select that project's sandbox folder
       if (initialProjectId) {
@@ -724,17 +623,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
       return;
     }
 
-    const findPath = (nodes: FolderNode[], folderId: string, currentPath = ""): string | null => {
-      for (const node of nodes) {
-        const nextPath = currentPath ? `${currentPath}/${node.id}` : node.id;
-        if (node.id === folderId) return nextPath;
-        const childPath = findPath(node.children, folderId, nextPath);
-        if (childPath) return childPath;
-      }
-      return null;
-    };
-
-    const fullPath = findPath(folderTree, targetFolderId) || targetFolderId;
+    const fullPath = findFolderIdPath(folderTree, targetFolderId) || targetFolderId;
 
     try {
       const response = await fetch("/api/slatedrop/move", {
