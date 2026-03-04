@@ -2,7 +2,7 @@
 
 Purpose: single source of truth for persistent production/runtime defects, with root-cause elimination history and handoff context.
 
-Last updated: 2026-03-04 (dashboard runtime crash fix)
+Last updated: 2026-03-04 (BUG-018 tranche-2 native map drawing)
 Owner: AI agent + engineering team
 
 ---
@@ -17,6 +17,9 @@ Recent validated commits in this workstream:
 - `1413aae` — LocationMap TypeScript repair after scripted JSX replacement breakage.
 - `82a9716` — blocker fixes (dashboard duplication, CEO access parity, files tab route, SlateDrop auto-expand key).
 - `3fe9d29` — shared server org resolver + runtime diagnostics banner.
+
+Current runtime migration in progress:
+- BUG-018 (`components/dashboard/LocationMap.tsx`): marker + line/arrow/polygon drawing now use native `google.maps` map listeners; rectangle/circle still pending before full `DrawingManager` removal.
 
 ---
 

@@ -66,11 +66,11 @@ type OverlayRecord = {
 const DRAW_MODE_BY_TOOL: Record<DrawTool, string | null> = {
   select: null,
   marker: null,
-  line: "polyline",
-  arrow: "polyline",
+  line: null,
+  arrow: null,
   rectangle: "rectangle",
   circle: "circle",
-  polygon: "polygon",
+  polygon: null,
 };
 function applyStyleToOverlay(
   overlay: any,
@@ -198,6 +198,10 @@ function DrawController({
   const [isResolvingAddress, setIsResolvingAddress] = useState(false);
   const [addressInput, setAddressInput] = useState("");
   const drawingManagerRef = useRef<any>(null);
+  const pendingLineStartRef = useRef<google.maps.LatLngLiteral | null>(null);
+  const pendingLinePreviewRef = useRef<google.maps.Polyline | null>(null);
+  const pendingPolygonPointsRef = useRef<google.maps.LatLngLiteral[]>([]);
+  const pendingPolygonPreviewRef = useRef<google.maps.Polygon | null>(null);
   const selectedOverlayIdRef = useRef<string | null>(null);
   const selectedToolRef = useRef<DrawTool>("select");
   // Keep refs in sync with current draw-style values so overlay listeners
@@ -402,6 +406,16 @@ function DrawController({
     if (originInput.trim()) await getDirections(originInput, suggestion.description, travelMode);
   };
   const setDrawingTool = (next: DrawTool) => {
+    if (next !== "line" && next !== "arrow") {
+      pendingLinePreviewRef.current?.setMap(null);
+      pendingLinePreviewRef.current = null;
+      pendingLineStartRef.current = null;
+    }
+    if (next !== "polygon") {
+      pendingPolygonPreviewRef.current?.setMap(null);
+      pendingPolygonPreviewRef.current = null;
+      pendingPolygonPointsRef.current = [];
+    }
     setTool(next);
     selectedToolRef.current = next;
     const manager = drawingManagerRef.current;
@@ -468,6 +482,12 @@ function DrawController({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [deleteSelectedOverlay, setStatus]);
   const clearMarkup = () => {
+    pendingLinePreviewRef.current?.setMap(null);
+    pendingLinePreviewRef.current = null;
+    pendingLineStartRef.current = null;
+    pendingPolygonPreviewRef.current?.setMap(null);
+    pendingPolygonPreviewRef.current = null;
+    pendingPolygonPointsRef.current = [];
     overlaysRef.current.forEach((record) => {
       record.listeners.forEach((listener) => listener.remove());
       if (record.overlay && typeof record.overlay.setMap === "function") {
@@ -500,35 +520,156 @@ function DrawController({
   useEffect(() => {
     if (!map) return;
     const mapsApi = (window as any).google?.maps;
-    if (!mapsApi?.event || !mapsApi?.Marker) return;
+    if (!mapsApi?.event || !mapsApi?.Marker || !mapsApi?.Polyline || !mapsApi?.Polygon) return;
     const mapClickListener = mapsApi.event.addListener(map, "click", (event: any) => {
-      if (selectedToolRef.current !== "marker") return;
+      if (mapMode !== "markup") return;
       const latLng = event?.latLng;
       if (!latLng) return;
-      const marker = new mapsApi.Marker({
+      const point = { lat: latLng.lat(), lng: latLng.lng() };
+
+      if (selectedToolRef.current === "marker") {
+        const marker = new mapsApi.Marker({
+          map,
+          position: latLng,
+          draggable: true,
+        });
+        const id = `${Date.now()}-${Math.round(Math.random() * 100000)}`;
+        const record: OverlayRecord = {
+          id,
+          overlay: marker,
+          kind: "marker",
+          arrow: false,
+          listeners: [],
+        };
+        record.listeners = attachOverlayListeners(record);
+        overlaysRef.current = [...overlaysRef.current, record];
+        selectedOverlayIdRef.current = id;
+        syncAddressFromOverlayPoint(latLng.lat(), latLng.lng());
+        setTool("select");
+        selectedToolRef.current = "select";
+        return;
+      }
+
+      if (selectedToolRef.current === "line" || selectedToolRef.current === "arrow") {
+        const start = pendingLineStartRef.current;
+        if (!start) {
+          pendingLineStartRef.current = point;
+          pendingLinePreviewRef.current?.setMap(null);
+          pendingLinePreviewRef.current = new mapsApi.Polyline({
+            map,
+            path: [point, point],
+            clickable: false,
+            geodesic: false,
+          });
+          applyStyleToOverlay(
+            pendingLinePreviewRef.current,
+            "polyline",
+            { strokeColor, fillColor, strokeWeight },
+            selectedToolRef.current === "arrow"
+          );
+          setStatus({ ok: true, text: "Select an end point to finish the line." });
+          return;
+        }
+        const line = new mapsApi.Polyline({
+          map,
+          path: [start, point],
+          editable: true,
+          draggable: true,
+          geodesic: false,
+        });
+        const isArrow = selectedToolRef.current === "arrow";
+        applyStyleToOverlay(line, "polyline", { strokeColor, fillColor, strokeWeight }, isArrow);
+        const id = `${Date.now()}-${Math.round(Math.random() * 100000)}`;
+        const record: OverlayRecord = {
+          id,
+          overlay: line,
+          kind: "polyline",
+          arrow: isArrow,
+          listeners: [],
+        };
+        record.listeners = attachOverlayListeners(record);
+        overlaysRef.current = [...overlaysRef.current, record];
+        selectedOverlayIdRef.current = id;
+        pendingLinePreviewRef.current?.setMap(null);
+        pendingLinePreviewRef.current = null;
+        pendingLineStartRef.current = null;
+        syncAddressFromOverlayPoint(start.lat, start.lng);
+        setTool("select");
+        selectedToolRef.current = "select";
+        return;
+      }
+
+      if (selectedToolRef.current === "polygon") {
+        pendingPolygonPointsRef.current = [...pendingPolygonPointsRef.current, point];
+        if (!pendingPolygonPreviewRef.current) {
+          pendingPolygonPreviewRef.current = new mapsApi.Polygon({
+            map,
+            paths: pendingPolygonPointsRef.current,
+            clickable: false,
+            geodesic: false,
+          });
+        } else {
+          pendingPolygonPreviewRef.current.setPath(pendingPolygonPointsRef.current);
+        }
+        applyStyleToOverlay(
+          pendingPolygonPreviewRef.current,
+          "polygon",
+          { strokeColor, fillColor, strokeWeight },
+          false
+        );
+        setStatus({ ok: true, text: "Add polygon points, then double-click to finish." });
+      }
+    });
+    const mapMoveListener = mapsApi.event.addListener(map, "mousemove", (event: any) => {
+      if (selectedToolRef.current !== "line" && selectedToolRef.current !== "arrow") return;
+      if (!pendingLinePreviewRef.current || !pendingLineStartRef.current) return;
+      const latLng = event?.latLng;
+      if (!latLng) return;
+      pendingLinePreviewRef.current.setPath([
+        pendingLineStartRef.current,
+        { lat: latLng.lat(), lng: latLng.lng() },
+      ]);
+    });
+    const mapDoubleClickListener = mapsApi.event.addListener(map, "dblclick", (event: any) => {
+      if (selectedToolRef.current !== "polygon" || mapMode !== "markup") return;
+      event?.domEvent?.preventDefault?.();
+      const points = pendingPolygonPointsRef.current;
+      if (points.length < 3) {
+        setStatus({ ok: false, text: "Polygon requires at least 3 points." });
+        return;
+      }
+      const polygon = new mapsApi.Polygon({
         map,
-        position: latLng,
+        paths: points,
+        editable: true,
         draggable: true,
+        geodesic: false,
       });
+      applyStyleToOverlay(polygon, "polygon", { strokeColor, fillColor, strokeWeight }, false);
       const id = `${Date.now()}-${Math.round(Math.random() * 100000)}`;
       const record: OverlayRecord = {
         id,
-        overlay: marker,
-        kind: "marker",
+        overlay: polygon,
+        kind: "polygon",
         arrow: false,
         listeners: [],
       };
       record.listeners = attachOverlayListeners(record);
       overlaysRef.current = [...overlaysRef.current, record];
       selectedOverlayIdRef.current = id;
-      syncAddressFromOverlayPoint(latLng.lat(), latLng.lng());
+      pendingPolygonPreviewRef.current?.setMap(null);
+      pendingPolygonPreviewRef.current = null;
+      pendingPolygonPointsRef.current = [];
+      syncAddressFromOverlayPoint(points[0].lat, points[0].lng);
       setTool("select");
       selectedToolRef.current = "select";
     });
     return () => {
       mapClickListener?.remove?.();
+      mapMoveListener?.remove?.();
+      mapDoubleClickListener?.remove?.();
     };
-  }, [map, syncAddressFromOverlayPoint]);
+  }, [map, mapMode, strokeColor, fillColor, strokeWeight, setStatus, syncAddressFromOverlayPoint]);
   useEffect(() => {
     if (!map || !drawingLib) return;
     const mapsApi = (window as any).google.maps;

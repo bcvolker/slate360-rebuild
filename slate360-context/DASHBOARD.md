@@ -155,7 +155,7 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 | DashboardContactsWidget | `components/dashboard/DashboardContactsWidget.tsx` | 83 | ✅ Extracted contacts widget view |
 | DashboardSeatsWidget | `components/dashboard/DashboardSeatsWidget.tsx` | 109 | ✅ Extracted seat-management widget view |
 | MarketClient | `components/dashboard/MarketClient.tsx` | 3,006 | ⚠️ Needs decomposition |
-| LocationMap | `components/dashboard/LocationMap.tsx` | 1,685 | ⚠️ Needs decomposition + BUG-018 drawing-library migration |
+| LocationMap | `components/dashboard/LocationMap.tsx` | 1,826 | ⚠️ Needs decomposition + BUG-018 drawing-library migration (marker/line/arrow/polygon now native; rectangle/circle pending) |
 | AnalyticsReportsClient | `components/dashboard/AnalyticsReportsClient.tsx` | ~245 | ✅ Report builder UI (saved reports + export actions) |
 | DashboardProjectCard | `components/dashboard/DashboardProjectCard.tsx` | 275 | ✅ OK |
 | CeoCommandCenterClient | `components/dashboard/CeoCommandCenterClient.tsx` | 155 | ✅ OK |
