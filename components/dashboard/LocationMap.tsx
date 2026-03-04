@@ -234,10 +234,23 @@ function DrawController({
             description: s.placePrediction?.text?.text ?? s.placePrediction?.text ?? trimmed,
           }))
         );
-      } catch { setOriginSuggestions([]); }
+      } catch {
+        // Places API (New) 403 fallback — use Geocoding API
+        if (geocoder) {
+          try {
+            const res = await geocoder.geocode({ address: trimmed });
+            setOriginSuggestions(
+              (res?.results ?? []).slice(0, 5).map((r: google.maps.GeocoderResult) => ({
+                placeId: r.place_id ?? "",
+                description: r.formatted_address ?? trimmed,
+              }))
+            );
+          } catch { setOriginSuggestions([]); }
+        } else { setOriginSuggestions([]); }
+      }
     }, 250);
     return () => window.clearTimeout(timeout);
-  }, [originInput, mapsApiKey]);
+  }, [originInput, mapsApiKey, geocoder]);
   // destination autocomplete (AutocompleteSuggestion API)
   useEffect(() => {
     const trimmed = destInput.trim();
@@ -253,10 +266,23 @@ function DrawController({
             description: s.placePrediction?.text?.text ?? s.placePrediction?.text ?? trimmed,
           }))
         );
-      } catch { setDestSuggestions([]); }
+      } catch {
+        // Places API (New) 403 fallback — use Geocoding API
+        if (geocoder) {
+          try {
+            const res = await geocoder.geocode({ address: trimmed });
+            setDestSuggestions(
+              (res?.results ?? []).slice(0, 5).map((r: google.maps.GeocoderResult) => ({
+                placeId: r.place_id ?? "",
+                description: r.formatted_address ?? trimmed,
+              }))
+            );
+          } catch { setDestSuggestions([]); }
+        } else { setDestSuggestions([]); }
+      }
     }, 250);
     return () => window.clearTimeout(timeout);
-  }, [destInput, mapsApiKey]);
+  }, [destInput, mapsApiKey, geocoder]);
   // Cleanup route polyline + markers on unmount
   useEffect(() => {
     return () => {

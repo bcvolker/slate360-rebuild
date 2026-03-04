@@ -115,10 +115,25 @@ function Controller({
             description: s.placePrediction?.text?.text ?? s.placePrediction?.text ?? trimmed,
           }))
         );
-      } catch { setSuggestions([]); }
+      } catch {
+        // Places API (New) may 403 if not enabled — fall back to Geocoding API
+        if (geocoder) {
+          try {
+            const res = await geocoder.geocode({ address: trimmed });
+            setSuggestions(
+              (res?.results ?? []).slice(0, 6).map((r: google.maps.GeocoderResult) => ({
+                placeId: r.place_id ?? "",
+                description: r.formatted_address ?? trimmed,
+              }))
+            );
+          } catch { setSuggestions([]); }
+        } else {
+          setSuggestions([]);
+        }
+      }
     }, 250);
     return () => clearTimeout(timer);
-  }, [input]);
+  }, [input, geocoder]);
 
   // ── Map click handler (pin or polygon vertex) ───────────────────────────
   useEffect(() => {

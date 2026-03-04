@@ -44,10 +44,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
 
+  const mode = req.nextUrl.searchParams.get("mode"); // "preview" → inline, default → attachment
+  const disposition = mode === "preview"
+    ? `inline; filename="${encodeURIComponent(file.file_name)}"`
+    : `attachment; filename="${encodeURIComponent(file.file_name)}"`;  
+
   const command = new GetObjectCommand({
     Bucket: BUCKET,
     Key: file.s3_key,
-    ResponseContentDisposition: `attachment; filename="${encodeURIComponent(file.file_name)}"`,
+    ResponseContentDisposition: disposition,
   });
 
   const url = await getSignedUrl(s3, command, { expiresIn: 3600 }); // 1 hour

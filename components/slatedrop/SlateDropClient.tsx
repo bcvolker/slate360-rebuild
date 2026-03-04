@@ -592,7 +592,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
       setPreviewLoading(true);
       setPreviewError(null);
       try {
-        const res = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(previewFile.id)}`);
+        const res = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(previewFile.id)}&mode=preview`);
         const data = await res.json().catch(() => ({}));
         if (!res.ok || !data.url) {
           throw new Error(data.error ?? "Preview unavailable");
