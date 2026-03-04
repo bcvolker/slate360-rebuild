@@ -68,6 +68,10 @@ export default function CreateProjectWizard({
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    // Guard: only submit when the user is on the final review step.
+    // This prevents any Enter-key press or button click on earlier steps
+    // from prematurely creating the project.
+    if (step !== TOTAL_STEPS) return;
     if (!name.trim()) return;
     await onSubmit({
       name: name.trim(),

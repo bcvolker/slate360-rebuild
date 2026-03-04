@@ -533,7 +533,9 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [customizeOpen, setCustomizeOpen] = useState(false);
-  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(() => loadWidgetPrefs(DASHBOARD_STORAGE_KEY, DEFAULT_WIDGET_PREFS));
+  // Initialize with defaults — sync from localStorage in useEffect to avoid hydration mismatch (#418).
+  // Server and client must agree on initial render; localStorage is only available client-side.
+  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(DEFAULT_WIDGET_PREFS);
   const [prefsDirty, setPrefsDirty] = useState(false);
   const [prefsSaving, setPrefsSaving] = useState(false);
   const [dashDragIdx, setDashDragIdx] = useState<number | null>(null);
@@ -563,6 +565,10 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
     const now = new Date();
     setCalMonth(now.getMonth());
     setCalYear(now.getFullYear());
+    // Sync widget prefs from localStorage now that we are client-side.
+    // This must happen after hydration to avoid React error #418.
+    const storedPrefs = loadWidgetPrefs(DASHBOARD_STORAGE_KEY, DEFAULT_WIDGET_PREFS);
+    setWidgetPrefs(storedPrefs);
   }, []);
 
   // ── SlateDrop floating window ───────────────────────────────
