@@ -2,27 +2,23 @@
 
 import DashboardHeader from "@/components/shared/DashboardHeader";
 import { useEffect, useState, useCallback, useMemo, type DragEvent } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Plus,
   FolderKanban,
-  ClipboardList,
-  FolderOpen,
-  Bell,
-  FileText,
 } from "lucide-react";
 import CreateProjectWizard, {
   CreateProjectPayload,
 } from "@/components/project-hub/CreateProjectWizard";
-import LocationMap from "@/components/dashboard/LocationMap";
 import ProjectHubPortfolioOverview from "@/components/project-hub/ProjectHubPortfolioOverview";
-import ProjectHubAllProjectsTab from "@/components/project-hub/ProjectHubAllProjectsTab";
 import ProjectHubDeleteModal from "@/components/project-hub/ProjectHubDeleteModal";
+import ProjectHubWorkspaceTabs from "@/components/project-hub/ProjectHubWorkspaceTabs";
+import ProjectHubWidgetBody from "@/components/project-hub/ProjectHubWidgetBody";
 import WidgetCard from "@/components/widgets/WidgetCard";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import {
   WIDGET_META,
+  type WidgetMeta,
   type WidgetPref,
   type WidgetSize,
   getWidgetSpan,
@@ -30,16 +26,6 @@ import {
   HUB_STORAGE_KEY,
 } from "@/components/widgets/widget-meta";
 import { loadWidgetPrefs, saveWidgetPrefs } from "@/components/widgets/widget-prefs-storage";
-import {
-  WeatherWidgetBody,
-  FinancialWidgetBody,
-  CalendarWidgetBody,
-  ContactsWidgetBody,
-  ContinueWidgetBody,
-  ProcessingWidgetBody,
-  SuggestWidgetBody,
-  DataUsageWidgetBody,
-} from "@/components/widgets/WidgetBodies";
 import QuickNav from "@/components/shared/QuickNav";
 import type { ProjectHubProject, ProjectHubSummary } from "@/lib/types/project-hub";
 
@@ -73,13 +59,6 @@ const DEFAULT_HUB_PREFS: WidgetPref[] = buildDefaultPrefs({
 })
   .filter((p) => HUB_WIDGET_IDS.includes(p.id))
   .map((p, index) => ({ ...p, order: index }));
-
-const FALLBACK_FOLDER_VIEW = [
-  { name: "Project Sandbox", description: "Shared cross-module workspace" },
-  { name: "Design Studio", description: "Models, plans, and redlines" },
-  { name: "Content Studio", description: "Media, exports, and brand assets" },
-  { name: "360 Tours", description: "Tour captures and annotations" },
-];
 
 interface Props { user: {name: string, email: string, avatar?: string}; tier: import("@/lib/entitlements").Tier; isCeo?: boolean; }
 
@@ -119,7 +98,7 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
           const widget = HUB_WIDGET_META.find((m) => m.id === p.id);
           return widget ? { ...widget, size: p.size } : null;
         })
-        .filter(Boolean) as (typeof HUB_WIDGET_META[number] & { size: WidgetSize })[],
+        .filter(Boolean) as Array<WidgetMeta & { size: WidgetSize }>,
     [orderedVisible]
   );
 
@@ -292,120 +271,6 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
     });
   };
 
-  const renderWidgetBody = (id: string, isExpanded: boolean) => {
-    if (id === "slatedrop") {
-      return (
-        <div className="space-y-4">
-          <div className="inline-flex items-center rounded-lg border border-gray-200 p-0.5">
-            <button
-              onClick={() => setSlateDropWidgetView("recent")}
-              className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors ${
-                slateDropWidgetView === "recent"
-                  ? "bg-[#FF4D00] text-white"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Recent
-            </button>
-            <button
-              onClick={() => setSlateDropWidgetView("folders")}
-              className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors ${
-                slateDropWidgetView === "folders"
-                  ? "bg-[#1E3A8A] text-white"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Folder View
-            </button>
-          </div>
-
-          {slateDropWidgetView === "recent" ? (
-            <div className="space-y-2">
-              {slateDropFiles.length > 0 ? (
-                slateDropFiles.map((file, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2.5 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-                  >
-                    <FileText size={13} className="text-gray-400 shrink-0" />
-                    <span className="text-[11px] text-gray-700 truncate flex-1">{file.name}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-4 text-xs text-gray-400">No recent files</div>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-2">
-              {(slateDropFolders.length > 0 ? slateDropFolders : FALLBACK_FOLDER_VIEW).map((folder) => (
-                <div key={folder.name} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                  <p className="text-[11px] font-semibold text-gray-800 flex items-center gap-1.5">
-                    <FolderOpen size={12} className="text-[#FF4D00]" /> {folder.name}
-                  </p>
-                  {"description" in folder ? (
-                    <p className="text-[10px] text-gray-500 mt-1">{folder.description}</p>
-                  ) : (
-                    <p className="text-[10px] text-gray-500 mt-1">{folder.count} files</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {isExpanded && (
-            <div className="text-[10px] text-gray-400">Pending uploads —</div>
-          )}
-
-          <Link href="/slatedrop" className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#FF4D00] hover:underline">
-            <FolderOpen size={10} /> Open SlateDrop →
-          </Link>
-        </div>
-      );
-    }
-
-    if (id === "location") {
-      return (
-        <div className={isExpanded ? "min-h-[400px] flex flex-col" : "min-h-[200px] flex flex-col"}>
-          <LocationMap compact={!isExpanded} expanded={isExpanded} />
-        </div>
-      );
-    }
-
-    if (id === "data-usage") {
-      return <DataUsageWidgetBody />;
-    }
-
-    if (id === "processing") {
-      return <ProcessingWidgetBody />;
-    }
-
-    if (id === "suggest") {
-      return <SuggestWidgetBody expanded={isExpanded} />;
-    }
-
-    if (id === "weather") {
-      return <WeatherWidgetBody tempF={72} expanded={isExpanded} />;
-    }
-
-    if (id === "financial") {
-      return <FinancialWidgetBody expanded={isExpanded} />;
-    }
-
-    if (id === "calendar") {
-      return <CalendarWidgetBody />;
-    }
-
-    if (id === "contacts") {
-      return <ContactsWidgetBody />;
-    }
-
-    if (id === "continue") {
-      return <ContinueWidgetBody />;
-    }
-
-    return null;
-  };
-
   return (
     <div className="min-h-screen bg-[#ECEEF2] overflow-x-hidden">
             <DashboardHeader
@@ -435,45 +300,13 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
           fallbackProjectsCount={projects.length}
         />
 
-        <div className="flex items-center gap-1 border-b border-gray-200 pb-px overflow-x-auto">
-          {(["all", "my-work", "activity"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-3 sm:px-4 py-2.5 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px rounded-t-lg transition-all ${
-                activeTab === tab
-                  ? "border-[#FF4D00] text-[#FF4D00] bg-orange-50/50"
-                  : "border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-              }`}
-            >
-              {tab === "all" ? "All Projects" : tab === "my-work" ? "My Work" : "Activity Feed"}
-            </button>
-          ))}
-        </div>
-
-        {activeTab === "all" && (
-          <ProjectHubAllProjectsTab
-            loading={loading}
-            projects={projects}
-            onOpenDeleteProject={openDeleteModal}
-          />
-        )}
-
-        {activeTab === "my-work" && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-gray-500">
-            <ClipboardList size={32} className="mx-auto mb-3 text-gray-300" />
-            <h3 className="text-lg font-bold text-gray-900">Your Assigned Tasks</h3>
-            <p className="text-sm mt-1">Items across all projects assigned to you will appear here.</p>
-          </div>
-        )}
-
-        {activeTab === "activity" && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-gray-500">
-            <Bell size={32} className="mx-auto mb-3 text-gray-300" />
-            <h3 className="text-lg font-bold text-gray-900">Activity Feed</h3>
-            <p className="text-sm mt-1">Recent events across all projects will appear here.</p>
-          </div>
-        )}
+        <ProjectHubWorkspaceTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          loading={loading}
+          projects={projects}
+          onOpenDeleteProject={openDeleteModal}
+        />
 
         <div>
           <div className="flex items-center justify-between mb-4">
@@ -496,7 +329,14 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
                 onDragEnd={handleDragEnd}
                 isDragging={dragIdx === idx}
               >
-                {renderWidgetBody(w.id, w.size !== "default")}
+                <ProjectHubWidgetBody
+                  id={w.id}
+                  isExpanded={w.size !== "default"}
+                  slateDropWidgetView={slateDropWidgetView}
+                  onSlateDropWidgetViewChange={setSlateDropWidgetView}
+                  slateDropFolders={slateDropFolders}
+                  slateDropFiles={slateDropFiles}
+                />
               </WidgetCard>
             ))}
           </div>

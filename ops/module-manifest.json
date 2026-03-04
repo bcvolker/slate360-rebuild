@@ -28,7 +28,9 @@
         "components/project-hub/ProjectDashboardGrid.tsx",
         "components/project-hub/ProjectHubPortfolioOverview.tsx",
         "components/project-hub/ProjectHubAllProjectsTab.tsx",
-        "components/project-hub/ProjectHubDeleteModal.tsx"
+        "components/project-hub/ProjectHubDeleteModal.tsx",
+        "components/project-hub/ProjectHubWorkspaceTabs.tsx",
+        "components/project-hub/ProjectHubWidgetBody.tsx"
       ],
       "apis": [
         "/api/projects",

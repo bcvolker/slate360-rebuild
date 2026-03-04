@@ -8,7 +8,7 @@
 ## 1. 3-Tier URL Structure
 
 ```
-/project-hub                                ← Tier 1: all projects grid (541 lines — decomposition in progress)
+/project-hub                                ← Tier 1: all projects grid (381 lines — decomposition in progress)
 /project-hub/[projectId]                    ← Tier 2: project home (143 lines)
 /project-hub/[projectId]/rfis              ← Tier 3: RFIs (~340 lines)
 /project-hub/[projectId]/submittals        ← Tier 3: Submittals (~580 lines)
@@ -205,6 +205,8 @@ export default async function RFIsPage({ params }) {
 | ProjectHubPortfolioOverview | `components/project-hub/ProjectHubPortfolioOverview.tsx` | 154 |
 | ProjectHubAllProjectsTab | `components/project-hub/ProjectHubAllProjectsTab.tsx` | 124 |
 | ProjectHubDeleteModal | `components/project-hub/ProjectHubDeleteModal.tsx` | 120 |
+| ProjectHubWorkspaceTabs | `components/project-hub/ProjectHubWorkspaceTabs.tsx` | 67 |
+| ProjectHubWidgetBody | `components/project-hub/ProjectHubWidgetBody.tsx` | 130 |
 | LocationDisplay | `components/shared/LocationDisplay.tsx` | ~35 |
 | WizardLocationPicker | `components/project-hub/WizardLocationPicker.tsx` | 390 |
 | CreateProjectWizard | `components/project-hub/CreateProjectWizard.tsx` | 218 |
@@ -250,6 +252,8 @@ Tier-1 decomposition baseline (Slice C started):
 - `ClientPage.tsx` now delegates portfolio snapshot + expandable metric cards to `ProjectHubPortfolioOverview`.
 - `ClientPage.tsx` now delegates all-project loading/empty/carousel/menu rendering to `ProjectHubAllProjectsTab`.
 - Delete confirmation surface is extracted to `ProjectHubDeleteModal`.
+- Workspace tab strip + tab panel surfaces are extracted to `ProjectHubWorkspaceTabs`.
+- Widget body rendering/switching logic is extracted to `ProjectHubWidgetBody`.
 
 | `/api/projects/create` | POST | Create project + provision folders |
 | `/api/projects/sandbox` | GET | SlateDrop project tree |

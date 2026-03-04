@@ -54,7 +54,8 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 
 3. **Slice C (next)**
    - ✅ Extracted Project Hub Tier-1 portfolio/summary section, all-project carousel section, and delete confirmation modal from `ClientPage.tsx`
-   - Continue extracting remaining Tier-1 controls/widget orchestration seams
+   - ✅ Extracted workspace tab strip/panel section + widget body renderer from `ClientPage.tsx`
+   - Continue extracting remaining Tier-1 widget preference/drag orchestration seams
    - Continue DashboardClient decomposition
 
 4. **Slice D**
@@ -83,10 +84,11 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Completed preview-url hook extraction into `lib/hooks/useSlateDropPreviewUrl.ts`; `SlateDropClient` now delegates preview loading/error/url lifecycle.
 - 2026-03-04: Completed optional Slice B polish on `SlateDropClient` render wiring (memoized callbacks/derived view state) to reduce inline JSX complexity before moving to Slice C.
 - 2026-03-04: Started Slice C by extracting Tier-1 Project Hub sections from `app/(dashboard)/project-hub/ClientPage.tsx` into `components/project-hub/ProjectHubPortfolioOverview.tsx`, `ProjectHubAllProjectsTab.tsx`, and `ProjectHubDeleteModal.tsx`; reduced `ClientPage.tsx` from 817 → 541 lines.
+- 2026-03-04: Continued Slice C by extracting workspace tabs/panels (`components/project-hub/ProjectHubWorkspaceTabs.tsx`) and widget body render logic (`components/project-hub/ProjectHubWidgetBody.tsx`); reduced `ClientPage.tsx` from 541 → 381 lines.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~7–15 focused prompts, approximately 1–2.5 weeks at current pace.
-- **Estimated remaining prompts:** ~7–15 to reach broad “code optimized” state across Project Hub + Dashboard + BUG-018 migration.
+- **Remaining window:** ~6–14 focused prompts, approximately 1–2.5 weeks at current pace.
+- **Estimated remaining prompts:** ~6–14 to reach broad “code optimized” state across Project Hub + Dashboard + BUG-018 migration.
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.
 
 ## New-Chat Continuation Protocol (Canonical Resume Block)
