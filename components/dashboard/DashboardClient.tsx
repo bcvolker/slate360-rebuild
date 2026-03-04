@@ -9,6 +9,8 @@ import DashboardHeader from "@/components/shared/DashboardHeader";
 import CreateProjectWizard, { type CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
 import MarketClient from "@/components/dashboard/MarketClient";
 import DashboardProjectCard from "@/components/dashboard/DashboardProjectCard";
+import DashboardWidgetGrid from "@/components/dashboard/DashboardWidgetGrid";
+import DashboardWidgetPopout from "@/components/dashboard/DashboardWidgetPopout";
 import SlateDropClient from "@/components/slatedrop/SlateDropClient";
 import LocationMap from "./LocationMap";
 import WidgetCard from "@/components/widgets/WidgetCard";
@@ -1842,85 +1844,37 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
 
           return (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {orderedVisible.map((p, idx) => (
-                  <div
-                    key={p.id}
-                    draggable={(p.size === "default" || p.size === "sm") && p.id !== "location"}
-                    onDragStart={() => handleDashDragStart(idx)}
-                    onDragOver={(e) => handleDashDragOver(e, idx)}
-                    onDragEnd={handleDashDragEnd}
-                    className={`${(p.size !== "default" && p.size !== "sm") ? "" : "cursor-grab active:cursor-grabbing"} ${dashDragIdx === idx ? "opacity-50 scale-95" : ""} ${getWidgetSpan(p.id, p.size)} transition-all duration-200`}
-                  >
-                    {renderWidget(p.id, p.size)}
-                  </div>
-                ))}
-              </div>
+              <DashboardWidgetGrid
+                orderedVisible={orderedVisible}
+                dashDragIdx={dashDragIdx}
+                onDragStart={handleDashDragStart}
+                onDragOver={handleDashDragOver}
+                onDragEnd={handleDashDragEnd}
+                getSpan={getWidgetSpan}
+                renderWidget={(id, size) => renderWidget(id, size)}
+              />
 
-              {widgetPopoutId && available.has(widgetPopoutId) && (
-                <div
-                  className={`fixed z-[10000] flex flex-col overflow-hidden shadow-[0_32px_80px_-12px_rgba(0,0,0,0.55)] ${wdIsMobile ? "rounded-none border-0" : "rounded-2xl border border-gray-700/70"}`}
-                  style={{
-                    left: wdIsMobile ? 0 : wdPos.x,
-                    top: wdIsMobile ? 0 : wdPos.y,
-                    width: wdIsMobile ? "100vw" : wdSize.w,
-                    height: wdMinimized ? "auto" : (wdIsMobile ? "100dvh" : wdSize.h),
-                  }}
-                >
-                  <div
-                    className={`flex items-center gap-3 px-4 h-11 bg-gray-900 select-none shrink-0 ${wdIsMobile ? "" : "cursor-grab active:cursor-grabbing"}`}
-                    onPointerDown={wdIsMobile ? undefined : onWdTitleDown}
-                    onPointerMove={wdIsMobile ? undefined : onWdPointerMove}
-                    onPointerUp={wdIsMobile ? undefined : onWdPointerUp}
-                  >
-                    <div className="flex items-center gap-1.5" onPointerDown={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => setWidgetPopoutId(null)}
-                        className="w-3.5 h-3.5 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center group transition-colors"
-                        title="Close"
-                      >
-                        <X size={7} className="text-red-900 opacity-0 group-hover:opacity-100" />
-                      </button>
-                      <button
-                        onClick={() => setWdMinimized((value) => !value)}
-                        className="w-3.5 h-3.5 rounded-full bg-yellow-400 hover:bg-yellow-300 transition-colors"
-                        title={wdMinimized ? "Restore" : "Minimise"}
-                      />
-                      {!wdIsMobile && (
-                        <button
-                          onClick={() => {
-                            setWdSize({ w: window.innerWidth - 32, h: window.innerHeight - 32 });
-                            setWdPos({ x: 16, y: 16 });
-                            setWdMinimized(false);
-                          }}
-                          className="w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-400 transition-colors"
-                          title="Maximise"
-                        />
-                      )}
-                    </div>
-                    <LayoutDashboard size={14} className="text-[#FF4D00] ml-1 shrink-0" />
-                    <span className="text-[13px] font-semibold text-white/90 flex-1 text-center -ml-8 pointer-events-none">
-                      {popoutMeta?.label ?? "Widget"}
-                    </span>
-                  </div>
-
-                  {!wdMinimized && (
-                    <div className="flex-1 overflow-auto bg-[#ECEEF2] p-4">
-                      {renderWidget(widgetPopoutId, "lg", true)}
-                    </div>
-                  )}
-
-                  {!wdMinimized && !wdIsMobile && (
-                    <div
-                      className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize"
-                      style={{ background: "linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.18) 50%)" }}
-                      onPointerDown={onWdResizeDown}
-                      onPointerMove={onWdPointerMove}
-                      onPointerUp={onWdPointerUp}
-                    />
-                  )}
-                </div>
-              )}
+              <DashboardWidgetPopout
+                widgetId={widgetPopoutId}
+                isOpen={Boolean(widgetPopoutId && available.has(widgetPopoutId))}
+                label={popoutMeta?.label ?? "Widget"}
+                isMobile={wdIsMobile}
+                position={wdPos}
+                size={wdSize}
+                minimized={wdMinimized}
+                onClose={() => setWidgetPopoutId(null)}
+                onToggleMinimized={() => setWdMinimized((value) => !value)}
+                onMaximize={() => {
+                  setWdSize({ w: window.innerWidth - 32, h: window.innerHeight - 32 });
+                  setWdPos({ x: 16, y: 16 });
+                  setWdMinimized(false);
+                }}
+                onTitleDown={onWdTitleDown}
+                onResizeDown={onWdResizeDown}
+                onPointerMove={onWdPointerMove}
+                onPointerUp={onWdPointerUp}
+                renderWidget={renderWidget}
+              />
             </>
           );
         })()}

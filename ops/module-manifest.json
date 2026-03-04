@@ -12,7 +12,9 @@
       "primaryComponents": [
         "components/dashboard/DashboardClient.tsx",
         "lib/hooks/useDashboardFloatingWindows.ts",
-        "lib/hooks/useDashboardWidgetPrefs.ts"
+        "lib/hooks/useDashboardWidgetPrefs.ts",
+        "components/dashboard/DashboardWidgetGrid.tsx",
+        "components/dashboard/DashboardWidgetPopout.tsx"
       ],
       "apis": [
         "/api/dashboard/widgets",
