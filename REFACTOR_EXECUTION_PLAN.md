@@ -39,6 +39,7 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
    - ✅ Extracted SlateDrop action modals to `components/slatedrop/SlateDropActionModals.tsx`
    - ✅ Extracted SlateDrop share/preview modals to `components/slatedrop/SlateDropSharePreviewModals.tsx`
    - ✅ Extracted SlateDrop file grid/list/sandbox content surface to `components/slatedrop/SlateDropFileArea.tsx`
+   - ✅ Extracted SlateDrop sidebar tree/storage/new-folder surface to `components/slatedrop/SlateDropSidebar.tsx`
    - 🔄 Keep narrowing `SlateDropClient` to layout/orchestration shell
 
 3. **Slice C**
@@ -59,7 +60,8 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Completed modal extraction slice for new folder/rename/delete/move flows into `components/slatedrop/SlateDropActionModals.tsx`; `SlateDropClient` now delegates those UI blocks to extracted component.
 - 2026-03-04: Completed share/preview modal extraction into `components/slatedrop/SlateDropSharePreviewModals.tsx`; `SlateDropClient` now delegates all modal surfaces except top-level shell orchestration.
 - 2026-03-04: Completed file-area extraction into `components/slatedrop/SlateDropFileArea.tsx`; `SlateDropClient` now delegates subfolders/files grid/list/empty-state rendering.
+- 2026-03-04: Completed sidebar extraction into `components/slatedrop/SlateDropSidebar.tsx`; `SlateDropClient` now delegates mobile overlay/sidebar storage/new-folder/tree rendering.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~6–10 focused prompts, approximately 0.75–1.75 weeks at current pace.
+- **Remaining window:** ~5–9 focused prompts, approximately 0.5–1.5 weeks at current pace.
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.
