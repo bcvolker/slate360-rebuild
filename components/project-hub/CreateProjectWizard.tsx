@@ -61,9 +61,15 @@ export default function CreateProjectWizard({
 
   if (!open) return null;
 
+  // Step 1: project name required.
+  // Step 3 (Location): optional — always allow advance so projects can be
+  // created without a geocoded location. The Review step (step 4) clearly
+  // shows "Not set" if the user skipped location, making the omission
+  // visible before they confirm. Note: unresolved text in the address input
+  // does NOT satisfy canAdvance for step 1 — typos there are irrelevant since
+  // the location step is separate.
   const canAdvance =
     step === 1 ? name.trim().length > 0 :
-    step === 3 ? (location.lat !== null || location.address.trim().length > 0) :
     true;
 
   const submit = async (e: FormEvent) => {

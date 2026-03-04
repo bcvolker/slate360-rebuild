@@ -1,6 +1,6 @@
 # Slate360 — Backend, Auth, Billing & Credits Blueprint
 
-**Last Updated:** 2026-03-03
+**Last Updated:** 2026-03-04
 **Context Maintenance:** Update this file whenever auth flows, billing logic, credit system, email templates, database tables, or RLS policies change.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -360,6 +360,66 @@ import { s3Client } from "@/lib/s3";
 // Client PUTs directly to S3
 // app/api/slatedrop/complete — creates DB record
 ```
+
+---
+
+## 9b. Google Maps Platform
+
+**API Key:** `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (env var) — used client-side only  
+**Map ID:** `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` (env var) — required for AdvancedMarker  
+**Note:** Key restrictions and enabled APIs are managed in Google Cloud Console.
+
+### Enabled APIs on `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (confirmed Mar 4 2026)
+
+| API | Used In | Notes |
+|---|---|---|
+| Maps JavaScript API | `WizardLocationPicker`, `LocationMap`, `@vis.gl/react-google-maps` | Core map rendering |
+| Places API (New) | `WizardLocationPicker`, `LocationMap` | `AutocompleteSuggestion.fetchAutocompleteSuggestions()` — replaces deprecated AutocompleteService |
+| Places API | `WizardLocationPicker`, `LocationMap` | Legacy; kept for backward compat |
+| Places UI Kit | Available | For future rich place UI components |
+| Geocoding API | `WizardLocationPicker`, `LocationMap` | Reverse geocode on map click; geocode on address search |
+| Maps Static API | Dashboard project cards | Satellite thumbnail for project cards |
+| Directions API | `LocationMap` | OSRM fallback in use — Routes API not currently routed through this key |
+| Routes API | Available | Not yet wired (key restriction previously blocked) — can replace OSRM |
+| Distance Matrix API | Available | For future travel-time / logistics features |
+| Street View Static API | Available | For future site street-view previews |
+| Street View Publish API | Available | For future 360° site uploads |
+| Maps Elevation API | Available | For future terrain/survey features in Geospatial module |
+| Maps Embed API | Available | For future embedded map iframes |
+| Time Zone API | Available | For schedule/weather features |
+| Roads API | Available | For future route snapping in Geospatial |
+| Aerial View API | Available | For future aerial site previews |
+| Maps 3D SDK for Android | Available | For future native mobile app (Phase 6) |
+| Maps 3D SDK for iOS | Available | For future native mobile app (Phase 6) |
+| Navigation SDK | Available | For future native mobile navigation |
+| Maps Platform Datasets API | Available | For future GIS dataset integration |
+| Weather API | Available | For future weather widgets |
+
+### Google Cloud Services (also available on this project)
+> BigQuery, Cloud Storage, Cloud SQL, Cloud Logging, Cloud Monitoring, Dataform, Cloud Datastore, Cloud Trace — available for future server-side analytics, audit logging, and data pipeline work when Phase 4+ features are implemented.
+
+### Key Usage Patterns
+```typescript
+// Always use @vis.gl/react-google-maps in React components:
+import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
+// Libraries to load: ["places", "geocoding"] — NEVER load "drawing" (deprecated May 2026)
+
+// Places Autocomplete (confirmed working with Places API New enabled):
+const g = (window as any).google?.maps?.places;
+if (g?.AutocompleteSuggestion) {
+  const response = await g.AutocompleteSuggestion.fetchAutocompleteSuggestions({ input });
+}
+
+// Static satellite map for project cards:
+`https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=17&size=600x256&maptype=satellite&key=${key}`
+
+// Routes API (newly available — use instead of OSRM for directions):
+// POST https://routes.googleapis.com/directions/v2:computeRoutes
+// Header: X-Goog-Api-Key + X-Goog-FieldMask
+```
+
+### DrawingManager Deprecation (Action Required by May 2026)
+`LocationMap.tsx` still uses `useMapsLibrary("drawing")` + `DrawingManager`. This produces the console deprecation warning and will BREAK in May 2026 when Google removes the library. Migration to custom `google.maps.Polyline`/`Polygon` click-based drawing (already done in `WizardLocationPicker.tsx`) is required before May 2026. See BUG-018 in `ONGOING_ISSUES.md`.
 
 ---
 

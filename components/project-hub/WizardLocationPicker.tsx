@@ -37,7 +37,11 @@ export type LocationPickerValue = {
   boundary: LatLng[];
 };
 
-type DrawTool = "select" | "marker" | "polygon";
+// "polygondraw" is an internal-only active-drawing sub-state for "polygon".
+// Stored in the toolRef so map click handlers know to add vertices rather than
+// place a pin. NOT exposed as a UI state — `tool` (useState) only tracks the
+// public tool names; the ref carries the extra "polygondraw" value.
+type DrawTool = "select" | "marker" | "polygon" | "polygondraw";
 
 // ─── Inner controller (must render inside <APIProvider> + <Map>) ──────────────
 function Controller({
@@ -125,7 +129,7 @@ function Controller({
       const lo = e.latLng.lng();
       const currentTool = toolRef.current;
 
-      if (currentTool === ("polygondraw" as DrawTool)) {
+      if (currentTool === "polygondraw") {
         const newVerts = [...drawingVerticesRef.current, { lat: la, lng: lo }];
         setDrawingVertices(newVerts);
         if (previewPolylineRef.current) {
@@ -229,12 +233,12 @@ function Controller({
     setResolving(false);
   }, [geocoder, map, input, onChange]);
 
-  const isDrawingPolygon = toolRef.current === ("polygondraw" as DrawTool);
+  const isDrawingPolygon = toolRef.current === "polygondraw";
 
   const activateTool = (next: DrawTool) => {
     if (next === "polygon") {
       setTool("polygon");
-      toolRef.current = "polygondraw" as DrawTool;
+      toolRef.current = "polygondraw";
       clearPreview();
     } else {
       setTool(next);

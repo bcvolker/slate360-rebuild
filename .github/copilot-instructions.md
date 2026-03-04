@@ -80,10 +80,12 @@ Slate360 is a **SaaS construction management + creative tools platform** with 8 
 
 ### Google Maps
 - **Key:** `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` in `.env.local`
-- **Allowed APIs:** Maps JavaScript, Geocoding, Maps Static
-- **Routing:** OSRM (not Google Routes — Routes API not enabled on key)
-- **Place Autocomplete:** Use `AutocompleteSuggestion.fetchAutocompleteSuggestions()` (new API)
-- **Drawing:** Custom `google.maps.Polyline` + `google.maps.Polygon` — DrawingManager removed May 2026
+- **Map ID:** `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` in `.env.local` (required for AdvancedMarker)
+- **Confirmed enabled APIs:** Maps JavaScript, Places API (New), Places API, Geocoding, Maps Static, Directions, Routes, Distance Matrix, Street View Static, Street View Publish, Maps Elevation, Maps Embed, Time Zone, Roads, Aerial View, Maps 3D SDK, Navigation SDK, Maps Platform Datasets, Weather API
+- **Routing:** Routes API now available — can replace OSRM fallback. `POST https://routes.googleapis.com/directions/v2:computeRoutes` with `X-Goog-Api-Key` header.
+- **Place Autocomplete:** Use `AutocompleteSuggestion.fetchAutocompleteSuggestions()` (Places API New — confirmed enabled Mar 4 2026)
+- **Libraries to load:** `["places", "geocoding"]` — NEVER include `"drawing"` (deprecated Aug 2025, removed May 2026)
+- **Drawing:** Custom `google.maps.Polyline` + `google.maps.Polygon` click-based (done in `WizardLocationPicker.tsx`). **`LocationMap.tsx` still uses deprecated DrawingManager — migration required before May 2026 (see BUG-018).** Do NOT add `drawing` to any new `<APIProvider>` libraries array.
 
 ### Email
 - **Resend** · `RESEND_API_KEY` in `.env.local` · From: `noreply@slate360.ai`
