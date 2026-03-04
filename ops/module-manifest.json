@@ -11,7 +11,8 @@
       "status": "live",
       "primaryComponents": [
         "components/dashboard/DashboardClient.tsx",
-        "lib/hooks/useDashboardFloatingWindows.ts"
+        "lib/hooks/useDashboardFloatingWindows.ts",
+        "lib/hooks/useDashboardWidgetPrefs.ts"
       ],
       "apis": [
         "/api/dashboard/widgets",

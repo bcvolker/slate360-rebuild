@@ -58,6 +58,7 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
    - ✅ Extracted remaining Tier-1 widget preference/drag orchestration seams into `lib/hooks/useProjectHubWidgets.ts`
    - ✅ `ClientPage.tsx` now below 300-line guardrail (249 lines)
    - ✅ Started Dashboard decomposition by extracting floating window orchestration to `lib/hooks/useDashboardFloatingWindows.ts`
+   - ✅ Continued Dashboard decomposition by extracting widget preference/order/drag orchestration to `lib/hooks/useDashboardWidgetPrefs.ts`
    - Continue DashboardClient decomposition
 
 4. **Slice D**
@@ -89,10 +90,11 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Continued Slice C by extracting workspace tabs/panels (`components/project-hub/ProjectHubWorkspaceTabs.tsx`) and widget body render logic (`components/project-hub/ProjectHubWidgetBody.tsx`); reduced `ClientPage.tsx` from 541 → 381 lines.
 - 2026-03-04: Completed Slice C Project Hub decomposition target by extracting widget orchestration/data-loading logic into `lib/hooks/useProjectHubWidgets.ts`; reduced `ClientPage.tsx` from 381 → 249 lines.
 - 2026-03-04: Started Dashboard decomposition tranche by extracting SlateDrop/window popout drag-resize state and handlers from `DashboardClient.tsx` into `lib/hooks/useDashboardFloatingWindows.ts`; reduced `DashboardClient.tsx` from 2640 → 2569 lines.
+- 2026-03-04: Continued Dashboard decomposition tranche by extracting widget visibility/size/order persistence and drag-reorder handlers from `DashboardClient.tsx` into `lib/hooks/useDashboardWidgetPrefs.ts`; reduced `DashboardClient.tsx` from 2569 → 2501 lines.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~4–11 focused prompts, approximately 1–2 weeks at current pace.
-- **Estimated remaining prompts:** ~4–11 to reach broad “code optimized” state across Dashboard decomposition + BUG-018 migration.
+- **Remaining window:** ~3–10 focused prompts, approximately 1–2 weeks at current pace.
+- **Estimated remaining prompts:** ~3–10 to reach broad “code optimized” state across Dashboard decomposition + BUG-018 migration.
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.
 
 ## New-Chat Continuation Protocol (Canonical Resume Block)
