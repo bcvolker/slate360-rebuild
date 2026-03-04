@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
+import { buildSlateDropBaseFolderTree, type SlateDropFolderNode as FolderNode } from "@/lib/slatedrop/folderTree";
 import {
   Search,
   Bell,
@@ -62,15 +63,6 @@ interface SlateDropProps {
    * Use this when embedding inside a tab/page that already has a header.
    */
   embedded?: boolean;
-}
-
-interface FolderNode {
-  id: string;
-  name: string;
-  isSystem: boolean;
-  icon?: string;
-  children: FolderNode[];
-  parentId: string | null;
 }
 
 type SandboxProject = {
@@ -133,69 +125,7 @@ interface ContextMenu {
    ================================================================ */
 
 function buildFolderTree(tier: Tier): FolderNode[] {
-  const always: FolderNode[] = [
-    { id: "general", name: "General", isSystem: true, icon: "📁", children: [], parentId: null },
-    { id: "history", name: "History", isSystem: true, icon: "🕒", children: [], parentId: null },
-  ];
-
-  const tabFolders: Record<string, FolderNode> = {
-    "design-studio": { id: "design-studio", name: "Design Studio", isSystem: true, icon: "🎨", children: [], parentId: null },
-    "content-studio": { id: "content-studio", name: "Content Studio", isSystem: true, icon: "📝", children: [], parentId: null },
-    "360-tour-builder": { id: "360-tour-builder", name: "360 Tour Builder", isSystem: true, icon: "🔭", children: [], parentId: null },
-    "geospatial": { id: "geospatial", name: "Geospatial & Robotics", isSystem: true, icon: "🛰️", children: [], parentId: null },
-    "virtual-studio": { id: "virtual-studio", name: "Virtual Studio", isSystem: true, icon: "🎬", children: [], parentId: null },
-    "analytics": { id: "analytics", name: "Analytics & Reports", isSystem: true, icon: "📊", children: [], parentId: null },
-  };
-
-  const projectsFolder: FolderNode = {
-    id: "projects",
-    name: "Project Sandbox",
-    isSystem: true,
-    icon: "🏗️",
-    parentId: null,
-    children: [],
-  };
-
-  let folders: FolderNode[] = [...always];
-
-  switch (tier) {
-    case "creator":
-      folders.push(tabFolders["content-studio"], tabFolders["360-tour-builder"]);
-      break;
-    case "model":
-      folders.push(
-        tabFolders["design-studio"],
-        tabFolders["content-studio"],
-        tabFolders["360-tour-builder"],
-        tabFolders["geospatial"]
-      );
-      break;
-    case "business":
-    case "enterprise":
-      folders.push(
-        tabFolders["design-studio"],
-        tabFolders["content-studio"],
-        tabFolders["360-tour-builder"],
-        tabFolders["geospatial"],
-        tabFolders["virtual-studio"],
-        tabFolders["analytics"],
-        projectsFolder
-      );
-      break;
-    default: // trial — all visible
-      folders.push(
-        tabFolders["design-studio"],
-        tabFolders["content-studio"],
-        tabFolders["360-tour-builder"],
-        tabFolders["geospatial"],
-        tabFolders["virtual-studio"],
-        tabFolders["analytics"],
-        projectsFolder
-      );
-      break;
-  }
-
-  return folders;
+  return buildSlateDropBaseFolderTree(tier);
 }
 
 /* ================================================================
@@ -463,13 +393,18 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
   const [newFolderModal, setNewFolderModal] = useState<{ parentId: string; name: string } | null>(null);
   const [renameModal, setRenameModal] = useState<{ id: string; name: string; type: "file" | "folder" } | null>(null);
   const [renameValue, setRenameValue] = useState("");
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "file" | "folder" } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "file" | "folder" | "project" } | null>(null);
+  const [deleteProjectConfirmName, setDeleteProjectConfirmName] = useState("");
   const [moveModal, setMoveModal] = useState<{ id: string; name: string; type: "file" } | null>(null);
   const [moveTargetFolder, setMoveTargetFolder] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<DbFile | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setDeleteProjectConfirmName("");
+  }, [deleteConfirm?.id, deleteConfirm?.type]);
 
   // Real file state (loaded from API, keyed by folderId)
   const [realFiles, setRealFiles] = useState<Record<string, FileItem[]>>({});
@@ -1113,7 +1048,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
                     </Link>
                     <button
                       onClick={() => {
-                        setDeleteConfirm({ id: activeProject.id, name: activeProject.name, type: "folder" });
+                        setDeleteConfirm({ id: activeProject.id, name: activeProject.name, type: "project" });
                       }}
                       className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50 transition-colors"
                     >
@@ -1398,7 +1333,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
                   <>
                     <CtxDivider />
                     <CtxItem icon={Trash2} label="Delete" danger onClick={() => {
-                      setDeleteConfirm({ id: target.id, name: target.name, type: "folder" });
+                      setDeleteConfirm({ id: target.id, name: target.name, type: isProjectNode ? "project" : "folder" });
                       closeContextMenu();
                     }} />
                   </>
@@ -1417,7 +1352,10 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
           <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <h3 className="text-base font-bold text-gray-900">New Folder</h3>
-              <button onClick={() => setNewFolderModal(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100">
+              <button
+                onClick={() => setNewFolderModal(null)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100"
+              >
                 <X size={16} />
               </button>
             </div>
@@ -1682,6 +1620,23 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
               <p className="text-xs text-gray-400 mb-6">
                 &quot;{deleteConfirm.name}&quot; will be permanently deleted. This action cannot be undone.
               </p>
+
+              {deleteConfirm.type === "project" && (
+                <div className="text-left mb-6">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    Type <span className="font-black text-red-600">{deleteConfirm.name}</span> to confirm
+                  </label>
+                  <input
+                    type="text"
+                    value={deleteProjectConfirmName}
+                    onChange={(e) => setDeleteProjectConfirmName(e.target.value)}
+                    placeholder="Enter project name..."
+                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 outline-none transition-all"
+                    autoFocus
+                  />
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <button
                   onClick={() => setDeleteConfirm(null)}
@@ -1717,15 +1672,26 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
                       return;
                     }
 
-                    const sandboxProject = sandboxProjects.find((project) => project.id === deleteConfirm.id);
-                    if (sandboxProject) {
+                    if (deleteConfirm.type === "project") {
+                      if (deleteProjectConfirmName.trim() !== deleteConfirm.name) {
+                        showToast("Project name does not match. Please type the exact name.", false);
+                        return;
+                      }
+
+                      const sandboxProjectExists = sandboxProjects.some((project) => project.id === deleteConfirm.id);
+                      if (!sandboxProjectExists) {
+                        showToast("Project not found.", false);
+                        setDeleteConfirm(null);
+                        return;
+                      }
+
                       try {
                         const res = await fetch(`/api/projects/${deleteConfirm.id}`, {
                           method: "DELETE",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
                             confirmText: "DELETE",
-                            confirmName: deleteConfirm.name,
+                            confirmName: deleteProjectConfirmName.trim(),
                           }),
                         });
 
@@ -1734,7 +1700,11 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
                           throw new Error(err.error ?? "Delete failed");
                         }
 
+                        const activeProjectId = getProjectIdForFolder(activeFolderId);
                         await refreshSandboxProjects();
+                        if (activeProjectId === deleteConfirm.id) {
+                          setActiveFolderId("projects");
+                        }
                         showToast(`Project "${deleteConfirm.name}" deleted`);
                       } catch (error) {
                         showToast(error instanceof Error ? error.message : "Delete failed", false);
@@ -1771,7 +1741,11 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
                     }
                     setDeleteConfirm(null);
                   }}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
+                  disabled={
+                    deleteConfirm.type === "project" &&
+                    deleteProjectConfirmName.trim() !== deleteConfirm.name
+                  }
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Delete
                 </button>

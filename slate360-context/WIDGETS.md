@@ -60,7 +60,9 @@ Additional utility cards:
 
 ### SlateDrop Widget
 - Default view: `folders` (not file list)
-- Contains `<Link href="/slatedrop">Open SlateDrop →</Link>`
+- Compact (Small/default): entitlement-driven **folder icon grid** (canonical root folders)
+- Expanded (Medium/Large): embeds `SlateDropClient` in `embedded` mode (full sidebar + main explorer)
+- Contains `<Link href="/slatedrop">Open SlateDrop →</Link>` for quick access
 
 ---
 

@@ -130,10 +130,12 @@ Current issue states:
 - Issue 6 (ep.split TypeError): **Fixed — String() guard on JSONB metadata**
 - Issue 7 (CSP data: URI violations): **Fixed — added data: to connect-src**
 - Issue 8 (Incomplete project deletion): **Fixed — removed scoped FK cleanup**
-- Issue 9 (SlateDrop widget inconsistency): **Fixed — added link to full SlateDrop UI**
+- Issue 9 (SlateDrop widget inconsistency): **Fixed — compact folder icon grid + embedded explorer in expanded widgets**
 - Issue 10 (Dashboard delete menu missing): **Fixed — extracted DashboardProjectCard with 3-dot delete**
 - Issue 11 (Org bootstrap + Web3 + activity log debt): **Mitigated — fallback bootstrap route/callback, Market-scoped Web3 providers, activity-log table scaffold**
 - Issue 12 (`isClient` dashboard crash): **Resolved — missing client-guard state declared and initialized in DashboardClient**
+- Issue 13 (SlateDrop sandbox delete bypassed 2-step confirm): **Fixed — requires typing project name before DELETE**
+- Issue 14 (Project location widget not centered / inconsistent): **Fixed — parse JSONB metadata.location + pass center to LocationMap**
 
 ---
 
@@ -537,6 +539,52 @@ Suggested immediate continuation checklist:
 
 ### Elimination status
 - **Resolved** — all dashboard tab pages (standalone shells + Project Hub) now have pixel-for-pixel header parity with `DashboardClient`.
+
+---
+
+## Issue 13 — SlateDrop Project Sandbox deletion missing 2-step confirm
+
+### Symptoms
+- In SlateDrop (Quick Access `/slatedrop`), deleting a project via the Project Sandbox banner or the project tree 3-dot menu did not require typing the project name.
+
+### Root cause
+- `components/slatedrop/SlateDropClient.tsx` reused a generic delete-confirm modal that auto-filled and submitted `confirmName`.
+
+### Fix applied (2026-03-04)
+- Added a project-specific delete confirm path that requires typing the exact project name.
+- Routed project deletion entry points (banner delete + project node context menu) through `deleteConfirm.type === "project"`.
+- Disabled the Delete button until the typed name matches.
+
+### Files touched
+- `components/slatedrop/SlateDropClient.tsx`
+
+### Next verification
+- From `/slatedrop`, try deleting a sandbox project using:
+  - the project banner Delete button
+  - the project tree 3-dot menu → Delete
+- Confirm Delete stays disabled until exact name match.
+
+---
+
+## Issue 14 — Project location widget mismatch (metadata shape + centering)
+
+### Symptoms
+- Project Hub Tier 2 Site Location widget did not consistently show the correct site location / centering.
+- Expanded sizing differed slightly from dashboard behavior.
+
+### Root cause
+- Project metadata uses a structured JSONB `metadata.location` object (e.g. `{ address, lat, lng, boundary }`), but the widget assumed string fields and never passed `center` into `LocationMap`.
+
+### Fix applied (2026-03-04)
+- Added a safe resolver supporting both string and object shapes for `metadata.location`.
+- Passed `center` and a resolved `locationLabel` into `components/dashboard/LocationMap.tsx`.
+- Aligned expanded min-height from 420px → 400px to match dashboard widget sizing.
+
+### Files touched
+- `components/project-hub/ProjectDashboardGrid.tsx`
+
+### Next verification
+- Open `/project-hub/[projectId]` and confirm Site Location centers on the saved site.
 
 ---
 

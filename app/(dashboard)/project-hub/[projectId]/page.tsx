@@ -1,19 +1,25 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import ProjectDashboardGrid from "@/components/project-hub/ProjectDashboardGrid";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getScopedProjectForUser } from "@/lib/projects/access";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { ClipboardList, FileCheck2, CalendarCheck2, DollarSign, Users, Camera, Pencil, MapPin, BookOpen, ShieldAlert, ChevronRight } from "lucide-react";
 
 export default async function ProjectHubProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user, tier } = await resolveServerOrgContext();
 
   if (!user) {
     redirect(`/login?redirectTo=${encodeURIComponent(`/project-hub/${projectId}`)}`);
   }
+
+  const userName =
+    (typeof user.user_metadata?.full_name === "string" && user.user_metadata.full_name.trim()) ||
+    (typeof user.user_metadata?.name === "string" && user.user_metadata.name.trim()) ||
+    (typeof user.email === "string" && user.email.split("@")[0]) ||
+    "User";
+  const userSummary = { name: userName, email: user.email ?? "" };
 
   const { project: rawProject } = await getScopedProjectForUser(user.id, projectId, "id, name, status, metadata, description, created_at");
   if (!rawProject) notFound();
@@ -97,7 +103,7 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Draggable widget grid */}
         <div className="xl:col-span-2">
-          <ProjectDashboardGrid projectId={projectId} project={project} />
+          <ProjectDashboardGrid projectId={projectId} project={project} user={userSummary} tier={tier} />
         </div>
 
         {/* Schedule snapshot + tool quick-links */}

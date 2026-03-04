@@ -11,7 +11,6 @@ import {
   ClipboardList,
   DollarSign,
   FileCheck2,
-  FileText,
   FolderOpen,
   Info,
   Layers,
@@ -33,6 +32,9 @@ import type { WidgetMeta, WidgetPref, WidgetSize } from "@/components/widgets/wi
 import { getWidgetSpan } from "@/components/widgets/widget-meta";
 import LocationMap from "@/components/dashboard/LocationMap";
 import { useProjectProfile } from "@/lib/hooks/useProjectProfile";
+import type { Tier } from "@/lib/entitlements";
+import { listSlateDropRootFolders } from "@/lib/slatedrop/folderTree";
+import SlateDropClient from "@/components/slatedrop/SlateDropClient";
 
 /* ─── Types ──────────────────────────────────────────────────── */
 type ProjectGridProject = {
@@ -40,11 +42,47 @@ type ProjectGridProject = {
   description?: string | null;
   status?: string;
   created_at?: string;
-  metadata?: { location?: string; address?: string; city?: string; state?: string };
+  metadata?: unknown;
 };
-type RecentFile   = { id: string; name: string };
 type TaskSnap     = { id: string; name: string; status: string; end_date: string | null; percent_complete: number };
 type BudgetTotals = { budget: number; spent: number; changeOrders: number };
+
+function resolveProjectLocation(metadata: unknown, profileAddress: string | null | undefined): {
+  label: string;
+  center: { lat: number; lng: number } | null;
+} {
+  const meta = (metadata && typeof metadata === "object" ? (metadata as Record<string, unknown>) : {}) as Record<string, unknown>;
+  const locValue = meta.location;
+
+  let center: { lat: number; lng: number } | null = null;
+  let label: string | null = null;
+
+  if (locValue && typeof locValue === "object") {
+    const loc = locValue as Record<string, unknown>;
+    const lat = typeof loc.lat === "number" ? loc.lat : null;
+    const lng = typeof loc.lng === "number" ? loc.lng : null;
+    if (lat !== null && lng !== null) center = { lat, lng };
+
+    if (typeof loc.address === "string" && loc.address.trim()) label = loc.address.trim();
+    else if (typeof loc.label === "string" && loc.label.trim()) label = loc.label.trim();
+  } else if (typeof locValue === "string" && locValue.trim()) {
+    label = locValue.trim();
+  }
+
+  const metaAddress = typeof meta.address === "string" ? meta.address.trim() : "";
+  const metaCity = typeof meta.city === "string" ? meta.city.trim() : "";
+  const metaState = typeof meta.state === "string" ? meta.state.trim() : "";
+  const cityState = [metaCity, metaState].filter(Boolean).join(", ");
+
+  const fallbackLabel =
+    (typeof profileAddress === "string" && profileAddress.trim()) ||
+    label ||
+    metaAddress ||
+    cityState ||
+    "";
+
+  return { label: fallbackLabel, center };
+}
 
 /* ─── Widget metadata ─────────────────────────────────────────── */
 const PROJECT_WIDGET_META: WidgetMeta[] = [
@@ -74,11 +112,14 @@ function buildProjectDefaultPrefs(): WidgetPref[] {
 export default function ProjectDashboardGrid({
   projectId,
   project,
+  user,
+  tier,
 }: {
   projectId: string;
   project: ProjectGridProject;
+  user: { name: string; email: string };
+  tier: Tier;
 }) {
-  const [files, setFiles]                 = useState<RecentFile[]>([]);
   const [tasks, setTasks]                 = useState<TaskSnap[]>([]);
   const [budgetTotals, setBudgetTotals]   = useState<BudgetTotals | null>(null);
   const [rfiCount, setRfiCount]           = useState<{ open: number; total: number } | null>(null);
@@ -99,19 +140,13 @@ export default function ProjectDashboardGrid({
     let active = true;
     const fetchAll = async () => {
       try {
-        const [filesRes, tasksRes, budgetRes, rfiRes, subRes] = await Promise.allSettled([
-          fetch(`/api/projects/${projectId}/recent-files`, { cache: "no-store" }).then((r) => r.json()),
+        const [tasksRes, budgetRes, rfiRes, subRes] = await Promise.allSettled([
           fetch(`/api/projects/${projectId}/schedule`, { cache: "no-store" }).then((r) => r.json()),
           fetch(`/api/projects/${projectId}/budget`, { cache: "no-store" }).then((r) => r.json()),
           fetch(`/api/projects/${projectId}/rfis`, { cache: "no-store" }).then((r) => r.json()),
           fetch(`/api/projects/${projectId}/submittals`, { cache: "no-store" }).then((r) => r.json()),
         ]);
         if (!active) return;
-
-        if (filesRes.status === "fulfilled") {
-          const p = filesRes.value as { files?: RecentFile[] };
-          setFiles(Array.isArray(p.files) ? p.files : []);
-        }
         if (tasksRes.status === "fulfilled") {
           const p = tasksRes.value as { tasks?: TaskSnap[] };
           setTasks(Array.isArray(p.tasks) ? p.tasks : []);
@@ -182,8 +217,11 @@ export default function ProjectDashboardGrid({
   }, [dragIdx]);
 
   /* ── Derived stats ───────────────────────────────────────────── */
-  const locationStr   = String(profile.projectAddress || project.metadata?.location || project.metadata?.address || "");
-  const cityState     = [project.metadata?.city, project.metadata?.state].filter(Boolean).join(", ");
+  const resolvedLocation = useMemo(
+    () => resolveProjectLocation(project.metadata, profile.projectAddress),
+    [project.metadata, profile.projectAddress]
+  );
+  const locationStr = resolvedLocation.label;
   const activeTasks   = tasks.filter((t) => t.status !== "Completed" && t.status !== "Done");
   const upcomingTasks = activeTasks.slice(0, 4);
   const overallPct    = tasks.length > 0 ? Math.round(tasks.reduce((s, t) => s + (t.percent_complete ?? 0), 0) / tasks.length) : 0;
@@ -249,9 +287,10 @@ export default function ProjectDashboardGrid({
     /* LOCATION */
     if (id === "location") {
       return (
-        <div className={isExpanded ? "min-h-[420px] flex flex-col" : "min-h-[200px] flex flex-col"}>
+        <div className={isExpanded ? "min-h-[400px] flex flex-col" : "min-h-[200px] flex flex-col"}>
           <LocationMap
-            locationLabel={locationStr || project.metadata?.location}
+            center={resolvedLocation.center ?? undefined}
+            locationLabel={locationStr}
             compact={!isExpanded}
             expanded={isExpanded}
           />
@@ -392,27 +431,34 @@ export default function ProjectDashboardGrid({
 
     /* SLATEDROP */
     if (id === "slatedrop") {
+      const rootFolders = listSlateDropRootFolders(tier);
       return (
         <div className="space-y-3 flex-1">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-gray-500">Recent project files</p>
-            <Link href={`/project-hub/${projectId}/slatedrop`} className="text-[11px] font-bold text-[#FF4D00] hover:underline">View All →</Link>
-          </div>
-          {files.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 text-center">
-              <FolderOpen size={20} className="mx-auto mb-1.5 text-gray-300" />
-              <p className="text-xs text-gray-400">No files yet</p>
-              <Link href={`/project-hub/${projectId}/slatedrop`} className="text-[10px] font-bold text-[#FF4D00] hover:underline mt-1 block">Upload files →</Link>
+          {!isExpanded && (
+            <>
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-gray-500">Folder view</p>
+                <Link href={`/project-hub/${projectId}/slatedrop`} className="text-[11px] font-bold text-[#FF4D00] hover:underline">Open →</Link>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {rootFolders.map((folder) => (
+                  <div
+                    key={folder.id}
+                    className="rounded-xl border border-gray-200 bg-gray-50 px-2.5 py-2 flex flex-col items-center justify-center text-center"
+                    title={folder.name}
+                  >
+                    <div className="text-xl leading-none mb-1">{folder.icon ?? "📁"}</div>
+                    <p className="text-[10px] font-semibold text-gray-700 truncate w-full">{folder.name}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {isExpanded && (
+            <div className="flex-1 min-h-0 -mx-6 -mb-6 overflow-hidden border-t border-gray-100">
+              <SlateDropClient user={user} tier={tier} initialProjectId={projectId} embedded />
             </div>
-          ) : (
-            <ul className="space-y-1.5">
-              {files.slice(0, isExpanded ? 8 : 4).map((file) => (
-                <li key={file.id} className="flex items-center gap-2.5 p-2.5 rounded-lg bg-gray-50 border border-gray-100 hover:bg-gray-100 transition">
-                  <FileText size={12} className="text-gray-400 shrink-0" />
-                  <span className="text-[11px] font-semibold text-gray-700 truncate">{file.name}</span>
-                </li>
-              ))}
-            </ul>
           )}
         </div>
       );

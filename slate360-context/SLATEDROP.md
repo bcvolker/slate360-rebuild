@@ -17,8 +17,8 @@ SlateDrop is Slate360's file management system. It provides a full file explorer
 | Location | Route | Behavior |
 |---|---|---|
 | Standalone page | `/slatedrop` | Full explorer UI |
-| Dashboard widget | `/(dashboard)` | Preview card → link to `/slatedrop` |
-| Project Hub Tier 2 widget | `/project-hub/[projectId]` | Preview → link to SlateDrop |
+| Dashboard widget | `/(dashboard)` | Compact: entitlement-gated root folder icon grid. Expanded: embeds `SlateDropClient` (sidebar + main). |
+| Project Hub Tier 2 widget | `/project-hub/[projectId]` | Compact: folder icon grid. Expanded: embeds `SlateDropClient` scoped to project via `initialProjectId`. |
 | Project Hub Tier 3 tab | `/project-hub/[projectId]/slatedrop` | Full explorer scoped to project |
 
 ---
@@ -29,6 +29,19 @@ SlateDrop is Slate360's file management system. It provides a full file explorer
 |---|---|---|---|
 | SlateDropClient | `components/slatedrop/SlateDropClient.tsx` | **2,030** | Main explorer (⚠️ decompose) |
 | ProjectFileExplorer | `components/slatedrop/ProjectFileExplorer.tsx` | 363 | Project-scoped file view |
+
+### Canonical Root Folder List (Entitlement-Gated)
+
+Single source of truth for which top-level folders should be visible by tier:
+
+- `lib/slatedrop/folderTree.ts`
+  - `buildSlateDropBaseFolderTree(tier)`
+  - `listSlateDropRootFolders(tier)`
+
+Used by:
+- `components/slatedrop/SlateDropClient.tsx` (sidebar root nodes)
+- Dashboard SlateDrop widget compact folder grid
+- Project Hub SlateDrop widget compact folder grid
 
 ### SlateDropClient Decomposition Target
 ```
@@ -61,6 +74,10 @@ Root-level system folders are created on user signup via the auth webhook bootst
 ```
 
 Provisioning: `POST /api/slatedrop/provision` → inserts into `project_folders` table.
+
+### Project Sandbox Deletion (2-step)
+
+Deleting a project from within SlateDrop's Project Sandbox UI requires typing the exact project name to confirm before calling `DELETE /api/projects/[projectId]`.
 
 ### Canonical Folder Table: `project_folders`
 

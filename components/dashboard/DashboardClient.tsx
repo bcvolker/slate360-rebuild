@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
+import { listSlateDropRootFolders } from "@/lib/slatedrop/folderTree";
 import DashboardHeader from "@/components/shared/DashboardHeader";
 import SlateDropClient from "@/components/slatedrop/SlateDropClient";
 import CreateProjectWizard, { type CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
@@ -215,11 +216,6 @@ type InboxNotification = {
   message: string;
   link_path?: string | null;
   created_at: string;
-};
-
-type SlateDropFolderQuickView = {
-  name: string;
-  description: string;
 };
 
 type DeployInfoPayload = {
@@ -945,29 +941,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
 
   const creditsUsed = accountOverview?.billing?.purchasedCredits ?? 0;
   const storageUsed = dashboardSummary ? Number((dashboardSummary.storageUsed / (1024 * 1024 * 1024)).toFixed(2)) : (ent.tier === "trial" ? 1.2 : ent.tier === "creator" ? 12 : 45);
-  const slateDropFolderQuickView: SlateDropFolderQuickView[] = useMemo(() => {
-    const base: SlateDropFolderQuickView[] = [
-      { name: "Project Sandbox", description: "Shared cross-module workspace" },
-    ];
-
-    if (["model", "business", "enterprise"].includes(ent.tier)) {
-      base.push({ name: "Design Studio", description: "Models, plans, and redlines" });
-      base.push({ name: "Geospatial", description: "Drone, GIS, and point clouds" });
-      base.push({ name: "Virtual Studio", description: "Simulation and immersive assets" });
-    }
-
-    if (["creator", "model", "business", "enterprise"].includes(ent.tier)) {
-      base.push({ name: "Content Studio", description: "Media, exports, and brand assets" });
-      base.push({ name: "360 Tours", description: "Tour captures and annotations" });
-    }
-
-    if (["business", "enterprise"].includes(ent.tier)) {
-      base.push({ name: "Project Hub", description: "RFIs, submittals, reports, photos" });
-      base.push({ name: "Analytics", description: "Dashboards, snapshots, and exports" });
-    }
-
-    return base;
-  }, [ent.tier]);
+  const slateDropRootFolders = useMemo(() => listSlateDropRootFolders(ent.tier), [ent.tier]);
 
   /* ── Handlers ── */
   const scrollCarousel = useCallback((dir: number) => {
@@ -1615,15 +1589,21 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-2">
-                  {slateDropFolderQuickView.map((folder) => (
-                    <div key={folder.name} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                      <p className="text-[11px] font-semibold text-gray-800 flex items-center gap-1.5">
-                        <FolderOpen size={12} className="text-[#FF4D00]" /> {folder.name}
-                      </p>
-                      <p className="text-[10px] text-gray-500 mt-1">{folder.description}</p>
-                    </div>
-                  ))}
+                <div className="space-y-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    {slateDropRootFolders.map((folder) => (
+                      <div
+                        key={folder.id}
+                        className="rounded-xl border border-gray-200 bg-gray-50 px-2.5 py-2 flex flex-col items-center justify-center text-center"
+                        title={folder.name}
+                      >
+                        <div className="text-xl leading-none mb-1">{folder.icon ?? "📁"}</div>
+                        <p className="text-[10px] font-semibold text-gray-700 truncate w-full">
+                          {folder.name}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                   <p className="text-[10px] text-gray-400">Unlocked based on your {ent.label} plan.</p>
                 </div>
               )}
