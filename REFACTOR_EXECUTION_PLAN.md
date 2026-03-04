@@ -43,6 +43,7 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
    - ✅ Extracted SlateDrop top bar shell/user-menu surface to `components/slatedrop/SlateDropTopBar.tsx`
    - ✅ Extracted SlateDrop toolbar/breadcrumb/actions surface to `components/slatedrop/SlateDropToolbar.tsx`
    - ✅ Extracted SlateDrop pure helpers/tree utilities to `lib/slatedrop/client-utils.ts`
+   - ✅ Extracted SlateDrop toast/upload-progress overlay to `components/slatedrop/SlateDropNotificationsOverlay.tsx`
    - 🔄 Keep narrowing `SlateDropClient` to layout/orchestration shell
 
 3. **Slice C**
@@ -67,7 +68,8 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Completed top-bar extraction into `components/slatedrop/SlateDropTopBar.tsx`; `SlateDropClient` now delegates the header/logo/nav/user-menu shell.
 - 2026-03-04: Completed toolbar extraction into `components/slatedrop/SlateDropToolbar.tsx`; `SlateDropClient` now delegates breadcrumb/search/sort/view/upload/zip controls.
 - 2026-03-04: Completed helper extraction into `lib/slatedrop/client-utils.ts`; `SlateDropClient` now imports shared formatting/icon/tree/path utilities and dropped duplicated inline helper blocks.
+- 2026-03-04: Completed notifications overlay extraction into `components/slatedrop/SlateDropNotificationsOverlay.tsx`; `SlateDropClient` now delegates toast and upload-progress UI.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~2–6 focused prompts, approximately 0.3–0.9 weeks at current pace.
+- **Remaining window:** ~2–5 focused prompts, approximately 0.25–0.75 weeks at current pace.
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.

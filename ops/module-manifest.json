@@ -43,6 +43,7 @@
       "primaryComponents": [
         "components/slatedrop/SlateDropClient.tsx",
         "components/slatedrop/SlateDropToolbar.tsx",
+        "components/slatedrop/SlateDropNotificationsOverlay.tsx",
         "components/slatedrop/SlateDropTopBar.tsx",
         "components/slatedrop/SlateDropSidebar.tsx",
         "components/slatedrop/SlateDropFileArea.tsx",

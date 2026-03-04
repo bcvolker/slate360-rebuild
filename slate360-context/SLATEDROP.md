@@ -27,7 +27,7 @@ SlateDrop is Slate360's file management system. It provides a full file explorer
 
 | Component | File | Lines | Purpose |
 |---|---|---|---|
-| SlateDropClient | `components/slatedrop/SlateDropClient.tsx` | **1,081** | Main explorer orchestration shell (decomposition in progress) |
+| SlateDropClient | `components/slatedrop/SlateDropClient.tsx` | **944** | Main explorer orchestration shell (decomposition in progress) |
 | SlateDropContextMenu | `components/slatedrop/SlateDropContextMenu.tsx` | ~240 | Extracted context-menu render/actions surface from `SlateDropClient` |
 | SlateDropActionModals | `components/slatedrop/SlateDropActionModals.tsx` | ~300 | Extracted new-folder/rename/delete/move modal UI surface from `SlateDropClient` |
 | SlateDropSharePreviewModals | `components/slatedrop/SlateDropSharePreviewModals.tsx` | ~260 | Extracted secure-send and preview modal UI surface from `SlateDropClient` |
@@ -35,6 +35,7 @@ SlateDrop is Slate360's file management system. It provides a full file explorer
 | SlateDropSidebar | `components/slatedrop/SlateDropSidebar.tsx` | ~200 | Extracted mobile overlay + sidebar storage/new-folder/folder-tree surface from `SlateDropClient` |
 | SlateDropTopBar | `components/slatedrop/SlateDropTopBar.tsx` | ~100 | Extracted top header shell (logo/nav/mobile toggle/user menu) from `SlateDropClient` |
 | SlateDropToolbar | `components/slatedrop/SlateDropToolbar.tsx` | ~120 | Extracted breadcrumb + search/sort/view/upload/ZIP controls from `SlateDropClient` |
+| SlateDropNotificationsOverlay | `components/slatedrop/SlateDropNotificationsOverlay.tsx` | ~40 | Extracted toast and upload-progress overlay UI from `SlateDropClient` |
 | SlateDrop client utils | `lib/slatedrop/client-utils.ts` | ~150 | Shared format/icon/tree/path helpers extracted from `SlateDropClient` |
 | ProjectFileExplorer | `components/slatedrop/ProjectFileExplorer.tsx` | 363 | Project-scoped file view |
 | useSlateDropFiles | `lib/hooks/useSlateDropFiles.ts` | ~110 | Extracted file loading/sorting state hook used by `SlateDropClient` |
@@ -58,6 +59,7 @@ Used by:
 SlateDropClient.tsx       → ~200 lines (layout shell)
 SlateDropSidebar.tsx      → folder tree sidebar
 SlateDropToolbar.tsx      → breadcrumb + controls
+SlateDropNotificationsOverlay.tsx → toast + upload-progress overlays
 SlateDropFileArea.tsx     → file list/grid + empty states + upload drop area
 SlateDropContextMenu.tsx  → right-click context menu
 SlateDropSharePreviewModals.tsx → share + file preview modals
