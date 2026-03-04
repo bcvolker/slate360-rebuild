@@ -44,13 +44,20 @@
 | CEO Command Center | `/(dashboard)/ceo` | ✅ DashboardTabShell |
 | Market | `/market` | ✅ Built |
 
-### DashboardTabShell (Shared)
-`components/shared/DashboardTabShell.tsx` (~240 lines) — standardized wrapper for all tab pages:
+### DashboardHeader (Shared Top Bar)
+`components/shared/DashboardHeader.tsx` (~280 lines) — **unified header** used by both `DashboardClient` and `DashboardTabShell`:
 
 **Header Layout:**
-- **Left cluster:** Slate360 logo (links to `/dashboard`) + "← Dashboard" back link
-- **Center:** Search stub (future Command Palette)
-- **Right cluster:** QuickNav dropdown, Bell, Customize, User avatar with dropdown menu
+- **Left cluster:** Slate360 logo (links to `/dashboard`) + optional "← Dashboard" back link (via `showBackLink` prop)
+- **Center:** Search bar (active with `onSearchChange` or read-only stub)
+- **Right cluster:** QuickNav dropdown, Bell (with live notifications), Customize (with dirty dot), User avatar with dropdown menu (My Account, Billing, Sign out)
+
+**Props:** `user`, `tier`, `isCeo?`, `showBackLink?`, `searchQuery?`, `onSearchChange?`, `searchPlaceholder?`, `prefsDirty?`, `onCustomizeOpen?`, `notifications?`, `notificationsLoading?`, `onRefreshNotifications?`
+
+**Self-contained:** Handles sign-out, billing portal, and notification dropdown state internally.
+
+### DashboardTabShell (Shared Tab Wrapper)
+`components/shared/DashboardTabShell.tsx` (~94 lines) — standardized wrapper for all tab pages. Delegates header to `DashboardHeader`.
 
 **Props:** `user`, `tier`, `title`, `icon`, `accent`, `status`, `isCeo?`, `children`
 
@@ -128,8 +135,9 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 
 | Component | File | Lines | Status |
 |---|---|---|---|
-| DashboardTabShell | `components/shared/DashboardTabShell.tsx` | ~240 | ✅ Shared scaffold (light theme, isCeo support) |
-| DashboardClient | `components/dashboard/DashboardClient.tsx` | ~2,953 | ⚠️ Needs decomposition |
+| DashboardHeader | `components/shared/DashboardHeader.tsx` | ~280 | ✅ NEW — unified top bar (dashboard home + all tabs) |
+| DashboardTabShell | `components/shared/DashboardTabShell.tsx` | ~94 | ✅ Shared scaffold (uses DashboardHeader, light theme, isCeo) |
+| DashboardClient | `components/dashboard/DashboardClient.tsx` | ~2,852 | ⚠️ Needs decomposition (header extracted, still large) |
 | MarketClient | `components/dashboard/MarketClient.tsx` | 3,006 | ⚠️ Needs decomposition |
 | LocationMap | `components/dashboard/LocationMap.tsx` | 1,568 | ⚠️ Needs decomposition |
 | AnalyticsReportsClient | `components/dashboard/AnalyticsReportsClient.tsx` | ~245 | ✅ Report builder UI (saved reports + export actions) |
@@ -139,10 +147,10 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 
 ### Decomposition Targets
 
-**DashboardClient.tsx (2,915 → ~10 files):**
+**DashboardClient.tsx (2,852 → ~10 files):**
 ```
 DashboardClient.tsx        → ~150 lines (layout shell)
-DashboardHeader.tsx        → header bar, nav, notifications
+DashboardHeader.tsx        → ✅ DONE (~280 lines, shared by all pages)
 DashboardStatsGrid.tsx     → stat cards row
 DashboardProjectCards.tsx  → project carousel section
 DashboardActivityFeed.tsx  → activity section

@@ -1,6 +1,6 @@
 # Slate360 — Ongoing Issues & Known Tech Debt
 
-**Last Updated:** 2026-03-03  
+**Last Updated:** 2026-03-04 (Phase 0B decomposition: BUG-010/011/012/014 partially resolved)  
 **Maintained by:** Development team — update whenever a bug is discovered or fixed.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -8,7 +8,24 @@
 
 ## Critical / Blocking
 
-_No blocking issues at this time._
+| ID | Module | Description | Severity | Status |
+|---|---|---|---|---|
+| BUG-010 | Project Hub / Wizard | **Project Location Wizard — multiple failures:** (1) ~~Steps are missing or out of order~~ — steps verified correct; (2) Places Autocomplete returns 403 — **API key must have Places API (New) enabled in Google Cloud Console** (code-side fine); (3) ~~Premature wizard close~~ — fixed: `canAdvance` now requires location on step 3, `valueRef` eliminates stale closure in map click listener, `stopPropagation` on Enter prevents form bubbling. Remaining: Google Cloud Console key restriction. | Medium | 🟡 Partially Fixed |
+| BUG-011 | Dashboard / All Tabs | **Inconsistent top-bar navigation:** ~~Dashboard had duplicate custom header~~ — **FIXED.** Extracted `DashboardHeader` (`components/shared/DashboardHeader.tsx`, ~280 lines). Both `DashboardClient` and `DashboardTabShell` now use the same shared header with identical QuickNav, notifications, customize, and user menu. | High | ✅ Fixed |
+| BUG-012 | Dashboard / SlateDrop Widgets | **SlateDrop widget incorrect behavior:** (1) ~~When in a project Files tab, UI rendered as screen-within-a-screen~~ — **FIXED** via `embedded` prop on `SlateDropClient`; (2) Dashboard widget expanded + floating window now also pass `embedded`; (3) In-project widgets (Project Hub Tier 2) still need visual reconciliation. | Medium | 🟡 Partially Fixed |
+| BUG-013 | Project Hub | **Missing high-level analytics snapshot:** The Project Hub previously had a high-level analytics/snapshot section. This view has been lost. Should be restored as a dedicated section on the Project Hub main page or Tier 2 overview. | Medium | 🔴 Open |
+| BUG-014 | Dashboard / Project Creation | **"New Project" button context is wrong:** ~~Clicking "New Project" from the dashboard navigated to `/project-hub`~~ — **FIXED.** Both "New Project" buttons (header + carousel card) now open `CreateProjectWizard` inline on the dashboard with project creation + automatic widget data refresh on success. Future: per-module project wizards for Design Studio, etc. | Medium | ✅ Fixed |
+
+---
+
+## Console Errors (Logged 2026-03-03)
+
+| Error | Source | Root Cause | Fix |
+|---|---|---|---|
+| `Uncaught Error: Minified React error #418` | Hydration mismatch in production bundle | Server-rendered HTML differs from client render — likely a component that accesses `window`/`localStorage`/`Date` before hydration guard fires. Check `DashboardClient.tsx` and any widget using browser-only APIs outside guards. | Wrap browser-only reads in `useEffect` or behind `isClient` guard; never read `localStorage` during SSR. |
+| `Drawing library functionality in the Maps JavaScript API is deprecated` | Geospatial / LocationMap | `DrawingManager` still referenced somewhere — migration to custom `Polyline`/`Polygon` incomplete. | Audit all `google.maps.drawing` references; remove remaining `DrawingManager` usage before May 2026. |
+| `satellite and hybrid map types will no longer automatically switch to 45° Imagery` | Maps JavaScript API | Informational deprecation — no code change required yet, but note for future map version upgrades. | Monitor for Maps JS API version bump; no action needed now. |
+| `places.googleapis.com/…/AutocompletePlaces: 403 Forbidden` | `WizardLocationPicker.tsx` | **Google Cloud API key does not have "Places API (New)" enabled.** The new `AutocompleteSuggestion.fetchAutocompleteSuggestions()` API requires the Places API (New) to be explicitly enabled on the key in Google Cloud Console. The old `AutocompleteService` was previously enabled. | Enable "Places API (New)" in Google Cloud Console for the `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`. If key restrictions are in place, add the required API to the allowed list. |
 
 ---
 
@@ -78,6 +95,9 @@ _No blocking issues at this time._
 
 | ID | Date | Description |
 |---|---|---|
+| FIX-006 | Mar 2026 | **BUG-014 fixed:** Dashboard "New Project" opens `CreateProjectWizard` inline instead of navigating to `/project-hub` |
+| FIX-005 | Mar 2026 | **BUG-011 fixed:** Extracted `DashboardHeader` — unified top bar across dashboard home + all tab pages |
+| FIX-004 | Mar 2026 | **BUG-012 item 3 fixed:** `SlateDropClient` `embedded` prop eliminates screen-within-screen rendering in Files tab + dashboard widgets |
 | FIX-001 | Jan 2025 | Satellite map card pattern fixed (absolute div separation) |
 | FIX-002 | Jan 2025 | SlateDrop 3-dot menu + project banner + "Open in Project Hub" |
 | FIX-003 | Jan 2025 | AutocompleteService migration to new Places API |

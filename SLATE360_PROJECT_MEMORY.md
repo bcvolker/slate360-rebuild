@@ -216,6 +216,7 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 | `slate360-context/BACKEND.md` | Backend infra, auth, billing, credits, email |
 | `slate360-context/FUTURE_MODULES.md` | Design Studio, Content Studio, CEO, Athlete360, App Ecosystem, etc. |
 | `PROJECT_RUNTIME_ISSUE_LEDGER.md` | Runtime bug tracker (Issues 1-10, all resolved) |
+| `components/shared/DashboardHeader.tsx` | Unified top bar (dashboard home + all tabs) |
 | `lib/entitlements.ts` | Tier → entitlements (single source of truth) |
 | `lib/server/api-auth.ts` | `withAuth()`, `withProjectAuth()` |
 | `lib/server/api-response.ts` | `ok()`, `badRequest()`, `unauthorized()`, `serverError()` |
@@ -243,7 +244,7 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 ### What Needs Refactoring (Tech Debt)
 | Issue | Current | Target |
 |---|---|---|
-| `DashboardClient.tsx` | 2,915 lines | < 300 (decompose into ~10 files) |
+| `DashboardClient.tsx` | 2,852 lines | < 300 (decompose into ~10 files) |
 | `MarketClient.tsx` | 3,006 lines | < 300 (decompose into ~8 files) |
 | `SlateDropClient.tsx` | 2,030 lines | < 300 (decompose into ~7 files) |
 | `LocationMap.tsx` | 1,568 lines | < 300 (decompose into ~5 files) |

@@ -74,6 +74,10 @@ function Controller({
   const drawingVerticesRef = useRef<LatLng[]>([]);
   drawingVerticesRef.current = drawingVertices;
 
+  // Keep a ref so map event listeners never have stale `value` closures.
+  const valueRef = useRef(value);
+  useEffect(() => { valueRef.current = value; }, [value]);
+
   // Sync input when address changes externally
   useEffect(() => {
     setInput(value.address);
@@ -139,20 +143,19 @@ function Controller({
       }
 
       if (currentTool === "select" || currentTool === "marker") {
-        onChange({ ...value, lat: la, lng: lo });
+        onChange({ ...valueRef.current, lat: la, lng: lo });
         if (geocoder) {
           geocoder.geocode({ location: { lat: la, lng: lo } }).then((r) => {
             const addr = r.results[0]?.formatted_address ?? `${la.toFixed(5)}, ${lo.toFixed(5)}`;
             setInput(addr);
-            onChange({ ...value, address: addr, lat: la, lng: lo });
+            onChange({ ...valueRef.current, address: addr, lat: la, lng: lo });
           }).catch(() => {});
         }
         if (currentTool === "marker") { setTool("select"); toolRef.current = "select"; }
       }
     });
     return () => (listener as google.maps.MapsEventListener).remove();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, geocoder, onChange, value]);
+  }, [map, geocoder, onChange]);
 
   // Cleanup preview overlays on unmount
   useEffect(() => {
@@ -182,7 +185,7 @@ function Controller({
     });
     const centLat = verts.reduce((s, p) => s + p.lat, 0) / verts.length;
     const centLng = verts.reduce((s, p) => s + p.lng, 0) / verts.length;
-    onChange({ ...value, lat: centLat, lng: centLng, boundary: verts });
+    onChange({ ...valueRef.current, lat: centLat, lng: centLng, boundary: verts });
     if (geocoder) {
       geocoder.geocode({ location: { lat: centLat, lng: centLng } }).then((r) => {
         const addr = r.results[0]?.formatted_address;
@@ -190,7 +193,7 @@ function Controller({
       }).catch(() => {});
     }
     setTool("select"); toolRef.current = "select";
-  }, [map, onChange, value, geocoder, clearPreview]);
+  }, [map, onChange, geocoder, clearPreview]);
 
   const selectSuggestion = useCallback(
     async (s: { placeId: string; description: string }) => {
@@ -203,11 +206,11 @@ function Controller({
           const la = loc.lat(); const lo = loc.lng();
           const addr = res.results[0].formatted_address;
           setInput(addr); map.panTo({ lat: la, lng: lo }); map.setZoom(16);
-          onChange({ ...value, address: addr, lat: la, lng: lo });
+          onChange({ ...valueRef.current, address: addr, lat: la, lng: lo });
         }
       } catch {}
       setResolving(false);
-    }, [geocoder, map, onChange, value]
+    }, [geocoder, map, onChange]
   );
 
   const searchAddress = useCallback(async () => {
@@ -220,11 +223,11 @@ function Controller({
         const la = loc.lat(); const lo = loc.lng();
         const addr = res.results[0].formatted_address;
         setInput(addr); map.panTo({ lat: la, lng: lo }); map.setZoom(16);
-        onChange({ ...value, address: addr, lat: la, lng: lo });
+        onChange({ ...valueRef.current, address: addr, lat: la, lng: lo });
       }
     } catch {}
     setResolving(false);
-  }, [geocoder, map, input, onChange, value]);
+  }, [geocoder, map, input, onChange]);
 
   const isDrawingPolygon = toolRef.current === ("polygondraw" as DrawTool);
 
@@ -262,7 +265,7 @@ function Controller({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") { e.preventDefault(); void searchAddress(); }
+                if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); void searchAddress(); }
                 if (e.key === "Escape") setSuggestions([]);
               }}
               placeholder="Search address or coordinates…"

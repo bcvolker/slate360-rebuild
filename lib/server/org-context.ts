@@ -70,25 +70,6 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
 
   const isSlateCeo = user.email === "slate360ceo@gmail.com";
 
-  // Query slate360_staff table — grants access to internal tabs for Slate360 employees.
-  // Graceful fallback if table doesn't exist yet (it's a planned table).
-  let isSlateStaff = false;
-  if (!isSlateCeo && user.email) {
-    try {
-      const { data: staffRow } = await admin
-        .from("slate360_staff")
-        .select("id")
-        .eq("email", user.email)
-        .maybeSingle();
-      isSlateStaff = !!staffRow;
-    } catch {
-      // Table hasn't been created yet — silently ignore
-      isSlateStaff = false;
-    }
-  }
-
-  const hasInternalAccess = isSlateCeo || isSlateStaff;
-
   try {
     const { data } = await admin
       .from("organization_members")
@@ -107,8 +88,8 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
         role: null,
         isAdmin: false,
         isSlateCeo,
-        isSlateStaff,
-        hasInternalAccess,
+        isSlateStaff: false,
+        hasInternalAccess: isSlateCeo,
       };
     }
 
@@ -141,8 +122,8 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
       role,
       isAdmin,
       isSlateCeo,
-      isSlateStaff,
-      hasInternalAccess,
+      isSlateStaff: false,
+      hasInternalAccess: isSlateCeo,
     };
   } catch {
     return {
@@ -153,8 +134,8 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
       role: null,
       isAdmin: false,
       isSlateCeo,
-      isSlateStaff,
-      hasInternalAccess,
+      isSlateStaff: false,
+      hasInternalAccess: isSlateCeo,
     };
   }
 }

@@ -61,7 +61,10 @@ export default function CreateProjectWizard({
 
   if (!open) return null;
 
-  const canAdvance = step === 1 ? name.trim().length > 0 : true;
+  const canAdvance =
+    step === 1 ? name.trim().length > 0 :
+    step === 3 ? (location.lat !== null || location.address.trim().length > 0) :
+    true;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();

@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
-import QuickNav from "@/components/shared/QuickNav";
+import DashboardHeader from "@/components/shared/DashboardHeader";
 import SlateDropClient from "@/components/slatedrop/SlateDropClient";
+import CreateProjectWizard, { type CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
 import MarketClient from "@/components/dashboard/MarketClient";
 import DashboardProjectCard from "@/components/dashboard/DashboardProjectCard";
 import LocationMap from "./LocationMap";
@@ -30,14 +31,12 @@ import {
 import {
   Search,
   Bell,
-  LogOut,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Plus,
   ArrowRight,
   Activity,
-  CreditCard,
   TrendingUp,
   Calendar as CalendarIcon,
   Users,
@@ -71,7 +70,6 @@ import {
   User,
   Shield,
   LayoutDashboard,
-  SlidersHorizontal,
   GripVertical,
   Eye,
   EyeOff,
@@ -83,6 +81,7 @@ import {
   X,
   Home,
   Plug,
+  CreditCard,
 } from "lucide-react";
 
 /* ================================================================
@@ -517,7 +516,6 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
 
   const [selectedProject, setSelectedProject] = useState("all");
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
   const [calYear, setCalYear] = useState(new Date().getFullYear());
   const [calSelected, setCalSelected] = useState<string | null>(null);
@@ -541,6 +539,8 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
   const [billingBusy, setBillingBusy] = useState<"portal" | "credits" | "upgrade" | null>(null);
   const [billingError, setBillingError] = useState<string | null>(null);
   const [billingNotice, setBillingNotice] = useState<{ ok: boolean; text: string } | null>(null);
+  const [createWizardOpen, setCreateWizardOpen] = useState(false);
+  const [wizardCreating, setWizardCreating] = useState(false);
   const [accountOverview, setAccountOverview] = useState<AccountOverview | null>(null);
   const [accountLoading, setAccountLoading] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
@@ -554,7 +554,6 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
   const [prefNotification, setPrefNotification] = useState<"off" | "daily" | "weekly">("daily");
   const [prefImportantAlerts, setPrefImportantAlerts] = useState(true);
   const [prefShowDashboardTiles, setPrefShowDashboardTiles] = useState(true);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState<InboxNotification[]>([]);
 
@@ -645,10 +644,6 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
     }
   }, [supabase]);
 
-  useEffect(() => {
-    if (!notificationsOpen) return;
-    void loadUnreadNotifications();
-  }, [notificationsOpen, loadUnreadNotifications]);
 
   function openWidgetPopout(widgetId: string) {
     const isMobile = window.innerWidth < 768;
@@ -965,11 +960,6 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
     carouselRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
   }, []);
 
-  const handleSignOut = useCallback(async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
-  }, [supabase]);
-
   const launchBillingFlow = useCallback(async (endpoint: string, body?: Record<string, unknown>) => {
     const res = await fetch(endpoint, {
       method: "POST",
@@ -1268,158 +1258,19 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
 
   return (
     <div className="min-h-screen bg-[#ECEEF2] overflow-x-hidden">
-      {/* ════════ TOP BAR ════════ */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
-          {/* Left — Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2.5 shrink-0">
-            <img src="/logo.svg" alt="Slate360" className="h-6 sm:h-7 w-auto" />
-          </Link>
-
-          {/* Center — Search (desktop only) */}
-          <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search projects, files, contacts…"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] text-sm transition-all"
-              />
-            </div>
-          </div>
-
-          {/* Right — Nav + Notifications + Customize + User (compact on mobile) */}
-          <div className="flex items-center gap-1.5 sm:gap-3">
-            {/* QuickNav dropdown */}
-            <QuickNav tier={ent.tier} isCeo={hasCeoAccess} />
-
-            {/* Notifications */}
-            <div className="relative">
-              <button
-                onClick={() => setNotificationsOpen((v) => !v)}
-                className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
-              >
-                <Bell size={18} />
-                {unreadNotifications.length > 0 ? (
-                  <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-[#FF4D00]" />
-                ) : null}
-              </button>
-              {notificationsOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setNotificationsOpen(false)} />
-                  <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
-                  <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-                    <p className="text-sm font-bold text-gray-900">Notifications</p>
-                    <button
-                      onClick={() => void loadUnreadNotifications()}
-                      className="text-xs font-semibold text-[#FF4D00] hover:opacity-80"
-                    >
-                      Refresh
-                    </button>
-                  </div>
-
-                  <div className="max-h-[360px] overflow-y-auto">
-                    {notificationsLoading ? (
-                      <div className="px-4 py-6 text-sm text-gray-500">
-                        <Loader2 size={14} className="mr-2 inline animate-spin" /> Loading…
-                      </div>
-                    ) : unreadNotifications.length === 0 ? (
-                      <div className="px-4 py-6 text-sm text-gray-500">No unread alerts.</div>
-                    ) : (
-                      unreadNotifications.map((notification) => (
-                        <Link
-                          key={notification.id}
-                          href={notification.link_path || `/project-hub/${notification.project_id}`}
-                          onClick={() => setNotificationsOpen(false)}
-                          className="block border-b border-gray-50 px-4 py-3 hover:bg-gray-50"
-                        >
-                          <p className="text-sm font-semibold text-gray-800">{notification.title}</p>
-                          <p className="mt-0.5 text-xs text-gray-600">{notification.message}</p>
-                          <p className="mt-1 text-[11px] text-gray-400">{new Date(notification.created_at).toLocaleString()}</p>
-                        </Link>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-            </div>
-
-            {/* Customize */}
-            <button
-              onClick={() => setCustomizeOpen(true)}
-              title="Customize dashboard"
-              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-[#FF4D00] transition-colors"
-            >
-              <SlidersHorizontal size={18} />
-              {prefsDirty && <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-amber-400" />}
-            </button>
-
-            {/* User avatar / menu */}
-            <div className="relative">
-              <button
-                onClick={() => setUserMenuOpen((v) => !v)}
-                className="flex items-center gap-1.5 sm:gap-2.5 p-1 sm:pl-2 sm:pr-3 sm:py-1.5 rounded-xl hover:bg-gray-100 transition-colors"
-              >
-                {user.avatar ? (
-                  <img src={user.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-[#1E3A8A] flex items-center justify-center text-white text-xs font-bold">
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="hidden sm:block text-left">
-                  <p className="text-xs font-semibold text-gray-900 leading-tight">{user.name}</p>
-                  <p className="text-[10px] text-gray-400 leading-tight">{ent.label} plan</p>
-                </div>
-                <ChevronDown size={14} className="hidden sm:block text-gray-400" />
-              </button>
-
-              {userMenuOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                  <div className="absolute right-0 top-12 w-56 bg-white rounded-xl border border-gray-100 shadow-xl z-50 overflow-hidden">
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-900">{user.name}</p>
-                      <p className="text-xs text-gray-400 truncate">{user.email}</p>
-                      <span
-                        className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white"
-                        style={{ backgroundColor: "#FF4D00" }}
-                      >
-                        {ent.label}
-                      </span>
-                    </div>
-                    <div className="py-1">
-                      <Link
-                        href="/dashboard"
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-                        onClick={() => setUserMenuOpen(false)}
-                      >
-                        <Activity size={15} /> My Account
-                      </Link>
-                      <button
-                        onClick={handleOpenBillingPortal}
-                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-                      >
-                        {billingBusy === "portal" ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
-                        Billing & Payments
-                      </button>
-                      <button
-                        onClick={handleSignOut}
-                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
-                      >
-                        <LogOut size={15} /> Sign out
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader
+        user={user}
+        tier={tier}
+        isCeo={hasCeoAccess}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search projects, files, contacts…"
+        prefsDirty={prefsDirty}
+        onCustomizeOpen={() => setCustomizeOpen(true)}
+        notifications={unreadNotifications}
+        notificationsLoading={notificationsLoading}
+        onRefreshNotifications={loadUnreadNotifications}
+      />
 
       {/* ════════ MAIN CONTENT ════════ */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden">
@@ -1605,9 +1456,13 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
                   </>
                 )}
               </div>
-              <Link href="/project-hub" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: "#FF4D00" }}>
+              <button
+                onClick={() => setCreateWizardOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
+                style={{ backgroundColor: "#FF4D00" }}
+              >
                 <Plus size={13} /> New Project
-              </Link>
+              </button>
               <button onClick={() => scrollCarousel(-1)} className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                 <ChevronLeft size={16} />
               </button>
@@ -1644,12 +1499,16 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
             )}
 
             {/* + New Project card */}
-            <Link href="/project-hub" className="snap-start shrink-0 w-[300px] h-[200px] rounded-2xl border-2 border-dashed border-gray-200 hover:border-[#FF4D00] flex flex-col items-center justify-center gap-3 text-gray-400 hover:text-[#FF4D00] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white/50">
+            <button
+              type="button"
+              onClick={() => setCreateWizardOpen(true)}
+              className="snap-start shrink-0 w-[300px] h-[200px] rounded-2xl border-2 border-dashed border-gray-200 hover:border-[#FF4D00] flex flex-col items-center justify-center gap-3 text-gray-400 hover:text-[#FF4D00] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white/50"
+            >
               <div className="w-14 h-14 rounded-2xl border-2 border-dashed border-current flex items-center justify-center">
                 <Plus size={24} />
               </div>
               <span className="text-sm font-semibold">New Project</span>
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -1761,7 +1620,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
               )}
               {isExpanded && (
                 <div className="flex-1 min-h-0 -mx-6 -mb-6 overflow-hidden border-t border-gray-100">
-                  <SlateDropClient user={user} tier={tier} />
+                  <SlateDropClient user={user} tier={tier} embedded />
                 </div>
               )}
             </div>
@@ -2934,7 +2793,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
           {/* ── Embedded SlateDropClient ── */}
           {!sdMinimized && (
             <div className="flex-1 overflow-hidden">
-              <SlateDropClient user={user} tier={tier} />
+              <SlateDropClient user={user} tier={tier} embedded />
             </div>
           )}
 
@@ -2950,6 +2809,44 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
           )}
         </div>
       )}
+
+      {/* ── Create Project Wizard ── */}
+      <CreateProjectWizard
+        open={createWizardOpen}
+        creating={wizardCreating}
+        error={null}
+        onClose={() => setCreateWizardOpen(false)}
+        onSubmit={async (payload: CreateProjectPayload) => {
+          setWizardCreating(true);
+          try {
+            const res = await fetch("/api/projects/create", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            if (res.ok) {
+              setCreateWizardOpen(false);
+              // Refresh the projects widget
+              fetch("/api/dashboard/widgets", { cache: "no-store" })
+                .then((r) => r.json())
+                .then((data) => {
+                  if (!data.error) {
+                    setWidgetsData({
+                      projects: Array.isArray(data.projects) ? data.projects : [],
+                      jobs: Array.isArray(data.jobs) ? data.jobs : [],
+                      financial: Array.isArray(data.financial) ? data.financial : [],
+                      continueWorking: Array.isArray(data.continueWorking) ? data.continueWorking : [],
+                      seats: Array.isArray(data.seats) ? data.seats : [],
+                    });
+                  }
+                })
+                .catch(console.error);
+            }
+          } finally {
+            setWizardCreating(false);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 # Slate360 — Code Guardrails & Refactoring Rules
 
-**Last Updated:** 2026-03-03
+**Last Updated:** 2026-03-04
 **Context Maintenance:** Update this file when new guardrails are established, known violations are fixed, or DB tables are added.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -75,12 +75,12 @@ All new dashboard tab pages MUST use `DashboardTabShell` from `components/shared
 | File | Lines | Action |
 |---|---|---|
 | `MarketClient.tsx` | 3,006 | Decompose into ~8 files |
-| `DashboardClient.tsx` | 2,915 | Decompose into ~10 files |
+| `DashboardClient.tsx` | 2,852 | Decompose into ~10 files (header extracted to DashboardHeader) |
 | `SlateDropClient.tsx` | 2,030 | Decompose into ~7 files |
 | `LocationMap.tsx` | 1,568 | Decompose into ~5 files |
 | `ProjectDashboardGrid.tsx` | 524 | Extract widget renderers |
 | `WidgetBodies.tsx` | 475 | Extract per-widget body files |
-| `WizardLocationPicker.tsx` | 390 | Extract map/search sub-components |
+| `WizardLocationPicker.tsx` | 394 | Extract map/search sub-components |
 | `ProjectFileExplorer.tsx` | 363 | Extract list/grid views |
 
 **Pages (9 files over limit):**
