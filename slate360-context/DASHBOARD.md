@@ -142,7 +142,7 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 |---|---|---|---|
 | DashboardHeader | `components/shared/DashboardHeader.tsx` | ~280 | ✅ NEW — unified top bar (dashboard home + all tabs) |
 | DashboardTabShell | `components/shared/DashboardTabShell.tsx` | ~94 | ✅ Shared scaffold (uses DashboardHeader, light theme, isCeo) |
-| DashboardClient | `components/dashboard/DashboardClient.tsx` | ~2,176 | ⚠️ Needs decomposition (header extracted; runtime data + floating window + widget prefs + multiple widget views moved to hooks/components) |
+| DashboardClient | `components/dashboard/DashboardClient.tsx` | ~2,134 | ⚠️ Needs decomposition (header extracted; runtime data + floating window + widget prefs + multiple widget views moved to hooks/components) |
 | DashboardWidgetGrid | `components/dashboard/DashboardWidgetGrid.tsx` | 41 | ✅ Extracted grid shell for draggable widget cards |
 | DashboardWidgetPopout | `components/dashboard/DashboardWidgetPopout.tsx` | 102 | ✅ Extracted widget popout frame/shell |
 | DashboardDataUsageWidget | `components/dashboard/DashboardDataUsageWidget.tsx` | 124 | ✅ Extracted data-usage widget view |
@@ -151,6 +151,7 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 | DashboardCalendarWidget | `components/dashboard/DashboardCalendarWidget.tsx` | 218 | ✅ Extracted calendar widget view |
 | DashboardWeatherWidget | `components/dashboard/DashboardWeatherWidget.tsx` | 176 | ✅ Extracted weather widget view |
 | DashboardContinueWidget | `components/dashboard/DashboardContinueWidget.tsx` | 81 | ✅ Extracted continue-working widget view |
+| DashboardSuggestWidget | `components/dashboard/DashboardSuggestWidget.tsx` | 105 | ✅ Extracted suggest-feature widget view |
 | MarketClient | `components/dashboard/MarketClient.tsx` | 3,006 | ⚠️ Needs decomposition |
 | LocationMap | `components/dashboard/LocationMap.tsx` | 1,568 | ⚠️ Needs decomposition |
 | AnalyticsReportsClient | `components/dashboard/AnalyticsReportsClient.tsx` | ~245 | ✅ Report builder UI (saved reports + export actions) |
@@ -175,6 +176,7 @@ DashboardFinancialWidget.tsx → ✅ STARTED (financial snapshot widget view)
 DashboardCalendarWidget.tsx → ✅ STARTED (calendar widget view)
 DashboardWeatherWidget.tsx → ✅ STARTED (weather widget view)
 DashboardContinueWidget.tsx → ✅ STARTED (continue-working widget view)
+DashboardSuggestWidget.tsx → ✅ STARTED (suggest-feature widget view)
 DashboardStatsGrid.tsx     → stat cards row
 DashboardProjectCards.tsx  → project carousel section
 DashboardActivityFeed.tsx  → activity section

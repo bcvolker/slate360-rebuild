@@ -14,6 +14,7 @@ import DashboardCalendarWidget from "@/components/dashboard/DashboardCalendarWid
 import DashboardContinueWidget from "@/components/dashboard/DashboardContinueWidget";
 import DashboardFinancialWidget from "@/components/dashboard/DashboardFinancialWidget";
 import DashboardProcessingWidget from "@/components/dashboard/DashboardProcessingWidget";
+import DashboardSuggestWidget from "@/components/dashboard/DashboardSuggestWidget";
 import DashboardWeatherWidget from "@/components/dashboard/DashboardWeatherWidget";
 import DashboardWidgetGrid from "@/components/dashboard/DashboardWidgetGrid";
 import DashboardWidgetPopout from "@/components/dashboard/DashboardWidgetPopout";
@@ -53,14 +54,12 @@ import {
   Calendar as CalendarIcon,
   Users,
   Cloud,
-  Lightbulb,
   Clock,
   Cpu,
   FolderOpen, FolderKanban,
   BarChart3,
   Zap,
   MapPin,
-  Send,
   CheckCircle2,
   XCircle,
   Loader2,
@@ -516,7 +515,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
   const [contactSearch, setContactSearch] = useState("");
   const [suggestTitle, setSuggestTitle] = useState("");
   const [suggestDesc, setSuggestDesc] = useState("");
-  const [suggestPriority, setSuggestPriority] = useState("medium");
+  const [suggestPriority, setSuggestPriority] = useState<"low" | "medium" | "high">("medium");
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [suggestDone, setSuggestDone] = useState(false);
   const [weatherLogged, setWeatherLogged] = useState(false);
@@ -1404,64 +1403,21 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
           );
 
               case "suggest": return (
-          <WidgetCard key={id} icon={Lightbulb} title="Suggest a Feature" span={span} delay={350} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}>
-            {suggestDone ? (
-              <div className="text-center py-6">
-                <CheckCircle2 size={32} className="mx-auto mb-3 text-emerald-500" />
-                <p className="text-sm font-semibold text-gray-900 mb-1">Thank you!</p>
-                <p className="text-xs text-gray-400">Your suggestion has been sent to our team.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Title</label>
-                  <input
-                    type="text"
-                    placeholder="What feature would you like?"
-                    value={suggestTitle}
-                    onChange={(e) => setSuggestTitle(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Description</label>
-                  <textarea
-                    placeholder="Tell us more about what you need…"
-                    value={suggestDesc}
-                    onChange={(e) => setSuggestDesc(e.target.value)}
-                    rows={3}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all resize-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Priority</label>
-                  <div className="flex gap-2">
-                    {(["low", "medium", "high"] as const).map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => setSuggestPriority(p)}
-                        className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-all capitalize ${
-                          suggestPriority === p
-                            ? "border-[#FF4D00] bg-[#FF4D00]/5 text-[#FF4D00]"
-                            : "border-gray-200 text-gray-500 hover:bg-gray-50"
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <button
-                  onClick={handleSuggestFeature}
-                  disabled={suggestLoading || !suggestTitle.trim() || !suggestDesc.trim()}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: "#FF4D00" }}
-                >
-                  {suggestLoading ? <Loader2 size={14} className="animate-spin" /> : <><Send size={14} /> Submit suggestion</>}
-                </button>
-              </div>
-            )}
-          </WidgetCard>
+          <DashboardSuggestWidget
+            span={span}
+            widgetColor={widgetColor}
+            widgetSize={widgetSize}
+            onSetSize={handleSetSize}
+            suggestDone={suggestDone}
+            suggestTitle={suggestTitle}
+            suggestDesc={suggestDesc}
+            suggestPriority={suggestPriority}
+            suggestLoading={suggestLoading}
+            onTitleChange={setSuggestTitle}
+            onDescChange={setSuggestDesc}
+            onPriorityChange={setSuggestPriority}
+            onSubmit={handleSuggestFeature}
+          />
           );
 
               case "seats": return (

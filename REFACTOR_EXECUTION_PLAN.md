@@ -65,6 +65,7 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
    - ✅ Continued Dashboard decomposition by extracting `calendar` widget view to `components/dashboard/DashboardCalendarWidget.tsx`
    - ✅ Continued Dashboard decomposition by extracting `weather` widget view to `components/dashboard/DashboardWeatherWidget.tsx`
    - ✅ Continued Dashboard decomposition by extracting `continue` widget view to `components/dashboard/DashboardContinueWidget.tsx`
+   - ✅ Continued Dashboard decomposition by extracting `suggest` widget view to `components/dashboard/DashboardSuggestWidget.tsx`
    - Continue DashboardClient decomposition
 
 4. **Slice D**
@@ -103,10 +104,11 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Continued Dashboard decomposition tranche by extracting `calendar` widget render case into `components/dashboard/DashboardCalendarWidget.tsx`; reduced `DashboardClient.tsx` from 2350 → 2276 lines.
 - 2026-03-04: Continued Dashboard decomposition tranche by extracting `weather` widget render case into `components/dashboard/DashboardWeatherWidget.tsx`; reduced `DashboardClient.tsx` from 2276 → 2206 lines.
 - 2026-03-04: Continued Dashboard decomposition tranche by extracting `continue` widget render case into `components/dashboard/DashboardContinueWidget.tsx`; reduced `DashboardClient.tsx` from 2206 → 2176 lines.
+- 2026-03-04: Continued Dashboard decomposition tranche by extracting `suggest` widget render case into `components/dashboard/DashboardSuggestWidget.tsx`; reduced `DashboardClient.tsx` from 2176 → 2134 lines.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~1–4 focused prompts, approximately 1–2 weeks at current pace.
-- **Estimated remaining prompts:** ~1–4 to reach broad “code optimized” state across Dashboard decomposition + BUG-018 migration.
+- **Remaining window:** ~1–3 focused prompts, approximately 1–2 weeks at current pace.
+- **Estimated remaining prompts:** ~1–3 to reach broad “code optimized” state across Dashboard decomposition + BUG-018 migration.
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.
 
 ## New-Chat Continuation Protocol (Canonical Resume Block)
