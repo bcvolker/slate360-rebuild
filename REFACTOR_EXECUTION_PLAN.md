@@ -45,6 +45,7 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
    - ✅ Extracted SlateDrop pure helpers/tree utilities to `lib/slatedrop/client-utils.ts`
    - ✅ Extracted SlateDrop toast/upload-progress overlay to `components/slatedrop/SlateDropNotificationsOverlay.tsx`
    - ✅ Extracted SlateDrop transfer handlers hook to `lib/hooks/useSlateDropTransferActions.ts`
+   - ✅ Extracted SlateDrop mutation handlers hook to `lib/hooks/useSlateDropMutationActions.ts`
    - 🔄 Keep narrowing `SlateDropClient` to layout/orchestration shell
 
 3. **Slice C**
@@ -71,7 +72,8 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Completed helper extraction into `lib/slatedrop/client-utils.ts`; `SlateDropClient` now imports shared formatting/icon/tree/path utilities and dropped duplicated inline helper blocks.
 - 2026-03-04: Completed notifications overlay extraction into `components/slatedrop/SlateDropNotificationsOverlay.tsx`; `SlateDropClient` now delegates toast and upload-progress UI.
 - 2026-03-04: Completed transfer-actions hook extraction into `lib/hooks/useSlateDropTransferActions.ts`; `SlateDropClient` now delegates download/zip/clipboard/secure-send handlers.
+- 2026-03-04: Completed mutation-actions hook extraction into `lib/hooks/useSlateDropMutationActions.ts`; `SlateDropClient` now delegates create/rename/delete/move handlers for folders/files/projects.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~1–4 focused prompts, approximately 0.2–0.6 weeks at current pace.
+- **Remaining window:** ~1–3 focused prompts, approximately 0.15–0.45 weeks at current pace.
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.
