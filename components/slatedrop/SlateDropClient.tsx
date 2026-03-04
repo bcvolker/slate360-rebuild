@@ -20,6 +20,7 @@ import { useSlateDropFiles, type SlateDropFileItem } from "@/lib/hooks/useSlateD
 import { useSlateDropUiState } from "@/lib/hooks/useSlateDropUiState";
 import { useSlateDropTransferActions } from "@/lib/hooks/useSlateDropTransferActions";
 import { useSlateDropMutationActions } from "@/lib/hooks/useSlateDropMutationActions";
+import { useSlateDropInteractionHandlers } from "@/lib/hooks/useSlateDropInteractionHandlers";
 import SlateDropContextMenu from "@/components/slatedrop/SlateDropContextMenu";
 import SlateDropActionModals from "@/components/slatedrop/SlateDropActionModals";
 import SlateDropSharePreviewModals from "@/components/slatedrop/SlateDropSharePreviewModals";
@@ -394,65 +395,32 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
   }, [activeFolderId, breadcrumb, showToast, refreshFolderFiles]);
 
   /* ── Handlers ── */
-  const toggleExpand = useCallback((id: string) => {
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const handleContextMenu = useCallback(
-    (e: React.MouseEvent, target: SlateDropItem) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setContextMenu({ x: e.clientX, y: e.clientY, target });
+  const {
+    toggleExpand,
+    handleContextMenu,
+    handleSignOut,
+    handleDrop,
+    handleDragOver,
+    handleDragLeave,
+    toggleSort,
+    toggleFileSelect,
+  } = useSlateDropInteractionHandlers({
+    sortKey,
+    setExpandedIds,
+    openContextMenu: (x, y, target) => {
+      setContextMenu({ x, y, target: target as SlateDropItem });
     },
-    []
-  );
-
-  const closeContextMenu = useCallback(() => setContextMenu(null), []);
-
-  const handleSignOut = useCallback(async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
-  }, [supabase]);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const files = e.dataTransfer.files;
-    if (files.length > 0) uploadFiles(files);
-  }, [uploadFiles]);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(true);
-  }, []);
-
-  const handleDragLeave = useCallback(() => setDragOver(false), []);
-
-  const toggleSort = useCallback((key: SortKey) => {
-    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    else { setSortKey(key); setSortDir("asc"); }
-  }, [sortKey]);
-
-  const toggleFileSelect = useCallback((id: string) => {
-    setSelectedFiles((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  // Close context menu on any click
-  useEffect(() => {
-    const handler = () => setContextMenu(null);
-    window.addEventListener("click", handler);
-    return () => window.removeEventListener("click", handler);
-  }, []);
+    clearContextMenu: () => setContextMenu(null),
+    setDragOver,
+    uploadFiles,
+    setSortKey,
+    setSortDir,
+    setSelectedFiles,
+    signOutAction: async () => {
+      await supabase.auth.signOut();
+      window.location.href = "/login";
+    },
+  });
 
   /* ================================================================
      RENDER
@@ -595,7 +563,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
         activeFolderId={activeFolderId}
         currentFiles={currentFiles.map((file) => ({ id: file.id, name: file.name }))}
         sandboxProjects={sandboxProjects.map((project) => ({ id: project.id }))}
-        onClose={closeContextMenu}
+        onClose={() => setContextMenu(null)}
         onOpenFolder={(folderId) => setActiveFolderId(folderId)}
         onOpenProjectHub={(projectId) => { window.location.href = `/project-hub/${projectId}`; }}
         onDownloadFile={handleDownloadFile}
