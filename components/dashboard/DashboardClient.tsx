@@ -11,6 +11,7 @@ import MarketClient from "@/components/dashboard/MarketClient";
 import DashboardProjectCard from "@/components/dashboard/DashboardProjectCard";
 import DashboardDataUsageWidget from "@/components/dashboard/DashboardDataUsageWidget";
 import DashboardCalendarWidget from "@/components/dashboard/DashboardCalendarWidget";
+import DashboardContinueWidget from "@/components/dashboard/DashboardContinueWidget";
 import DashboardFinancialWidget from "@/components/dashboard/DashboardFinancialWidget";
 import DashboardProcessingWidget from "@/components/dashboard/DashboardProcessingWidget";
 import DashboardWeatherWidget from "@/components/dashboard/DashboardWeatherWidget";
@@ -1349,44 +1350,13 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
           );
 
               case "continue": return (
-          <WidgetCard key={id} icon={Clock} title="Continue Working" span={span} delay={250} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
-            <Link href="/dashboard" className="text-[11px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-0.5">
-              View all <ArrowRight size={11} />
-            </Link>
-          }>
-            <div className="space-y-2">
-              {liveContinueWorking.map((item, i) => {
-                const Icon = item.kind === "design"
-                  ? Palette
-                  : item.kind === "tour"
-                    ? Compass
-                    : item.kind === "rfi"
-                      ? MessageSquare
-                      : item.kind === "report"
-                        ? BarChart3
-                        : FileText;
-                return (
-                  <Link
-                    key={i}
-                    href={item.href}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 group-hover:text-[#FF4D00] transition-colors">
-                      <Icon size={16} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-gray-900 truncate group-hover:text-[#FF4D00] transition-colors">{item.title}</p>
-                      <p className="text-[10px] text-gray-400 truncate">{item.subtitle}</p>
-                    </div>
-                    <span className="text-[10px] text-gray-300 shrink-0">{item.time}</span>
-                  </Link>
-                );
-              })}
-              {liveContinueWorking.length === 0 && (
-                <div className="text-center py-4 text-xs text-gray-400">No recent activity yet</div>
-              )}
-            </div>
-          </WidgetCard>
+          <DashboardContinueWidget
+            span={span}
+            widgetColor={widgetColor}
+            widgetSize={widgetSize}
+            onSetSize={handleSetSize}
+            items={liveContinueWorking}
+          />
           );
 
               case "contacts": return (
