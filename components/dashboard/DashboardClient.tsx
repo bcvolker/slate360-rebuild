@@ -30,6 +30,7 @@ import {
   WIDGET_PREFS_SCHEMA_VERSION,
 } from "@/components/widgets/widget-prefs-storage";
 import { useDashboardRuntimeData } from "@/lib/hooks/useDashboardRuntimeData";
+import { useDashboardFloatingWindows } from "@/lib/hooks/useDashboardFloatingWindows";
 import {
   Search,
   Bell,
@@ -568,64 +569,36 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
     setWidgetPrefs(storedPrefs);
   }, []);
 
-  // ── SlateDrop floating window ───────────────────────────────
-  const [slateDropOpen, setSlateDropOpen] = useState(false);
-  const [sdMinimized, setSdMinimized] = useState(false);
-  const [sdPos, setSdPos] = useState({ x: 0, y: 0 });
-  const [sdSize, setSdSize] = useState({ w: 1000, h: 680 });
-  const [sdIsMobile, setSdIsMobile] = useState(false);
-  const sdDragMode = useRef<"title" | "resize" | null>(null);
-  const sdDragStart = useRef({ clientX: 0, clientY: 0, startX: 0, startY: 0, startW: 0, startH: 0 });
-
-  const [widgetPopoutId, setWidgetPopoutId] = useState<string | null>(null);
-  const [wdMinimized, setWdMinimized] = useState(false);
-  const [wdPos, setWdPos] = useState({ x: 0, y: 0 });
-  const [wdSize, setWdSize] = useState({ w: 900, h: 640 });
-  const [wdIsMobile, setWdIsMobile] = useState(false);
-  const wdDragMode = useRef<"title" | "resize" | null>(null);
-  const wdDragStart = useRef({ clientX: 0, clientY: 0, startX: 0, startY: 0, startW: 0, startH: 0 });
-
-  function openSlateDrop() {
-    const isMobile = window.innerWidth < 768;
-    setSdIsMobile(isMobile);
-    if (isMobile) {
-      setSdPos({ x: 0, y: 0 });
-      setSdSize({ w: window.innerWidth, h: window.innerHeight });
-      setSdMinimized(false);
-      setSlateDropOpen(true);
-      return;
-    }
-    setSdPos({
-      x: Math.max(0, (window.innerWidth - 1000) / 2),
-      y: Math.max(10, (window.innerHeight - 680) / 4),
-    });
-    setSdSize({ w: 1000, h: 680 });
-    setSdMinimized(false);
-    setSlateDropOpen(true);
-  }
-
-  function onSdTitleDown(e: React.PointerEvent) {
-    sdDragMode.current = "title";
-    sdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: sdPos.x, startY: sdPos.y, startW: sdSize.w, startH: sdSize.h };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  }
-  function onSdResizeDown(e: React.PointerEvent) {
-    sdDragMode.current = "resize";
-    sdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: sdPos.x, startY: sdPos.y, startW: sdSize.w, startH: sdSize.h };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    e.stopPropagation();
-  }
-  function onSdPointerMove(e: React.PointerEvent) {
-    if (!sdDragMode.current) return;
-    const dx = e.clientX - sdDragStart.current.clientX;
-    const dy = e.clientY - sdDragStart.current.clientY;
-    if (sdDragMode.current === "title") {
-      setSdPos({ x: sdDragStart.current.startX + dx, y: sdDragStart.current.startY + dy });
-    } else {
-      setSdSize({ w: Math.max(560, sdDragStart.current.startW + dx), h: Math.max(420, sdDragStart.current.startH + dy) });
-    }
-  }
-  function onSdPointerUp() { sdDragMode.current = null; }
+  const {
+    slateDropOpen,
+    setSlateDropOpen,
+    sdMinimized,
+    setSdMinimized,
+    sdPos,
+    setSdPos,
+    sdSize,
+    setSdSize,
+    sdIsMobile,
+    openSlateDrop,
+    onSdTitleDown,
+    onSdResizeDown,
+    onSdPointerMove,
+    onSdPointerUp,
+    widgetPopoutId,
+    setWidgetPopoutId,
+    wdMinimized,
+    setWdMinimized,
+    wdPos,
+    setWdPos,
+    wdSize,
+    setWdSize,
+    wdIsMobile,
+    openWidgetPopout,
+    onWdTitleDown,
+    onWdResizeDown,
+    onWdPointerMove,
+    onWdPointerUp,
+  } = useDashboardFloatingWindows();
 
   const loadUnreadNotifications = useCallback(async () => {
     setNotificationsLoading(true);
@@ -654,50 +627,6 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
       setNotificationsLoading(false);
     }
   }, [supabase]);
-
-
-  function openWidgetPopout(widgetId: string) {
-    const isMobile = window.innerWidth < 768;
-    setWdIsMobile(isMobile);
-    if (isMobile) {
-      setWdPos({ x: 0, y: 0 });
-      setWdSize({ w: window.innerWidth, h: window.innerHeight });
-      setWdMinimized(false);
-      setWidgetPopoutId(widgetId);
-      return;
-    }
-
-    setWdPos({
-      x: Math.max(0, (window.innerWidth - 900) / 2),
-      y: Math.max(10, (window.innerHeight - 640) / 4),
-    });
-    setWdSize({ w: 900, h: 640 });
-    setWdMinimized(false);
-    setWidgetPopoutId(widgetId);
-  }
-
-  function onWdTitleDown(e: React.PointerEvent) {
-    wdDragMode.current = "title";
-    wdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: wdPos.x, startY: wdPos.y, startW: wdSize.w, startH: wdSize.h };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  }
-  function onWdResizeDown(e: React.PointerEvent) {
-    wdDragMode.current = "resize";
-    wdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: wdPos.x, startY: wdPos.y, startW: wdSize.w, startH: wdSize.h };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    e.stopPropagation();
-  }
-  function onWdPointerMove(e: React.PointerEvent) {
-    if (!wdDragMode.current) return;
-    const dx = e.clientX - wdDragStart.current.clientX;
-    const dy = e.clientY - wdDragStart.current.clientY;
-    if (wdDragMode.current === "title") {
-      setWdPos({ x: wdDragStart.current.startX + dx, y: wdDragStart.current.startY + dy });
-    } else {
-      setWdSize({ w: Math.max(560, wdDragStart.current.startW + dx), h: Math.max(420, wdDragStart.current.startH + dy) });
-    }
-  }
-  function onWdPointerUp() { wdDragMode.current = null; }
 
   const { dashboardSummary, userCoords, liveWeather, widgetsData, setWidgetsData, deployInfo } = useDashboardRuntimeData();
 

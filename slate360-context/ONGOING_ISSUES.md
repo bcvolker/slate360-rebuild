@@ -225,9 +225,9 @@ Progress update (Mar 4 2026): extracted `SlateDropContextMenu.tsx`, `SlateDropAc
 **Last synchronized:** 2026-03-04
 
 ### Next execution window
-- Planned horizon: **next 5–12 focused prompts**.
+- Planned horizon: **next 4–11 focused prompts**.
 - Scope for this window:
-	1. Start Dashboard decomposition tranche from `DashboardClient.tsx` (**Project Hub Slice C baseline complete**: `ClientPage.tsx` now 249 lines, orchestration moved to extracted components/hooks).
+	1. Continue Dashboard decomposition tranche from `DashboardClient.tsx` (**in progress**: floating window/popup drag-resize logic extracted to `lib/hooks/useDashboardFloatingWindows.ts`).
 	2. Execute BUG-018 migration in `components/dashboard/LocationMap.tsx` (remove DrawingManager dependency).
 	3. Run closure validation + docs synchronization for refactor completion criteria.
 

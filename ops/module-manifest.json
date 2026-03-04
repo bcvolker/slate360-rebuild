@@ -10,7 +10,8 @@
       "canonicalSpec": "slate360-context/dashboard-tabs/dashboard-home/IMPLEMENTATION_PLAN.md",
       "status": "live",
       "primaryComponents": [
-        "components/dashboard/DashboardClient.tsx"
+        "components/dashboard/DashboardClient.tsx",
+        "lib/hooks/useDashboardFloatingWindows.ts"
       ],
       "apis": [
         "/api/dashboard/widgets",
