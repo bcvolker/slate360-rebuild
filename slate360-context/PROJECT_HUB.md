@@ -8,7 +8,7 @@
 ## 1. 3-Tier URL Structure
 
 ```
-/project-hub                                ← Tier 1: all projects grid (381 lines — decomposition in progress)
+/project-hub                                ← Tier 1: all projects grid (249 lines — decomposition baseline complete)
 /project-hub/[projectId]                    ← Tier 2: project home (143 lines)
 /project-hub/[projectId]/rfis              ← Tier 3: RFIs (~340 lines)
 /project-hub/[projectId]/submittals        ← Tier 3: Submittals (~580 lines)
@@ -207,6 +207,7 @@ export default async function RFIsPage({ params }) {
 | ProjectHubDeleteModal | `components/project-hub/ProjectHubDeleteModal.tsx` | 120 |
 | ProjectHubWorkspaceTabs | `components/project-hub/ProjectHubWorkspaceTabs.tsx` | 67 |
 | ProjectHubWidgetBody | `components/project-hub/ProjectHubWidgetBody.tsx` | 130 |
+| useProjectHubWidgets | `lib/hooks/useProjectHubWidgets.ts` | 161 |
 | LocationDisplay | `components/shared/LocationDisplay.tsx` | ~35 |
 | WizardLocationPicker | `components/project-hub/WizardLocationPicker.tsx` | 390 |
 | CreateProjectWizard | `components/project-hub/CreateProjectWizard.tsx` | 218 |
@@ -254,6 +255,8 @@ Tier-1 decomposition baseline (Slice C started):
 - Delete confirmation surface is extracted to `ProjectHubDeleteModal`.
 - Workspace tab strip + tab panel surfaces are extracted to `ProjectHubWorkspaceTabs`.
 - Widget body rendering/switching logic is extracted to `ProjectHubWidgetBody`.
+- Widget preferences persistence, drag ordering, and SlateDrop widget data loading are extracted to `useProjectHubWidgets`.
+- `ClientPage.tsx` is now a composition shell under the 300-line guardrail.
 
 | `/api/projects/create` | POST | Create project + provision folders |
 | `/api/projects/sandbox` | GET | SlateDrop project tree |

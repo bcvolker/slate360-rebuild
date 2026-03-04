@@ -30,7 +30,8 @@
         "components/project-hub/ProjectHubAllProjectsTab.tsx",
         "components/project-hub/ProjectHubDeleteModal.tsx",
         "components/project-hub/ProjectHubWorkspaceTabs.tsx",
-        "components/project-hub/ProjectHubWidgetBody.tsx"
+        "components/project-hub/ProjectHubWidgetBody.tsx",
+        "lib/hooks/useProjectHubWidgets.ts"
       ],
       "apis": [
         "/api/projects",
