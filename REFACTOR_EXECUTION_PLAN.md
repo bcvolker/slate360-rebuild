@@ -53,7 +53,8 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
    - ✅ Slice B complete for planned extraction scope
 
 3. **Slice C (next)**
-   - Extract Project Hub Tier-1 sections in `ClientPage.tsx`
+   - ✅ Extracted Project Hub Tier-1 portfolio/summary section, all-project carousel section, and delete confirmation modal from `ClientPage.tsx`
+   - Continue extracting remaining Tier-1 controls/widget orchestration seams
    - Continue DashboardClient decomposition
 
 4. **Slice D**
@@ -81,10 +82,11 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Completed upload-actions hook extraction into `lib/hooks/useSlateDropUploadActions.ts`; `SlateDropClient` now delegates the S3 upload reservation/PUT/finalize workflow.
 - 2026-03-04: Completed preview-url hook extraction into `lib/hooks/useSlateDropPreviewUrl.ts`; `SlateDropClient` now delegates preview loading/error/url lifecycle.
 - 2026-03-04: Completed optional Slice B polish on `SlateDropClient` render wiring (memoized callbacks/derived view state) to reduce inline JSX complexity before moving to Slice C.
+- 2026-03-04: Started Slice C by extracting Tier-1 Project Hub sections from `app/(dashboard)/project-hub/ClientPage.tsx` into `components/project-hub/ProjectHubPortfolioOverview.tsx`, `ProjectHubAllProjectsTab.tsx`, and `ProjectHubDeleteModal.tsx`; reduced `ClientPage.tsx` from 817 → 541 lines.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~8–16 focused prompts, approximately 1.25–2.5 weeks at current pace.
-- **Estimated remaining prompts:** ~8–16 to reach broad “code optimized” state across SlateDrop handoff + Project Hub + Dashboard + BUG-018 migration.
+- **Remaining window:** ~7–15 focused prompts, approximately 1–2.5 weeks at current pace.
+- **Estimated remaining prompts:** ~7–15 to reach broad “code optimized” state across Project Hub + Dashboard + BUG-018 migration.
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.
 
 ## New-Chat Continuation Protocol (Canonical Resume Block)

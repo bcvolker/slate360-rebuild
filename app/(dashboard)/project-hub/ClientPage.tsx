@@ -5,30 +5,20 @@ import { useEffect, useState, useCallback, useMemo, type DragEvent } from "react
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ChevronLeft,
-  ChevronDown,
   Plus,
   FolderKanban,
-  Loader2,
   ClipboardList,
-  CheckCircle2,
-  AlertTriangle,
   FolderOpen,
-  MapPin,
-  CreditCard,
-  Cpu,
-  Lightbulb,
   Bell,
-  SlidersHorizontal,
   FileText,
-  MoreVertical,
-  Trash2,
-  X,
 } from "lucide-react";
 import CreateProjectWizard, {
   CreateProjectPayload,
 } from "@/components/project-hub/CreateProjectWizard";
 import LocationMap from "@/components/dashboard/LocationMap";
+import ProjectHubPortfolioOverview from "@/components/project-hub/ProjectHubPortfolioOverview";
+import ProjectHubAllProjectsTab from "@/components/project-hub/ProjectHubAllProjectsTab";
+import ProjectHubDeleteModal from "@/components/project-hub/ProjectHubDeleteModal";
 import WidgetCard from "@/components/widgets/WidgetCard";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import {
@@ -51,7 +41,7 @@ import {
   DataUsageWidgetBody,
 } from "@/components/widgets/WidgetBodies";
 import QuickNav from "@/components/shared/QuickNav";
-import { resolveProjectLocation } from "@/lib/projects/location";
+import type { ProjectHubProject, ProjectHubSummary } from "@/lib/types/project-hub";
 
 const HUB_WIDGET_IDS = [
   "slatedrop",
@@ -93,33 +83,9 @@ const FALLBACK_FOLDER_VIEW = [
 
 interface Props { user: {name: string, email: string, avatar?: string}; tier: import("@/lib/entitlements").Tier; isCeo?: boolean; }
 
-type ProjectHubSummary = {
-  totals: {
-    projects: number;
-    activeProjects: number;
-    completedProjects: number;
-    onHoldProjects: number;
-  };
-  budget: {
-    totalBudget: number;
-    totalSpent: number;
-    totalChangeOrders: number;
-  };
-  work: {
-    openRfis: number;
-    pendingSubmittals: number;
-  };
-  recentProjects: Array<{
-    id: string;
-    name: string;
-    status: string;
-    createdAt: string;
-  }>;
-};
-
 export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
   const router = useRouter();
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<ProjectHubProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summary, setSummary] = useState<ProjectHubSummary | null>(null);
@@ -189,20 +155,16 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
   ]);
   const unreadCount = notifications.filter((n) => n.unread).length;
 
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
-
   /* ─── Delete flow state ──────────────────────────────────────── */
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [deleteConfirmName, setDeleteConfirmName] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [cardMenuOpen, setCardMenuOpen] = useState<string | null>(null);
 
   const openDeleteModal = (project: { id: string; name: string }) => {
     setDeleteTarget(project);
     setDeleteConfirmName("");
     setDeleteError(null);
-    setCardMenuOpen(null);
   };
 
   const closeDeleteModal = () => {
@@ -467,81 +429,11 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          <div className="col-span-2 md:col-span-4 rounded-2xl border border-gray-200 bg-white px-4 py-4 sm:px-5 sm:py-5 shadow-sm">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div>
-                <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400">Portfolio Snapshot</p>
-                <h2 className="text-base sm:text-lg font-black text-gray-900">Organization-level project health</h2>
-              </div>
-              <span className="text-[11px] font-semibold text-gray-500">
-                {summaryLoading ? "Loading summary..." : `${summary?.totals.projects ?? projects.length} projects tracked`}
-              </span>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3">
-                <p className="text-[10px] uppercase tracking-wider font-bold text-blue-500">Active Projects</p>
-                <p className="text-xl font-black text-blue-700 mt-1">{summary?.totals.activeProjects ?? 0}</p>
-              </div>
-              <div className="rounded-xl border border-orange-100 bg-orange-50/60 p-3">
-                <p className="text-[10px] uppercase tracking-wider font-bold text-orange-500">Open RFIs</p>
-                <p className="text-xl font-black text-orange-700 mt-1">{summary?.work.openRfis ?? 0}</p>
-              </div>
-              <div className="rounded-xl border border-purple-100 bg-purple-50/60 p-3">
-                <p className="text-[10px] uppercase tracking-wider font-bold text-purple-500">Pending Submittals</p>
-                <p className="text-xl font-black text-purple-700 mt-1">{summary?.work.pendingSubmittals ?? 0}</p>
-              </div>
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3">
-                <p className="text-[10px] uppercase tracking-wider font-bold text-emerald-500">Portfolio Budget</p>
-                <p className="text-base sm:text-lg font-black text-emerald-700 mt-1">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "USD",
-                    notation: "compact",
-                    maximumFractionDigits: 1,
-                  }).format(summary?.budget.totalBudget ?? 0)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {[
-            { id: "projects", icon: FolderKanban, bg: "bg-blue-50", text: "text-blue-600", value: summary?.totals.projects ?? projects.length, label: "Total Projects", detail: summary?.recentProjects?.length ? summary.recentProjects.map((project) => `${project.name} (${project.status})`) : ["No projects yet — click 'New Project' to get started"] },
-            { id: "rfis", icon: ClipboardList, bg: "bg-orange-50", text: "text-[#FF4D00]", value: summary?.work.openRfis ?? 0, label: "Open RFIs", detail: ["Aggregated open RFIs across all accessible projects", "Use per-project RFI tabs for detailed routing"] },
-            { id: "submittals", icon: CheckCircle2, bg: "bg-purple-50", text: "text-purple-600", value: summary?.work.pendingSubmittals ?? 0, label: "Submittals", detail: ["Pending/submitted submittals across projects", "Review approvals in each project's Submittals tab"] },
-            { id: "tasks", icon: AlertTriangle, bg: "bg-red-50", text: "text-red-600", value: summary?.totals.onHoldProjects ?? 0, label: "On-Hold Projects", detail: ["Projects currently marked on-hold", "Re-activate from project settings when ready"] },
-          ].map(({ id, icon: SIcon, bg, text, value, label, detail }) => {
-            const isOpen = expandedCard === id;
-            return (
-              <div key={label} className="flex flex-col">
-                <button
-                  onClick={() => setExpandedCard(isOpen ? null : id)}
-                  className={`bg-white p-3 sm:p-4 rounded-2xl border shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-left ${isOpen ? "border-gray-300 shadow-md" : "border-gray-100 hover:border-gray-200"}`}
-                >
-                  <div className={`p-2.5 sm:p-3 ${bg} ${text} rounded-xl shrink-0`}>
-                    <SIcon size={20} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xl sm:text-2xl font-black text-gray-900">{value}</p>
-                    <p className="text-[10px] sm:text-xs font-semibold text-gray-500">{label}</p>
-                  </div>
-                  <ChevronDown size={14} className={`text-gray-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-                </button>
-                {isOpen && (
-                  <div className="mt-1 bg-white rounded-xl border border-gray-200 shadow-sm p-3 space-y-1.5 animate-in slide-in-from-top-1">
-                    {detail.map((d, i) => (
-                      <p key={i} className="text-xs text-gray-600 flex items-start gap-2">
-                        <span className="mt-1 w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
-                        {d}
-                      </p>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <ProjectHubPortfolioOverview
+          summary={summary}
+          summaryLoading={summaryLoading}
+          fallbackProjectsCount={projects.length}
+        />
 
         <div className="flex items-center gap-1 border-b border-gray-200 pb-px overflow-x-auto">
           {(["all", "my-work", "activity"] as const).map((tab) => (
@@ -559,105 +451,13 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
           ))}
         </div>
 
-        {activeTab === "all" &&
-          (loading ? (
-            <div className="flex justify-center p-20 text-gray-400">
-              <Loader2 className="animate-spin" />
-            </div>
-          ) : projects.length === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white p-20 text-center text-gray-500">
-              No projects found. Click "New Project" to start building.
-            </div>
-          ) : (
-            <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory" style={{ scrollbarWidth: "none" }}>
-              {projects.map((p) => (
-                <div
-                  key={p.id}
-                  className="group relative flex w-[340px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-xl hover:border-gray-300 hover:-translate-y-1 transition-all"
-                >
-                  <Link href={`/project-hub/${p.id}`} className="block">
-                    {(() => {
-                      const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-                      const resolvedLocation = resolveProjectLocation(p.metadata, {
-                        legacyLocation: p.location,
-                        city: p.city,
-                        state: p.state,
-                        region: p.region,
-                      });
-                      const pLat = resolvedLocation.lat;
-                      const pLng = resolvedLocation.lng;
-                      const staticMapUrl = pLat !== null && pLng !== null && mapsKey
-                        ? `https://maps.googleapis.com/maps/api/staticmap?center=${pLat},${pLng}&zoom=16&size=600x300&scale=2&maptype=satellite&key=${mapsKey}`
-                        : null;
-                      return (
-                        <div className="h-32 w-full relative overflow-hidden">
-                          {staticMapUrl ? (
-                            <div
-                              className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
-                              style={{ backgroundImage: `url(${staticMapUrl})` }}
-                            />
-                          ) : (
-                            <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A] to-[#1e293b]" />
-                          )}
-                          {staticMapUrl && <div className="absolute inset-0 bg-black/45" />}
-                          <div className="absolute inset-0 p-4 flex flex-col justify-between">
-                            <div className="flex items-start justify-between">
-                              <span />
-                              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-md uppercase tracking-wider">
-                                {p.status}
-                              </span>
-                            </div>
-                            <h2 className="text-xl font-black text-white truncate">{p.name}</h2>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </Link>
-
-                  {/* 3-dot menu button */}
-                  <div className="absolute top-2 left-2 z-10">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setCardMenuOpen(cardMenuOpen === p.id ? null : p.id);
-                      }}
-                      className="flex items-center justify-center w-7 h-7 rounded-lg bg-white/20 hover:bg-white/40 backdrop-blur-md transition-all text-white"
-                      title="Project options"
-                    >
-                      <MoreVertical size={14} />
-                    </button>
-
-                    {cardMenuOpen === p.id && (
-                      <>
-                        <div className="fixed inset-0 z-40" onClick={() => setCardMenuOpen(null)} />
-                        <div className="absolute left-0 top-9 z-50 w-48 rounded-xl border border-gray-200 bg-white shadow-2xl py-1 overflow-hidden">
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              openDeleteModal({ id: p.id, name: p.name });
-                            }}
-                            className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors text-left"
-                          >
-                            <Trash2 size={14} /> Delete Project
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  <Link href={`/project-hub/${p.id}`} className="p-5 flex-1 flex flex-col justify-between">
-                    <p className="text-sm text-gray-500 line-clamp-2">{p.description || "No description provided."}</p>
-                    <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between text-xs font-semibold text-gray-400">
-                      <span>Created: {new Date(p.created_at).toLocaleDateString()}</span>
-                      <span className="text-[#FF4D00] group-hover:underline">Open Hub →</span>
-                    </div>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          ))}
+        {activeTab === "all" && (
+          <ProjectHubAllProjectsTab
+            loading={loading}
+            projects={projects}
+            onOpenDeleteProject={openDeleteModal}
+          />
+        )}
 
         {activeTab === "my-work" && (
           <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-gray-500">
@@ -724,94 +524,18 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
         onSubmit={handleCreate}
       />
 
-      {/* ─── Delete Confirmation Modal ──────────────────────────── */}
-      {deleteTarget && (
-        <>
-          <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" onClick={closeDeleteModal} />
-          <div className="fixed inset-0 z-[61] flex items-center justify-center p-4">
-            <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-              {/* Header */}
-              <div className="bg-red-50 border-b border-red-100 px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                    <AlertTriangle size={20} className="text-red-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-black text-gray-900">Delete Project</h3>
-                    <p className="text-xs text-gray-500">This action cannot be undone</p>
-                  </div>
-                </div>
-                <button onClick={closeDeleteModal} className="p-1 rounded-lg hover:bg-red-100 transition-colors">
-                  <X size={18} className="text-gray-500" />
-                </button>
-              </div>
-
-              {/* Body */}
-              <div className="px-6 py-5 space-y-4">
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Project to delete</p>
-                  <p className="text-sm font-black text-gray-900">{deleteTarget.name}</p>
-                </div>
-
-                <div className="text-sm text-gray-600 space-y-2">
-                  <p>Deleting this project will <span className="font-bold text-red-600">permanently</span> remove:</p>
-                  <ul className="text-xs text-gray-500 space-y-1 ml-4 list-disc">
-                    <li>All project files, folders, and uploads</li>
-                    <li>RFIs, submittals, daily logs, and punch list items</li>
-                    <li>Budget data, schedule, and stakeholder records</li>
-                    <li>All team member associations</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                    Type <span className="font-black text-red-600">{deleteTarget.name}</span> to confirm
-                  </label>
-                  <input
-                    type="text"
-                    value={deleteConfirmName}
-                    onChange={(e) => {
-                      setDeleteConfirmName(e.target.value);
-                      setDeleteError(null);
-                    }}
-                    placeholder="Enter project name..."
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 outline-none transition-all"
-                    autoFocus
-                  />
-                </div>
-
-                {deleteError && (
-                  <p className="text-xs font-semibold text-red-600 bg-red-50 rounded-lg px-3 py-2">
-                    {deleteError}
-                  </p>
-                )}
-              </div>
-
-              {/* Footer */}
-              <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-end gap-3 bg-gray-50/50">
-                <button
-                  onClick={closeDeleteModal}
-                  className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all"
-                  disabled={deleteLoading}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDeleteProject}
-                  disabled={deleteLoading || deleteConfirmName.trim() !== deleteTarget.name}
-                  className="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {deleteLoading ? (
-                    <><Loader2 size={14} className="animate-spin" /> Deleting...</>
-                  ) : (
-                    <><Trash2 size={14} /> Delete Permanently</>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      <ProjectHubDeleteModal
+        target={deleteTarget}
+        confirmName={deleteConfirmName}
+        loading={deleteLoading}
+        error={deleteError}
+        onClose={closeDeleteModal}
+        onConfirmNameChange={(value) => {
+          setDeleteConfirmName(value);
+          setDeleteError(null);
+        }}
+        onDelete={handleDeleteProject}
+      />
     </div>
   );
 }

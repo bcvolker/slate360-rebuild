@@ -225,9 +225,9 @@ Progress update (Mar 4 2026): extracted `SlateDropContextMenu.tsx`, `SlateDropAc
 **Last synchronized:** 2026-03-04
 
 ### Next execution window
-- Planned horizon: **next 8–19 focused prompts**.
+- Planned horizon: **next 7–15 focused prompts**.
 - Scope for this window:
-	1. Project Hub `ClientPage.tsx` Tier-1 decomposition (Slice C start).
+	1. Continue Project Hub `ClientPage.tsx` Tier-1 decomposition (**Slice C started**: portfolio overview, all-project carousel, delete modal extracted).
 	2. Dashboard decomposition tranche from `DashboardClient.tsx`.
 	3. BUG-018 migration in `components/dashboard/LocationMap.tsx` (remove DrawingManager dependency).
 

@@ -8,7 +8,7 @@
 ## 1. 3-Tier URL Structure
 
 ```
-/project-hub                                ← Tier 1: all projects grid (834 lines — needs extraction)
+/project-hub                                ← Tier 1: all projects grid (541 lines — decomposition in progress)
 /project-hub/[projectId]                    ← Tier 2: project home (143 lines)
 /project-hub/[projectId]/rfis              ← Tier 3: RFIs (~340 lines)
 /project-hub/[projectId]/submittals        ← Tier 3: Submittals (~580 lines)
@@ -202,6 +202,9 @@ export default async function RFIsPage({ params }) {
 | Component | File | Lines |
 |---|---|---|
 | ProjectDashboardGrid | `components/project-hub/ProjectDashboardGrid.tsx` | 524 |
+| ProjectHubPortfolioOverview | `components/project-hub/ProjectHubPortfolioOverview.tsx` | 154 |
+| ProjectHubAllProjectsTab | `components/project-hub/ProjectHubAllProjectsTab.tsx` | 124 |
+| ProjectHubDeleteModal | `components/project-hub/ProjectHubDeleteModal.tsx` | 120 |
 | LocationDisplay | `components/shared/LocationDisplay.tsx` | ~35 |
 | WizardLocationPicker | `components/project-hub/WizardLocationPicker.tsx` | 390 |
 | CreateProjectWizard | `components/project-hub/CreateProjectWizard.tsx` | 218 |
@@ -242,6 +245,11 @@ Refresh behavior:
 Location consistency baseline (BUG-021, in progress):
 - Project cards in `ProjectDashboardGrid` now render addresses through shared `LocationDisplay`.
 - Tier-1 project card map derivation in `ClientPage.tsx` now uses shared `resolveProjectLocation` from `lib/projects/location.ts`.
+
+Tier-1 decomposition baseline (Slice C started):
+- `ClientPage.tsx` now delegates portfolio snapshot + expandable metric cards to `ProjectHubPortfolioOverview`.
+- `ClientPage.tsx` now delegates all-project loading/empty/carousel/menu rendering to `ProjectHubAllProjectsTab`.
+- Delete confirmation surface is extracted to `ProjectHubDeleteModal`.
 
 | `/api/projects/create` | POST | Create project + provision folders |
 | `/api/projects/sandbox` | GET | SlateDrop project tree |

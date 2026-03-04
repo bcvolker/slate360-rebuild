@@ -25,7 +25,10 @@
       "status": "live",
       "primaryComponents": [
         "app/(dashboard)/project-hub/ClientPage.tsx",
-        "components/project-hub/ProjectDashboardGrid.tsx"
+        "components/project-hub/ProjectDashboardGrid.tsx",
+        "components/project-hub/ProjectHubPortfolioOverview.tsx",
+        "components/project-hub/ProjectHubAllProjectsTab.tsx",
+        "components/project-hub/ProjectHubDeleteModal.tsx"
       ],
       "apis": [
         "/api/projects",
