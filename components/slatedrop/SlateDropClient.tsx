@@ -18,6 +18,7 @@ import {
 } from "@/lib/slatedrop/client-utils";
 import { useSlateDropFiles, type SlateDropFileItem } from "@/lib/hooks/useSlateDropFiles";
 import { useSlateDropUiState } from "@/lib/hooks/useSlateDropUiState";
+import { useSlateDropTransferActions } from "@/lib/hooks/useSlateDropTransferActions";
 import SlateDropContextMenu from "@/components/slatedrop/SlateDropContextMenu";
 import SlateDropActionModals from "@/components/slatedrop/SlateDropActionModals";
 import SlateDropSharePreviewModals from "@/components/slatedrop/SlateDropSharePreviewModals";
@@ -204,6 +205,21 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
     setTimeout(() => setToastMsg(null), 3500);
   }, []);
 
+  const {
+    handleDownloadFile,
+    handleDownloadFolderZip,
+    copyToClipboard,
+    handleSendSecureLink,
+  } = useSlateDropTransferActions({
+    showToast,
+    shareModal,
+    shareEmail,
+    sharePerm,
+    shareExpiry,
+    closeShareModal,
+    setShareSent,
+  });
+
   const getProjectIdForFolder = useCallback(
     (folderId: string): string | null => {
       const projectIds = new Set(sandboxProjects.map((project) => project.id));
@@ -378,57 +394,6 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
     await supabase.auth.signOut();
     window.location.href = "/login";
   }, [supabase]);
-
-  const handleDownloadFile = useCallback(async (fileId: string, fileName: string) => {
-    try {
-      const res = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(fileId)}`);
-      const data = await res.json();
-      if (!res.ok || !data.url) {
-        showToast(data.error ?? `Download failed for ${fileName}`, false);
-        return;
-      }
-      window.open(data.url, "_blank", "noopener,noreferrer");
-      showToast(`Download started: ${fileName}`);
-    } catch {
-      showToast(`Download failed for ${fileName}`, false);
-    }
-  }, [showToast]);
-
-  const handleDownloadFolderZip = useCallback(async (folderId: string, folderName: string) => {
-    try {
-      const res = await fetch("/api/slatedrop/zip", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ folderId }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "ZIP failed" }));
-        showToast(err.error ?? "ZIP failed", false);
-        return;
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `${folderName || "slatedrop-folder"}.zip`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
-      showToast(`ZIP downloaded: ${folderName}`);
-    } catch {
-      showToast(`ZIP failed for ${folderName}`, false);
-    }
-  }, [showToast]);
-
-  const copyToClipboard = useCallback(async (value: string, label: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      showToast(`${label} copied`);
-    } catch {
-      showToast(`Could not copy ${label.toLowerCase()}`, false);
-    }
-  }, [showToast]);
 
   const handleCreateFolder = useCallback(async (parentFolderId: string, folderName: string) => {
     const projectId = getProjectIdForFolder(parentFolderId);
@@ -656,33 +621,6 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
       showToast("Failed to move file", false);
     }
   }, [activeFolderId, folderTree, moveModal, showToast]);
-
-  const handleSendSecureLink = useCallback(async () => {
-    if (!shareEmail.trim() || !shareModal) return;
-    try {
-      const response = await fetch("/api/slatedrop/secure-send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileId: shareModal.id,
-          email: shareEmail.trim(),
-          permission: sharePerm === "edit" ? "download" : "view",
-          expiryDays: shareExpiry === "never" ? 365 : parseInt(shareExpiry),
-        }),
-      });
-      if (response.ok) {
-        setShareSent(true);
-        setTimeout(() => {
-          closeShareModal();
-        }, 2000);
-      } else {
-        const payload = await response.json();
-        showToast(payload.error ?? "Send failed", false);
-      }
-    } catch {
-      showToast("Send failed", false);
-    }
-  }, [closeShareModal, shareEmail, shareExpiry, shareModal, sharePerm, showToast]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
