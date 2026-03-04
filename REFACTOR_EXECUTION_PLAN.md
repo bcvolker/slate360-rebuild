@@ -62,6 +62,7 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
    - ✅ Continued Dashboard decomposition by extracting widget grid and widget popout render shells to `components/dashboard/DashboardWidgetGrid.tsx` and `DashboardWidgetPopout.tsx`
    - ✅ Continued Dashboard decomposition by extracting `data-usage` and `processing` widget views to dedicated components
    - ✅ Continued Dashboard decomposition by extracting `financial` widget view to `components/dashboard/DashboardFinancialWidget.tsx`
+   - ✅ Continued Dashboard decomposition by extracting `calendar` widget view to `components/dashboard/DashboardCalendarWidget.tsx`
    - Continue DashboardClient decomposition
 
 4. **Slice D**
@@ -97,10 +98,11 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Continued Dashboard decomposition tranche by extracting widget-grid and widget-popout render shells from `DashboardClient.tsx` into `components/dashboard/DashboardWidgetGrid.tsx` and `DashboardWidgetPopout.tsx`; reduced `DashboardClient.tsx` from 2501 → 2455 lines.
 - 2026-03-04: Continued Dashboard decomposition tranche by extracting `data-usage` and `processing` widget render cases into `components/dashboard/DashboardDataUsageWidget.tsx` and `DashboardProcessingWidget.tsx`; reduced `DashboardClient.tsx` from 2455 → 2380 lines.
 - 2026-03-04: Continued Dashboard decomposition tranche by extracting `financial` widget render case into `components/dashboard/DashboardFinancialWidget.tsx`; reduced `DashboardClient.tsx` from 2380 → 2350 lines.
+- 2026-03-04: Continued Dashboard decomposition tranche by extracting `calendar` widget render case into `components/dashboard/DashboardCalendarWidget.tsx`; reduced `DashboardClient.tsx` from 2350 → 2276 lines.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~2–7 focused prompts, approximately 1–2 weeks at current pace.
-- **Estimated remaining prompts:** ~2–7 to reach broad “code optimized” state across Dashboard decomposition + BUG-018 migration.
+- **Remaining window:** ~1–6 focused prompts, approximately 1–2 weeks at current pace.
+- **Estimated remaining prompts:** ~1–6 to reach broad “code optimized” state across Dashboard decomposition + BUG-018 migration.
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.
 
 ## New-Chat Continuation Protocol (Canonical Resume Block)

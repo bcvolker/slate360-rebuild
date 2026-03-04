@@ -17,7 +17,8 @@
         "components/dashboard/DashboardWidgetPopout.tsx",
         "components/dashboard/DashboardDataUsageWidget.tsx",
         "components/dashboard/DashboardProcessingWidget.tsx",
-        "components/dashboard/DashboardFinancialWidget.tsx"
+        "components/dashboard/DashboardFinancialWidget.tsx",
+        "components/dashboard/DashboardCalendarWidget.tsx"
       ],
       "apis": [
         "/api/dashboard/widgets",

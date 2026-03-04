@@ -10,6 +10,7 @@ import CreateProjectWizard, { type CreateProjectPayload } from "@/components/pro
 import MarketClient from "@/components/dashboard/MarketClient";
 import DashboardProjectCard from "@/components/dashboard/DashboardProjectCard";
 import DashboardDataUsageWidget from "@/components/dashboard/DashboardDataUsageWidget";
+import DashboardCalendarWidget from "@/components/dashboard/DashboardCalendarWidget";
 import DashboardFinancialWidget from "@/components/dashboard/DashboardFinancialWidget";
 import DashboardProcessingWidget from "@/components/dashboard/DashboardProcessingWidget";
 import DashboardWidgetGrid from "@/components/dashboard/DashboardWidgetGrid";
@@ -1321,107 +1322,32 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
           );
 
               case "calendar": return (
-          <WidgetCard
-            key={id}
-            icon={CalendarIcon}
-            title="Calendar"
+          <DashboardCalendarWidget
             span={span}
-            delay={150}
-            color={widgetColor}
+            widgetColor={widgetColor}
+            widgetSize={widgetSize}
             onSetSize={handleSetSize}
-            size={widgetSize}
-            action={
-              <button
-                onClick={() => { setAddingEvent(true); if (!calSelected) setCalSelected(todayStr); }}
-                className="flex items-center gap-1 text-[11px] font-semibold text-[#FF4D00] hover:underline"
-              >
-                <Plus size={13} /> Add event
-              </button>
-            }
-          >
-            <div className="flex flex-col lg:flex-row gap-6">
-              {/* Calendar grid */}
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-sm font-bold text-gray-900">{MONTHS[calMonth]} {calYear}</h4>
-                  <div className="flex gap-1">
-                    <button onClick={prevMonth} className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors"><ChevronLeft size={14} /></button>
-                    <button onClick={nextMonth} className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors"><ChevronRight size={14} /></button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-7 gap-0.5">
-                  {DAYS.map((d) => (
-                    <div key={d} className="text-center text-[10px] text-gray-400 font-semibold py-2">{d}</div>
-                  ))}
-                  {calDays.map((cell, i) => {
-                    const hasEvents = events.some((e) => e.date === cell.dateStr);
-                    const isToday = cell.dateStr === todayStr;
-                    const isSelected = cell.dateStr === calSelected;
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => setCalSelected(cell.dateStr)}
-                        className={`relative h-9 rounded-lg text-xs font-medium transition-all
-                          ${!cell.inMonth ? "text-gray-300" : "text-gray-700 hover:bg-gray-100"}
-                          ${isToday && !isSelected ? "bg-[#FF4D00]/10 text-[#FF4D00] font-bold" : ""}
-                          ${isSelected ? "bg-[#FF4D00] text-white font-bold shadow-sm" : ""}
-                        `}
-                      >
-                        {cell.day}
-                        {hasEvents && !isSelected && (
-                          <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#FF4D00]" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Events sidebar */}
-              <div className="lg:w-64 lg:border-l lg:border-gray-100 lg:pl-6">
-                <h4 className="text-xs font-bold text-gray-900 mb-3">
-                  {isClient && calSelected ? new Date(calSelected + "T12:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" }) : "Upcoming events"}
-                </h4>
-
-                {/* Add event form */}
-                {addingEvent && calSelected && (
-                  <div className="mb-4 p-3 rounded-xl bg-gray-50 border border-gray-200">
-                    <input
-                      type="text"
-                      placeholder="Event title…"
-                      value={newEventTitle}
-                      onChange={(e) => setNewEventTitle(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] mb-2"
-                      autoFocus
-                    />
-                    <div className="flex gap-2">
-                      <button onClick={handleAddEvent} className="flex-1 text-xs font-semibold py-2 rounded-lg text-white" style={{ backgroundColor: "#FF4D00" }}>Add</button>
-                      <button onClick={() => setAddingEvent(false)} className="flex-1 text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">Cancel</button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Event list */}
-                <div className="space-y-2.5 max-h-[240px] overflow-y-auto">
-                  {(calSelected ? selectedDayEvents : events.slice(0, 5)).map((ev) => (
-                    <div key={ev.id} className="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-gray-50 transition-colors">
-                      <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: ev.color }} />
-                      <div>
-                        <p className="text-xs font-semibold text-gray-900 leading-snug">{ev.title}</p>
-                        <p className="text-[10px] text-gray-400">
-                          {isClient ? new Date(ev.date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
-                          {ev.project && ` · ${ev.project}`}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                  {calSelected && selectedDayEvents.length === 0 && !addingEvent && (
-                    <p className="text-xs text-gray-400 py-4 text-center">No events this day</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </WidgetCard>
+            month={calMonth}
+            year={calYear}
+            calDays={calDays}
+            todayStr={todayStr}
+            selectedDate={calSelected}
+            events={events}
+            selectedDayEvents={selectedDayEvents}
+            addingEvent={addingEvent}
+            newEventTitle={newEventTitle}
+            isClient={isClient}
+            onPrevMonth={prevMonth}
+            onNextMonth={nextMonth}
+            onSelectDate={setCalSelected}
+            onStartAddEvent={() => {
+              setAddingEvent(true);
+              if (!calSelected) setCalSelected(todayStr);
+            }}
+            onTitleChange={setNewEventTitle}
+            onAddEvent={handleAddEvent}
+            onCancelAddEvent={() => setAddingEvent(false)}
+          />
           );
 
               case "weather": return (
