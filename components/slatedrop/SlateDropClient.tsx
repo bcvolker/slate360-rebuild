@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 import { buildSlateDropBaseFolderTree, type SlateDropFolderNode as FolderNode } from "@/lib/slatedrop/folderTree";
+import { useSlateDropFiles, type SlateDropFileItem } from "@/lib/hooks/useSlateDropFiles";
 import {
   Search,
   Bell,
@@ -75,17 +76,7 @@ type SandboxProject = {
   }>;
 };
 
-interface FileItem {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  modified: string;
-  folderId: string;
-  s3Key?: string;
-  thumbnail?: string;
-  locked?: boolean;
-}
+type FileItem = SlateDropFileItem;
 
 type DbFile = {
   type: "file";
@@ -406,10 +397,19 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
     setDeleteProjectConfirmName("");
   }, [deleteConfirm?.id, deleteConfirm?.type]);
 
-  // Real file state (loaded from API, keyed by folderId)
-  const [realFiles, setRealFiles] = useState<Record<string, FileItem[]>>({});
-  const [loadingFiles, setLoadingFiles] = useState(false);
-  const [filesLoadErrorByFolder, setFilesLoadErrorByFolder] = useState<Record<string, boolean>>({});
+  const {
+    realFiles,
+    setRealFiles,
+    loadingFiles,
+    filesLoadErrorByFolder,
+    refreshFolderFiles,
+    currentFiles,
+  } = useSlateDropFiles({
+    activeFolderId,
+    searchQuery,
+    sortKey,
+    sortDir,
+  });
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const [toastMsg, setToastMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
@@ -452,52 +452,9 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
     [folderTree, sandboxProjects]
   );
 
-  const refreshFolderFiles = useCallback(async (folderId: string) => {
-    setLoadingFiles(true);
-    try {
-      const res = await fetch(`/api/slatedrop/files?folderId=${encodeURIComponent(folderId)}`);
-      if (!res.ok) {
-        setFilesLoadErrorByFolder((prev) => ({ ...prev, [folderId]: true }));
-        return;
-      }
-      const payload = await res.json();
-      const files = Array.isArray(payload?.files) ? (payload.files as FileItem[]) : [];
-      setRealFiles((prev) => ({ ...prev, [folderId]: files }));
-      setFilesLoadErrorByFolder((prev) => ({ ...prev, [folderId]: false }));
-    } catch {
-      setFilesLoadErrorByFolder((prev) => ({ ...prev, [folderId]: true }));
-    } finally {
-      setLoadingFiles(false);
-    }
-  }, []);
-
-  /* ── Load real files from API on folder change ── */
-  useEffect(() => {
-    void refreshFolderFiles(activeFolderId);
-  }, [activeFolderId, refreshFolderFiles]);
-
   /* ── Derived ── */
   const activeFolder = useMemo(() => findFolder(folderTree, activeFolderId), [folderTree, activeFolderId]);
   const breadcrumb = useMemo(() => findFolderPath(folderTree, activeFolderId) ?? ["SlateDrop"], [folderTree, activeFolderId]);
-
-  const currentFiles = useMemo(() => {
-    const hasLoadedRealFolder = Object.prototype.hasOwnProperty.call(realFiles, activeFolderId);
-    let files = hasLoadedRealFolder ? realFiles[activeFolderId] ?? [] : [];
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      files = files.filter((f) => f.name.toLowerCase().includes(q));
-    }
-    const dir = sortDir === "asc" ? 1 : -1;
-    return [...files].sort((a, b) => {
-      switch (sortKey) {
-        case "name": return dir * a.name.localeCompare(b.name);
-        case "modified": return dir * a.modified.localeCompare(b.modified);
-        case "size": return dir * (a.size - b.size);
-        case "type": return dir * a.type.localeCompare(b.type);
-        default: return 0;
-      }
-    });
-  }, [activeFolderId, realFiles, filesLoadErrorByFolder, searchQuery, sortKey, sortDir]);
 
   const toSlateDropItemFromFile = useCallback((file: FileItem): SlateDropItem => {
     return {

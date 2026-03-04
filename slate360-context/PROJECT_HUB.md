@@ -218,6 +218,26 @@ export default async function RFIsPage({ params }) {
 | Endpoint | Method | Purpose |
 |---|---|---|
 | `/api/projects` | GET | List all projects for user |
+| `/api/projects/summary` | GET | Aggregate Tier-1 snapshot metrics (projects, RFIs, submittals, budget, recent projects) |
+## 11. Tier-1 Portfolio Snapshot (Restored)
+
+`app/(dashboard)/project-hub/ClientPage.tsx` now renders a dedicated top snapshot section in Tier 1:
+- Active Projects
+- Open RFIs (aggregated across scoped projects)
+- Pending Submittals (pending/submitted)
+- Portfolio Budget (sum of `project_budgets.budget_amount`)
+
+Data source:
+- `GET /api/projects/summary` implemented in `app/api/projects/summary/route.ts`
+- Uses scoped project access (`listScopedProjectsForUser`) and aggregates:
+  - `project_rfis`
+  - `project_submittals`
+  - `project_budgets`
+
+Refresh behavior:
+- Snapshot reloads on initial page load
+- Snapshot reloads after project create/delete
+
 | `/api/projects/create` | POST | Create project + provision folders |
 | `/api/projects/sandbox` | GET | SlateDrop project tree |
 | `/api/projects/[projectId]` | GET, DELETE | Get/delete project |

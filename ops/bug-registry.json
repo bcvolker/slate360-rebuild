@@ -19,10 +19,11 @@
       "title": "Project Hub Tier 1 analytics snapshot missing",
       "module": "project-hub",
       "severity": "medium",
-      "status": "open",
-      "rootCause": "No aggregate summary API and missing summary card wiring",
+      "status": "fixed",
+      "rootCause": "Tier-1 view lacked aggregate summary endpoint and snapshot card wiring",
       "verification": [
-        "Route /project-hub shows top-level snapshot card with aggregate metrics"
+        "Route /project-hub shows top-level snapshot card with aggregate metrics",
+        "GET /api/projects/summary returns totals, budget, work, and recentProjects"
       ]
     },
     {

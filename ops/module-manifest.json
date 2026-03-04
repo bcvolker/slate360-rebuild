@@ -29,6 +29,7 @@
       ],
       "apis": [
         "/api/projects",
+        "/api/projects/summary",
         "/api/projects/create",
         "/api/projects/[projectId]/*"
       ]

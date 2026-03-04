@@ -92,10 +92,36 @@ const FALLBACK_FOLDER_VIEW = [
 
 interface Props { user: {name: string, email: string, avatar?: string}; tier: import("@/lib/entitlements").Tier; isCeo?: boolean; }
 
+type ProjectHubSummary = {
+  totals: {
+    projects: number;
+    activeProjects: number;
+    completedProjects: number;
+    onHoldProjects: number;
+  };
+  budget: {
+    totalBudget: number;
+    totalSpent: number;
+    totalChangeOrders: number;
+  };
+  work: {
+    openRfis: number;
+    pendingSubmittals: number;
+  };
+  recentProjects: Array<{
+    id: string;
+    name: string;
+    status: string;
+    createdAt: string;
+  }>;
+};
+
 export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
   const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summary, setSummary] = useState<ProjectHubSummary | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "my-work" | "activity">("all");
@@ -205,6 +231,7 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
       }
       closeDeleteModal();
       await loadProjects();
+      await loadSummary();
     } catch {
       setDeleteError("Network error. Please try again.");
     } finally {
@@ -222,9 +249,21 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
     }
   }, []);
 
+  const loadSummary = useCallback(async () => {
+    setSummaryLoading(true);
+    try {
+      const res = await fetch("/api/projects/summary", { cache: "no-store" });
+      const data = await res.json();
+      if (res.ok) setSummary(data as ProjectHubSummary);
+    } finally {
+      setSummaryLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     void loadProjects();
-  }, [loadProjects]);
+    void loadSummary();
+  }, [loadProjects, loadSummary]);
 
   const handleCreate = async (payload: CreateProjectPayload) => {
     setCreating(true);
@@ -236,6 +275,7 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
       });
       setWizardOpen(false);
       await loadProjects();
+      await loadSummary();
     } finally {
       setCreating(false);
     }
@@ -427,11 +467,49 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div className="col-span-2 md:col-span-4 rounded-2xl border border-gray-200 bg-white px-4 py-4 sm:px-5 sm:py-5 shadow-sm">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400">Portfolio Snapshot</p>
+                <h2 className="text-base sm:text-lg font-black text-gray-900">Organization-level project health</h2>
+              </div>
+              <span className="text-[11px] font-semibold text-gray-500">
+                {summaryLoading ? "Loading summary..." : `${summary?.totals.projects ?? projects.length} projects tracked`}
+              </span>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3">
+                <p className="text-[10px] uppercase tracking-wider font-bold text-blue-500">Active Projects</p>
+                <p className="text-xl font-black text-blue-700 mt-1">{summary?.totals.activeProjects ?? 0}</p>
+              </div>
+              <div className="rounded-xl border border-orange-100 bg-orange-50/60 p-3">
+                <p className="text-[10px] uppercase tracking-wider font-bold text-orange-500">Open RFIs</p>
+                <p className="text-xl font-black text-orange-700 mt-1">{summary?.work.openRfis ?? 0}</p>
+              </div>
+              <div className="rounded-xl border border-purple-100 bg-purple-50/60 p-3">
+                <p className="text-[10px] uppercase tracking-wider font-bold text-purple-500">Pending Submittals</p>
+                <p className="text-xl font-black text-purple-700 mt-1">{summary?.work.pendingSubmittals ?? 0}</p>
+              </div>
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3">
+                <p className="text-[10px] uppercase tracking-wider font-bold text-emerald-500">Portfolio Budget</p>
+                <p className="text-base sm:text-lg font-black text-emerald-700 mt-1">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                    notation: "compact",
+                    maximumFractionDigits: 1,
+                  }).format(summary?.budget.totalBudget ?? 0)}
+                </p>
+              </div>
+            </div>
+          </div>
+
           {[
-            { id: "projects", icon: FolderKanban, bg: "bg-blue-50", text: "text-blue-600", value: projects.length, label: "Total Projects", detail: projects.length > 0 ? projects.slice(0, 4).map(p => p.name) : ["No projects yet — click 'New Project' to get started"] },
-            { id: "rfis", icon: ClipboardList, bg: "bg-orange-50", text: "text-[#FF4D00]", value: "—", label: "Open RFIs", detail: ["Track RFIs per project from the project dashboard", "Create RFIs, assign reviewers, track responses"] },
-            { id: "submittals", icon: CheckCircle2, bg: "bg-purple-50", text: "text-purple-600", value: "—", label: "Submittals", detail: ["Manage submittals from each project's Submittals tab", "Track approval status and revision history"] },
-            { id: "tasks", icon: AlertTriangle, bg: "bg-red-50", text: "text-red-600", value: "—", label: "Punch List", detail: ["View punch list items from each project", "Track completion status and assign corrective work"] },
+            { id: "projects", icon: FolderKanban, bg: "bg-blue-50", text: "text-blue-600", value: summary?.totals.projects ?? projects.length, label: "Total Projects", detail: summary?.recentProjects?.length ? summary.recentProjects.map((project) => `${project.name} (${project.status})`) : ["No projects yet — click 'New Project' to get started"] },
+            { id: "rfis", icon: ClipboardList, bg: "bg-orange-50", text: "text-[#FF4D00]", value: summary?.work.openRfis ?? 0, label: "Open RFIs", detail: ["Aggregated open RFIs across all accessible projects", "Use per-project RFI tabs for detailed routing"] },
+            { id: "submittals", icon: CheckCircle2, bg: "bg-purple-50", text: "text-purple-600", value: summary?.work.pendingSubmittals ?? 0, label: "Submittals", detail: ["Pending/submitted submittals across projects", "Review approvals in each project's Submittals tab"] },
+            { id: "tasks", icon: AlertTriangle, bg: "bg-red-50", text: "text-red-600", value: summary?.totals.onHoldProjects ?? 0, label: "On-Hold Projects", detail: ["Projects currently marked on-hold", "Re-activate from project settings when ready"] },
           ].map(({ id, icon: SIcon, bg, text, value, label, detail }) => {
             const isOpen = expandedCard === id;
             return (

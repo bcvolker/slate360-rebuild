@@ -1,6 +1,6 @@
 # Slate360 — SlateDrop Blueprint
 
-**Last Updated:** 2026-03-03
+**Last Updated:** 2026-03-04
 **Context Maintenance:** Update this file whenever SlateDrop routes, components, API endpoints, folder structure, or file management behavior changes.
 **Cross-reference:** See `FUTURE_FEATURES.md` Phase 3E for SlateDrop wow features and SQL migrations.
 
@@ -29,6 +29,7 @@ SlateDrop is Slate360's file management system. It provides a full file explorer
 |---|---|---|---|
 | SlateDropClient | `components/slatedrop/SlateDropClient.tsx` | **2,030** | Main explorer (⚠️ decompose) |
 | ProjectFileExplorer | `components/slatedrop/ProjectFileExplorer.tsx` | 363 | Project-scoped file view |
+| useSlateDropFiles | `lib/hooks/useSlateDropFiles.ts` | ~110 | Extracted file loading/sorting state hook used by `SlateDropClient` |
 
 ### Canonical Root Folder List (Entitlement-Gated)
 
