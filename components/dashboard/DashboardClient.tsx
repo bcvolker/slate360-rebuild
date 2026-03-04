@@ -15,6 +15,7 @@ import DashboardContinueWidget from "@/components/dashboard/DashboardContinueWid
 import DashboardContactsWidget from "@/components/dashboard/DashboardContactsWidget";
 import DashboardFinancialWidget from "@/components/dashboard/DashboardFinancialWidget";
 import DashboardProcessingWidget from "@/components/dashboard/DashboardProcessingWidget";
+import DashboardSeatsWidget from "@/components/dashboard/DashboardSeatsWidget";
 import DashboardSuggestWidget from "@/components/dashboard/DashboardSuggestWidget";
 import DashboardWeatherWidget from "@/components/dashboard/DashboardWeatherWidget";
 import DashboardWidgetGrid from "@/components/dashboard/DashboardWidgetGrid";
@@ -64,7 +65,6 @@ import {
   XCircle,
   Loader2,
   AlertTriangle,
-  UserPlus,
   MessageSquare,
   Palette,
   Globe,
@@ -1389,71 +1389,14 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
           );
 
               case "seats": return (
-            <WidgetCard
-              key={id}
-              icon={Users}
-              title="Seat Management"
+            <DashboardSeatsWidget
               span={span}
-              delay={400}
-              color={widgetColor}
+              widgetColor={widgetColor}
+              widgetSize={widgetSize}
               onSetSize={handleSetSize}
-              size={widgetSize}
-              action={
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: "#FF4D00" }}>
-                  <UserPlus size={13} /> Invite member
-                </button>
-              }
-            >
-              <div>
-                <div className="flex items-center gap-6 mb-5">
-                  <div>
-                    <p className="text-2xl font-black text-gray-900">{liveSeatMembers.length}</p>
-                    <p className="text-[10px] text-gray-400 font-medium">of {ent.maxSeats} seats used</p>
-                  </div>
-                  <div className="h-10 w-px bg-gray-100" />
-                  <div>
-                    <p className="text-2xl font-black text-emerald-600">{liveSeatMembers.filter((m) => m.active).length}</p>
-                    <p className="text-[10px] text-gray-400 font-medium">Active now</p>
-                  </div>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3 pr-4">Name</th>
-                        <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3 pr-4">Email</th>
-                        <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3 pr-4">Role</th>
-                        <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {liveSeatMembers.map((m, i) => (
-                        <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                          <td className="py-3 pr-4 text-xs font-semibold text-gray-900">{m.name}</td>
-                          <td className="py-3 pr-4 text-xs text-gray-500">{m.email}</td>
-                          <td className="py-3 pr-4">
-                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                              m.role === "Owner" ? "bg-[#FF4D00]/10 text-[#FF4D00]" : m.role === "Admin" ? "bg-[#1E3A8A]/10 text-[#1E3A8A]" : "bg-gray-100 text-gray-600"
-                            }`}>{m.role}</span>
-                          </td>
-                          <td className="py-3">
-                            <span className={`flex items-center gap-1.5 text-[10px] font-medium ${m.active ? "text-emerald-600" : "text-gray-400"}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${m.active ? "bg-emerald-500" : "bg-gray-300"}`} />
-                              {m.active ? "Online" : "Offline"}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                      {liveSeatMembers.length === 0 && (
-                        <tr>
-                          <td colSpan={4} className="py-4 text-center text-xs text-gray-400">No seat members found for this organization</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </WidgetCard>
+              members={liveSeatMembers}
+              maxSeats={ent.maxSeats}
+            />
           );
 
               case "upgrade": return (

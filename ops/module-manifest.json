@@ -22,7 +22,8 @@
         "components/dashboard/DashboardWeatherWidget.tsx",
         "components/dashboard/DashboardContinueWidget.tsx",
         "components/dashboard/DashboardSuggestWidget.tsx",
-        "components/dashboard/DashboardContactsWidget.tsx"
+        "components/dashboard/DashboardContactsWidget.tsx",
+        "components/dashboard/DashboardSeatsWidget.tsx"
       ],
       "apis": [
         "/api/dashboard/widgets",
