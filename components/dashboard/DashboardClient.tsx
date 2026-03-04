@@ -10,6 +10,7 @@ import CreateProjectWizard, { type CreateProjectPayload } from "@/components/pro
 import MarketClient from "@/components/dashboard/MarketClient";
 import DashboardProjectCard from "@/components/dashboard/DashboardProjectCard";
 import DashboardDataUsageWidget from "@/components/dashboard/DashboardDataUsageWidget";
+import DashboardFinancialWidget from "@/components/dashboard/DashboardFinancialWidget";
 import DashboardProcessingWidget from "@/components/dashboard/DashboardProcessingWidget";
 import DashboardWidgetGrid from "@/components/dashboard/DashboardWidgetGrid";
 import DashboardWidgetPopout from "@/components/dashboard/DashboardWidgetPopout";
@@ -1309,45 +1310,14 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
           );
 
               case "financial": return (
-          <WidgetCard key={id} icon={TrendingUp} title="Financial Snapshot" span={span} delay={100} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
-            <span className="text-[11px] text-gray-400 font-medium">Last 6 months</span>
-          }>
-            <div className="space-y-4">
-              {/* Bar chart */}
-              <div className="flex items-end gap-2 h-28">
-                {liveFinancial.map((f, i) => (
-                  <div key={f.month} className="flex-1 flex flex-col items-center gap-1.5">
-                    <span className="text-[9px] text-gray-400 font-medium">{f.credits > 0 ? `${(f.credits / 1000).toFixed(1)}k` : ""}</span>
-                    <div className="w-full relative flex items-end justify-center" style={{ height: "80px" }}>
-                      <div
-                        className="w-full max-w-[32px] rounded-t-md transition-all duration-700 ease-out hover:opacity-80"
-                        style={{
-                          height: `${(f.credits / financialMax) * 100}%`,
-                          backgroundColor: i === liveFinancial.length - 1 ? "#FF4D00" : "#1E3A8A",
-                          opacity: i === liveFinancial.length - 1 ? 1 : 0.6,
-                        }}
-                      />
-                    </div>
-                    <span className="text-[10px] text-gray-400">{f.month}</span>
-                  </div>
-                ))}
-                {liveFinancial.length === 0 && (
-                  <div className="w-full text-center text-xs text-gray-400">No financial activity yet</div>
-                )}
-              </div>
-              {/* Stats */}
-              <div className="flex gap-4 pt-2 border-t border-gray-100">
-                <div>
-                  <p className="text-[10px] text-gray-400 font-medium">This month</p>
-                  <p className="text-sm font-bold text-gray-900">{(liveFinancial[liveFinancial.length - 1]?.credits ?? 0).toLocaleString()} credits</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-400 font-medium">Avg / month</p>
-                  <p className="text-sm font-bold text-gray-900">{Math.round(liveFinancial.reduce((sum, point) => sum + point.credits, 0) / Math.max(liveFinancial.length, 1)).toLocaleString()} credits</p>
-                </div>
-              </div>
-            </div>
-          </WidgetCard>
+          <DashboardFinancialWidget
+            span={span}
+            widgetColor={widgetColor}
+            widgetSize={widgetSize}
+            onSetSize={handleSetSize}
+            liveFinancial={liveFinancial}
+            financialMax={financialMax}
+          />
           );
 
               case "calendar": return (
