@@ -8,6 +8,7 @@ import { buildSlateDropBaseFolderTree, type SlateDropFolderNode as FolderNode } 
 import { useSlateDropFiles, type SlateDropFileItem } from "@/lib/hooks/useSlateDropFiles";
 import { useSlateDropUiState } from "@/lib/hooks/useSlateDropUiState";
 import SlateDropContextMenu from "@/components/slatedrop/SlateDropContextMenu";
+import SlateDropActionModals from "@/components/slatedrop/SlateDropActionModals";
 import {
   Search,
   Bell,
@@ -662,6 +663,243 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
     }
   }, [showToast]);
 
+  const handleCreateFolder = useCallback(async (parentFolderId: string, folderName: string) => {
+    const projectId = getProjectIdForFolder(parentFolderId);
+    if (!projectId) {
+      showToast("Choose a project folder first to create a new folder.", false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/slatedrop/folders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          parentFolderId: parentFolderId === projectId ? null : parentFolderId,
+          name: folderName,
+        }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({ error: "Create folder failed" }));
+        throw new Error(payload.error ?? "Create folder failed");
+      }
+
+      const data = await response.json().catch(() => ({}));
+      await refreshSandboxProjects();
+      const createdFolderId = typeof data?.folder?.id === "string" ? data.folder.id : null;
+      if (createdFolderId) {
+        setExpandedIds((prev) => {
+          const next = new Set(prev);
+          next.add(projectId);
+          next.add(parentFolderId);
+          return next;
+        });
+        setActiveFolderId(createdFolderId);
+      }
+      showToast(`Folder "${folderName}" created`);
+      setNewFolderModal(null);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Create folder failed", false);
+    }
+  }, [getProjectIdForFolder, refreshSandboxProjects, setExpandedIds, showToast]);
+
+  const handleRename = useCallback(async (
+    renameTarget: { id: string; name: string; type: "file" | "folder" },
+    nextName: string
+  ) => {
+    if (renameTarget.type === "file") {
+      try {
+        const response = await fetch("/api/slatedrop/rename", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileId: renameTarget.id, newName: nextName }),
+        });
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({ error: "Rename failed" }));
+          throw new Error(payload.error ?? "Rename failed");
+        }
+        setRealFiles((prev) => {
+          const folderFiles = prev[activeFolderId] ?? [];
+          return { ...prev, [activeFolderId]: folderFiles.map((file) => file.id === renameTarget.id ? { ...file, name: nextName } : file) };
+        });
+        await refreshFolderFiles(activeFolderId);
+        showToast(`Renamed to "${nextName}"`);
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : "Rename failed", false);
+        return;
+      }
+    } else {
+      try {
+        const response = await fetch("/api/slatedrop/folders", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ folderId: renameTarget.id, newName: nextName }),
+        });
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({ error: "Rename failed" }));
+          throw new Error(payload.error ?? "Rename failed");
+        }
+        await refreshSandboxProjects();
+        showToast(`Renamed to "${nextName}"`);
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : "Rename failed", false);
+        return;
+      }
+    }
+
+    setRenameModal(null);
+  }, [activeFolderId, refreshFolderFiles, refreshSandboxProjects, showToast]);
+
+  const handleDeleteConfirmAction = useCallback(async (
+    target: { id: string; name: string; type: "file" | "folder" | "project" },
+    projectConfirmName: string
+  ) => {
+    if (target.type === "file") {
+      try {
+        const response = await fetch("/api/slatedrop/delete", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileId: target.id }),
+        });
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({ error: "Delete failed" }));
+          throw new Error(payload.error ?? "Delete failed");
+        }
+        setRealFiles((prev) => ({
+          ...prev,
+          [activeFolderId]: (prev[activeFolderId] ?? []).filter((file) => file.id !== target.id),
+        }));
+        await refreshFolderFiles(activeFolderId);
+        showToast(`"${target.name}" deleted`);
+        setDeleteConfirm(null);
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : "Delete failed", false);
+      }
+      return;
+    }
+
+    if (target.type === "project") {
+      if (projectConfirmName.trim() !== target.name) {
+        showToast("Project name does not match. Please type the exact name.", false);
+        return;
+      }
+
+      const sandboxProjectExists = sandboxProjects.some((project) => project.id === target.id);
+      if (!sandboxProjectExists) {
+        showToast("Project not found.", false);
+        setDeleteConfirm(null);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/projects/${target.id}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            confirmText: "DELETE",
+            confirmName: projectConfirmName.trim(),
+          }),
+        });
+
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({ error: "Delete failed" }));
+          throw new Error(payload.error ?? "Delete failed");
+        }
+
+        const activeProjectId = getProjectIdForFolder(activeFolderId);
+        await refreshSandboxProjects();
+        if (activeProjectId === target.id) {
+          setActiveFolderId("projects");
+        }
+        showToast(`Project "${target.name}" deleted`);
+        setDeleteConfirm(null);
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : "Delete failed", false);
+      }
+      return;
+    }
+
+    try {
+      const parentFolderId = findFolder(folderTree, target.id)?.parentId ?? "projects";
+      const response = await fetch("/api/slatedrop/folders", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folderId: target.id }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({ error: "Delete failed" }));
+        throw new Error(payload.error ?? "Delete failed");
+      }
+
+      setRealFiles((prev) => {
+        const next = { ...prev };
+        delete next[target.id];
+        return next;
+      });
+      await refreshSandboxProjects();
+      if (activeFolderId === target.id) {
+        setActiveFolderId(parentFolderId);
+      }
+      showToast(`Folder "${target.name}" deleted`);
+      setDeleteConfirm(null);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Delete failed", false);
+    }
+  }, [activeFolderId, folderTree, getProjectIdForFolder, refreshFolderFiles, refreshSandboxProjects, sandboxProjects, showToast]);
+
+  const handleMoveFile = useCallback(async (fileId: string, targetFolderId: string) => {
+    if (!moveModal) {
+      setMoveModal(null);
+      return;
+    }
+
+    const findPath = (nodes: FolderNode[], folderId: string, currentPath = ""): string | null => {
+      for (const node of nodes) {
+        const nextPath = currentPath ? `${currentPath}/${node.id}` : node.id;
+        if (node.id === folderId) return nextPath;
+        const childPath = findPath(node.children, folderId, nextPath);
+        if (childPath) return childPath;
+      }
+      return null;
+    };
+
+    const fullPath = findPath(folderTree, targetFolderId) || targetFolderId;
+
+    try {
+      const response = await fetch("/api/slatedrop/move", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileId,
+          newFolderId: targetFolderId,
+          newS3KeyPrefix: `orgs/default/${fullPath}`,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Move failed");
+
+      setRealFiles((prev) => {
+        const next = { ...prev };
+        if (next[activeFolderId]) {
+          const fileToMove = next[activeFolderId].find((file) => file.id === moveModal.id);
+          if (fileToMove) {
+            next[activeFolderId] = next[activeFolderId].filter((file) => file.id !== moveModal.id);
+            if (next[targetFolderId]) {
+              next[targetFolderId] = [...next[targetFolderId], { ...fileToMove, folderId: targetFolderId }];
+            }
+          }
+        }
+        return next;
+      });
+
+      showToast("Moved to folder");
+      setMoveModal(null);
+    } catch {
+      showToast("Failed to move file", false);
+    }
+  }, [activeFolderId, folderTree, moveModal, showToast]);
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
@@ -1236,91 +1474,28 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
       />
 
       {/* ════════ MODALS ════════ */}
-
-      {/* New Folder Modal */}
-      {newFolderModal && (
-        <ModalBackdrop onClose={() => setNewFolderModal(null)}>
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="text-base font-bold text-gray-900">New Folder</h3>
-              <button
-                onClick={() => setNewFolderModal(null)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="p-6">
-              <input
-                type="text"
-                value={newFolderModal.name}
-                onChange={(e) => setNewFolderModal((prev) => (prev ? { ...prev, name: e.target.value } : prev))}
-                placeholder="Folder name"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all mb-4"
-                autoFocus
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setNewFolderModal(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    if (!newFolderModal) return;
-                    const folderName = newFolderModal.name.trim();
-                    if (!folderName) return;
-
-                    const projectId = getProjectIdForFolder(newFolderModal.parentId);
-                    if (!projectId) {
-                      showToast("Choose a project folder first to create a new folder.", false);
-                      return;
-                    }
-
-                    try {
-                      const res = await fetch("/api/slatedrop/folders", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          projectId,
-                          parentFolderId: newFolderModal.parentId === projectId ? null : newFolderModal.parentId,
-                          name: folderName,
-                        }),
-                      });
-                      if (!res.ok) {
-                        const err = await res.json().catch(() => ({ error: "Create folder failed" }));
-                        throw new Error(err.error ?? "Create folder failed");
-                      }
-                      const data = await res.json().catch(() => ({}));
-                      await refreshSandboxProjects();
-                      const createdFolderId = typeof data?.folder?.id === "string" ? data.folder.id : null;
-                      if (createdFolderId) {
-                        setExpandedIds((prev) => {
-                          const next = new Set(prev);
-                          next.add(projectId);
-                          next.add(newFolderModal.parentId);
-                          return next;
-                        });
-                        setActiveFolderId(createdFolderId);
-                      }
-                      showToast(`Folder \"${folderName}\" created`);
-                      setNewFolderModal(null);
-                    } catch (error) {
-                      showToast(error instanceof Error ? error.message : "Create folder failed", false);
-                    }
-                  }}
-                  disabled={!newFolderModal.name.trim()}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: "#FF4D00" }}
-                >
-                  Create
-                </button>
-              </div>
-            </div>
-          </div>
-        </ModalBackdrop>
-      )}
+      <SlateDropActionModals
+        newFolderModal={newFolderModal}
+        setNewFolderModal={setNewFolderModal}
+        onCreateFolder={handleCreateFolder}
+        renameModal={renameModal}
+        setRenameModal={setRenameModal}
+        renameValue={renameValue}
+        setRenameValue={setRenameValue}
+        onRename={handleRename}
+        deleteConfirm={deleteConfirm}
+        setDeleteConfirm={setDeleteConfirm}
+        deleteProjectConfirmName={deleteProjectConfirmName}
+        setDeleteProjectConfirmName={setDeleteProjectConfirmName}
+        onDeleteConfirm={handleDeleteConfirmAction}
+        moveModal={moveModal}
+        setMoveModal={setMoveModal}
+        moveTargetFolder={moveTargetFolder}
+        setMoveTargetFolder={setMoveTargetFolder}
+        folderTree={folderTree}
+        activeFolderId={activeFolderId}
+        onMoveFile={handleMoveFile}
+      />
 
       {/* Secure Send Modal */}
       {shareModal && (
@@ -1416,344 +1591,6 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
                   </button>
                 </div>
               )}
-            </div>
-          </div>
-        </ModalBackdrop>
-      )}
-
-      {/* Rename Modal */}
-      {renameModal && (
-        <ModalBackdrop onClose={() => setRenameModal(null)}>
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="text-base font-bold text-gray-900">Rename {renameModal.type}</h3>
-              <button onClick={() => setRenameModal(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100">
-                <X size={16} />
-              </button>
-            </div>
-            <div className="p-6">
-              <input
-                type="text"
-                value={renameValue}
-                onChange={(e) => setRenameValue(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all mb-4"
-                autoFocus
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setRenameModal(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    if (!renameValue.trim() || !renameModal) return;
-                    if (renameModal.type === "file") {
-                      try {
-                        const res = await fetch("/api/slatedrop/rename", {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ fileId: renameModal.id, newName: renameValue.trim() }),
-                        });
-                        if (!res.ok) {
-                          const err = await res.json().catch(() => ({ error: "Rename failed" }));
-                          throw new Error(err.error ?? "Rename failed");
-                        }
-                        setRealFiles(prev => {
-                          const fold = prev[activeFolderId] ?? [];
-                          return { ...prev, [activeFolderId]: fold.map(f => f.id === renameModal.id ? { ...f, name: renameValue.trim() } : f) };
-                        });
-                        await refreshFolderFiles(activeFolderId);
-                        showToast(`Renamed to "${renameValue.trim()}"`);
-                      } catch (error) {
-                        showToast(error instanceof Error ? error.message : "Rename failed", false);
-                      }
-                    } else {
-                      try {
-                        const res = await fetch("/api/slatedrop/folders", {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ folderId: renameModal.id, newName: renameValue.trim() }),
-                        });
-                        if (!res.ok) {
-                          const err = await res.json().catch(() => ({ error: "Rename failed" }));
-                          throw new Error(err.error ?? "Rename failed");
-                        }
-                        await refreshSandboxProjects();
-                        showToast(`Renamed to "${renameValue.trim()}"`);
-                      } catch (error) {
-                        showToast(error instanceof Error ? error.message : "Rename failed", false);
-                      }
-                    }
-                    setRenameModal(null);
-                  }}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
-                  style={{ backgroundColor: "#FF4D00" }}
-                >
-                  Rename
-                </button>
-              </div>
-            </div>
-          </div>
-        </ModalBackdrop>
-      )}
-
-      {/* Delete Confirm Modal */}
-      {deleteConfirm && (
-        <ModalBackdrop onClose={() => setDeleteConfirm(null)}>
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-            <div className="p-6 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
-                <Trash2 size={24} className="text-red-500" />
-              </div>
-              <h3 className="text-base font-bold text-gray-900 mb-2">Delete {deleteConfirm.type}?</h3>
-              <p className="text-xs text-gray-400 mb-6">
-                &quot;{deleteConfirm.name}&quot; will be permanently deleted. This action cannot be undone.
-              </p>
-
-              {deleteConfirm.type === "project" && (
-                <div className="text-left mb-6">
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                    Type <span className="font-black text-red-600">{deleteConfirm.name}</span> to confirm
-                  </label>
-                  <input
-                    type="text"
-                    value={deleteProjectConfirmName}
-                    onChange={(e) => setDeleteProjectConfirmName(e.target.value)}
-                    placeholder="Enter project name..."
-                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 outline-none transition-all"
-                    autoFocus
-                  />
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    if (!deleteConfirm) return;
-
-                    if (deleteConfirm.type === "file") {
-                      try {
-                        const res = await fetch("/api/slatedrop/delete", {
-                          method: "DELETE",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ fileId: deleteConfirm.id }),
-                        });
-                        if (!res.ok) {
-                          const err = await res.json().catch(() => ({ error: "Delete failed" }));
-                          throw new Error(err.error ?? "Delete failed");
-                        }
-                        setRealFiles((prev) => ({
-                          ...prev,
-                          [activeFolderId]: (prev[activeFolderId] ?? []).filter((f) => f.id !== deleteConfirm.id),
-                        }));
-                        await refreshFolderFiles(activeFolderId);
-                        showToast(`"${deleteConfirm.name}" deleted`);
-                      } catch (error) {
-                        showToast(error instanceof Error ? error.message : "Delete failed", false);
-                      }
-                      setDeleteConfirm(null);
-                      return;
-                    }
-
-                    if (deleteConfirm.type === "project") {
-                      if (deleteProjectConfirmName.trim() !== deleteConfirm.name) {
-                        showToast("Project name does not match. Please type the exact name.", false);
-                        return;
-                      }
-
-                      const sandboxProjectExists = sandboxProjects.some((project) => project.id === deleteConfirm.id);
-                      if (!sandboxProjectExists) {
-                        showToast("Project not found.", false);
-                        setDeleteConfirm(null);
-                        return;
-                      }
-
-                      try {
-                        const res = await fetch(`/api/projects/${deleteConfirm.id}`, {
-                          method: "DELETE",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            confirmText: "DELETE",
-                            confirmName: deleteProjectConfirmName.trim(),
-                          }),
-                        });
-
-                        if (!res.ok) {
-                          const err = await res.json().catch(() => ({ error: "Delete failed" }));
-                          throw new Error(err.error ?? "Delete failed");
-                        }
-
-                        const activeProjectId = getProjectIdForFolder(activeFolderId);
-                        await refreshSandboxProjects();
-                        if (activeProjectId === deleteConfirm.id) {
-                          setActiveFolderId("projects");
-                        }
-                        showToast(`Project "${deleteConfirm.name}" deleted`);
-                      } catch (error) {
-                        showToast(error instanceof Error ? error.message : "Delete failed", false);
-                      }
-
-                      setDeleteConfirm(null);
-                      return;
-                    }
-
-                    try {
-                      const parentFolderId = findFolder(folderTree, deleteConfirm.id)?.parentId ?? "projects";
-                      const res = await fetch("/api/slatedrop/folders", {
-                        method: "DELETE",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ folderId: deleteConfirm.id }),
-                      });
-                      if (!res.ok) {
-                        const err = await res.json().catch(() => ({ error: "Delete failed" }));
-                        throw new Error(err.error ?? "Delete failed");
-                      }
-
-                      setRealFiles((prev) => {
-                        const next = { ...prev };
-                        delete next[deleteConfirm.id];
-                        return next;
-                      });
-                      await refreshSandboxProjects();
-                      if (activeFolderId === deleteConfirm.id) {
-                        setActiveFolderId(parentFolderId);
-                      }
-                      showToast(`Folder "${deleteConfirm.name}" deleted`);
-                    } catch (error) {
-                      showToast(error instanceof Error ? error.message : "Delete failed", false);
-                    }
-                    setDeleteConfirm(null);
-                  }}
-                  disabled={
-                    deleteConfirm.type === "project" &&
-                    deleteProjectConfirmName.trim() !== deleteConfirm.name
-                  }
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </ModalBackdrop>
-      )}
-
-      {/* Move Modal */}
-      {moveModal && (
-        <ModalBackdrop onClose={() => setMoveModal(null)}>
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <div>
-                <h3 className="text-base font-bold text-gray-900">Move File</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Select destination for "{moveModal.name}"</p>
-              </div>
-              <button onClick={() => setMoveModal(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-            <div className="p-6">
-              <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-xl p-2 mb-6">
-                {/* Simple flat list of folders for now */}
-                {(() => {
-                  const allFolders: { id: string; name: string; path: string }[] = [];
-                  const traverse = (nodes: FolderNode[], path = "") => {
-                    nodes.forEach(n => {
-                      const currentPath = path ? `${path}/${n.id}` : n.id;
-                      allFolders.push({ id: n.id, name: n.name, path: currentPath });
-                      traverse(n.children, currentPath);
-                    });
-                  };
-                  traverse(folderTree);
-                  return allFolders.map(f => (
-                    <button
-                      key={f.id}
-                      onClick={() => setMoveTargetFolder(f.id)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left transition-colors ${
-                        moveTargetFolder === f.id ? "bg-[#FF4D00]/10 text-[#FF4D00] font-medium" : "hover:bg-gray-50 text-gray-700"
-                      }`}
-                    >
-                      <Folder size={16} className={moveTargetFolder === f.id ? "text-[#FF4D00]" : "text-gray-400"} />
-                      {f.name}
-                    </button>
-                  ));
-                })()}
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setMoveModal(null)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    if (!moveTargetFolder || moveTargetFolder === activeFolderId) {
-                      setMoveModal(null);
-                      return;
-                    }
-                    
-                    // Find the target folder path
-                    let targetPath = moveTargetFolder;
-                    const findPath = (nodes: FolderNode[], id: string, currentPath = ""): string | null => {
-                      for (const n of nodes) {
-                        const p = currentPath ? `${currentPath}/${n.id}` : n.id;
-                        if (n.id === id) return p;
-                        const childPath = findPath(n.children, id, p);
-                        if (childPath) return childPath;
-                      }
-                      return null;
-                    };
-                    const fullPath = findPath(folderTree, moveTargetFolder) || moveTargetFolder;
-
-                    try {
-                      const res = await fetch("/api/slatedrop/move", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          fileId: moveModal.id,
-                          newFolderId: moveTargetFolder,
-                          newS3KeyPrefix: `orgs/default/${fullPath}` // Note: orgs/default is a placeholder, the API handles the real org prefix
-                        }),
-                      });
-                      
-                      if (!res.ok) throw new Error("Move failed");
-                      
-                      // Optimistically update UI
-                      setRealFiles(prev => {
-                        const next = { ...prev };
-                        if (next[activeFolderId]) {
-                          const fileToMove = next[activeFolderId].find(f => f.id === moveModal.id);
-                          if (fileToMove) {
-                            next[activeFolderId] = next[activeFolderId].filter(f => f.id !== moveModal.id);
-                            if (next[moveTargetFolder]) {
-                              next[moveTargetFolder] = [...next[moveTargetFolder], { ...fileToMove, folderId: moveTargetFolder }];
-                            }
-                          }
-                        }
-                        return next;
-                      });
-                      
-                      showToast(`Moved to folder`);
-                    } catch (err) {
-                      showToast("Failed to move file", false);
-                    }
-                    setMoveModal(null);
-                  }}
-                  disabled={!moveTargetFolder || moveTargetFolder === activeFolderId}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: "#FF4D00" }}
-                >
-                  Move Here
-                </button>
-              </div>
             </div>
           </div>
         </ModalBackdrop>

@@ -159,6 +159,8 @@ Resolved: dashboard and Project Hub widget shells now render embedded SlateDrop 
 ### 🔴 Step 6 — Decompose the monoliths (blocker for all future fixes being reliable)
 Before building new features, extract the sub-components planned in `SLATEDROP.md §3` and enforce the 300-line file limit from `GUARDRAILS.md`. With smaller files, every future AI session will be able to see the full file, and session-boundary partial-fix bugs will stop happening.
 
+Progress update (Mar 4 2026): extracted `SlateDropContextMenu.tsx` and `SlateDropActionModals.tsx`, plus `useSlateDropFiles` and `useSlateDropUiState`; remaining work is file grid/preview panel/sidebar decomposition and shell reduction.
+
 ---
 
 ## Active Bugs
