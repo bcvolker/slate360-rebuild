@@ -454,7 +454,7 @@ export default function ProjectDashboardGrid({
     if (id === "slatedrop") {
       const rootFolders = listSlateDropRootFolders(tier);
       return (
-        <div className="space-y-3 flex-1">
+        <div className="h-full flex flex-col min-h-0 space-y-3">
           {!isExpanded && (
             <>
               <div className="flex items-center justify-between">
@@ -478,7 +478,9 @@ export default function ProjectDashboardGrid({
 
           {isExpanded && (
             <div className="flex-1 min-h-0 -mx-6 -mb-6 overflow-hidden border-t border-gray-100">
-              <SlateDropClient user={user} tier={tier} initialProjectId={projectId} embedded />
+              <div className="h-full">
+                <SlateDropClient user={user} tier={tier} initialProjectId={projectId} embedded />
+              </div>
             </div>
           )}
         </div>

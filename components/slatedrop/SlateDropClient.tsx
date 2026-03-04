@@ -1919,14 +1919,47 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
                   <p className="text-sm text-gray-500 font-medium">Preview not available</p>
                   <p className="text-xs text-gray-400 mt-1">{previewError}</p>
                 </div>
-              ) : previewUrl && previewFile.file_type.toLowerCase() === "pdf" ? (
-                <iframe
-                  src={previewUrl}
-                  title={previewFile.file_name}
-                  className="w-full h-[460px] rounded-lg border border-gray-200 bg-white"
-                />
-              ) : previewUrl && ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(previewFile.file_type.toLowerCase()) ? (
-                <img src={previewUrl} alt={previewFile.file_name} className="max-h-[400px] rounded-lg shadow-md object-contain" />
+              ) : previewUrl ? (
+                (() => {
+                  const ft = previewFile.file_type.toLowerCase();
+
+                  if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(ft)) {
+                    return (
+                      <img
+                        src={previewUrl}
+                        alt={previewFile.file_name}
+                        className="max-h-[460px] rounded-lg shadow-md object-contain"
+                      />
+                    );
+                  }
+
+                  if (["mp4", "mov", "webm", "m4v"].includes(ft)) {
+                    return (
+                      <video
+                        src={previewUrl}
+                        controls
+                        className="w-full h-[460px] rounded-lg border border-gray-200 bg-black"
+                      />
+                    );
+                  }
+
+                  if (["mp3", "wav", "m4a", "ogg"].includes(ft)) {
+                    return (
+                      <div className="w-full rounded-lg border border-gray-200 bg-white p-6">
+                        <audio src={previewUrl} controls className="w-full" />
+                      </div>
+                    );
+                  }
+
+                  // Fallback: attempt to preview in an iframe (works for PDFs and any type the browser can render inline).
+                  return (
+                    <iframe
+                      src={previewUrl}
+                      title={previewFile.file_name}
+                      className="w-full h-[460px] rounded-lg border border-gray-200 bg-white"
+                    />
+                  );
+                })()
               ) : (
                 <div className="text-center">
                   {(() => {

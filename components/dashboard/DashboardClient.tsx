@@ -1557,7 +1557,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
               </button>
             </div>
           }>
-            <div className="space-y-4">
+            <div className="h-full flex flex-col min-h-0 space-y-4">
               {/* Storage bar */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
@@ -1614,7 +1614,9 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
               )}
               {isExpanded && (
                 <div className="flex-1 min-h-0 -mx-6 -mb-6 overflow-hidden border-t border-gray-100">
-                  <SlateDropClient user={user} tier={tier} embedded />
+                  <div className="h-full">
+                    <SlateDropClient user={user} tier={tier} embedded />
+                  </div>
                 </div>
               )}
             </div>
