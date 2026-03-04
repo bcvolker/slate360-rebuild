@@ -18,7 +18,7 @@
 
 ---
 
-## Console Errors (Logged 2026-03-03)
+## Console Errors (Logged 2026-03-04)
 
 | Error | Source | Root Cause | Fix |
 |---|---|---|---|
@@ -26,6 +26,7 @@
 | `Drawing library functionality in the Maps JavaScript API is deprecated` | Geospatial / LocationMap | `DrawingManager` still referenced somewhere — migration to custom `Polyline`/`Polygon` incomplete. | Audit all `google.maps.drawing` references; remove remaining `DrawingManager` usage before May 2026. |
 | `satellite and hybrid map types will no longer automatically switch to 45° Imagery` | Maps JavaScript API | Informational deprecation — no code change required yet, but note for future map version upgrades. | Monitor for Maps JS API version bump; no action needed now. |
 | `places.googleapis.com/…/AutocompletePlaces: 403 Forbidden` | `WizardLocationPicker.tsx` | **Google Cloud API key does not have "Places API (New)" enabled.** The new `AutocompleteSuggestion.fetchAutocompleteSuggestions()` API requires the Places API (New) to be explicitly enabled on the key in Google Cloud Console. The old `AutocompleteService` was previously enabled. | Enable "Places API (New)" in Google Cloud Console for the `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`. If key restrictions are in place, add the required API to the allowed list. |
+| `Uncaught ReferenceError: isClient is not defined` | `DashboardClient.tsx` (Dashboard route bundle) | A hotfix added `isClient` conditional rendering in multiple JSX blocks but did not declare the `isClient` state in component scope, causing a runtime crash and blank dashboard. | Added `const [isClient, setIsClient] = useState(false)` and mount effect to set it true client-side; date renders now safely guard on client mount. |
 
 ---
 

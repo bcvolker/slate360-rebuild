@@ -476,6 +476,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
   const ent = getEntitlements(tier, { isSlateCeo });
   const supabase = createClient();
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
 
   // CEO/internal tabs are gated by isSlateCeo only — never by subscription tier
   const hasCeoAccess = isSlateCeo;
@@ -556,6 +557,13 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
   const [prefShowDashboardTiles, setPrefShowDashboardTiles] = useState(true);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState<InboxNotification[]>([]);
+
+  useEffect(() => {
+    setIsClient(true);
+    const now = new Date();
+    setCalMonth(now.getMonth());
+    setCalYear(now.getFullYear());
+  }, []);
 
   // ── SlateDrop floating window ───────────────────────────────
   const [slateDropOpen, setSlateDropOpen] = useState(false);

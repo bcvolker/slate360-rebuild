@@ -2,7 +2,7 @@
 
 Purpose: single source of truth for persistent production/runtime defects, with root-cause elimination history and handoff context.
 
-Last updated: 2026-03-03 (debt mitigation pass)
+Last updated: 2026-03-04 (dashboard runtime crash fix)
 Owner: AI agent + engineering team
 
 ---
@@ -133,6 +133,35 @@ Current issue states:
 - Issue 9 (SlateDrop widget inconsistency): **Fixed — added link to full SlateDrop UI**
 - Issue 10 (Dashboard delete menu missing): **Fixed — extracted DashboardProjectCard with 3-dot delete**
 - Issue 11 (Org bootstrap + Web3 + activity log debt): **Mitigated — fallback bootstrap route/callback, Market-scoped Web3 providers, activity-log table scaffold**
+- Issue 12 (`isClient` dashboard crash): **Resolved — missing client-guard state declared and initialized in DashboardClient**
+
+---
+
+## Issue 12 — Dashboard blank page after login (`isClient is not defined`)
+
+### Symptoms
+- Authenticated users hitting `/dashboard` observed a blank page.
+- Production console showed: `Uncaught ReferenceError: isClient is not defined` in the dashboard route bundle.
+
+### Root-cause hypothesis
+- A hydration hotfix introduced multiple `isClient && ...` guards in `DashboardClient.tsx` date rendering paths.
+- The `isClient` state variable was never declared in component scope.
+
+### Fix applied
+1. Added `const [isClient, setIsClient] = useState(false);` in `DashboardClient`.
+2. Added mount effect to set client state and initialize calendar month/year on client:
+  - `setIsClient(true)`
+  - `setCalMonth(now.getMonth())`
+  - `setCalYear(now.getFullYear())`
+
+### Files touched
+- `components/dashboard/DashboardClient.tsx`
+- `slate360-context/ONGOING_ISSUES.md`
+- `PROJECT_RUNTIME_ISSUE_LEDGER.md`
+
+### Elimination status
+- Eliminated undefined symbol regression in dashboard runtime path.
+- Preserved hydration-safe date rendering guard behavior.
 
 ---
 
