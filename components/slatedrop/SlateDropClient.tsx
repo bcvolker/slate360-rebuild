@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 import { buildSlateDropBaseFolderTree, type SlateDropFolderNode as FolderNode } from "@/lib/slatedrop/folderTree";
@@ -13,25 +12,17 @@ import SlateDropSharePreviewModals from "@/components/slatedrop/SlateDropSharePr
 import SlateDropFileArea from "@/components/slatedrop/SlateDropFileArea";
 import SlateDropSidebar from "@/components/slatedrop/SlateDropSidebar";
 import SlateDropTopBar from "@/components/slatedrop/SlateDropTopBar";
+import SlateDropToolbar from "@/components/slatedrop/SlateDropToolbar";
 import {
-  Search,
   ChevronDown,
-  ChevronRight,
-  ChevronLeft,
   Plus,
-  Upload,
   Download,
-  FolderOpen,
   File,
   FileText,
   FileImage,
   FileVideo,
   FileArchive,
   File as FileGeneric,
-  Grid3X3,
-  List,
-  SortAsc,
-  SortDesc,
   ArrowRight,
   Activity,
   Loader2,
@@ -916,97 +907,34 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
         {/* ── MAIN CONTENT ── */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* ── TOOLBAR ── */}
-          <div className="shrink-0 bg-white border-b border-gray-100 px-4 py-3">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              {/* Breadcrumb */}
-              <div className="flex items-center gap-1.5 text-sm flex-1 min-w-0">
-                <button
-                  onClick={() => setSidebarOpen((v) => !v)}
-                  className="hidden md:flex w-7 h-7 rounded-lg items-center justify-center text-gray-400 hover:bg-gray-100 shrink-0"
-                  title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-                >
-                  {sidebarOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
-                </button>
-                <FolderOpen size={15} className="text-[#FF4D00] shrink-0" />
-                {breadcrumb.map((seg, i) => (
-                  <span key={i} className="flex items-center gap-1.5 min-w-0">
-                    {i > 0 && <ChevronRight size={11} className="text-gray-300 shrink-0" />}
-                    <span
-                      className={`truncate ${
-                        i === breadcrumb.length - 1 ? "font-semibold text-gray-900" : "text-gray-400 hover:text-gray-600 cursor-pointer"
-                      }`}
-                    >
-                      {seg}
-                    </span>
-                  </span>
-                ))}
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-2 shrink-0">
-                {/* Search */}
-                <div className="relative">
-                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search files…"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-40 sm:w-48 pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all"
-                  />
-                </div>
-
-                {/* Sort */}
-                <button
-                  onClick={() => toggleSort(sortKey === "name" ? "modified" : sortKey === "modified" ? "size" : "name")}
-                  className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors"
-                  title={`Sort by ${sortKey} (${sortDir})`}
-                >
-                  {sortDir === "asc" ? <SortAsc size={14} /> : <SortDesc size={14} />}
-                </button>
-
-                {/* View toggle */}
-                <div className="flex rounded-lg border border-gray-200 overflow-hidden">
-                  <button
-                    onClick={() => setViewMode("grid")}
-                    className={`w-8 h-8 flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-[#FF4D00] text-white" : "text-gray-400 hover:bg-gray-100"}`}
-                  >
-                    <Grid3X3 size={14} />
-                  </button>
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={`w-8 h-8 flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-[#FF4D00] text-white" : "text-gray-400 hover:bg-gray-100"}`}
-                  >
-                    <List size={14} />
-                  </button>
-                </div>
-
-                {/* Upload */}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90"
-                  style={{ backgroundColor: "#FF4D00" }}
-                >
-                  <Upload size={13} /> Upload
-                </button>
-                <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => { if (e.target.files?.length) uploadFiles(e.target.files); e.target.value = ""; }} />
-
-                {/* Download ZIP */}
-                {(activeFolderId.startsWith("proj-") || activeFolderId === "projects") && (
-                  <button
-                    onClick={() => {
-                      const folderName = activeFolder?.name ?? "Project Folder";
-                      void handleDownloadFolderZip(activeFolderId, folderName);
-                    }}
-                    className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-                    title="Download project as ZIP"
-                  >
-                    <FileArchive size={13} /> ZIP
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+          <SlateDropToolbar
+            sidebarOpen={sidebarOpen}
+            breadcrumb={breadcrumb}
+            searchQuery={searchQuery}
+            sortKey={sortKey}
+            sortDir={sortDir}
+            viewMode={viewMode}
+            showZipButton={activeFolderId.startsWith("proj-") || activeFolderId === "projects"}
+            onToggleSidebar={() => setSidebarOpen((value) => !value)}
+            onSearchChange={setSearchQuery}
+            onCycleSort={() => toggleSort(sortKey === "name" ? "modified" : sortKey === "modified" ? "size" : "name")}
+            onSetViewMode={setViewMode}
+            onUploadClick={() => fileInputRef.current?.click()}
+            onDownloadZip={() => {
+              const folderName = activeFolder?.name ?? "Project Folder";
+              void handleDownloadFolderZip(activeFolderId, folderName);
+            }}
+          />
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(event) => {
+              if (event.target.files?.length) uploadFiles(event.target.files);
+              event.target.value = "";
+            }}
+          />
 
           {/* ── FILE AREA ── */}
           <SlateDropFileArea

@@ -27,13 +27,14 @@ SlateDrop is Slate360's file management system. It provides a full file explorer
 
 | Component | File | Lines | Purpose |
 |---|---|---|---|
-| SlateDropClient | `components/slatedrop/SlateDropClient.tsx` | **2,030** | Main explorer (⚠️ decompose) |
+| SlateDropClient | `components/slatedrop/SlateDropClient.tsx` | **1,081** | Main explorer orchestration shell (decomposition in progress) |
 | SlateDropContextMenu | `components/slatedrop/SlateDropContextMenu.tsx` | ~240 | Extracted context-menu render/actions surface from `SlateDropClient` |
 | SlateDropActionModals | `components/slatedrop/SlateDropActionModals.tsx` | ~300 | Extracted new-folder/rename/delete/move modal UI surface from `SlateDropClient` |
 | SlateDropSharePreviewModals | `components/slatedrop/SlateDropSharePreviewModals.tsx` | ~260 | Extracted secure-send and preview modal UI surface from `SlateDropClient` |
 | SlateDropFileArea | `components/slatedrop/SlateDropFileArea.tsx` | ~290 | Extracted subfolders/files grid-list/empty-state render surface from `SlateDropClient` |
 | SlateDropSidebar | `components/slatedrop/SlateDropSidebar.tsx` | ~200 | Extracted mobile overlay + sidebar storage/new-folder/folder-tree surface from `SlateDropClient` |
 | SlateDropTopBar | `components/slatedrop/SlateDropTopBar.tsx` | ~100 | Extracted top header shell (logo/nav/mobile toggle/user menu) from `SlateDropClient` |
+| SlateDropToolbar | `components/slatedrop/SlateDropToolbar.tsx` | ~120 | Extracted breadcrumb + search/sort/view/upload/ZIP controls from `SlateDropClient` |
 | ProjectFileExplorer | `components/slatedrop/ProjectFileExplorer.tsx` | 363 | Project-scoped file view |
 | useSlateDropFiles | `lib/hooks/useSlateDropFiles.ts` | ~110 | Extracted file loading/sorting state hook used by `SlateDropClient` |
 | useSlateDropUiState | `lib/hooks/useSlateDropUiState.ts` | ~130 | Extracted UI modal/context-menu/share/preview state hook used by `SlateDropClient` |
@@ -55,11 +56,11 @@ Used by:
 ```
 SlateDropClient.tsx       → ~200 lines (layout shell)
 SlateDropSidebar.tsx      → folder tree sidebar
-SlateDropFileGrid.tsx     → file list/grid view
-SlateDropUploadZone.tsx   → drag-and-drop upload area
+SlateDropToolbar.tsx      → breadcrumb + controls
+SlateDropFileArea.tsx     → file list/grid + empty states + upload drop area
 SlateDropContextMenu.tsx  → right-click context menu
-SlateDropPreviewPanel.tsx → file preview
-SlateDropBreadcrumb.tsx   → breadcrumb navigation
+SlateDropSharePreviewModals.tsx → share + file preview modals
+SlateDropActionModals.tsx → create/rename/delete/move modals
 ```
 
 ---

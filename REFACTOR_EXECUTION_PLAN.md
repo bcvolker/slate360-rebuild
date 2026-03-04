@@ -41,6 +41,7 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
    - ✅ Extracted SlateDrop file grid/list/sandbox content surface to `components/slatedrop/SlateDropFileArea.tsx`
    - ✅ Extracted SlateDrop sidebar tree/storage/new-folder surface to `components/slatedrop/SlateDropSidebar.tsx`
    - ✅ Extracted SlateDrop top bar shell/user-menu surface to `components/slatedrop/SlateDropTopBar.tsx`
+   - ✅ Extracted SlateDrop toolbar/breadcrumb/actions surface to `components/slatedrop/SlateDropToolbar.tsx`
    - 🔄 Keep narrowing `SlateDropClient` to layout/orchestration shell
 
 3. **Slice C**
@@ -63,7 +64,8 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Completed file-area extraction into `components/slatedrop/SlateDropFileArea.tsx`; `SlateDropClient` now delegates subfolders/files grid/list/empty-state rendering.
 - 2026-03-04: Completed sidebar extraction into `components/slatedrop/SlateDropSidebar.tsx`; `SlateDropClient` now delegates mobile overlay/sidebar storage/new-folder/tree rendering.
 - 2026-03-04: Completed top-bar extraction into `components/slatedrop/SlateDropTopBar.tsx`; `SlateDropClient` now delegates the header/logo/nav/user-menu shell.
+- 2026-03-04: Completed toolbar extraction into `components/slatedrop/SlateDropToolbar.tsx`; `SlateDropClient` now delegates breadcrumb/search/sort/view/upload/zip controls.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~4–8 focused prompts, approximately 0.5–1.25 weeks at current pace.
+- **Remaining window:** ~3–7 focused prompts, approximately 0.4–1.0 weeks at current pace.
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.
