@@ -49,9 +49,10 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
    - ✅ Extracted SlateDrop interaction handlers hook to `lib/hooks/useSlateDropInteractionHandlers.ts`
    - ✅ Extracted SlateDrop upload pipeline hook to `lib/hooks/useSlateDropUploadActions.ts`
    - ✅ Extracted SlateDrop preview URL lifecycle hook to `lib/hooks/useSlateDropPreviewUrl.ts`
-   - 🔄 Keep narrowing `SlateDropClient` to layout/orchestration shell
+   - ✅ Optional shell polish: memoized upload/sidebar/subfolder/toolbar callbacks and derived banner/zip view state
+   - ✅ Slice B complete for planned extraction scope
 
-3. **Slice C**
+3. **Slice C (next)**
    - Extract Project Hub Tier-1 sections in `ClientPage.tsx`
    - Continue DashboardClient decomposition
 
@@ -79,8 +80,9 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Completed interaction-handlers hook extraction into `lib/hooks/useSlateDropInteractionHandlers.ts`; `SlateDropClient` now delegates drag/drop/sort/select/context-menu/sign-out interaction callbacks.
 - 2026-03-04: Completed upload-actions hook extraction into `lib/hooks/useSlateDropUploadActions.ts`; `SlateDropClient` now delegates the S3 upload reservation/PUT/finalize workflow.
 - 2026-03-04: Completed preview-url hook extraction into `lib/hooks/useSlateDropPreviewUrl.ts`; `SlateDropClient` now delegates preview loading/error/url lifecycle.
+- 2026-03-04: Completed optional Slice B polish on `SlateDropClient` render wiring (memoized callbacks/derived view state) to reduce inline JSX complexity before moving to Slice C.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~0–1 focused prompts (plus optional follow-up polish), approximately 0.05–0.15 weeks at current pace.
-- **Estimated remaining prompts:** 0 required for Slice B completion, 1 optional polish before Slice C.
+- **Remaining window:** ~8–16 focused prompts, approximately 1.25–2.5 weeks at current pace.
+- **Estimated remaining prompts:** ~8–16 to reach broad “code optimized” state across SlateDrop handoff + Project Hub + Dashboard + BUG-018 migration.
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.

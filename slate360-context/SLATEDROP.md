@@ -27,7 +27,7 @@ SlateDrop is Slate360's file management system. It provides a full file explorer
 
 | Component | File | Lines | Purpose |
 |---|---|---|---|
-| SlateDropClient | `components/slatedrop/SlateDropClient.tsx` | **557** | Main explorer orchestration shell (decomposition in progress) |
+| SlateDropClient | `components/slatedrop/SlateDropClient.tsx` | **577** | Main explorer orchestration shell (decomposition in progress; optional render-wiring polish applied) |
 | SlateDropContextMenu | `components/slatedrop/SlateDropContextMenu.tsx` | ~240 | Extracted context-menu render/actions surface from `SlateDropClient` |
 | SlateDropActionModals | `components/slatedrop/SlateDropActionModals.tsx` | ~300 | Extracted new-folder/rename/delete/move modal UI surface from `SlateDropClient` |
 | SlateDropSharePreviewModals | `components/slatedrop/SlateDropSharePreviewModals.tsx` | ~260 | Extracted secure-send and preview modal UI surface from `SlateDropClient` |

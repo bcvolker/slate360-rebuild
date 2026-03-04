@@ -293,6 +293,16 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
   });
 
   const subFolders = activeFolder?.children ?? [];
+  const showZipButton = activeFolderId.startsWith("proj-") || activeFolderId === "projects";
+  const activeProjectBanner = useMemo(() => {
+    const activeProject = sandboxProjects.find((project) => project.id === activeFolderId);
+    if (!activeProject) return null;
+    return {
+      id: activeProject.id,
+      name: activeProject.name,
+      folderCount: activeProject.folders.length,
+    };
+  }, [activeFolderId, sandboxProjects]);
   const storageUsed = tier === "trial" ? 1.2 : tier === "creator" ? 12 : tier === "model" ? 42 : 185;
 
   const { uploadFiles } = useSlateDropUploadActions({
@@ -332,6 +342,45 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
     },
   });
 
+  const openUploadPicker = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files?.length) {
+      void uploadFiles(event.target.files);
+    }
+    event.target.value = "";
+  }, [uploadFiles]);
+
+  const handleSidebarNewFolder = useCallback(() => {
+    const projectId = getProjectIdForFolder(activeFolderId);
+    if (!projectId) {
+      showToast("Choose a project folder first to create a new folder.", false);
+      return;
+    }
+    setNewFolderModal({ parentId: activeFolderId, name: "" });
+  }, [activeFolderId, getProjectIdForFolder, setNewFolderModal, showToast]);
+
+  const handleSidebarSelectFolder = useCallback((id: string) => {
+    setActiveFolderId(id);
+    setSelectedFiles(new Set());
+    setMobileSidebarOpen(false);
+  }, []);
+
+  const handleOpenSubFolder = useCallback((folderId: string) => {
+    setActiveFolderId(folderId);
+    setSelectedFiles(new Set());
+    if (!expandedIds.has(activeFolderId)) {
+      toggleExpand(activeFolderId);
+    }
+  }, [activeFolderId, expandedIds, toggleExpand]);
+
+  const handleToolbarDownloadZip = useCallback(() => {
+    const folderName = activeFolder?.name ?? "Project Folder";
+    void handleDownloadFolderZip(activeFolderId, folderName);
+  }, [activeFolder?.name, activeFolderId, handleDownloadFolderZip]);
+
   /* ================================================================
      RENDER
      ================================================================ */
@@ -361,19 +410,8 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
           activeFolderId={activeFolderId}
           expandedIds={expandedIds}
           onCloseMobileSidebar={() => setMobileSidebarOpen(false)}
-          onRequestNewFolder={() => {
-            const projectId = getProjectIdForFolder(activeFolderId);
-            if (!projectId) {
-              showToast("Choose a project folder first to create a new folder.", false);
-              return;
-            }
-            setNewFolderModal({ parentId: activeFolderId, name: "" });
-          }}
-          onSelectFolder={(id) => {
-            setActiveFolderId(id);
-            setSelectedFiles(new Set());
-            setMobileSidebarOpen(false);
-          }}
+          onRequestNewFolder={handleSidebarNewFolder}
+          onSelectFolder={handleSidebarSelectFolder}
           onToggleFolder={toggleExpand}
           onFolderMenuClick={(node, event) => {
             handleContextMenu(event, { type: "folder", id: node.id, path: node.id, name: node.name, isSystem: node.isSystem });
@@ -390,41 +428,27 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
             sortKey={sortKey}
             sortDir={sortDir}
             viewMode={viewMode}
-            showZipButton={activeFolderId.startsWith("proj-") || activeFolderId === "projects"}
+            showZipButton={showZipButton}
             onToggleSidebar={() => setSidebarOpen((value) => !value)}
             onSearchChange={setSearchQuery}
             onCycleSort={() => toggleSort(sortKey === "name" ? "modified" : sortKey === "modified" ? "size" : "name")}
             onSetViewMode={setViewMode}
-            onUploadClick={() => fileInputRef.current?.click()}
-            onDownloadZip={() => {
-              const folderName = activeFolder?.name ?? "Project Folder";
-              void handleDownloadFolderZip(activeFolderId, folderName);
-            }}
+            onUploadClick={openUploadPicker}
+            onDownloadZip={handleToolbarDownloadZip}
           />
           <input
             ref={fileInputRef}
             type="file"
             multiple
             className="hidden"
-            onChange={(event) => {
-              if (event.target.files?.length) uploadFiles(event.target.files);
-              event.target.value = "";
-            }}
+            onChange={handleFileInputChange}
           />
 
           {/* ── FILE AREA ── */}
           <SlateDropFileArea
             dragOver={dragOver}
             activeFolderName={activeFolder?.name}
-            projectBanner={(() => {
-              const activeProject = sandboxProjects.find((project) => project.id === activeFolderId);
-              if (!activeProject) return null;
-              return {
-                id: activeProject.id,
-                name: activeProject.name,
-                folderCount: activeProject.folders.length,
-              };
-            })()}
+            projectBanner={activeProjectBanner}
             onDeleteProject={(projectId, projectName) => {
               setDeleteConfirm({ id: projectId, name: projectName, type: "project" });
             }}
@@ -432,11 +456,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             subFolders={subFolders}
-            onOpenSubFolder={(folderId) => {
-              setActiveFolderId(folderId);
-              setSelectedFiles(new Set());
-              if (!expandedIds.has(activeFolderId)) toggleExpand(activeFolderId);
-            }}
+            onOpenSubFolder={handleOpenSubFolder}
             onSubFolderContextMenu={(event, folder) => {
               handleContextMenu(event, { type: "folder", id: folder.id, path: folder.id, name: folder.name, isSystem: folder.isSystem });
             }}
@@ -462,7 +482,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
             getFileColor={getFileColor}
             formatBytes={formatBytes}
             formatDate={formatDate}
-            onUploadClick={() => fileInputRef.current?.click()}
+            onUploadClick={openUploadPicker}
           />
         </div>
       </div>
