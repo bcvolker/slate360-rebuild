@@ -41,7 +41,13 @@
       "canonicalSpec": "slate360-context/dashboard-tabs/slatedrop/IMPLEMENTATION_PLAN.md",
       "status": "live",
       "primaryComponents": [
-        "components/slatedrop/SlateDropClient.tsx"
+        "components/slatedrop/SlateDropClient.tsx",
+        "components/slatedrop/SlateDropTopBar.tsx",
+        "components/slatedrop/SlateDropSidebar.tsx",
+        "components/slatedrop/SlateDropFileArea.tsx",
+        "components/slatedrop/SlateDropContextMenu.tsx",
+        "components/slatedrop/SlateDropActionModals.tsx",
+        "components/slatedrop/SlateDropSharePreviewModals.tsx"
       ],
       "apis": [
         "/api/slatedrop/files",
