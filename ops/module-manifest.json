@@ -21,7 +21,8 @@
         "components/dashboard/DashboardCalendarWidget.tsx",
         "components/dashboard/DashboardWeatherWidget.tsx",
         "components/dashboard/DashboardContinueWidget.tsx",
-        "components/dashboard/DashboardSuggestWidget.tsx"
+        "components/dashboard/DashboardSuggestWidget.tsx",
+        "components/dashboard/DashboardContactsWidget.tsx"
       ],
       "apis": [
         "/api/dashboard/widgets",

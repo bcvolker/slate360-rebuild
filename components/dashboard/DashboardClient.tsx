@@ -12,6 +12,7 @@ import DashboardProjectCard from "@/components/dashboard/DashboardProjectCard";
 import DashboardDataUsageWidget from "@/components/dashboard/DashboardDataUsageWidget";
 import DashboardCalendarWidget from "@/components/dashboard/DashboardCalendarWidget";
 import DashboardContinueWidget from "@/components/dashboard/DashboardContinueWidget";
+import DashboardContactsWidget from "@/components/dashboard/DashboardContactsWidget";
 import DashboardFinancialWidget from "@/components/dashboard/DashboardFinancialWidget";
 import DashboardProcessingWidget from "@/components/dashboard/DashboardProcessingWidget";
 import DashboardSuggestWidget from "@/components/dashboard/DashboardSuggestWidget";
@@ -42,7 +43,6 @@ import { useDashboardRuntimeData } from "@/lib/hooks/useDashboardRuntimeData";
 import { useDashboardFloatingWindows } from "@/lib/hooks/useDashboardFloatingWindows";
 import { useDashboardWidgetPrefs } from "@/lib/hooks/useDashboardWidgetPrefs";
 import {
-  Search,
   Bell,
   ChevronDown,
   ChevronLeft,
@@ -1359,47 +1359,15 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
           );
 
               case "contacts": return (
-          <WidgetCard key={id} icon={Users} title="Contacts" span={span} delay={300} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
-            <button className="text-[11px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-0.5">
-              <UserPlus size={12} /> Add
-            </button>
-          }>
-            <div className="space-y-3">
-              <div className="relative">
-                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search contacts…"
-                  value={contactSearch}
-                  onChange={(e) => setContactSearch(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all"
-                />
-              </div>
-              <div className="space-y-1 max-h-[200px] overflow-y-auto">
-                {filteredContacts.map((c) => (
-                  <button
-                    key={c.name}
-                    className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors text-left"
-                  >
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
-                      style={{ backgroundColor: c.color }}
-                    >
-                      {c.initials}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-gray-900 truncate">{c.name}</p>
-                      <p className="text-[10px] text-gray-400 truncate">{c.role}</p>
-                    </div>
-                    <span className="text-[9px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full shrink-0">{c.project}</span>
-                  </button>
-                ))}
-                {filteredContacts.length === 0 && (
-                  <p className="text-xs text-gray-400 text-center py-4">No contacts found</p>
-                )}
-              </div>
-            </div>
-          </WidgetCard>
+          <DashboardContactsWidget
+            span={span}
+            widgetColor={widgetColor}
+            widgetSize={widgetSize}
+            onSetSize={handleSetSize}
+            contactSearch={contactSearch}
+            filteredContacts={filteredContacts}
+            onContactSearchChange={setContactSearch}
+          />
           );
 
               case "suggest": return (
