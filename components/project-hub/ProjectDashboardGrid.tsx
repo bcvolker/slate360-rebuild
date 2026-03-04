@@ -51,16 +51,37 @@ function resolveProjectLocation(metadata: unknown, profileAddress: string | null
   label: string;
   center: { lat: number; lng: number } | null;
 } {
+  const parseMaybeNumber = (value: unknown): number | null => {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string") {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : null;
+    }
+    return null;
+  };
+
   const meta = (metadata && typeof metadata === "object" ? (metadata as Record<string, unknown>) : {}) as Record<string, unknown>;
-  const locValue = meta.location;
+  let locValue = meta.location;
+
+  if (typeof locValue === "string") {
+    const trimmed = locValue.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed) as unknown;
+        locValue = parsed;
+      } catch {
+        // fall through
+      }
+    }
+  }
 
   let center: { lat: number; lng: number } | null = null;
   let label: string | null = null;
 
   if (locValue && typeof locValue === "object") {
     const loc = locValue as Record<string, unknown>;
-    const lat = typeof loc.lat === "number" ? loc.lat : null;
-    const lng = typeof loc.lng === "number" ? loc.lng : null;
+    const lat = parseMaybeNumber(loc.lat);
+    const lng = parseMaybeNumber(loc.lng);
     if (lat !== null && lng !== null) center = { lat, lng };
 
     if (typeof loc.address === "string" && loc.address.trim()) label = loc.address.trim();
@@ -240,9 +261,9 @@ export default function ProjectDashboardGrid({
             <Building2 size={18} className="text-[#1E3A8A] mt-0.5 shrink-0" />
             <div className="min-w-0">
               <p className="text-sm font-black text-gray-900 truncate">{project.name ?? "—"}</p>
-              {(locationStr || cityState) && (
+              {locationStr && (
                 <p className="text-[10px] text-gray-500 flex items-center gap-1 mt-0.5">
-                  <MapPin size={9} />{locationStr || cityState}
+                  <MapPin size={9} />{locationStr}
                 </p>
               )}
             </div>
