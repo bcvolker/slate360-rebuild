@@ -22,6 +22,7 @@ import { useSlateDropTransferActions } from "@/lib/hooks/useSlateDropTransferAct
 import { useSlateDropMutationActions } from "@/lib/hooks/useSlateDropMutationActions";
 import { useSlateDropInteractionHandlers } from "@/lib/hooks/useSlateDropInteractionHandlers";
 import { useSlateDropUploadActions } from "@/lib/hooks/useSlateDropUploadActions";
+import { useSlateDropPreviewUrl } from "@/lib/hooks/useSlateDropPreviewUrl";
 import SlateDropContextMenu from "@/components/slatedrop/SlateDropContextMenu";
 import SlateDropActionModals from "@/components/slatedrop/SlateDropActionModals";
 import SlateDropSharePreviewModals from "@/components/slatedrop/SlateDropSharePreviewModals";
@@ -284,41 +285,12 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
     };
   }, []);
 
-  useEffect(() => {
-    if (!previewFile) {
-      setPreviewUrl(null);
-      setPreviewError(null);
-      setPreviewLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    const fetchPreviewUrl = async () => {
-      setPreviewLoading(true);
-      setPreviewError(null);
-      try {
-        const res = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(previewFile.id)}&mode=preview`);
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data.url) {
-          throw new Error(data.error ?? "Preview unavailable");
-        }
-        if (!cancelled) setPreviewUrl(data.url);
-      } catch (error) {
-        if (!cancelled) {
-          setPreviewUrl(null);
-          setPreviewError(error instanceof Error ? error.message : "Preview unavailable");
-        }
-      } finally {
-        if (!cancelled) setPreviewLoading(false);
-      }
-    };
-
-    void fetchPreviewUrl();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [previewFile]);
+  useSlateDropPreviewUrl({
+    previewFile,
+    setPreviewUrl,
+    setPreviewError,
+    setPreviewLoading,
+  });
 
   const subFolders = activeFolder?.children ?? [];
   const storageUsed = tier === "trial" ? 1.2 : tier === "creator" ? 12 : tier === "model" ? 42 : 185;

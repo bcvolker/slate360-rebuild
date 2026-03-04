@@ -27,7 +27,7 @@ SlateDrop is Slate360's file management system. It provides a full file explorer
 
 | Component | File | Lines | Purpose |
 |---|---|---|---|
-| SlateDropClient | `components/slatedrop/SlateDropClient.tsx` | **585** | Main explorer orchestration shell (decomposition in progress) |
+| SlateDropClient | `components/slatedrop/SlateDropClient.tsx` | **557** | Main explorer orchestration shell (decomposition in progress) |
 | SlateDropContextMenu | `components/slatedrop/SlateDropContextMenu.tsx` | ~240 | Extracted context-menu render/actions surface from `SlateDropClient` |
 | SlateDropActionModals | `components/slatedrop/SlateDropActionModals.tsx` | ~300 | Extracted new-folder/rename/delete/move modal UI surface from `SlateDropClient` |
 | SlateDropSharePreviewModals | `components/slatedrop/SlateDropSharePreviewModals.tsx` | ~260 | Extracted secure-send and preview modal UI surface from `SlateDropClient` |
@@ -44,6 +44,7 @@ SlateDrop is Slate360's file management system. It provides a full file explorer
 | useSlateDropMutationActions | `lib/hooks/useSlateDropMutationActions.ts` | ~290 | Extracted create/rename/delete/move handlers from `SlateDropClient` |
 | useSlateDropInteractionHandlers | `lib/hooks/useSlateDropInteractionHandlers.ts` | ~100 | Extracted drag/drop/sort/select/context-menu/sign-out handlers from `SlateDropClient` |
 | useSlateDropUploadActions | `lib/hooks/useSlateDropUploadActions.ts` | ~105 | Extracted upload reservation/put/finalize workflow from `SlateDropClient` |
+| useSlateDropPreviewUrl | `lib/hooks/useSlateDropPreviewUrl.ts` | ~60 | Extracted preview URL loading/error/url lifecycle from `SlateDropClient` |
 
 ### Canonical Root Folder List (Entitlement-Gated)
 

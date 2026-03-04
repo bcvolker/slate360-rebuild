@@ -48,6 +48,7 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
    - ✅ Extracted SlateDrop mutation handlers hook to `lib/hooks/useSlateDropMutationActions.ts`
    - ✅ Extracted SlateDrop interaction handlers hook to `lib/hooks/useSlateDropInteractionHandlers.ts`
    - ✅ Extracted SlateDrop upload pipeline hook to `lib/hooks/useSlateDropUploadActions.ts`
+   - ✅ Extracted SlateDrop preview URL lifecycle hook to `lib/hooks/useSlateDropPreviewUrl.ts`
    - 🔄 Keep narrowing `SlateDropClient` to layout/orchestration shell
 
 3. **Slice C**
@@ -77,8 +78,9 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Completed mutation-actions hook extraction into `lib/hooks/useSlateDropMutationActions.ts`; `SlateDropClient` now delegates create/rename/delete/move handlers for folders/files/projects.
 - 2026-03-04: Completed interaction-handlers hook extraction into `lib/hooks/useSlateDropInteractionHandlers.ts`; `SlateDropClient` now delegates drag/drop/sort/select/context-menu/sign-out interaction callbacks.
 - 2026-03-04: Completed upload-actions hook extraction into `lib/hooks/useSlateDropUploadActions.ts`; `SlateDropClient` now delegates the S3 upload reservation/PUT/finalize workflow.
+- 2026-03-04: Completed preview-url hook extraction into `lib/hooks/useSlateDropPreviewUrl.ts`; `SlateDropClient` now delegates preview loading/error/url lifecycle.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~1 focused prompt (plus optional follow-up polish), approximately 0.1–0.2 weeks at current pace.
-- **Estimated remaining prompts:** 1 required, 1 optional.
+- **Remaining window:** ~0–1 focused prompts (plus optional follow-up polish), approximately 0.05–0.15 weeks at current pace.
+- **Estimated remaining prompts:** 0 required for Slice B completion, 1 optional polish before Slice C.
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.
