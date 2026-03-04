@@ -10,6 +10,7 @@
 
 - Active refactor closure window is tracked in `REFACTOR_EXECUTION_PLAN.md` with a detailed 8–19 prompt execution map.
 - Current expectation: completing Slice C (Project Hub), the next Dashboard decomposition tranche, and BUG-018 (`LocationMap.tsx` DrawingManager removal) should complete the core refactor scope.
+- Mar 4 2026 update: BUG-018 has been completed in `LocationMap.tsx` (all drawing tools now native; DrawingManager/drawing library removed).
 - Work remaining after that window is expected to be roadmap delivery and optional optimization polish, not core refactor blockers.
 
 ---

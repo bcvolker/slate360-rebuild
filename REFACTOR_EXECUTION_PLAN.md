@@ -111,11 +111,12 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Continued Dashboard decomposition tranche by extracting `seats` widget render case into `components/dashboard/DashboardSeatsWidget.tsx`; reduced `DashboardClient.tsx` from 2101 → 2043 lines.
 - 2026-03-04: Started BUG-018 migration tranche 1 in `components/dashboard/LocationMap.tsx` by replacing DrawingManager marker mode with native map-click marker placement and shared coordinate/address synchronization helper; remaining DrawingManager modes (line/arrow/polygon/rectangle/circle) still pending.
 - 2026-03-04: Continued BUG-018 migration tranche 2 in `components/dashboard/LocationMap.tsx` by moving line/arrow/polygon drawing to native map listeners with preview/finalize flows; rectangle/circle still routed through DrawingManager pending final removal tranche.
+- 2026-03-04: Completed BUG-018 final tranche in `components/dashboard/LocationMap.tsx` by migrating rectangle/circle to native map listener flows, removing remaining DrawingManager code, and removing `drawing` library wiring from `<APIProvider libraries>`.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~1–2 focused prompts, approximately 1 week at current pace.
-- **Estimated remaining prompts:** ~1–2 to reach broad “code optimized” state across Dashboard decomposition + BUG-018 migration (native marker/line/arrow/polygon done; rectangle/circle + drawing-library removal pending).
-- **Critical path:** BUG-018 final DrawingManager removal tranche + closure checks.
+- **Remaining window:** ~0–1 focused prompts, approximately <1 week at current pace.
+- **Estimated remaining prompts:** ~0–1 to reach broad “code optimized” state across current Dashboard decomposition + BUG-018 closure scope.
+- **Critical path:** final closure checks and any optional post-refactor polish.
 
 ## New-Chat Continuation Protocol (Canonical Resume Block)
 

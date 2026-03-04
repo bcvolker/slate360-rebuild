@@ -31,7 +31,7 @@
       "title": "LocationMap uses deprecated DrawingManager",
       "module": "dashboard",
       "severity": "high",
-      "status": "open",
+      "status": "fixed",
       "rootCause": "LocationMap imports drawing library deprecated/removed in May 2026",
       "verification": [
         "Search for useMapsLibrary(\"drawing\") returns zero results in LocationMap",

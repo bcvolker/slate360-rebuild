@@ -63,15 +63,19 @@ type OverlayRecord = {
   arrow: boolean;
   listeners: Array<{ remove: () => void }>;
 };
-const DRAW_MODE_BY_TOOL: Record<DrawTool, string | null> = {
-  select: null,
-  marker: null,
-  line: null,
-  arrow: null,
-  rectangle: "rectangle",
-  circle: "circle",
-  polygon: null,
-};
+
+function distanceMeters(a: google.maps.LatLngLiteral, b: google.maps.LatLngLiteral): number {
+  const earthRadiusMeters = 6371000;
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  return 2 * earthRadiusMeters * Math.asin(Math.sqrt(h));
+}
 function applyStyleToOverlay(
   overlay: any,
   kind: string,
@@ -191,17 +195,19 @@ function DrawController({
   const geocodingLib = useMapsLibrary("geocoding");
   // Load places lib so AutocompleteSuggestion is available globally
   useMapsLibrary("places");
-  const drawingLib = useMapsLibrary("drawing");
   const geocoder = useMemo(() => geocodingLib ? new geocodingLib.Geocoder() : null, [geocodingLib]);
   const [tool, setTool] = useState<DrawTool>("select");
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [isResolvingAddress, setIsResolvingAddress] = useState(false);
   const [addressInput, setAddressInput] = useState("");
-  const drawingManagerRef = useRef<any>(null);
   const pendingLineStartRef = useRef<google.maps.LatLngLiteral | null>(null);
   const pendingLinePreviewRef = useRef<google.maps.Polyline | null>(null);
   const pendingPolygonPointsRef = useRef<google.maps.LatLngLiteral[]>([]);
   const pendingPolygonPreviewRef = useRef<google.maps.Polygon | null>(null);
+  const pendingRectangleStartRef = useRef<google.maps.LatLngLiteral | null>(null);
+  const pendingRectanglePreviewRef = useRef<google.maps.Rectangle | null>(null);
+  const pendingCircleCenterRef = useRef<google.maps.LatLngLiteral | null>(null);
+  const pendingCirclePreviewRef = useRef<google.maps.Circle | null>(null);
   const selectedOverlayIdRef = useRef<string | null>(null);
   const selectedToolRef = useRef<DrawTool>("select");
   // Keep refs in sync with current draw-style values so overlay listeners
@@ -416,12 +422,18 @@ function DrawController({
       pendingPolygonPreviewRef.current = null;
       pendingPolygonPointsRef.current = [];
     }
+    if (next !== "rectangle") {
+      pendingRectanglePreviewRef.current?.setMap(null);
+      pendingRectanglePreviewRef.current = null;
+      pendingRectangleStartRef.current = null;
+    }
+    if (next !== "circle") {
+      pendingCirclePreviewRef.current?.setMap(null);
+      pendingCirclePreviewRef.current = null;
+      pendingCircleCenterRef.current = null;
+    }
     setTool(next);
     selectedToolRef.current = next;
-    const manager = drawingManagerRef.current;
-    if (manager && typeof manager.setDrawingMode === "function") {
-      manager.setDrawingMode(DRAW_MODE_BY_TOOL[next]);
-    }
   };
   const attachOverlayListeners = (record: OverlayRecord) => {
     const listeners: Array<{ remove: () => void }> = [];
@@ -488,6 +500,12 @@ function DrawController({
     pendingPolygonPreviewRef.current?.setMap(null);
     pendingPolygonPreviewRef.current = null;
     pendingPolygonPointsRef.current = [];
+    pendingRectanglePreviewRef.current?.setMap(null);
+    pendingRectanglePreviewRef.current = null;
+    pendingRectangleStartRef.current = null;
+    pendingCirclePreviewRef.current?.setMap(null);
+    pendingCirclePreviewRef.current = null;
+    pendingCircleCenterRef.current = null;
     overlaysRef.current.forEach((record) => {
       record.listeners.forEach((listener) => listener.remove());
       if (record.overlay && typeof record.overlay.setMap === "function") {
@@ -520,7 +538,7 @@ function DrawController({
   useEffect(() => {
     if (!map) return;
     const mapsApi = (window as any).google?.maps;
-    if (!mapsApi?.event || !mapsApi?.Marker || !mapsApi?.Polyline || !mapsApi?.Polygon) return;
+    if (!mapsApi?.event || !mapsApi?.Marker || !mapsApi?.Polyline || !mapsApi?.Polygon || !mapsApi?.Rectangle || !mapsApi?.Circle || !mapsApi?.LatLngBounds) return;
     const mapClickListener = mapsApi.event.addListener(map, "click", (event: any) => {
       if (mapMode !== "markup") return;
       const latLng = event?.latLng;
@@ -618,17 +636,128 @@ function DrawController({
           false
         );
         setStatus({ ok: true, text: "Add polygon points, then double-click to finish." });
+        return;
+      }
+
+      if (selectedToolRef.current === "rectangle") {
+        const start = pendingRectangleStartRef.current;
+        if (!start) {
+          pendingRectangleStartRef.current = point;
+          pendingRectanglePreviewRef.current?.setMap(null);
+          pendingRectanglePreviewRef.current = new mapsApi.Rectangle({
+            map,
+            clickable: false,
+            bounds: new mapsApi.LatLngBounds(start, start),
+          });
+          applyStyleToOverlay(
+            pendingRectanglePreviewRef.current,
+            "rectangle",
+            { strokeColor, fillColor, strokeWeight },
+            false
+          );
+          setStatus({ ok: true, text: "Select opposite corner to finish rectangle." });
+          return;
+        }
+        const rectangle = new mapsApi.Rectangle({
+          map,
+          editable: true,
+          draggable: true,
+          bounds: new mapsApi.LatLngBounds(start, point),
+        });
+        applyStyleToOverlay(rectangle, "rectangle", { strokeColor, fillColor, strokeWeight }, false);
+        const id = `${Date.now()}-${Math.round(Math.random() * 100000)}`;
+        const record: OverlayRecord = {
+          id,
+          overlay: rectangle,
+          kind: "rectangle",
+          arrow: false,
+          listeners: [],
+        };
+        record.listeners = attachOverlayListeners(record);
+        overlaysRef.current = [...overlaysRef.current, record];
+        selectedOverlayIdRef.current = id;
+        pendingRectanglePreviewRef.current?.setMap(null);
+        pendingRectanglePreviewRef.current = null;
+        pendingRectangleStartRef.current = null;
+        syncAddressFromOverlayPoint(start.lat, start.lng);
+        setTool("select");
+        selectedToolRef.current = "select";
+        return;
+      }
+
+      if (selectedToolRef.current === "circle") {
+        const center = pendingCircleCenterRef.current;
+        if (!center) {
+          pendingCircleCenterRef.current = point;
+          pendingCirclePreviewRef.current?.setMap(null);
+          pendingCirclePreviewRef.current = new mapsApi.Circle({
+            map,
+            clickable: false,
+            center: point,
+            radius: 1,
+          });
+          applyStyleToOverlay(
+            pendingCirclePreviewRef.current,
+            "circle",
+            { strokeColor, fillColor, strokeWeight },
+            false
+          );
+          setStatus({ ok: true, text: "Select radius point to finish circle." });
+          return;
+        }
+        const radius = Math.max(1, distanceMeters(center, point));
+        const circle = new mapsApi.Circle({
+          map,
+          editable: true,
+          draggable: true,
+          center,
+          radius,
+        });
+        applyStyleToOverlay(circle, "circle", { strokeColor, fillColor, strokeWeight }, false);
+        const id = `${Date.now()}-${Math.round(Math.random() * 100000)}`;
+        const record: OverlayRecord = {
+          id,
+          overlay: circle,
+          kind: "circle",
+          arrow: false,
+          listeners: [],
+        };
+        record.listeners = attachOverlayListeners(record);
+        overlaysRef.current = [...overlaysRef.current, record];
+        selectedOverlayIdRef.current = id;
+        pendingCirclePreviewRef.current?.setMap(null);
+        pendingCirclePreviewRef.current = null;
+        pendingCircleCenterRef.current = null;
+        syncAddressFromOverlayPoint(center.lat, center.lng);
+        setTool("select");
+        selectedToolRef.current = "select";
       }
     });
     const mapMoveListener = mapsApi.event.addListener(map, "mousemove", (event: any) => {
-      if (selectedToolRef.current !== "line" && selectedToolRef.current !== "arrow") return;
-      if (!pendingLinePreviewRef.current || !pendingLineStartRef.current) return;
       const latLng = event?.latLng;
       if (!latLng) return;
-      pendingLinePreviewRef.current.setPath([
-        pendingLineStartRef.current,
-        { lat: latLng.lat(), lng: latLng.lng() },
-      ]);
+      const point = { lat: latLng.lat(), lng: latLng.lng() };
+
+      if (selectedToolRef.current === "line" || selectedToolRef.current === "arrow") {
+        if (!pendingLinePreviewRef.current || !pendingLineStartRef.current) return;
+        pendingLinePreviewRef.current.setPath([pendingLineStartRef.current, point]);
+        return;
+      }
+
+      if (selectedToolRef.current === "rectangle") {
+        if (!pendingRectanglePreviewRef.current || !pendingRectangleStartRef.current) return;
+        pendingRectanglePreviewRef.current.setBounds(
+          new mapsApi.LatLngBounds(pendingRectangleStartRef.current, point)
+        );
+        return;
+      }
+
+      if (selectedToolRef.current === "circle") {
+        if (!pendingCirclePreviewRef.current || !pendingCircleCenterRef.current) return;
+        pendingCirclePreviewRef.current.setRadius(
+          Math.max(1, distanceMeters(pendingCircleCenterRef.current, point))
+        );
+      }
     });
     const mapDoubleClickListener = mapsApi.event.addListener(map, "dblclick", (event: any) => {
       if (selectedToolRef.current !== "polygon" || mapMode !== "markup") return;
@@ -671,130 +800,38 @@ function DrawController({
     };
   }, [map, mapMode, strokeColor, fillColor, strokeWeight, setStatus, syncAddressFromOverlayPoint]);
   useEffect(() => {
-    if (!map || !drawingLib) return;
-    const mapsApi = (window as any).google.maps;
-    if (!drawingManagerRef.current) {
-      drawingManagerRef.current = new drawingLib.DrawingManager({
-        drawingControl: false,
-        drawingMode: null,
-        markerOptions: {
-          draggable: true,
-        },
-        polylineOptions: {
-          strokeColor,
-          strokeWeight,
-          editable: true,
-          draggable: true,
-        },
-        polygonOptions: {
-          strokeColor,
-          strokeWeight,
-          fillColor,
-          fillOpacity: 0.18,
-          editable: true,
-          draggable: true,
-        },
-        rectangleOptions: {
-          strokeColor,
-          strokeWeight,
-          fillColor,
-          fillOpacity: 0.18,
-          editable: true,
-          draggable: true,
-        },
-        circleOptions: {
-          strokeColor,
-          strokeWeight,
-          fillColor,
-          fillOpacity: 0.18,
-          editable: true,
-          draggable: true,
-        },
-      });
+    if (pendingLinePreviewRef.current) {
+      applyStyleToOverlay(
+        pendingLinePreviewRef.current,
+        "polyline",
+        { strokeColor, fillColor, strokeWeight },
+        selectedToolRef.current === "arrow"
+      );
     }
-    const manager = drawingManagerRef.current;
-    manager.setMap(map);
-    const overlayListener = mapsApi.event.addListener(manager, "overlaycomplete", (event: any) => {
-      const id = `${Date.now()}-${Math.round(Math.random() * 100000)}`;
-      const isArrow = selectedToolRef.current === "arrow" && event.type === "polyline";
-      const record: OverlayRecord = {
-        id,
-        overlay: event.overlay,
-        kind: event.type,
-        arrow: isArrow,
-        listeners: [],
-      };
-      applyStyleToOverlay(event.overlay, event.type, { strokeColor, fillColor, strokeWeight }, isArrow);
-      record.listeners = attachOverlayListeners(record);
-      overlaysRef.current = [...overlaysRef.current, record];
-      selectedOverlayIdRef.current = id;
-      // Extract coordinates from any overlay type and populate the address bar
-      {
-        let lat: number | undefined, lng: number | undefined;
-        if (event.type === "marker") {
-          const pos = event.overlay.getPosition();
-          if (pos) { lat = pos.lat(); lng = pos.lng(); }
-        } else if (event.type === "circle") {
-          const c = event.overlay.getCenter();
-          if (c) { lat = c.lat(); lng = c.lng(); }
-        } else if (event.type === "rectangle") {
-          const b = event.overlay.getBounds();
-          if (b) { const c = b.getCenter(); lat = c.lat(); lng = c.lng(); }
-        } else if (event.type === "polygon" || event.type === "polyline") {
-          const p = event.overlay.getPath();
-          if (p && p.getLength() > 0) { const f = p.getAt(0); lat = f.lat(); lng = f.lng(); }
-        }
-        if (lat !== undefined && lng !== undefined) {
-          syncAddressFromOverlayPoint(lat, lng);
-        }
-      }
-      // Reset to select tool after placing a marker
-      if (selectedToolRef.current === "marker") {
-        manager.setDrawingMode(null);
-        setTool("select");
-        selectedToolRef.current = "select";
-      }
-    });
-    return () => {
-      overlayListener?.remove?.();
-      manager.setMap(null);
-    };
-  }, [map, strokeColor, fillColor, strokeWeight, drawingLib, syncAddressFromOverlayPoint]);
-  useEffect(() => {
-    const manager = drawingManagerRef.current;
-    if (!manager) return;
-    manager.setOptions({
-      polylineOptions: {
-        strokeColor,
-        strokeWeight,
-        editable: true,
-        draggable: true,
-      },
-      polygonOptions: {
-        strokeColor,
-        strokeWeight,
-        fillColor,
-        fillOpacity: 0.18,
-        editable: true,
-        draggable: true,
-      },
-      rectangleOptions: {
-        strokeColor,
-        strokeWeight,
-        fillColor,
-        fillOpacity: 0.18,
-        editable: true,
-        draggable: true,
-      },
-      circleOptions: {
-        strokeColor,
-        strokeWeight,
-        fillColor,
-        fillOpacity: 0.18,
-        editable: true,
-        draggable: true,
-      },
-    });
+    if (pendingPolygonPreviewRef.current) {
+      applyStyleToOverlay(
+        pendingPolygonPreviewRef.current,
+        "polygon",
+        { strokeColor, fillColor, strokeWeight },
+        false
+      );
+    }
+    if (pendingRectanglePreviewRef.current) {
+      applyStyleToOverlay(
+        pendingRectanglePreviewRef.current,
+        "rectangle",
+        { strokeColor, fillColor, strokeWeight },
+        false
+      );
+    }
+    if (pendingCirclePreviewRef.current) {
+      applyStyleToOverlay(
+        pendingCirclePreviewRef.current,
+        "circle",
+        { strokeColor, fillColor, strokeWeight },
+        false
+      );
+    }
     const selectedId = selectedOverlayIdRef.current;
     if (!selectedId) return;
     const selected = overlaysRef.current.find((record) => record.id === selectedId);
@@ -1679,7 +1716,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     const toolbarShellClass = "shrink-0 overflow-visible";
     return (
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
-        <APIProvider apiKey={mapsApiKey} libraries={["places", "drawing", "geometry"]}>
+        <APIProvider apiKey={mapsApiKey} libraries={["places", "geometry"]}>
           <MapUpdater center={mapCenter} isThreeD={isThreeD} mapInstanceRef={mapInstanceRef} />
           {showToolbar && (
             <div ref={controlsPanelRef} className={toolbarShellClass}>
