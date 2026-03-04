@@ -142,7 +142,7 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 |---|---|---|---|
 | DashboardHeader | `components/shared/DashboardHeader.tsx` | ~280 | ✅ NEW — unified top bar (dashboard home + all tabs) |
 | DashboardTabShell | `components/shared/DashboardTabShell.tsx` | ~94 | ✅ Shared scaffold (uses DashboardHeader, light theme, isCeo) |
-| DashboardClient | `components/dashboard/DashboardClient.tsx` | ~2,044 | ⚠️ Needs decomposition (header extracted; runtime data + floating window + widget prefs + multiple widget views moved to hooks/components) |
+| DashboardClient | `components/dashboard/DashboardClient.tsx` | ~2,043 | ⚠️ Needs decomposition (header extracted; runtime data + floating window + widget prefs + multiple widget views moved to hooks/components) |
 | DashboardWidgetGrid | `components/dashboard/DashboardWidgetGrid.tsx` | 41 | ✅ Extracted grid shell for draggable widget cards |
 | DashboardWidgetPopout | `components/dashboard/DashboardWidgetPopout.tsx` | 102 | ✅ Extracted widget popout frame/shell |
 | DashboardDataUsageWidget | `components/dashboard/DashboardDataUsageWidget.tsx` | 124 | ✅ Extracted data-usage widget view |

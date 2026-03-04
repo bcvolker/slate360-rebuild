@@ -53,7 +53,6 @@ import {
   Activity,
   TrendingUp,
   Calendar as CalendarIcon,
-  Users,
   Cloud,
   Clock,
   Cpu,

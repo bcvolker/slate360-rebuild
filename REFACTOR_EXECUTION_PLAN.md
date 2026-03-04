@@ -108,11 +108,11 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - 2026-03-04: Continued Dashboard decomposition tranche by extracting `continue` widget render case into `components/dashboard/DashboardContinueWidget.tsx`; reduced `DashboardClient.tsx` from 2206 → 2176 lines.
 - 2026-03-04: Continued Dashboard decomposition tranche by extracting `suggest` widget render case into `components/dashboard/DashboardSuggestWidget.tsx`; reduced `DashboardClient.tsx` from 2176 → 2134 lines.
 - 2026-03-04: Continued Dashboard decomposition tranche by extracting `contacts` widget render case into `components/dashboard/DashboardContactsWidget.tsx`; reduced `DashboardClient.tsx` from 2134 → 2101 lines.
-- 2026-03-04: Continued Dashboard decomposition tranche by extracting `seats` widget render case into `components/dashboard/DashboardSeatsWidget.tsx`; reduced `DashboardClient.tsx` from 2101 → 2044 lines.
+- 2026-03-04: Continued Dashboard decomposition tranche by extracting `seats` widget render case into `components/dashboard/DashboardSeatsWidget.tsx`; reduced `DashboardClient.tsx` from 2101 → 2043 lines.
 
 ## Current ETA Snapshot
-- **Remaining window:** ~1–3 focused prompts, approximately 1 week at current pace.
-- **Estimated remaining prompts:** ~1–3 to reach broad “code optimized” state across Dashboard decomposition + BUG-018 migration (next major milestone is BUG-018 migration start).
+- **Remaining window:** ~1–2 focused prompts, approximately 1 week at current pace.
+- **Estimated remaining prompts:** ~1–2 to reach broad “code optimized” state across Dashboard decomposition + BUG-018 migration (next major milestone is BUG-018 migration start).
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.
 
 ## New-Chat Continuation Protocol (Canonical Resume Block)
