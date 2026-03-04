@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-03-04",
+  "updatedAt": "2026-03-05",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -55,9 +55,10 @@
       "title": "Location views inconsistent across contexts",
       "module": "project-hub/dashboard",
       "severity": "medium",
-      "status": "open",
+      "status": "in-progress",
       "rootCause": "No shared location display contract/component",
       "verification": [
+        "Dashboard and Project Hub project cards use shared LocationDisplay component",
         "Wizard, dashboard location widget, and project cards render same location format"
       ]
     }

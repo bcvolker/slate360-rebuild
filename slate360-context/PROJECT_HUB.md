@@ -202,6 +202,7 @@ export default async function RFIsPage({ params }) {
 | Component | File | Lines |
 |---|---|---|
 | ProjectDashboardGrid | `components/project-hub/ProjectDashboardGrid.tsx` | 524 |
+| LocationDisplay | `components/shared/LocationDisplay.tsx` | ~35 |
 | WizardLocationPicker | `components/project-hub/WizardLocationPicker.tsx` | 390 |
 | CreateProjectWizard | `components/project-hub/CreateProjectWizard.tsx` | 218 |
 | DrawingsViewerClient | `components/project-hub/DrawingsViewerClient.tsx` | 168 |
@@ -237,6 +238,9 @@ Data source:
 Refresh behavior:
 - Snapshot reloads on initial page load
 - Snapshot reloads after project create/delete
+
+Location consistency baseline (BUG-021, in progress):
+- Project cards in `ProjectDashboardGrid` now render addresses through shared `LocationDisplay`.
 
 | `/api/projects/create` | POST | Create project + provision folders |
 | `/api/projects/sandbox` | GET | SlateDrop project tree |

@@ -34,6 +34,7 @@ import LocationMap from "@/components/dashboard/LocationMap";
 import { useProjectProfile } from "@/lib/hooks/useProjectProfile";
 import type { Tier } from "@/lib/entitlements";
 import SlateDropWidgetBody from "@/components/widgets/SlateDropWidgetBody";
+import LocationDisplay from "@/components/shared/LocationDisplay";
 
 /* ─── Types ──────────────────────────────────────────────────── */
 type ProjectGridProject = {
@@ -260,11 +261,7 @@ export default function ProjectDashboardGrid({
             <Building2 size={18} className="text-[#1E3A8A] mt-0.5 shrink-0" />
             <div className="min-w-0">
               <p className="text-sm font-black text-gray-900 truncate">{project.name ?? "—"}</p>
-              {locationStr && (
-                <p className="text-[10px] text-gray-500 flex items-center gap-1 mt-0.5">
-                  <MapPin size={9} />{locationStr}
-                </p>
-              )}
+              <LocationDisplay label={locationStr} iconSize={9} className="flex items-center gap-1 mt-0.5" textClassName="text-[10px] text-gray-500" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">

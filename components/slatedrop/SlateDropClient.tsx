@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 import { buildSlateDropBaseFolderTree, type SlateDropFolderNode as FolderNode } from "@/lib/slatedrop/folderTree";
 import { useSlateDropFiles, type SlateDropFileItem } from "@/lib/hooks/useSlateDropFiles";
+import { useSlateDropUiState } from "@/lib/hooks/useSlateDropUiState";
 import {
   Search,
   Bell,
@@ -368,34 +369,50 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [searchQuery, setSearchQuery] = useState("");
-  const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [dragOver, setDragOver] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  // Modals
-  const [shareModal, setShareModal] = useState<DbFile | null>(null);
-  const [shareEmail, setShareEmail] = useState("");
-  const [sharePerm, setSharePerm] = useState<"view" | "edit">("view");
-  const [shareExpiry, setShareExpiry] = useState("7");
-  const [shareSent, setShareSent] = useState(false);
-  const [newFolderModal, setNewFolderModal] = useState<{ parentId: string; name: string } | null>(null);
-  const [renameModal, setRenameModal] = useState<{ id: string; name: string; type: "file" | "folder" } | null>(null);
-  const [renameValue, setRenameValue] = useState("");
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "file" | "folder" | "project" } | null>(null);
-  const [deleteProjectConfirmName, setDeleteProjectConfirmName] = useState("");
-  const [moveModal, setMoveModal] = useState<{ id: string; name: string; type: "file" } | null>(null);
-  const [moveTargetFolder, setMoveTargetFolder] = useState<string | null>(null);
-  const [previewFile, setPreviewFile] = useState<DbFile | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewError, setPreviewError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setDeleteProjectConfirmName("");
-  }, [deleteConfirm?.id, deleteConfirm?.type]);
+  const {
+    contextMenu,
+    setContextMenu,
+    shareModal,
+    setShareModal,
+    shareEmail,
+    setShareEmail,
+    sharePerm,
+    setSharePerm,
+    shareExpiry,
+    setShareExpiry,
+    shareSent,
+    setShareSent,
+    newFolderModal,
+    setNewFolderModal,
+    renameModal,
+    setRenameModal,
+    renameValue,
+    setRenameValue,
+    deleteConfirm,
+    setDeleteConfirm,
+    deleteProjectConfirmName,
+    setDeleteProjectConfirmName,
+    moveModal,
+    setMoveModal,
+    moveTargetFolder,
+    setMoveTargetFolder,
+    previewFile,
+    setPreviewFile,
+    previewUrl,
+    setPreviewUrl,
+    previewLoading,
+    setPreviewLoading,
+    previewError,
+    setPreviewError,
+    closeShareModal,
+    openShareModal,
+  } = useSlateDropUiState();
 
   const {
     realFiles,
@@ -419,18 +436,6 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
   const showToast = useCallback((text: string, ok = true) => {
     setToastMsg({ text, ok });
     setTimeout(() => setToastMsg(null), 3500);
-  }, []);
-
-  const closeShareModal = useCallback(() => {
-    setShareModal(null);
-    setShareSent(false);
-    setShareEmail("");
-  }, []);
-
-  const openShareModal = useCallback((file: DbFile) => {
-    setShareModal(file);
-    setShareSent(false);
-    setShareEmail("");
   }, []);
 
   const getProjectIdForFolder = useCallback(

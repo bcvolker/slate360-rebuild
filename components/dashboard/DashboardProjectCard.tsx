@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  MapPin,
   Clock,
   MoreVertical,
   Trash2,
@@ -11,6 +10,7 @@ import {
   AlertTriangle,
   Loader2,
 } from "lucide-react";
+import LocationDisplay from "@/components/shared/LocationDisplay";
 
 /* ─── Types ─────────────────────────────────────────────────── */
 type ProjectType = "3d" | "360" | "geo" | "plan";
@@ -163,10 +163,12 @@ export default function DashboardProjectCard({
             {p.name}
           </h3>
           <div className="flex items-center gap-3">
-            <span className="text-[11px] text-white/60 flex items-center gap-1">
-              <MapPin size={10} />
-              {p.location}
-            </span>
+            <LocationDisplay
+              label={p.location}
+              iconSize={10}
+              className="flex items-center gap-1"
+              textClassName="text-[11px] text-white/60"
+            />
             <span className="text-[11px] text-white/40 flex items-center gap-1">
               <Clock size={10} />
               {p.lastEdited}
