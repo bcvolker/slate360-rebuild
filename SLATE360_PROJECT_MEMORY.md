@@ -1,10 +1,12 @@
 # Slate360 — Project Memory & New Chat Instructions
 
-**Last Updated:** 2026-03-03
+**Last Updated:** 2026-03-04
 **Repo:** `bcvolker/slate360-rebuild` · branch: `main` · live: https://www.slate360.ai
 **Owner:** bcvolker
 
 > **To start a new chat:** Attach this file. After reading it, the assistant should read `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`, then relevant topic blueprints in `slate360-context/`, `slate360-context/FUTURE_FEATURES.md`, and `slate360-context/dashboard-tabs/MODULE_REGISTRY.md`.
+
+> **Continuity requirement:** Also read `ops/module-manifest.json`, `ops/bug-registry.json`, and `ops/release-gates.json`; run `npm run verify:release` before final handoff.
 
 ---
 
@@ -216,6 +218,10 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 | `slate360-context/BACKEND.md` | Backend infra, auth, billing, credits, email |
 | `slate360-context/FUTURE_MODULES.md` | Design Studio, Content Studio, CEO, Athlete360, App Ecosystem, etc. |
 | `PROJECT_RUNTIME_ISSUE_LEDGER.md` | Runtime bug tracker (Issues 1-10, all resolved) |
+| `ops/module-manifest.json` | Machine-readable module routes, gates, ownership, and status |
+| `ops/bug-registry.json` | Machine-readable active bug list with root causes + verification checks |
+| `ops/release-gates.json` | Required release checks and bug severity gate policy |
+| `scripts/ops/verify-release.mjs` | Runs release gates (`typecheck`, `build`, optional checks) before handoff/merge |
 | `components/shared/DashboardHeader.tsx` | Unified top bar (dashboard home + all tabs) |
 | `lib/entitlements.ts` | Tier → entitlements (single source of truth) |
 | `lib/server/api-auth.ts` | `withAuth()`, `withProjectAuth()` |

@@ -1,0 +1,114 @@
+{
+  "$schema": "./schemas/module-manifest.schema.json",
+  "updatedAt": "2026-03-04",
+  "owner": "engineering",
+  "modules": [
+    {
+      "id": "dashboard-home",
+      "route": "/dashboard",
+      "gate": "authenticated",
+      "canonicalSpec": "slate360-context/dashboard-tabs/dashboard-home/IMPLEMENTATION_PLAN.md",
+      "status": "live",
+      "primaryComponents": [
+        "components/dashboard/DashboardClient.tsx"
+      ],
+      "apis": [
+        "/api/dashboard/widgets",
+        "/api/dashboard/summary"
+      ]
+    },
+    {
+      "id": "project-hub",
+      "route": "/project-hub",
+      "gate": "getEntitlements(tier).canAccessHub",
+      "canonicalSpec": "slate360-context/dashboard-tabs/project-hub/IMPLEMENTATION_PLAN.md",
+      "status": "live",
+      "primaryComponents": [
+        "app/(dashboard)/project-hub/ClientPage.tsx",
+        "components/project-hub/ProjectDashboardGrid.tsx"
+      ],
+      "apis": [
+        "/api/projects",
+        "/api/projects/create",
+        "/api/projects/[projectId]/*"
+      ]
+    },
+    {
+      "id": "slatedrop",
+      "route": "/slatedrop",
+      "gate": "authenticated",
+      "canonicalSpec": "slate360-context/dashboard-tabs/slatedrop/IMPLEMENTATION_PLAN.md",
+      "status": "live",
+      "primaryComponents": [
+        "components/slatedrop/SlateDropClient.tsx"
+      ],
+      "apis": [
+        "/api/slatedrop/files",
+        "/api/slatedrop/folders",
+        "/api/slatedrop/upload-url",
+        "/api/slatedrop/complete",
+        "/api/slatedrop/download"
+      ]
+    },
+    {
+      "id": "design-studio",
+      "route": "/design-studio",
+      "gate": "getEntitlements(tier).canAccessDesignStudio",
+      "canonicalSpec": "slate360-context/dashboard-tabs/design-studio/IMPLEMENTATION_PLAN.md",
+      "status": "scaffolded",
+      "primaryComponents": [
+        "components/dashboard/DesignStudioShell.tsx"
+      ],
+      "apis": []
+    },
+    {
+      "id": "analytics-reports",
+      "route": "/analytics",
+      "gate": "getEntitlements(tier).canAccessAnalytics OR hasInternalAccess",
+      "canonicalSpec": "slate360-context/dashboard-tabs/analytics-reports/IMPLEMENTATION_PLAN.md",
+      "status": "live-v1",
+      "primaryComponents": [
+        "components/dashboard/AnalyticsReportsClient.tsx"
+      ],
+      "apis": [
+        "/api/analytics/projects",
+        "/api/analytics/project-data",
+        "/api/analytics/reports"
+      ]
+    },
+    {
+      "id": "ceo-command-center",
+      "route": "/ceo",
+      "gate": "hasInternalAccess",
+      "canonicalSpec": "slate360-context/dashboard-tabs/ceo-command-center/IMPLEMENTATION_PLAN.md",
+      "status": "live-stub",
+      "primaryComponents": [
+        "components/dashboard/CeoCommandCenterClient.tsx"
+      ],
+      "apis": []
+    },
+    {
+      "id": "market-robot",
+      "route": "/market",
+      "gate": "hasInternalAccess",
+      "canonicalSpec": "slate360-context/dashboard-tabs/market-robot/IMPLEMENTATION_PLAN.md",
+      "status": "live",
+      "primaryComponents": [
+        "components/dashboard/MarketClient.tsx",
+        "app/market/MarketProviders.tsx"
+      ],
+      "apis": [
+        "/api/market/*"
+      ]
+    },
+    {
+      "id": "athlete360",
+      "route": "/athlete360",
+      "gate": "hasInternalAccess",
+      "canonicalSpec": "slate360-context/dashboard-tabs/athlete360/IMPLEMENTATION_PLAN.md",
+      "status": "stub",
+      "primaryComponents": [],
+      "apis": []
+    }
+  ]
+}

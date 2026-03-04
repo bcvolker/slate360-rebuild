@@ -65,6 +65,13 @@ All standalone apps that handle files must use SlateDrop as the file backbone. N
 ### Rule 14: New Dashboard Tabs Use DashboardTabShell
 All new dashboard tab pages MUST use `DashboardTabShell` from `components/shared/DashboardTabShell.tsx`. This standardizes header, spacing, nav, and theme. All shell components must accept and pass `isCeo` prop. Legacy tabs (DashboardClient, Project Hub, SlateDrop, Market) will be migrated during Phase 0B decomposition. Analytics and CEO have been migrated to DashboardTabShell (2026-03-04).
 
+### Rule 15: Release Gate Must Pass Before Merge
+All production-bound changes must pass `npm run verify:release`.
+- Required checks are defined in `ops/release-gates.json`.
+- Open bug gate status is sourced from `ops/bug-registry.json`.
+- Route/gate/module ownership references are sourced from `ops/module-manifest.json`.
+- Do not bypass failures by editing `next.config.ts` to ignore type/lint checks.
+
 ---
 
 ## 2. Refactoring Priorities

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "release-gates.schema.json",
+  "type": "object",
+  "required": ["checks", "bugGate"],
+  "properties": {
+    "updatedAt": { "type": "string" },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "required", "command"],
+        "properties": {
+          "id": { "type": "string" },
+          "required": { "type": "boolean" },
+          "command": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "bugGate": {
+      "type": "object",
+      "required": ["requiredStatuses", "blockedSeverities"],
+      "properties": {
+        "requiredStatuses": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "blockedSeverities": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

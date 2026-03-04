@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "typecheck": "tsc --noEmit",
+    "verify:release": "node scripts/ops/verify-release.mjs",
     "start": "next start",
     "lint": "eslint",
     "market:burst:test": "node scripts/market-burst-test.mjs",

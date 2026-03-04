@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bug-registry.schema.json",
+  "type": "object",
+  "required": ["updatedAt", "bugs"],
+  "properties": {
+    "updatedAt": { "type": "string" },
+    "source": { "type": "string" },
+    "bugs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "module", "severity", "status", "rootCause"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "module": { "type": "string" },
+          "severity": { "type": "string" },
+          "status": { "type": "string" },
+          "rootCause": { "type": "string" },
+          "verification": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

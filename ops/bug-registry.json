@@ -1,0 +1,64 @@
+{
+  "$schema": "./schemas/bug-registry.schema.json",
+  "updatedAt": "2026-03-04",
+  "source": "slate360-context/ONGOING_ISSUES.md",
+  "bugs": [
+    {
+      "id": "BUG-001",
+      "title": "file_folders migration phase 2 pending",
+      "module": "slatedrop",
+      "severity": "medium",
+      "status": "open",
+      "rootCause": "Legacy routes still use file_folders instead of project_folders",
+      "verification": [
+        "grep -R \"file_folders\" app lib"
+      ]
+    },
+    {
+      "id": "BUG-013",
+      "title": "Project Hub Tier 1 analytics snapshot missing",
+      "module": "project-hub",
+      "severity": "medium",
+      "status": "open",
+      "rootCause": "No aggregate summary API and missing summary card wiring",
+      "verification": [
+        "Route /project-hub shows top-level snapshot card with aggregate metrics"
+      ]
+    },
+    {
+      "id": "BUG-018",
+      "title": "LocationMap uses deprecated DrawingManager",
+      "module": "dashboard",
+      "severity": "high",
+      "status": "open",
+      "rootCause": "LocationMap imports drawing library deprecated/removed in May 2026",
+      "verification": [
+        "Search for useMapsLibrary(\"drawing\") returns zero results in LocationMap",
+        "Manual map drawing flows still function"
+      ]
+    },
+    {
+      "id": "BUG-019",
+      "title": "SlateDrop widget requires extra open click",
+      "module": "dashboard/project-hub",
+      "severity": "medium",
+      "status": "fixed",
+      "rootCause": "Widget shell CTA was rendered despite embedded SlateDrop body already visible",
+      "verification": [
+        "Dashboard SlateDrop widget renders embedded file browser directly without redundant Open CTA",
+        "Project Hub SlateDrop widget renders embedded file browser directly"
+      ]
+    },
+    {
+      "id": "BUG-021",
+      "title": "Location views inconsistent across contexts",
+      "module": "project-hub/dashboard",
+      "severity": "medium",
+      "status": "open",
+      "rootCause": "No shared location display contract/component",
+      "verification": [
+        "Wizard, dashboard location widget, and project cards render same location format"
+      ]
+    }
+  ]
+}

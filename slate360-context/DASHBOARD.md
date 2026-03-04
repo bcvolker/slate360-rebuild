@@ -103,8 +103,13 @@ Server page (resolveServerOrgContext → hasInternalAccess)
 | VirtualStudioShell | `components/dashboard/VirtualStudioShell.tsx` | `/virtual-studio` | ✅ |
 | MyAccountShell | `components/dashboard/MyAccountShell.tsx` | `/my-account` | ✅ |
 
-### Hydration Guard (Critical — Never Remove)
-`app/(dashboard)/layout.tsx` renders client state only after `isClient && _hasHydrated`. This prevents React hydration mismatches.
+### Hydration Safety (Critical)
+Current state:
+- `app/(dashboard)/layout.tsx` is a pass-through route-group layout.
+- Hydration protection for dashboard rendering is currently implemented inside `components/dashboard/DashboardClient.tsx` via `isClient`-guarded render paths and mount-only localStorage hydration.
+
+Follow-up target:
+- Reintroduce a shared route-group hydration boundary in `app/(dashboard)/layout.tsx` once dashboard and tab shells are fully decomposed.
 
 ### Tier Behavior
 - **business/enterprise:** Portfolio-first layout — projects carousel prominent
@@ -137,7 +142,7 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 |---|---|---|---|
 | DashboardHeader | `components/shared/DashboardHeader.tsx` | ~280 | ✅ NEW — unified top bar (dashboard home + all tabs) |
 | DashboardTabShell | `components/shared/DashboardTabShell.tsx` | ~94 | ✅ Shared scaffold (uses DashboardHeader, light theme, isCeo) |
-| DashboardClient | `components/dashboard/DashboardClient.tsx` | ~2,852 | ⚠️ Needs decomposition (header extracted, still large) |
+| DashboardClient | `components/dashboard/DashboardClient.tsx` | ~2,650 | ⚠️ Needs decomposition (header extracted; runtime data moved to `lib/hooks/useDashboardRuntimeData.ts`) |
 | MarketClient | `components/dashboard/MarketClient.tsx` | 3,006 | ⚠️ Needs decomposition |
 | LocationMap | `components/dashboard/LocationMap.tsx` | 1,568 | ⚠️ Needs decomposition |
 | AnalyticsReportsClient | `components/dashboard/AnalyticsReportsClient.tsx` | ~245 | ✅ Report builder UI (saved reports + export actions) |
@@ -151,6 +156,7 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 ```
 DashboardClient.tsx        → ~150 lines (layout shell)
 DashboardHeader.tsx        → ✅ DONE (~280 lines, shared by all pages)
+useDashboardRuntimeData.ts → ✅ STARTED (summary/widgets/deploy/weather/geolocation extraction)
 DashboardStatsGrid.tsx     → stat cards row
 DashboardProjectCards.tsx  → project carousel section
 DashboardActivityFeed.tsx  → activity section

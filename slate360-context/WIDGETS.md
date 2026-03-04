@@ -62,7 +62,7 @@ Additional utility cards:
 - Default view: `folders` (not file list)
 - Compact (Small/default): entitlement-driven **folder icon grid** (canonical root folders)
 - Expanded (Medium/Large): embeds `SlateDropClient` in `embedded` mode (full sidebar + main explorer)
-- Contains `<Link href="/slatedrop">Open SlateDrop →</Link>` for quick access
+- No redundant shell CTA in embedded widget mode; widget opens directly into embedded explorer
 
 ---
 

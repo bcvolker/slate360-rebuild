@@ -23,6 +23,20 @@ If raw uploads (`*.txt`, `*.html`) are present, they are reference material only
 - Confirm API patterns: `withAuth()`/`withProjectAuth()` + response helpers.
 - Confirm customization requirements: movable/expandable/resizable/persisted layouts for the target tab.
 
+## Machine-Readable Continuity (Required)
+
+Before implementing, read and reconcile these files:
+
+1. `ops/module-manifest.json` (route/gate/module status source of truth)
+2. `ops/bug-registry.json` (open bugs + root-cause + verification)
+3. `ops/release-gates.json` (required checks and bug severity gates)
+
+Before handoff, run:
+
+- `npm run verify:release`
+
+If `verify:release` is blocked by an open bug gate, explicitly list the blocking bug IDs in the handoff.
+
 ## Decision Logging Standard
 
 For any route/gate/schema/API change, update at least one canonical context file in the same session.
