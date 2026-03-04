@@ -86,3 +86,48 @@ Stabilize core architecture so Slate360 is reliable for live testing and ready f
 - **Remaining window:** ~8–16 focused prompts, approximately 1.25–2.5 weeks at current pace.
 - **Estimated remaining prompts:** ~8–16 to reach broad “code optimized” state across SlateDrop handoff + Project Hub + Dashboard + BUG-018 migration.
 - **Critical path:** BUG-018 DrawingManager migration + final SlateDrop/Dashboard decomposition slices.
+
+## New-Chat Continuation Protocol (Canonical Resume Block)
+
+If a new chat starts, use this exact sequence and keep this file as source of truth.
+
+### Prompt-by-Prompt Execution Map (next 8–19 prompts)
+
+1. **Prompt 1–2: Slice C kickoff (Project Hub shell split)**
+   - Extract first Tier-1 section(s) from `app/(dashboard)/project-hub/ClientPage.tsx` into dedicated components/hooks.
+   - Run `get_errors` on touched files + typecheck.
+   - Update context files + commit/push.
+
+2. **Prompt 3–5: Continue Project Hub decomposition**
+   - Extract remaining high-churn sections in `ClientPage.tsx` (filters/toolbar/list behaviors before low-risk static sections).
+   - Keep each extracted file focused and <300 lines.
+   - Validate + update docs + commit/push per slice.
+
+3. **Prompt 6–10: Dashboard decomposition tranche**
+   - Begin with the largest repeated render/handler clusters in `DashboardClient.tsx`.
+   - Favor seam-first extraction (pure view blocks first, then handler hooks).
+   - Validate + update docs + commit/push each completed seam.
+
+4. **Prompt 11–15: BUG-018 migration tranche 1 (`LocationMap.tsx`)**
+   - Remove `drawing` library dependency wiring.
+   - Implement native click-based marker/polyline/polygon flows first.
+   - Validate map interactions + typecheck; document behavior parity gaps if any remain.
+
+5. **Prompt 16–19: BUG-018 migration tranche 2 + closure checks**
+   - Finish rectangle/circle/arrow parity and cleanup.
+   - Re-run release verification, update issue ledger/context docs, and log residual debt.
+
+### Definition of “Refactor Complete” for this plan
+
+This refactor window is considered complete when all are true:
+- `SlateDropClient` remains an orchestration shell (already achieved in Slice B scope).
+- `ClientPage.tsx` and `DashboardClient.tsx` each have their next planned extraction tranche completed and validated.
+- BUG-018 no longer relies on `DrawingManager` / `drawing` library.
+- Plan + context docs are updated so the next chat can resume from a single canonical state.
+
+### What may still remain after the next 8–19 prompts
+
+If execution stays within current scope, the **core refactor program should be functionally complete**. Remaining items would be post-refactor backlog, not blockers to call the refactor done:
+- Secondary optimization passes (micro-cleanups, optional memoization, naming consistency).
+- Non-refactor roadmap work (Phase 1+ feature expansion in `FUTURE_FEATURES.md`).
+- Any unrelated tech-debt tasks outside Slice C / Dashboard decomposition / BUG-018.

@@ -220,6 +220,34 @@ Progress update (Mar 4 2026): extracted `SlateDropContextMenu.tsx`, `SlateDropAc
 
 ---
 
+## Refactor Continuation Snapshot (for new chat handoff)
+
+**Last synchronized:** 2026-03-04
+
+### Next execution window
+- Planned horizon: **next 8–19 focused prompts**.
+- Scope for this window:
+	1. Project Hub `ClientPage.tsx` Tier-1 decomposition (Slice C start).
+	2. Dashboard decomposition tranche from `DashboardClient.tsx`.
+	3. BUG-018 migration in `components/dashboard/LocationMap.tsx` (remove DrawingManager dependency).
+
+### Completion expectation
+- If the above scope lands cleanly, the **active refactor program is expected to be complete**.
+- Any items remaining afterward are expected to be **post-refactor backlog**, not core refactor blockers.
+
+### Post-refactor backlog (expected residual)
+- Optional polish/perf passes (non-blocking cleanup).
+- Broader roadmap feature build-out from `FUTURE_FEATURES.md` Phases 1+.
+- Unrelated debt that is not part of Slice C / Dashboard tranche / BUG-018.
+
+### Resume checklist for new chat
+1. Read `SLATE360_PROJECT_MEMORY.md`.
+2. Read `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`.
+3. Read `REFACTOR_EXECUTION_PLAN.md` and continue from the next incomplete slice.
+4. Keep per-slice cadence: implement → validate (`get_errors` + typecheck) → update context docs → commit/push.
+
+---
+
 ## Environment / Infrastructure
 
 | Item | Description |
