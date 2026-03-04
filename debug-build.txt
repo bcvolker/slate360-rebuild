@@ -1,5 +1,0 @@
- ⚠ Linting is disabled.
-   ▲ Next.js 15.5.12
-   - Environments: .env.local
-
-   Creating an optimized production build ...
