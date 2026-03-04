@@ -21,6 +21,7 @@ import { useSlateDropUiState } from "@/lib/hooks/useSlateDropUiState";
 import { useSlateDropTransferActions } from "@/lib/hooks/useSlateDropTransferActions";
 import { useSlateDropMutationActions } from "@/lib/hooks/useSlateDropMutationActions";
 import { useSlateDropInteractionHandlers } from "@/lib/hooks/useSlateDropInteractionHandlers";
+import { useSlateDropUploadActions } from "@/lib/hooks/useSlateDropUploadActions";
 import SlateDropContextMenu from "@/components/slatedrop/SlateDropContextMenu";
 import SlateDropActionModals from "@/components/slatedrop/SlateDropActionModals";
 import SlateDropSharePreviewModals from "@/components/slatedrop/SlateDropSharePreviewModals";
@@ -322,77 +323,14 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
   const subFolders = activeFolder?.children ?? [];
   const storageUsed = tier === "trial" ? 1.2 : tier === "creator" ? 12 : tier === "model" ? 42 : 185;
 
-  /* ── Upload files helper (shared by drag-drop and file input) ── */
-  const uploadFiles = useCallback(async (fileList: FileList) => {
-    const files = Array.from(fileList);
-    if (!files.length) return;
-    const folderPath = breadcrumb.join("/") || activeFolderId;
-
-    for (const file of files) {
-      const key = `${file.name}-${Date.now()}`;
-      try {
-        // Step 1: get presigned S3 URL
-        const urlRes = await fetch("/api/slatedrop/upload-url", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            filename: file.name,
-            contentType: file.type || "application/octet-stream",
-            size: file.size,
-            folderId: activeFolderId,
-            folderPath,
-          }),
-        });
-        if (!urlRes.ok) throw new Error("Failed to get upload URL");
-        const { uploadUrl, fileId, s3Key } = await urlRes.json();
-        if (!uploadUrl || !fileId) throw new Error("Upload reservation failed");
-
-        // Step 2: PUT to S3
-        setUploadProgress(prev => ({ ...prev, [key]: 10 }));
-        const putRes = await fetch(uploadUrl, {
-          method: "PUT",
-          headers: { "Content-Type": file.type || "application/octet-stream" },
-          body: file,
-        });
-        if (!putRes.ok) throw new Error("S3 upload failed");
-        setUploadProgress(prev => ({ ...prev, [key]: 80 }));
-
-        // Step 3: mark complete
-        const completeRes = await fetch("/api/slatedrop/complete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fileId }),
-        });
-        if (!completeRes.ok) throw new Error("Upload finalization failed");
-        setUploadProgress(prev => ({ ...prev, [key]: 100 }));
-
-        // Step 4: add to local state
-        const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
-        const newFile: FileItem = {
-          id: fileId ?? key,
-          name: file.name,
-          size: file.size,
-          type: ext,
-          modified: new Date().toISOString().slice(0, 10),
-          folderId: activeFolderId,
-          s3Key: s3Key ?? undefined,
-        };
-        setRealFiles(prev => ({
-          ...prev,
-          [activeFolderId]: [...(prev[activeFolderId] ?? []), newFile],
-        }));
-      } catch (err) {
-        console.error("[SlateDrop] upload error:", err);
-        showToast(`Failed to upload ${file.name}`, false);
-      } finally {
-        setTimeout(() => setUploadProgress(prev => {
-          const next = { ...prev }; delete next[key]; return next;
-        }), 1000);
-      }
-    }
-    await refreshFolderFiles(activeFolderId);
-    showToast(`${files.length} file${files.length > 1 ? "s" : ""} uploaded`);
-  }, [activeFolderId, breadcrumb, showToast, refreshFolderFiles]);
+  const { uploadFiles } = useSlateDropUploadActions({
+    activeFolderId,
+    breadcrumb,
+    refreshFolderFiles,
+    showToast,
+    setUploadProgress,
+    setRealFiles,
+  });
 
   /* ── Handlers ── */
   const {
