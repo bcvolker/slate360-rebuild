@@ -192,6 +192,9 @@ MapDrawing.tsx            → polygon/polyline drawing
 | `GET /api/dashboard/summary` | Dashboard summary data |
 | `GET /api/dashboard/widgets` | Widget data: projects, usage, activity, myWork |
 
+Location normalization note:
+- `/api/dashboard/widgets` now uses shared `resolveProjectLocation` (`lib/projects/location.ts`) to derive consistent project location label/lat/lng for dashboard cards/widgets.
+
 ### Widget Data Shape
 ```typescript
 // GET /api/dashboard/widgets returns:

@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-03-05",
+  "updatedAt": "2026-03-04",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -59,6 +59,7 @@
       "rootCause": "No shared location display contract/component",
       "verification": [
         "Dashboard and Project Hub project cards use shared LocationDisplay component",
+        "Dashboard widgets API and Project Hub Tier-1 map cards use shared resolveProjectLocation helper",
         "Wizard, dashboard location widget, and project cards render same location format"
       ]
     }

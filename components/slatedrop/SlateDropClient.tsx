@@ -7,6 +7,7 @@ import { getEntitlements, type Tier } from "@/lib/entitlements";
 import { buildSlateDropBaseFolderTree, type SlateDropFolderNode as FolderNode } from "@/lib/slatedrop/folderTree";
 import { useSlateDropFiles, type SlateDropFileItem } from "@/lib/hooks/useSlateDropFiles";
 import { useSlateDropUiState } from "@/lib/hooks/useSlateDropUiState";
+import SlateDropContextMenu from "@/components/slatedrop/SlateDropContextMenu";
 import {
   Search,
   Bell,
@@ -18,9 +19,6 @@ import {
   Upload,
   Download,
   Trash2,
-  Copy,
-  Scissors,
-  Edit3,
   Eye,
   Send,
   FolderOpen,
@@ -1203,108 +1201,39 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
       </div>
 
       {/* ════════ CONTEXT MENU ════════ */}
-      {contextMenu && (
-        <div
-          className="fixed z-[100] w-52 bg-white rounded-xl border border-gray-100 shadow-2xl overflow-hidden py-1"
-          style={{ top: contextMenu.y, left: contextMenu.x }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {contextMenu.target.type === "file" && (() => {
-            const target = contextMenu.target;
-            return (
-              <>
-                <CtxItem icon={Eye} label="Preview" onClick={() => {
-                  setPreviewFile(target);
-                  closeContextMenu();
-                }} />
-                <CtxItem icon={Download} label="Download" onClick={() => {
-                  const file = currentFiles.find((f) => f.id === target.id);
-                  closeContextMenu();
-                  if (file) handleDownloadFile(file.id, file.name);
-                }} />
-                <CtxDivider />
-                <CtxItem icon={Edit3} label="Rename" onClick={() => {
-                  setRenameModal({ id: target.id, name: target.file_name, type: "file" });
-                  setRenameValue(target.file_name);
-                  closeContextMenu();
-                }} />
-                <CtxItem icon={Copy} label="Copy" onClick={() => {
-                  copyToClipboard(target.file_name, "File name");
-                  closeContextMenu();
-                }} />
-                <CtxItem icon={Scissors} label="Move" onClick={() => {
-                  setMoveModal({ id: target.id, name: target.file_name, type: "file" });
-                  setMoveTargetFolder(activeFolderId);
-                  closeContextMenu();
-                }} />
-                <CtxDivider />
-                <CtxItem
-                  icon={Send}
-                  label="Secure Send"
-                  accent
-                  onClick={() => {
-                    openShareModal(target);
-                    closeContextMenu();
-                  }}
-                />
-                <CtxDivider />
-                <CtxItem icon={Trash2} label="Delete" danger onClick={() => {
-                  setDeleteConfirm({ id: target.id, name: target.file_name, type: "file" });
-                  closeContextMenu();
-                }} />
-              </>
-            );
-          })()}
-          {contextMenu.target.type === "folder" && (() => {
-            const target = contextMenu.target;
-            const isProjectNode = sandboxProjects.some((project) => project.id === target.id);
-            return (
-              <>
-                <CtxItem icon={FolderOpen} label="Open" onClick={() => {
-                  setActiveFolderId(target.id);
-                  closeContextMenu();
-                }} />
-                {isProjectNode && (
-                  <CtxItem
-                    icon={ArrowUpRight}
-                    label="Open in Project Hub"
-                    accent
-                    onClick={() => {
-                      closeContextMenu();
-                      window.location.href = `/project-hub/${target.id}`;
-                    }}
-                  />
-                )}
-                <CtxItem icon={Download} label="Download as ZIP" onClick={() => {
-                  closeContextMenu();
-                  handleDownloadFolderZip(target.id, target.name);
-                }} />
-                <CtxDivider />
-                <CtxItem icon={Copy} label="Copy" onClick={() => {
-                  copyToClipboard(target.name, "Folder name");
-                  closeContextMenu();
-                }} />
-                {!target.isSystem && !isProjectNode && (
-                  <CtxItem icon={Edit3} label="Rename" onClick={() => {
-                    setRenameModal({ id: target.id, name: target.name, type: "folder" });
-                    setRenameValue(target.name);
-                    closeContextMenu();
-                  }} />
-                )}
-                {!target.isSystem && (
-                  <>
-                    <CtxDivider />
-                    <CtxItem icon={Trash2} label="Delete" danger onClick={() => {
-                      setDeleteConfirm({ id: target.id, name: target.name, type: isProjectNode ? "project" : "folder" });
-                      closeContextMenu();
-                    }} />
-                  </>
-                )}
-              </>
-            );
-          })()}
-        </div>
-      )}
+      <SlateDropContextMenu
+        contextMenu={contextMenu}
+        activeFolderId={activeFolderId}
+        currentFiles={currentFiles.map((file) => ({ id: file.id, name: file.name }))}
+        sandboxProjects={sandboxProjects.map((project) => ({ id: project.id }))}
+        onClose={closeContextMenu}
+        onOpenFolder={(folderId) => setActiveFolderId(folderId)}
+        onOpenProjectHub={(projectId) => { window.location.href = `/project-hub/${projectId}`; }}
+        onDownloadFile={handleDownloadFile}
+        onDownloadFolderZip={handleDownloadFolderZip}
+        onRenameFile={(target) => {
+          setRenameModal({ id: target.id, name: target.file_name, type: "file" });
+          setRenameValue(target.file_name);
+        }}
+        onCopyFileName={(fileName) => copyToClipboard(fileName, "File name")}
+        onMoveFile={(target, folderId) => {
+          setMoveModal({ id: target.id, name: target.file_name, type: "file" });
+          setMoveTargetFolder(folderId);
+        }}
+        onOpenShare={(target) => openShareModal(target)}
+        onDeleteFile={(target) => {
+          setDeleteConfirm({ id: target.id, name: target.file_name, type: "file" });
+        }}
+        onCopyFolderName={(folderName) => copyToClipboard(folderName, "Folder name")}
+        onRenameFolder={(target) => {
+          setRenameModal({ id: target.id, name: target.name, type: "folder" });
+          setRenameValue(target.name);
+        }}
+        onDeleteFolderOrProject={(target, isProjectNode) => {
+          setDeleteConfirm({ id: target.id, name: target.name, type: isProjectNode ? "project" : "folder" });
+        }}
+        onPreviewFile={(target) => setPreviewFile(target)}
+      />
 
       {/* ════════ MODALS ════════ */}
 
@@ -1948,40 +1877,6 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
 /* ================================================================
    SUB-COMPONENTS
    ================================================================ */
-
-function CtxItem({
-  icon: Icon,
-  label,
-  onClick,
-  danger,
-  accent,
-}: {
-  icon: LucideIcon;
-  label: string;
-  onClick: () => void;
-  danger?: boolean;
-  accent?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium transition-colors ${
-        danger
-          ? "text-red-500 hover:bg-red-50"
-          : accent
-          ? "text-[#FF4D00] hover:bg-[#FF4D00]/5 font-semibold"
-          : "text-gray-600 hover:bg-gray-50"
-      }`}
-    >
-      <Icon size={13} />
-      {label}
-    </button>
-  );
-}
-
-function CtxDivider() {
-  return <div className="my-1 mx-3 border-t border-gray-100" />;
-}
 
 function ModalBackdrop({
   children,

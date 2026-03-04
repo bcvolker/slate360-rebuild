@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveProjectLocation } from "@/lib/projects/location";
 
 type ProjectType = "3d" | "360" | "geo" | "plan";
 
@@ -112,21 +113,22 @@ export async function GET() {
       const { data } = await query;
       (data ?? []).forEach((row: Record<string, unknown>) => {
         const name = String(row.name ?? row.project_name ?? "Untitled Project");
-        const meta = (row.metadata ?? {}) as Record<string, unknown>;
-        const locData = (meta.location ?? {}) as Record<string, unknown>;
-        const lat = typeof locData.lat === "number" ? locData.lat : null;
-        const lng = typeof locData.lng === "number" ? locData.lng : null;
-        const address = typeof locData.address === "string" ? locData.address : "";
+        const resolvedLocation = resolveProjectLocation(row.metadata, {
+          legacyLocation: String(row.location ?? ""),
+          city: String(row.city ?? ""),
+          state: String(row.state ?? ""),
+          region: String(row.region ?? ""),
+        });
         projects.push({
           id: String(row.id ?? crypto.randomUUID()),
           name,
-          location: address || String(row.location ?? row.city ?? row.region ?? ""),
+          location: resolvedLocation.label,
           thumbnail: String(row.thumbnail_url ?? row.cover_image ?? ""),
           status: toProjectStatus(String(row.status ?? "active")),
           lastEdited: humanizeTime(String(row.updated_at ?? row.created_at ?? "")),
           type: toProjectType(String(row.type ?? row.project_type ?? "plan")),
-          lat,
-          lng,
+          lat: resolvedLocation.lat,
+          lng: resolvedLocation.lng,
         });
       });
     } catch {

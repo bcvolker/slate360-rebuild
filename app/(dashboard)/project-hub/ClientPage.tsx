@@ -51,6 +51,7 @@ import {
   DataUsageWidgetBody,
 } from "@/components/widgets/WidgetBodies";
 import QuickNav from "@/components/shared/QuickNav";
+import { resolveProjectLocation } from "@/lib/projects/location";
 
 const HUB_WIDGET_IDS = [
   "slatedrop",
@@ -577,10 +578,14 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
                   <Link href={`/project-hub/${p.id}`} className="block">
                     {(() => {
                       const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-                      const meta = (p.metadata ?? {}) as Record<string, unknown>;
-                      const locData = (meta.location ?? {}) as Record<string, unknown>;
-                      const pLat = typeof locData.lat === "number" ? locData.lat : null;
-                      const pLng = typeof locData.lng === "number" ? locData.lng : null;
+                      const resolvedLocation = resolveProjectLocation(p.metadata, {
+                        legacyLocation: p.location,
+                        city: p.city,
+                        state: p.state,
+                        region: p.region,
+                      });
+                      const pLat = resolvedLocation.lat;
+                      const pLng = resolvedLocation.lng;
                       const staticMapUrl = pLat !== null && pLng !== null && mapsKey
                         ? `https://maps.googleapis.com/maps/api/staticmap?center=${pLat},${pLng}&zoom=16&size=600x300&scale=2&maptype=satellite&key=${mapsKey}`
                         : null;

@@ -241,6 +241,7 @@ Refresh behavior:
 
 Location consistency baseline (BUG-021, in progress):
 - Project cards in `ProjectDashboardGrid` now render addresses through shared `LocationDisplay`.
+- Tier-1 project card map derivation in `ClientPage.tsx` now uses shared `resolveProjectLocation` from `lib/projects/location.ts`.
 
 | `/api/projects/create` | POST | Create project + provision folders |
 | `/api/projects/sandbox` | GET | SlateDrop project tree |
