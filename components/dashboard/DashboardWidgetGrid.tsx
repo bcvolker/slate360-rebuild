@@ -1,7 +1,7 @@
 "use client";
 
 import type { DragEvent, ReactNode } from "react";
-import type { WidgetPref, WidgetSize } from "@/components/widgets/widget-meta";
+import type { WidgetPref, WidgetSize } from "@/lib/widgets/widget-meta";
 
 type Props = {
   orderedVisible: WidgetPref[];

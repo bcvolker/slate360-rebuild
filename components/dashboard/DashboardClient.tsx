@@ -16,6 +16,7 @@ import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import SlateDropClient from "@/components/slatedrop/SlateDropClient";
 import ContactsWidget from "@/components/contacts/ContactsWidget";
 import CalendarWidget from "@/components/calendar/CalendarWidget";
+import DashboardWidgetRenderer, { type WidgetRendererContext } from "@/components/dashboard/DashboardWidgetRenderer";
 import {
   WIDGET_META,
   type WidgetPref,
@@ -24,13 +25,13 @@ import {
   getWidgetSpan,
   buildDefaultPrefs,
   DASHBOARD_STORAGE_KEY,
-} from "@/components/widgets/widget-meta";
+} from "@/lib/widgets/widget-meta";
 import {
   loadWidgetPrefs,
   mergeWidgetPrefs,
   saveWidgetPrefs,
   WIDGET_PREFS_SCHEMA_VERSION,
-} from "@/components/widgets/widget-prefs-storage";
+} from "@/lib/widgets/widget-prefs-storage";
 import {
   Search,
   Bell,
@@ -43,23 +44,15 @@ import {
   TrendingUp,
   Calendar as CalendarIcon,
   Users,
-  Cloud,
   Lightbulb,
-  Clock,
   Cpu,
   FolderOpen, FolderKanban,
   BarChart3,
   Zap,
   MapPin,
   Send,
-  CheckCircle2,
-  XCircle,
   Loader2,
   AlertTriangle,
-  Wind,
-  Droplets,
-  Sun,
-  CloudSun,
   UserPlus,
   MessageSquare,
   Palette,
@@ -67,8 +60,6 @@ import {
   Film,
   Layers,
   Compass,
-  CloudRain,
-  Snowflake,
   type LucideIcon,
   User,
   Shield,
@@ -121,7 +112,7 @@ interface DashTab {
   isCEOOnly?: boolean;
 }
 
-// WidgetPref — imported from @/components/widgets/widget-meta
+// WidgetPref — imported from @/lib/widgets/widget-meta
 
 interface AccountOverview {
   profile: {
@@ -156,7 +147,7 @@ interface AccountOverview {
 // DashboardWidgetsPayload, InboxNotification, DeployInfoPayload — imported from @/lib/types/dashboard
 
 /* ================================================================
-   WIDGET META — imported from @/components/widgets/widget-meta
+   WIDGET META — imported from @/lib/widgets/widget-meta
    ================================================================ */
 
 const DEFAULT_WIDGET_PREFS: WidgetPref[] = buildDefaultPrefs({ expandedIds: ["calendar", "seats"] });
@@ -187,34 +178,7 @@ function getCalendarDays(year: number, month: number) {
   return cells;
 }
 
-const weatherIcon = (icon: string) => {
-  switch (icon) {
-    case "sun": return <Sun size={18} className="text-amber-400" />;
-    case "cloud-sun": return <CloudSun size={18} className="text-gray-400" />;
-    case "cloud": return <Cloud size={18} className="text-gray-400" />;
-    case "rain": return <CloudRain size={18} className="text-blue-400" />;
-    case "snow": return <Snowflake size={18} className="text-sky-300" />;
-    default: return <Sun size={18} className="text-amber-400" />;
-  }
-};
-
-const statusColor = (s: Job["status"]) => {
-  switch (s) {
-    case "completed": return "text-emerald-600 bg-emerald-50";
-    case "processing": return "text-amber-600 bg-amber-50";
-    case "queued": return "text-gray-500 bg-gray-100";
-    case "failed": return "text-red-600 bg-red-50";
-  }
-};
-
-const statusIcon = (s: Job["status"]) => {
-  switch (s) {
-    case "completed": return <CheckCircle2 size={13} />;
-    case "processing": return <Loader2 size={13} className="animate-spin" />;
-    case "queued": return <Clock size={13} />;
-    case "failed": return <XCircle size={13} />;
-  }
-};
+/* weatherIcon, statusColor, statusIcon moved to DashboardWidgetRenderer */
 
 const projectTypeEmoji = (t: Project["type"]) => {
   switch (t) {
@@ -343,7 +307,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
   const [contactSearch, setContactSearch] = useState("");
   const [suggestTitle, setSuggestTitle] = useState("");
   const [suggestDesc, setSuggestDesc] = useState("");
-  const [suggestPriority, setSuggestPriority] = useState("medium");
+  const [suggestPriority, setSuggestPriority] = useState<"low" | "medium" | "high">("medium");
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [suggestDone, setSuggestDone] = useState(false);
   const [weatherLogged, setWeatherLogged] = useState(false);
@@ -1304,503 +1268,16 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
             ...(ent.canManageSeats ? ["seats"] : ["upgrade"]),
           ]);
 
-          function renderWidget(id: string, widgetSize: WidgetSize, inPopout = false): React.ReactNode {
-            const span = getWidgetSpan(id, widgetSize);
-            const widgetColor = WIDGET_META.find((m) => m.id === id)?.color ?? "#FF4D00";
-            const isExpanded = widgetSize !== "default" && widgetSize !== "sm";
-            const handleSetSize = inPopout ? undefined : (s: WidgetSize) => {
-              setWidgetPrefs((prev) => {
-                const next = prev.map((p) => (p.id === id ? { ...p, size: s } : p));
-                try { localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
-                return next;
-              });
-              setPrefsDirty(true);
-            };
-            switch (id) {
-
-              case "location": return (
-          <WidgetCard key={id} icon={MapPin} title="Location" span={span} delay={0} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}>
-            <div className={isExpanded ? "min-h-[400px]" : "min-h-[200px]"}>
-              <LocationMap
-                center={userCoords ?? undefined}
-                locationLabel={liveWeather?.location}
-                contactRecipients={[
-                  ...liveSeatMembers.map((member) => ({ name: member.name, email: member.email })),
-                  ...liveContacts
-                    .filter((c) => c.email && !liveSeatMembers.some((m) => m.email === c.email))
-                    .map((c) => ({ name: c.name, email: c.email! })),
-                ]}
-                compact={!isExpanded}
-                expanded={isExpanded}
-              />
-            </div>
-          </WidgetCard>
-              );
-              case "slatedrop": return (
-          <WidgetCard
-            key={id}
-            icon={FolderOpen}
-            title="SlateDrop"
-            span={span}
-            delay={0}
-            color={widgetColor}
-            onSetSize={handleSetSize}
-            size={widgetSize}
-            action={
-              <Link
-                href="/slatedrop"
-                className="text-[11px] font-bold text-[#FF4D00] hover:underline"
-              >
-                Open →
-              </Link>
-            }
-          >
-            <SlateDropWidgetBody user={user} tier={tier} />
-          </WidgetCard>
-          );
-
-              case "data-usage": return (
-          <WidgetCard key={id} icon={CreditCard} title="Data Usage & Credits" span={span} delay={0} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
-              {ent.label}
-            </span>
-          }>
-            <div className="space-y-5">
-              {/* Credits */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-500 font-medium">Credits used</span>
-                  <span className="text-xs font-bold text-gray-900">{creditsUsed.toLocaleString()} / {ent.maxCredits.toLocaleString()}</span>
-                </div>
-                <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: `${Math.min((creditsUsed / ent.maxCredits) * 100, 100)}%`, backgroundColor: "#FF4D00" }}
-                  />
-                </div>
-                <p className="text-[11px] text-gray-400 mt-1.5">{(ent.maxCredits - creditsUsed).toLocaleString()} credits remaining this period</p>
-              </div>
-              {/* Storage */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-500 font-medium">Storage</span>
-                  <span className="text-xs font-bold text-gray-900">{storageUsed} GB / {ent.maxStorageGB} GB</span>
-                </div>
-                <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-[#1E3A8A] transition-all duration-1000 ease-out"
-                    style={{ width: `${Math.min((storageUsed / ent.maxStorageGB) * 100, 100)}%` }}
-                  />
-                </div>
-              </div>
-              {/* Quick actions */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-1">
-                <button
-                  onClick={handleBuyCredits}
-                  disabled={billingBusy !== null}
-                  className="flex-1 text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-60"
-                >
-                  {billingBusy === "credits" ? (
-                    <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span>
-                  ) : (
-                    "Buy credits"
-                  )}
-                </button>
-                <button
-                  onClick={handleUpgradePlan}
-                  disabled={billingBusy !== null}
-                  className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-all hover:opacity-90 disabled:opacity-60"
-                  style={{ backgroundColor: "#FF4D00" }}
-                >
-                  {billingBusy === "upgrade" ? (
-                    <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span>
-                  ) : (
-                    "Upgrade plan"
-                  )}
-                </button>
-              </div>
-              {billingError && <p className="text-[11px] text-red-500">{billingError}</p>}
-            </div>
-          </WidgetCard>
-          );
-
-              case "processing": return (
-          <WidgetCard key={id} icon={Cpu} title="Processing Jobs" span={span} delay={50} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
-            <span className="text-[11px] text-gray-400 font-medium">{liveJobs.filter((j) => j.status === "processing").length} active</span>
-          }>
-            <div className="space-y-3">
-              {liveJobs.map((job) => (
-                <div key={job.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/80 hover:bg-gray-100/80 transition-colors group">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${statusColor(job.status)}`}>
-                    {statusIcon(job.status)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-900 truncate">{job.name}</p>
-                    <p className="text-[10px] text-gray-400">{job.type}</p>
-                  </div>
-                  {job.status === "processing" && (
-                    <div className="w-16">
-                      <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{ width: `${job.progress}%`, backgroundColor: "#FF4D00" }}
-                        />
-                      </div>
-                      <p className="text-[9px] text-gray-400 text-right mt-0.5">{job.progress}%</p>
-                    </div>
-                  )}
-                  {job.status === "completed" && (
-                    <span className="text-[10px] text-emerald-600 font-medium">Done</span>
-                  )}
-                  {job.status === "queued" && (
-                    <span className="text-[10px] text-gray-400 font-medium">Queued</span>
-                  )}
-                </div>
-              ))}
-              {liveJobs.length === 0 && (
-                <div className="text-center py-4 text-xs text-gray-400">No processing jobs right now</div>
-              )}
-            </div>
-          </WidgetCard>
-          );
-
-              case "financial": return (
-          <WidgetCard key={id} icon={TrendingUp} title="Financial Snapshot" span={span} delay={100} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
-            <span className="text-[11px] text-gray-400 font-medium">Last 6 months</span>
-          }>
-            <div className="space-y-4">
-              {/* Bar chart */}
-              <div className="flex items-end gap-2 h-28">
-                {liveFinancial.map((f, i) => (
-                  <div key={f.month} className="flex-1 flex flex-col items-center gap-1.5">
-                    <span className="text-[9px] text-gray-400 font-medium">{f.credits > 0 ? `${(f.credits / 1000).toFixed(1)}k` : ""}</span>
-                    <div className="w-full relative flex items-end justify-center" style={{ height: "80px" }}>
-                      <div
-                        className="w-full max-w-[32px] rounded-t-md transition-all duration-700 ease-out hover:opacity-80"
-                        style={{
-                          height: `${(f.credits / financialMax) * 100}%`,
-                          backgroundColor: i === liveFinancial.length - 1 ? "#FF4D00" : "#1E3A8A",
-                          opacity: i === liveFinancial.length - 1 ? 1 : 0.6,
-                        }}
-                      />
-                    </div>
-                    <span className="text-[10px] text-gray-400">{f.month}</span>
-                  </div>
-                ))}
-                {liveFinancial.length === 0 && (
-                  <div className="w-full text-center text-xs text-gray-400">No financial activity yet</div>
-                )}
-              </div>
-              {/* Stats */}
-              <div className="flex gap-4 pt-2 border-t border-gray-100">
-                <div>
-                  <p className="text-[10px] text-gray-400 font-medium">This month</p>
-                  <p className="text-sm font-bold text-gray-900">{(liveFinancial[liveFinancial.length - 1]?.credits ?? 0).toLocaleString()} credits</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-400 font-medium">Avg / month</p>
-                  <p className="text-sm font-bold text-gray-900">{Math.round(liveFinancial.reduce((sum, point) => sum + point.credits, 0) / Math.max(liveFinancial.length, 1)).toLocaleString()} credits</p>
-                </div>
-              </div>
-            </div>
-          </WidgetCard>
-          );
-
-              case "calendar": return (
-              <CalendarWidget
-                key={id}
-                span={span}
-                widgetSize={widgetSize}
-                widgetColor={widgetColor}
-                onSetSize={handleSetSize}
-                projects={liveProjects.map((p) => ({ id: p.id, name: p.name }))}
-              />
-              );
-
-              case "weather": return (
-          <WidgetCard key={id} icon={Cloud} title="Weather" span={span} delay={200} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
-            <span className="text-[10px] text-gray-400 font-medium flex items-center gap-1"><MapPin size={10} />{liveWeather?.location ?? "Location unavailable"}</span>
-          }>
-            <div className="space-y-4">
-              {/* Current */}
-              <div className="flex items-center gap-4">
-                <div className="text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-50 to-sky-50 flex items-center justify-center mb-1">
-                    {weatherIcon(liveWeather?.current.icon ?? "cloud-sun")}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-3xl font-black text-gray-900">{liveWeather?.current.temp ?? "--"}°<span className="text-base font-normal text-gray-400">F</span></p>
-                  <p className="text-xs text-gray-500">{liveWeather?.current.condition ?? "Unavailable"}</p>
-                </div>
-                <div className="ml-auto text-right space-y-1">
-                  <p className="text-[10px] text-gray-400 flex items-center gap-1 justify-end"><Droplets size={10} />{liveWeather?.current.humidity ?? "--"}%</p>
-                  <p className="text-[10px] text-gray-400 flex items-center gap-1 justify-end"><Wind size={10} />{liveWeather?.current.wind ?? "--"} mph</p>
-                </div>
-              </div>
-
-              {/* 5-day forecast */}
-              <div className="grid grid-cols-5 gap-1.5">
-                {(liveWeather?.forecast ?? DEMO_WEATHER.forecast).map((f) => (
-                  <div key={f.day} className="text-center p-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <p className="text-[10px] text-gray-500 font-semibold mb-1">{f.day}</p>
-                    {weatherIcon(f.icon)}
-                    <p className="text-[10px] font-bold text-gray-900 mt-1">{f.hi}°</p>
-                    <p className="text-[9px] text-gray-400">{f.lo}°</p>
-                    {f.precip >= 40 && (
-                      <p className="text-[9px] text-blue-500 font-medium mt-0.5">{f.precip}%💧</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Construction alerts */}
-              <div className="space-y-1.5">
-                {(liveWeather?.constructionAlerts ?? DEMO_WEATHER.constructionAlerts).map((a, i) => (
-                  <div
-                    key={i}
-                    className={`flex items-start gap-2 p-2.5 rounded-xl text-xs ${
-                      a.severity === "warning"
-                        ? "bg-amber-50 text-amber-700"
-                        : a.severity === "caution"
-                        ? "bg-orange-50 text-orange-700"
-                        : "bg-blue-50 text-blue-700"
-                    }`}
-                  >
-                    <AlertTriangle size={12} className="mt-0.5 shrink-0" />
-                    <span className="leading-relaxed">{a.message}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Log to daily report */}
-              <button
-                onClick={() => setWeatherLogged(true)}
-                disabled={weatherLogged}
-                className="w-full text-xs font-semibold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
-              >
-                {weatherLogged ? <><CheckCircle2 size={13} className="text-emerald-500" /> Logged to daily report</> : <><Send size={12} /> Log to Daily Report</>}
-              </button>
-            </div>
-          </WidgetCard>
-          );
-
-              case "continue": return (
-          <WidgetCard key={id} icon={Clock} title="Continue Working" span={span} delay={250} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
-            <Link href="/dashboard" className="text-[11px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-0.5">
-              View all <ArrowRight size={11} />
-            </Link>
-          }>
-            <div className="space-y-2">
-              {liveContinueWorking.map((item, i) => {
-                const Icon = item.kind === "design"
-                  ? Palette
-                  : item.kind === "tour"
-                    ? Compass
-                    : item.kind === "rfi"
-                      ? MessageSquare
-                      : item.kind === "report"
-                        ? BarChart3
-                        : FileText;
-                return (
-                  <Link
-                    key={i}
-                    href={item.href}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 group-hover:text-[#FF4D00] transition-colors">
-                      <Icon size={16} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-gray-900 truncate group-hover:text-[#FF4D00] transition-colors">{item.title}</p>
-                      <p className="text-[10px] text-gray-400 truncate">{item.subtitle}</p>
-                    </div>
-                    <span className="text-[10px] text-gray-300 shrink-0">{item.time}</span>
-                  </Link>
-                );
-              })}
-              {liveContinueWorking.length === 0 && (
-                <div className="text-center py-4 text-xs text-gray-400">No recent activity yet</div>
-              )}
-            </div>
-          </WidgetCard>
-          );
-
-              case "contacts": return (
-              <ContactsWidget
-                key={id}
-                span={span}
-                widgetSize={widgetSize}
-                widgetColor={widgetColor}
-                onSetSize={handleSetSize}
-                memberContacts={liveContacts.map((c) => ({
-                  id: c.email ?? c.name,
-                  name: c.name,
-                  email: c.email,
-                  initials: c.initials,
-                  color: c.color,
-                  title: c.role,
-                  is_archived: false,
-                  contact_projects: [],
-                  contact_files: [],
-                }))}
-                projects={liveProjects.map((p) => ({ id: p.id, name: p.name }))}
-              />
-              );
-
-              case "suggest": return (
-          <WidgetCard key={id} icon={Lightbulb} title="Suggest a Feature" span={span} delay={350} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}>
-            {suggestDone ? (
-              <div className="text-center py-6">
-                <CheckCircle2 size={32} className="mx-auto mb-3 text-emerald-500" />
-                <p className="text-sm font-semibold text-gray-900 mb-1">Thank you!</p>
-                <p className="text-xs text-gray-400">Your suggestion has been sent to our team.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Title</label>
-                  <input
-                    type="text"
-                    placeholder="What feature would you like?"
-                    value={suggestTitle}
-                    onChange={(e) => setSuggestTitle(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Description</label>
-                  <textarea
-                    placeholder="Tell us more about what you need…"
-                    value={suggestDesc}
-                    onChange={(e) => setSuggestDesc(e.target.value)}
-                    rows={3}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all resize-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Priority</label>
-                  <div className="flex gap-2">
-                    {(["low", "medium", "high"] as const).map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => setSuggestPriority(p)}
-                        className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-all capitalize ${
-                          suggestPriority === p
-                            ? "border-[#FF4D00] bg-[#FF4D00]/5 text-[#FF4D00]"
-                            : "border-gray-200 text-gray-500 hover:bg-gray-50"
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <button
-                  onClick={handleSuggestFeature}
-                  disabled={suggestLoading || !suggestTitle.trim() || !suggestDesc.trim()}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: "#FF4D00" }}
-                >
-                  {suggestLoading ? <Loader2 size={14} className="animate-spin" /> : <><Send size={14} /> Submit suggestion</>}
-                </button>
-              </div>
-            )}
-          </WidgetCard>
-          );
-
-              case "seats": return (
-            <WidgetCard
-              key={id}
-              icon={Users}
-              title="Seat Management"
-              span={span}
-              delay={400}
-              color={widgetColor}
-              onSetSize={handleSetSize}
-              size={widgetSize}
-              action={
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: "#FF4D00" }}>
-                  <UserPlus size={13} /> Invite member
-                </button>
-              }
-            >
-              <div>
-                <div className="flex items-center gap-6 mb-5">
-                  <div>
-                    <p className="text-2xl font-black text-gray-900">{liveSeatMembers.length}</p>
-                    <p className="text-[10px] text-gray-400 font-medium">of {ent.maxSeats} seats used</p>
-                  </div>
-                  <div className="h-10 w-px bg-gray-100" />
-                  <div>
-                    <p className="text-2xl font-black text-emerald-600">{liveSeatMembers.filter((m) => m.active).length}</p>
-                    <p className="text-[10px] text-gray-400 font-medium">Active now</p>
-                  </div>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3 pr-4">Name</th>
-                        <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3 pr-4">Email</th>
-                        <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3 pr-4">Role</th>
-                        <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {liveSeatMembers.map((m, i) => (
-                        <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                          <td className="py-3 pr-4 text-xs font-semibold text-gray-900">{m.name}</td>
-                          <td className="py-3 pr-4 text-xs text-gray-500">{m.email}</td>
-                          <td className="py-3 pr-4">
-                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                              m.role === "Owner" ? "bg-[#FF4D00]/10 text-[#FF4D00]" : m.role === "Admin" ? "bg-[#1E3A8A]/10 text-[#1E3A8A]" : "bg-gray-100 text-gray-600"
-                            }`}>{m.role}</span>
-                          </td>
-                          <td className="py-3">
-                            <span className={`flex items-center gap-1.5 text-[10px] font-medium ${m.active ? "text-emerald-600" : "text-gray-400"}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${m.active ? "bg-emerald-500" : "bg-gray-300"}`} />
-                              {m.active ? "Online" : "Offline"}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                      {liveSeatMembers.length === 0 && (
-                        <tr>
-                          <td colSpan={4} className="py-4 text-center text-xs text-gray-400">No seat members found for this organization</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </WidgetCard>
-          );
-
-              case "upgrade": return (
-            <WidgetCard key={id} icon={Zap} title="Unlock more power" span={span} delay={400} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}>
-              <div className="text-center py-4">
-                <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#FF4D001A" }}>
-                  <Zap size={24} style={{ color: "#FF4D00" }} />
-                </div>
-                <p className="text-sm font-bold text-gray-900 mb-2">Upgrade to Business</p>
-                <p className="text-xs text-gray-400 mb-4 leading-relaxed">
-                  Get seat management, Project Hub, advanced analytics, and 30,000 credits per month.
-                </p>
-                <Link
-                  href="/plans?plan=business&billing=monthly"
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02]"
-                  style={{ backgroundColor: "#FF4D00" }}
-                >
-                  View plans <ArrowRight size={13} />
-                </Link>
-              </div>
-            </WidgetCard>
-          );
-
-              default: return null;
-            }
-          }
+          const widgetCtx: WidgetRendererContext = {
+            user, tier,
+            entitlements: { maxCredits: ent.maxCredits, maxStorageGB: ent.maxStorageGB, maxSeats: ent.maxSeats, label: ent.label, canViewSlateDropWidget: ent.canViewSlateDropWidget, canManageSeats: ent.canManageSeats },
+            userCoords, liveWeather, liveSeatMembers, liveContacts, liveProjects, liveJobs, liveFinancial, liveContinueWorking,
+            creditsUsed, storageUsed, financialMax,
+            billingBusy, billingError, handleBuyCredits, handleUpgradePlan,
+            suggestTitle, suggestDesc, suggestPriority, suggestLoading, suggestDone,
+            setSuggestTitle, setSuggestDesc, setSuggestPriority, handleSuggestFeature,
+            weatherLogged, setWeatherLogged, setWidgetPrefs, setPrefsDirty,
+          };
 
           const orderedVisible = [...widgetPrefs]
             .filter((p) => p.visible && available.has(p.id))
@@ -1820,7 +1297,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
                     onDragEnd={handleDashDragEnd}
                     className={`${(p.size !== "default" && p.size !== "sm") ? "" : "cursor-grab active:cursor-grabbing"} ${dashDragIdx === idx ? "opacity-50 scale-95" : ""} ${getWidgetSpan(p.id, p.size)} transition-all duration-200`}
                   >
-                    {renderWidget(p.id, p.size)}
+                    <DashboardWidgetRenderer id={p.id} widgetSize={p.size} ctx={widgetCtx} />
                   </div>
                 ))}
               </div>
@@ -1874,7 +1351,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
 
                   {!wdMinimized && (
                     <div className="flex-1 overflow-auto bg-[#ECEEF2] p-4">
-                      {renderWidget(widgetPopoutId, "lg", true)}
+                      <DashboardWidgetRenderer id={widgetPopoutId} widgetSize="lg" inPopout ctx={widgetCtx} />
                     </div>
                   )}
 

@@ -16,8 +16,8 @@ import {
   Loader2,
   CheckCircle2,
 } from "lucide-react";
-import type { WidgetPref, WidgetMeta, WidgetSize } from "./widget-meta";
-import { getWidgetSizeLabel } from "./widget-meta";
+import type { WidgetPref, WidgetMeta, WidgetSize } from "@/lib/widgets/widget-meta";
+import { getWidgetSizeLabel } from "@/lib/widgets/widget-meta";
 
 const SIZE_CYCLE: WidgetSize[] = ["default", "sm", "md", "lg"];
 

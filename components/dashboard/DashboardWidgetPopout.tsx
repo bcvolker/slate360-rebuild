@@ -2,7 +2,7 @@
 
 import { LayoutDashboard, X } from "lucide-react";
 import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
-import type { WidgetSize } from "@/components/widgets/widget-meta";
+import type { WidgetSize } from "@/lib/widgets/widget-meta";
 
 type Props = {
   widgetId: string | null;

@@ -1,6 +1,6 @@
 # Slate360 — Copilot Instructions
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-05
 **Repo:** `bcvolker/slate360-rebuild` · branch: `main` · live: https://www.slate360.ai
 
 Before making any code change, read `SLATE360_PROJECT_MEMORY.md` in the project root.
@@ -26,6 +26,10 @@ For tab UI behavior and layout persistence, use `slate360-context/dashboard-tabs
 12. **Canonical folder table:** `project_folders` (NOT `file_folders`) — migration in progress.
 13. **No mock data in production UI** — show proper empty/error state when Supabase env is missing.
 14. **Update context files** — after ANY code change, update the relevant `slate360-context/` blueprint if routes, components, APIs, DB tables, or features changed.
+15. **Anti-regression: never re-inline extracted components** — if a sub-component file exists (e.g. `SlateDropSidebar.tsx`, `DashboardWidgetRenderer.tsx`), NEVER copy its code back into the parent. Import and compose instead.
+16. **Anti-regression: run `bash scripts/check-file-size.sh` before committing** — if your changes push ANY file above 300 lines, extract before committing.
+17. **Widget meta location:** `lib/widgets/widget-meta.ts` and `lib/widgets/widget-prefs-storage.ts` — NEVER in `components/`.
+18. **Widget rendering:** use `DashboardWidgetRenderer` component — NEVER add inline widget JSX to `DashboardClient.tsx`.
 
 ---
 
@@ -256,7 +260,7 @@ Show only when credits ≤ 20% remaining. Never pop-up. `SubtleCreditPurchase` c
 | Item | Status |
 |---|---|
 | `MarketClient.tsx` decomposition | ❌ 3,006 lines — highest priority decomp remaining |
-| `DashboardClient.tsx` full decomposition | ⚠️ 2,043 lines — `renderWidget` + demo data still need extraction |
+| `DashboardClient.tsx` full decomposition | ⚠️ 1,947 lines — `renderWidget` extracted to `DashboardWidgetRenderer.tsx` (513 lines); My Account tab + state hooks still inline |
 | `LocationMap.tsx` decomposition | ⚠️ 1,864 lines — BUG-018 fixed; structural decomp pending |
 | `file_folders` → `project_folders` migration Phase 2 | ⚠️ Pending (Design Studio, export-zip, audit, cross-tab service) |
 | `management/page.tsx` decomposition | ❌ 932 lines — 3 extractable tabs inline |
@@ -270,7 +274,7 @@ Show only when credits ≤ 20% remaining. Never pop-up. `SubtleCreditPurchase` c
 | Standalone app subscription system | ❌ Not built (`org_feature_flags` table needed) |
 | Native app packaging (Capacitor) | ❌ Not started |
 | Design token system (CSS variables for brand colors) | ❌ Hardcoded hex values everywhere |
-| `SlateDropClient.tsx` decomposition | ✅ Done — 577 lines (was 2,030) |
+| `SlateDropClient.tsx` decomposition | ✅ Done — 451 lines (was 2,043) |
 | Tier 3 Project Hub tool views | ✅ All 9 built with CRUD, ViewCustomizer, ChangeHistory |
 | BUG-018 Google DrawingManager deprecation | ✅ Fixed — native google.maps drawing in LocationMap.tsx |
 

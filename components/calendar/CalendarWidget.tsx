@@ -21,7 +21,7 @@ import {
   Trash2,
 } from "lucide-react";
 import WidgetCard from "@/components/widgets/WidgetCard";
-import type { WidgetSize } from "@/components/widgets/widget-meta";
+import type { WidgetSize } from "@/lib/widgets/widget-meta";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */

@@ -6,8 +6,8 @@ import {
   type WidgetSize,
   buildDefaultPrefs,
   HUB_STORAGE_KEY,
-} from "@/components/widgets/widget-meta";
-import { loadWidgetPrefs, saveWidgetPrefs } from "@/components/widgets/widget-prefs-storage";
+} from "@/lib/widgets/widget-meta";
+import { loadWidgetPrefs, saveWidgetPrefs } from "@/lib/widgets/widget-prefs-storage";
 
 const HUB_WIDGET_IDS = [
   "slatedrop",

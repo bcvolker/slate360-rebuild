@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { Search, UserPlus, ChevronDown, X, SlidersHorizontal, Users } from "lucide-react";
 import WidgetCard from "@/components/widgets/WidgetCard";
-import type { WidgetSize } from "@/components/widgets/widget-meta";
+import type { WidgetSize } from "@/lib/widgets/widget-meta";
 import AddContactModal from "./AddContactModal";
 import ContactDetailPanel, { type OrgContact } from "./ContactDetailPanel";
 

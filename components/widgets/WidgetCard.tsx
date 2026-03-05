@@ -14,8 +14,8 @@
 
 import React from "react";
 import { Minimize2, type LucideIcon } from "lucide-react";
-import type { WidgetSize } from "@/components/widgets/widget-meta";
-import { getWidgetHeight } from "@/components/widgets/widget-meta";
+import type { WidgetSize } from "@/lib/widgets/widget-meta";
+import { getWidgetHeight } from "@/lib/widgets/widget-meta";
 
 /**
  * Horizontal-line expansion icons — 1 line = small, 2 = medium, 3 = large.

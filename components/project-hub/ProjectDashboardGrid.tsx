@@ -26,10 +26,10 @@ import {
 import WidgetCard from "@/components/widgets/WidgetCard";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import CompanyProfileModal from "@/components/shared/CompanyProfileModal";
-import { loadWidgetPrefs, saveWidgetPrefs, WIDGET_PREFS_SCHEMA_VERSION } from "@/components/widgets/widget-prefs-storage";
+import { loadWidgetPrefs, saveWidgetPrefs, WIDGET_PREFS_SCHEMA_VERSION } from "@/lib/widgets/widget-prefs-storage";
 import { WeatherWidgetBody } from "@/components/widgets/WidgetBodies";
-import type { WidgetMeta, WidgetPref, WidgetSize } from "@/components/widgets/widget-meta";
-import { getWidgetSpan } from "@/components/widgets/widget-meta";
+import type { WidgetMeta, WidgetPref, WidgetSize } from "@/lib/widgets/widget-meta";
+import { getWidgetSpan } from "@/lib/widgets/widget-meta";
 import LocationMap from "@/components/dashboard/LocationMap";
 import { useProjectProfile } from "@/lib/hooks/useProjectProfile";
 import type { Tier } from "@/lib/entitlements";

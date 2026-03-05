@@ -1,4 +1,4 @@
-import type { WidgetPref, WidgetSize } from "@/components/widgets/widget-meta";
+import type { WidgetPref, WidgetSize } from "@/lib/widgets/widget-meta";
 
 export const WIDGET_PREFS_SCHEMA_VERSION = 3;
 

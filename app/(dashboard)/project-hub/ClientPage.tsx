@@ -17,7 +17,7 @@ import WidgetCard from "@/components/widgets/WidgetCard";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import {
   getWidgetSpan,
-} from "@/components/widgets/widget-meta";
+} from "@/lib/widgets/widget-meta";
 import { useProjectHubWidgets } from "@/lib/hooks/useProjectHubWidgets";
 import type { ProjectHubProject, ProjectHubSummary } from "@/lib/types/project-hub";
 

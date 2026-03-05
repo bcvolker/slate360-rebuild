@@ -7,30 +7,11 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import ContactPicker from "@/components/shared/ContactPicker";
+import type { DbFile } from "@/lib/slatedrop/helpers";
 
-type ShareModalFile = {
-  id: string;
-  file_name: string;
-  s3_key: string;
-  file_type: string;
-  size: number;
-  modified: string;
-  folderId: string;
-  thumbnail?: string;
-  locked?: boolean;
-} | null;
-
-type PreviewFile = {
-  id: string;
-  file_name: string;
-  s3_key: string;
-  file_type: string;
-  size: number;
-  modified: string;
-  folderId: string;
-  thumbnail?: string;
-  locked?: boolean;
-} | null;
+type ShareModalFile = DbFile | null;
+type PreviewFile = DbFile | null;
 
 type SlateDropSharePreviewModalsProps = {
   shareModal: ShareModalFile;
@@ -105,12 +86,12 @@ export default function SlateDropSharePreviewModals({
                 <div className="space-y-4">
                   <div>
                     <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Recipient email</label>
-                    <input
-                      type="email"
-                      placeholder="name@company.com"
+                    <ContactPicker
+                      inline
                       value={shareEmail}
-                      onChange={(event) => setShareEmail(event.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all"
+                      onChange={(v) => setShareEmail(v)}
+                      onSelect={(c) => setShareEmail(c.email ?? c.name)}
+                      placeholder="Search contacts or type email…"
                     />
                   </div>
                   <div>

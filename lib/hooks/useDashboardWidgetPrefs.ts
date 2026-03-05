@@ -5,11 +5,11 @@ import {
   type WidgetSize,
   buildDefaultPrefs,
   DASHBOARD_STORAGE_KEY,
-} from "@/components/widgets/widget-meta";
+} from "@/lib/widgets/widget-meta";
 import {
   saveWidgetPrefs,
   WIDGET_PREFS_SCHEMA_VERSION,
-} from "@/components/widgets/widget-prefs-storage";
+} from "@/lib/widgets/widget-prefs-storage";
 
 type SupabaseAuthClient = {
   auth: {
