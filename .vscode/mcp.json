@@ -1,0 +1,23 @@
+{
+  "servers": {
+    "gitnexus": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["gitnexus", "mcp"]
+    },
+    "supabase": {
+      "type": "sse",
+      "url": "https://mcp.supabase.com/sse",
+      "headers": {
+        "Authorization": "Bearer ${env:SUPABASE_ACCESS_TOKEN}"
+      }
+    },
+    "vercel": {
+      "type": "sse",
+      "url": "https://mcp.vercel.com/sse",
+      "headers": {
+        "Authorization": "Bearer ${env:VERCEL_TOKEN}"
+      }
+    }
+  }
+}
