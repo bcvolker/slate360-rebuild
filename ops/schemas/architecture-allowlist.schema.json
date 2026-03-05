@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Architecture Allowlist",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "publicApiRoutesWithoutUserAuth": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["publicApiRoutesWithoutUserAuth"],
+  "additionalProperties": false
+}

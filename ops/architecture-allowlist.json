@@ -1,0 +1,18 @@
+{
+  "$schema": "./schemas/architecture-allowlist.schema.json",
+  "publicApiRoutesWithoutUserAuth": [
+    "app/api/auth/**/route.ts",
+    "app/api/stripe/webhook/route.ts",
+    "app/api/deploy-info/route.ts",
+    "app/api/external/**/route.ts",
+    "app/api/share/**/route.ts",
+    "app/api/directions/route.ts",
+    "app/api/static-map/route.ts",
+    "app/api/weather/reverse-geocode/route.ts",
+    "app/api/market/activity/route.ts",
+    "app/api/market/book/route.ts",
+    "app/api/market/polymarket/route.ts",
+    "app/api/market/resolution/route.ts",
+    "app/api/email/send/route.ts"
+  ]
+}

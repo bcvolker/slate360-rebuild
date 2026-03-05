@@ -68,6 +68,8 @@ All new dashboard tab pages MUST use `DashboardTabShell` from `components/shared
 ### Rule 15: Release Gate Must Pass Before Merge
 All production-bound changes must pass `npm run verify:release`.
 - Required checks are defined in `ops/release-gates.json`.
+- File-size regressions are blocked by `scripts/ops/check-file-size-regression.mjs` with baseline in `ops/file-size-baseline.json`.
+- Architecture violations are blocked by `scripts/ops/check-architecture-guardrails.mjs` using `ops/architecture-allowlist.json` for intentional public routes.
 - Open bug gate status is sourced from `ops/bug-registry.json`.
 - Route/gate/module ownership references are sourced from `ops/module-manifest.json`.
 - Do not bypass failures by editing `next.config.ts` to ignore type/lint checks.

@@ -1,7 +1,17 @@
 {
   "$schema": "./schemas/release-gates.schema.json",
-  "updatedAt": "2026-03-04",
+  "updatedAt": "2026-03-05",
   "checks": [
+    {
+      "id": "architecture-guardrails",
+      "required": true,
+      "command": "npm run guard:architecture"
+    },
+    {
+      "id": "file-size-regression",
+      "required": true,
+      "command": "npm run guard:file-size-regression"
+    },
     {
       "id": "typecheck",
       "required": true,

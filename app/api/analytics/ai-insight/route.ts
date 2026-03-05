@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withAuth } from "@/lib/server/api-auth";
 
 type Scope = "projects" | "tours" | "media" | "workspace";
 
@@ -13,12 +14,13 @@ const INSIGHTS: Record<Scope, string> = {
     "Workspace usage concentration is high across two teams; redistributing dashboard defaults may improve cross-team adoption.",
 };
 
-export async function POST(request: NextRequest) {
-  const body = (await request.json().catch(() => ({}))) as { scope?: Scope };
-  const scope: Scope = body.scope && body.scope in INSIGHTS ? body.scope : "projects";
+export const POST = (request: NextRequest) =>
+  withAuth(request, async () => {
+    const body = (await request.json().catch(() => ({}))) as { scope?: Scope };
+    const scope: Scope = body.scope && body.scope in INSIGHTS ? body.scope : "projects";
 
-  return NextResponse.json({
-    scope,
-    insight: INSIGHTS[scope],
+    return NextResponse.json({
+      scope,
+      insight: INSIGHTS[scope],
+    });
   });
-}
