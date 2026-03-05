@@ -30,6 +30,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { createClient } from "@/lib/supabase/client";
+import MarketTabBar, { loadTabPrefs, saveTabPrefs, DEFAULT_MARKET_TABS } from "@/components/dashboard/market/MarketTabBar";
+import type { MarketTab } from "@/components/dashboard/market/MarketTabBar";
 import type {
   ApiEnvelope,
   MarketViewModel,
@@ -162,6 +164,10 @@ export default function MarketClient() {
 
   // Tabs
   const [activeTab, setActiveTab] = useState("Dashboard");
+  const [tabPrefs, setTabPrefs] = useState<MarketTab[]>(DEFAULT_MARKET_TABS);
+
+  // Watchlist (market_ids saved to DB)
+  const [watchlist, setWatchlist] = useState<Set<string>>(new Set());
 
   // Bot state
   const [botRunning, setBotRunning] = useState(false);
@@ -273,6 +279,29 @@ export default function MarketClient() {
     // Markets are NOT auto-loaded — user triggers search
     void loadDirectives();
     loadSimRuns();
+
+    // Load tab customization prefs from localStorage (DB prefs loaded async separately)
+    setTabPrefs(loadTabPrefs());
+
+    // Load watchlist
+    fetch("/api/market/watchlist")
+      .then(r => r.json())
+      .then((d: { items?: { market_id: string }[] }) => {
+        if (Array.isArray(d?.items)) {
+          setWatchlist(new Set(d.items.map((w) => w.market_id)));
+        }
+      })
+      .catch(() => { /* non-critical */ });
+
+    // Load tab prefs from DB (overrides localStorage if different)
+    fetch("/api/market/tab-prefs")
+      .then(r => r.json())
+      .then((d: { tabs?: MarketTab[] }) => {
+        if (Array.isArray(d?.tabs) && d.tabs.length > 0) {
+          setTabPrefs(d.tabs);
+        }
+      })
+      .catch(() => { /* non-critical */ });
   }, []);
 
   useEffect(() => {
@@ -432,6 +461,18 @@ export default function MarketClient() {
     };
   }, [marketsLoaded, markets, activeTab, subscribeToMarkets]);
 
+  // ── Auto-trade timer: scan on interval when bot is running and not paused ──
+  useEffect(() => {
+    if (!botRunning || botPaused) return;
+    // Default: scan every 5 min (300s). Could be shortened per directive.
+    const intervalMs = 5 * 60 * 1000;
+    const id = setInterval(() => {
+      if (!botPaused) void runScan();
+    }, intervalMs);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [botRunning, botPaused]);
+
   // ── Data fetchers ──────────────────────────────────────────────────────────
 
   const fetchTrades = async () => {
@@ -448,6 +489,28 @@ export default function MarketClient() {
       setLoadingTrades(false);
     }
   };
+
+  // Settle open trades + refresh PnL — declared after fetchTrades to avoid TDZ
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const settleAndRefresh = useCallback(async () => {
+    try {
+      await fetch("/api/market/settle-trades", { method: "POST" });
+    } catch {
+      // non-critical — best effort PnL update
+    }
+    await fetchTrades();
+    void fetchSummary();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Periodic settle-trades while Wallet & Performance tab is open ──────────
+  // (declared after settleAndRefresh to avoid forward reference TDZ)
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    if (activeTab !== "Wallet & Performance") return;
+    const id = setInterval(() => { void settleAndRefresh(); }, 5 * 60 * 1000);
+    return () => clearInterval(id);
+  }, [activeTab, settleAndRefresh]);
 
   const fetchMarkets = async (keyword?: string) => {
     setLoadingMarkets(true);
@@ -715,6 +778,47 @@ export default function MarketClient() {
     });
   };
 
+  // ── Watchlist (persistent, synced to DB) ───────────────────────────────────
+
+  const toggleWatchlist = useCallback(async (market: MarketListing) => {
+    const id = market.id;
+    const isWatched = watchlist.has(id);
+    setWatchlist(prev => {
+      const n = new Set(prev);
+      isWatched ? n.delete(id) : n.add(id);
+      return n;
+    });
+    try {
+      if (isWatched) {
+        await fetch("/api/market/watchlist", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ market_id: id }),
+        });
+      } else {
+        await fetch("/api/market/watchlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            market_id: id,
+            title: market.title,
+            category: market.category,
+            yes_price: market.yesPrice,
+            no_price: market.noPrice,
+            probability: market.probabilityPct,
+          }),
+        });
+      }
+    } catch {
+      // Revert on error
+      setWatchlist(prev => {
+        const n = new Set(prev);
+        isWatched ? n.add(id) : n.delete(id);
+        return n;
+      });
+    }
+  }, [watchlist]);
+
   // ── Direct Buy ─────────────────────────────────────────────────────────────
 
   const openBuyPanel = (market: MarketListing, outcome: "YES" | "NO" = "YES") => {
@@ -856,13 +960,16 @@ export default function MarketClient() {
           probability:    buyMarket.probabilityPct,
           paper_mode:     buyPaper,
           wallet_address: address ?? null,
+          token_id:       buyOutcome === "YES"
+            ? (buyMarket.tokenIdYes ?? null)
+            : (buyMarket.tokenIdNo ?? null),
         }),
       });
       const data = await res.json();
       if (res.ok) {
         setBuySuccess(`✅ ${buyPaper ? "Paper " : ""}Buy saved — ${(normalizedAmount / avgPrice).toFixed(1)} shares ${buyOutcome} @ $${avgPrice.toFixed(3)}`);
         addLog(`🛒 Bought ${buyOutcome} on "${marketTitle.slice(0, 40)}…" — $${normalizedAmount} ${buyPaper ? "(paper)" : "(live)"}`);
-        await fetchTrades();
+        await settleAndRefresh();
         setTimeout(() => setBuyMarket(null), 2500);
       } else {
         const missing = Array.isArray(data?.missingFields) ? ` (${data.missingFields.join(", ")})` : "";
@@ -1112,13 +1219,14 @@ export default function MarketClient() {
 
   const buyPayloadReady = buyPayloadIssues.length === 0;
 
-  const hotOppTabs = ["All", "High Potential", "High Risk-High Reward", "Bookmarked", "Construction"];
+  const hotOppTabs = ["All", "High Potential", "High Risk-High Reward", "Bookmarked", "Watchlist", "Construction"];
   const hotFiltered = markets.filter(m => {
     if (excludedMarketIds.has(m.id)) return false;
     if (hotTab === "All") return true;
     if (hotTab === "High Potential") return m.riskTag === "high-potential";
     if (hotTab === "High Risk-High Reward") return m.riskTag === "high-risk";
     if (hotTab === "Bookmarked") return bookmarks.has(m.id);
+    if (hotTab === "Watchlist") return watchlist.has(m.id);
     if (hotTab === "Construction") return m.riskTag === "construction" || m.category.toLowerCase().includes("construction");
     return true;
   });
@@ -1233,28 +1341,22 @@ export default function MarketClient() {
       </div>
 
       {/* ── Tabs ── */}
-      <div className="flex gap-1 mb-6 border-b border-gray-200 overflow-x-auto pb-px">
-        {TABS.map(tab => (
-          <button
-            key={tab}
-            onClick={() => {
-              setActiveTab(tab);
-              if (tab === "Whale Watch" && whaleData.length === 0) fetchWhales();
-              if (tab === "Wallet & Performance") {
-                fetchSummary();
-                fetchSchedulerHealth();
-              }
-            }}
-            className={`px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-all border-b-2 -mb-px rounded-t-lg ${
-              activeTab === tab
-                ? "border-[#FF4D00] text-[#FF4D00] bg-orange-50/50"
-                : "border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      <MarketTabBar
+        tabs={tabPrefs}
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          setActiveTab(tab);
+          if (tab === "Whale Watch" && whaleData.length === 0) fetchWhales();
+          if (tab === "Wallet & Performance") {
+            void settleAndRefresh();
+            fetchSchedulerHealth();
+          }
+        }}
+        onTabsChange={(next) => {
+          setTabPrefs(next);
+          saveTabPrefs(next);
+        }}
+      />
 
         {/* ════════════════════════════════════════════
           TAB: DASHBOARD
@@ -2373,6 +2475,20 @@ export default function MarketClient() {
                                 <TooltipContent>{bookmarks.has(m.id) ? "Unfollow market" : "Follow market"}</TooltipContent>
                               </Tooltip>
 
+                              {/* Save to Watchlist (persistent) */}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => void toggleWatchlist(m)}
+                                    className={`text-base leading-none transition ${watchlist.has(m.id) ? "text-orange-400" : "text-gray-400 hover:text-orange-400"}`}
+                                    title={watchlist.has(m.id) ? "Remove from Watchlist" : "Save to Watchlist"}
+                                  >
+                                    {watchlist.has(m.id) ? "🔔" : "🔕"}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>{watchlist.has(m.id) ? "Remove from saved watchlist" : "Save to watchlist (persists)"}</TooltipContent>
+                              </Tooltip>
+
                               {/* Buy YES */}
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -2513,9 +2629,18 @@ export default function MarketClient() {
                 <div key={m.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 hover:border-gray-200 transition">
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <p className="text-sm text-gray-900 font-medium line-clamp-2 flex-1">{m.title}</p>
-                    <button onClick={() => toggleBookmark(m.id)} className={`text-lg flex-shrink-0 ${bookmarks.has(m.id) ? "text-yellow-400" : "text-slate-700 hover:text-yellow-400"}`}>
-                      {bookmarks.has(m.id) ? "★" : "☆"}
-                    </button>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button onClick={() => toggleBookmark(m.id)} className={`text-lg ${bookmarks.has(m.id) ? "text-yellow-400" : "text-slate-700 hover:text-yellow-400"}`}>
+                        {bookmarks.has(m.id) ? "★" : "☆"}
+                      </button>
+                      <button
+                        onClick={() => void toggleWatchlist(m)}
+                        title={watchlist.has(m.id) ? "Remove from Watchlist" : "Save to Watchlist"}
+                        className={`text-base ${watchlist.has(m.id) ? "text-orange-400" : "text-gray-400 hover:text-orange-400"}`}
+                      >
+                        {watchlist.has(m.id) ? "🔔" : "🔕"}
+                      </button>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 mb-3 flex-wrap">
                     {m.riskTag && (

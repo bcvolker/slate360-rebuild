@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-03-04",
+  "updatedAt": "2026-03-05",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -81,7 +81,7 @@
       "title": "Type duplication: dashboard types defined in both DashboardClient and useDashboardRuntimeData",
       "module": "dashboard",
       "severity": "medium",
-      "status": "open",
+      "status": "fixed",
       "rootCause": "DashboardWidgetsPayload, LiveWeatherState, DashboardProject, DashboardJob etc. defined identically in two files",
       "verification": [
         "lib/types/dashboard.ts exists and both DashboardClient.tsx and useDashboardRuntimeData.ts import from it",
@@ -93,7 +93,7 @@
       "title": "Mock/demo data arrays in production DashboardClient component",
       "module": "dashboard",
       "severity": "medium",
-      "status": "open",
+      "status": "fixed",
       "rootCause": "8 demo data arrays (demoProjects, demoEvents, demoContacts, etc.) defined inline at lines 244-340 of DashboardClient.tsx violate Rule 9",
       "verification": [
         "grep -n 'const demo' components/dashboard/DashboardClient.tsx returns no results",
@@ -105,7 +105,7 @@
       "title": "No error boundary on (dashboard) route group",
       "module": "dashboard",
       "severity": "medium",
-      "status": "open",
+      "status": "fixed",
       "rootCause": "No app/(dashboard)/error.tsx exists; a runtime crash in any tab component unmounts the entire dashboard",
       "verification": [
         "app/(dashboard)/error.tsx exists with reset function",

@@ -101,6 +101,12 @@ export function mapGammaMarketToMarketVM(raw: unknown): MarketViewModel {
     endDateIso,
     eventStartIso,
     eventStartTimeIso,
+    tokenIdYes: record.clobTokenIds
+      ? (Array.isArray(record.clobTokenIds) ? String(record.clobTokenIds[0] ?? "") || null : null)
+      : record.tokenId != null ? String(record.tokenId) : null,
+    tokenIdNo: record.clobTokenIds
+      ? (Array.isArray(record.clobTokenIds) ? String(record.clobTokenIds[1] ?? "") || null : null)
+      : null,
   };
 }
 

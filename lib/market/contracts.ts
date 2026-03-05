@@ -36,6 +36,8 @@ export type MarketViewModel = {
   endDateIso?: string | null;
   eventStartIso?: string | null;
   eventStartTimeIso?: string | null;
+  tokenIdYes?: string | null;
+  tokenIdNo?: string | null;
 };
 
 export type WhaleActivityViewModel = {

@@ -1,6 +1,6 @@
 # Slate360 — Ongoing Issues & Known Tech Debt
 
-**Last Updated:** 2026-03-04 (Session 6 — BUG-022 critical entitlement misconfiguration fixed; architecture audit completed; Phase 0G/0H quick wins documented; refactor core scope complete)  
+**Last Updated:** 2026-03-04 (Sonnet 4.6 session 3 — BUG-020 fixed: PDF inline preview root cause; geocoder fallback added for BUG-010; BUG-021 logged: location widget inconsistency)  
 **Maintained by:** Development team — update whenever a bug is discovered or fixed.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -17,8 +17,8 @@
 | BUG-015 | Market Robot | **Market Robot page blank — `WagmiProviderNotFoundError`:** Page renders `<MarketClient />` directly without `<MarketProviders>` (Web3/wagmi context wrapper). Wagmi hooks inside `MarketClient` crash because there is no `WagmiProvider` in the render tree. **Attempt history:** Issue 11 mitigation (prior session) moved Web3 from root layout to `app/market/MarketProviders.tsx` — but `app/market/page.tsx` was never updated to actually USE `MarketProviders`. Fix appears in git commits but was not applied to the page itself. **Fix applied 2026-03-04:** Wrapped `<MarketClient />` with `<MarketProviders>` in `app/market/page.tsx`. | Critical | ✅ Fixed |
 | BUG-016 | SlateDrop / File Preview | **File preview was downloading instead of opening inline.** Two-layer fix required: (1) **CSP layer:** `frame-src` extended with `https://*.amazonaws.com` and `blob:` — iframes unblocked. (2) **Root cause (session 3 — BUG-020):** `app/api/slatedrop/download/route.ts` hardcoded `ResponseContentDisposition: 'attachment'` on ALL presigned URLs — this forced the browser to download even inside an `<iframe>`, bypassing any CSP fix entirely. Fixed by adding `mode` query param: `mode=preview` → `inline; filename="..."` disposition; default → `attachment`. `SlateDropClient` preview fetch now calls `/api/slatedrop/download?fileId=...&mode=preview`. Preview modal now supports PDF/images/video/audio and falls back to iframe where possible. | High | ✅ Fully Fixed (CSP + S3 disposition both fixed) |
 | BUG-017 | Dashboard | **React Hydration Error #418 — FULLY FIXED:** `isClient` is declared as `useState(false)` at line 479. `loadWidgetPrefs()` is called inside a `useEffect` at line 570 (same effect that sets `isClient(true)` and `setCalMonth/setCalYear`). All `new Date()` calls in JSX are guarded by `isClient &&`. The fix is complete — no decomposition needed for this specific bug. | High | ✅ Fully Fixed |
-| BUG-018 | LocationMap | **DrawingManager deprecation — fixed in `LocationMap.tsx` (not WizardLocationPicker):** marker/line/arrow/polygon/rectangle/circle now use native `google.maps` listener-based drawing flows, and `drawing` library wiring was removed from APIProvider libraries. Migration deadline risk is cleared. See `slate360-context/BACKEND.md §9b` for approach history. | High | ✅ Fixed |
-| BUG-019 | SlateDrop Widgets | **"Extra Open SlateDrop" click required — root cause confirmed and fixed:** The `embedded` prop removed the screen-within-screen layout, but dashboard widget shell still rendered a redundant "Open →" CTA. **Final fix (Mar 4 2026):** Removed dashboard shell CTA from SlateDrop widget when embedded body is already visible. Dashboard + Project Hub now both render embedded `SlateDropClient` directly in-widget without extra click. | Medium | ✅ Fixed |
+| BUG-018 | LocationMap | **DrawingManager deprecation — `LocationMap.tsx` confirmed source (not WizardLocationPicker):** `components/dashboard/LocationMap.tsx` uses `useMapsLibrary("drawing")` at line 194 and `new drawingLib.DrawingManager(...)` at line 459 with `APIProvider libraries={["places", "drawing", "geometry"]}` at line 1479. The `WizardLocationPicker` does NOT use the drawing library. **Migration deadline: May 2026** when Google removes the library. Scope: replace DrawingManager marker/polyline/polygon/rectangle/circle drawing with custom native `google.maps` click-based implementations. This is a ~400-line change within the 1624-line file. See `slate360-context/BACKEND.md §9b` for the migration approach. | High | 🔴 Open — May 2026 deadline |
+| BUG-019 | SlateDrop Widgets | **"Extra Open SlateDrop" click required — root cause confirmed:** The `embedded` prop was added to `SlateDropClient` to remove the screen-within-a-screen layout. But the "Open SlateDrop" CTA button lives in the widget ***shell*** (not inside `SlateDropClient`), so the shell still renders the button even when the client is embedded. The shell and the client treat `embedded` as two separate concerns — the shell doesn't know the client is already visible. **Fixes applied Mar 4 2026:** (1) Dashboard + Project Hub SlateDrop widgets now share `SlateDropWidgetBody` and render embedded `SlateDropClient` in-widget (no separate root-folder mini UI); (2) Project Hub widget grid now uses `grid-cols-1 md:grid-cols-2 xl:grid-cols-3`, which restores true large-width behavior (`lg` spans 3 columns at `xl`) instead of only growing downward. **Remaining:** remove redundant shell CTA where embedded content is already visible. | Medium | 🟡 Mostly Fixed |
 
 ---
 
@@ -27,7 +27,7 @@
 | Error | Source | Root Cause | Status | Fix |
 |---|---|---|---|---|
 | `Uncaught Error: Minified React error #418` | Hydration mismatch in production bundle | `DashboardClient` reads `localStorage` and `new Date()` before client hydration. **FULLY FIXED:** `isClient` is declared, `loadWidgetPrefs()` is inside `useEffect`, all `new Date()` calls guarded by `isClient &&`. | ✅ Fixed | Full fix confirmed — `useState(false)` + `useEffect` mount effect. |
-| `Drawing library functionality in the Maps JavaScript API is deprecated` | `LocationMap.tsx` (NOT WizardLocationPicker) | **Root cause was fully removed:** `LocationMap.tsx` no longer depends on `useMapsLibrary("drawing")`/DrawingManager or `"drawing"` APIProvider libraries. Native map listener drawing now covers all tools. | ✅ Resolved (BUG-018 fixed) | No further migration required; monitor Maps API release notes as routine maintenance. |
+| `Drawing library functionality in the Maps JavaScript API is deprecated` | `LocationMap.tsx` (NOT WizardLocationPicker) | **Root cause confirmed:** `components/dashboard/LocationMap.tsx` line 194 calls `useMapsLibrary("drawing")` and line 1479 includes `"drawing"` in APIProvider libraries. `WizardLocationPicker` only loads `["places","geocoding"]`. This warning will become a **break** in May 2026 when Google removes the library. | 🔴 BUG-018 (May 2026 deadline) | Full DrawingManager migration required in `LocationMap.tsx`. See BACKEND.md §9b. |
 | `satellite and hybrid map types will no longer automatically switch to 45° Imagery` | Maps JavaScript API | Informational deprecation — no code change required yet. Not actionable until Maps JS API version bump. | ℹ️ Info only | Monitor for Maps JS API version bump. |
 | `tiltInteractionEnabled and headingInteractionEnabled only have an effect on vector maps` | Maps JS API | Map instances don't use vector map type. Setting `tilt`/`heading` on raster maps is a no-op. Minor — fix by only setting these props when `mapTypeId` is a vector type. | ℹ️ Low | Conditionally set tilt/heading only for vector map type. |
 | `places.googleapis.com/…/AutocompletePlaces: 403 Forbidden` | `WizardLocationPicker.tsx` + `LocationMap.tsx` | Places API (New) confirmed enabled in Google Cloud Console Mar 4 2026. **Session 3 geocoder fallback:** Both `WizardLocationPicker` and `LocationMap` (origin + dest) now catch 403s and fall back to `Geocoder.geocode()` (Geocoding API — confirmed enabled). Address search degrades to forward geocoding rather than empty results. | 🟡 Gracefully degraded | If 403s still appear: check HTTP referrer restrictions on API key in Google Cloud Console include `localhost:*` + production domain. |
@@ -100,14 +100,6 @@ This was previously blamed on the Geospatial module, which is actually a "coming
 
 **Fix path:** Migrate `LocationMap.tsx` DrawingManager usage (markers, polylines, polygons, rectangles, circles) to native `google.maps` click-based implementations following the `WizardLocationPicker.tsx` pattern. Deadline: May 2026.
 
-### Structural Root Cause #6 — Entitlement Misconfiguration (BUG-022) — FIXED Session 6
-
-**Root cause:** The `TIER_MAP` in `lib/entitlements.ts` was initialized with all `canAccess*` flags set to `true` for the trial tier. This was either an oversight during initial scaffolding or intentional for stubbed modules, but it will immediately become a security hole when any paid module ships real functionality.
-
-**Fix applied Session 6:** The trial tier now correctly reflects the module access matrix from `copilot-instructions.md`: `canAccessHub: true`, `canViewSlateDropWidget: true`, all other module access flags `false`.
-
-**Lesson:** After every entitlement change or new module addition, cross-reference `lib/entitlements.ts` against the module access table in `copilot-instructions.md`.
-
 ### Structural Root Cause #6 — React Hydration #418 (BUG-017) — CONFIRMED FULLY FIXED
 
 **Status: ✅ Fixed.** Code audit Mar 4 2026 confirmed:
@@ -155,19 +147,17 @@ These are the minimum steps needed before any new feature work. Without these, e
 Location step is now genuinely optional — `canAdvance` for step 3 is always `true`. Also:
 - `DrawTool` union now includes `"polygondraw"` — no more `as DrawTool` casts in `WizardLocationPicker.tsx`. ✅
 
-### ✅ Step 3 — Fix BUG-018 (DrawingManager migration in `LocationMap.tsx`) (DONE Mar 4 2026)
-**Completed:** `LocationMap.tsx` no longer uses DrawingManager or the `drawing` library. Marker/polyline/arrow/polygon/rectangle/circle now run on native `google.maps` click/move/double-click listener flows.
+### 🔴 Step 3 — Fix BUG-018 (DrawingManager migration in `LocationMap.tsx`)
+**Root cause corrected:** Source is `components/dashboard/LocationMap.tsx` lines 194 + 1479 — NOT the Geospatial module (which is a "coming soon" stub with no map). Migration deadline: **May 2026** (Google removes the library). Scope: replace DrawingManager marker/polyline/arrow/polygon/rectangle/circle with native `google.maps` click-based implementations across ~400 lines. See `BACKEND.md §9b` for the approach reference (WizardLocationPicker pattern).
 
 ### ✅ Step 4 — Fix BUG-017 fully (CONFIRMED ALREADY DONE)
 Code audit Mar 4 2026 confirmed `loadWidgetPrefs()` IS inside `useEffect` at line 570 and `isClient` state IS declared at line 479 in `DashboardClient.tsx`. No further action needed.
 
-### ✅ Step 5 — Fix BUG-019 (SlateDrop widget extra click)
-Resolved: dashboard and Project Hub widget shells now render embedded SlateDrop content directly without redundant "Open SlateDrop" CTA when expanded.
+### 🔴 Step 5 — Fix BUG-019 (SlateDrop widget extra click)
+In the dashboard widget shell and Project Hub widget shell: when `embedded={true}`, do NOT render the "Open SlateDrop" CTA button — render the `SlateDropClient` directly. Unify the two widget families into one shared `SlateDropWidget` component.
 
 ### 🔴 Step 6 — Decompose the monoliths (blocker for all future fixes being reliable)
 Before building new features, extract the sub-components planned in `SLATEDROP.md §3` and enforce the 300-line file limit from `GUARDRAILS.md`. With smaller files, every future AI session will be able to see the full file, and session-boundary partial-fix bugs will stop happening.
-
-Progress update (Mar 4 2026): extracted `SlateDropContextMenu.tsx`, `SlateDropActionModals.tsx`, `SlateDropSharePreviewModals.tsx`, `SlateDropFileArea.tsx`, `SlateDropSidebar.tsx`, `SlateDropTopBar.tsx`, `SlateDropToolbar.tsx`, and `SlateDropNotificationsOverlay.tsx`, plus `useSlateDropFiles`, `useSlateDropUiState`, `useSlateDropTransferActions`, `useSlateDropMutationActions`, `useSlateDropInteractionHandlers`, `useSlateDropUploadActions`, `useSlateDropPreviewUrl`, and shared helper module `lib/slatedrop/client-utils.ts`; optional shell polish is complete, Project Hub Slice C is complete, and Dashboard decomposition now includes extracted widget shell/views: `DashboardWidgetGrid.tsx`, `DashboardWidgetPopout.tsx`, `DashboardDataUsageWidget.tsx`, `DashboardProcessingWidget.tsx`, `DashboardFinancialWidget.tsx`, `DashboardCalendarWidget.tsx`, `DashboardWeatherWidget.tsx`, `DashboardContinueWidget.tsx`, `DashboardSuggestWidget.tsx`, `DashboardContactsWidget.tsx`, and `DashboardSeatsWidget.tsx`.
 
 ---
 
@@ -178,15 +168,11 @@ Progress update (Mar 4 2026): extracted `SlateDropContextMenu.tsx`, `SlateDropAc
 | BUG-001 | SlateDrop | `file_folders` table still used in Design Studio, export-zip, audit, and cross-tab service — Phase 2 migration to `project_folders` pending | Medium | ⚠️ Pending |
 | BUG-002 | Geospatial | Google Routes API blocked by key restrictions — using OSRM fallback for routing | Low | ⚠️ Workaround |
 | BUG-003 | Project Hub | Tier 3 tool views (RFIs, Submittals, etc.) — stub pages existed, now enhanced — DB schema must match client field expectations | Medium | ✅ Resolved (Jan 2025) |
-| BUG-013 | Project Hub | **Missing high-level analytics snapshot — fixed:** Added `GET /api/projects/summary` aggregate endpoint and restored Tier-1 snapshot section card at the top of `app/(dashboard)/project-hub/ClientPage.tsx`. Card now shows total projects, active projects, open RFIs, pending submittals, and portfolio budget. | Medium | ✅ Fixed |
-| BUG-018 | Dashboard / LocationMap | **DrawingManager deprecation resolved in `LocationMap.tsx`:** native `google.maps` listener drawing now covers marker/polyline/arrow/polygon/rectangle/circle, and `drawing` library wiring has been removed from APIProvider. | High | ✅ Fixed |
-| BUG-019 | SlateDrop Widgets | **SlateDrop widget extra-click resolved:** Expanded dashboard and Tier 2 Project Hub widgets now mount embedded SlateDrop content directly and no longer require a redundant CTA click. | Medium | ✅ Fixed |
+| BUG-013 | Project Hub | **Missing high-level analytics snapshot:** The Project Hub Tier 1 (all-projects view) previously had a high-level analytics/snapshot section (project count, budget totals, active RFIs, etc.). This view is lost. It should be restored as a dedicated section card at the top of the Tier 1 grid page (`app/(dashboard)/project-hub/ClientPage.tsx`). No API currently aggregates these counts — a `GET /api/projects/summary` route needs to be added. | Medium | 🔴 Open |
+| BUG-018 | Dashboard / LocationMap | **DrawingManager deprecated — source is `LocationMap.tsx`, NOT Geospatial module:** Geospatial module is a "coming soon" stub with no map. `components/dashboard/LocationMap.tsx` line 194: `useMapsLibrary("drawing")`; line 459: `new drawingLib.DrawingManager(...)`; line 1479: `<APIProvider libraries={["places","drawing","geometry"]}>`. Migration deadline: **May 2026** when Google removes the library. Scope: replace DrawingManager marker/polyline/polygon/rectangle/circle drawing with native `google.maps` click-based implementations (~400-line change in 1,624-line file). Follow `WizardLocationPicker.tsx` click-based pattern. | High | 🔴 Open — May 2026 deadline |
+| BUG-019 | SlateDrop Widgets | **SlateDrop widget requires extra "Open SlateDrop" click:** `embedded` prop on `SlateDropClient` fixed the screen-within-screen layout, but the widget *shell* still renders its own CTA button above the embedded client. Also, dashboard widgets and in-project (Tier 2) widgets have diverged in styling. | Medium | 🔴 Open |
 | BUG-020 | SlateDrop / File Preview | **PDF files downloaded instead of opening inline preview.** Root cause: `app/api/slatedrop/download/route.ts` set `ResponseContentDisposition: 'attachment'` on ALL presigned URLs — forced browser to download regardless of iframe context. **Fixed session 3:** Added `mode` param; `mode=preview` → `inline` disposition. `SlateDropClient.fetchPreviewUrl` now calls `&mode=preview`. See FIX-016. | High | ✅ Fixed — session 3 |
-| BUG-021 | Location / Multiple Views | **Location widgets are inconsistent across the platform.** `WizardLocationPicker` (project creation step 3), `LocationMap` (dashboard widget), project address display in card/list views, and Project Hub Tier 2 project home render location data with mixed contracts/styles. Progress: shared `LocationDisplay` component is wired into dashboard/project-hub card views and shared `resolveProjectLocation` helper now normalizes metadata → label/lat/lng in Project Hub + dashboard widgets API; remaining map + wizard alignment pending. | Medium | 🟡 In progress |
-| BUG-022 | Entitlements | **CRITICAL: Trial tier was granting access to ALL modules.** `lib/entitlements.ts` trial tier had `canAccessDesignStudio: true`, `canAccessContent: true`, `canAccessTourBuilder: true`, `canAccessGeospatial: true`, `canAccessVirtual: true`, `canAccessAnalytics: true`, `canAccessReports: true` — all incorrect per module access table. Per spec: trial = Project Hub + SlateDrop only. Currently masked (all modules render stubs), but would have granted unauthorized access to paid features the moment any module shipped real UI. **FIXED Session 6: all seven flags set to `false` for trial tier.** | Critical | ✅ Fixed |
-| BUG-023 | Dashboard | **Type duplication across boundary: `DashboardWidgetsPayload`, `LiveWeatherState`, `DashboardProject`, `DashboardJob`, `CalEvent`, `Contact` are defined identically in both `DashboardClient.tsx` AND `lib/hooks/useDashboardRuntimeData.ts`.** TypeScript doesn't catch this as an error but it means divergence is one missed import away. Fix: create `lib/types/dashboard.ts` as shared source, update both files to import from it. See Phase 0H in FUTURE_FEATURES.md. | Medium | ⚠️ Logged |
-| BUG-024 | Dashboard | **8 mock data arrays exist in `DashboardClient.tsx` production component.** `demoProjects`, `demoEvents`, `demoContacts`, `demoJobs`, `demoFinancial`, `demoWeather`, `demoContinueWorking`, `demoSeatMembers` at lines 244–340 violate Rule 9 (no mock data in production UI). Fix: extract to `lib/dashboard/demo-data.ts` as named exports, or replace with proper empty/skeleton states. | Medium | ⚠️ Logged |
-| BUG-025 | Dashboard | **No error boundary on `(dashboard)` route group.** A runtime crash inside any tab component (e.g. `MarketClient`, `LocationMap`) unmounts the entire dashboard for the user. Fix: create `app/(dashboard)/error.tsx` (~15 lines) — Next.js App Router error boundary convention. Zero-risk addition. | Medium | ⚠️ Logged |
+| BUG-021 | Location / Multiple Views | **Location widgets are inconsistent across the platform.** `WizardLocationPicker` (project creation step 3), `LocationMap` (dashboard widget), project address display in card/list views, and Project Hub Tier 2 project home all render location data differently with no shared component. Visual inconsistency and potential data mapping mismatches. Needs: (1) audit all 4 contexts, (2) extract a shared `LocationDisplay` component or align styles/data contract. | Medium | 🔴 Open — investigation pending |
 
 ---
 
@@ -228,42 +214,7 @@ Progress update (Mar 4 2026): extracted `SlateDropContextMenu.tsx`, `SlateDropAc
 |---|---|---|
 | `file_folders` → `project_folders` Phase 2 | `app/(dashboard)/(design-studio)/...`, `app/api/projects/[projectId]/export-zip/`, audit service, cross-tab service | ⚠️ Pending |
 | AutocompleteService → `AutocompleteSuggestion.fetchAutocompleteSuggestions()` | `WizardLocationPicker.tsx` | ✅ Done |
-| DrawingManager → custom Polyline/Polygon | `components/dashboard/LocationMap.tsx` lines 194, 459, 1479 | ✅ Done — BUG-018 fixed Session 5/6. All 7 tools native; `drawing` library removed from APIProvider. No further migration required. |
-
----
-
-## Refactor Continuation Snapshot (for new chat handoff)
-
-**Last synchronized:** 2026-03-04 (Session 6)
-
-### Refactor Status: CORE SCOPE COMPLETE
-
-All original refactor blockers are done:
-- ✅ SlateDrop decomposition: 2,030 → 577 lines (7 components + 7 hooks extracted)
-- ✅ Dashboard widget extraction: 11 widget components + grid/popout shells extracted
-- ✅ Project Hub Slice C: ClientPage at 249 lines
-- ✅ BUG-018: DrawingManager fully removed from LocationMap.tsx
-- ✅ BUG-022: Trial tier entitlement misconfiguration fixed
-- ✅ All critical bugs (BUG-010 through BUG-021) resolved
-
-### What Remains (Phase 0H — Code Health Pass)
-
-These are NOT blockers — they are quality improvements:
-1. `MarketClient.tsx` (3,006 lines) → highest priority decomposition, ~8 files
-2. `DashboardClient.tsx` (2,043 lines) → extract `renderWidget` closure + demo data + utility functions
-3. `LocationMap.tsx` (1,864 lines) → 5 sub-component extractions
-4. `management/page.tsx` (932 lines) → 3 tab components + 2 hooks
-5. 8 project tool pages (339–599 lines) → `ProjectToolLayout` wrapper + `useProjectCrudBase` hook
-6. BUG-023/024/025: type deduplication, demo data extraction, error boundary
-
-### Resume Checklist for New Chat
-1. Read `SLATE360_PROJECT_MEMORY.md` (master state).
-2. Read `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md` (start/end protocol).
-3. Read `slate360-context/FUTURE_FEATURES.md` Phase 0G/0H (next recommended work).
-4. Read `ops/bug-registry.json` + `ops/module-manifest.json` for machine-readable state.
-5. Run `get_errors` before making any changes.
-6. Choose ONE focused scope: Phase 0G quick win OR Phase 0H decomp OR Phase 1 feature.
-7. Per-task cadence: implement → `get_errors` → update context docs → commit/push.
+| DrawingManager → custom Polyline/Polygon | `components/dashboard/LocationMap.tsx` lines 194, 459, 1479 | 🔴 Open — May 2026 deadline (Geospatial module is a stub; source is LocationMap.tsx) |
 
 ---
 

@@ -116,6 +116,59 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* ─────────────────────────────────────────────────────────────────
+   Slate360 Design Tokens
+   Single source of truth for brand colors and spacing.
+   Use these CSS variables everywhere instead of hardcoded hex values.
+   Enterprise white-label: override --slate-orange and --slate-blue.
+   ───────────────────────────────────────────────────────────────── */
+:root {
+  /* Brand colors */
+  --slate-orange: #FF4D00;
+  --slate-orange-hover: #E04400;
+  --slate-orange-light: rgba(255, 77, 0, 0.08);
+  --slate-blue: #1E3A8A;
+  --slate-blue-hover: #162D69;
+  --slate-blue-light: rgba(30, 58, 138, 0.08);
+
+  /* Module accent colors */
+  --module-hub: #1E3A8A;
+  --module-design: #7C3AED;
+  --module-content: #EC4899;
+  --module-tours: #0891B2;
+  --module-geo: #059669;
+  --module-virtual: #D97706;
+  --module-analytics: #1E3A8A;
+  --module-slatedrop: #FF4D00;
+
+  /* Status colors — used for RFIs, submittals, punch items */
+  --status-open: #2563EB;
+  --status-open-bg: #EFF6FF;
+  --status-review: #D97706;
+  --status-review-bg: #FFFBEB;
+  --status-approved: #059669;
+  --status-approved-bg: #ECFDF5;
+  --status-closed: #059669;
+  --status-closed-bg: #ECFDF5;
+  --status-overdue: #DC2626;
+  --status-overdue-bg: #FEF2F2;
+  --status-draft: #6B7280;
+  --status-draft-bg: #F9FAFB;
+
+  /* Surface */
+  --surface-page: #ECEEF2;
+  --surface-card: #FFFFFF;
+  --surface-card-hover: #F9FAFB;
+
+  /* Spacing (8px grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

@@ -1,79 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-type IconType = "sun" | "cloud-sun" | "cloud" | "rain" | "snow";
+import type {
+  WeatherIcon,
+  LiveWeatherState,
+  DashboardWidgetsPayload,
+  DashboardDeployInfo as DeployInfoPayload,
+} from "@/lib/types/dashboard";
 
 type DashboardSummary = {
   recentFiles: Array<Record<string, unknown>>;
   storageUsed: number;
 };
 
-type DashboardProject = {
-  id: string;
-  name: string;
-  location: string;
-  thumbnail: string;
-  status: "active" | "completed" | "on-hold";
-  lastEdited: string;
-  type: "3d" | "360" | "geo" | "plan";
-  lat?: number | null;
-  lng?: number | null;
-};
-
-type DashboardJob = {
-  id: string;
-  name: string;
-  type: string;
-  progress: number;
-  status: "completed" | "processing" | "queued" | "failed";
-};
-
-type DashboardWidgetsPayload = {
-  projects: DashboardProject[];
-  jobs: DashboardJob[];
-  financial: Array<{ month: string; credits: number }>;
-  continueWorking: Array<{
-    title: string;
-    subtitle: string;
-    time: string;
-    kind: "design" | "tour" | "rfi" | "report" | "file";
-    href: string;
-  }>;
-  seats: Array<{ name: string; role: string; email: string; active: boolean }>;
-};
-
-type DeployInfoPayload = {
-  marker?: string;
-  commit?: string | null;
-  branch?: string | null;
-  url?: string | null;
-  region?: string | null;
-};
-
-type LiveWeatherState = {
-  location: string;
-  current: {
-    temp: number;
-    condition: string;
-    humidity: number;
-    wind: number;
-    icon: IconType;
-  };
-  forecast: Array<{
-    day: string;
-    hi: number;
-    lo: number;
-    icon: IconType;
-    precip: number;
-  }>;
-  constructionAlerts: Array<{
-    message: string;
-    severity: "warning" | "caution" | "info";
-  }>;
-};
-
-function weatherCodeToIcon(code: number): IconType {
+function weatherCodeToIcon(code: number): WeatherIcon {
   if ([0].includes(code)) return "sun";
   if ([1, 2].includes(code)) return "cloud-sun";
   if ([3, 45, 48].includes(code)) return "cloud";
@@ -125,6 +65,7 @@ export function useDashboardRuntimeData() {
             financial: Array.isArray(data.financial) ? data.financial : [],
             continueWorking: Array.isArray(data.continueWorking) ? data.continueWorking : [],
             seats: Array.isArray(data.seats) ? data.seats : [],
+            contacts: Array.isArray(data.contacts) ? data.contacts : [],
           });
         }
       })

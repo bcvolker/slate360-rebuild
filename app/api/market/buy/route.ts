@@ -132,10 +132,6 @@ export async function POST(req: NextRequest) {
     }
 
     // ── LIVE MODE ──────────────────────────────────────────────────────────
-    // Live trading requires @polymarket/clob-client + API credentials.
-    // The steps below outline the flow; the actual CLOB call is commented
-    // until credentials are provisioned.
-
     if (!wallet_address) {
       return NextResponse.json(
         { error: "wallet_address required for live trades" },
@@ -149,9 +145,8 @@ export async function POST(req: NextRequest) {
     const api_passphrase = process.env.POLYMARKET_API_PASSPHRASE;
 
     if (!api_key || !api_secret || !api_passphrase) {
-      // Credentials not set → fall back to paper + warn
+      // Credentials not configured → fall back to paper + warn
       console.warn("[api/market/buy] CLOB credentials not configured — saving as paper trade");
-
       const { data: trade, error } = await admin
         .from("market_trades")
         .insert({
@@ -165,62 +160,135 @@ export async function POST(req: NextRequest) {
           status: "open",
           pnl: 0,
           paper_trade: true,
+          token_id: token_id ?? null,
           reason: `Saved as paper — CLOB credentials not configured`,
         })
         .select()
         .single();
-
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      }
-
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       return NextResponse.json({
         success: true,
         mode: "paper_fallback",
         trade,
         warning: "CLOB API credentials not configured. Set POLYMARKET_API_KEY, POLYMARKET_API_SECRET, POLYMARKET_API_PASSPHRASE in .env.local to enable live trades.",
-        clob_docs: `${clob_host}/docs`,
       });
     }
 
-    // ── CLOB Order Submission ──────────────────────────────────────────────
-    // When @polymarket/clob-client is installed and credentials are set,
-    // uncomment and adapt this block:
-    //
-    // import { ClobClient, Side, OrderType } from "@polymarket/clob-client";
-    //
-    // const client = new ClobClient(clob_host, 137, undefined, {
-    //   key: api_key,
-    //   secret: api_secret,
-    //   passphrase: api_passphrase,
-    // });
-    //
-    // const orderArgs = {
-    //   tokenID: token_id,
-    //   price: avg_price,
-    //   side: outcome === "YES" ? Side.BUY : Side.SELL,
-    //   size: amount,
-    //   feeRateBps: "200",   // 2% Polymarket fee
-    //   nonce: "0",
-    //   expiration: "0",
-    // };
-    //
-    // const signedOrder = await client.createOrder(orderArgs);
-    // const resp = await client.postOrder(signedOrder, OrderType.GTC);
-    // → resp contains { orderID, status, ... }
+    if (!token_id) {
+      return NextResponse.json(
+        { error: "token_id required for live trades — refresh the market listing and try again" },
+        { status: 400 }
+      );
+    }
 
-    // For now, return a clear message that live mode needs credential setup:
-    return NextResponse.json({
-      success: false,
-      mode: "live_pending",
-      message: "Live CLOB trading is ready to activate. Add your Polymarket API credentials to .env.local.",
-      required_env_vars: [
-        "POLYMARKET_API_KEY",
-        "POLYMARKET_API_SECRET",
-        "POLYMARKET_API_PASSPHRASE",
-      ],
-      how_to_generate: "Visit https://docs.polymarket.com/#authentication and sign a wallet message to generate credentials. Store them server-side (never client-side).",
-    }, { status: 501 });
+    // ── HMAC-signed CLOB order (no external package needed) ────────────────
+    // Polymarket CLOB v2 API: POST /order
+    // Auth: HMAC-SHA256 over (timestamp + "POST" + "/order" + body)
+    // Docs: https://docs.polymarket.com/#create-order
+    try {
+      const { createHmac } = await import("crypto");
+
+      const timestamp = Math.floor(Date.now() / 1000).toString();
+      const orderBody = {
+        orderType: "GTC",
+        tokenID: token_id,
+        price: avg_price.toFixed(4),
+        side: "BUY",
+        size: amount.toFixed(2),
+        feeRateBps: "200",
+        nonce: "0",
+        expiration: "0",
+        makerAddress: wallet_address,
+      };
+      const bodyStr = JSON.stringify(orderBody);
+      const message = timestamp + "POST" + "/order" + bodyStr;
+      const secretBytes = Buffer.from(api_secret, "base64");
+      const signature = createHmac("sha256", secretBytes)
+        .update(message)
+        .digest("base64");
+
+      const clobRes = await fetch(`${clob_host}/order`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "POLY_ADDRESS": wallet_address,
+          "POLY-API-KEY": api_key,
+          "POLY-SIGNATURE": signature,
+          "POLY-TIMESTAMP": timestamp,
+          "POLY-PASSPHRASE": api_passphrase,
+        },
+        body: bodyStr,
+        signal: AbortSignal.timeout(12_000),
+      });
+
+      const clobData = await clobRes.json() as Record<string, unknown>;
+
+      if (!clobRes.ok) {
+        // CLOB rejected — save as paper with error note
+        const { data: trade } = await admin.from("market_trades").insert({
+          user_id: user.id, market_id, question: market_title,
+          side: outcome, shares, price: avg_price, total: amount,
+          status: "open", pnl: 0, paper_trade: true, token_id: token_id ?? null,
+          reason: `CLOB rejected (${clobRes.status}): ${JSON.stringify(clobData)}`,
+        }).select().single();
+        return NextResponse.json({
+          success: false,
+          mode: "clob_error",
+          clob_status: clobRes.status,
+          clob_response: clobData,
+          trade,
+        }, { status: 422 });
+      }
+
+      // ── CLOB accepted — save live trade record ──────────────────────────
+      const clobOrderId = String(clobData.orderID ?? clobData.id ?? "");
+      const { data: trade, error: insertError } = await admin
+        .from("market_trades")
+        .insert({
+          user_id: user.id,
+          market_id,
+          question: market_title,
+          side: outcome,
+          shares,
+          price: avg_price,
+          total: amount,
+          status: "open",
+          pnl: 0,
+          paper_trade: false,
+          token_id: token_id ?? null,
+          clob_order_id: clobOrderId || null,
+          reason: `Live CLOB order ${clobOrderId}`,
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("[api/market/buy] DB insert after CLOB success:", insertError);
+      }
+
+      return NextResponse.json({
+        success: true,
+        mode: "live",
+        trade,
+        clob_order_id: clobOrderId,
+        summary: `Live order placed: ${shares.toFixed(1)} ${outcome} @ $${avg_price.toFixed(3)} (order ${clobOrderId})`,
+      });
+    } catch (clobErr) {
+      console.error("[api/market/buy] CLOB submission error:", clobErr);
+      // Network failure → save as paper
+      const { data: trade } = await admin.from("market_trades").insert({
+        user_id: user.id, market_id, question: market_title,
+        side: outcome, shares, price: avg_price, total: amount,
+        status: "open", pnl: 0, paper_trade: true, token_id: token_id ?? null,
+        reason: `CLOB network error — saved as paper: ${(clobErr as Error).message}`,
+      }).select().single();
+      return NextResponse.json({
+        success: false,
+        mode: "clob_network_error",
+        error: (clobErr as Error).message,
+        trade,
+      }, { status: 502 });
+    }
 
   } catch (err) {
     console.error("[api/market/buy]", err);
@@ -235,6 +303,7 @@ export async function GET() {
   return NextResponse.json({
     info: "POST to this endpoint to execute a market buy.",
     paper_mode: "Works immediately — no wallet needed.",
-    live_mode: "Requires POLYMARKET_API_KEY, POLYMARKET_API_SECRET, POLYMARKET_API_PASSPHRASE in .env.local.",
+    live_mode: "Requires POLYMARKET_API_KEY, POLYMARKET_API_SECRET, POLYMARKET_API_PASSPHRASE in .env.local. Submits via CLOB v2 HMAC auth.",
   });
 }
+

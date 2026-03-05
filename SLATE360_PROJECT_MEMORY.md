@@ -253,7 +253,7 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 | File | Lines | Status |
 |---|---|---|
 | `components/dashboard/MarketClient.tsx` | 3,006 | ❌ Not decomposed — highest priority next |
-| `components/dashboard/DashboardClient.tsx` | 2,043 | ⚠️ Reduced from ~2,850; 3 more extractions needed |
+| `components/dashboard/DashboardClient.tsx` | 2,578 | ⚠️ Reduced from 2,774; 2 more extractions needed (renderWidget + TabWireframe) |
 | `components/dashboard/LocationMap.tsx` | 1,864 | ⚠️ BUG-018 fixed; structural decomp pending |
 | `app/(dashboard)/project-hub/[projectId]/management/page.tsx` | 932 | ❌ 3 extractable tabs inline |
 | `app/page.tsx` (Homepage) | 780 | ❌ Over limit |
@@ -270,14 +270,14 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 | Issue | Current | Target |
 |---|---|---|
 | `MarketClient.tsx` | 3,006 lines | ~8 files (tabs + hooks) — **highest priority** |
-| `DashboardClient.tsx` | 2,043 lines | ~1,600 after `renderWidget` + demo data extraction |
+| `DashboardClient.tsx` | 2,578 lines | ~2,100 after `renderWidget` + TabWireframe extraction |
 | `LocationMap.tsx` | 1,864 lines | ~5 files (search, routing, drawing, share, container) |
 | `management/page.tsx` | 932 lines | 3 tab components + 2 hooks |
 | `app/page.tsx` (Homepage) | 780 lines | Section components |
 | 8 Project Tool pages | 339–599 lines each | `ProjectToolLayout` + `useProjectCrudBase` hook |
-| Type duplication (BUG-023) | Dashboard types in 2 files | `lib/types/dashboard.ts` |
-| Mock data in production (BUG-024) | 8 arrays in DashboardClient | `lib/dashboard/demo-data.ts` |
-| No error boundary (BUG-025) | None | `app/(dashboard)/error.tsx` |
+| Type duplication (BUG-023) | ✅ Fixed — `lib/types/dashboard.ts` | — |
+| Mock data in production (BUG-024) | ✅ Fixed — `lib/dashboard/demo-data.ts` | — |
+| No error boundary (BUG-025) | ✅ Fixed — `app/(dashboard)/error.tsx` | — |
 | No design tokens | 100s of hardcoded hex values | CSS variables + Tailwind custom colors |
 
 ### What's Not Built Yet

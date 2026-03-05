@@ -45,6 +45,27 @@ type SeatItem = {
   active: boolean;
 };
 
+type ContactItem = {
+  name: string;
+  role: string;
+  project: string;
+  initials: string;
+  color: string;
+  email: string;
+};
+
+const CONTACT_COLORS = ["#FF4D00", "#1E3A8A", "#059669", "#7C3AED", "#D97706", "#0891B2", "#DC2626", "#EC4899"];
+
+function toInitials(name: string): string {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+}
+
 function humanizeTime(input?: string | null) {
   if (!input) return "just now";
   const ms = Date.now() - new Date(input).getTime();
@@ -238,6 +259,7 @@ export async function GET() {
     }
 
     const seats: SeatItem[] = [];
+    const contacts: ContactItem[] = [];
     try {
       if (orgId) {
         const { data } = await admin
@@ -248,11 +270,59 @@ export async function GET() {
 
         (data ?? []).forEach((row: Record<string, unknown>, index: number) => {
           const uid = String(row.user_id ?? "");
+          const isMe = uid === user.id;
+          const displayName = isMe ? "You" : `Member ${index + 1}`;
+          const email = isMe ? (user.email ?? "") : "";
+          const role = String(row.role ?? "Member");
+          const roleCapitalized = role.charAt(0).toUpperCase() + role.slice(1);
+
           seats.push({
-            name: uid === user.id ? "You" : `Member ${index + 1}`,
-            role: String(row.role ?? "Member"),
-            email: uid === user.id ? (user.email ?? "") : `${uid.slice(0, 8)}@member.local`,
+            name: displayName,
+            role: roleCapitalized,
+            email: isMe ? email : `${uid.slice(0, 8)}@member.local`,
             active: true,
+          });
+
+          contacts.push({
+            name: displayName,
+            role: roleCapitalized,
+            project: "Organization",
+            initials: toInitials(displayName),
+            color: CONTACT_COLORS[index % CONTACT_COLORS.length],
+            email: isMe ? email : "",
+          });
+        });
+      }
+    } catch {
+      // optional
+    }
+
+    // Supplement contacts with project members from active projects
+    try {
+      if (orgId && projects.length > 0) {
+        const projectIds = projects.slice(0, 10).map((p) => p.id);
+        const { data: members } = await admin
+          .from("project_members")
+          .select("user_id,role,project_id")
+          .in("project_id", projectIds)
+          .limit(40);
+
+        const seen = new Set(contacts.map((c) => c.email).filter(Boolean));
+        (members ?? []).forEach((row: Record<string, unknown>, index: number) => {
+          const uid = String(row.user_id ?? "");
+          if (uid === user.id) return; // already added as "You"
+          const projectName = projects.find((p) => p.id === String(row.project_id))?.name ?? "Project";
+          const role = String(row.role ?? "member").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+          const key = `member-${uid}`;
+          if (seen.has(key)) return;
+          seen.add(key);
+          contacts.push({
+            name: `Contact ${contacts.length + 1}`,
+            role,
+            project: projectName,
+            initials: role.slice(0, 2).toUpperCase(),
+            color: CONTACT_COLORS[(contacts.length + index) % CONTACT_COLORS.length],
+            email: "",
           });
         });
       }
@@ -266,6 +336,7 @@ export async function GET() {
       financial,
       continueWorking,
       seats,
+      contacts,
     });
   } catch (error) {
     console.error("[dashboard/widgets]", error);

@@ -9,22 +9,13 @@ import DashboardHeader from "@/components/shared/DashboardHeader";
 import CreateProjectWizard, { type CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
 import MarketClient from "@/components/dashboard/MarketClient";
 import DashboardProjectCard from "@/components/dashboard/DashboardProjectCard";
-import DashboardDataUsageWidget from "@/components/dashboard/DashboardDataUsageWidget";
-import DashboardCalendarWidget from "@/components/dashboard/DashboardCalendarWidget";
-import DashboardContinueWidget from "@/components/dashboard/DashboardContinueWidget";
-import DashboardContactsWidget from "@/components/dashboard/DashboardContactsWidget";
-import DashboardFinancialWidget from "@/components/dashboard/DashboardFinancialWidget";
-import DashboardProcessingWidget from "@/components/dashboard/DashboardProcessingWidget";
-import DashboardSeatsWidget from "@/components/dashboard/DashboardSeatsWidget";
-import DashboardSuggestWidget from "@/components/dashboard/DashboardSuggestWidget";
-import DashboardWeatherWidget from "@/components/dashboard/DashboardWeatherWidget";
-import DashboardWidgetGrid from "@/components/dashboard/DashboardWidgetGrid";
-import DashboardWidgetPopout from "@/components/dashboard/DashboardWidgetPopout";
-import SlateDropClient from "@/components/slatedrop/SlateDropClient";
 import LocationMap from "./LocationMap";
 import WidgetCard from "@/components/widgets/WidgetCard";
 import SlateDropWidgetBody from "@/components/widgets/SlateDropWidgetBody";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
+import SlateDropClient from "@/components/slatedrop/SlateDropClient";
+import ContactsWidget from "@/components/contacts/ContactsWidget";
+import CalendarWidget from "@/components/calendar/CalendarWidget";
 import {
   WIDGET_META,
   type WidgetPref,
@@ -40,10 +31,8 @@ import {
   saveWidgetPrefs,
   WIDGET_PREFS_SCHEMA_VERSION,
 } from "@/components/widgets/widget-prefs-storage";
-import { useDashboardRuntimeData } from "@/lib/hooks/useDashboardRuntimeData";
-import { useDashboardFloatingWindows } from "@/lib/hooks/useDashboardFloatingWindows";
-import { useDashboardWidgetPrefs } from "@/lib/hooks/useDashboardWidgetPrefs";
 import {
+  Search,
   Bell,
   ChevronDown,
   ChevronLeft,
@@ -53,23 +42,33 @@ import {
   Activity,
   TrendingUp,
   Calendar as CalendarIcon,
+  Users,
   Cloud,
+  Lightbulb,
   Clock,
   Cpu,
   FolderOpen, FolderKanban,
   BarChart3,
   Zap,
   MapPin,
+  Send,
   CheckCircle2,
   XCircle,
   Loader2,
   AlertTriangle,
+  Wind,
+  Droplets,
+  Sun,
+  CloudSun,
+  UserPlus,
   MessageSquare,
   Palette,
   Globe,
   Film,
   Layers,
   Compass,
+  CloudRain,
+  Snowflake,
   type LucideIcon,
   User,
   Shield,
@@ -87,6 +86,17 @@ import {
   Plug,
   CreditCard,
 } from "lucide-react";
+import type {
+  DashboardProject as Project,
+  DashboardCalEvent as CalEvent,
+  DashboardContact as Contact,
+  LiveWeatherState,
+  DashboardJob as Job,
+  DashboardWidgetsPayload,
+  DashboardDeployInfo as DeployInfoPayload,
+  DashboardInboxNotification as InboxNotification,
+} from "@/lib/types/dashboard";
+import { DEMO_WEATHER } from "@/lib/dashboard/demo-data";
 
 /* ================================================================
    TYPES
@@ -100,63 +110,8 @@ interface DashboardProps {
   isSlateStaff?: boolean;
 }
 
-interface Project {
-  id: string;
-  name: string;
-  location: string;
-  thumbnail: string;
-  status: "active" | "completed" | "on-hold";
-  lastEdited: string;
-  type: "3d" | "360" | "geo" | "plan";
-  lat?: number | null;
-  lng?: number | null;
-}
-
-interface CalEvent {
-  id: string;
-  title: string;
-  date: string; // YYYY-MM-DD
-  color: string;
-  project?: string;
-}
-
-interface Contact {
-  name: string;
-  role: string;
-  project: string;
-  initials: string;
-  color: string;
-}
-
-interface LiveWeatherState {
-  location: string;
-  current: {
-    temp: number;
-    condition: string;
-    humidity: number;
-    wind: number;
-    icon: "sun" | "cloud-sun" | "cloud" | "rain" | "snow";
-  };
-  forecast: Array<{
-    day: string;
-    hi: number;
-    lo: number;
-    icon: "sun" | "cloud-sun" | "cloud" | "rain" | "snow";
-    precip: number;
-  }>;
-  constructionAlerts: Array<{
-    message: string;
-    severity: "warning" | "caution" | "info";
-  }>;
-}
-
-interface Job {
-  id: string;
-  name: string;
-  type: string;
-  progress: number;
-  status: "completed" | "processing" | "queued" | "failed";
-}
+// Project, CalEvent, Contact, LiveWeatherState, Job, DashboardWidgetsPayload,
+// InboxNotification, DeployInfoPayload — imported from @/lib/types/dashboard
 
 interface DashTab {
   id: string;
@@ -198,150 +153,13 @@ interface AccountOverview {
   isAdmin: boolean;
 }
 
-interface DashboardWidgetsPayload {
-  projects: Project[];
-  jobs: Job[];
-  financial: Array<{ month: string; credits: number }>;
-  continueWorking: Array<{
-    title: string;
-    subtitle: string;
-    time: string;
-    kind: "design" | "tour" | "rfi" | "report" | "file";
-    href: string;
-  }>;
-  seats: Array<{ name: string; role: string; email: string; active: boolean }>;
-}
-
-type InboxNotification = {
-  id: string;
-  project_id: string;
-  title: string;
-  message: string;
-  link_path?: string | null;
-  created_at: string;
-};
-
-type DeployInfoPayload = {
-  marker?: string;
-  commit?: string | null;
-  branch?: string | null;
-  url?: string | null;
-  region?: string | null;
-};
+// DashboardWidgetsPayload, InboxNotification, DeployInfoPayload — imported from @/lib/types/dashboard
 
 /* ================================================================
    WIDGET META — imported from @/components/widgets/widget-meta
    ================================================================ */
 
 const DEFAULT_WIDGET_PREFS: WidgetPref[] = buildDefaultPrefs({ expandedIds: ["calendar", "seats"] });
-
-/* ================================================================
-   DEMO DATA
-   ================================================================ */
-
-const demoProjects: Project[] = [
-  {
-    id: "p1",
-    name: "Maple Heights Residence",
-    location: "Denver, CO",
-    thumbnail: "/uploads/pletchers.jpg",
-    status: "active",
-    lastEdited: "2 hours ago",
-    type: "3d",
-  },
-  {
-    id: "p2",
-    name: "Harbor Point Office Tower",
-    location: "San Diego, CA",
-    thumbnail: "",
-    status: "active",
-    lastEdited: "5 hours ago",
-    type: "360",
-  },
-  {
-    id: "p3",
-    name: "Riverside Bridge Retrofit",
-    location: "Portland, OR",
-    thumbnail: "",
-    status: "on-hold",
-    lastEdited: "2 days ago",
-    type: "geo",
-  },
-  {
-    id: "p4",
-    name: "Lakeview Community Center",
-    location: "Austin, TX",
-    thumbnail: "",
-    status: "completed",
-    lastEdited: "1 week ago",
-    type: "plan",
-  },
-];
-
-const demoEvents: CalEvent[] = [
-  { id: "e1", title: "Site inspection — Maple Heights", date: "2026-02-22", color: "#FF4D00", project: "Maple Heights" },
-  { id: "e2", title: "Client presentation", date: "2026-02-25", color: "#1E3A8A", project: "Harbor Point" },
-  { id: "e3", title: "Concrete pour — Block C", date: "2026-02-27", color: "#FF4D00", project: "Maple Heights" },
-  { id: "e4", title: "Foundation review", date: "2026-03-01", color: "#059669" },
-  { id: "e5", title: "Drone survey scheduled", date: "2026-03-05", color: "#1E3A8A", project: "Riverside Bridge" },
-  { id: "e6", title: "Budget sync — Q1 close", date: "2026-02-28", color: "#7C3AED" },
-];
-
-const demoContacts: Contact[] = [
-  { name: "Sarah Chen", role: "Project Manager", project: "Maple Heights", initials: "SC", color: "#FF4D00" },
-  { name: "Mike Torres", role: "Architect", project: "Harbor Point", initials: "MT", color: "#1E3A8A" },
-  { name: "Lisa Park", role: "GC Superintendent", project: "Riverside Bridge", initials: "LP", color: "#059669" },
-  { name: "James Wilson", role: "Structural Eng.", project: "Harbor Point", initials: "JW", color: "#7C3AED" },
-  { name: "Amy Richards", role: "Interior Designer", project: "Lakeview Center", initials: "AR", color: "#D97706" },
-];
-
-const demoJobs: Job[] = [
-  { id: "j1", name: "Stadium model — Photogrammetry", type: "3D Processing", progress: 100, status: "completed" },
-  { id: "j2", name: "Site scan 360 — HDR merge", type: "360 Processing", progress: 45, status: "processing" },
-  { id: "j3", name: "Bridge deck — Point cloud", type: "Geospatial", progress: 0, status: "queued" },
-  { id: "j4", name: "Floor plan — PDF to 3D", type: "Conversion", progress: 78, status: "processing" },
-];
-
-const demoFinancial = [
-  { month: "Sep", credits: 2400 },
-  { month: "Oct", credits: 3100 },
-  { month: "Nov", credits: 2800 },
-  { month: "Dec", credits: 1900 },
-  { month: "Jan", credits: 3500 },
-  { month: "Feb", credits: 1200 },
-];
-
-const demoWeather = {
-  location: "Denver, CO",
-  current: { temp: 38, condition: "Partly Cloudy", humidity: 45, wind: 14, icon: "cloud-sun" as const },
-  alert: "Wind advisory: Gusts up to 35 mph expected Thursday PM — review crane safety protocols",
-  forecast: [
-    { day: "Thu", hi: 42, lo: 28, icon: "cloud-sun" as const, precip: 10 },
-    { day: "Fri", hi: 35, lo: 22, icon: "snow" as const, precip: 70 },
-    { day: "Sat", hi: 38, lo: 25, icon: "cloud" as const, precip: 20 },
-    { day: "Sun", hi: 45, lo: 30, icon: "sun" as const, precip: 5 },
-    { day: "Mon", hi: 48, lo: 32, icon: "rain" as const, precip: 60 },
-  ],
-  constructionAlerts: [
-    { type: "wind", message: "Gusts over 25 mph Thursday — crane ops affected", severity: "warning" as const },
-    { type: "temp", message: "Below 40°F — monitor concrete curing conditions", severity: "caution" as const },
-    { type: "precip", message: "Rain likely Monday — tarps recommended", severity: "info" as const },
-  ],
-};
-
-const demoContinueWorking = [
-  { title: "Maple Heights — Design Studio", subtitle: "3D model editing in progress", time: "2h ago", icon: Palette, href: "/dashboard" },
-  { title: "Harbor Point — 360 Tour", subtitle: "3 new annotations to review", time: "5h ago", icon: Compass, href: "/dashboard" },
-  { title: "Bridge Retrofit — RFI #12", subtitle: "Needs your response", time: "1d ago", icon: MessageSquare, href: "/dashboard" },
-  { title: "Lakeview Center — Reports", subtitle: "Q4 summary ready for export", time: "2d ago", icon: BarChart3, href: "/dashboard" },
-];
-
-const demoSeatMembers = [
-  { name: "You", role: "Owner", email: "you@company.com", active: true },
-  { name: "Sarah Chen", role: "Admin", email: "sarah@company.com", active: true },
-  { name: "Mike Torres", role: "Member", email: "mike@company.com", active: true },
-  { name: "Lisa Park", role: "Member", email: "lisa@company.com", active: false },
-];
 
 /* ================================================================
    HELPERS
@@ -368,6 +186,17 @@ function getCalendarDays(year: number, month: number) {
   }
   return cells;
 }
+
+const weatherIcon = (icon: string) => {
+  switch (icon) {
+    case "sun": return <Sun size={18} className="text-amber-400" />;
+    case "cloud-sun": return <CloudSun size={18} className="text-gray-400" />;
+    case "cloud": return <Cloud size={18} className="text-gray-400" />;
+    case "rain": return <CloudRain size={18} className="text-blue-400" />;
+    case "snow": return <Snowflake size={18} className="text-sky-300" />;
+    default: return <Sun size={18} className="text-amber-400" />;
+  }
+};
 
 const statusColor = (s: Job["status"]) => {
   switch (s) {
@@ -514,7 +343,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
   const [contactSearch, setContactSearch] = useState("");
   const [suggestTitle, setSuggestTitle] = useState("");
   const [suggestDesc, setSuggestDesc] = useState("");
-  const [suggestPriority, setSuggestPriority] = useState<"low" | "medium" | "high">("medium");
+  const [suggestPriority, setSuggestPriority] = useState("medium");
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [suggestDone, setSuggestDone] = useState(false);
   const [weatherLogged, setWeatherLogged] = useState(false);
@@ -523,6 +352,10 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
   const [customizeOpen, setCustomizeOpen] = useState(false);
   // Initialize with defaults — sync from localStorage in useEffect to avoid hydration mismatch (#418).
   // Server and client must agree on initial render; localStorage is only available client-side.
+  const [widgetPrefs, setWidgetPrefs] = useState<WidgetPref[]>(DEFAULT_WIDGET_PREFS);
+  const [prefsDirty, setPrefsDirty] = useState(false);
+  const [prefsSaving, setPrefsSaving] = useState(false);
+  const [dashDragIdx, setDashDragIdx] = useState<number | null>(null);
   const [billingBusy, setBillingBusy] = useState<"portal" | "credits" | "upgrade" | null>(null);
   const [billingError, setBillingError] = useState<string | null>(null);
   const [billingNotice, setBillingNotice] = useState<{ ok: boolean; text: string } | null>(null);
@@ -555,56 +388,64 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
     setWidgetPrefs(storedPrefs);
   }, []);
 
-  const {
-    slateDropOpen,
-    setSlateDropOpen,
-    sdMinimized,
-    setSdMinimized,
-    sdPos,
-    setSdPos,
-    sdSize,
-    setSdSize,
-    sdIsMobile,
-    openSlateDrop,
-    onSdTitleDown,
-    onSdResizeDown,
-    onSdPointerMove,
-    onSdPointerUp,
-    widgetPopoutId,
-    setWidgetPopoutId,
-    wdMinimized,
-    setWdMinimized,
-    wdPos,
-    setWdPos,
-    wdSize,
-    setWdSize,
-    wdIsMobile,
-    openWidgetPopout,
-    onWdTitleDown,
-    onWdResizeDown,
-    onWdPointerMove,
-    onWdPointerUp,
-  } = useDashboardFloatingWindows();
-  const {
-    widgetPrefs,
-    setWidgetPrefs,
-    prefsDirty,
-    setPrefsDirty,
-    prefsSaving,
-    dashDragIdx,
-    toggleVisible,
-    setWidgetSize,
-    moveWidget,
-    savePrefs,
-    resetPrefs,
-    handleDashDragStart,
-    handleDashDragOver,
-    handleDashDragEnd,
-    drawerMeta,
-  } = useDashboardWidgetPrefs({
-    supabase,
-    canManageSeats: ent.canManageSeats,
-  });
+  // ── SlateDrop floating window ───────────────────────────────
+  const [slateDropOpen, setSlateDropOpen] = useState(false);
+  const [sdMinimized, setSdMinimized] = useState(false);
+  const [sdPos, setSdPos] = useState({ x: 0, y: 0 });
+  const [sdSize, setSdSize] = useState({ w: 1000, h: 680 });
+  const [sdIsMobile, setSdIsMobile] = useState(false);
+  const sdDragMode = useRef<"title" | "resize" | null>(null);
+  const sdDragStart = useRef({ clientX: 0, clientY: 0, startX: 0, startY: 0, startW: 0, startH: 0 });
+
+  const [widgetPopoutId, setWidgetPopoutId] = useState<string | null>(null);
+  const [wdMinimized, setWdMinimized] = useState(false);
+  const [wdPos, setWdPos] = useState({ x: 0, y: 0 });
+  const [wdSize, setWdSize] = useState({ w: 900, h: 640 });
+  const [wdIsMobile, setWdIsMobile] = useState(false);
+  const wdDragMode = useRef<"title" | "resize" | null>(null);
+  const wdDragStart = useRef({ clientX: 0, clientY: 0, startX: 0, startY: 0, startW: 0, startH: 0 });
+
+  function openSlateDrop() {
+    const isMobile = window.innerWidth < 768;
+    setSdIsMobile(isMobile);
+    if (isMobile) {
+      setSdPos({ x: 0, y: 0 });
+      setSdSize({ w: window.innerWidth, h: window.innerHeight });
+      setSdMinimized(false);
+      setSlateDropOpen(true);
+      return;
+    }
+    setSdPos({
+      x: Math.max(0, (window.innerWidth - 1000) / 2),
+      y: Math.max(10, (window.innerHeight - 680) / 4),
+    });
+    setSdSize({ w: 1000, h: 680 });
+    setSdMinimized(false);
+    setSlateDropOpen(true);
+  }
+
+  function onSdTitleDown(e: React.PointerEvent) {
+    sdDragMode.current = "title";
+    sdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: sdPos.x, startY: sdPos.y, startW: sdSize.w, startH: sdSize.h };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }
+  function onSdResizeDown(e: React.PointerEvent) {
+    sdDragMode.current = "resize";
+    sdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: sdPos.x, startY: sdPos.y, startW: sdSize.w, startH: sdSize.h };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    e.stopPropagation();
+  }
+  function onSdPointerMove(e: React.PointerEvent) {
+    if (!sdDragMode.current) return;
+    const dx = e.clientX - sdDragStart.current.clientX;
+    const dy = e.clientY - sdDragStart.current.clientY;
+    if (sdDragMode.current === "title") {
+      setSdPos({ x: sdDragStart.current.startX + dx, y: sdDragStart.current.startY + dy });
+    } else {
+      setSdSize({ w: Math.max(560, sdDragStart.current.startW + dx), h: Math.max(420, sdDragStart.current.startH + dy) });
+    }
+  }
+  function onSdPointerUp() { sdDragMode.current = null; }
 
   const loadUnreadNotifications = useCallback(async () => {
     setNotificationsLoading(true);
@@ -634,7 +475,55 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
     }
   }, [supabase]);
 
-  const { dashboardSummary, userCoords, liveWeather, widgetsData, setWidgetsData, deployInfo } = useDashboardRuntimeData();
+
+  function openWidgetPopout(widgetId: string) {
+    const isMobile = window.innerWidth < 768;
+    setWdIsMobile(isMobile);
+    if (isMobile) {
+      setWdPos({ x: 0, y: 0 });
+      setWdSize({ w: window.innerWidth, h: window.innerHeight });
+      setWdMinimized(false);
+      setWidgetPopoutId(widgetId);
+      return;
+    }
+
+    setWdPos({
+      x: Math.max(0, (window.innerWidth - 900) / 2),
+      y: Math.max(10, (window.innerHeight - 640) / 4),
+    });
+    setWdSize({ w: 900, h: 640 });
+    setWdMinimized(false);
+    setWidgetPopoutId(widgetId);
+  }
+
+  function onWdTitleDown(e: React.PointerEvent) {
+    wdDragMode.current = "title";
+    wdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: wdPos.x, startY: wdPos.y, startW: wdSize.w, startH: wdSize.h };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }
+  function onWdResizeDown(e: React.PointerEvent) {
+    wdDragMode.current = "resize";
+    wdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: wdPos.x, startY: wdPos.y, startW: wdSize.w, startH: wdSize.h };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    e.stopPropagation();
+  }
+  function onWdPointerMove(e: React.PointerEvent) {
+    if (!wdDragMode.current) return;
+    const dx = e.clientX - wdDragStart.current.clientX;
+    const dy = e.clientY - wdDragStart.current.clientY;
+    if (wdDragMode.current === "title") {
+      setWdPos({ x: wdDragStart.current.startX + dx, y: wdDragStart.current.startY + dy });
+    } else {
+      setWdSize({ w: Math.max(560, wdDragStart.current.startW + dx), h: Math.max(420, wdDragStart.current.startH + dy) });
+    }
+  }
+  function onWdPointerUp() { wdDragMode.current = null; }
+
+  const [dashboardSummary, setDashboardSummary] = useState<{ recentFiles: any[]; storageUsed: number } | null>(null);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [liveWeather, setLiveWeather] = useState<LiveWeatherState | null>(null);
+  const [widgetsData, setWidgetsData] = useState<DashboardWidgetsPayload | null>(null);
+  const [deployInfo, setDeployInfo] = useState<DeployInfoPayload | null>(null);
 
   /* ── Load saved prefs from Supabase user metadata on mount ─── */
   useEffect(() => {
@@ -648,11 +537,48 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
       }
     });
 
+    // Fetch dashboard summary
+    fetch("/api/dashboard/summary")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) setDashboardSummary(data);
+      })
+      .catch(console.error);
+
     // Fetch account overview for quotas
     fetch("/api/account/overview")
       .then((res) => res.json())
       .then((data) => {
         if (!data.error) setAccountOverview(data);
+      })
+      .catch(console.error);
+
+    // Fetch deployment identity for admin diagnostics
+    fetch("/api/deploy-info", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data?.error) {
+          setDeployInfo(data as DeployInfoPayload);
+        }
+      })
+      .catch(() => {
+        setDeployInfo(null);
+      });
+
+    // Fetch live widget datasets
+    fetch("/api/dashboard/widgets", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) {
+          setWidgetsData({
+            projects: Array.isArray(data.projects) ? data.projects : [],
+            jobs: Array.isArray(data.jobs) ? data.jobs : [],
+            financial: Array.isArray(data.financial) ? data.financial : [],
+            continueWorking: Array.isArray(data.continueWorking) ? data.continueWorking : [],
+            seats: Array.isArray(data.seats) ? data.seats : [],
+            contacts: Array.isArray(data.contacts) ? data.contacts : [],
+          });
+        }
       })
       .catch(console.error);
   }, [supabase]);
@@ -672,6 +598,94 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
   useEffect(() => {
     localStorage.setItem(`dashboard_events_${user.email}`, JSON.stringify(events));
   }, [events, user.email]);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setUserCoords({ lat, lng });
+
+        try {
+          const [weatherRes, geoRes] = await Promise.all([
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code&forecast_days=5&timezone=auto`),
+            fetch(`/api/weather/reverse-geocode?lat=${lat}&lng=${lng}`),
+          ]);
+
+          if (!weatherRes.ok) return;
+
+          const weatherJson = await weatherRes.json();
+          const geoJson = geoRes.ok ? await geoRes.json() : null;
+
+          const weatherCodeToIcon = (code: number): "sun" | "cloud-sun" | "cloud" | "rain" | "snow" => {
+            if ([0].includes(code)) return "sun";
+            if ([1, 2].includes(code)) return "cloud-sun";
+            if ([3, 45, 48].includes(code)) return "cloud";
+            if ([71, 73, 75, 77, 85, 86].includes(code)) return "snow";
+            return "rain";
+          };
+
+          const weatherCodeToCondition = (code: number): string => {
+            if (code === 0) return "Clear";
+            if ([1, 2].includes(code)) return "Partly Cloudy";
+            if ([3, 45, 48].includes(code)) return "Cloudy";
+            if ([71, 73, 75, 77, 85, 86].includes(code)) return "Snow";
+            return "Rain";
+          };
+
+          const dailyCodes = weatherJson?.daily?.weather_code ?? [];
+          const dailyMax = weatherJson?.daily?.temperature_2m_max ?? [];
+          const dailyMin = weatherJson?.daily?.temperature_2m_min ?? [];
+          const dailyPrecip = weatherJson?.daily?.precipitation_probability_max ?? [];
+
+          const forecast = (weatherJson?.daily?.time ?? []).slice(0, 5).map((dateStr: string, index: number) => {
+            const day = new Date(`${dateStr}T12:00:00`).toLocaleDateString("en-US", { weekday: "short" });
+            return {
+              day,
+              hi: Math.round(Number(dailyMax[index] ?? 0) * 9 / 5 + 32),
+              lo: Math.round(Number(dailyMin[index] ?? 0) * 9 / 5 + 32),
+              icon: weatherCodeToIcon(Number(dailyCodes[index] ?? 1)),
+              precip: Number(dailyPrecip[index] ?? 0),
+            };
+          });
+
+          const locationName = geoJson?.results?.[0]
+            ? `${geoJson.results[0].name}${geoJson.results[0].admin1 ? `, ${geoJson.results[0].admin1}` : ""}`
+            : `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
+
+          const currentCode = Number(weatherJson?.current?.weather_code ?? 1);
+          const humidity = Number(weatherJson?.current?.relative_humidity_2m ?? 0);
+          const windMph = Number(weatherJson?.current?.wind_speed_10m ?? 0) * 0.621371;
+
+          const alerts: LiveWeatherState["constructionAlerts"] = [];
+          if (windMph >= 20) alerts.push({ message: `High wind risk (${Math.round(windMph)} mph) — review crane operations`, severity: "warning" });
+          if (forecast.some((f: { precip: number }) => f.precip >= 50)) alerts.push({ message: "High precipitation chance in the next 5 days — protect exposed work areas", severity: "caution" });
+          if (alerts.length === 0) alerts.push({ message: "No major weather construction risks detected", severity: "info" });
+
+          setLiveWeather({
+            location: locationName,
+            current: {
+              temp: Math.round(Number(weatherJson?.current?.temperature_2m ?? 0) * 9 / 5 + 32),
+              condition: weatherCodeToCondition(currentCode),
+              humidity,
+              wind: Math.round(windMph),
+              icon: weatherCodeToIcon(currentCode),
+            },
+            forecast,
+            constructionAlerts: alerts,
+          });
+        } catch {
+          // fail quietly; widget will use fallback
+        }
+      },
+      () => {
+        // location denied / unavailable
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+    );
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -695,26 +709,8 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   }, []);
 
-  const liveContacts = useMemo(() => {
-    const seeded: Contact[] = [
-      {
-        name: user.name,
-        role: "Account Owner",
-        project: accountOverview?.profile.orgName ?? "Organization",
-        initials: user.name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
-        color: "#1E3A8A",
-      },
-      ...((accountOverview?.sessions ?? []).slice(0, 6).map((session, index) => ({
-        name: session.device,
-        role: "Active Session",
-        project: "Current Workspace",
-        initials: `S${index + 1}`,
-        color: "#FF4D00",
-      }))),
-    ];
-
-    return seeded;
-  }, [user.name, accountOverview?.profile.orgName, accountOverview?.sessions]);
+  // Real contacts come from organization_members + project_members via /api/dashboard/widgets
+  const liveContacts: Contact[] = widgetsData?.contacts ?? [];
 
   const filteredContacts = useMemo(
     () =>
@@ -950,6 +946,91 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
     if (calMonth === 11) { setCalMonth(0); setCalYear((y) => y + 1); }
     else setCalMonth((m) => m + 1);
   };
+
+  /* ── Pref helpers ── */
+  const toggleVisible = useCallback((id: string) => {
+    setWidgetPrefs((prev) => {
+      const next = prev.map((p) => p.id === id ? { ...p, visible: !p.visible } : p);
+      saveWidgetPrefs(DASHBOARD_STORAGE_KEY, next);
+      return next;
+    });
+    setPrefsDirty(true);
+  }, []);
+  const setWidgetSize = useCallback((id: string, newSize: WidgetSize) => {
+    setWidgetPrefs((prev) => {
+      const next = prev.map((p) => p.id === id ? { ...p, size: newSize } : p);
+      saveWidgetPrefs(DASHBOARD_STORAGE_KEY, next);
+      return next;
+    });
+    setPrefsDirty(true);
+  }, []);
+  const moveWidget = useCallback((id: string, dir: -1 | 1) => {
+    setWidgetPrefs((prev) => {
+      const arr = [...prev].sort((a, b) => a.order - b.order);
+      const idx = arr.findIndex((p) => p.id === id);
+      const target = idx + dir;
+      if (target < 0 || target >= arr.length) return prev;
+      const newArr = arr.map((p, i) => {
+        if (i === idx) return { ...p, order: arr[target].order };
+        if (i === target) return { ...p, order: arr[idx].order };
+        return p;
+      });
+      saveWidgetPrefs(DASHBOARD_STORAGE_KEY, newArr);
+      return newArr;
+    });
+    setPrefsDirty(true);
+  }, []);
+  const savePrefs = useCallback(async () => {
+    setPrefsSaving(true);
+    try {
+      await supabase.auth.updateUser({
+        data: {
+          dashboardWidgets: widgetPrefs,
+          dashboardWidgetsVersion: WIDGET_PREFS_SCHEMA_VERSION,
+        },
+      });
+      saveWidgetPrefs(DASHBOARD_STORAGE_KEY, widgetPrefs);
+      setPrefsDirty(false);
+    } finally {
+      setPrefsSaving(false);
+    }
+  }, [supabase, widgetPrefs]);
+  const resetPrefs = useCallback(() => {
+    setWidgetPrefs(DEFAULT_WIDGET_PREFS);
+    saveWidgetPrefs(DASHBOARD_STORAGE_KEY, DEFAULT_WIDGET_PREFS);
+    setPrefsDirty(true);
+  }, []);
+
+  /* ── Drag-and-drop reorder helpers for dashboard widget grid ── */
+  const handleDashDragStart = useCallback((idx: number) => setDashDragIdx(idx), []);
+  const handleDashDragOver = useCallback((e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    if (dashDragIdx === null || dashDragIdx === idx) return;
+    setWidgetPrefs((prev) => {
+      const vis = [...prev].filter((p) => p.visible).sort((a, b) => a.order - b.order);
+      const visIds = vis.map((p) => p.id);
+      const [moved] = visIds.splice(dashDragIdx, 1);
+      visIds.splice(idx, 0, moved);
+      const next = prev.map((p) => {
+        const visIdx = visIds.indexOf(p.id);
+        return visIdx >= 0 ? { ...p, order: visIdx } : p;
+      });
+      saveWidgetPrefs(DASHBOARD_STORAGE_KEY, next);
+      return next;
+    });
+    setDashDragIdx(idx);
+    setPrefsDirty(true);
+  }, [dashDragIdx]);
+  const handleDashDragEnd = useCallback(() => setDashDragIdx(null), []);
+
+  /* ── Tier-filtered meta for customization drawer ── */
+  const drawerMeta = useMemo(() => {
+    return WIDGET_META.filter((m) => {
+      if (m.id === "seats" && !ent.canManageSeats) return false;
+      if (m.id === "upgrade" && ent.canManageSeats) return false;
+      return true;
+    });
+  }, [ent.canManageSeats]);
 
   const financialMax = Math.max(1, ...liveFinancial.map((f) => f.credits));
 
@@ -1243,7 +1324,12 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
               <LocationMap
                 center={userCoords ?? undefined}
                 locationLabel={liveWeather?.location}
-                contactRecipients={liveSeatMembers.map((member) => ({ name: member.name, email: member.email }))}
+                contactRecipients={[
+                  ...liveSeatMembers.map((member) => ({ name: member.name, email: member.email })),
+                  ...liveContacts
+                    .filter((c) => c.email && !liveSeatMembers.some((m) => m.email === c.email))
+                    .map((c) => ({ name: c.name, email: c.email! })),
+                ]}
                 compact={!isExpanded}
                 expanded={isExpanded}
               />
@@ -1260,142 +1346,435 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
             color={widgetColor}
             onSetSize={handleSetSize}
             size={widgetSize}
+            action={
+              <Link
+                href="/slatedrop"
+                className="text-[11px] font-bold text-[#FF4D00] hover:underline"
+              >
+                Open →
+              </Link>
+            }
           >
             <SlateDropWidgetBody user={user} tier={tier} />
           </WidgetCard>
           );
 
               case "data-usage": return (
-          <DashboardDataUsageWidget
-            span={span}
-            widgetColor={widgetColor}
-            widgetSize={widgetSize}
-            onSetSize={handleSetSize}
-            tierLabel={ent.label}
-            creditsUsed={creditsUsed}
-            maxCredits={ent.maxCredits}
-            storageUsed={storageUsed}
-            maxStorageGB={ent.maxStorageGB}
-            billingBusy={billingBusy}
-            billingError={billingError}
-            onBuyCredits={handleBuyCredits}
-            onUpgradePlan={handleUpgradePlan}
-          />
+          <WidgetCard key={id} icon={CreditCard} title="Data Usage & Credits" span={span} delay={0} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
+              {ent.label}
+            </span>
+          }>
+            <div className="space-y-5">
+              {/* Credits */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-500 font-medium">Credits used</span>
+                  <span className="text-xs font-bold text-gray-900">{creditsUsed.toLocaleString()} / {ent.maxCredits.toLocaleString()}</span>
+                </div>
+                <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${Math.min((creditsUsed / ent.maxCredits) * 100, 100)}%`, backgroundColor: "#FF4D00" }}
+                  />
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1.5">{(ent.maxCredits - creditsUsed).toLocaleString()} credits remaining this period</p>
+              </div>
+              {/* Storage */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-500 font-medium">Storage</span>
+                  <span className="text-xs font-bold text-gray-900">{storageUsed} GB / {ent.maxStorageGB} GB</span>
+                </div>
+                <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-[#1E3A8A] transition-all duration-1000 ease-out"
+                    style={{ width: `${Math.min((storageUsed / ent.maxStorageGB) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+              {/* Quick actions */}
+              <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                <button
+                  onClick={handleBuyCredits}
+                  disabled={billingBusy !== null}
+                  className="flex-1 text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-60"
+                >
+                  {billingBusy === "credits" ? (
+                    <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span>
+                  ) : (
+                    "Buy credits"
+                  )}
+                </button>
+                <button
+                  onClick={handleUpgradePlan}
+                  disabled={billingBusy !== null}
+                  className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-all hover:opacity-90 disabled:opacity-60"
+                  style={{ backgroundColor: "#FF4D00" }}
+                >
+                  {billingBusy === "upgrade" ? (
+                    <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span>
+                  ) : (
+                    "Upgrade plan"
+                  )}
+                </button>
+              </div>
+              {billingError && <p className="text-[11px] text-red-500">{billingError}</p>}
+            </div>
+          </WidgetCard>
           );
 
               case "processing": return (
-          <DashboardProcessingWidget
-            span={span}
-            widgetColor={widgetColor}
-            widgetSize={widgetSize}
-            onSetSize={handleSetSize}
-            jobs={liveJobs}
-          />
+          <WidgetCard key={id} icon={Cpu} title="Processing Jobs" span={span} delay={50} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
+            <span className="text-[11px] text-gray-400 font-medium">{liveJobs.filter((j) => j.status === "processing").length} active</span>
+          }>
+            <div className="space-y-3">
+              {liveJobs.map((job) => (
+                <div key={job.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/80 hover:bg-gray-100/80 transition-colors group">
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${statusColor(job.status)}`}>
+                    {statusIcon(job.status)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-gray-900 truncate">{job.name}</p>
+                    <p className="text-[10px] text-gray-400">{job.type}</p>
+                  </div>
+                  {job.status === "processing" && (
+                    <div className="w-16">
+                      <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{ width: `${job.progress}%`, backgroundColor: "#FF4D00" }}
+                        />
+                      </div>
+                      <p className="text-[9px] text-gray-400 text-right mt-0.5">{job.progress}%</p>
+                    </div>
+                  )}
+                  {job.status === "completed" && (
+                    <span className="text-[10px] text-emerald-600 font-medium">Done</span>
+                  )}
+                  {job.status === "queued" && (
+                    <span className="text-[10px] text-gray-400 font-medium">Queued</span>
+                  )}
+                </div>
+              ))}
+              {liveJobs.length === 0 && (
+                <div className="text-center py-4 text-xs text-gray-400">No processing jobs right now</div>
+              )}
+            </div>
+          </WidgetCard>
           );
 
               case "financial": return (
-          <DashboardFinancialWidget
-            span={span}
-            widgetColor={widgetColor}
-            widgetSize={widgetSize}
-            onSetSize={handleSetSize}
-            liveFinancial={liveFinancial}
-            financialMax={financialMax}
-          />
+          <WidgetCard key={id} icon={TrendingUp} title="Financial Snapshot" span={span} delay={100} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
+            <span className="text-[11px] text-gray-400 font-medium">Last 6 months</span>
+          }>
+            <div className="space-y-4">
+              {/* Bar chart */}
+              <div className="flex items-end gap-2 h-28">
+                {liveFinancial.map((f, i) => (
+                  <div key={f.month} className="flex-1 flex flex-col items-center gap-1.5">
+                    <span className="text-[9px] text-gray-400 font-medium">{f.credits > 0 ? `${(f.credits / 1000).toFixed(1)}k` : ""}</span>
+                    <div className="w-full relative flex items-end justify-center" style={{ height: "80px" }}>
+                      <div
+                        className="w-full max-w-[32px] rounded-t-md transition-all duration-700 ease-out hover:opacity-80"
+                        style={{
+                          height: `${(f.credits / financialMax) * 100}%`,
+                          backgroundColor: i === liveFinancial.length - 1 ? "#FF4D00" : "#1E3A8A",
+                          opacity: i === liveFinancial.length - 1 ? 1 : 0.6,
+                        }}
+                      />
+                    </div>
+                    <span className="text-[10px] text-gray-400">{f.month}</span>
+                  </div>
+                ))}
+                {liveFinancial.length === 0 && (
+                  <div className="w-full text-center text-xs text-gray-400">No financial activity yet</div>
+                )}
+              </div>
+              {/* Stats */}
+              <div className="flex gap-4 pt-2 border-t border-gray-100">
+                <div>
+                  <p className="text-[10px] text-gray-400 font-medium">This month</p>
+                  <p className="text-sm font-bold text-gray-900">{(liveFinancial[liveFinancial.length - 1]?.credits ?? 0).toLocaleString()} credits</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-400 font-medium">Avg / month</p>
+                  <p className="text-sm font-bold text-gray-900">{Math.round(liveFinancial.reduce((sum, point) => sum + point.credits, 0) / Math.max(liveFinancial.length, 1)).toLocaleString()} credits</p>
+                </div>
+              </div>
+            </div>
+          </WidgetCard>
           );
 
               case "calendar": return (
-          <DashboardCalendarWidget
-            span={span}
-            widgetColor={widgetColor}
-            widgetSize={widgetSize}
-            onSetSize={handleSetSize}
-            month={calMonth}
-            year={calYear}
-            calDays={calDays}
-            todayStr={todayStr}
-            selectedDate={calSelected}
-            events={events}
-            selectedDayEvents={selectedDayEvents}
-            addingEvent={addingEvent}
-            newEventTitle={newEventTitle}
-            isClient={isClient}
-            onPrevMonth={prevMonth}
-            onNextMonth={nextMonth}
-            onSelectDate={setCalSelected}
-            onStartAddEvent={() => {
-              setAddingEvent(true);
-              if (!calSelected) setCalSelected(todayStr);
-            }}
-            onTitleChange={setNewEventTitle}
-            onAddEvent={handleAddEvent}
-            onCancelAddEvent={() => setAddingEvent(false)}
-          />
-          );
+              <CalendarWidget
+                key={id}
+                span={span}
+                widgetSize={widgetSize}
+                widgetColor={widgetColor}
+                onSetSize={handleSetSize}
+                projects={liveProjects.map((p) => ({ id: p.id, name: p.name }))}
+              />
+              );
 
               case "weather": return (
-          <DashboardWeatherWidget
-            span={span}
-            widgetColor={widgetColor}
-            widgetSize={widgetSize}
-            onSetSize={handleSetSize}
-            liveWeather={liveWeather}
-            fallbackForecast={demoWeather.forecast}
-            fallbackAlerts={demoWeather.constructionAlerts}
-            weatherLogged={weatherLogged}
-            onLogWeather={() => setWeatherLogged(true)}
-          />
+          <WidgetCard key={id} icon={Cloud} title="Weather" span={span} delay={200} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
+            <span className="text-[10px] text-gray-400 font-medium flex items-center gap-1"><MapPin size={10} />{liveWeather?.location ?? "Location unavailable"}</span>
+          }>
+            <div className="space-y-4">
+              {/* Current */}
+              <div className="flex items-center gap-4">
+                <div className="text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-50 to-sky-50 flex items-center justify-center mb-1">
+                    {weatherIcon(liveWeather?.current.icon ?? "cloud-sun")}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-3xl font-black text-gray-900">{liveWeather?.current.temp ?? "--"}°<span className="text-base font-normal text-gray-400">F</span></p>
+                  <p className="text-xs text-gray-500">{liveWeather?.current.condition ?? "Unavailable"}</p>
+                </div>
+                <div className="ml-auto text-right space-y-1">
+                  <p className="text-[10px] text-gray-400 flex items-center gap-1 justify-end"><Droplets size={10} />{liveWeather?.current.humidity ?? "--"}%</p>
+                  <p className="text-[10px] text-gray-400 flex items-center gap-1 justify-end"><Wind size={10} />{liveWeather?.current.wind ?? "--"} mph</p>
+                </div>
+              </div>
+
+              {/* 5-day forecast */}
+              <div className="grid grid-cols-5 gap-1.5">
+                {(liveWeather?.forecast ?? DEMO_WEATHER.forecast).map((f) => (
+                  <div key={f.day} className="text-center p-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <p className="text-[10px] text-gray-500 font-semibold mb-1">{f.day}</p>
+                    {weatherIcon(f.icon)}
+                    <p className="text-[10px] font-bold text-gray-900 mt-1">{f.hi}°</p>
+                    <p className="text-[9px] text-gray-400">{f.lo}°</p>
+                    {f.precip >= 40 && (
+                      <p className="text-[9px] text-blue-500 font-medium mt-0.5">{f.precip}%💧</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Construction alerts */}
+              <div className="space-y-1.5">
+                {(liveWeather?.constructionAlerts ?? DEMO_WEATHER.constructionAlerts).map((a, i) => (
+                  <div
+                    key={i}
+                    className={`flex items-start gap-2 p-2.5 rounded-xl text-xs ${
+                      a.severity === "warning"
+                        ? "bg-amber-50 text-amber-700"
+                        : a.severity === "caution"
+                        ? "bg-orange-50 text-orange-700"
+                        : "bg-blue-50 text-blue-700"
+                    }`}
+                  >
+                    <AlertTriangle size={12} className="mt-0.5 shrink-0" />
+                    <span className="leading-relaxed">{a.message}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Log to daily report */}
+              <button
+                onClick={() => setWeatherLogged(true)}
+                disabled={weatherLogged}
+                className="w-full text-xs font-semibold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {weatherLogged ? <><CheckCircle2 size={13} className="text-emerald-500" /> Logged to daily report</> : <><Send size={12} /> Log to Daily Report</>}
+              </button>
+            </div>
+          </WidgetCard>
           );
 
               case "continue": return (
-          <DashboardContinueWidget
-            span={span}
-            widgetColor={widgetColor}
-            widgetSize={widgetSize}
-            onSetSize={handleSetSize}
-            items={liveContinueWorking}
-          />
+          <WidgetCard key={id} icon={Clock} title="Continue Working" span={span} delay={250} color={widgetColor} onSetSize={handleSetSize} size={widgetSize} action={
+            <Link href="/dashboard" className="text-[11px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-0.5">
+              View all <ArrowRight size={11} />
+            </Link>
+          }>
+            <div className="space-y-2">
+              {liveContinueWorking.map((item, i) => {
+                const Icon = item.kind === "design"
+                  ? Palette
+                  : item.kind === "tour"
+                    ? Compass
+                    : item.kind === "rfi"
+                      ? MessageSquare
+                      : item.kind === "report"
+                        ? BarChart3
+                        : FileText;
+                return (
+                  <Link
+                    key={i}
+                    href={item.href}
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 group-hover:text-[#FF4D00] transition-colors">
+                      <Icon size={16} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-900 truncate group-hover:text-[#FF4D00] transition-colors">{item.title}</p>
+                      <p className="text-[10px] text-gray-400 truncate">{item.subtitle}</p>
+                    </div>
+                    <span className="text-[10px] text-gray-300 shrink-0">{item.time}</span>
+                  </Link>
+                );
+              })}
+              {liveContinueWorking.length === 0 && (
+                <div className="text-center py-4 text-xs text-gray-400">No recent activity yet</div>
+              )}
+            </div>
+          </WidgetCard>
           );
 
               case "contacts": return (
-          <DashboardContactsWidget
-            span={span}
-            widgetColor={widgetColor}
-            widgetSize={widgetSize}
-            onSetSize={handleSetSize}
-            contactSearch={contactSearch}
-            filteredContacts={filteredContacts}
-            onContactSearchChange={setContactSearch}
-          />
-          );
+              <ContactsWidget
+                key={id}
+                span={span}
+                widgetSize={widgetSize}
+                widgetColor={widgetColor}
+                onSetSize={handleSetSize}
+                memberContacts={liveContacts.map((c) => ({
+                  id: c.email ?? c.name,
+                  name: c.name,
+                  email: c.email,
+                  initials: c.initials,
+                  color: c.color,
+                  title: c.role,
+                  is_archived: false,
+                  contact_projects: [],
+                  contact_files: [],
+                }))}
+                projects={liveProjects.map((p) => ({ id: p.id, name: p.name }))}
+              />
+              );
 
               case "suggest": return (
-          <DashboardSuggestWidget
-            span={span}
-            widgetColor={widgetColor}
-            widgetSize={widgetSize}
-            onSetSize={handleSetSize}
-            suggestDone={suggestDone}
-            suggestTitle={suggestTitle}
-            suggestDesc={suggestDesc}
-            suggestPriority={suggestPriority}
-            suggestLoading={suggestLoading}
-            onTitleChange={setSuggestTitle}
-            onDescChange={setSuggestDesc}
-            onPriorityChange={setSuggestPriority}
-            onSubmit={handleSuggestFeature}
-          />
+          <WidgetCard key={id} icon={Lightbulb} title="Suggest a Feature" span={span} delay={350} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}>
+            {suggestDone ? (
+              <div className="text-center py-6">
+                <CheckCircle2 size={32} className="mx-auto mb-3 text-emerald-500" />
+                <p className="text-sm font-semibold text-gray-900 mb-1">Thank you!</p>
+                <p className="text-xs text-gray-400">Your suggestion has been sent to our team.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Title</label>
+                  <input
+                    type="text"
+                    placeholder="What feature would you like?"
+                    value={suggestTitle}
+                    onChange={(e) => setSuggestTitle(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Description</label>
+                  <textarea
+                    placeholder="Tell us more about what you need…"
+                    value={suggestDesc}
+                    onChange={(e) => setSuggestDesc(e.target.value)}
+                    rows={3}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Priority</label>
+                  <div className="flex gap-2">
+                    {(["low", "medium", "high"] as const).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setSuggestPriority(p)}
+                        className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-all capitalize ${
+                          suggestPriority === p
+                            ? "border-[#FF4D00] bg-[#FF4D00]/5 text-[#FF4D00]"
+                            : "border-gray-200 text-gray-500 hover:bg-gray-50"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={handleSuggestFeature}
+                  disabled={suggestLoading || !suggestTitle.trim() || !suggestDesc.trim()}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                  style={{ backgroundColor: "#FF4D00" }}
+                >
+                  {suggestLoading ? <Loader2 size={14} className="animate-spin" /> : <><Send size={14} /> Submit suggestion</>}
+                </button>
+              </div>
+            )}
+          </WidgetCard>
           );
 
               case "seats": return (
-            <DashboardSeatsWidget
+            <WidgetCard
+              key={id}
+              icon={Users}
+              title="Seat Management"
               span={span}
-              widgetColor={widgetColor}
-              widgetSize={widgetSize}
+              delay={400}
+              color={widgetColor}
               onSetSize={handleSetSize}
-              members={liveSeatMembers}
-              maxSeats={ent.maxSeats}
-            />
+              size={widgetSize}
+              action={
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: "#FF4D00" }}>
+                  <UserPlus size={13} /> Invite member
+                </button>
+              }
+            >
+              <div>
+                <div className="flex items-center gap-6 mb-5">
+                  <div>
+                    <p className="text-2xl font-black text-gray-900">{liveSeatMembers.length}</p>
+                    <p className="text-[10px] text-gray-400 font-medium">of {ent.maxSeats} seats used</p>
+                  </div>
+                  <div className="h-10 w-px bg-gray-100" />
+                  <div>
+                    <p className="text-2xl font-black text-emerald-600">{liveSeatMembers.filter((m) => m.active).length}</p>
+                    <p className="text-[10px] text-gray-400 font-medium">Active now</p>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-100">
+                        <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3 pr-4">Name</th>
+                        <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3 pr-4">Email</th>
+                        <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3 pr-4">Role</th>
+                        <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {liveSeatMembers.map((m, i) => (
+                        <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                          <td className="py-3 pr-4 text-xs font-semibold text-gray-900">{m.name}</td>
+                          <td className="py-3 pr-4 text-xs text-gray-500">{m.email}</td>
+                          <td className="py-3 pr-4">
+                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                              m.role === "Owner" ? "bg-[#FF4D00]/10 text-[#FF4D00]" : m.role === "Admin" ? "bg-[#1E3A8A]/10 text-[#1E3A8A]" : "bg-gray-100 text-gray-600"
+                            }`}>{m.role}</span>
+                          </td>
+                          <td className="py-3">
+                            <span className={`flex items-center gap-1.5 text-[10px] font-medium ${m.active ? "text-emerald-600" : "text-gray-400"}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${m.active ? "bg-emerald-500" : "bg-gray-300"}`} />
+                              {m.active ? "Online" : "Offline"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                      {liveSeatMembers.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="py-4 text-center text-xs text-gray-400">No seat members found for this organization</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </WidgetCard>
           );
 
               case "upgrade": return (
@@ -1431,37 +1810,85 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
 
           return (
             <>
-              <DashboardWidgetGrid
-                orderedVisible={orderedVisible}
-                dashDragIdx={dashDragIdx}
-                onDragStart={handleDashDragStart}
-                onDragOver={handleDashDragOver}
-                onDragEnd={handleDashDragEnd}
-                getSpan={getWidgetSpan}
-                renderWidget={(id, size) => renderWidget(id, size)}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {orderedVisible.map((p, idx) => (
+                  <div
+                    key={p.id}
+                    draggable={(p.size === "default" || p.size === "sm") && p.id !== "location"}
+                    onDragStart={() => handleDashDragStart(idx)}
+                    onDragOver={(e) => handleDashDragOver(e, idx)}
+                    onDragEnd={handleDashDragEnd}
+                    className={`${(p.size !== "default" && p.size !== "sm") ? "" : "cursor-grab active:cursor-grabbing"} ${dashDragIdx === idx ? "opacity-50 scale-95" : ""} ${getWidgetSpan(p.id, p.size)} transition-all duration-200`}
+                  >
+                    {renderWidget(p.id, p.size)}
+                  </div>
+                ))}
+              </div>
 
-              <DashboardWidgetPopout
-                widgetId={widgetPopoutId}
-                isOpen={Boolean(widgetPopoutId && available.has(widgetPopoutId))}
-                label={popoutMeta?.label ?? "Widget"}
-                isMobile={wdIsMobile}
-                position={wdPos}
-                size={wdSize}
-                minimized={wdMinimized}
-                onClose={() => setWidgetPopoutId(null)}
-                onToggleMinimized={() => setWdMinimized((value) => !value)}
-                onMaximize={() => {
-                  setWdSize({ w: window.innerWidth - 32, h: window.innerHeight - 32 });
-                  setWdPos({ x: 16, y: 16 });
-                  setWdMinimized(false);
-                }}
-                onTitleDown={onWdTitleDown}
-                onResizeDown={onWdResizeDown}
-                onPointerMove={onWdPointerMove}
-                onPointerUp={onWdPointerUp}
-                renderWidget={renderWidget}
-              />
+              {widgetPopoutId && available.has(widgetPopoutId) && (
+                <div
+                  className={`fixed z-[10000] flex flex-col overflow-hidden shadow-[0_32px_80px_-12px_rgba(0,0,0,0.55)] ${wdIsMobile ? "rounded-none border-0" : "rounded-2xl border border-gray-700/70"}`}
+                  style={{
+                    left: wdIsMobile ? 0 : wdPos.x,
+                    top: wdIsMobile ? 0 : wdPos.y,
+                    width: wdIsMobile ? "100vw" : wdSize.w,
+                    height: wdMinimized ? "auto" : (wdIsMobile ? "100dvh" : wdSize.h),
+                  }}
+                >
+                  <div
+                    className={`flex items-center gap-3 px-4 h-11 bg-gray-900 select-none shrink-0 ${wdIsMobile ? "" : "cursor-grab active:cursor-grabbing"}`}
+                    onPointerDown={wdIsMobile ? undefined : onWdTitleDown}
+                    onPointerMove={wdIsMobile ? undefined : onWdPointerMove}
+                    onPointerUp={wdIsMobile ? undefined : onWdPointerUp}
+                  >
+                    <div className="flex items-center gap-1.5" onPointerDown={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => setWidgetPopoutId(null)}
+                        className="w-3.5 h-3.5 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center group transition-colors"
+                        title="Close"
+                      >
+                        <X size={7} className="text-red-900 opacity-0 group-hover:opacity-100" />
+                      </button>
+                      <button
+                        onClick={() => setWdMinimized((value) => !value)}
+                        className="w-3.5 h-3.5 rounded-full bg-yellow-400 hover:bg-yellow-300 transition-colors"
+                        title={wdMinimized ? "Restore" : "Minimise"}
+                      />
+                      {!wdIsMobile && (
+                        <button
+                          onClick={() => {
+                            setWdSize({ w: window.innerWidth - 32, h: window.innerHeight - 32 });
+                            setWdPos({ x: 16, y: 16 });
+                            setWdMinimized(false);
+                          }}
+                          className="w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-400 transition-colors"
+                          title="Maximise"
+                        />
+                      )}
+                    </div>
+                    <LayoutDashboard size={14} className="text-[#FF4D00] ml-1 shrink-0" />
+                    <span className="text-[13px] font-semibold text-white/90 flex-1 text-center -ml-8 pointer-events-none">
+                      {popoutMeta?.label ?? "Widget"}
+                    </span>
+                  </div>
+
+                  {!wdMinimized && (
+                    <div className="flex-1 overflow-auto bg-[#ECEEF2] p-4">
+                      {renderWidget(widgetPopoutId, "lg", true)}
+                    </div>
+                  )}
+
+                  {!wdMinimized && !wdIsMobile && (
+                    <div
+                      className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize"
+                      style={{ background: "linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.18) 50%)" }}
+                      onPointerDown={onWdResizeDown}
+                      onPointerMove={onWdPointerMove}
+                      onPointerUp={onWdPointerUp}
+                    />
+                  )}
+                </div>
+              )}
             </>
           );
         })()}
@@ -2027,6 +2454,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
                       financial: Array.isArray(data.financial) ? data.financial : [],
                       continueWorking: Array.isArray(data.continueWorking) ? data.continueWorking : [],
                       seats: Array.isArray(data.seats) ? data.seats : [],
+                      contacts: Array.isArray(data.contacts) ? data.contacts : [],
                     });
                   }
                 })
