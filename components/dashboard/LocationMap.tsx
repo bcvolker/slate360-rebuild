@@ -857,10 +857,23 @@ function DrawController({
             description: s.placePrediction?.text?.text ?? s.placePrediction?.text ?? trimmed,
           }))
         );
-      } catch { setSuggestions([]); }
+      } catch {
+        // Places API (New) 403 fallback — use Geocoding API
+        if (geocoder) {
+          try {
+            const res = await geocoder.geocode({ address: trimmed });
+            setSuggestions(
+              (res?.results ?? []).slice(0, 6).map((r: google.maps.GeocoderResult) => ({
+                placeId: r.place_id ?? "",
+                description: r.formatted_address ?? trimmed,
+              }))
+            );
+          } catch { setSuggestions([]); }
+        } else { setSuggestions([]); }
+      }
     }, 250);
     return () => window.clearTimeout(timeout);
-  }, [addressInput, mapsApiKey]);
+  }, [addressInput, mapsApiKey, geocoder]);
   const goToCurrentLocation = () => {
     if (!navigator.geolocation) {
       setStatus({ ok: false, text: "Geolocation is not available on this browser." });
@@ -1009,25 +1022,38 @@ function DrawController({
           <button
             onClick={() => setMapMode("markup")}
             className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${mapMode === "markup" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            title="Draw lines, shapes, and pins on the map"
           >
             Markup
           </button>
           <button
             onClick={() => setMapMode("directions")}
             className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${mapMode === "directions" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            title="Get driving, walking, or cycling directions"
           >
             Directions
           </button>
         </div>
-        <button
-          onClick={() => setIsThreeD(!isThreeD)}
-          className={`h-9 px-3 flex items-center justify-center rounded-lg text-[11px] font-bold transition-all border ${isThreeD ? "bg-[#1E3A8A] border-[#1E3A8A] text-white" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"}`}
-        >
-          3D View
-        </button>
+        <div className="flex bg-gray-100/80 p-1 rounded-lg border border-gray-200/60 shrink-0">
+          <button
+            onClick={() => setIsThreeD(false)}
+            className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${!isThreeD ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            title="Flat roadmap view"
+          >
+            2D
+          </button>
+          <button
+            onClick={() => setIsThreeD(true)}
+            className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${isThreeD ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+            title="Satellite 3D tilted view"
+          >
+            3D
+          </button>
+        </div>
         <button
           onClick={onToggleSharePanel}
           className="h-9 px-3 flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white text-[11px] font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all ml-auto sm:ml-0"
+          title="Save map, share via email/SMS, or export PDF"
         >
           <Share size={13} /> Share
         </button>
@@ -1134,12 +1160,14 @@ function DrawController({
               <button
                 onClick={() => setTravelMode("DRIVING")}
                 className={`flex items-center justify-center h-8 px-3 rounded-md transition-all text-xs font-semibold ${travelMode === "DRIVING" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+                title="Driving directions"
               >
                 Drive
               </button>
               <button
                 onClick={() => setTravelMode("WALKING")}
                 className={`flex items-center justify-center h-8 px-3 rounded-md transition-all text-xs font-semibold ${travelMode === "WALKING" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+                title="Walking directions"
               >
                 Walk
               </button>
@@ -1148,6 +1176,7 @@ function DrawController({
               onClick={() => void getDirections(originInput, destInput, travelMode)}
               disabled={isLoadingRoute || !originInput || !destInput}
               className="h-9 px-4 flex items-center justify-center gap-1.5 rounded-lg bg-[#FF4D00] text-xs font-bold text-white hover:bg-[#E64500] disabled:opacity-50 transition-all shadow-sm"
+              title="Calculate route between origin and destination"
             >
               {isLoadingRoute ? <Loader2 size={13} className="animate-spin" /> : "Calculate"}
             </button>
@@ -1716,7 +1745,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
     const toolbarShellClass = "shrink-0 overflow-visible";
     return (
       <div className={`relative flex flex-col ${isModal ? "h-full min-h-[70vh]" : compact ? "flex-1 min-h-[200px]" : "flex-1 min-h-[420px]"}`} ref={isModal ? undefined : mapRef}>
-        <APIProvider apiKey={mapsApiKey} libraries={["places", "geometry"]}>
+        <APIProvider apiKey={mapsApiKey} libraries={["places", "geocoding"]}>
           <MapUpdater center={mapCenter} isThreeD={isThreeD} mapInstanceRef={mapInstanceRef} />
           {showToolbar && (
             <div ref={controlsPanelRef} className={toolbarShellClass}>
