@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   useAccount,
   useConnect,
@@ -93,9 +91,6 @@ const TABS = ["Dashboard", "Wallet & Performance", "Markets", "Hot Opps", "Direc
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function MarketClient() {
-  const pathname = usePathname();
-  const isStandalonePage = pathname === "/market";
-
   // Wagmi
   const { address, isConnected, chain } = useAccount();
   const { connect, isPending: isConnecting } = useConnect();
@@ -1225,22 +1220,6 @@ export default function MarketClient() {
 
   return (
     <div className="text-gray-900">
-      {/* ── Standalone header with logo ── */}
-      {isStandalonePage && (
-        <div className="mb-4 flex items-center gap-4 px-1">
-          <Link href="/dashboard" className="shrink-0">
-            <img src="/logo.svg" alt="Slate360" className="h-7 w-auto" />
-          </Link>
-          <Link
-            href="/dashboard"
-            className="hidden sm:inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#FF4D00] transition group font-medium"
-          >
-            <span className="group-hover:-translate-x-0.5 transition-transform">←</span>
-            Dashboard
-          </Link>
-        </div>
-      )}
-
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>

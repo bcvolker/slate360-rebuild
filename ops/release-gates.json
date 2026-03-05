@@ -20,7 +20,7 @@
     {
       "id": "build",
       "required": true,
-      "command": "next build --no-lint"
+      "command": "node scripts/ops/check-build-stability.mjs"
     },
     {
       "id": "lint",

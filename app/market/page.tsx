@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import MarketClient from "@/components/dashboard/MarketClient";
+import MarketRouteShell from "@/components/dashboard/market/MarketRouteShell";
 import MarketProviders from "./MarketProviders";
 
 export const metadata = {
@@ -8,7 +9,7 @@ export const metadata = {
 };
 
 export default async function MarketPage() {
-  const { user, hasInternalAccess } = await resolveServerOrgContext();
+  const { user, tier, hasInternalAccess } = await resolveServerOrgContext();
 
   if (!user) redirect("/login");
 
@@ -18,11 +19,17 @@ export default async function MarketPage() {
 
   return (
     <MarketProviders>
-      <div className="min-h-screen bg-[#ECEEF2]">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
-          <MarketClient />
-        </div>
-      </div>
+      <MarketRouteShell
+        user={{
+          name: user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "User",
+          email: user.email ?? "",
+          avatar: user.user_metadata?.avatar_url,
+        }}
+        tier={tier}
+        isCeo={hasInternalAccess}
+      >
+        <MarketClient />
+      </MarketRouteShell>
     </MarketProviders>
   );
 }

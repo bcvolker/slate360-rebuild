@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "guard:file-size-regression": "node scripts/ops/check-file-size-regression.mjs",
     "guard:architecture": "node scripts/ops/check-architecture-guardrails.mjs",
+    "guard:build-stability": "node scripts/ops/check-build-stability.mjs",
     "verify:release": "node scripts/ops/verify-release.mjs",
     "start": "next start",
     "lint": "eslint",

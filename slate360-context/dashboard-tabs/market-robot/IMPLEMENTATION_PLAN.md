@@ -4,8 +4,8 @@
 Internal market intelligence and strategy workspace with signal tracking and action tooling.
 
 ## Current State
-- Built route/module exists.
-- Still needs decomposition and standards alignment.
+- `/market` route now uses shared dashboard chrome via `components/dashboard/market/MarketRouteShell.tsx` (same `DashboardHeader` + spacing system as other tabs).
+- `MarketClient.tsx` no longer renders its own standalone logo/back-link header; route shell owns top chrome for consistency.
 
 ## Access Gate (Canonical)
 - Gate by `hasInternalAccess`.

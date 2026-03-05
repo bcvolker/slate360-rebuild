@@ -22,6 +22,7 @@ These files are the machine-readable continuity layer for implementation session
 3. Keep `release-gates.json` aligned with what CI and local release validation require.
 4. Run `npm run verify:release` before final handoff for production-bound changes.
 5. Run `npm run smoke:auth-guards` against a running local app to quickly verify protected APIs reject anonymous access.
+6. Build gate uses `scripts/ops/check-build-stability.mjs`: webpack build first, then Turbopack fallback when the environment hard-kills webpack (exit 143).
 
 ## Notes
 
