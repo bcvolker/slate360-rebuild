@@ -234,7 +234,7 @@ Goal: delete the legacy files now that all replacements are verified.
 
 Prompt
 ```text
-Retire the following legacy market files now that their replacements have passed verification: MarketDashboardTab.tsx, MarketHotOppsTab.tsx, MarketWhaleWatchTab.tsx, MarketWalletPerformanceTab.tsx, MarketSimCompareTab.tsx, MarketDirectivesTab.tsx, MarketDirectivesForm.tsx, MarketDirectivesList.tsx. Update all imports. Confirm no TypeScript errors.
+Retire the following legacy market files now that their replacements have passed verification: MarketDashboardTab.tsx, MarketHotOppsTab.tsx, MarketWhaleWatchTab.tsx, MarketWalletPerformanceTab.tsx, MarketSimCompareTab.tsx, MarketDirectivesTab.tsx, MarketDirectivesForm.tsx, MarketDirectivesList.tsx, MarketSimulationPanel.tsx, MarketAutomationStub.tsx, MarketResultsStub.tsx, MarketLiveWalletStub.tsx. Also retire orphaned hooks: useMarketSimState.ts, useMarketBuyState.ts. Update all imports. Confirm no TypeScript errors.
 ```
 
 Done when: retired files deleted, `npx tsc --noEmit` passes, no import of retired files remains.
@@ -343,6 +343,7 @@ Carry-forward rule
 - 2026-03-06: Batch 1 (Foundation Scaffold) — complete. Files created: MarketPrimaryNav.tsx, 6 task-tab stubs, useMarketBuyState.ts, useMarketSimState.ts, useMarketWalletState.ts. MarketClient.tsx reduced to 84 lines. tsc clean. Next: Batch 2.
 - 2026-03-06: Batch 2 (Shared Customization) — complete. Files created: lib/market/layout-presets.ts, lib/hooks/useMarketLayoutPrefs.ts, MarketCustomizeDrawer.tsx. MarketRouteShell wired to DashboardHeader onCustomizeOpen/prefsDirty. Legacy market_tab_prefs_v1 key auto-migrated to layoutprefs-market. Tab nav now prefs-driven. useMarketDirectives updated to use new tab IDs. tsc clean. Next: Batch 3.
 - 2026-03-06: Batch 4 [Simulation + Automation] — complete. Files created: MarketSimulationPanel.tsx (226 lines), MarketAutomationTab.tsx (96 lines), MarketAutomationBuilder.tsx (300 lines), MarketPlanList.tsx (151 lines), useMarketAutomationState.ts (136 lines). Files modified: MarketClient.tsx (123→165 lines), useMarketSimState.ts (68→87 lines), types.ts (+SimulationConfig, +AutomationPlan, extended SimRun). MarketClient switch now renders Automation and Results (sim panel) directly. Supabase `market_plans` table not confirmed — plans use localStorage fallback. All files ≤300 lines, tsc clean. Next: Batch 5.
+- 2026-03-06: Batch 5 [Results + Live Wallet] — complete. Files created: MarketResultsTab.tsx (247 lines), MarketLiveWalletTab.tsx (258 lines), useMarketResultsState.ts (170 lines). Files modified: MarketClient.tsx (165→171 lines — wired new tabs, added useMarketWalletState, removed useMarketSimState + MarketSimulationPanel imports), types.ts (164→189 lines — added ResultsAnalytics, TradeReplay). MarketSimulationPanel.tsx and useMarketSimState.ts are now orphaned (no importers) — add to Batch 7 retirement. All files ≤300 lines, tsc clean. Next: Batch 6.
 
 ## Ready-To-Paste Prompt For Next Chat
 
