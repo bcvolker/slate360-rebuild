@@ -25,3 +25,88 @@ export interface MarketActivityLogEntry {
   message: string;
   created_at: string;
 }
+
+// ── Shared domain types ────────────────────────────────────────────────────
+
+export type { MarketViewModel, TradeViewModel, SchedulerHealthViewModel, MarketSummaryViewModel, WhaleActivityViewModel } from "@/lib/market/contracts";
+
+export interface MarketListing {
+  id: string;
+  title: string;
+  category: string;
+  probabilityPct: number;
+  yesPrice: number;
+  noPrice: number;
+  volume24hUsd: number;
+  liquidityUsd: number;
+  edgePct: number;
+  riskTag: "hot" | "high-risk" | "construction" | "high-potential" | null;
+  endDate: string | null;
+  endDateIso?: string | null;
+  tokenIdYes?: string | null;
+  tokenIdNo?: string | null;
+  bookmarked: boolean;
+  endDateLabel?: string;
+  liquidity?: number;
+}
+
+export interface MarketTrade {
+  id: string;
+  marketId: string;
+  marketTitle: string;
+  outcome: "YES" | "NO";
+  shares: number;
+  avgPrice: number;
+  currentPrice: number;
+  total: number;
+  pnl: number;
+  status: string;
+  paperTrade: boolean;
+  reason: string | null;
+  createdAt: string;
+  closedAt: string | null;
+  category?: string;
+  probability?: number;
+  volume?: number;
+}
+
+export interface LiveChecklist {
+  walletConnected: boolean;
+  polygonSelected: boolean;
+  usdcFunded: boolean;
+  signatureVerified: boolean;
+  usdcApproved: boolean;
+}
+
+export interface SimRun {
+  id: string;
+  name: string;
+  created_at: string;
+  config: BuyDirective;
+  pnl_data: { label: string; pnl: number }[];
+  total_pnl: number;
+  win_rate: number;
+  trade_count: number;
+}
+
+export type PnlPoint = { label: string; pnl: number; cumPnl: number };
+export type MarketSortKey = "volume" | "edge" | "probability" | "title" | "endDate";
+export type MktRiskTag = "all" | "hot" | "high-risk" | "construction" | "high-potential" | "none";
+export type MktTimeframe = "hour" | "day" | "week" | "month" | "year" | "all" | "today" | "tomorrow";
+
+export interface BotConfig {
+  paperMode: boolean;
+  botRunning: boolean;
+  botPaused: boolean;
+  scanning: boolean;
+  lastScan: number | null;
+  capitalAlloc: number;
+  maxPositions: number;
+  minEdge: number;
+  minVolume: number;
+  minProbLow: number;
+  minProbHigh: number;
+  riskMix: "conservative" | "balanced" | "aggressive";
+  whaleFollow: boolean;
+  focusAreas: string[];
+}

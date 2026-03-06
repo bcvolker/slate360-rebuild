@@ -259,7 +259,7 @@ Show only when credits ≤ 20% remaining. Never pop-up. `SubtleCreditPurchase` c
 
 | Item | Status |
 |---|---|
-| `MarketClient.tsx` decomposition | ❌ 3,006 lines — highest priority decomp remaining |
+| `MarketClient.tsx` decomposition | ✅ Done — 300 lines (was 3,132); 4 hooks + 19 sub-components in `market/` |
 | `DashboardClient.tsx` full decomposition | ⚠️ 1,947 lines — `renderWidget` extracted to `DashboardWidgetRenderer.tsx` (513 lines); My Account tab + state hooks still inline |
 | `LocationMap.tsx` decomposition | ⚠️ 1,864 lines — BUG-018 fixed; structural decomp pending |
 | `file_folders` → `project_folders` migration Phase 2 | ⚠️ Pending (Design Studio, export-zip, audit, cross-tab service) |

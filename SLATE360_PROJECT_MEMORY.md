@@ -252,7 +252,7 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 
 | File | Lines | Status |
 |---|---|---|
-| `components/dashboard/MarketClient.tsx` | 3,006 | ❌ Not decomposed — highest priority next |
+| `components/dashboard/MarketClient.tsx` | 300 | ✅ Done — 4 hooks + 19 sub-components in `market/` |
 | `components/dashboard/DashboardClient.tsx` | 2,578 | ⚠️ Reduced from 2,774; 2 more extractions needed (renderWidget + TabWireframe) |
 | `components/dashboard/LocationMap.tsx` | 1,864 | ⚠️ BUG-018 fixed; structural decomp pending |
 | `app/(dashboard)/project-hub/[projectId]/management/page.tsx` | 932 | ❌ 3 extractable tabs inline |
@@ -269,7 +269,7 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 ### Open Technical Debt (Phase 0H)
 | Issue | Current | Target |
 |---|---|---|
-| `MarketClient.tsx` | 3,006 lines | ~8 files (tabs + hooks) — **highest priority** |
+| `MarketClient.tsx` | 300 lines | ✅ Done — 4 hooks + 19 sub-components |
 | `DashboardClient.tsx` | 2,578 lines | ~2,100 after `renderWidget` + TabWireframe extraction |
 | `LocationMap.tsx` | 1,864 lines | ~5 files (search, routing, drawing, share, container) |
 | `management/page.tsx` | 932 lines | 3 tab components + 2 hooks |

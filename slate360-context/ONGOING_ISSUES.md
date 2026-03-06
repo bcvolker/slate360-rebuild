@@ -252,3 +252,4 @@ Before building new features, extract the sub-components planned in `SLATEDROP.m
 | FIX-003 | Jan 2025 | AutocompleteService migration to new Places API |
 | FIX-004 | Jan 2025 | DrawingManager removed from wizard, replaced with custom Polyline/Polygon |
 | FIX-005 | Jan 2025 | All 9 Project Hub tool pages — ViewCustomizer + ChangeHistory added |
+| FIX-018 | Mar 5 2026 | **MarketClient.tsx decomposition complete:** Reduced from 3,132→300 lines. Architecture: 4 custom hooks (`useMarketTradeData` 155L, `useMarketBot` 218L, `useMarketsExplorer` 273L, `useMarketDirectives` 186L) + 19 sub-components in `components/dashboard/market/` (all ≤296L) + 1 lean coordinator (300L). Shared types in `market/types.ts`. Zero TypeScript errors. |
