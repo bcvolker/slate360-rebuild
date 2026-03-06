@@ -333,3 +333,38 @@ Carry-forward rule
 - 2026-03-06: Tracker restructured into 7 batches (~10 prompts total). GitNexus confirmed MarketClient has zero external callers, enabling larger safe batches. MCP guidance added per batch.
 - 2026-03-06: Batch 1 (Foundation Scaffold) — complete. Files created: MarketPrimaryNav.tsx, 6 task-tab stubs, useMarketBuyState.ts, useMarketSimState.ts, useMarketWalletState.ts. MarketClient.tsx reduced to 84 lines. tsc clean. Next: Batch 2.
 - 2026-03-06: Batch 2 (Shared Customization) — complete. Files created: lib/market/layout-presets.ts, lib/hooks/useMarketLayoutPrefs.ts, MarketCustomizeDrawer.tsx. MarketRouteShell wired to DashboardHeader onCustomizeOpen/prefsDirty. Legacy market_tab_prefs_v1 key auto-migrated to layoutprefs-market. Tab nav now prefs-driven. useMarketDirectives updated to use new tab IDs. tsc clean. Next: Batch 3.
+
+## Ready-To-Paste Prompt For Next Chat
+
+Copy-paste this entire block into a new chat session to continue the Market Robot build:
+
+```text
+I'm continuing the Market Robot rebuild. Batches 1 and 2 are complete.
+
+Read these files in order:
+1. `SLATE360_PROJECT_MEMORY.md`
+2. `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`
+3. `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md` — find the active batch (currently Batch 3: Start Here + Direct Buy)
+4. `slate360-context/BACKEND.md` — for auth, DB, and API patterns
+
+The active batch is **Batch 3 — Start Here + Direct Buy** (~2 prompts).
+
+What was done in Batches 1–2:
+- MarketClient.tsx is now a 106-line thin orchestrator
+- 6 task-tab stubs render (Start Here, Direct Buy, Automation, Saved Markets, Results, Live Wallet)
+- MarketPrimaryNav uses prefs-driven tabs from useMarketLayoutPrefs
+- MarketRouteShell wires DashboardHeader customize button to MarketCustomizeDrawer
+- Layout prefs persist to localStorage under `layoutprefs-market` key with server sync to /api/market/tab-prefs
+- Tab IDs are kebab-case: start-here, direct-buy, automation, saved-markets, results, live-wallet
+- 3 hooks extracted: useMarketBuyState, useMarketSimState, useMarketWalletState
+- All existing 18 API routes and 4 domain hooks untouched
+
+Before editing anything:
+- Read the current contents of MarketClient.tsx, MarketStartHereStub.tsx, MarketDirectBuyStub.tsx, and the 4 domain hooks (useMarketBot, useMarketTradeData, useMarketsExplorer, useMarketDirectives)
+- State the batch name, every file you will touch, and your validation plan — then wait for confirmation
+
+Follow the Batch 3 prompts (3a and 3b) from the tracker exactly. After edits:
+1. Run `npx tsc --noEmit` and `get_errors` on all touched files
+2. Update the tracker Session Log and batch status table
+3. Check line counts on all touched files (300-line limit for .ts/.tsx)
+```
