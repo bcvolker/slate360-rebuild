@@ -162,3 +162,28 @@ export interface BotConfig {
   whaleFollow: boolean;
   focusAreas: string[];
 }
+
+// ── Results analytics types ────────────────────────────────────────────────
+
+export interface ResultsAnalytics {
+  realizedPnl: number;
+  unrealizedPnl: number;
+  feeAdjustedPnl: number;
+  totalPnl: number;
+  expectancy: number;
+  profitFactor: number;
+  winRate: number;
+  avgHoldTimeMs: number;
+  totalTrades: number;
+  openTrades: number;
+  closedTrades: number;
+  pnlByCategory: { category: string; pnl: number; count: number }[];
+  paperVsLive: { mode: "paper" | "live"; pnl: number; count: number; winRate: number }[];
+}
+
+export interface TradeReplay {
+  trade: MarketTrade;
+  reasoning: string | null;
+  exitReason: string | null;
+  matchedConstraints: string[];
+}

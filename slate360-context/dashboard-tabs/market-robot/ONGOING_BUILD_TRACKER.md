@@ -17,7 +17,7 @@ This file tracks current status, build order, prompts, checks, and rebuild-from-
 - Shared customization for Market is still missing and should be implemented first.
 
 ## Current Build Status
-**Active batch: 5 — Results + Live Wallet (not started)**
+**Active batch: 6 — Background hardening (not started)**
 
 `MarketClient` has zero external callers outside `app/market/page.tsx` (confirmed via GitNexus).
 This makes large batches safe. The revised strategy is ~10 prompts by combining related steps.
@@ -28,7 +28,7 @@ This makes large batches safe. The revised strategy is ~10 prompts by combining 
 | 2 | Shared customization | 1–2 | **Sonnet** | ✅ Complete — customize in shared header, prefs persist reload, legacy key migrated |
 | 3 | Start Here + Direct Buy | 2 | **Sonnet** | ✅ Complete — StartHere has mode picker, 6 recommendations, stepper, explainer; DirectBuy has search/filter/table/buy panel |
 | 4 | Simulation + Automation | 2 | **Opus** | ✅ Complete — SimulationPanel with config/compare/snapshots; AutomationTab with plan builder (basic/intermediate/advanced), plan list with save/clone/rename/archive/default |
-| 5 | Results + Live Wallet | 1 | **Sonnet** | P/L analytics and wallet readiness are separate tabs |
+| 5 | Results + Live Wallet | 1 | **Opus** | ✅ Complete — MarketResultsTab with full P/L analytics, trade replay drawer; MarketLiveWalletTab with readiness checklist, wallet connect, approve, verify, test flow |
 | 6 | Background hardening | 1 | **Opus** | UI distinguishes server-side vs client-only running state |
 | 7 | Cleanup + retirement | 1 | **Sonnet** | legacy tab files retired |
 | **Total** | | **~9–10** | | |
@@ -93,8 +93,10 @@ Current Market files in play
 - `components/dashboard/market/MarketSimulationPanel.tsx` (226 lines — **Batch 4 built**: configurable sim settings, snapshot save, comparison chart, sim labels)
 - `components/dashboard/market/MarketAutomationStub.tsx` (stub — replaced by MarketAutomationTab, can be retired in Batch 7)
 - `components/dashboard/market/MarketSavedMarketsStub.tsx` (stub — future)
-- `components/dashboard/market/MarketResultsStub.tsx` (stub — replaced by MarketSimulationPanel for now, full Results in Batch 5)
-- `components/dashboard/market/MarketLiveWalletStub.tsx` (stub — Batch 5)
+- `components/dashboard/market/MarketResultsStub.tsx` (stub — replaced by MarketResultsTab, can be retired in Batch 7)
+- `components/dashboard/market/MarketLiveWalletStub.tsx` (stub — replaced by MarketLiveWalletTab, can be retired in Batch 7)
+- `components/dashboard/market/MarketResultsTab.tsx` (247 lines — **Batch 5 built**: P/L analytics, category/paper-vs-live breakdown, trade history with sort/filter, activity log, trade replay drawer)
+- `components/dashboard/market/MarketLiveWalletTab.tsx` (258 lines — **Batch 5 built**: wallet connect, readiness checklist (7 checks), balance/gas display, signature verify, USDC approve, risk disclaimer, verification test flow)
 - `components/dashboard/market/MarketBuyPanel.tsx` (reused by DirectBuyTab — shows max loss, max payout, implied probability, what-if scenarios)
 - `components/dashboard/market/types.ts` (164 lines — all shared types including SimulationConfig, AutomationPlan)
 - `lib/hooks/useMarketDirectBuyState.ts` (197 lines — **Batch 3 new**: self-contained search/filter/pagination/buy state for DirectBuyTab)
@@ -103,11 +105,10 @@ Current Market files in play
 - `lib/market/layout-presets.ts` (64 lines — tab/panel defaults)
 - `lib/hooks/useMarketLayoutPrefs.ts` (169 lines — persist/migrate prefs)
 - `lib/hooks/useMarketBuyState.ts` (used by legacy tabs)
+- `lib/hooks/useMarketResultsState.ts` (170 lines — **Batch 5 new**: analytics computation, sort/filter, trade replay state)
 - `lib/hooks/useMarketWalletState.ts`
 
 Still missing from the revised plan
-- P/L analytics, activity log, and trade replay for Results tab (Batch 5)
-- live wallet verification flow (Batch 5)
 - saved markets / saved searches unified tab (future)
 - browser-closed/background-run hardening review (Batch 6)
 - Supabase `market_plans` table migration (plans currently localStorage-only)

@@ -5,14 +5,14 @@ import { StatusBadge } from "@/components/dashboard/market/MarketSharedUi";
 import { useMarketTradeData } from "@/lib/hooks/useMarketTradeData";
 import { useMarketBot } from "@/lib/hooks/useMarketBot";
 import { useMarketDirectives } from "@/lib/hooks/useMarketDirectives";
-import { useMarketSimState } from "@/lib/hooks/useMarketSimState";
 import MarketPrimaryNav from "@/components/dashboard/market/MarketPrimaryNav";
 import MarketStartHereTab from "@/components/dashboard/market/MarketStartHereTab";
 import MarketDirectBuyTab from "@/components/dashboard/market/MarketDirectBuyTab";
 import MarketAutomationTab from "@/components/dashboard/market/MarketAutomationTab";
-import MarketSimulationPanel from "@/components/dashboard/market/MarketSimulationPanel";
+import MarketResultsTab from "@/components/dashboard/market/MarketResultsTab";
+import MarketLiveWalletTab from "@/components/dashboard/market/MarketLiveWalletTab";
 import MarketSavedMarketsStub from "@/components/dashboard/market/MarketSavedMarketsStub";
-import MarketLiveWalletStub from "@/components/dashboard/market/MarketLiveWalletStub";
+import { useMarketWalletState } from "@/lib/hooks/useMarketWalletState";
 import type { MarketShellContext } from "@/components/dashboard/market/MarketRouteShell";
 import type { AutomationPlan } from "@/components/dashboard/market/types";
 
@@ -23,7 +23,6 @@ interface MarketClientProps {
 // Stubs for tabs not yet built — replaced per batch
 const STUB_TABS: Record<string, React.ComponentType> = {
   "saved-markets": MarketSavedMarketsStub,
-  "live-wallet": MarketLiveWalletStub,
 };
 
 export default function MarketClient({ layoutPrefs }: MarketClientProps) {
@@ -43,6 +42,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
     fetchSummary: td.fetchSummary,
     fetchSchedulerHealth: td.fetchSchedulerHealth,
   });
+  const wallet = useMarketWalletState({ addLog: bot.addLog });
   const dir = useMarketDirectives({
     botSetters: {
       setCapitalAlloc: bot.setCapitalAlloc,
@@ -56,12 +56,6 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
     runScan: bot.runScan,
     addLog: bot.addLog,
     onSetActiveTab: setActiveTabId,
-  });
-  const sim = useMarketSimState({
-    botConfig: bot.config,
-    trades: td.trades,
-    pnlChart: td.pnlChart,
-    addLog: bot.addLog,
   });
 
   useEffect(() => {
@@ -106,20 +100,32 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
         );
       case "results":
         return (
-          <MarketSimulationPanel
-            simRuns={sim.simRuns}
-            compareA={sim.compareA}
-            compareB={sim.compareB}
-            compareRunA={sim.compareRunA}
-            compareRunB={sim.compareRunB}
-            compareChartData={sim.compareChartData}
-            hasTrades={td.trades.length > 0}
-            simConfig={sim.simConfig}
-            onSimConfigChange={sim.setSimConfig}
-            onCompareAChange={sim.setCompareA}
-            onCompareBChange={sim.setCompareB}
-            onSaveCurrentSim={sim.saveCurrentSimRun}
-            onDeleteRun={sim.deleteSimRun}
+          <MarketResultsTab
+            trades={td.trades}
+            activityLogs={td.activityLogs}
+          />
+        );
+      case "live-wallet":
+        return (
+          <MarketLiveWalletTab
+            address={wallet.address}
+            isConnected={wallet.isConnected}
+            chain={wallet.chain as { id: number; name: string } | undefined}
+            isConnecting={wallet.isConnecting}
+            isApproving={wallet.isApproving}
+            waitingApproveReceipt={wallet.waitingApproveReceipt}
+            approveSuccess={wallet.approveSuccess}
+            usdcBalance={wallet.usdcBalance}
+            maticData={wallet.maticData as { formatted: string; symbol: string } | undefined}
+            walletVerified={wallet.walletVerified}
+            walletError={wallet.walletError}
+            walletChoice={wallet.walletChoice}
+            setWalletChoice={wallet.setWalletChoice}
+            liveChecklist={wallet.liveChecklist}
+            handleConnectWallet={wallet.handleConnectWallet}
+            handleApproveUsdc={wallet.handleApproveUsdc}
+            disconnect={wallet.disconnect}
+            paperMode={bot.config.paperMode}
           />
         );
       default: {
