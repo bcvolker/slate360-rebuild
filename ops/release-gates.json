@@ -23,6 +23,11 @@
       "command": "node scripts/ops/check-build-stability.mjs"
     },
     {
+      "id": "clob-contract",
+      "required": true,
+      "command": "node scripts/ops/check-clob-contract.mjs"
+    },
+    {
       "id": "lint",
       "required": false,
       "command": "eslint ."

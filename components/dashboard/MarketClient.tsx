@@ -8,8 +8,9 @@ import {
   useSignMessage,
   useBalance,
   useReadContract,
+  useWriteContract,
+  useWaitForTransactionReceipt,
 } from "wagmi";
-import { injected } from "wagmi/connectors";
 import {
   LineChart,
   Line,
@@ -31,6 +32,10 @@ import { createClient } from "@/lib/supabase/client";
 import MarketTabBar, { loadTabPrefs, saveTabPrefs, DEFAULT_MARKET_TABS } from "@/components/dashboard/market/MarketTabBar";
 import { HelpTip, StatusBadge } from "@/components/dashboard/market/MarketSharedUi";
 import { FOCUS_AREAS, RISK_COLORS } from "@/components/dashboard/market/market-constants";
+import MarketActivityLog from "@/components/dashboard/market/MarketActivityLog";
+import MarketWalletPerformanceTab from "@/components/dashboard/market/MarketWalletPerformanceTab";
+import MarketDirectivesTab from "@/components/dashboard/market/MarketDirectivesTab";
+import type { BuyDirective, MarketActivityLogEntry } from "@/components/dashboard/market/types";
 import type { MarketTab } from "@/components/dashboard/market/MarketTabBar";
 import type {
   ApiEnvelope,
@@ -47,20 +52,6 @@ interface MarketTrade extends TradeViewModel {
   category?: string;
   probability?: number;
   volume?: number;
-}
-
-interface BuyDirective {
-  id?: string;
-  name: string;
-  amount: number;
-  timeframe: string;
-  buys_per_day: number;
-  risk_mix: "conservative" | "balanced" | "aggressive";
-  whale_follow: boolean;
-  focus_areas: string[];
-  profit_strategy: "arbitrage" | "market-making" | "whale-copy" | "longshot";
-  paper_mode: boolean;
-  created_at?: string;
 }
 
 interface SimRun {
@@ -83,19 +74,19 @@ interface MarketListing extends MarketViewModel {
 }
 
 type MarketSortKey = "volume" | "edge" | "probability" | "title" | "endDate";
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const TABS = ["Dashboard", "Wallet & Performance", "Markets", "Hot Opps", "Directives", "Whale Watch", "Sim Compare"];
-
+const PREVIEW_SCAN_MARKET_LIMIT = 1500;
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function MarketClient() {
   // Wagmi
   const { address, isConnected, chain } = useAccount();
-  const { connect, isPending: isConnecting } = useConnect();
+  const { connect, connectors, isPending: isConnecting } = useConnect();
   const { disconnect } = useDisconnect();
   const { signMessageAsync } = useSignMessage();
+  const { writeContract, data: approveHash, isPending: isApproving } = useWriteContract();
+  const { isLoading: waitingApproveReceipt, isSuccess: approveSuccess } = useWaitForTransactionReceipt({
+    hash: approveHash,
+  });
   // Native balance (MATIC on Polygon)
   const { data: maticData } = useBalance({
     address,
@@ -105,6 +96,7 @@ export default function MarketClient() {
 
   // USDC balance via ERC-20 balanceOf (wagmi v3 useReadContract)
   const USDC_POLYGON = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359" as const; // native USDC on Polygon
+  const POLYMARKET_SPENDER = process.env.NEXT_PUBLIC_POLYMARKET_SPENDER ?? "";
   const { data: usdcRaw } = useReadContract({
     address: USDC_POLYGON,
     abi: [{ name: "balanceOf", type: "function", stateMutability: "view", inputs: [{ name: "account", type: "address" }], outputs: [{ name: "", type: "uint256" }] }] as const,
@@ -114,6 +106,21 @@ export default function MarketClient() {
     query: { enabled: isConnected && !!address },
   });
   const usdcBalance = usdcRaw != null ? (Number(usdcRaw) / 1e6).toFixed(2) : null; // USDC has 6 decimals
+  const { data: usdcAllowanceRaw } = useReadContract({
+    address: USDC_POLYGON,
+    abi: [{
+      name: "allowance",
+      type: "function",
+      stateMutability: "view",
+      inputs: [{ name: "owner", type: "address" }, { name: "spender", type: "address" }],
+      outputs: [{ name: "", type: "uint256" }],
+    }] as const,
+    functionName: "allowance",
+    args: address && POLYMARKET_SPENDER ? [address, POLYMARKET_SPENDER as `0x${string}`] : undefined,
+    chainId: 137,
+    query: { enabled: isConnected && !!address && !!POLYMARKET_SPENDER },
+  });
+  const usdcAllowance = usdcAllowanceRaw != null ? Number(usdcAllowanceRaw) / 1e6 : 0;
 
   // Tabs
   const [activeTab, setActiveTab] = useState("Dashboard");
@@ -171,6 +178,7 @@ export default function MarketClient() {
   const [marketsLoaded, setMarketsLoaded] = useState(false);
   const [loadingMarkets, setLoadingMarkets] = useState(false);
   const [marketSearch, setMarketSearch] = useState("");
+  const [mktTimeframe, setMktTimeframe] = useState<"hour" | "day" | "week" | "month" | "year" | "all" | "today" | "tomorrow">("all");
   const [mktCategory, setMktCategory] = useState("all");
   const [mktProbMin, setMktProbMin] = useState(0);
   const [mktProbMax, setMktProbMax] = useState(100);
@@ -183,12 +191,17 @@ export default function MarketClient() {
   const [excludedMarketIds, setExcludedMarketIds] = useState<Set<string>>(new Set());
   const [marketsPage, setMarketsPage] = useState(1);
   const MARKETS_PAGE_SIZE = 50;
+  const previewDebounceRef = useRef<number | null>(null);
+  const [previewSummary, setPreviewSummary] = useState<{ marketsScanned: number; opportunitiesFound: number; decisions: number } | null>(null);
+  const [activityLogs, setActivityLogs] = useState<MarketActivityLogEntry[]>([]);
 
   // Buy panel
   const [buyMarket, setBuyMarket] = useState<MarketListing | null>(null);
   const [buyOutcome, setBuyOutcome] = useState<"YES" | "NO">("YES");
   const [buyAmount, setBuyAmount] = useState(25);
   const [buyPaper, setBuyPaper] = useState(true);
+  const [buyTakeProfitPct, setBuyTakeProfitPct] = useState(20);
+  const [buyStopLossPct, setBuyStopLossPct] = useState(10);
   const [buySubmitting, setBuySubmitting] = useState(false);
   const [buySuccess, setBuySuccess] = useState("");
 
@@ -207,7 +220,15 @@ export default function MarketClient() {
   const [directiveFocus, setDirectiveFocus] = useState<string[]>(["Construction"]);
   const [directiveStrategy, setDirectiveStrategy] = useState<BuyDirective["profit_strategy"]>("arbitrage");
   const [directivePaper, setDirectivePaper] = useState(true);
+  const [directiveDailyLossCap, setDirectiveDailyLossCap] = useState(40);
+  const [directiveMoonshot, setDirectiveMoonshot] = useState(false);
+  const [directiveTotalLossCap, setDirectiveTotalLossCap] = useState(200);
+  const [directiveAutoPauseDays, setDirectiveAutoPauseDays] = useState(3);
+  const [directiveTargetProfitMonthly, setDirectiveTargetProfitMonthly] = useState(6500);
+  const [directiveTakeProfitPct, setDirectiveTakeProfitPct] = useState(20);
+  const [directiveStopLossPct, setDirectiveStopLossPct] = useState(10);
 
+  const [walletChoice, setWalletChoice] = useState<"metamask" | "coinbase" | "trust">("metamask");
   // Sim runs
   const [simRuns, setSimRuns] = useState<SimRun[]>([]);
   const [compareA, setCompareA] = useState<string | null>(null);
@@ -222,13 +243,13 @@ export default function MarketClient() {
   const wsRef = useRef<WebSocket | null>(null);
   const [wsConnected, setWsConnected] = useState(false);
   const livePricesRef = useRef<Map<string, { yes: number; no: number }>>(new Map());
-
   // ── Effects ────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     fetchTrades();
     void fetchSummary();
     void fetchSchedulerHealth();
+    void fetchMarketLogs();
     // Markets are NOT auto-loaded — user triggers search
     void loadDirectives();
     loadSimRuns();
@@ -470,7 +491,7 @@ export default function MarketClient() {
     try {
       const kw = keyword ?? marketSearch;
       const params = new URLSearchParams({
-        limit: "200",
+        limit: "500",
         active: "true",
         closed: "false",
         order: "volume24hr",
@@ -480,6 +501,7 @@ export default function MarketClient() {
       let cursor: string | undefined;
       let pageCount = 0;
       const merged: MarketViewModel[] = [];
+      const maxPages = kw.trim().length > 0 ? 5 : 12;
 
       do {
         const pageParams = new URLSearchParams(params);
@@ -493,7 +515,7 @@ export default function MarketClient() {
         merged.push(...pageMarkets);
         cursor = payload.data?.nextCursor;
         pageCount += 1;
-      } while (cursor && pageCount < 3);
+      } while (cursor && pageCount < maxPages);
 
       const query = kw.trim().toLowerCase();
       const mapped: MarketListing[] = merged
@@ -569,13 +591,43 @@ export default function MarketClient() {
     }
   };
 
+  const fetchMarketLogs = async () => {
+    try {
+      const res = await fetch("/api/market/logs?limit=500", { cache: "no-store" });
+      if (!res.ok) return;
+      const payload = await res.json() as { data?: { logs?: Array<{ id: string; level: string; message: string; created_at: string }> } };
+      setActivityLogs(payload.data?.logs ?? []);
+    } catch {
+      // non-critical
+    }
+  };
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      void fetchMarketLogs();
+    }, 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   // ── Wallet ─────────────────────────────────────────────────────────────────
 
   const handleConnectWallet = async () => {
     setWalletError("");
     try {
       if (!isConnected) {
-        connect({ connector: injected() });
+        const preferredConnector = connectors.find((c) => {
+          const id = c.id.toLowerCase();
+          if (walletChoice === "coinbase") return id.includes("coinbase");
+          if (walletChoice === "trust") return id.includes("walletconnect");
+          return id.includes("meta") || id.includes("injected");
+        }) ?? connectors[0];
+
+        if (!preferredConnector) {
+          setWalletError("No wallet connector available. Check wagmi config.");
+          return;
+        }
+
+        connect({ connector: preferredConnector });
         return;
       }
       // Sign nonce to verify ownership
@@ -598,6 +650,31 @@ export default function MarketClient() {
     }
   };
 
+  const handleApproveUsdc = async () => {
+    if (!address || !POLYMARKET_SPENDER) {
+      setWalletError("Missing wallet address or NEXT_PUBLIC_POLYMARKET_SPENDER env var.");
+      return;
+    }
+    try {
+      writeContract({
+        address: USDC_POLYGON,
+        abi: [{
+          name: "approve",
+          type: "function",
+          stateMutability: "nonpayable",
+          inputs: [{ name: "spender", type: "address" }, { name: "value", type: "uint256" }],
+          outputs: [{ name: "", type: "bool" }],
+        }] as const,
+        functionName: "approve",
+        args: [POLYMARKET_SPENDER as `0x${string}`, BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935")],
+        chainId: 137,
+      });
+      addLog("🧾 Sent USDC approval transaction for Polymarket spender.");
+    } catch (e: unknown) {
+      setWalletError((e as Error).message || "USDC approval failed");
+    }
+  };
+
   // ── Bot controls ───────────────────────────────────────────────────────────
 
   const addLog = (msg: string) => {
@@ -613,6 +690,7 @@ export default function MarketClient() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          execute_trades: true,
           paper_mode: paperMode,
           max_positions: maxPositions,
           capital_per_trade: capitalAlloc / maxPositions,
@@ -654,6 +732,73 @@ export default function MarketClient() {
       setScanning(false);
     }
   };
+
+  const runPreviewScan = async () => {
+    try {
+      const res = await fetch("/api/market/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          execute_trades: false,
+          paper_mode: true,
+          max_positions: maxPositions,
+          capital_per_trade: capitalAlloc / Math.max(1, maxPositions),
+          min_edge: minEdge / 100,
+          min_volume: minVolume,
+          min_probability: minProbLow / 100,
+          max_probability: minProbHigh / 100,
+          whale_follow: whaleFollow,
+          risk_mix: riskMix,
+          focus_areas: focusAreas,
+          market_limit: PREVIEW_SCAN_MARKET_LIMIT,
+        }),
+      });
+      if (!res.ok) return;
+      const payload = await res.json() as ApiEnvelope<{ marketsScanned: number; opportunitiesFound: number; decisions: Array<unknown> }>;
+      if (!payload.ok || !payload.data) return;
+      setPreviewSummary({
+        marketsScanned: payload.data.marketsScanned,
+        opportunitiesFound: payload.data.opportunitiesFound,
+        decisions: payload.data.decisions.length,
+      });
+    } catch {
+      // non-critical preview call
+    }
+  };
+
+  // Reactive mode: market filter and bot-slider changes trigger preview scan + market refresh.
+  useEffect(() => {
+    if (activeTab !== "Markets" && activeTab !== "Hot Opps") return;
+    if (previewDebounceRef.current) {
+      window.clearTimeout(previewDebounceRef.current);
+    }
+    previewDebounceRef.current = window.setTimeout(() => {
+      void fetchMarkets(marketSearch);
+      void runPreviewScan();
+    }, 450);
+    return () => {
+      if (previewDebounceRef.current) {
+        window.clearTimeout(previewDebounceRef.current);
+      }
+    };
+  }, [
+    activeTab,
+    marketSearch,
+    mktCategory,
+    mktRiskTag,
+    mktProbMin,
+    mktProbMax,
+    mktMinVol,
+    mktMinEdge,
+    mktTimeframe,
+    minEdge,
+    minVolume,
+    minProbLow,
+    minProbHigh,
+    whaleFollow,
+    riskMix,
+    focusAreas,
+  ]);
 
   const handleStartBot = async () => {
     if (!paperMode && !walletVerified) {
@@ -778,6 +923,8 @@ export default function MarketClient() {
     setBuyMarket(market);
     setBuyOutcome(outcome);
     setBuyAmount(25);
+    setBuyTakeProfitPct(directiveTakeProfitPct);
+    setBuyStopLossPct(directiveStopLossPct);
     setBuySuccess("");
     setBuyPaper(paperMode);
   };
@@ -916,6 +1063,9 @@ export default function MarketClient() {
           token_id:       buyOutcome === "YES"
             ? (buyMarket.tokenIdYes ?? null)
             : (buyMarket.tokenIdNo ?? null),
+          take_profit_pct: buyTakeProfitPct,
+          stop_loss_pct: buyStopLossPct,
+          idempotency_key: crypto.randomUUID(),
         }),
       });
       const data = await res.json();
@@ -978,6 +1128,13 @@ export default function MarketClient() {
       focus_areas: directiveFocus,
       profit_strategy: directiveStrategy,
       paper_mode: directivePaper,
+      daily_loss_cap: directiveDailyLossCap,
+      moonshot_mode: directiveMoonshot,
+      total_loss_cap: directiveTotalLossCap,
+      auto_pause_losing_days: directiveAutoPauseDays,
+      target_profit_monthly: directiveTargetProfitMonthly,
+      take_profit_pct: directiveTakeProfitPct,
+      stop_loss_pct: directiveStopLossPct,
       created_at: new Date().toISOString(),
     };
 
@@ -1009,7 +1166,7 @@ export default function MarketClient() {
     addLog(`💾 Directive "${d.name}" saved`);
   };
 
-  const applyDirective = (d: BuyDirective) => {
+  const applyDirective = async (d: BuyDirective) => {
     setDirectiveAmount(d.amount);
     setCapitalAlloc(d.amount);
     setDirectiveBuysPerDay(d.buys_per_day);
@@ -1022,8 +1179,48 @@ export default function MarketClient() {
     setDirectiveStrategy(d.profit_strategy);
     setDirectivePaper(d.paper_mode);
     setPaperMode(d.paper_mode);
+    setDirectiveDailyLossCap(d.daily_loss_cap ?? 40);
+    setDirectiveMoonshot(d.moonshot_mode ?? false);
+    setDirectiveTotalLossCap(d.total_loss_cap ?? 200);
+    setDirectiveAutoPauseDays(d.auto_pause_losing_days ?? 3);
+    setDirectiveTargetProfitMonthly(d.target_profit_monthly ?? 6500);
+    setDirectiveTakeProfitPct(d.take_profit_pct ?? 20);
+    setDirectiveStopLossPct(d.stop_loss_pct ?? 10);
     addLog(`📋 Directive "${d.name}" applied to bot`);
+    try {
+      await fetch("/api/market/bot-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "running" }),
+      });
+      setBotRunning(true);
+      setBotPaused(false);
+      addLog(`🤖 Autopilot started with directive "${d.name}"`);
+      await runScan();
+    } catch {
+      addLog("⚠️ Directive applied, but scheduler start call failed.");
+    }
     setActiveTab("Dashboard");
+  };
+
+  const startEditDirective = (d: BuyDirective) => {
+    setEditingDirective(d);
+    setDirectiveName(d.name);
+    setDirectiveAmount(d.amount);
+    setDirectiveTimeframe(d.timeframe);
+    setDirectiveBuysPerDay(d.buys_per_day);
+    setDirectiveRisk(d.risk_mix);
+    setDirectiveWhale(d.whale_follow);
+    setDirectiveFocus(d.focus_areas);
+    setDirectiveStrategy(d.profit_strategy);
+    setDirectivePaper(d.paper_mode);
+    setDirectiveDailyLossCap(d.daily_loss_cap ?? 40);
+    setDirectiveMoonshot(d.moonshot_mode ?? false);
+    setDirectiveTotalLossCap(d.total_loss_cap ?? 200);
+    setDirectiveAutoPauseDays(d.auto_pause_losing_days ?? 3);
+    setDirectiveTargetProfitMonthly(d.target_profit_monthly ?? 6500);
+    setDirectiveTakeProfitPct(d.take_profit_pct ?? 20);
+    setDirectiveStopLossPct(d.stop_loss_pct ?? 10);
   };
 
   const deleteDirective = async (id: string) => {
@@ -1055,6 +1252,13 @@ export default function MarketClient() {
     setDirectiveFocus(["Construction"]);
     setDirectiveStrategy("arbitrage");
     setDirectivePaper(true);
+    setDirectiveDailyLossCap(40);
+    setDirectiveMoonshot(false);
+    setDirectiveTotalLossCap(200);
+    setDirectiveAutoPauseDays(3);
+    setDirectiveTargetProfitMonthly(6500);
+    setDirectiveTakeProfitPct(20);
+    setDirectiveStopLossPct(10);
   };
 
   // ── Sim runs ───────────────────────────────────────────────────────────────
@@ -1116,6 +1320,41 @@ export default function MarketClient() {
           ? "bg-amber-100 text-amber-700 border-amber-200"
           : "bg-gray-100 text-gray-600 border-gray-200";
 
+  const liveChecklist = {
+    walletConnected: isConnected,
+    polygonSelected: chain?.id === 137,
+    usdcFunded: Number(usdcBalance ?? 0) > 0,
+    signatureVerified: walletVerified,
+    usdcApproved: usdcAllowance > 0,
+  };
+
+  const withinTimeframe = (endDate: string | null): boolean => {
+    if (mktTimeframe === "all") return true;
+    if (!endDate) return false;
+    const end = new Date(endDate).getTime();
+    if (!Number.isFinite(end)) return false;
+    const now = Date.now();
+
+    const oneHour = 60 * 60 * 1000;
+    const oneDay = 24 * oneHour;
+    if (mktTimeframe === "hour") return end >= now && end <= now + oneHour;
+    if (mktTimeframe === "day") return end >= now && end <= now + oneDay;
+    if (mktTimeframe === "week") return end >= now && end <= now + 7 * oneDay;
+    if (mktTimeframe === "month") return end >= now && end <= now + 31 * oneDay;
+    if (mktTimeframe === "year") return end >= now && end <= now + 366 * oneDay;
+    if (mktTimeframe === "today" || mktTimeframe === "tomorrow") {
+      const endDateObj = new Date(end);
+      const target = new Date();
+      if (mktTimeframe === "tomorrow") target.setDate(target.getDate() + 1);
+      return (
+        endDateObj.getFullYear() === target.getFullYear() &&
+        endDateObj.getMonth() === target.getMonth() &&
+        endDateObj.getDate() === target.getDate()
+      );
+    }
+    return true;
+  };
+
   const filteredMarkets = (() => {
     const q = marketSearch.toLowerCase();
     const filtered = markets.filter(m => {
@@ -1125,6 +1364,7 @@ export default function MarketClient() {
       if (m.probabilityPct < mktProbMin || m.probabilityPct > mktProbMax) return false;
       if (m.volume24hUsd < mktMinVol) return false;
       if (m.edgePct < mktMinEdge) return false;
+      if (!withinTimeframe(m.endDate)) return false;
       if (mktRiskTag === "none" && m.riskTag !== null) return false;
       if (mktRiskTag !== "all" && mktRiskTag !== "none" && m.riskTag !== mktRiskTag) return false;
       return true;
@@ -1260,18 +1500,29 @@ export default function MarketClient() {
               <button onClick={() => { disconnect(); setWalletVerified(false); }} className="text-xs text-gray-500 hover:text-gray-800 px-2 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition">Disconnect</button>
             </div>
           ) : (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={handleConnectWallet}
-                  disabled={isConnecting}
-                  className="flex items-center gap-2 bg-[#1E3A8A] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-50"
-                >
-                  🦊 {isConnecting ? "Connecting…" : "Connect MetaMask"}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Connect your MetaMask wallet to enable live trading. Paper mode works without a wallet.</TooltipContent>
-            </Tooltip>
+            <div className="flex items-center gap-2 flex-wrap">
+              <select
+                value={walletChoice}
+                onChange={(e) => setWalletChoice(e.target.value as "metamask" | "coinbase" | "trust")}
+                className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-xs text-gray-700"
+              >
+                <option value="metamask">MetaMask</option>
+                <option value="coinbase">Coinbase Wallet</option>
+                <option value="trust">Trust Wallet</option>
+              </select>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleConnectWallet}
+                    disabled={isConnecting}
+                    className="flex items-center gap-2 bg-[#1E3A8A] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-50"
+                  >
+                    🔐 {isConnecting ? "Connecting…" : `Connect ${walletChoice === "metamask" ? "MetaMask" : walletChoice === "coinbase" ? "Coinbase" : "Trust"}`}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Step 1: connect your wallet. Paper mode still works without any wallet.</TooltipContent>
+              </Tooltip>
+            </div>
           )}
           {walletError && <p className="text-xs text-red-600">{walletError}</p>}
         </div>
@@ -1295,9 +1546,6 @@ export default function MarketClient() {
         }}
       />
 
-        {/* ════════════════════════════════════════════
-          TAB: DASHBOARD
-        ════════════════════════════════════════════ */}
         {activeTab === "Dashboard" && (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Left: Config + Controls */}
@@ -1464,11 +1712,11 @@ export default function MarketClient() {
                 </div>
               </div>
 
-              {/* Min Edge */}
+              {/* Minimum Deal Advantage */}
               <div>
                 <label className="flex items-center text-xs text-gray-500 mb-1">
-                  Minimum Estimated Advantage %
-                  <HelpTip content="Only enter trades where the bot detects at least this estimated advantage over current market pricing." />
+                  Minimum Deal Advantage (higher = safer)
+                  <HelpTip content="Higher values mean the bot only takes stronger opportunities, usually safer but fewer trades." />
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -1481,11 +1729,11 @@ export default function MarketClient() {
                 </div>
               </div>
 
-              {/* Min Volume */}
+              {/* Minimum Market Activity */}
               <div>
                 <label className="flex items-center text-xs text-gray-500 mb-1">
-                  Min 24h Volume ($)
-                  <HelpTip content="Ignore markets with low liquidity. Higher volume = easier to enter/exit positions." />
+                  Minimum Market Activity ($ / 24h)
+                  <HelpTip content="Higher values avoid thin markets and usually make entries/exits smoother." />
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -1513,7 +1761,7 @@ export default function MarketClient() {
               {/* Risk Mix */}
               <div>
                 <label className="flex items-center text-xs text-gray-500 mb-2">
-                  Risk Mix
+                  Risk Style (Safe / Balanced / Aggressive)
                   <HelpTip content="Adjusts the bot's appetite for risk. Conservative = safer but lower return. Aggressive = higher upside with more losses." />
                 </label>
                 <div className="flex gap-1">
@@ -1523,7 +1771,7 @@ export default function MarketClient() {
                       onClick={() => setRiskMix(r)}
                       className={`flex-1 py-1 text-xs rounded-lg font-medium transition ${riskMix === r ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
                     >
-                      {r.charAt(0).toUpperCase() + r.slice(1)}
+                      {r === "conservative" ? "Safe" : r === "balanced" ? "Balanced" : "Aggressive"}
                     </button>
                   ))}
                 </div>
@@ -1719,10 +1967,10 @@ export default function MarketClient() {
               </h3>
               {!isConnected ? (
                 <div className="space-y-2">
-                  <p className="text-[11px] text-gray-400 leading-relaxed">Connect your MetaMask wallet on Polygon to enable live trades. Paper mode doesn&apos;t require a wallet.</p>
+                  <p className="text-[11px] text-gray-400 leading-relaxed">Connect your wallet on Polygon to enable live trades. Paper mode doesn&apos;t require a wallet.</p>
                   <button onClick={handleConnectWallet} disabled={isConnecting}
                     className="w-full bg-[#1E3A8A] hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-bold transition disabled:opacity-50">
-                    🦊 {isConnecting ? "Connecting…" : "Connect MetaMask"}
+                    🔐 {isConnecting ? "Connecting…" : `Connect ${walletChoice === "metamask" ? "MetaMask" : walletChoice === "coinbase" ? "Coinbase Wallet" : "Trust Wallet"}`}
                   </button>
                 </div>
               ) : (
@@ -1759,6 +2007,13 @@ export default function MarketClient() {
                     ) : (
                       <span className="flex-1 text-center text-xs text-green-600 font-semibold py-2 bg-green-50 border border-green-200 rounded-lg">✓ Verified</span>
                     )}
+                    <button
+                      onClick={handleApproveUsdc}
+                      disabled={isApproving || waitingApproveReceipt || !POLYMARKET_SPENDER}
+                      className="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs py-2 rounded-lg font-bold transition disabled:opacity-50"
+                    >
+                      {approveSuccess ? "✅ USDC Approved" : isApproving || waitingApproveReceipt ? "Approving…" : "Approve USDC"}
+                    </button>
                     <a href="https://global.transak.com/?defaultCryptoCurrency=USDC&network=polygon" target="_blank" rel="noopener noreferrer"
                       className="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs py-2 rounded-lg font-bold transition">
                       💳 Buy USDC
@@ -1766,20 +2021,30 @@ export default function MarketClient() {
                     <button onClick={() => { disconnect(); setWalletVerified(false); }}
                       className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">Disc.</button>
                   </div>
+
+                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-2 text-[11px] text-gray-600 space-y-1">
+                    <p className="font-semibold text-gray-700">Live mode checklist</p>
+                    <p>{liveChecklist.walletConnected ? "✅" : "⬜"} Wallet connected</p>
+                    <p>{liveChecklist.polygonSelected ? "✅" : "⬜"} Polygon network selected</p>
+                    <p>{liveChecklist.usdcFunded ? "✅" : "⬜"} USDC balance available</p>
+                    <p>{liveChecklist.signatureVerified ? "✅" : "⬜"} Signature verified</p>
+                    <p>{liveChecklist.usdcApproved ? "✅" : "⬜"} USDC approval completed</p>
+                    {!POLYMARKET_SPENDER && (
+                      <p className="text-amber-600">Set `NEXT_PUBLIC_POLYMARKET_SPENDER` to enable one-tap approval.</p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
 
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
               <h3 className="font-semibold text-sm text-gray-700 mb-2">What the Bot Is Doing</h3>
-              <div ref={logRef} className="bg-gray-50 border border-gray-100 rounded-lg p-3 h-48 overflow-y-auto font-mono text-xs space-y-0.5">
-                {scanLog.length === 0
-                  ? <span className="text-gray-400">No actions yet. Start the bot or run a test scan.</span>
-                  : scanLog.map((l, i) => (
-                    <div key={i} className={`${l.includes("✅") ? "text-green-600" : l.includes("❌") ? "text-red-600" : l.includes("⚠️") ? "text-yellow-600" : "text-gray-500"}`}>
-                      {l}
-                    </div>
-                  ))}
+              <div ref={logRef} className="bg-gray-50 border border-gray-100 rounded-lg p-3 h-80 overflow-y-auto text-xs space-y-0.5">
+                <MarketActivityLog
+                  activityLogs={activityLogs}
+                  scanLog={scanLog}
+                  emptyText="No actions yet. Start the bot or run a test scan."
+                />
               </div>
             </div>
 
@@ -1822,145 +2087,24 @@ export default function MarketClient() {
         </div>
       )}
 
-      {/* ════════════════════════════════════════════
-          TAB: WALLET & PERFORMANCE
-      ════════════════════════════════════════════ */}
       {activeTab === "Wallet & Performance" && (
-        <div className="space-y-4">
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 flex items-start justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className={`text-[11px] px-2.5 py-1 rounded-full border font-semibold ${summaryMode === "paper" ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-green-100 text-green-700 border-green-200"}`}>
-                  {summaryMode === "paper" ? "Paper Mode" : "Live Mode"}
-                </span>
-                <StatusBadge status={botPaused ? "idle" : botRunning ? "running" : "idle"} />
-              </div>
-              <p className="text-sm font-medium text-gray-800">
-                {summaryMode === "paper" ? "Paper trading: safe practice" : "Live trading: connected"}
-              </p>
-              {summaryMode === "live" && (!isConnected || usdcBalance == null) && (
-                <p className="text-xs text-amber-600 mt-1">Live balance not connected yet.</p>
-              )}
-            </div>
-            <button onClick={fetchSummary} className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg px-3 py-1.5">
-              ↻ Refresh Summary
-            </button>
-          </div>
-
-          {summaryError && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
-              {summaryError}
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-3">
-              <h3 className="text-sm font-semibold text-gray-800">Wallet Snapshot</h3>
-              {loadingSummary && !summary ? (
-                <p className="text-sm text-gray-400">Loading wallet snapshot…</p>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                    <p className="text-xs text-gray-500">Starting Balance</p>
-                    <p className="text-lg font-semibold text-gray-900">{formatMoney(summary?.startingBalanceUsd ?? 0)}</p>
-                  </div>
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                    <p className="text-xs text-gray-500">Current Balance</p>
-                    <p className="text-lg font-semibold text-gray-900">{formatMoney(summary?.currentBalanceUsd ?? 0)}</p>
-                  </div>
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                    <p className="text-xs text-gray-500">Available Cash</p>
-                    <p className="text-lg font-semibold text-gray-900">{formatMoney(summary?.availableCashUsd ?? 0)}</p>
-                  </div>
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                    <p className="text-xs text-gray-500">Total Profit / Loss</p>
-                    <p className={`text-lg font-semibold ${(summary?.totalProfitLossUsd ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
-                      {(summary?.totalProfitLossUsd ?? 0) >= 0 ? "+" : ""}{formatMoney(summary?.totalProfitLossUsd ?? 0)}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-3">
-              <h3 className="text-sm font-semibold text-gray-800">Performance Metrics</h3>
-              {loadingSummary && !summary ? (
-                <p className="text-sm text-gray-400">Loading performance metrics…</p>
-              ) : (
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Today Profit / Loss</p><p className={`font-semibold ${(summary?.todayProfitLossUsd ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>{formatMoney(summary?.todayProfitLossUsd ?? 0)}</p></div>
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Open Positions</p><p className="font-semibold text-gray-900">{summary?.openPositions ?? 0}</p></div>
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Total Trades</p><p className="font-semibold text-gray-900">{summary?.totalTrades ?? 0}</p></div>
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Win Rate</p><p className="font-semibold text-gray-900">{(summary?.winRatePct ?? 0).toFixed(1)}%</p></div>
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Average Trade Size</p><p className="font-semibold text-gray-900">{formatMoney(summary?.averageTradeUsd ?? 0)}</p></div>
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Average Profit per Trade</p><p className="font-semibold text-gray-900">{formatMoney(summary?.averageProfitUsd ?? 0)}</p></div>
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Best Day</p><p className="font-semibold text-green-600">{formatMoney(summary?.bestDayUsd ?? 0)}</p></div>
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-3"><p className="text-xs text-gray-500">Worst Day</p><p className="font-semibold text-red-600">{formatMoney(summary?.worstDayUsd ?? 0)}</p></div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
-              <h3 className="text-sm font-semibold text-gray-800 mb-3">Recent Outcomes</h3>
-              {recentOutcomes.length === 0 ? (
-                <p className="text-sm text-gray-400">No trades yet.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="text-gray-400 border-b border-gray-200">
-                        <th className="pb-2 text-left font-medium">Market</th>
-                        <th className="pb-2 text-left font-medium">Result</th>
-                        <th className="pb-2 text-right font-medium">Profit / Loss</th>
-                        <th className="pb-2 text-right font-medium">When</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentOutcomes.map((trade) => (
-                        <tr key={trade.id} className="border-b border-gray-100">
-                          <td className="py-2 pr-2 max-w-[220px] truncate text-gray-700">{trade.marketTitle}</td>
-                          <td className="py-2 pr-2 text-gray-600">{trade.status === "closed" ? "Closed" : "Open"}</td>
-                          <td className={`py-2 text-right font-mono ${(trade.pnl ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
-                            {(trade.pnl ?? 0) >= 0 ? "+" : ""}{formatMoney(trade.pnl ?? 0)}
-                          </td>
-                          <td className="py-2 text-right text-gray-400">{new Date(trade.createdAt).toLocaleString()}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
-              <h3 className="text-sm font-semibold text-gray-800 mb-3">What the Bot Did Recently</h3>
-              <div className="bg-gray-50 border border-gray-100 rounded-lg p-3 h-56 overflow-y-auto font-mono text-xs space-y-1">
-                {scanLog.length === 0
-                  ? <span className="text-gray-400">No recent bot actions yet.</span>
-                  : scanLog.slice(0, 12).map((line, index) => (
-                    <div key={index} className={`${line.includes("✅") ? "text-green-600" : line.includes("❌") ? "text-red-600" : line.includes("⚠️") ? "text-yellow-600" : "text-gray-500"}`}>
-                      {line}
-                    </div>
-                  ))}
-              </div>
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-gray-600">
-                  Last Run: {summary?.lastRunIso ? new Date(summary.lastRunIso).toLocaleString() : "Not available"}
-                </div>
-                <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-gray-600">
-                  Run Frequency: {summary?.runFrequencySeconds != null ? `${summary.runFrequencySeconds}s` : "Not enough history"}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <MarketWalletPerformanceTab
+          summaryMode={summaryMode}
+          botRunning={botRunning}
+          botPaused={botPaused}
+          isConnected={isConnected}
+          usdcBalance={usdcBalance}
+          summaryError={summaryError}
+          summary={summary}
+          loadingSummary={loadingSummary}
+          recentOutcomes={recentOutcomes}
+          activityLogs={activityLogs}
+          scanLog={scanLog}
+          formatMoney={formatMoney}
+          onRefreshSummary={fetchSummary}
+        />
       )}
 
-      {/* ════════════════════════════════════════════
-          TAB: MARKETS EXPLORER
-      ════════════════════════════════════════════ */}
       {activeTab === "Markets" && (
         <div className="space-y-4">
 
@@ -2026,6 +2170,34 @@ export default function MarketClient() {
               </div>
 
               {/* Preview */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">Take Profit %</label>
+                  <input
+                    type="range"
+                    min={5}
+                    max={100}
+                    value={buyTakeProfitPct}
+                    onChange={(e) => setBuyTakeProfitPct(Number(e.target.value))}
+                    className="w-full accent-[#22c55e]"
+                  />
+                  <p className="text-[11px] text-gray-500">{buyTakeProfitPct}%</p>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block">Stop Loss %</label>
+                  <input
+                    type="range"
+                    min={2}
+                    max={50}
+                    value={buyStopLossPct}
+                    onChange={(e) => setBuyStopLossPct(Number(e.target.value))}
+                    className="w-full accent-[#ef4444]"
+                  />
+                  <p className="text-[11px] text-gray-500">{buyStopLossPct}%</p>
+                </div>
+              </div>
+
+              {/* Preview */}
               {(() => {
                 const price = buyOutcome === "YES" ? buyMarket.yesPrice : buyMarket.noPrice;
                 const avgPrice = price > 0 ? price : (buyMarket.probabilityPct / 100);
@@ -2082,6 +2254,16 @@ export default function MarketClient() {
                 {buyPaper ? "📝 This will be saved as a paper (simulated) trade" : "⚠️ This will attempt a LIVE buy on Polymarket"}
               </p>
 
+              {!buyPaper && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-700 space-y-1">
+                  <p className="font-semibold">Live trade checklist</p>
+                  <p>{liveChecklist.walletConnected ? "✅" : "⬜"} Wallet connected</p>
+                  <p>{liveChecklist.polygonSelected ? "✅" : "⬜"} Polygon selected</p>
+                  <p>{liveChecklist.signatureVerified ? "✅" : "⬜"} Signature verified</p>
+                  <p>{liveChecklist.usdcApproved ? "✅" : "⬜"} USDC approved</p>
+                </div>
+              )}
+
               {buySuccess && (
                 <p className={`text-sm text-center font-medium ${buySuccess.startsWith("✅") ? "text-green-600" : "text-red-600"}`}>
                   {buySuccess}
@@ -2091,7 +2273,6 @@ export default function MarketClient() {
               {!buyPayloadReady && (
                 <p className="text-xs text-center text-red-500">Disabled: {buyPayloadIssues.join(", ")}</p>
               )}
-
               <button
                 onClick={handleDirectBuy}
                 disabled={buySubmitting || !buyPayloadReady}
@@ -2116,6 +2297,31 @@ export default function MarketClient() {
             </h3>
 
             {/* Search row */}
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { key: "hour", label: "Next Hour" },
+                { key: "day", label: "Next Day" },
+                { key: "week", label: "Next Week" },
+                { key: "month", label: "Next Month" },
+                { key: "year", label: "Next Year" },
+                { key: "today", label: "Ends Today" },
+                { key: "tomorrow", label: "Ends Tomorrow" },
+                { key: "all", label: "All Time" },
+              ].map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setMktTimeframe(t.key as typeof mktTimeframe)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    mktTimeframe === t.key
+                      ? "bg-[#FF4D00] text-white"
+                      : "bg-white border border-gray-200 text-gray-600 hover:border-[#FF4D00]/40 hover:text-[#FF4D00]"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
             <div className="flex gap-2">
               <input
                 type="text"
@@ -2158,6 +2364,11 @@ export default function MarketClient() {
 
                 {/* Active filter summary pills */}
                 <div className="flex flex-wrap items-center gap-1.5">
+                  {mktTimeframe !== "all" && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-semibold border border-indigo-200">
+                      {mktTimeframe} <button onClick={() => setMktTimeframe("all")} className="ml-0.5 hover:text-red-600">×</button>
+                    </span>
+                  )}
                   {mktCategory !== "all" && (
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#1E3A8A]/10 text-[#1E3A8A] text-[11px] font-semibold border border-[#1E3A8A]/20">
                       {mktCategory} <button onClick={() => setMktCategory("all")} className="ml-0.5 hover:text-red-600">×</button>
@@ -2287,6 +2498,11 @@ export default function MarketClient() {
             {marketsLoaded && (
               <div className="flex gap-3 items-center text-xs text-gray-400">
                 <span>{filteredMarkets.length} results</span>
+                {previewSummary && (
+                  <span className="text-gray-500">
+                    Preview: {previewSummary.opportunitiesFound} edges, {previewSummary.decisions} candidate deals
+                  </span>
+                )}
                 <button onClick={() => fetchMarkets()} className="text-gray-500 hover:text-gray-900 transition">↻ Refresh</button>
                 <button onClick={() => {
                   setMarkets([]);
@@ -2294,6 +2510,7 @@ export default function MarketClient() {
                   setMarketSearch("");
                   setMktCategory("all");
                   setMktRiskTag("all");
+                  setMktTimeframe("all");
                   setMktProbMin(0);
                   setMktProbMax(100);
                   setMktMinVol(0);
@@ -2476,9 +2693,6 @@ export default function MarketClient() {
         </div>
       )}
 
-      {/* ════════════════════════════════════════════
-          TAB: HOT OPPORTUNITIES
-      ════════════════════════════════════════════ */}
       {activeTab === "Hot Opps" && (
         <div className="space-y-4">
           {/* Shared buy panel — appears when a market is selected from Hot Opps */}
@@ -2638,200 +2852,53 @@ export default function MarketClient() {
         </div>
       )}
 
-      {/* ════════════════════════════════════════════
-          TAB: SAVED DIRECTIVES
-      ════════════════════════════════════════════ */}
       {activeTab === "Directives" && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {/* Form */}
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 space-y-4">
-            <h3 className="font-semibold text-gray-900">
-              {editingDirective ? "Edit Directive" : "New Buy Directive"}
-              <HelpTip content="Buy Directives are saved trading plans you can apply to the bot at any time." />
-            </h3>
-
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">Directive Name</label>
-              <input
-                type="text" placeholder="e.g. Construction Arbitrage Q3"
-                value={directiveName}
-                onChange={e => setDirectiveName(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#FF4D00]"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-gray-500 mb-1 flex items-center">
-                  Amount ($)
-                  <HelpTip content="Total capital for this directive's session." />
-                </label>
-                <p className="text-[11px] text-gray-400 mb-1">Display value: {formatMoney(directiveAmount)}</p>
-                <input
-                  type="number" min={10} max={10000}
-                  value={directiveAmount}
-                  onChange={e => setDirectiveAmount(+e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-500 mb-1 flex items-center">
-                  Timeframe
-                  <HelpTip content="How long this directive runs before auto-stopping." />
-                </label>
-                <select
-                  value={directiveTimeframe}
-                  onChange={e => setDirectiveTimeframe(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
-                >
-                  {["1d", "3d", "1w", "2w", "1m"].map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs text-gray-500 mb-1 flex items-center">
-                Buys per Day: {directiveBuysPerDay}
-                <HelpTip content="How many new positions to open each day." />
-              </label>
-              <input type="range" min={1} max={20} value={directiveBuysPerDay} onChange={e => setDirectiveBuysPerDay(+e.target.value)} className="w-full accent-[#FF4D00]" />
-            </div>
-
-            <div>
-              <label className="text-xs text-gray-500 mb-2 flex items-center">
-                Risk Mix
-                <HelpTip content="Conservative = low risk/reward. Aggressive = high risk/reward." />
-              </label>
-              <div className="flex gap-1">
-                {(["conservative", "balanced", "aggressive"] as const).map(r => (
-                  <button key={r} onClick={() => setDirectiveRisk(r)}
-                    className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${directiveRisk === r ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-                    {r.charAt(0).toUpperCase() + r.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs text-gray-500 mb-2 flex items-center">
-                Profit Strategy
-                <HelpTip content="Arbitrage: exploit mispricing. Market-making: provide liquidity. Whale-copy: follow big players. Longshot: bet on unlikely outcomes with high payouts." />
-              </label>
-              <div className="grid grid-cols-2 gap-1">
-                {(["arbitrage", "market-making", "whale-copy", "longshot"] as const).map(s => (
-                  <button key={s} onClick={() => setDirectiveStrategy(s)}
-                    className={`py-1.5 text-xs rounded-lg font-medium transition ${directiveStrategy === s ? "bg-[#1E3A8A] text-blue-200" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-                    {s.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase())}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs text-gray-500 mb-2 flex items-center">
-                Focus Areas
-                <HelpTip content="Market categories this directive targets." />
-              </label>
-              <div className="flex flex-wrap gap-1">
-                {FOCUS_AREAS.map(area => (
-                  <button key={area} onClick={() => setDirectiveFocus(prev => prev.includes(area) ? prev.filter(a => a !== area) : [...prev, area])}
-                    className={`px-2 py-0.5 text-xs rounded-full transition ${directiveFocus.includes(area) ? "bg-[#1E3A8A] text-blue-200" : "bg-gray-100 text-gray-400 hover:bg-gray-200"}`}>
-                    {area}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-700 flex items-center">
-                Follow Whales
-                <HelpTip content="Mirror large trades in these markets." />
-              </span>
-              <button onClick={() => setDirectiveWhale(w => !w)}
-                className={`relative w-10 h-5 rounded-full transition ${directiveWhale ? "bg-[#1E3A8A]" : "bg-gray-300"}`}>
-                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${directiveWhale ? "translate-x-5" : "translate-x-0.5"}`} />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-700 flex items-center">
-                Paper Mode
-                <HelpTip content="Simulate this directive without spending real funds." />
-              </span>
-              <button onClick={() => setDirectivePaper(p => !p)}
-                className={`relative w-10 h-5 rounded-full transition ${directivePaper ? "bg-purple-600" : "bg-gray-300"}`}>
-                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${directivePaper ? "translate-x-5" : "translate-x-0.5"}`} />
-              </button>
-            </div>
-
-            <div className="flex gap-2 pt-1">
-              <button
-                onClick={handleSaveDirective}
-                disabled={!directiveName.trim()}
-                className="flex-1 bg-[#FF4D00] hover:bg-orange-600 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40"
-              >
-                💾 Save Directive
-              </button>
-              {editingDirective && (
-                <button onClick={resetDirectiveForm} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition">Cancel</button>
-              )}
-            </div>
-          </div>
-
-          {/* Saved list */}
-          <div className="space-y-3">
-            <h3 className="font-semibold text-gray-700">Saved Directives ({directives.length})</h3>
-            {directives.length === 0 ? (
-              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 text-center text-gray-400 text-sm">
-                No saved directives yet. Create one on the left.
-              </div>
-            ) : (
-              directives.map(d => (
-                <div key={d.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{d.name}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {formatMoney(d.amount)} · {d.timeframe} · {d.buys_per_day}/day · {d.profit_strategy}
-                      </p>
-                    </div>
-                    <div className="flex gap-1">
-                      {d.paper_mode && <span className="text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded-full">Paper</span>}
-                      <StatusBadge status={d.risk_mix} />
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {d.focus_areas.map(a => (
-                      <span key={a} className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">{a}</span>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button onClick={() => applyDirective(d)} className="flex-1 bg-[#FF4D00] hover:bg-orange-600 text-white text-xs py-1.5 rounded-lg font-medium transition">
-                          ▶ Apply to Bot
-                        </button>
-                      </TooltipTrigger>
-                              <TooltipContent>Load this directive\'s settings into the bot and switch to Dashboard.</TooltipContent>
-                    </Tooltip>
-                    <button onClick={() => { setEditingDirective(d); setDirectiveName(d.name); setDirectiveAmount(d.amount); setDirectiveTimeframe(d.timeframe); setDirectiveBuysPerDay(d.buys_per_day); setDirectiveRisk(d.risk_mix); setDirectiveWhale(d.whale_follow); setDirectiveFocus(d.focus_areas); setDirectiveStrategy(d.profit_strategy); setDirectivePaper(d.paper_mode); }}
-                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">
-                      ✏️ Edit
-                    </button>
-                    <button onClick={() => deleteDirective(d.id!)} className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs rounded-lg transition">
-                      🗑
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        <MarketDirectivesTab
+          editingDirective={editingDirective}
+          directiveName={directiveName}
+          directiveAmount={directiveAmount}
+          directiveTimeframe={directiveTimeframe}
+          directiveBuysPerDay={directiveBuysPerDay}
+          directiveRisk={directiveRisk}
+          directiveWhale={directiveWhale}
+          directiveFocus={directiveFocus}
+          directiveStrategy={directiveStrategy}
+          directivePaper={directivePaper}
+          directiveDailyLossCap={directiveDailyLossCap}
+          directiveMoonshot={directiveMoonshot}
+          directiveTotalLossCap={directiveTotalLossCap}
+          directiveAutoPauseDays={directiveAutoPauseDays}
+          directiveTargetProfitMonthly={directiveTargetProfitMonthly}
+          directiveTakeProfitPct={directiveTakeProfitPct}
+          directiveStopLossPct={directiveStopLossPct}
+          directives={directives}
+          formatMoney={formatMoney}
+          onDirectiveNameChange={setDirectiveName}
+          onDirectiveAmountChange={setDirectiveAmount}
+          onDirectiveTimeframeChange={setDirectiveTimeframe}
+          onDirectiveBuysPerDayChange={setDirectiveBuysPerDay}
+          onDirectiveRiskChange={setDirectiveRisk}
+          onDirectiveWhaleToggle={() => setDirectiveWhale((value) => !value)}
+          onDirectiveFocusToggle={(area) =>
+            setDirectiveFocus((prev) => (prev.includes(area) ? prev.filter((value) => value !== area) : [...prev, area]))
+          }
+          onDirectiveStrategyChange={setDirectiveStrategy}
+          onDirectivePaperToggle={() => setDirectivePaper((value) => !value)}
+          onDirectiveDailyLossCapChange={setDirectiveDailyLossCap}
+          onDirectiveMoonshotToggle={() => setDirectiveMoonshot((value) => !value)}
+          onDirectiveTotalLossCapChange={setDirectiveTotalLossCap}
+          onDirectiveAutoPauseDaysChange={setDirectiveAutoPauseDays}
+          onDirectiveTargetProfitMonthlyChange={setDirectiveTargetProfitMonthly}
+          onDirectiveTakeProfitPctChange={setDirectiveTakeProfitPct}
+          onDirectiveStopLossPctChange={setDirectiveStopLossPct}
+          onSaveDirective={handleSaveDirective}
+          onResetDirectiveForm={resetDirectiveForm}
+          onApplyDirective={applyDirective}
+          onStartEditDirective={startEditDirective}
+          onDeleteDirective={deleteDirective}
+        />
       )}
 
-      {/* ════════════════════════════════════════════
-          TAB: WHALE WATCH
-      ════════════════════════════════════════════ */}
       {activeTab === "Whale Watch" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -2937,9 +3004,6 @@ export default function MarketClient() {
         </div>
       )}
 
-      {/* ════════════════════════════════════════════
-          TAB: SIM COMPARE
-      ════════════════════════════════════════════ */}
       {activeTab === "Sim Compare" && (
         <div className="space-y-5">
           <div className="flex items-center justify-between">

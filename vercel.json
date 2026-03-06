@@ -2,5 +2,11 @@
   "framework": "nextjs",
   "buildCommand": "next build",
   "installCommand": "npm install",
-  "devCommand": "next dev"
+  "devCommand": "next dev",
+  "crons": [
+    {
+      "path": "/api/market/scheduler/tick",
+      "schedule": "*/5 * * * *"
+    }
+  ]
 }

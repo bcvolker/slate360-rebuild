@@ -1,11 +1,3 @@
-/**
- * POST /api/market/scan
- *
- * Scans Polymarket for opportunities using the bot brain.
- * Respects user's risk / portfolio / focus settings.
- * In paper mode, auto-executes paper trades and saves to Supabase.
- * In live mode, returns trade recommendations for client-side wallet signing.
- */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -16,6 +8,7 @@ import type {
 } from "@/lib/market/contracts";
 import { toNumberOrZero } from "@/lib/market/contracts";
 import { mapTradeRowToTradeVM } from "@/lib/market/mappers";
+import { getScanMaxMarketLimit, parseScanRequest } from "@/lib/market/scan-request";
 import {
   fetchMarkets,
   scoreOpportunities,
@@ -28,34 +21,6 @@ import {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const SCAN_DEFAULTS = {
-  maxPositions: 5,
-  capitalPerTrade: 100,
-  minEdgePct: 0,
-  minVolumeUsd: 0,
-  minProbabilityPct: 0,
-  maxProbabilityPct: 100,
-  riskMix: "balanced" as const,
-};
-
-const BOT_FOCUS_AREAS = ["all", "crypto", "politics", "sports", "weather", "economy"] as const;
-type BotFocusArea = (typeof BOT_FOCUS_AREAS)[number];
-
-const REQUEST_KEYS = [
-  "max_positions",
-  "capital_per_trade",
-  "capitalAlloc",
-  "min_edge",
-  "min_volume",
-  "min_probability",
-  "max_probability",
-  "risk_mix",
-  "focus_areas",
-  "whale_follow",
-  "paper_mode",
-  "market_limit",
-] as const;
-
 function noStoreJson<T>(body: ApiEnvelope<T> & Record<string, unknown>, init?: { status?: number }) {
   return NextResponse.json(body, {
     status: init?.status,
@@ -67,101 +32,6 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function toPercent(value: number) {
-  if (!Number.isFinite(value)) return 0;
-  return value <= 1 ? value * 100 : value;
-}
-
-function toBotFocusAreas(values: string[]): BotFocusArea[] {
-  const normalized = values
-    .map((v) => {
-      const lower = v.toLowerCase();
-      if (lower.includes("construction")) return "economy";
-      if (lower.includes("real estate")) return "economy";
-      return lower;
-    })
-    .filter((v): v is BotFocusArea => BOT_FOCUS_AREAS.includes(v as BotFocusArea));
-
-  return normalized.length > 0 ? Array.from(new Set(normalized)) : ["all"];
-}
-
-function getScanMaxMarketLimit(): number {
-  const raw = Number(process.env.MARKET_SCAN_MAX_MARKET_LIMIT ?? 5000);
-  if (!Number.isFinite(raw)) return 5000;
-  return clamp(Math.floor(raw), 100, 20000);
-}
-
-function parseScanRequest(raw: unknown): {
-  request: ScanRequest;
-  appliedConfig: ScanAppliedConfig;
-  providedKeys: string[];
-  errors: string[];
-} {
-  const body = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
-  const providedKeys = REQUEST_KEYS.filter((key) => key in body);
-
-  const rawMaxPositions = Number(body.max_positions ?? SCAN_DEFAULTS.maxPositions);
-  const rawCapitalPerTrade = Number(body.capital_per_trade ?? body.capitalAlloc ?? SCAN_DEFAULTS.capitalPerTrade);
-  const rawMinEdge = Number(body.min_edge ?? SCAN_DEFAULTS.minEdgePct);
-  const rawMinVolume = Number(body.min_volume ?? SCAN_DEFAULTS.minVolumeUsd);
-  const rawMinProbability = Number(body.min_probability ?? SCAN_DEFAULTS.minProbabilityPct);
-  const rawMaxProbability = Number(body.max_probability ?? SCAN_DEFAULTS.maxProbabilityPct);
-  const rawMarketLimit = Number(body.market_limit ?? 0);
-  const riskMix =
-    body.risk_mix === "conservative" || body.risk_mix === "balanced" || body.risk_mix === "aggressive"
-      ? body.risk_mix
-        : SCAN_DEFAULTS.riskMix;
-      const focusAreasInput = Array.isArray(body.focus_areas)
-    ? body.focus_areas.map((f) => String(f).trim().toLowerCase()).filter(Boolean)
-    : DEFAULT_CONFIG.focusAreas;
-      const focusAreas = toBotFocusAreas(focusAreasInput);
-  const whaleFollow = typeof body.whale_follow === "boolean" ? body.whale_follow : DEFAULT_CONFIG.whaleWatch;
-  const paperMode = typeof body.paper_mode === "boolean" ? body.paper_mode : DEFAULT_CONFIG.paperMode;
-
-  const minProbabilityPct = clamp(toPercent(rawMinProbability), 0, 100);
-  const maxProbabilityPct = clamp(toPercent(rawMaxProbability), 0, 100);
-  const probabilityLow = Math.min(minProbabilityPct, maxProbabilityPct);
-  const probabilityHigh = Math.max(minProbabilityPct, maxProbabilityPct);
-
-  const request: ScanRequest = {
-    paperMode,
-    maxPositions: clamp(Number.isFinite(rawMaxPositions) ? Math.round(rawMaxPositions) : SCAN_DEFAULTS.maxPositions, 1, 5000),
-    capitalPerTrade: clamp(Number.isFinite(rawCapitalPerTrade) ? rawCapitalPerTrade : SCAN_DEFAULTS.capitalPerTrade, 1, 1_000_000),
-    minEdge: clamp(toPercent(rawMinEdge), 0, 100),
-    minVolume: clamp(Number.isFinite(rawMinVolume) ? rawMinVolume : SCAN_DEFAULTS.minVolumeUsd, 0, 1_000_000_000),
-    minProbability: probabilityLow,
-    maxProbability: probabilityHigh,
-    whaleFollow,
-    riskMix,
-    focusAreas,
-  };
-
-  const appliedConfig: ScanAppliedConfig = {
-    paperMode: request.paperMode,
-    maxPositions: request.maxPositions,
-    capitalPerTrade: request.capitalPerTrade,
-    minEdgePct: request.minEdge,
-    minVolumeUsd: request.minVolume,
-    minProbabilityPct: request.minProbability,
-    maxProbabilityPct: request.maxProbability,
-    riskMix: request.riskMix,
-    focusAreas: request.focusAreas,
-    whaleFollow: request.whaleFollow,
-  };
-
-  const errors: string[] = [];
-  if (!Number.isFinite(rawMaxPositions)) errors.push("max_positions must be numeric");
-  if (!Number.isFinite(rawCapitalPerTrade) && !("capitalAlloc" in body)) {
-    errors.push("capital_per_trade must be numeric");
-  }
-  if (!Number.isFinite(rawMinEdge)) errors.push("min_edge must be numeric");
-  if (!Number.isFinite(rawMinVolume)) errors.push("min_volume must be numeric");
-  if (!Number.isFinite(rawMinProbability)) errors.push("min_probability must be numeric");
-  if (!Number.isFinite(rawMaxProbability)) errors.push("max_probability must be numeric");
-  if ("market_limit" in body && !Number.isFinite(rawMarketLimit)) errors.push("market_limit must be numeric");
-
-  return { request, appliedConfig, providedKeys, errors };
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -198,7 +68,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Load config from user_metadata and override with request payload from client controls.
     const savedConfig = user.user_metadata?.marketBotConfig;
     const config: BotConfig = {
       ...(savedConfig ? { ...DEFAULT_CONFIG, ...savedConfig } : DEFAULT_CONFIG),
@@ -227,7 +96,6 @@ export async function POST(req: NextRequest) {
 
     const ignoredKeys = providedKeys.filter((key) => key === "whale_follow");
 
-    // Read bot status from market_bot_runtime table
     const { data: botSettings } = await supabase
       .from("market_bot_runtime")
       .select("status")
@@ -236,22 +104,21 @@ export async function POST(req: NextRequest) {
 
     const botStatus = botSettings?.status ?? "stopped";
 
-    // Must be running unless this is an explicit one-off paper test scan.
+    const executeTrades = requestConfig.executeTrades !== false;
     const oneOffPaperScan = config.paperMode === true;
-    if (botStatus === "stopped" && !oneOffPaperScan) {
+    if (executeTrades && botStatus === "stopped" && !oneOffPaperScan) {
       return noStoreJson(
         { ok: false, error: { code: "bot_stopped", message: "Bot is stopped" } },
         { status: 400 }
       );
     }
-    if (botStatus === "paused" && !oneOffPaperScan) {
+    if (executeTrades && botStatus === "paused" && !oneOffPaperScan) {
       return noStoreJson(
         { ok: false, error: { code: "bot_paused", message: "Bot is paused" } },
         { status: 400 }
       );
     }
 
-    // 1. Fetch markets
     const requestedMarketLimit = Number((body as Record<string, unknown>)?.market_limit ?? 0);
     const marketLimit = clamp(
       Number.isFinite(requestedMarketLimit) && requestedMarketLimit > 0
@@ -262,7 +129,6 @@ export async function POST(req: NextRequest) {
     );
     const markets = await fetchMarkets(config.focusAreas ?? ["all"], marketLimit);
 
-    // 2. Score opportunities + apply request-level controls explicitly
     const scored = scoreOpportunities(markets, config);
     const opportunities = scored.filter((opp) => {
       const probabilityPct = opp.yesPrice * 100;
@@ -272,7 +138,6 @@ export async function POST(req: NextRequest) {
       return true;
     });
 
-    // 3. Get today's P&L from saved trades
     const today = new Date().toISOString().split("T")[0];
     const { data: todayTrades } = await supabase
       .from("market_trades")
@@ -282,7 +147,6 @@ export async function POST(req: NextRequest) {
 
     const dailyPnl = todayTrades?.reduce((sum, t) => sum + toNumberOrZero(t.pnl), 0) ?? 0;
 
-    // 4. Decide trades
     const baseDecisions = decideTrades(opportunities, config, dailyPnl);
     const tradeDecisions = baseDecisions
       .map((decision) => {
@@ -297,10 +161,16 @@ export async function POST(req: NextRequest) {
       })
       .slice(0, requestConfig.maxPositions);
 
-    // 5. Execute paper trades or return recommendations
     const executedTrades: ReturnType<typeof simulatePaperTrade>[] = [];
+    const { data: latestDirective } = await supabase
+      .from("market_directives")
+      .select("take_profit_pct,stop_loss_pct,moonshot_mode")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (config.paperMode || botStatus === "paper") {
+    if (executeTrades && (config.paperMode || botStatus === "paper")) {
       const simulatedTrades = tradeDecisions.map((decision) => {
         const trade = simulatePaperTrade(
           user.id,
@@ -323,6 +193,9 @@ export async function POST(req: NextRequest) {
             status: trade.status,
             pnl: trade.pnl,
             paper_trade: true,
+            take_profit_pct: latestDirective?.take_profit_pct ?? 20,
+            stop_loss_pct: latestDirective?.stop_loss_pct ?? 10,
+            entry_mode: latestDirective?.moonshot_mode ? "moonshot" : "scan",
             reason,
           }));
 
@@ -370,6 +243,25 @@ export async function POST(req: NextRequest) {
       executed: mappedTrades,
       appliedConfig,
     };
+
+    try {
+      await supabase.from("market_activity_log").insert({
+        user_id: user.id,
+        level: "info",
+        message: executeTrades
+          ? `Found ${opportunities.length} edges, selected ${tradeDecisions.length}, executed ${mappedTrades.length} trades.`
+          : `Preview found ${opportunities.length} edges and ${tradeDecisions.length} candidate trades (no execution).`,
+        context: {
+          executeTrades,
+          marketsScanned: markets.length,
+          opportunitiesFound: opportunities.length,
+          selectedDecisions: tradeDecisions.length,
+          executedCount: mappedTrades.length,
+        },
+      });
+    } catch {
+      // best effort
+    }
 
     return noStoreJson({
       ok: true,

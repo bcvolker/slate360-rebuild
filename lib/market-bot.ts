@@ -1,28 +1,9 @@
-/**
- * lib/market-bot.ts
- * The "brain" of the Polymarket trading bot.
- * Runs server-side — scans markets, evaluates opportunities,
- * and executes trades based on user risk/portfolio/focus settings.
- *
- * All wallet signing is done client-side — we never store private keys.
- */
-
-/* ================================================================
-   TYPES
-   ================================================================ */
-
 export type RiskLevel = "low" | "medium" | "high";
 
-export type FocusArea =
-  | "all"
-  | "crypto"
-  | "politics"
-  | "sports"
-  | "weather"
-  | "economy";
+export type FocusArea = "all" | "crypto" | "politics" | "sports" | "weather" | "economy" | "construction" | "real-estate" | "entertainment";
 
 export interface PortfolioMix {
-  low: number;   // percentage
+  low: number;
   medium: number;
   high: number;
 }
@@ -50,11 +31,11 @@ export interface MarketOpportunity {
   yesPrice: number;
   noPrice: number;
   spread: number;
-  edge: number;       // estimated percentage edge
+  edge: number;
   volume24h: number;
   liquidity: number;
   riskTier: RiskLevel;
-  confidence: number;  // 0-100
+  confidence: number;
   expiresAt: string;
 }
 
@@ -90,10 +71,6 @@ export const DEFAULT_CONFIG: BotConfig = {
   whaleWatch: false,
 };
 
-/* ================================================================
-   POLYMARKET API HELPERS
-   ================================================================ */
-
 const POLY_API = "https://gamma-api.polymarket.com";
 
 interface PolyMarket {
@@ -108,10 +85,6 @@ interface PolyMarket {
   active: boolean;
 }
 
-/**
- * Fetch active markets from Polymarket's public Gamma API.
- * Filters by focus areas if specified.
- */
 export async function fetchMarkets(
   focusAreas: FocusArea[],
   limit = 50,
@@ -134,14 +107,16 @@ export async function fetchMarkets(
 
     const markets: PolyMarket[] = await res.json();
 
-    // Filter by focus areas
     if (!focusAreas.includes("all") && focusAreas.length > 0) {
       const categoryMap: Record<string, string[]> = {
         crypto: ["crypto", "bitcoin", "ethereum", "btc", "eth", "defi"],
         politics: ["politics", "election", "president", "congress", "vote"],
         sports: ["sports", "nfl", "nba", "mlb", "soccer", "football"],
-        weather: ["weather", "hurricane", "temperature", "climate"],
-        economy: ["economy", "gdp", "fed", "interest", "inflation", "construction"],
+        weather: ["weather", "hurricane", "temperature", "climate", "snow", "rainfall", "storm"],
+        economy: ["economy", "gdp", "fed", "interest", "inflation", "rates", "jobs", "recession"],
+        construction: ["construction", "housing starts", "building permits", "real estate development", "infrastructure"],
+        "real-estate": ["real estate", "housing", "mortgage", "home price", "rent", "commercial property"],
+        entertainment: ["entertainment", "movie", "film", "box office", "music", "oscars", "celebrity", "tv"],
       };
 
       const keywords = focusAreas.flatMap((a) => categoryMap[a] ?? []);
@@ -160,31 +135,25 @@ export async function fetchMarkets(
   }
 }
 
-/* ================================================================
-   OPPORTUNITY SCORING  ENGINE
-   ================================================================ */
-
 function categorize(question: string, category?: string): FocusArea {
   const q = (question + " " + (category ?? "")).toLowerCase();
   if (/crypto|bitcoin|btc|eth|defi|token/.test(q)) return "crypto";
   if (/president|congress|election|poll|vote|politic/.test(q)) return "politics";
   if (/nfl|nba|mlb|soccer|football|sport|game|match/.test(q)) return "sports";
   if (/weather|hurricane|temperature|storm|climate/.test(q)) return "weather";
+  if (/construction|building permit|housing starts|infrastructure/.test(q)) return "construction";
+  if (/real estate|housing|mortgage|home price|rent|commercial property/.test(q)) return "real-estate";
+  if (/entertainment|movie|film|box office|music|oscars|celebrity|tv/.test(q)) return "entertainment";
   if (/economy|gdp|fed|inflation|construction|interest/.test(q)) return "economy";
   return "all";
 }
 
 function assessRisk(spread: number, liquidity: number, volume: number): RiskLevel {
-  // Low: tight spread, high liquidity
   if (spread < 0.05 && liquidity > 50000) return "low";
-  // High: wide spread or low liquidity
   if (spread > 0.15 || liquidity < 5000) return "high";
   return "medium";
 }
 
-/**
- * Score markets and return actionable opportunities sorted by edge.
- */
 export function scoreOpportunities(
   markets: PolyMarket[],
   config: BotConfig,
@@ -212,7 +181,6 @@ export function scoreOpportunities(
       const riskTier = assessRisk(spread, mkt.liquidity, mkt.volume24hr);
       const cat = categorize(mkt.question, mkt.category);
 
-      // Confidence based on volume + liquidity + edge
       const volScore = Math.min(mkt.volume24hr / 100000, 1) * 30;
       const liqScore = Math.min(mkt.liquidity / 200000, 1) * 30;
       const edgeScore = Math.min(edge / 10, 1) * 40;
@@ -237,7 +205,6 @@ export function scoreOpportunities(
     }
   }
 
-  // Sort by edge descending, then confidence
   const maxCandidates = Number.isFinite(config.maxCandidates)
     ? Math.min(Math.max(Math.floor(config.maxCandidates), 1), 5000)
     : 200;
@@ -247,14 +214,6 @@ export function scoreOpportunities(
     .slice(0, maxCandidates);
 }
 
-/* ================================================================
-   TRADE DECISION ENGINE
-   ================================================================ */
-
-/**
- * Given scored opportunities and config, decide which trades to make.
- * Returns trade recommendations (not executed yet).
- */
 export function decideTrades(
   opportunities: MarketOpportunity[],
   config: BotConfig,
@@ -262,21 +221,17 @@ export function decideTrades(
 ): { opp: MarketOpportunity; side: "YES" | "NO"; shares: number; reason: string }[] {
   const trades: { opp: MarketOpportunity; side: "YES" | "NO"; shares: number; reason: string }[] = [];
 
-  // Check daily loss limit
   if (dailyPnl <= -config.maxDailyLoss) {
-    return []; // Stop trading — daily loss limit hit
+    return [];
   }
 
-  // Check emergency stop
   const remainingBudget = config.maxDailyLoss + dailyPnl;
   if (remainingBudget <= 0) return [];
 
   for (const opp of opportunities) {
-    // Only trade within allowed risk level based on portfolio mix
     const mixPct = config.portfolioMix[opp.riskTier] ?? 0;
     if (mixPct === 0) continue;
 
-    // Minimum confidence threshold per risk level
     const minConfidence: Record<RiskLevel, number> = {
       low: 60,
       medium: 45,
@@ -285,16 +240,13 @@ export function decideTrades(
 
     if (opp.confidence < minConfidence[config.riskLevel]) continue;
 
-    // Focus area filter
     if (!config.focusAreas.includes("all") && !config.focusAreas.includes(opp.category)) {
       continue;
     }
 
-    // Determine side — buy the cheaper side if spread exists
     const side: "YES" | "NO" = opp.yesPrice < opp.noPrice ? "YES" : "NO";
     const price = side === "YES" ? opp.yesPrice : opp.noPrice;
 
-    // Position sizing based on portfolio mix and remaining budget
     const budgetForTier = (remainingBudget * mixPct) / 100;
     const configuredMaxPositionUsd = Number.isFinite(config.maxPositionUsd)
       ? Math.max(config.maxPositionUsd, 1)
@@ -302,7 +254,7 @@ export function decideTrades(
     const maxPositionSize = Math.min(budgetForTier * 0.3, configuredMaxPositionUsd);
     const shares = Math.max(1, Math.floor(maxPositionSize / price));
 
-    if (shares * price < 1) continue; // Too small
+    if (shares * price < 1) continue;
 
     trades.push({
       opp,
@@ -320,13 +272,6 @@ export function decideTrades(
   return trades;
 }
 
-/* ================================================================
-   PAPER TRADE SIMULATOR
-   ================================================================ */
-
-/**
- * Simulate a paper trade — returns a TradeRecord without executing on-chain.
- */
 export function simulatePaperTrade(
   userId: string,
   opp: MarketOpportunity,

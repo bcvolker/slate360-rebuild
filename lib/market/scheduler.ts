@@ -2,14 +2,22 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import {
   DEFAULT_CONFIG,
   decideTrades,
-  fetchMarkets,
   scoreOpportunities,
   simulatePaperTrade,
   type BotConfig,
-  type FocusArea,
-  type RiskLevel,
 } from "@/lib/market-bot";
 import { toNumberOrZero } from "@/lib/market/contracts";
+import { evaluateSchedulerGuards } from "@/lib/market/scheduler-guards";
+import {
+  clamp,
+  fetchMarketsCached,
+  getConfig,
+  isoDay,
+  normalizeFocusAreas,
+  riskLevelFromMix,
+  type MarketsPromiseCache,
+  type SchedulerConfig,
+} from "@/lib/market/scheduler-utils";
 
 type RuntimeRow = {
   user_id: string;
@@ -22,6 +30,13 @@ type DirectiveRow = {
   risk_mix: "conservative" | "balanced" | "aggressive" | null;
   focus_areas: string[] | null;
   paper_mode: boolean | null;
+  daily_loss_cap: number | string | null;
+  moonshot_mode: boolean | null;
+  total_loss_cap: number | string | null;
+  auto_pause_losing_days: number | null;
+  target_profit_monthly: number | string | null;
+  take_profit_pct: number | string | null;
+  stop_loss_pct: number | string | null;
 };
 
 type RuntimeStateRow = {
@@ -47,90 +62,6 @@ export type SchedulerTickResult = {
   timestamp: string;
 };
 
-type SchedulerConfig = {
-  minIntervalSeconds: number;
-  maxIntervalSeconds: number;
-  maxUsersPerTick: number;
-  concurrency: number;
-  maxTradesPerScan: number;
-  maxMarketLimit: number;
-  defaultBuysPerDay: number;
-  defaultCapitalUsd: number;
-  maxPositionUsdCap: number;
-};
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function getConfig(): SchedulerConfig {
-  const minIntervalSeconds = Number(process.env.MARKET_SCHEDULER_MIN_INTERVAL_SECONDS ?? 30);
-  const maxIntervalSeconds = Number(process.env.MARKET_SCHEDULER_MAX_INTERVAL_SECONDS ?? 3600);
-  const maxUsersPerTick = Number(process.env.MARKET_SCHEDULER_MAX_USERS_PER_TICK ?? 100);
-  const concurrency = Number(process.env.MARKET_SCHEDULER_CONCURRENCY ?? 12);
-  const maxTradesPerScan = Number(process.env.MARKET_SCHEDULER_MAX_TRADES_PER_SCAN ?? 250);
-  const maxMarketLimit = Number(process.env.MARKET_SCHEDULER_MAX_MARKET_LIMIT ?? 5000);
-  const defaultBuysPerDay = Number(process.env.MARKET_SCHEDULER_DEFAULT_BUYS_PER_DAY ?? 24);
-  const defaultCapitalUsd = Number(process.env.MARKET_SCHEDULER_DEFAULT_CAPITAL_USD ?? 1000);
-  const maxPositionUsdCap = Number(process.env.MARKET_SCHEDULER_MAX_POSITION_USD ?? 100000);
-
-  return {
-    minIntervalSeconds: clamp(Number.isFinite(minIntervalSeconds) ? minIntervalSeconds : 30, 5, 86400),
-    maxIntervalSeconds: clamp(Number.isFinite(maxIntervalSeconds) ? maxIntervalSeconds : 3600, 30, 86400),
-    maxUsersPerTick: clamp(Number.isFinite(maxUsersPerTick) ? Math.floor(maxUsersPerTick) : 100, 1, 1000),
-    concurrency: clamp(Number.isFinite(concurrency) ? Math.floor(concurrency) : 12, 1, 100),
-    maxTradesPerScan: clamp(Number.isFinite(maxTradesPerScan) ? Math.floor(maxTradesPerScan) : 250, 1, 5000),
-    maxMarketLimit: clamp(Number.isFinite(maxMarketLimit) ? Math.floor(maxMarketLimit) : 5000, 50, 10000),
-    defaultBuysPerDay: clamp(Number.isFinite(defaultBuysPerDay) ? Math.floor(defaultBuysPerDay) : 24, 1, 100000),
-    defaultCapitalUsd: Number.isFinite(defaultCapitalUsd) ? Math.max(defaultCapitalUsd, 1) : 1000,
-    maxPositionUsdCap: Number.isFinite(maxPositionUsdCap) ? Math.max(maxPositionUsdCap, 1) : 100000,
-  };
-}
-
-type MarketsPromiseCache = Map<string, Promise<Awaited<ReturnType<typeof fetchMarkets>>>>;
-
-function getMarketCacheKey(focusAreas: FocusArea[], limit: number): string {
-  return `${focusAreas.join(",")}|${limit}`;
-}
-
-async function fetchMarketsCached(
-  focusAreas: FocusArea[],
-  limit: number,
-  cache: MarketsPromiseCache,
-): Promise<Awaited<ReturnType<typeof fetchMarkets>>> {
-  const key = getMarketCacheKey(focusAreas, limit);
-  const cachedPromise = cache.get(key);
-  if (cachedPromise) {
-    return cachedPromise;
-  }
-
-  const promise = fetchMarkets(focusAreas, limit);
-  cache.set(key, promise);
-  return promise;
-}
-
-function normalizeFocusAreas(values: string[] | null | undefined): FocusArea[] {
-  const allowed: FocusArea[] = ["all", "crypto", "politics", "sports", "weather", "economy"];
-  const normalized = (values ?? [])
-    .map((value) => {
-      const lower = String(value).toLowerCase();
-      if (lower.includes("construction") || lower.includes("real estate")) return "economy";
-      return lower;
-    })
-    .filter((value): value is FocusArea => allowed.includes(value as FocusArea));
-
-  return normalized.length > 0 ? Array.from(new Set(normalized)) : ["all"];
-}
-
-function riskLevelFromMix(mix: DirectiveRow["risk_mix"]): RiskLevel {
-  if (mix === "conservative") return "low";
-  if (mix === "aggressive") return "high";
-  return "medium";
-}
-
-function isoDay(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
 
 async function runForUser(
   userId: string,
@@ -144,7 +75,7 @@ async function runForUser(
   const [{ data: directive }, { data: runtimeState }, { data: todayTrades }] = await Promise.all([
     admin
       .from("market_directives")
-      .select("amount,buys_per_day,risk_mix,focus_areas,paper_mode")
+      .select("amount,buys_per_day,risk_mix,focus_areas,paper_mode,daily_loss_cap,moonshot_mode,total_loss_cap,auto_pause_losing_days,target_profit_monthly,take_profit_pct,stop_loss_pct")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -210,6 +141,10 @@ async function runForUser(
   const maxPositions = Math.min(targetTradesThisRun, remainingDailyTrades, config.maxTradesPerScan);
 
   const directiveAmount = Math.max(0, toNumberOrZero(directiveRow?.amount));
+  const dailyLossCap = Math.max(1, toNumberOrZero(directiveRow?.daily_loss_cap) || 40);
+  const totalLossCap = Math.max(1, toNumberOrZero(directiveRow?.total_loss_cap) || 200);
+  const moonshotMode = directiveRow?.moonshot_mode === true;
+  const targetProfitMonthly = Math.max(0, toNumberOrZero(directiveRow?.target_profit_monthly));
   const capitalBase = directiveAmount > 0 ? directiveAmount : config.defaultCapitalUsd;
   const capitalPerTrade = clamp(capitalBase / Math.max(1, buysPerDay), 1, config.maxPositionUsdCap);
 
@@ -224,11 +159,48 @@ async function runForUser(
     maxCandidates: Math.max(maxPositions * 6, 200),
   };
 
+  // Moonshot mode increases throughput but still respects hard risk caps.
+  if (moonshotMode) {
+    botConfig.riskLevel = "high";
+    botConfig.maxTradesPerScan = Math.min(config.maxTradesPerScan, Math.max(25, maxPositions * 2));
+    botConfig.maxCandidates = Math.max(botConfig.maxCandidates, 500);
+  }
+
+  // Never exceed scheduler-safe throughput (5 trades/sec budget per run window).
+  const throughputCap = Math.max(1, runFrequencySeconds * 5);
+  botConfig.maxTradesPerScan = Math.min(botConfig.maxTradesPerScan, throughputCap);
+
   const marketLimit = clamp(Math.max(maxPositions * 8, 120), 50, config.maxMarketLimit);
   const markets = await fetchMarketsCached(botConfig.focusAreas, marketLimit, marketsCache);
   const scored = scoreOpportunities(markets, botConfig);
 
   const dailyPnl = (todayTrades ?? []).reduce((sum, trade) => sum + toNumberOrZero((trade as { pnl?: unknown }).pnl), 0);
+  const guardResult = await evaluateSchedulerGuards({
+    admin,
+    userId,
+    now,
+    dailyPnl,
+    dailyLossCap,
+    totalLossCap,
+    moonshotMode,
+    targetProfitMonthly,
+    currentMaxTradesPerScan: botConfig.maxTradesPerScan,
+    configMaxTradesPerScan: config.maxTradesPerScan,
+    directive: directiveRow,
+  });
+
+  if (guardResult.skipReason) {
+    return {
+      userId,
+      status: "skipped",
+      reason: guardResult.skipReason,
+      tradesExecuted: 0,
+      decisions: 0,
+    };
+  }
+
+  botConfig.maxTradesPerScan = guardResult.maxTradesPerScan;
+  const totalPnl = guardResult.totalPnl;
   const decisions = decideTrades(scored, botConfig, dailyPnl).slice(0, maxPositions);
 
   let executed = 0;
@@ -250,6 +222,9 @@ async function runForUser(
       status: trade.status,
       pnl: trade.pnl,
       paper_trade: true,
+      take_profit_pct: toNumberOrZero(directiveRow?.take_profit_pct) || 20,
+      stop_loss_pct: toNumberOrZero(directiveRow?.stop_loss_pct) || 10,
+      entry_mode: moonshotMode ? "moonshot" : "scheduler",
       reason,
     }));
 
@@ -258,6 +233,24 @@ async function runForUser(
       throw new Error(`insert_failed:${insertError.message}`);
     }
     executed = rows.length;
+
+    // Persist plain-English activity summary for the dashboard log.
+    try {
+      await admin.from("market_activity_log").insert({
+        user_id: userId,
+        level: "info",
+        message: `Scheduler run: found ${scored.length} opportunities, decided ${decisions.length}, executed ${executed} paper trades.`,
+        context: {
+          buysPerDay,
+          runFrequencySeconds,
+          moonshotMode,
+          dailyPnl,
+          totalPnl,
+        },
+      });
+    } catch {
+      // best effort log persistence
+    }
   }
 
   await admin.from("market_bot_runtime_state").upsert(

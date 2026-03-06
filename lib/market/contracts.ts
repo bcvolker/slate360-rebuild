@@ -78,6 +78,13 @@ export type DirectiveViewModel = {
   focusAreas: string[];
   profitStrategy: "arbitrage" | "market-making" | "whale-copy" | "longshot";
   paperMode: boolean;
+  dailyLossCap: number;
+  moonshotMode: boolean;
+  totalLossCap: number;
+  autoPauseLosingDays: number;
+  targetProfitMonthly: number | null;
+  takeProfitPct: number;
+  stopLossPct: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -120,6 +127,7 @@ export type SchedulerHealthViewModel = {
 
 export type ScanRequest = {
   paperMode: boolean;
+  executeTrades?: boolean;
   maxPositions: number;
   capitalPerTrade: number;
   minEdge: number;
@@ -142,6 +150,7 @@ export type ScanDecision = {
 
 export type ScanAppliedConfig = {
   paperMode: boolean;
+  executeTrades?: boolean;
   maxPositions: number;
   capitalPerTrade: number;
   minEdgePct: number;

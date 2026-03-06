@@ -14,9 +14,8 @@
  *
  * Returns: { settled: number, updated: number, errors: string[] }
  */
-import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { NextRequest, NextResponse } from "next/server";
+import { withAuth } from "@/lib/server/api-auth";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -29,6 +28,8 @@ interface TradeRow {
   price: number | string;
   total: number | string;
   status: string;
+  take_profit_pct?: number | string | null;
+  stop_loss_pct?: number | string | null;
 }
 
 interface GammaMarket {
@@ -86,17 +87,13 @@ async function fetchGammaMarket(marketId: string): Promise<GammaMarket | null> {
   }
 }
 
-export async function POST() {
-  try {
-    const supabase = await createClient();
-    const admin = createAdminClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = (req: NextRequest) =>
+  withAuth(req, async ({ user, admin }) => {
 
-    // Fetch all open trades
-    const { data: trades, error: tradesError } = await supabase
+    // Fetch all open trades (user_id is always explicitly scoped below — no RLS needed)
+    const { data: trades, error: tradesError } = await admin
       .from("market_trades")
-      .select("id,market_id,side,shares,price,total,status")
+      .select("id,market_id,side,shares,price,total,status,take_profit_pct,stop_loss_pct")
       .eq("user_id", user.id)
       .eq("status", "open");
 
@@ -145,7 +142,8 @@ export async function POST() {
               status: "closed",
               closed_at: new Date().toISOString(),
             })
-            .eq("id", trade.id);
+            .eq("id", trade.id)
+            .eq("user_id", user.id);
 
           if (updateError) errors.push(`settle ${trade.id}: ${updateError.message}`);
           else settled++;
@@ -154,11 +152,48 @@ export async function POST() {
           const currentPrice = parseCurrentPrice(market, side);
           if (currentPrice != null && Number.isFinite(price) && price > 0) {
             const unrealizedPnl = Math.round((shares * currentPrice - total) * 100) / 100;
+            const pnlPct = total > 0 ? (unrealizedPnl / total) * 100 : 0;
+            const takeProfitPct = Number(trade.take_profit_pct ?? 0);
+            const stopLossPct = Number(trade.stop_loss_pct ?? 0);
+
+            // Exit logic for paper/autopilot positions
+            if (Number.isFinite(takeProfitPct) && takeProfitPct > 0 && pnlPct >= takeProfitPct) {
+              const { error: closeErr } = await admin
+                .from("market_trades")
+                .update({
+                  pnl: unrealizedPnl,
+                  status: "closed",
+                  closed_at: new Date().toISOString(),
+                  reason: `Auto take-profit hit (${takeProfitPct}%)`,
+                })
+                .eq("id", trade.id)
+                .eq("user_id", user.id);
+              if (closeErr) errors.push(`tp-close ${trade.id}: ${closeErr.message}`);
+              else settled++;
+              return;
+            }
+
+            if (Number.isFinite(stopLossPct) && stopLossPct > 0 && pnlPct <= -Math.abs(stopLossPct)) {
+              const { error: closeErr } = await admin
+                .from("market_trades")
+                .update({
+                  pnl: unrealizedPnl,
+                  status: "closed",
+                  closed_at: new Date().toISOString(),
+                  reason: `Auto stop-loss hit (${stopLossPct}%)`,
+                })
+                .eq("id", trade.id)
+                .eq("user_id", user.id);
+              if (closeErr) errors.push(`sl-close ${trade.id}: ${closeErr.message}`);
+              else settled++;
+              return;
+            }
 
             const { error: updateError } = await admin
               .from("market_trades")
               .update({ pnl: unrealizedPnl })
-              .eq("id", trade.id);
+              .eq("id", trade.id)
+              .eq("user_id", user.id);
 
             if (updateError) errors.push(`update ${trade.id}: ${updateError.message}`);
             else updated++;
@@ -175,14 +210,7 @@ export async function POST() {
       total: trades.length,
       errors,
     });
-  } catch (err) {
-    console.error("[api/market/settle-trades]", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Settlement failed" },
-      { status: 500 }
-    );
-  }
-}
+  });
 
 export async function GET() {
   return NextResponse.json({

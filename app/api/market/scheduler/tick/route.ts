@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runMarketSchedulerTick } from "@/lib/market/scheduler";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -19,18 +20,80 @@ function unauthorized() {
 
 function hasValidSecret(req: NextRequest): boolean {
   const expected = process.env.MARKET_SCHEDULER_SECRET;
-  if (!expected) return false;
+  const cronExpected = process.env.CRON_SECRET;
+  if (!expected && !cronExpected) return false;
 
   const authHeader = req.headers.get("authorization") ?? "";
   const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
   const headerSecret = req.headers.get("x-market-scheduler-secret") ?? "";
 
-  return bearer === expected || headerSecret === expected;
+  return bearer === expected || headerSecret === expected || bearer === cronExpected || headerSecret === cronExpected;
+}
+
+async function acquireSchedulerLock(nowIso: string, lockSeconds = 270): Promise<{ acquired: boolean; lockId: string }> {
+  const admin = createAdminClient();
+  const lockId = `tick-${Date.now()}`;
+  try {
+    await admin.from("market_scheduler_lock").upsert(
+      {
+        lock_key: "global",
+        locked_until: "epoch",
+        locked_by: null,
+        updated_at: nowIso,
+      },
+      { onConflict: "lock_key" },
+    );
+
+    const lockUntil = new Date(Date.now() + lockSeconds * 1000).toISOString();
+    const { data, error } = await admin
+      .from("market_scheduler_lock")
+      .update({ locked_until: lockUntil, locked_by: lockId, updated_at: nowIso })
+      .eq("lock_key", "global")
+      .lt("locked_until", nowIso)
+      .select("lock_key")
+      .maybeSingle();
+
+    if (error) {
+      return { acquired: false, lockId };
+    }
+    return { acquired: Boolean(data), lockId };
+  } catch {
+    // If the lock table is not migrated yet, allow execution (old behavior).
+    return { acquired: true, lockId };
+  }
+}
+
+async function releaseSchedulerLock(lockId: string) {
+  const admin = createAdminClient();
+  try {
+    await admin
+      .from("market_scheduler_lock")
+      .update({ locked_until: new Date().toISOString(), locked_by: null, updated_at: new Date().toISOString() })
+      .eq("lock_key", "global")
+      .eq("locked_by", lockId);
+  } catch {
+    // best effort
+  }
 }
 
 export async function POST(req: NextRequest) {
   if (!hasValidSecret(req)) {
     return unauthorized();
+  }
+
+  const nowIso = new Date().toISOString();
+  const lock = await acquireSchedulerLock(nowIso);
+  if (!lock.acquired) {
+    return NextResponse.json(
+      {
+        ok: true,
+        data: {
+          skipped: true,
+          reason: "tick_locked",
+        },
+      },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   }
 
   try {
@@ -53,6 +116,8 @@ export async function POST(req: NextRequest) {
       },
       { status: 500, headers: { "Cache-Control": "no-store" } },
     );
+  } finally {
+    await releaseSchedulerLock(lock.lockId);
   }
 }
 
