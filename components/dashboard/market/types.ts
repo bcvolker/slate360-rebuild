@@ -87,12 +87,64 @@ export interface SimRun {
   total_pnl: number;
   win_rate: number;
   trade_count: number;
+  // Simulation labels (Batch 4)
+  fillModel?: "realistic" | "ideal";
+  feeMode?: boolean;
+  partialFills?: boolean;
+  startingBalance?: number;
 }
 
 export type PnlPoint = { label: string; pnl: number; cumPnl: number };
 export type MarketSortKey = "volume" | "edge" | "probability" | "title" | "endDate";
 export type MktRiskTag = "all" | "hot" | "high-risk" | "construction" | "high-potential" | "none";
 export type MktTimeframe = "hour" | "day" | "week" | "month" | "year" | "all" | "today" | "tomorrow";
+
+// ── Simulation types ───────────────────────────────────────────────────────
+
+export interface SimulationConfig {
+  startingBalance: number;
+  fillModel: "realistic" | "ideal";
+  feeMode: boolean;
+  partialFills: boolean;
+}
+
+// ── Automation plan types ──────────────────────────────────────────────────
+
+export type RiskLevel = "conservative" | "balanced" | "aggressive";
+export type ScanMode = "slow" | "balanced" | "fast" | "closing-soon";
+export type FillPolicy = "aggressive" | "conservative" | "limit-only";
+export type ExitRules = "auto" | "manual" | "trailing-stop";
+
+export interface AutomationPlan {
+  id: string;
+  name: string;
+  // Basic
+  budget: number;
+  riskLevel: RiskLevel;
+  categories: string[];
+  scanMode: ScanMode;
+  maxTradesPerDay: number;
+  mode: "practice" | "real";
+  maxDailyLoss: number;
+  maxOpenPositions: number;
+  // Intermediate
+  maxPctPerTrade: number;
+  feeAlertThreshold: number;
+  cooldownAfterLossStreak: number;
+  largeTraderSignals: boolean;
+  closingSoonFocus: boolean;
+  // Advanced
+  slippage: number;
+  minimumLiquidity: number;
+  maximumSpread: number;
+  fillPolicy: FillPolicy;
+  exitRules: ExitRules;
+  // Metadata
+  isDefault: boolean;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface BotConfig {
   paperMode: boolean;

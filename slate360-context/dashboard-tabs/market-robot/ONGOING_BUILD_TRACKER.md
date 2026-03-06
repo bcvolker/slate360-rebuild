@@ -17,7 +17,7 @@ This file tracks current status, build order, prompts, checks, and rebuild-from-
 - Shared customization for Market is still missing and should be implemented first.
 
 ## Current Build Status
-**Active batch: 3 — Start Here + Direct Buy (not started)**
+**Active batch: 5 — Results + Live Wallet (not started)**
 
 `MarketClient` has zero external callers outside `app/market/page.tsx` (confirmed via GitNexus).
 This makes large batches safe. The revised strategy is ~10 prompts by combining related steps.
@@ -26,8 +26,8 @@ This makes large batches safe. The revised strategy is ~10 prompts by combining 
 |---|---|---|---|---|
 | 1 | Foundation scaffold | 1 | **Sonnet** | ✅ Complete — `MarketClient.tsx` 84 lines, 6 stubs render, MarketPrimaryNav replaces MarketTabBar |
 | 2 | Shared customization | 1–2 | **Sonnet** | ✅ Complete — customize in shared header, prefs persist reload, legacy key migrated |
-| 3 | Start Here + Direct Buy | 2 | **Sonnet** | recommendation path works; buy panel shows max loss/payout/probability |
-| 4 | Simulation + Automation | 2 | **Opus** | practice snapshot saveable; plan can be saved and scheduled |
+| 3 | Start Here + Direct Buy | 2 | **Sonnet** | ✅ Complete — StartHere has mode picker, 6 recommendations, stepper, explainer; DirectBuy has search/filter/table/buy panel |
+| 4 | Simulation + Automation | 2 | **Opus** | ✅ Complete — SimulationPanel with config/compare/snapshots; AutomationTab with plan builder (basic/intermediate/advanced), plan list with save/clone/rename/archive/default |
 | 5 | Results + Live Wallet | 1 | **Sonnet** | P/L analytics and wallet readiness are separate tabs |
 | 6 | Background hardening | 1 | **Opus** | UI distinguishes server-side vs client-only running state |
 | 7 | Cleanup + retirement | 1 | **Sonnet** | legacy tab files retired |
@@ -81,28 +81,36 @@ Completed
 
 Current Market files in play
 - `app/market/page.tsx`
-- `components/dashboard/MarketClient.tsx` (106 lines — orchestrator)
+- `components/dashboard/MarketClient.tsx` (165 lines — orchestrator, switch-renders tabs with shared props)
 - `components/dashboard/market/MarketRouteShell.tsx` (63 lines — shell + customize integration)
 - `components/dashboard/market/MarketPrimaryNav.tsx` (51 lines — prefs-driven nav)
 - `components/dashboard/market/MarketCustomizeDrawer.tsx` (135 lines — shared customize drawer)
-- `components/dashboard/market/MarketStartHereStub.tsx`
-- `components/dashboard/market/MarketDirectBuyStub.tsx`
-- `components/dashboard/market/MarketAutomationStub.tsx`
-- `components/dashboard/market/MarketSavedMarketsStub.tsx`
-- `components/dashboard/market/MarketResultsStub.tsx`
-- `components/dashboard/market/MarketLiveWalletStub.tsx`
+- `components/dashboard/market/MarketStartHereTab.tsx` (277 lines — **Batch 3 built**: mode picker, 6 recommendation presets, first-run banner, YES/NO explainer, navigation to other tabs)
+- `components/dashboard/market/MarketDirectBuyTab.tsx` (299 lines — **Batch 3 built**: search toolbar, timeframe chips, advanced filters, market table w/ YES/NO buy buttons, buy panel drawer)
+- `components/dashboard/market/MarketAutomationTab.tsx` (96 lines — **Batch 4 built**: orchestrates builder + plan list + active plan summary)
+- `components/dashboard/market/MarketAutomationBuilder.tsx` (300 lines — **Batch 4 built**: guided plan creation with basic/intermediate/advanced control levels)
+- `components/dashboard/market/MarketPlanList.tsx` (151 lines — **Batch 4 built**: saved plans with apply/edit/clone/rename/archive/default/delete)
+- `components/dashboard/market/MarketSimulationPanel.tsx` (226 lines — **Batch 4 built**: configurable sim settings, snapshot save, comparison chart, sim labels)
+- `components/dashboard/market/MarketAutomationStub.tsx` (stub — replaced by MarketAutomationTab, can be retired in Batch 7)
+- `components/dashboard/market/MarketSavedMarketsStub.tsx` (stub — future)
+- `components/dashboard/market/MarketResultsStub.tsx` (stub — replaced by MarketSimulationPanel for now, full Results in Batch 5)
+- `components/dashboard/market/MarketLiveWalletStub.tsx` (stub — Batch 5)
+- `components/dashboard/market/MarketBuyPanel.tsx` (reused by DirectBuyTab — shows max loss, max payout, implied probability, what-if scenarios)
+- `components/dashboard/market/types.ts` (164 lines — all shared types including SimulationConfig, AutomationPlan)
+- `lib/hooks/useMarketDirectBuyState.ts` (197 lines — **Batch 3 new**: self-contained search/filter/pagination/buy state for DirectBuyTab)
+- `lib/hooks/useMarketAutomationState.ts` (136 lines — **Batch 4 new**: plan CRUD, localStorage persistence, control level state)
+- `lib/hooks/useMarketSimState.ts` (87 lines — **Batch 4 extended**: sim config, fill model labels, fee mode tracking)
 - `lib/market/layout-presets.ts` (64 lines — tab/panel defaults)
 - `lib/hooks/useMarketLayoutPrefs.ts` (169 lines — persist/migrate prefs)
-- `lib/hooks/useMarketBuyState.ts`
-- `lib/hooks/useMarketSimState.ts`
+- `lib/hooks/useMarketBuyState.ts` (used by legacy tabs)
 - `lib/hooks/useMarketWalletState.ts`
 
 Still missing from the revised plan
-- recommendation system
-- first-run stepper
-- shared market layout prefs/customization
-- realistic simulation tooling
-- browser-closed/background-run hardening review
+- P/L analytics, activity log, and trade replay for Results tab (Batch 5)
+- live wallet verification flow (Batch 5)
+- saved markets / saved searches unified tab (future)
+- browser-closed/background-run hardening review (Batch 6)
+- Supabase `market_plans` table migration (plans currently localStorage-only)
 - app-ecosystem-ready packaging assumptions
 
 ## Non-Negotiables
@@ -333,38 +341,79 @@ Carry-forward rule
 - 2026-03-06: Tracker restructured into 7 batches (~10 prompts total). GitNexus confirmed MarketClient has zero external callers, enabling larger safe batches. MCP guidance added per batch.
 - 2026-03-06: Batch 1 (Foundation Scaffold) — complete. Files created: MarketPrimaryNav.tsx, 6 task-tab stubs, useMarketBuyState.ts, useMarketSimState.ts, useMarketWalletState.ts. MarketClient.tsx reduced to 84 lines. tsc clean. Next: Batch 2.
 - 2026-03-06: Batch 2 (Shared Customization) — complete. Files created: lib/market/layout-presets.ts, lib/hooks/useMarketLayoutPrefs.ts, MarketCustomizeDrawer.tsx. MarketRouteShell wired to DashboardHeader onCustomizeOpen/prefsDirty. Legacy market_tab_prefs_v1 key auto-migrated to layoutprefs-market. Tab nav now prefs-driven. useMarketDirectives updated to use new tab IDs. tsc clean. Next: Batch 3.
+- 2026-03-06: Batch 4 [Simulation + Automation] — complete. Files created: MarketSimulationPanel.tsx (226 lines), MarketAutomationTab.tsx (96 lines), MarketAutomationBuilder.tsx (300 lines), MarketPlanList.tsx (151 lines), useMarketAutomationState.ts (136 lines). Files modified: MarketClient.tsx (123→165 lines), useMarketSimState.ts (68→87 lines), types.ts (+SimulationConfig, +AutomationPlan, extended SimRun). MarketClient switch now renders Automation and Results (sim panel) directly. Supabase `market_plans` table not confirmed — plans use localStorage fallback. All files ≤300 lines, tsc clean. Next: Batch 5.
 
 ## Ready-To-Paste Prompt For Next Chat
 
 Copy-paste this entire block into a new chat session to continue the Market Robot build:
 
 ```text
-I'm continuing the Market Robot rebuild. Batches 1 and 2 are complete.
+I'm continuing the Market Robot rebuild. Batches 1–4 are complete. The active batch is **Batch 5 — Results + Live Wallet**.
 
-Read these files in order:
+## Read order
 1. `SLATE360_PROJECT_MEMORY.md`
 2. `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`
-3. `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md` — find the active batch (currently Batch 3: Start Here + Direct Buy)
-4. `slate360-context/BACKEND.md` — for auth, DB, and API patterns
+3. `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md` — active batch = 5
+4. `slate360-context/BACKEND.md` — for auth/DB/API patterns
+5. `slate360-context/dashboard-tabs/market-robot/IMPLEMENTATION_PLAN.md` — Results tab spec (search for "Results tab") and Live Wallet spec (search for "Live Wallet tab")
 
-The active batch is **Batch 3 — Start Here + Direct Buy** (~2 prompts).
-
-What was done in Batches 1–2:
-- MarketClient.tsx is now a 106-line thin orchestrator
-- 6 task-tab stubs render (Start Here, Direct Buy, Automation, Saved Markets, Results, Live Wallet)
+## What was done in Batches 1–4
+- **MarketClient.tsx** is a 165-line thin orchestrator that switch-renders tabs with proper props (not a component map)
+- **MarketStartHereTab.tsx** (277 lines) — practice/real-money mode picker (persisted to localStorage), 6 recommendation presets, first-run welcome banner, YES/NO explainer accordion, navigation to other tabs via `onNavigate` prop
+- **MarketDirectBuyTab.tsx** (299 lines) — search toolbar, timeframe chips, advanced filters (edge %, prob range, sort), market table with YES/NO buy buttons, wires to existing MarketBuyPanel for trade execution including max loss/payout/probability/what-if
+- **useMarketDirectBuyState.ts** (197 lines) — self-contained hook for Direct Buy (fetch, filter, sort, paginate, buy state, submit)
+- **MarketAutomationTab.tsx** (96 lines) — orchestrates builder + plan list + active plan summary card
+- **MarketAutomationBuilder.tsx** (300 lines) — guided plan creation with 3 control levels: basic (budget, risk, categories, scan mode, trades/day, loss cap), intermediate (max % per trade, fee alerts, cooldown, large-trader signals, closing-soon focus), advanced (slippage, min liquidity, max spread, fill policy, exit rules)
+- **MarketPlanList.tsx** (151 lines) — saved plans with apply/edit/clone/rename/archive/set-default/delete actions
+- **useMarketAutomationState.ts** (136 lines) — plan CRUD, localStorage persistence, control level state
+- **MarketSimulationPanel.tsx** (226 lines) — configurable starting balance, realistic vs ideal fills, fee-aware mode, partial fills toggle, saveable snapshots (max 10), comparison chart, sim labels on every result
+- **useMarketSimState.ts** (87 lines) — extended with SimulationConfig, fill model labels, fee mode tracking
+- **types.ts** (164 lines) — added SimulationConfig, AutomationPlan, extended SimRun with simulation labels
 - MarketPrimaryNav uses prefs-driven tabs from useMarketLayoutPrefs
-- MarketRouteShell wires DashboardHeader customize button to MarketCustomizeDrawer
-- Layout prefs persist to localStorage under `layoutprefs-market` key with server sync to /api/market/tab-prefs
+- MarketRouteShell wires DashboardHeader to MarketCustomizeDrawer
+- All 18 API routes and 4 domain hooks (useMarketBot, useMarketTradeData, useMarketsExplorer, useMarketDirectives) are untouched
 - Tab IDs are kebab-case: start-here, direct-buy, automation, saved-markets, results, live-wallet
-- 3 hooks extracted: useMarketBuyState, useMarketSimState, useMarketWalletState
-- All existing 18 API routes and 4 domain hooks untouched
+- Supabase `market_plans` table migration pending — plans use localStorage fallback
 
-Before editing anything:
-- Read the current contents of MarketClient.tsx, MarketStartHereStub.tsx, MarketDirectBuyStub.tsx, and the 4 domain hooks (useMarketBot, useMarketTradeData, useMarketsExplorer, useMarketDirectives)
-- State the batch name, every file you will touch, and your validation plan — then wait for confirmation
+## Batch 5 — What to build
 
-Follow the Batch 3 prompts (3a and 3b) from the tracker exactly. After edits:
-1. Run `npx tsc --noEmit` and `get_errors` on all touched files
-2. Update the tracker Session Log and batch status table
-3. Check line counts on all touched files (300-line limit for .ts/.tsx)
+### 5a: Results tab (rebuild MarketResultsStub)
+- Build the full **Results tab** around the existing MarketSimulationPanel
+- Add: P/L analytics (total P/L, win rate, best/worst trade), activity log, trade replay summary
+- The simulation panel is already wired into the Results tab switch case — add the P/L section above it
+- Data sources: `useMarketTradeData` (trades, pnlChart, openTrades), `useMarketSimState` (simRuns)
+- Recharts for P/L chart (already in the project)
+
+### 5b: Live Wallet tab (rebuild MarketLiveWalletStub)
+- Build `MarketLiveWalletTab.tsx` — wallet connection, gas check, readiness checklist, approval status, blockers
+- Existing `useMarketWalletState.ts` has wallet state — extend or reference it
+- Existing `LiveChecklist` type in types.ts defines the checklist shape
+- Existing `lib/hooks/useMarketBuyState.ts` has some wallet interaction logic
+
+### Wire it up
+- Update `MarketClient.tsx` to render `MarketResultsTab` and `MarketLiveWalletTab` instead of stubs
+- Remove them from the STUB_TABS map (only `saved-markets` should remain as stub)
+
+## Non-negotiables
+- Route: `/market` — do not change
+- Gate: `canAccessMarket` — never `hasInternalAccess`
+- `app/market/page.tsx` remains the gate + provider wrapper — do not modify
+- `MarketClient.tsx` stays thin — add case branches to the switch but don't balloon it past 200 lines
+- No new API routes (use existing api/market/* routes)
+- No `any` — use `unknown` + narrowing
+- Every new/modified .ts/.tsx file must stay under 300 lines
+- Types live in `components/dashboard/market/types.ts` — do not duplicate
+- Bot/runtime logic stays UI-agnostic and testable
+
+## After edits (required before ending session)
+1. Run `npx tsc --noEmit` and `get_errors` on all touched files — fix all errors
+2. Check line counts on all touched files (300-line limit)
+3. Update the ONGOING_BUILD_TRACKER.md:
+   - Change Batch 5 row to ✅ Complete (or note what remains)
+   - Update "Current Market files in play" with new files and line counts
+   - Update "Still missing" section
+   - Add Session Log entry
+   - Update the "Ready-To-Paste Prompt For Next Chat" at the bottom to reference Batch 6
+4. Push to git: `git add -A && git commit -m "Market Robot Batch 5: Results + Live Wallet" && git push`
+5. Give me a summary of what was built, what's working, any issues, and remaining batches
 ```

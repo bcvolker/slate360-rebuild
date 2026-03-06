@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { SimRun, PnlPoint, BotConfig, MarketTrade } from "@/components/dashboard/market/types";
+import { useState, useEffect, useCallback } from "react";
+import type { SimRun, PnlPoint, BotConfig, MarketTrade, SimulationConfig } from "@/components/dashboard/market/types";
 
 interface UseMarketSimStateParams {
   botConfig: BotConfig;
@@ -10,19 +10,35 @@ interface UseMarketSimStateParams {
   addLog: (msg: string) => void;
 }
 
+const SIM_STORAGE_KEY = "slate360_sim_runs";
+const MAX_SNAPSHOTS = 10;
+
+const DEFAULT_SIM_CONFIG: SimulationConfig = {
+  startingBalance: 500,
+  fillModel: "realistic",
+  feeMode: true,
+  partialFills: false,
+};
+
 export function useMarketSimState({ botConfig, trades, pnlChart, addLog }: UseMarketSimStateParams) {
   const [simRuns, setSimRuns] = useState<SimRun[]>([]);
   const [compareA, setCompareA] = useState<string | null>(null);
   const [compareB, setCompareB] = useState<string | null>(null);
+  const [simConfig, setSimConfig] = useState<SimulationConfig>(DEFAULT_SIM_CONFIG);
 
   useEffect(() => {
     try {
-      const s = localStorage.getItem("slate360_sim_runs");
+      const s = localStorage.getItem(SIM_STORAGE_KEY);
       if (s) setSimRuns(JSON.parse(s) as SimRun[]);
     } catch { /* ignore */ }
   }, []);
 
-  const saveCurrentSimRun = () => {
+  const persistRuns = useCallback((runs: SimRun[]) => {
+    localStorage.setItem(SIM_STORAGE_KEY, JSON.stringify(runs));
+    setSimRuns(runs);
+  }, []);
+
+  const saveCurrentSimRun = useCallback(() => {
     const name = `Sim ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
     const run: SimRun = {
       id: Date.now().toString(), name, created_at: new Date().toISOString(),
@@ -36,18 +52,20 @@ export function useMarketSimState({ botConfig, trades, pnlChart, addLog }: UseMa
       total_pnl: pnlChart.length > 0 ? pnlChart[pnlChart.length - 1].cumPnl : 0,
       win_rate: trades.length > 0 ? parseFloat(((trades.filter(t => t.pnl > 0).length / trades.length) * 100).toFixed(1)) : 0,
       trade_count: trades.length,
+      fillModel: simConfig.fillModel,
+      feeMode: simConfig.feeMode,
+      partialFills: simConfig.partialFills,
+      startingBalance: simConfig.startingBalance,
     };
-    const updated = [run, ...simRuns].slice(0, 10);
-    localStorage.setItem("slate360_sim_runs", JSON.stringify(updated));
-    setSimRuns(updated);
-    addLog(`💾 Sim saved: "${name}"`);
-  };
+    const updated = [run, ...simRuns].slice(0, MAX_SNAPSHOTS);
+    persistRuns(updated);
+    addLog(`💾 Sim saved: "${name}" (${simConfig.fillModel} fills, fees ${simConfig.feeMode ? "on" : "off"})`);
+  }, [botConfig, pnlChart, trades, simRuns, simConfig, addLog, persistRuns]);
 
-  const deleteSimRun = (id: string) => {
+  const deleteSimRun = useCallback((id: string) => {
     const next = simRuns.filter(r => r.id !== id);
-    setSimRuns(next);
-    localStorage.setItem("slate360_sim_runs", JSON.stringify(next));
-  };
+    persistRuns(next);
+  }, [simRuns, persistRuns]);
 
   const compareRunA = simRuns.find(r => r.id === compareA);
   const compareRunB = simRuns.find(r => r.id === compareB);
@@ -64,5 +82,6 @@ export function useMarketSimState({ botConfig, trades, pnlChart, addLog }: UseMa
   return {
     simRuns, setSimRuns, compareA, setCompareA, compareB, setCompareB,
     saveCurrentSimRun, deleteSimRun, compareRunA, compareRunB, compareChartData,
+    simConfig, setSimConfig,
   };
 }

@@ -1,29 +1,28 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { StatusBadge } from "@/components/dashboard/market/MarketSharedUi";
 import { useMarketTradeData } from "@/lib/hooks/useMarketTradeData";
 import { useMarketBot } from "@/lib/hooks/useMarketBot";
 import { useMarketDirectives } from "@/lib/hooks/useMarketDirectives";
+import { useMarketSimState } from "@/lib/hooks/useMarketSimState";
 import MarketPrimaryNav from "@/components/dashboard/market/MarketPrimaryNav";
-import MarketStartHereStub from "@/components/dashboard/market/MarketStartHereStub";
-import MarketDirectBuyStub from "@/components/dashboard/market/MarketDirectBuyStub";
-import MarketAutomationStub from "@/components/dashboard/market/MarketAutomationStub";
+import MarketStartHereTab from "@/components/dashboard/market/MarketStartHereTab";
+import MarketDirectBuyTab from "@/components/dashboard/market/MarketDirectBuyTab";
+import MarketAutomationTab from "@/components/dashboard/market/MarketAutomationTab";
+import MarketSimulationPanel from "@/components/dashboard/market/MarketSimulationPanel";
 import MarketSavedMarketsStub from "@/components/dashboard/market/MarketSavedMarketsStub";
-import MarketResultsStub from "@/components/dashboard/market/MarketResultsStub";
 import MarketLiveWalletStub from "@/components/dashboard/market/MarketLiveWalletStub";
 import type { MarketShellContext } from "@/components/dashboard/market/MarketRouteShell";
+import type { AutomationPlan } from "@/components/dashboard/market/types";
 
 interface MarketClientProps {
   layoutPrefs?: MarketShellContext;
 }
 
-const TAB_COMPONENTS: Record<string, React.ComponentType> = {
-  "start-here": MarketStartHereStub,
-  "direct-buy": MarketDirectBuyStub,
-  "automation": MarketAutomationStub,
+// Stubs for tabs not yet built — replaced per batch
+const STUB_TABS: Record<string, React.ComponentType> = {
   "saved-markets": MarketSavedMarketsStub,
-  "results": MarketResultsStub,
   "live-wallet": MarketLiveWalletStub,
 };
 
@@ -58,6 +57,12 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
     addLog: bot.addLog,
     onSetActiveTab: setActiveTabId,
   });
+  const sim = useMarketSimState({
+    botConfig: bot.config,
+    trades: td.trades,
+    pnlChart: td.pnlChart,
+    addLog: bot.addLog,
+  });
 
   useEffect(() => {
     td.fetchTrades();
@@ -68,7 +73,61 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const ActiveComponent = TAB_COMPONENTS[activeTabId];
+  const handleApplyPlan = useCallback((plan: AutomationPlan) => {
+    bot.setCapitalAlloc(plan.budget);
+    bot.setRiskMix(plan.riskLevel);
+    bot.setFocusAreas(plan.categories);
+    bot.setPaperMode(plan.mode === "practice");
+    bot.addLog(`📋 Plan "${plan.name}" applied to bot`);
+    bot.setBotRunning(true);
+    bot.setBotPaused(false);
+    bot.runScan();
+  }, [bot]);
+
+  function renderActiveTab() {
+    switch (activeTabId) {
+      case "start-here":
+        return (
+          <MarketStartHereTab
+            onNavigate={setActiveTabId}
+            paperMode={bot.config.paperMode}
+            botRunning={bot.config.botRunning}
+            lastScan={bot.config.lastScan}
+          />
+        );
+      case "direct-buy":
+        return <MarketDirectBuyTab paperMode={bot.config.paperMode} />;
+      case "automation":
+        return (
+          <MarketAutomationTab
+            botConfig={bot.config}
+            onApplyPlan={handleApplyPlan}
+          />
+        );
+      case "results":
+        return (
+          <MarketSimulationPanel
+            simRuns={sim.simRuns}
+            compareA={sim.compareA}
+            compareB={sim.compareB}
+            compareRunA={sim.compareRunA}
+            compareRunB={sim.compareRunB}
+            compareChartData={sim.compareChartData}
+            hasTrades={td.trades.length > 0}
+            simConfig={sim.simConfig}
+            onSimConfigChange={sim.setSimConfig}
+            onCompareAChange={sim.setCompareA}
+            onCompareBChange={sim.setCompareB}
+            onSaveCurrentSim={sim.saveCurrentSimRun}
+            onDeleteRun={sim.deleteSimRun}
+          />
+        );
+      default: {
+        const Stub = STUB_TABS[activeTabId];
+        return Stub ? <Stub /> : null;
+      }
+    }
+  }
 
   return (
     <div className="text-gray-900">
@@ -98,7 +157,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
         onTabChange={setActiveTabId}
       />
 
-      {ActiveComponent ? <ActiveComponent /> : null}
+      {renderActiveTab()}
     </div>
   );
 }
