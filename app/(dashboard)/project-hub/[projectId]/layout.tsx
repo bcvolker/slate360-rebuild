@@ -30,7 +30,7 @@ export default async function ProjectDetailLayout({
   const { projectId } = await params;
   const supabase = await createClient();
 
-  const { user, tier, isSlateCeo } = await resolveServerOrgContext();
+  const { user, tier, isSlateCeo, canAccessCeo, canAccessMarket, canAccessAthlete360 } = await resolveServerOrgContext();
 
   if (!user) {
     redirect(`/login?redirectTo=${encodeURIComponent(`/project-hub/${projectId}`)}`);
@@ -54,6 +54,7 @@ export default async function ProjectDetailLayout({
         }}
         tier={tier}
         isCeo={isSlateCeo}
+        internalAccess={{ ceo: canAccessCeo, market: canAccessMarket, athlete360: canAccessAthlete360 }}
         showBackLink
       />
       <div className="sticky top-0 z-30 border-b border-gray-100 bg-white/95 backdrop-blur-md">

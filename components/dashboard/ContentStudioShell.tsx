@@ -8,14 +8,16 @@ interface Props {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
   isCeo?: boolean;
+  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
 }
 
-export default function ContentStudioShell({ user, tier, isCeo }: Props) {
+export default function ContentStudioShell({ user, tier, isCeo, internalAccess }: Props) {
   return (
     <DashboardTabShell
       user={user}
       tier={tier}
       isCeo={isCeo}
+      internalAccess={internalAccess}
       title="Content Studio"
       icon={Layers}
       accent="#1E3A8A"

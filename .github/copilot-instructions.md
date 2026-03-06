@@ -12,7 +12,7 @@ For tab UI behavior and layout persistence, use `slate360-context/dashboard-tabs
 
 ## Quick Rules
 
-1. **No file > 300 lines** — extract sub-components/hooks/utils before adding code.
+1. **No production code file > 300 lines** — extract sub-components/hooks/utils before adding code. This rule applies to `.tsx`, `.ts`, `.js` files only. Markdown context files under `slate360-context/`, `docs/`, and `_archived_docs/` are exempt — they should be as complete as needed.
 2. **No `any`** — use `unknown` + narrowing, generics, or proper interfaces.
 3. **No duplicated auth** — use `withAuth()` / `withProjectAuth()` from `@/lib/server/api-auth`.
 4. **Types from `lib/types/`** — import `ProjectRouteContext` from `@/lib/types/api`, not inline.
@@ -27,7 +27,7 @@ For tab UI behavior and layout persistence, use `slate360-context/dashboard-tabs
 13. **No mock data in production UI** — show proper empty/error state when Supabase env is missing.
 14. **Update context files** — after ANY code change, update the relevant `slate360-context/` blueprint if routes, components, APIs, DB tables, or features changed.
 15. **Anti-regression: never re-inline extracted components** — if a sub-component file exists (e.g. `SlateDropSidebar.tsx`, `DashboardWidgetRenderer.tsx`), NEVER copy its code back into the parent. Import and compose instead.
-16. **Anti-regression: run `bash scripts/check-file-size.sh` before committing** — if your changes push ANY file above 300 lines, extract before committing.
+16. **Anti-regression: run `bash scripts/check-file-size.sh` before committing** — if your changes push any `.ts`/`.tsx` file above 300 lines, extract before committing. The check does not apply to `.md` documentation files.
 17. **Widget meta location:** `lib/widgets/widget-meta.ts` and `lib/widgets/widget-prefs-storage.ts` — NEVER in `components/`.
 18. **Widget rendering:** use `DashboardWidgetRenderer` component — NEVER add inline widget JSX to `DashboardClient.tsx`.
 

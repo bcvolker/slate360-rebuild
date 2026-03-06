@@ -8,14 +8,16 @@ interface Props {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
   isCeo?: boolean;
+  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
 }
 
-export default function GeospatialShell({ user, tier, isCeo }: Props) {
+export default function GeospatialShell({ user, tier, isCeo, internalAccess }: Props) {
   return (
     <DashboardTabShell
       user={user}
       tier={tier}
       isCeo={isCeo}
+      internalAccess={internalAccess}
       title="Geospatial"
       icon={Globe}
       accent="#1E3A8A"

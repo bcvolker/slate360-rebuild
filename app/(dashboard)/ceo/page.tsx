@@ -7,12 +7,12 @@ export const metadata = {
 };
 
 export default async function CeoPage() {
-  const { user, tier, isSlateCeo, hasInternalAccess } = await resolveServerOrgContext();
+  const { user, tier, isSlateCeo, canAccessCeo, canAccessMarket, canAccessAthlete360 } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
   // CEO Command Center is a Slate360 platform-admin tab — NOT a subscription tier feature.
   // Access requires: slate360ceo@gmail.com OR an employee granted access via CEO tab (slate360_staff table).
-  if (!hasInternalAccess) {
+  if (!canAccessCeo) {
     notFound();
   }
 
@@ -25,6 +25,7 @@ export default async function CeoPage() {
       }}
       tier={tier}
       isCeo={isSlateCeo}
+      internalAccess={{ ceo: canAccessCeo, market: canAccessMarket, athlete360: canAccessAthlete360 }}
     />
   );
 }

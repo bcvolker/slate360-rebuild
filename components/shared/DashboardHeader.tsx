@@ -40,6 +40,7 @@ export interface DashboardHeaderProps {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
   isCeo?: boolean;
+  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
   /**
    * When true, renders a "← Dashboard" back link in the left cluster.
    * Set this on all tab pages; leave false (default) on the dashboard home itself.
@@ -66,6 +67,7 @@ export default function DashboardHeader({
   user,
   tier,
   isCeo = false,
+  internalAccess,
   showBackLink = false,
   searchQuery = "",
   onSearchChange,
@@ -138,7 +140,7 @@ export default function DashboardHeader({
         <div className="flex items-center gap-1.5 sm:gap-3">
 
           {/* QuickNav — same tier-gated list on every page */}
-          <QuickNav tier={ent.tier} isCeo={isCeo} />
+          <QuickNav tier={ent.tier} isCeo={isCeo} internalAccess={internalAccess} />
 
           {/* Notifications bell */}
           <div className="relative">

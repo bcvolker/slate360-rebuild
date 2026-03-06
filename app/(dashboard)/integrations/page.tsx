@@ -7,7 +7,7 @@ export const metadata = {
 };
 
 export default async function IntegrationsHubServerPage() {
-  const { user, tier, isSlateCeo, hasInternalAccess } = await resolveServerOrgContext();
+  const { user, tier, isSlateCeo, canAccessCeo, canAccessMarket, canAccessAthlete360 } = await resolveServerOrgContext();
 
   if (!user) redirect("/login");
 
@@ -19,7 +19,8 @@ export default async function IntegrationsHubServerPage() {
         avatar: user.user_metadata?.avatar_url ?? undefined,
       }}
       tier={tier}
-      isCeo={hasInternalAccess}
+      isCeo={isSlateCeo}
+      internalAccess={{ ceo: canAccessCeo, market: canAccessMarket, athlete360: canAccessAthlete360 }}
     />
   );
 }

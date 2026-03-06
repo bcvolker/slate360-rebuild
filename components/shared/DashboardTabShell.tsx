@@ -16,6 +16,7 @@ export interface DashboardTabShellProps {
   accent?: string;
   status?: TabStatus;
   isCeo?: boolean;
+  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
   children?: React.ReactNode;
 }
 
@@ -27,6 +28,7 @@ export default function DashboardTabShell({
   accent = "#1E3A8A",
   status = "coming-soon",
   isCeo = false,
+  internalAccess,
   children,
 }: DashboardTabShellProps) {
   const [customizeOpen, setCustomizeOpen] = useState(false);
@@ -39,6 +41,7 @@ export default function DashboardTabShell({
         user={user}
         tier={tier}
         isCeo={isCeo}
+        internalAccess={internalAccess}
         showBackLink
         searchPlaceholder={`Search ${title}\u2026`}
         onCustomizeOpen={() => setCustomizeOpen(true)}

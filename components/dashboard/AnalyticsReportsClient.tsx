@@ -52,9 +52,10 @@ interface AnalyticsProps {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
   isCeo?: boolean;
+  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
 }
 
-export default function AnalyticsReportsClient({ user, tier, isCeo = false }: AnalyticsProps) {
+export default function AnalyticsReportsClient({ user, tier, isCeo = false, internalAccess }: AnalyticsProps) {
   const { reports, loading, exportState, error, fetchReports, requestExport } = useAnalyticsStore();
 
   const [selectedType, setSelectedType]         = useState(REPORT_TYPES[0].id);
@@ -110,6 +111,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false }: An
       accent="#1E3A8A"
       status="live"
       isCeo={isCeo}
+      internalAccess={internalAccess}
     >
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>

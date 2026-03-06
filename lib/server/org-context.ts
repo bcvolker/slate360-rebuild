@@ -14,6 +14,15 @@ type MembershipRow = {
     | null;
 };
 
+const INTERNAL_TABS = ["ceo", "market", "athlete360"] as const;
+
+type InternalTabId = (typeof INTERNAL_TABS)[number];
+
+type StaffAccessRow = {
+  id?: string | null;
+  access_scope?: string[] | null;
+};
+
 function toTier(value?: string | null): Tier {
   if (value === "trial" || value === "creator" || value === "model" || value === "business" || value === "enterprise") {
     return value;
@@ -28,6 +37,20 @@ function roleRank(role?: string | null): number {
   return 2;
 }
 
+function resolveInternalAccess(isSlateCeo: boolean, scopes: string[]) {
+  const normalizedScopes = isSlateCeo
+    ? [...INTERNAL_TABS]
+    : INTERNAL_TABS.filter((scope) => scopes.includes(scope));
+
+  return {
+    internalAccessScopes: normalizedScopes,
+    canAccessCeo: normalizedScopes.includes("ceo"),
+    canAccessMarket: normalizedScopes.includes("market"),
+    canAccessAthlete360: normalizedScopes.includes("athlete360"),
+    hasInternalAccess: normalizedScopes.length > 0,
+  };
+}
+
 export type ServerOrgContext = {
   user: User | null;
   tier: Tier;
@@ -38,6 +61,10 @@ export type ServerOrgContext = {
   isSlateCeo: boolean;
   /** True when the user's email is in the slate360_staff table (granted by CEO). */
   isSlateStaff: boolean;
+  internalAccessScopes: InternalTabId[];
+  canAccessCeo: boolean;
+  canAccessMarket: boolean;
+  canAccessAthlete360: boolean;
   /**
    * Combined flag: isSlateCeo || isSlateStaff.
    * Use this everywhere you need to gate visibility of CEO/internal-only tabs
@@ -64,11 +91,43 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
       isAdmin: false,
       isSlateCeo: false,
       isSlateStaff: false,
+      internalAccessScopes: [],
+      canAccessCeo: false,
+      canAccessMarket: false,
+      canAccessAthlete360: false,
       hasInternalAccess: false,
     };
   }
 
   const isSlateCeo = user.email === "slate360ceo@gmail.com";
+
+  // Check slate360_staff table for internal access grants
+  let isSlateStaffResolved = false;
+  let internalStaffScopes: string[] = [];
+  if (!isSlateCeo && user.email) {
+    try {
+      const { data: staffRow } = await admin
+        .from("slate360_staff")
+        .select("id, access_scope")
+        .eq("email", user.email.toLowerCase())
+        .is("revoked_at", null)
+        .maybeSingle();
+
+      const resolvedRow = staffRow as StaffAccessRow | null;
+      isSlateStaffResolved = !!resolvedRow;
+      internalStaffScopes = Array.isArray(resolvedRow?.access_scope) && resolvedRow.access_scope.length > 0
+        ? resolvedRow.access_scope
+        : isSlateStaffResolved
+          ? [...INTERNAL_TABS]
+          : [];
+    } catch {
+      // Table may not exist yet — fail gracefully
+      isSlateStaffResolved = false;
+      internalStaffScopes = [];
+    }
+  }
+
+  const internalAccess = resolveInternalAccess(isSlateCeo, internalStaffScopes);
 
   try {
     const { data } = await admin
@@ -88,8 +147,8 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
         role: null,
         isAdmin: false,
         isSlateCeo,
-        isSlateStaff: false,
-        hasInternalAccess: isSlateCeo,
+        isSlateStaff: isSlateStaffResolved,
+        ...internalAccess,
       };
     }
 
@@ -122,8 +181,8 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
       role,
       isAdmin,
       isSlateCeo,
-      isSlateStaff: false,
-      hasInternalAccess: isSlateCeo,
+      isSlateStaff: isSlateStaffResolved,
+      ...internalAccess,
     };
   } catch {
     return {
@@ -134,8 +193,8 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
       role: null,
       isAdmin: false,
       isSlateCeo,
-      isSlateStaff: false,
-      hasInternalAccess: isSlateCeo,
+      isSlateStaff: isSlateStaffResolved,
+      ...internalAccess,
     };
   }
 }

@@ -8,7 +8,16 @@ export const metadata = {
 };
 
 export default async function DashboardPage() {
-  const { user, tier, orgId, isSlateCeo, isSlateStaff } = await resolveServerOrgContext();
+  const {
+    user,
+    tier,
+    orgId,
+    isSlateCeo,
+    isSlateStaff,
+    canAccessCeo,
+    canAccessMarket,
+    canAccessAthlete360,
+  } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
   if (!orgId) {
@@ -32,6 +41,9 @@ export default async function DashboardPage() {
       tier={tier}
       isSlateCeo={isSlateCeo}
       isSlateStaff={isSlateStaff}
+      canAccessCeo={canAccessCeo}
+      canAccessMarket={canAccessMarket}
+      canAccessAthlete360={canAccessAthlete360}
     />
   );
 }

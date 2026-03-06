@@ -136,7 +136,7 @@ export function useMarketDirectives({ botSetters, runScan, addLog, onSetActiveTa
     } catch {
       addLog("⚠️ Directive applied, but scheduler start call failed.");
     }
-    onSetActiveTab("Dashboard");
+    onSetActiveTab("start-here");
   }, [botSetters, addLog, runScan, onSetActiveTab]);
 
   const startEditDirective = useCallback((d: BuyDirective) => {

@@ -27,8 +27,8 @@ interface NavItem {
   icon: LucideIcon;
   /** Entitlements key to check — if undefined, always shown */
   gate?: keyof ReturnType<typeof getEntitlements>;
-  /** Only shown to CEO users */
-  ceoOnly?: boolean;
+  /** Internal admin surface visibility, separate from tier entitlements. */
+  internalKey?: "ceo" | "market" | "athlete360";
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -42,23 +42,27 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Analytics",      href: "/analytics",       icon: BarChart3,    gate: "canAccessAnalytics" },
   { label: "SlateDrop",      href: "/slatedrop",       icon: FolderOpen,   gate: "canViewSlateDropWidget" },
   { label: "My Account",     href: "/my-account",      icon: User },
-  { label: "CEO",            href: "/ceo",             icon: Shield,       ceoOnly: true },
-  { label: "Market Robot",   href: "/market",          icon: TrendingUp,   ceoOnly: true },
-  { label: "Athlete360",     href: "/athlete360",      icon: Zap,          ceoOnly: true },
+  { label: "CEO",            href: "/ceo",             icon: Shield,       internalKey: "ceo" },
+  { label: "Market Robot",   href: "/market",          icon: TrendingUp,   internalKey: "market" },
+  { label: "Athlete360",     href: "/athlete360",      icon: Zap,          internalKey: "athlete360" },
 ];
 
 interface QuickNavProps {
   tier?: Tier;
   isCeo?: boolean;
+  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
 }
 
-export default function QuickNav({ tier, isCeo = false }: QuickNavProps) {
+export default function QuickNav({ tier, isCeo = false, internalAccess }: QuickNavProps) {
   const [open, setOpen] = useState(false);
-  // Use isCeo override so CEO users (and invited staff) see enterprise-gated nav items
+  // CEO override affects entitlements only for the actual CEO account.
   const ent = tier ? getEntitlements(tier, { isSlateCeo: isCeo }) : null;
 
   const visibleItems = NAV_ITEMS.filter((item) => {
-    if (item.ceoOnly && !isCeo) return false;
+    if (item.internalKey) {
+      if (internalAccess) return Boolean(internalAccess[item.internalKey]);
+      return isCeo;
+    }
     if (item.gate && ent) {
       const val = ent[item.gate];
       if (typeof val === "boolean" && !val) return false;

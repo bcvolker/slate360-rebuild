@@ -42,9 +42,14 @@ const INTEGRATIONS: IntegrationCard[] = [
   },
 ];
 
-interface Props { user: {name: string, email: string, avatar?: string}; tier: import("@/lib/entitlements").Tier; isCeo?: boolean; }
+interface Props {
+  user: {name: string, email: string, avatar?: string};
+  tier: import("@/lib/entitlements").Tier;
+  isCeo?: boolean;
+  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
+}
 
-export default function IntegrationsHubPage({ user, tier, isCeo = false }: Props) {
+export default function IntegrationsHubPage({ user, tier, isCeo = false, internalAccess }: Props) {
   const [connected, setConnected] = useState<Record<string, boolean>>({});
   const [quickNavOpen, setQuickNavOpen] = useState(false);
 
@@ -54,6 +59,7 @@ export default function IntegrationsHubPage({ user, tier, isCeo = false }: Props
         user={user}
         tier={tier}
         isCeo={isCeo}
+        internalAccess={internalAccess}
         showBackLink
       />
 

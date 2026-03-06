@@ -1,7 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { FolderKanban, ClipboardList, CheckCircle2, AlertTriangle, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  FolderKanban,
+  ClipboardList,
+  CheckCircle2,
+  AlertTriangle,
+  DollarSign,
+  BarChart3,
+  FileText,
+  ChevronDown,
+  ArrowUpRight,
+} from "lucide-react";
 import type { ProjectHubSummary } from "@/lib/types/project-hub";
 
 type Props = {
@@ -10,14 +21,18 @@ type Props = {
   fallbackProjectsCount: number;
 };
 
-type MetricCard = {
+type SnapshotCard = {
   id: string;
   icon: typeof FolderKanban;
-  bg: string;
-  text: string;
-  value: number;
+  borderColor: string;
+  bgColor: string;
+  labelColor: string;
+  valueColor: string;
+  value: string | number;
   label: string;
   detail: string[];
+  /** If set, navigates to the first matching project's tool tab */
+  toolPath?: string;
 };
 
 export default function ProjectHubPortfolioOverview({
@@ -25,65 +40,142 @@ export default function ProjectHubPortfolioOverview({
   summaryLoading,
   fallbackProjectsCount,
 }: Props) {
+  const router = useRouter();
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
-  const cards: MetricCard[] = [
+  const firstProjectId = summary?.recentProjects?.[0]?.id;
+
+  const navigateToTool = (toolPath?: string) => {
+    if (!toolPath || !firstProjectId) return;
+    router.push(`/project-hub/${firstProjectId}/${toolPath}`);
+  };
+
+  const cards: SnapshotCard[] = [
     {
-      id: "projects",
+      id: "active",
       icon: FolderKanban,
-      bg: "bg-blue-50",
-      text: "text-blue-600",
-      value: summary?.totals.projects ?? fallbackProjectsCount,
-      label: "Total Projects",
+      borderColor: "border-blue-100",
+      bgColor: "bg-blue-50/60",
+      labelColor: "text-blue-500",
+      valueColor: "text-blue-700",
+      value: summary?.totals.activeProjects ?? 0,
+      label: "Active Projects",
       detail: summary?.recentProjects?.length
-        ? summary.recentProjects.map((project) => `${project.name} (${project.status})`)
-        : ["No projects yet — click 'New Project' to get started"],
+        ? summary.recentProjects
+            .filter((p) => p.status === "active")
+            .slice(0, 5)
+            .map((p) => p.name)
+        : ["No active projects"],
     },
     {
       id: "rfis",
       icon: ClipboardList,
-      bg: "bg-orange-50",
-      text: "text-[#FF4D00]",
+      borderColor: "border-orange-100",
+      bgColor: "bg-orange-50/60",
+      labelColor: "text-orange-500",
+      valueColor: "text-orange-700",
       value: summary?.work.openRfis ?? 0,
       label: "Open RFIs",
+      toolPath: "rfis",
       detail: [
-        "Aggregated open RFIs across all accessible projects",
-        "Use per-project RFI tabs for detailed routing",
+        "Aggregated open RFIs across all projects",
+        "Click to view RFIs for your most recent project",
       ],
     },
     {
       id: "submittals",
       icon: CheckCircle2,
-      bg: "bg-purple-50",
-      text: "text-purple-600",
+      borderColor: "border-purple-100",
+      bgColor: "bg-purple-50/60",
+      labelColor: "text-purple-500",
+      valueColor: "text-purple-700",
       value: summary?.work.pendingSubmittals ?? 0,
-      label: "Submittals",
+      label: "Pending Submittals",
+      toolPath: "submittals",
       detail: [
         "Pending/submitted submittals across projects",
-        "Review approvals in each project's Submittals tab",
+        "Click to review approvals in Submittals tab",
       ],
     },
     {
-      id: "tasks",
+      id: "budget",
+      icon: DollarSign,
+      borderColor: "border-emerald-100",
+      bgColor: "bg-emerald-50/60",
+      labelColor: "text-emerald-500",
+      valueColor: "text-emerald-700",
+      value: new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        notation: "compact",
+        maximumFractionDigits: 1,
+      }).format(summary?.budget.totalBudget ?? 0),
+      label: "Portfolio Budget",
+      toolPath: "budget",
+      detail: [
+        `Total spent: ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }).format(summary?.budget.totalSpent ?? 0)}`,
+        `Change orders: ${summary?.budget.totalChangeOrders ?? 0}`,
+        "Click to view budget details",
+      ],
+    },
+    {
+      id: "completed",
+      icon: BarChart3,
+      borderColor: "border-teal-100",
+      bgColor: "bg-teal-50/60",
+      labelColor: "text-teal-500",
+      valueColor: "text-teal-700",
+      value: summary?.totals.completedProjects ?? 0,
+      label: "Completed",
+      detail: summary?.recentProjects?.length
+        ? summary.recentProjects
+            .filter((p) => p.status === "completed")
+            .slice(0, 5)
+            .map((p) => p.name)
+        : ["No completed projects yet"],
+    },
+    {
+      id: "onhold",
       icon: AlertTriangle,
-      bg: "bg-red-50",
-      text: "text-red-600",
+      borderColor: "border-red-100",
+      bgColor: "bg-red-50/60",
+      labelColor: "text-red-500",
+      valueColor: "text-red-700",
       value: summary?.totals.onHoldProjects ?? 0,
-      label: "On-Hold Projects",
+      label: "On Hold",
       detail: [
         "Projects currently marked on-hold",
         "Re-activate from project settings when ready",
       ],
     },
+    {
+      id: "documents",
+      icon: FileText,
+      borderColor: "border-indigo-100",
+      bgColor: "bg-indigo-50/60",
+      labelColor: "text-indigo-500",
+      valueColor: "text-indigo-700",
+      value: summary?.totals.projects ?? fallbackProjectsCount,
+      label: "Total Projects",
+      toolPath: "documents",
+      detail: summary?.recentProjects?.length
+        ? summary.recentProjects.slice(0, 5).map((p) => `${p.name} (${p.status})`)
+        : ["No projects yet — click New Project to get started"],
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-      <div className="col-span-2 md:col-span-4 rounded-2xl border border-gray-200 bg-white px-4 py-4 sm:px-5 sm:py-5 shadow-sm">
+    <div className="space-y-3">
+      {/* Portfolio Snapshot header */}
+      <div className="rounded-2xl border border-gray-200 bg-white px-4 py-4 sm:px-5 sm:py-5 shadow-sm">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400">Portfolio Snapshot</p>
-            <h2 className="text-base sm:text-lg font-black text-gray-900">Organization-level project health</h2>
+            <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400">
+              Portfolio Snapshot
+            </p>
+            <h2 className="text-base sm:text-lg font-black text-gray-900">
+              Organization-level project health
+            </h2>
           </div>
           <span className="text-[11px] font-semibold text-gray-500">
             {summaryLoading
@@ -92,63 +184,68 @@ export default function ProjectHubPortfolioOverview({
           </span>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3">
-            <p className="text-[10px] uppercase tracking-wider font-bold text-blue-500">Active Projects</p>
-            <p className="text-xl font-black text-blue-700 mt-1">{summary?.totals.activeProjects ?? 0}</p>
-          </div>
-          <div className="rounded-xl border border-orange-100 bg-orange-50/60 p-3">
-            <p className="text-[10px] uppercase tracking-wider font-bold text-orange-500">Open RFIs</p>
-            <p className="text-xl font-black text-orange-700 mt-1">{summary?.work.openRfis ?? 0}</p>
-          </div>
-          <div className="rounded-xl border border-purple-100 bg-purple-50/60 p-3">
-            <p className="text-[10px] uppercase tracking-wider font-bold text-purple-500">Pending Submittals</p>
-            <p className="text-xl font-black text-purple-700 mt-1">{summary?.work.pendingSubmittals ?? 0}</p>
-          </div>
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3">
-            <p className="text-[10px] uppercase tracking-wider font-bold text-emerald-500">Portfolio Budget</p>
-            <p className="text-base sm:text-lg font-black text-emerald-700 mt-1">
-              {new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: "USD",
-                notation: "compact",
-                maximumFractionDigits: 1,
-              }).format(summary?.budget.totalBudget ?? 0)}
-            </p>
-          </div>
+        {/* Interactive metric cards */}
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+          {cards.map((card) => {
+            const isOpen = expandedCard === card.id;
+            const hasLink = !!card.toolPath && !!firstProjectId;
+            const Icon = card.icon;
+
+            return (
+              <div key={card.id} className="relative">
+                <button
+                  onClick={() => setExpandedCard(isOpen ? null : card.id)}
+                  className={`w-full rounded-xl border ${card.borderColor} ${card.bgColor} p-3 text-left transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group ${
+                    isOpen ? "ring-2 ring-gray-300 shadow-md" : ""
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <Icon size={13} className={card.labelColor} />
+                    <ChevronDown
+                      size={10}
+                      className={`${card.labelColor} opacity-0 group-hover:opacity-100 transition-all ${
+                        isOpen ? "rotate-180 opacity-100" : ""
+                      }`}
+                    />
+                  </div>
+                  <p className={`text-[10px] uppercase tracking-wider font-bold ${card.labelColor} mt-1.5`}>
+                    {card.label}
+                  </p>
+                  <p className={`text-lg sm:text-xl font-black ${card.valueColor} mt-0.5`}>
+                    {card.value}
+                  </p>
+                </button>
+
+                {/* Expanded detail dropdown */}
+                {isOpen && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-white rounded-xl border border-gray-200 shadow-lg p-3 space-y-1.5 animate-in slide-in-from-top-1">
+                    {card.detail.map((entry, idx) => (
+                      <p
+                        key={`${card.id}-${idx}`}
+                        className="text-xs text-gray-600 flex items-start gap-2"
+                      >
+                        <span className="mt-1 w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
+                        {entry}
+                      </p>
+                    ))}
+                    {hasLink && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigateToTool(card.toolPath);
+                        }}
+                        className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg bg-gray-50 border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        View Details <ArrowUpRight size={10} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
-
-      {cards.map(({ id, icon: SIcon, bg, text, value, label, detail }) => {
-        const isOpen = expandedCard === id;
-        return (
-          <div key={label} className="flex flex-col">
-            <button
-              onClick={() => setExpandedCard(isOpen ? null : id)}
-              className={`bg-white p-3 sm:p-4 rounded-2xl border shadow-sm flex items-center gap-3 sm:gap-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-left ${isOpen ? "border-gray-300 shadow-md" : "border-gray-100 hover:border-gray-200"}`}
-            >
-              <div className={`p-2.5 sm:p-3 ${bg} ${text} rounded-xl shrink-0`}>
-                <SIcon size={20} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xl sm:text-2xl font-black text-gray-900">{value}</p>
-                <p className="text-[10px] sm:text-xs font-semibold text-gray-500">{label}</p>
-              </div>
-              <ChevronDown size={14} className={`text-gray-400 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-            </button>
-            {isOpen && (
-              <div className="mt-1 bg-white rounded-xl border border-gray-200 shadow-sm p-3 space-y-1.5 animate-in slide-in-from-top-1">
-                {detail.map((entry, index) => (
-                  <p key={`${id}-${index}`} className="text-xs text-gray-600 flex items-start gap-2">
-                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
-                    {entry}
-                  </p>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
     </div>
   );
 }

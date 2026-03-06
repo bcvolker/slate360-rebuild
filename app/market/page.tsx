@@ -9,11 +9,11 @@ export const metadata = {
 };
 
 export default async function MarketPage() {
-  const { user, tier, hasInternalAccess } = await resolveServerOrgContext();
+  const { user, tier, isSlateCeo, canAccessCeo, canAccessMarket, canAccessAthlete360 } = await resolveServerOrgContext();
 
   if (!user) redirect("/login");
 
-  if (!hasInternalAccess) {
+  if (!canAccessMarket) {
     notFound();
   }
 
@@ -26,7 +26,8 @@ export default async function MarketPage() {
           avatar: user.user_metadata?.avatar_url,
         }}
         tier={tier}
-        isCeo={hasInternalAccess}
+        isCeo={isSlateCeo}
+        internalAccess={{ ceo: canAccessCeo, market: canAccessMarket, athlete360: canAccessAthlete360 }}
       >
         <MarketClient />
       </MarketRouteShell>

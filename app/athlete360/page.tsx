@@ -6,10 +6,10 @@ export const metadata = {
 };
 
 export default async function Athlete360Page() {
-  const { user, hasInternalAccess } = await resolveServerOrgContext();
+  const { user, canAccessAthlete360 } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
-  if (!hasInternalAccess) {
+  if (!canAccessAthlete360) {
     notFound();
   }
 

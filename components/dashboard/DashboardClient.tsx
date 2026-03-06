@@ -99,6 +99,9 @@ interface DashboardProps {
   isSlateCeo?: boolean;
   /** True when user is in the slate360_staff table (invited by CEO). */
   isSlateStaff?: boolean;
+  canAccessCeo?: boolean;
+  canAccessMarket?: boolean;
+  canAccessAthlete360?: boolean;
 }
 
 // Project, CalEvent, Contact, LiveWeatherState, Job, DashboardWidgetsPayload,
@@ -253,14 +256,24 @@ function TabWireframe({ tab, onBack, onOpenSlateDrop }: { tab: DashTab; onBack: 
    MAIN DASHBOARD COMPONENT
    ================================================================ */
 
-export default function DashboardClient({ user, tier, isSlateCeo = false }: DashboardProps) {
+export default function DashboardClient({
+  user,
+  tier,
+  isSlateCeo = false,
+  canAccessCeo = false,
+  canAccessMarket = false,
+  canAccessAthlete360 = false,
+}: DashboardProps) {
   const ent = getEntitlements(tier, { isSlateCeo });
   const supabase = createClient();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
 
-  // CEO/internal tabs are gated by isSlateCeo only — never by subscription tier
-  const hasCeoAccess = isSlateCeo;
+  const internalAccess = {
+    ceo: canAccessCeo,
+    market: canAccessMarket,
+    athlete360: canAccessAthlete360,
+  };
 
   // Build the ordered, filtered tab list based on tier entitlements + identity
   const visibleTabs: DashTab[] = ([
@@ -273,7 +286,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
     { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#1E3A8A" },
     { id: "slatedrop",      label: "SlateDrop",      icon: FolderOpen, FolderKanban,      color: "#FF4D00" },
     { id: "my-account",     label: "My Account",     icon: User,            color: "#1E3A8A" },
-    ...(hasCeoAccess ? ([
+    ...((canAccessCeo || canAccessMarket || canAccessAthlete360) ? ([
       { id: "ceo",        label: "CEO",        icon: Shield,      color: "#FF4D00", isCEOOnly: true },
       { id: "market",     label: "Market Robot", icon: TrendingUp,  color: "#1E3A8A", isCEOOnly: true },
       { id: "athlete360", label: "Athlete360", icon: Zap,         color: "#FF4D00", isCEOOnly: true },
@@ -289,9 +302,9 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
       case "analytics":      return ent.canAccessAnalytics;
       case "slatedrop":      return ent.canViewSlateDropWidget;
       case "my-account":     return true;
-      case "ceo":
-      case "market":
-      case "athlete360":     return hasCeoAccess;
+      case "ceo":            return canAccessCeo;
+      case "market":         return canAccessMarket;
+      case "athlete360":     return canAccessAthlete360;
       default:               return false;
     }
   });
@@ -1007,7 +1020,8 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
       <DashboardHeader
         user={user}
         tier={tier}
-        isCeo={hasCeoAccess}
+        isCeo={isSlateCeo}
+        internalAccess={internalAccess}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Search projects, files, contacts…"
@@ -1020,7 +1034,7 @@ export default function DashboardClient({ user, tier, isSlateCeo = false }: Dash
 
       {/* ════════ MAIN CONTENT ════════ */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden">
-        {(hasCeoAccess || accountOverview?.isAdmin) && (
+        {(canAccessCeo || accountOverview?.isAdmin) && (
           <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-[11px] text-blue-900">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <span><span className="font-semibold">Runtime:</span> {deployInfo?.url ?? "unknown"}</span>

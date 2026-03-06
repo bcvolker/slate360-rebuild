@@ -21,9 +21,14 @@ import {
 import { useProjectHubWidgets } from "@/lib/hooks/useProjectHubWidgets";
 import type { ProjectHubProject, ProjectHubSummary } from "@/lib/types/project-hub";
 
-interface Props { user: {name: string, email: string, avatar?: string}; tier: import("@/lib/entitlements").Tier; isCeo?: boolean; }
+interface Props {
+  user: {name: string, email: string, avatar?: string};
+  tier: import("@/lib/entitlements").Tier;
+  isCeo?: boolean;
+  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
+}
 
-export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
+export default function ProjectHubPage({ user, tier, isCeo = false, internalAccess }: Props) {
   const [projects, setProjects] = useState<ProjectHubProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [summaryLoading, setSummaryLoading] = useState(true);
@@ -145,6 +150,7 @@ export default function ProjectHubPage({ user, tier, isCeo = false }: Props) {
         user={user}
         tier={tier}
         isCeo={isCeo}
+        internalAccess={internalAccess}
         showBackLink
         onCustomizeOpen={() => setCustomizeOpen(true)}
       />

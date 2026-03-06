@@ -67,6 +67,13 @@ All new dashboard tab pages MUST use `DashboardTabShell` from `components/shared
 
 ### Rule 15: Release Gate Must Pass Before Merge
 All production-bound changes must pass `npm run verify:release`.
+
+### Rule 16: 300-Line Limit Applies To Production Code Only
+The 300-line rule applies to: components, hooks, API routes, utility modules, and any TypeScript/TSX file that ships to production.
+
+It does **NOT** apply to: `slate360-context/` blueprints, `ONGOING_BUILD_TRACKER.md` files, `IMPLEMENTATION_PLAN.md` files, `SLATE360_PROJECT_MEMORY.md`, or any `.md` file under `slate360-context/`, `docs/`, or `_archived_docs/`.
+
+Context and planning documents should be as long as needed to be complete and unambiguous. Splitting them to hit an arbitrary line count is counterproductive — an AI assistant loading a split file can miss the second half and give wrong advice. The right constraint for context files is **clear section headers and a summary table at the top**, not line count.
 - Required checks are defined in `ops/release-gates.json`.
 - File-size regressions are blocked by `scripts/ops/check-file-size-regression.mjs` with baseline in `ops/file-size-baseline.json`.
 - Architecture violations are blocked by `scripts/ops/check-architecture-guardrails.mjs` using `ops/architecture-allowlist.json` for intentional public routes.
