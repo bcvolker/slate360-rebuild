@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import type { SchedulerHealthViewModel } from "@/lib/market/contracts";
+import type { ServerBotStatus } from "@/lib/hooks/useMarketServerStatus";
 
 type Mode = "practice" | "real";
 type PathChoice = "recommendations" | "direct-buy" | "automation";
@@ -8,8 +10,9 @@ type PathChoice = "recommendations" | "direct-buy" | "automation";
 interface MarketStartHereTabProps {
   onNavigate: (tabId: string) => void;
   paperMode: boolean;
-  botRunning: boolean;
-  lastScan: number | null;
+  serverStatus: ServerBotStatus;
+  serverConfirmed: boolean;
+  serverHealth: SchedulerHealthViewModel | null;
 }
 
 interface RecommendationPreset {
@@ -26,78 +29,12 @@ interface RecommendationPreset {
 }
 
 const RECOMMENDATIONS: RecommendationPreset[] = [
-  {
-    id: "small-wallet",
-    emoji: "💼",
-    title: "Best for $100–$300 wallet",
-    subtitle: "Start small with conservative settings",
-    why: "Low position sizes protect your capital while you learn. Makes 1–3 trades per day with tight loss limits.",
-    budget: 200,
-    risk: "conservative",
-    mode: "practice",
-    activity: "low",
-    categories: ["General", "Politics"],
-  },
-  {
-    id: "safer-starter",
-    emoji: "🛡️",
-    title: "Safer starter plan",
-    subtitle: "Balanced risk, practice mode recommended",
-    why: "Focuses on high-liquidity markets where fills are predictable. Limits exposure to any single outcome.",
-    budget: 300,
-    risk: "conservative",
-    mode: "practice",
-    activity: "low",
-    categories: ["General", "Economy"],
-  },
-  {
-    id: "hands-off",
-    emoji: "🤖",
-    title: "Hands-off weekly scan",
-    subtitle: "Set it up once and let it run",
-    why: "Scans once per hour, up to 5 trades per day. Diversified across categories — check in once a week.",
-    budget: 500,
-    risk: "balanced",
-    mode: "practice",
-    activity: "medium",
-    categories: ["General", "Economy", "Politics", "Crypto"],
-  },
-  {
-    id: "short-markets",
-    emoji: "⏳",
-    title: "Short-lived market focus",
-    subtitle: "Markets expiring within 24 hours",
-    why: "Faster resolution gives quicker feedback. Ideal for testing whether the robot is making good calls.",
-    budget: 250,
-    risk: "balanced",
-    mode: "practice",
-    activity: "high",
-    categories: ["General", "Sports"],
-  },
-  {
-    id: "construction-niche",
-    emoji: "🏗️",
-    title: "Construction & economy niche",
-    subtitle: "Specialized focus on industry-relevant markets",
-    why: "Your domain knowledge gives a natural edge on construction, infrastructure, and economic policy markets.",
-    budget: 400,
-    risk: "aggressive",
-    mode: "practice",
-    activity: "medium",
-    categories: ["Construction", "Economy", "Infrastructure"],
-  },
-  {
-    id: "micro-test",
-    emoji: "🔬",
-    title: "Micro budget test ($50)",
-    subtitle: "Most beginner-friendly — minimal risk",
-    why: "The cheapest way to understand YES/NO buying. Paper mode by default. Upgrade whenever you're ready.",
-    budget: 50,
-    risk: "conservative",
-    mode: "practice",
-    activity: "low",
-    categories: ["General"],
-  },
+  { id: "small-wallet", emoji: "💼", title: "Best for $100–$300 wallet", subtitle: "Start small with conservative settings", why: "Low position sizes protect your capital while you learn. Makes 1–3 trades per day with tight loss limits.", budget: 200, risk: "conservative", mode: "practice", activity: "low", categories: ["General", "Politics"] },
+  { id: "safer-starter", emoji: "🛡️", title: "Safer starter plan", subtitle: "Balanced risk, practice mode recommended", why: "Focuses on high-liquidity markets where fills are predictable. Limits exposure to any single outcome.", budget: 300, risk: "conservative", mode: "practice", activity: "low", categories: ["General", "Economy"] },
+  { id: "hands-off", emoji: "🤖", title: "Hands-off weekly scan", subtitle: "Set it up once and let it run", why: "Scans once per hour, up to 5 trades per day. Diversified across categories — check in once a week.", budget: 500, risk: "balanced", mode: "practice", activity: "medium", categories: ["General", "Economy", "Politics", "Crypto"] },
+  { id: "short-markets", emoji: "⏳", title: "Short-lived market focus", subtitle: "Markets expiring within 24 hours", why: "Faster resolution gives quicker feedback. Ideal for testing whether the robot is making good calls.", budget: 250, risk: "balanced", mode: "practice", activity: "high", categories: ["General", "Sports"] },
+  { id: "construction-niche", emoji: "🏗️", title: "Construction & economy niche", subtitle: "Specialized focus on industry-relevant markets", why: "Your domain knowledge gives a natural edge on construction, infrastructure, and economic policy markets.", budget: 400, risk: "aggressive", mode: "practice", activity: "medium", categories: ["Construction", "Economy", "Infrastructure"] },
+  { id: "micro-test", emoji: "🔬", title: "Micro budget test ($50)", subtitle: "Most beginner-friendly — minimal risk", why: "The cheapest way to understand YES/NO buying. Paper mode by default. Upgrade whenever you're ready.", budget: 50, risk: "conservative", mode: "practice", activity: "low", categories: ["General"] },
 ];
 
 function getInitMode(): Mode {
@@ -110,7 +47,7 @@ function getShowStepper(): boolean {
   return !localStorage.getItem("market_onboarded");
 }
 
-export default function MarketStartHereTab({ onNavigate, paperMode, botRunning, lastScan }: MarketStartHereTabProps) {
+export default function MarketStartHereTab({ onNavigate, paperMode, serverStatus, serverConfirmed, serverHealth }: MarketStartHereTabProps) {
   const [mode, setMode] = useState<Mode>(getInitMode);
   const [showStepper, setShowStepper] = useState(getShowStepper);
   const [activePath, setActivePath] = useState<PathChoice>("recommendations");
@@ -148,17 +85,49 @@ export default function MarketStartHereTab({ onNavigate, paperMode, botRunning, 
         </div>
       )}
 
-      {/* Bot status bar */}
+      {/* Bot status bar — server-confirmed */}
       <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-        <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border font-medium ${botRunning ? "bg-orange-50 border-orange-200 text-orange-700" : "bg-gray-100 border-gray-200 text-gray-500"}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${botRunning ? "bg-orange-500 animate-pulse" : "bg-gray-400"}`} />
-          {botRunning ? "Robot running" : "Robot idle"}
-        </span>
+        {serverConfirmed ? (
+          <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border font-medium ${
+            serverStatus === "running" ? "bg-orange-50 border-orange-200 text-orange-700" :
+            serverStatus === "paused" ? "bg-amber-50 border-amber-200 text-amber-700" :
+            serverStatus === "paper" ? "bg-purple-50 border-purple-200 text-purple-700" :
+            "bg-gray-100 border-gray-200 text-gray-500"
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              serverStatus === "running" ? "bg-orange-500 animate-pulse" :
+              serverStatus === "paused" ? "bg-amber-500" :
+              serverStatus === "paper" ? "bg-purple-500 animate-pulse" :
+              "bg-gray-400"
+            }`} />
+            {serverStatus === "running" ? "Robot running (server confirmed)" :
+             serverStatus === "paused" ? "Robot paused (server confirmed)" :
+             serverStatus === "paper" ? "Robot running — paper mode (server confirmed)" :
+             "Robot stopped"}
+          </span>
+        ) : (
+          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border font-medium bg-gray-100 border-gray-200 text-gray-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+            Checking server status…
+          </span>
+        )}
         {paperMode && (
           <span className="px-2.5 py-1 rounded-full border bg-purple-50 border-purple-200 text-purple-700 font-medium">Paper mode</span>
         )}
-        {lastScan && (
-          <span className="text-gray-400">Last scan: {new Date(lastScan).toLocaleTimeString()}</span>
+        {serverHealth?.lastRunIso && (
+          <span className="text-gray-400">
+            Last run: {new Date(serverHealth.lastRunIso).toLocaleTimeString()}
+          </span>
+        )}
+        {serverHealth && serverHealth.tradesToday > 0 && (
+          <span className="text-gray-400">
+            {serverHealth.tradesToday} trade{serverHealth.tradesToday !== 1 ? "s" : ""} today
+          </span>
+        )}
+        {serverHealth?.lastError && (
+          <span className="text-red-500 text-[11px]" title={serverHealth.lastError}>
+            ⚠ Last error: {serverHealth.lastError.slice(0, 60)}
+          </span>
         )}
       </div>
 

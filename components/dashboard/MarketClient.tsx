@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/dashboard/market/MarketSharedUi";
 import { useMarketTradeData } from "@/lib/hooks/useMarketTradeData";
 import { useMarketBot } from "@/lib/hooks/useMarketBot";
 import { useMarketDirectives } from "@/lib/hooks/useMarketDirectives";
+import { useMarketServerStatus } from "@/lib/hooks/useMarketServerStatus";
 import MarketPrimaryNav from "@/components/dashboard/market/MarketPrimaryNav";
 import MarketStartHereTab from "@/components/dashboard/market/MarketStartHereTab";
 import MarketDirectBuyTab from "@/components/dashboard/market/MarketDirectBuyTab";
@@ -43,6 +44,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
     fetchSchedulerHealth: td.fetchSchedulerHealth,
   });
   const wallet = useMarketWalletState({ addLog: bot.addLog });
+  const serverStatus = useMarketServerStatus();
   const dir = useMarketDirectives({
     botSetters: {
       setCapitalAlloc: bot.setCapitalAlloc,
@@ -85,8 +87,9 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
           <MarketStartHereTab
             onNavigate={setActiveTabId}
             paperMode={bot.config.paperMode}
-            botRunning={bot.config.botRunning}
-            lastScan={bot.config.lastScan}
+            serverStatus={serverStatus.status}
+            serverConfirmed={serverStatus.isConfirmed}
+            serverHealth={serverStatus.health}
           />
         );
       case "direct-buy":
@@ -135,13 +138,25 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
     }
   }
 
+  // Derive display status from server-confirmed state (not local botRunning)
+  const displayStatus = serverStatus.isConfirmed ? serverStatus.status : "unknown";
+  const displayStatusLabel =
+    displayStatus === "running" ? "Running" :
+    displayStatus === "paused" ? "Paused" :
+    displayStatus === "paper" ? "Paper" :
+    displayStatus === "stopped" ? "Stopped" :
+    "Checking…";
+
   return (
     <div className="text-gray-900">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-gray-900 flex items-center gap-2 flex-wrap">
             Market Robot{" "}
-            <StatusBadge status={bot.config.botRunning ? (bot.config.botPaused ? "idle" : "running") : "idle"} />
+            <StatusBadge status={displayStatus === "unknown" ? "idle" : displayStatus} />
+            {!serverStatus.isConfirmed && !serverStatus.isLoading && (
+              <span className="text-[10px] text-gray-400 font-normal">(unconfirmed)</span>
+            )}
             {bot.config.paperMode && (
               <span className="text-xs bg-purple-100 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full">
                 Paper Mode
@@ -149,10 +164,16 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
             )}
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            AI-powered prediction market bot —{" "}
-            {bot.config.lastScan
-              ? `Last scan: ${new Date(bot.config.lastScan).toLocaleTimeString()}`
-              : "Not scanned yet"}
+            AI-powered prediction market bot
+            {serverStatus.isConfirmed && (
+              <> — Server: <strong className="text-gray-700">{displayStatusLabel}</strong></>
+            )}
+            {serverStatus.health?.lastRunIso && (
+              <> · Last run: {new Date(serverStatus.health.lastRunIso).toLocaleTimeString()}</>
+            )}
+            {serverStatus.health && (
+              <> · {serverStatus.health.tradesToday} trade{serverStatus.health.tradesToday !== 1 ? "s" : ""} today</>
+            )}
           </p>
         </div>
       </div>

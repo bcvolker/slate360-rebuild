@@ -21,10 +21,13 @@ export function StatusBadge({ status }: { status: string }) {
     connected: "bg-green-100 text-green-700 border border-green-200",
     disconnected: "bg-gray-200 text-gray-500",
     running: "bg-orange-100 text-orange-700 border border-orange-200",
+    paused: "bg-amber-100 text-amber-700 border border-amber-200",
+    stopped: "bg-gray-200 text-gray-500 border border-gray-300",
     conservative: "bg-blue-100 text-blue-700 border border-blue-200",
     balanced: "bg-amber-100 text-amber-700 border border-amber-200",
     aggressive: "bg-red-100 text-red-700 border border-red-200",
     idle: "bg-gray-200 text-gray-500",
+    unknown: "bg-gray-200 text-gray-400 border border-gray-200",
   };
 
   return (

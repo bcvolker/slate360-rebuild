@@ -17,7 +17,7 @@ This file tracks current status, build order, prompts, checks, and rebuild-from-
 - Shared customization for Market is still missing and should be implemented first.
 
 ## Current Build Status
-**Active batch: 6 — Background hardening (not started)**
+**Active batch: 7 — Cleanup + retirement**
 
 `MarketClient` has zero external callers outside `app/market/page.tsx` (confirmed via GitNexus).
 This makes large batches safe. The revised strategy is ~10 prompts by combining related steps.
@@ -29,7 +29,7 @@ This makes large batches safe. The revised strategy is ~10 prompts by combining 
 | 3 | Start Here + Direct Buy | 2 | **Sonnet** | ✅ Complete — StartHere has mode picker, 6 recommendations, stepper, explainer; DirectBuy has search/filter/table/buy panel |
 | 4 | Simulation + Automation | 2 | **Opus** | ✅ Complete — SimulationPanel with config/compare/snapshots; AutomationTab with plan builder (basic/intermediate/advanced), plan list with save/clone/rename/archive/default |
 | 5 | Results + Live Wallet | 1 | **Opus** | ✅ Complete — MarketResultsTab with full P/L analytics, trade replay drawer; MarketLiveWalletTab with readiness checklist, wallet connect, approve, verify, test flow |
-| 6 | Background hardening | 1 | **Opus** | UI distinguishes server-side vs client-only running state |
+| 6 | Background hardening | 1 | **Opus** | ✅ Complete — useMarketServerStatus hook polls server; StatusBadge + StartHereTab use server-confirmed status; UI never shows "running" without server confirmation |
 | 7 | Cleanup + retirement | 1 | **Sonnet** | legacy tab files retired |
 | **Total** | | **~9–10** | | |
 
@@ -81,11 +81,11 @@ Completed
 
 Current Market files in play
 - `app/market/page.tsx`
-- `components/dashboard/MarketClient.tsx` (165 lines — orchestrator, switch-renders tabs with shared props)
+- `components/dashboard/MarketClient.tsx` (192 lines — orchestrator, switch-renders tabs with shared props, server-confirmed status in header)
 - `components/dashboard/market/MarketRouteShell.tsx` (63 lines — shell + customize integration)
 - `components/dashboard/market/MarketPrimaryNav.tsx` (51 lines — prefs-driven nav)
 - `components/dashboard/market/MarketCustomizeDrawer.tsx` (135 lines — shared customize drawer)
-- `components/dashboard/market/MarketStartHereTab.tsx` (277 lines — **Batch 3 built**: mode picker, 6 recommendation presets, first-run banner, YES/NO explainer, navigation to other tabs)
+- `components/dashboard/market/MarketStartHereTab.tsx` (246 lines — **Batch 3 built, Batch 6 updated**: mode picker, 6 recommendation presets, first-run banner, YES/NO explainer, navigation to other tabs, **server-confirmed bot status bar**)
 - `components/dashboard/market/MarketDirectBuyTab.tsx` (299 lines — **Batch 3 built**: search toolbar, timeframe chips, advanced filters, market table w/ YES/NO buy buttons, buy panel drawer)
 - `components/dashboard/market/MarketAutomationTab.tsx` (96 lines — **Batch 4 built**: orchestrates builder + plan list + active plan summary)
 - `components/dashboard/market/MarketAutomationBuilder.tsx` (300 lines — **Batch 4 built**: guided plan creation with basic/intermediate/advanced control levels)
@@ -107,12 +107,17 @@ Current Market files in play
 - `lib/hooks/useMarketBuyState.ts` (used by legacy tabs)
 - `lib/hooks/useMarketResultsState.ts` (170 lines — **Batch 5 new**: analytics computation, sort/filter, trade replay state)
 - `lib/hooks/useMarketWalletState.ts`
+- `lib/hooks/useMarketServerStatus.ts` (109 lines — **Batch 6 new**: polls /api/market/bot-status + scheduler/health every 30s, returns canonical server-confirmed status)
 
 Still missing from the revised plan
 - saved markets / saved searches unified tab (future)
-- browser-closed/background-run hardening review (Batch 6)
 - Supabase `market_plans` table migration (plans currently localStorage-only)
 - app-ecosystem-ready packaging assumptions
+- legacy file retirement (Batch 7)
+- auto-load markets on Direct Buy tab (currently requires manual "Load all markets" click)
+- category filter, liquidity filter, volume filter, spread filter missing from Direct Buy advanced filters
+- advanced filter slider tooltips / explainer text for new users
+- full Polymarket catalog search (only fetches 300 markets per API call, no server-side pagination)
 
 ## Non-Negotiables
 - Route remains `/market`
@@ -344,78 +349,77 @@ Carry-forward rule
 - 2026-03-06: Batch 2 (Shared Customization) — complete. Files created: lib/market/layout-presets.ts, lib/hooks/useMarketLayoutPrefs.ts, MarketCustomizeDrawer.tsx. MarketRouteShell wired to DashboardHeader onCustomizeOpen/prefsDirty. Legacy market_tab_prefs_v1 key auto-migrated to layoutprefs-market. Tab nav now prefs-driven. useMarketDirectives updated to use new tab IDs. tsc clean. Next: Batch 3.
 - 2026-03-06: Batch 4 [Simulation + Automation] — complete. Files created: MarketSimulationPanel.tsx (226 lines), MarketAutomationTab.tsx (96 lines), MarketAutomationBuilder.tsx (300 lines), MarketPlanList.tsx (151 lines), useMarketAutomationState.ts (136 lines). Files modified: MarketClient.tsx (123→165 lines), useMarketSimState.ts (68→87 lines), types.ts (+SimulationConfig, +AutomationPlan, extended SimRun). MarketClient switch now renders Automation and Results (sim panel) directly. Supabase `market_plans` table not confirmed — plans use localStorage fallback. All files ≤300 lines, tsc clean. Next: Batch 5.
 - 2026-03-06: Batch 5 [Results + Live Wallet] — complete. Files created: MarketResultsTab.tsx (247 lines), MarketLiveWalletTab.tsx (258 lines), useMarketResultsState.ts (170 lines). Files modified: MarketClient.tsx (165→171 lines — wired new tabs, added useMarketWalletState, removed useMarketSimState + MarketSimulationPanel imports), types.ts (164→189 lines — added ResultsAnalytics, TradeReplay). MarketSimulationPanel.tsx and useMarketSimState.ts are now orphaned (no importers) — add to Batch 7 retirement. All files ≤300 lines, tsc clean. Next: Batch 6.
+- 2026-03-06: Batch 6 [Background Hardening] — complete. Files created: useMarketServerStatus.ts (109 lines — polls bot-status + scheduler/health every 30s, returns server-confirmed canonical status). Files modified: MarketClient.tsx (171→192 lines — replaced client-only StatusBadge with server-confirmed status, shows last run time + trades today from server), MarketStartHereTab.tsx (277→246 lines — bot status bar now shows server-confirmed state with explicit "server confirmed" labels, shows last error from scheduler, removed local botRunning/lastScan props), MarketSharedUi.tsx (added paused/stopped/unknown status colors to StatusBadge). All files ≤300 lines, tsc clean. Next: Batch 7.
 
 ## Ready-To-Paste Prompt For Next Chat
 
 Copy-paste this entire block into a new chat session to continue the Market Robot build:
 
 ```text
-I'm continuing the Market Robot rebuild. Batches 1–4 are complete. The active batch is **Batch 5 — Results + Live Wallet**.
+I'm continuing the Market Robot rebuild. Batches 1–6 are complete. The active batch is **Batch 7 — Cleanup + Retirement**.
 
 ## Read order
 1. `SLATE360_PROJECT_MEMORY.md`
 2. `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`
-3. `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md` — active batch = 5
-4. `slate360-context/BACKEND.md` — for auth/DB/API patterns
-5. `slate360-context/dashboard-tabs/market-robot/IMPLEMENTATION_PLAN.md` — Results tab spec (search for "Results tab") and Live Wallet spec (search for "Live Wallet tab")
+3. `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md` — active batch = 7
+4. `slate360-context/dashboard-tabs/market-robot/IMPLEMENTATION_PLAN.md` — retirement list
 
-## What was done in Batches 1–4
-- **MarketClient.tsx** is a 165-line thin orchestrator that switch-renders tabs with proper props (not a component map)
-- **MarketStartHereTab.tsx** (277 lines) — practice/real-money mode picker (persisted to localStorage), 6 recommendation presets, first-run welcome banner, YES/NO explainer accordion, navigation to other tabs via `onNavigate` prop
-- **MarketDirectBuyTab.tsx** (299 lines) — search toolbar, timeframe chips, advanced filters (edge %, prob range, sort), market table with YES/NO buy buttons, wires to existing MarketBuyPanel for trade execution including max loss/payout/probability/what-if
-- **useMarketDirectBuyState.ts** (197 lines) — self-contained hook for Direct Buy (fetch, filter, sort, paginate, buy state, submit)
+## Environment & tool access
+- **.env.local** is fully configured with Supabase (URL + anon key + service role key + access token), AWS S3 (region + key ID + secret + bucket), Resend email, Google Maps keys
+- **Supabase dashboard**: https://supabase.com/dashboard/project/hadnfcenpcfaeclczsmm
+- **Git**: you have push access to `main` — commit and push when done
+- **Terminal**: `npx tsc --noEmit`, `bash scripts/check-file-size.sh`, `wc -l`, all available
+
+## What was done in Batches 1–6
+- **MarketClient.tsx** (192 lines) — thin orchestrator that switch-renders tabs with shared props, server-confirmed status in header via useMarketServerStatus
+- **MarketStartHereTab.tsx** (246 lines) — mode picker, 6 recommendation presets, first-run banner, YES/NO explainer, server-confirmed bot status bar with last run/trades today/error display
+- **MarketDirectBuyTab.tsx** (299 lines) — search toolbar, timeframe chips, advanced filters, market table with YES/NO buy buttons, buy panel drawer
+- **useMarketDirectBuyState.ts** (197 lines) — self-contained hook for Direct Buy
 - **MarketAutomationTab.tsx** (96 lines) — orchestrates builder + plan list + active plan summary card
-- **MarketAutomationBuilder.tsx** (300 lines) — guided plan creation with 3 control levels: basic (budget, risk, categories, scan mode, trades/day, loss cap), intermediate (max % per trade, fee alerts, cooldown, large-trader signals, closing-soon focus), advanced (slippage, min liquidity, max spread, fill policy, exit rules)
-- **MarketPlanList.tsx** (151 lines) — saved plans with apply/edit/clone/rename/archive/set-default/delete actions
-- **useMarketAutomationState.ts** (136 lines) — plan CRUD, localStorage persistence, control level state
-- **MarketSimulationPanel.tsx** (226 lines) — configurable starting balance, realistic vs ideal fills, fee-aware mode, partial fills toggle, saveable snapshots (max 10), comparison chart, sim labels on every result
-- **useMarketSimState.ts** (87 lines) — extended with SimulationConfig, fill model labels, fee mode tracking
-- **types.ts** (164 lines) — added SimulationConfig, AutomationPlan, extended SimRun with simulation labels
-- MarketPrimaryNav uses prefs-driven tabs from useMarketLayoutPrefs
-- MarketRouteShell wires DashboardHeader to MarketCustomizeDrawer
-- All 18 API routes and 4 domain hooks (useMarketBot, useMarketTradeData, useMarketsExplorer, useMarketDirectives) are untouched
-- Tab IDs are kebab-case: start-here, direct-buy, automation, saved-markets, results, live-wallet
-- Supabase `market_plans` table migration pending — plans use localStorage fallback
+- **MarketAutomationBuilder.tsx** (300 lines) — guided plan creation with 3 control levels
+- **MarketPlanList.tsx** (151 lines) — saved plans with apply/edit/clone/rename/archive/default/delete
+- **useMarketAutomationState.ts** (136 lines) — plan CRUD, localStorage persistence
+- **MarketResultsTab.tsx** (247 lines) — P/L analytics, trade replay drawer
+- **useMarketResultsState.ts** (170 lines) — analytics computation, sort/filter, replay state
+- **MarketLiveWalletTab.tsx** (258 lines) — wallet connect, readiness checklist, approve, verify
+- **useMarketServerStatus.ts** (109 lines) — polls bot-status + scheduler/health every 30s, returns server-confirmed canonical status
+- **types.ts** (189 lines) — all shared types
+- All 18 API routes and 4 domain hooks untouched
+- Supabase `market_plans` table migration still pending — plans use localStorage fallback
+- **Orphaned files** to retire: MarketSimulationPanel.tsx, useMarketSimState.ts, useMarketBuyState.ts, MarketAutomationStub.tsx, MarketResultsStub.tsx, MarketLiveWalletStub.tsx
 
-## Batch 5 — What to build
+## Batch 7 — What to build
+Goal: delete the legacy files now that all replacements are verified.
 
-### 5a: Results tab (rebuild MarketResultsStub)
-- Build the full **Results tab** around the existing MarketSimulationPanel
-- Add: P/L analytics (total P/L, win rate, best/worst trade), activity log, trade replay summary
-- The simulation panel is already wired into the Results tab switch case — add the P/L section above it
-- Data sources: `useMarketTradeData` (trades, pnlChart, openTrades), `useMarketSimState` (simRuns)
-- Recharts for P/L chart (already in the project)
+- Retire these legacy market files: MarketDashboardTab.tsx, MarketHotOppsTab.tsx, MarketWhaleWatchTab.tsx, MarketWalletPerformanceTab.tsx, MarketSimCompareTab.tsx, MarketDirectivesTab.tsx, MarketDirectivesForm.tsx, MarketDirectivesList.tsx, MarketSimulationPanel.tsx, MarketAutomationStub.tsx, MarketResultsStub.tsx, MarketLiveWalletStub.tsx
+- Retire orphaned hooks: useMarketSimState.ts, useMarketBuyState.ts
+- Update all imports — confirm no import of retired files remains
+- Confirm `npx tsc --noEmit` passes after retirement
 
-### 5b: Live Wallet tab (rebuild MarketLiveWalletStub)
-- Build `MarketLiveWalletTab.tsx` — wallet connection, gas check, readiness checklist, approval status, blockers
-- Existing `useMarketWalletState.ts` has wallet state — extend or reference it
-- Existing `LiveChecklist` type in types.ts defines the checklist shape
-- Existing `lib/hooks/useMarketBuyState.ts` has some wallet interaction logic
-
-### Wire it up
-- Update `MarketClient.tsx` to render `MarketResultsTab` and `MarketLiveWalletTab` instead of stubs
-- Remove them from the STUB_TABS map (only `saved-markets` should remain as stub)
+## Known UX gaps to address after Batch 7
+1. Markets don't auto-load on Direct Buy tab — user must click "Load all markets" button
+2. API only fetches 300 markets per call — no server-side pagination for full Polymarket catalog
+3. Missing category filter, liquidity filter, volume filter, spread filter from advanced filters
+4. Advanced filter sliders have no tooltip/explainer text for new users (what does "Min Edge %" mean?)
+5. No full-text search across all Polymarket markets (only searches loaded subset)
+6. Saved Markets tab is still a stub
 
 ## Non-negotiables
 - Route: `/market` — do not change
 - Gate: `canAccessMarket` — never `hasInternalAccess`
 - `app/market/page.tsx` remains the gate + provider wrapper — do not modify
-- `MarketClient.tsx` stays thin — add case branches to the switch but don't balloon it past 200 lines
-- No new API routes (use existing api/market/* routes)
+- `MarketClient.tsx` stays thin (≤ 200 lines)
 - No `any` — use `unknown` + narrowing
 - Every new/modified .ts/.tsx file must stay under 300 lines
 - Types live in `components/dashboard/market/types.ts` — do not duplicate
-- Bot/runtime logic stays UI-agnostic and testable
 
 ## After edits (required before ending session)
 1. Run `npx tsc --noEmit` and `get_errors` on all touched files — fix all errors
 2. Check line counts on all touched files (300-line limit)
 3. Update the ONGOING_BUILD_TRACKER.md:
-   - Change Batch 5 row to ✅ Complete (or note what remains)
-   - Update "Current Market files in play" with new files and line counts
-   - Update "Still missing" section
+   - Change Batch 7 row to ✅ Complete (or note what remains)
+   - Update "Current Market files in play" — remove retired files
    - Add Session Log entry
-   - Update the "Ready-To-Paste Prompt For Next Chat" at the bottom to reference Batch 6
-4. Push to git: `git add -A && git commit -m "Market Robot Batch 5: Results + Live Wallet" && git push`
-5. Give me a summary of what was built, what's working, any issues, and remaining batches
+4. Push to git: `git add -A && git commit -m "Market Robot Batch 7: Cleanup + Retirement" && git push`
+5. Give me a summary of what was built, what's working, any issues, and what's next
 ```
