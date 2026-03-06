@@ -2,8 +2,9 @@
 
 import React from "react";
 import MarketBuyPanel from "@/components/dashboard/market/MarketBuyPanel";
+import MarketAdvancedFilters from "@/components/dashboard/market/MarketAdvancedFilters";
 import { useMarketDirectBuyState } from "@/lib/hooks/useMarketDirectBuyState";
-import type { MarketListing, MktTimeframe, MarketSortKey, LiveChecklist } from "@/components/dashboard/market/types";
+import type { MarketListing, MktTimeframe, LiveChecklist } from "@/components/dashboard/market/types";
 
 interface MarketDirectBuyTabProps {
   paperMode: boolean;
@@ -15,14 +16,6 @@ const QUICK_TIMEFRAMES: { key: MktTimeframe; label: string }[] = [
   { key: "today", label: "Ends Today" },
   { key: "week", label: "This Week" },
   { key: "month", label: "This Month" },
-];
-
-const SORT_OPTIONS: { key: MarketSortKey; label: string }[] = [
-  { key: "edge", label: "Best Edge" },
-  { key: "volume", label: "Highest Volume" },
-  { key: "probability", label: "Probability" },
-  { key: "endDate", label: "Ending Soonest" },
-  { key: "title", label: "A → Z" },
 ];
 
 const EMPTY_CHECKLIST: LiveChecklist = {
@@ -95,7 +88,7 @@ export default function MarketDirectBuyTab({ paperMode }: MarketDirectBuyTabProp
             disabled={s.loading}
             className="px-4 py-2 bg-[#FF4D00] text-white rounded-lg text-sm font-semibold hover:bg-[#e04400] disabled:opacity-50 transition"
           >
-            {s.loading ? "…" : "Search"}
+            {s.loading ? "…" : s.loaded ? "Refresh" : "Search"}
           </button>
         </div>
 
@@ -124,60 +117,35 @@ export default function MarketDirectBuyTab({ paperMode }: MarketDirectBuyTabProp
 
         {/* Advanced filters */}
         {s.filtersOpen && (
-          <div className="border-t border-gray-100 pt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">Min Edge %</label>
-              <input
-                type="range" min={0} max={30} step={1} value={s.minEdge}
-                onChange={e => s.setMinEdge(+e.target.value)}
-                className="w-full accent-[#FF4D00]"
-              />
-              <p className="text-[11px] text-gray-400">{s.minEdge}%+</p>
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">Prob min %</label>
-              <input
-                type="range" min={0} max={100} step={5} value={s.probMin}
-                onChange={e => s.setProbMin(+e.target.value)}
-                className="w-full accent-[#FF4D00]"
-              />
-              <p className="text-[11px] text-gray-400">{s.probMin}%</p>
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">Prob max %</label>
-              <input
-                type="range" min={0} max={100} step={5} value={s.probMax}
-                onChange={e => s.setProbMax(+e.target.value)}
-                className="w-full accent-[#FF4D00]"
-              />
-              <p className="text-[11px] text-gray-400">{s.probMax}%</p>
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">Sort by</label>
-              <select
-                value={s.sortBy}
-                onChange={e => s.setSortBy(e.target.value as MarketSortKey)}
-                className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30"
-              >
-                {SORT_OPTIONS.map(o => (
-                  <option key={o.key} value={o.key}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <MarketAdvancedFilters
+            minEdge={s.minEdge}
+            onMinEdgeChange={s.setMinEdge}
+            probMin={s.probMin}
+            onProbMinChange={s.setProbMin}
+            probMax={s.probMax}
+            onProbMaxChange={s.setProbMax}
+            sortBy={s.sortBy}
+            onSortByChange={s.setSortBy}
+            category={s.category}
+            onCategoryChange={s.setCategory}
+            availableCategories={s.availableCategories}
+            riskTag={s.riskTag}
+            onRiskTagChange={s.setRiskTag}
+            minVolume={s.minVolume}
+            onMinVolumeChange={s.setMinVolume}
+            minLiquidity={s.minLiquidity}
+            onMinLiquidityChange={s.setMinLiquidity}
+            maxSpread={s.maxSpread}
+            onMaxSpreadChange={s.setMaxSpread}
+          />
         )}
       </div>
 
       {/* Empty / loading states */}
       {!s.loaded && !s.loading && (
         <div className="text-center py-12">
-          <p className="text-gray-400 text-sm mb-3">Enter a keyword or click to load all markets.</p>
-          <button
-            onClick={() => s.fetchMarkets("")}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition"
-          >
-            Load all markets
-          </button>
+          <div className="animate-spin w-6 h-6 border-2 border-[#FF4D00] border-t-transparent rounded-full mx-auto" />
+          <p className="text-xs text-gray-400 mt-2">Loading markets…</p>
         </div>
       )}
 

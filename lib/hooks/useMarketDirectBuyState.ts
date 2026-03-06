@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import type { MarketListing, MktTimeframe, MktRiskTag, MarketSortKey } from "@/components/dashboard/market/types";
 import type { ApiEnvelope, MarketViewModel } from "@/lib/market/contracts";
 
@@ -32,6 +32,9 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
   const [minEdge, setMinEdge] = useState(0);
   const [riskTag, setRiskTag] = useState<MktRiskTag>("all");
   const [sortBy, setSortBy] = useState<MarketSortKey>("edge");
+  const [minVolume, setMinVolume] = useState(0);
+  const [minLiquidity, setMinLiquidity] = useState(0);
+  const [maxSpread, setMaxSpread] = useState(100);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Markets state
@@ -52,7 +55,7 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        limit: "300",
+        limit: "1000",
         active: "true",
         closed: "false",
         order: "volume24hr",
@@ -79,6 +82,20 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
     finally { setLoading(false); }
   }, [query]);
 
+  // Auto-load markets on mount
+  const autoLoaded = useRef(false);
+  useEffect(() => {
+    if (!autoLoaded.current) {
+      autoLoaded.current = true;
+      fetchMarkets("");
+    }
+  }, [fetchMarkets]);
+
+  const availableCategories = useMemo(
+    () => [...new Set(markets.map(m => m.category))].sort(),
+    [markets],
+  );
+
   const filteredMarkets = useMemo(() => {
     const cut = endCutoff(timeframe);
     return markets
@@ -95,6 +112,10 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
           if (riskTag === "none" && m.riskTag) return false;
           if (riskTag !== "none" && m.riskTag !== riskTag) return false;
         }
+        if (m.volume24hUsd < minVolume) return false;
+        if (m.liquidityUsd < minLiquidity) return false;
+        const spread = Math.max(0, (1 - m.yesPrice - m.noPrice) * 100);
+        if (spread > maxSpread) return false;
         return true;
       })
       .sort((a, b) => {
@@ -110,7 +131,7 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
           default: return b.volume24hUsd - a.volume24hUsd;
         }
       });
-  }, [markets, timeframe, category, probMin, probMax, minEdge, riskTag, sortBy]);
+  }, [markets, timeframe, category, probMin, probMax, minEdge, riskTag, sortBy, minVolume, minLiquidity, maxSpread]);
 
   const totalPages = Math.max(1, Math.ceil(filteredMarkets.length / PAGE_SIZE));
   const pagedMarkets = filteredMarkets.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -180,7 +201,11 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
     minEdge, setMinEdge,
     riskTag, setRiskTag,
     sortBy, setSortBy,
+    minVolume, setMinVolume,
+    minLiquidity, setMinLiquidity,
+    maxSpread, setMaxSpread,
     filtersOpen, setFiltersOpen,
+    availableCategories,
     pagedMarkets,
     filteredCount: filteredMarkets.length,
     loading, loaded,
