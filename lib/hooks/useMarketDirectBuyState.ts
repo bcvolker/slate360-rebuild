@@ -5,6 +5,8 @@ import type { MarketListing, MktTimeframe, MktRiskTag, MarketSortKey } from "@/c
 import type { ApiEnvelope, MarketViewModel } from "@/lib/market/contracts";
 
 const PAGE_SIZE = 25;
+const FETCH_BATCH_SIZE = 200;
+const MAX_MARKET_FETCH = 1000;
 
 function endCutoff(tf: MktTimeframe): number {
   const now = Date.now();
@@ -41,6 +43,7 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
   const [markets, setMarkets] = useState<MarketListing[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
   // Buy panel state
@@ -51,36 +54,69 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
   const [buySubmitting, setBuySubmitting] = useState(false);
   const [buySuccess, setBuySuccess] = useState("");
 
+  const mapMarket = useCallback((m: MarketViewModel): MarketListing => ({
+    ...m,
+    bookmarked: false,
+    endDateLabel: m.endDate
+      ? new Date(m.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })
+      : undefined,
+    liquidity: m.liquidityUsd,
+  }), []);
+
   const fetchMarkets = useCallback(async (kw?: string) => {
     setLoading(true);
+    setLoadError(null);
     try {
-      const params = new URLSearchParams({
-        limit: "1000",
-        active: "true",
-        closed: "false",
-        order: "volume24hr",
-        ascending: "false",
-      });
-      const res = await fetch(`/api/market/polymarket?${params.toString()}`, { cache: "no-store" });
-      if (!res.ok) return;
-      const payload = await res.json() as ApiEnvelope<{ markets: MarketViewModel[] }>;
-      const q = (kw ?? query).trim().toLowerCase();
-      const mapped: MarketListing[] = (payload.data?.markets ?? [])
-        .filter(m => !q || m.title.toLowerCase().includes(q) || m.category.toLowerCase().includes(q))
-        .map(m => ({
-          ...m,
-          bookmarked: false,
-          endDateLabel: m.endDate
-            ? new Date(m.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })
-            : undefined,
-          liquidity: m.liquidityUsd,
-        }));
+      const normalizedQuery = (kw ?? query).trim().toLowerCase();
+      const collected: MarketViewModel[] = [];
+      let cursor: string | undefined;
+      let hasMore = true;
+
+      while (hasMore && collected.length < MAX_MARKET_FETCH) {
+        const params = new URLSearchParams({
+          limit: String(FETCH_BATCH_SIZE),
+          active: "true",
+          closed: "false",
+          order: "volume24hr",
+          ascending: "false",
+        });
+        if (cursor) {
+          params.set("cursor", cursor);
+        }
+
+        const res = await fetch(`/api/market/polymarket?${params.toString()}`, { cache: "no-store" });
+        if (!res.ok) {
+          throw new Error(`Failed to load markets (${res.status})`);
+        }
+        const payload = await res.json() as ApiEnvelope<{ markets: MarketViewModel[]; nextCursor?: string }>;
+        const batch = payload.data?.markets ?? [];
+        if (batch.length === 0) {
+          hasMore = false;
+          break;
+        }
+
+        collected.push(...batch);
+        cursor = payload.data?.nextCursor;
+        hasMore = Boolean(cursor);
+
+        if (normalizedQuery && collected.length >= MAX_MARKET_FETCH) {
+          break;
+        }
+      }
+
+      const mapped: MarketListing[] = collected
+        .filter(m => !normalizedQuery || m.title.toLowerCase().includes(normalizedQuery) || m.category.toLowerCase().includes(normalizedQuery))
+        .map(mapMarket);
       setMarkets(mapped);
       setPage(1);
       setLoaded(true);
-    } catch { /* ignore */ }
+    } catch (error) {
+      setMarkets([]);
+      setLoaded(true);
+      setLoadError(error instanceof Error ? error.message : "Failed to load markets");
+    }
     finally { setLoading(false); }
-  }, [query]);
+  }, [mapMarket, query]);
 
   // Auto-load markets on mount
   const autoLoaded = useRef(false);
@@ -208,7 +244,7 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
     availableCategories,
     pagedMarkets,
     filteredCount: filteredMarkets.length,
-    loading, loaded,
+    loading, loaded, loadError,
     page, setPage,
     totalPages,
     fetchMarkets,

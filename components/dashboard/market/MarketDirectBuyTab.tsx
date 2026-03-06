@@ -159,6 +159,11 @@ export default function MarketDirectBuyTab({ paperMode }: MarketDirectBuyTabProp
       {/* Results */}
       {s.loaded && !s.loading && (
         <>
+          {s.loadError && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              {s.loadError}
+            </div>
+          )}
           <div className="flex items-center justify-between text-xs text-gray-500 px-1">
             <span>
               {s.filteredCount} market{s.filteredCount !== 1 ? "s" : ""}

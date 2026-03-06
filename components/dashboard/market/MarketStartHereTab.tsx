@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import type { SchedulerHealthViewModel } from "@/lib/market/contracts";
 import type { ServerBotStatus } from "@/lib/hooks/useMarketServerStatus";
 
@@ -37,21 +37,20 @@ const RECOMMENDATIONS: RecommendationPreset[] = [
   { id: "micro-test", emoji: "🔬", title: "Micro budget test ($50)", subtitle: "Most beginner-friendly — minimal risk", why: "The cheapest way to understand YES/NO buying. Paper mode by default. Upgrade whenever you're ready.", budget: 50, risk: "conservative", mode: "practice", activity: "low", categories: ["General"] },
 ];
 
-function getInitMode(): Mode {
-  if (typeof window === "undefined") return "practice";
-  return (localStorage.getItem("market_mode_pref") as Mode) ?? "practice";
-}
-
-function getShowStepper(): boolean {
-  if (typeof window === "undefined") return false;
-  return !localStorage.getItem("market_onboarded");
-}
-
 export default function MarketStartHereTab({ onNavigate, paperMode, serverStatus, serverConfirmed, serverHealth }: MarketStartHereTabProps) {
-  const [mode, setMode] = useState<Mode>(getInitMode);
-  const [showStepper, setShowStepper] = useState(getShowStepper);
+  const [mode, setMode] = useState<Mode>("practice");
+  const [showStepper, setShowStepper] = useState(false);
   const [activePath, setActivePath] = useState<PathChoice>("recommendations");
   const [explainerOpen, setExplainerOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const savedMode = localStorage.getItem("market_mode_pref");
+    if (savedMode === "practice" || savedMode === "real") {
+      setMode(savedMode);
+    }
+    setShowStepper(!localStorage.getItem("market_onboarded"));
+  }, []);
 
   const handleModeChange = (m: Mode) => {
     setMode(m);

@@ -17,7 +17,10 @@ export const GET = (req: NextRequest) =>
       .order("created_at", { ascending: false })
       .limit(limit);
 
-    if (error) return serverError(error.message);
+    if (error) {
+      if (error.code === "42P01") return ok({ logs: [] });
+      return serverError(error.message);
+    }
     return ok({ logs: data ?? [] });
   });
 

@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { StatusBadge } from "@/components/dashboard/market/MarketSharedUi";
 import { useMarketTradeData } from "@/lib/hooks/useMarketTradeData";
 import { useMarketBot } from "@/lib/hooks/useMarketBot";
-import { useMarketDirectives } from "@/lib/hooks/useMarketDirectives";
 import { useMarketServerStatus } from "@/lib/hooks/useMarketServerStatus";
 import MarketPrimaryNav from "@/components/dashboard/market/MarketPrimaryNav";
 import MarketStartHereTab from "@/components/dashboard/market/MarketStartHereTab";
@@ -45,29 +44,19 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   });
   const wallet = useMarketWalletState({ addLog: bot.addLog });
   const serverStatus = useMarketServerStatus();
-  const dir = useMarketDirectives({
-    botSetters: {
-      setCapitalAlloc: bot.setCapitalAlloc,
-      setRiskMix: bot.setRiskMix,
-      setWhaleFollow: bot.setWhaleFollow,
-      setFocusAreas: bot.setFocusAreas,
-      setPaperMode: bot.setPaperMode,
-      setBotRunning: bot.setBotRunning,
-      setBotPaused: bot.setBotPaused,
-    },
-    runScan: bot.runScan,
-    addLog: bot.addLog,
-    onSetActiveTab: setActiveTabId,
-  });
 
   useEffect(() => {
     td.fetchTrades();
     td.fetchSummary();
     td.fetchSchedulerHealth();
-    td.fetchMarketLogs();
-    dir.loadDirectives();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (activeTabId === "results") {
+      void td.fetchMarketLogs();
+    }
+  }, [activeTabId, td]);
 
   const handleApplyPlan = useCallback((plan: AutomationPlan) => {
     bot.setCapitalAlloc(plan.budget);

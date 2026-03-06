@@ -394,6 +394,15 @@ watchlist-only / saved-only
 
 strict fill friendly only
 
+Runtime hardening note
+
+Direct Buy cannot assume a single oversized Polymarket fetch will return the full catalog.
+The `/api/market/polymarket` proxy returns paged results with `nextCursor` and currently caps each page to 200 markets, so any client that wants the top 500–1000 markets must follow cursor pagination.
+
+Market UI must also avoid reading `localStorage` during the first render of any client component. Initialize browser-only state in `useEffect` so server HTML and client hydration stay deterministic.
+
+Legacy optional endpoints such as `/api/market/directives` and `/api/market/logs` should degrade to empty-state payloads when their backing tables are absent instead of surfacing noisy 500s that destabilize the Market page.
+
 Row click behavior
 
 Clicking a row opens a detail modal or side drawer that shows:

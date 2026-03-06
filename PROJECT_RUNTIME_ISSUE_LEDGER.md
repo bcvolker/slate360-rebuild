@@ -136,6 +136,56 @@ Current issue states:
 - Issue 12 (`isClient` dashboard crash): **Resolved — missing client-guard state declared and initialized in DashboardClient**
 - Issue 13 (SlateDrop sandbox delete bypassed 2-step confirm): **Fixed — requires typing project name before DELETE**
 - Issue 14 (Project location widget not centered / inconsistent): **Fixed — parse JSONB metadata.location + pass center to LocationMap**
+- Issue 15 (Market Robot hydration mismatch + incomplete catalog + legacy endpoint noise): **Fixed in code, pending authenticated production verification**
+
+---
+
+## Issue 15 — Market Robot still shows old Direct Buy behavior / React 418 / market endpoint noise
+
+### Symptoms
+- Production Market page could still behave like the pre-hardening Direct Buy UI:
+  - user still had to click a load-markets CTA or saw stale initial state
+  - search/catalog only exposed a narrow slice of Polymarket options
+  - advanced filters/help text appeared missing
+- Production console showed:
+  - `Minified React error #418`
+  - `GET /api/market/directives 500`
+  - `GET /api/market/logs?limit=500 500`
+
+### Root-cause hypothesis
+- `MarketStartHereTab.tsx` initialized UI state from `localStorage` during render, allowing server HTML and hydrated client HTML to diverge.
+- `useMarketDirectBuyState.ts` requested `limit=1000`, but the proxy route clamps requests to 200 per page, so the client never actually loaded more than 200 markets.
+- `MarketClient.tsx` still eagerly called legacy directives/log endpoints on initial mount even though the rebuilt tabs no longer require them to render.
+- Legacy GET routes could 500 when optional backing tables were absent, creating noisy console errors.
+
+### Fix applied
+1. Moved Market Start Here `localStorage` reads into a mount-only `useEffect` so first render is deterministic and hydration-safe.
+2. Changed Direct Buy market loading to follow proxy `nextCursor` pagination in batches of 200 until 1000 rows are collected.
+3. Removed eager directives load from `MarketClient` and restricted results-log fetching to the Results tab path.
+4. Hardened legacy `GET /api/market/directives` and `GET /api/market/logs` to return empty arrays when the legacy tables are missing (`42P01`) instead of 500.
+5. Added Direct Buy `loadError` UI so failures no longer strand the tab in a silent spinner path.
+
+### Files touched
+- `components/dashboard/MarketClient.tsx`
+- `components/dashboard/market/MarketStartHereTab.tsx`
+- `components/dashboard/market/MarketDirectBuyTab.tsx`
+- `lib/hooks/useMarketDirectBuyState.ts`
+- `app/api/market/directives/route.ts`
+- `app/api/market/logs/route.ts`
+
+### Verification
+- `npx tsc --noEmit` passes.
+- `get_errors` clean on all touched files.
+- All touched files remain under 300 lines.
+- Deployed `/api/market/polymarket` confirms page 1 and page 2 both return 200 markets with `nextCursor`, validating the batched client approach.
+
+### Next verification
+- Authenticated production check on `/market`:
+  - confirm no React 418 hydration error
+  - confirm Direct Buy auto-loads without extra CTA
+  - confirm advanced filters render all controls + help text
+  - confirm keyword search can surface markets beyond the first 200-row page
+  - confirm `/api/market/directives` and `/api/market/logs` no longer spam 500s in console
 
 ---
 
