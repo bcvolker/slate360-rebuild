@@ -71,10 +71,14 @@ function ActivePlanSummary({ botConfig, defaultPlan }: { botConfig: BotConfig; d
           <span className="text-xs text-gray-500">Default: {defaultPlan.name}</span>
         )}
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
         <div>
           <p className="text-[10px] text-gray-400 uppercase">Budget</p>
           <p className="text-sm font-bold text-gray-900">${botConfig.capitalAlloc}</p>
+        </div>
+        <div>
+          <p className="text-[10px] text-gray-400 uppercase">Trades / Day</p>
+          <p className="text-sm font-bold text-gray-900">{botConfig.maxTradesPerDay}</p>
         </div>
         <div>
           <p className="text-[10px] text-gray-400 uppercase">Risk</p>

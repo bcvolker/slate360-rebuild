@@ -5,6 +5,7 @@ import type { ApiEnvelope, TradeViewModel } from "@/lib/market/contracts";
 import type { BotConfig } from "@/components/dashboard/market/types";
 
 interface UseMarketBotDeps {
+  trades: TradeViewModel[];
   fetchTrades: () => Promise<void>;
   fetchSummary: () => Promise<void>;
   fetchSchedulerHealth: () => Promise<void>;
@@ -25,6 +26,7 @@ export interface UseMarketBotReturn {
   // Individual setters for cross-hook usage (e.g., from useMarketDirectives)
   setPaperMode: (v: boolean) => void;
   setCapitalAlloc: (v: number) => void;
+  setMaxTradesPerDay: (v: number) => void;
   setMaxPositions: (v: number) => void;
   setMinEdge: (v: number) => void;
   setMinVolume: (v: number) => void;
@@ -40,7 +42,7 @@ export interface UseMarketBotReturn {
 const PREVIEW_SCAN_MARKET_LIMIT = 1500;
 
 export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
-  const { fetchTrades, fetchSummary, fetchSchedulerHealth } = deps;
+  const { trades, fetchTrades, fetchSummary, fetchSchedulerHealth } = deps;
 
   const [botRunning, setBotRunning] = useState(false);
   const [botPaused, setBotPaused] = useState(false);
@@ -49,6 +51,7 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
   const [scanLog, setScanLog] = useState<string[]>([]);
   const [appliedConfig, setAppliedConfig] = useState<Record<string, unknown> | null>(null);
   const [paperMode, setPaperMode] = useState(true);
+  const [maxTradesPerDay, setMaxTradesPerDay] = useState(5);
   const [maxPositions, setMaxPositions] = useState(5);
   const [capitalAlloc, setCapitalAlloc] = useState(500);
   const [minEdge, setMinEdge] = useState(3);
@@ -64,7 +67,18 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
     setScanLog(prev => [`[${ts}] ${msg}`, ...prev].slice(0, 100));
   }, []);
 
+  const getTradesTodayCount = useCallback(() => {
+    const todayUtc = new Date().toISOString().slice(0, 10);
+    return trades.filter((trade) => trade.createdAt.slice(0, 10) === todayUtc).length;
+  }, [trades]);
+
   const runScan = useCallback(async () => {
+    const tradesToday = getTradesTodayCount();
+    if (tradesToday >= maxTradesPerDay) {
+      addLog(`🛑 Daily trade cap reached (${tradesToday}/${maxTradesPerDay}) — skipping scan`);
+      return;
+    }
+
     setScanning(true);
     addLog("🔍 Scanning Polymarket for opportunities…");
     try {
@@ -76,6 +90,7 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
           paper_mode: paperMode,
           max_positions: maxPositions,
           capital_per_trade: capitalAlloc / maxPositions,
+          max_trades_per_day: maxTradesPerDay,
           min_edge: minEdge / 100,
           min_volume: minVolume,
           min_probability: minProbLow / 100,
@@ -105,8 +120,8 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
     } finally {
       setScanning(false);
     }
-  }, [paperMode, maxPositions, capitalAlloc, minEdge, minVolume, minProbLow, minProbHigh,
-      whaleFollow, riskMix, focusAreas, addLog, fetchTrades, fetchSummary, fetchSchedulerHealth]);
+    }, [paperMode, maxPositions, maxTradesPerDay, capitalAlloc, minEdge, minVolume, minProbLow, minProbHigh,
+      whaleFollow, riskMix, focusAreas, addLog, fetchTrades, fetchSummary, fetchSchedulerHealth, getTradesTodayCount]);
 
   const runPreviewScan = useCallback(async () => {
     try {
@@ -118,6 +133,7 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
           paper_mode: true,
           max_positions: maxPositions,
           capital_per_trade: capitalAlloc / Math.max(1, maxPositions),
+          max_trades_per_day: maxTradesPerDay,
           min_edge: minEdge / 100,
           min_volume: minVolume,
           min_probability: minProbLow / 100,
@@ -132,7 +148,7 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
     } catch {
       // non-critical preview
     }
-  }, [maxPositions, capitalAlloc, minEdge, minVolume, minProbLow, minProbHigh, whaleFollow, riskMix, focusAreas]);
+  }, [maxPositions, maxTradesPerDay, capitalAlloc, minEdge, minVolume, minProbLow, minProbHigh, whaleFollow, riskMix, focusAreas]);
 
   const handleStartBot = useCallback(async () => {
     if (!paperMode) {
@@ -181,14 +197,17 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
   const applyBeginnerBotPreset = useCallback((preset: "starter" | "balanced" | "active") => {
     if (preset === "starter") {
       setPaperMode(true); setCapitalAlloc(250); setMaxPositions(3); setMinEdge(5);
+      setMaxTradesPerDay(3);
       setMinVolume(25000); setMinProbLow(20); setMinProbHigh(80); setRiskMix("conservative"); setWhaleFollow(false);
       addLog("🧭 Preset applied: Starter (safe paper setup)");
     } else if (preset === "balanced") {
       setPaperMode(true); setCapitalAlloc(500); setMaxPositions(5); setMinEdge(3);
+      setMaxTradesPerDay(5);
       setMinVolume(10000); setMinProbLow(10); setMinProbHigh(90); setRiskMix("balanced"); setWhaleFollow(false);
       addLog("🧭 Preset applied: Balanced");
     } else {
       setPaperMode(true); setCapitalAlloc(900); setMaxPositions(10); setMinEdge(2);
+      setMaxTradesPerDay(12);
       setMinVolume(5000); setMinProbLow(5); setMinProbHigh(95); setRiskMix("aggressive"); setWhaleFollow(true);
       addLog("🧭 Preset applied: Active");
     }
@@ -207,11 +226,11 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
   }, [botRunning, botPaused]);
 
   return {
-    config: { paperMode, botRunning, botPaused, scanning, lastScan, capitalAlloc, maxPositions,
+    config: { paperMode, botRunning, botPaused, scanning, lastScan, capitalAlloc, maxTradesPerDay, maxPositions,
               minEdge, minVolume, minProbLow, minProbHigh, riskMix, whaleFollow, focusAreas },
     appliedConfig, scanLog, addLog, runScan, runPreviewScan,
     handleStartBot, handlePauseBot, handleStopBot, applyBeginnerBotPreset, toggleFocus,
-    setPaperMode, setCapitalAlloc, setMaxPositions, setMinEdge, setMinVolume,
+    setPaperMode, setCapitalAlloc, setMaxTradesPerDay, setMaxPositions, setMinEdge, setMinVolume,
     setMinProbLow, setMinProbHigh, setRiskMix, setWhaleFollow, setFocusAreas,
     setBotRunning, setBotPaused,
   };

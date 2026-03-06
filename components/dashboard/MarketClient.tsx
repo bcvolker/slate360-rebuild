@@ -13,6 +13,7 @@ import MarketResultsTab from "@/components/dashboard/market/MarketResultsTab";
 import MarketLiveWalletTab from "@/components/dashboard/market/MarketLiveWalletTab";
 import MarketSavedMarketsStub from "@/components/dashboard/market/MarketSavedMarketsStub";
 import { useMarketWalletState } from "@/lib/hooks/useMarketWalletState";
+import { syncAutomationPlan } from "@/lib/market/sync-automation-plan";
 import type { MarketShellContext } from "@/components/dashboard/market/MarketRouteShell";
 import type { AutomationPlan } from "@/components/dashboard/market/types";
 
@@ -28,6 +29,7 @@ const STUB_TABS: Record<string, React.ComponentType> = {
 export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   const visibleTabs = layoutPrefs?.visibleTabs ?? [];
   const [activeTabId, setActiveTabId] = useState("start-here");
+  const logsEnabled = activeTabId === "results";
 
   // If active tab is hidden, snap to first visible
   useEffect(() => {
@@ -36,8 +38,9 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
     }
   }, [visibleTabs, activeTabId]);
 
-  const td = useMarketTradeData();
+  const td = useMarketTradeData(logsEnabled);
   const bot = useMarketBot({
+    trades: td.trades,
     fetchTrades: td.fetchTrades,
     fetchSummary: td.fetchSummary,
     fetchSchedulerHealth: td.fetchSchedulerHealth,
@@ -59,14 +62,30 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   }, [activeTabId, td]);
 
   const handleApplyPlan = useCallback((plan: AutomationPlan) => {
-    bot.setCapitalAlloc(plan.budget);
-    bot.setRiskMix(plan.riskLevel);
-    bot.setFocusAreas(plan.categories);
-    bot.setPaperMode(plan.mode === "practice");
-    bot.addLog(`📋 Plan "${plan.name}" applied to bot`);
-    bot.setBotRunning(true);
-    bot.setBotPaused(false);
-    bot.runScan();
+    void (async () => {
+      bot.setCapitalAlloc(plan.budget);
+      bot.setMaxTradesPerDay(plan.maxTradesPerDay);
+      bot.setMaxPositions(plan.maxOpenPositions);
+      bot.setRiskMix(plan.riskLevel);
+      bot.setFocusAreas(plan.categories);
+      bot.setPaperMode(plan.mode === "practice");
+      bot.addLog(`📋 Plan "${plan.name}" applied to bot`);
+
+      try {
+        const result = await syncAutomationPlan(plan);
+        if (result.ok) {
+          bot.addLog(`🗂 Synced "${plan.name}" to server automation settings`);
+        } else {
+          bot.addLog(`⚠️ Plan applied locally, but server automation sync failed (${result.status})`);
+        }
+      } catch (error) {
+        bot.addLog(`⚠️ Plan applied locally, but server automation sync failed: ${error instanceof Error ? error.message : "unknown error"}`);
+      }
+
+      bot.setBotRunning(true);
+      bot.setBotPaused(false);
+      await bot.runScan();
+    })();
   }, [bot]);
 
   function renderActiveTab() {

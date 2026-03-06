@@ -1,8 +1,10 @@
 "use client";
 import React from "react";
 import { HelpTip } from "@/components/dashboard/market/MarketSharedUi";
+import MarketAutomationDetailControls from "@/components/dashboard/market/MarketAutomationDetailControls";
+import MarketNumericInput from "@/components/dashboard/market/MarketNumericInput";
 import { FOCUS_AREAS } from "@/components/dashboard/market/market-constants";
-import type { AutomationPlan, RiskLevel, ScanMode, FillPolicy, ExitRules } from "@/components/dashboard/market/types";
+import type { AutomationPlan, RiskLevel, ScanMode } from "@/components/dashboard/market/types";
 
 interface MarketAutomationBuilderProps {
   draft: AutomationPlan;
@@ -62,12 +64,11 @@ export default function MarketAutomationBuilder({
 
       {/* Intermediate controls */}
       {(controlLevel === "intermediate" || controlLevel === "advanced") && (
-        <IntermediateControls draft={draft} onFieldChange={onFieldChange} />
-      )}
-
-      {/* Advanced controls */}
-      {controlLevel === "advanced" && (
-        <AdvancedControls draft={draft} onFieldChange={onFieldChange} />
+        <MarketAutomationDetailControls
+          draft={draft}
+          level={controlLevel}
+          onFieldChange={onFieldChange}
+        />
       )}
 
       {/* Actions */}
@@ -100,9 +101,13 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
           <label className="text-xs text-gray-500 mb-1 flex items-center">
             Budget ($) <HelpTip content="Total capital the plan can use." />
           </label>
-          <input type="number" min={10} max={100000} value={draft.budget}
-            onChange={e => onFieldChange("budget", Math.max(10, Number(e.target.value) || 200))}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]" />
+          <MarketNumericInput
+            value={draft.budget}
+            min={10}
+            max={100000}
+            fallback={200}
+            onCommit={(value) => onFieldChange("budget", value)}
+          />
         </div>
         <div>
           <label className="text-xs text-gray-500 mb-1 flex items-center">
@@ -142,17 +147,24 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
           <label className="text-xs text-gray-500 mb-1 flex items-center">
             Max Trades/Day <HelpTip content="Cap on how many trades the robot makes per day." />
           </label>
-          <input type="number" min={1} max={50} value={draft.maxTradesPerDay}
-            onChange={e => onFieldChange("maxTradesPerDay", Math.max(1, Number(e.target.value) || 5))}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]" />
+          <MarketNumericInput
+            value={draft.maxTradesPerDay}
+            min={1}
+            max={5000}
+            fallback={5}
+            onCommit={(value) => onFieldChange("maxTradesPerDay", value)}
+          />
         </div>
         <div>
           <label className="text-xs text-gray-500 mb-1 flex items-center">
             Max Daily Loss ($) <HelpTip content="Stop trading when losses exceed this amount in a single day." />
           </label>
-          <input type="number" min={5} value={draft.maxDailyLoss}
-            onChange={e => onFieldChange("maxDailyLoss", Math.max(5, Number(e.target.value) || 40))}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]" />
+          <MarketNumericInput
+            value={draft.maxDailyLoss}
+            min={5}
+            fallback={40}
+            onCommit={(value) => onFieldChange("maxDailyLoss", value)}
+          />
         </div>
       </div>
 
@@ -161,9 +173,13 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
           <label className="text-xs text-gray-500 mb-1 flex items-center">
             Max Open Positions <HelpTip content="Max number of concurrent open trades." />
           </label>
-          <input type="number" min={1} max={20} value={draft.maxOpenPositions}
-            onChange={e => onFieldChange("maxOpenPositions", Math.max(1, Number(e.target.value) || 3))}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]" />
+          <MarketNumericInput
+            value={draft.maxOpenPositions}
+            min={1}
+            max={5000}
+            fallback={3}
+            onCommit={(value) => onFieldChange("maxOpenPositions", value)}
+          />
         </div>
         <div>
           <label className="text-xs text-gray-500 mb-1 flex items-center">
@@ -194,107 +210,5 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
         </div>
       </div>
     </>
-  );
-}
-
-/* ── Intermediate Controls ──────────────────────────────────────── */
-function IntermediateControls({ draft, onFieldChange }: {
-  draft: AutomationPlan;
-  onFieldChange: <K extends keyof AutomationPlan>(key: K, value: AutomationPlan[K]) => void;
-}) {
-  return (
-    <div className="border-t border-gray-100 pt-4 space-y-3">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Intermediate</p>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs text-gray-500 mb-1 block">Max % Per Trade</label>
-          <input type="number" min={1} max={100} value={draft.maxPctPerTrade}
-            onChange={e => onFieldChange("maxPctPerTrade", Math.max(1, Number(e.target.value) || 10))}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]" />
-        </div>
-        <div>
-          <label className="text-xs text-gray-500 mb-1 block">Fee Alert Threshold ($)</label>
-          <input type="number" min={0} value={draft.feeAlertThreshold}
-            onChange={e => onFieldChange("feeAlertThreshold", Math.max(0, Number(e.target.value) || 5))}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]" />
-        </div>
-      </div>
-      <div>
-        <label className="text-xs text-gray-500 mb-1 block">Cooldown After Loss Streak (trades)</label>
-        <input type="number" min={0} max={10} value={draft.cooldownAfterLossStreak}
-          onChange={e => onFieldChange("cooldownAfterLossStreak", Math.max(0, Number(e.target.value) || 2))}
-          className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]" />
-      </div>
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-700 flex items-center">
-          Large-Trader Signals <HelpTip content="Follow large trades as a signal." />
-        </span>
-        <button onClick={() => onFieldChange("largeTraderSignals", !draft.largeTraderSignals)}
-          className={`relative w-10 h-5 rounded-full transition ${draft.largeTraderSignals ? "bg-[#1E3A8A]" : "bg-gray-300"}`}>
-          <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${draft.largeTraderSignals ? "translate-x-5" : "translate-x-0.5"}`} />
-        </button>
-      </div>
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-700 flex items-center">
-          Closing-Soon Focus <HelpTip content="Prioritize markets about to resolve." />
-        </span>
-        <button onClick={() => onFieldChange("closingSoonFocus", !draft.closingSoonFocus)}
-          className={`relative w-10 h-5 rounded-full transition ${draft.closingSoonFocus ? "bg-[#1E3A8A]" : "bg-gray-300"}`}>
-          <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${draft.closingSoonFocus ? "translate-x-5" : "translate-x-0.5"}`} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ── Advanced Controls ──────────────────────────────────────────── */
-function AdvancedControls({ draft, onFieldChange }: {
-  draft: AutomationPlan;
-  onFieldChange: <K extends keyof AutomationPlan>(key: K, value: AutomationPlan[K]) => void;
-}) {
-  return (
-    <div className="border-t border-gray-100 pt-4 space-y-3">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Advanced</p>
-      <div className="grid grid-cols-3 gap-3">
-        <div>
-          <label className="text-xs text-gray-500 mb-1 block">Slippage (%)</label>
-          <input type="number" min={0} max={20} step={0.5} value={draft.slippage}
-            onChange={e => onFieldChange("slippage", Math.max(0, Number(e.target.value) || 2))}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]" />
-        </div>
-        <div>
-          <label className="text-xs text-gray-500 mb-1 block">Min Liquidity ($)</label>
-          <input type="number" min={0} value={draft.minimumLiquidity}
-            onChange={e => onFieldChange("minimumLiquidity", Math.max(0, Number(e.target.value) || 1000))}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]" />
-        </div>
-        <div>
-          <label className="text-xs text-gray-500 mb-1 block">Max Spread (%)</label>
-          <input type="number" min={0} max={50} value={draft.maximumSpread}
-            onChange={e => onFieldChange("maximumSpread", Math.max(0, Number(e.target.value) || 5))}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]" />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs text-gray-500 mb-1 block">Fill Policy</label>
-          <select value={draft.fillPolicy} onChange={e => onFieldChange("fillPolicy", e.target.value as FillPolicy)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]">
-            <option value="conservative">Conservative</option>
-            <option value="aggressive">Aggressive</option>
-            <option value="limit-only">Limit Only</option>
-          </select>
-        </div>
-        <div>
-          <label className="text-xs text-gray-500 mb-1 block">Exit Rules</label>
-          <select value={draft.exitRules} onChange={e => onFieldChange("exitRules", e.target.value as ExitRules)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]">
-            <option value="auto">Auto</option>
-            <option value="manual">Manual</option>
-            <option value="trailing-stop">Trailing Stop</option>
-          </select>
-        </div>
-      </div>
-    </div>
   );
 }

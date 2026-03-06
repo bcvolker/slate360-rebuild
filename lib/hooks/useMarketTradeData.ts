@@ -28,7 +28,7 @@ export interface UseMarketTradeDataReturn {
   settleAndRefresh: () => Promise<void>;
 }
 
-export function useMarketTradeData(): UseMarketTradeDataReturn {
+export function useMarketTradeData(logsEnabled = false): UseMarketTradeDataReturn {
   const [trades, setTrades] = useState<MarketTrade[]>([]);
   const [pnlChart, setPnlChart] = useState<PnlPoint[]>([]);
   const [loadingTrades, setLoadingTrades] = useState(false);
@@ -128,9 +128,10 @@ export function useMarketTradeData(): UseMarketTradeDataReturn {
 
   // Poll activity logs every 30 seconds
   useEffect(() => {
+    if (!logsEnabled) return;
     const id = setInterval(() => { void fetchMarketLogs(); }, 30_000);
     return () => clearInterval(id);
-  }, [fetchMarketLogs]);
+  }, [fetchMarketLogs, logsEnabled]);
 
   const totalPnl = trades.reduce((s, t) => s + (t.pnl ?? 0), 0);
   const openTrades = trades.filter(t => t.status === "open");

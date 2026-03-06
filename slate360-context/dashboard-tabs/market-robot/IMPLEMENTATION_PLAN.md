@@ -601,6 +601,8 @@ max daily loss
 
 max open positions
 
+typed numeric entry for budget, max trades/day, max daily loss, and max open positions — users must be able to type exact values instead of being forced to use spinner arrows
+
 Intermediate controls
 
 scan intensity
@@ -668,6 +670,8 @@ fill behavior
 practice vs real-money
 
 whether fee alerts are active
+
+The summary card must reflect the applied runtime values, not just the saved-plan defaults. If a plan sets max trades/day or max open positions, those values must be visible in the pre-start summary and transferred into the live bot config on apply.
 
 whether live setup is fully green
 
@@ -1313,6 +1317,10 @@ safety and trade-volume controls are visible
 max trades/day, fee alerts, scan intensity, and kill switch exist
 
 automation is understandable before starting
+
+Automation compatibility note
+
+Until `market_plans` becomes the server-side source of truth, applying a saved automation plan must also sync the active plan into the legacy directives shape so the current scheduler respects budget, risk mix, category focus, max trades/day, and loss-cap settings.
 
 PR6 — Saved Markets + saved searches + reusable presets
 

@@ -18,7 +18,7 @@ export const GET = (req: NextRequest) =>
       .limit(limit);
 
     if (error) {
-      if (error.code === "42P01") return ok({ logs: [] });
+      if (error.code === "42P01" || error.code === "PGRST205") return ok({ logs: [] });
       return serverError(error.message);
     }
     return ok({ logs: data ?? [] });

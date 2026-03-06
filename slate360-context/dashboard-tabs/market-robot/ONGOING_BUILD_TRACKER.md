@@ -88,8 +88,10 @@ Current Market files in play
 - `components/dashboard/market/MarketCustomizeDrawer.tsx` (135 lines — shared customize drawer)
 - `components/dashboard/market/MarketStartHereTab.tsx` (245 lines — **Batch 3 built, Batch 6 updated, Mar 6 runtime hardening**: mode picker, 6 recommendation presets, first-run banner, YES/NO explainer, navigation to other tabs, server-confirmed bot status bar, hydration-safe localStorage init)
 - `components/dashboard/market/MarketDirectBuyTab.tsx` (267 lines — **Batch 3 built, Batch 8 updated**: search toolbar, timeframe chips, MarketAdvancedFilters integration, market table w/ YES/NO buy buttons, buy panel drawer)
-- `components/dashboard/market/MarketAutomationTab.tsx` (96 lines — **Batch 4 built**: orchestrates builder + plan list + active plan summary)
-- `components/dashboard/market/MarketAutomationBuilder.tsx` (300 lines — **Batch 4 built**: guided plan creation with basic/intermediate/advanced control levels)
+- `components/dashboard/market/MarketAutomationTab.tsx` (100 lines — **Batch 4 built, Mar 6 automation hardening**: orchestrates builder + plan list + active plan summary with runtime trades/day and max-positions visible)
+- `components/dashboard/market/MarketAutomationBuilder.tsx` (214 lines — **Batch 4 built, Mar 6 automation hardening**: guided plan creation with typed numeric inputs for budget, max trades/day, max daily loss, and max open positions)
+- `components/dashboard/market/MarketAutomationDetailControls.tsx` (139 lines — **Mar 6 new**: extracted intermediate/advanced automation controls with typed numeric inputs and toggles)
+- `components/dashboard/market/MarketNumericInput.tsx` (61 lines — **Mar 6 new**: text-friendly numeric input with clamp-on-commit behavior)
 - `components/dashboard/market/MarketPlanList.tsx` (151 lines — **Batch 4 built**: saved plans with apply/edit/clone/rename/archive/default/delete)
 - `components/dashboard/market/MarketAdvancedFilters.tsx` (188 lines — **Batch 8 new**: extracted advanced filter panel with 8 filter controls + HelpTip tooltips)
 - `components/dashboard/market/MarketSavedMarketsStub.tsx` (stub — future)
@@ -99,8 +101,11 @@ Current Market files in play
 - `components/dashboard/market/types.ts` (164 lines — all shared types including SimulationConfig, AutomationPlan)
 - `lib/hooks/useMarketDirectBuyState.ts` (258 lines — **Batch 3 new, Batch 8 updated, Mar 6 runtime hardening**: auto-load on mount, cursor-batched fetch up to 1000 markets, minVolume/minLiquidity/maxSpread filters, availableCategories, loadError state)
 - `lib/hooks/useMarketAutomationState.ts` (136 lines — **Batch 4 new**: plan CRUD, localStorage persistence, control level state)
+- `lib/hooks/useMarketTradeData.ts` (156 lines — **Mar 6 automation/runtime hardening**: activity-log polling only runs when Results is active)
+- `lib/hooks/useMarketBot.ts` (237 lines — **Mar 6 automation hardening**: runtime config now includes maxTradesPerDay and blocks scans once the daily trade cap is reached)
 
 - `lib/market/layout-presets.ts` (64 lines — tab/panel defaults)
+- `lib/market/sync-automation-plan.ts` (41 lines — **Mar 6 new**: syncs applied automation plans to the legacy directives endpoint for scheduler compatibility)
 - `lib/hooks/useMarketLayoutPrefs.ts` (169 lines — persist/migrate prefs)
 
 - `lib/hooks/useMarketResultsState.ts` (170 lines — **Batch 5 new**: analytics computation, sort/filter, trade replay state)
@@ -114,6 +119,7 @@ Still missing from the revised plan
 - server-side pagination for Polymarket catalog (currently client-side with 1000-market fetch)
 - bookmarking / saved markets persistence
 - authenticated production verification of directives/logs fallback behavior after deploy
+- server-side scheduler migration from legacy directives to automation plans as the primary source of truth
 
 ## Non-Negotiables
 - Route remains `/market`
@@ -349,6 +355,7 @@ Carry-forward rule
 - 2026-03-06: Batch 7 (Cleanup + Retirement) — complete. 22 legacy/orphaned files deleted: MarketDashboardTab, MarketHotOppsTab, MarketWhaleWatchTab, MarketWalletPerformanceTab, MarketSimCompareTab, MarketDirectivesTab, MarketDirectivesForm, MarketDirectivesList, MarketSimulationPanel, MarketAutomationStub, MarketResultsStub, MarketLiveWalletStub, useMarketSimState, useMarketBuyState, MarketExplorerTab, MarketFiltersPanel, MarketBotConfigPanel, MarketWalletCard, MarketActivityLog, MarketTabBar, MarketStartHereStub, MarketDirectBuyStub. tsc clean. Next: Batch 8.
 - 2026-03-06: Batch 8 (Direct Buy UX Hardening) — complete. Files created: MarketAdvancedFilters.tsx (188 lines — extracted filter panel w/ 8 controls + HelpTip tooltips for edge, prob min/max, sort, category, risk tag, volume, liquidity, spread). Files modified: useMarketDirectBuyState.ts (197→222 lines — auto-load on mount via useEffect+useRef, limit 300→1000, added minVolume/minLiquidity/maxSpread states + filter logic, availableCategories derived from loaded markets), MarketDirectBuyTab.tsx (299→267 lines — replaced inline filters with MarketAdvancedFilters component, removed SORT_OPTIONS constant, replaced "Load all markets" with auto-load spinner, Search→Refresh label when loaded). All files ≤300 lines, tsc clean. Next: Batch 9+ (saved markets, market_plans migration, server-side pagination).
 - 2026-03-06: Runtime review + hardening — complete. Files modified: MarketClient.tsx (removed eager directives load, fetches logs only on Results tab), MarketStartHereTab.tsx (moved localStorage init into useEffect to eliminate hydration mismatch / React 418), useMarketDirectBuyState.ts (cursor-batched Polymarket fetch to actually load up to 1000 markets; added loadError state), MarketDirectBuyTab.tsx (renders load error banner), app/api/market/directives/route.ts + app/api/market/logs/route.ts (GET now degrades to empty arrays when legacy tables are absent instead of returning 500). Verified: `npx tsc --noEmit` clean, changed files all <300 lines, deployed `/api/market/polymarket` paginates with `nextCursor`. Next: deploy and authenticated production verification.
+- 2026-03-06: Automation transfer + logs polling hardening — complete. Files created: MarketAutomationDetailControls.tsx (139 lines), MarketNumericInput.tsx (61 lines), lib/market/sync-automation-plan.ts (41 lines). Files modified: MarketAutomationBuilder.tsx (300→214 lines — extracted detail controls and replaced spinner-only numeric entry for key automation fields), MarketAutomationTab.tsx (96→100 lines — active summary now shows trades/day and max positions), MarketClient.tsx (181→200 lines — applying a plan now transfers budget/max trades/day/max positions into runtime config and syncs the plan to legacy directives), useMarketBot.ts (runtime config enforces maxTradesPerDay for client-run scans), useMarketTradeData.ts (activity-log polling gated by Results tab), app/api/market/logs/route.ts (treats both `42P01` and `PGRST205` missing-table errors as empty logs). Verified: `npx tsc --noEmit` clean, touched files all within line limits. Next: push and production verify endpoint behavior, then authenticated browser verification.
 
 ## Ready-To-Paste Prompt For Next Chat
 

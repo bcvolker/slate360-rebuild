@@ -153,6 +153,7 @@ export interface BotConfig {
   scanning: boolean;
   lastScan: number | null;
   capitalAlloc: number;
+  maxTradesPerDay: number;
   maxPositions: number;
   minEdge: number;
   minVolume: number;

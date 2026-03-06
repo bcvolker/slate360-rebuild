@@ -187,6 +187,12 @@ Current issue states:
   - confirm keyword search can surface markets beyond the first 200-row page
   - confirm `/api/market/directives` and `/api/market/logs` no longer spam 500s in console
 
+### Follow-up hardening — 2026-03-06
+- Automation apply now transfers `budget`, `maxTradesPerDay`, and `maxOpenPositions` into live bot runtime state instead of leaving those values cosmetic inside saved plans.
+- The apply flow syncs the active plan into the legacy directives endpoint so the current server-side scheduler can honor plan-derived budget/day-cap/risk settings until `market_plans` becomes canonical.
+- Activity-log polling is now disabled unless the Results tab is active, reducing repeated `/api/market/logs` traffic during normal Market usage.
+- `GET /api/market/logs` now treats missing-table responses from both Postgres (`42P01`) and PostgREST (`PGRST205`) as an empty state instead of 500.
+
 ---
 
 ## Issue 12 — Dashboard blank page after login (`isClient is not defined`)
