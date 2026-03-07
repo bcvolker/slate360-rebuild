@@ -137,6 +137,39 @@ Completed
 Remaining validation to run later
 - Browser-level verification of `/market` sorting and CEO subscriber grant flow with a live local or deployed session.
 
+## Mar 7, 2026 — Paper automation root-cause findings
+
+Confirmed blockers
+- Direct paper buys work because [app/api/market/buy/route.ts](/workspaces/slate360-rebuild/app/api/market/buy/route.ts) inserts the paper trade immediately. Automated paper trading takes a different path: plan apply -> [lib/market/sync-automation-plan.ts](/workspaces/slate360-rebuild/lib/market/sync-automation-plan.ts) -> bot status -> [app/api/market/scan/route.ts](/workspaces/slate360-rebuild/app/api/market/scan/route.ts) and optionally the server scheduler in [lib/market/scheduler.ts](/workspaces/slate360-rebuild/lib/market/scheduler.ts).
+- The automation scorer was effectively hard-disabled by its own edge threshold. `scoreOpportunities()` defined edge as `abs(1 - yesPrice - noPrice) * 100` in [lib/market-bot.ts](/workspaces/slate360-rebuild/lib/market-bot.ts), while `useMarketBot` defaulted `minEdge` to `1` and the scheduler hard-coded `minOpportunityEdgePct` to `1`. A live sample over the top 500 active Polymarket markets returned `edge >= 1` for `0/500`, `edge >= 0.5` for `0/500`, and even `edge >= 0.1` for `0/500`, so automation could stay "running" forever and still never create a decision.
+- Background automation still depends on the secret-protected scheduler tick route at [app/api/market/scheduler/tick/route.ts](/workspaces/slate360-rebuild/app/api/market/scheduler/tick/route.ts). Direct buy does not. If cron is missing, misconfigured, or not reachable in the target environment, users only get the one immediate client scan plus the browser-local 5 minute interval from [lib/hooks/useMarketBot.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketBot.ts) while the tab stays open.
+
+Architecture gaps still limiting automation
+- Automation plans are still localStorage-first in [lib/hooks/useMarketAutomationState.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketAutomationState.ts). The UI itself says "Plans stored locally" in [components/dashboard/market/MarketAutomationTab.tsx](/workspaces/slate360-rebuild/components/dashboard/market/MarketAutomationTab.tsx), and the server still treats legacy `market_directives` as the source of truth.
+- Several automation controls are UI-only today. `AutomationPlan` includes `scanMode`, `maxOpenPositions`, `maxPctPerTrade`, `feeAlertThreshold`, `closingSoonFocus`, `slippage`, `minimumLiquidity`, `maximumSpread`, and `exitRules` in [components/dashboard/market/types.ts](/workspaces/slate360-rebuild/components/dashboard/market/types.ts), but the sync layer only persists a subset in [lib/market/sync-automation-plan.ts](/workspaces/slate360-rebuild/lib/market/sync-automation-plan.ts). The directives route schema in [app/api/market/directives/route.ts](/workspaces/slate360-rebuild/app/api/market/directives/route.ts) confirms those omitted fields are not stored or enforced server-side.
+- Timeframe-specific execution is not real yet. The sync layer writes a coarse `timeframe` string, but the scan route and scheduler do not consume it when selecting markets, so user-specified time windows are currently cosmetic.
+- Category vocabulary is inconsistent. The automation UI uses labels like `General`, `Finance`, `Science`, and `Tech` from [components/dashboard/market/market-constants.ts](/workspaces/slate360-rebuild/components/dashboard/market/market-constants.ts), while execution only normalizes the smaller focus-area set in [lib/market/scheduler-utils.ts](/workspaces/slate360-rebuild/lib/market/scheduler-utils.ts) and [lib/market/scan-request.ts](/workspaces/slate360-rebuild/lib/market/scan-request.ts). Unsupported labels are dropped and can silently broaden a plan back to `all`.
+
+Why high-volume automated buys are not optimized yet
+- Vercel cron is configured for every 5 minutes in [vercel.json](/workspaces/slate360-rebuild/vercel.json). That means the true background ceiling is roughly 288 scheduler invocations per day unless another worker path is introduced.
+- The scheduler derives cadence from `buys_per_day`, but then clamps each run through `MARKET_SCHEDULER_MIN_INTERVAL_SECONDS`, `MARKET_SCHEDULER_MAX_INTERVAL_SECONDS`, `maxTradesPerScan`, and `maxMarketLimit` in [lib/market/scheduler-utils.ts](/workspaces/slate360-rebuild/lib/market/scheduler-utils.ts) and [lib/market/scheduler.ts](/workspaces/slate360-rebuild/lib/market/scheduler.ts). It is a single cron-loop design, not a burst-capable queue.
+- There is no durable job queue, no per-user execution backlog, no retry queue, and no true time-window scheduler. Users asking for very high buy counts in specific windows are funneled into a generalized polling loop.
+
+Attempt history and ineffective fixes
+- Previous hardening fixed plan sync, bot-status persistence, server-confirmed runtime badges, and scheduler logging, but those changes did not solve the core zero-decision problem because the opportunity model still required a nonzero edge threshold that live markets were not meeting.
+- Rewriting the apply flow to sync directives and set `market_bot_runtime` correctly improved state consistency, but it did not by itself create trades because the scan and scheduler still filtered the market set down to zero.
+
+Current fix applied in this pass
+- Lowered the automation edge threshold to `0` in [lib/market-bot.ts](/workspaces/slate360-rebuild/lib/market-bot.ts), [lib/hooks/useMarketBot.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketBot.ts), and [lib/market/scheduler.ts](/workspaces/slate360-rebuild/lib/market/scheduler.ts) so paper automation can generate candidates from the existing confidence/liquidity filters instead of requiring an arbitrage gap that the live feed does not expose.
+- Improved client scan logging in [lib/hooks/useMarketBot.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketBot.ts) so zero-trade runs now report opportunity and decision counts instead of looking like a silent no-op.
+- `app/api/market/directives/route.ts` is now backward-compatible with the older `market_directives` base schema and persists the richer automation execution settings in auth `user_metadata.marketBotConfig`, so missing newer directive columns no longer have to produce a 500.
+- The scan route and scheduler now consume metadata-backed timeframe, liquidity floor, spread ceiling, max open positions, and per-trade allocation caps through [lib/market/runtime-config.ts](/workspaces/slate360-rebuild/lib/market/runtime-config.ts), [app/api/market/scan/route.ts](/workspaces/slate360-rebuild/app/api/market/scan/route.ts), and [lib/market/scheduler-run-user.ts](/workspaces/slate360-rebuild/lib/market/scheduler-run-user.ts).
+
+Next recommended follow-up
+- Make `market_plans` the canonical server-side config and stop translating rich automation plans into legacy directives.
+- Replace the auth-metadata stopgap with a first-class server table once `market_plans` lands, then migrate the scheduler off legacy directives entirely.
+- Replace the cron-only loop with a queue or worker model if the goal is genuinely high-volume scheduled automation.
+
 ## Non-Negotiables
 - Route remains `/market`
 - Gate remains internal-only via `canAccessMarket`

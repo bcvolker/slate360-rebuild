@@ -87,7 +87,7 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
   const [maxTradesPerDay, setMaxTradesPerDay] = useState(25);
   const [maxPositions, setMaxPositions] = useState(25);
   const [capitalAlloc, setCapitalAlloc] = useState(500);
-  const [minEdge, setMinEdge] = useState(1);
+  const [minEdge, setMinEdge] = useState(0);
   const [minVolume, setMinVolume] = useState(5000);
   const [minProbLow, setMinProbLow] = useState(5);
   const [minProbHigh, setMinProbHigh] = useState(95);
@@ -152,10 +152,20 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
           focus_areas: focusAreas,
         }),
       });
-      const data = await res.json() as ApiEnvelope<{ executed: TradeViewModel[]; appliedConfig?: Record<string, unknown> }>;
+      const data = await res.json() as ApiEnvelope<{
+        executed: TradeViewModel[];
+        appliedConfig?: Record<string, unknown>;
+        opportunitiesFound?: number;
+        decisions?: Array<unknown>;
+      }>;
       if (res.ok) {
         const scanTrades = data.data?.executed ?? [];
+        const opportunitiesFound = Number(data.data?.opportunitiesFound ?? 0);
+        const decisionsCount = Array.isArray(data.data?.decisions) ? data.data.decisions.length : 0;
         addLog(`✅ Scan complete — ${scanTrades.length} trades executed`);
+        if (scanTrades.length === 0) {
+          addLog(`ℹ️ No trades placed — ${opportunitiesFound} opportunities passed filters, ${decisionsCount} decisions survived sizing`);
+        }
         scanTrades.forEach(t => {
           addLog(`  → ${t.outcome} on "${t.marketTitle?.slice(0, 40)}…" @ $${t.avgPrice?.toFixed(3)}`);
         });
@@ -249,17 +259,17 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
 
   const applyBeginnerBotPreset = useCallback((preset: "starter" | "balanced" | "active") => {
     if (preset === "starter") {
-      setPaperMode(true); setCapitalAlloc(500); setMaxPositions(10); setMinEdge(2);
+      setPaperMode(true); setCapitalAlloc(500); setMaxPositions(10); setMinEdge(0);
       setMaxTradesPerDay(25);
       setMinVolume(10000); setMinProbLow(10); setMinProbHigh(90); setRiskMix("conservative"); setWhaleFollow(false);
       addLog("🧭 Preset applied: Starter (safe paper setup, 25 trades/day)");
     } else if (preset === "balanced") {
-      setPaperMode(true); setCapitalAlloc(1000); setMaxPositions(25); setMinEdge(1);
+      setPaperMode(true); setCapitalAlloc(1000); setMaxPositions(25); setMinEdge(0);
       setMaxTradesPerDay(50);
       setMinVolume(5000); setMinProbLow(5); setMinProbHigh(95); setRiskMix("balanced"); setWhaleFollow(false);
       addLog("🧭 Preset applied: Balanced (50 trades/day)");
     } else {
-      setPaperMode(true); setCapitalAlloc(2500); setMaxPositions(50); setMinEdge(0.5);
+      setPaperMode(true); setCapitalAlloc(2500); setMaxPositions(50); setMinEdge(0);
       setMaxTradesPerDay(200);
       setMinVolume(1000); setMinProbLow(3); setMinProbHigh(97); setRiskMix("aggressive"); setWhaleFollow(true);
       addLog("🧭 Preset applied: Active (200 trades/day, aggressive)");

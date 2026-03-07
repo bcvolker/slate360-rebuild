@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { mergeDirectiveWithRuntime, mergeMarketBotMetadata, type LegacyDirectiveRow } from "@/lib/market/directive-runtime";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { buildRuntimeConfig } from "@/lib/market/runtime-config";
 
 type DirectivePayload = {
   id?: string;
@@ -20,6 +22,7 @@ type DirectivePayload = {
   target_profit_monthly?: number | null;
   take_profit_pct?: number;
   stop_loss_pct?: number;
+  runtime_config?: Record<string, unknown>;
 };
 
 async function getAuthUser() {
@@ -28,6 +31,39 @@ async function getAuthUser() {
     data: { user },
   } = await supabase.auth.getUser();
   return { supabase, user };
+}
+
+async function updateMarketRuntimeConfig(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  user: NonNullable<Awaited<ReturnType<typeof getAuthUser>>["user"]>,
+  body: DirectivePayload,
+) {
+  const runtimeConfig = buildRuntimeConfig({
+    ...(body.runtime_config ?? {}),
+    capitalAlloc: body.amount,
+    maxTradesPerDay: body.buys_per_day,
+    paperMode: body.paper_mode !== false,
+    focusAreas: body.focus_areas,
+    timeframe: body.timeframe,
+    dailyLossCap: body.daily_loss_cap,
+    moonshotMode: body.moonshot_mode,
+    totalLossCap: body.total_loss_cap,
+    autoPauseLosingDays: body.auto_pause_losing_days,
+    targetProfitMonthly: body.target_profit_monthly,
+    takeProfitPct: body.take_profit_pct,
+    stopLossPct: body.stop_loss_pct,
+  });
+
+  const existingMetadata =
+    user.user_metadata && typeof user.user_metadata === "object"
+      ? (user.user_metadata as Record<string, unknown>)
+      : {};
+
+  const { error } = await supabase.auth.updateUser({
+    data: mergeMarketBotMetadata(existingMetadata, runtimeConfig),
+  });
+
+  return { runtimeConfig, error };
 }
 
 function validateDirectiveInput(body: DirectivePayload) {
@@ -83,7 +119,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("market_directives")
-      .select("id,name,amount,timeframe,buys_per_day,risk_mix,whale_follow,focus_areas,profit_strategy,paper_mode,daily_loss_cap,moonshot_mode,total_loss_cap,auto_pause_losing_days,target_profit_monthly,take_profit_pct,stop_loss_pct,created_at")
+      .select("id,name,amount,timeframe,buys_per_day,risk_mix,whale_follow,focus_areas,profit_strategy,paper_mode,created_at,updated_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -94,7 +130,13 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ directives: data ?? [] });
+    const runtimeConfig = buildRuntimeConfig(
+      user.user_metadata?.marketBotConfig as Record<string, unknown> | undefined,
+    );
+
+    return NextResponse.json({
+      directives: ((data ?? []) as LegacyDirectiveRow[]).map((row) => mergeDirectiveWithRuntime(row, runtimeConfig)),
+    });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to fetch directives" },
@@ -120,6 +162,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: validationError }, { status: 400 });
     }
 
+    const { runtimeConfig, error: runtimeConfigError } = await updateMarketRuntimeConfig(supabase, user, body);
+    if (runtimeConfigError) {
+      return NextResponse.json({ error: runtimeConfigError.message }, { status: 500 });
+    }
+
     const payload = {
       user_id: user.id,
       name: body.name!.trim(),
@@ -128,29 +175,25 @@ export async function POST(req: NextRequest) {
       buys_per_day: body.buys_per_day!,
       risk_mix: body.risk_mix!,
       whale_follow: Boolean(body.whale_follow),
-      focus_areas: body.focus_areas!,
+      focus_areas: runtimeConfig.focusAreas,
       profit_strategy: body.profit_strategy!,
       paper_mode: body.paper_mode !== false,
-      daily_loss_cap: typeof body.daily_loss_cap === "number" ? body.daily_loss_cap : 40,
-      moonshot_mode: body.moonshot_mode === true,
-      total_loss_cap: typeof body.total_loss_cap === "number" ? body.total_loss_cap : 200,
-      auto_pause_losing_days: typeof body.auto_pause_losing_days === "number" ? body.auto_pause_losing_days : 3,
-      target_profit_monthly: typeof body.target_profit_monthly === "number" ? body.target_profit_monthly : null,
-      take_profit_pct: typeof body.take_profit_pct === "number" ? body.take_profit_pct : 20,
-      stop_loss_pct: typeof body.stop_loss_pct === "number" ? body.stop_loss_pct : 10,
     };
 
     const { data, error } = await supabase
       .from("market_directives")
       .insert(payload)
-      .select("id,name,amount,timeframe,buys_per_day,risk_mix,whale_follow,focus_areas,profit_strategy,paper_mode,daily_loss_cap,moonshot_mode,total_loss_cap,auto_pause_losing_days,target_profit_monthly,take_profit_pct,stop_loss_pct,created_at")
+      .select("id,name,amount,timeframe,buys_per_day,risk_mix,whale_follow,focus_areas,profit_strategy,paper_mode,created_at,updated_at")
       .single();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ directive: data }, { status: 201 });
+    return NextResponse.json(
+      { directive: mergeDirectiveWithRuntime(data as LegacyDirectiveRow, runtimeConfig) },
+      { status: 201 },
+    );
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to create directive" },
@@ -180,6 +223,11 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: validationError }, { status: 400 });
     }
 
+    const { runtimeConfig, error: runtimeConfigError } = await updateMarketRuntimeConfig(supabase, user, body);
+    if (runtimeConfigError) {
+      return NextResponse.json({ error: runtimeConfigError.message }, { status: 500 });
+    }
+
     const { data, error } = await supabase
       .from("market_directives")
       .update({
@@ -189,28 +237,21 @@ export async function PATCH(req: NextRequest) {
         buys_per_day: body.buys_per_day!,
         risk_mix: body.risk_mix!,
         whale_follow: Boolean(body.whale_follow),
-        focus_areas: body.focus_areas!,
+        focus_areas: runtimeConfig.focusAreas,
         profit_strategy: body.profit_strategy!,
         paper_mode: body.paper_mode !== false,
-        daily_loss_cap: typeof body.daily_loss_cap === "number" ? body.daily_loss_cap : 40,
-        moonshot_mode: body.moonshot_mode === true,
-        total_loss_cap: typeof body.total_loss_cap === "number" ? body.total_loss_cap : 200,
-        auto_pause_losing_days: typeof body.auto_pause_losing_days === "number" ? body.auto_pause_losing_days : 3,
-        target_profit_monthly: typeof body.target_profit_monthly === "number" ? body.target_profit_monthly : null,
-        take_profit_pct: typeof body.take_profit_pct === "number" ? body.take_profit_pct : 20,
-        stop_loss_pct: typeof body.stop_loss_pct === "number" ? body.stop_loss_pct : 10,
         updated_at: new Date().toISOString(),
       })
       .eq("id", body.id)
       .eq("user_id", user.id)
-      .select("id,name,amount,timeframe,buys_per_day,risk_mix,whale_follow,focus_areas,profit_strategy,paper_mode,daily_loss_cap,moonshot_mode,total_loss_cap,auto_pause_losing_days,target_profit_monthly,take_profit_pct,stop_loss_pct,created_at")
+      .select("id,name,amount,timeframe,buys_per_day,risk_mix,whale_follow,focus_areas,profit_strategy,paper_mode,created_at,updated_at")
       .single();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ directive: data });
+    return NextResponse.json({ directive: mergeDirectiveWithRuntime(data as LegacyDirectiveRow, runtimeConfig) });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to update directive" },

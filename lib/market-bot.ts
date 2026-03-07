@@ -62,7 +62,7 @@ export const DEFAULT_CONFIG: BotConfig = {
   emergencyStopPct: 15,
   maxTradesPerScan: 50,
   maxPositionUsd: 250,
-  minOpportunityEdgePct: 0.5,
+  minOpportunityEdgePct: 0,
   maxCandidates: 500,
   walletAddress: null,
   botStatus: "stopped",

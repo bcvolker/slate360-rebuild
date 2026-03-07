@@ -1,4 +1,5 @@
 import type { AutomationPlan } from "@/components/dashboard/market/types";
+import { buildRuntimeConfig } from "@/lib/market/runtime-config";
 
 export interface SyncResult {
   ok: boolean;
@@ -22,6 +23,32 @@ export async function syncAutomationPlan(plan: AutomationPlan): Promise<SyncResu
         ? "1w"
         : "3d";
 
+  const runtimeConfig = buildRuntimeConfig({
+    capitalAlloc: plan.budget,
+    maxTradesPerDay: plan.maxTradesPerDay,
+    maxOpenPositions: plan.maxOpenPositions,
+    paperMode: plan.mode === "practice",
+    focusAreas: plan.categories,
+    timeframe,
+    minimumLiquidity: plan.minimumLiquidity,
+    maximumSpreadPct: plan.maximumSpread,
+    maxPctPerTrade: plan.maxPctPerTrade,
+    feeAlertThreshold: plan.feeAlertThreshold,
+    cooldownAfterLossStreak: plan.cooldownAfterLossStreak,
+    largeTraderSignals: plan.largeTraderSignals,
+    closingSoonFocus: plan.closingSoonFocus,
+    slippagePct: plan.slippage,
+    fillPolicy: plan.fillPolicy,
+    exitRules: plan.exitRules,
+    dailyLossCap: plan.maxDailyLoss,
+    moonshotMode: plan.riskLevel === "aggressive" && plan.scanMode === "fast",
+    totalLossCap: Math.max(plan.maxDailyLoss * 5, plan.budget * 0.5),
+    autoPauseLosingDays: Math.max(1, plan.cooldownAfterLossStreak),
+    targetProfitMonthly: null,
+    takeProfitPct: 20,
+    stopLossPct: 10,
+  });
+
   const body = {
     name: plan.name,
     amount: plan.budget,
@@ -29,7 +56,7 @@ export async function syncAutomationPlan(plan: AutomationPlan): Promise<SyncResu
     buys_per_day: plan.maxTradesPerDay,
     risk_mix: plan.riskLevel,
     whale_follow: plan.largeTraderSignals,
-    focus_areas: plan.categories,
+    focus_areas: runtimeConfig.focusAreas,
     profit_strategy: profitStrategy,
     paper_mode: plan.mode === "practice",
     daily_loss_cap: plan.maxDailyLoss,
@@ -39,6 +66,7 @@ export async function syncAutomationPlan(plan: AutomationPlan): Promise<SyncResu
     target_profit_monthly: null,
     take_profit_pct: 20,
     stop_loss_pct: 10,
+    runtime_config: runtimeConfig,
   };
 
   const response = await fetch("/api/market/directives", {

@@ -13,6 +13,7 @@ import MarketResultsTab from "@/components/dashboard/market/MarketResultsTab";
 import MarketLiveWalletTab from "@/components/dashboard/market/MarketLiveWalletTab";
 import MarketSavedMarketsStub from "@/components/dashboard/market/MarketSavedMarketsStub";
 import { useMarketWalletState } from "@/lib/hooks/useMarketWalletState";
+import { normalizeFocusAreas } from "@/lib/market/runtime-config";
 import { syncAutomationPlan, ensureBotRunning } from "@/lib/market/sync-automation-plan";
 import type { MarketShellContext } from "@/components/dashboard/market/MarketRouteShell";
 import type { AutomationPlan } from "@/components/dashboard/market/types";
@@ -63,11 +64,14 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
 
   const handleApplyPlan = useCallback((plan: AutomationPlan) => {
     void (async () => {
+      const focusAreas = normalizeFocusAreas(plan.categories);
       bot.setCapitalAlloc(plan.budget);
       bot.setMaxTradesPerDay(plan.maxTradesPerDay);
       bot.setMaxPositions(plan.maxOpenPositions);
+      bot.setMinVolume(plan.minimumLiquidity);
       bot.setRiskMix(plan.riskLevel);
-      bot.setFocusAreas(plan.categories);
+      bot.setWhaleFollow(plan.largeTraderSignals);
+      bot.setFocusAreas(focusAreas);
       bot.setPaperMode(plan.mode === "practice");
       bot.addLog(`📋 Plan "${plan.name}" applied to bot`);
 

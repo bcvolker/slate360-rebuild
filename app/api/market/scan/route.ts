@@ -18,6 +18,7 @@ import {
   type BotConfig,
   DEFAULT_CONFIG,
 } from "@/lib/market-bot";
+import { buildRuntimeConfig, filterExecutableOpportunities, normalizeFocusAreas } from "@/lib/market/runtime-config";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -83,7 +84,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const savedConfig = user.user_metadata?.marketBotConfig;
+    const savedConfig = user.user_metadata?.marketBotConfig as Record<string, unknown> | undefined;
+    const runtimeConfig = buildRuntimeConfig(savedConfig);
     const config: BotConfig = {
       ...(savedConfig ? { ...DEFAULT_CONFIG, ...savedConfig } : DEFAULT_CONFIG),
       paperMode: requestConfig.paperMode,
@@ -105,8 +107,8 @@ export async function POST(req: NextRequest) {
             : { low: 45, medium: 40, high: 15 },
       whaleWatch: requestConfig.whaleFollow,
       focusAreas: requestConfig.focusAreas.length > 0
-        ? requestConfig.focusAreas
-        : (savedConfig?.focusAreas ?? DEFAULT_CONFIG.focusAreas),
+        ? normalizeFocusAreas(requestConfig.focusAreas)
+        : runtimeConfig.focusAreas,
     };
 
     const ignoredKeys = providedKeys.filter((key) => key === "whale_follow");
@@ -145,45 +147,52 @@ export async function POST(req: NextRequest) {
     const markets = await fetchMarkets(config.focusAreas ?? ["all"], marketLimit);
 
     const scored = scoreOpportunities(markets, config);
-    const opportunities = scored.filter((opp) => {
-      const probabilityPct = opp.yesPrice * 100;
-      if (opp.edge < requestConfig.minEdge) return false;
-      if (opp.volume24h < requestConfig.minVolume) return false;
-      if (probabilityPct < requestConfig.minProbability || probabilityPct > requestConfig.maxProbability) return false;
-      return true;
+    const opportunities = filterExecutableOpportunities(scored, {
+      minEdgePct: requestConfig.minEdge,
+      minVolumeUsd: Math.max(requestConfig.minVolume, runtimeConfig.minimumLiquidity),
+      minProbabilityPct: requestConfig.minProbability,
+      maxProbabilityPct: requestConfig.maxProbability,
+      timeframeHours: runtimeConfig.timeframeHours,
+      maxSpreadPct: runtimeConfig.maximumSpreadPct,
     });
 
     const today = new Date().toISOString().split("T")[0];
-    const { data: todayTrades } = await supabase
+    const [{ data: todayTrades }, { data: openTrades }] = await Promise.all([
+      supabase
       .from("market_trades")
       .select("pnl")
       .eq("user_id", user.id)
-      .gte("created_at", `${today}T00:00:00Z`);
+      .gte("created_at", `${today}T00:00:00Z`),
+      supabase
+        .from("market_trades")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "open"),
+    ]);
 
     const dailyPnl = todayTrades?.reduce((sum, t) => sum + toNumberOrZero(t.pnl), 0) ?? 0;
+    const openPositionsCount = openTrades?.length ?? 0;
+    const remainingOpenSlots = Math.max(0, runtimeConfig.maxOpenPositions - openPositionsCount);
+    const maxExecutablePositions = Math.min(requestConfig.maxPositions, remainingOpenSlots || requestConfig.maxPositions);
 
     const baseDecisions = decideTrades(opportunities, config, dailyPnl);
     const tradeDecisions = baseDecisions
       .map((decision) => {
         const price = decision.side === "YES" ? decision.opp.yesPrice : decision.opp.noPrice;
         const maxSharesByCapital = Math.floor(requestConfig.capitalPerTrade / Math.max(price, 0.01));
+        const maxSharesByPortfolioPct = runtimeConfig.maxPctPerTrade
+          ? Math.floor(((runtimeConfig.capitalAlloc * runtimeConfig.maxPctPerTrade) / 100) / Math.max(price, 0.01))
+          : maxSharesByCapital;
         const shares = Math.max(1, Math.min(decision.shares, maxSharesByCapital));
         return {
           ...decision,
-          shares,
+          shares: Math.max(1, Math.min(shares, Math.max(1, maxSharesByPortfolioPct))),
           reason: `${decision.reason}; capped by capitalPerTrade $${requestConfig.capitalPerTrade.toFixed(2)}`,
         };
       })
-      .slice(0, requestConfig.maxPositions);
+      .slice(0, maxExecutablePositions);
 
     const executedTrades: ReturnType<typeof simulatePaperTrade>[] = [];
-    const { data: latestDirective } = await supabase
-      .from("market_directives")
-      .select("take_profit_pct,stop_loss_pct,moonshot_mode")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
 
     if (executeTrades && (config.paperMode || botStatus === "paper")) {
       const simulatedTrades = tradeDecisions.map((decision) => {
@@ -208,9 +217,9 @@ export async function POST(req: NextRequest) {
             status: trade.status,
             pnl: trade.pnl,
             paper_trade: true,
-            take_profit_pct: latestDirective?.take_profit_pct ?? 20,
-            stop_loss_pct: latestDirective?.stop_loss_pct ?? 10,
-            entry_mode: latestDirective?.moonshot_mode ? "moonshot" : "scan",
+            take_profit_pct: runtimeConfig.takeProfitPct,
+            stop_loss_pct: runtimeConfig.stopLossPct,
+            entry_mode: runtimeConfig.moonshotMode ? "moonshot" : "scan",
             reason,
           }));
 

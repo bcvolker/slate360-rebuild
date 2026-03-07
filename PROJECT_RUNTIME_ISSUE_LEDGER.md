@@ -193,6 +193,17 @@ Current issue states:
 - Activity-log polling is now disabled unless the Results tab is active, reducing repeated `/api/market/logs` traffic during normal Market usage.
 - `GET /api/market/logs` now treats missing-table responses from both Postgres (`42P01`) and PostgREST (`PGRST205`) as an empty state instead of 500.
 
+### Follow-up hardening — 2026-03-07
+- Confirmed the main paper-automation failure mode was not auth or bot-status persistence. The scorer required `edge >= 1`, while live Polymarket YES/NO prices in a 500-market sample produced `edge >= 1` for `0/500` markets because the current edge formula is `abs(1 - yesPrice - noPrice) * 100`.
+- Lowered the automated scan/scheduler minimum edge defaults to `0` so paper automation can use the existing confidence, volume, liquidity, and probability gates instead of waiting for a pricing gap that the live feed effectively never exposes.
+- Added clearer client scan logs so a zero-trade automation run reports opportunity and decision counts instead of appearing to do nothing.
+- Made `GET/POST/PATCH /api/market/directives` tolerant of older `market_directives` schemas by persisting the richer automation config in auth `user_metadata.marketBotConfig` while keeping the DB write limited to the legacy directive columns.
+- The server-side scan and scheduler now consume metadata-backed timeframe, liquidity, spread, open-position, and per-trade sizing constraints, so those plan fields are no longer purely cosmetic during execution.
+
+### Remaining gaps
+- `market_plans` still does not exist, so richer automation config is temporarily stored in auth metadata instead of a dedicated canonical table.
+- There is still no queue/worker architecture for true high-volume burst automation; background execution remains cron-driven.
+
 ---
 
 ## Issue 12 — Dashboard blank page after login (`isClient is not defined`)
