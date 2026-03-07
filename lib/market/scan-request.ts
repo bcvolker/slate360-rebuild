@@ -2,7 +2,7 @@ import { DEFAULT_CONFIG } from "@/lib/market-bot";
 import type { ScanAppliedConfig, ScanRequest } from "@/lib/market/contracts";
 
 const SCAN_DEFAULTS = {
-  maxPositions: 5,
+  maxPositions: 25,
   capitalPerTrade: 100,
   minEdgePct: 0,
   minVolumeUsd: 0,

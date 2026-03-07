@@ -1,30 +1,29 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
-import type { MarketListing, MktTimeframe, MktRiskTag, MarketSortKey } from "@/components/dashboard/market/types";
+import type { MarketListing, MktTimeframe, MktRiskTag, MarketSortDirection, MarketSortKey } from "@/components/dashboard/market/types";
 import type { ApiEnvelope, MarketViewModel } from "@/lib/market/contracts";
+import { buildTableInsights, filterAndSortMarkets } from "@/lib/market/direct-buy-table";
 
 const PAGE_SIZE = 25;
 const FETCH_BATCH_SIZE = 200;
 const MAX_MARKET_FETCH = 1000;
 
-function endCutoff(tf: MktTimeframe): number {
-  const now = Date.now();
-  const day = 86_400_000;
-  const todayEnd = new Date(new Date().toDateString()).getTime() + day;
-  switch (tf) {
-    case "hour": return now + 3_600_000;
-    case "day": return now + day;
-    case "week": return now + 7 * day;
-    case "month": return now + 30 * day;
-    case "year": return now + 365 * day;
-    case "today": return todayEnd;
-    case "tomorrow": return todayEnd + day;
-    default: return Infinity;
-  }
-}
-
-export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
+export function useMarketDirectBuyState({
+  paperMode,
+  walletAddress,
+  liveChecklist,
+}: {
+  paperMode: boolean;
+  walletAddress?: `0x${string}`;
+  liveChecklist: {
+    walletConnected: boolean;
+    polygonSelected: boolean;
+    usdcFunded: boolean;
+    signatureVerified: boolean;
+    usdcApproved: boolean;
+  };
+}) {
   // Filter state
   const [query, setQuery] = useState("");
   const [timeframe, setTimeframe] = useState<MktTimeframe>("all");
@@ -34,6 +33,7 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
   const [minEdge, setMinEdge] = useState(0);
   const [riskTag, setRiskTag] = useState<MktRiskTag>("all");
   const [sortBy, setSortBy] = useState<MarketSortKey>("edge");
+  const [sortDirection, setSortDirection] = useState<MarketSortDirection>("desc");
   const [minVolume, setMinVolume] = useState(0);
   const [minLiquidity, setMinLiquidity] = useState(0);
   const [maxSpread, setMaxSpread] = useState(100);
@@ -132,52 +132,69 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
     [markets],
   );
 
+  const toggleSort = useCallback((nextSort: MarketSortKey) => {
+    if (nextSort === sortBy) {
+      setSortDirection(current => current === "asc" ? "desc" : "asc");
+      return;
+    }
+    setSortBy(nextSort);
+    setSortDirection(nextSort === "title" || nextSort === "endDate" ? "asc" : "desc");
+  }, [sortBy]);
+
   const filteredMarkets = useMemo(() => {
-    const cut = endCutoff(timeframe);
-    return markets
-      .filter(m => {
-        if (timeframe !== "all") {
-          const iso = m.endDateIso ?? m.endDate;
-          if (!iso) return false;
-          if (new Date(iso).getTime() > cut) return false;
-        }
-        if (category !== "all" && m.category !== category) return false;
-        if (m.probabilityPct < probMin || m.probabilityPct > probMax) return false;
-        if (m.edgePct < minEdge) return false;
-        if (riskTag !== "all") {
-          if (riskTag === "none" && m.riskTag) return false;
-          if (riskTag !== "none" && m.riskTag !== riskTag) return false;
-        }
-        if (m.volume24hUsd < minVolume) return false;
-        if (m.liquidityUsd < minLiquidity) return false;
-        const spread = Math.max(0, (1 - m.yesPrice - m.noPrice) * 100);
-        if (spread > maxSpread) return false;
-        return true;
-      })
-      .sort((a, b) => {
-        switch (sortBy) {
-          case "edge": return b.edgePct - a.edgePct;
-          case "probability": return b.probabilityPct - a.probabilityPct;
-          case "title": return a.title.localeCompare(b.title);
-          case "endDate": {
-            const ea = a.endDate ? new Date(a.endDate).getTime() : Infinity;
-            const eb = b.endDate ? new Date(b.endDate).getTime() : Infinity;
-            return ea - eb;
-          }
-          default: return b.volume24hUsd - a.volume24hUsd;
-        }
-      });
-  }, [markets, timeframe, category, probMin, probMax, minEdge, riskTag, sortBy, minVolume, minLiquidity, maxSpread]);
+    return filterAndSortMarkets({
+      markets,
+      timeframe,
+      category,
+      probMin,
+      probMax,
+      minEdge,
+      riskTag,
+      sortBy,
+      sortDirection,
+      minVolume,
+      minLiquidity,
+      maxSpread,
+    });
+  }, [markets, timeframe, category, probMin, probMax, minEdge, riskTag, sortBy, sortDirection, minVolume, minLiquidity, maxSpread]);
+
+  const tableInsights = useMemo(() => buildTableInsights(filteredMarkets), [filteredMarkets]);
 
   const totalPages = Math.max(1, Math.ceil(filteredMarkets.length / PAGE_SIZE));
   const pagedMarkets = filteredMarkets.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const buyPayloadReady = useMemo(() => {
-    if (!buyMarket) return false;
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const buyPayloadIssues = useMemo(() => {
+    if (!buyMarket) return ["Select a market"];
+
     const rawPrice = buyOutcome === "YES" ? buyMarket.yesPrice : buyMarket.noPrice;
     const price = rawPrice > 0 ? rawPrice : buyMarket.probabilityPct / 100;
-    return !!buyMarket.id && buyAmount > 0 && Number.isFinite(price) && price > 0;
-  }, [buyMarket, buyOutcome, buyAmount]);
+    const tokenId = buyOutcome === "YES" ? buyMarket.tokenIdYes : buyMarket.tokenIdNo;
+    const issues: string[] = [];
+
+    if (!buyMarket.id) issues.push("Missing market id");
+    if (!(buyAmount > 0)) issues.push("Enter an amount greater than $0");
+    if (!Number.isFinite(price) || price <= 0) issues.push("Price unavailable");
+    if (!tokenId) issues.push(`No ${buyOutcome} token id available`);
+
+    if (!buyPaper) {
+      if (!walletAddress) issues.push("Connect wallet on the Live Wallet tab");
+      if (!liveChecklist.walletConnected) issues.push("Wallet not connected");
+      if (!liveChecklist.polygonSelected) issues.push("Switch wallet to Polygon");
+      if (!liveChecklist.signatureVerified) issues.push("Verify wallet signature");
+      if (!liveChecklist.usdcApproved) issues.push("Approve USDC spending");
+      if (!liveChecklist.usdcFunded) issues.push("Fund wallet with USDC");
+    }
+
+    return issues;
+  }, [buyAmount, buyMarket, buyOutcome, buyPaper, liveChecklist, walletAddress]);
+
+  const buyPayloadReady = buyPayloadIssues.length === 0;
 
   const openBuyPanel = (m: MarketListing, o: "YES" | "NO" = "YES") => {
     setBuyMarket(m);
@@ -208,6 +225,7 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
           category: buyMarket.category,
           probability: buyMarket.probabilityPct,
           paper_mode: buyPaper,
+          wallet_address: walletAddress ?? null,
           token_id: buyOutcome === "YES" ? (buyMarket.tokenIdYes ?? null) : (buyMarket.tokenIdNo ?? null),
           take_profit_pct: 20,
           stop_loss_pct: 10,
@@ -226,7 +244,7 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
     } finally {
       setBuySubmitting(false);
     }
-  }, [buyMarket, buyOutcome, buyAmount, buyPaper]);
+  }, [buyAmount, buyMarket, buyOutcome, buyPaper, walletAddress]);
 
   return {
     query, setQuery,
@@ -237,6 +255,8 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
     minEdge, setMinEdge,
     riskTag, setRiskTag,
     sortBy, setSortBy,
+    sortDirection,
+    toggleSort,
     minVolume, setMinVolume,
     minLiquidity, setMinLiquidity,
     maxSpread, setMaxSpread,
@@ -244,6 +264,7 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
     availableCategories,
     pagedMarkets,
     filteredCount: filteredMarkets.length,
+    tableInsights,
     loading, loaded, loadError,
     page, setPage,
     totalPages,
@@ -253,6 +274,7 @@ export function useMarketDirectBuyState({ paperMode }: { paperMode: boolean }) {
     buyPaper, setBuyPaper,
     buySubmitting, buySuccess,
     buyPayloadReady,
+    buyPayloadIssues,
     openBuyPanel, closeBuyPanel, handleBuy,
   };
 }

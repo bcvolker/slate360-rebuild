@@ -17,6 +17,7 @@ import DashboardTabShell from "@/components/shared/DashboardTabShell";
 import CeoStaffPanel from "@/components/dashboard/ceo/CeoStaffPanel";
 import CeoPlatformOverview from "@/components/dashboard/ceo/CeoPlatformOverview";
 import { useCeoStaff } from "@/lib/hooks/useCeoStaff";
+import { useCeoSubscriberDirectory } from "@/lib/hooks/useCeoSubscriberDirectory";
 import type { Tier } from "@/lib/entitlements";
 
 type CeoTab = "overview" | "staff" | "controls";
@@ -55,6 +56,7 @@ export default function CeoCommandCenterClient({ user, tier, isCeo = false, inte
   const baseMrr = 128400;
   const projectedMrr = useMemo(() => Math.round(baseMrr + priceLift * 190), [priceLift]);
   const staffHook = useCeoStaff();
+  const directoryHook = useCeoSubscriberDirectory();
 
   return (
     <DashboardTabShell
@@ -125,10 +127,27 @@ export default function CeoCommandCenterClient({ user, tier, isCeo = false, inte
             staff={staffHook.staff}
             loading={staffHook.loading}
             error={staffHook.error}
-            onGrant={staffHook.grantAccess}
-            onRevoke={staffHook.revokeAccess}
-            onUpdate={staffHook.updateStaff}
-            onReload={staffHook.reload}
+            subscribers={directoryHook.subscribers}
+            directoryLoading={directoryHook.loading}
+            directoryError={directoryHook.error}
+            onGrant={async (payload) => {
+              const result = await staffHook.grantAccess(payload);
+              await Promise.all([staffHook.reload(), directoryHook.reload()]);
+              return result;
+            }}
+            onRevoke={async (staffId) => {
+              const result = await staffHook.revokeAccess(staffId);
+              await Promise.all([staffHook.reload(), directoryHook.reload()]);
+              return result;
+            }}
+            onUpdate={async (staffId, payload) => {
+              const result = await staffHook.updateStaff(staffId, payload);
+              await Promise.all([staffHook.reload(), directoryHook.reload()]);
+              return result;
+            }}
+            onReload={async () => {
+              await Promise.all([staffHook.reload(), directoryHook.reload()]);
+            }}
           />
         </div>
       )}

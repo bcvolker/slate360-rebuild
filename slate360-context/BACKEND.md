@@ -180,18 +180,19 @@ const e = getEntitlements(user.tier, { isSlateCeo: true });
 
 **Important distinction:**
 - `isSlateCeo` override → affects module entitlements (analytics, hub, studio access, etc.)
-- Internal platform tabs (`/ceo`, `/market`, `/athlete360`) → gated by `hasInternalAccess` (CEO or Slate360 staff), NOT via entitlements. These are platform-admin surfaces, never subscription features.
+- `/ceo` → owner-only via `canAccessCeo` (`slate360ceo@gmail.com`)
+- `/market` and `/athlete360` → gated by per-user internal grants (`canAccessMarket`, `canAccessAthlete360`), NOT via entitlements. These are platform-admin surfaces, never subscription features.
 
 **Flow:**
 1. `resolveServerOrgContext()` returns `isSlateCeo` (hardcoded email check: `user.email === "slate360ceo@gmail.com"`)
 2. Server pages pass `isSlateCeo` as `isCeo` prop to client components
 3. Client components call `getEntitlements(tier, { isSlateCeo: isCeo })` → gets enterprise entitlements
 4. All nav items and feature gates use the resolved entitlements
-5. CEO/internal tabs check `hasInternalAccess` at the server page level
+5. CEO page checks `canAccessCeo`; Market and Athlete360 check their route-specific internal access flags
 
 Key flags: `canAccessHub`, `canAccessDesignStudio`, `canAccessContent`, `canAccessTourBuilder`, `canAccessGeospatial`, `canAccessVirtual`, `canAccessAnalytics`, `canAccessReports`, `canManageSeats`, `canWhiteLabel`, `canViewSlateDropWidget`, `maxStorageGB`, `maxCredits`, `maxSeats`
 
-> **Note:** `canAccessCeo` does NOT exist in entitlements. The CEO Command Center (`/ceo`), Market Robot (`/market`), and Athlete360 (`/athlete360`) are Slate360-internal platform-admin tabs — access is gated by `hasInternalAccess` from `resolveServerOrgContext()` (`isSlateCeo || isSlateStaff`).
+> **Note:** `canAccessCeo` does NOT exist in entitlements. The CEO Command Center (`/ceo`) is owner-only via `resolveServerOrgContext().canAccessCeo`. Market Robot (`/market`) and Athlete360 (`/athlete360`) are platform-admin tabs gated by their route-specific internal access flags.
 
 ### Never Inline Tier Checks
 ```typescript
@@ -206,8 +207,9 @@ if (e.canAccessHub) { ... }
 const e = getEntitlements(tier, { isSlateCeo });
 if (e.canAccessHub) { ... }
 
-// ✅ CORRECT (CEO/internal tabs — bypass entitlements entirely)
-if (!hasInternalAccess) notFound(); // never use entitlements for /ceo, /market, /athlete360
+// ✅ CORRECT (internal tabs — bypass entitlements entirely)
+if (!canAccessCeo) notFound(); // /ceo only
+if (!canAccessMarket) notFound(); // /market only
 ```
 
 ---

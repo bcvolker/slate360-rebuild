@@ -70,7 +70,7 @@ function parseCurrentPrice(market: GammaMarket, side: string): number | null {
   return price != null && Number.isFinite(price) ? Math.min(Math.max(price, 0.01), 0.99) : null;
 }
 
-async function fetchGammaMarket(marketId: string): Promise<GammaMarket | null> {
+async function fetchGammaMarket(marketId: string): Promise<{ market: GammaMarket | null; error?: string }> {
   try {
     const res = await fetch(
       `https://gamma-api.polymarket.com/markets/${encodeURIComponent(marketId)}`,
@@ -80,10 +80,10 @@ async function fetchGammaMarket(marketId: string): Promise<GammaMarket | null> {
         signal: AbortSignal.timeout(8_000),
       }
     );
-    if (!res.ok) return null;
-    return (await res.json()) as GammaMarket;
-  } catch {
-    return null;
+    if (!res.ok) return { market: null, error: `HTTP ${res.status}` };
+    return { market: (await res.json()) as GammaMarket };
+  } catch (e) {
+    return { market: null, error: e instanceof Error ? e.message : "fetch_failed" };
   }
 }
 
@@ -105,10 +105,16 @@ export const POST = (req: NextRequest) =>
 
     // Fetch all markets concurrently (max 10 at a time to avoid rate limits)
     const marketCache = new Map<string, GammaMarket | null>();
+    const fetchErrors: string[] = [];
     for (let i = 0; i < uniqueMarketIds.length; i += 10) {
       const batch = uniqueMarketIds.slice(i, i + 10);
       const results = await Promise.all(batch.map((id) => fetchGammaMarket(id)));
-      batch.forEach((id, idx) => marketCache.set(id, results[idx]));
+      batch.forEach((id, idx) => {
+        marketCache.set(id, results[idx].market);
+        if (results[idx].error) fetchErrors.push(`Gamma ${id}: ${results[idx].error}`);
+      });
+      // Rate-limit delay between batches
+      if (i + 10 < uniqueMarketIds.length) await new Promise(r => setTimeout(r, 200));
     }
 
     let settled = 0;
@@ -119,7 +125,10 @@ export const POST = (req: NextRequest) =>
     await Promise.all((trades as TradeRow[]).map(async (trade) => {
       try {
         const market = marketCache.get(trade.market_id);
-        if (!market) return;
+        if (!market) {
+          errors.push(`market ${trade.market_id}: Gamma API unavailable`);
+          return;
+        }
 
         const shares = Number(trade.shares);
         const price = Number(trade.price);
@@ -143,7 +152,8 @@ export const POST = (req: NextRequest) =>
               closed_at: new Date().toISOString(),
             })
             .eq("id", trade.id)
-            .eq("user_id", user.id);
+            .eq("user_id", user.id)
+            .eq("status", "open");
 
           if (updateError) errors.push(`settle ${trade.id}: ${updateError.message}`);
           else settled++;
@@ -167,7 +177,8 @@ export const POST = (req: NextRequest) =>
                   reason: `Auto take-profit hit (${takeProfitPct}%)`,
                 })
                 .eq("id", trade.id)
-                .eq("user_id", user.id);
+                .eq("user_id", user.id)
+                .eq("status", "open");
               if (closeErr) errors.push(`tp-close ${trade.id}: ${closeErr.message}`);
               else settled++;
               return;
@@ -183,7 +194,8 @@ export const POST = (req: NextRequest) =>
                   reason: `Auto stop-loss hit (${stopLossPct}%)`,
                 })
                 .eq("id", trade.id)
-                .eq("user_id", user.id);
+                .eq("user_id", user.id)
+                .eq("status", "open");
               if (closeErr) errors.push(`sl-close ${trade.id}: ${closeErr.message}`);
               else settled++;
               return;
@@ -208,7 +220,7 @@ export const POST = (req: NextRequest) =>
       settled,
       updated,
       total: trades.length,
-      errors,
+      errors: [...fetchErrors, ...errors],
     });
   });
 

@@ -22,7 +22,7 @@ export interface MarketServerStatus {
   refresh: () => Promise<void>;
 }
 
-const POLL_INTERVAL_MS = 30_000; // 30 seconds
+const POLL_INTERVAL_MS = 10_000; // 10 seconds — faster detection of bot state changes
 
 export function useMarketServerStatus(): MarketServerStatus {
   const [status, setStatus] = useState<ServerBotStatus>("unknown");

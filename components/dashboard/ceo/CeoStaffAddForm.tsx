@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Shield, Bot, Dumbbell } from "lucide-react";
+import { Check, Bot, Dumbbell } from "lucide-react";
 
 const SCOPE_OPTIONS = [
-  { id: "ceo", label: "CEO Command Center", icon: Shield },
   { id: "market", label: "Market Robot", icon: Bot },
   { id: "athlete360", label: "Athlete360", icon: Dumbbell },
 ] as const;
@@ -23,12 +22,12 @@ export default function CeoStaffAddForm({ onGrant, onCancel }: Props) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
-  const [scope, setScope] = useState<string[]>(["ceo", "market", "athlete360"]);
+  const [scope, setScope] = useState<string[]>(["market"]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    if (!email.trim()) return;
+    if (!email.trim() || scope.length === 0) return;
     setLoading(true);
     setError(null);
     const result = await onGrant({
@@ -56,7 +55,7 @@ export default function CeoStaffAddForm({ onGrant, onCancel }: Props) {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="employee@slate360.ai"
+            placeholder="user@example.com"
             className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#1E3A8A] focus:ring-1 focus:ring-[#1E3A8A] outline-none"
           />
         </div>
@@ -76,7 +75,7 @@ export default function CeoStaffAddForm({ onGrant, onCancel }: Props) {
 
       <div>
         <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
-          Tab Access
+          Internal Tab Access
         </label>
         <div className="flex flex-wrap gap-2">
           {SCOPE_OPTIONS.map(({ id, label, icon: ScopeIcon }) => {
@@ -126,7 +125,7 @@ export default function CeoStaffAddForm({ onGrant, onCancel }: Props) {
         </button>
         <button
           onClick={handleSubmit}
-          disabled={loading || !email.trim()}
+          disabled={loading || !email.trim() || scope.length === 0}
           className="rounded-lg bg-[#1E3A8A] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#1E3A8A]/90 transition-colors disabled:opacity-50"
         >
           {loading ? "Granting..." : "Grant Access"}

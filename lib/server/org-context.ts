@@ -39,15 +39,15 @@ function roleRank(role?: string | null): number {
 
 function resolveInternalAccess(isSlateCeo: boolean, scopes: string[]) {
   const normalizedScopes = isSlateCeo
-    ? [...INTERNAL_TABS]
-    : INTERNAL_TABS.filter((scope) => scopes.includes(scope));
+    ? (["market", "athlete360"] as InternalTabId[])
+    : (["market", "athlete360"] as const).filter((scope) => scopes.includes(scope));
 
   return {
     internalAccessScopes: normalizedScopes,
-    canAccessCeo: normalizedScopes.includes("ceo"),
+    canAccessCeo: isSlateCeo,
     canAccessMarket: normalizedScopes.includes("market"),
     canAccessAthlete360: normalizedScopes.includes("athlete360"),
-    hasInternalAccess: normalizedScopes.length > 0,
+    hasInternalAccess: isSlateCeo || normalizedScopes.length > 0,
   };
 }
 
@@ -66,9 +66,9 @@ export type ServerOrgContext = {
   canAccessMarket: boolean;
   canAccessAthlete360: boolean;
   /**
-   * Combined flag: isSlateCeo || isSlateStaff.
-   * Use this everywhere you need to gate visibility of CEO/internal-only tabs
-   * (CEO Command Center, Market Robot, Athlete360).
+    * Combined flag: isSlateCeo || isSlateStaff.
+    * Use this for Market Robot and Athlete360 visibility.
+    * CEO Command Center remains owner-only via canAccessCeo.
    * Do NOT use this for entitlements overrides — only isSlateCeo gets enterprise override.
    */
   hasInternalAccess: boolean;
@@ -116,9 +116,9 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
       const resolvedRow = staffRow as StaffAccessRow | null;
       isSlateStaffResolved = !!resolvedRow;
       internalStaffScopes = Array.isArray(resolvedRow?.access_scope) && resolvedRow.access_scope.length > 0
-        ? resolvedRow.access_scope
+        ? resolvedRow.access_scope.filter((scope) => scope === "market" || scope === "athlete360")
         : isSlateStaffResolved
-          ? [...INTERNAL_TABS]
+          ? ["market"]
           : [];
     } catch {
       // Table may not exist yet — fail gracefully

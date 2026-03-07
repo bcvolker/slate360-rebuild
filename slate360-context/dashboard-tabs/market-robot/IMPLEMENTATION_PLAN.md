@@ -1,1474 +1,266 @@
-# Market Robot — Full Revised Implementation Plan
-
-## How To Use This File
-This is the complete product specification for the Market Robot rebuild.
-Before coding anything, also read (in order):
-1. `SLATE360_PROJECT_MEMORY.md`
-2. `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`
-3. `slate360-context/BACKEND.md`
-4. `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md` ← build status, current batch, AI model guide, prompts
-
-This file answers: **what to build and why.**
-The tracker answers: **what batch is next, how many prompts, which AI to use, and what verification to run.**
-
-## Slate360 Modularity — Why Market Is Safe To Rebuild
-Market Robot is fully isolated within the Slate360 platform. Rebuilding it cannot break other tabs because:
-- `MarketClient.tsx` has **zero external callers** outside `app/market/page.tsx` (GitNexus confirmed)
-- All 18 API routes under `app/api/market/` are only called from Market UI code
-- The 4 domain hooks (`useMarketBot`, `useMarketTradeData`, `useMarketsExplorer`, `useMarketDirectives`) are only imported inside the market component tree
-- `app/market/page.tsx` is the only entrypoint — a standalone server gate that Dashboard, Project Hub, and SlateDrop never import
-- The shared platform infrastructure Market uses (auth helpers, response helpers, Supabase clients, DashboardHeader, QuickNav) remains unchanged by any Market rebuild
-
-This means: **any Market file can be replaced, any tab can be rebuilt, and any hook can be extracted without a blast radius beyond the market module itself.** The guaranteed safe order is always: build new surface → verify → retire old surface.
+# Market Robot — Implementation Plan
 
 ## Purpose
-
-Turn /market into a beginner-friendly but powerful autonomous trading workspace that supports:
-
-clear manual direct buys,
-
-easy-to-start automation,
-
-realistic practice testing,
-
-safe real-money readiness,
-
-saved/reusable plans and searches,
-
-and true background operation that continues when the browser is closed.
-
-This plan keeps the current design direction—task-based IA, plain-English terminology, shared customization, and no new monoliths—but adds the missing execution, simulation, profit, and always-on autonomy layers. The current plan already replaced implementation-heavy tabs with user-task tabs and split Results from Live Wallet, which remains the right foundation.
-
-Canonical Constraints
-
-Route remains /market. 
-
-IMPLEMENTATION_PLAN
-
-Access remains scoped internal access via `canAccessMarket`. Never re-gate by subscription tier entitlement during this refactor. 
-
-IMPLEMENTATION_PLAN
-
-app/market/page.tsx remains the gate + provider wrapper. 
-
-IMPLEMENTATION_PLAN
-
-components/dashboard/MarketClient.tsx remains a thin orchestrator, not a new all-in-one file.
-
-Reuse shared dashboard header/customization patterns; do not fork a market-only customization system. 
-
-IMPLEMENTATION_PLAN
-
-Keep existing route/API contracts backward compatible where possible. 
-
-IMPLEMENTATION_PLAN
-
-New **production code files** (`.ts`/`.tsx`) should stay under 300 lines. Context and planning documents are exempt.
-
-All bot-brain logic must be UI-agnostic and testable.
-
-Any locking, idempotency, or execution protections must be additive and reversible.
-
-Keep the repo’s auth and route helper patterns unchanged when implementing new/updated routes.
-
-Product Goals
-Primary goals
-
-A new user can understand the tab in under 15–30 seconds.
-
-Automation can be started without understanding every setting.
-
-Every trade clearly explains wallet impact, implied probability, max loss, and potential payout.
-
-Practice mode is realistic enough to test whether a plan survives slippage and imperfect fills.
-
-The robot can run safely in the background with the browser closed.
-
-Settings, searches, plans, and layouts can be saved and reused.
-
-Secondary goals
-
-Mobile-safe and job-site friendly.
-
-Strong enough for advanced users without overwhelming beginners.
-
-Clear enough for non-traders who still want to follow robot recommendations.
-
-Easy to continue across new chats and future implementation passes.
-
-New Top-Level IA
-
-Keep the task-based IA, but strengthen the content and workflows inside each tab.
-
-Tab	Purpose
-Start Here	Learn what the tool does, choose practice vs real money, review robot recommendations, launch guided setup
-Direct Buy	Search markets, inspect a trade, understand wallet/probability impact, and place a manual order
-Automation	Start the robot using recommendations, presets, or advanced settings; save and reuse plans
-Saved Markets	Unified saved markets, saved searches, alerts, and reusable views
-Results	Portfolio, P/L, plan-by-plan analytics, activity log, trade replay, and test/simulation comparison
-Live Wallet	Connect, verify, approve, check gas/readiness, run live setup verification, and understand blockers
-
-This preserves the current plan’s task-based structure, which was already the right move.
-
-Core UX Model: 3 Levels of Use
-
-The robot must support three clear ways to use it:
-
-1. Recommended
-
-For users who want the app to choose for them.
-Examples:
-
-Best for a $200 wallet
-
-Safer starter setup
-
-Good for hands-off scanning
-
-Good for short markets
-
-Practice first
-
-2. Guided
-
-For users who want simple, plain-English controls.
-Examples:
-
-budget,
-
-risk level,
-
-max daily loss,
-
-categories,
-
-scan intensity,
-
-max trades/day,
-
-practice vs real money.
-
-3. Advanced
-
-For users who want complete control.
-Examples:
-
-slippage,
-
-limit orders,
-
-fill policy,
-
-minimum liquidity,
-
-maximum spread,
-
-exposure caps,
-
-large-trader signal weighting,
-
-exit rules,
-
-saved-search targeting,
-
-websocket-driven triggers.
-
-This matches the broader Slate360 direction toward help beacons, steppers, command-like shortcuts, and shared reusable flows. Similar patterns already appear across Project Hub and other tab docs.
-
-Start Here tab
-
-The first screen must still answer the current plan’s core questions—what can I do here, should I use practice mode or real money, and do I want direct buy or automation—but now it also needs to answer whether the user should trust the robot recommendation path. 
-
-IMPLEMENTATION_PLAN
-
-MarketStartHereTab.tsx must include
-
-What this tool does
-
-Practice mode vs real-money mode explainer
-
-“Use robot recommendation” path
-
-“Guided setup” path
-
-“Advanced setup” path
-
-What a YES/NO buy means
-
-Live wallet setup checklist entry point
-
-Recent results snapshot
-
-Current automation status snapshot
-
-Quick actions:
-
-Find trade ideas now
-
-Start practice automation
-
-Verify live setup
-
-Open saved plans
-
-First-run wizard
-
-Stepper:
-
-Choose Practice or Real Money
-
-Choose Recommended, Guided, or Advanced
-
-Enter starting balance / wallet amount
-
-Choose risk comfort
-
-Review plan summary
-
-Save and start or save for later
-
-Live setup card
-
-A big plain-English card:
-
-Install/connect wallet
-
-Add Polygon
-
-Fund USDC
-
-Verify signature
-
-Approve spending
-
-Run tiny live test
-
-This mirrors the stepper/process-heavy guidance found elsewhere in Slate360’s tab planning.
-
-Robot recommendations
-
-This is now a first-class system, not just a helpful note.
-
-Recommendation engine must support
-
-Best for small wallet
-
-Safer practice setup
-
-Hands-off automation
-
-Short-market scanner
-
-Construction/weather/economy focus
-
-Higher-risk aggressive setup
-
-Live-ready starter plan
-
-Every recommendation must show
-
-why it was suggested,
-
-suggested trade size,
-
-suggested max positions,
-
-suggested max daily loss,
-
-suggested max trades/day,
-
-suggested scan mode,
-
-suggested categories,
-
-whether practice or real-money mode is recommended,
-
-expected activity level,
-
-and a plain-English “what this will do” summary.
-
-Recommendation actions
-
-Apply
-
-Apply and edit
-
-Save as my template
-
-Compare to another recommendation
-
-Run in practice mode
-
-Clone into advanced mode
-
-Direct Buy tab
-
-The current plan already made Direct Buy the manual trading path and already called for typed filters and a clearer buy panel.
-Now it needs to become more execution-aware and easier to understand.
-
-MarketDirectBuyTab.tsx must include
-
-searchable/sortable market grid
-
-visible quick filters
-
-expandable advanced filters
-
-clickable rows
-
-quick-save market action
-
-one-click buy drawer launch
-
-trade ideas subsection
-
-optional mobile card mode
-
-Required columns
-
-market title
-
-category
-
-YES price
-
-NO price
-
-implied probability
-
-24h volume
-
-liquidity
-
-spread %
-
-time to resolution
-
-pricing edge / score
-
-movement / momentum indicator
-
-saved/tracked state
-
-Required default filters and sort
-
-default sort by pricing edge / score
-
-quick buttons:
-
-Ends next hour
-
-Ends today
-
-Ends this week
-
-High liquidity
-
-Tight spread
-
-Fast-moving
-
-Construction / Weather / Economy
-
-Saved search
-
-Advanced filters
-
-category
-
-price range
-
-probability range
-
-minimum liquidity
-
-maximum spread
-
-minimum volume
-
-time to resolution
-
-has large-trader activity
-
-watchlist-only / saved-only
-
-strict fill friendly only
-
-Runtime hardening note
-
-Direct Buy cannot assume a single oversized Polymarket fetch will return the full catalog.
-The `/api/market/polymarket` proxy returns paged results with `nextCursor` and currently caps each page to 200 markets, so any client that wants the top 500–1000 markets must follow cursor pagination.
-
-Market UI must also avoid reading `localStorage` during the first render of any client component. Initialize browser-only state in `useEffect` so server HTML and client hydration stay deterministic.
-
-Legacy optional endpoints such as `/api/market/directives` and `/api/market/logs` should degrade to empty-state payloads when their backing tables are absent instead of surfacing noisy 500s that destabilize the Market page.
-
-Row click behavior
-
-Clicking a row opens a detail modal or side drawer that shows:
-
-market summary,
-
-why this matched,
-
-current prices,
-
-mini price history,
-
-top order-book levels,
-
-volatility/momentum hint,
-
-and the buy panel.
-
-Buy panel: what a buy means
-
-This is one of the most important additions.
-
-MarketBuyPanel.tsx must show
-
-YES / NO
-
-entered amount
-
-price
-
-estimated shares
-
-max loss
-
-max payout
-
-implied probability
-
-break-even interpretation in plain English
-
-what happens if price moves +5%, +10%, -5%, -10%
-
-spread warning
-
-liquidity warning
-
-practice vs real-money badge
-
-fill mode
-
-slippage cap
-
-order type
-
-why the robot likes or dislikes the setup
-
-Required controls
-
-quick-fill buttons: $5 / $10 / $25 / $50 / custom
-
-quick-fill % buttons: 10% / 25% / 50% / max
-
-limit order toggle
-
-marketable order option
-
-max slippage setting
-
-fill policy:
-
-fill-or-kill
-
-partial-fill allowed
-
-cancel remainder
-
-save market
-
-add alert
-
-send to automation plan
-
-Partial-fill handling
-
-The backend and UI must support partial fills explicitly:
-
-show filled amount,
-
-show remaining amount,
-
-allow cancel remainder,
-
-or allow rest-on-book behavior depending on order mode.
-
-Practice mode realism
-
-The previous revised plan added realistic fills; that stays, but it now needs explicit testing tools.
-
-Practice mode must support
-
-configurable starting balance
-
-realistic fills
-
-ideal fills
-
-simulated slippage
-
-fee-aware results
-
-strict fill mode
-
-shadow mode
-
-paper-only mode
-
-compare live-safe recommendation vs custom plan
-
-save simulation result
-
-New simulation tools
-
-Run Test Simulation
-
-Test this plan for a fake week
-
-Test this plan for a fake month
-
-Compare two plans side by side
-
-Save simulation snapshot
-
-Replay why the bot would have traded
-
-Results labeling
-
-Every simulation and paper result must clearly show whether it used:
-
-realistic fills,
-
-ideal fills,
-
-fee model on/off,
-
-partial-fill model,
-
-strict or permissive fill assumptions.
-
-Without this, practice mode is misleading.
-
-Automation tab
-
-The current plan already moved directives and bot config into one plain-English workflow.
-Now it needs to become easy for beginners and rigorous enough for execution safety.
-
-MarketAutomationTab.tsx must include
-
-recommendation launcher
-
-guided builder
-
-advanced builder
-
-saved plans list
-
-active plan summary
-
-safety summary card
-
-activity log
-
-kill switch
-
-simulation launch
-
-plan template tools
-
-MarketAutomationBuilder.tsx must support
-Basic controls
-
-wallet budget
-
-trade size style
-
-risk level
-
-categories
-
-scan mode
-
-max trades/day
-
-practice vs real-money
-
-max daily loss
-
-max open positions
-
-typed numeric entry for budget, max trades/day, max daily loss, and max open positions — users must be able to type exact values instead of being forced to use spinner arrows
-
-Intermediate controls
-
-scan intensity
-
-max % per trade
-
-max % per market
-
-max % per category
-
-fee alert threshold
-
-cooldown after loss streak
-
-min gas reserve
-
-saved search target
-
-large-trader signals on/off
-
-closing-soon focus on/off
-
-Advanced controls
-
-limit-order behavior
-
-slippage
-
-minimum liquidity
-
-maximum spread
-
-fill policy
-
-websocket-trigger preference
-
-event-driven rescan mode
-
-exit rules
-
-partial-fill behavior
-
-per-strategy weighting
-
-Automation summary card
-
-Before starting, the user must see:
-
-scans every X sec/min
-
-max trades/day
-
-max open positions
-
-estimated trade size
-
-max daily spend
-
-max daily loss
-
-categories watched
-
-fill behavior
-
-practice vs real-money
-
-whether fee alerts are active
-
-The summary card must reflect the applied runtime values, not just the saved-plan defaults. If a plan sets max trades/day or max open positions, those values must be visible in the pre-start summary and transferred into the live bot config on apply.
-
-whether live setup is fully green
-
-Plan actions
-
-Save
-
-Save As
-
-Clone
-
-Rename
-
-Archive
-
-Restore
-
-Set as Default
-
-Export JSON
-
-Import JSON
-
-Reuse last good plan
-
-Autonomous execution architecture
-
-The earlier plan mentioned background automation but did not make always-on scanning explicit enough. That is now a hard requirement.
-
-Required autonomous architecture
-
-Vercel cron or equivalent scheduler calls /api/market/scheduler/tick
-
-cron cadence supports 30–60 second base ticking when safe
-
-browser can be closed
-
-global lock prevents overlapping ticks
-
-per-user lock prevents duplicate execution
-
-per-market lock prevents repeated overlapping intents
-
-trade idempotency prevents duplicate inserts/orders
-
-backpressure/queueing prevents runaway bursts
-
-safe degradation modes exist
-
-Degradation ladder
-
-live execute
-
-practice only
-
-scan only
-
-saved markets / alerts only
-
-read-only safe mode
-
-Scanner modes
-
-Slow discovery
-
-Balanced
-
-Fast
-
-Closing soon
-
-Saved-search driven
-
-Large-trader triggered
-
-High-speed markets
-
-Construction / Weather / Economy focused
-
-Event sources
-
-Execution should support both:
-
-polling for broad discovery
-
-websocket/event-driven updates for faster reactions
-
-This should be built into the architecture so the engine is not REST-only.
-
-Profit and volume controls
-
-You asked for the ability to make high volumes of buys when it makes sense. That requires explicit safety and cost controls.
-
-Required profit/volume controls
-
-max trades/day
-
-max trades/min
-
-max concurrent order attempts
-
-fee alert threshold
-
-fee log in activity log
-
-expected fee vs expected edge warning
-
-skip trade if fees/slippage overwhelm expected value
-
-safe throttle mode
-
-burst mode for specific short-market plans
-
-category concentration caps
-
-New built-in strategy modes
-
-These must be optional and clearly labeled, not hidden:
-
-arbitrage-style detection
-
-spread farming
-
-short-market speed mode
-
-large-trader follow mode
-
-construction/weather/economy focus
-
-balanced diversified mode
-
-These should be selectable in recommendations and advanced automation, with plain-English explanations.
-
-Risk Manager
-
-This remains first-class.
-
-risk-manager.ts must support
-
-max daily loss
-
-max weekly loss
-
-max drawdown
-
-max % per trade
-
-max % per market
-
-max % per category
-
-max open positions
-
-cooldown after loss streak
-
-minimum gas reserve
-
-fee threshold checks
-
-degraded network halt
-
-emergency stop state
-
-live blocker state
-
-Kill switch
-
-A prominent Halt All Trading control must exist in Automation and remain reachable from the main market shell.
-
-Exit logic
-
-The robot must support exits, not just entries.
-
-Required exit features
-
-take-profit
-
-stop-loss
-
-time stop
-
-stale-position cleanup
-
-partial exit
-
-full exit
-
-manual exit from Results
-
-auto exit rules in Automation
-
-exit reason logging
-
-replay of why exit occurred
-
-Saved and reusable objects
-
-The earlier plan already called for more reusable settings. Keep that and expand it.
-
-Saveable objects
-
-automation plans
-
-recommendation-derived plans
-
-plan templates
-
-saved searches
-
-filter presets
-
-buy presets
-
-risk profiles
-
-layout presets
-
-simulation snapshots
-
-Required actions
-
-Save
-
-Save As
-
-Clone
-
-Rename
-
-Archive
-
-Restore
-
-Set as Default
-
-Export JSON
-
-Import JSON
-
-This aligns with the shared customization and persistence direction already present in the current plan. 
-
-IMPLEMENTATION_PLAN
-
-Saved Markets tab
-
-The current plan correctly unified bookmark/watchlist into one concept.
-Now expand it.
-
-MarketSavedTab.tsx sections
-
-Saved Markets
-
-Saved Searches
-
-Saved Plans
-
-Recently Viewed
-
-Alerts
-
-Resume Last Session
-
-This makes it easier to continue work across refreshes and future chats.
-
-Results tab
-
-The current plan already made Results its own top-level task. 
-
-IMPLEMENTATION_PLAN
-
-
-Now it should become a decision-quality analytics and replay screen.
-
-MarketResultsTab.tsx must include
-
-realized P/L
-
-unrealized P/L
-
-fee-adjusted P/L
-
-expectancy per trade
-
-profit factor
-
-win rate
-
-average hold time
-
-P/L by category
-
-P/L by plan
-
-P/L by recommendation type
-
-paper vs live comparison
-
-simulation comparisons
-
-activity log
-
-skipped opportunities log
-
-trade reasoning / replay drawer
-
-exit reason history
-
-Replay / reasoning view
-
-For each trade or skipped candidate, show:
-
-why it matched,
-
-why it was chosen,
-
-what constraints passed,
-
-what constraints blocked others,
-
-what exit happened,
-
-and which plan/recommendation made the decision.
-
-Live Wallet tab
-
-The current plan already split wallet readiness from performance, which stays correct.
-
-MarketLiveWalletTab.tsx must include
-
-wallet connect
-
-signature verification
-
-allowance/approve status
-
-balance summary
-
-gas reserve status
-
-network / RPC health
-
-websocket connection health
-
-live blockers summary
-
-verify setup button
-
-tiny live test flow
-
-plain-English explanation of what is missing
-
-Live mode cannot start unless all required readiness checks are green
-
-wallet connected
-
-signature verified
-
-approval complete
-
-gas reserve sufficient
-
-correct network
-
-credentials present
-
-risk limits configured
-
-emergency stop configured
-
-live disclaimer acknowledged
-
-Help, command palette, and mobile polish
-
-Project Hub and other Slate360 planning docs already lean on command/search actions, tooltips, steppers, and process modals. 
-
-projecthub
-
-
-Market Robot should do the same.
-
-Add command palette actions
-
-Find trade ideas now
-
-Start practice mode
-
-Start automation
-
-Pause automation
-
-Halt all trading
-
-Open saved plans
-
-Open saved searches
-
-Verify live setup
-
-Run test simulation
-
-Add help beacons
-
-What does YES/NO mean?
-
-What is implied probability?
-
-What is max loss?
-
-What is slippage?
-
-What is liquidity?
-
-Why did the robot recommend this?
-
-Mobile requirements
-
-large touch targets
-
-swipeable idea cards in mobile mode
-
-sticky action bar for buy / save / start automation
-
-compact summary cards
-
-no cramped tables as the only mode
-
-Revised component architecture
-Keep and repurpose
-
-components/dashboard/MarketClient.tsx
-
-components/dashboard/market/MarketBuyPanel.tsx
-
-components/dashboard/market/MarketActivityLog.tsx
-
-components/dashboard/market/MarketWalletCard.tsx
-
-components/dashboard/market/MarketDirectivesList.tsx
-
-lib/hooks/useMarketTradeData.ts
-
-lib/hooks/useMarketBot.ts
-
-lib/hooks/useMarketsExplorer.ts
-
-lib/hooks/useMarketDirectives.ts 
-
-IMPLEMENTATION_PLAN
-
-New UI files
-
-components/dashboard/market/MarketPrimaryNav.tsx
-
-components/dashboard/market/MarketStartHereTab.tsx
-
-components/dashboard/market/MarketRecommendationCard.tsx
-
-components/dashboard/market/MarketGuidedSetupStepper.tsx
-
-components/dashboard/market/MarketDirectBuyTab.tsx
-
-components/dashboard/market/MarketSearchToolbar.tsx
-
-components/dashboard/market/MarketAdvancedFiltersDrawer.tsx
-
-components/dashboard/market/MarketTradeImpactCard.tsx
-
-components/dashboard/market/MarketOrderBookPreview.tsx
-
-components/dashboard/market/MarketAutomationTab.tsx
-
-components/dashboard/market/MarketAutomationBuilder.tsx
-
-components/dashboard/market/MarketPlanSummaryCard.tsx
-
-components/dashboard/market/MarketRiskSummaryCard.tsx
-
-components/dashboard/market/MarketKillSwitch.tsx
-
-components/dashboard/market/MarketSavedTab.tsx
-
-components/dashboard/market/MarketSavedSearchesPanel.tsx
-
-components/dashboard/market/MarketResultsTab.tsx
-
-components/dashboard/market/MarketReplayDrawer.tsx
-
-components/dashboard/market/MarketLiveWalletTab.tsx
-
-New hooks/state
-
-lib/hooks/useMarketRecommendations.ts
-
-lib/hooks/useMarketSavedSearches.ts
-
-lib/hooks/useMarketPlanTemplates.ts
-
-lib/hooks/useMarketReadiness.ts
-
-lib/hooks/useMarketExecutionStatus.ts
-
-lib/hooks/useMarketSimulations.ts
-
-New backend/core files
-
-lib/market/risk-manager.ts
-
-lib/market/execution-engine.ts
-
-lib/market/order-state-machine.ts
-
-lib/market/profit-model.ts
-
-lib/market/fill-simulator.ts
-
-lib/market/opportunity-ranker.ts
-
-lib/market/recommendation-engine.ts
-
-lib/market/fee-estimator.ts
-
-lib/market/websocket-engine.ts
-
-lib/market/scan-orchestrator.ts
-
-Revised PR order
-PR1 — Shared customization foundation
-
-Keep from current plan. Market must still use the shared header customize entry and shared layout preference model. 
-
-IMPLEMENTATION_PLAN
+Turn `/market` into a clear, beginner-friendly trading workspace with two obvious jobs:
+1. Place a direct trade.
+2. Set up automation.
+
+The current backend autonomy work and market data plumbing stay in place. This plan is focused on fixing the product model, information architecture, terminology, and shared customization integration without breaking the route, auth gate, or API contracts.
+
+## Canonical Constraints
+- Route remains `/market`.
+- Access remains `hasInternalAccess` only. Never move Market Robot to entitlement gating.
+- `app/market/page.tsx` remains the gate + provider wrapper.
+- `components/dashboard/MarketClient.tsx` remains a thin orchestrator, not a new monolith.
+- New files must stay under 300 lines.
+- Reuse shared dashboard chrome and shared customization patterns; do not build a market-only customization system.
+- Keep current API routes backward compatible while the UI is refactored.
+
+## Current State and User Goal
+Current backend and data plumbing are usable: shared shell/header, decomposed UI, cron-driven scheduler, wallet verification, approval flow, directives, logs, and summary stats all exist.
+
+The redesign fixes these UX failures:
+- top-level tabs reflect implementation details instead of user tasks
+- direct buy and automation are mixed together
+- jargon appears before the workflow is understood
+- search/filter UX depends too much on sliders and caps
+- bookmark and watchlist are duplicated
+- Market customization is disconnected from the shared dashboard pattern
+
+Primary user tasks:
+1. Find a market and place a practice or real-money trade.
+2. Create an automation plan and start it safely.
+3. Review results and confirm live wallet readiness.
+
+## New Top-Level IA
+
+### Replace current tabs with these task tabs
+| New Tab | Purpose | Pulls From |
+|---|---|---|
+| `Start Here` | Explains what Market Robot does, paper vs live, and where to begin | current dashboard + wallet overview copy |
+| `Direct Buy` | Search markets, filter, compare YES/NO, place a manual trade | `MarketExplorerTab`, `MarketHotOppsTab`, `MarketBuyPanel` |
+| `Automation` | Build, save, edit, and run automation plans in plain English | `MarketBotConfigPanel`, `MarketDirectivesTab`, `MarketDirectivesForm` |
+| `Saved Markets` | Unified saved/followed market list with alerts | bookmark + watchlist logic |
+| `Results` | Portfolio, recent trades, P/L chart, automation activity, optional sim comparison | `MarketWalletPerformanceTab`, `MarketSimCompareTab`, `MarketActivityLog` |
+| `Live Wallet` | Connect, verify, approve, and understand live-readiness | `MarketWalletCard` |
+
+### Remove these as primary tabs
+- `Hot Opps`
+- `Whale Watch`
+- `Directives`
+- `Sim Compare`
+- `Wallet & Performance`
+
+These become subsections inside the new task tabs.
+
+## Plain-English Terminology Map
+| Current Label | New Label |
+|---|---|
+| `Markets` | `Direct Buy` |
+| `Hot Opps` | `Trade Ideas` |
+| `Directives` | `Automation Plans` |
+| `Whale Watch` | `Large Trader Signals` |
+| `Wallet & Performance` | split into `Results` and `Live Wallet` |
+| `Focus Areas` | `Market Categories` |
+| `Min Edge` / `Deal Advantage` | `Minimum pricing edge` |
+| `Risk Mix` | `Risk level` |
+| `Moonshot Mode` | `High-risk mode` |
+| `Paper Mode` | `Practice mode` |
+| `Live Mode` | `Real-money mode` |
+| `Run One Scan` | `Find trade ideas now` |
+| `Start Autopilot` | `Start automation` |
+
+## Concepts Removed From Default View
+These may remain in advanced mode, but they should not be first-run UI:
+- Construction-first presets and category bias.
+- Separate bookmark and watchlist actions.
+- Scheduler health as a hero card.
+- Backend config dump.
+- Moonshot as a primary toggle.
+- Whale copy as a top-level tab.
+- Sim compare as a top-level tab.
+
+## New Page Layout
+Market should render in this order inside the shared shell:
+1. Intro / task-selection hero.
+2. Primary task nav.
+3. Active tab content.
+4. Optional advanced/secondary panels.
+
+The first screen must answer:
+- What can I do here?
+- Should I use practice mode or real money?
+- Do I want direct buy or automation?
+
+## Component Architecture
+
+### Keep and repurpose
+- `components/dashboard/MarketClient.tsx`
+- `components/dashboard/market/MarketBuyPanel.tsx`
+- `components/dashboard/market/MarketActivityLog.tsx`
+- `components/dashboard/market/MarketWalletCard.tsx`
+- `components/dashboard/market/MarketDirectivesList.tsx`
+- `lib/hooks/useMarketTradeData.ts`
+- `lib/hooks/useMarketBot.ts`
+- `lib/hooks/useMarketsExplorer.ts`
+- `lib/hooks/useMarketDirectives.ts`
+
+### Replace or fold into new task tabs
+- Replace `MarketDashboardTab.tsx` with `MarketStartHereTab.tsx`
+- Replace `MarketExplorerTab.tsx` with `MarketDirectBuyTab.tsx`
+- Fold `MarketHotOppsTab.tsx` into `Direct Buy` as `Trade Ideas`
+- Replace `MarketBotConfigPanel.tsx` with `MarketAutomationBuilder.tsx`
+- Fold `MarketDirectivesTab.tsx` into `Automation`
+- Split `MarketWalletPerformanceTab.tsx` into `MarketResultsTab.tsx` and `MarketLiveWalletTab.tsx`
+- Fold `MarketWhaleWatchTab.tsx` into advanced automation insights
+- Fold `MarketSimCompareTab.tsx` into advanced results
+
+### New files to create
+- `components/dashboard/market/MarketPrimaryNav.tsx`
+- `components/dashboard/market/MarketStartHereTab.tsx`
+- `components/dashboard/market/MarketDirectBuyTab.tsx`
+- `components/dashboard/market/MarketSearchToolbar.tsx`
+- `components/dashboard/market/MarketAdvancedFiltersDrawer.tsx`
+- `components/dashboard/market/MarketAutomationTab.tsx`
+- `components/dashboard/market/MarketAutomationBuilder.tsx`
+- `components/dashboard/market/MarketPlanList.tsx`
+- `components/dashboard/market/MarketSavedTab.tsx`
+- `components/dashboard/market/MarketResultsTab.tsx`
+- `components/dashboard/market/MarketLiveWalletTab.tsx`
+- `lib/market/layout-presets.ts`
+- `lib/hooks/useMarketLayoutPrefs.ts`
+
+## Component Responsibilities
+| File | Responsibility |
+|---|---|
+| `MarketClient.tsx` | Orchestrator only: wire hooks, hold active tab/buy-panel state, pass grouped props, drive layout prefs. Must not render inline market customization, filter markup, or beginner copy logic. |
+| `MarketPrimaryNav.tsx` | Render task-based tabs only. No built-in customize trigger or drawer. |
+| `MarketStartHereTab.tsx` | Explain what the tool does, practice vs real-money mode, and route users to direct buy or automation. |
+| `MarketDirectBuyTab.tsx` | Own search toolbar, standard filters, advanced filters drawer, trade ideas subsection, unified save action, and shared buy panel. |
+| `MarketAutomationTab.tsx` | Own automation builder, saved plans list, current automation state, and advanced safety/large-trader subsections. |
+| `MarketResultsTab.tsx` | Own portfolio snapshot, metrics, recent trades, bot activity, and optional advanced sim compare. |
+| `MarketLiveWalletTab.tsx` | Own wallet connect, signature verification, approval, and explicit live-readiness states. |
+
+## Search and Filter Rules
+- Replace slider-only numeric controls with paired number input + optional slider.
+- Every capped field must support manual entry for large values.
+- Add a visible `Clear filters` action.
+- Keep standard filters always visible.
+- Move advanced filters into disclosure or drawer.
+- Remove construction bias from quick presets and default categories.
+
+## Saved Markets Rules
+- Unify bookmark and watchlist into one concept: `Saved Markets`.
+- Persist the saved concept in the database-backed watchlist path first.
+- If alerting is needed, treat alerts as a property of a saved market, not a second concept.
+- Replace star + bell dual actions with one `Save` control and optional alert toggle inside the saved item view.
+
+## Shared Customization Integration
+Market must follow `dashboard-tabs/CUSTOMIZATION_SYSTEM.md` and reuse the shared dashboard header/button pattern.
+
+### Canonical integration points
+- `components/dashboard/market/MarketRouteShell.tsx`
+- `components/shared/DashboardHeader.tsx`
+- `components/widgets/WidgetCustomizeDrawer.tsx`
+- `lib/widgets/widget-prefs-storage.ts`
+- `components/project-hub/ViewCustomizer.tsx`
+
+### Required changes
+1. Move the Market customize trigger to the shared header via `MarketRouteShell.tsx`.
+2. Remove the customize button and drawer from `MarketTabBar.tsx`.
+3. Introduce a market-specific layout hook and presets layer: `lib/market/layout-presets.ts` and `lib/hooks/useMarketLayoutPrefs.ts`.
+4. Use the canonical preference shape with `version`, `tabId`, `mode`, `panelOrder`, `panelVisibility`, `panelSizes`, `pinnedTools`, and `expandedSections`.
+5. Support `simple`, `standard`, `advanced`, and `custom` modes.
+6. Keep layout prefs separate from dashboard widget prefs.
+
+### Preferred implementation approach
+Do not fork `WidgetCustomizeDrawer` into a Market-only system. Extract a shared layout customizer base or adapt the existing drawer so future tabs can reuse the same interaction model.
+
+## File-by-File Refactor Plan
+
+### PR1 — Shared customization foundation
+Files:
+- update `components/dashboard/market/MarketRouteShell.tsx`
+- update `components/dashboard/market/MarketTabBar.tsx`
+- create `lib/market/layout-presets.ts`
+- create `lib/hooks/useMarketLayoutPrefs.ts`
+- create shared/customizer adapter if needed
 
 Outcome:
+- header-level customize button controls market layout
+- market tab order/visibility prefs move to shared-pattern persistence
 
-market layout prefs work through shared header
-
-market-specific layout presets exist
-
-no market-only customize drawer fork
-
-PR2 — New IA shell + Start Here + recommendations
-
-Build:
-
-MarketPrimaryNav.tsx
-
-MarketStartHereTab.tsx
-
-MarketRecommendationCard.tsx
-
-MarketGuidedSetupStepper.tsx
+### PR2 — New primary IA shell
+Files:
+- update `components/dashboard/MarketClient.tsx`
+- create `components/dashboard/market/MarketPrimaryNav.tsx`
+- create `components/dashboard/market/MarketStartHereTab.tsx`
 
 Outcome:
+- new task tabs exist
+- current screens can still be temporarily routed underneath while copy improves
 
-users can choose Recommended, Guided, or Advanced
-
-first-run path is clear
-
-live setup entry point is visible
-
-PR3 — Execution core + simulation + websocket foundation
-
-Build:
-
-risk-manager.ts
-
-execution-engine.ts
-
-order-state-machine.ts
-
-profit-model.ts
-
-fill-simulator.ts
-
-fee-estimator.ts
-
-websocket-engine.ts
-
-scan-orchestrator.ts
+### PR3 — Direct Buy rebuild
+Files:
+- create `MarketDirectBuyTab.tsx`
+- create `MarketSearchToolbar.tsx`
+- create `MarketAdvancedFiltersDrawer.tsx`
+- refactor `MarketBuyPanel.tsx`
+- refactor `useMarketsExplorer.ts`
 
 Outcome:
+- direct buy becomes the clear manual trading path
+- filters become standard, typed, and resettable
+- saved state is simplified
 
-safe execution foundation exists
-
-realistic paper/test logic exists
-
-partial-fill handling exists
-
-websocket-aware architecture exists
-
-PR4 — Direct Buy rebuild
-
-Build/refactor:
-
-MarketDirectBuyTab.tsx
-
-MarketSearchToolbar.tsx
-
-MarketAdvancedFiltersDrawer.tsx
-
-MarketTradeImpactCard.tsx
-
-MarketOrderBookPreview.tsx
-
-MarketBuyPanel.tsx
-
-useMarketsExplorer.ts
+### PR4 — Automation rebuild
+Files:
+- create `MarketAutomationTab.tsx`
+- create `MarketAutomationBuilder.tsx`
+- create `MarketPlanList.tsx`
+- refactor `MarketDirectivesList.tsx` and `useMarketDirectives.ts`
+- demote whale insights to advanced section
 
 Outcome:
+- directives and bot config become one plain-English workflow
 
-direct buys are understandable
-
-wallet/probability impact is explicit
-
-filters are profit-aware
-
-sortable grid and mobile mode exist
-
-PR5 — Automation rebuild + always-on operation controls
-
-Build/refactor:
-
-MarketAutomationTab.tsx
-
-MarketAutomationBuilder.tsx
-
-MarketPlanSummaryCard.tsx
-
-MarketRiskSummaryCard.tsx
-
-MarketKillSwitch.tsx
-
-useMarketDirectives.ts
-
-useMarketRecommendations.ts
+### PR5 — Results and Live Wallet split
+Files:
+- create `MarketResultsTab.tsx`
+- create `MarketLiveWalletTab.tsx`
+- retire top-level `MarketWalletPerformanceTab.tsx`
+- refactor `MarketWalletCard.tsx`
 
 Outcome:
+- performance and wallet readiness are no longer mixed
 
-plans can be built from recommendations
-
-safety and trade-volume controls are visible
-
-max trades/day, fee alerts, scan intensity, and kill switch exist
-
-automation is understandable before starting
-
-Automation compatibility note
-
-Until `market_plans` becomes the server-side source of truth, applying a saved automation plan must also sync the active plan into the legacy directives shape so the current scheduler respects budget, risk mix, category focus, max trades/day, and loss-cap settings.
-
-PR6 — Saved Markets + saved searches + reusable presets
-
-Build:
-
-MarketSavedTab.tsx
-
-MarketSavedSearchesPanel.tsx
-
-useMarketSavedSearches.ts
-
-useMarketPlanTemplates.ts
-
-simulation snapshot persistence
+### PR6 — Cleanup and advanced tools pass
+Files:
+- fold or retire `MarketHotOppsTab.tsx`
+- fold or retire `MarketWhaleWatchTab.tsx`
+- fold or retire `MarketSimCompareTab.tsx`
+- finalize copy and terminology updates across all market components
 
 Outcome:
+- advanced tools remain available without owning the IA
 
-user can save and resume searches, plans, and workflows
-
-PR7 — Results + replay + Live Wallet
-
-Build/refactor:
-
-MarketResultsTab.tsx
-
-MarketReplayDrawer.tsx
-
-MarketLiveWalletTab.tsx
-
-MarketWalletCard.tsx
-
-useMarketReadiness.ts
-
-useMarketExecutionStatus.ts
-
-Outcome:
-
-results explain profitability and behavior
-
-live readiness is blocker-driven
-
-tiny live test path exists
-
-PR8 — Cleanup, advanced tools, and observability
-
-Fold or demote:
-
-trade ideas / hot opps subsections
-
-large-trader signals subsection
-
-simulation compare subsection
-
-scheduler/health and observability surfaces
-
-finalize copy/help/tooltips/command palette actions
-
-Outcome:
-
-advanced tools remain available
-
-IA stays clean
-
-observability is visible without overwhelming beginners
-
-Definition of Done
-
-A new user can understand Market Robot in under 15–30 seconds. 
-
-IMPLEMENTATION_PLAN
-
-Users can start automation from a recommendation, not only from advanced settings.
-
-Every buy clearly explains wallet impact, implied probability, max loss, and payout.
-
-Practice mode supports realistic testing and test simulations.
-
-Plans, searches, templates, and simulation results can be saved and reused.
-
-Background automation can continue with the browser closed.
-
-Partial fills, websocket-aware execution, and fee-aware warnings are supported.
-
-Kill switch is always reachable.
-
-Live Wallet clearly blocks unsafe live mode.
-
-No new monolith file is introduced. 
-
-IMPLEMENTATION_PLAN
-
-Manual verification checklist
-
+## Manual Verification Checklist
 After each PR verify:
+1. `/market` still gates on `hasInternalAccess` only.
+2. Practice mode direct buy still works.
+3. Real-money readiness flow still shows connect, verify, and approve states.
+4. Saved markets persist across refresh.
+5. Layout customization persists across refresh.
+6. Reset layout restores a known-good market default.
+7. No file exceeds 300 lines.
+8. `npx tsc --noEmit` passes.
+9. `node scripts/ops/check-clob-contract.mjs` still passes.
 
-/market still gates on `canAccessMarket` only. 
-
-IMPLEMENTATION_PLAN
-
-Shared dashboard customization still controls market layout. 
-
-IMPLEMENTATION_PLAN
-
-Practice mode direct buy still works. 
-
-IMPLEMENTATION_PLAN
-
-Recommendation flow can launch practice automation without advanced settings.
-
-Trade impact card shows correct max loss, payout, shares, and implied probability.
-
-Saved markets persist across refresh. 
-
-IMPLEMENTATION_PLAN
-
-Saved searches, templates, and simulation snapshots persist.
-
-Real-money readiness still shows connect, verify, approve, gas, and blocker states.
-
-Tiny live test path stays blocked until readiness is green.
-
-Kill switch halts automation immediately.
-
-Partial-fill behavior is handled correctly in both UI and state.
-
-Paper mode can switch between ideal and realistic fills.
-
-npx tsc --noEmit passes. 
-
-IMPLEMENTATION_PLAN
-
-Existing route/API contracts remain backward compatible.
-
-## Starting A New Chat
-
-The persistent build file already exists at:
-`slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`
-
-It contains:
-- current build status and active batch
-- AI model recommendations per batch (Sonnet vs Opus)
-- anti-hallucination protocol
-- batch prompts with exact wording
-- done-when verification gates per batch
-- checks before every push
-- rebuild-from-scratch blueprint
-- default new-chat prompt (copy-paste ready)
-- session log
-
-To resume in a new chat, copy the **Default New-Chat Prompt** from the tracker.
-Do not re-paste this entire implementation plan — the tracker's default prompt instructs the AI to read both files and orient before acting.
+## Definition of Done
+- A new user can understand Market Robot in under 15 seconds.
+- Direct buy and automation are separate first-level paths.
+- Search/filter UI is standard and supports typed values.
+- There is one saved-market concept.
+- Market customization uses the shared dashboard header customize entry.
+- Layout preferences follow the cross-tab customization contract.
+- No new monolith files are introduced.

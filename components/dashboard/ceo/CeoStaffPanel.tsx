@@ -3,7 +3,6 @@
 import { useState } from "react";
 import {
   UserPlus,
-  Shield,
   ShieldAlert,
   MoreVertical,
   X,
@@ -12,10 +11,11 @@ import {
   RefreshCw,
 } from "lucide-react";
 import CeoStaffAddForm from "@/components/dashboard/ceo/CeoStaffAddForm";
+import CeoSubscriberDirectory from "@/components/dashboard/ceo/CeoSubscriberDirectory";
 import type { StaffMember } from "@/lib/hooks/useCeoStaff";
+import type { CeoSubscriberDirectoryEntry } from "@/lib/hooks/useCeoSubscriberDirectory";
 
 const SCOPE_OPTIONS = [
-  { id: "ceo", label: "CEO", icon: Shield },
   { id: "market", label: "Market", icon: Bot },
   { id: "athlete360", label: "A360", icon: Dumbbell },
 ] as const;
@@ -24,6 +24,9 @@ type Props = {
   staff: StaffMember[];
   loading: boolean;
   error: string | null;
+  subscribers: CeoSubscriberDirectoryEntry[];
+  directoryLoading: boolean;
+  directoryError: string | null;
   onGrant: (payload: {
     email: string;
     displayName?: string;
@@ -42,6 +45,9 @@ export default function CeoStaffPanel({
   staff,
   loading,
   error,
+  subscribers,
+  directoryLoading,
+  directoryError,
   onGrant,
   onRevoke,
   onUpdate,
@@ -82,7 +88,7 @@ export default function CeoStaffPanel({
             Internal Staff Access
           </h2>
           <p className="mt-0.5 text-xs text-gray-500">
-            Grant employees access to CEO, Market Robot &amp; Athlete360 tabs
+            Grant selected users access to Market Robot and Athlete360 while keeping the CEO tab owner-only
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -111,6 +117,17 @@ export default function CeoStaffPanel({
         />
       )}
 
+      <CeoSubscriberDirectory
+        subscribers={subscribers}
+        staff={staff}
+        loading={directoryLoading}
+        error={directoryError}
+        onGrant={onGrant}
+        onRevoke={onRevoke}
+        onUpdate={onUpdate}
+        onReload={onReload}
+      />
+
       {actionError && (
         <p className="text-xs font-semibold text-red-600 bg-red-50 rounded-lg px-3 py-2">
           {actionError}
@@ -135,7 +152,7 @@ export default function CeoStaffPanel({
           <UserPlus size={20} className="mx-auto text-gray-400 mb-2" />
           <p className="text-sm font-semibold text-gray-600">No staff access granted yet</p>
           <p className="text-xs text-gray-400 mt-1">
-            Click &quot;Grant Access&quot; to give an employee access to internal tabs
+            Click &quot;Grant Access&quot; to give a user access to selected internal tabs
           </p>
         </div>
       ) : (

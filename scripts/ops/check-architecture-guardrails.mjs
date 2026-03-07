@@ -47,6 +47,7 @@ function isAllowedRoute(relPath, allowlistGlobs) {
 function hasAuthPattern(source) {
   return (
     source.includes("withAuth(") ||
+    source.includes("withMarketAuth(") ||
     source.includes("withProjectAuth(") ||
     source.includes("auth.getUser(") ||
     source.includes("resolveServerOrgContext(") ||
@@ -109,7 +110,7 @@ async function main() {
     }
 
     if (apiAuthViolations.length > 0) {
-      console.error("API routes missing auth pattern (withAuth/withProjectAuth/auth.getUser):");
+      console.error("API routes missing auth pattern (withAuth/withMarketAuth/withProjectAuth/auth.getUser):");
       for (const relPath of apiAuthViolations) {
         console.error(`- ${relPath}`);
       }

@@ -4,6 +4,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
 import type { ApiEnvelope, TradeViewModel } from "@/lib/market/contracts";
 import { toNumberOrNull, toNumberOrZero } from "@/lib/market/contracts";
 import { mapTradeRowToTradeVM } from "@/lib/market/mappers";
@@ -37,6 +38,14 @@ function noStoreJson<T>(body: ApiEnvelope<T>, init?: { status?: number }) {
 
 export async function GET(req: NextRequest) {
   try {
+    const access = await resolveServerOrgContext();
+    if (!access.user) {
+      return noStoreJson({ ok: false, error: { code: "unauthorized", message: "Unauthorized" } }, { status: 401 });
+    }
+    if (!access.canAccessMarket) {
+      return noStoreJson({ ok: false, error: { code: "forbidden", message: "Market access required" } }, { status: 403 });
+    }
+
     const supabase = await createClient();
     const {
       data: { user },
@@ -114,6 +123,14 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
+    const access = await resolveServerOrgContext();
+    if (!access.user) {
+      return noStoreJson({ ok: false, error: { code: "unauthorized", message: "Unauthorized" } }, { status: 401 });
+    }
+    if (!access.canAccessMarket) {
+      return noStoreJson({ ok: false, error: { code: "forbidden", message: "Market access required" } }, { status: 403 });
+    }
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {

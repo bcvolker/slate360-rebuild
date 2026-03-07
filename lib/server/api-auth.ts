@@ -17,6 +17,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
 import {
   resolveProjectScope,
   getScopedProjectForUser,
@@ -73,6 +74,24 @@ export async function withAuth(
       { status: 500 },
     );
   }
+}
+
+/**
+ * Market-scoped auth wrapper — ensures the user is authenticated and has
+ * explicit Market Robot access from resolveServerOrgContext().
+ */
+export async function withMarketAuth(
+  req: NextRequest,
+  handler: (ctx: AuthedContext) => Promise<NextResponse>,
+): Promise<NextResponse> {
+  return withAuth(req, async (ctx) => {
+    const access = await resolveServerOrgContext();
+    if (!access.canAccessMarket) {
+      return NextResponse.json({ error: "Market access required" }, { status: 403 });
+    }
+
+    return handler(ctx);
+  });
 }
 
 /**

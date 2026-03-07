@@ -75,3 +75,8 @@ export async function submitClobOrder(params: ClobOrderParams) {
 
   return { clobRes, clobData };
 }
+
+export function getClobOrderId(clobData: Record<string, unknown>): string | null {
+  const value = clobData.orderID ?? clobData.id;
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}

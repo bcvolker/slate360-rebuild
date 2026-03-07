@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withMarketAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 
 // GET /api/market/tab-prefs — load saved tab order/visibility
 export const GET = (req: NextRequest) =>
-  withAuth(req, async ({ admin, user }) => {
+  withMarketAuth(req, async ({ admin, user }) => {
     const { data, error } = await admin
       .from("market_tab_prefs")
       .select("tabs")
@@ -16,7 +16,7 @@ export const GET = (req: NextRequest) =>
 
 // POST /api/market/tab-prefs — upsert tab preferences
 export const POST = (req: NextRequest) =>
-  withAuth(req, async ({ admin, user }) => {
+  withMarketAuth(req, async ({ admin, user }) => {
     let body: unknown;
     try { body = await req.json(); } catch { return badRequest("Invalid JSON"); }
     const record = body as Record<string, unknown>;

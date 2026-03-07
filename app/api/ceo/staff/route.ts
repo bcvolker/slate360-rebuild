@@ -16,11 +16,11 @@ function isCeo(email: string | undefined): boolean {
 }
 
 function sanitizeAccessScope(value: unknown): string[] {
-  const validScopes = new Set(["ceo", "market", "athlete360"]);
-  if (!Array.isArray(value)) return ["ceo", "market", "athlete360"];
+  const validScopes = new Set(["market", "athlete360"]);
+  if (!Array.isArray(value)) return ["market"];
 
   const sanitized = value.filter((scope): scope is string => typeof scope === "string" && validScopes.has(scope));
-  return sanitized.length > 0 ? sanitized : ["ceo", "market", "athlete360"];
+  return sanitized.length > 0 ? sanitized : ["market"];
 }
 
 export const GET = (req: NextRequest) =>

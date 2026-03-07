@@ -8,10 +8,19 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { verifyMessage } from "viem";
 
 export async function POST(req: NextRequest) {
   try {
+    const access = await resolveServerOrgContext();
+    if (!access.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!access.canAccessMarket) {
+      return NextResponse.json({ error: "Market access required" }, { status: 403 });
+    }
+
     const supabase = await createClient();
     const {
       data: { user },

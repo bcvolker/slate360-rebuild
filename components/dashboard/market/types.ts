@@ -95,7 +95,8 @@ export interface SimRun {
 }
 
 export type PnlPoint = { label: string; pnl: number; cumPnl: number };
-export type MarketSortKey = "volume" | "edge" | "probability" | "title" | "endDate";
+export type MarketSortKey = "volume" | "edge" | "probability" | "title" | "endDate" | "yesPrice" | "noPrice" | "signal";
+export type MarketSortDirection = "asc" | "desc";
 export type MktRiskTag = "all" | "hot" | "high-risk" | "construction" | "high-potential" | "none";
 export type MktTimeframe = "hour" | "day" | "week" | "month" | "year" | "all" | "today" | "tomorrow";
 

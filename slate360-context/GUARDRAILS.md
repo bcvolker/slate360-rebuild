@@ -35,6 +35,10 @@ All tier checks use `getEntitlements(tier)` or `getEntitlements(tier, { isSlateC
 ### Rule 4b: CEO Tab Is Not A Tier Feature
 The CEO Command Center (`/ceo`), Market Robot (`/market`), and Athlete360 (`/athlete360`) are Slate360-internal platform-admin routes. **Never gate these via `getEntitlements()`**. They are gated solely by `isSlateCeo` (and future `slate360_staff` employee grants). No subscription tier — including enterprise — gives access to these tabs. `canAccessCeo` does not exist in the `Entitlements` interface.
 
+Clarification:
+- `/ceo` is owner-only via `canAccessCeo` (`slate360ceo@gmail.com`)
+- `/market` and `/athlete360` may be granted per-user via `slate360_staff` scopes
+
 ### Rule 5: No Orphan API Routes
 Every API route must use `withAuth()` or `withProjectAuth()`. No raw Supabase queries without auth checking.
 

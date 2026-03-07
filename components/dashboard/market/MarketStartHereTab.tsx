@@ -3,12 +3,14 @@
 import React, { useEffect, useState } from "react";
 import type { SchedulerHealthViewModel } from "@/lib/market/contracts";
 import type { ServerBotStatus } from "@/lib/hooks/useMarketServerStatus";
+import type { AutomationPlan } from "@/components/dashboard/market/types";
 
 type Mode = "practice" | "real";
 type PathChoice = "recommendations" | "direct-buy" | "automation";
 
 interface MarketStartHereTabProps {
   onNavigate: (tabId: string) => void;
+  onApplyRecommendation: (plan: AutomationPlan) => void;
   paperMode: boolean;
   serverStatus: ServerBotStatus;
   serverConfirmed: boolean;
@@ -37,7 +39,38 @@ const RECOMMENDATIONS: RecommendationPreset[] = [
   { id: "micro-test", emoji: "🔬", title: "Micro budget test ($50)", subtitle: "Most beginner-friendly — minimal risk", why: "The cheapest way to understand YES/NO buying. Paper mode by default. Upgrade whenever you're ready.", budget: 50, risk: "conservative", mode: "practice", activity: "low", categories: ["General"] },
 ];
 
-export default function MarketStartHereTab({ onNavigate, paperMode, serverStatus, serverConfirmed, serverHealth }: MarketStartHereTabProps) {
+function recommendationToPlan(rec: RecommendationPreset, userMode: Mode): AutomationPlan {
+  const activityToTrades = { low: 5, medium: 15, high: 40 };
+  const riskMap = { conservative: "conservative" as const, balanced: "balanced" as const, aggressive: "aggressive" as const };
+  return {
+    id: `rec-${rec.id}`,
+    name: rec.title,
+    budget: rec.budget,
+    riskLevel: riskMap[rec.risk as keyof typeof riskMap] ?? "medium",
+    categories: rec.categories,
+    scanMode: rec.id === "short-markets" ? "closing-soon" : "balanced",
+    maxTradesPerDay: activityToTrades[rec.activity] ?? 10,
+    mode: userMode,
+    maxDailyLoss: Math.round(rec.budget * 0.15),
+    maxOpenPositions: activityToTrades[rec.activity] ?? 10,
+    maxPctPerTrade: 15,
+    feeAlertThreshold: 5,
+    cooldownAfterLossStreak: 3,
+    largeTraderSignals: false,
+    closingSoonFocus: rec.id === "short-markets",
+    slippage: 2,
+    minimumLiquidity: 5000,
+    maximumSpread: 10,
+    fillPolicy: "conservative",
+    exitRules: "auto",
+    isDefault: false,
+    isArchived: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export default function MarketStartHereTab({ onNavigate, onApplyRecommendation, paperMode, serverStatus, serverConfirmed, serverHealth }: MarketStartHereTabProps) {
   const [mode, setMode] = useState<Mode>("practice");
   const [showStepper, setShowStepper] = useState(false);
   const [activePath, setActivePath] = useState<PathChoice>("recommendations");
@@ -201,11 +234,11 @@ export default function MarketStartHereTab({ onNavigate, paperMode, serverStatus
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">${rec.budget} budget</span>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{rec.risk}</span>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
-                    {rec.mode === "practice" ? "Practice first" : "Live ready"}
+                    {mode === "practice" ? "Practice mode" : "Live money"}
                   </span>
                 </div>
                 <button
-                  onClick={() => onNavigate("automation")}
+                  onClick={() => onApplyRecommendation(recommendationToPlan(rec, mode))}
                   className="w-full py-2 rounded-lg bg-[#FF4D00] text-white text-xs font-semibold hover:bg-[#e04400] transition"
                 >
                   Apply this plan →

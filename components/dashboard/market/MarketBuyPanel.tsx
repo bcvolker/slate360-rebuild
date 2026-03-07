@@ -105,12 +105,12 @@ export default function MarketBuyPanel({
         </label>
         <p className="text-[11px] text-gray-400 mb-2">Display value: {formatMoney(amount)}</p>
         <input
-          type="range" min={5} max={500} step={5} value={amount}
+          type="range" min={5} max={5000} step={5} value={amount}
           onChange={e => onAmountChange(+e.target.value)}
           className="w-full accent-[#FF4D00] mb-2"
         />
-        <div className="flex gap-1">
-          {[10, 25, 50, 100, 250].map(v => (
+        <div className="flex gap-1 flex-wrap">
+          {[10, 25, 50, 100, 250, 500, 1000].map(v => (
             <button key={v} onClick={() => onAmountChange(v)}
               className={`px-2 py-1 text-xs rounded transition ${amount === v ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
             >${v}</button>

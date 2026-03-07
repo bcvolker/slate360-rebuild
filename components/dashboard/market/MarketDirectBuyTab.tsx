@@ -3,11 +3,14 @@
 import React from "react";
 import MarketBuyPanel from "@/components/dashboard/market/MarketBuyPanel";
 import MarketAdvancedFilters from "@/components/dashboard/market/MarketAdvancedFilters";
+import MarketDirectBuyResults from "@/components/dashboard/market/MarketDirectBuyResults";
 import { useMarketDirectBuyState } from "@/lib/hooks/useMarketDirectBuyState";
-import type { MarketListing, MktTimeframe, LiveChecklist } from "@/components/dashboard/market/types";
+import type { MktTimeframe, LiveChecklist } from "@/components/dashboard/market/types";
 
 interface MarketDirectBuyTabProps {
   paperMode: boolean;
+  walletAddress?: `0x${string}`;
+  liveChecklist: LiveChecklist;
 }
 
 const QUICK_TIMEFRAMES: { key: MktTimeframe; label: string }[] = [
@@ -18,18 +21,10 @@ const QUICK_TIMEFRAMES: { key: MktTimeframe; label: string }[] = [
   { key: "month", label: "This Month" },
 ];
 
-const EMPTY_CHECKLIST: LiveChecklist = {
-  walletConnected: false,
-  polygonSelected: false,
-  usdcFunded: false,
-  signatureVerified: false,
-  usdcApproved: false,
-};
-
 const fmt = (v: number) => `$${v.toFixed(2)}`;
 
-export default function MarketDirectBuyTab({ paperMode }: MarketDirectBuyTabProps) {
-  const s = useMarketDirectBuyState({ paperMode });
+export default function MarketDirectBuyTab({ paperMode, walletAddress, liveChecklist }: MarketDirectBuyTabProps) {
+  const s = useMarketDirectBuyState({ paperMode, walletAddress, liveChecklist });
 
   return (
     <div className="space-y-4">
@@ -57,9 +52,9 @@ export default function MarketDirectBuyTab({ paperMode }: MarketDirectBuyTabProp
           paper={s.buyPaper}
           submitting={s.buySubmitting}
           success={s.buySuccess}
-          liveChecklist={EMPTY_CHECKLIST}
+          liveChecklist={liveChecklist}
           payloadReady={s.buyPayloadReady}
-          payloadIssues={[]}
+          payloadIssues={s.buyPayloadIssues}
           showTpSlControls={false}
           formatMoney={fmt}
           onOutcomeChange={s.setBuyOutcome}
@@ -172,31 +167,14 @@ export default function MarketDirectBuyTab({ paperMode }: MarketDirectBuyTabProp
             <span>Page {s.page} of {s.totalPages}</span>
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
-            {s.pagedMarkets.length === 0 ? (
-              <p className="text-center text-sm text-gray-400 py-10">No markets match your filters.</p>
-            ) : (
-              <table className="w-full text-sm min-w-[600px]">
-                <thead>
-                  <tr className="border-b border-gray-100 text-[11px] text-gray-400 uppercase tracking-wide">
-                    <th className="px-4 py-3 text-left font-medium">Market</th>
-                    <th className="px-3 py-3 text-right font-medium">YES¢</th>
-                    <th className="px-3 py-3 text-right font-medium">NO¢</th>
-                    <th className="px-3 py-3 text-right font-medium">Prob</th>
-                    <th className="px-3 py-3 text-right font-medium hidden sm:table-cell">Edge</th>
-                    <th className="px-3 py-3 text-right font-medium hidden md:table-cell">Volume</th>
-                    <th className="px-3 py-3 text-right font-medium hidden lg:table-cell">Ends</th>
-                    <th className="px-3 py-3 text-center font-medium">Buy</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {s.pagedMarkets.map(market => (
-                    <MarketRow key={market.id} market={market} onBuy={s.openBuyPanel} />
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+          <MarketDirectBuyResults
+            markets={s.pagedMarkets}
+            sortBy={s.sortBy}
+            sortDirection={s.sortDirection}
+            tableInsights={s.tableInsights}
+            onToggleSort={s.toggleSort}
+            onBuy={s.openBuyPanel}
+          />
 
           {/* Pagination */}
           {s.totalPages > 1 && (
@@ -221,52 +199,5 @@ export default function MarketDirectBuyTab({ paperMode }: MarketDirectBuyTabProp
         </>
       )}
     </div>
-  );
-}
-
-function MarketRow({ market, onBuy }: { market: MarketListing; onBuy: (m: MarketListing, o: "YES" | "NO") => void }) {
-  return (
-    <tr className="border-b border-gray-50 hover:bg-gray-50/60 transition">
-      <td className="px-4 py-3">
-        <p className="font-medium text-gray-900 text-sm leading-snug line-clamp-2 max-w-[300px]">{market.title}</p>
-        <p className="text-[11px] text-gray-400 mt-0.5">{market.category}</p>
-      </td>
-      <td className="px-3 py-3 text-right">
-        <span className="font-mono text-green-700 font-semibold text-xs">{(market.yesPrice * 100).toFixed(0)}¢</span>
-      </td>
-      <td className="px-3 py-3 text-right">
-        <span className="font-mono text-red-700 font-semibold text-xs">{(market.noPrice * 100).toFixed(0)}¢</span>
-      </td>
-      <td className="px-3 py-3 text-right">
-        <span className="text-gray-700 text-xs font-medium">{market.probabilityPct}%</span>
-      </td>
-      <td className="px-3 py-3 text-right hidden sm:table-cell">
-        <span className={`text-xs font-bold ${market.edgePct > 10 ? "text-[#FF4D00]" : market.edgePct > 5 ? "text-amber-600" : "text-gray-400"}`}>
-          {market.edgePct.toFixed(1)}%
-        </span>
-      </td>
-      <td className="px-3 py-3 text-right hidden md:table-cell">
-        <span className="text-xs text-gray-500">${(market.volume24hUsd / 1000).toFixed(0)}k</span>
-      </td>
-      <td className="px-3 py-3 text-right hidden lg:table-cell">
-        <span className="text-xs text-gray-400">{market.endDateLabel ?? "—"}</span>
-      </td>
-      <td className="px-3 py-3">
-        <div className="flex gap-1 justify-center">
-          <button
-            onClick={() => onBuy(market, "YES")}
-            className="px-2 py-1 bg-green-50 border border-green-200 text-green-700 rounded text-xs font-bold hover:bg-green-100 transition"
-          >
-            YES
-          </button>
-          <button
-            onClick={() => onBuy(market, "NO")}
-            className="px-2 py-1 bg-red-50 border border-red-200 text-red-700 rounded text-xs font-bold hover:bg-red-100 transition"
-          >
-            NO
-          </button>
-        </div>
-      </td>
-    </tr>
   );
 }

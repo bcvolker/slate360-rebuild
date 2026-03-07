@@ -15,6 +15,7 @@ This file tracks current status, build order, prompts, checks, and rebuild-from-
 - CEO entitlement override and internal-tab visibility are separate concerns. Do not merge them again.
 - Market still uses legacy tab files; rebuild incrementally without breaking route/API contracts.
 - Shared customization for Market is still missing and should be implemented first.
+- CEO Command Center now has a searchable subscriber directory for granting Market access; do not reintroduce manual-email-only workflows as the primary operator path.
 
 ## Current Build Status
 **Active batch: 9+ — see Ready-To-Paste Prompt below**
@@ -75,7 +76,7 @@ Status: pre-rebuild groundwork complete, product rebuild not started
 
 Completed
 - `slate360_staff` table exists and is managed from CEO Command Center
-- scoped internal access exists for `ceo`, `market`, and `athlete360`
+- scoped internal access exists for `market` and `athlete360`; CEO remains owner-only
 - `/market` gates on `canAccessMarket`
 - shared header and quick-nav respect scoped internal visibility
 - Project Hub duplicate portfolio snapshot was removed and the surviving snapshot is interactive
@@ -86,8 +87,9 @@ Current Market files in play
 - `components/dashboard/market/MarketRouteShell.tsx` (63 lines — shell + customize integration)
 - `components/dashboard/market/MarketPrimaryNav.tsx` (51 lines — prefs-driven nav)
 - `components/dashboard/market/MarketCustomizeDrawer.tsx` (135 lines — shared customize drawer)
-- `components/dashboard/market/MarketStartHereTab.tsx` (245 lines — **Batch 3 built, Batch 6 updated, Mar 6 runtime hardening**: mode picker, 6 recommendation presets, first-run banner, YES/NO explainer, navigation to other tabs, server-confirmed bot status bar, hydration-safe localStorage init)
+- `components/dashboard/market/MarketStartHereTab.tsx` (275 lines — **Batch 3 built, Batch 6 updated, Mar 6 runtime hardening, Mar 6 recommendations fix**: mode picker, 6 recommendation presets with user mode respect, first-run banner, YES/NO explainer, navigation to other tabs, server-confirmed bot status bar, onApplyRecommendation passes plan data directly)
 - `components/dashboard/market/MarketDirectBuyTab.tsx` (267 lines — **Batch 3 built, Batch 8 updated**: search toolbar, timeframe chips, MarketAdvancedFilters integration, market table w/ YES/NO buy buttons, buy panel drawer)
+- `components/dashboard/market/MarketDirectBuyResults.tsx` (139 lines — **Mar 7 new**: extracted results table, bidirectional sortable headers for Market/YES/NO/Prob/Edge/Signal/Volume/Ends, summary insight cards for high-quality setups / best edge / tight spreads)
 - `components/dashboard/market/MarketAutomationTab.tsx` (100 lines — **Batch 4 built, Mar 6 automation hardening**: orchestrates builder + plan list + active plan summary with runtime trades/day and max-positions visible)
 - `components/dashboard/market/MarketAutomationBuilder.tsx` (214 lines — **Batch 4 built, Mar 6 automation hardening**: guided plan creation with typed numeric inputs for budget, max trades/day, max daily loss, and max open positions)
 - `components/dashboard/market/MarketAutomationDetailControls.tsx` (139 lines — **Mar 6 new**: extracted intermediate/advanced automation controls with typed numeric inputs and toggles)
@@ -97,20 +99,23 @@ Current Market files in play
 - `components/dashboard/market/MarketSavedMarketsStub.tsx` (stub — future)
 - `components/dashboard/market/MarketResultsTab.tsx` (247 lines — **Batch 5 built**: P/L analytics, category/paper-vs-live breakdown, trade history with sort/filter, activity log, trade replay drawer)
 - `components/dashboard/market/MarketLiveWalletTab.tsx` (258 lines — **Batch 5 built**: wallet connect, readiness checklist (7 checks), balance/gas display, signature verify, USDC approve, risk disclaimer, verification test flow)
-- `components/dashboard/market/MarketBuyPanel.tsx` (reused by DirectBuyTab — shows max loss, max payout, implied probability, what-if scenarios)
+- `components/dashboard/market/MarketBuyPanel.tsx` (reused by DirectBuyTab — shows max loss, max payout, implied probability, what-if scenarios, $5k buy cap with quick-pick buttons)
+- `components/dashboard/ceo/CeoSubscriberDirectory.tsx` (259 lines — **Mar 7 operator access flow**: searchable/filterable subscriber list with one-click Market enable/remove, owner account protected from grants)
 - `components/dashboard/market/types.ts` (164 lines — all shared types including SimulationConfig, AutomationPlan)
-- `lib/hooks/useMarketDirectBuyState.ts` (258 lines — **Batch 3 new, Batch 8 updated, Mar 6 runtime hardening**: auto-load on mount, cursor-batched fetch up to 1000 markets, minVolume/minLiquidity/maxSpread filters, availableCategories, loadError state)
+- `lib/hooks/useMarketDirectBuyState.ts` (280 lines — **Batch 3 new, Batch 8 updated, Mar 6 runtime hardening, Mar 7 sorting clarity pass**: auto-load on mount, cursor-batched fetch up to 1000 markets, minVolume/minLiquidity/maxSpread filters, bidirectional sort state, page clamping, table insight summary state)
+- `lib/market/direct-buy-table.ts` (108 lines — **Mar 7 new**: pure filter/sort/insight helpers for the direct-buy table)
+- `lib/market/opportunity.ts` (54 lines — **Mar 7 new**: shared opportunity signal and spread heuristics reused by UI badges and sorting)
 - `lib/hooks/useMarketAutomationState.ts` (136 lines — **Batch 4 new**: plan CRUD, localStorage persistence, control level state)
 - `lib/hooks/useMarketTradeData.ts` (156 lines — **Mar 6 automation/runtime hardening**: activity-log polling only runs when Results is active)
-- `lib/hooks/useMarketBot.ts` (237 lines — **Mar 6 automation hardening**: runtime config now includes maxTradesPerDay and blocks scans once the daily trade cap is reached)
+- `lib/hooks/useMarketBot.ts` (237 lines — **Mar 6 automation hardening, Mar 6 bot activation fix**: runtime config now includes maxTradesPerDay and blocks scans once the daily trade cap is reached; server hydration on mount via loadServerConfig(); defaults raised to 25 trades/day, 25 positions; handleStartBot sends correct paper/running status)
 
 - `lib/market/layout-presets.ts` (64 lines — tab/panel defaults)
-- `lib/market/sync-automation-plan.ts` (41 lines — **Mar 6 new**: syncs applied automation plans to the legacy directives endpoint for scheduler compatibility)
+- `lib/market/sync-automation-plan.ts` (70 lines — **Mar 6 new, Mar 6 rewrite**: SyncResult with error details, ensureBotRunning() helper, error response parsing)
 - `lib/hooks/useMarketLayoutPrefs.ts` (169 lines — persist/migrate prefs)
 
 - `lib/hooks/useMarketResultsState.ts` (170 lines — **Batch 5 new**: analytics computation, sort/filter, trade replay state)
 - `lib/hooks/useMarketWalletState.ts`
-- `lib/hooks/useMarketServerStatus.ts` (109 lines — **Batch 6 new**: polls /api/market/bot-status + scheduler/health every 30s, returns canonical server-confirmed status)
+- `lib/hooks/useMarketServerStatus.ts` (109 lines — **Batch 6 new, Mar 6 polling fix**: polls /api/market/bot-status + scheduler/health every 10s, returns canonical server-confirmed status)
 
 Still missing from the revised plan
 - saved markets / saved searches unified tab (future)
@@ -120,6 +125,17 @@ Still missing from the revised plan
 - bookmarking / saved markets persistence
 - authenticated production verification of directives/logs fallback behavior after deploy
 - server-side scheduler migration from legacy directives to automation plans as the primary source of truth
+
+## Mar 7, 2026 — Operator + Direct Buy refinement pass
+
+Completed
+- CEO subscriber assignment path is searchable/filterable and works from the subscriber directory instead of relying on manual email entry.
+- Direct Buy headers now support click-to-sort with direction toggling across the visible columns users care about during scanning.
+- Direct Buy includes a stronger onboarding legend and three scan summary cards so new users can interpret prices, colors, opportunity strength, and execution quality faster.
+- Opportunity heuristics were centralized in `lib/market/opportunity.ts` so Signal badges and Signal sorting cannot drift.
+
+Remaining validation to run later
+- Browser-level verification of `/market` sorting and CEO subscriber grant flow with a live local or deployed session.
 
 ## Non-Negotiables
 - Route remains `/market`
@@ -356,6 +372,19 @@ Carry-forward rule
 - 2026-03-06: Batch 8 (Direct Buy UX Hardening) — complete. Files created: MarketAdvancedFilters.tsx (188 lines — extracted filter panel w/ 8 controls + HelpTip tooltips for edge, prob min/max, sort, category, risk tag, volume, liquidity, spread). Files modified: useMarketDirectBuyState.ts (197→222 lines — auto-load on mount via useEffect+useRef, limit 300→1000, added minVolume/minLiquidity/maxSpread states + filter logic, availableCategories derived from loaded markets), MarketDirectBuyTab.tsx (299→267 lines — replaced inline filters with MarketAdvancedFilters component, removed SORT_OPTIONS constant, replaced "Load all markets" with auto-load spinner, Search→Refresh label when loaded). All files ≤300 lines, tsc clean. Next: Batch 9+ (saved markets, market_plans migration, server-side pagination).
 - 2026-03-06: Runtime review + hardening — complete. Files modified: MarketClient.tsx (removed eager directives load, fetches logs only on Results tab), MarketStartHereTab.tsx (moved localStorage init into useEffect to eliminate hydration mismatch / React 418), useMarketDirectBuyState.ts (cursor-batched Polymarket fetch to actually load up to 1000 markets; added loadError state), MarketDirectBuyTab.tsx (renders load error banner), app/api/market/directives/route.ts + app/api/market/logs/route.ts (GET now degrades to empty arrays when legacy tables are absent instead of returning 500). Verified: `npx tsc --noEmit` clean, changed files all <300 lines, deployed `/api/market/polymarket` paginates with `nextCursor`. Next: deploy and authenticated production verification.
 - 2026-03-06: Automation transfer + logs polling hardening — complete. Files created: MarketAutomationDetailControls.tsx (139 lines), MarketNumericInput.tsx (61 lines), lib/market/sync-automation-plan.ts (41 lines). Files modified: MarketAutomationBuilder.tsx (300→214 lines — extracted detail controls and replaced spinner-only numeric entry for key automation fields), MarketAutomationTab.tsx (96→100 lines — active summary now shows trades/day and max positions), MarketClient.tsx (181→200 lines — applying a plan now transfers budget/max trades/day/max positions into runtime config and syncs the plan to legacy directives), useMarketBot.ts (runtime config enforces maxTradesPerDay for client-run scans), useMarketTradeData.ts (activity-log polling gated by Results tab), app/api/market/logs/route.ts (treats both `42P01` and `PGRST205` missing-table errors as empty logs). Verified: `npx tsc --noEmit` clean, touched files all within line limits. Next: push and production verify endpoint behavior, then authenticated browser verification.
+- 2026-03-07: Access + live-buy hardening — complete. Files modified: lib/server/org-context.ts (CEO page now owner-only; market/athlete360 remain grantable by scope), components/dashboard/ceo/CeoStaffAddForm.tsx + CeoStaffPanel.tsx + app/api/ceo/staff/*.ts (grant flow defaults to market-only and no longer exposes CEO scope), components/dashboard/MarketClient.tsx + MarketDirectBuyTab.tsx + useMarketDirectBuyState.ts (direct buy now consumes real wallet state, validates live prerequisites, and sends wallet_address), app/api/market/buy/route.ts + lib/market/clob-api.ts (rejects CLOB success responses without an order id), primary `/api/market/*` routes now enforce `canAccessMarket`, and `scripts/ops/check-clob-contract.mjs` now validates the split buy-route/clob-helper implementation. Verified: `npx tsc --noEmit` clean, `npm run guard:clob-contract` pass. Next: authenticated browser verification of direct live buy, automation tick, and market-only access grants.
+- 2026-03-06: **Bot activation + algorithm + runtime fixes** — complete. 12 fixes across 8 files resolving why the bot was not making trades.
+  **lib/market-bot.ts:** (a) DEFAULT_CONFIG: riskLevel low→medium, maxDailyLoss 25→100, maxTradesPerScan 25→50, minOpportunityEdgePct 1→0.5, maxCandidates 200→500, portfolioMix rebalanced {low:40,med:40,high:20}; (b) fetchMarkets limit 50→200; (c) scoreOpportunities: added time-decay bonus (+10 for markets <7 days), probability-edge bonus (+8 near 50/50), reweighted scoring (vol 25%, liq 20%, edge 30%); (d) decideTrades confidence thresholds lowered from {low:60,medium:45,high:30} to {low:25,medium:15,high:5}; (e) removed 0.3 budget multiplier.
+  **lib/hooks/useMarketBot.ts:** (a) added loadServerConfig() — fetches directives+bot-status on mount to hydrate from DB; (b) defaults: maxTradesPerDay 5→25, maxPositions 5→25, minEdge 3→1, minVolume 10000→5000, minProbLow 10→5, minProbHigh 90→95, focusAreas ["all"]; (c) presets updated: starter 25/day, balanced 50/day, active 200/day; (d) handleStartBot fixed to send "paper" status when paperMode=true.
+  **lib/market/sync-automation-plan.ts:** complete rewrite — SyncResult with error details, ensureBotRunning() helper, error response parsing.
+  **lib/market/scan-request.ts:** SCAN_DEFAULTS.maxPositions 5→25.
+  **components/dashboard/MarketClient.tsx:** handleApplyPlan calls ensureBotRunning after sync, better error messages.
+  **lib/market/scheduler.ts:** logs to market_activity_log when 0 decisions or guard-rule skip.
+  **app/api/market/settle-trades/route.ts:** fetchGammaMarket returns {market, error}, 200ms rate-limit delay, added .eq("status","open") to all 3 update queries (race condition fix), Gamma error tracking.
+  **lib/hooks/useMarketServerStatus.ts:** POLL_INTERVAL_MS 30000→10000.
+  **components/dashboard/market/MarketBuyPanel.tsx:** buy amount cap raised from $500 to $5,000, added $500 and $1,000 quick-pick buttons.
+  **components/dashboard/market/MarketStartHereTab.tsx:** recommendations now respect user mode selection (practice/real), added onApplyRecommendation prop + recommendationToPlan() converter, Apply button now sends plan data directly instead of just navigating. MarketClient wired to call handleApplyPlan + switch to results tab.
+  Verified: `npx tsc --noEmit` clean.
 
 ## Ready-To-Paste Prompt For Next Chat
 

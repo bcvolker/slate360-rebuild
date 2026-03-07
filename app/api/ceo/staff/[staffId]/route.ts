@@ -13,7 +13,7 @@ function isCeo(email: string | undefined): boolean {
 }
 
 function sanitizeAccessScope(value: unknown): string[] {
-  const validScopes = new Set(["ceo", "market", "athlete360"]);
+  const validScopes = new Set(["market", "athlete360"]);
   if (!Array.isArray(value)) return [];
   return value.filter((scope): scope is string => typeof scope === "string" && validScopes.has(scope));
 }

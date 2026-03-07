@@ -1,28 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import {
-  DEFAULT_CONFIG,
-  decideTrades,
-  scoreOpportunities,
-  simulatePaperTrade,
-  type BotConfig,
-} from "@/lib/market-bot";
+import { DEFAULT_CONFIG, decideTrades, scoreOpportunities, simulatePaperTrade, type BotConfig } from "@/lib/market-bot";
 import { toNumberOrZero } from "@/lib/market/contracts";
+import { logSchedulerNoDecisions, logSchedulerRunSummary, logSchedulerSkip } from "@/lib/market/scheduler-activity-log";
 import { evaluateSchedulerGuards } from "@/lib/market/scheduler-guards";
-import {
-  clamp,
-  fetchMarketsCached,
-  getConfig,
-  isoDay,
-  normalizeFocusAreas,
-  riskLevelFromMix,
-  type MarketsPromiseCache,
-  type SchedulerConfig,
-} from "@/lib/market/scheduler-utils";
+import { clamp, fetchMarketsCached, getConfig, isoDay, normalizeFocusAreas, riskLevelFromMix, type MarketsPromiseCache, type SchedulerConfig } from "@/lib/market/scheduler-utils";
 
-type RuntimeRow = {
-  user_id: string;
-  status: "running" | "paused" | "stopped" | "paper";
-};
+type RuntimeRow = { user_id: string; status: "running" | "paused" | "stopped" | "paper" };
 
 type DirectiveRow = {
   amount: number | string | null;
@@ -61,7 +44,6 @@ export type SchedulerTickResult = {
   results: SchedulerUserResult[];
   timestamp: string;
 };
-
 
 async function runForUser(
   userId: string,
@@ -159,14 +141,12 @@ async function runForUser(
     maxCandidates: Math.max(maxPositions * 6, 200),
   };
 
-  // Moonshot mode increases throughput but still respects hard risk caps.
   if (moonshotMode) {
     botConfig.riskLevel = "high";
     botConfig.maxTradesPerScan = Math.min(config.maxTradesPerScan, Math.max(25, maxPositions * 2));
     botConfig.maxCandidates = Math.max(botConfig.maxCandidates, 500);
   }
 
-  // Never exceed scheduler-safe throughput (5 trades/sec budget per run window).
   const throughputCap = Math.max(1, runFrequencySeconds * 5);
   botConfig.maxTradesPerScan = Math.min(botConfig.maxTradesPerScan, throughputCap);
 
@@ -190,6 +170,12 @@ async function runForUser(
   });
 
   if (guardResult.skipReason) {
+    await logSchedulerSkip(admin, userId, guardResult.skipReason, {
+      dailyPnl,
+      dailyLossCap,
+      totalLossCap,
+      totalPnl: guardResult.totalPnl,
+    });
     return {
       userId,
       status: "skipped",
@@ -204,6 +190,18 @@ async function runForUser(
   const decisions = decideTrades(scored, botConfig, dailyPnl).slice(0, maxPositions);
 
   let executed = 0;
+
+  if (decisions.length === 0) {
+    await logSchedulerNoDecisions(admin, userId, {
+      scoredCount: scored.length,
+      botRiskLevel: botConfig.riskLevel,
+      focusAreas: botConfig.focusAreas,
+      maxTradesPerScan: botConfig.maxTradesPerScan,
+      maxPositionUsd: botConfig.maxPositionUsd,
+      dailyPnl,
+      maxDailyLoss: botConfig.maxDailyLoss,
+    });
+  }
 
   if (decisions.length > 0 && (botConfig.paperMode || runtimeStatus === "paper")) {
     const simulated = decisions.map((decision) => ({
@@ -234,23 +232,16 @@ async function runForUser(
     }
     executed = rows.length;
 
-    // Persist plain-English activity summary for the dashboard log.
-    try {
-      await admin.from("market_activity_log").insert({
-        user_id: userId,
-        level: "info",
-        message: `Scheduler run: found ${scored.length} opportunities, decided ${decisions.length}, executed ${executed} paper trades.`,
-        context: {
-          buysPerDay,
-          runFrequencySeconds,
-          moonshotMode,
-          dailyPnl,
-          totalPnl,
-        },
-      });
-    } catch {
-      // best effort log persistence
-    }
+    await logSchedulerRunSummary(admin, userId, {
+      scoredCount: scored.length,
+      decisionCount: decisions.length,
+      executedCount: executed,
+      buysPerDay,
+      runFrequencySeconds,
+      moonshotMode,
+      dailyPnl,
+      totalPnl,
+    });
   }
 
   await admin.from("market_bot_runtime_state").upsert(

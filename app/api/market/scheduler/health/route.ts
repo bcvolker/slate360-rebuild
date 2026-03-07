@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { ApiEnvelope, SchedulerHealthViewModel } from "@/lib/market/contracts";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -26,6 +27,14 @@ function parseStatus(value: unknown): SchedulerHealthViewModel["status"] {
 
 export async function GET() {
   try {
+    const access = await resolveServerOrgContext();
+    if (!access.user) {
+      return noStoreJson({ ok: false, error: { code: "unauthorized", message: "Unauthorized" } }, { status: 401 });
+    }
+    if (!access.canAccessMarket) {
+      return noStoreJson({ ok: false, error: { code: "forbidden", message: "Market access required" } }, { status: 403 });
+    }
+
     const supabase = await createClient();
     const {
       data: { user },

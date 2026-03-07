@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/file-size-baseline.schema.json",
-  "updatedAt": "2026-03-05",
+  "updatedAt": "2026-03-07",
   "threshold": 300,
   "files": {
     "app/(dashboard)/project-hub/[projectId]/budget/page.tsx": 421,
@@ -19,7 +19,7 @@
     "app/page.tsx": 780,
     "components/Navbar.tsx": 316,
     "components/calendar/CalendarWidget.tsx": 466,
-    "components/dashboard/DashboardClient.tsx": 1947,
+    "components/dashboard/DashboardClient.tsx": 1961,
     "components/dashboard/DashboardWidgetRenderer.tsx": 513,
     "components/dashboard/LocationMap.tsx": 1892,
     "components/dashboard/MarketClient.tsx": 3131,

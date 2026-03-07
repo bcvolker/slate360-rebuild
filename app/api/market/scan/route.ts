@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
 import type {
   ApiEnvelope,
   ScanAppliedConfig,
@@ -35,6 +36,20 @@ function clamp(value: number, min: number, max: number) {
 
 export async function POST(req: NextRequest) {
   try {
+    const access = await resolveServerOrgContext();
+    if (!access.user) {
+      return noStoreJson(
+        { ok: false, error: { code: "unauthorized", message: "Unauthorized" } },
+        { status: 401 }
+      );
+    }
+    if (!access.canAccessMarket) {
+      return noStoreJson(
+        { ok: false, error: { code: "forbidden", message: "Market access required" } },
+        { status: 403 }
+      );
+    }
+
     const supabase = await createClient();
     const {
       data: { user },

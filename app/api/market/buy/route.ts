@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
-import { submitClobOrder } from "@/lib/market/clob-api";
+import { withMarketAuth } from "@/lib/server/api-auth";
+import { getClobOrderId, submitClobOrder } from "@/lib/market/clob-api";
 
 const DEFAULT_MIN_BUY_USD = 1;
 const DEFAULT_MAX_BUY_USD = 1_000_000;
@@ -24,7 +24,7 @@ function makeOrderNonce(): string {
 }
 
 export const POST = (req: NextRequest) =>
-  withAuth(req, async ({ user, admin }) => {
+  withMarketAuth(req, async ({ user, admin }) => {
     const body = await req.json();
     const {
       market_id,
@@ -178,10 +178,25 @@ export const POST = (req: NextRequest) =>
       }
 
       // 3. Mark DB Trade as Open + Live
-      const clobOrderId = String(clobData.orderID ?? clobData.id ?? "");
+      const clobOrderId = getClobOrderId(clobData);
+      if (!clobOrderId) {
+        const { data: failedTrade } = await admin.from("market_trades").update({
+          status: "open", paper_trade: true, entry_mode: "clob_invalid_success_fallback",
+          reason: `CLOB response missing order id: ${JSON.stringify(clobData)}`,
+        }).eq("id", pendingTrade.id).select().single();
+
+        return NextResponse.json({
+          success: false,
+          mode: "clob_invalid_success",
+          error: "CLOB returned success without an order id",
+          clob_response: clobData,
+          trade: failedTrade,
+        }, { status: 502 });
+      }
+
       const { data: finalTrade } = await admin.from("market_trades").update({
         status: "open",
-        clob_order_id: clobOrderId || null,
+        clob_order_id: clobOrderId,
         reason: `Live CLOB order ${clobOrderId}`,
       }).eq("id", pendingTrade.id).select().single();
 

@@ -11,7 +11,7 @@ export default async function CeoPage() {
   if (!user) redirect("/login");
 
   // CEO Command Center is a Slate360 platform-admin tab — NOT a subscription tier feature.
-  // Access requires: slate360ceo@gmail.com OR an employee granted access via CEO tab (slate360_staff table).
+  // Access remains exclusive to the owner account: slate360ceo@gmail.com.
   if (!canAccessCeo) {
     notFound();
   }

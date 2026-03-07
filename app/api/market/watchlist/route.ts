@@ -4,13 +4,13 @@
  * DELETE /api/market/watchlist — remove a market (body: { market_id })
  */
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withMarketAuth } from "@/lib/server/api-auth";
 import { ok, created, badRequest, serverError } from "@/lib/server/api-response";
 
 export const dynamic = "force-dynamic";
 
 export const GET = (req: NextRequest) =>
-  withAuth(req, async ({ admin, user }) => {
+  withMarketAuth(req, async ({ admin, user }) => {
     const { data, error } = await admin
       .from("market_watchlist")
       .select("*")
@@ -22,7 +22,7 @@ export const GET = (req: NextRequest) =>
   });
 
 export const POST = (req: NextRequest) =>
-  withAuth(req, async ({ admin, user }) => {
+  withMarketAuth(req, async ({ admin, user }) => {
     const body = await req.json() as Record<string, unknown>;
     const { market_id, title, category, yes_price, no_price, probability, notes } = body;
 
@@ -49,7 +49,7 @@ export const POST = (req: NextRequest) =>
   });
 
 export const DELETE = (req: NextRequest) =>
-  withAuth(req, async ({ admin, user }) => {
+  withMarketAuth(req, async ({ admin, user }) => {
     const body = await req.json() as Record<string, unknown>;
     const { market_id } = body;
     if (!market_id) return badRequest("market_id required");

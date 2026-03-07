@@ -56,17 +56,17 @@ export interface TradeRecord {
 }
 
 export const DEFAULT_CONFIG: BotConfig = {
-  riskLevel: "low",
+  riskLevel: "medium",
   paperMode: true,
-  maxDailyLoss: 25,
+  maxDailyLoss: 100,
   emergencyStopPct: 15,
-  maxTradesPerScan: 25,
+  maxTradesPerScan: 50,
   maxPositionUsd: 250,
-  minOpportunityEdgePct: 1,
-  maxCandidates: 200,
+  minOpportunityEdgePct: 0.5,
+  maxCandidates: 500,
   walletAddress: null,
   botStatus: "stopped",
-  portfolioMix: { low: 60, medium: 30, high: 10 },
+  portfolioMix: { low: 40, medium: 40, high: 20 },
   focusAreas: ["all"],
   whaleWatch: false,
 };
@@ -87,7 +87,7 @@ interface PolyMarket {
 
 export async function fetchMarkets(
   focusAreas: FocusArea[],
-  limit = 50,
+  limit = 200,
 ): Promise<PolyMarket[]> {
   try {
     const params = new URLSearchParams({
@@ -181,10 +181,19 @@ export function scoreOpportunities(
       const riskTier = assessRisk(spread, mkt.liquidity, mkt.volume24hr);
       const cat = categorize(mkt.question, mkt.category);
 
-      const volScore = Math.min(mkt.volume24hr / 100000, 1) * 30;
-      const liqScore = Math.min(mkt.liquidity / 200000, 1) * 30;
-      const edgeScore = Math.min(edge / 10, 1) * 40;
-      const confidence = Math.round(volScore + liqScore + edgeScore);
+      // Time-decay bonus: markets expiring sooner get a boost (more actionable)
+      const msUntilExpiry = new Date(mkt.endDate).getTime() - Date.now();
+      const daysUntilExpiry = Math.max(0, msUntilExpiry / 86_400_000);
+      const timeDecayBonus = daysUntilExpiry < 7 ? 10 : daysUntilExpiry < 30 ? 5 : 0;
+
+      // Probability-edge: markets near 50/50 have more upside than 95/5
+      const probMidDistance = Math.abs(yesPrice - 0.5);
+      const probEdgeBonus = probMidDistance < 0.15 ? 8 : probMidDistance < 0.3 ? 4 : 0;
+
+      const volScore = Math.min(mkt.volume24hr / 50000, 1) * 25;
+      const liqScore = Math.min(mkt.liquidity / 100000, 1) * 20;
+      const edgeScore = Math.min(edge / 8, 1) * 30;
+      const confidence = Math.round(volScore + liqScore + edgeScore + timeDecayBonus + probEdgeBonus);
 
       opps.push({
         id: mkt.id,
@@ -233,9 +242,9 @@ export function decideTrades(
     if (mixPct === 0) continue;
 
     const minConfidence: Record<RiskLevel, number> = {
-      low: 60,
-      medium: 45,
-      high: 30,
+      low: 25,
+      medium: 15,
+      high: 5,
     };
 
     if (opp.confidence < minConfidence[config.riskLevel]) continue;
@@ -251,7 +260,7 @@ export function decideTrades(
     const configuredMaxPositionUsd = Number.isFinite(config.maxPositionUsd)
       ? Math.max(config.maxPositionUsd, 1)
       : 50;
-    const maxPositionSize = Math.min(budgetForTier * 0.3, configuredMaxPositionUsd);
+    const maxPositionSize = Math.min(budgetForTier, configuredMaxPositionUsd);
     const shares = Math.max(1, Math.floor(maxPositionSize / price));
 
     if (shares * price < 1) continue;

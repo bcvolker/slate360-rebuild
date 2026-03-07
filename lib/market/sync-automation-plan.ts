@@ -1,6 +1,13 @@
 import type { AutomationPlan } from "@/components/dashboard/market/types";
 
-export async function syncAutomationPlan(plan: AutomationPlan): Promise<{ ok: boolean; status: number }> {
+export interface SyncResult {
+  ok: boolean;
+  status: number;
+  error?: string;
+  directiveId?: string;
+}
+
+export async function syncAutomationPlan(plan: AutomationPlan): Promise<SyncResult> {
   const profitStrategy = plan.fillPolicy === "limit-only"
     ? "market-making"
     : plan.riskLevel === "aggressive"
@@ -15,28 +22,54 @@ export async function syncAutomationPlan(plan: AutomationPlan): Promise<{ ok: bo
         ? "1w"
         : "3d";
 
+  const body = {
+    name: plan.name,
+    amount: plan.budget,
+    timeframe,
+    buys_per_day: plan.maxTradesPerDay,
+    risk_mix: plan.riskLevel,
+    whale_follow: plan.largeTraderSignals,
+    focus_areas: plan.categories,
+    profit_strategy: profitStrategy,
+    paper_mode: plan.mode === "practice",
+    daily_loss_cap: plan.maxDailyLoss,
+    moonshot_mode: plan.riskLevel === "aggressive" && plan.scanMode === "fast",
+    total_loss_cap: Math.max(plan.maxDailyLoss * 5, plan.budget * 0.5),
+    auto_pause_losing_days: Math.max(1, plan.cooldownAfterLossStreak),
+    target_profit_monthly: null,
+    take_profit_pct: 20,
+    stop_loss_pct: 10,
+  };
+
   const response = await fetch("/api/market/directives", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: plan.name,
-      amount: plan.budget,
-      timeframe,
-      buys_per_day: plan.maxTradesPerDay,
-      risk_mix: plan.riskLevel,
-      whale_follow: plan.largeTraderSignals,
-      focus_areas: plan.categories,
-      profit_strategy: profitStrategy,
-      paper_mode: plan.mode === "practice",
-      daily_loss_cap: plan.maxDailyLoss,
-      moonshot_mode: plan.riskLevel === "aggressive" && plan.scanMode === "fast",
-      total_loss_cap: Math.max(plan.maxDailyLoss * 5, plan.budget * 0.5),
-      auto_pause_losing_days: Math.max(1, plan.cooldownAfterLossStreak),
-      target_profit_monthly: null,
-      take_profit_pct: 20,
-      stop_loss_pct: 10,
-    }),
+    body: JSON.stringify(body),
   });
 
-  return { ok: response.ok, status: response.status };
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({})) as Record<string, unknown>;
+    return {
+      ok: false,
+      status: response.status,
+      error: typeof errData.error === "string" ? errData.error : `HTTP ${response.status}`,
+    };
+  }
+
+  const data = await response.json() as { directive?: { id?: string } };
+  return { ok: true, status: response.status, directiveId: data.directive?.id };
+}
+
+/** Also set bot-status to running/paper so the scheduler picks it up */
+export async function ensureBotRunning(paperMode: boolean): Promise<boolean> {
+  try {
+    const res = await fetch("/api/market/bot-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: paperMode ? "paper" : "running" }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }

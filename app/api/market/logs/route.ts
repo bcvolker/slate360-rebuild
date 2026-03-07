@@ -1,12 +1,12 @@
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withMarketAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const GET = (req: NextRequest) =>
-  withAuth(req, async ({ admin, user }) => {
+  withMarketAuth(req, async ({ admin, user }) => {
     const limitRaw = Number(req.nextUrl.searchParams.get("limit") ?? 200);
     const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(Math.floor(limitRaw), 1), 2000) : 200;
 
@@ -25,7 +25,7 @@ export const GET = (req: NextRequest) =>
   });
 
 export const POST = (req: NextRequest) =>
-  withAuth(req, async ({ admin, user }) => {
+  withMarketAuth(req, async ({ admin, user }) => {
     let body: unknown;
     try {
       body = await req.json();

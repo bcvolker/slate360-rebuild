@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
 
 type DirectivePayload = {
   id?: string;
@@ -71,6 +72,10 @@ function validateDirectiveInput(body: DirectivePayload) {
 
 export async function GET() {
   try {
+    const access = await resolveServerOrgContext();
+    if (!access.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!access.canAccessMarket) return NextResponse.json({ error: "Market access required" }, { status: 403 });
+
     const { supabase, user } = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -100,6 +105,10 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const access = await resolveServerOrgContext();
+    if (!access.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!access.canAccessMarket) return NextResponse.json({ error: "Market access required" }, { status: 403 });
+
     const { supabase, user } = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -152,6 +161,10 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const access = await resolveServerOrgContext();
+    if (!access.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!access.canAccessMarket) return NextResponse.json({ error: "Market access required" }, { status: 403 });
+
     const { supabase, user } = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -208,6 +221,10 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const access = await resolveServerOrgContext();
+    if (!access.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!access.canAccessMarket) return NextResponse.json({ error: "Market access required" }, { status: 403 });
+
     const { supabase, user } = await getAuthUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

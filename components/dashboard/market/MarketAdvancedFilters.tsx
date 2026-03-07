@@ -94,7 +94,7 @@ export default function MarketAdvancedFilters(props: MarketAdvancedFiltersProps)
       <div>
         <label className="text-xs text-gray-500 mb-1 flex items-center">
           Sort by
-          <HelpTip content="Controls the order markets appear. 'Best Edge' shows the most favorable prices first." />
+          <HelpTip content="Controls the default order markets appear. You can also click the table headers for Market, Prob, Edge, Volume, and Ends to sort directly from the results." />
         </label>
         <select
           value={props.sortBy}

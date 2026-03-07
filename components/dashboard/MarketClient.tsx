@@ -13,7 +13,7 @@ import MarketResultsTab from "@/components/dashboard/market/MarketResultsTab";
 import MarketLiveWalletTab from "@/components/dashboard/market/MarketLiveWalletTab";
 import MarketSavedMarketsStub from "@/components/dashboard/market/MarketSavedMarketsStub";
 import { useMarketWalletState } from "@/lib/hooks/useMarketWalletState";
-import { syncAutomationPlan } from "@/lib/market/sync-automation-plan";
+import { syncAutomationPlan, ensureBotRunning } from "@/lib/market/sync-automation-plan";
 import type { MarketShellContext } from "@/components/dashboard/market/MarketRouteShell";
 import type { AutomationPlan } from "@/components/dashboard/market/types";
 
@@ -71,15 +71,25 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
       bot.setPaperMode(plan.mode === "practice");
       bot.addLog(`📋 Plan "${plan.name}" applied to bot`);
 
+      // 1. Sync directive to DB so the scheduler has the config
       try {
         const result = await syncAutomationPlan(plan);
         if (result.ok) {
-          bot.addLog(`🗂 Synced "${plan.name}" to server automation settings`);
+          bot.addLog(`🗂 Synced "${plan.name}" to server (directive ${result.directiveId ?? "created"})`);
         } else {
-          bot.addLog(`⚠️ Plan applied locally, but server automation sync failed (${result.status})`);
+          bot.addLog(`⚠️ Server sync failed: ${result.error ?? `HTTP ${result.status}`}. Bot will use local config for manual scans.`);
         }
       } catch (error) {
-        bot.addLog(`⚠️ Plan applied locally, but server automation sync failed: ${error instanceof Error ? error.message : "unknown error"}`);
+        bot.addLog(`⚠️ Server sync failed: ${error instanceof Error ? error.message : "unknown error"}`);
+      }
+
+      // 2. Set bot status to paper/running so the scheduler picks this user up
+      const isPaper = plan.mode === "practice";
+      const statusSet = await ensureBotRunning(isPaper);
+      if (statusSet) {
+        bot.addLog(`🟢 Bot status set to ${isPaper ? "paper" : "running"} — scheduler will pick up trades`);
+      } else {
+        bot.addLog(`⚠️ Failed to set bot status on server — scheduler may not run`);
       }
 
       bot.setBotRunning(true);
@@ -94,6 +104,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
         return (
           <MarketStartHereTab
             onNavigate={setActiveTabId}
+            onApplyRecommendation={(plan) => { handleApplyPlan(plan); setActiveTabId("results"); }}
             paperMode={bot.config.paperMode}
             serverStatus={serverStatus.status}
             serverConfirmed={serverStatus.isConfirmed}
@@ -101,7 +112,13 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
           />
         );
       case "direct-buy":
-        return <MarketDirectBuyTab paperMode={bot.config.paperMode} />;
+        return (
+          <MarketDirectBuyTab
+            paperMode={bot.config.paperMode}
+            walletAddress={wallet.address}
+            liveChecklist={wallet.liveChecklist}
+          />
+        );
       case "automation":
         return (
           <MarketAutomationTab

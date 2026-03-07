@@ -169,8 +169,9 @@ const e = getEntitlements(user.tier, { isSlateCeo: true });
 // e.canAccessHub, e.canAccessDesignStudio, e.canWhiteLabel, e.maxStorageGB, etc.
 ```
 **Never** write `if (tier === 'business' || tier === 'enterprise')` — always use `getEntitlements()`.
-**CEO/Internal Access:** `resolveServerOrgContext()` returns `isSlateCeo`, `isSlateStaff`, and `hasInternalAccess`.
-- Use `hasInternalAccess` to gate `/ceo`, `/market`, `/athlete360`.
+**CEO/Internal Access:** `resolveServerOrgContext()` returns `isSlateCeo`, `isSlateStaff`, `canAccessCeo`, `canAccessMarket`, `canAccessAthlete360`, and `hasInternalAccess`.
+- Use `canAccessCeo` to gate `/ceo` — owner account only (`slate360ceo@gmail.com`).
+- Use `canAccessMarket` and `canAccessAthlete360` for per-user internal grants managed from the CEO tab.
 - Use `isSlateCeo` (not `isSlateStaff`) for entitlement override behavior when needed.
 **CEO Tab ≠ Tier feature:** `/ceo`, `/market`, `/athlete360` are platform-admin tabs. `canAccessCeo` does NOT exist in `Entitlements`. No tier including enterprise grants access.
 
@@ -237,6 +238,8 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 
 ### What's Working
 - Dashboard with 12-widget system (shared between Dashboard + Project Hub)
+- CEO Command Center has a searchable subscriber directory for granting Market access, while the CEO tab remains owner-only.
+- Market Direct Buy now supports bidirectional column sorting plus plain-English table guidance for price, edge, signal, and execution-quality cues.
 - Project Hub Tier 1 (project grid), Tier 2 (project home), Tier 3 (9 tool views all with CRUD)
 - SlateDrop file management with S3 upload/download, folder tree, preview, share links
 - Project create → 8 subfolder auto-provisioning

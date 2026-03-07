@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { ApiEnvelope, MarketViewModel } from "@/lib/market/contracts";
 import { mapGammaMarketToMarketVM } from "@/lib/market/mappers";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,6 +44,20 @@ function encodeCursor(offset: number): string {
 }
 
 export async function GET(req: NextRequest) {
+  const access = await resolveServerOrgContext();
+  if (!access.user) {
+    return noStoreJson(
+      { ok: false, error: { code: "unauthorized", message: "Unauthorized" } },
+      { status: 401 }
+    );
+  }
+  if (!access.canAccessMarket) {
+    return noStoreJson(
+      { ok: false, error: { code: "forbidden", message: "Market access required" } },
+      { status: 403 }
+    );
+  }
+
   const { searchParams } = req.nextUrl;
 
   const forwardParams = new URLSearchParams(searchParams);

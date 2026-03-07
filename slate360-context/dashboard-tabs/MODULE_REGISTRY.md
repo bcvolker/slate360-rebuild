@@ -16,14 +16,14 @@
 | Virtual Studio | `/(dashboard)/virtual-studio` | `getEntitlements(tier).canAccessVirtualStudio` | `dashboard-tabs/virtual-studio/IMPLEMENTATION_PLAN.md` | Scaffolded |
 | Analytics & Reports | `/(dashboard)/analytics` | `getEntitlements(tier).canAccessAnalytics` + CEO override | `dashboard-tabs/analytics-reports/IMPLEMENTATION_PLAN.md` | Live (v1 UI) |
 | My Account | `/(dashboard)/my-account` | authenticated | `dashboard-tabs/my-account/IMPLEMENTATION_PLAN.md` | Scaffolded |
-| CEO Command Center | `/(dashboard)/ceo` | `hasInternalAccess` (NOT entitlement) | `dashboard-tabs/ceo-command-center/IMPLEMENTATION_PLAN.md` | Live stub |
-| Market Robot | `/market` | `hasInternalAccess` (NOT entitlement) | `dashboard-tabs/market-robot/IMPLEMENTATION_PLAN.md` | Live |
-| Athlete360 | `/athlete360` | `hasInternalAccess` (NOT entitlement) | `dashboard-tabs/athlete360/IMPLEMENTATION_PLAN.md` | Stub |
+| CEO Command Center | `/(dashboard)/ceo` | `resolveServerOrgContext().canAccessCeo` (owner-only, NOT entitlement) | `dashboard-tabs/ceo-command-center/IMPLEMENTATION_PLAN.md` | Live stub |
+| Market Robot | `/market` | `resolveServerOrgContext().canAccessMarket` (NOT entitlement) | `dashboard-tabs/market-robot/IMPLEMENTATION_PLAN.md` | Live |
+| Athlete360 | `/athlete360` | `resolveServerOrgContext().canAccessAthlete360` (NOT entitlement) | `dashboard-tabs/athlete360/IMPLEMENTATION_PLAN.md` | Stub |
 
 ## Internal Access Rule (Critical)
 
-- `hasInternalAccess = isSlateCeo || isSlateStaff`
-- Internal tabs `/ceo`, `/market`, `/athlete360` must gate on `hasInternalAccess`.
+- `canAccessCeo` is owner-only (`slate360ceo@gmail.com`)
+- `canAccessMarket` / `canAccessAthlete360` may be granted per-user via `slate360_staff.access_scope`
 - Entitlements override (`getEntitlements(..., { isSlateCeo })`) is for module limits/navigation only, not internal-tab authorization.
 
 ## Analytics Canonical Definition
