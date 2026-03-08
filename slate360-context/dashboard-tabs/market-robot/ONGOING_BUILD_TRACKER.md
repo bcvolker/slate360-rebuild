@@ -165,6 +165,18 @@ Current fix applied in this pass
 - `app/api/market/directives/route.ts` is now backward-compatible with the older `market_directives` base schema and persists the richer automation execution settings in auth `user_metadata.marketBotConfig`, so missing newer directive columns no longer have to produce a 500.
 - The scan route and scheduler now consume metadata-backed timeframe, liquidity floor, spread ceiling, max open positions, and per-trade allocation caps through [lib/market/runtime-config.ts](/workspaces/slate360-rebuild/lib/market/runtime-config.ts), [app/api/market/scan/route.ts](/workspaces/slate360-rebuild/app/api/market/scan/route.ts), and [lib/market/scheduler-run-user.ts](/workspaces/slate360-rebuild/lib/market/scheduler-run-user.ts).
 
+## Mar 7, 2026 — Direct buy token IDs + apply-plan first scan
+
+Confirmed blockers
+- Live Gamma market payloads currently return `clobTokenIds` as a JSON string, not a native array. The mapper in [lib/market/mappers.ts](/workspaces/slate360-rebuild/lib/market/mappers.ts) only handled the array shape, so many Direct Buy rows reached the UI without `tokenIdYes` / `tokenIdNo` even when Polymarket had provided them.
+- The Direct Buy readiness check in [lib/hooks/useMarketDirectBuyState.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketDirectBuyState.ts) treated missing token IDs as a blocker for both live and paper buys, even though paper-mode execution through [app/api/market/buy/route.ts](/workspaces/slate360-rebuild/app/api/market/buy/route.ts) does not require a token ID.
+- The immediate scan triggered from [components/dashboard/MarketClient.tsx](/workspaces/slate360-rebuild/components/dashboard/MarketClient.tsx) could still run with stale hook state because React had not necessarily committed the freshly applied plan values before `runScan()` executed.
+
+Current fix applied in this pass
+- Hardened [lib/market/mappers.ts](/workspaces/slate360-rebuild/lib/market/mappers.ts) to parse `clobTokenIds` from Gamma string payloads and preserve YES/NO token IDs in the market view model.
+- Updated [lib/hooks/useMarketDirectBuyState.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketDirectBuyState.ts) so token IDs are required only for live buys. Paper direct buys can execute again even when token IDs are absent.
+- Updated [lib/hooks/useMarketBot.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketBot.ts) and [components/dashboard/MarketClient.tsx](/workspaces/slate360-rebuild/components/dashboard/MarketClient.tsx) so Apply Plan passes an explicit runtime config into the first `runScan()` call, eliminating the stale-config window on the first automation pass.
+
 Next recommended follow-up
 - Make `market_plans` the canonical server-side config and stop translating rich automation plans into legacy directives.
 - Replace the auth-metadata stopgap with a first-class server table once `market_plans` lands, then migrate the scheduler off legacy directives entirely.

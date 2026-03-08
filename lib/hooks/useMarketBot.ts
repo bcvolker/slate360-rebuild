@@ -6,9 +6,7 @@ import type { BotConfig } from "@/components/dashboard/market/types";
 
 interface UseMarketBotDeps {
   trades: TradeViewModel[];
-  fetchTrades: () => Promise<void>;
-  fetchSummary: () => Promise<void>;
-  fetchSchedulerHealth: () => Promise<void>;
+  fetchTrades: () => Promise<void>; fetchSummary: () => Promise<void>; fetchSchedulerHealth: () => Promise<void>;
 }
 
 export interface UseMarketBotReturn {
@@ -16,32 +14,22 @@ export interface UseMarketBotReturn {
   appliedConfig: Record<string, unknown> | null;
   scanLog: string[];
   addLog: (msg: string) => void;
-  runScan: () => Promise<void>;
+  runScan: (override?: Partial<BotConfig>) => Promise<void>;
   runPreviewScan: () => Promise<void>;
   handleStartBot: () => Promise<void>;
   handlePauseBot: () => Promise<void>;
   handleStopBot: () => Promise<void>;
   applyBeginnerBotPreset: (preset: "starter" | "balanced" | "active") => void;
   toggleFocus: (area: string) => void;
-  // Individual setters for cross-hook usage (e.g., from useMarketDirectives)
-  setPaperMode: (v: boolean) => void;
-  setCapitalAlloc: (v: number) => void;
-  setMaxTradesPerDay: (v: number) => void;
-  setMaxPositions: (v: number) => void;
-  setMinEdge: (v: number) => void;
-  setMinVolume: (v: number) => void;
-  setMinProbLow: (v: number) => void;
-  setMinProbHigh: (v: number) => void;
-  setRiskMix: (v: "conservative" | "balanced" | "aggressive") => void;
-  setWhaleFollow: (v: boolean) => void;
-  setFocusAreas: (v: string[]) => void;
-  setBotRunning: (v: boolean) => void;
-  setBotPaused: (v: boolean) => void;
+  setPaperMode: (v: boolean) => void; setCapitalAlloc: (v: number) => void; setMaxTradesPerDay: (v: number) => void;
+  setMaxPositions: (v: number) => void; setMinEdge: (v: number) => void; setMinVolume: (v: number) => void;
+  setMinProbLow: (v: number) => void; setMinProbHigh: (v: number) => void;
+  setRiskMix: (v: "conservative" | "balanced" | "aggressive") => void; setWhaleFollow: (v: boolean) => void;
+  setFocusAreas: (v: string[]) => void; setBotRunning: (v: boolean) => void; setBotPaused: (v: boolean) => void;
 }
 
 const PREVIEW_SCAN_MARKET_LIMIT = 1500;
 
-/** Load config from latest directive + bot runtime status on mount */
 async function loadServerConfig(): Promise<Partial<BotConfig> | null> {
   try {
     const [dirRes, statusRes] = await Promise.all([
@@ -96,7 +84,6 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
   const [focusAreas, setFocusAreas] = useState<string[]>(["all"]);
   const hydrated = useRef(false);
 
-  // Hydrate from server on mount
   useEffect(() => {
     if (hydrated.current) return;
     hydrated.current = true;
@@ -124,10 +111,23 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
     return trades.filter((trade) => trade.createdAt.slice(0, 10) === todayUtc).length;
   }, [trades]);
 
-  const runScan = useCallback(async () => {
+  const runScan = useCallback(async (override?: Partial<BotConfig>) => {
+    const nextConfig = {
+      paperMode: override?.paperMode ?? paperMode,
+      maxPositions: override?.maxPositions ?? maxPositions,
+      maxTradesPerDay: override?.maxTradesPerDay ?? maxTradesPerDay,
+      capitalAlloc: override?.capitalAlloc ?? capitalAlloc,
+      minEdge: override?.minEdge ?? minEdge,
+      minVolume: override?.minVolume ?? minVolume,
+      minProbLow: override?.minProbLow ?? minProbLow,
+      minProbHigh: override?.minProbHigh ?? minProbHigh,
+      whaleFollow: override?.whaleFollow ?? whaleFollow,
+      riskMix: override?.riskMix ?? riskMix,
+      focusAreas: override?.focusAreas ?? focusAreas,
+    };
     const tradesToday = getTradesTodayCount();
-    if (tradesToday >= maxTradesPerDay) {
-      addLog(`🛑 Daily trade cap reached (${tradesToday}/${maxTradesPerDay}) — skipping scan`);
+    if (tradesToday >= nextConfig.maxTradesPerDay) {
+      addLog(`🛑 Daily trade cap reached (${tradesToday}/${nextConfig.maxTradesPerDay}) — skipping scan`);
       return;
     }
 
@@ -139,17 +139,17 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           execute_trades: true,
-          paper_mode: paperMode,
-          max_positions: maxPositions,
-          capital_per_trade: capitalAlloc / maxPositions,
-          max_trades_per_day: maxTradesPerDay,
-          min_edge: minEdge / 100,
-          min_volume: minVolume,
-          min_probability: minProbLow / 100,
-          max_probability: minProbHigh / 100,
-          whale_follow: whaleFollow,
-          risk_mix: riskMix,
-          focus_areas: focusAreas,
+          paper_mode: nextConfig.paperMode,
+          max_positions: nextConfig.maxPositions,
+          capital_per_trade: nextConfig.capitalAlloc / nextConfig.maxPositions,
+          max_trades_per_day: nextConfig.maxTradesPerDay,
+          min_edge: nextConfig.minEdge / 100,
+          min_volume: nextConfig.minVolume,
+          min_probability: nextConfig.minProbLow / 100,
+          max_probability: nextConfig.minProbHigh / 100,
+          whale_follow: nextConfig.whaleFollow,
+          risk_mix: nextConfig.riskMix,
+          focus_areas: nextConfig.focusAreas,
         }),
       });
       const data = await res.json() as ApiEnvelope<{
@@ -280,7 +280,6 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
     setFocusAreas(prev => prev.includes(area) ? prev.filter(a => a !== area) : [...prev, area]);
   }, []);
 
-  // Auto-trade interval
   useEffect(() => {
     if (!botRunning || botPaused) return;
     const id = setInterval(() => { if (!botPaused) void runScan(); }, 5 * 60 * 1000);

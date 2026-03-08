@@ -174,15 +174,15 @@ export function useMarketDirectBuyState({
 
     const rawPrice = buyOutcome === "YES" ? buyMarket.yesPrice : buyMarket.noPrice;
     const price = rawPrice > 0 ? rawPrice : buyMarket.probabilityPct / 100;
-    const tokenId = buyOutcome === "YES" ? buyMarket.tokenIdYes : buyMarket.tokenIdNo;
     const issues: string[] = [];
 
     if (!buyMarket.id) issues.push("Missing market id");
     if (!(buyAmount > 0)) issues.push("Enter an amount greater than $0");
     if (!Number.isFinite(price) || price <= 0) issues.push("Price unavailable");
-    if (!tokenId) issues.push(`No ${buyOutcome} token id available`);
 
     if (!buyPaper) {
+      const tokenId = buyOutcome === "YES" ? buyMarket.tokenIdYes : buyMarket.tokenIdNo;
+      if (!tokenId) issues.push(`No ${buyOutcome} token id available`);
       if (!walletAddress) issues.push("Connect wallet on the Live Wallet tab");
       if (!liveChecklist.walletConnected) issues.push("Wallet not connected");
       if (!liveChecklist.polygonSelected) issues.push("Switch wallet to Polygon");

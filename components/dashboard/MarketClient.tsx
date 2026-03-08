@@ -65,6 +65,18 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   const handleApplyPlan = useCallback((plan: AutomationPlan) => {
     void (async () => {
       const focusAreas = normalizeFocusAreas(plan.categories);
+      const paperMode = plan.mode === "practice";
+      const scanConfig = {
+        paperMode,
+        capitalAlloc: plan.budget,
+        maxTradesPerDay: plan.maxTradesPerDay,
+        maxPositions: plan.maxOpenPositions,
+        minVolume: plan.minimumLiquidity,
+        riskMix: plan.riskLevel,
+        whaleFollow: plan.largeTraderSignals,
+        focusAreas,
+      };
+
       bot.setCapitalAlloc(plan.budget);
       bot.setMaxTradesPerDay(plan.maxTradesPerDay);
       bot.setMaxPositions(plan.maxOpenPositions);
@@ -72,7 +84,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
       bot.setRiskMix(plan.riskLevel);
       bot.setWhaleFollow(plan.largeTraderSignals);
       bot.setFocusAreas(focusAreas);
-      bot.setPaperMode(plan.mode === "practice");
+      bot.setPaperMode(paperMode);
       bot.addLog(`📋 Plan "${plan.name}" applied to bot`);
 
       // 1. Sync directive to DB so the scheduler has the config
@@ -88,17 +100,16 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
       }
 
       // 2. Set bot status to paper/running so the scheduler picks this user up
-      const isPaper = plan.mode === "practice";
-      const statusSet = await ensureBotRunning(isPaper);
+      const statusSet = await ensureBotRunning(paperMode);
       if (statusSet) {
-        bot.addLog(`🟢 Bot status set to ${isPaper ? "paper" : "running"} — scheduler will pick up trades`);
+        bot.addLog(`🟢 Bot status set to ${paperMode ? "paper" : "running"} — scheduler will pick up trades`);
       } else {
         bot.addLog(`⚠️ Failed to set bot status on server — scheduler may not run`);
       }
 
       bot.setBotRunning(true);
       bot.setBotPaused(false);
-      await bot.runScan();
+      await bot.runScan(scanConfig);
     })();
   }, [bot]);
 

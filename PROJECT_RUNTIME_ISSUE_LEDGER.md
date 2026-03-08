@@ -204,6 +204,11 @@ Current issue states:
 - `market_plans` still does not exist, so richer automation config is temporarily stored in auth metadata instead of a dedicated canonical table.
 - There is still no queue/worker architecture for true high-volume burst automation; background execution remains cron-driven.
 
+### Follow-up hardening — 2026-03-07 (direct buy + first-scan execution)
+- Fixed a direct-buy regression where the client disabled paper buys whenever the mapped market lacked YES/NO token IDs. Token IDs are now required only for live buys, matching the server-side `/api/market/buy` contract.
+- Confirmed live Gamma payloads return `clobTokenIds` as a JSON string, not a native array. Hardened `mapGammaMarketToMarketVM()` to parse string-encoded token IDs so the buy panel can populate YES/NO token IDs reliably.
+- Fixed the first automation scan after Apply Plan to run with the just-applied plan values instead of whatever bot state React had committed previously. This removes the stale-state window where budget, max positions, liquidity, and paper/live mode could lag behind the plan the user just applied.
+
 ---
 
 ## Issue 12 — Dashboard blank page after login (`isClient is not defined`)

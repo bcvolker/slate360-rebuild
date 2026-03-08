@@ -47,6 +47,30 @@ function parseOutcomePrices(raw: unknown, fallbackProbabilityPct: number): { yes
   };
 }
 
+function parseClobTokenIds(raw: unknown): [string | null, string | null] {
+  const fromArray = (value: unknown[]): [string | null, string | null] => [
+    String(value[0] ?? "") || null,
+    String(value[1] ?? "") || null,
+  ];
+
+  if (Array.isArray(raw)) return fromArray(raw);
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return fromArray(parsed);
+    } catch {
+      return [raw || null, null];
+    }
+  }
+
+  const record = asRecord(raw);
+  if (Array.isArray(record.tokens)) {
+    return fromArray(record.tokens);
+  }
+
+  return [null, null];
+}
+
 function deriveRiskTag(edgePct: number, probabilityPct: number, category: string, volume24hUsd: number): MarketRiskTag {
   const categoryLower = category.toLowerCase();
   if (edgePct > 20) return "hot";
@@ -58,6 +82,7 @@ function deriveRiskTag(edgePct: number, probabilityPct: number, category: string
 
 export function mapGammaMarketToMarketVM(raw: unknown): MarketViewModel {
   const record = asRecord(raw);
+  const [tokenIdYes, tokenIdNo] = parseClobTokenIds(record.clobTokenIds ?? record.tokens);
 
   const fallbackProbabilityRaw = toNumberOrZero(record.probability);
   const fallbackProbabilityPct = fallbackProbabilityRaw <= 1 ? fallbackProbabilityRaw * 100 : fallbackProbabilityRaw;
@@ -101,12 +126,8 @@ export function mapGammaMarketToMarketVM(raw: unknown): MarketViewModel {
     endDateIso,
     eventStartIso,
     eventStartTimeIso,
-    tokenIdYes: record.clobTokenIds
-      ? (Array.isArray(record.clobTokenIds) ? String(record.clobTokenIds[0] ?? "") || null : null)
-      : record.tokenId != null ? String(record.tokenId) : null,
-    tokenIdNo: record.clobTokenIds
-      ? (Array.isArray(record.clobTokenIds) ? String(record.clobTokenIds[1] ?? "") || null : null)
-      : null,
+    tokenIdYes: tokenIdYes ?? (record.tokenId != null ? String(record.tokenId) : null),
+    tokenIdNo,
   };
 }
 
