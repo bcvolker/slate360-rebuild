@@ -1,39 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
-import type {
-  ApiEnvelope,
-  ScanAppliedConfig,
-  ScanRequest,
-  ScanResponse,
-} from "@/lib/market/contracts";
+import type { ApiEnvelope, ScanAppliedConfig, ScanRequest, ScanResponse } from "@/lib/market/contracts";
 import { toNumberOrZero } from "@/lib/market/contracts";
 import { mapTradeRowToTradeVM } from "@/lib/market/mappers";
 import { getScanMaxMarketLimit, parseScanRequest } from "@/lib/market/scan-request";
-import {
-  fetchMarkets,
-  scoreOpportunities,
-  decideTrades,
-  simulatePaperTrade,
-  type BotConfig,
-  DEFAULT_CONFIG,
-} from "@/lib/market-bot";
+import { fetchMarkets, scoreOpportunities, decideTrades, simulatePaperTrade, type BotConfig, DEFAULT_CONFIG } from "@/lib/market-bot";
 import { buildRuntimeConfig, filterExecutableOpportunities, normalizeFocusAreas } from "@/lib/market/runtime-config";
+import { insertMarketTradesWithFallback } from "@/lib/market/trade-persistence";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 function noStoreJson<T>(body: ApiEnvelope<T> & Record<string, unknown>, init?: { status?: number }) {
-  return NextResponse.json(body, {
-    status: init?.status,
-    headers: { "Cache-Control": "no-store" },
-  });
+  return NextResponse.json(body, { status: init?.status, headers: { "Cache-Control": "no-store" } });
 }
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
-
+function clamp(value: number, min: number, max: number) { return Math.min(max, Math.max(min, value)); }
 
 export async function POST(req: NextRequest) {
   try {
@@ -123,15 +106,15 @@ export async function POST(req: NextRequest) {
 
     const executeTrades = requestConfig.executeTrades !== false;
     const oneOffPaperScan = config.paperMode === true;
-    if (executeTrades && botStatus === "stopped" && !oneOffPaperScan) {
+    if (executeTrades && !oneOffPaperScan && (botStatus === "stopped" || botStatus === "paused")) {
       return noStoreJson(
-        { ok: false, error: { code: "bot_stopped", message: "Bot is stopped" } },
-        { status: 400 }
-      );
-    }
-    if (executeTrades && botStatus === "paused" && !oneOffPaperScan) {
-      return noStoreJson(
-        { ok: false, error: { code: "bot_paused", message: "Bot is paused" } },
+        {
+          ok: false,
+          error: {
+            code: botStatus === "paused" ? "bot_paused" : "bot_stopped",
+            message: botStatus === "paused" ? "Bot is paused" : "Bot is stopped",
+          },
+        },
         { status: 400 }
       );
     }
@@ -196,17 +179,14 @@ export async function POST(req: NextRequest) {
 
     if (executeTrades && (config.paperMode || botStatus === "paper")) {
       const simulatedTrades = tradeDecisions.map((decision) => {
-        const trade = simulatePaperTrade(
-          user.id,
-          decision.opp,
-          decision.side,
-          decision.shares,
-        );
+        const trade = simulatePaperTrade(user.id, decision.opp, decision.side, decision.shares);
         return { trade, reason: decision.reason };
       });
 
       if (simulatedTrades.length > 0) {
-        const rows = simulatedTrades.map(({ trade, reason }) => ({
+        const { error: insertErr } = await insertMarketTradesWithFallback(
+          supabase,
+          simulatedTrades.map(({ trade, reason }) => ({
             user_id: user.id,
             market_id: trade.marketId,
             question: trade.question,
@@ -221,11 +201,8 @@ export async function POST(req: NextRequest) {
             stop_loss_pct: runtimeConfig.stopLossPct,
             entry_mode: runtimeConfig.moonshotMode ? "moonshot" : "scan",
             reason,
-          }));
-
-        const { error: insertErr } = await supabase
-          .from("market_trades")
-          .insert(rows);
+          })),
+        );
 
         if (!insertErr) {
           executedTrades.push(...simulatedTrades.map((item) => item.trade));

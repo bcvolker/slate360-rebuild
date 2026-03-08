@@ -5,6 +5,7 @@ import { logSchedulerNoDecisions, logSchedulerRunSummary, logSchedulerSkip } fro
 import { evaluateSchedulerGuards } from "@/lib/market/scheduler-guards";
 import { applyDecisionShareCaps, buildSchedulerRuntimeConfig } from "@/lib/market/scheduler-runtime";
 import { filterExecutableOpportunities } from "@/lib/market/runtime-config";
+import { insertMarketTradesWithFallback } from "@/lib/market/trade-persistence";
 import { clamp, fetchMarketsCached, isoDay, normalizeFocusAreas, riskLevelFromMix, type MarketsPromiseCache, type SchedulerConfig } from "@/lib/market/scheduler-utils";
 
 type RuntimeRowStatus = "running" | "paused" | "stopped" | "paper";
@@ -237,7 +238,7 @@ export async function runForUser(
       reason,
     }));
 
-    const { error: insertError } = await admin.from("market_trades").insert(rows);
+    const { error: insertError } = await insertMarketTradesWithFallback(admin, rows);
     if (insertError) {
       throw new Error(`insert_failed:${insertError.message}`);
     }

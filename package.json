@@ -13,6 +13,7 @@
     "guard:architecture": "node scripts/ops/check-architecture-guardrails.mjs",
     "guard:build-stability": "node scripts/ops/check-build-stability.mjs",
     "guard:clob-contract": "node scripts/ops/check-clob-contract.mjs",
+    "diag:market-runtime": "node scripts/ops/check-market-runtime.mjs",
     "verify:release": "node scripts/ops/verify-release.mjs",
     "start": "next start",
     "lint": "eslint",

@@ -209,6 +209,17 @@ Current issue states:
 - Confirmed live Gamma payloads return `clobTokenIds` as a JSON string, not a native array. Hardened `mapGammaMarketToMarketVM()` to parse string-encoded token IDs so the buy panel can populate YES/NO token IDs reliably.
 - Fixed the first automation scan after Apply Plan to run with the just-applied plan values instead of whatever bot state React had committed previously. This removes the stale-state window where budget, max positions, liquidity, and paper/live mode could lag behind the plan the user just applied.
 
+### Follow-up hardening — 2026-03-08 (market_trades schema drift)
+- Confirmed the direct-buy 500 and the paper-automation no-op can share the same backend cause: the deployed Supabase schema cache does not currently expose newer `market_trades` columns like `entry_mode`, even though the current code tries to write them on direct buy, immediate scan execution, and scheduler execution.
+- That made recent UI/runtime fixes appear ineffective because the requests still died at the DB write step. The paper buy error shown in the UI, `Could not find the 'entry_mode' column of 'market_trades' in the schema cache`, is the concrete proof.
+- Added a backward-compatible trade persistence layer in `lib/market/trade-persistence.ts` that retries `market_trades` inserts and updates after stripping unsupported optional columns (`idempotency_key`, `token_id`, `clob_order_id`, `take_profit_pct`, `stop_loss_pct`, `entry_mode`).
+- Extended the same hardening to the legacy `POST /api/market/trades` path and to `POST /api/market/settle-trades`, which now retries its initial trade read without `take_profit_pct` / `stop_loss_pct` when those newer columns are absent. That prevents the wallet/performance settlement loop from failing on older schemas.
+- Fixed an additional live-order execution bug in `lib/market/clob-api.ts`: the CLOB payload had been sending the USDC spend amount as `size` instead of the computed share count. `POST /api/market/buy` now passes `shares` into the CLOB helper, and the contract guard was updated to lock that in.
+- Verified the route/pathway coverage with the GitNexus knowledge graph, then validated locally with `npm run typecheck`, `npm run guard:clob-contract`, and `npm run verify:release`. Architecture guardrails, file-size regression, and typecheck pass. The build gate still shows the same environment-level build interruption (`143`) seen previously rather than a new compile error.
+- Confirmed the key runtime dependencies remain declared in `package.json`: `@supabase/supabase-js`, `@supabase/ssr`, `@polymarket/clob-client`, `next`, `react`, and `react-dom`.
+- Added `npm run diag:market-runtime` via `scripts/ops/check-market-runtime.mjs` to inspect the configured Supabase project and Market Robot env prerequisites. Current findings from that script: core Supabase keys are present, but live CLOB envs (`POLYMARKET_API_KEY`, `POLYMARKET_API_SECRET`, `POLYMARKET_API_PASSPHRASE`, `NEXT_PUBLIC_POLYMARKET_SPENDER`) are missing locally, scheduler secret env is missing locally, and the target Supabase schema still does not expose `market_activity_log` or `market_scheduler_lock`.
+- Remaining follow-up is to apply the missing Supabase migrations in the target environment so the fallback becomes a compatibility safety net rather than the primary path.
+
 ---
 
 ## Issue 12 — Dashboard blank page after login (`isClient is not defined`)

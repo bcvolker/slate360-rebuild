@@ -8,7 +8,7 @@ export interface ClobOrderParams {
   wallet_address: string;
   token_id: string;
   outcome: string;
-  amount: number;
+  shares: number;
   avg_price: number;
   CLOB_ORDER_TYPE: string;
   CLOB_FEE_RATE_BPS: string;
@@ -24,7 +24,7 @@ export async function submitClobOrder(params: ClobOrderParams) {
     api_passphrase,
     wallet_address,
     token_id,
-    amount,
+    shares,
     avg_price,
     CLOB_ORDER_TYPE,
     CLOB_FEE_RATE_BPS,
@@ -38,7 +38,7 @@ export async function submitClobOrder(params: ClobOrderParams) {
     tokenID: token_id,
     price: avg_price.toFixed(4),
     side: "BUY",
-    size: amount.toFixed(2),
+    size: shares.toFixed(4),
     feeRateBps: CLOB_FEE_RATE_BPS,
     nonce,
     expiration: "0",

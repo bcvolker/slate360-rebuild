@@ -8,6 +8,7 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import type { ApiEnvelope, TradeViewModel } from "@/lib/market/contracts";
 import { toNumberOrNull, toNumberOrZero } from "@/lib/market/contracts";
 import { mapTradeRowToTradeVM } from "@/lib/market/mappers";
+import { insertMarketTradesWithFallback } from "@/lib/market/trade-persistence";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -169,19 +170,23 @@ export async function POST(req: NextRequest) {
     const shares = parseFloat((normalizedAmount / normalizedAvgPrice).toFixed(4));
     const total  = parseFloat((normalizedAmount).toFixed(2));
 
-    const { data, error } = await supabase.from("market_trades").insert({
-      user_id:      user.id,
-      market_id,
-      question:     market_title,      // maps to the 'question' column
-      side:         normalizedOutcome, // maps to the 'side' column
-      shares,
-      price:        normalizedAvgPrice, // maps to the 'price' column
-      total,
-      status:       "open",
-      pnl:          0,
-      paper_trade:  paper_mode,
-      reason:       `Direct buy via Markets Explorer — ${category ?? "General"}, prob ${probability ?? "?"}%`,
-    }).select(TRADE_COLUMNS).single();
+    const { data, error } = await insertMarketTradesWithFallback(
+      supabase,
+      {
+        user_id: user.id,
+        market_id,
+        question: market_title,
+        side: normalizedOutcome,
+        shares,
+        price: normalizedAvgPrice,
+        total,
+        status: "open",
+        pnl: 0,
+        paper_trade: paper_mode,
+        reason: `Direct buy via Markets Explorer — ${category ?? "General"}, prob ${probability ?? "?"}%`,
+      },
+      { select: TRADE_COLUMNS, single: true }
+    );
 
     if (error) {
       return noStoreJson(

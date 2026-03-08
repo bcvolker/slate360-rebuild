@@ -16,9 +16,13 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/server/api-auth";
+import { getUnsupportedMarketTradeColumn } from "@/lib/market/trade-persistence";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+const SETTLEMENT_TRADE_COLUMNS = "id,market_id,side,shares,price,total,status,take_profit_pct,stop_loss_pct";
+const SETTLEMENT_TRADE_COLUMNS_FALLBACK = "id,market_id,side,shares,price,total,status";
 
 interface TradeRow {
   id: string;
@@ -91,11 +95,25 @@ export const POST = (req: NextRequest) =>
   withAuth(req, async ({ user, admin }) => {
 
     // Fetch all open trades (user_id is always explicitly scoped below — no RLS needed)
-    const { data: trades, error: tradesError } = await admin
+    const initialResponse = await admin
       .from("market_trades")
-      .select("id,market_id,side,shares,price,total,status,take_profit_pct,stop_loss_pct")
+      .select(SETTLEMENT_TRADE_COLUMNS)
       .eq("user_id", user.id)
       .eq("status", "open");
+
+    let trades = (initialResponse.data ?? null) as TradeRow[] | null;
+    let tradesError = initialResponse.error;
+
+    const unsupportedTradeColumn = getUnsupportedMarketTradeColumn(tradesError);
+    if (unsupportedTradeColumn === "take_profit_pct" || unsupportedTradeColumn === "stop_loss_pct") {
+      const fallbackResponse = await admin
+        .from("market_trades")
+        .select(SETTLEMENT_TRADE_COLUMNS_FALLBACK)
+        .eq("user_id", user.id)
+        .eq("status", "open");
+      trades = (fallbackResponse.data ?? null) as TradeRow[] | null;
+      tradesError = fallbackResponse.error;
+    }
 
     if (tradesError) return NextResponse.json({ error: tradesError.message }, { status: 500 });
     if (!trades || trades.length === 0) return NextResponse.json({ settled: 0, updated: 0, errors: [] });

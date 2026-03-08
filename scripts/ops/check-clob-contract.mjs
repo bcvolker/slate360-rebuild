@@ -31,6 +31,9 @@ async function main() {
   assertContains(clobApiSource, "POLY-PASSPHRASE", "CLOB passphrase header", errors);
   assertContains(clobApiSource, "POLY-API-KEY", "CLOB API key header", errors);
   assertContains(clobApiSource, "POLY_ADDRESS", "CLOB address header", errors);
+  assertContains(clobApiSource, "size: shares.toFixed(4)", "share-sized live order payload", errors);
+  assertContains(routeSource, "outcome, shares, avg_price", "buy route passes shares into CLOB helper", errors);
+  assertNotContains(clobApiSource, "size: amount.toFixed(2)", "USDC-sized live order payload", errors);
 
   assertContains(routeSource, "nonce: makeOrderNonce()", "unique nonce generation", errors);
   assertNotContains(clobApiSource, "nonce: \"0\"", "fixed nonce", errors);

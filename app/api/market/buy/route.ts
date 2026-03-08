@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withMarketAuth } from "@/lib/server/api-auth";
 import { getClobOrderId, submitClobOrder } from "@/lib/market/clob-api";
+import {
+  getUnsupportedMarketTradeColumn,
+  insertMarketTradesWithFallback,
+  updateMarketTradeWithFallback,
+} from "@/lib/market/trade-persistence";
 
 const DEFAULT_MIN_BUY_USD = 1;
 const DEFAULT_MAX_BUY_USD = 1_000_000;
@@ -43,12 +48,18 @@ export const POST = (req: NextRequest) =>
     } = body;
 
     if (idempotency_key) {
-      const { data: existingTrade } = await admin
+      const { data: existingTrade, error: existingTradeError } = await admin
         .from("market_trades")
         .select()
         .eq("user_id", user.id)
         .eq("idempotency_key", idempotency_key)
         .maybeSingle();
+
+      const missingIdempotencyColumn = getUnsupportedMarketTradeColumn(existingTradeError);
+
+      if (existingTradeError && missingIdempotencyColumn !== "idempotency_key") {
+        return NextResponse.json({ error: existingTradeError.message }, { status: 500 });
+      }
 
       if (existingTrade) {
         return NextResponse.json({
@@ -93,9 +104,9 @@ export const POST = (req: NextRequest) =>
     const maxPayout = parseFloat((shares * 1).toFixed(4));
 
     if (paper_mode) {
-      const { data: trade, error } = await admin
-        .from("market_trades")
-        .insert({
+      const { data: trade, error } = await insertMarketTradesWithFallback(
+        admin,
+        {
           user_id: user.id, idempotency_key: idempotency_key ?? null,
           market_id, question: market_title, side: outcome,
           shares, price: avg_price, total: amount,
@@ -104,9 +115,9 @@ export const POST = (req: NextRequest) =>
           stop_loss_pct: typeof stop_loss_pct === "number" ? stop_loss_pct : null,
           entry_mode: "direct_buy",
           reason: `Direct buy via Markets Explorer — ${category ?? "General"}, prob ${probability ?? "?"}%`,
-        })
-        .select()
-        .single();
+        },
+        { single: true },
+      );
 
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       return NextResponse.json({
@@ -126,15 +137,19 @@ export const POST = (req: NextRequest) =>
 
     if (!api_key || !api_secret || !api_passphrase || !token_id) {
       const reason = !token_id ? "Missing token_id" : "CLOB API unconfigured";
-      const { data: trade, error } = await admin.from("market_trades").insert({
-        user_id: user.id, idempotency_key: idempotency_key ?? null,
-        market_id, question: market_title, side: outcome,
-        shares, price: avg_price, total: amount, status: "open",
-        pnl: 0, paper_trade: true, token_id: token_id ?? null,
-        take_profit_pct: typeof take_profit_pct === "number" ? take_profit_pct : null,
-        stop_loss_pct: typeof stop_loss_pct === "number" ? stop_loss_pct : null,
-        entry_mode: "live_fallback", reason: `Saved as paper — ${reason}`,
-      }).select().single();
+      const { data: trade, error } = await insertMarketTradesWithFallback(
+        admin,
+        {
+          user_id: user.id, idempotency_key: idempotency_key ?? null,
+          market_id, question: market_title, side: outcome,
+          shares, price: avg_price, total: amount, status: "open",
+          pnl: 0, paper_trade: true, token_id: token_id ?? null,
+          take_profit_pct: typeof take_profit_pct === "number" ? take_profit_pct : null,
+          stop_loss_pct: typeof stop_loss_pct === "number" ? stop_loss_pct : null,
+          entry_mode: "live_fallback", reason: `Saved as paper — ${reason}`,
+        },
+        { single: true },
+      );
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       return NextResponse.json({
         success: true, mode: "paper_fallback", trade,
@@ -143,33 +158,47 @@ export const POST = (req: NextRequest) =>
     }
 
     // 1. Create Pending state in DB BEFORE hitting CLOB to prevent silent timeouts charging users
-    const { data: pendingTrade, error: pendingError } = await admin.from("market_trades").insert({
-      user_id: user.id, idempotency_key: idempotency_key ?? null,
-      market_id, question: market_title, side: outcome,
-      shares, price: avg_price, total: amount, status: "pending",
-      pnl: 0, paper_trade: false, token_id,
-      take_profit_pct: typeof take_profit_pct === "number" ? take_profit_pct : null,
-      stop_loss_pct: typeof stop_loss_pct === "number" ? stop_loss_pct : null,
-      entry_mode: "live", reason: `Live CLOB trade initiating...`,
-    }).select().single();
+    const { data: pendingTrade, error: pendingError } = await insertMarketTradesWithFallback<{
+      id: string;
+    }>(
+      admin,
+      {
+        user_id: user.id, idempotency_key: idempotency_key ?? null,
+        market_id, question: market_title, side: outcome,
+        shares, price: avg_price, total: amount, status: "pending",
+        pnl: 0, paper_trade: false, token_id,
+        take_profit_pct: typeof take_profit_pct === "number" ? take_profit_pct : null,
+        stop_loss_pct: typeof stop_loss_pct === "number" ? stop_loss_pct : null,
+        entry_mode: "live", reason: `Live CLOB trade initiating...`,
+      },
+      { single: true },
+    );
 
     if (pendingError) {
       return NextResponse.json({ error: "Failed to initialize trade state in DB" }, { status: 500 });
+    }
+    if (!pendingTrade) {
+      return NextResponse.json({ error: "Trade state was not returned from DB" }, { status: 500 });
     }
 
     try {
       // 2. Submit to CLOB
       const { clobRes, clobData } = await submitClobOrder({
-        clob_host, api_key, api_secret, api_passphrase, wallet_address, token_id, outcome, amount, avg_price,
+        clob_host, api_key, api_secret, api_passphrase, wallet_address, token_id, outcome, shares, avg_price,
         CLOB_ORDER_TYPE, CLOB_FEE_RATE_BPS, CLOB_ORDER_PATH, nonce: makeOrderNonce()
       });
 
       if (!clobRes.ok) {
         // Update DB to failed
-        const { data: failedTrade } = await admin.from("market_trades").update({
-          status: "open", paper_trade: true, entry_mode: "clob_reject_fallback",
-          reason: `CLOB rejected (${clobRes.status}): ${JSON.stringify(clobData)}`
-        }).eq("id", pendingTrade.id).select().single();
+        const { data: failedTrade } = await updateMarketTradeWithFallback(
+          admin,
+          pendingTrade.id,
+          {
+            status: "open", paper_trade: true, entry_mode: "clob_reject_fallback",
+            reason: `CLOB rejected (${clobRes.status}): ${JSON.stringify(clobData)}`,
+          },
+          { single: true },
+        );
         
         return NextResponse.json({
           success: false, mode: "clob_error", clob_status: clobRes.status,
@@ -180,10 +209,15 @@ export const POST = (req: NextRequest) =>
       // 3. Mark DB Trade as Open + Live
       const clobOrderId = getClobOrderId(clobData);
       if (!clobOrderId) {
-        const { data: failedTrade } = await admin.from("market_trades").update({
-          status: "open", paper_trade: true, entry_mode: "clob_invalid_success_fallback",
-          reason: `CLOB response missing order id: ${JSON.stringify(clobData)}`,
-        }).eq("id", pendingTrade.id).select().single();
+        const { data: failedTrade } = await updateMarketTradeWithFallback(
+          admin,
+          pendingTrade.id,
+          {
+            status: "open", paper_trade: true, entry_mode: "clob_invalid_success_fallback",
+            reason: `CLOB response missing order id: ${JSON.stringify(clobData)}`,
+          },
+          { single: true },
+        );
 
         return NextResponse.json({
           success: false,
@@ -194,11 +228,16 @@ export const POST = (req: NextRequest) =>
         }, { status: 502 });
       }
 
-      const { data: finalTrade } = await admin.from("market_trades").update({
-        status: "open",
-        clob_order_id: clobOrderId,
-        reason: `Live CLOB order ${clobOrderId}`,
-      }).eq("id", pendingTrade.id).select().single();
+      const { data: finalTrade } = await updateMarketTradeWithFallback(
+        admin,
+        pendingTrade.id,
+        {
+          status: "open",
+          clob_order_id: clobOrderId,
+          reason: `Live CLOB order ${clobOrderId}`,
+        },
+        { single: true },
+      );
 
       return NextResponse.json({
         success: true, mode: "live", trade: finalTrade, clob_order_id: clobOrderId,
@@ -206,10 +245,15 @@ export const POST = (req: NextRequest) =>
       });
     } catch (clobErr) {
       console.error("[api/market/buy] CLOB submission error:", clobErr);
-      const { data: fallbackTrade } = await admin.from("market_trades").update({
-        status: "open", paper_trade: true, entry_mode: "clob_network_fallback",
-        reason: `CLOB network error — saved as paper fallback: ${(clobErr as Error).message}`
-      }).eq("id", pendingTrade.id).select().single();
+      const { data: fallbackTrade } = await updateMarketTradeWithFallback(
+        admin,
+        pendingTrade.id,
+        {
+          status: "open", paper_trade: true, entry_mode: "clob_network_fallback",
+          reason: `CLOB network error — saved as paper fallback: ${(clobErr as Error).message}`,
+        },
+        { single: true },
+      );
       
       return NextResponse.json({
         success: false, mode: "clob_network_error", error: (clobErr as Error).message, trade: fallbackTrade
