@@ -55,6 +55,9 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
 
   useEffect(() => {
     if (activeTabId === "results") {
+      void td.fetchTrades();
+      void td.fetchSummary();
+      void td.fetchSchedulerHealth();
       void td.fetchMarketLogs();
     }
   }, [activeTabId, td]);
@@ -110,6 +113,13 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
     })();
   }, [bot]);
 
+  const handleTradePlaced = useCallback(async () => {
+    await td.fetchTrades();
+    await td.fetchSummary();
+    await td.fetchSchedulerHealth();
+    setActiveTabId("results");
+  }, [td]);
+
   function renderActiveTab() {
     switch (activeTabId) {
       case "start-here":
@@ -129,6 +139,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
             paperMode={bot.config.paperMode}
             walletAddress={wallet.address}
             liveChecklist={wallet.liveChecklist}
+            onTradePlaced={handleTradePlaced}
           />
         );
       case "automation":

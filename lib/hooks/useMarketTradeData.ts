@@ -43,7 +43,7 @@ export function useMarketTradeData(logsEnabled = false): UseMarketTradeDataRetur
   const fetchTrades = useCallback(async () => {
     setLoadingTrades(true);
     try {
-      const res = await fetch("/api/market/trades");
+      const res = await fetch("/api/market/trades?limit=200", { cache: "no-store" });
       if (res.ok) {
         const payload = await res.json() as ApiEnvelope<{ trades: TradeViewModel[] }>;
         setTrades(payload.data?.trades ?? []);

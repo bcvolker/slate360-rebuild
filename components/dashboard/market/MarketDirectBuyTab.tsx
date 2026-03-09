@@ -12,6 +12,7 @@ interface MarketDirectBuyTabProps {
   paperMode: boolean;
   walletAddress?: `0x${string}`;
   liveChecklist: LiveChecklist;
+  onTradePlaced?: () => void | Promise<void>;
 }
 
 const QUICK_TIMEFRAMES: { key: MktTimeframe; label: string }[] = [
@@ -25,8 +26,8 @@ const QUICK_TIMEFRAMES: { key: MktTimeframe; label: string }[] = [
 
 const fmt = (v: number) => `$${v.toFixed(2)}`;
 
-export default function MarketDirectBuyTab({ paperMode, walletAddress, liveChecklist }: MarketDirectBuyTabProps) {
-  const s = useMarketDirectBuyState({ paperMode, walletAddress, liveChecklist });
+export default function MarketDirectBuyTab({ paperMode, walletAddress, liveChecklist, onTradePlaced }: MarketDirectBuyTabProps) {
+  const s = useMarketDirectBuyState({ paperMode, walletAddress, liveChecklist, onTradePlaced });
   const watchlist = useMarketWatchlist();
 
   return (
@@ -172,7 +173,7 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
               {s.filteredCount} market{s.filteredCount !== 1 ? "s" : ""}
               {s.filteredCount > 0 && " · showing all matches"}
             </span>
-            <span>Filters update instantly</span>
+            <span>{s.fetchModeLabel}</span>
           </div>
 
           <MarketDirectBuyResults

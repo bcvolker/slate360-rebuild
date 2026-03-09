@@ -56,7 +56,7 @@ export function filterAndSortMarkets({
         if (!haystack.includes(normalizedQuery)) return false;
       }
       if (timeframe !== "all") {
-        const iso = market.endDateIso ?? market.endDate;
+        const iso = market.endDate ?? market.endDateIso;
         if (!iso) return false;
         if (new Date(iso).getTime() > cut) return false;
       }

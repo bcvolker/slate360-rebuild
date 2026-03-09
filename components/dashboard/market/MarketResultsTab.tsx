@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import MarketOpenPositionsPanel from "@/components/dashboard/market/MarketOpenPositionsPanel";
 import { HelpTip } from "@/components/dashboard/market/MarketSharedUi";
 import { useMarketResultsState } from "@/lib/hooks/useMarketResultsState";
 import type { MarketTrade, MarketActivityLogEntry, TradeReplay } from "@/components/dashboard/market/types";
@@ -36,6 +37,7 @@ function StatCard({ label, children, tip }: { label: string; children: React.Rea
 }
 
 export default function MarketResultsTab({ trades, activityLogs }: MarketResultsTabProps) {
+  const openPositions = trades.filter((trade) => trade.status === "open" && !trade.closedAt);
   const {
     analytics, sortedTrades, sortKey, sortDir, filterMode,
     setSortKey, toggleSortDir, setFilterMode,
@@ -100,6 +102,8 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
           </div>
         </div>
       </div>
+
+      <MarketOpenPositionsPanel trades={openPositions} />
 
       {/* Trade list */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">

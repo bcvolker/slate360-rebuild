@@ -144,6 +144,14 @@ Still not done
 - “Show all markets” is still bounded by client fetch strategy, not true infinite catalog loading.
 - True 24/7 background still depends on deployed cron execution and scheduler secret wiring, not just `vercel.json`.
 
+## Mar 9, 2026 — Direct Buy confirmation + open positions visibility
+
+Completed
+- Successful direct buys now refresh trade data, refresh summary/scheduler health, and route the user into Results so the position is immediately visible.
+- Results now has an explicit `Open Positions` panel instead of relying only on analytics cards and mixed history rows.
+- Direct Buy now fetches a smaller default market set to reduce load time and switches to `endDate` ordering for hour/day/week filters.
+- Timeframe filtering now prefers the precise timestamp field (`endDate`) over the date-only field (`endDateIso`), fixing the inaccurate `Next Hour` behavior.
+
 ## Mar 7, 2026 — Operator + Direct Buy refinement pass
 
 Completed

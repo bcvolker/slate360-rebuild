@@ -4,14 +4,15 @@ import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import type { MarketListing, MktTimeframe, MktRiskTag, MarketSortDirection, MarketSortKey } from "@/components/dashboard/market/types";
 import type { ApiEnvelope, MarketViewModel } from "@/lib/market/contracts";
 import { buildTableInsights, filterAndSortMarkets } from "@/lib/market/direct-buy-table";
+import { getDirectBuyFetchPlan } from "@/lib/market/direct-buy-fetch";
 
 const FETCH_BATCH_SIZE = 200;
-const MAX_MARKET_FETCH = 5000;
 
 export function useMarketDirectBuyState({
   paperMode,
   walletAddress,
   liveChecklist,
+  onTradePlaced,
 }: {
   paperMode: boolean;
   walletAddress?: `0x${string}`;
@@ -22,6 +23,7 @@ export function useMarketDirectBuyState({
     signatureVerified: boolean;
     usdcApproved: boolean;
   };
+  onTradePlaced?: () => void | Promise<void>;
 }) {
   // Filter state
   const [query, setQuery] = useState("");
@@ -43,6 +45,7 @@ export function useMarketDirectBuyState({
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const lastFetchMode = useRef<string | null>(null);
 
   // Buy panel state
   const [buyMarket, setBuyMarket] = useState<MarketListing | null>(null);
@@ -61,21 +64,23 @@ export function useMarketDirectBuyState({
     liquidity: m.liquidityUsd,
   }), []);
 
-  const fetchMarkets = useCallback(async (kw?: string) => {
+  const fetchMarkets = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
     try {
+      const plan = getDirectBuyFetchPlan(timeframe);
       const collected: MarketViewModel[] = [];
       let cursor: string | undefined;
       let hasMore = true;
+      lastFetchMode.current = plan.mode;
 
-      while (hasMore && collected.length < MAX_MARKET_FETCH) {
+      while (hasMore && collected.length < plan.maxMarkets) {
         const params = new URLSearchParams({
           limit: String(FETCH_BATCH_SIZE),
           active: "true",
           closed: "false",
-          order: "volume24hr",
-          ascending: "false",
+          order: plan.order,
+          ascending: String(plan.ascending),
         });
         if (cursor) {
           params.set("cursor", cursor);
@@ -107,16 +112,24 @@ export function useMarketDirectBuyState({
       setLoadError(error instanceof Error ? error.message : "Failed to load markets");
     }
     finally { setLoading(false); }
-  }, [mapMarket]);
+  }, [mapMarket, timeframe]);
 
   // Auto-load markets on mount
   const autoLoaded = useRef(false);
   useEffect(() => {
     if (!autoLoaded.current) {
       autoLoaded.current = true;
-      fetchMarkets("");
+      fetchMarkets();
     }
   }, [fetchMarkets]);
+
+  useEffect(() => {
+    if (!loaded || loading) return;
+    const nextPlan = getDirectBuyFetchPlan(timeframe);
+    if (nextPlan.mode !== lastFetchMode.current) {
+      void fetchMarkets();
+    }
+  }, [fetchMarkets, loaded, loading, timeframe]);
 
   const availableCategories = useMemo(
     () => [...new Set(markets.map(m => m.category))].sort(),
@@ -233,7 +246,10 @@ export function useMarketDirectBuyState({
       const data = await res.json() as { error?: string };
       if (res.ok) {
         setBuySuccess(`✅ ${buyPaper ? "Paper " : ""}Buy placed — ${(buyAmount / avgPrice).toFixed(1)} shares ${buyOutcome}`);
-        setTimeout(() => setBuyMarket(null), 2500);
+        window.setTimeout(() => {
+          setBuyMarket(null);
+          void onTradePlaced?.();
+        }, 900);
       } else {
         setBuySuccess(`❌ ${data.error ?? "Buy failed"}`);
       }
@@ -242,7 +258,9 @@ export function useMarketDirectBuyState({
     } finally {
       setBuySubmitting(false);
     }
-  }, [buyAmount, buyMarket, buyOutcome, buyPaper, walletAddress]);
+  }, [buyAmount, buyMarket, buyOutcome, buyPaper, onTradePlaced, walletAddress]);
+
+  const fetchModeLabel = useMemo(() => getDirectBuyFetchPlan(timeframe).label, [timeframe]);
 
   return {
     query, setQuery,
@@ -262,6 +280,7 @@ export function useMarketDirectBuyState({
     availableCategories,
     filteredMarkets,
     filteredCount: filteredMarkets.length,
+    fetchModeLabel,
     tableInsights,
     loading, loaded, loadError,
     clearFilters,
