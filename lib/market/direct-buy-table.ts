@@ -19,6 +19,7 @@ export function endCutoff(tf: MktTimeframe): number {
 
 export function filterAndSortMarkets({
   markets,
+  query,
   timeframe,
   category,
   probMin,
@@ -32,6 +33,7 @@ export function filterAndSortMarkets({
   maxSpread,
 }: {
   markets: MarketListing[];
+  query: string;
   timeframe: MktTimeframe;
   category: string;
   probMin: number;
@@ -45,9 +47,14 @@ export function filterAndSortMarkets({
   maxSpread: number;
 }): MarketListing[] {
   const cut = endCutoff(timeframe);
+  const normalizedQuery = query.trim().toLowerCase();
 
   return markets
     .filter((market) => {
+      if (normalizedQuery) {
+        const haystack = `${market.title} ${market.category}`.toLowerCase();
+        if (!haystack.includes(normalizedQuery)) return false;
+      }
       if (timeframe !== "all") {
         const iso = market.endDateIso ?? market.endDate;
         if (!iso) return false;

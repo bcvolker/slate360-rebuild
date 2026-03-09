@@ -51,8 +51,8 @@ export default function MarketAdvancedFilters(props: MarketAdvancedFiltersProps)
       {/* Min Edge */}
       <div>
         <label className="text-xs text-gray-500 mb-1 flex items-center">
-          Min Edge %
-          <HelpTip content="The pricing edge is the estimated advantage over fair value. Higher = more favorable entry price. 0% shows all markets." />
+          Minimum Deal Advantage
+          <HelpTip content="The deal advantage is the estimated pricing advantage over fair value. Higher can mean a better entry. Set it to 0 to show every market." />
         </label>
         <input
           type="range" min={0} max={30} step={1} value={props.minEdge}
@@ -65,8 +65,8 @@ export default function MarketAdvancedFilters(props: MarketAdvancedFiltersProps)
       {/* Prob min */}
       <div>
         <label className="text-xs text-gray-500 mb-1 flex items-center">
-          Prob min %
-          <HelpTip content="Filter markets by their implied probability. Low (<30%) markets are long shots. High (>70%) are heavy favorites." />
+          Minimum Chance
+          <HelpTip content="Hide very unlikely markets below this implied probability." />
         </label>
         <input
           type="range" min={0} max={100} step={5} value={props.probMin}
@@ -79,8 +79,8 @@ export default function MarketAdvancedFilters(props: MarketAdvancedFiltersProps)
       {/* Prob max */}
       <div>
         <label className="text-xs text-gray-500 mb-1 flex items-center">
-          Prob max %
-          <HelpTip content="Filter markets by their implied probability. Low (<30%) markets are long shots. High (>70%) are heavy favorites." />
+          Maximum Chance
+          <HelpTip content="Hide heavy favorites above this implied probability." />
         </label>
         <input
           type="range" min={0} max={100} step={5} value={props.probMax}
@@ -110,8 +110,8 @@ export default function MarketAdvancedFilters(props: MarketAdvancedFiltersProps)
       {/* Category */}
       <div>
         <label className="text-xs text-gray-500 mb-1 flex items-center">
-          Category
-          <HelpTip content="Filter markets by topic — e.g. Politics, Crypto, Sports, Economy." />
+          Market Category
+          <HelpTip content="Browse a cleaner set of topics like Construction, Weather, Economy, and Entertainment." />
         </label>
         <select
           value={props.category}
@@ -128,8 +128,8 @@ export default function MarketAdvancedFilters(props: MarketAdvancedFiltersProps)
       {/* Risk tag */}
       <div>
         <label className="text-xs text-gray-500 mb-1 flex items-center">
-          Risk tag
-          <HelpTip content="Shows markets with special risk indicators. 'Hot' = trending. 'High-risk' = volatile." />
+          Opportunity Tag
+          <HelpTip content="Highlights markets that look hotter, riskier, or more specialized than the rest." />
         </label>
         <select
           value={props.riskTag}
@@ -145,8 +145,8 @@ export default function MarketAdvancedFilters(props: MarketAdvancedFiltersProps)
       {/* Min Volume */}
       <div>
         <label className="text-xs text-gray-500 mb-1 flex items-center">
-          Min Volume
-          <HelpTip content="Minimum 24h trading volume in USD. Higher volume = more active market with better fills." />
+          Minimum 24h Volume
+          <HelpTip content="Higher volume usually means a more active market and easier fills." />
         </label>
         <input
           type="range" min={0} max={100000} step={1000} value={props.minVolume}
@@ -159,8 +159,8 @@ export default function MarketAdvancedFilters(props: MarketAdvancedFiltersProps)
       {/* Min Liquidity */}
       <div>
         <label className="text-xs text-gray-500 mb-1 flex items-center">
-          Min Liquidity
-          <HelpTip content="Minimum available liquidity in USD. Higher liquidity means your trade is more likely to fill at the expected price." />
+          Minimum Liquidity
+          <HelpTip content="Higher liquidity means your trade is more likely to fill near the listed price." />
         </label>
         <input
           type="range" min={0} max={500000} step={5000} value={props.minLiquidity}
@@ -173,8 +173,8 @@ export default function MarketAdvancedFilters(props: MarketAdvancedFiltersProps)
       {/* Max Spread */}
       <div className="col-span-2 sm:col-span-4">
         <label className="text-xs text-gray-500 mb-1 flex items-center">
-          Max Spread
-          <HelpTip content="Maximum gap between YES + NO prices and $1. Lower spread = fairer pricing." />
+          Maximum Price Gap
+          <HelpTip content="Filters out markets with wider pricing gaps. Lower values usually mean cleaner execution." />
         </label>
         <input
           type="range" min={0} max={50} step={1} value={props.maxSpread}

@@ -11,9 +11,39 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+function normalizeWhitespace(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
 function asRecord(raw: unknown): Record<string, unknown> {
   if (raw && typeof raw === "object") return raw as Record<string, unknown>;
   return {};
+}
+
+function deriveCategory(question: string, rawCategory: string): string {
+  const text = normalizeWhitespace(`${question} ${rawCategory}`).toLowerCase();
+
+  if (/weather|hurricane|storm|temperature|snow|rain|climate|forecast/.test(text)) return "Weather";
+  if (/construction|infrastructure|building|contractor|permit|zoning|cement|lumber/.test(text)) return "Construction";
+  if (/real estate|housing|mortgage|rent|home price|commercial property/.test(text)) return "Real Estate";
+  if (/economy|economic|gdp|inflation|fed|interest rate|rates|jobs|recession|finance|financial/.test(text)) return "Economy";
+  if (/entertainment|movie|film|box office|music|album|oscars|emmys|celebrity|tv|television/.test(text)) return "Entertainment";
+  if (/politics|election|president|congress|senate|vote|ballot|campaign/.test(text)) return "Politics";
+  if (/sports|nfl|nba|mlb|nhl|soccer|football|baseball|basketball|ufc|tennis/.test(text)) return "Sports";
+  if (/crypto|bitcoin|ethereum|btc|eth|solana|defi|token|blockchain/.test(text)) return "Crypto";
+  if (/science|research|space|nasa|physics|biology|chemistry/.test(text)) return "Science";
+  if (/tech|technology|ai|artificial intelligence|apple|google|meta|tesla|software|hardware/.test(text)) return "Tech";
+
+  const normalizedRaw = normalizeWhitespace(rawCategory);
+  if (normalizedRaw) {
+    if (normalizedRaw.toLowerCase() === "general") return "General";
+    return normalizedRaw
+      .split(" ")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(" ");
+  }
+
+  return "General";
 }
 
 function parseOutcomePrices(raw: unknown, fallbackProbabilityPct: number): { yes: number; no: number } {
@@ -94,7 +124,9 @@ export function mapGammaMarketToMarketVM(raw: unknown): MarketViewModel {
   const spread = Math.abs(prices.yes - 0.5);
   const edgePct = Number((spread * 100 * 1.4).toFixed(1));
 
-  const category = String(record.category ?? "General");
+  const rawCategory = String(record.category ?? "General");
+  const title = String(record.question ?? record.title ?? "");
+  const category = deriveCategory(title, rawCategory);
   const endDateRaw = record.endDate;
   const endDateIsoRaw = record.endDateIso;
   const eventStartRaw = record.startDate ?? record.eventStartDate;
@@ -113,7 +145,7 @@ export function mapGammaMarketToMarketVM(raw: unknown): MarketViewModel {
 
   return {
     id: String(record.id ?? record.conditionId ?? record.slug ?? ""),
-    title: String(record.question ?? record.title ?? ""),
+    title,
     category,
     probabilityPct: Number(probabilityPct.toFixed(1)),
     yesPrice: prices.yes,

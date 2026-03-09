@@ -154,11 +154,11 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
         {recentLogs.length === 0
           ? <p className="text-sm text-gray-400 py-4 text-center">No activity recorded yet</p>
           : (
-            <div className="space-y-1 max-h-[250px] overflow-y-auto text-xs font-mono text-gray-600">
+            <div className="space-y-2 max-h-[420px] overflow-y-auto text-sm text-gray-700">
               {recentLogs.map((log) => (
-                <div key={log.id} className="flex gap-2">
-                  <span className="text-gray-400 shrink-0">{new Date(log.created_at).toLocaleTimeString()}</span>
-                  <span>{log.message}</span>
+                <div key={log.id} className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 flex gap-3">
+                  <span className="text-xs text-gray-400 shrink-0 pt-0.5">{new Date(log.created_at).toLocaleTimeString()}</span>
+                  <span className="leading-relaxed">{log.message}</span>
                 </div>
               ))}
             </div>

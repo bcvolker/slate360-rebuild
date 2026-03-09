@@ -5,9 +5,8 @@ import type { MarketListing, MktTimeframe, MktRiskTag, MarketSortDirection, Mark
 import type { ApiEnvelope, MarketViewModel } from "@/lib/market/contracts";
 import { buildTableInsights, filterAndSortMarkets } from "@/lib/market/direct-buy-table";
 
-const PAGE_SIZE = 25;
 const FETCH_BATCH_SIZE = 200;
-const MAX_MARKET_FETCH = 1000;
+const MAX_MARKET_FETCH = 5000;
 
 export function useMarketDirectBuyState({
   paperMode,
@@ -44,7 +43,6 @@ export function useMarketDirectBuyState({
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
 
   // Buy panel state
   const [buyMarket, setBuyMarket] = useState<MarketListing | null>(null);
@@ -67,7 +65,6 @@ export function useMarketDirectBuyState({
     setLoading(true);
     setLoadError(null);
     try {
-      const normalizedQuery = (kw ?? query).trim().toLowerCase();
       const collected: MarketViewModel[] = [];
       let cursor: string | undefined;
       let hasMore = true;
@@ -99,16 +96,10 @@ export function useMarketDirectBuyState({
         cursor = payload.data?.nextCursor;
         hasMore = Boolean(cursor);
 
-        if (normalizedQuery && collected.length >= MAX_MARKET_FETCH) {
-          break;
-        }
       }
 
-      const mapped: MarketListing[] = collected
-        .filter(m => !normalizedQuery || m.title.toLowerCase().includes(normalizedQuery) || m.category.toLowerCase().includes(normalizedQuery))
-        .map(mapMarket);
+      const mapped: MarketListing[] = collected.map(mapMarket);
       setMarkets(mapped);
-      setPage(1);
       setLoaded(true);
     } catch (error) {
       setMarkets([]);
@@ -116,7 +107,7 @@ export function useMarketDirectBuyState({
       setLoadError(error instanceof Error ? error.message : "Failed to load markets");
     }
     finally { setLoading(false); }
-  }, [mapMarket, query]);
+  }, [mapMarket]);
 
   // Auto-load markets on mount
   const autoLoaded = useRef(false);
@@ -144,6 +135,7 @@ export function useMarketDirectBuyState({
   const filteredMarkets = useMemo(() => {
     return filterAndSortMarkets({
       markets,
+      query,
       timeframe,
       category,
       probMin,
@@ -156,18 +148,24 @@ export function useMarketDirectBuyState({
       minLiquidity,
       maxSpread,
     });
-  }, [markets, timeframe, category, probMin, probMax, minEdge, riskTag, sortBy, sortDirection, minVolume, minLiquidity, maxSpread]);
+  }, [markets, query, timeframe, category, probMin, probMax, minEdge, riskTag, sortBy, sortDirection, minVolume, minLiquidity, maxSpread]);
 
   const tableInsights = useMemo(() => buildTableInsights(filteredMarkets), [filteredMarkets]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredMarkets.length / PAGE_SIZE));
-  const pagedMarkets = filteredMarkets.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
-  useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-    }
-  }, [page, totalPages]);
+  const clearFilters = useCallback(() => {
+    setQuery("");
+    setTimeframe("all");
+    setCategory("all");
+    setProbMin(0);
+    setProbMax(100);
+    setMinEdge(0);
+    setRiskTag("all");
+    setSortBy("edge");
+    setSortDirection("desc");
+    setMinVolume(0);
+    setMinLiquidity(0);
+    setMaxSpread(100);
+  }, []);
 
   const buyPayloadIssues = useMemo(() => {
     if (!buyMarket) return ["Select a market"];
@@ -262,12 +260,11 @@ export function useMarketDirectBuyState({
     maxSpread, setMaxSpread,
     filtersOpen, setFiltersOpen,
     availableCategories,
-    pagedMarkets,
+    filteredMarkets,
     filteredCount: filteredMarkets.length,
     tableInsights,
     loading, loaded, loadError,
-    page, setPage,
-    totalPages,
+    clearFilters,
     fetchMarkets,
     buyMarket, buyOutcome, setBuyOutcome,
     buyAmount, setBuyAmount,

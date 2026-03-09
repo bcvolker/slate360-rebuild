@@ -9,12 +9,24 @@ The current backend autonomy work and market data plumbing stay in place. This p
 
 ## Canonical Constraints
 - Route remains `/market`.
-- Access remains `hasInternalAccess` only. Never move Market Robot to entitlement gating.
+- Access remains `canAccessMarket` from `resolveServerOrgContext()`. Never move Market Robot to subscription entitlement gating.
 - `app/market/page.tsx` remains the gate + provider wrapper.
 - `components/dashboard/MarketClient.tsx` remains a thin orchestrator, not a new monolith.
 - New files must stay under 300 lines.
 - Reuse shared dashboard chrome and shared customization patterns; do not build a market-only customization system.
 - Keep current API routes backward compatible while the UI is refactored.
+
+## Runtime-First Continuation Rule
+Before adding more Market features, verify runtime prerequisites first.
+
+Required order:
+1. `npm run diag:market-runtime`
+2. authenticated paper direct buy verification
+3. authenticated apply-plan + immediate scan verification
+4. scheduler tick verification
+5. live-mode verification only after real Polymarket CLOB credentials exist
+
+Do not treat Vercel cron presence alone as proof of 24/7 automation. Scheduler secret wiring, lock/log tables, and actual tick execution must be verified.
 
 ## Current State and User Goal
 Current backend and data plumbing are usable: shared shell/header, decomposed UI, cron-driven scheduler, wallet verification, approval flow, directives, logs, and summary stats all exist.
@@ -142,12 +154,15 @@ The first screen must answer:
 | `MarketLiveWalletTab.tsx` | Own wallet connect, signature verification, approval, and explicit live-readiness states. |
 
 ## Search and Filter Rules
+- Search must be reactive against the loaded market set, not only on manual refresh.
 - Replace slider-only numeric controls with paired number input + optional slider.
 - Every capped field must support manual entry for large values.
 - Add a visible `Clear filters` action.
 - Keep standard filters always visible.
 - Move advanced filters into disclosure or drawer.
 - Remove construction bias from quick presets and default categories.
+- Expose the full beginner-friendly timeframe set: `Next Hour`, `Day`, `Week`, `Month`, `Year`, `All Time`.
+- Default market visibility should not hide results via non-user-selected filters.
 
 ## Saved Markets Rules
 - Unify bookmark and watchlist into one concept: `Saved Markets`.
@@ -246,7 +261,7 @@ Outcome:
 
 ## Manual Verification Checklist
 After each PR verify:
-1. `/market` still gates on `hasInternalAccess` only.
+1. `/market` still gates on `canAccessMarket`.
 2. Practice mode direct buy still works.
 3. Real-money readiness flow still shows connect, verify, and approve states.
 4. Saved markets persist across refresh.
@@ -255,6 +270,7 @@ After each PR verify:
 7. No file exceeds 300 lines.
 8. `npx tsc --noEmit` passes.
 9. `node scripts/ops/check-clob-contract.mjs` still passes.
+10. `npm run diag:market-runtime` passes for the target environment before claiming live-mode readiness.
 
 ## Definition of Done
 - A new user can understand Market Robot in under 15 seconds.

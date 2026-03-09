@@ -48,8 +48,8 @@ export default function MarketAutomationTab({ botConfig, onApplyPlan }: MarketAu
 
       {/* Backward compatibility note */}
       <div className="text-[11px] text-gray-400 text-center pt-2">
-        Plans stored locally. Supabase <code className="text-gray-500">market_plans</code> table migration pending.
-        Existing directives via <code className="text-gray-500">/api/market/directives</code> still work.
+        Plans now load from Supabase <code className="text-gray-500">market_plans</code> with local fallback,
+        but execution still syncs through <code className="text-gray-500">/api/market/directives</code> until the scheduler is migrated.
       </div>
     </div>
   );

@@ -119,12 +119,30 @@ Current Market files in play
 
 Still missing from the revised plan
 - saved markets / saved searches unified tab (future)
-- Supabase `market_plans` table migration (plans currently localStorage-only)
+- server-side `market_plans` adoption (table now exists, but plans are still localStorage-first and scheduler still reads directives)
 - app-ecosystem-ready packaging assumptions
-- server-side pagination for Polymarket catalog (currently client-side with 1000-market fetch)
+- server-side pagination for Polymarket catalog (currently client-side fetch)
 - bookmarking / saved markets persistence
 - authenticated production verification of directives/logs fallback behavior after deploy
 - server-side scheduler migration from legacy directives to automation plans as the primary source of truth
+
+## Mar 9, 2026 — Direct Buy reactivity + market_plans bootstrap
+
+Completed
+- Direct Buy search now filters the loaded market set instantly instead of only on manual refresh.
+- Direct Buy timeframe chips now expose the beginner-friendly set: `Next Hour`, `Day`, `Week`, `Month`, `Year`, `All Time`.
+- Direct Buy no longer pages results by default; the table shows all currently matched results.
+- Market categories are now normalized in the mapper so Construction, Weather, Economy, Entertainment, and similar groups produce cleaner results.
+- Advanced filter labels were rewritten in plainer language and the Results activity log was enlarged into a more readable plain-English feed.
+- Added `supabase/migrations/20260309_market_plans.sql` and applied it to the linked Supabase project via the Management API. `market_plans` now exists with indexes, RLS, and an updated-at trigger.
+- Applied the existing `20260305_market_enhancements.sql` migration to the linked Supabase project, so `market_watchlist` and `market_tab_prefs` now exist there too.
+- Saved Markets is no longer a stub: the tab now loads from `market_watchlist`, Direct Buy rows can be saved/removed, and the buy panel now opens as a fixed modal instead of forcing the user to scroll back to the top.
+- Automation plans now load from `/api/market/plans` with local fallback, so the UI is no longer localStorage-only.
+
+Still not done
+- The scheduler still has not migrated to `market_plans`; directive sync remains the live compatibility path for execution.
+- “Show all markets” is still bounded by client fetch strategy, not true infinite catalog loading.
+- True 24/7 background still depends on deployed cron execution and scheduler secret wiring, not just `vercel.json`.
 
 ## Mar 7, 2026 — Operator + Direct Buy refinement pass
 
@@ -201,6 +219,77 @@ Next recommended follow-up
 - Make `market_plans` the canonical server-side config and stop translating rich automation plans into legacy directives.
 - Replace the auth-metadata stopgap with a first-class server table once `market_plans` lands, then migrate the scheduler off legacy directives entirely.
 - Replace the cron-only loop with a queue or worker model if the goal is genuinely high-volume scheduled automation.
+
+## Mar 8, 2026 — Next steps for the next chat
+
+**UPDATE: The missing tables and configurations were applied directly to the production Supabase database via the Management API!**
+
+1. `market_activity_log` table, RLS, and indexes were created.
+2. `market_scheduler_lock` table was created and initialized.
+3. Local `.env.local` keeps a scheduler secret for local scheduler verification.
+4. Real Polymarket CLOB credentials are still required for actual live-mode execution; do not use dummy placeholders.
+
+Runtime status now:
+- paper-mode runtime prerequisites are repaired
+- scheduler lock/log tables exist in the target Supabase project
+- live mode still depends on valid `POLYMARKET_API_KEY`, `POLYMARKET_API_SECRET`, `POLYMARKET_API_PASSPHRASE`, and `NEXT_PUBLIC_POLYMARKET_SPENDER`
+
+Next steps: verify paper buy, verify scheduler tick with the local secret, then supply real live CLOB credentials before validating live buys or resuming feature work (`market_plans`, Saved Markets, server-side pagination, then worker/queue design).
+
+## Mar 8, 2026 — What was tried that did not solve it by itself
+
+These changes improved correctness, but none of them alone fixed the broken-buy report.
+
+- Token ID parsing and stale first-scan fixes from Mar 7 removed obvious UI blockers, but direct and automated trades still failed because the server write path hit the older `market_trades` schema.
+- Lowering automation thresholds and improving bot/runtime sync increased the chance of generating candidates, but generated trades still could not persist when optional columns were missing in the deployed DB.
+- Tightening access gates, wallet checks, and CLOB response validation improved safety, but did not address the underlying PostgREST schema-cache mismatch.
+- Frontend-only verification was misleading because the root cause sat in final trade persistence and later in the live-order payload contract.
+
+## Mar 8, 2026 — Backend, API, and dependency map
+
+Critical execution paths
+- Direct buy UI: [lib/hooks/useMarketDirectBuyState.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketDirectBuyState.ts) -> [app/api/market/buy/route.ts](/workspaces/slate360-rebuild/app/api/market/buy/route.ts)
+- Immediate automation: [components/dashboard/MarketClient.tsx](/workspaces/slate360-rebuild/components/dashboard/MarketClient.tsx) and [lib/hooks/useMarketBot.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketBot.ts) -> [app/api/market/scan/route.ts](/workspaces/slate360-rebuild/app/api/market/scan/route.ts)
+- Background automation: [app/api/market/scheduler/tick/route.ts](/workspaces/slate360-rebuild/app/api/market/scheduler/tick/route.ts) -> [lib/market/scheduler.ts](/workspaces/slate360-rebuild/lib/market/scheduler.ts) -> [lib/market/scheduler-run-user.ts](/workspaces/slate360-rebuild/lib/market/scheduler-run-user.ts)
+- Settlement: [app/api/market/settle-trades/route.ts](/workspaces/slate360-rebuild/app/api/market/settle-trades/route.ts)
+- Legacy write path still kept alive: [app/api/market/trades/route.ts](/workspaces/slate360-rebuild/app/api/market/trades/route.ts)
+
+Critical DB tables
+- `market_trades`
+- `market_directives`
+- `market_bot_runtime`
+- `market_bot_runtime_state`
+- `market_activity_log`
+- `market_scheduler_lock`
+
+Repo-side compatibility layer
+- [lib/market/trade-persistence.ts](/workspaces/slate360-rebuild/lib/market/trade-persistence.ts) is now the compatibility boundary for older `market_trades` schemas. Reuse it for any new `market_trades` write path.
+
+Verified dependency surface
+- Runtime packages were rechecked in [package.json](/workspaces/slate360-rebuild/package.json): `@supabase/supabase-js`, `@supabase/ssr`, `@polymarket/clob-client`, `next`, `react`, `react-dom`
+- Live-order payload contract is guarded by [scripts/ops/check-clob-contract.mjs](/workspaces/slate360-rebuild/scripts/ops/check-clob-contract.mjs)
+- Runtime env/schema prerequisites are guarded by [scripts/ops/check-market-runtime.mjs](/workspaces/slate360-rebuild/scripts/ops/check-market-runtime.mjs)
+
+## Mar 8, 2026 — MCP playbook for future Market work
+
+Use MCPs before editing, not after damage is done.
+
+- Use `GitNexus query` first when you need the real route or execution flow instead of guessing from filenames.
+- Use `GitNexus context(<symbol>)` before changing a shared hook, runtime helper, or route handler.
+- Use `GitNexus impact(<symbol>, upstream)` before refactors or signature changes to see what will break.
+- Use `GitNexus detect_changes` before every push to confirm only intended files changed.
+- Use MCP findings to narrow the blast radius, then confirm with direct file reads before patching.
+- Do not use MCP output as a substitute for reading the current file contents. Use it to map pathways and risks.
+
+## Mar 8, 2026 — Clean and scalable Market coding rules
+
+- Keep the route stack stable: route page -> route shell -> thin orchestrator -> focused tab -> hook -> runtime/helper.
+- Reuse [lib/market/trade-persistence.ts](/workspaces/slate360-rebuild/lib/market/trade-persistence.ts) for `market_trades` compatibility instead of duplicating schema-fallback logic.
+- Keep new production `.ts` and `.tsx` files under 300 lines. Extract early instead of compressing late.
+- Keep market runtime logic UI-agnostic and testable. UI components should not know Supabase schema details.
+- Keep access control in server/auth helpers. Do not re-inline entitlement or scope checks inside tab components.
+- Prefer additive API changes while the rebuild is still in flight. Do not break old client paths unless the replacement is fully migrated.
+- Do not start new feature work while runtime env/schema diagnostics are failing. Fix execution prerequisites first.
 
 ## Non-Negotiables
 - Route remains `/market`
@@ -450,48 +539,54 @@ Carry-forward rule
   **components/dashboard/market/MarketBuyPanel.tsx:** buy amount cap raised from $500 to $5,000, added $500 and $1,000 quick-pick buttons.
   **components/dashboard/market/MarketStartHereTab.tsx:** recommendations now respect user mode selection (practice/real), added onApplyRecommendation prop + recommendationToPlan() converter, Apply button now sends plan data directly instead of just navigating. MarketClient wired to call handleApplyPlan + switch to results tab.
   Verified: `npx tsc --noEmit` clean.
+- 2026-03-08: Runtime compatibility hardening — complete. Files created: [lib/market/trade-persistence.ts](/workspaces/slate360-rebuild/lib/market/trade-persistence.ts), [scripts/ops/check-market-runtime.mjs](/workspaces/slate360-rebuild/scripts/ops/check-market-runtime.mjs). Files modified: [app/api/market/buy/route.ts](/workspaces/slate360-rebuild/app/api/market/buy/route.ts), [app/api/market/scan/route.ts](/workspaces/slate360-rebuild/app/api/market/scan/route.ts), [lib/market/scheduler-run-user.ts](/workspaces/slate360-rebuild/lib/market/scheduler-run-user.ts), [app/api/market/trades/route.ts](/workspaces/slate360-rebuild/app/api/market/trades/route.ts), [app/api/market/settle-trades/route.ts](/workspaces/slate360-rebuild/app/api/market/settle-trades/route.ts), [lib/market/clob-api.ts](/workspaces/slate360-rebuild/lib/market/clob-api.ts), [scripts/ops/check-clob-contract.mjs](/workspaces/slate360-rebuild/scripts/ops/check-clob-contract.mjs), [package.json](/workspaces/slate360-rebuild/package.json), [PROJECT_RUNTIME_ISSUE_LEDGER.md](/workspaces/slate360-rebuild/PROJECT_RUNTIME_ISSUE_LEDGER.md). Result: `market_trades` writes now degrade safely on older schemas, settlement reads retry without newer optional columns, live CLOB orders submit share size instead of raw spend, and runtime env/schema checks are scripted. Verified: `npm run typecheck`, `npm run guard:clob-contract`, `npm run verify:release` (same environment-level `143` interruption only), `npm run diag:market-runtime`. Commit pushed: `96effc5` (`Harden market robot runtime compatibility`). Next: repair env/schema blockers, then run authenticated end-to-end Market verification before new feature work.
 
 ## Ready-To-Paste Prompt For Next Chat
 
 Copy-paste this entire block into a new chat session to continue the Market Robot build:
 
 ```text
-I'm continuing the Market Robot rebuild. Batches 1–8 are complete. This session covers **Batch 9+ (remaining items)**.
+I'm continuing the Market Robot rebuild after the Mar 8 runtime compatibility hardening. Do not start new Market feature work until runtime prerequisites are verified.
 
 ## Read order
 1. `SLATE360_PROJECT_MEMORY.md`
 2. `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`
-3. `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md` — see "Still missing" section
-4. `slate360-context/dashboard-tabs/market-robot/IMPLEMENTATION_PLAN.md` — for saved markets spec and market_plans table schema
+3. `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`
+4. `PROJECT_RUNTIME_ISSUE_LEDGER.md`
+5. `slate360-context/dashboard-tabs/market-robot/IMPLEMENTATION_PLAN.md` — only after runtime blockers are clear
 
 ## Environment & tool access
-- **.env.local** is fully configured with Supabase (URL + anon key + service role key + access token), AWS S3 (region + key ID + secret + bucket), Resend email, Google Maps keys
+- Do not assume `.env.local` is complete. Run `npm run diag:market-runtime` first.
 - **Supabase dashboard**: https://supabase.com/dashboard/project/hadnfcenpcfaeclczsmm
 - **Git**: you have push access to `main` — commit and push when done
-- **Terminal**: `npx tsc --noEmit`, `bash scripts/check-file-size.sh`, `wc -l`, all available
+- **Terminal**: `npm run diag:market-runtime`, `npm run typecheck`, `npm run guard:clob-contract`, `bash scripts/check-file-size.sh`, `wc -l`
 
-## What was done in Batches 1–8
-- **MarketClient.tsx** (192 lines) — thin orchestrator, switch-renders tabs, server-confirmed status in header
-- **MarketStartHereTab.tsx** (246 lines) — mode picker, 6 recommendation presets, first-run banner, server-confirmed bot status bar
-- **MarketDirectBuyTab.tsx** (267 lines) — search toolbar, timeframe chips, market table w/ YES/NO, buy panel drawer
-- **MarketAdvancedFilters.tsx** (188 lines) — 8 filter controls (edge, prob min/max, sort, category, risk tag, volume, liquidity, spread) with HelpTip tooltips
-- **useMarketDirectBuyState.ts** (222 lines) — auto-loads 1000 markets on mount, all 8 filters wired, availableCategories derived
-- **MarketAutomationTab.tsx** (96 lines) + **MarketAutomationBuilder.tsx** (300 lines) + **MarketPlanList.tsx** (151 lines)
-- **useMarketAutomationState.ts** (136 lines) — plan CRUD, localStorage persistence
-- **MarketResultsTab.tsx** (247 lines) — P/L analytics, trade replay
-- **useMarketResultsState.ts** (170 lines) — analytics computation
-- **MarketLiveWalletTab.tsx** (258 lines) — wallet connect, readiness checklist
-- **useMarketServerStatus.ts** (109 lines) — polls server every 30s
-- **MarketSharedUi.tsx** (38 lines) — HelpTip + StatusBadge
-- **types.ts** (189 lines) — all shared types
-- 22 legacy files deleted in Batch 7
-- All 18 API routes untouched
+## Current code state
+- Batches 1–8 UI rebuild work is complete.
+- Mar 8 hardened direct buy, immediate automation, scheduler, legacy trades, and settlement against older `market_trades` schemas.
+- Live CLOB helper now sends `shares` as `size`; contract is guarded by `npm run guard:clob-contract`.
+- Runtime prerequisite check now exists in `npm run diag:market-runtime`.
 
-## Remaining items (pick what to tackle)
-1. **Saved Markets tab** — build MarketSavedMarketsTab.tsx to replace the stub (bookmarking, saved searches)
-2. **Supabase `market_plans` table migration** — create table, migrate localStorage plans to DB, update useMarketAutomationState
-3. **Server-side pagination** — add offset/cursor to /api/market/polymarket for >1000 markets
-4. **App-ecosystem packaging** — ensure Market module is portable for standalone app routes
+## Immediate blockers to verify or fix first
+1. Run `npm run diag:market-runtime`.
+2. If it fails, fix missing envs or missing DB objects before writing feature code.
+3. Run authenticated verification for:
+  - paper direct buy
+  - live direct buy
+  - Apply Plan immediate scan
+  - scheduler tick
+  - settlement
+4. Only after that, continue with:
+  - Saved Markets tab
+  - `market_plans` table migration
+  - server-side pagination
+  - queue/worker design for high-volume automation
+
+## MCP rules
+- Use `GitNexus query` or `context` before editing any route, hook, or runtime helper.
+- Use `GitNexus impact` before changing shared contracts.
+- Use `GitNexus detect_changes` before pushing.
+- Read the real file contents before editing; do not rely on MCP output alone.
 
 ## Non-negotiables
 - Route: `/market` — do not change
@@ -500,4 +595,13 @@ I'm continuing the Market Robot rebuild. Batches 1–8 are complete. This sessio
 - No `any` — use `unknown` + narrowing
 - All files ≤ 300 lines
 - Types in `components/dashboard/market/types.ts`
+- Reuse `lib/market/trade-persistence.ts` for any new `market_trades` writes
+- Do not start feature work while `npm run diag:market-runtime` is failing
+
+## End-of-session requirements
+1. Run `npm run typecheck`.
+2. Run `get_errors` on touched files.
+3. Run `GitNexus detect_changes`.
+4. Update `ONGOING_BUILD_TRACKER.md` and `PROJECT_RUNTIME_ISSUE_LEDGER.md` if runtime behavior or blockers changed.
+5. If runtime blockers remain, record them explicitly instead of burying them in feature notes.
 ```

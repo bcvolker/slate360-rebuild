@@ -18,9 +18,11 @@ type Props = {
   tableInsights: TableInsights;
   onToggleSort: (key: MarketSortKey) => void;
   onBuy: (market: MarketListing, outcome: "YES" | "NO") => void;
+  savedMarketIds?: string[];
+  onToggleSave?: (market: MarketListing) => void;
 };
 
-export default function MarketDirectBuyResults({ markets, sortBy, sortDirection, tableInsights, onToggleSort, onBuy }: Props) {
+export default function MarketDirectBuyResults({ markets, sortBy, sortDirection, tableInsights, onToggleSort, onBuy, savedMarketIds = [], onToggleSave }: Props) {
   const highQualityCount = tableInsights.signalCounts.premium + tableInsights.signalCounts.strong;
 
   return (
@@ -76,12 +78,13 @@ export default function MarketDirectBuyResults({ markets, sortBy, sortDirection,
                 <th className="px-3 py-3 text-right hidden lg:table-cell">
                   <MarketSortHeader label="Ends" help="Resolution timing for the contract. Earlier markets appear first when sorted." active={sortBy === "endDate"} direction={sortDirection} onClick={() => onToggleSort("endDate")} />
                 </th>
+                <th className="px-3 py-3 text-center font-medium">Save</th>
                 <th className="px-3 py-3 text-center font-medium">Buy</th>
               </tr>
             </thead>
             <tbody>
               {markets.map((market) => (
-                <MarketRow key={market.id} market={market} onBuy={onBuy} />
+                <MarketRow key={market.id} market={market} onBuy={onBuy} isSaved={savedMarketIds.includes(market.id)} onToggleSave={onToggleSave} />
               ))}
             </tbody>
           </table>
@@ -91,7 +94,7 @@ export default function MarketDirectBuyResults({ markets, sortBy, sortDirection,
   );
 }
 
-function MarketRow({ market, onBuy }: { market: MarketListing; onBuy: (market: MarketListing, outcome: "YES" | "NO") => void }) {
+function MarketRow({ market, onBuy, isSaved, onToggleSave }: { market: MarketListing; onBuy: (market: MarketListing, outcome: "YES" | "NO") => void; isSaved: boolean; onToggleSave?: (market: MarketListing) => void }) {
   return (
     <tr className="border-b border-gray-50 hover:bg-gray-50/60 transition">
       <td className="px-4 py-3">
@@ -124,6 +127,14 @@ function MarketRow({ market, onBuy }: { market: MarketListing; onBuy: (market: M
       </td>
       <td className="px-3 py-3 text-right hidden lg:table-cell">
         <span className="text-xs text-gray-400">{market.endDateLabel ?? "—"}</span>
+      </td>
+      <td className="px-3 py-3 text-center">
+        <button
+          onClick={() => onToggleSave?.(market)}
+          className={`px-2 py-1 rounded text-xs font-bold border transition ${isSaved ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100" : "bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100"}`}
+        >
+          {isSaved ? "Saved" : "Save"}
+        </button>
       </td>
       <td className="px-3 py-3">
         <div className="flex gap-1 justify-center">

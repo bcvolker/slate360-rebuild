@@ -5,6 +5,7 @@ import MarketBuyPanel from "@/components/dashboard/market/MarketBuyPanel";
 import MarketAdvancedFilters from "@/components/dashboard/market/MarketAdvancedFilters";
 import MarketDirectBuyResults from "@/components/dashboard/market/MarketDirectBuyResults";
 import { useMarketDirectBuyState } from "@/lib/hooks/useMarketDirectBuyState";
+import { useMarketWatchlist } from "@/lib/hooks/useMarketWatchlist";
 import type { MktTimeframe, LiveChecklist } from "@/components/dashboard/market/types";
 
 interface MarketDirectBuyTabProps {
@@ -14,17 +15,19 @@ interface MarketDirectBuyTabProps {
 }
 
 const QUICK_TIMEFRAMES: { key: MktTimeframe; label: string }[] = [
-  { key: "all", label: "All" },
   { key: "hour", label: "Next Hour" },
-  { key: "today", label: "Ends Today" },
-  { key: "week", label: "This Week" },
-  { key: "month", label: "This Month" },
+  { key: "day", label: "Day" },
+  { key: "week", label: "Week" },
+  { key: "month", label: "Month" },
+  { key: "year", label: "Year" },
+  { key: "all", label: "All Time" },
 ];
 
 const fmt = (v: number) => `$${v.toFixed(2)}`;
 
 export default function MarketDirectBuyTab({ paperMode, walletAddress, liveChecklist }: MarketDirectBuyTabProps) {
   const s = useMarketDirectBuyState({ paperMode, walletAddress, liveChecklist });
+  const watchlist = useMarketWatchlist();
 
   return (
     <div className="space-y-4">
@@ -74,7 +77,6 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
             type="text"
             value={s.query}
             onChange={e => s.setQuery(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && s.fetchMarkets()}
             placeholder="Search markets (e.g. Bitcoin, election, construction…)"
             className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/30"
           />
@@ -107,6 +109,12 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
             className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition ml-auto"
           >
             {s.filtersOpen ? "▲ Fewer filters" : "▼ More filters"}
+          </button>
+          <button
+            onClick={s.clearFilters}
+            className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
+          >
+            Clear filters
           </button>
         </div>
 
@@ -162,40 +170,21 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
           <div className="flex items-center justify-between text-xs text-gray-500 px-1">
             <span>
               {s.filteredCount} market{s.filteredCount !== 1 ? "s" : ""}
-              {s.filteredCount !== s.pagedMarkets.length && ` · showing ${s.pagedMarkets.length}`}
+              {s.filteredCount > 0 && " · showing all matches"}
             </span>
-            <span>Page {s.page} of {s.totalPages}</span>
+            <span>Filters update instantly</span>
           </div>
 
           <MarketDirectBuyResults
-            markets={s.pagedMarkets}
+            markets={s.filteredMarkets}
             sortBy={s.sortBy}
             sortDirection={s.sortDirection}
             tableInsights={s.tableInsights}
             onToggleSort={s.toggleSort}
+            savedMarketIds={watchlist.items.map((item) => item.marketId)}
+            onToggleSave={(market) => void watchlist.toggleSave(market)}
             onBuy={s.openBuyPanel}
           />
-
-          {/* Pagination */}
-          {s.totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2">
-              <button
-                disabled={s.page <= 1}
-                onClick={() => s.setPage(s.page - 1)}
-                className="px-3 py-1 rounded-lg bg-gray-100 text-gray-700 text-sm disabled:opacity-40 hover:bg-gray-200 transition"
-              >
-                ← Prev
-              </button>
-              <span className="text-sm text-gray-500">{s.page} / {s.totalPages}</span>
-              <button
-                disabled={s.page >= s.totalPages}
-                onClick={() => s.setPage(s.page + 1)}
-                className="px-3 py-1 rounded-lg bg-gray-100 text-gray-700 text-sm disabled:opacity-40 hover:bg-gray-200 transition"
-              >
-                Next →
-              </button>
-            </div>
-          )}
         </>
       )}
     </div>

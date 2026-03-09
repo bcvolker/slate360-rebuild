@@ -11,7 +11,7 @@ import MarketDirectBuyTab from "@/components/dashboard/market/MarketDirectBuyTab
 import MarketAutomationTab from "@/components/dashboard/market/MarketAutomationTab";
 import MarketResultsTab from "@/components/dashboard/market/MarketResultsTab";
 import MarketLiveWalletTab from "@/components/dashboard/market/MarketLiveWalletTab";
-import MarketSavedMarketsStub from "@/components/dashboard/market/MarketSavedMarketsStub";
+import MarketSavedMarketsTab from "@/components/dashboard/market/MarketSavedMarketsTab";
 import { useMarketWalletState } from "@/lib/hooks/useMarketWalletState";
 import { normalizeFocusAreas } from "@/lib/market/runtime-config";
 import { syncAutomationPlan, ensureBotRunning } from "@/lib/market/sync-automation-plan";
@@ -22,10 +22,7 @@ interface MarketClientProps {
   layoutPrefs?: MarketShellContext;
 }
 
-// Stubs for tabs not yet built — replaced per batch
-const STUB_TABS: Record<string, React.ComponentType> = {
-  "saved-markets": MarketSavedMarketsStub,
-};
+const STUB_TABS: Record<string, React.ComponentType> = {};
 
 export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   const visibleTabs = layoutPrefs?.visibleTabs ?? [];
@@ -141,6 +138,8 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
             onApplyPlan={handleApplyPlan}
           />
         );
+      case "saved-markets":
+        return <MarketSavedMarketsTab onNavigate={setActiveTabId} />;
       case "results":
         return (
           <MarketResultsTab

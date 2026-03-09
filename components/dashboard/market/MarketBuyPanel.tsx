@@ -59,7 +59,9 @@ export default function MarketBuyPanel({
   const targetExitPnl = shares * (targetExitPrice - avgPrice);
 
   return (
-    <div className="bg-white border-2 border-[#FF4D00]/40 rounded-2xl p-5 space-y-4 shadow-md">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:justify-end p-0 sm:p-6">
+      <button className="absolute inset-0 bg-black/30" onClick={onClose} aria-label="Close buy panel" />
+      <div className="relative w-full sm:max-w-xl max-h-[92vh] overflow-y-auto bg-white border-2 border-[#FF4D00]/40 rounded-t-2xl sm:rounded-2xl p-5 space-y-4 shadow-2xl">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
@@ -210,6 +212,7 @@ export default function MarketBuyPanel({
         </TooltipTrigger>
         <TooltipContent>Submit trade to Polymarket (or simulate in paper mode).</TooltipContent>
       </Tooltip>
+      </div>
     </div>
   );
 }

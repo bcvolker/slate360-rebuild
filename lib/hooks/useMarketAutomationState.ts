@@ -32,13 +32,58 @@ function persistPlans(plans: AutomationPlan[]) {
   localStorage.setItem(PLANS_KEY, JSON.stringify(plans));
 }
 
+async function fetchPlansFromServer(): Promise<AutomationPlan[] | null> {
+  try {
+    const res = await fetch("/api/market/plans", { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = await res.json() as { plans?: AutomationPlan[] };
+    return data.plans ?? [];
+  } catch {
+    return null;
+  }
+}
+
+async function savePlanToServer(plan: AutomationPlan, isEdit: boolean): Promise<AutomationPlan | null> {
+  try {
+    const res = await fetch("/api/market/plans", {
+      method: isEdit ? "PATCH" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(plan),
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as { plan?: AutomationPlan };
+    return data.plan ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function deletePlanFromServer(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/market/plans?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export function useMarketAutomationState() {
   const [plans, setPlans] = useState<AutomationPlan[]>([]);
   const [draft, setDraft] = useState<AutomationPlan>(defaultPlan);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [controlLevel, setControlLevel] = useState<"basic" | "intermediate" | "advanced">("basic");
 
-  useEffect(() => { setPlans(loadPlans()); }, []);
+  useEffect(() => {
+    void (async () => {
+      const serverPlans = await fetchPlansFromServer();
+      if (serverPlans) {
+        setPlans(serverPlans);
+        persistPlans(serverPlans);
+        return;
+      }
+      setPlans(loadPlans());
+    })();
+  }, []);
 
   const updateDraft = useCallback((patch: Partial<AutomationPlan>) => {
     setDraft(prev => ({ ...prev, ...patch, updatedAt: new Date().toISOString() }));
@@ -54,28 +99,42 @@ export function useMarketAutomationState() {
     setControlLevel("basic");
   }, []);
 
-  const savePlan = useCallback(() => {
+  const savePlan = useCallback(async () => {
     if (!draft.name.trim()) return;
     const now = new Date().toISOString();
-    const plan: AutomationPlan = {
+    const optimistic: AutomationPlan = {
       ...draft,
       id: editingId || Date.now().toString(),
       updatedAt: now,
       createdAt: editingId ? draft.createdAt : now,
     };
     const next = editingId
-      ? plans.map(p => (p.id === editingId ? plan : p))
-      : [plan, ...plans];
+      ? plans.map(p => (p.id === editingId ? optimistic : p))
+      : [optimistic, ...plans];
     setPlans(next);
     persistPlans(next);
+    const saved = await savePlanToServer(optimistic, Boolean(editingId));
+    if (saved) {
+      const refreshed = editingId
+        ? next.map((plan) => (plan.id === saved.id ? saved : plan))
+        : [saved, ...next.filter((plan) => plan.id !== optimistic.id)];
+      setPlans(refreshed);
+      persistPlans(refreshed);
+    }
     resetDraft();
-    return plan;
+    return saved ?? optimistic;
   }, [draft, editingId, plans, resetDraft]);
 
-  const deletePlan = useCallback((id: string) => {
-    const next = plans.filter(p => p.id !== id);
+  const deletePlan = useCallback(async (id: string) => {
+    const previous = plans;
+    const next = previous.filter(p => p.id !== id);
     setPlans(next);
     persistPlans(next);
+    const removed = await deletePlanFromServer(id);
+    if (!removed) {
+      setPlans(previous);
+      persistPlans(previous);
+    }
   }, [plans]);
 
   const clonePlan = useCallback((id: string) => {
@@ -94,21 +153,25 @@ export function useMarketAutomationState() {
     persistPlans(next);
   }, [plans]);
 
-  const renamePlan = useCallback((id: string, name: string) => {
+  const renamePlan = useCallback(async (id: string, name: string) => {
     const next = plans.map(p => (p.id === id ? { ...p, name, updatedAt: new Date().toISOString() } : p));
     setPlans(next);
     persistPlans(next);
+    const target = next.find((plan) => plan.id === id);
+    if (target) await savePlanToServer(target, true);
   }, [plans]);
 
-  const archivePlan = useCallback((id: string) => {
+  const archivePlan = useCallback(async (id: string) => {
     const next = plans.map(p =>
       p.id === id ? { ...p, isArchived: !p.isArchived, updatedAt: new Date().toISOString() } : p,
     );
     setPlans(next);
     persistPlans(next);
+    const target = next.find((plan) => plan.id === id);
+    if (target) await savePlanToServer(target, true);
   }, [plans]);
 
-  const setDefaultPlan = useCallback((id: string) => {
+  const setDefaultPlan = useCallback(async (id: string) => {
     const next = plans.map(p => ({
       ...p,
       isDefault: p.id === id ? !p.isDefault : false,
@@ -116,6 +179,8 @@ export function useMarketAutomationState() {
     }));
     setPlans(next);
     persistPlans(next);
+    const updates = next.filter((plan) => plan.id === id || plan.isDefault === false);
+    await Promise.all(updates.map((plan) => savePlanToServer(plan, true)));
   }, [plans]);
 
   const startEdit = useCallback((id: string) => {

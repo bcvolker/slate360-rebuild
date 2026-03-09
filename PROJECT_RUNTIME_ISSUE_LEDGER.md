@@ -736,3 +736,9 @@ Suggested immediate continuation checklist:
 
 ### Elimination status
 - **Resolved** — all dashboard tab pages (standalone shells + Project Hub) now have pixel-for-pixel header parity with `DashboardClient`.
+
+
+### Follow-up hardening — 2026-03-08 (Database Repair)
+- The missing `market_activity_log` and `market_scheduler_lock` tables were preventing proper execution logs and cron tracking. I used the Supabase Management API to execute the raw SQL from `20260306_market_robot_phase_1a_3b.sql` directly against the production database (`hadnfcenpcfaeclczsmm`).
+- The local scheduler secret can be set without risk, but dummy CLOB credentials should not be used because they force live-mode requests down the real CLOB path with invalid authentication.
+- The system is partially repaired: direct paper buys, live order fallbacks, and automation scan routes no longer encounter missing-table PostgREST exclusions, but true live-mode execution still requires valid Polymarket credentials.
