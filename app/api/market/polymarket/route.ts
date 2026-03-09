@@ -14,6 +14,7 @@ export const revalidate = 0;
 
 const DEFAULT_LIMIT = 80;
 const MAX_LIMIT = 200;
+const SEARCH_SCAN_LIMIT = 5000;
 
 function noStoreJson<T>(body: ApiEnvelope<T>, init?: { status?: number }) {
   return NextResponse.json(body, {
@@ -43,6 +44,76 @@ function encodeCursor(offset: number): string {
   return Buffer.from(String(offset), "utf8").toString("base64url");
 }
 
+function parseRows(upstreamData: unknown): unknown[] {
+  return Array.isArray(upstreamData)
+    ? upstreamData
+    : Array.isArray((upstreamData as { markets?: unknown[] })?.markets)
+      ? ((upstreamData as { markets: unknown[] }).markets)
+      : [];
+}
+
+function matchesQuery(market: MarketViewModel, query: string): boolean {
+  const haystack = `${market.title} ${market.category}`.toLowerCase();
+  return haystack.includes(query.toLowerCase());
+}
+
+async function fetchUpstreamRows(url: string) {
+  const res = await fetch(url, {
+    cache: "no-store",
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "Slate360/1.0",
+    },
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!res.ok) {
+    return { res, rows: null as unknown[] | null };
+  }
+
+  const upstreamData: unknown = await res.json();
+  return { res, rows: parseRows(upstreamData) };
+}
+
+async function searchMarkets(
+  forwardParams: URLSearchParams,
+  query: string,
+  limit: number,
+  offset: number,
+) {
+  const matches: MarketViewModel[] = [];
+  let scanOffset = offset;
+
+  while (matches.length < limit && scanOffset < SEARCH_SCAN_LIMIT) {
+    const params = new URLSearchParams(forwardParams);
+    params.set("limit", String(MAX_LIMIT));
+    if (scanOffset > 0) {
+      params.set("offset", String(scanOffset));
+    } else {
+      params.delete("offset");
+    }
+
+    const upstreamUrl = `https://gamma-api.polymarket.com/markets?${params.toString()}`;
+    const { res, rows } = await fetchUpstreamRows(upstreamUrl);
+
+    if (!res.ok || !rows) {
+      return { res, markets: null as MarketViewModel[] | null, nextCursor: undefined as string | undefined };
+    }
+
+    if (rows.length === 0) break;
+
+    const mapped = rows.map((row) => mapGammaMarketToMarketVM(row)).filter((market) => matchesQuery(market, query));
+    matches.push(...mapped);
+    scanOffset += rows.length;
+
+    if (rows.length < MAX_LIMIT) break;
+  }
+
+  const sliced = matches.slice(0, limit);
+  const nextCursor = matches.length > limit ? encodeCursor(offset + limit) : undefined;
+  return { res: null, markets: sliced, nextCursor };
+}
+
 export async function GET(req: NextRequest) {
   const access = await resolveServerOrgContext();
   if (!access.user) {
@@ -66,25 +137,45 @@ export async function GET(req: NextRequest) {
     ? Math.min(Math.max(requestedLimit, 1), MAX_LIMIT)
     : DEFAULT_LIMIT;
   const offset = decodeCursor(searchParams.get("cursor"));
+  const query = searchParams.get("_q")?.trim() ?? "";
 
   forwardParams.delete("_q");
   forwardParams.delete("cursor");
-  forwardParams.set("limit", String(limit));
-  if (offset > 0) {
-    forwardParams.set("offset", String(offset));
-  }
-
-  const upstreamUrl = `https://gamma-api.polymarket.com/markets?${forwardParams.toString()}`;
 
   try {
-    const res = await fetch(upstreamUrl, {
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "Slate360/1.0",
-      },
-      signal: AbortSignal.timeout(15_000),
-    });
+    if (query) {
+      const { res, markets, nextCursor } = await searchMarkets(forwardParams, query, limit, offset);
+
+      if (res && !res.ok) {
+        return noStoreJson(
+          {
+            ok: false,
+            error: {
+              code: "polymarket_upstream_error",
+              message: `Polymarket upstream error (${res.status})`,
+              details: { status: res.status },
+            },
+          },
+          { status: res.status }
+        );
+      }
+
+      return noStoreJson({
+        ok: true,
+        data: {
+          markets: markets ?? [],
+          ...(nextCursor ? { nextCursor } : {}),
+        },
+      });
+    }
+
+    forwardParams.set("limit", String(limit));
+    if (offset > 0) {
+      forwardParams.set("offset", String(offset));
+    }
+
+    const upstreamUrl = `https://gamma-api.polymarket.com/markets?${forwardParams.toString()}`;
+    const { res, rows } = await fetchUpstreamRows(upstreamUrl);
 
     if (!res.ok) {
       return noStoreJson(
@@ -100,14 +191,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const upstreamData: unknown = await res.json();
-    const rows = Array.isArray(upstreamData)
-      ? upstreamData
-      : Array.isArray((upstreamData as { markets?: unknown[] })?.markets)
-        ? ((upstreamData as { markets: unknown[] }).markets)
-        : [];
-
-    const markets: MarketViewModel[] = rows.map((row) => mapGammaMarketToMarketVM(row));
+    const markets: MarketViewModel[] = (rows ?? []).map((row) => mapGammaMarketToMarketVM(row));
     const hasMore = markets.length === limit;
     const nextCursor = hasMore ? encodeCursor(offset + markets.length) : undefined;
 

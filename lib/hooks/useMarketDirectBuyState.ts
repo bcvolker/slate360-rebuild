@@ -82,6 +82,8 @@ export function useMarketDirectBuyState({
           order: fetchPlan.order,
           ascending: String(fetchPlan.ascending),
         });
+        const normalizedQuery = query.trim();
+        if (normalizedQuery) params.set("_q", normalizedQuery);
         if (cursor) {
           params.set("cursor", cursor);
         }
@@ -112,7 +114,7 @@ export function useMarketDirectBuyState({
       setLoadError(error instanceof Error ? error.message : "Failed to load markets");
     }
     finally { setLoading(false); }
-  }, [fetchPlan, mapMarket]);
+  }, [fetchPlan, mapMarket, query]);
 
   // Auto-load markets on mount
   const autoLoaded = useRef(false);

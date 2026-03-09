@@ -155,6 +155,7 @@ Completed
 Follow-up hardening
 - Direct Buy timeframe filtering now excludes already-ended markets returned by the upstream Gamma feed, which was still emitting stale `active=true` rows with past end dates.
 - Direct Buy search now switches into a broader fetch plan when a query is present so search is not limited to the first 1,200 preloaded rows.
+- Direct Buy search is now server-assisted through `/api/market/polymarket?_q=...`, so changing the search term triggers a real proxy-backed catalog search instead of only filtering the previously loaded slice.
 
 ## Mar 7, 2026 — Operator + Direct Buy refinement pass
 

@@ -5,7 +5,7 @@ export function getDirectBuyFetchPlan(timeframe: MktTimeframe, query = "") {
 
   if (normalizedQuery.length > 0) {
     return {
-      key: `search:${timeframe}`,
+      key: `search:${timeframe}:${normalizedQuery.toLowerCase()}`,
       mode: "search",
       order: "volume24hr",
       ascending: false,
