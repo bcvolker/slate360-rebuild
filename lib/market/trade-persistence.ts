@@ -46,11 +46,27 @@ function stripRowColumns(
 export function getUnsupportedMarketTradeColumn(
   error: PostgrestError | null,
 ): OptionalMarketTradeColumn | null {
-  const message = error?.message;
-  if (!message) return null;
+  const message = error?.message?.toLowerCase() ?? "";
+  const details = error?.details?.toLowerCase() ?? "";
+  const hint = error?.hint?.toLowerCase() ?? "";
+
+  if (!message && !details && !hint) return null;
 
   for (const column of OPTIONAL_MARKET_TRADE_COLUMNS) {
-    if (message.includes(`'${column}'`)) {
+    const quotedColumn = `'${column}'`;
+    const qualifiedColumn = `market_trades.${column}`;
+
+    if (
+      message.includes(column) ||
+      message.includes(quotedColumn) ||
+      message.includes(qualifiedColumn) ||
+      details.includes(column) ||
+      details.includes(quotedColumn) ||
+      details.includes(qualifiedColumn) ||
+      hint.includes(column) ||
+      hint.includes(quotedColumn) ||
+      hint.includes(qualifiedColumn)
+    ) {
       return column;
     }
   }

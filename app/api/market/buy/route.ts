@@ -47,6 +47,8 @@ export const POST = (req: NextRequest) =>
       idempotency_key,
     } = body;
 
+    let supportsIdempotencyLookup = true;
+
     if (idempotency_key) {
       const { data: existingTrade, error: existingTradeError } = await admin
         .from("market_trades")
@@ -57,11 +59,15 @@ export const POST = (req: NextRequest) =>
 
       const missingIdempotencyColumn = getUnsupportedMarketTradeColumn(existingTradeError);
 
-      if (existingTradeError && missingIdempotencyColumn !== "idempotency_key") {
+      if (missingIdempotencyColumn === "idempotency_key") {
+        supportsIdempotencyLookup = false;
+      }
+
+      if (existingTradeError && supportsIdempotencyLookup) {
         return NextResponse.json({ error: existingTradeError.message }, { status: 500 });
       }
 
-      if (existingTrade) {
+      if (supportsIdempotencyLookup && existingTrade) {
         return NextResponse.json({
           success: true,
           mode: "idempotent_recovery",
