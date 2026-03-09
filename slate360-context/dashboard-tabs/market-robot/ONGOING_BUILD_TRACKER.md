@@ -152,6 +152,10 @@ Completed
 - Direct Buy now fetches a smaller default market set to reduce load time and switches to `endDate` ordering for hour/day/week filters.
 - Timeframe filtering now prefers the precise timestamp field (`endDate`) over the date-only field (`endDateIso`), fixing the inaccurate `Next Hour` behavior.
 
+Follow-up hardening
+- Direct Buy timeframe filtering now excludes already-ended markets returned by the upstream Gamma feed, which was still emitting stale `active=true` rows with past end dates.
+- Direct Buy search now switches into a broader fetch plan when a query is present so search is not limited to the first 1,200 preloaded rows.
+
 ## Mar 7, 2026 — Operator + Direct Buy refinement pass
 
 Completed

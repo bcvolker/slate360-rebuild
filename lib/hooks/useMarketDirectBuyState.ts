@@ -45,7 +45,8 @@ export function useMarketDirectBuyState({
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const lastFetchMode = useRef<string | null>(null);
+  const fetchPlan = useMemo(() => getDirectBuyFetchPlan(timeframe, query), [timeframe, query]);
+  const lastFetchPlanKey = useRef<string | null>(null);
 
   // Buy panel state
   const [buyMarket, setBuyMarket] = useState<MarketListing | null>(null);
@@ -68,19 +69,18 @@ export function useMarketDirectBuyState({
     setLoading(true);
     setLoadError(null);
     try {
-      const plan = getDirectBuyFetchPlan(timeframe);
       const collected: MarketViewModel[] = [];
       let cursor: string | undefined;
       let hasMore = true;
-      lastFetchMode.current = plan.mode;
+      lastFetchPlanKey.current = fetchPlan.key;
 
-      while (hasMore && collected.length < plan.maxMarkets) {
+      while (hasMore && collected.length < fetchPlan.maxMarkets) {
         const params = new URLSearchParams({
           limit: String(FETCH_BATCH_SIZE),
           active: "true",
           closed: "false",
-          order: plan.order,
-          ascending: String(plan.ascending),
+          order: fetchPlan.order,
+          ascending: String(fetchPlan.ascending),
         });
         if (cursor) {
           params.set("cursor", cursor);
@@ -112,7 +112,7 @@ export function useMarketDirectBuyState({
       setLoadError(error instanceof Error ? error.message : "Failed to load markets");
     }
     finally { setLoading(false); }
-  }, [mapMarket, timeframe]);
+  }, [fetchPlan, mapMarket]);
 
   // Auto-load markets on mount
   const autoLoaded = useRef(false);
@@ -125,11 +125,10 @@ export function useMarketDirectBuyState({
 
   useEffect(() => {
     if (!loaded || loading) return;
-    const nextPlan = getDirectBuyFetchPlan(timeframe);
-    if (nextPlan.mode !== lastFetchMode.current) {
+    if (fetchPlan.key !== lastFetchPlanKey.current) {
       void fetchMarkets();
     }
-  }, [fetchMarkets, loaded, loading, timeframe]);
+  }, [fetchMarkets, fetchPlan.key, loaded, loading]);
 
   const availableCategories = useMemo(
     () => [...new Set(markets.map(m => m.category))].sort(),
@@ -260,7 +259,7 @@ export function useMarketDirectBuyState({
     }
   }, [buyAmount, buyMarket, buyOutcome, buyPaper, onTradePlaced, walletAddress]);
 
-  const fetchModeLabel = useMemo(() => getDirectBuyFetchPlan(timeframe).label, [timeframe]);
+  const fetchModeLabel = fetchPlan.label;
 
   return {
     query, setQuery,

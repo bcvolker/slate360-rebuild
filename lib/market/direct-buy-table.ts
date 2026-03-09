@@ -46,6 +46,7 @@ export function filterAndSortMarkets({
   minLiquidity: number;
   maxSpread: number;
 }): MarketListing[] {
+  const now = Date.now();
   const cut = endCutoff(timeframe);
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -58,7 +59,10 @@ export function filterAndSortMarkets({
       if (timeframe !== "all") {
         const iso = market.endDate ?? market.endDateIso;
         if (!iso) return false;
-        if (new Date(iso).getTime() > cut) return false;
+        const endTime = new Date(iso).getTime();
+        if (!Number.isFinite(endTime)) return false;
+        if (endTime < now) return false;
+        if (endTime > cut) return false;
       }
       if (category !== "all" && market.category !== category) return false;
       if (market.probabilityPct < probMin || market.probabilityPct > probMax) return false;

@@ -110,6 +110,16 @@ function deriveRiskTag(edgePct: number, probabilityPct: number, category: string
   return null;
 }
 
+function getFallbackEventEndDate(record: Record<string, unknown>): string | null {
+  const events = Array.isArray(record.events) ? record.events : [];
+  for (const event of events) {
+    const eventRecord = asRecord(event);
+    const eventEndDate = eventRecord.endDate;
+    if (typeof eventEndDate === "string" && eventEndDate.length > 0) return eventEndDate;
+  }
+  return null;
+}
+
 export function mapGammaMarketToMarketVM(raw: unknown): MarketViewModel {
   const record = asRecord(raw);
   const [tokenIdYes, tokenIdNo] = parseClobTokenIds(record.clobTokenIds ?? record.tokens);
@@ -127,12 +137,15 @@ export function mapGammaMarketToMarketVM(raw: unknown): MarketViewModel {
   const rawCategory = String(record.category ?? "General");
   const title = String(record.question ?? record.title ?? "");
   const category = deriveCategory(title, rawCategory);
-  const endDateRaw = record.endDate;
+  const fallbackEventEndDate = getFallbackEventEndDate(record);
+  const endDateRaw = record.endDate ?? fallbackEventEndDate;
   const endDateIsoRaw = record.endDateIso;
   const eventStartRaw = record.startDate ?? record.eventStartDate;
   const eventStartTimeRaw = record.startDateIso ?? record.eventStartTime;
 
-  const endDate = typeof endDateRaw === "string" && endDateRaw.length > 0 ? endDateRaw : null;
+  const endDate = typeof endDateRaw === "string" && endDateRaw.length > 0
+    ? endDateRaw
+    : fallbackEventEndDate;
   const endDateIso = typeof endDateIsoRaw === "string" && endDateIsoRaw.length > 0
     ? endDateIsoRaw
     : endDate;
