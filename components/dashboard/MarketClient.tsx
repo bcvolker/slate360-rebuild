@@ -12,6 +12,7 @@ import MarketAutomationTab from "@/components/dashboard/market/MarketAutomationT
 import MarketResultsTab from "@/components/dashboard/market/MarketResultsTab";
 import MarketLiveWalletTab from "@/components/dashboard/market/MarketLiveWalletTab";
 import MarketSavedMarketsTab from "@/components/dashboard/market/MarketSavedMarketsTab";
+import MarketTopOverview from "@/components/dashboard/market/MarketTopOverview";
 import { useMarketWalletState } from "@/lib/hooks/useMarketWalletState";
 import { normalizeFocusAreas } from "@/lib/market/runtime-config";
 import { syncAutomationPlan, ensureBotRunning } from "@/lib/market/sync-automation-plan";
@@ -37,30 +38,31 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   }, [visibleTabs, activeTabId]);
 
   const td = useMarketTradeData(logsEnabled);
+  const { fetchTrades, fetchSummary, fetchSchedulerHealth, fetchMarketLogs, trades, activityLogs } = td;
   const bot = useMarketBot({
-    trades: td.trades,
-    fetchTrades: td.fetchTrades,
-    fetchSummary: td.fetchSummary,
-    fetchSchedulerHealth: td.fetchSchedulerHealth,
+    trades,
+    fetchTrades,
+    fetchSummary,
+    fetchSchedulerHealth,
   });
   const wallet = useMarketWalletState({ addLog: bot.addLog });
   const serverStatus = useMarketServerStatus();
 
   useEffect(() => {
-    td.fetchTrades();
-    td.fetchSummary();
-    td.fetchSchedulerHealth();
+    fetchTrades();
+    fetchSummary();
+    fetchSchedulerHealth();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (activeTabId === "results") {
-      void td.fetchTrades();
-      void td.fetchSummary();
-      void td.fetchSchedulerHealth();
-      void td.fetchMarketLogs();
+      void fetchTrades();
+      void fetchSummary();
+      void fetchSchedulerHealth();
+      void fetchMarketLogs();
     }
-  }, [activeTabId, td]);
+  }, [activeTabId, fetchTrades, fetchSummary, fetchSchedulerHealth, fetchMarketLogs]);
 
   const handleApplyPlan = useCallback((plan: AutomationPlan) => {
     void (async () => {
@@ -114,11 +116,11 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   }, [bot]);
 
   const handleTradePlaced = useCallback(async () => {
-    await td.fetchTrades();
-    await td.fetchSummary();
-    await td.fetchSchedulerHealth();
+    await fetchTrades();
+    await fetchSummary();
+    await fetchSchedulerHealth();
     setActiveTabId("results");
-  }, [td]);
+  }, [fetchSchedulerHealth, fetchSummary, fetchTrades]);
 
   function renderActiveTab() {
     switch (activeTabId) {
@@ -154,8 +156,8 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
       case "results":
         return (
           <MarketResultsTab
-            trades={td.trades}
-            activityLogs={td.activityLogs}
+            trades={trades}
+            activityLogs={activityLogs}
           />
         );
       case "live-wallet":
@@ -232,6 +234,13 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
         tabs={visibleTabs}
         activeTabId={activeTabId}
         onTabChange={setActiveTabId}
+      />
+
+      <MarketTopOverview
+        trades={trades}
+        botConfig={bot.config}
+        onOpenResults={() => setActiveTabId("results")}
+        onOpenAutomation={() => setActiveTabId("automation")}
       />
 
       {renderActiveTab()}

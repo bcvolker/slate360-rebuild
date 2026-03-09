@@ -159,6 +159,15 @@ Follow-up hardening
 - Timeline chips now request `upcoming=true` through the market proxy, which makes the proxy scan past stale expired Gamma rows and return only future-closing markets for `Next Hour`, `Day`, and `Week`.
 - Default Direct Buy fetch sizes were reduced to cut down cursor-based proxy churn, and scheduler health polling was slowed to reduce transient 504 noise in the Market tab.
 
+## Mar 9, 2026 — Automation stability + UX cleanup
+
+Completed
+- Fixed a Results-tab fetch loop in `MarketClient.tsx` that could repeatedly hammer `trades`, `summary`, `health`, and `logs` and contribute to `ERR_INSUFFICIENT_RESOURCES` browser failures.
+- Hardened `/api/market/plans` so older or missing `market_plans` schemas degrade to local-fallback behavior instead of throwing 500s on every automation load/save action.
+- Automation builder now behaves more like a task flow: it opens on demand, closes automatically after save, and closes on cancel.
+- Added clearer automation copy so the simple path is emphasized and the extra controls are explicitly positioned as optional.
+- Added a top-level Market overview strip with clickable `Open Positions` and `Automation Programmed` cards so users can jump directly into what is currently open or configured.
+
 ## Mar 7, 2026 — Operator + Direct Buy refinement pass
 
 Completed

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withMarketAuth } from "@/lib/server/api-auth";
 import type { AutomationPlan } from "@/components/dashboard/market/types";
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { PostgrestError } from "@supabase/supabase-js";
 
 type PlanRow = {
   id: string;
@@ -89,6 +90,10 @@ function toRow(plan: AutomationPlan, userId: string) {
   };
 }
 
+function isMissingPlansSchema(error: PostgrestError | null) {
+  return error?.code === "42P01" || error?.code === "PGRST205" || error?.message?.includes("market_plans") === true;
+}
+
 async function unsetOtherDefaults(admin: ReturnType<typeof createAdminClient>, userId: string, excludeId?: string) {
   let query = admin.from("market_plans").update({ is_default: false }).eq("user_id", userId).eq("is_default", true);
   if (excludeId) query = query.neq("id", excludeId);
@@ -103,6 +108,7 @@ export const GET = (req: NextRequest) =>
       .eq("user_id", user.id)
       .order("updated_at", { ascending: false });
 
+    if (isMissingPlansSchema(error)) return NextResponse.json({ plans: [], degraded: true });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ plans: (data ?? []).map((row) => toPlan(row as PlanRow)) });
   });
@@ -119,6 +125,7 @@ export const POST = (req: NextRequest) =>
       .select("*")
       .single();
 
+    if (isMissingPlansSchema(error)) return NextResponse.json({ plan: body, degraded: true }, { status: 201 });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ plan: toPlan(data as PlanRow) }, { status: 201 });
   });
@@ -138,6 +145,7 @@ export const PATCH = (req: NextRequest) =>
       .select("*")
       .single();
 
+    if (isMissingPlansSchema(error)) return NextResponse.json({ plan: body, degraded: true });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ plan: toPlan(data as PlanRow) });
   });
@@ -148,6 +156,7 @@ export const DELETE = (req: NextRequest) =>
     if (!id) return NextResponse.json({ error: "Plan id is required" }, { status: 400 });
 
     const { error } = await admin.from("market_plans").delete().eq("id", id).eq("user_id", user.id);
+    if (isMissingPlansSchema(error)) return NextResponse.json({ ok: true, degraded: true });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });
   });

@@ -34,6 +34,7 @@ export default function MarketAutomationBuilder({
           {editingId ? "Edit Plan" : "New Automation Plan"}
           <HelpTip content="Create or edit a saved automation plan the robot can run. Choose your level of control below." />
         </h3>
+        <span className="text-[11px] text-gray-400">Save closes this builder automatically</span>
       </div>
 
       {/* Control level selector */}
@@ -49,6 +50,9 @@ export default function MarketAutomationBuilder({
             </button>
           ))}
         </div>
+        <p className="text-[11px] text-gray-400 mt-2">
+          `Basic` is the recommended mode. `Intermediate` and `Advanced` expose extra controls that are not needed for most users.
+        </p>
       </div>
 
       {/* Plan name */}
@@ -171,7 +175,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs text-gray-500 mb-1 flex items-center">
-            Max Open Positions <HelpTip content="Max number of concurrent open trades." />
+            Max Open Positions <HelpTip content="How many open positions the robot can hold at once." />
           </label>
           <MarketNumericInput
             value={draft.maxOpenPositions}
@@ -183,12 +187,12 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
         </div>
         <div>
           <label className="text-xs text-gray-500 mb-1 flex items-center">
-            Scan Mode <HelpTip content="How frequently and aggressively the robot scans for opportunities." />
+            Scan Mode <HelpTip content="How often the robot scans. Faster modes create more activity and more noise." />
           </label>
           <select value={draft.scanMode} onChange={e => onFieldChange("scanMode", e.target.value as ScanMode)}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]">
             {(["slow", "balanced", "fast", "closing-soon"] as const).map(s => (
-              <option key={s} value={s}>{s === "closing-soon" ? "Closing Soon" : s.charAt(0).toUpperCase() + s.slice(1)}</option>
+              <option key={s} value={s}>{s === "closing-soon" ? "Soon-ending only" : s.charAt(0).toUpperCase() + s.slice(1)}</option>
             ))}
           </select>
         </div>

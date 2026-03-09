@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useMarketAutomationState } from "@/lib/hooks/useMarketAutomationState";
 import MarketAutomationBuilder from "@/components/dashboard/market/MarketAutomationBuilder";
 import MarketPlanList from "@/components/dashboard/market/MarketPlanList";
@@ -13,30 +13,66 @@ interface MarketAutomationTabProps {
 
 export default function MarketAutomationTab({ botConfig, onApplyPlan }: MarketAutomationTabProps) {
   const auto = useMarketAutomationState();
+  const [composerOpen, setComposerOpen] = useState(false);
 
   const handleApply = useCallback((plan: AutomationPlan) => {
     onApplyPlan(plan);
   }, [onApplyPlan]);
+
+  const handleSave = useCallback(async () => {
+    const saved = await auto.savePlan();
+    if (saved) {
+      setComposerOpen(false);
+    }
+  }, [auto]);
+
+  const quickStats = useMemo(() => ({
+    practicePlans: auto.plans.filter((plan) => !plan.isArchived && plan.mode === "practice").length,
+    realPlans: auto.plans.filter((plan) => !plan.isArchived && plan.mode === "real").length,
+  }), [auto.plans]);
 
   return (
     <div className="space-y-5">
       {/* Active plan summary */}
       <ActivePlanSummary botConfig={botConfig} defaultPlan={auto.plans.find(p => p.isDefault)} />
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <MarketAutomationBuilder
-          draft={auto.draft}
-          editingId={auto.editingId}
-          controlLevel={auto.controlLevel}
-          onControlLevelChange={auto.setControlLevel}
-          onFieldChange={auto.setDraftField}
-          onSave={auto.savePlan}
-          onReset={auto.resetDraft}
-        />
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">Automation Plans</h3>
+          <p className="text-xs text-gray-500 mt-1">
+            Save a simple plan, apply it, and let the robot run. Practice plans: {quickStats.practicePlans} · Live plans: {quickStats.realPlans}
+          </p>
+        </div>
+        <button
+          onClick={() => setComposerOpen((value) => !value)}
+          className="px-4 py-2 rounded-lg bg-[#FF4D00] text-white text-sm font-semibold hover:bg-[#e04400] transition"
+        >
+          {composerOpen || auto.editingId ? "Close plan builder" : "New plan"}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+        {(composerOpen || auto.editingId) && (
+          <MarketAutomationBuilder
+            draft={auto.draft}
+            editingId={auto.editingId}
+            controlLevel={auto.controlLevel}
+            onControlLevelChange={auto.setControlLevel}
+            onFieldChange={auto.setDraftField}
+            onSave={handleSave}
+            onReset={() => {
+              auto.resetDraft();
+              setComposerOpen(false);
+            }}
+          />
+        )}
 
         <MarketPlanList
           plans={auto.plans}
-          onEdit={auto.startEdit}
+          onEdit={(id) => {
+            auto.startEdit(id);
+            setComposerOpen(true);
+          }}
           onClone={auto.clonePlan}
           onRename={auto.renamePlan}
           onArchive={auto.archivePlan}
