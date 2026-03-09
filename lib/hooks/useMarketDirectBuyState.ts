@@ -84,6 +84,7 @@ export function useMarketDirectBuyState({
         });
         const normalizedQuery = query.trim();
         if (normalizedQuery) params.set("_q", normalizedQuery);
+        if (fetchPlan.upcoming) params.set("upcoming", "true");
         if (cursor) {
           params.set("cursor", cursor);
         }

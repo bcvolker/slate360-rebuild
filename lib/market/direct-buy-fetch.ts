@@ -9,7 +9,8 @@ export function getDirectBuyFetchPlan(timeframe: MktTimeframe, query = "") {
       mode: "search",
       order: "volume24hr",
       ascending: false,
-      maxMarkets: 4000,
+      maxMarkets: 1200,
+      upcoming: false,
       label: `Searching a broader market set for \"${normalizedQuery}\"`,
     } as const;
   }
@@ -20,7 +21,8 @@ export function getDirectBuyFetchPlan(timeframe: MktTimeframe, query = "") {
       mode: "ending-soon",
       order: "endDate",
       ascending: true,
-      maxMarkets: 1200,
+      maxMarkets: 400,
+      upcoming: true,
       label: "Showing soonest-closing markets first",
     } as const;
   }
@@ -30,7 +32,8 @@ export function getDirectBuyFetchPlan(timeframe: MktTimeframe, query = "") {
     mode: "broad",
     order: "volume24hr",
     ascending: false,
-    maxMarkets: 1200,
+    maxMarkets: 400,
+    upcoming: false,
     label: "Showing top liquid markets first",
   } as const;
 }

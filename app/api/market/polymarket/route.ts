@@ -15,6 +15,7 @@ export const revalidate = 0;
 const DEFAULT_LIMIT = 80;
 const MAX_LIMIT = 200;
 const SEARCH_SCAN_LIMIT = 5000;
+const UPCOMING_SCAN_LIMIT = 5000;
 
 function noStoreJson<T>(body: ApiEnvelope<T>, init?: { status?: number }) {
   return NextResponse.json(body, {
@@ -55,6 +56,13 @@ function parseRows(upstreamData: unknown): unknown[] {
 function matchesQuery(market: MarketViewModel, query: string): boolean {
   const haystack = `${market.title} ${market.category}`.toLowerCase();
   return haystack.includes(query.toLowerCase());
+}
+
+function isUpcomingMarket(market: MarketViewModel): boolean {
+  const iso = market.endDate ?? market.endDateIso;
+  if (!iso) return false;
+  const endTime = new Date(iso).getTime();
+  return Number.isFinite(endTime) && endTime >= Date.now();
 }
 
 async function fetchUpstreamRows(url: string) {
@@ -114,6 +122,48 @@ async function searchMarkets(
   return { res: null, markets: sliced, nextCursor };
 }
 
+async function collectUpcomingMarkets(
+  forwardParams: URLSearchParams,
+  limit: number,
+  offset: number,
+) {
+  const matches: MarketViewModel[] = [];
+  let scanOffset = offset;
+
+  while (matches.length < limit && scanOffset < UPCOMING_SCAN_LIMIT) {
+    const params = new URLSearchParams(forwardParams);
+    params.set("limit", String(MAX_LIMIT));
+    if (scanOffset > 0) {
+      params.set("offset", String(scanOffset));
+    } else {
+      params.delete("offset");
+    }
+
+    const upstreamUrl = `https://gamma-api.polymarket.com/markets?${params.toString()}`;
+    const { res, rows } = await fetchUpstreamRows(upstreamUrl);
+
+    if (!res.ok || !rows) {
+      return { res, markets: null as MarketViewModel[] | null, nextCursor: undefined as string | undefined };
+    }
+
+    if (rows.length === 0) break;
+
+    const mapped = rows
+      .map((row) => mapGammaMarketToMarketVM(row))
+      .filter((market) => isUpcomingMarket(market));
+    matches.push(...mapped);
+    scanOffset += rows.length;
+
+    if (rows.length < MAX_LIMIT) break;
+  }
+
+  const sliced = matches.slice(0, limit);
+  const nextCursor = sliced.length === limit && scanOffset < UPCOMING_SCAN_LIMIT
+    ? encodeCursor(scanOffset)
+    : undefined;
+  return { res: null, markets: sliced, nextCursor };
+}
+
 export async function GET(req: NextRequest) {
   const access = await resolveServerOrgContext();
   if (!access.user) {
@@ -138,13 +188,41 @@ export async function GET(req: NextRequest) {
     : DEFAULT_LIMIT;
   const offset = decodeCursor(searchParams.get("cursor"));
   const query = searchParams.get("_q")?.trim() ?? "";
+  const upcomingOnly = searchParams.get("upcoming") === "true";
 
   forwardParams.delete("_q");
   forwardParams.delete("cursor");
+  forwardParams.delete("upcoming");
 
   try {
     if (query) {
       const { res, markets, nextCursor } = await searchMarkets(forwardParams, query, limit, offset);
+
+      if (res && !res.ok) {
+        return noStoreJson(
+          {
+            ok: false,
+            error: {
+              code: "polymarket_upstream_error",
+              message: `Polymarket upstream error (${res.status})`,
+              details: { status: res.status },
+            },
+          },
+          { status: res.status }
+        );
+      }
+
+      return noStoreJson({
+        ok: true,
+        data: {
+          markets: markets ?? [],
+          ...(nextCursor ? { nextCursor } : {}),
+        },
+      });
+    }
+
+    if (upcomingOnly) {
+      const { res, markets, nextCursor } = await collectUpcomingMarkets(forwardParams, limit, offset);
 
       if (res && !res.ok) {
         return noStoreJson(
