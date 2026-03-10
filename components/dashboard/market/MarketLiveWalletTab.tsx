@@ -245,11 +245,11 @@ export default function MarketLiveWalletTab({
         )}
       </div>
 
-      {/* Paper mode notice */}
+      {/* Practice mode notice */}
       {paperMode && (
         <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4 text-center">
           <p className="text-sm text-purple-700">
-            You&apos;re in <strong>Paper Mode</strong>. Complete the checklist above and switch to real-money mode on the Start Here tab to trade live.
+            You&apos;re in <strong>Practice Mode</strong>. Complete the checklist above and switch to real-money mode on the Overview tab to trade live.
           </p>
         </div>
       )}

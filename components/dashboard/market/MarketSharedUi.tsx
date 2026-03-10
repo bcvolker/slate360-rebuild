@@ -32,9 +32,13 @@ export function StatusBadge({ status }: { status: string }) {
     unknown: "bg-gray-200 text-gray-400 border border-gray-200",
   };
 
+  const labels: Record<string, string> = {
+    paper: "Practice",
+  };
+
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${colors[status] || colors.idle}`}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {labels[status] ?? (status.charAt(0).toUpperCase() + status.slice(1))}
     </span>
   );
 }

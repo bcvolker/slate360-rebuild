@@ -15,7 +15,7 @@ export default function MarketSavedMarketsTab({ onNavigate }: MarketSavedMarkets
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 className="text-lg font-bold text-gray-900">Saved Markets</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Markets you want to revisit quickly for paper or live trading.</p>
+          <p className="text-sm text-gray-500 mt-0.5">Markets you want to revisit quickly for practice or live trading.</p>
         </div>
         <button
           onClick={() => onNavigate("direct-buy")}

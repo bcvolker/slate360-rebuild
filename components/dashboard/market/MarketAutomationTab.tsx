@@ -45,12 +45,22 @@ export default function MarketAutomationTab({ botConfig, onApplyPlan, onStopBot,
             Save a simple plan, apply it, and let the robot run. Practice plans: {quickStats.practicePlans} · Live plans: {quickStats.realPlans}
           </p>
         </div>
-        <button
-          onClick={() => setComposerOpen((value) => !value)}
-          className="px-4 py-2 rounded-lg bg-[#FF4D00] text-white text-sm font-semibold hover:bg-[#e04400] transition"
-        >
-          {composerOpen || auto.editingId ? "Close plan builder" : "New plan"}
-        </button>
+        <div className="flex items-center gap-2">
+          {onNavigate && (
+            <button
+              onClick={() => onNavigate("results")}
+              className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition"
+            >
+              Open running positions
+            </button>
+          )}
+          <button
+            onClick={() => setComposerOpen((value) => !value)}
+            className="px-4 py-2 rounded-lg bg-[#FF4D00] text-white text-sm font-semibold hover:bg-[#e04400] transition"
+          >
+            {composerOpen || auto.editingId ? "Close plan builder" : "New plan"}
+          </button>
+        </div>
       </div>
 
       {/* Plan builder + list */}

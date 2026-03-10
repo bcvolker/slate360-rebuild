@@ -192,10 +192,10 @@ export default function MarketBuyPanel({
         </div>
       </div>
 
-      {/* Paper mode toggle */}
+      {/* Practice mode toggle */}
       <div className="flex items-center justify-between">
         <span className="text-sm text-gray-700 flex items-center gap-1">
-          Paper Mode <HelpTip content="Paper mode saves the trade without spending real money. Ideal for testing." />
+          Practice Mode <HelpTip content="Practice mode saves the trade without spending real money. Ideal for testing." />
         </span>
         <button onClick={onPaperToggle}
           className={`relative w-10 h-5 rounded-full transition ${paper ? "bg-purple-600" : "bg-green-700"}`}>
@@ -231,10 +231,10 @@ export default function MarketBuyPanel({
             disabled={submitting || !payloadReady}
             className="w-full bg-[#FF4D00] hover:bg-orange-600 py-3 rounded-xl text-sm font-bold text-white transition disabled:opacity-50"
           >
-            {submitting ? "Processing…" : `Confirm ${paper ? "Paper " : ""}Buy — $${amount} ${outcome}`}
+            {submitting ? "Processing…" : `Confirm ${paper ? "Practice " : ""}Buy — $${amount} ${outcome}`}
           </button>
         </TooltipTrigger>
-        <TooltipContent>Submit trade to Polymarket (or simulate in paper mode).</TooltipContent>
+        <TooltipContent>Submit trade to Polymarket (or simulate in practice mode).</TooltipContent>
       </Tooltip>
       </div>
     </div>

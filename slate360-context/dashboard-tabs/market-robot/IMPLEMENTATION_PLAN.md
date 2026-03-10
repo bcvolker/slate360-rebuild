@@ -21,6 +21,12 @@ The current backend autonomy work and market data plumbing stay in place. This p
 - Results and Open Positions now drill into a reusable position detail drawer instead of stopping at summary cards.
 - Automation and Results both surface a visible robot activity feed so scans, syncs, and trade events are easier to follow while the wallet/API work is still being finished.
 
+### March 10, 2026 Follow-up UX pass
+- Removed "Browse markets in plain English" style meta-copy from the Direct Buy hero and replaced it with direct task copy.
+- Replaced chip-heavy + slider-heavy filter controls with standard form controls (search input, time/topic/sort selects, optional advanced numeric filters).
+- Added explicit "Open running positions" action in Automation so active trades are easier to locate.
+- Added Results guidance clarifying that new trades remain open until market resolution and included a quick refresh action.
+
 ## Current State and User Goal
 Current backend and data plumbing are usable: shared shell/header, decomposed UI, cron-driven scheduler, wallet verification, approval flow, directives, logs, and summary stats all exist.
 

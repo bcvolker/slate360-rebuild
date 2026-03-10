@@ -17,12 +17,12 @@ interface MarketDirectBuyTabProps {
 }
 
 const QUICK_TIMEFRAMES: { key: MktTimeframe; label: string }[] = [
-  { key: "hour", label: "Next Hour" },
-  { key: "day", label: "Day" },
-  { key: "week", label: "Week" },
-  { key: "month", label: "Month" },
-  { key: "year", label: "Year" },
-  { key: "all", label: "All Time" },
+  { key: "hour", label: "Next hour" },
+  { key: "day", label: "Today" },
+  { key: "week", label: "This week" },
+  { key: "month", label: "This month" },
+  { key: "year", label: "This year" },
+  { key: "all", label: "Any time" },
 ];
 
 const fmt = (v: number) => `$${v.toFixed(2)}`;
@@ -38,8 +38,8 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
       <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,rgba(255,124,32,0.12),transparent_25%),linear-gradient(135deg,#ffffff,#f4f7fb)] p-5 shadow-sm">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Manual trading workspace</p>
-          <h2 className="mt-2 text-3xl font-black text-slate-900">Browse markets in plain English</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Search a live market, understand what each side means, review the current pricing, and place a practice or live trade without needing to already know Polymarket shorthand.</p>
+          <h2 className="mt-2 text-3xl font-black text-slate-900">Browse prediction markets</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Search events, filter by topic and time, then open a market to review pricing and place a trade.</p>
         </div>
         <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
           <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 font-semibold text-slate-700">Mode: {paperMode ? "Practice by default" : "Live-ready by default"}</span>
@@ -81,7 +81,7 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
             type="text"
             value={s.query}
             onChange={e => s.setQuery(e.target.value)}
-            placeholder="Search a question, topic, or event"
+            placeholder="Search events (example: election, bitcoin, weather)"
             className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/30"
           />
           <button
@@ -93,32 +93,60 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
           </button>
         </div>
 
-        {/* Quick timeframe chips */}
-        <div className="flex flex-wrap gap-1.5 items-center">
-          {QUICK_TIMEFRAMES.map(tf => (
-            <button
-              key={tf.key}
-              onClick={() => s.setTimeframe(tf.key)}
-              className={`px-2.5 py-1 rounded-full text-xs font-medium transition ${
-                s.timeframe === tf.key
-                  ? "bg-[#FF4D00] text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <label className="text-xs text-gray-600">
+            Time range
+            <select
+              value={s.timeframe}
+              onChange={(e) => s.setTimeframe(e.target.value as MktTimeframe)}
+              className="mt-1 w-full border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/30"
             >
-              {tf.label}
-            </button>
-          ))}
+              {QUICK_TIMEFRAMES.map((tf) => (
+                <option key={tf.key} value={tf.key}>{tf.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-gray-600">
+            Topic
+            <select
+              value={s.category}
+              onChange={(e) => s.setCategory(e.target.value)}
+              className="mt-1 w-full border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/30"
+            >
+              <option value="all">All topics</option>
+              {s.availableCategories.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-gray-600">
+            Sort results by
+            <select
+              value={s.sortBy}
+              onChange={(e) => s.setSortBy(e.target.value as typeof s.sortBy)}
+              className="mt-1 w-full border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/30"
+            >
+              <option value="edge">Best value</option>
+              <option value="volume">Most active</option>
+              <option value="probability">Most likely</option>
+              <option value="endDate">Ending soon</option>
+              <option value="title">Name A-Z</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="flex items-center gap-2">
           <button
             onClick={() => s.setFiltersOpen(!s.filtersOpen)}
-            className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition ml-auto"
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
           >
-            {s.filtersOpen ? "▲ Fewer filters" : "▼ More filters"}
+            {s.filtersOpen ? "Hide extra filters" : "Show extra filters"}
           </button>
           <button
             onClick={s.clearFilters}
-            className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
           >
-            Clear filters
+            Reset filters
           </button>
         </div>
 

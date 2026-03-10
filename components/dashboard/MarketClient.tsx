@@ -104,7 +104,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
       // 2. Set bot status to paper/running so the scheduler picks this user up
       const statusSet = await ensureBotRunning(paperMode);
       if (statusSet) {
-        bot.addLog(`🟢 Bot status set to ${paperMode ? "paper" : "running"} — scheduler will pick up trades`);
+        bot.addLog(`🟢 Bot status set to ${paperMode ? "practice" : "running"} — scheduler will pick up trades`);
       } else {
         bot.addLog(`⚠️ Failed to set bot status on server — scheduler may not run`);
       }
@@ -243,7 +243,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   const displayStatusLabel =
     displayStatus === "running" ? "Running" :
     displayStatus === "paused" ? "Paused" :
-    displayStatus === "paper" ? "Paper" :
+    displayStatus === "paper" ? "Practice" :
     displayStatus === "stopped" ? "Stopped" :
     "Checking…";
 
@@ -259,7 +259,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
             )}
             {bot.config.paperMode && (
               <span className="text-xs bg-purple-100 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full">
-                Paper Mode
+                Practice Mode
               </span>
             )}
           </h1>

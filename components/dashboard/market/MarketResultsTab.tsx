@@ -57,6 +57,10 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Track open exposure, review closed trades, and inspect why any position exists. Open positions and history rows now drill into a dedicated detail drawer instead of stopping at a summary card.</p>
       </div>
 
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
+        New trades stay in <strong>Open positions</strong> until the market resolves. If you just placed a trade and do not see it yet, click refresh below.
+      </div>
+
       {/* Summary stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
         <StatCard label="Realized P/L" tip="Profit or loss from closed trades"><PnlValue value={realizedPnl} /></StatCard>
@@ -77,7 +81,7 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
         <StatCard label="Avg Hold Time"><span className="font-bold text-gray-900">{formatDuration(avgHoldTimeMs)}</span></StatCard>
       </div>
 
-      {/* P/L by Category + Paper vs Live */}
+      {/* P/L by Category + Practice vs Live */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-sm">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">P/L by Category</h3>
@@ -96,7 +100,7 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
         </div>
 
         <div className="rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Paper vs Live</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Practice vs Live</h3>
           <div className="space-y-3">
             {paperVsLive.map((row) => (
               <div key={row.mode} className="flex items-center justify-between text-sm">
@@ -114,6 +118,15 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
 
       <MarketOpenPositionsPanel trades={openPositions} onOpenTrade={openReplay} />
 
+      <div className="flex justify-end">
+        <button
+          onClick={() => window.location.reload()}
+          className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+        >
+          Refresh trades
+        </button>
+      </div>
+
       {/* Trade list */}
       <div className="rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
@@ -122,7 +135,7 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
             {(["all", "paper", "live"] as const).map((m) => (
               <button key={m} onClick={() => setFilterMode(m)}
                 className={`px-3 py-1 text-xs rounded-full font-medium transition ${filterMode === m ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-                {m === "all" ? "All" : m === "paper" ? "Paper" : "Live"}
+                {m === "all" ? "All" : m === "paper" ? "Practice" : "Live"}
               </button>
             ))}
             <select value={sortKey} onChange={(e) => setSortKey(e.target.value as typeof sortKey)}
