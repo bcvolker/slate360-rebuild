@@ -20,6 +20,109 @@ This file tracks current status, build order, prompts, checks, and rebuild-from-
 ## Current Build Status
 **Active batch: 9+ — see Ready-To-Paste Prompt below**
 
+## Mar 10, 2026 — Current Handoff Snapshot for external AI assistants
+
+This section is the current source of truth. Use it before trusting older notes below.
+
+### What is now verified as working
+- Vercel CLI access has been restored in this dev environment and the repo is linked to the `slate360/slate360-rebuild` Vercel project.
+- The required Polymarket env vars exist in Vercel for Production, Preview, and Development:
+  - `POLYMARKET_API_KEY`
+  - `POLYMARKET_API_SECRET`
+  - `POLYMARKET_API_PASSPHRASE`
+- `CRON_SECRET` and `MARKET_SCHEDULER_SECRET` now both exist in Vercel. A production mismatch was found and fixed on Mar 10.
+- `GET /api/market/scheduler/tick` returns ready status when called with a valid bearer secret.
+- `POST /api/market/scheduler/tick` now authenticates successfully in production and returns a scheduler result payload instead of `401 Invalid scheduler secret`.
+- Practice direct buys are persisting to `market_trades` as `status = open` and `paper_trade = true`.
+- Scheduler runtime state is now persisting to `market_bot_runtime_state`.
+- Scheduler activity messages are now persisting to `market_activity_log`.
+
+### What is not actually fixed yet from the user's perspective
+- Practice direct buys still feel like a save-only action. They persist, but the product does not provide a strong enough post-buy state change, lifecycle, or simulated execution feedback.
+- The Results / Open Positions experience is still not obvious enough for a beginner to understand that the practice trade now exists and is waiting as an open position.
+- The automation builder remains too technical for a first-time user. Users still have to understand too many inputs before they can create a sensible plan.
+- The current product does not yet explain clearly enough that practice mode is a simulation path that creates and tracks open positions, not a real external exchange fill.
+- High-speed or high-volume automation is still constrained by the current cron/scheduler design. This is not yet a queue- or worker-based execution system.
+
+### Latest confirmed backend/runtime findings
+- Production scheduler auth failure root cause on Mar 10: `MARKET_SCHEDULER_SECRET` did not match `CRON_SECRET` in production. This caused `POST /api/market/scheduler/tick` to return `401` even though the route itself was healthy. The secret mismatch was corrected in Vercel.
+- After the scheduler secret fix, production scheduler POSTs started updating `market_bot_runtime_state` and writing to `market_activity_log`.
+- Latest observed scheduler log after auth repair: `Scheduler found 29 scored opportunities but 0 passed trade filters.`
+- Automation sizing root cause on Mar 10: scheduler practice trades were being sized by `capital / buys_per_day` in `lib/market/scheduler-run-user.ts`, which starved high-frequency plans into effectively unusable per-trade allocations. This has now been changed to size by `capital / maxOpenPositions`.
+- The scheduler sizing fix was committed and pushed on Mar 10 (`df68fba`).
+
+### Important nuance: why practice direct buys appear to "do nothing"
+- The buy route saves a practice trade immediately to `market_trades`.
+- Those rows are real app data, but they remain `open` until settlement/resolution logic changes them.
+- There is no strong simulated fill/progress/position-created confirmation flow yet, so the user experience still reads like "nothing happened" even though the row was inserted.
+- This is now confirmed to be a UX/product issue more than a persistence issue.
+
+### Important nuance: why automation may still appear to do nothing
+- Before Mar 10, production cron auth was broken for the scheduler because of the secret mismatch.
+- Before Mar 10, scheduler trade sizing could collapse to effectively tiny or unusable trade sizes.
+- Even after both of those fixes, automation still depends on realistic plan parameters. Extremely high `buys_per_day` values on small budgets are not meaningful settings and produce poor behavior.
+- The automation UI still does not guide users toward sane defaults strongly enough.
+
+### Recommended realistic practice defaults for testing
+- Budget: `$100–$300`
+- Mode: `practice`
+- Risk: `conservative` or `balanced`
+- Max trades/day: `3–10`
+- Max open positions: `3–8`
+- Scan mode: `balanced`
+- Categories: `General`, `Politics`, `Economy` or `all`
+
+### File map another assistant should read first
+- Route shell / orchestration
+  - `app/market/page.tsx`
+  - `components/dashboard/MarketClient.tsx`
+  - `components/dashboard/market/MarketRouteShell.tsx`
+- Direct buy UX and persistence
+  - `components/dashboard/market/MarketDirectBuyTab.tsx`
+  - `components/dashboard/market/MarketDirectBuyResults.tsx`
+  - `components/dashboard/market/MarketBuyPanel.tsx`
+  - `components/dashboard/market/MarketAdvancedFilters.tsx`
+  - `lib/hooks/useMarketDirectBuyState.ts`
+  - `app/api/market/buy/route.ts`
+  - `app/api/market/trades/route.ts`
+- Automation UX and execution
+  - `components/dashboard/market/MarketAutomationTab.tsx`
+  - `components/dashboard/market/MarketAutomationBuilder.tsx`
+  - `components/dashboard/market/MarketAutomationDetailControls.tsx`
+  - `components/dashboard/market/MarketPlanList.tsx`
+  - `lib/hooks/useMarketAutomationState.ts`
+  - `lib/market/sync-automation-plan.ts`
+  - `app/api/market/directives/route.ts`
+  - `app/api/market/plans/route.ts`
+  - `lib/hooks/useMarketBot.ts`
+  - `app/api/market/scan/route.ts`
+  - `app/api/market/bot-status/route.ts`
+  - `app/api/market/scheduler/tick/route.ts`
+  - `lib/market/scheduler.ts`
+  - `lib/market/scheduler-run-user.ts`
+- Results / logs / runtime state
+  - `components/dashboard/market/MarketResultsTab.tsx`
+  - `components/dashboard/market/MarketOpenPositionsPanel.tsx`
+  - `components/dashboard/market/MarketTradeReplayDrawer.tsx`
+  - `lib/hooks/useMarketResultsState.ts`
+  - `lib/hooks/useMarketTradeData.ts`
+  - `app/api/market/logs/route.ts`
+  - `app/api/market/summary/route.ts`
+  - `app/api/market/scheduler/health/route.ts`
+- Shared market runtime / compatibility helpers
+  - `lib/market/runtime-config.ts`
+  - `lib/market/trade-persistence.ts`
+  - `lib/market/mappers.ts`
+  - `lib/market-bot.ts`
+  - `scripts/ops/check-clob-contract.mjs`
+
+### Best next tasks for another assistant
+- Redesign the practice direct-buy post-submit flow so the user sees a clear position-created result, not just a saved row.
+- Replace the current automation builder with a beginner-first guided plan flow: goal, budget, speed, risk, category focus, then advanced settings collapsed.
+- Surface robot activity and newly opened positions more aggressively on Overview and Results.
+- Add an obvious "trade created / waiting for resolution" state model for practice mode.
+- Validate the Mar 10 scheduler sizing fix with a realistic practice plan after deployment, then adjust defaults if the robot is still too conservative.
+
 `MarketClient` has zero external callers outside `app/market/page.tsx` (confirmed via GitNexus).
 This makes large batches safe. The revised strategy is ~10 prompts by combining related steps.
 
@@ -119,54 +222,12 @@ Current Market files in play
 
 Still missing from the revised plan
 - saved markets / saved searches unified tab (future)
-- server-side `market_plans` adoption (table now exists, but plans are still localStorage-first and scheduler still reads directives)
+- Supabase `market_plans` table migration (plans currently localStorage-only)
 - app-ecosystem-ready packaging assumptions
-- server-side pagination for Polymarket catalog (currently client-side fetch)
+- server-side pagination for Polymarket catalog (currently client-side with 1000-market fetch)
 - bookmarking / saved markets persistence
 - authenticated production verification of directives/logs fallback behavior after deploy
 - server-side scheduler migration from legacy directives to automation plans as the primary source of truth
-
-## Mar 9, 2026 — Direct Buy reactivity + market_plans bootstrap
-
-Completed
-- Direct Buy search now filters the loaded market set instantly instead of only on manual refresh.
-- Direct Buy timeframe chips now expose the beginner-friendly set: `Next Hour`, `Day`, `Week`, `Month`, `Year`, `All Time`.
-- Direct Buy no longer pages results by default; the table shows all currently matched results.
-- Market categories are now normalized in the mapper so Construction, Weather, Economy, Entertainment, and similar groups produce cleaner results.
-- Advanced filter labels were rewritten in plainer language and the Results activity log was enlarged into a more readable plain-English feed.
-- Added `supabase/migrations/20260309_market_plans.sql` and applied it to the linked Supabase project via the Management API. `market_plans` now exists with indexes, RLS, and an updated-at trigger.
-- Applied the existing `20260305_market_enhancements.sql` migration to the linked Supabase project, so `market_watchlist` and `market_tab_prefs` now exist there too.
-- Saved Markets is no longer a stub: the tab now loads from `market_watchlist`, Direct Buy rows can be saved/removed, and the buy panel now opens as a fixed modal instead of forcing the user to scroll back to the top.
-- Automation plans now load from `/api/market/plans` with local fallback, so the UI is no longer localStorage-only.
-
-Still not done
-- The scheduler still has not migrated to `market_plans`; directive sync remains the live compatibility path for execution.
-- “Show all markets” is still bounded by client fetch strategy, not true infinite catalog loading.
-- True 24/7 background still depends on deployed cron execution and scheduler secret wiring, not just `vercel.json`.
-
-## Mar 9, 2026 — Direct Buy confirmation + open positions visibility
-
-Completed
-- Successful direct buys now refresh trade data, refresh summary/scheduler health, and route the user into Results so the position is immediately visible.
-- Results now has an explicit `Open Positions` panel instead of relying only on analytics cards and mixed history rows.
-- Direct Buy now fetches a smaller default market set to reduce load time and switches to `endDate` ordering for hour/day/week filters.
-- Timeframe filtering now prefers the precise timestamp field (`endDate`) over the date-only field (`endDateIso`), fixing the inaccurate `Next Hour` behavior.
-
-Follow-up hardening
-- Direct Buy timeframe filtering now excludes already-ended markets returned by the upstream Gamma feed, which was still emitting stale `active=true` rows with past end dates.
-- Direct Buy search now switches into a broader fetch plan when a query is present so search is not limited to the first 1,200 preloaded rows.
-- Direct Buy search is now server-assisted through `/api/market/polymarket?_q=...`, so changing the search term triggers a real proxy-backed catalog search instead of only filtering the previously loaded slice.
-- Timeline chips now request `upcoming=true` through the market proxy, which makes the proxy scan past stale expired Gamma rows and return only future-closing markets for `Next Hour`, `Day`, and `Week`.
-- Default Direct Buy fetch sizes were reduced to cut down cursor-based proxy churn, and scheduler health polling was slowed to reduce transient 504 noise in the Market tab.
-
-## Mar 9, 2026 — Automation stability + UX cleanup
-
-Completed
-- Fixed a Results-tab fetch loop in `MarketClient.tsx` that could repeatedly hammer `trades`, `summary`, `health`, and `logs` and contribute to `ERR_INSUFFICIENT_RESOURCES` browser failures.
-- Hardened `/api/market/plans` so older or missing `market_plans` schemas degrade to local-fallback behavior instead of throwing 500s on every automation load/save action.
-- Automation builder now behaves more like a task flow: it opens on demand, closes automatically after save, and closes on cancel.
-- Added clearer automation copy so the simple path is emphasized and the extra controls are explicitly positioned as optional.
-- Added a top-level Market overview strip with clickable `Open Positions` and `Automation Programmed` cards so users can jump directly into what is currently open or configured.
 
 ## Mar 7, 2026 — Operator + Direct Buy refinement pass
 

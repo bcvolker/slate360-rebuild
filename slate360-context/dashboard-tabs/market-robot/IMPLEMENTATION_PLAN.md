@@ -29,6 +29,20 @@ The current backend autonomy work and market data plumbing stay in place. This p
 - Fixed production scheduler auth by aligning `MARKET_SCHEDULER_SECRET` with `CRON_SECRET` in Vercel.
 - Fixed scheduler trade sizing so automation allocates capital per open position instead of dividing budget by buys-per-day, which was starving high-frequency practice plans.
 
+### March 10, 2026 Verified runtime state
+- Practice direct buys are confirmed to persist in `market_trades` as `status = open` and `paper_trade = true`.
+- Production scheduler POST auth is confirmed working after the Vercel secret repair.
+- Scheduler runtime rows are now being written to `market_bot_runtime_state`.
+- Scheduler activity rows are now being written to `market_activity_log`.
+- Latest observed scheduler warning after auth repair was: `Scheduler found 29 scored opportunities but 0 passed trade filters.`
+
+### March 10, 2026 Remaining product gaps
+- Practice trading still feels like "save only" because the user does not get strong enough position-created or simulated-fill feedback after a buy.
+- Results/Open Positions still need a more obvious "your practice position is now active" flow.
+- Automation setup still exposes too many technical inputs for a first-time user.
+- Realistic defaults are still not enforced strongly enough, so users can create plans with values like extremely high trades/day on modest budgets and then assume the robot is broken.
+- The next product pass should focus on beginner-first plan creation, explicit practice-trade feedback, and validating sane defaults after the Mar 10 scheduler sizing fix is deployed.
+
 ## Current State and User Goal
 Current backend and data plumbing are usable: shared shell/header, decomposed UI, cron-driven scheduler, wallet verification, approval flow, directives, logs, and summary stats all exist.
 
