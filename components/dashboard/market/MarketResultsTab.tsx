@@ -1,10 +1,13 @@
 "use client";
 
 import React from "react";
+import MarketActivityFeed from "@/components/dashboard/market/MarketActivityFeed";
 import MarketOpenPositionsPanel from "@/components/dashboard/market/MarketOpenPositionsPanel";
+import MarketTradeReplayDrawer from "@/components/dashboard/market/MarketTradeReplayDrawer";
 import { HelpTip } from "@/components/dashboard/market/MarketSharedUi";
 import { useMarketResultsState } from "@/lib/hooks/useMarketResultsState";
-import type { MarketTrade, MarketActivityLogEntry, TradeReplay } from "@/components/dashboard/market/types";
+import { outcomePlainLabel, tradeModeLabel } from "@/lib/market/market-display";
+import type { MarketTrade, MarketActivityLogEntry } from "@/components/dashboard/market/types";
 
 interface MarketResultsTabProps {
   trades: MarketTrade[];
@@ -27,8 +30,8 @@ function PnlValue({ value, prefix = "" }: { value: number; prefix?: string }) {
 
 function StatCard({ label, children, tip }: { label: string; children: React.ReactNode; tip?: string }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 text-center">
-      <p className="text-[11px] text-gray-400 uppercase tracking-wider mb-1 flex items-center justify-center gap-0.5">
+    <div className="rounded-[24px] border border-slate-200 bg-white/90 p-4 text-center shadow-sm">
+      <p className="text-[11px] text-slate-400 uppercase tracking-[0.18em] mb-1 flex items-center justify-center gap-0.5">
         {label}{tip && <HelpTip content={tip} />}
       </p>
       <div className="text-lg">{children}</div>
@@ -48,6 +51,12 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
 
   return (
     <div className="space-y-5">
+      <div className="rounded-[32px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,rgba(255,124,32,0.12),transparent_26%),linear-gradient(135deg,rgba(255,255,255,0.96),rgba(244,247,251,0.96))] p-5 shadow-sm">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Performance workspace</p>
+        <h2 className="mt-2 text-3xl font-black text-slate-900">See what the robot and your positions are actually doing</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Track open exposure, review closed trades, and inspect why any position exists. Open positions and history rows now drill into a dedicated detail drawer instead of stopping at a summary card.</p>
+      </div>
+
       {/* Summary stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
         <StatCard label="Realized P/L" tip="Profit or loss from closed trades"><PnlValue value={realizedPnl} /></StatCard>
@@ -70,7 +79,7 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
 
       {/* P/L by Category + Paper vs Live */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
+        <div className="rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-sm">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">P/L by Category</h3>
           {pnlByCategory.length === 0
             ? <p className="text-sm text-gray-400 py-4 text-center">No trades yet</p>
@@ -86,7 +95,7 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
             )}
         </div>
 
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
+        <div className="rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-sm">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Paper vs Live</h3>
           <div className="space-y-3">
             {paperVsLive.map((row) => (
@@ -103,12 +112,12 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
         </div>
       </div>
 
-      <MarketOpenPositionsPanel trades={openPositions} />
+      <MarketOpenPositionsPanel trades={openPositions} onOpenTrade={openReplay} />
 
       {/* Trade list */}
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
+      <div className="rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-          <h3 className="text-sm font-semibold text-gray-700">Trade History</h3>
+          <h3 className="text-lg font-black text-slate-900">Trade history</h3>
           <div className="flex items-center gap-2">
             {(["all", "paper", "live"] as const).map((m) => (
               <button key={m} onClick={() => setFilterMode(m)}
@@ -134,17 +143,17 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
               {sortedTrades.slice(0, 50).map((t) => (
                 <button key={t.id} onClick={() => openReplay(t)}
-                  className="w-full text-left bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-3 flex items-center justify-between gap-3 transition">
+                  className="w-full text-left rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(246,248,251,0.94))] px-4 py-4 flex items-center justify-between gap-3 transition hover:border-[#FF4D00]/30 hover:shadow-sm">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-gray-800 font-medium truncate">{t.marketTitle}</p>
-                    <p className="text-xs text-gray-400">
-                      {t.outcome} · {t.shares} shares @ ${t.avgPrice.toFixed(3)} · {t.category ?? "—"}
-                      {t.paperTrade && <span className="ml-1 text-purple-500">[Paper]</span>}
+                    <p className="text-sm text-slate-800 font-semibold truncate">{t.marketTitle}</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {outcomePlainLabel(t.outcome)} · {t.shares} shares @ ${t.avgPrice.toFixed(3)} · {t.category ?? "—"}
+                      <span className="ml-1 text-slate-500">· {tradeModeLabel(t)}</span>
                     </p>
                   </div>
                   <div className="text-right shrink-0">
                     <PnlValue value={t.pnl ?? 0} />
-                    <p className="text-[10px] text-gray-400">{new Date(t.createdAt).toLocaleDateString()}</p>
+                    <p className="text-[10px] text-slate-400">{new Date(t.createdAt).toLocaleDateString()}</p>
                   </div>
                 </button>
               ))}
@@ -152,100 +161,10 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
           )}
       </div>
 
-      {/* Activity log */}
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Activity Log</h3>
-        {recentLogs.length === 0
-          ? <p className="text-sm text-gray-400 py-4 text-center">No activity recorded yet</p>
-          : (
-            <div className="space-y-2 max-h-[420px] overflow-y-auto text-sm text-gray-700">
-              {recentLogs.map((log) => (
-                <div key={log.id} className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 flex gap-3">
-                  <span className="text-xs text-gray-400 shrink-0 pt-0.5">{new Date(log.created_at).toLocaleTimeString()}</span>
-                  <span className="leading-relaxed">{log.message}</span>
-                </div>
-              ))}
-            </div>
-          )}
-      </div>
+      <MarketActivityFeed logs={recentLogs} title="Robot activity and execution log" emptyLabel="No scans, plan syncs, or trade events are visible yet." />
 
       {/* Trade replay drawer */}
-      {selectedReplay && <ReplayDrawer replay={selectedReplay} onClose={closeReplay} />}
-    </div>
-  );
-}
-
-function ReplayDrawer({ replay, onClose }: { replay: TradeReplay; onClose: () => void }) {
-  const { trade, reasoning, exitReason, matchedConstraints } = replay;
-  return (
-    <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/30" />
-      <div className="relative w-full max-w-md bg-white shadow-2xl h-full overflow-y-auto p-6"
-        onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-bold text-gray-900">Trade Replay</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm font-semibold text-gray-800">{trade.marketTitle}</p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {trade.outcome} · {trade.shares} shares · ${trade.total.toFixed(2)} total ·{" "}
-              {trade.paperTrade ? "Paper" : "Live"}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-[10px] text-gray-400 uppercase">Entry Price</p>
-              <p className="text-sm font-bold text-gray-900">${trade.avgPrice.toFixed(3)}</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-[10px] text-gray-400 uppercase">Current Price</p>
-              <p className="text-sm font-bold text-gray-900">${trade.currentPrice.toFixed(3)}</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-[10px] text-gray-400 uppercase">P/L</p>
-              <PnlValue value={trade.pnl ?? 0} />
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-[10px] text-gray-400 uppercase">Status</p>
-              <p className="text-sm font-bold text-gray-900 capitalize">{trade.status}</p>
-            </div>
-          </div>
-
-          {reasoning && (
-            <div>
-              <p className="text-xs text-gray-500 font-semibold uppercase mb-1">Reasoning</p>
-              <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3">{reasoning}</p>
-            </div>
-          )}
-
-          {exitReason && (
-            <div>
-              <p className="text-xs text-gray-500 font-semibold uppercase mb-1">Exit Reason</p>
-              <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3">{exitReason}</p>
-            </div>
-          )}
-
-          {matchedConstraints.length > 0 && (
-            <div>
-              <p className="text-xs text-gray-500 font-semibold uppercase mb-1">Matched Constraints</p>
-              <div className="flex flex-wrap gap-1.5">
-                {matchedConstraints.map((c) => (
-                  <span key={c} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{c}</span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="text-xs text-gray-400 pt-2 border-t border-gray-100">
-            Opened: {new Date(trade.createdAt).toLocaleString()}
-            {trade.closedAt && <> · Closed: {new Date(trade.closedAt).toLocaleString()}</>}
-          </div>
-        </div>
-      </div>
+      {selectedReplay && <MarketTradeReplayDrawer replay={selectedReplay} onClose={closeReplay} />}
     </div>
   );
 }

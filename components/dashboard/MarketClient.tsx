@@ -28,7 +28,7 @@ const STUB_TABS: Record<string, React.ComponentType> = {};
 export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   const visibleTabs = layoutPrefs?.visibleTabs ?? [];
   const [activeTabId, setActiveTabId] = useState("start-here");
-  const logsEnabled = activeTabId === "results";
+  const logsEnabled = activeTabId === "start-here" || activeTabId === "automation" || activeTabId === "results";
 
   // If active tab is hidden, snap to first visible
   useEffect(() => {
@@ -52,11 +52,12 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
     fetchTrades();
     fetchSummary();
     fetchSchedulerHealth();
+    void fetchMarketLogs();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (activeTabId === "results") {
+    if (activeTabId === "start-here" || activeTabId === "automation" || activeTabId === "results") {
       void fetchTrades();
       void fetchSummary();
       void fetchSchedulerHealth();
@@ -149,6 +150,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
           <MarketAutomationTab
             botConfig={bot.config}
             onApplyPlan={handleApplyPlan}
+            activityLogs={activityLogs}
           />
         );
       case "saved-markets":
@@ -216,7 +218,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
             )}
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            AI-powered prediction market bot
+            A modern Polymarket workspace for manual trades, automation, and live robot monitoring
             {serverStatus.isConfirmed && (
               <> — Server: <strong className="text-gray-700">{displayStatusLabel}</strong></>
             )}
@@ -239,6 +241,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
       <MarketTopOverview
         trades={trades}
         botConfig={bot.config}
+        activityLogs={activityLogs}
         onOpenResults={() => setActiveTabId("results")}
         onOpenAutomation={() => setActiveTabId("automation")}
       />

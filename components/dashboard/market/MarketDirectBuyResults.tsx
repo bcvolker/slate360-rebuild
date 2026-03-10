@@ -1,8 +1,8 @@
 "use client";
 
-import MarketSortHeader from "@/components/dashboard/market/MarketSortHeader";
 import { MarketOpportunityBadge, MarketTableLegend } from "@/components/dashboard/market/MarketSharedUi";
 import type { MarketListing, MarketSortDirection, MarketSortKey } from "@/components/dashboard/market/types";
+import { formatCents, marketChanceLabel } from "@/lib/market/market-display";
 
 type TableInsights = {
   signalCounts: { premium: number; strong: number; watch: number; thin: number; speculative: number };
@@ -18,134 +18,119 @@ type Props = {
   tableInsights: TableInsights;
   onToggleSort: (key: MarketSortKey) => void;
   onBuy: (market: MarketListing, outcome: "YES" | "NO") => void;
+  onOpenDetails: (market: MarketListing) => void;
   savedMarketIds?: string[];
   onToggleSave?: (market: MarketListing) => void;
 };
 
-export default function MarketDirectBuyResults({ markets, sortBy, sortDirection, tableInsights, onToggleSort, onBuy, savedMarketIds = [], onToggleSave }: Props) {
+const SORT_OPTIONS: Array<{ key: MarketSortKey; label: string }> = [
+  { key: "edge", label: "Best value" },
+  { key: "volume", label: "Most active" },
+  { key: "probability", label: "Highest confidence" },
+  { key: "endDate", label: "Ending soon" },
+  { key: "title", label: "A to Z" },
+];
+
+export default function MarketDirectBuyResults({ markets, sortBy, sortDirection, tableInsights, onToggleSort, onBuy, onOpenDetails, savedMarketIds = [], onToggleSave }: Props) {
   const highQualityCount = tableInsights.signalCounts.premium + tableInsights.signalCounts.strong;
 
   return (
     <>
       <MarketTableLegend />
 
-      <div className="grid gap-3 md:grid-cols-3">
-        <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">High-quality setups</p>
-          <p className="mt-1 text-2xl font-black text-gray-900">{highQualityCount}</p>
-          <p className="mt-1 text-xs text-gray-500">Premium and Strong combine edge, tighter pricing, and healthier activity.</p>
+      <div className="mt-4 flex flex-col gap-3 rounded-[28px] border border-slate-200 bg-white/80 p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-semibold text-slate-700">{markets.length} live setups</span>
+          <span>{highQualityCount} high-quality ideas</span>
+          <span>Best pricing edge {tableInsights.topEdge.toFixed(1)}%</span>
+          <span>Avg volume ${Math.round(tableInsights.averageVolume).toLocaleString()}</span>
         </div>
-        <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Best edge in view</p>
-          <p className="mt-1 text-2xl font-black text-[#FF4D00]">{tableInsights.topEdge.toFixed(1)}%</p>
-          <p className="mt-1 text-xs text-gray-500">Edge is an estimated pricing advantage, not a guaranteed return after fills and timing.</p>
-        </div>
-        <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">Tight spreads</p>
-          <p className="mt-1 text-2xl font-black text-[#1E3A8A]">{tableInsights.tightMarkets}</p>
-          <p className="mt-1 text-xs text-gray-500">These markets are more likely to fill cleanly. Avg volume ${Math.round(tableInsights.averageVolume).toLocaleString()}.</p>
+        <div className="flex flex-wrap gap-2">
+          {SORT_OPTIONS.map((option) => (
+            <button
+              key={option.key}
+              onClick={() => onToggleSort(option.key)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${sortBy === option.key ? "border-[#FF4D00] bg-[#FF4D00] text-white" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"}`}
+            >
+              {option.label}{sortBy === option.key ? ` ${sortDirection === "asc" ? "↑" : "↓"}` : ""}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
+      <div className="mt-4 space-y-3">
         {markets.length === 0 ? (
-          <p className="text-center text-sm text-gray-400 py-10">No markets match your filters.</p>
+          <p className="rounded-[28px] border border-dashed border-slate-200 bg-white/80 py-10 text-center text-sm text-slate-400 shadow-sm">No markets match your filters.</p>
         ) : (
-          <table className="w-full text-sm min-w-[760px]">
-            <thead>
-              <tr className="border-b border-gray-100 text-[11px] text-gray-400 uppercase tracking-wide">
-                <th className="px-4 py-3 text-left">
-                  <MarketSortHeader label="Market" help="Sort alphabetically by market title." active={sortBy === "title"} direction={sortDirection} onClick={() => onToggleSort("title")} align="left" />
-                </th>
-                <th className="px-3 py-3 text-right">
-                  <MarketSortHeader label="YES¢" help="Current cost per YES share. Lower prices can increase upside, but only if your thesis is right." active={sortBy === "yesPrice"} direction={sortDirection} onClick={() => onToggleSort("yesPrice")} />
-                </th>
-                <th className="px-3 py-3 text-right">
-                  <MarketSortHeader label="NO¢" help="Current cost per NO share. Useful when the stronger view is that the event will not happen." active={sortBy === "noPrice"} direction={sortDirection} onClick={() => onToggleSort("noPrice")} />
-                </th>
-                <th className="px-3 py-3 text-right">
-                  <MarketSortHeader label="Prob" help="Implied YES probability based on current market pricing." active={sortBy === "probability"} direction={sortDirection} onClick={() => onToggleSort("probability")} />
-                </th>
-                <th className="px-3 py-3 text-right hidden sm:table-cell">
-                  <MarketSortHeader label="Edge" help="Estimated pricing advantage versus fair value. Higher can be better, but quality still depends on liquidity and spread." active={sortBy === "edge"} direction={sortDirection} onClick={() => onToggleSort("edge")} />
-                </th>
-                <th className="px-3 py-3 text-center hidden md:table-cell">
-                  <MarketSortHeader label="Signal" help="Composite quality cue based on edge, spread, liquidity, and activity." active={sortBy === "signal"} direction={sortDirection} onClick={() => onToggleSort("signal")} align="center" />
-                </th>
-                <th className="px-3 py-3 text-right hidden md:table-cell">
-                  <MarketSortHeader label="Volume" help="24-hour trading volume. Higher volume usually means easier fills." active={sortBy === "volume"} direction={sortDirection} onClick={() => onToggleSort("volume")} />
-                </th>
-                <th className="px-3 py-3 text-right hidden lg:table-cell">
-                  <MarketSortHeader label="Ends" help="Resolution timing for the contract. Earlier markets appear first when sorted." active={sortBy === "endDate"} direction={sortDirection} onClick={() => onToggleSort("endDate")} />
-                </th>
-                <th className="px-3 py-3 text-center font-medium">Save</th>
-                <th className="px-3 py-3 text-center font-medium">Buy</th>
-              </tr>
-            </thead>
-            <tbody>
-              {markets.map((market) => (
-                <MarketRow key={market.id} market={market} onBuy={onBuy} isSaved={savedMarketIds.includes(market.id)} onToggleSave={onToggleSave} />
-              ))}
-            </tbody>
-          </table>
+          markets.map((market) => (
+            <MarketRow
+              key={market.id}
+              market={market}
+              onBuy={onBuy}
+              onOpenDetails={onOpenDetails}
+              isSaved={savedMarketIds.includes(market.id)}
+              onToggleSave={onToggleSave}
+            />
+          ))
         )}
       </div>
     </>
   );
 }
 
-function MarketRow({ market, onBuy, isSaved, onToggleSave }: { market: MarketListing; onBuy: (market: MarketListing, outcome: "YES" | "NO") => void; isSaved: boolean; onToggleSave?: (market: MarketListing) => void }) {
+function MarketRow({ market, onBuy, onOpenDetails, isSaved, onToggleSave }: { market: MarketListing; onBuy: (market: MarketListing, outcome: "YES" | "NO") => void; onOpenDetails: (market: MarketListing) => void; isSaved: boolean; onToggleSave?: (market: MarketListing) => void }) {
   return (
-    <tr className="border-b border-gray-50 hover:bg-gray-50/60 transition">
-      <td className="px-4 py-3">
-        <p className="font-medium text-gray-900 text-sm leading-snug line-clamp-2 max-w-[300px]">{market.title}</p>
-        <div className="mt-1 flex flex-wrap items-center gap-2">
-          <p className="text-[11px] text-gray-400">{market.category}</p>
-          <span className="text-[11px] text-gray-300">•</span>
-          <span className="text-[11px] text-gray-500">{market.riskTag ? market.riskTag.replace(/-/g, " ") : "standard"}</span>
-        </div>
-      </td>
-      <td className="px-3 py-3 text-right">
-        <span className="font-mono text-green-700 font-semibold text-xs">{(market.yesPrice * 100).toFixed(0)}¢</span>
-      </td>
-      <td className="px-3 py-3 text-right">
-        <span className="font-mono text-red-700 font-semibold text-xs">{(market.noPrice * 100).toFixed(0)}¢</span>
-      </td>
-      <td className="px-3 py-3 text-right">
-        <span className="text-gray-700 text-xs font-medium">{market.probabilityPct}%</span>
-      </td>
-      <td className="px-3 py-3 text-right hidden sm:table-cell">
-        <span className={`text-xs font-bold ${market.edgePct > 10 ? "text-[#FF4D00]" : market.edgePct > 5 ? "text-amber-600" : "text-gray-400"}`}>
-          {market.edgePct.toFixed(1)}%
-        </span>
-      </td>
-      <td className="px-3 py-3 text-center hidden md:table-cell">
-        <MarketOpportunityBadge market={market} />
-      </td>
-      <td className="px-3 py-3 text-right hidden md:table-cell">
-        <span className="text-xs text-gray-500">${(market.volume24hUsd / 1000).toFixed(0)}k</span>
-      </td>
-      <td className="px-3 py-3 text-right hidden lg:table-cell">
-        <span className="text-xs text-gray-400">{market.endDateLabel ?? "—"}</span>
-      </td>
-      <td className="px-3 py-3 text-center">
-        <button
-          onClick={() => onToggleSave?.(market)}
-          className={`px-2 py-1 rounded text-xs font-bold border transition ${isSaved ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100" : "bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100"}`}
-        >
-          {isSaved ? "Saved" : "Save"}
-        </button>
-      </td>
-      <td className="px-3 py-3">
-        <div className="flex gap-1 justify-center">
-          <button onClick={() => onBuy(market, "YES")} className="px-2 py-1 bg-green-50 border border-green-200 text-green-700 rounded text-xs font-bold hover:bg-green-100 transition">
-            YES
+    <article className="overflow-hidden rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.92))] p-5 shadow-sm transition hover:border-[#FF4D00]/30 hover:shadow-md">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">{market.category}</span>
+            <MarketOpportunityBadge market={market} />
+            {market.endDateLabel && <span className="text-xs text-slate-400">Resolves {market.endDateLabel}</span>}
+          </div>
+          <button onClick={() => onOpenDetails(market)} className="mt-3 block text-left text-xl font-black leading-tight text-slate-900 transition hover:text-[#FF4D00]">
+            {market.title}
           </button>
-          <button onClick={() => onBuy(market, "NO")} className="px-2 py-1 bg-red-50 border border-red-200 text-red-700 rounded text-xs font-bold hover:bg-red-100 transition">
-            NO
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">{marketChanceLabel(market.probabilityPct)}. Current pricing edge is {market.edgePct.toFixed(1)}%, with ${Math.round(market.volume24hUsd).toLocaleString()} traded over the last 24 hours.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3 xl:w-[420px]">
+          <MetricBox label="Implied chance" value={`${market.probabilityPct}%`} caption="Chance of YES" accent="text-sky-700" />
+          <MetricBox label="YES entry" value={formatCents(market.yesPrice)} caption="Back happens" accent="text-emerald-700" />
+          <MetricBox label="NO entry" value={formatCents(market.noPrice)} caption="Back does not happen" accent="text-rose-700" />
+        </div>
+      </div>
+
+      <div className="mt-5 flex flex-col gap-3 border-t border-slate-200/80 pt-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-1">Edge {market.edgePct.toFixed(1)}%</span>
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-1">Liquidity ${Math.round(market.liquidityUsd).toLocaleString()}</span>
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-1">Volume ${Math.round(market.volume24hUsd).toLocaleString()}</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={() => onToggleSave?.(market)} className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${isSaved ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"}`}>
+            {isSaved ? "Saved" : "Save"}
+          </button>
+          <button onClick={() => onOpenDetails(market)} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">
+            Details
+          </button>
+          <button onClick={() => onBuy(market, "YES")} className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100">
+            Back happens · {formatCents(market.yesPrice)}
+          </button>
+          <button onClick={() => onBuy(market, "NO")} className="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-bold text-rose-700 transition hover:bg-rose-100">
+            Back does not happen · {formatCents(market.noPrice)}
           </button>
         </div>
-      </td>
-    </tr>
+      </div>
+    </article>
+  );
+}
+
+function MetricBox({ label, value, caption, accent }: { label: string; value: string; caption: string; accent: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white/90 p-4">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className={`mt-2 text-2xl font-black ${accent}`}>{value}</p>
+      <p className="mt-1 text-xs text-slate-500">{caption}</p>
+    </div>
   );
 }

@@ -43,7 +43,7 @@ export function MarketOpportunityBadge({ market }: { market: MarketListing }) {
   const signal = getMarketOpportunitySignal(market);
 
   return (
-    <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${signal.tone}`} title={signal.detail}>
+    <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] shadow-sm ${signal.tone}`} title={signal.detail}>
       {signal.label}
     </span>
   );
@@ -51,23 +51,25 @@ export function MarketOpportunityBadge({ market }: { market: MarketListing }) {
 
 export function MarketTableLegend() {
   return (
-    <div className="rounded-2xl border border-[#1E3A8A]/10 bg-gradient-to-br from-[#1E3A8A]/[0.04] via-white to-[#FF4D00]/[0.05] p-4">
+    <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(135deg,rgba(255,122,26,0.12),rgba(255,255,255,0.88))] p-5 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="text-sm font-bold text-gray-900">How to read this table</p>
-        <span className="rounded-full bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-gray-500 ring-1 ring-gray-200">
-          Click Market, Prob, Edge, Volume, or Ends to sort
+        <p className="text-sm font-black text-slate-900">Quick guide</p>
+        <span className="rounded-full border border-white/80 bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          Built for first-time Polymarket users
         </span>
       </div>
-      <div className="mt-3 grid gap-3 lg:grid-cols-2">
-        <div className="space-y-2 text-xs text-gray-600">
-          <p><span className="font-semibold text-green-700">YES¢</span> is the current cost per YES share. <span className="font-semibold text-red-700">NO¢</span> is the current cost per NO share.</p>
-          <p><span className="font-semibold text-gray-900">Prob</span> is the market-implied chance of YES resolving true. <span className="font-semibold text-[#FF4D00]">Edge</span> is the estimated pricing advantage over fair value.</p>
-          <p><span className="font-semibold text-gray-900">Volume</span> and liquidity help you judge execution quality. Higher numbers usually mean easier fills and less slippage. Click a header again to reverse the sort.</p>
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="rounded-2xl border border-white/70 bg-white/80 p-4 text-xs text-slate-600">
+          <p className="font-semibold text-slate-900">Backing an outcome</p>
+          <p className="mt-2 leading-6">Buying <span className="font-semibold text-emerald-700">This happens</span> means you profit if the event resolves YES. Buying <span className="font-semibold text-rose-700">This does not happen</span> means you profit if it resolves NO.</p>
         </div>
-        <div className="space-y-2 text-xs text-gray-600">
-          <p><span className="font-semibold text-gray-900">Premium</span> and <span className="font-semibold text-gray-900">Strong</span> signals combine edge, spread, liquidity, and activity. They are quality cues, not guaranteed profits.</p>
-          <p>Green and orange tones indicate stronger execution conditions. Gray and rose tags flag markets where sizing and patience matter more because fills or conviction are weaker.</p>
-          <p><span className="font-semibold text-gray-900">Ends</span> shows when the market resolves so newer users can avoid accidentally buying contracts that settle too soon.</p>
+        <div className="rounded-2xl border border-white/70 bg-white/80 p-4 text-xs text-slate-600">
+          <p className="font-semibold text-slate-900">Reading the price</p>
+          <p className="mt-2 leading-6">A 62c entry price means one share costs $0.62 today and pays out $1 if your side is correct. The implied chance shows what the market currently believes.</p>
+        </div>
+        <div className="rounded-2xl border border-white/70 bg-white/80 p-4 text-xs text-slate-600">
+          <p className="font-semibold text-slate-900">Quality signals</p>
+          <p className="mt-2 leading-6">Pricing edge, signal quality, volume, and liquidity help you judge how tradable a market is. They are confidence cues, not guarantees.</p>
         </div>
       </div>
     </div>

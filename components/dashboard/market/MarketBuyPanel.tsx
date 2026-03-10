@@ -4,6 +4,7 @@ import React from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpTip } from "@/components/dashboard/market/MarketSharedUi";
 import type { MarketListing, LiveChecklist } from "@/components/dashboard/market/types";
+import { formatCents, marketChanceLabel, outcomeExplanation, outcomePlainLabel } from "@/lib/market/market-display";
 
 export interface MarketBuyPanelProps {
   market: MarketListing;
@@ -61,20 +62,16 @@ export default function MarketBuyPanel({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:justify-end p-0 sm:p-6">
       <button className="absolute inset-0 bg-black/30" onClick={onClose} aria-label="Close buy panel" />
-      <div className="relative w-full sm:max-w-xl max-h-[92vh] overflow-y-auto bg-white border-2 border-[#FF4D00]/40 rounded-t-2xl sm:rounded-2xl p-5 space-y-4 shadow-2xl">
+      <div className="relative w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto border border-white/60 bg-[radial-gradient(circle_at_top_left,rgba(255,120,28,0.14),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,247,250,0.98))] p-5 shadow-2xl rounded-t-2xl sm:rounded-[32px] space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Buying on</p>
-          <p className="text-sm font-semibold text-gray-900 leading-snug">{market.title}</p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs text-gray-500">{market.category}</span>
-            <span className="text-xs text-gray-400">·</span>
-            <span className="text-xs text-gray-500">Prob: {market.probabilityPct}%</span>
-            <span className="text-xs text-gray-400">·</span>
-            <span className={`text-xs font-bold ${market.edgePct > 10 ? "text-[#FF4D00]" : "text-gray-500"}`}>
-              Advantage: {market.edgePct}%
-            </span>
+          <p className="text-[10px] text-slate-400 uppercase tracking-[0.22em] mb-1">Trade ticket</p>
+          <p className="text-lg font-black text-slate-900 leading-snug">{market.title}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <span className="rounded-full border border-slate-200 bg-white/85 px-3 py-1 font-semibold text-slate-700">{market.category}</span>
+            <span>{marketChanceLabel(market.probabilityPct)}</span>
+            <span>Edge {market.edgePct}%</span>
           </div>
         </div>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-800 text-lg leading-none transition">×</button>
@@ -82,19 +79,35 @@ export default function MarketBuyPanel({
 
       {/* YES / NO toggle */}
       <div>
-        <label className="text-xs text-gray-500 mb-2 block">Outcome</label>
-        <div className="flex gap-2">
+        <label className="text-xs text-slate-500 mb-2 block">Choose your side</label>
+        <div className="grid gap-3 sm:grid-cols-2">
           <button
             onClick={() => onOutcomeChange("YES")}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${outcome === "YES" ? "bg-green-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+            className={`rounded-[24px] border p-4 text-left transition ${outcome === "YES" ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"}`}
           >
-            YES &nbsp;<span className="font-mono text-xs opacity-80">@ {(market.yesPrice * 100).toFixed(0)}¢</span>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-base font-black">{outcomePlainLabel("YES")}</p>
+                <p className="mt-1 text-xs opacity-80">{outcomeExplanation("YES")}</p>
+              </div>
+              <span className="rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-bold tracking-[0.16em] text-white">YES</span>
+            </div>
+            <p className="mt-3 text-2xl font-black">{formatCents(market.yesPrice)}</p>
+            <p className="mt-1 text-xs opacity-75">Current entry price</p>
           </button>
           <button
             onClick={() => onOutcomeChange("NO")}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition ${outcome === "NO" ? "bg-red-700 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+            className={`rounded-[24px] border p-4 text-left transition ${outcome === "NO" ? "border-rose-300 bg-rose-50 text-rose-900" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"}`}
           >
-            NO &nbsp;<span className="font-mono text-xs opacity-80">@ {(market.noPrice * 100).toFixed(0)}¢</span>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-base font-black">{outcomePlainLabel("NO")}</p>
+                <p className="mt-1 text-xs opacity-80">{outcomeExplanation("NO")}</p>
+              </div>
+              <span className="rounded-full bg-rose-600 px-3 py-1 text-[11px] font-bold tracking-[0.16em] text-white">NO</span>
+            </div>
+            <p className="mt-3 text-2xl font-black">{formatCents(market.noPrice)}</p>
+            <p className="mt-1 text-xs opacity-75">Current entry price</p>
           </button>
         </div>
       </div>
@@ -106,6 +119,17 @@ export default function MarketBuyPanel({
           <HelpTip content="How much USDC to spend on this trade." />
         </label>
         <p className="text-[11px] text-gray-400 mb-2">Display value: {formatMoney(amount)}</p>
+        <div className="mb-3 flex items-center gap-3">
+          <input
+            type="number"
+            min={5}
+            step={5}
+            value={amount}
+            onChange={(event) => onAmountChange(Math.max(5, Number(event.target.value) || 5))}
+            className="w-32 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 outline-none ring-0 transition focus:border-[#FF4D00]"
+          />
+          <span className="text-sm text-slate-500">Your max loss is limited to this amount.</span>
+        </div>
         <input
           type="range" min={5} max={5000} step={5} value={amount}
           onChange={e => onAmountChange(+e.target.value)}
@@ -139,7 +163,7 @@ export default function MarketBuyPanel({
       )}
 
       {/* Preview */}
-      <div className="space-y-2 bg-gray-100/50 rounded-lg p-3">
+      <div className="space-y-2 rounded-[24px] border border-slate-200 bg-white/85 p-4 shadow-sm">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
           <div>
             <p className="text-[10px] text-gray-400 mb-1">Shares</p>
@@ -160,8 +184,8 @@ export default function MarketBuyPanel({
             <p className="text-sm font-bold text-red-600">-{formatMoney(amount)}</p>
           </div>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600 space-y-1">
-          <p className="font-semibold text-gray-700">What-if scenarios</p>
+        <div className="rounded-[20px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-xs text-gray-600 space-y-1">
+          <p className="font-semibold text-gray-700">What happens next</p>
           <p>If {outcome} resolves true: <span className="font-semibold text-green-600">+{formatMoney(profit)}</span></p>
           <p>If {outcome === "YES" ? "NO" : "YES"} resolves true: <span className="font-semibold text-red-600">-{formatMoney(amount)}</span></p>
           <p>If price rises 10% and you exit early: <span className={`font-semibold ${targetExitPnl >= 0 ? "text-green-600" : "text-red-600"}`}>{targetExitPnl >= 0 ? "+" : "-"}{formatMoney(Math.abs(targetExitPnl))}</span></p>
@@ -179,7 +203,7 @@ export default function MarketBuyPanel({
         </button>
       </div>
       <p className="text-xs text-center text-gray-400">
-        {paper ? "📝 This will be saved as a paper (simulated) trade" : "⚠️ This will attempt a LIVE buy on Polymarket"}
+        {paper ? "This will be saved as a practice trade without spending real money." : "This will attempt a live buy on Polymarket once wallet and API prerequisites are satisfied."}
       </p>
 
       {/* Live checklist */}
