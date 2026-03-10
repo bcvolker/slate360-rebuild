@@ -2,20 +2,23 @@ import type { MktTimeframe } from "@/components/dashboard/market/types";
 
 export function getDirectBuyFetchPlan(timeframe: MktTimeframe, query = "") {
   const normalizedQuery = query.trim();
+  const isSoonEnding = timeframe === "hour" || timeframe === "day" || timeframe === "week";
 
   if (normalizedQuery.length > 0) {
     return {
       key: `search:${timeframe}:${normalizedQuery.toLowerCase()}`,
       mode: "search",
-      order: "volume24hr",
-      ascending: false,
-      maxMarkets: 1200,
-      upcoming: false,
-      label: `Searching a broader market set for \"${normalizedQuery}\"`,
+      order: isSoonEnding ? "endDate" : "volume24hr",
+      ascending: isSoonEnding,
+      maxMarkets: isSoonEnding ? 2400 : 1200,
+      upcoming: isSoonEnding,
+      label: isSoonEnding
+        ? `Searching for \"${normalizedQuery}\" in soon-closing markets`
+        : `Searching a broader market set for \"${normalizedQuery}\"`,
     } as const;
   }
 
-  if (timeframe === "hour" || timeframe === "day" || timeframe === "week") {
+  if (isSoonEnding) {
     return {
       key: `ending-soon:${timeframe}`,
       mode: "ending-soon",

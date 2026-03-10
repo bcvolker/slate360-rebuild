@@ -32,27 +32,38 @@ const PREVIEW_SCAN_MARKET_LIMIT = 1500;
 
 async function loadServerConfig(): Promise<Partial<BotConfig> | null> {
   try {
-    const [dirRes, statusRes] = await Promise.all([
+    const [plansRes, dirRes, statusRes] = await Promise.all([
+      fetch("/api/market/plans"),
       fetch("/api/market/directives"),
       fetch("/api/market/bot-status"),
     ]);
+    const plansData = await plansRes.json() as { plans?: Array<Record<string, unknown>> };
     const dirData = await dirRes.json() as { directives?: Array<Record<string, unknown>> };
     const statusData = await statusRes.json() as { ok?: boolean; data?: { status?: string } };
 
-    const d = dirData.directives?.[0]; // most recent
+    const activePlan = (plansData.plans ?? []).find((plan) => plan.isDefault === true && plan.isArchived !== true) ?? (plansData.plans ?? []).find((plan) => plan.isArchived !== true);
+    const d = dirData.directives?.[0];
     const status = statusData.data?.status ?? "stopped";
 
     const config: Partial<BotConfig> = {};
     config.botRunning = status === "running" || status === "paper";
     config.botPaused = status === "paused";
 
-    if (d) {
+    if (activePlan) {
+      config.paperMode = activePlan.mode !== "real";
+      config.capitalAlloc = typeof activePlan.budget === "number" && activePlan.budget > 0 ? activePlan.budget : 500;
+      config.maxTradesPerDay = typeof activePlan.maxTradesPerDay === "number" && activePlan.maxTradesPerDay > 0 ? activePlan.maxTradesPerDay : 25;
+      config.maxPositions = typeof activePlan.maxOpenPositions === "number" && activePlan.maxOpenPositions > 0 ? activePlan.maxOpenPositions : 25;
+      config.riskMix = (activePlan.riskLevel === "conservative" || activePlan.riskLevel === "balanced" || activePlan.riskLevel === "aggressive") ? activePlan.riskLevel : "balanced";
+      config.focusAreas = Array.isArray(activePlan.categories) && activePlan.categories.length > 0 ? activePlan.categories as string[] : ["all"];
+      config.whaleFollow = activePlan.largeTraderSignals === true;
+      config.minVolume = typeof activePlan.minimumLiquidity === "number" && activePlan.minimumLiquidity >= 0 ? activePlan.minimumLiquidity : 5000;
+    } else if (d) {
       config.paperMode = d.paper_mode !== false;
       config.capitalAlloc = typeof d.amount === "number" && d.amount > 0 ? d.amount : 500;
       config.maxTradesPerDay = typeof d.buys_per_day === "number" && d.buys_per_day > 0 ? d.buys_per_day : 25;
       config.maxPositions = typeof d.buys_per_day === "number" && d.buys_per_day > 0 ? Math.min(d.buys_per_day, 50) : 25;
-      config.riskMix = (["conservative", "balanced", "aggressive"] as const).includes(d.risk_mix as "conservative" | "balanced" | "aggressive")
-        ? d.risk_mix as "conservative" | "balanced" | "aggressive" : "balanced";
+      config.riskMix = (["conservative", "balanced", "aggressive"] as const).includes(d.risk_mix as "conservative" | "balanced" | "aggressive") ? d.risk_mix as "conservative" | "balanced" | "aggressive" : "balanced";
       config.focusAreas = Array.isArray(d.focus_areas) && d.focus_areas.length > 0 ? d.focus_areas as string[] : ["all"];
       config.whaleFollow = d.whale_follow === true;
     }
@@ -65,24 +76,19 @@ async function loadServerConfig(): Promise<Partial<BotConfig> | null> {
 export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
   const { trades, fetchTrades, fetchSummary, fetchSchedulerHealth } = deps;
 
-  const [botRunning, setBotRunning] = useState(false);
-  const [botPaused, setBotPaused] = useState(false);
-  const [scanning, setScanning] = useState(false);
-  const [lastScan, setLastScan] = useState<number | null>(null);
-  const [scanLog, setScanLog] = useState<string[]>([]);
-  const [appliedConfig, setAppliedConfig] = useState<Record<string, unknown> | null>(null);
-  const [paperMode, setPaperMode] = useState(true);
-  const [maxTradesPerDay, setMaxTradesPerDay] = useState(25);
-  const [maxPositions, setMaxPositions] = useState(25);
-  const [capitalAlloc, setCapitalAlloc] = useState(500);
-  const [minEdge, setMinEdge] = useState(0);
-  const [minVolume, setMinVolume] = useState(5000);
-  const [minProbLow, setMinProbLow] = useState(5);
-  const [minProbHigh, setMinProbHigh] = useState(95);
-  const [whaleFollow, setWhaleFollow] = useState(false);
+  const [botRunning, setBotRunning] = useState(false), [botPaused, setBotPaused] = useState(false), [scanning, setScanning] = useState(false);
+  const [lastScan, setLastScan] = useState<number | null>(null), [scanLog, setScanLog] = useState<string[]>([]), [appliedConfig, setAppliedConfig] = useState<Record<string, unknown> | null>(null);
+  const [paperMode, setPaperMode] = useState(true), [maxTradesPerDay, setMaxTradesPerDay] = useState(25), [maxPositions, setMaxPositions] = useState(25);
+  const [capitalAlloc, setCapitalAlloc] = useState(500), [minEdge, setMinEdge] = useState(0), [minVolume, setMinVolume] = useState(5000);
+  const [minProbLow, setMinProbLow] = useState(5), [minProbHigh, setMinProbHigh] = useState(95), [whaleFollow, setWhaleFollow] = useState(false);
   const [riskMix, setRiskMix] = useState<"conservative" | "balanced" | "aggressive">("balanced");
   const [focusAreas, setFocusAreas] = useState<string[]>(["all"]);
   const hydrated = useRef(false);
+
+  const addLog = useCallback((msg: string) => {
+    const ts = new Date().toLocaleTimeString();
+    setScanLog((prev) => [`[${ts}] ${msg}`, ...prev].slice(0, 100));
+  }, []);
 
   useEffect(() => {
     if (hydrated.current) return;
@@ -98,12 +104,8 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
       if (cfg.riskMix != null) setRiskMix(cfg.riskMix);
       if (cfg.focusAreas != null) setFocusAreas(cfg.focusAreas);
       if (cfg.whaleFollow != null) setWhaleFollow(cfg.whaleFollow);
+      if (cfg.minVolume != null) setMinVolume(cfg.minVolume);
     });
-  }, []);
-
-  const addLog = useCallback((msg: string) => {
-    const ts = new Date().toLocaleTimeString();
-    setScanLog(prev => [`[${ts}] ${msg}`, ...prev].slice(0, 100));
   }, []);
 
   const getTradesTodayCount = useCallback(() => {
@@ -179,11 +181,8 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
       }
     } catch (e: unknown) {
       addLog(`❌ Error: ${(e as Error).message}`);
-    } finally {
-      setScanning(false);
-    }
-    }, [paperMode, maxPositions, maxTradesPerDay, capitalAlloc, minEdge, minVolume, minProbLow, minProbHigh,
-      whaleFollow, riskMix, focusAreas, addLog, fetchTrades, fetchSummary, fetchSchedulerHealth, getTradesTodayCount]);
+    } finally { setScanning(false); }
+  }, [paperMode, maxPositions, maxTradesPerDay, capitalAlloc, minEdge, minVolume, minProbLow, minProbHigh, whaleFollow, riskMix, focusAreas, addLog, fetchTrades, fetchSummary, fetchSchedulerHealth, getTradesTodayCount]);
 
   const runPreviewScan = useCallback(async () => {
     try {
@@ -259,18 +258,15 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
 
   const applyBeginnerBotPreset = useCallback((preset: "starter" | "balanced" | "active") => {
     if (preset === "starter") {
-      setPaperMode(true); setCapitalAlloc(500); setMaxPositions(10); setMinEdge(0);
-      setMaxTradesPerDay(25);
+      setPaperMode(true); setCapitalAlloc(500); setMaxPositions(10); setMinEdge(0); setMaxTradesPerDay(25);
       setMinVolume(10000); setMinProbLow(10); setMinProbHigh(90); setRiskMix("conservative"); setWhaleFollow(false);
       addLog("🧭 Preset applied: Starter (safe paper setup, 25 trades/day)");
     } else if (preset === "balanced") {
-      setPaperMode(true); setCapitalAlloc(1000); setMaxPositions(25); setMinEdge(0);
-      setMaxTradesPerDay(50);
+      setPaperMode(true); setCapitalAlloc(1000); setMaxPositions(25); setMinEdge(0); setMaxTradesPerDay(50);
       setMinVolume(5000); setMinProbLow(5); setMinProbHigh(95); setRiskMix("balanced"); setWhaleFollow(false);
       addLog("🧭 Preset applied: Balanced (50 trades/day)");
     } else {
-      setPaperMode(true); setCapitalAlloc(2500); setMaxPositions(50); setMinEdge(0);
-      setMaxTradesPerDay(200);
+      setPaperMode(true); setCapitalAlloc(2500); setMaxPositions(50); setMinEdge(0); setMaxTradesPerDay(200);
       setMinVolume(1000); setMinProbLow(3); setMinProbHigh(97); setRiskMix("aggressive"); setWhaleFollow(true);
       addLog("🧭 Preset applied: Active (200 trades/day, aggressive)");
     }
@@ -288,8 +284,7 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
   }, [botRunning, botPaused]);
 
   return {
-    config: { paperMode, botRunning, botPaused, scanning, lastScan, capitalAlloc, maxTradesPerDay, maxPositions,
-              minEdge, minVolume, minProbLow, minProbHigh, riskMix, whaleFollow, focusAreas },
+    config: { paperMode, botRunning, botPaused, scanning, lastScan, capitalAlloc, maxTradesPerDay, maxPositions, minEdge, minVolume, minProbLow, minProbHigh, riskMix, whaleFollow, focusAreas },
     appliedConfig, scanLog, addLog, runScan, runPreviewScan,
     handleStartBot, handlePauseBot, handleStopBot, applyBeginnerBotPreset, toggleFocus,
     setPaperMode, setCapitalAlloc, setMaxTradesPerDay, setMaxPositions, setMinEdge, setMinVolume,

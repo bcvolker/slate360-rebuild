@@ -13,12 +13,13 @@ interface MarketAutomationBuilderProps {
   onControlLevelChange: (level: "basic" | "intermediate" | "advanced") => void;
   onFieldChange: <K extends keyof AutomationPlan>(key: K, value: AutomationPlan[K]) => void;
   onSave: () => void;
+  onSaveAndApply: () => void;
   onReset: () => void;
 }
 
 export default function MarketAutomationBuilder({
   draft, editingId, controlLevel,
-  onControlLevelChange, onFieldChange, onSave, onReset,
+  onControlLevelChange, onFieldChange, onSave, onSaveAndApply, onReset,
 }: MarketAutomationBuilderProps) {
   const toggleCategory = (cat: string) => {
     const next = draft.categories.includes(cat)
@@ -34,7 +35,7 @@ export default function MarketAutomationBuilder({
           {editingId ? "Edit Plan" : "New Automation Plan"}
           <HelpTip content="Create or edit a saved automation plan the robot can run. Choose your level of control below." />
         </h3>
-        <span className="text-[11px] text-gray-400">Save closes this builder automatically</span>
+        <span className="text-[11px] text-gray-400">Save draft stores settings only. Start applies the plan and kicks off a scan.</span>
       </div>
 
       {/* Control level selector */}
@@ -51,7 +52,7 @@ export default function MarketAutomationBuilder({
           ))}
         </div>
         <p className="text-[11px] text-gray-400 mt-2">
-          `Basic` is the recommended mode. `Intermediate` and `Advanced` expose extra controls that are not needed for most users.
+          Basic is recommended. Intermediate and Advanced expose extra controls that most users do not need.
         </p>
       </div>
 
@@ -78,8 +79,12 @@ export default function MarketAutomationBuilder({
       {/* Actions */}
       <div className="flex gap-2 pt-1">
         <button onClick={onSave} disabled={!draft.name.trim()}
+          className="flex-1 bg-gray-900 hover:bg-gray-800 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40 text-white">
+          💾 {editingId ? "Update Draft" : "Save Draft"}
+        </button>
+        <button onClick={onSaveAndApply} disabled={!draft.name.trim()}
           className="flex-1 bg-[#FF4D00] hover:bg-orange-600 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40 text-white">
-          💾 {editingId ? "Update Plan" : "Save Plan"}
+          ▶ {editingId ? "Update + Start" : "Save + Start Robot"}
         </button>
         {editingId && (
           <button onClick={onReset}
@@ -88,6 +93,9 @@ export default function MarketAutomationBuilder({
           </button>
         )}
       </div>
+      <p className="text-[11px] text-gray-400">
+        Drafts do not change the running robot. Start saves the plan, applies it, turns the robot on, and triggers an immediate scan.
+      </p>
     </div>
   );
 }

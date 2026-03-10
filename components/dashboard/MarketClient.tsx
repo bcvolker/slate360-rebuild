@@ -152,6 +152,16 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
           <MarketAutomationTab
             botConfig={bot.config}
             onApplyPlan={handleApplyPlan}
+            onRunNow={() => {
+              void (async () => {
+                await bot.runScan();
+                setActiveTabId("results");
+              })();
+            }}
+            onStopBot={() => { void bot.handleStopBot(); }}
+            serverStatus={serverStatus.status}
+            serverHealth={serverStatus.health}
+            scanLog={bot.scanLog}
           />
         );
       case "saved-markets":

@@ -12,6 +12,7 @@ The main remaining blockers are no longer basic UI issues. They are now mostly r
 
 - Live mode still requires real Polymarket CLOB credentials and spender configuration.
 - Background automation still depends on the scheduler cron path actually running.
+- Search and soon-ending scans are better aligned now, but true high-volume 24/7 automation is still limited by the current cron-loop architecture rather than a queue or worker system.
 - Several automation controls exist in UI and runtime config but are only partially enforced at execution time.
 - Execution now prefers `market_plans`, but the automation source of truth is still not fully unified because apply flow dual-writes through `market_directives` and auth `user_metadata.marketBotConfig` remains as a runtime overlay.
 - The implementation plan doc is partly stale and should not be treated as canonical for gate logic.
@@ -21,6 +22,7 @@ Short version:
 - Direct Buy paper mode: mostly wired and much closer to working.
 - Direct Buy live mode: blocked until real Polymarket live credentials and wallet approval path are in place.
 - Automation paper mode: the immediate apply/scan path is now plan-first and capable of simulating trades, but background automation still depends on cron/runtime health and there are still config-enforcement gaps.
+- Search for hour/day/week windows now uses the server proxy with upcoming-market filtering, but it still depends on Polymarket Gamma freshness and client-driven fetch loops rather than a purpose-built scanner service.
 - Automation live mode: not production-ready because live execution prerequisites and some runtime-enforcement logic are still incomplete.
 
 ## 2. What Changed In Recent Pushes

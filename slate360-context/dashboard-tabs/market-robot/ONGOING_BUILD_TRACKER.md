@@ -139,7 +139,7 @@ Completed
 - Automation plans now load from `/api/market/plans` with local fallback, so the UI is no longer localStorage-only.
 
 Still not done
-- The scheduler still has not migrated to `market_plans`; directive sync remains the live compatibility path for execution.
+- Execution is now `market_plans`-first, but apply flow still dual-writes through directives for compatibility.
 - “Show all markets” is still bounded by client fetch strategy, not true infinite catalog loading.
 - True 24/7 background still depends on deployed cron execution and scheduler secret wiring, not just `vercel.json`.
 
@@ -181,7 +181,7 @@ Concrete blockers behind “plans save but nothing happens”
 - Saving a plan is still not the same as applying a plan. `market_plans` stores the plan, but execution still depends on `syncAutomationPlan()` writing a legacy directive plus bot status, so users can save configuration without changing the runtime until they explicitly hit `Apply`.
 - Automation source of truth is still split across `market_plans`, `market_directives`, and auth `user_metadata.marketBotConfig`, but scheduler and one-off scan execution now prefer `market_plans` and only fall back when needed.
 - Practice automation remained sensitive to trade sizing until `df68fba` changed scheduler capital allocation to size by `maxOpenPositions` instead of `buys_per_day`. That fix is now in `lib/market/scheduler-run-user.ts`, but it still needs authenticated browser verification in the actual Market tab flow.
-- `useMarketBot.loadServerConfig()` still hydrates `maxPositions` from `buys_per_day` instead of a real max-open-positions field, so server-loaded runtime can diverge from what the saved plan suggests.
+- `useMarketBot.loadServerConfig()` now prefers the active `market_plans` row and only falls back to directives when no server plan is available, which reduces one more source of runtime drift.
 
 Most likely user-visible effect right now
 - A user can save a practice plan successfully and still see no robot activity because save does not apply.
@@ -208,6 +208,18 @@ Result
 Still not done
 - Apply flow still dual-writes through directives for compatibility; the execution source is now plan-first, but the compatibility bridge has not been removed yet.
 - Auth `user_metadata.marketBotConfig` still exists as a runtime overlay for values not yet fully promoted into plan columns.
+
+## Mar 10, 2026 — Search + automation verification cleanup
+
+Completed
+- Direct Buy search now keeps soon-ending searches on the upcoming-market path, so hour/day/week searches are less likely to look broken when a text query is present.
+- Scheduler health now derives its expected run cadence from the active `market_plans.max_trades_per_day` value before falling back to legacy directives.
+- Automation runtime hydration in `useMarketBot` now prefers the active saved plan from `/api/market/plans` and only falls back to `/api/market/directives` when necessary.
+- The automation builder now exposes a clearer split between `Save Draft` and `Save + Start Robot`, and the automation tab now surfaces server status, recent scan messages, and a `Run scan now` action for immediate paper-mode verification.
+
+Still not done
+- The product still lacks a real 24/7 high-volume execution architecture; Vercel cron plus the per-user polling loop is not the same as a worker or queue-backed bot engine.
+- The broader Market UI is still too card-heavy and jargon-heavy for a first-time user. This pass improved verification and wording, but it did not redesign the full product experience.
 
 ## Mar 7, 2026 — Operator + Direct Buy refinement pass
 

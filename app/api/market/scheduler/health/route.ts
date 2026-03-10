@@ -47,7 +47,7 @@ export async function GET() {
       );
     }
 
-    const [{ data: runtime }, { data: state }, { data: directive }] = await Promise.all([
+    const [{ data: runtime }, { data: state }, { data: plan }, { data: directive }] = await Promise.all([
       supabase
         .from("market_bot_runtime")
         .select("status,updated_at")
@@ -57,6 +57,15 @@ export async function GET() {
         .from("market_bot_runtime_state")
         .select("runs_today,trades_today,last_run_at,last_scan_at,last_error,last_error_at,updated_at")
         .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("market_plans")
+        .select("max_trades_per_day")
+        .eq("user_id", user.id)
+        .eq("is_archived", false)
+        .order("is_default", { ascending: false })
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle(),
       supabase
         .from("market_directives")
@@ -71,7 +80,7 @@ export async function GET() {
 
     const minIntervalSeconds = Number(process.env.MARKET_SCHEDULER_MIN_INTERVAL_SECONDS ?? 30);
     const maxIntervalSeconds = Number(process.env.MARKET_SCHEDULER_MAX_INTERVAL_SECONDS ?? 3600);
-    const buysPerDayRaw = Number(directive?.buys_per_day ?? process.env.MARKET_SCHEDULER_DEFAULT_BUYS_PER_DAY ?? 24);
+    const buysPerDayRaw = Number(plan?.max_trades_per_day ?? directive?.buys_per_day ?? process.env.MARKET_SCHEDULER_DEFAULT_BUYS_PER_DAY ?? 24);
 
     const buysPerDay = Number.isFinite(buysPerDayRaw) && buysPerDayRaw > 0 ? buysPerDayRaw : 24;
     const intervalFromBuys = Math.floor(86400 / buysPerDay);

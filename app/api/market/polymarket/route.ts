@@ -88,6 +88,7 @@ async function searchMarkets(
   query: string,
   limit: number,
   offset: number,
+  upcomingOnly: boolean,
 ) {
   const matches: MarketViewModel[] = [];
   let scanOffset = offset;
@@ -110,7 +111,10 @@ async function searchMarkets(
 
     if (rows.length === 0) break;
 
-    const mapped = rows.map((row) => mapGammaMarketToMarketVM(row)).filter((market) => matchesQuery(market, query));
+    const mapped = rows
+      .map((row) => mapGammaMarketToMarketVM(row))
+      .filter((market) => matchesQuery(market, query))
+      .filter((market) => (upcomingOnly ? isUpcomingMarket(market) : true));
     matches.push(...mapped);
     scanOffset += rows.length;
 
@@ -196,7 +200,7 @@ export async function GET(req: NextRequest) {
 
   try {
     if (query) {
-      const { res, markets, nextCursor } = await searchMarkets(forwardParams, query, limit, offset);
+      const { res, markets, nextCursor } = await searchMarkets(forwardParams, query, limit, offset, upcomingOnly);
 
       if (res && !res.ok) {
         return noStoreJson(
