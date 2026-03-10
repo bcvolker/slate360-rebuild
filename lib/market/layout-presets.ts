@@ -22,12 +22,12 @@ export interface MarketLayoutPrefs {
 }
 
 export const DEFAULT_MARKET_TABS: MarketTabPref[] = [
-  { id: "start-here", label: "Start Here", visible: true, order: 0 },
-  { id: "direct-buy", label: "Direct Buy", visible: true, order: 1 },
-  { id: "automation", label: "Automation", visible: true, order: 2 },
-  { id: "saved-markets", label: "Saved Markets", visible: true, order: 3 },
-  { id: "results", label: "Results", visible: true, order: 4 },
-  { id: "live-wallet", label: "Live Wallet", visible: true, order: 5 },
+  { id: "start-here", label: "Overview", visible: true, order: 0 },
+  { id: "direct-buy", label: "Browse Markets", visible: true, order: 1 },
+  { id: "automation", label: "Robot Setup", visible: true, order: 2 },
+  { id: "saved-markets", label: "Watchlist", visible: true, order: 3 },
+  { id: "results", label: "History", visible: true, order: 4 },
+  { id: "live-wallet", label: "Go Live", visible: true, order: 5 },
 ];
 
 export const DEFAULT_MARKET_LAYOUT: MarketLayoutPrefs = {

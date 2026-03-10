@@ -15,12 +15,12 @@ export const MARKET_TASK_TABS = [
 export type MarketTaskTab = (typeof MARKET_TASK_TABS)[number];
 
 const TAB_ICONS: Record<string, string> = {
-  "start-here": "🚀",
-  "direct-buy": "💰",
-  "automation": "🤖",
+  "start-here": "🏠",
+  "direct-buy": "🔍",
+  "automation": "⚙️",
   "saved-markets": "🔖",
-  "results": "📊",
-  "live-wallet": "🔐",
+  "results": "📈",
+  "live-wallet": "⚡",
 };
 
 interface MarketPrimaryNavProps {

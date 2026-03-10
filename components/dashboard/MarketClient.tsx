@@ -52,12 +52,11 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
     fetchTrades();
     fetchSummary();
     fetchSchedulerHealth();
-    void fetchMarketLogs();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (activeTabId === "start-here" || activeTabId === "automation" || activeTabId === "results") {
+    if (activeTabId === "results" || activeTabId === "start-here") {
       void fetchTrades();
       void fetchSummary();
       void fetchSchedulerHealth();
@@ -116,6 +115,50 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
     })();
   }, [bot]);
 
+  const handleQuickStartPaper = useCallback(() => {
+    const defaultPlan: AutomationPlan = {
+      id: `quick-${Date.now()}`,
+      name: "Quick Start (Practice)",
+      budget: 200,
+      riskLevel: "conservative",
+      categories: ["General", "Politics"],
+      scanMode: "balanced",
+      maxTradesPerDay: 5,
+      mode: "practice",
+      maxDailyLoss: 24,
+      maxOpenPositions: 5,
+      maxPctPerTrade: 15,
+      feeAlertThreshold: 5,
+      cooldownAfterLossStreak: 3,
+      largeTraderSignals: false,
+      closingSoonFocus: false,
+      slippage: 2,
+      minimumLiquidity: 5000,
+      maximumSpread: 10,
+      fillPolicy: "conservative",
+      exitRules: "auto",
+      isDefault: false,
+      isArchived: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    handleApplyPlan(defaultPlan);
+  }, [handleApplyPlan]);
+
+  const handleStopBot = useCallback(() => {
+    void (async () => {
+      bot.setBotRunning(false);
+      bot.setBotPaused(false);
+      bot.addLog("⏹ Robot stopped");
+      await fetch("/api/market/bot-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "stopped" }),
+      });
+      await serverStatus.refresh?.();
+    })();
+  }, [bot, serverStatus]);
+
   const handleTradePlaced = useCallback(async () => {
     await fetchTrades();
     await fetchSummary();
@@ -129,7 +172,9 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
         return (
           <MarketStartHereTab
             onNavigate={setActiveTabId}
-            onApplyRecommendation={(plan) => { handleApplyPlan(plan); setActiveTabId("results"); }}
+            onApplyRecommendation={(plan) => { handleApplyPlan(plan); }}
+            onQuickStart={handleQuickStartPaper}
+            onStopBot={handleStopBot}
             paperMode={bot.config.paperMode}
             serverStatus={serverStatus.status}
             serverConfirmed={serverStatus.isConfirmed}
@@ -150,7 +195,8 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
           <MarketAutomationTab
             botConfig={bot.config}
             onApplyPlan={handleApplyPlan}
-            activityLogs={activityLogs}
+            onStopBot={handleStopBot}
+            onNavigate={setActiveTabId}
           />
         );
       case "saved-markets":
@@ -218,7 +264,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
             )}
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            A modern Polymarket workspace for manual trades, automation, and live robot monitoring
+            AI-powered prediction market bot
             {serverStatus.isConfirmed && (
               <> — Server: <strong className="text-gray-700">{displayStatusLabel}</strong></>
             )}
@@ -241,7 +287,6 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
       <MarketTopOverview
         trades={trades}
         botConfig={bot.config}
-        activityLogs={activityLogs}
         onOpenResults={() => setActiveTabId("results")}
         onOpenAutomation={() => setActiveTabId("automation")}
       />

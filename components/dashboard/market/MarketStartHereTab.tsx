@@ -1,63 +1,70 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import type { SchedulerHealthViewModel } from "@/lib/market/contracts";
 import type { ServerBotStatus } from "@/lib/hooks/useMarketServerStatus";
 import type { AutomationPlan } from "@/components/dashboard/market/types";
 
 type Mode = "practice" | "real";
-type PathChoice = "recommendations" | "direct-buy" | "automation";
-
-interface MarketStartHereTabProps {
-  onNavigate: (tabId: string) => void;
-  onApplyRecommendation: (plan: AutomationPlan) => void;
-  paperMode: boolean;
-  serverStatus: ServerBotStatus;
-  serverConfirmed: boolean;
-  serverHealth: SchedulerHealthViewModel | null;
-}
 
 interface RecommendationPreset {
   id: string;
   emoji: string;
   title: string;
-  subtitle: string;
   why: string;
   budget: number;
-  risk: string;
-  mode: "practice" | "real";
-  activity: "low" | "medium" | "high";
+  risk: "conservative" | "balanced" | "aggressive";
   categories: string[];
 }
 
-const RECOMMENDATIONS: RecommendationPreset[] = [
-  { id: "small-wallet", emoji: "💼", title: "Best for $100–$300 wallet", subtitle: "Start small with conservative settings", why: "Low position sizes protect your capital while you learn. Makes 1–3 trades per day with tight loss limits.", budget: 200, risk: "conservative", mode: "practice", activity: "low", categories: ["General", "Politics"] },
-  { id: "safer-starter", emoji: "🛡️", title: "Safer starter plan", subtitle: "Balanced risk, practice mode recommended", why: "Focuses on high-liquidity markets where fills are predictable. Limits exposure to any single outcome.", budget: 300, risk: "conservative", mode: "practice", activity: "low", categories: ["General", "Economy"] },
-  { id: "hands-off", emoji: "🤖", title: "Hands-off weekly scan", subtitle: "Set it up once and let it run", why: "Scans once per hour, up to 5 trades per day. Diversified across categories — check in once a week.", budget: 500, risk: "balanced", mode: "practice", activity: "medium", categories: ["General", "Economy", "Politics", "Crypto"] },
-  { id: "short-markets", emoji: "⏳", title: "Short-lived market focus", subtitle: "Markets expiring within 24 hours", why: "Faster resolution gives quicker feedback. Ideal for testing whether the robot is making good calls.", budget: 250, risk: "balanced", mode: "practice", activity: "high", categories: ["General", "Sports"] },
-  { id: "construction-niche", emoji: "🏗️", title: "Construction & economy niche", subtitle: "Specialized focus on industry-relevant markets", why: "Your domain knowledge gives a natural edge on construction, infrastructure, and economic policy markets.", budget: 400, risk: "aggressive", mode: "practice", activity: "medium", categories: ["Construction", "Economy", "Infrastructure"] },
-  { id: "micro-test", emoji: "🔬", title: "Micro budget test ($50)", subtitle: "Most beginner-friendly — minimal risk", why: "The cheapest way to understand YES/NO buying. Paper mode by default. Upgrade whenever you're ready.", budget: 50, risk: "conservative", mode: "practice", activity: "low", categories: ["General"] },
+const QUICK_STARTS: RecommendationPreset[] = [
+  {
+    id: "micro-test",
+    emoji: "🔬",
+    title: "Micro test — $50 budget",
+    why: "Learn the robot with minimal risk. Conservative, 2–3 trades/day, practice mode.",
+    budget: 50,
+    risk: "conservative",
+    categories: ["General"],
+  },
+  {
+    id: "beginner",
+    emoji: "🛡️",
+    title: "Beginner — $200 budget",
+    why: "Balanced settings across popular categories. 5 trades/day max.",
+    budget: 200,
+    risk: "conservative",
+    categories: ["General", "Politics", "Economy"],
+  },
+  {
+    id: "hands-off",
+    emoji: "🤖",
+    title: "Hands-off — $500 budget",
+    why: "Set it once, check in weekly. Balanced risk across 4 categories.",
+    budget: 500,
+    risk: "balanced",
+    categories: ["General", "Economy", "Politics", "Crypto"],
+  },
 ];
 
-function recommendationToPlan(rec: RecommendationPreset, userMode: Mode): AutomationPlan {
-  const activityToTrades = { low: 5, medium: 15, high: 40 };
-  const riskMap = { conservative: "conservative" as const, balanced: "balanced" as const, aggressive: "aggressive" as const };
+function presetToPlan(rec: RecommendationPreset, mode: Mode): AutomationPlan {
+  const trades = rec.budget < 100 ? 3 : rec.budget < 300 ? 5 : 15;
   return {
     id: `rec-${rec.id}`,
     name: rec.title,
     budget: rec.budget,
-    riskLevel: riskMap[rec.risk as keyof typeof riskMap] ?? "medium",
+    riskLevel: rec.risk,
     categories: rec.categories,
-    scanMode: rec.id === "short-markets" ? "closing-soon" : "balanced",
-    maxTradesPerDay: activityToTrades[rec.activity] ?? 10,
-    mode: userMode,
-    maxDailyLoss: Math.round(rec.budget * 0.15),
-    maxOpenPositions: activityToTrades[rec.activity] ?? 10,
+    scanMode: "balanced",
+    maxTradesPerDay: trades,
+    mode,
+    maxDailyLoss: Math.round(rec.budget * 0.12),
+    maxOpenPositions: trades,
     maxPctPerTrade: 15,
     feeAlertThreshold: 5,
     cooldownAfterLossStreak: 3,
     largeTraderSignals: false,
-    closingSoonFocus: rec.id === "short-markets",
+    closingSoonFocus: false,
     slippage: 2,
     minimumLiquidity: 5000,
     maximumSpread: 10,
@@ -70,205 +77,194 @@ function recommendationToPlan(rec: RecommendationPreset, userMode: Mode): Automa
   };
 }
 
-export default function MarketStartHereTab({ onNavigate, onApplyRecommendation, paperMode, serverStatus, serverConfirmed, serverHealth }: MarketStartHereTabProps) {
-  const [mode, setMode] = useState<Mode>("practice");
-  const [showStepper, setShowStepper] = useState(false);
-  const [activePath, setActivePath] = useState<PathChoice>("recommendations");
+interface MarketStartHereTabProps {
+  onNavigate: (tabId: string) => void;
+  onApplyRecommendation: (plan: AutomationPlan) => void;
+  onQuickStart?: () => void;
+  onStopBot?: () => void;
+  paperMode: boolean;
+  serverStatus: ServerBotStatus;
+  serverConfirmed: boolean;
+  serverHealth: SchedulerHealthViewModel | null;
+}
+
+export default function MarketStartHereTab({
+  onNavigate,
+  onApplyRecommendation,
+  onQuickStart,
+  onStopBot,
+  paperMode,
+  serverStatus,
+  serverConfirmed,
+  serverHealth,
+}: MarketStartHereTabProps) {
   const [explainerOpen, setExplainerOpen] = useState(false);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const savedMode = localStorage.getItem("market_mode_pref");
-    if (savedMode === "practice" || savedMode === "real") {
-      setMode(savedMode);
-    }
-    setShowStepper(!localStorage.getItem("market_onboarded"));
-  }, []);
-
-  const handleModeChange = (m: Mode) => {
-    setMode(m);
-    if (typeof window !== "undefined") localStorage.setItem("market_mode_pref", m);
-  };
-
-  const dismissStepper = () => {
-    if (typeof window !== "undefined") localStorage.setItem("market_onboarded", "1");
-    setShowStepper(false);
-  };
-
-  const PATHS = [
-    { id: "recommendations" as PathChoice, emoji: "🤖", title: "Use Recommendations", desc: "Let the robot suggest a ready-to-go setup based on your wallet and goals." },
-    { id: "direct-buy" as PathChoice, emoji: "🔍", title: "Browse & Buy Directly", desc: "Search live markets and place a manual buy on any YES/NO outcome." },
-    { id: "automation" as PathChoice, emoji: "⚙️", title: "Set Up Automation", desc: "Configure the robot to scan and trade automatically in the background." },
-  ];
+  const isActive = serverStatus === "running" || serverStatus === "paper";
+  const isPaper = serverStatus === "paper" || (paperMode && isActive);
+  const tradesToday = serverHealth?.tradesToday ?? 0;
 
   return (
     <div className="space-y-5">
-      {/* First-run banner */}
-      {showStepper && (
-        <div className="rounded-xl bg-gradient-to-r from-[#FF4D00]/10 to-orange-50 border border-[#FF4D00]/20 p-4 flex items-start justify-between gap-3">
+
+      {/* ── Main status card ── */}
+      <div className={`rounded-[28px] p-5 sm:p-6 transition-colors ${
+        isActive
+          ? "bg-[radial-gradient(ellipse_at_top_right,#ff6b1a22,transparent),linear-gradient(135deg,#0f172a,#1e293b)]"
+          : "bg-white border border-gray-100 shadow-sm"
+      }`}>
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Welcome to Market Robot 👋</p>
-            <p className="text-xs text-gray-600 mt-1">
-              Start in <strong>Practice Mode</strong> to test the robot without spending real money.
-              When ready, switch to <strong>Real Money</strong> and complete wallet setup.
-            </p>
+            {isActive ? (
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
+                  <span className="text-sm font-semibold text-green-300">
+                    Robot Active — {isPaper ? "Practice Mode" : "Live Trading"}
+                  </span>
+                </div>
+                <p className="text-3xl font-black text-white">
+                  {tradesToday} trade{tradesToday !== 1 ? "s" : ""} today
+                </p>
+                {serverHealth?.lastRunIso && (
+                  <p className="text-xs text-white/50 mt-1.5">
+                    Last scan: {new Date(serverHealth.lastRunIso).toLocaleTimeString()}
+                  </p>
+                )}
+                {isPaper && (
+                  <p className="text-xs text-purple-300 mt-2">
+                    {"✓ No real money used — go to "}
+                    <button onClick={() => onNavigate("live-wallet")} className="underline font-semibold">
+                      Go Live
+                    </button>
+                    {" when ready"}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-base font-bold text-gray-800 mb-1">🤖 Robot is not running</p>
+                <p className="text-sm text-gray-500 max-w-sm leading-relaxed">
+                  Start in <strong>practice mode</strong> — the robot scans real Polymarket listings,
+                  picks trades automatically, and logs results.{" "}
+                  <strong>No real money required.</strong>
+                </p>
+              </>
+            )}
           </div>
-          <button onClick={dismissStepper} className="text-gray-400 hover:text-gray-700 text-xl leading-none shrink-0 mt-0.5">×</button>
+
+          <div className="shrink-0">
+            {isActive ? (
+              <button
+                onClick={onStopBot}
+                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-semibold transition"
+              >
+                ⏹ Stop Robot
+              </button>
+            ) : (
+              <button
+                onClick={onQuickStart}
+                className="px-6 py-3 rounded-xl bg-[#FF4D00] hover:bg-[#e04400] text-white text-sm font-bold shadow-lg shadow-orange-500/30 transition"
+              >
+                ▶ Start Practice Trading
+              </button>
+            )}
+          </div>
+        </div>
+
+        {serverHealth?.lastError && (
+          <div className="mt-4 px-3 py-2 rounded-xl bg-red-500/20 border border-red-400/30 text-xs text-red-200">
+            ⚠ {serverHealth.lastError.slice(0, 140)}
+          </div>
+        )}
+
+        {!serverConfirmed && (
+          <p className="mt-3 text-xs text-gray-400">Checking server status…</p>
+        )}
+      </div>
+
+      {/* ── Stats row (once bot has run) ── */}
+      {tradesToday > 0 && (
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Trades today", value: String(tradesToday) },
+            { label: "Runs today", value: String(serverHealth?.runsToday ?? "—") },
+            { label: "Mode", value: isPaper ? "Practice" : "Live", color: isPaper ? "text-purple-700" : "text-green-700" },
+          ].map(stat => (
+            <div key={stat.label} className="rounded-2xl bg-white border border-gray-100 shadow-sm p-3 text-center">
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide">{stat.label}</p>
+              <p className={`text-xl font-black mt-1 ${stat.color ?? "text-gray-900"}`}>{stat.value}</p>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Bot status bar — server-confirmed */}
-      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-        {serverConfirmed ? (
-          <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border font-medium ${
-            serverStatus === "running" ? "bg-orange-50 border-orange-200 text-orange-700" :
-            serverStatus === "paused" ? "bg-amber-50 border-amber-200 text-amber-700" :
-            serverStatus === "paper" ? "bg-purple-50 border-purple-200 text-purple-700" :
-            "bg-gray-100 border-gray-200 text-gray-500"
-          }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${
-              serverStatus === "running" ? "bg-orange-500 animate-pulse" :
-              serverStatus === "paused" ? "bg-amber-500" :
-              serverStatus === "paper" ? "bg-purple-500 animate-pulse" :
-              "bg-gray-400"
-            }`} />
-            {serverStatus === "running" ? "Robot running (server confirmed)" :
-             serverStatus === "paused" ? "Robot paused (server confirmed)" :
-             serverStatus === "paper" ? "Robot running — paper mode (server confirmed)" :
-             "Robot stopped"}
-          </span>
-        ) : (
-          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border font-medium bg-gray-100 border-gray-200 text-gray-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-            Checking server status…
-          </span>
-        )}
-        {paperMode && (
-          <span className="px-2.5 py-1 rounded-full border bg-purple-50 border-purple-200 text-purple-700 font-medium">Paper mode</span>
-        )}
-        {serverHealth?.lastRunIso && (
-          <span className="text-gray-400">
-            Last run: {new Date(serverHealth.lastRunIso).toLocaleTimeString()}
-          </span>
-        )}
-        {serverHealth && serverHealth.tradesToday > 0 && (
-          <span className="text-gray-400">
-            {serverHealth.tradesToday} trade{serverHealth.tradesToday !== 1 ? "s" : ""} today
-          </span>
-        )}
-        {serverHealth?.lastError && (
-          <span className="text-red-500 text-[11px]" title={serverHealth.lastError}>
-            ⚠ Last error: {serverHealth.lastError.slice(0, 60)}
-          </span>
-        )}
-      </div>
-
-      {/* Mode selector */}
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Your mode</p>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => handleModeChange("practice")}
-            className={`rounded-xl border-2 p-3 text-left transition ${mode === "practice" ? "border-purple-500 bg-purple-50" : "border-gray-200 hover:border-gray-300"}`}
-          >
-            <p className="font-semibold text-gray-900 text-sm">🧪 Practice Mode</p>
-            <p className="text-xs text-gray-500 mt-0.5">No real money. Learn and test strategies safely.</p>
-          </button>
-          <button
-            onClick={() => handleModeChange("real")}
-            className={`rounded-xl border-2 p-3 text-left transition ${mode === "real" ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-gray-300"}`}
-          >
-            <p className="font-semibold text-gray-900 text-sm">💵 Real Money</p>
-            <p className="text-xs text-gray-500 mt-0.5">Live trades on Polymarket. Requires a wallet.</p>
-          </button>
-        </div>
-        {mode === "real" && (
-          <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
-            ⚠️ Set up your wallet first in the{" "}
-            <button onClick={() => onNavigate("live-wallet")} className="underline font-semibold">Live Wallet tab</button>
-            {" "}before placing real trades.
-          </p>
-        )}
-      </div>
-
-      {/* Path selection */}
-      <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">What would you like to do?</p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {PATHS.map(path => (
-            <button
-              key={path.id}
-              onClick={() => {
-                if (path.id === "direct-buy" || path.id === "automation") {
-                  onNavigate(path.id);
-                } else {
-                  setActivePath(path.id);
-                }
-              }}
-              className={`p-4 rounded-xl border-2 text-left transition hover:shadow-sm ${
-                activePath === path.id && path.id === "recommendations"
-                  ? "border-[#FF4D00] bg-orange-50"
-                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              <p className="text-2xl mb-2">{path.emoji}</p>
-              <p className="font-semibold text-gray-900 text-sm">{path.title}</p>
-              <p className="text-xs text-gray-500 mt-1 leading-relaxed">{path.desc}</p>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Recommendations grid */}
-      {activePath === "recommendations" && (
+      {/* ── Quick-start templates (only when bot is idle) ── */}
+      {!isActive && (
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Recommended plans for you</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {RECOMMENDATIONS.map(rec => (
-              <div key={rec.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 flex flex-col">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
+            Or choose a template to start with
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {QUICK_STARTS.map(rec => (
+              <button
+                key={rec.id}
+                onClick={() => onApplyRecommendation(presetToPlan(rec, "practice"))}
+                className="p-4 rounded-2xl border border-gray-100 bg-white shadow-sm text-left hover:border-[#FF4D00]/40 hover:shadow-md transition"
+              >
                 <p className="text-2xl mb-2">{rec.emoji}</p>
                 <p className="font-semibold text-gray-900 text-sm leading-snug">{rec.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5 mb-2">{rec.subtitle}</p>
-                <p className="text-[11px] text-gray-400 leading-relaxed flex-1">{rec.why}</p>
-                <div className="flex flex-wrap gap-1 mt-3 mb-3">
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">${rec.budget} budget</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{rec.risk}</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
-                    {mode === "practice" ? "Practice mode" : "Live money"}
-                  </span>
-                </div>
-                <button
-                  onClick={() => onApplyRecommendation(recommendationToPlan(rec, mode))}
-                  className="w-full py-2 rounded-lg bg-[#FF4D00] text-white text-xs font-semibold hover:bg-[#e04400] transition"
-                >
-                  Apply this plan →
-                </button>
-              </div>
+                <p className="text-[11px] text-gray-400 mt-1 mb-3 leading-relaxed">{rec.why}</p>
+                <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                  Practice mode
+                </span>
+              </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* YES/NO explainer accordion */}
+      {/* ── Navigation shortcuts ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {[
+          { id: "direct-buy", emoji: "🔍", label: "Browse Markets" },
+          { id: "automation", emoji: "⚙️", label: "Robot Settings" },
+          { id: "results", emoji: "📈", label: "Trade History" },
+          { id: "live-wallet", emoji: "⚡", label: "Go Live" },
+        ].map(link => (
+          <button
+            key={link.id}
+            onClick={() => onNavigate(link.id)}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-100 bg-white shadow-sm text-sm text-gray-700 hover:bg-orange-50 hover:border-orange-200 transition font-medium"
+          >
+            <span>{link.emoji}</span> {link.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── YES/NO explainer ── */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
         <button
           onClick={() => setExplainerOpen(v => !v)}
           className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
         >
-          <span>ℹ️ What does YES / NO mean?</span>
+          <span>ℹ️ What is YES / NO betting on Polymarket?</span>
           <span className="text-gray-400 text-xs">{explainerOpen ? "▲ Hide" : "▼ Show"}</span>
         </button>
         {explainerOpen && (
-          <div className="px-4 pb-4 space-y-2.5 text-xs text-gray-600 border-t border-gray-100 pt-3">
-            <p><strong>YES</strong> — you believe the event will happen. Pays out $1 per share if the market resolves YES.</p>
-            <p><strong>NO</strong> — you believe it won&apos;t happen. Pays out $1 per share if the market resolves NO.</p>
-            <p>Prices are in cents (0–99¢). A YES price of 60¢ implies a 60% probability the event happens.</p>
-            <p>Your <strong>max loss</strong> is always the amount you spend. Your <strong>max payout</strong> = shares × $1.</p>
+          <div className="px-4 pb-4 space-y-2 text-xs text-gray-600 border-t border-gray-100 pt-3">
+            <p><strong>YES</strong> — you think an event will happen. Pays $1 per share if it resolves YES.</p>
+            <p><strong>NO</strong> — you think it won&apos;t happen. Pays $1 per share if it resolves NO.</p>
+            <p>Prices are in cents (0–99¢). A YES at 60¢ means roughly a 60% probability the event happens.</p>
+            <p>Your <strong>max loss</strong> is always the amount you spend. Your <strong>max win</strong> = shares × $1.00.</p>
+            <p className="text-gray-400">
+              Example: 10 YES shares at 40¢ = $4 spent. Resolves YES → you receive $10 (profit: $6).
+            </p>
             <button
               onClick={() => onNavigate("direct-buy")}
-              className="mt-1 text-[#FF4D00] font-semibold underline"
+              className="mt-1 text-[#FF4D00] font-semibold underline text-xs"
             >
-              Browse live markets and try it →
+              Try browsing live markets →
             </button>
           </div>
         )}
