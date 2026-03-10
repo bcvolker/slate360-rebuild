@@ -12,6 +12,7 @@ import type { MarketTrade, MarketActivityLogEntry } from "@/components/dashboard
 interface MarketResultsTabProps {
   trades: MarketTrade[];
   activityLogs: MarketActivityLogEntry[];
+  onRefresh: () => Promise<void>;
 }
 
 function formatDuration(ms: number): string {
@@ -39,7 +40,7 @@ function StatCard({ label, children, tip }: { label: string; children: React.Rea
   );
 }
 
-export default function MarketResultsTab({ trades, activityLogs }: MarketResultsTabProps) {
+export default function MarketResultsTab({ trades, activityLogs, onRefresh }: MarketResultsTabProps) {
   const openPositions = trades.filter((trade) => trade.status === "open" && !trade.closedAt);
   const {
     analytics, sortedTrades, sortKey, sortDir, filterMode,
@@ -120,10 +121,10 @@ export default function MarketResultsTab({ trades, activityLogs }: MarketResults
 
       <div className="flex justify-end">
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => { void onRefresh(); }}
           className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
         >
-          Refresh trades
+          Refresh results
         </button>
       </div>
 

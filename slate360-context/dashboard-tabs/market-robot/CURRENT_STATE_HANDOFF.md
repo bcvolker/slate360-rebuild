@@ -23,6 +23,7 @@ Short version:
 - Direct Buy live mode: blocked until real Polymarket live credentials and wallet approval path are in place.
 - Automation paper mode: the immediate apply/scan path is now plan-first and capable of simulating trades, but background automation still depends on cron/runtime health and there are still config-enforcement gaps.
 - Search for hour/day/week windows now uses the server proxy with upcoming-market filtering, but it still depends on Polymarket Gamma freshness and client-driven fetch loops rather than a purpose-built scanner service.
+- Verification is better than before because bot actions now refresh server logs and Results can refresh in-app, but the product still does not offer a strong single-screen operator view that proves scanning, decisioning, and trade execution end-to-end.
 - Automation live mode: not production-ready because live execution prerequisites and some runtime-enforcement logic are still incomplete.
 
 ## 2. What Changed In Recent Pushes

@@ -44,6 +44,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
     fetchTrades,
     fetchSummary,
     fetchSchedulerHealth,
+    fetchMarketLogs,
   });
   const wallet = useMarketWalletState({ addLog: bot.addLog });
   const serverStatus = useMarketServerStatus();
@@ -171,6 +172,12 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
           <MarketResultsTab
             trades={trades}
             activityLogs={activityLogs}
+            onRefresh={async () => {
+              await fetchTrades();
+              await fetchSummary();
+              await fetchSchedulerHealth();
+              await fetchMarketLogs();
+            }}
           />
         );
       case "live-wallet":

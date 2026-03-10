@@ -111,7 +111,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs text-gray-500 mb-1 flex items-center">
-            Budget ($) <HelpTip content="Total capital the plan can use." />
+              Total budget ($) <HelpTip content="The maximum capital this plan is allowed to use." />
           </label>
           <MarketNumericInput
             value={draft.budget}
@@ -157,7 +157,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs text-gray-500 mb-1 flex items-center">
-            Max Trades/Day <HelpTip content="Cap on how many trades the robot makes per day." />
+            Daily trade cap <HelpTip content="The most trades the robot can place in one day." />
           </label>
           <MarketNumericInput
             value={draft.maxTradesPerDay}
@@ -169,7 +169,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
         </div>
         <div>
           <label className="text-xs text-gray-500 mb-1 flex items-center">
-            Max Daily Loss ($) <HelpTip content="Stop trading when losses exceed this amount in a single day." />
+            Stop after losing this much today ($) <HelpTip content="When losses hit this amount in one day, the robot should stop trading." />
           </label>
           <MarketNumericInput
             value={draft.maxDailyLoss}
@@ -183,7 +183,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs text-gray-500 mb-1 flex items-center">
-            Max Open Positions <HelpTip content="How many open positions the robot can hold at once." />
+            Max positions at once <HelpTip content="The most open positions the robot can hold at one time." />
           </label>
           <MarketNumericInput
             value={draft.maxOpenPositions}
@@ -195,7 +195,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
         </div>
         <div>
           <label className="text-xs text-gray-500 mb-1 flex items-center">
-            Scan Mode <HelpTip content="How often the robot scans. Faster modes create more activity and more noise." />
+            Scan speed <HelpTip content="Controls how often the robot looks for opportunities. Faster modes create more activity and more noise." />
           </label>
           <select value={draft.scanMode} onChange={e => onFieldChange("scanMode", e.target.value as ScanMode)}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]">
@@ -220,6 +220,9 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
             </button>
           ))}
         </div>
+        <p className="text-[11px] text-gray-400 mt-2">
+          Basic setup means: budget = money the robot can use, daily trade cap = max buys per day, max positions at once = how many open bets it can hold, and scan speed = how aggressively it searches.
+        </p>
       </div>
     </>
   );

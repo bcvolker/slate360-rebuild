@@ -181,6 +181,18 @@ export default function MarketStartHereTab({
         {!serverConfirmed && (
           <p className="mt-3 text-xs text-gray-400">Checking server status…</p>
         )}
+
+        {serverConfirmed && (
+          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-xs text-white/70">
+            <p>
+              Server status: <span className="font-semibold text-white">{serverStatus}</span>
+              {serverHealth?.nextEligibleRunIso ? ` · Next background run: ${new Date(serverHealth.nextEligibleRunIso).toLocaleTimeString()}` : ""}
+            </p>
+            <p className="mt-1 text-white/60">
+              Best way to verify paper mode: start the robot, then open Automation or Results and use Run scan now / Refresh results to confirm scans, logs, and positions.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* ── Stats row (once bot has run) ── */}

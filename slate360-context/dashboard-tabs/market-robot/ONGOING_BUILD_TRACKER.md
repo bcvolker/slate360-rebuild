@@ -217,9 +217,18 @@ Completed
 - Automation runtime hydration in `useMarketBot` now prefers the active saved plan from `/api/market/plans` and only falls back to `/api/market/directives` when necessary.
 - The automation builder now exposes a clearer split between `Save Draft` and `Save + Start Robot`, and the automation tab now surfaces server status, recent scan messages, and a `Run scan now` action for immediate paper-mode verification.
 
+## Mar 10, 2026 — Results refresh + plain-English automation copy
+
+Completed
+- `useMarketBot` now refreshes server activity logs after scan/start/pause/stop actions, so local bot messages and server-side activity are less likely to drift apart during paper-mode testing.
+- `MarketResultsTab` now refreshes trades, summary, scheduler health, and market logs in-app instead of forcing a full page reload.
+- `MarketStartHereTab` now shows a clearer server-status verification block that points users toward Automation and Results for paper-mode confirmation.
+- `MarketAutomationBuilder` rewrites the most confusing Basic fields into plainer language: total budget, daily trade cap, stop-after-loss, max positions at once, and scan speed.
+
 Still not done
 - The product still lacks a real 24/7 high-volume execution architecture; Vercel cron plus the per-user polling loop is not the same as a worker or queue-backed bot engine.
 - The broader Market UI is still too card-heavy and jargon-heavy for a first-time user. This pass improved verification and wording, but it did not redesign the full product experience.
+- There is still no true single-pane operator console that shows search universe, scored opportunities, filtered decisions, executed trades, and wallet state together in an obvious Polymarket-bot-first layout.
 
 ## Mar 7, 2026 — Operator + Direct Buy refinement pass
 

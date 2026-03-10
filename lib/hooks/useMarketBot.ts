@@ -6,7 +6,7 @@ import type { BotConfig } from "@/components/dashboard/market/types";
 
 interface UseMarketBotDeps {
   trades: TradeViewModel[];
-  fetchTrades: () => Promise<void>; fetchSummary: () => Promise<void>; fetchSchedulerHealth: () => Promise<void>;
+  fetchTrades: () => Promise<void>; fetchSummary: () => Promise<void>; fetchSchedulerHealth: () => Promise<void>; fetchMarketLogs: () => Promise<void>;
 }
 
 export interface UseMarketBotReturn {
@@ -74,7 +74,7 @@ async function loadServerConfig(): Promise<Partial<BotConfig> | null> {
 }
 
 export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
-  const { trades, fetchTrades, fetchSummary, fetchSchedulerHealth } = deps;
+  const { trades, fetchTrades, fetchSummary, fetchSchedulerHealth, fetchMarketLogs } = deps;
 
   const [botRunning, setBotRunning] = useState(false), [botPaused, setBotPaused] = useState(false), [scanning, setScanning] = useState(false);
   const [lastScan, setLastScan] = useState<number | null>(null), [scanLog, setScanLog] = useState<string[]>([]), [appliedConfig, setAppliedConfig] = useState<Record<string, unknown> | null>(null);
@@ -176,13 +176,15 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
         await fetchTrades();
         await fetchSummary();
         await fetchSchedulerHealth();
+        await fetchMarketLogs();
       } else {
         addLog(`❌ Scan failed: ${data?.error?.message ?? "Unknown error"}`);
+        await fetchMarketLogs();
       }
     } catch (e: unknown) {
       addLog(`❌ Error: ${(e as Error).message}`);
     } finally { setScanning(false); }
-  }, [paperMode, maxPositions, maxTradesPerDay, capitalAlloc, minEdge, minVolume, minProbLow, minProbHigh, whaleFollow, riskMix, focusAreas, addLog, fetchTrades, fetchSummary, fetchSchedulerHealth, getTradesTodayCount]);
+  }, [paperMode, maxPositions, maxTradesPerDay, capitalAlloc, minEdge, minVolume, minProbLow, minProbHigh, whaleFollow, riskMix, focusAreas, addLog, fetchTrades, fetchSummary, fetchSchedulerHealth, fetchMarketLogs, getTradesTodayCount]);
 
   const runPreviewScan = useCallback(async () => {
     try {
@@ -226,9 +228,10 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
         body: JSON.stringify({ status: effectiveMode }),
       });
       await fetchSchedulerHealth();
+      await fetchMarketLogs();
     } catch (e) { console.error("bot-status start", e); }
     await runScan();
-  }, [paperMode, addLog, fetchSchedulerHealth, runScan]);
+  }, [paperMode, addLog, fetchSchedulerHealth, fetchMarketLogs, runScan]);
 
   const handlePauseBot = useCallback(async () => {
     const newPaused = !botPaused;
@@ -240,8 +243,9 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
         body: JSON.stringify({ status: newPaused ? "paused" : "running" }),
       });
       await fetchSchedulerHealth();
+      await fetchMarketLogs();
     } catch (e) { console.error("bot-status pause", e); }
-  }, [botPaused, addLog, fetchSchedulerHealth]);
+  }, [botPaused, addLog, fetchSchedulerHealth, fetchMarketLogs]);
 
   const handleStopBot = useCallback(async () => {
     setBotRunning(false);
@@ -253,8 +257,9 @@ export function useMarketBot(deps: UseMarketBotDeps): UseMarketBotReturn {
         body: JSON.stringify({ status: "stopped" }),
       });
       await fetchSchedulerHealth();
+      await fetchMarketLogs();
     } catch (e) { console.error("bot-status stop", e); }
-  }, [addLog, fetchSchedulerHealth]);
+  }, [addLog, fetchSchedulerHealth, fetchMarketLogs]);
 
   const applyBeginnerBotPreset = useCallback((preset: "starter" | "balanced" | "active") => {
     if (preset === "starter") {
