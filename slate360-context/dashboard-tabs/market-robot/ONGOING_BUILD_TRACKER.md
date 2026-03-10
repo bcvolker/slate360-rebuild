@@ -119,12 +119,11 @@ Current Market files in play
 
 Still missing from the revised plan
 - saved markets / saved searches unified tab (future)
-- server-side `market_plans` adoption (table now exists, but plans are still localStorage-first and scheduler still reads directives)
+- full retirement of the directive compatibility bridge and auth metadata overlay now that execution is `market_plans`-first
 - app-ecosystem-ready packaging assumptions
 - server-side pagination for Polymarket catalog (currently client-side fetch)
 - bookmarking / saved markets persistence
 - authenticated production verification of directives/logs fallback behavior after deploy
-- server-side scheduler migration from legacy directives to automation plans as the primary source of truth
 
 ## Mar 9, 2026 — Direct Buy reactivity + market_plans bootstrap
 
@@ -180,7 +179,7 @@ Verified from this workspace
 Concrete blockers behind “plans save but nothing happens”
 - The most obvious practice-mode entry point was partially dead: `MarketStartHereTab` rendered `Start Practice Trading` and `Stop Robot` actions, but `MarketClient` was not passing `onQuickStart` / `onStopBot`, so the hero CTA did nothing. Fixed Mar 10 by wiring those handlers from `useMarketBot`.
 - Saving a plan is still not the same as applying a plan. `market_plans` stores the plan, but execution still depends on `syncAutomationPlan()` writing a legacy directive plus bot status, so users can save configuration without changing the runtime until they explicitly hit `Apply`.
-- Automation source of truth is still split across `market_plans`, `market_directives`, and auth `user_metadata.marketBotConfig`; scheduler execution still reads directives + metadata instead of `market_plans` directly.
+- Automation source of truth is still split across `market_plans`, `market_directives`, and auth `user_metadata.marketBotConfig`, but scheduler and one-off scan execution now prefer `market_plans` and only fall back when needed.
 - Practice automation remained sensitive to trade sizing until `df68fba` changed scheduler capital allocation to size by `maxOpenPositions` instead of `buys_per_day`. That fix is now in `lib/market/scheduler-run-user.ts`, but it still needs authenticated browser verification in the actual Market tab flow.
 - `useMarketBot.loadServerConfig()` still hydrates `maxPositions` from `buys_per_day` instead of a real max-open-positions field, so server-loaded runtime can diverge from what the saved plan suggests.
 
@@ -192,7 +191,7 @@ Most likely user-visible effect right now
 Next highest-value checks
 - Authenticated browser verification: save plan -> apply plan -> confirm immediate `/api/market/scan` write -> confirm `market_activity_log` row -> confirm Results/Open Positions shows the practice trade.
 - Verify the deployed environment includes `NEXT_PUBLIC_POLYMARKET_SPENDER` before attempting any live-wallet flow.
-- Migrate scheduler execution from legacy directives/metadata to `market_plans` so save/apply/runtime all share one canonical source of truth.
+- Finish retiring directive dual-write and metadata overlay so save/apply/runtime all share one canonical server source of truth.
 
 ## Mar 10, 2026 — market_plans scheduler migration
 

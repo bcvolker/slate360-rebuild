@@ -1,7 +1,7 @@
 # Market Robot — Current State Handoff
 
-Last updated: 2026-03-09
-Scope: Current repo state after the last five Market-related pushes on `main`
+Last updated: 2026-03-10
+Scope: Current repo state after the latest Market-related pushes on `main`
 Audience: Another AI assistant diagnosing why Market Robot is not yet fully seamless for direct buy, paper automation, and live automation
 
 ## 1. Executive Summary
@@ -13,21 +13,34 @@ The main remaining blockers are no longer basic UI issues. They are now mostly r
 - Live mode still requires real Polymarket CLOB credentials and spender configuration.
 - Background automation still depends on the scheduler cron path actually running.
 - Several automation controls exist in UI and runtime config but are only partially enforced at execution time.
-- The automation source of truth is still split between local plan storage, `market_directives`, and auth `user_metadata.marketBotConfig`.
+- Execution now prefers `market_plans`, but the automation source of truth is still not fully unified because apply flow dual-writes through `market_directives` and auth `user_metadata.marketBotConfig` remains as a runtime overlay.
 - The implementation plan doc is partly stale and should not be treated as canonical for gate logic.
 
 Short version:
 
 - Direct Buy paper mode: mostly wired and much closer to working.
 - Direct Buy live mode: blocked until real Polymarket live credentials and wallet approval path are in place.
-- Automation paper mode: capable of scanning and simulating trades, but still dependent on cron/runtime health and has config-enforcement gaps.
+- Automation paper mode: the immediate apply/scan path is now plan-first and capable of simulating trades, but background automation still depends on cron/runtime health and there are still config-enforcement gaps.
 - Automation live mode: not production-ready because live execution prerequisites and some runtime-enforcement logic are still incomplete.
 
-## 2. What Changed In The Last 5 Pushes
+## 2. What Changed In Recent Pushes
 
-These are the last five pushes/commits on `main`, newest first.
+These are the most relevant recent pushes/commits on `main`, newest first.
 
-### 2.1 `96effc5` — Harden market robot runtime compatibility
+### 2.1 `4c8d1f6` — Fix market robot plan execution flow
+
+Main impact:
+
+- `app/api/market/scan/route.ts` now reads `market_plans` first and only falls back to `market_directives` when needed.
+- `lib/market/scheduler-run-user.ts` now uses `market_plans` as the primary execution source for budget, categories, risk, trades/day, and open-position limits.
+- `lib/market/runtime-config.ts` now converts plan rows into server runtime config explicitly.
+- `components/dashboard/MarketClient.tsx` and related UI files were trimmed so apply flow and Results visibility match the new execution path more closely.
+
+Why it mattered:
+
+- This materially reduced the split-brain problem for paper automation. Save/apply/runtime are still not perfectly unified, but scheduler and one-off scans now execute from the saved plan instead of treating directives as the primary source of truth.
+
+### 2.2 `96effc5` — Harden market robot runtime compatibility
 
 Main impact:
 
@@ -41,7 +54,7 @@ Why it mattered:
 - The deployed Supabase project was behind some repo migrations.
 - Newer optional columns like `entry_mode`, `idempotency_key`, `token_id`, `clob_order_id`, `take_profit_pct`, and `stop_loss_pct` could break trade writes.
 
-### 2.2 `8b4f1d1` — Fix market token ids and first scan state
+### 2.3 `8b4f1d1` — Fix market token ids and first scan state
 
 Main impact:
 
@@ -53,7 +66,7 @@ Why it mattered:
 
 - Direct Buy and first automation scans could silently fail for reasons unrelated to actual market logic.
 
-### 2.3 `aa9b6eb` — Fix market automation execution fidelity
+### 2.4 `aa9b6eb` — Fix market automation execution fidelity
 
 Main impact:
 
@@ -66,7 +79,7 @@ Why it mattered:
 
 - Prior automation could run indefinitely and generate zero trades because the edge threshold effectively filtered out the real market set.
 
-### 2.4 `4fad87b` — Harden market access and direct buy UX
+### 2.5 `4fad87b` — Harden market access and direct buy UX
 
 Main impact:
 
@@ -78,7 +91,7 @@ Why it mattered:
 
 - This is where the market UI became more usable for humans, not just technically decomposed.
 
-### 2.5 `3c1eeb7` — Market Robot automation transfer and log hardening
+### 2.6 `3c1eeb7` — Market Robot automation transfer and log hardening
 
 Main impact:
 
