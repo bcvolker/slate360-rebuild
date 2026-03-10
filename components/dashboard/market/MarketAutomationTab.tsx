@@ -9,11 +9,9 @@ import type { AutomationPlan, BotConfig } from "@/components/dashboard/market/ty
 interface MarketAutomationTabProps {
   botConfig: BotConfig;
   onApplyPlan: (plan: AutomationPlan) => void;
-  onStopBot?: () => void;
-  onNavigate?: (tabId: string) => void;
 }
 
-export default function MarketAutomationTab({ botConfig, onApplyPlan, onStopBot, onNavigate }: MarketAutomationTabProps) {
+export default function MarketAutomationTab({ botConfig, onApplyPlan }: MarketAutomationTabProps) {
   const auto = useMarketAutomationState();
   const [composerOpen, setComposerOpen] = useState(false);
 
@@ -36,7 +34,7 @@ export default function MarketAutomationTab({ botConfig, onApplyPlan, onStopBot,
   return (
     <div className="space-y-5">
       {/* Active plan summary */}
-      <ActivePlanSummary botConfig={botConfig} defaultPlan={auto.plans.find(p => p.isDefault)} onStop={onStopBot} onGoLive={onNavigate ? () => onNavigate("live-wallet") : undefined} />
+      <ActivePlanSummary botConfig={botConfig} defaultPlan={auto.plans.find(p => p.isDefault)} />
 
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -45,25 +43,14 @@ export default function MarketAutomationTab({ botConfig, onApplyPlan, onStopBot,
             Save a simple plan, apply it, and let the robot run. Practice plans: {quickStats.practicePlans} · Live plans: {quickStats.realPlans}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {onNavigate && (
-            <button
-              onClick={() => onNavigate("results")}
-              className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition"
-            >
-              Open running positions
-            </button>
-          )}
-          <button
-            onClick={() => setComposerOpen((value) => !value)}
-            className="px-4 py-2 rounded-lg bg-[#FF4D00] text-white text-sm font-semibold hover:bg-[#e04400] transition"
-          >
-            {composerOpen || auto.editingId ? "Close plan builder" : "New plan"}
-          </button>
-        </div>
+        <button
+          onClick={() => setComposerOpen((value) => !value)}
+          className="px-4 py-2 rounded-lg bg-[#FF4D00] text-white text-sm font-semibold hover:bg-[#e04400] transition"
+        >
+          {composerOpen || auto.editingId ? "Close plan builder" : "New plan"}
+        </button>
       </div>
 
-      {/* Plan builder + list */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
         {(composerOpen || auto.editingId) && (
           <MarketAutomationBuilder
@@ -94,68 +81,32 @@ export default function MarketAutomationTab({ botConfig, onApplyPlan, onStopBot,
           onApply={handleApply}
         />
       </div>
+
+      {/* Backward compatibility note */}
+      <div className="text-[11px] text-gray-400 text-center pt-2">
+        Plans now load from Supabase <code className="text-gray-500">market_plans</code> with local fallback,
+        but execution still syncs through <code className="text-gray-500">/api/market/directives</code> until the scheduler is migrated.
+      </div>
     </div>
   );
 }
 
-function ActivePlanSummary({
-  botConfig,
-  defaultPlan,
-  onStop,
-  onGoLive,
-}: {
-  botConfig: BotConfig;
-  defaultPlan?: AutomationPlan;
-  onStop?: () => void;
-  onGoLive?: () => void;
-}) {
+function ActivePlanSummary({ botConfig, defaultPlan }: { botConfig: BotConfig; defaultPlan?: AutomationPlan }) {
   const isRunning = botConfig.botRunning && !botConfig.botPaused;
-  const isPaper = botConfig.paperMode;
 
   return (
-    <div className={`rounded-2xl border p-4 ${
-      isRunning
-        ? isPaper
-          ? "bg-purple-50 border-purple-200"
-          : "bg-orange-50 border-orange-200"
-        : "bg-gray-50 border-gray-200"
-    }`}>
-      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+    <div className={`rounded-2xl border p-4 ${isRunning ? "bg-orange-50 border-orange-200" : "bg-gray-50 border-gray-200"}`}>
+      <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
           {isRunning ? "🟢 Robot Running" : "⏸️ Robot Idle"}
-          {isPaper && (
-            <span className="text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded-full">
-              Practice — no real money
-            </span>
-          )}
-          {isRunning && !isPaper && (
-            <span className="text-[10px] bg-orange-100 text-orange-700 border border-orange-200 px-1.5 py-0.5 rounded-full">
-              Live trading
-            </span>
+          {botConfig.paperMode && (
+            <span className="text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded-full">Practice</span>
           )}
         </h3>
-        <div className="flex items-center gap-2">
-          {isRunning && !isPaper && onGoLive && (
-            <button
-              onClick={onGoLive}
-              className="text-xs px-3 py-1.5 rounded-lg border border-green-300 text-green-700 bg-green-50 hover:bg-green-100 font-medium transition"
-            >
-              Wallet setup →
-            </button>
-          )}
-          {isRunning && onStop && (
-            <button
-              onClick={onStop}
-              className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 font-medium transition"
-            >
-              ⏹ Stop Robot
-            </button>
-          )}
-        </div>
+        {defaultPlan && (
+          <span className="text-xs text-gray-500">Default: {defaultPlan.name}</span>
+        )}
       </div>
-      {defaultPlan && (
-        <p className="text-xs text-gray-500 mb-2">Active plan: <strong>{defaultPlan.name}</strong></p>
-      )}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
         <div>
           <p className="text-[10px] text-gray-400 uppercase">Budget</p>

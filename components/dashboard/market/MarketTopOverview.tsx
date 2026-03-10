@@ -28,7 +28,7 @@ export default function MarketTopOverview({ trades, botConfig, onOpenResults, on
       </button>
 
       <button onClick={onOpenAutomation} className="text-left bg-white border border-gray-100 rounded-2xl shadow-sm p-4 hover:border-[#FF4D00]/30 transition">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Robot Setup</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Automation Programmed</p>
         <div className="flex items-end justify-between mt-2 gap-3">
           <div>
             <p className="text-2xl font-black text-gray-900">{botConfig.botRunning && !botConfig.botPaused ? "Running" : botConfig.botPaused ? "Paused" : "Idle"}</p>

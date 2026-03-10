@@ -20,109 +20,6 @@ This file tracks current status, build order, prompts, checks, and rebuild-from-
 ## Current Build Status
 **Active batch: 9+ — see Ready-To-Paste Prompt below**
 
-## Mar 10, 2026 — Current Handoff Snapshot for external AI assistants
-
-This section is the current source of truth. Use it before trusting older notes below.
-
-### What is now verified as working
-- Vercel CLI access has been restored in this dev environment and the repo is linked to the `slate360/slate360-rebuild` Vercel project.
-- The required Polymarket env vars exist in Vercel for Production, Preview, and Development:
-  - `POLYMARKET_API_KEY`
-  - `POLYMARKET_API_SECRET`
-  - `POLYMARKET_API_PASSPHRASE`
-- `CRON_SECRET` and `MARKET_SCHEDULER_SECRET` now both exist in Vercel. A production mismatch was found and fixed on Mar 10.
-- `GET /api/market/scheduler/tick` returns ready status when called with a valid bearer secret.
-- `POST /api/market/scheduler/tick` now authenticates successfully in production and returns a scheduler result payload instead of `401 Invalid scheduler secret`.
-- Practice direct buys are persisting to `market_trades` as `status = open` and `paper_trade = true`.
-- Scheduler runtime state is now persisting to `market_bot_runtime_state`.
-- Scheduler activity messages are now persisting to `market_activity_log`.
-
-### What is not actually fixed yet from the user's perspective
-- Practice direct buys still feel like a save-only action. They persist, but the product does not provide a strong enough post-buy state change, lifecycle, or simulated execution feedback.
-- The Results / Open Positions experience is still not obvious enough for a beginner to understand that the practice trade now exists and is waiting as an open position.
-- The automation builder remains too technical for a first-time user. Users still have to understand too many inputs before they can create a sensible plan.
-- The current product does not yet explain clearly enough that practice mode is a simulation path that creates and tracks open positions, not a real external exchange fill.
-- High-speed or high-volume automation is still constrained by the current cron/scheduler design. This is not yet a queue- or worker-based execution system.
-
-### Latest confirmed backend/runtime findings
-- Production scheduler auth failure root cause on Mar 10: `MARKET_SCHEDULER_SECRET` did not match `CRON_SECRET` in production. This caused `POST /api/market/scheduler/tick` to return `401` even though the route itself was healthy. The secret mismatch was corrected in Vercel.
-- After the scheduler secret fix, production scheduler POSTs started updating `market_bot_runtime_state` and writing to `market_activity_log`.
-- Latest observed scheduler log after auth repair: `Scheduler found 29 scored opportunities but 0 passed trade filters.`
-- Automation sizing root cause on Mar 10: scheduler practice trades were being sized by `capital / buys_per_day` in `lib/market/scheduler-run-user.ts`, which starved high-frequency plans into effectively unusable per-trade allocations. This has now been changed to size by `capital / maxOpenPositions`.
-- The scheduler sizing fix was committed and pushed on Mar 10 (`df68fba`).
-
-### Important nuance: why practice direct buys appear to "do nothing"
-- The buy route saves a practice trade immediately to `market_trades`.
-- Those rows are real app data, but they remain `open` until settlement/resolution logic changes them.
-- There is no strong simulated fill/progress/position-created confirmation flow yet, so the user experience still reads like "nothing happened" even though the row was inserted.
-- This is now confirmed to be a UX/product issue more than a persistence issue.
-
-### Important nuance: why automation may still appear to do nothing
-- Before Mar 10, production cron auth was broken for the scheduler because of the secret mismatch.
-- Before Mar 10, scheduler trade sizing could collapse to effectively tiny or unusable trade sizes.
-- Even after both of those fixes, automation still depends on realistic plan parameters. Extremely high `buys_per_day` values on small budgets are not meaningful settings and produce poor behavior.
-- The automation UI still does not guide users toward sane defaults strongly enough.
-
-### Recommended realistic practice defaults for testing
-- Budget: `$100–$300`
-- Mode: `practice`
-- Risk: `conservative` or `balanced`
-- Max trades/day: `3–10`
-- Max open positions: `3–8`
-- Scan mode: `balanced`
-- Categories: `General`, `Politics`, `Economy` or `all`
-
-### File map another assistant should read first
-- Route shell / orchestration
-  - `app/market/page.tsx`
-  - `components/dashboard/MarketClient.tsx`
-  - `components/dashboard/market/MarketRouteShell.tsx`
-- Direct buy UX and persistence
-  - `components/dashboard/market/MarketDirectBuyTab.tsx`
-  - `components/dashboard/market/MarketDirectBuyResults.tsx`
-  - `components/dashboard/market/MarketBuyPanel.tsx`
-  - `components/dashboard/market/MarketAdvancedFilters.tsx`
-  - `lib/hooks/useMarketDirectBuyState.ts`
-  - `app/api/market/buy/route.ts`
-  - `app/api/market/trades/route.ts`
-- Automation UX and execution
-  - `components/dashboard/market/MarketAutomationTab.tsx`
-  - `components/dashboard/market/MarketAutomationBuilder.tsx`
-  - `components/dashboard/market/MarketAutomationDetailControls.tsx`
-  - `components/dashboard/market/MarketPlanList.tsx`
-  - `lib/hooks/useMarketAutomationState.ts`
-  - `lib/market/sync-automation-plan.ts`
-  - `app/api/market/directives/route.ts`
-  - `app/api/market/plans/route.ts`
-  - `lib/hooks/useMarketBot.ts`
-  - `app/api/market/scan/route.ts`
-  - `app/api/market/bot-status/route.ts`
-  - `app/api/market/scheduler/tick/route.ts`
-  - `lib/market/scheduler.ts`
-  - `lib/market/scheduler-run-user.ts`
-- Results / logs / runtime state
-  - `components/dashboard/market/MarketResultsTab.tsx`
-  - `components/dashboard/market/MarketOpenPositionsPanel.tsx`
-  - `components/dashboard/market/MarketTradeReplayDrawer.tsx`
-  - `lib/hooks/useMarketResultsState.ts`
-  - `lib/hooks/useMarketTradeData.ts`
-  - `app/api/market/logs/route.ts`
-  - `app/api/market/summary/route.ts`
-  - `app/api/market/scheduler/health/route.ts`
-- Shared market runtime / compatibility helpers
-  - `lib/market/runtime-config.ts`
-  - `lib/market/trade-persistence.ts`
-  - `lib/market/mappers.ts`
-  - `lib/market-bot.ts`
-  - `scripts/ops/check-clob-contract.mjs`
-
-### Best next tasks for another assistant
-- Redesign the practice direct-buy post-submit flow so the user sees a clear position-created result, not just a saved row.
-- Replace the current automation builder with a beginner-first guided plan flow: goal, budget, speed, risk, category focus, then advanced settings collapsed.
-- Surface robot activity and newly opened positions more aggressively on Overview and Results.
-- Add an obvious "trade created / waiting for resolution" state model for practice mode.
-- Validate the Mar 10 scheduler sizing fix with a realistic practice plan after deployment, then adjust defaults if the robot is still too conservative.
-
 `MarketClient` has zero external callers outside `app/market/page.tsx` (confirmed via GitNexus).
 This makes large batches safe. The revised strategy is ~10 prompts by combining related steps.
 
@@ -222,12 +119,96 @@ Current Market files in play
 
 Still missing from the revised plan
 - saved markets / saved searches unified tab (future)
-- Supabase `market_plans` table migration (plans currently localStorage-only)
+- server-side `market_plans` adoption (table now exists, but plans are still localStorage-first and scheduler still reads directives)
 - app-ecosystem-ready packaging assumptions
-- server-side pagination for Polymarket catalog (currently client-side with 1000-market fetch)
+- server-side pagination for Polymarket catalog (currently client-side fetch)
 - bookmarking / saved markets persistence
 - authenticated production verification of directives/logs fallback behavior after deploy
 - server-side scheduler migration from legacy directives to automation plans as the primary source of truth
+
+## Mar 9, 2026 — Direct Buy reactivity + market_plans bootstrap
+
+Completed
+- Direct Buy search now filters the loaded market set instantly instead of only on manual refresh.
+- Direct Buy timeframe chips now expose the beginner-friendly set: `Next Hour`, `Day`, `Week`, `Month`, `Year`, `All Time`.
+- Direct Buy no longer pages results by default; the table shows all currently matched results.
+- Market categories are now normalized in the mapper so Construction, Weather, Economy, Entertainment, and similar groups produce cleaner results.
+- Advanced filter labels were rewritten in plainer language and the Results activity log was enlarged into a more readable plain-English feed.
+- Added `supabase/migrations/20260309_market_plans.sql` and applied it to the linked Supabase project via the Management API. `market_plans` now exists with indexes, RLS, and an updated-at trigger.
+- Applied the existing `20260305_market_enhancements.sql` migration to the linked Supabase project, so `market_watchlist` and `market_tab_prefs` now exist there too.
+- Saved Markets is no longer a stub: the tab now loads from `market_watchlist`, Direct Buy rows can be saved/removed, and the buy panel now opens as a fixed modal instead of forcing the user to scroll back to the top.
+- Automation plans now load from `/api/market/plans` with local fallback, so the UI is no longer localStorage-only.
+
+Still not done
+- The scheduler still has not migrated to `market_plans`; directive sync remains the live compatibility path for execution.
+- “Show all markets” is still bounded by client fetch strategy, not true infinite catalog loading.
+- True 24/7 background still depends on deployed cron execution and scheduler secret wiring, not just `vercel.json`.
+
+## Mar 9, 2026 — Direct Buy confirmation + open positions visibility
+
+Completed
+- Successful direct buys now refresh trade data, refresh summary/scheduler health, and route the user into Results so the position is immediately visible.
+- Results now has an explicit `Open Positions` panel instead of relying only on analytics cards and mixed history rows.
+- Direct Buy now fetches a smaller default market set to reduce load time and switches to `endDate` ordering for hour/day/week filters.
+- Timeframe filtering now prefers the precise timestamp field (`endDate`) over the date-only field (`endDateIso`), fixing the inaccurate `Next Hour` behavior.
+
+Follow-up hardening
+- Direct Buy timeframe filtering now excludes already-ended markets returned by the upstream Gamma feed, which was still emitting stale `active=true` rows with past end dates.
+- Direct Buy search now switches into a broader fetch plan when a query is present so search is not limited to the first 1,200 preloaded rows.
+- Direct Buy search is now server-assisted through `/api/market/polymarket?_q=...`, so changing the search term triggers a real proxy-backed catalog search instead of only filtering the previously loaded slice.
+- Timeline chips now request `upcoming=true` through the market proxy, which makes the proxy scan past stale expired Gamma rows and return only future-closing markets for `Next Hour`, `Day`, and `Week`.
+- Default Direct Buy fetch sizes were reduced to cut down cursor-based proxy churn, and scheduler health polling was slowed to reduce transient 504 noise in the Market tab.
+
+## Mar 9, 2026 — Automation stability + UX cleanup
+
+Completed
+- Fixed a Results-tab fetch loop in `MarketClient.tsx` that could repeatedly hammer `trades`, `summary`, `health`, and `logs` and contribute to `ERR_INSUFFICIENT_RESOURCES` browser failures.
+- Hardened `/api/market/plans` so older or missing `market_plans` schemas degrade to local-fallback behavior instead of throwing 500s on every automation load/save action.
+- Automation builder now behaves more like a task flow: it opens on demand, closes automatically after save, and closes on cancel.
+- Added clearer automation copy so the simple path is emphasized and the extra controls are explicitly positioned as optional.
+- Added a top-level Market overview strip with clickable `Open Positions` and `Automation Programmed` cards so users can jump directly into what is currently open or configured.
+
+## Mar 10, 2026 — Practice-mode diagnosis and immediate wiring fix
+
+Verified from this workspace
+- Supabase connectivity is confirmed from the current environment (`curl` to the configured project returned HTTP 200).
+- Core Market runtime diagnostics now pass for paper-mode schema prerequisites: `market_trades`, `market_directives`, `market_bot_runtime`, `market_bot_runtime_state`, `market_activity_log`, and `market_scheduler_lock`.
+- Local/runtime env now includes `POLYMARKET_API_KEY`, `POLYMARKET_API_SECRET`, `POLYMARKET_API_PASSPHRASE`, and `CRON_SECRET`.
+- `NEXT_PUBLIC_POLYMARKET_SPENDER` is still missing in the current environment, so live wallet approval and true live execution are still incomplete even before funding the wallet.
+- AWS credentials are present in env, but AWS identity connectivity was not independently verified from this container because the `aws` CLI is not installed here.
+
+Concrete blockers behind “plans save but nothing happens”
+- The most obvious practice-mode entry point was partially dead: `MarketStartHereTab` rendered `Start Practice Trading` and `Stop Robot` actions, but `MarketClient` was not passing `onQuickStart` / `onStopBot`, so the hero CTA did nothing. Fixed Mar 10 by wiring those handlers from `useMarketBot`.
+- Saving a plan is still not the same as applying a plan. `market_plans` stores the plan, but execution still depends on `syncAutomationPlan()` writing a legacy directive plus bot status, so users can save configuration without changing the runtime until they explicitly hit `Apply`.
+- Automation source of truth is still split across `market_plans`, `market_directives`, and auth `user_metadata.marketBotConfig`; scheduler execution still reads directives + metadata instead of `market_plans` directly.
+- Practice automation remained sensitive to trade sizing until `df68fba` changed scheduler capital allocation to size by `maxOpenPositions` instead of `buys_per_day`. That fix is now in `lib/market/scheduler-run-user.ts`, but it still needs authenticated browser verification in the actual Market tab flow.
+- `useMarketBot.loadServerConfig()` still hydrates `maxPositions` from `buys_per_day` instead of a real max-open-positions field, so server-loaded runtime can diverge from what the saved plan suggests.
+
+Most likely user-visible effect right now
+- A user can save a practice plan successfully and still see no robot activity because save does not apply.
+- A user starting from the Start Here hero previously got no response because the CTA handler was unwired.
+- Even after apply, background automation still depends on the scheduler tick actually running with valid cron-secret wiring; the client-side immediate scan path and the server-side background path are separate.
+
+Next highest-value checks
+- Authenticated browser verification: save plan -> apply plan -> confirm immediate `/api/market/scan` write -> confirm `market_activity_log` row -> confirm Results/Open Positions shows the practice trade.
+- Verify the deployed environment includes `NEXT_PUBLIC_POLYMARKET_SPENDER` before attempting any live-wallet flow.
+- Migrate scheduler execution from legacy directives/metadata to `market_plans` so save/apply/runtime all share one canonical source of truth.
+
+## Mar 10, 2026 — market_plans scheduler migration
+
+Completed
+- `app/api/market/scan/route.ts` now reads the user's active `market_plans` record first (default plan first, then most recently updated non-archived plan) and only falls back to `market_directives` when no plan exists or the table is not available.
+- `lib/market/scheduler-run-user.ts` now reads the active `market_plans` record as the primary execution source for budget, trades/day, max open positions, categories, liquidity/spread controls, fill policy, and other runtime settings.
+- `lib/market/runtime-config.ts` now has an explicit server-side serializer for `market_plans` rows into `MarketRuntimeConfig`, including scan-mode-to-timeframe mapping and derived defaults for total loss cap and moonshot mode.
+- Legacy directive fallback remains in place, so existing users without a server-backed plan still execute instead of failing.
+
+Result
+- The split-brain gap is materially reduced: scheduler and one-off scan execution now prefer `market_plans` instead of reading directives as the primary source of truth.
+- `market_directives` remains a compatibility layer during migration rather than the primary runtime model.
+
+Still not done
+- Apply flow still dual-writes through directives for compatibility; the execution source is now plan-first, but the compatibility bridge has not been removed yet.
+- Auth `user_metadata.marketBotConfig` still exists as a runtime overlay for values not yet fully promoted into plan columns.
 
 ## Mar 7, 2026 — Operator + Direct Buy refinement pass
 
@@ -243,19 +224,19 @@ Remaining validation to run later
 ## Mar 7, 2026 — Paper automation root-cause findings
 
 Confirmed blockers
-- Direct paper buys work because [app/api/market/buy/route.ts](/workspaces/slate360-rebuild/app/api/market/buy/route.ts) inserts the paper trade immediately. Automated paper trading takes a different path: plan apply -> [lib/market/sync-automation-plan.ts](/workspaces/slate360-rebuild/lib/market/sync-automation-plan.ts) -> bot status -> [app/api/market/scan/route.ts](/workspaces/slate360-rebuild/app/api/market/scan/route.ts) and optionally the server scheduler in [lib/market/scheduler.ts](/workspaces/slate360-rebuild/lib/market/scheduler.ts).
-- The automation scorer was effectively hard-disabled by its own edge threshold. `scoreOpportunities()` defined edge as `abs(1 - yesPrice - noPrice) * 100` in [lib/market-bot.ts](/workspaces/slate360-rebuild/lib/market-bot.ts), while `useMarketBot` defaulted `minEdge` to `1` and the scheduler hard-coded `minOpportunityEdgePct` to `1`. A live sample over the top 500 active Polymarket markets returned `edge >= 1` for `0/500`, `edge >= 0.5` for `0/500`, and even `edge >= 0.1` for `0/500`, so automation could stay "running" forever and still never create a decision.
-- Background automation still depends on the secret-protected scheduler tick route at [app/api/market/scheduler/tick/route.ts](/workspaces/slate360-rebuild/app/api/market/scheduler/tick/route.ts). Direct buy does not. If cron is missing, misconfigured, or not reachable in the target environment, users only get the one immediate client scan plus the browser-local 5 minute interval from [lib/hooks/useMarketBot.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketBot.ts) while the tab stays open.
+- Direct paper buys work because [app/api/market/buy/route.ts](../../../app/api/market/buy/route.ts) inserts the paper trade immediately. Automated paper trading takes a different path: plan apply -> [lib/market/sync-automation-plan.ts](../../../lib/market/sync-automation-plan.ts) -> bot status -> [app/api/market/scan/route.ts](../../../app/api/market/scan/route.ts) and optionally the server scheduler in [lib/market/scheduler.ts](../../../lib/market/scheduler.ts).
+- The automation scorer was effectively hard-disabled by its own edge threshold. `scoreOpportunities()` defined edge as `abs(1 - yesPrice - noPrice) * 100` in [lib/market-bot.ts](../../../lib/market-bot.ts), while `useMarketBot` defaulted `minEdge` to `1` and the scheduler hard-coded `minOpportunityEdgePct` to `1`. A live sample over the top 500 active Polymarket markets returned `edge >= 1` for `0/500`, `edge >= 0.5` for `0/500`, and even `edge >= 0.1` for `0/500`, so automation could stay "running" forever and still never create a decision.
+- Background automation still depends on the secret-protected scheduler tick route at [app/api/market/scheduler/tick/route.ts](../../../app/api/market/scheduler/tick/route.ts). Direct buy does not. If cron is missing, misconfigured, or not reachable in the target environment, users only get the one immediate client scan plus the browser-local 5 minute interval from [lib/hooks/useMarketBot.ts](../../../lib/hooks/useMarketBot.ts) while the tab stays open.
 
 Architecture gaps still limiting automation
-- Automation plans are still localStorage-first in [lib/hooks/useMarketAutomationState.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketAutomationState.ts). The UI itself says "Plans stored locally" in [components/dashboard/market/MarketAutomationTab.tsx](/workspaces/slate360-rebuild/components/dashboard/market/MarketAutomationTab.tsx), and the server still treats legacy `market_directives` as the source of truth.
-- Several automation controls are UI-only today. `AutomationPlan` includes `scanMode`, `maxOpenPositions`, `maxPctPerTrade`, `feeAlertThreshold`, `closingSoonFocus`, `slippage`, `minimumLiquidity`, `maximumSpread`, and `exitRules` in [components/dashboard/market/types.ts](/workspaces/slate360-rebuild/components/dashboard/market/types.ts), but the sync layer only persists a subset in [lib/market/sync-automation-plan.ts](/workspaces/slate360-rebuild/lib/market/sync-automation-plan.ts). The directives route schema in [app/api/market/directives/route.ts](/workspaces/slate360-rebuild/app/api/market/directives/route.ts) confirms those omitted fields are not stored or enforced server-side.
+- Automation plans are still localStorage-first in [lib/hooks/useMarketAutomationState.ts](../../../lib/hooks/useMarketAutomationState.ts). The UI itself says "Plans stored locally" in [components/dashboard/market/MarketAutomationTab.tsx](../../../components/dashboard/market/MarketAutomationTab.tsx), and the server still treats legacy `market_directives` as the source of truth.
+- Several automation controls are UI-only today. `AutomationPlan` includes `scanMode`, `maxOpenPositions`, `maxPctPerTrade`, `feeAlertThreshold`, `closingSoonFocus`, `slippage`, `minimumLiquidity`, `maximumSpread`, and `exitRules` in [components/dashboard/market/types.ts](../../../components/dashboard/market/types.ts), but the sync layer only persists a subset in [lib/market/sync-automation-plan.ts](../../../lib/market/sync-automation-plan.ts). The directives route schema in [app/api/market/directives/route.ts](../../../app/api/market/directives/route.ts) confirms those omitted fields are not stored or enforced server-side.
 - Timeframe-specific execution is not real yet. The sync layer writes a coarse `timeframe` string, but the scan route and scheduler do not consume it when selecting markets, so user-specified time windows are currently cosmetic.
-- Category vocabulary is inconsistent. The automation UI uses labels like `General`, `Finance`, `Science`, and `Tech` from [components/dashboard/market/market-constants.ts](/workspaces/slate360-rebuild/components/dashboard/market/market-constants.ts), while execution only normalizes the smaller focus-area set in [lib/market/scheduler-utils.ts](/workspaces/slate360-rebuild/lib/market/scheduler-utils.ts) and [lib/market/scan-request.ts](/workspaces/slate360-rebuild/lib/market/scan-request.ts). Unsupported labels are dropped and can silently broaden a plan back to `all`.
+- Category vocabulary is inconsistent. The automation UI uses labels like `General`, `Finance`, `Science`, and `Tech` from [components/dashboard/market/market-constants.ts](../../../components/dashboard/market/market-constants.ts), while execution only normalizes the smaller focus-area set in [lib/market/scheduler-utils.ts](../../../lib/market/scheduler-utils.ts) and [lib/market/scan-request.ts](../../../lib/market/scan-request.ts). Unsupported labels are dropped and can silently broaden a plan back to `all`.
 
 Why high-volume automated buys are not optimized yet
-- Vercel cron is configured for every 5 minutes in [vercel.json](/workspaces/slate360-rebuild/vercel.json). That means the true background ceiling is roughly 288 scheduler invocations per day unless another worker path is introduced.
-- The scheduler derives cadence from `buys_per_day`, but then clamps each run through `MARKET_SCHEDULER_MIN_INTERVAL_SECONDS`, `MARKET_SCHEDULER_MAX_INTERVAL_SECONDS`, `maxTradesPerScan`, and `maxMarketLimit` in [lib/market/scheduler-utils.ts](/workspaces/slate360-rebuild/lib/market/scheduler-utils.ts) and [lib/market/scheduler.ts](/workspaces/slate360-rebuild/lib/market/scheduler.ts). It is a single cron-loop design, not a burst-capable queue.
+- Vercel cron is configured for every 5 minutes in [vercel.json](../../../vercel.json). That means the true background ceiling is roughly 288 scheduler invocations per day unless another worker path is introduced.
+- The scheduler derives cadence from `buys_per_day`, but then clamps each run through `MARKET_SCHEDULER_MIN_INTERVAL_SECONDS`, `MARKET_SCHEDULER_MAX_INTERVAL_SECONDS`, `maxTradesPerScan`, and `maxMarketLimit` in [lib/market/scheduler-utils.ts](../../../lib/market/scheduler-utils.ts) and [lib/market/scheduler.ts](../../../lib/market/scheduler.ts). It is a single cron-loop design, not a burst-capable queue.
 - There is no durable job queue, no per-user execution backlog, no retry queue, and no true time-window scheduler. Users asking for very high buy counts in specific windows are funneled into a generalized polling loop.
 
 Attempt history and ineffective fixes
@@ -263,40 +244,40 @@ Attempt history and ineffective fixes
 - Rewriting the apply flow to sync directives and set `market_bot_runtime` correctly improved state consistency, but it did not by itself create trades because the scan and scheduler still filtered the market set down to zero.
 
 Current fix applied in this pass
-- Lowered the automation edge threshold to `0` in [lib/market-bot.ts](/workspaces/slate360-rebuild/lib/market-bot.ts), [lib/hooks/useMarketBot.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketBot.ts), and [lib/market/scheduler.ts](/workspaces/slate360-rebuild/lib/market/scheduler.ts) so paper automation can generate candidates from the existing confidence/liquidity filters instead of requiring an arbitrage gap that the live feed does not expose.
-- Improved client scan logging in [lib/hooks/useMarketBot.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketBot.ts) so zero-trade runs now report opportunity and decision counts instead of looking like a silent no-op.
+- Lowered the automation edge threshold to `0` in [lib/market-bot.ts](../../../lib/market-bot.ts), [lib/hooks/useMarketBot.ts](../../../lib/hooks/useMarketBot.ts), and [lib/market/scheduler.ts](../../../lib/market/scheduler.ts) so paper automation can generate candidates from the existing confidence/liquidity filters instead of requiring an arbitrage gap that the live feed does not expose.
+- Improved client scan logging in [lib/hooks/useMarketBot.ts](../../../lib/hooks/useMarketBot.ts) so zero-trade runs now report opportunity and decision counts instead of looking like a silent no-op.
 - `app/api/market/directives/route.ts` is now backward-compatible with the older `market_directives` base schema and persists the richer automation execution settings in auth `user_metadata.marketBotConfig`, so missing newer directive columns no longer have to produce a 500.
-- The scan route and scheduler now consume metadata-backed timeframe, liquidity floor, spread ceiling, max open positions, and per-trade allocation caps through [lib/market/runtime-config.ts](/workspaces/slate360-rebuild/lib/market/runtime-config.ts), [app/api/market/scan/route.ts](/workspaces/slate360-rebuild/app/api/market/scan/route.ts), and [lib/market/scheduler-run-user.ts](/workspaces/slate360-rebuild/lib/market/scheduler-run-user.ts).
+- The scan route and scheduler now consume metadata-backed timeframe, liquidity floor, spread ceiling, max open positions, and per-trade allocation caps through [lib/market/runtime-config.ts](../../../lib/market/runtime-config.ts), [app/api/market/scan/route.ts](../../../app/api/market/scan/route.ts), and [lib/market/scheduler-run-user.ts](../../../lib/market/scheduler-run-user.ts).
 
 ## Mar 7, 2026 — Direct buy token IDs + apply-plan first scan
 
 Confirmed blockers
-- Live Gamma market payloads currently return `clobTokenIds` as a JSON string, not a native array. The mapper in [lib/market/mappers.ts](/workspaces/slate360-rebuild/lib/market/mappers.ts) only handled the array shape, so many Direct Buy rows reached the UI without `tokenIdYes` / `tokenIdNo` even when Polymarket had provided them.
-- The Direct Buy readiness check in [lib/hooks/useMarketDirectBuyState.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketDirectBuyState.ts) treated missing token IDs as a blocker for both live and paper buys, even though paper-mode execution through [app/api/market/buy/route.ts](/workspaces/slate360-rebuild/app/api/market/buy/route.ts) does not require a token ID.
-- The immediate scan triggered from [components/dashboard/MarketClient.tsx](/workspaces/slate360-rebuild/components/dashboard/MarketClient.tsx) could still run with stale hook state because React had not necessarily committed the freshly applied plan values before `runScan()` executed.
+- Live Gamma market payloads currently return `clobTokenIds` as a JSON string, not a native array. The mapper in [lib/market/mappers.ts](../../../lib/market/mappers.ts) only handled the array shape, so many Direct Buy rows reached the UI without `tokenIdYes` / `tokenIdNo` even when Polymarket had provided them.
+- The Direct Buy readiness check in [lib/hooks/useMarketDirectBuyState.ts](../../../lib/hooks/useMarketDirectBuyState.ts) treated missing token IDs as a blocker for both live and paper buys, even though paper-mode execution through [app/api/market/buy/route.ts](../../../app/api/market/buy/route.ts) does not require a token ID.
+- The immediate scan triggered from [components/dashboard/MarketClient.tsx](../../../components/dashboard/MarketClient.tsx) could still run with stale hook state because React had not necessarily committed the freshly applied plan values before `runScan()` executed.
 
 Current fix applied in this pass
-- Hardened [lib/market/mappers.ts](/workspaces/slate360-rebuild/lib/market/mappers.ts) to parse `clobTokenIds` from Gamma string payloads and preserve YES/NO token IDs in the market view model.
-- Updated [lib/hooks/useMarketDirectBuyState.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketDirectBuyState.ts) so token IDs are required only for live buys. Paper direct buys can execute again even when token IDs are absent.
-- Updated [lib/hooks/useMarketBot.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketBot.ts) and [components/dashboard/MarketClient.tsx](/workspaces/slate360-rebuild/components/dashboard/MarketClient.tsx) so Apply Plan passes an explicit runtime config into the first `runScan()` call, eliminating the stale-config window on the first automation pass.
+- Hardened [lib/market/mappers.ts](../../../lib/market/mappers.ts) to parse `clobTokenIds` from Gamma string payloads and preserve YES/NO token IDs in the market view model.
+- Updated [lib/hooks/useMarketDirectBuyState.ts](../../../lib/hooks/useMarketDirectBuyState.ts) so token IDs are required only for live buys. Paper direct buys can execute again even when token IDs are absent.
+- Updated [lib/hooks/useMarketBot.ts](../../../lib/hooks/useMarketBot.ts) and [components/dashboard/MarketClient.tsx](../../../components/dashboard/MarketClient.tsx) so Apply Plan passes an explicit runtime config into the first `runScan()` call, eliminating the stale-config window on the first automation pass.
 
 ## Mar 8, 2026 — Why nothing seemed to work
 
 Confirmed blocker
 - The current codebase assumes post-Feb-24 `market_trades` migrations exist in the target Supabase project, but the live error proves production is still serving an older schema cache. The clearest symptom is the direct-buy 500: `Could not find the 'entry_mode' column of 'market_trades' in the schema cache`.
-- That means the previous UI-side fixes were not enough on their own. Even after token IDs, stale first-scan state, and automation thresholds were corrected, the server could still fail at the final insert/update step because [app/api/market/buy/route.ts](/workspaces/slate360-rebuild/app/api/market/buy/route.ts), [app/api/market/scan/route.ts](/workspaces/slate360-rebuild/app/api/market/scan/route.ts), and [lib/market/scheduler-run-user.ts](/workspaces/slate360-rebuild/lib/market/scheduler-run-user.ts) were all writing optional columns from newer migrations.
-- The mismatch likely includes more than `entry_mode`. The repo adds `token_id` and `clob_order_id` in [supabase/migrations/20260305_market_enhancements.sql](/workspaces/slate360-rebuild/supabase/migrations/20260305_market_enhancements.sql), plus `take_profit_pct`, `stop_loss_pct`, and `entry_mode` in [supabase/migrations/20260306_market_robot_phase_1a_3b.sql](/workspaces/slate360-rebuild/supabase/migrations/20260306_market_robot_phase_1a_3b.sql), and `idempotency_key` in [supabase/migrations/20260306_market_trades_idempotency.sql](/workspaces/slate360-rebuild/supabase/migrations/20260306_market_trades_idempotency.sql). The deployed DB appears to be behind some or all of those.
+- That means the previous UI-side fixes were not enough on their own. Even after token IDs, stale first-scan state, and automation thresholds were corrected, the server could still fail at the final insert/update step because [app/api/market/buy/route.ts](../../../app/api/market/buy/route.ts), [app/api/market/scan/route.ts](../../../app/api/market/scan/route.ts), and [lib/market/scheduler-run-user.ts](../../../lib/market/scheduler-run-user.ts) were all writing optional columns from newer migrations.
+- The mismatch likely includes more than `entry_mode`. The repo adds `token_id` and `clob_order_id` in [supabase/migrations/20260305_market_enhancements.sql](../../../supabase/migrations/20260305_market_enhancements.sql), plus `take_profit_pct`, `stop_loss_pct`, and `entry_mode` in [supabase/migrations/20260306_market_robot_phase_1a_3b.sql](../../../supabase/migrations/20260306_market_robot_phase_1a_3b.sql), and `idempotency_key` in [supabase/migrations/20260306_market_trades_idempotency.sql](../../../supabase/migrations/20260306_market_trades_idempotency.sql). The deployed DB appears to be behind some or all of those.
 
 Current fix applied in this pass
-- Added [lib/market/trade-persistence.ts](/workspaces/slate360-rebuild/lib/market/trade-persistence.ts), a backward-compatible mutation helper that retries `market_trades` inserts and updates after stripping unsupported optional columns exposed by PostgREST schema-cache errors.
-- Wired that helper into [app/api/market/buy/route.ts](/workspaces/slate360-rebuild/app/api/market/buy/route.ts) so direct paper buys, live fallbacks, pending live trade initialization, and CLOB failure updates no longer hard-fail when optional columns are missing.
-- Wired the same helper into [app/api/market/scan/route.ts](/workspaces/slate360-rebuild/app/api/market/scan/route.ts) and [lib/market/scheduler-run-user.ts](/workspaces/slate360-rebuild/lib/market/scheduler-run-user.ts) so paper automation can still write simulated trades even when the target database has not received the latest `market_trades` migration set.
-- Extended the same compatibility fix into the legacy trade write route [app/api/market/trades/route.ts](/workspaces/slate360-rebuild/app/api/market/trades/route.ts), so any older client path that still posts there will not bypass the schema fallback.
-- Hardened [app/api/market/settle-trades/route.ts](/workspaces/slate360-rebuild/app/api/market/settle-trades/route.ts) to retry its initial `market_trades` read without `take_profit_pct` / `stop_loss_pct` when the deployed schema does not expose those newer columns. That keeps the Wallet & Performance settlement loop alive on older environments.
-- Fixed the live CLOB payload contract in [lib/market/clob-api.ts](/workspaces/slate360-rebuild/lib/market/clob-api.ts) and [app/api/market/buy/route.ts](/workspaces/slate360-rebuild/app/api/market/buy/route.ts): live orders now submit share size instead of raw USDC spend as the CLOB `size` field.
-- Added [scripts/ops/check-market-runtime.mjs](/workspaces/slate360-rebuild/scripts/ops/check-market-runtime.mjs) plus `npm run diag:market-runtime` to verify Supabase schema state and Market Robot env prerequisites against the configured project.
-- Verified the route coverage with GitNexus/MCP tracing, confirmed the critical backend/runtime dependencies in [package.json](/workspaces/slate360-rebuild/package.json), and validated with `npm run typecheck` plus `npm run guard:clob-contract`.
-- The new runtime diagnostic currently reports that core Supabase keys are present but live CLOB envs are missing locally (`POLYMARKET_API_KEY`, `POLYMARKET_API_SECRET`, `POLYMARKET_API_PASSPHRASE`, `NEXT_PUBLIC_POLYMARKET_SPENDER`), scheduler secret env is missing locally, and the configured Supabase project still lacks [market_activity_log](/workspaces/slate360-rebuild/supabase/migrations/20260306_market_robot_phase_1a_3b.sql#L23) and [market_scheduler_lock](/workspaces/slate360-rebuild/supabase/migrations/20260306_market_robot_phase_1a_3b.sql#L55).
+- Added [lib/market/trade-persistence.ts](../../../lib/market/trade-persistence.ts), a backward-compatible mutation helper that retries `market_trades` inserts and updates after stripping unsupported optional columns exposed by PostgREST schema-cache errors.
+- Wired that helper into [app/api/market/buy/route.ts](../../../app/api/market/buy/route.ts) so direct paper buys, live fallbacks, pending live trade initialization, and CLOB failure updates no longer hard-fail when optional columns are missing.
+- Wired the same helper into [app/api/market/scan/route.ts](../../../app/api/market/scan/route.ts) and [lib/market/scheduler-run-user.ts](../../../lib/market/scheduler-run-user.ts) so paper automation can still write simulated trades even when the target database has not received the latest `market_trades` migration set.
+- Extended the same compatibility fix into the legacy trade write route [app/api/market/trades/route.ts](../../../app/api/market/trades/route.ts), so any older client path that still posts there will not bypass the schema fallback.
+- Hardened [app/api/market/settle-trades/route.ts](../../../app/api/market/settle-trades/route.ts) to retry its initial `market_trades` read without `take_profit_pct` / `stop_loss_pct` when the deployed schema does not expose those newer columns. That keeps the Wallet & Performance settlement loop alive on older environments.
+- Fixed the live CLOB payload contract in [lib/market/clob-api.ts](../../../lib/market/clob-api.ts) and [app/api/market/buy/route.ts](../../../app/api/market/buy/route.ts): live orders now submit share size instead of raw USDC spend as the CLOB `size` field.
+- Added [scripts/ops/check-market-runtime.mjs](../../../scripts/ops/check-market-runtime.mjs) plus `npm run diag:market-runtime` to verify Supabase schema state and Market Robot env prerequisites against the configured project.
+- Verified the route coverage with GitNexus/MCP tracing, confirmed the critical backend/runtime dependencies in [package.json](../../../package.json), and validated with `npm run typecheck` plus `npm run guard:clob-contract`.
+- The new runtime diagnostic currently reports that core Supabase keys are present but live CLOB envs are missing locally (`POLYMARKET_API_KEY`, `POLYMARKET_API_SECRET`, `POLYMARKET_API_PASSPHRASE`, `NEXT_PUBLIC_POLYMARKET_SPENDER`), scheduler secret env is missing locally, and the configured Supabase project still lacks [market_activity_log](../../../supabase/migrations/20260306_market_robot_phase_1a_3b.sql#L23) and [market_scheduler_lock](../../../supabase/migrations/20260306_market_robot_phase_1a_3b.sql#L55).
 - `npm run verify:release` still passes architecture guardrails, file-size regression, and typecheck; the remaining build-gate instability is the same environment-level `143` interruption already seen in prior Market Robot sessions, not a new Market-specific compile failure.
 - Kept all touched production code files at or under the 300-line rule.
 
@@ -333,11 +314,11 @@ These changes improved correctness, but none of them alone fixed the broken-buy 
 ## Mar 8, 2026 — Backend, API, and dependency map
 
 Critical execution paths
-- Direct buy UI: [lib/hooks/useMarketDirectBuyState.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketDirectBuyState.ts) -> [app/api/market/buy/route.ts](/workspaces/slate360-rebuild/app/api/market/buy/route.ts)
-- Immediate automation: [components/dashboard/MarketClient.tsx](/workspaces/slate360-rebuild/components/dashboard/MarketClient.tsx) and [lib/hooks/useMarketBot.ts](/workspaces/slate360-rebuild/lib/hooks/useMarketBot.ts) -> [app/api/market/scan/route.ts](/workspaces/slate360-rebuild/app/api/market/scan/route.ts)
-- Background automation: [app/api/market/scheduler/tick/route.ts](/workspaces/slate360-rebuild/app/api/market/scheduler/tick/route.ts) -> [lib/market/scheduler.ts](/workspaces/slate360-rebuild/lib/market/scheduler.ts) -> [lib/market/scheduler-run-user.ts](/workspaces/slate360-rebuild/lib/market/scheduler-run-user.ts)
-- Settlement: [app/api/market/settle-trades/route.ts](/workspaces/slate360-rebuild/app/api/market/settle-trades/route.ts)
-- Legacy write path still kept alive: [app/api/market/trades/route.ts](/workspaces/slate360-rebuild/app/api/market/trades/route.ts)
+- Direct buy UI: [lib/hooks/useMarketDirectBuyState.ts](../../../lib/hooks/useMarketDirectBuyState.ts) -> [app/api/market/buy/route.ts](../../../app/api/market/buy/route.ts)
+- Immediate automation: [components/dashboard/MarketClient.tsx](../../../components/dashboard/MarketClient.tsx) and [lib/hooks/useMarketBot.ts](../../../lib/hooks/useMarketBot.ts) -> [app/api/market/scan/route.ts](../../../app/api/market/scan/route.ts)
+- Background automation: [app/api/market/scheduler/tick/route.ts](../../../app/api/market/scheduler/tick/route.ts) -> [lib/market/scheduler.ts](../../../lib/market/scheduler.ts) -> [lib/market/scheduler-run-user.ts](../../../lib/market/scheduler-run-user.ts)
+- Settlement: [app/api/market/settle-trades/route.ts](../../../app/api/market/settle-trades/route.ts)
+- Legacy write path still kept alive: [app/api/market/trades/route.ts](../../../app/api/market/trades/route.ts)
 
 Critical DB tables
 - `market_trades`
@@ -348,12 +329,12 @@ Critical DB tables
 - `market_scheduler_lock`
 
 Repo-side compatibility layer
-- [lib/market/trade-persistence.ts](/workspaces/slate360-rebuild/lib/market/trade-persistence.ts) is now the compatibility boundary for older `market_trades` schemas. Reuse it for any new `market_trades` write path.
+- [lib/market/trade-persistence.ts](../../../lib/market/trade-persistence.ts) is now the compatibility boundary for older `market_trades` schemas. Reuse it for any new `market_trades` write path.
 
 Verified dependency surface
-- Runtime packages were rechecked in [package.json](/workspaces/slate360-rebuild/package.json): `@supabase/supabase-js`, `@supabase/ssr`, `@polymarket/clob-client`, `next`, `react`, `react-dom`
-- Live-order payload contract is guarded by [scripts/ops/check-clob-contract.mjs](/workspaces/slate360-rebuild/scripts/ops/check-clob-contract.mjs)
-- Runtime env/schema prerequisites are guarded by [scripts/ops/check-market-runtime.mjs](/workspaces/slate360-rebuild/scripts/ops/check-market-runtime.mjs)
+- Runtime packages were rechecked in [package.json](../../../package.json): `@supabase/supabase-js`, `@supabase/ssr`, `@polymarket/clob-client`, `next`, `react`, `react-dom`
+- Live-order payload contract is guarded by [scripts/ops/check-clob-contract.mjs](../../../scripts/ops/check-clob-contract.mjs)
+- Runtime env/schema prerequisites are guarded by [scripts/ops/check-market-runtime.mjs](../../../scripts/ops/check-market-runtime.mjs)
 
 ## Mar 8, 2026 — MCP playbook for future Market work
 
@@ -369,7 +350,7 @@ Use MCPs before editing, not after damage is done.
 ## Mar 8, 2026 — Clean and scalable Market coding rules
 
 - Keep the route stack stable: route page -> route shell -> thin orchestrator -> focused tab -> hook -> runtime/helper.
-- Reuse [lib/market/trade-persistence.ts](/workspaces/slate360-rebuild/lib/market/trade-persistence.ts) for `market_trades` compatibility instead of duplicating schema-fallback logic.
+- Reuse [lib/market/trade-persistence.ts](../../../lib/market/trade-persistence.ts) for `market_trades` compatibility instead of duplicating schema-fallback logic.
 - Keep new production `.ts` and `.tsx` files under 300 lines. Extract early instead of compressing late.
 - Keep market runtime logic UI-agnostic and testable. UI components should not know Supabase schema details.
 - Keep access control in server/auth helpers. Do not re-inline entitlement or scope checks inside tab components.
@@ -614,7 +595,7 @@ Carry-forward rule
 - 2026-03-07: Access + live-buy hardening — complete. Files modified: lib/server/org-context.ts (CEO page now owner-only; market/athlete360 remain grantable by scope), components/dashboard/ceo/CeoStaffAddForm.tsx + CeoStaffPanel.tsx + app/api/ceo/staff/*.ts (grant flow defaults to market-only and no longer exposes CEO scope), components/dashboard/MarketClient.tsx + MarketDirectBuyTab.tsx + useMarketDirectBuyState.ts (direct buy now consumes real wallet state, validates live prerequisites, and sends wallet_address), app/api/market/buy/route.ts + lib/market/clob-api.ts (rejects CLOB success responses without an order id), primary `/api/market/*` routes now enforce `canAccessMarket`, and `scripts/ops/check-clob-contract.mjs` now validates the split buy-route/clob-helper implementation. Verified: `npx tsc --noEmit` clean, `npm run guard:clob-contract` pass. Next: authenticated browser verification of direct live buy, automation tick, and market-only access grants.
 - 2026-03-06: **Bot activation + algorithm + runtime fixes** — complete. 12 fixes across 8 files resolving why the bot was not making trades.
   **lib/market-bot.ts:** (a) DEFAULT_CONFIG: riskLevel low→medium, maxDailyLoss 25→100, maxTradesPerScan 25→50, minOpportunityEdgePct 1→0.5, maxCandidates 200→500, portfolioMix rebalanced {low:40,med:40,high:20}; (b) fetchMarkets limit 50→200; (c) scoreOpportunities: added time-decay bonus (+10 for markets <7 days), probability-edge bonus (+8 near 50/50), reweighted scoring (vol 25%, liq 20%, edge 30%); (d) decideTrades confidence thresholds lowered from {low:60,medium:45,high:30} to {low:25,medium:15,high:5}; (e) removed 0.3 budget multiplier.
-  **lib/hooks/useMarketBot.ts:** (a) added loadServerConfig() — fetches directives+bot-status on mount to hydrate from DB; (b) defaults: maxTradesPerDay 5→25, maxPositions 5→25, minEdge 3→1, minVolume 10000→5000, minProbLow 10→5, minProbHigh 90→95, focusAreas ["all"]; (c) presets updated: starter 25/day, balanced 50/day, active 200/day; (d) handleStartBot fixed to send "paper" status when paperMode=true.
+  **lib/hooks/useMarketBot.ts:** (a) added loadServerConfig() — fetches directives+bot-status on mount to hydrate from DB; (b) defaults: maxTradesPerDay 5→25, maxPositions 5→25, minEdge 3→1, minVolume 10000→5000, minProbLow 10→5, minProbHigh 90→95, focusAreas `all`; (c) presets updated: starter 25/day, balanced 50/day, active 200/day; (d) handleStartBot fixed to send "paper" status when paperMode=true.
   **lib/market/sync-automation-plan.ts:** complete rewrite — SyncResult with error details, ensureBotRunning() helper, error response parsing.
   **lib/market/scan-request.ts:** SCAN_DEFAULTS.maxPositions 5→25.
   **components/dashboard/MarketClient.tsx:** handleApplyPlan calls ensureBotRunning after sync, better error messages.
@@ -624,7 +605,7 @@ Carry-forward rule
   **components/dashboard/market/MarketBuyPanel.tsx:** buy amount cap raised from $500 to $5,000, added $500 and $1,000 quick-pick buttons.
   **components/dashboard/market/MarketStartHereTab.tsx:** recommendations now respect user mode selection (practice/real), added onApplyRecommendation prop + recommendationToPlan() converter, Apply button now sends plan data directly instead of just navigating. MarketClient wired to call handleApplyPlan + switch to results tab.
   Verified: `npx tsc --noEmit` clean.
-- 2026-03-08: Runtime compatibility hardening — complete. Files created: [lib/market/trade-persistence.ts](/workspaces/slate360-rebuild/lib/market/trade-persistence.ts), [scripts/ops/check-market-runtime.mjs](/workspaces/slate360-rebuild/scripts/ops/check-market-runtime.mjs). Files modified: [app/api/market/buy/route.ts](/workspaces/slate360-rebuild/app/api/market/buy/route.ts), [app/api/market/scan/route.ts](/workspaces/slate360-rebuild/app/api/market/scan/route.ts), [lib/market/scheduler-run-user.ts](/workspaces/slate360-rebuild/lib/market/scheduler-run-user.ts), [app/api/market/trades/route.ts](/workspaces/slate360-rebuild/app/api/market/trades/route.ts), [app/api/market/settle-trades/route.ts](/workspaces/slate360-rebuild/app/api/market/settle-trades/route.ts), [lib/market/clob-api.ts](/workspaces/slate360-rebuild/lib/market/clob-api.ts), [scripts/ops/check-clob-contract.mjs](/workspaces/slate360-rebuild/scripts/ops/check-clob-contract.mjs), [package.json](/workspaces/slate360-rebuild/package.json), [PROJECT_RUNTIME_ISSUE_LEDGER.md](/workspaces/slate360-rebuild/PROJECT_RUNTIME_ISSUE_LEDGER.md). Result: `market_trades` writes now degrade safely on older schemas, settlement reads retry without newer optional columns, live CLOB orders submit share size instead of raw spend, and runtime env/schema checks are scripted. Verified: `npm run typecheck`, `npm run guard:clob-contract`, `npm run verify:release` (same environment-level `143` interruption only), `npm run diag:market-runtime`. Commit pushed: `96effc5` (`Harden market robot runtime compatibility`). Next: repair env/schema blockers, then run authenticated end-to-end Market verification before new feature work.
+- 2026-03-08: Runtime compatibility hardening — complete. Files created: [lib/market/trade-persistence.ts](../../../lib/market/trade-persistence.ts), [scripts/ops/check-market-runtime.mjs](../../../scripts/ops/check-market-runtime.mjs). Files modified: [app/api/market/buy/route.ts](../../../app/api/market/buy/route.ts), [app/api/market/scan/route.ts](../../../app/api/market/scan/route.ts), [lib/market/scheduler-run-user.ts](../../../lib/market/scheduler-run-user.ts), [app/api/market/trades/route.ts](../../../app/api/market/trades/route.ts), [app/api/market/settle-trades/route.ts](../../../app/api/market/settle-trades/route.ts), [lib/market/clob-api.ts](../../../lib/market/clob-api.ts), [scripts/ops/check-clob-contract.mjs](../../../scripts/ops/check-clob-contract.mjs), [package.json](../../../package.json), [PROJECT_RUNTIME_ISSUE_LEDGER.md](../../../PROJECT_RUNTIME_ISSUE_LEDGER.md). Result: `market_trades` writes now degrade safely on older schemas, settlement reads retry without newer optional columns, live CLOB orders submit share size instead of raw spend, and runtime env/schema checks are scripted. Verified: `npm run typecheck`, `npm run guard:clob-contract`, `npm run verify:release` (same environment-level `143` interruption only), `npm run diag:market-runtime`. Commit pushed: `96effc5` (`Harden market robot runtime compatibility`). Next: repair env/schema blockers, then run authenticated end-to-end Market verification before new feature work.
 
 ## Ready-To-Paste Prompt For Next Chat
 

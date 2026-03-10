@@ -20,6 +20,23 @@ function asRecord(raw: unknown): Record<string, unknown> {
   return {};
 }
 
+function normalizeCategoryBucket(rawCategory: string): string | null {
+  const text = normalizeWhitespace(rawCategory).toLowerCase();
+  if (!text) return null;
+  if (/weather|climate|storms?/.test(text)) return "Weather";
+  if (/construction|infrastructure|building|contractor|housing starts?/.test(text)) return "Construction";
+  if (/real estate|housing|mortgage|rent/.test(text)) return "Real Estate";
+  if (/economy|economic|business|finance|financial|macro|markets?/.test(text)) return "Economy";
+  if (/entertainment|movies?|film|music|television|tv|celebrity|awards?/.test(text)) return "Entertainment";
+  if (/politics|policy|government|world|middle east|elections?/.test(text)) return "Politics";
+  if (/sports?|soccer|football|basketball|baseball|ufc|tennis/.test(text)) return "Sports";
+  if (/crypto|bitcoin|ethereum|defi|blockchain|tokens?/.test(text)) return "Crypto";
+  if (/science|research|space|health|medicine/.test(text)) return "Science";
+  if (/tech|technology|ai|artificial intelligence|software|hardware/.test(text)) return "Tech";
+  if (/general|other|news/.test(text)) return "General";
+  return null;
+}
+
 function deriveCategory(question: string, rawCategory: string): string {
   const text = normalizeWhitespace(`${question} ${rawCategory}`).toLowerCase();
 
@@ -35,8 +52,10 @@ function deriveCategory(question: string, rawCategory: string): string {
   if (/tech|technology|ai|artificial intelligence|apple|google|meta|tesla|software|hardware/.test(text)) return "Tech";
 
   const normalizedRaw = normalizeWhitespace(rawCategory);
+  const normalizedBucket = normalizeCategoryBucket(normalizedRaw);
+  if (normalizedBucket) return normalizedBucket;
+
   if (normalizedRaw) {
-    if (normalizedRaw.toLowerCase() === "general") return "General";
     return normalizedRaw
       .split(" ")
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())

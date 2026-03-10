@@ -4,20 +4,17 @@ import { toNumberOrZero } from "@/lib/market/contracts";
 import { logSchedulerNoDecisions, logSchedulerRunSummary, logSchedulerSkip } from "@/lib/market/scheduler-activity-log";
 import { evaluateSchedulerGuards } from "@/lib/market/scheduler-guards";
 import { applyDecisionShareCaps, buildSchedulerRuntimeConfig } from "@/lib/market/scheduler-runtime";
-import { filterExecutableOpportunities } from "@/lib/market/runtime-config";
+import {
+  buildRuntimeConfigFromDirective,
+  buildRuntimeConfigFromPlan,
+  filterExecutableOpportunities,
+  type MarketDirectiveRuntimeRow,
+  type MarketPlanRuntimeRow,
+} from "@/lib/market/runtime-config";
 import { insertMarketTradesWithFallback } from "@/lib/market/trade-persistence";
-import { clamp, fetchMarketsCached, isoDay, normalizeFocusAreas, riskLevelFromMix, type MarketsPromiseCache, type SchedulerConfig } from "@/lib/market/scheduler-utils";
+import { clamp, fetchMarketsCached, isoDay, riskLevelFromMix, type MarketsPromiseCache, type SchedulerConfig } from "@/lib/market/scheduler-utils";
 
 type RuntimeRowStatus = "running" | "paused" | "stopped" | "paper";
-
-type DirectiveRow = {
-  amount: number | string | null;
-  buys_per_day: number | null;
-  risk_mix: "conservative" | "balanced" | "aggressive" | null;
-  focus_areas: string[] | null;
-  paper_mode: boolean | null;
-  timeframe: string | null;
-};
 
 type RuntimeStateRow = {
   day_bucket: string;
@@ -25,6 +22,10 @@ type RuntimeStateRow = {
   trades_today: number;
   last_run_at: string | null;
 };
+
+function isMissingPlansSchema(code: string | undefined, message: string | undefined) {
+  return code === "42P01" || code === "PGRST205" || message?.includes("market_plans") === true;
+}
 
 export type SchedulerUserResult = {
   userId: string;
@@ -43,7 +44,16 @@ export async function runForUser(
 ): Promise<SchedulerUserResult> {
   const admin = createAdminClient();
 
-  const [{ data: directive }, { data: runtimeState }, { data: todayTrades }] = await Promise.all([
+  const [{ data: plan, error: planError }, { data: directive }, { data: runtimeState }, { data: todayTrades }] = await Promise.all([
+    admin
+      .from("market_plans")
+      .select("mode,budget,risk_level,categories,scan_mode,max_trades_per_day,max_daily_loss,max_open_positions,max_pct_per_trade,fee_alert_threshold,cooldown_after_loss_streak,large_trader_signals,closing_soon_focus,slippage,minimum_liquidity,maximum_spread,fill_policy,exit_rules,runtime_config,is_default,updated_at")
+      .eq("user_id", userId)
+      .eq("is_archived", false)
+      .order("is_default", { ascending: false })
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
     admin
       .from("market_directives")
       .select("amount,buys_per_day,risk_mix,focus_areas,paper_mode,timeframe")
@@ -63,19 +73,22 @@ export async function runForUser(
       .gte("created_at", `${isoDay(now)}T00:00:00Z`),
   ]);
 
-  const directiveRow = (directive ?? null) as DirectiveRow | null;
+  if (planError && !isMissingPlansSchema(planError.code, planError.message)) {
+    throw new Error(`market_plans_read_failed:${planError.message}`);
+  }
+
+  const planRow = (plan ?? null) as MarketPlanRuntimeRow | null;
+  const directiveRow = (directive ?? null) as MarketDirectiveRuntimeRow | null;
   const stateRow = (runtimeState ?? null) as RuntimeStateRow | null;
   const { data: authUserData } = await admin.auth.admin.getUserById(userId);
-  const runtimeConfig = buildSchedulerRuntimeConfig(
-    directiveRow,
-    runtimeStatus,
-    authUserData.user?.user_metadata?.marketBotConfig as Record<string, unknown> | undefined,
-  );
+  const savedConfig = authUserData.user?.user_metadata?.marketBotConfig as Record<string, unknown> | undefined;
+  const runtimeConfig = planRow
+    ? buildRuntimeConfigFromPlan(planRow, savedConfig)
+    : buildRuntimeConfigFromDirective(directiveRow, runtimeStatus, savedConfig);
+  const schedulerConfig = buildSchedulerRuntimeConfig(directiveRow, runtimeStatus, savedConfig);
 
   const buysPerDay = clamp(
-    directiveRow?.buys_per_day && Number.isFinite(directiveRow.buys_per_day)
-      ? directiveRow.buys_per_day
-      : config.defaultBuysPerDay,
+    runtimeConfig.maxTradesPerDay || config.defaultBuysPerDay,
     1,
     100000,
   );
@@ -117,20 +130,19 @@ export async function runForUser(
   const targetTradesThisRun = Math.max(1, Math.ceil(buysPerDay / expectedRunsPerDay));
   const maxPositions = Math.min(targetTradesThisRun, remainingDailyTrades, config.maxTradesPerScan);
 
-  const directiveAmount = Math.max(0, toNumberOrZero(directiveRow?.amount));
   const dailyLossCap = runtimeConfig.dailyLossCap;
   const totalLossCap = runtimeConfig.totalLossCap;
   const moonshotMode = runtimeConfig.moonshotMode;
   const targetProfitMonthly = Math.max(0, toNumberOrZero(runtimeConfig.targetProfitMonthly));
-  const capitalBase = directiveAmount > 0 ? directiveAmount : config.defaultCapitalUsd;
+  const capitalBase = Math.max(1, runtimeConfig.capitalAlloc || config.defaultCapitalUsd);
   const positionBudgetCount = Math.max(1, runtimeConfig.maxOpenPositions);
   const capitalPerTrade = clamp(capitalBase / positionBudgetCount, 1, config.maxPositionUsdCap);
 
   const botConfig: BotConfig = {
     ...DEFAULT_CONFIG,
-    riskLevel: riskLevelFromMix(directiveRow?.risk_mix ?? null),
+    riskLevel: riskLevelFromMix(planRow?.risk_level ?? directiveRow?.risk_mix ?? null),
     paperMode: runtimeConfig.paperMode,
-    focusAreas: runtimeConfig.focusAreas.length > 0 ? runtimeConfig.focusAreas : normalizeFocusAreas(directiveRow?.focus_areas),
+    focusAreas: runtimeConfig.focusAreas,
     maxTradesPerScan: maxPositions,
     maxPositionUsd: capitalPerTrade,
     minOpportunityEdgePct: 0,
@@ -173,7 +185,7 @@ export async function runForUser(
     targetProfitMonthly,
     currentMaxTradesPerScan: botConfig.maxTradesPerScan,
     configMaxTradesPerScan: config.maxTradesPerScan,
-    directive: { auto_pause_losing_days: runtimeConfig.autoPauseLosingDays },
+      directive: { auto_pause_losing_days: schedulerConfig.autoPauseLosingDays },
   });
 
   if (guardResult.skipReason) {

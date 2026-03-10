@@ -28,7 +28,7 @@ const STUB_TABS: Record<string, React.ComponentType> = {};
 export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   const visibleTabs = layoutPrefs?.visibleTabs ?? [];
   const [activeTabId, setActiveTabId] = useState("start-here");
-  const logsEnabled = activeTabId === "start-here" || activeTabId === "automation" || activeTabId === "results";
+  const logsEnabled = activeTabId === "results";
 
   // If active tab is hidden, snap to first visible
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   }, []);
 
   useEffect(() => {
-    if (activeTabId === "results" || activeTabId === "start-here") {
+    if (activeTabId === "results") {
       void fetchTrades();
       void fetchSummary();
       void fetchSchedulerHealth();
@@ -104,7 +104,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
       // 2. Set bot status to paper/running so the scheduler picks this user up
       const statusSet = await ensureBotRunning(paperMode);
       if (statusSet) {
-        bot.addLog(`🟢 Bot status set to ${paperMode ? "practice" : "running"} — scheduler will pick up trades`);
+        bot.addLog(`🟢 Bot status set to ${paperMode ? "paper" : "running"} — scheduler will pick up trades`);
       } else {
         bot.addLog(`⚠️ Failed to set bot status on server — scheduler may not run`);
       }
@@ -112,52 +112,9 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
       bot.setBotRunning(true);
       bot.setBotPaused(false);
       await bot.runScan(scanConfig);
+      setActiveTabId("results");
     })();
   }, [bot]);
-
-  const handleQuickStartPaper = useCallback(() => {
-    const defaultPlan: AutomationPlan = {
-      id: `quick-${Date.now()}`,
-      name: "Quick Start (Practice)",
-      budget: 200,
-      riskLevel: "conservative",
-      categories: ["General", "Politics"],
-      scanMode: "balanced",
-      maxTradesPerDay: 5,
-      mode: "practice",
-      maxDailyLoss: 24,
-      maxOpenPositions: 5,
-      maxPctPerTrade: 15,
-      feeAlertThreshold: 5,
-      cooldownAfterLossStreak: 3,
-      largeTraderSignals: false,
-      closingSoonFocus: false,
-      slippage: 2,
-      minimumLiquidity: 5000,
-      maximumSpread: 10,
-      fillPolicy: "conservative",
-      exitRules: "auto",
-      isDefault: false,
-      isArchived: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    handleApplyPlan(defaultPlan);
-  }, [handleApplyPlan]);
-
-  const handleStopBot = useCallback(() => {
-    void (async () => {
-      bot.setBotRunning(false);
-      bot.setBotPaused(false);
-      bot.addLog("⏹ Robot stopped");
-      await fetch("/api/market/bot-status", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "stopped" }),
-      });
-      await serverStatus.refresh?.();
-    })();
-  }, [bot, serverStatus]);
 
   const handleTradePlaced = useCallback(async () => {
     await fetchTrades();
@@ -172,9 +129,9 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
         return (
           <MarketStartHereTab
             onNavigate={setActiveTabId}
-            onApplyRecommendation={(plan) => { handleApplyPlan(plan); }}
-            onQuickStart={handleQuickStartPaper}
-            onStopBot={handleStopBot}
+            onApplyRecommendation={handleApplyPlan}
+            onQuickStart={bot.handleStartBot}
+            onStopBot={bot.handleStopBot}
             paperMode={bot.config.paperMode}
             serverStatus={serverStatus.status}
             serverConfirmed={serverStatus.isConfirmed}
@@ -195,8 +152,6 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
           <MarketAutomationTab
             botConfig={bot.config}
             onApplyPlan={handleApplyPlan}
-            onStopBot={handleStopBot}
-            onNavigate={setActiveTabId}
           />
         );
       case "saved-markets":
@@ -243,7 +198,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   const displayStatusLabel =
     displayStatus === "running" ? "Running" :
     displayStatus === "paused" ? "Paused" :
-    displayStatus === "paper" ? "Practice" :
+    displayStatus === "paper" ? "Paper" :
     displayStatus === "stopped" ? "Stopped" :
     "Checking…";
 
@@ -259,7 +214,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
             )}
             {bot.config.paperMode && (
               <span className="text-xs bg-purple-100 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full">
-                Practice Mode
+                Paper Mode
               </span>
             )}
           </h1>

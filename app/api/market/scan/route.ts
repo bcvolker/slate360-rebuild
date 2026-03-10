@@ -6,7 +6,7 @@ import { toNumberOrZero } from "@/lib/market/contracts";
 import { mapTradeRowToTradeVM } from "@/lib/market/mappers";
 import { getScanMaxMarketLimit, parseScanRequest } from "@/lib/market/scan-request";
 import { fetchMarkets, scoreOpportunities, decideTrades, simulatePaperTrade, type BotConfig, DEFAULT_CONFIG } from "@/lib/market-bot";
-import { buildRuntimeConfig, filterExecutableOpportunities, normalizeFocusAreas } from "@/lib/market/runtime-config";
+import { buildRuntimeConfigFromDirective, buildRuntimeConfigFromPlan, filterExecutableOpportunities, normalizeFocusAreas, type MarketDirectiveRuntimeRow, type MarketPlanRuntimeRow } from "@/lib/market/runtime-config";
 import { insertMarketTradesWithFallback } from "@/lib/market/trade-persistence";
 
 export const dynamic = "force-dynamic";
@@ -17,58 +17,53 @@ function noStoreJson<T>(body: ApiEnvelope<T> & Record<string, unknown>, init?: {
 }
 
 function clamp(value: number, min: number, max: number) { return Math.min(max, Math.max(min, value)); }
+function isMissingPlansSchema(code: string | undefined, message: string | undefined) {
+  return code === "42P01" || code === "PGRST205" || message?.includes("market_plans") === true;
+}
 
 export async function POST(req: NextRequest) {
   try {
     const access = await resolveServerOrgContext();
-    if (!access.user) {
-      return noStoreJson(
-        { ok: false, error: { code: "unauthorized", message: "Unauthorized" } },
-        { status: 401 }
-      );
-    }
-    if (!access.canAccessMarket) {
-      return noStoreJson(
-        { ok: false, error: { code: "forbidden", message: "Market access required" } },
-        { status: 403 }
-      );
-    }
+    if (!access.user) return noStoreJson({ ok: false, error: { code: "unauthorized", message: "Unauthorized" } }, { status: 401 });
+    if (!access.canAccessMarket) return noStoreJson({ ok: false, error: { code: "forbidden", message: "Market access required" } }, { status: 403 });
 
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return noStoreJson(
-        { ok: false, error: { code: "unauthorized", message: "Unauthorized" } },
-        { status: 401 }
-      );
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return noStoreJson({ ok: false, error: { code: "unauthorized", message: "Unauthorized" } }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
     const { request: requestConfig, appliedConfig, providedKeys, errors } = parseScanRequest(body);
     if (errors.length > 0) {
-      return noStoreJson(
-        {
-          ok: false,
-          error: {
-            code: "invalid_scan_request",
-            message: "Invalid scan request payload",
-            details: { errors },
-          },
-          meta: {
-            timestamp: new Date().toISOString(),
-            ignoredKeys: [],
-            appliedConfig,
-          },
-        },
-        { status: 400 }
-      );
+      return noStoreJson({ ok: false, error: { code: "invalid_scan_request", message: "Invalid scan request payload", details: { errors } }, meta: { timestamp: new Date().toISOString(), ignoredKeys: [], appliedConfig } }, { status: 400 });
     }
 
     const savedConfig = user.user_metadata?.marketBotConfig as Record<string, unknown> | undefined;
-    const runtimeConfig = buildRuntimeConfig(savedConfig);
+    const [{ data: plan, error: planError }, { data: directive }, { data: botSettings }] = await Promise.all([
+      supabase
+        .from("market_plans")
+        .select("mode,budget,risk_level,categories,scan_mode,max_trades_per_day,max_daily_loss,max_open_positions,max_pct_per_trade,fee_alert_threshold,cooldown_after_loss_streak,large_trader_signals,closing_soon_focus,slippage,minimum_liquidity,maximum_spread,fill_policy,exit_rules,runtime_config,is_default,updated_at")
+        .eq("user_id", user.id)
+        .eq("is_archived", false)
+        .order("is_default", { ascending: false })
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("market_directives")
+        .select("amount,buys_per_day,risk_mix,focus_areas,paper_mode,timeframe")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase.from("market_bot_runtime").select("status").eq("user_id", user.id).single(),
+    ]);
+    if (planError && !isMissingPlansSchema(planError.code, planError.message)) {
+      throw new Error(`market_plans_read_failed:${planError.message}`);
+    }
+    const botStatus = botSettings?.status ?? "stopped";
+    const runtimeConfig = plan
+      ? buildRuntimeConfigFromPlan(plan as MarketPlanRuntimeRow, savedConfig)
+      : buildRuntimeConfigFromDirective(directive as MarketDirectiveRuntimeRow | null, botStatus, savedConfig);
     const config: BotConfig = {
       ...(savedConfig ? { ...DEFAULT_CONFIG, ...savedConfig } : DEFAULT_CONFIG),
       paperMode: requestConfig.paperMode,
@@ -96,27 +91,10 @@ export async function POST(req: NextRequest) {
 
     const ignoredKeys = providedKeys.filter((key) => key === "whale_follow");
 
-    const { data: botSettings } = await supabase
-      .from("market_bot_runtime")
-      .select("status")
-      .eq("user_id", user.id)
-      .single();
-
-    const botStatus = botSettings?.status ?? "stopped";
-
     const executeTrades = requestConfig.executeTrades !== false;
     const oneOffPaperScan = config.paperMode === true;
     if (executeTrades && !oneOffPaperScan && (botStatus === "stopped" || botStatus === "paused")) {
-      return noStoreJson(
-        {
-          ok: false,
-          error: {
-            code: botStatus === "paused" ? "bot_paused" : "bot_stopped",
-            message: botStatus === "paused" ? "Bot is paused" : "Bot is stopped",
-          },
-        },
-        { status: 400 }
-      );
+      return noStoreJson({ ok: false, error: { code: botStatus === "paused" ? "bot_paused" : "bot_stopped", message: botStatus === "paused" ? "Bot is paused" : "Bot is stopped" } }, { status: 400 });
     }
 
     const requestedMarketLimit = Number((body as Record<string, unknown>)?.market_limit ?? 0);
@@ -141,11 +119,7 @@ export async function POST(req: NextRequest) {
 
     const today = new Date().toISOString().split("T")[0];
     const [{ data: todayTrades }, { data: openTrades }] = await Promise.all([
-      supabase
-      .from("market_trades")
-      .select("pnl")
-      .eq("user_id", user.id)
-      .gte("created_at", `${today}T00:00:00Z`),
+      supabase.from("market_trades").select("pnl").eq("user_id", user.id).gte("created_at", `${today}T00:00:00Z`),
       supabase
         .from("market_trades")
         .select("id")
@@ -275,15 +249,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("[api/market/scan]", err);
-    return noStoreJson(
-      {
-        ok: false,
-        error: {
-          code: "scan_unhandled_error",
-          message: err instanceof Error ? err.message : "Scan failed",
-        },
-      },
-      { status: 500 }
-    );
+    return noStoreJson({ ok: false, error: { code: "scan_unhandled_error", message: err instanceof Error ? err.message : "Scan failed" } }, { status: 500 });
   }
 }
