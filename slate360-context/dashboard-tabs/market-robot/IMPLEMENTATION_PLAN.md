@@ -26,6 +26,8 @@ The current backend autonomy work and market data plumbing stay in place. This p
 - Replaced chip-heavy + slider-heavy filter controls with standard form controls (search input, time/topic/sort selects, optional advanced numeric filters).
 - Added explicit "Open running positions" action in Automation so active trades are easier to locate.
 - Added Results guidance clarifying that new trades remain open until market resolution and included a quick refresh action.
+- Fixed production scheduler auth by aligning `MARKET_SCHEDULER_SECRET` with `CRON_SECRET` in Vercel.
+- Fixed scheduler trade sizing so automation allocates capital per open position instead of dividing budget by buys-per-day, which was starving high-frequency practice plans.
 
 ## Current State and User Goal
 Current backend and data plumbing are usable: shared shell/header, decomposed UI, cron-driven scheduler, wallet verification, approval flow, directives, logs, and summary stats all exist.

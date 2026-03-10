@@ -123,7 +123,8 @@ export async function runForUser(
   const moonshotMode = runtimeConfig.moonshotMode;
   const targetProfitMonthly = Math.max(0, toNumberOrZero(runtimeConfig.targetProfitMonthly));
   const capitalBase = directiveAmount > 0 ? directiveAmount : config.defaultCapitalUsd;
-  const capitalPerTrade = clamp(capitalBase / Math.max(1, buysPerDay), 1, config.maxPositionUsdCap);
+  const positionBudgetCount = Math.max(1, runtimeConfig.maxOpenPositions);
+  const capitalPerTrade = clamp(capitalBase / positionBudgetCount, 1, config.maxPositionUsdCap);
 
   const botConfig: BotConfig = {
     ...DEFAULT_CONFIG,
