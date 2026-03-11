@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-03-05",
+  "updatedAt": "2026-03-11",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -110,6 +110,20 @@
       "verification": [
         "app/(dashboard)/error.tsx exists with reset function",
         "Runtime error in a tab renders graceful fallback without dashboard unmount"
+      ]
+    },
+    {
+      "id": "BUG-026",
+      "title": "Market Robot remains architecturally fragmented after March 11 UX/runtime pass",
+      "module": "market",
+      "severity": "high",
+      "status": "open",
+      "rootCause": "Search, execution, and observability still span multiple partially overlapping systems: lexical Gamma search plus local filters, `market_plans`, legacy directives/runtime metadata fallbacks, `market_bot_runtime`, scheduler activity, trade persistence compatibility fallbacks, and wallet/CLOB prerequisites. UX fixes improved visibility but did not create a single canonical config/run/history model.",
+      "verification": [
+        "Run one authenticated end-to-end production test for each path: search, practice buy, live buy, apply plan, immediate scan, scheduled scan, results visibility",
+        "Document every storage/control surface touched by those paths and confirm whether one user action writes to more than one canonical source",
+        "Confirm whether Market Robot has a single run record linking user action, applied config, scan result, activity row, and trade write",
+        "Confirm whether requested product features still missing in code remain missing: recommendation-history store, moonshot history/bundles, posted-probability-vs-outcome tracking, hot-item/upset alert engine"
       ]
     }
   ]

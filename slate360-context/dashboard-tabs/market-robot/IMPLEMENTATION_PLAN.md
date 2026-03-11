@@ -43,6 +43,25 @@ The current backend autonomy work and market data plumbing stay in place. This p
 - Realistic defaults are still not enforced strongly enough, so users can create plans with values like extremely high trades/day on modest budgets and then assume the robot is broken.
 - The next product pass should focus on beginner-first plan creation, explicit practice-trade feedback, and validating sane defaults after the Mar 10 scheduler sizing fix is deployed.
 
+### March 11, 2026 Diagnostics + scope correction
+- Commit `dae617f` improved the user-facing diagnostics in real ways: query synonym expansion (`weather` -> `rain/storm/...`), `runScan()` returning a typed outcome, visible scan banners in `MarketClient`, a fresh bot-status read before the scan route rejects live execution, and a simpler Results/Automation/overview presentation.
+- Those changes are correct, but they should **not** be interpreted as "Market Robot is solved." They reduce confusion and make failures visible sooner; they do not eliminate the deeper project-level inconsistency.
+
+### March 11, 2026 What is still not delivered
+- Complete Polymarket search/filter/sort is not done. Search is still lexical matching over current Gamma API rows plus a small synonym map; there is no semantic search layer, trend model, or historical market index.
+- Practice/live/manual/automation do not yet share one canonical execution trail. The system still mixes plan storage, runtime status, legacy directive compatibility, scheduler activity, and trade persistence across multiple paths.
+- The wallet tab is a readiness flow, not a complete live metrics/performance console.
+- Recommended buys exist only in lightweight preset/recommendation form. There is not yet a persistent recommendation engine with measurable hit-rate history.
+- Moonshot is present as a mode flag in runtime logic, but moonshot bundles, moonshot-pick history, and posted-probability-vs-outcome recordkeeping are not implemented as user-facing product features.
+- Hot items, upset alerts, and historical signal tracking are not implemented as a canonical subsystem yet.
+
+### March 11, 2026 Root-cause direction for the next investigation
+The next chat should treat Market Robot as an architecture normalization task:
+1. Verify one end-to-end production path for each core job: search, practice buy, live buy, immediate scan, scheduled scan, results visibility.
+2. Identify every persistence/control surface touched by those flows: `market_plans`, directives/runtime metadata fallbacks, `market_bot_runtime`, activity logs, wallet/CLOB envs, trade persistence.
+3. Consolidate toward one canonical config source, one canonical run timeline, and one canonical historical analytics store.
+4. Only after that should new features like trend alerts, upset alerts, bundles, or recommendation history be added, otherwise they will sit on top of the same fragmented execution model.
+
 ## Current State and User Goal
 Current backend and data plumbing are usable: shared shell/header, decomposed UI, cron-driven scheduler, wallet verification, approval flow, directives, logs, and summary stats all exist.
 

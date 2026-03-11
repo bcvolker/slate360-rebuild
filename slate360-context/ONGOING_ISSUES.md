@@ -1,6 +1,6 @@
 # Slate360 — Ongoing Issues & Known Tech Debt
 
-**Last Updated:** 2026-03-04 (Sonnet 4.6 session 3 — BUG-020 fixed: PDF inline preview root cause; geocoder fallback added for BUG-010; BUG-021 logged: location widget inconsistency)  
+**Last Updated:** 2026-03-11 (Market diagnostics handoff — BUG-026 logged: market root-cause still unresolved after UX/runtime pass)  
 **Maintained by:** Development team — update whenever a bug is discovered or fixed.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -173,6 +173,7 @@ Before building new features, extract the sub-components planned in `SLATEDROP.m
 | BUG-019 | SlateDrop Widgets | **SlateDrop widget requires extra "Open SlateDrop" click:** `embedded` prop on `SlateDropClient` fixed the screen-within-screen layout, but the widget *shell* still renders its own CTA button above the embedded client. Also, dashboard widgets and in-project (Tier 2) widgets have diverged in styling. | Medium | 🔴 Open |
 | BUG-020 | SlateDrop / File Preview | **PDF files downloaded instead of opening inline preview.** Root cause: `app/api/slatedrop/download/route.ts` set `ResponseContentDisposition: 'attachment'` on ALL presigned URLs — forced browser to download regardless of iframe context. **Fixed session 3:** Added `mode` param; `mode=preview` → `inline` disposition. `SlateDropClient.fetchPreviewUrl` now calls `&mode=preview`. See FIX-016. | High | ✅ Fixed — session 3 |
 | BUG-021 | Location / Multiple Views | **Location widgets are inconsistent across the platform.** `WizardLocationPicker` (project creation step 3), `LocationMap` (dashboard widget), project address display in card/list views, and Project Hub Tier 2 project home all render location data differently with no shared component. Visual inconsistency and potential data mapping mismatches. Needs: (1) audit all 4 contexts, (2) extract a shared `LocationDisplay` component or align styles/data contract. | Medium | 🔴 Open — investigation pending |
+| BUG-026 | Market Robot | **Market Robot still feels unreliable because the remaining problem is architectural, not just UI.** March 11 delivered real improvements: search synonym expansion, scan result banners, a bot-status re-query before rejecting live scans, and a simpler Results/Automation UI. Those changes are correct, but they do not close the deeper issue. Market execution/config state is still fragmented across `market_plans`, legacy directives/runtime metadata, `market_bot_runtime`, scheduler paths, and wallet/live-trade prerequisites. Search is still lexical-only on current Gamma payloads, so "complete Polymarket search/filter/sort" plus trend/upset/history features are not implemented yet. Requested features like moonshot bundles/history, posted-probability-vs-outcome tracking, and a persistent recommendation-history system remain absent rather than merely hidden. | High | 🔴 Open — project-level consolidation needed |
 
 ---
 
@@ -247,6 +248,7 @@ Before building new features, extract the sub-components planned in `SLATEDROP.m
 | FIX-006 | Mar 2026 | **BUG-014 fixed:** Dashboard "New Project" opens `CreateProjectWizard` inline instead of navigating to `/project-hub` |
 | FIX-005 | Mar 2026 | **BUG-011 fixed:** Extracted `DashboardHeader` — unified top bar across dashboard home + all tab pages |
 | FIX-004 | Mar 2026 | **BUG-012 item 3 fixed:** `SlateDropClient` `embedded` prop eliminates screen-within-screen rendering in Files tab + dashboard widgets |
+| FIX-019 | Mar 11 2026 | **Market UX/runtime pass landed but did not close the root cause:** commit `dae617f` added shared search synonym expansion, scan outcome banners, bot-status re-query in `app/api/market/scan/route.ts`, and simpler Results/Automation/overview UI. This improved visibility and reduced confusion, but follow-up audit confirmed the larger Market issue is still open because execution/config/history remain split across multiple systems. |
 | FIX-001 | Jan 2025 | Satellite map card pattern fixed (absolute div separation) |
 | FIX-002 | Jan 2025 | SlateDrop 3-dot menu + project banner + "Open in Project Hub" |
 | FIX-003 | Jan 2025 | AutocompleteService migration to new Places API |

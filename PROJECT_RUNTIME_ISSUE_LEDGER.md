@@ -2,7 +2,7 @@
 
 Purpose: single source of truth for persistent production/runtime defects, with root-cause elimination history and handoff context.
 
-Last updated: 2026-03-04 (dashboard runtime crash fix)
+Last updated: 2026-03-11 (market diagnostics evidence handoff)
 Owner: AI agent + engineering team
 
 ---
@@ -136,7 +136,7 @@ Current issue states:
 - Issue 12 (`isClient` dashboard crash): **Resolved — missing client-guard state declared and initialized in DashboardClient**
 - Issue 13 (SlateDrop sandbox delete bypassed 2-step confirm): **Fixed — requires typing project name before DELETE**
 - Issue 14 (Project location widget not centered / inconsistent): **Fixed — parse JSONB metadata.location + pass center to LocationMap**
-- Issue 15 (Market Robot hydration mismatch + incomplete catalog + legacy endpoint noise): **Fixed in code, pending authenticated production verification**
+- Issue 15 (Market Robot hydration mismatch + incomplete catalog + legacy endpoint noise): **Partially improved in code; broader market root cause still open**
 
 ---
 
@@ -219,6 +219,24 @@ Current issue states:
 - Confirmed the key runtime dependencies remain declared in `package.json`: `@supabase/supabase-js`, `@supabase/ssr`, `@polymarket/clob-client`, `next`, `react`, and `react-dom`.
 - Added `npm run diag:market-runtime` via `scripts/ops/check-market-runtime.mjs` to inspect the configured Supabase project and Market Robot env prerequisites. Current findings from that script: core Supabase keys are present, but live CLOB envs (`POLYMARKET_API_KEY`, `POLYMARKET_API_SECRET`, `POLYMARKET_API_PASSPHRASE`, `NEXT_PUBLIC_POLYMARKET_SPENDER`) are missing locally, scheduler secret env is missing locally, and the target Supabase schema still does not expose `market_activity_log` or `market_scheduler_lock`.
 - Remaining follow-up is to apply the missing Supabase migrations in the target environment so the fallback becomes a compatibility safety net rather than the primary path.
+
+### Follow-up diagnostics — 2026-03-11 (search, automation visibility, UX simplification)
+- Landed UX/runtime feedback fixes in commit `dae617f`: shared query synonym expansion, `runScan()` now returns a typed `ScanResult`, the client shows success/empty/error scan banners, the scan endpoint re-queries bot status before rejecting live execution, Results/Automation were simplified, and the top overview was de-cluttered.
+- Verified locally: `npx tsc --noEmit` passes and all touched market files remain at or below the 300-line limit.
+- Status correction: these changes improve clarity and surface failures sooner, but they do **not** prove that Market Robot is end-to-end healthy. The previous handoff overstated completion if read as "market is now working."
+
+### March 11 evidence: what is still not normalized
+- Search is still only lexical matching on current Polymarket payloads plus a small synonym map. That helps queries like `weather`, but it is not "complete Polymarket searching/filtering/sorting" and it does not create trend detection, hot-item ranking history, upset alerts, or historical probability analysis.
+- Automation config is still split across multiple sources (`market_plans`, legacy `market_directives`, auth metadata/runtime-config fallbacks, and `market_bot_runtime`). A single user action can save a plan, flip runtime status, and fire a scan through different storage paths, which makes the system feel inconsistent even when each step individually succeeds.
+- Execution observability is still fragmented. The UI now surfaces scan outcome banners, but there is still no single canonical run record that links: user action -> applied config -> scan request -> scheduler/activity row -> trade writes -> wallet/result state.
+- Wallet support is still mainly readiness/approval oriented. The current wallet tab helps connect, verify, and approve, but it is not yet a full live metrics/risk/performance console.
+- Several requested product features are still absent rather than broken: market bundles, moonshot-pick record/history, posted-probability vs final-outcome history, upset-alert engine, and a persistent recommendation engine with measurable historical hit rate.
+
+### Next root-cause target for a new chat
+- Treat this as a project-level architecture investigation, not just another UI pass.
+- First verify one complete path in production for each mode: search -> practice buy -> live buy -> apply plan -> immediate scan -> scheduled scan -> results/log visibility.
+- Then collapse Market Robot toward one canonical execution model: one canonical config source, one canonical run record, one canonical trade persistence path, and one canonical historical analytics source.
+- Until that consolidation exists, UX polish will continue to expose failures faster without eliminating the underlying inconsistency.
 
 ---
 
