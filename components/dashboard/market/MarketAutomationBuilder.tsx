@@ -32,10 +32,9 @@ export default function MarketAutomationBuilder({
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-gray-900">
-          {editingId ? "Edit Plan" : "New Automation Plan"}
-          <HelpTip content="Create or edit a saved automation plan the robot can run. Choose your level of control below." />
+          {editingId ? "Edit Plan" : "Create a Robot Plan"}
+          <HelpTip content="Tell the robot how much to spend, what risk level, and which topics to focus on." />
         </h3>
-        <span className="text-[11px] text-gray-400">Save draft stores settings only. Start applies the plan and kicks off a scan.</span>
       </div>
 
       {/* Control level selector */}
@@ -79,12 +78,12 @@ export default function MarketAutomationBuilder({
       {/* Actions */}
       <div className="flex gap-2 pt-1">
         <button onClick={onSave} disabled={!draft.name.trim()}
-          className="flex-1 bg-gray-900 hover:bg-gray-800 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40 text-white">
-          💾 {editingId ? "Update Draft" : "Save Draft"}
+          className="flex-1 bg-gray-200 hover:bg-gray-300 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40 text-gray-700">
+          {editingId ? "Save changes" : "Save plan"}
         </button>
         <button onClick={onSaveAndApply} disabled={!draft.name.trim()}
           className="flex-1 bg-[#FF4D00] hover:bg-orange-600 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40 text-white">
-          ▶ {editingId ? "Update + Start" : "Save + Start Robot"}
+          ▶ {editingId ? "Save & start" : "Save & start robot"}
         </button>
         {editingId && (
           <button onClick={onReset}
@@ -94,7 +93,7 @@ export default function MarketAutomationBuilder({
         )}
       </div>
       <p className="text-[11px] text-gray-400">
-        Drafts do not change the running robot. Start saves the plan, applies it, turns the robot on, and triggers an immediate scan.
+        "Save plan" stores your settings without starting. "Save & start" saves, turns the robot on, and runs a scan immediately.
       </p>
     </div>
   );
@@ -221,7 +220,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
           ))}
         </div>
         <p className="text-[11px] text-gray-400 mt-2">
-          Basic setup means: budget = money the robot can use, daily trade cap = max buys per day, max positions at once = how many open bets it can hold, and scan speed = how aggressively it searches.
+          Budget = total money the robot can use. Daily cap = max buys per day. Positions = how many open bets at once.
         </p>
       </div>
     </>

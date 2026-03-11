@@ -132,19 +132,49 @@ function PlanCard({ plan, archived, renamingId, renameValue, onRenameValueChange
           <TooltipTrigger asChild>
             <button onClick={() => onApply(plan)}
               className="bg-[#FF4D00] hover:bg-orange-600 text-white text-xs py-1.5 px-3 rounded-lg font-medium transition">
-              ▶ Apply
+              ▶ Start this plan
             </button>
           </TooltipTrigger>
-          <TooltipContent>Load plan settings into the bot and start.</TooltipContent>
+          <TooltipContent>Turn the robot on using this plan&apos;s settings.</TooltipContent>
         </Tooltip>
-        <button onClick={() => onEdit(plan.id)} className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">✏️</button>
-        <button onClick={() => onClone(plan.id)} className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">📋</button>
-        <button onClick={() => onStartRename(plan)} className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">✍️</button>
-        <button onClick={() => onSetDefault(plan.id)} className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">⭐</button>
-        <button onClick={() => onArchive(plan.id)} className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">
-          {archived ? "📤" : "📥"}
-        </button>
-        <button onClick={() => onDelete(plan.id)} className="px-2 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs rounded-lg transition">🗑</button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={() => onEdit(plan.id)} className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">✏️</button>
+          </TooltipTrigger>
+          <TooltipContent>Edit plan</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={() => onClone(plan.id)} className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">📋</button>
+          </TooltipTrigger>
+          <TooltipContent>Duplicate plan</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={() => onStartRename(plan)} className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">✍️</button>
+          </TooltipTrigger>
+          <TooltipContent>Rename</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={() => onSetDefault(plan.id)} className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">⭐</button>
+          </TooltipTrigger>
+          <TooltipContent>Set as default</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={() => onArchive(plan.id)} className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs rounded-lg transition">
+              {archived ? "📤" : "📥"}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>{archived ? "Unarchive" : "Archive"}</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={() => onDelete(plan.id)} className="px-2 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs rounded-lg transition">🗑</button>
+          </TooltipTrigger>
+          <TooltipContent>Delete plan</TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );

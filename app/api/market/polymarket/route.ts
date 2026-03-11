@@ -1,11 +1,8 @@
-/**
- * GET /api/market/polymarket
- * Server-side proxy for Polymarket Gamma API — avoids browser CORS restrictions.
- * All query params are forwarded to gamma-api.polymarket.com/markets.
- */
+// GET /api/market/polymarket — server proxy for Polymarket Gamma API (avoids CORS)
 import { NextRequest, NextResponse } from "next/server";
 import type { ApiEnvelope, MarketViewModel } from "@/lib/market/contracts";
 import { mapGammaMarketToMarketVM } from "@/lib/market/mappers";
+import { expandSearchTerms } from "@/lib/market/search-synonyms";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 
 export const runtime = "nodejs";
@@ -55,7 +52,8 @@ function parseRows(upstreamData: unknown): unknown[] {
 
 function matchesQuery(market: MarketViewModel, query: string): boolean {
   const haystack = `${market.title} ${market.category}`.toLowerCase();
-  return haystack.includes(query.toLowerCase());
+  const terms = expandSearchTerms(query.toLowerCase());
+  return terms.some(term => haystack.includes(term));
 }
 
 function isUpcomingMarket(market: MarketViewModel): boolean {

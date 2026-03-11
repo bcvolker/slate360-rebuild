@@ -134,104 +134,91 @@ function ActivePlanSummary({
 }) {
   const isRunning = botConfig.botRunning && !botConfig.botPaused;
   const recentLogLines = scanLog.slice(0, 4);
-  const nextRunLabel = serverHealth?.nextEligibleRunIso
-    ? new Date(serverHealth.nextEligibleRunIso).toLocaleTimeString()
-    : null;
+  const [showDebug, setShowDebug] = React.useState(false);
 
   return (
     <div className={`rounded-2xl border p-4 ${isRunning ? "bg-orange-50 border-orange-200" : "bg-gray-50 border-gray-200"}`}>
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-          {isRunning ? "🟢 Robot Running" : "⏸️ Robot Idle"}
-          {botConfig.paperMode && (
-            <span className="text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded-full">Practice</span>
-          )}
-        </h3>
-        {defaultPlan && (
-          <span className="text-xs text-gray-500">Default: {defaultPlan.name}</span>
-        )}
-      </div>
-      <div className="mb-3 flex flex-wrap gap-2">
-        <button
-          onClick={onRunNow}
-          className="px-3 py-1.5 rounded-lg bg-[#FF4D00] text-white text-xs font-semibold hover:bg-[#e04400] transition"
-        >
-          Run scan now
-        </button>
-        {isRunning && (
+      {/* Status + actions row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+            {isRunning ? "🟢 Robot Running" : "⏸️ Robot Idle"}
+            {botConfig.paperMode && (
+              <span className="text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded-full">Practice</span>
+            )}
+          </h3>
+          <p className="text-xs text-gray-500 mt-1">
+            {defaultPlan ? `Plan: ${defaultPlan.name}` : "No plan selected"}
+            {" · "}${botConfig.capitalAlloc} budget · {botConfig.maxTradesPerDay} trades/day · {botConfig.riskMix} risk
+          </p>
+        </div>
+        <div className="flex gap-2">
           <button
-            onClick={onStopBot}
-            className="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 transition"
+            onClick={onRunNow}
+            className="px-3 py-1.5 rounded-lg bg-[#FF4D00] text-white text-xs font-semibold hover:bg-[#e04400] transition"
           >
-            Stop robot
+            Run scan now
           </button>
-        )}
+          {isRunning && (
+            <button
+              onClick={onStopBot}
+              className="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 transition"
+            >
+              Stop robot
+            </button>
+          )}
+        </div>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
-        <div>
-          <p className="text-[10px] text-gray-400 uppercase">Budget</p>
-          <p className="text-sm font-bold text-gray-900">${botConfig.capitalAlloc}</p>
+
+      {/* Quick stats row */}
+      <div className="grid grid-cols-3 gap-3 text-center text-xs">
+        <div className="rounded-lg bg-white/70 border border-white px-2 py-1.5">
+          <span className="text-gray-400">Trades today</span>
+          <p className="font-bold text-gray-900">{serverHealth?.tradesToday ?? 0}</p>
         </div>
-        <div>
-          <p className="text-[10px] text-gray-400 uppercase">Trades / Day</p>
-          <p className="text-sm font-bold text-gray-900">{botConfig.maxTradesPerDay}</p>
+        <div className="rounded-lg bg-white/70 border border-white px-2 py-1.5">
+          <span className="text-gray-400">Scans today</span>
+          <p className="font-bold text-gray-900">{serverHealth?.runsToday ?? 0}</p>
         </div>
-        <div>
-          <p className="text-[10px] text-gray-400 uppercase">Risk</p>
-          <p className="text-sm font-bold text-gray-900 capitalize">{botConfig.riskMix}</p>
-        </div>
-        <div>
-          <p className="text-[10px] text-gray-400 uppercase">Max Positions</p>
-          <p className="text-sm font-bold text-gray-900">{botConfig.maxPositions}</p>
-        </div>
-        <div>
-          <p className="text-[10px] text-gray-400 uppercase">Last Scan</p>
-          <p className="text-sm font-bold text-gray-900">
-            {serverHealth?.lastRunIso ? new Date(serverHealth.lastRunIso).toLocaleTimeString() : botConfig.lastScan ? new Date(botConfig.lastScan).toLocaleTimeString() : "—"}
+        <div className="rounded-lg bg-white/70 border border-white px-2 py-1.5">
+          <span className="text-gray-400">Last scan</span>
+          <p className="font-bold text-gray-900">
+            {serverHealth?.lastRunIso ? new Date(serverHealth.lastRunIso).toLocaleTimeString() : "—"}
           </p>
         </div>
       </div>
-      <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-600">
-        <div className="rounded-xl bg-white/70 border border-white px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-gray-400">Server status</p>
-          <p className="mt-1 font-semibold text-gray-900 capitalize">{serverStatus}</p>
+
+      {/* Recent messages */}
+      {recentLogLines.length > 0 && (
+        <div className="mt-3 space-y-1">
+          {recentLogLines.map((line, i) => (
+            <p key={i} className="text-xs text-gray-600">{line}</p>
+          ))}
         </div>
-        <div className="rounded-xl bg-white/70 border border-white px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-gray-400">Runs today</p>
-          <p className="mt-1 font-semibold text-gray-900">{serverHealth?.runsToday ?? 0}</p>
+      )}
+
+      {serverHealth?.lastError && (
+        <p className="text-xs text-red-600 mt-2">Last error: {serverHealth.lastError}</p>
+      )}
+
+      {/* Collapsible debug info */}
+      <button
+        onClick={() => setShowDebug(v => !v)}
+        className="mt-2 text-[10px] text-gray-400 hover:text-gray-600 transition"
+      >
+        {showDebug ? "▲ Hide server details" : "▼ Server details"}
+      </button>
+      {showDebug && (
+        <div className="mt-2 text-xs text-gray-500 space-y-1">
+          <p>Server status: <strong className="text-gray-700 capitalize">{serverStatus}</strong></p>
+          {serverHealth?.nextEligibleRunIso && (
+            <p>Next background run: {new Date(serverHealth.nextEligibleRunIso).toLocaleTimeString()}</p>
+          )}
+          {(serverHealth?.tradesToday ?? 0) === 0 && serverStatus !== "stopped" && (
+            <p className="text-amber-700">Robot is on but placed no trades yet — no markets may match your filters right now.</p>
+          )}
         </div>
-        <div className="rounded-xl bg-white/70 border border-white px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-gray-400">Trades today</p>
-          <p className="mt-1 font-semibold text-gray-900">{serverHealth?.tradesToday ?? 0}</p>
-        </div>
-      </div>
-      <div className="mt-3 rounded-xl bg-white/70 border border-white px-3 py-3 text-xs text-gray-600">
-        <p className="font-semibold text-gray-900">Verification</p>
-        <p className="mt-1">
-          {serverHealth?.lastRunIso
-            ? `Last server-confirmed run was ${new Date(serverHealth.lastRunIso).toLocaleTimeString()}.`
-            : "No server-confirmed scheduler run yet for this user."}
-          {nextRunLabel ? ` Next eligible background run: ${nextRunLabel}.` : ""}
-        </p>
-        {(serverHealth?.tradesToday ?? 0) === 0 && serverStatus !== "stopped" && (
-          <p className="mt-1 text-amber-700">The robot can be on and still place zero trades if no markets pass filters. Use Run scan now and check the messages below for proof of execution.</p>
-        )}
-      </div>
-      <div className="mt-3 rounded-xl bg-white/70 border border-white px-3 py-3">
-        <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-2">Recent bot messages</p>
-        {recentLogLines.length === 0 ? (
-          <p className="text-xs text-gray-500">No local scan messages yet. Use Run scan now or Save + Start Robot to verify execution immediately.</p>
-        ) : (
-          <div className="space-y-1">
-            {recentLogLines.map((line) => (
-              <p key={line} className="text-xs text-gray-600">{line}</p>
-            ))}
-          </div>
-        )}
-        {serverHealth?.lastError && (
-          <p className="text-xs text-red-600 mt-2">Last server error: {serverHealth.lastError}</p>
-        )}
-      </div>
+      )}
     </div>
   );
 }

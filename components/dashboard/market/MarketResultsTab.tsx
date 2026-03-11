@@ -42,6 +42,7 @@ function StatCard({ label, children, tip }: { label: string; children: React.Rea
 
 export default function MarketResultsTab({ trades, activityLogs, onRefresh }: MarketResultsTabProps) {
   const openPositions = trades.filter((trade) => trade.status === "open" && !trade.closedAt);
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
   const {
     analytics, sortedTrades, sortKey, sortDir, filterMode,
     setSortKey, toggleSortDir, setFilterMode,
@@ -53,69 +54,77 @@ export default function MarketResultsTab({ trades, activityLogs, onRefresh }: Ma
   return (
     <div className="space-y-5">
       <div className="rounded-[32px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,rgba(255,124,32,0.12),transparent_26%),linear-gradient(135deg,rgba(255,255,255,0.96),rgba(244,247,251,0.96))] p-5 shadow-sm">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Performance workspace</p>
-        <h2 className="mt-2 text-3xl font-black text-slate-900">See what the robot and your positions are actually doing</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Track open exposure, review closed trades, and inspect why any position exists. Open positions and history rows now drill into a dedicated detail drawer instead of stopping at a summary card.</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Trade History</p>
+        <h2 className="mt-2 text-3xl font-black text-slate-900">How your trades are performing</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Open positions stay here until the market resolves. Click any trade to see full details.</p>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
-        New trades stay in <strong>Open positions</strong> until the market resolves. If you just placed a trade and do not see it yet, click refresh below.
+      {/* Key stats — 3 essential cards */}
+      <div className="grid grid-cols-3 gap-3">
+        <StatCard label="Total Profit / Loss" tip="How much you've made or lost from closed trades"><PnlValue value={realizedPnl} /></StatCard>
+        <StatCard label="Win Rate" tip="Percentage of trades that were profitable"><span className="font-bold text-gray-900">{winRate}%</span></StatCard>
+        <StatCard label="Trades"><span className="font-bold text-gray-900">{totalTrades} <span className="text-sm font-normal text-gray-400">({openTrades} open)</span></span></StatCard>
       </div>
 
-      {/* Summary stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-        <StatCard label="Realized P/L" tip="Profit or loss from closed trades"><PnlValue value={realizedPnl} /></StatCard>
-        <StatCard label="Unrealized P/L" tip="Current P/L on open positions"><PnlValue value={unrealizedPnl} /></StatCard>
-        <StatCard label="Fee-Adj P/L" tip="Total P/L minus estimated 2% fees"><PnlValue value={feeAdjustedPnl} /></StatCard>
-        <StatCard label="Win Rate"><span className="font-bold text-gray-900">{winRate}%</span></StatCard>
-        <StatCard label="Expectancy" tip="Average P/L per trade"><PnlValue value={expectancy} /></StatCard>
-        <StatCard label="Profit Factor" tip="Gross wins / gross losses. Above 1.0 = profitable">
-          <span className={`font-bold ${profitFactor >= 1 ? "text-green-600" : "text-red-600"}`}>{profitFactor >= 999 ? "∞" : profitFactor.toFixed(2)}</span>
-        </StatCard>
-      </div>
+      {/* Expandable advanced metrics */}
+      <button
+        onClick={() => setShowAdvanced(v => !v)}
+        className="text-xs font-medium text-gray-500 hover:text-gray-700 transition"
+      >
+        {showAdvanced ? "▲ Hide detailed stats" : "▼ Show detailed stats"}
+      </button>
+      {showAdvanced && (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard label="Open P/L" tip="Current profit/loss on positions not yet resolved"><PnlValue value={unrealizedPnl} /></StatCard>
+            <StatCard label="After Fees" tip="Total profit/loss minus estimated 2% trading fees"><PnlValue value={feeAdjustedPnl} /></StatCard>
+            <StatCard label="Avg per Trade" tip="Average profit/loss per trade"><PnlValue value={expectancy} /></StatCard>
+            <StatCard label="Win/Loss Ratio" tip="Total winnings divided by total losses — above 1.0 means profitable overall">
+              <span className={`font-bold ${profitFactor >= 1 ? "text-green-600" : "text-red-600"}`}>{profitFactor >= 999 ? "∞" : profitFactor.toFixed(2)}</span>
+            </StatCard>
+          </div>
 
-      {/* Secondary stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Total Trades"><span className="font-bold text-gray-900">{totalTrades}</span></StatCard>
-        <StatCard label="Open"><span className="font-bold text-blue-600">{openTrades}</span></StatCard>
-        <StatCard label="Closed"><span className="font-bold text-gray-700">{closedTrades}</span></StatCard>
-        <StatCard label="Avg Hold Time"><span className="font-bold text-gray-900">{formatDuration(avgHoldTimeMs)}</span></StatCard>
-      </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <StatCard label="Closed"><span className="font-bold text-gray-700">{closedTrades}</span></StatCard>
+            <StatCard label="Avg Hold Time"><span className="font-bold text-gray-900">{formatDuration(avgHoldTimeMs)}</span></StatCard>
+          </div>
 
-      {/* P/L by Category + Practice vs Live */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">P/L by Category</h3>
-          {pnlByCategory.length === 0
-            ? <p className="text-sm text-gray-400 py-4 text-center">No trades yet</p>
-            : (
-              <div className="space-y-2">
-                {pnlByCategory.map((c) => (
-                  <div key={c.category} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{c.category} <span className="text-gray-400">({c.count})</span></span>
-                    <PnlValue value={c.pnl} />
+          {/* P/L by Category + Practice vs Live */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Profit/Loss by Topic</h3>
+              {pnlByCategory.length === 0
+                ? <p className="text-sm text-gray-400 py-4 text-center">No trades yet</p>
+                : (
+                  <div className="space-y-2">
+                    {pnlByCategory.map((c) => (
+                      <div key={c.category} className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">{c.category} <span className="text-gray-400">({c.count})</span></span>
+                        <PnlValue value={c.pnl} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+            </div>
+
+            <div className="rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Practice vs Live</h3>
+              <div className="space-y-3">
+                {paperVsLive.map((row) => (
+                  <div key={row.mode} className="flex items-center justify-between text-sm">
+                    <div>
+                      <span className={`inline-block w-3 h-3 rounded-full mr-2 ${row.mode === "paper" ? "bg-purple-500" : "bg-green-500"}`} />
+                      <span className="text-gray-700 capitalize">{row.mode === "paper" ? "Practice" : "Live"}</span>
+                      <span className="text-gray-400 ml-1">({row.count} trades, {row.winRate.toFixed(1)}% win)</span>
+                    </div>
+                    <PnlValue value={row.pnl} />
                   </div>
                 ))}
               </div>
-            )}
-        </div>
-
-        <div className="rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Practice vs Live</h3>
-          <div className="space-y-3">
-            {paperVsLive.map((row) => (
-              <div key={row.mode} className="flex items-center justify-between text-sm">
-                <div>
-                  <span className={`inline-block w-3 h-3 rounded-full mr-2 ${row.mode === "paper" ? "bg-purple-500" : "bg-green-500"}`} />
-                  <span className="text-gray-700 capitalize">{row.mode}</span>
-                  <span className="text-gray-400 ml-1">({row.count} trades, {row.winRate.toFixed(1)}% win)</span>
-                </div>
-                <PnlValue value={row.pnl} />
-              </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
 
       <MarketOpenPositionsPanel trades={openPositions} onOpenTrade={openReplay} />
 

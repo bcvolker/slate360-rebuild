@@ -1,5 +1,6 @@
 import type { MarketListing, MarketSortDirection, MarketSortKey, MktRiskTag, MktTimeframe } from "@/components/dashboard/market/types";
 import { getMarketOpportunitySignal, getMarketSpreadPct } from "@/lib/market/opportunity";
+import { expandSearchTerms } from "@/lib/market/search-synonyms";
 
 export function endCutoff(tf: MktTimeframe): number {
   const now = Date.now();
@@ -49,12 +50,13 @@ export function filterAndSortMarkets({
   const now = Date.now();
   const cut = endCutoff(timeframe);
   const normalizedQuery = query.trim().toLowerCase();
+  const searchTerms = normalizedQuery ? expandSearchTerms(normalizedQuery) : [];
 
   return markets
     .filter((market) => {
-      if (normalizedQuery) {
+      if (searchTerms.length > 0) {
         const haystack = `${market.title} ${market.category}`.toLowerCase();
-        if (!haystack.includes(normalizedQuery)) return false;
+        if (!searchTerms.some(term => haystack.includes(term))) return false;
       }
       if (timeframe !== "all") {
         const iso = market.endDate ?? market.endDateIso;

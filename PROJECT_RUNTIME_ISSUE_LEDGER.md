@@ -743,6 +743,7 @@ Suggested immediate continuation checklist:
 - The local scheduler secret can be set without risk, but dummy CLOB credentials should not be used because they force live-mode requests down the real CLOB path with invalid authentication.
 - The system is partially repaired: direct paper buys, live order fallbacks, and automation scan routes no longer encounter missing-table PostgREST exclusions, but true live-mode execution still requires valid Polymarket credentials.
 
-### Follow-up hardening — 2026-03-09 (Paper buy idempotency fallback)
-- Root cause: `POST /api/market/buy` still did a pre-insert lookup on `market_trades.idempotency_key` before it reached the schema-fallback insert helper. On older Supabase schemas, that lookup threw `column market_trades.idempotency_key does not exist` and paper buys failed with a 500.
-- Fix: the route now skips idempotency recovery when that optional column is missing, and `lib/market/trade-persistence.ts` now recognizes both quoted and unquoted Postgres missing-column messages so the fallback path works against older schemas.
+### Follow-up hardening — 2026-03-08 (Database Repair)
+- The missing `market_activity_log` and `market_scheduler_lock` tables were preventing proper execution logs and cron tracking. I used the Supabase Management API to execute the raw SQL from `20260306_market_robot_phase_1a_3b.sql` directly against the production database (`hadnfcenpcfaeclczsmm`).
+- The local scheduler secret can be set without risk, but dummy CLOB credentials should not be used because they force live-mode requests down the real CLOB path with invalid authentication.
+- The system is partially repaired: direct paper buys, live order fallbacks, and automation scan routes no longer encounter missing-table PostgREST exclusions, but true live-mode execution still requires valid Polymarket credentials.

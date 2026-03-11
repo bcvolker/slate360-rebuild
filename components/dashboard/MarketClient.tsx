@@ -18,16 +18,18 @@ import { normalizeFocusAreas } from "@/lib/market/runtime-config";
 import { syncAutomationPlan, ensureBotRunning } from "@/lib/market/sync-automation-plan";
 import type { MarketShellContext } from "@/components/dashboard/market/MarketRouteShell";
 import type { AutomationPlan } from "@/components/dashboard/market/types";
+import type { ScanResult } from "@/lib/hooks/useMarketBot";
+
+interface ScanBanner { type: "success" | "empty" | "error"; message: string }
 
 interface MarketClientProps {
   layoutPrefs?: MarketShellContext;
 }
 
-const STUB_TABS: Record<string, React.ComponentType> = {};
-
 export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   const visibleTabs = layoutPrefs?.visibleTabs ?? [];
   const [activeTabId, setActiveTabId] = useState("start-here");
+  const [scanBanner, setScanBanner] = useState<ScanBanner | null>(null);
   const logsEnabled = activeTabId === "results";
 
   // If active tab is hidden, snap to first visible
@@ -67,6 +69,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
 
   const handleApplyPlan = useCallback((plan: AutomationPlan) => {
     void (async () => {
+      setScanBanner(null);
       const focusAreas = normalizeFocusAreas(plan.categories);
       const paperMode = plan.mode === "practice";
       const scanConfig = {
@@ -112,8 +115,18 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
 
       bot.setBotRunning(true);
       bot.setBotPaused(false);
-      await bot.runScan(scanConfig);
-      setActiveTabId("results");
+
+      // 3. Run scan and surface the result
+      const scanResult: ScanResult = await bot.runScan(scanConfig);
+
+      if (scanResult.tradesPlaced > 0) {
+        setScanBanner({ type: "success", message: `Robot placed ${scanResult.tradesPlaced} trade${scanResult.tradesPlaced !== 1 ? "s" : ""}. Check History for details.` });
+        setActiveTabId("results");
+      } else if (scanResult.ok) {
+        setScanBanner({ type: "empty", message: `Scan complete — scanned markets but no trades matched your filters right now. The robot will keep scanning automatically.` });
+      } else {
+        setScanBanner({ type: "error", message: `Scan error: ${scanResult.error ?? "Unknown error"}` });
+      }
     })();
   }, [bot]);
 
@@ -155,8 +168,16 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
             onApplyPlan={handleApplyPlan}
             onRunNow={() => {
               void (async () => {
-                await bot.runScan();
-                setActiveTabId("results");
+                setScanBanner(null);
+                const result = await bot.runScan();
+                if (result.tradesPlaced > 0) {
+                  setScanBanner({ type: "success", message: `Scan placed ${result.tradesPlaced} trade${result.tradesPlaced !== 1 ? "s" : ""}.` });
+                  setActiveTabId("results");
+                } else if (result.ok) {
+                  setScanBanner({ type: "empty", message: `Scan complete — no opportunities matched filters right now.` });
+                } else {
+                  setScanBanner({ type: "error", message: `Scan error: ${result.error ?? "Unknown error"}` });
+                }
               })();
             }}
             onStopBot={() => { void bot.handleStopBot(); }}
@@ -203,21 +224,14 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
             paperMode={bot.config.paperMode}
           />
         );
-      default: {
-        const Stub = STUB_TABS[activeTabId];
-        return Stub ? <Stub /> : null;
-      }
+      default:
+        return null;
     }
   }
 
-  // Derive display status from server-confirmed state (not local botRunning)
   const displayStatus = serverStatus.isConfirmed ? serverStatus.status : "unknown";
-  const displayStatusLabel =
-    displayStatus === "running" ? "Running" :
-    displayStatus === "paused" ? "Paused" :
-    displayStatus === "paper" ? "Paper" :
-    displayStatus === "stopped" ? "Stopped" :
-    "Checking…";
+  const statusLabels: Record<string, string> = { running: "Running", paused: "Paused", paper: "Paper", stopped: "Stopped" };
+  const displayStatusLabel = statusLabels[displayStatus] ?? "Checking…";
 
   return (
     <div className="text-gray-900">
@@ -262,6 +276,18 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
         onOpenResults={() => setActiveTabId("results")}
         onOpenAutomation={() => setActiveTabId("automation")}
       />
+
+      {/* Scan feedback banner — visible on all tabs */}
+      {scanBanner && (
+        <div className={`mb-4 rounded-xl border px-4 py-3 text-sm flex items-center justify-between ${
+          scanBanner.type === "success" ? "bg-green-50 border-green-200 text-green-800" :
+          scanBanner.type === "empty" ? "bg-amber-50 border-amber-200 text-amber-800" :
+          "bg-red-50 border-red-200 text-red-800"
+        }`}>
+          <span>{scanBanner.message}</span>
+          <button onClick={() => setScanBanner(null)} className="ml-3 text-current opacity-60 hover:opacity-100 text-xs font-bold">✕</button>
+        </div>
+      )}
 
       {renderActiveTab()}
     </div>

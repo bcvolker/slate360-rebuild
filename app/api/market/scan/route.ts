@@ -93,8 +93,22 @@ export async function POST(req: NextRequest) {
 
     const executeTrades = requestConfig.executeTrades !== false;
     const oneOffPaperScan = config.paperMode === true;
+
+    // Allow paper scans to bypass bot-status gate. For non-paper scans,
+    // also accept a recent bot-status override — the client just set the
+    // status but the DB may not have propagated yet, so re-query once.
+    let effectiveBotStatus = botStatus;
     if (executeTrades && !oneOffPaperScan && (botStatus === "stopped" || botStatus === "paused")) {
-      return noStoreJson({ ok: false, error: { code: botStatus === "paused" ? "bot_paused" : "bot_stopped", message: botStatus === "paused" ? "Bot is paused" : "Bot is stopped" } }, { status: 400 });
+      // Re-query once to handle race condition with ensureBotRunning
+      const { data: freshStatus } = await supabase
+        .from("market_bot_runtime")
+        .select("status")
+        .eq("user_id", user.id)
+        .single();
+      effectiveBotStatus = freshStatus?.status ?? botStatus;
+      if (effectiveBotStatus === "stopped" || effectiveBotStatus === "paused") {
+        return noStoreJson({ ok: false, error: { code: effectiveBotStatus === "paused" ? "bot_paused" : "bot_stopped", message: effectiveBotStatus === "paused" ? "Bot is paused — start the robot first" : "Bot is stopped — start the robot first" } }, { status: 400 });
+      }
     }
 
     const requestedMarketLimit = Number((body as Record<string, unknown>)?.market_limit ?? 0);
@@ -148,7 +162,7 @@ export async function POST(req: NextRequest) {
 
     const executedTrades: ReturnType<typeof simulatePaperTrade>[] = [];
 
-    if (executeTrades && (config.paperMode || botStatus === "paper")) {
+    if (executeTrades && (config.paperMode || effectiveBotStatus === "paper")) {
       const simulatedTrades = tradeDecisions.map((decision) => {
         const trade = simulatePaperTrade(user.id, decision.opp, decision.side, decision.shares);
         return { trade, reason: decision.reason };
