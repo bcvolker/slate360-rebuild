@@ -1,6 +1,6 @@
 # Slate360 — Build Roadmap & Future Features
 
-**Last Updated:** 2026-03-04 (Session 6 — BUG-018 complete; all session recommendations logged; entitlement misconfiguration fixed; Phase 0G/0H added; Sonnet 4.6 review prompt written)  
+**Last Updated:** 2026-03-11 (App ecosystem execution plan added; revenue-first launch order documented; earlier Mar 4 Session 6 updates preserved)  
 **Priority Order:** Foundation → Project Hub → Design Studio → App Ecosystem → Remaining Modules → Advanced Features → Native Apps  
 **Status Key:** ✅ Done · 🟢 In Progress · 🟡 Planned · 🔴 Not Started
 
@@ -565,6 +565,8 @@ Set at project creation; determines which tools appear:
 
 This makes Slate360 modules individually subscribable and installable.
 
+**Canonical execution blueprint:** See `slate360-context/APP_ECOSYSTEM_EXECUTION_PLAN.md` for the revenue-first launch order, app-by-app build strategies, use cases, and the long-term deliverables/sharing/sync model. This section remains the roadmap summary; the execution-plan file is the working product playbook.
+
 ### 3A. PWA Foundation
 
 **Currently missing — zero PWA infrastructure exists.** Marketing pages claim PWA but nothing is implemented.
@@ -627,6 +629,20 @@ Replace the current marketing-only `/features/ecosystem-apps` page with a functi
 | App cards grid | Each standalone app with: icon, name, description, pricing, "Subscribe" / "Open" / "Install PWA" buttons |
 | Integration badge | "Included with your {tier} plan" if user already has access |
 | Install instructions | PWA install prompt for supported apps |
+
+### 3D.1 Revenue-First Launch Order
+
+Use this sequence unless real customer evidence forces a reorder:
+
+1. `360 Tour Builder + Hosting`
+2. `PunchWalk`
+3. `SlateDrop Deliverables`
+4. `Photo Log`
+5. `Plan Review`
+6. `Walk-to-Quote`
+7. `Slate360 Capture`
+
+**Reasoning:** the first three products have the clearest standalone value, shortest path to a sales demo, and strongest reuse of shared storage/sharing primitives.
 
 ### 3E. SlateDrop "Wow Features" (Foundation for App Ecosystem)
 

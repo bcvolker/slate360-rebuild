@@ -298,6 +298,8 @@ Read-only project view for external stakeholders (clients, inspectors) without r
 
 **Build Phase:** Phase 3 + Phase 6 in `FUTURE_FEATURES.md`
 
+**Execution reference:** See `slate360-context/APP_ECOSYSTEM_EXECUTION_PLAN.md` for the revenue-first launch order, per-app build strategies, and the long-term deliverables/sharing/sync plan.
+
 ### Current State
 - **PWA:** Zero infrastructure (no manifest, no service worker, no next-pwa package). Marketing pages at `/features/ecosystem-apps` claim PWA but nothing is implemented.
 - **Native Apps:** No Capacitor, Expo, or React Native. No app store accounts.

@@ -1,10 +1,10 @@
 # Slate360 — Project Memory & New Chat Instructions
 
-**Last Updated:** 2026-03-04 (Session 6 — BUG-022 critical entitlement fix; Phase 0G/0H added; architecture audit complete; Sonnet 4.6 review prompt written; all handoff docs updated)
+**Last Updated:** 2026-03-11 (App ecosystem execution plan added; revenue-first launch order and shared app strategy documented)
 **Repo:** `bcvolker/slate360-rebuild` · branch: `main` · live: https://www.slate360.ai
 **Owner:** bcvolker
 
-> **To start a new chat:** Attach this file. After reading it, the assistant should read `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`, then relevant topic blueprints in `slate360-context/`, `slate360-context/FUTURE_FEATURES.md`, and `slate360-context/dashboard-tabs/MODULE_REGISTRY.md`.
+> **To start a new chat:** Attach this file. After reading it, the assistant should read `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`, then relevant topic blueprints in `slate360-context/`, `slate360-context/FUTURE_FEATURES.md`, `slate360-context/APP_ECOSYSTEM_EXECUTION_PLAN.md`, and `slate360-context/dashboard-tabs/MODULE_REGISTRY.md`.
 
 > **Continuity requirement:** Also read `ops/module-manifest.json`, `ops/bug-registry.json`, and `ops/release-gates.json`; run `npm run verify:release` before final handoff.
 
@@ -207,6 +207,7 @@ export const GET = (req: NextRequest, ctx: ProjectRouteContext) =>
 |---|---|
 | `SLATE360_PROJECT_MEMORY.md` | **This file** — master project memory |
 | `slate360-context/FUTURE_FEATURES.md` | **Master build roadmap** — 7-phase plan with dependency graph |
+| `slate360-context/APP_ECOSYSTEM_EXECUTION_PLAN.md` | **Canonical app build playbook** — revenue-first launch order, app strategies, sharing/sync plan |
 | `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md` | Canonical new-chat startup + handoff protocol |
 | `slate360-context/dashboard-tabs/MODULE_REGISTRY.md` | Canonical tab route/gate/spec registry |
 | `slate360-context/dashboard-tabs/CUSTOMIZATION_SYSTEM.md` | Cross-tab layout/tool customization contract |
