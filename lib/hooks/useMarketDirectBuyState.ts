@@ -16,16 +16,9 @@ export function useMarketDirectBuyState({
 }: {
   paperMode: boolean;
   walletAddress?: `0x${string}`;
-  liveChecklist: {
-    walletConnected: boolean;
-    polygonSelected: boolean;
-    usdcFunded: boolean;
-    signatureVerified: boolean;
-    usdcApproved: boolean;
-  };
+  liveChecklist: { walletConnected: boolean; polygonSelected: boolean; usdcFunded: boolean; signatureVerified: boolean; usdcApproved: boolean };
   onTradePlaced?: () => void | Promise<void>;
 }) {
-  // Filter state
   const [query, setQuery] = useState("");
   const [timeframe, setTimeframe] = useState<MktTimeframe>("all");
   const [category, setCategory] = useState("all");
@@ -40,7 +33,6 @@ export function useMarketDirectBuyState({
   const [maxSpread, setMaxSpread] = useState(100);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  // Markets state
   const [markets, setMarkets] = useState<MarketListing[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -48,7 +40,6 @@ export function useMarketDirectBuyState({
   const fetchPlan = useMemo(() => getDirectBuyFetchPlan(timeframe, query), [timeframe, query]);
   const lastFetchPlanKey = useRef<string | null>(null);
 
-  // Buy panel state
   const [buyMarket, setBuyMarket] = useState<MarketListing | null>(null);
   const [buyOutcome, setBuyOutcome] = useState<"YES" | "NO">("YES");
   const [buyAmount, setBuyAmount] = useState(25);
@@ -117,7 +108,6 @@ export function useMarketDirectBuyState({
     finally { setLoading(false); }
   }, [fetchPlan, mapMarket, query]);
 
-  // Auto-load markets on mount
   const autoLoaded = useRef(false);
   useEffect(() => {
     if (!autoLoaded.current) {
@@ -133,10 +123,7 @@ export function useMarketDirectBuyState({
     }
   }, [fetchMarkets, fetchPlan.key, loaded, loading]);
 
-  const availableCategories = useMemo(
-    () => [...new Set(markets.map(m => m.category))].sort(),
-    [markets],
-  );
+  const availableCategories = useMemo(() => [...new Set(markets.map(m => m.category))].sort(), [markets]);
 
   const toggleSort = useCallback((nextSort: MarketSortKey) => {
     if (nextSort === sortBy) {
@@ -253,7 +240,17 @@ export function useMarketDirectBuyState({
           void onTradePlaced?.();
         }, 900);
       } else {
-        setBuySuccess(`❌ ${data.error ?? "Buy failed"}`);
+        const errorData = data as {
+          error?: string;
+          openPositions?: number;
+          limit?: number;
+          help?: string;
+        };
+        if (typeof errorData.openPositions === "number" && typeof errorData.limit === "number") {
+          setBuySuccess(`❌ ${errorData.error ?? "Buy failed"} — ${errorData.openPositions}/${errorData.limit} open. ${errorData.help ?? "Raise 'Max positions at once' in Automation."}`);
+        } else {
+          setBuySuccess(`❌ ${errorData.error ?? "Buy failed"}`);
+        }
       }
     } catch (e: unknown) {
       setBuySuccess(`❌ ${(e as Error).message}`);

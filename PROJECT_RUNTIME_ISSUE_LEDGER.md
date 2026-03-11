@@ -236,6 +236,12 @@ Current issue states:
 - Validation after this pass: `npx tsc --noEmit` PASS, `node scripts/ops/check-clob-contract.mjs` PASS, `npm run guard:architecture` PASS, file-size regression PASS.
 - Runtime diagnostic after this pass: schema checks now pass for `market_trades`, `market_directives`, `market_bot_runtime`, `market_bot_runtime_state`, `market_activity_log`, and `market_scheduler_lock`. The only concrete failing prerequisite from `scripts/ops/check-market-runtime.mjs` is `NEXT_PUBLIC_POLYMARKET_SPENDER`, which currently blocks live allowance/approval UX from being fully reliable.
 
+### March 11 follow-up fix — open-position cap + Polygon RPC CSP
+- Confirmed a separate live/manual-buy issue from user console evidence: manual buys were still hitting a stale global `MARKET_MAX_OPEN_POSITIONS` limit even when the user had a higher saved plan cap.
+- Added `lib/market/user-position-limit.ts` and switched `POST /api/market/buy` to resolve the effective open-position cap from `market_plans` first, then runtime metadata fallback, then env defaults. Manual buys now enforce the same user-specific cap model as the rest of Market Robot.
+- `GET /api/market/system-status` now returns `effectiveMaxOpenPositions`, and Direct Buy surfaces both the active cap and a direct path into Automation to raise it.
+- Added `https://polygon.drpc.org` and `https://*.drpc.org` to CSP `connect-src` in `next.config.ts` so wallet RPC calls are no longer blocked by policy.
+
 ### March 11 evidence: what is still not normalized
 - Search is still only lexical matching on current Polymarket payloads plus a small synonym map. That helps queries like `weather`, but it is not "complete Polymarket searching/filtering/sorting" and it does not create trend detection, hot-item ranking history, upset alerts, or historical probability analysis.
 - Automation config is still split across multiple sources (`market_plans`, legacy `market_directives`, auth metadata/runtime-config fallbacks, and `market_bot_runtime`). A single user action can save a plan, flip runtime status, and fire a scan through different storage paths, which makes the system feel inconsistent even when each step individually succeeds.

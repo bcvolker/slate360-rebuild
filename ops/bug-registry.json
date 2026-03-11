@@ -118,7 +118,7 @@
       "module": "market",
       "severity": "high",
       "status": "open",
-      "rootCause": "Search, execution, and observability still span multiple partially overlapping systems: lexical Gamma search plus local filters, `market_plans`, legacy directives/runtime metadata fallbacks, `market_bot_runtime`, scheduler activity, trade persistence compatibility fallbacks, and wallet/CLOB prerequisites. UX fixes improved visibility but did not create a single canonical config/run/history model. Current runtime audit shows one concrete live blocker still present: missing `NEXT_PUBLIC_POLYMARKET_SPENDER`.",
+      "rootCause": "Search, execution, and observability still span multiple partially overlapping systems: lexical Gamma search plus local filters, `market_plans`, legacy directives/runtime metadata fallbacks, `market_bot_runtime`, scheduler activity, trade persistence compatibility fallbacks, and wallet/CLOB prerequisites. UX fixes improved visibility but did not create a single canonical config/run/history model. Current runtime audit shows one concrete live blocker still present: missing `NEXT_PUBLIC_POLYMARKET_SPENDER`. A separate manual-buy cap mismatch was fixed on Mar 11 by routing direct buys through the same per-user position-limit resolver used by plan/runtime state.",
       "verification": [
         "Run one authenticated end-to-end production test for each path: search, practice buy, live buy, apply plan, immediate scan, scheduled scan, results visibility",
         "Document every storage/control surface touched by those paths and confirm whether one user action writes to more than one canonical source",

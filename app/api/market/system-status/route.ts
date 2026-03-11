@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withMarketAuth } from "@/lib/server/api-auth";
 import type { MarketSystemBlocker, MarketSystemStatusViewModel } from "@/lib/market/contracts";
+import { resolveUserMaxOpenPositions } from "@/lib/market/user-position-limit";
 
 function isMissingTable(code: string | undefined, message: string | undefined, table: string) {
   return code === "42P01" || code === "PGRST205" || message?.includes(table) === true;
@@ -17,6 +18,7 @@ function configSourceLabel(source: MarketSystemStatusViewModel["configSource"]) 
 
 export const GET = (req: NextRequest) =>
   withMarketAuth(req, async ({ admin, user }) => {
+    const fallbackMaxOpenPositions = Number(process.env.MARKET_MAX_OPEN_POSITIONS) || 25;
     const [plansRes, directivesRes, runtimeRes, stateRes, tradesRes] = await Promise.all([
       admin.from("market_plans").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("is_archived", false),
       admin.from("market_directives").select("id", { count: "exact", head: true }).eq("user_id", user.id),
@@ -48,6 +50,11 @@ export const GET = (req: NextRequest) =>
     );
     const planCount = plansRes.count ?? 0;
     const directiveCount = directivesRes.count ?? 0;
+    const { maxOpenPositions: effectiveMaxOpenPositions } = await resolveUserMaxOpenPositions({
+      supabase: admin,
+      user,
+      fallback: fallbackMaxOpenPositions,
+    });
     const configSource: MarketSystemStatusViewModel["configSource"] = planCount > 0
       ? "market_plans"
       : directiveCount > 0
@@ -119,6 +126,7 @@ export const GET = (req: NextRequest) =>
       liveServerReady: liveEnvReady,
       liveEnvReady,
       planCount,
+      effectiveMaxOpenPositions,
       tradeCount: tradesRes.count ?? 0,
       hasLegacyDirective: directiveCount > 0,
       hasRuntimeMetadata,

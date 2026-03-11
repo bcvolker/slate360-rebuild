@@ -64,6 +64,8 @@ The current backend autonomy work and market data plumbing stay in place. This p
 	- `MarketResultsInsights.tsx` for strategy coaching from existing trade history
 - Surfaced the system summary in Start Here, Automation, and Live Wallet so users can see when live mode is blocked by backend configuration rather than by their local actions.
 - Current runtime audit result: the strongest remaining concrete live blocker is missing `NEXT_PUBLIC_POLYMARKET_SPENDER`; schema/runtime tables now validate successfully in the local diagnostic.
+- Direct Buy now surfaces the effective open-position cap and links users straight to Automation to raise it. The backend buy route now honors the same user-specific cap source rather than only a global env default.
+- CSP now permits the Polygon RPC host used by the wallet stack (`polygon.drpc.org` / `*.drpc.org`), addressing the repeated console violations that were interfering with wallet reads.
 
 ### March 11, 2026 Root-cause direction for the next investigation
 The next chat should treat Market Robot as an architecture normalization task:

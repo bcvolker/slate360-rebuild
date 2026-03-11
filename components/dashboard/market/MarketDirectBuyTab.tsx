@@ -7,6 +7,7 @@ import MarketDirectBuyResults from "@/components/dashboard/market/MarketDirectBu
 import MarketListingDetailDrawer from "@/components/dashboard/market/MarketListingDetailDrawer";
 import MarketQuickSearchPills from "@/components/dashboard/market/MarketQuickSearchPills";
 import { useMarketDirectBuyState } from "@/lib/hooks/useMarketDirectBuyState";
+import { useMarketSystemStatus } from "@/lib/hooks/useMarketSystemStatus";
 import { useMarketWatchlist } from "@/lib/hooks/useMarketWatchlist";
 import type { MarketListing, MktTimeframe, LiveChecklist } from "@/components/dashboard/market/types";
 
@@ -15,6 +16,7 @@ interface MarketDirectBuyTabProps {
   walletAddress?: `0x${string}`;
   liveChecklist: LiveChecklist;
   onTradePlaced?: () => void | Promise<void>;
+  onOpenAutomation?: () => void;
 }
 
 const QUICK_TIMEFRAMES: { key: MktTimeframe; label: string }[] = [
@@ -28,8 +30,9 @@ const QUICK_TIMEFRAMES: { key: MktTimeframe; label: string }[] = [
 
 const fmt = (v: number) => `$${v.toFixed(2)}`;
 
-export default function MarketDirectBuyTab({ paperMode, walletAddress, liveChecklist, onTradePlaced }: MarketDirectBuyTabProps) {
+export default function MarketDirectBuyTab({ paperMode, walletAddress, liveChecklist, onTradePlaced, onOpenAutomation }: MarketDirectBuyTabProps) {
   const s = useMarketDirectBuyState({ paperMode, walletAddress, liveChecklist, onTradePlaced });
+  const systemStatus = useMarketSystemStatus();
   const watchlist = useMarketWatchlist();
   const [detailMarket, setDetailMarket] = useState<MarketListing | null>(null);
 
@@ -62,8 +65,20 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
         <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
           <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 font-semibold text-slate-700">Mode: {paperMode ? "Practice by default" : "Live-ready by default"}</span>
           <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1">{s.fetchModeLabel}</span>
+          {systemStatus.system && <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1">Open-position cap: {systemStatus.system.effectiveMaxOpenPositions}</span>}
           {s.buyMarket && <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 font-semibold text-orange-700">Trade ticket open</span>}
         </div>
+        {systemStatus.system && onOpenAutomation && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <span>Your manual buys now use the same open-position cap as your saved plan.</span>
+            <button
+              onClick={onOpenAutomation}
+              className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 font-semibold text-orange-700 hover:bg-orange-100 transition"
+            >
+              Adjust cap in Automation
+            </button>
+          </div>
+        )}
         <div className="mt-4">
           <MarketQuickSearchPills onApplyPreset={applyPreset} />
         </div>

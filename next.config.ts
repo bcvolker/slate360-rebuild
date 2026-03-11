@@ -46,7 +46,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https: http:",
-              "connect-src 'self' data: https://*.supabase.co wss://*.supabase.co https://api.resend.com https://*.googleapis.com https://maps.gstatic.com https://www.gstatic.com https://api.openweathermap.org https://api.open-meteo.com https://wttr.in https://nominatim.openstreetmap.org https://*.amazonaws.com",
+              "connect-src 'self' data: https://*.supabase.co wss://*.supabase.co https://api.resend.com https://*.googleapis.com https://maps.gstatic.com https://www.gstatic.com https://api.openweathermap.org https://api.open-meteo.com https://wttr.in https://nominatim.openstreetmap.org https://*.amazonaws.com https://polygon.drpc.org https://*.drpc.org",
               "frame-src 'self' blob: https://cdn.pannellum.org/ https://*.amazonaws.com https://slate360-storage.s3.us-east-2.amazonaws.com",
               "worker-src 'self' blob:",
               "object-src 'none'",

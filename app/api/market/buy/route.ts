@@ -11,6 +11,7 @@ import {
   insertMarketTradesWithFallback,
   updateMarketTradeWithFallback,
 } from "@/lib/market/trade-persistence";
+import { resolveUserMaxOpenPositions } from "@/lib/market/user-position-limit";
 
 const EVM_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
 const CLOB_ORDER_PATH = process.env.POLYMARKET_CLOB_ORDER_PATH ?? "/order";
@@ -103,7 +104,12 @@ export const POST = (req: NextRequest) =>
     });
 
     // Unified safety constraints (shared with scan route)
-    const maxOpenPositions = Number(process.env.MARKET_MAX_OPEN_POSITIONS) || DEFAULT_MAX_OPEN_POSITIONS;
+    const fallbackMaxOpenPositions = Number(process.env.MARKET_MAX_OPEN_POSITIONS) || DEFAULT_MAX_OPEN_POSITIONS;
+    const { maxOpenPositions, source: limitSource } = await resolveUserMaxOpenPositions({
+      supabase: admin,
+      user,
+      fallback: fallbackMaxOpenPositions,
+    });
     const safetyCheck = await checkSafetyConstraints({
       userId: user.id,
       supabase: admin,
@@ -112,7 +118,13 @@ export const POST = (req: NextRequest) =>
 
     if (!safetyCheck.allowed) {
       return NextResponse.json(
-        { error: safetyCheck.reason, openPositions: safetyCheck.openPositionsCount, limit: maxOpenPositions },
+        {
+          error: safetyCheck.reason,
+          openPositions: safetyCheck.openPositionsCount,
+          limit: maxOpenPositions,
+          limitSource,
+          help: "Raise 'Max positions at once' in Automation, save the plan, and start the robot again so manual and automated execution use the same cap.",
+        },
         { status: 400 }
       );
     }

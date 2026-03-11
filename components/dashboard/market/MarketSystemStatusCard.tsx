@@ -40,8 +40,8 @@ export default function MarketSystemStatusCard({
               <p className="mt-1 font-semibold text-slate-800">{system.configSourceLabel}</p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-              <p className="text-slate-400">Saved plans</p>
-              <p className="mt-1 font-semibold text-slate-800">{system.planCount}</p>
+              <p className="text-slate-400">Open-position cap</p>
+              <p className="mt-1 font-semibold text-slate-800">{system.effectiveMaxOpenPositions}</p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
               <p className="text-slate-400">Runs today</p>
@@ -54,6 +54,10 @@ export default function MarketSystemStatusCard({
               </p>
             </div>
           </div>
+
+          <p className="mt-2 text-xs text-slate-500">
+            Saved plans: <span className="font-semibold text-slate-700">{system.planCount}</span>
+          </p>
 
           {system.blockers.length > 0 && (
             <div className="mt-3 space-y-2">

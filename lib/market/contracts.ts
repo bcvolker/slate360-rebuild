@@ -140,6 +140,7 @@ export type MarketSystemStatusViewModel = {
   liveServerReady: boolean;
   liveEnvReady: boolean;
   planCount: number;
+  effectiveMaxOpenPositions: number;
   tradeCount: number;
   hasLegacyDirective: boolean;
   hasRuntimeMetadata: boolean;

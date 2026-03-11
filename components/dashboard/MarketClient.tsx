@@ -159,6 +159,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
             walletAddress={wallet.address}
             liveChecklist={wallet.liveChecklist}
             onTradePlaced={handleTradePlaced}
+            onOpenAutomation={() => setActiveTabId("automation")}
           />
         );
       case "automation":
