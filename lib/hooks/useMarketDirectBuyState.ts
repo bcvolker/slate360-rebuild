@@ -16,7 +16,13 @@ export function useMarketDirectBuyState({
 }: {
   paperMode: boolean;
   walletAddress?: `0x${string}`;
-  liveChecklist: { walletConnected: boolean; polygonSelected: boolean; usdcFunded: boolean; signatureVerified: boolean; usdcApproved: boolean };
+  liveChecklist: {
+    walletConnected: boolean;
+    polygonSelected: boolean;
+    usdcFunded: boolean;
+    signatureVerified: boolean;
+    usdcApproved: boolean;
+  };
   onTradePlaced?: () => void | Promise<void>;
 }) {
   const [query, setQuery] = useState("");
@@ -94,7 +100,6 @@ export function useMarketDirectBuyState({
         collected.push(...batch);
         cursor = payload.data?.nextCursor;
         hasMore = Boolean(cursor);
-
       }
 
       const mapped: MarketListing[] = collected.map(mapMarket);
@@ -104,8 +109,9 @@ export function useMarketDirectBuyState({
       setMarkets([]);
       setLoaded(true);
       setLoadError(error instanceof Error ? error.message : "Failed to load markets");
+    } finally {
+      setLoading(false);
     }
-    finally { setLoading(false); }
   }, [fetchPlan, mapMarket, query]);
 
   const autoLoaded = useRef(false);
@@ -232,7 +238,7 @@ export function useMarketDirectBuyState({
           idempotency_key: crypto.randomUUID(),
         }),
       });
-      const data = await res.json() as { error?: string };
+      const data = await res.json() as { error?: string; openPositions?: number; limit?: number; help?: string };
       if (res.ok) {
         setBuySuccess(`✅ ${buyPaper ? "Paper " : ""}Buy placed — ${(buyAmount / avgPrice).toFixed(1)} shares ${buyOutcome}`);
         window.setTimeout(() => {
@@ -240,16 +246,10 @@ export function useMarketDirectBuyState({
           void onTradePlaced?.();
         }, 900);
       } else {
-        const errorData = data as {
-          error?: string;
-          openPositions?: number;
-          limit?: number;
-          help?: string;
-        };
-        if (typeof errorData.openPositions === "number" && typeof errorData.limit === "number") {
-          setBuySuccess(`❌ ${errorData.error ?? "Buy failed"} — ${errorData.openPositions}/${errorData.limit} open. ${errorData.help ?? "Raise 'Max positions at once' in Automation."}`);
+        if (typeof data.openPositions === "number" && typeof data.limit === "number") {
+          setBuySuccess(`❌ ${data.error ?? "Buy failed"} — ${data.openPositions}/${data.limit} open. ${data.help ?? "Raise 'Max positions at once' in Automation."}`);
         } else {
-          setBuySuccess(`❌ ${errorData.error ?? "Buy failed"}`);
+          setBuySuccess(`❌ ${data.error ?? "Buy failed"}`);
         }
       }
     } catch (e: unknown) {

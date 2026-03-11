@@ -20,6 +20,7 @@ Recent work materially improved these areas:
 - execution now reads `market_plans` first in key paths
 - trade persistence is more tolerant of Supabase schema lag
 - direct-buy search and filtering improved
+- direct-buy failure messaging preserves open-position cap guidance
 - results and activity visibility improved
 - system-status readiness surfaced more clearly in UI
 
