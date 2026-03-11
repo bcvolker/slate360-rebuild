@@ -18,6 +18,7 @@ export interface MarketBuyPanelProps {
   liveChecklist: LiveChecklist;
   payloadReady: boolean;
   payloadIssues: string[];
+  /** TP/SL controls are hidden by default — backend exit lifecycle is not yet enforced. */
   showTpSlControls?: boolean;
   formatMoney: (usd: number) => string;
   onOutcomeChange: (o: "YES" | "NO") => void;
@@ -41,7 +42,7 @@ export default function MarketBuyPanel({
   liveChecklist,
   payloadReady,
   payloadIssues,
-  showTpSlControls = true,
+  showTpSlControls = false,
   formatMoney,
   onOutcomeChange,
   onAmountChange,

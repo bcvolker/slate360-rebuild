@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import type { ApiEnvelope, ScanAppliedConfig, ScanRequest, ScanResponse } from "@/lib/market/contracts";
-import { toNumberOrZero } from "@/lib/market/contracts";
 import { mapTradeRowToTradeVM } from "@/lib/market/mappers";
 import { getScanMaxMarketLimit, parseScanRequest } from "@/lib/market/scan-request";
 import { fetchMarkets, scoreOpportunities, decideTrades, simulatePaperTrade, type BotConfig, DEFAULT_CONFIG } from "@/lib/market-bot";
 import { buildRuntimeConfigFromDirective, buildRuntimeConfigFromPlan, filterExecutableOpportunities, normalizeFocusAreas, type MarketDirectiveRuntimeRow, type MarketPlanRuntimeRow } from "@/lib/market/runtime-config";
+import { calculatePositionSize, checkSafetyConstraints } from "@/lib/market/execution-policy";
 import { insertMarketTradesWithFallback } from "@/lib/market/trade-persistence";
 
 export const dynamic = "force-dynamic";
@@ -117,33 +117,30 @@ export async function POST(req: NextRequest) {
       maxSpreadPct: runtimeConfig.maximumSpreadPct,
     });
 
-    const today = new Date().toISOString().split("T")[0];
-    const [{ data: todayTrades }, { data: openTrades }] = await Promise.all([
-      supabase.from("market_trades").select("pnl").eq("user_id", user.id).gte("created_at", `${today}T00:00:00Z`),
-      supabase
-        .from("market_trades")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("status", "open"),
-    ]);
+    // Unified safety constraints (shared with buy route)
+    const safetyCheck = await checkSafetyConstraints({
+      userId: user.id,
+      supabase,
+      maxOpenPositions: runtimeConfig.maxOpenPositions,
+    });
 
-    const dailyPnl = todayTrades?.reduce((sum, t) => sum + toNumberOrZero(t.pnl), 0) ?? 0;
-    const openPositionsCount = openTrades?.length ?? 0;
-    const remainingOpenSlots = Math.max(0, runtimeConfig.maxOpenPositions - openPositionsCount);
-    const maxExecutablePositions = Math.min(requestConfig.maxPositions, remainingOpenSlots || requestConfig.maxPositions);
+    const dailyPnl = safetyCheck.dailyPnl;
+    const maxExecutablePositions = Math.min(requestConfig.maxPositions, safetyCheck.remainingOpenSlots || requestConfig.maxPositions);
 
     const baseDecisions = decideTrades(opportunities, config, dailyPnl);
     const tradeDecisions = baseDecisions
       .map((decision) => {
         const price = decision.side === "YES" ? decision.opp.yesPrice : decision.opp.noPrice;
-        const maxSharesByCapital = Math.floor(requestConfig.capitalPerTrade / Math.max(price, 0.01));
-        const maxSharesByPortfolioPct = runtimeConfig.maxPctPerTrade
-          ? Math.floor(((runtimeConfig.capitalAlloc * runtimeConfig.maxPctPerTrade) / 100) / Math.max(price, 0.01))
-          : maxSharesByCapital;
-        const shares = Math.max(1, Math.min(decision.shares, maxSharesByCapital));
+        // Unified position sizing (shared with buy route)
+        const { shares } = calculatePositionSize({
+          amount: requestConfig.capitalPerTrade,
+          avgPrice: price,
+          maxPctPerTrade: runtimeConfig.maxPctPerTrade,
+          capitalAlloc: runtimeConfig.capitalAlloc,
+        });
         return {
           ...decision,
-          shares: Math.max(1, Math.min(shares, Math.max(1, maxSharesByPortfolioPct))),
+          shares: Math.max(1, Math.min(decision.shares, shares)),
           reason: `${decision.reason}; capped by capitalPerTrade $${requestConfig.capitalPerTrade.toFixed(2)}`,
         };
       })

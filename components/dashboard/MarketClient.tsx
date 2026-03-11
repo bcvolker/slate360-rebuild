@@ -90,11 +90,11 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
       bot.setPaperMode(paperMode);
       bot.addLog(`📋 Plan "${plan.name}" applied to bot`);
 
-      // 1. Sync directive to DB so the scheduler has the config
+      // 1. Sync plan to market_plans table (canonical source of truth)
       try {
         const result = await syncAutomationPlan(plan);
         if (result.ok) {
-          bot.addLog(`🗂 Synced "${plan.name}" to server (directive ${result.directiveId ?? "created"})`);
+          bot.addLog(`🗂 Synced "${plan.name}" to server (plan ${result.planId ?? "created"})`);
         } else {
           bot.addLog(`⚠️ Server sync failed: ${result.error ?? `HTTP ${result.status}`}. Bot will use local config for manual scans.`);
         }

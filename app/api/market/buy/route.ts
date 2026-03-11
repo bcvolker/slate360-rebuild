@@ -2,25 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { withMarketAuth } from "@/lib/server/api-auth";
 import { getClobOrderId, submitClobOrder } from "@/lib/market/clob-api";
 import {
+  validateTradeInput,
+  calculatePositionSize,
+  checkSafetyConstraints,
+} from "@/lib/market/execution-policy";
+import {
   getUnsupportedMarketTradeColumn,
   insertMarketTradesWithFallback,
   updateMarketTradeWithFallback,
 } from "@/lib/market/trade-persistence";
 
-const DEFAULT_MIN_BUY_USD = 1;
-const DEFAULT_MAX_BUY_USD = 1_000_000;
 const EVM_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
 const CLOB_ORDER_PATH = process.env.POLYMARKET_CLOB_ORDER_PATH ?? "/order";
 const CLOB_ORDER_TYPE = process.env.POLYMARKET_CLOB_ORDER_TYPE ?? "GTC";
 const CLOB_FEE_RATE_BPS = process.env.POLYMARKET_CLOB_FEE_RATE_BPS ?? "200";
-
-function getBuyLimits() {
-  const envMin = Number(process.env.MARKET_BUY_MIN_USD ?? DEFAULT_MIN_BUY_USD);
-  const envMax = Number(process.env.MARKET_BUY_MAX_USD ?? DEFAULT_MAX_BUY_USD);
-  const minBuyUsd = Number.isFinite(envMin) && envMin > 0 ? envMin : DEFAULT_MIN_BUY_USD;
-  const maxBuyUsd = Number.isFinite(envMax) && envMax >= minBuyUsd ? envMax : DEFAULT_MAX_BUY_USD;
-  return { minBuyUsd, maxBuyUsd };
-}
+const DEFAULT_MAX_OPEN_POSITIONS = 25;
 
 function makeOrderNonce(): string {
   const micros = BigInt(Date.now()) * BigInt(1000);
@@ -91,23 +87,35 @@ export const POST = (req: NextRequest) =>
         { status: 400 }
       );
     }
-    if (!["YES", "NO"].includes(outcome)) {
-      return NextResponse.json({ error: "Invalid outcome" }, { status: 400 });
+
+    // Unified trade validation (shared with scan route)
+    const validationError = validateTradeInput({ amount, avgPrice: avg_price, outcome });
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
     }
-    const { minBuyUsd, maxBuyUsd } = getBuyLimits();
-    if (amount < minBuyUsd || amount > maxBuyUsd) {
+
+    // Unified position sizing (shared with scan route)
+    const { shares, maxPayout } = calculatePositionSize({
+      amount,
+      avgPrice: avg_price,
+      maxPctPerTrade: null, // Direct buy: no portfolio cap override by default
+      capitalAlloc: amount,
+    });
+
+    // Unified safety constraints (shared with scan route)
+    const maxOpenPositions = Number(process.env.MARKET_MAX_OPEN_POSITIONS) || DEFAULT_MAX_OPEN_POSITIONS;
+    const safetyCheck = await checkSafetyConstraints({
+      userId: user.id,
+      supabase: admin,
+      maxOpenPositions,
+    });
+
+    if (!safetyCheck.allowed) {
       return NextResponse.json(
-        {
-          error: `Amount out of range ($${minBuyUsd.toLocaleString()}–$${maxBuyUsd.toLocaleString()})`,
-          minBuyUsd,
-          maxBuyUsd,
-        },
+        { error: safetyCheck.reason, openPositions: safetyCheck.openPositionsCount, limit: maxOpenPositions },
         { status: 400 }
       );
     }
-
-    const shares = parseFloat((amount / Math.max(avg_price, 0.01)).toFixed(4));
-    const maxPayout = parseFloat((shares * 1).toFixed(4));
 
     if (paper_mode) {
       const { data: trade, error } = await insertMarketTradesWithFallback(

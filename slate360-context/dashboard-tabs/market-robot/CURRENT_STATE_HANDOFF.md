@@ -269,7 +269,7 @@ Current truth:
 ### 5.4 Automation plan apply flow
 
 - Applying a plan updates runtime bot state in the client.
-- Applying a plan syncs a backward-compatible directive to the server.
+- Applying a plan syncs to `market_plans` table (canonical source of truth — legacy directive dual-write retired).
 - Applying a plan sets bot status to `paper` or `running` on the server.
 - The first scan after apply is less prone to stale state.
 - Automation plans can now be loaded from `market_plans` through `/api/market/plans`, with local fallback still preserved in the UI.
@@ -332,29 +332,21 @@ Required fix:
 3. Confirm `market_activity_log` and `market_scheduler_lock` exist in the target Supabase project.
 4. Long-term: replace cron-only scheduling with a real worker or queue if high-frequency automation is required.
 
-### 6.3 Automation source of truth is still split
+### 6.3 ✅ RESOLVED — Automation source of truth unified
 
-Problem:
+Status: **Fixed** (2026-03-11)
 
-- Plans are now server-backed in `market_plans`, but the UI still keeps a local fallback cache.
-- The scheduler still reads `market_directives`.
-- Rich execution settings are also stored in auth `user_metadata.marketBotConfig`.
+What changed:
 
-Root cause:
+- `syncAutomationPlan()` now writes directly to `market_plans` via `/api/market/plans` (POST/PATCH).
+- The legacy dual-write to `market_directives` via `/api/market/directives` has been removed from the apply flow.
+- `market_plans` is the canonical, exclusive source of truth for saving and applying automation plans.
+- The scanner route (`/api/market/scan`) still reads `market_directives` as a fallback for legacy data, but no new directives are created by the plan apply flow.
 
-- `market_plans` now exists in Supabase, but it has not been adopted as the canonical server-side model yet.
-- `syncAutomationPlan()` is a compatibility bridge, not a final architecture.
+Remaining:
 
-Impact:
-
-- State can still drift across `market_plans`, directives, and runtime metadata until the scheduler migration is finished.
-
-Required fix:
-
-1. Adopt the now-existing `market_plans` table as the canonical source of truth for automation config.
-2. Stop translating rich plans into legacy directives except during migration.
-3. Migrate scheduler reads from directives to `market_plans` + runtime snapshot.
-4. Remove the local fallback once server-backed persistence is fully trusted.
+- `user_metadata.marketBotConfig` is still used as a runtime overlay in config builders. This is acceptable for now but should be reviewed when scheduler is fully migrated.
+- `scheduler-run-user.ts` still has a directive fallback path. Once all users have migrated plans, this fallback can be removed.
 
 ### 6.3a Saved Markets is now partly implemented
 
@@ -370,52 +362,42 @@ Still missing:
 - alerting behavior on saved items
 
 
-### 6.4 Several automation controls are still partially enforced or not enforced
+### 6.4 ✅ RESOLVED — Unenforced automation controls hidden from UI
 
-Problem:
+Status: **Fixed** (2026-03-11)
 
-- The UI exposes more controls than the execution engine actually uses.
+What changed:
 
-Confirmed gaps:
+- `MarketAutomationDetailControls.tsx` no longer exposes `slippage`, `fillPolicy`, or `exitRules` inputs. These fields are still persisted and carried in runtime config for future backend enforcement, but the UI does not show controls that do nothing.
+- `MarketBuyPanel.tsx` now defaults `showTpSlControls` to `false`. Take Profit % and Stop Loss % sliders are hidden because the backend exit lifecycle is not yet enforced. Parent components can re-enable via prop when enforcement is built.
+- Min Liquidity and Max Spread controls remain visible (they ARE enforced in filtering).
+- An informational note in the Advanced section explains what was removed and why.
 
-- `slippage` is stored but not truly enforced in live execution.
-- `fillPolicy` is stored but not meaningfully mapped to order behavior.
-- `exitRules` is stored but not implemented as an exit engine.
-- `weeklyProfitTarget` style goals are not meaningfully driving execution.
-- `timeframe` and `closingSoonFocus` are partially implemented, but still not a full time-window scheduler.
+Remaining:
 
-Important caveat:
+- `timeframe` and `closingSoonFocus` are partially enforced — kept visible because they do affect filtering heuristics.
+- `feeAlertThreshold` is mostly informational — kept visible because it is low-harm and useful for awareness.
+- The `opp.edge` vs actual spread semantic mismatch in `filterExecutableOpportunities()` still needs a separate fix.
+- When live slippage/fill policy/exit rules enforcement is built, re-enable the corresponding UI inputs.
 
-- `runtime-config.ts` does filter by `timeframeHours` and a spread threshold, but the spread filter is currently applied using `opp.edge` instead of actual spread semantics. That is logically suspect and should be reviewed.
+### 6.5 ✅ RESOLVED — Execution policy unified across buy and scan routes
 
-Impact:
+Status: **Fixed** (2026-03-11)
 
-- Users can configure settings that feel authoritative but do not fully change real execution.
+What changed:
 
-Required fix:
+- Created `lib/market/execution-policy.ts` as the single shared module for trade validation, position sizing, and safety constraint checks.
+- `app/api/market/buy/route.ts` now imports and uses `validateTradeInput()`, `calculatePositionSize()`, and `checkSafetyConstraints()` from the shared policy.
+- `app/api/market/scan/route.ts` now imports and uses `calculatePositionSize()` and `checkSafetyConstraints()` from the shared policy.
+- Direct buys are now subject to the same open-position limit check that automation trades have always had.
+- Position sizing uses the same `calculatePositionSize()` function with portfolio % cap support in both routes.
 
-1. Audit every field in `AutomationPlan` against runtime enforcement.
-2. Implement an enforcement matrix: UI field -> persisted field -> runtime field -> execution branch.
-3. Remove or hide controls until their execution logic exists, or implement the missing logic.
-4. Fix spread handling so spread thresholds use actual spread metrics, not arbitrage edge semantics.
+Architecture:
 
-### 6.5 Direct Buy and automation still use different mental and technical paths
-
-Problem:
-
-- Direct Buy goes through `app/api/market/buy/route.ts`.
-- Automation goes through `app/api/market/scan/route.ts` and scheduler pathways.
-- Validation and constraint enforcement are not fully symmetric.
-
-Impact:
-
-- Safety constraints and trade sizing logic differ between manual and automated flows.
-
-Required fix:
-
-1. Extract a shared trade execution policy layer.
-2. Reuse common sizing, slippage, allocation, and validation logic for both direct and automated paths.
-3. Keep direct/manual trade intent separate from automation intent, but unify enforcement and persistence.
+- `execution-policy.ts` owns: buy limits, trade input validation, position sizing with portfolio cap, and safety constraint queries (daily PnL, open positions).
+- Buy route consumes: all three policy functions.
+- Scan route consumes: position sizing and safety constraints (validation happens via `parseScanRequest`).
+- Both routes share identical constraint enforcement — no more divergence.
 
 ### 6.6 Saved Markets is still a stub
 

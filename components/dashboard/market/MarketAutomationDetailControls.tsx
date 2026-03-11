@@ -2,7 +2,7 @@
 
 import React from "react";
 import MarketNumericInput from "@/components/dashboard/market/MarketNumericInput";
-import type { AutomationPlan, FillPolicy, ExitRules } from "@/components/dashboard/market/types";
+import type { AutomationPlan } from "@/components/dashboard/market/types";
 
 interface MarketAutomationDetailControlsProps {
   draft: AutomationPlan;
@@ -65,17 +65,7 @@ export default function MarketAutomationDetailControls({
       {level === "advanced" && (
         <div className="border-t border-gray-100 pt-4 space-y-3">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Advanced</p>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">Slippage (%)</label>
-              <MarketNumericInput
-                value={draft.slippage}
-                min={0}
-                max={20}
-                fallback={2}
-                onCommit={(value) => onFieldChange("slippage", value)}
-              />
-            </div>
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Min Liquidity ($)</label>
               <MarketNumericInput
@@ -96,32 +86,9 @@ export default function MarketAutomationDetailControls({
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">Fill Policy</label>
-              <select
-                value={draft.fillPolicy}
-                onChange={(e) => onFieldChange("fillPolicy", e.target.value as FillPolicy)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
-              >
-                <option value="conservative">Conservative</option>
-                <option value="aggressive">Aggressive</option>
-                <option value="limit-only">Limit Only</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">Exit Rules</label>
-              <select
-                value={draft.exitRules}
-                onChange={(e) => onFieldChange("exitRules", e.target.value as ExitRules)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
-              >
-                <option value="auto">Auto</option>
-                <option value="manual">Manual</option>
-                <option value="trailing-stop">Trailing Stop</option>
-              </select>
-            </div>
-          </div>
+          <p className="text-[10px] text-gray-400 italic">
+            Slippage, fill policy, and exit rules are hidden until backend enforcement is implemented.
+          </p>
         </div>
       )}
     </>
