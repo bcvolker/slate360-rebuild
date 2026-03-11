@@ -6,13 +6,19 @@ This folder contains detailed specifications, blueprints, and reference material
 Upload tab-specific documentation here to give Copilot full context when working on a particular module. Each file should describe the tab's purpose, UI structure, data model, API routes, and any relevant business rules.
 
 ## Canonical Sources (Read Order)
-1. `SLATE360_PROJECT_MEMORY.md` (root) — global rules + current architecture status
-2. `slate360-context/DASHBOARD.md` + `slate360-context/FUTURE_FEATURES.md` — platform blueprint + roadmap
-3. `slate360-context/dashboard-tabs/MODULE_REGISTRY.md` — canonical tab-by-tab contract + trust level
-4. `slate360-context/dashboard-tabs/*.md` — normalized tab specs
-5. Uploaded raw artifacts (`*.txt`, `*.html`) — reference only, never direct source of truth
+1. `SLATE360_PROJECT_MEMORY.md` — root startup context
+2. `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md` — startup and handoff rules
+3. `slate360-context/dashboard-tabs/MODULE_REGISTRY.md` — canonical routes and gates
+4. Only the active tab's docs
+5. Uploaded raw artifacts (`*.txt`, `*.html`) — reference only, never default startup context
 
 If two files conflict, prefer the higher item in this list.
+
+## Token Rule
+
+Do not read all tab folders in a new chat. Pull only the active tab.
+
+For Market Robot, start with `market-robot/START_HERE.md` and use the longer Market docs only when needed.
 
 ## Current Tabs
 

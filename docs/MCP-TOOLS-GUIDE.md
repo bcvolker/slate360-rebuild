@@ -26,6 +26,29 @@ Slate360 uses **three MCP servers**:
 Without these, AI assistants work from stale assumptions. With them, every AI chat
 starts with ground truth about the real running system.
 
+## 1A. Recommended Next MCPs
+
+Checked on 2026-03-11 via npm package lookup. These are not auto-enabled yet.
+
+| MCP | Package | Value For Slate360 | Recommendation |
+|---|---|---|---|
+| GitHub | `@modelcontextprotocol/server-github` | PRs, issues, review context, release coordination, app-rollout work | High |
+| Memory | `@modelcontextprotocol/server-memory` | cross-session architecture decisions, feature/tab continuity, app-integration planning | High |
+| Postgres | `@modelcontextprotocol/server-postgres` | direct SQL exploration against a safe DB target when schema/query reasoning needs more than Supabase MCP | Medium |
+| Sequential Thinking | `@modelcontextprotocol/server-sequential-thinking` | complex refactor and rollout planning | Medium |
+| Filesystem | `@modelcontextprotocol/server-filesystem` | extra file access tooling | Low in VS Code because editor + GitNexus already cover most needs |
+
+Current recommendation:
+- Add GitHub MCP next if PR / issue / rollout flow becomes heavier.
+- Add Memory MCP next if long-running app ecosystem planning starts happening across many chats.
+- Keep Supabase MCP as primary schema truth.
+- Keep Vercel MCP as primary deploy/env truth.
+- Do not add overlapping MCPs just because they exist.
+
+Not recommended right now:
+- Playwright MCP: no official package was found under the same namespace during this check, and the repo already has Playwright plus editor/runtime tools.
+- Filesystem MCP: useful outside VS Code, but lower value here because local file access already exists.
+
 ---
 
 ## 2. One-Time Setup (Do This Once Per Machine)

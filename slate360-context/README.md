@@ -1,12 +1,25 @@
 # Slate360 Context — File Index
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-11
 
-This folder contains the project's living documentation — the "memory" passed between AI chat sessions. These files must stay current.
+This folder contains the project's living documentation. New chats should not read all of it by default.
+
+## Read Strategy
+
+Start with:
+1. `SLATE360_PROJECT_MEMORY.md`
+2. `NEW_CHAT_HANDOFF_PROTOCOL.md`
+3. Only the docs needed for the active task
+
+Default task routing:
+- Market Robot: `dashboard-tabs/market-robot/START_HERE.md`
+- Backend/auth/billing/storage: `BACKEND.md`
+- Dashboard/tab work: `DASHBOARD.md`, `dashboard-tabs/MODULE_REGISTRY.md`, `dashboard-tabs/CUSTOMIZATION_SYSTEM.md`
+- Bug review: `ONGOING_ISSUES.md`, `../ops/bug-registry.json`
 
 ---
 
-## Active Blueprint Files (One Per Topic)
+## Active Blueprint Files
 
 | File | Topic | Keep Current |
 |---|---|---|
@@ -23,8 +36,11 @@ This folder contains the project's living documentation — the "memory" passed 
 
 | File | Topic |
 |---|---|
-| [SUPABASE_EMAIL_TEMPLATES.md](SUPABASE_EMAIL_TEMPLATES.md) | Full HTML email templates for Supabase |
-| [GPU_WORKER_DEPLOYMENT.md](GPU_WORKER_DEPLOYMENT.md) | GPU pipeline spec (not yet deployed) |
+| [SUPABASE_EMAIL_TEMPLATES.md](SUPABASE_EMAIL_TEMPLATES.md) | Deep reference only |
+| [GPU_WORKER_DEPLOYMENT.md](GPU_WORKER_DEPLOYMENT.md) | Deep reference only |
+| [FUTURE_FEATURES.md](FUTURE_FEATURES.md) | Roadmap reference, not required for normal bugfix chats |
+| [APP_ECOSYSTEM_EXECUTION_PLAN.md](APP_ECOSYSTEM_EXECUTION_PLAN.md) | Strategy reference, not required for most coding tasks |
+| [_archived_docs/README.md](../_archived_docs/README.md) | Archive policy and old handoff bucket |
 
 ## Root-Level Project Files
 
@@ -39,6 +55,14 @@ This folder contains the project's living documentation — the "memory" passed 
 ## Maintenance Rule
 
 **Every code change that affects routes, components, APIs, DB tables, or feature behavior must include an update to the relevant blueprint file above.** The AI assistant should check after each change whether any context file needs updating.
+
+---
+
+## Low-Priority / Archive-Style Files
+
+Avoid reading these unless the task needs deep history or recovery context:
+- `dashboard-tabs/market-robot/CURRENT_STATE_HANDOFF.md`
+- `dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`
 
 ---
 

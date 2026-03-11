@@ -8,7 +8,7 @@
 
 ## Refactor Continuity Note (Mar 4, 2026)
 
-- Active refactor closure window is tracked in `REFACTOR_EXECUTION_PLAN.md` with a detailed 8–19 prompt execution map.
+- Active refactor closure window is tracked in `_archived_docs/REFACTOR_EXECUTION_PLAN.md` with a detailed 8–19 prompt execution map.
 - Current expectation: completing Slice C (Project Hub), the next Dashboard decomposition tranche, and BUG-018 (`LocationMap.tsx` DrawingManager removal) should complete the core refactor scope.
 - Mar 4 2026 (Session 5): BUG-018 completed in `LocationMap.tsx` (all drawing tools now native; DrawingManager/drawing library removed).
 - Mar 4 2026 (Session 6): Critical entitlement misconfiguration fixed — `trial` tier was incorrectly granting access to ALL modules. Now correctly locked to `canAccessHub + canViewSlateDropWidget` only. Phase 0G (Quick Wins) and Phase 0H (Code Health Pass) added below.

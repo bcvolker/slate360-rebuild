@@ -1,5 +1,7 @@
 # Market Robot — Ongoing Build Tracker
 
+Read this only after `START_HERE.md`. This file is long-form build history and prompt-oriented reference, not default startup context.
+
 ## Purpose
 Use this file to continue Market Robot across multiple chats. Read it after:
 1. `SLATE360_PROJECT_MEMORY.md`

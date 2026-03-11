@@ -5,6 +5,14 @@
       "command": "npx",
       "args": ["gitnexus", "mcp"]
     },
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_TOKEN}"
+      }
+    },
     "supabase": {
       "type": "sse",
       "url": "https://mcp.supabase.com/sse",
