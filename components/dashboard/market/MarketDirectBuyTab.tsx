@@ -5,6 +5,7 @@ import MarketBuyPanel from "@/components/dashboard/market/MarketBuyPanel";
 import MarketAdvancedFilters from "@/components/dashboard/market/MarketAdvancedFilters";
 import MarketDirectBuyResults from "@/components/dashboard/market/MarketDirectBuyResults";
 import MarketListingDetailDrawer from "@/components/dashboard/market/MarketListingDetailDrawer";
+import MarketQuickSearchPills from "@/components/dashboard/market/MarketQuickSearchPills";
 import { useMarketDirectBuyState } from "@/lib/hooks/useMarketDirectBuyState";
 import { useMarketWatchlist } from "@/lib/hooks/useMarketWatchlist";
 import type { MarketListing, MktTimeframe, LiveChecklist } from "@/components/dashboard/market/types";
@@ -32,6 +33,23 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
   const watchlist = useMarketWatchlist();
   const [detailMarket, setDetailMarket] = useState<MarketListing | null>(null);
 
+  const applyPreset = (presetId: string) => {
+    s.clearFilters();
+    if (presetId === "weather-hour") {
+      s.setQuery("weather"); s.setTimeframe("hour"); s.setSortBy("endDate");
+    } else if (presetId === "bitcoin-month") {
+      s.setQuery("bitcoin"); s.setTimeframe("month"); s.setSortBy("volume");
+    } else if (presetId === "election-week") {
+      s.setQuery("election"); s.setTimeframe("week"); s.setSortBy("volume");
+    } else if (presetId === "closing-soon") {
+      s.setTimeframe("day"); s.setSortBy("endDate"); s.setMinVolume(5000);
+    } else if (presetId === "high-liquidity") {
+      s.setSortBy("volume"); s.setMinVolume(50000); s.setMinLiquidity(50000);
+    } else if (presetId === "moonshots") {
+      s.setTimeframe("month"); s.setSortBy("edge"); s.setProbMin(5); s.setProbMax(35); s.setMinVolume(1000);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -45,6 +63,9 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
           <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 font-semibold text-slate-700">Mode: {paperMode ? "Practice by default" : "Live-ready by default"}</span>
           <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1">{s.fetchModeLabel}</span>
           {s.buyMarket && <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 font-semibold text-orange-700">Trade ticket open</span>}
+        </div>
+        <div className="mt-4">
+          <MarketQuickSearchPills onApplyPreset={applyPreset} />
         </div>
       </div>
 

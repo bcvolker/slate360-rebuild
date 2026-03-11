@@ -2,6 +2,7 @@
 import React from "react";
 import { HelpTip } from "@/components/dashboard/market/MarketSharedUi";
 import MarketAutomationDetailControls from "@/components/dashboard/market/MarketAutomationDetailControls";
+import MarketPlanInsights from "@/components/dashboard/market/MarketPlanInsights";
 import MarketNumericInput from "@/components/dashboard/market/MarketNumericInput";
 import { FOCUS_AREAS } from "@/components/dashboard/market/market-constants";
 import type { AutomationPlan, RiskLevel, ScanMode } from "@/components/dashboard/market/types";
@@ -74,6 +75,8 @@ export default function MarketAutomationBuilder({
           onFieldChange={onFieldChange}
         />
       )}
+
+      <MarketPlanInsights draft={draft} />
 
       {/* Actions */}
       <div className="flex gap-2 pt-1">

@@ -55,6 +55,16 @@ The current backend autonomy work and market data plumbing stay in place. This p
 - Moonshot is present as a mode flag in runtime logic, but moonshot bundles, moonshot-pick history, and posted-probability-vs-outcome recordkeeping are not implemented as user-facing product features.
 - Hot items, upset alerts, and historical signal tracking are not implemented as a canonical subsystem yet.
 
+### March 11, 2026 UX/runtime additions completed in this pass
+- Added a canonical server-summary endpoint: `app/api/market/system-status/route.ts`.
+- Added reusable readiness surface: `lib/hooks/useMarketSystemStatus.ts` + `components/dashboard/market/MarketSystemStatusCard.tsx`.
+- Added discovery and usability helpers:
+	- `MarketQuickSearchPills.tsx` for Direct Buy idea lanes
+	- `MarketPlanInsights.tsx` for plan sanity feedback
+	- `MarketResultsInsights.tsx` for strategy coaching from existing trade history
+- Surfaced the system summary in Start Here, Automation, and Live Wallet so users can see when live mode is blocked by backend configuration rather than by their local actions.
+- Current runtime audit result: the strongest remaining concrete live blocker is missing `NEXT_PUBLIC_POLYMARKET_SPENDER`; schema/runtime tables now validate successfully in the local diagnostic.
+
 ### March 11, 2026 Root-cause direction for the next investigation
 The next chat should treat Market Robot as an architecture normalization task:
 1. Verify one end-to-end production path for each core job: search, practice buy, live buy, immediate scan, scheduled scan, results visibility.

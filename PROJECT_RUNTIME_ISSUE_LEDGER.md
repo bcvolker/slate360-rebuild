@@ -225,6 +225,17 @@ Current issue states:
 - Verified locally: `npx tsc --noEmit` passes and all touched market files remain at or below the 300-line limit.
 - Status correction: these changes improve clarity and surface failures sooner, but they do **not** prove that Market Robot is end-to-end healthy. The previous handoff overstated completion if read as "market is now working."
 
+### March 11 implementation pass — canonical runtime summary + usability features
+- Added `GET /api/market/system-status` as a canonical server-derived summary of Market Robot readiness. It reports config source (`market_plans` vs directives/runtime fallback), runtime status, run/trade counts, blockers, and a recommendation string.
+- Added reusable client hook `useMarketSystemStatus()` and surfaced the summary in Start Here, Automation, and Live Wallet so users see backend blockers before assuming their plan, wallet, or scan click failed.
+- Added user-facing feature improvements intended to grow account balance more safely, not just add clutter:
+  - Direct Buy quick-search idea lanes (`Weather soon`, `Bitcoin movers`, `Election pulse`, `Closing soon`, `Deep liquidity`, `Moonshots`)
+  - Automation plan sanity insights (budget-per-position, cadence, loss-cap warnings)
+  - Results coaching cards (best topic, best mode, coach note)
+  - Live wallet backend-health visibility, so missing env/config issues are explained in-product
+- Validation after this pass: `npx tsc --noEmit` PASS, `node scripts/ops/check-clob-contract.mjs` PASS, `npm run guard:architecture` PASS, file-size regression PASS.
+- Runtime diagnostic after this pass: schema checks now pass for `market_trades`, `market_directives`, `market_bot_runtime`, `market_bot_runtime_state`, `market_activity_log`, and `market_scheduler_lock`. The only concrete failing prerequisite from `scripts/ops/check-market-runtime.mjs` is `NEXT_PUBLIC_POLYMARKET_SPENDER`, which currently blocks live allowance/approval UX from being fully reliable.
+
 ### March 11 evidence: what is still not normalized
 - Search is still only lexical matching on current Polymarket payloads plus a small synonym map. That helps queries like `weather`, but it is not "complete Polymarket searching/filtering/sorting" and it does not create trend detection, hot-item ranking history, upset alerts, or historical probability analysis.
 - Automation config is still split across multiple sources (`market_plans`, legacy `market_directives`, auth metadata/runtime-config fallbacks, and `market_bot_runtime`). A single user action can save a plan, flip runtime status, and fire a scan through different storage paths, which makes the system feel inconsistent even when each step individually succeeds.

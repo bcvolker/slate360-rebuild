@@ -2,6 +2,8 @@
 
 import React, { useState, useCallback } from "react";
 import { HelpTip, StatusBadge } from "@/components/dashboard/market/MarketSharedUi";
+import MarketSystemStatusCard from "@/components/dashboard/market/MarketSystemStatusCard";
+import { useMarketSystemStatus } from "@/lib/hooks/useMarketSystemStatus";
 
 interface LiveChecklist {
   walletConnected: boolean;
@@ -61,6 +63,7 @@ export default function MarketLiveWalletTab({
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [testRunning, setTestRunning] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const systemStatus = useMarketSystemStatus();
 
   const maticBalance = maticData ? parseFloat(maticData.formatted) : 0;
   const maticFormatted = maticData ? `${parseFloat(maticData.formatted).toFixed(4)} ${maticData.symbol}` : "—";
@@ -131,6 +134,14 @@ export default function MarketLiveWalletTab({
           </div>
         )}
       </div>
+
+      {/* Wallet connect */}
+      <MarketSystemStatusCard
+        system={systemStatus.system}
+        loading={systemStatus.loading}
+        error={systemStatus.error}
+        title="Live-trading backend health"
+      />
 
       {/* Wallet connect */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 space-y-4">
@@ -241,6 +252,11 @@ export default function MarketLiveWalletTab({
         {testResult && (
           <p className={`text-sm rounded-lg px-4 py-3 ${testResult.startsWith("All") ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
             {testResult}
+          </p>
+        )}
+        {systemStatus.system && !systemStatus.system.liveServerReady && (
+          <p className="text-xs text-amber-700">
+            Server note: live infrastructure still has blocker(s). You can finish wallet setup now, but keep using Practice mode until backend status shows Live server ready.
           </p>
         )}
       </div>

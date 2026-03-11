@@ -3,6 +3,7 @@
 import React from "react";
 import MarketActivityFeed from "@/components/dashboard/market/MarketActivityFeed";
 import MarketOpenPositionsPanel from "@/components/dashboard/market/MarketOpenPositionsPanel";
+import MarketResultsInsights from "@/components/dashboard/market/MarketResultsInsights";
 import MarketTradeReplayDrawer from "@/components/dashboard/market/MarketTradeReplayDrawer";
 import { HelpTip } from "@/components/dashboard/market/MarketSharedUi";
 import { useMarketResultsState } from "@/lib/hooks/useMarketResultsState";
@@ -65,6 +66,8 @@ export default function MarketResultsTab({ trades, activityLogs, onRefresh }: Ma
         <StatCard label="Win Rate" tip="Percentage of trades that were profitable"><span className="font-bold text-gray-900">{winRate}%</span></StatCard>
         <StatCard label="Trades"><span className="font-bold text-gray-900">{totalTrades} <span className="text-sm font-normal text-gray-400">({openTrades} open)</span></span></StatCard>
       </div>
+
+      <MarketResultsInsights analytics={analytics} />
 
       {/* Expandable advanced metrics */}
       <button

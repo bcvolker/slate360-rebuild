@@ -118,12 +118,13 @@
       "module": "market",
       "severity": "high",
       "status": "open",
-      "rootCause": "Search, execution, and observability still span multiple partially overlapping systems: lexical Gamma search plus local filters, `market_plans`, legacy directives/runtime metadata fallbacks, `market_bot_runtime`, scheduler activity, trade persistence compatibility fallbacks, and wallet/CLOB prerequisites. UX fixes improved visibility but did not create a single canonical config/run/history model.",
+      "rootCause": "Search, execution, and observability still span multiple partially overlapping systems: lexical Gamma search plus local filters, `market_plans`, legacy directives/runtime metadata fallbacks, `market_bot_runtime`, scheduler activity, trade persistence compatibility fallbacks, and wallet/CLOB prerequisites. UX fixes improved visibility but did not create a single canonical config/run/history model. Current runtime audit shows one concrete live blocker still present: missing `NEXT_PUBLIC_POLYMARKET_SPENDER`.",
       "verification": [
         "Run one authenticated end-to-end production test for each path: search, practice buy, live buy, apply plan, immediate scan, scheduled scan, results visibility",
         "Document every storage/control surface touched by those paths and confirm whether one user action writes to more than one canonical source",
         "Confirm whether Market Robot has a single run record linking user action, applied config, scan result, activity row, and trade write",
-        "Confirm whether requested product features still missing in code remain missing: recommendation-history store, moonshot history/bundles, posted-probability-vs-outcome tracking, hot-item/upset alert engine"
+        "Confirm whether requested product features still missing in code remain missing: recommendation-history store, moonshot history/bundles, posted-probability-vs-outcome tracking, hot-item/upset alert engine",
+        "Set NEXT_PUBLIC_POLYMARKET_SPENDER and verify live wallet approval path stops reporting backend blocker status"
       ]
     }
   ]

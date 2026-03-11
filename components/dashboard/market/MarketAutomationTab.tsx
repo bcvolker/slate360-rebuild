@@ -4,9 +4,11 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useMarketAutomationState } from "@/lib/hooks/useMarketAutomationState";
 import MarketAutomationBuilder from "@/components/dashboard/market/MarketAutomationBuilder";
 import MarketPlanList from "@/components/dashboard/market/MarketPlanList";
+import MarketSystemStatusCard from "@/components/dashboard/market/MarketSystemStatusCard";
 import type { AutomationPlan, BotConfig } from "@/components/dashboard/market/types";
 import type { SchedulerHealthViewModel } from "@/lib/market/contracts";
 import type { ServerBotStatus } from "@/lib/hooks/useMarketServerStatus";
+import { useMarketSystemStatus } from "@/lib/hooks/useMarketSystemStatus";
 
 interface MarketAutomationTabProps {
   botConfig: BotConfig;
@@ -21,6 +23,7 @@ interface MarketAutomationTabProps {
 export default function MarketAutomationTab({ botConfig, onApplyPlan, onRunNow, onStopBot, serverStatus, serverHealth, scanLog }: MarketAutomationTabProps) {
   const auto = useMarketAutomationState();
   const [composerOpen, setComposerOpen] = useState(false);
+  const systemStatus = useMarketSystemStatus();
 
   const handleApply = useCallback((plan: AutomationPlan) => {
     onApplyPlan(plan);
@@ -73,6 +76,13 @@ export default function MarketAutomationTab({ botConfig, onApplyPlan, onRunNow, 
           {composerOpen || auto.editingId ? "Close plan builder" : "New plan"}
         </button>
       </div>
+
+      <MarketSystemStatusCard
+        system={systemStatus.system}
+        loading={systemStatus.loading}
+        error={systemStatus.error}
+        title="Automation backend health"
+      />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
         {(composerOpen || auto.editingId) && (

@@ -125,6 +125,31 @@ export type SchedulerHealthViewModel = {
   updatedAtIso: string | null;
 };
 
+export type MarketSystemBlocker = {
+  code: string;
+  label: string;
+  detail: string;
+  severity: "info" | "warning" | "critical";
+};
+
+export type MarketSystemStatusViewModel = {
+  configSource: "market_plans" | "market_directives" | "user_metadata" | "defaults";
+  configSourceLabel: string;
+  runtimeStatus: "running" | "paused" | "stopped" | "paper";
+  practiceReady: boolean;
+  liveServerReady: boolean;
+  liveEnvReady: boolean;
+  planCount: number;
+  tradeCount: number;
+  hasLegacyDirective: boolean;
+  hasRuntimeMetadata: boolean;
+  runsToday: number;
+  tradesToday: number;
+  lastRunIso: string | null;
+  blockers: MarketSystemBlocker[];
+  recommendation: string;
+};
+
 export type ScanRequest = {
   paperMode: boolean;
   executeTrades?: boolean;

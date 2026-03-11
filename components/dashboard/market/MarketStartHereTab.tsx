@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
+import MarketSystemStatusCard from "@/components/dashboard/market/MarketSystemStatusCard";
 import type { SchedulerHealthViewModel } from "@/lib/market/contracts";
 import type { ServerBotStatus } from "@/lib/hooks/useMarketServerStatus";
+import { useMarketSystemStatus } from "@/lib/hooks/useMarketSystemStatus";
 import type { AutomationPlan } from "@/components/dashboard/market/types";
 
 type Mode = "practice" | "real";
@@ -99,6 +101,7 @@ export default function MarketStartHereTab({
   serverHealth,
 }: MarketStartHereTabProps) {
   const [explainerOpen, setExplainerOpen] = useState(false);
+  const systemStatus = useMarketSystemStatus();
 
   const isActive = serverStatus === "running" || serverStatus === "paper";
   const isPaper = serverStatus === "paper" || (paperMode && isActive);
@@ -188,12 +191,17 @@ export default function MarketStartHereTab({
               Server status: <span className="font-semibold text-white">{serverStatus}</span>
               {serverHealth?.nextEligibleRunIso ? ` · Next background run: ${new Date(serverHealth.nextEligibleRunIso).toLocaleTimeString()}` : ""}
             </p>
-            <p className="mt-1 text-white/60">
-              Best way to verify paper mode: start the robot, then open Automation or Results and use Run scan now / Refresh results to confirm scans, logs, and positions.
-            </p>
+            <p className="mt-1 text-white/60">Best first verification loop: start in practice mode, run one scan, then confirm the banner and Results update.</p>
           </div>
         )}
       </div>
+
+      <MarketSystemStatusCard
+        system={systemStatus.system}
+        loading={systemStatus.loading}
+        error={systemStatus.error}
+        title="Execution health"
+      />
 
       {/* ── Stats row (once bot has run) ── */}
       {tradesToday > 0 && (
