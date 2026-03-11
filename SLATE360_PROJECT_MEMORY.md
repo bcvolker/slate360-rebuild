@@ -134,3 +134,36 @@ Do not pull large history docs unless the task needs them. Default reference-onl
 - `slate360-context/SUPABASE_EMAIL_TEMPLATES.md`
 
 Use those files only for deep history, roadmap, or recovery work.
+
+## Known Monolith Files (read state + JSX together)
+
+| File | Lines | Risk |
+|---|---|---|
+| `components/dashboard/DashboardClient.tsx` | 2,800+ | State at top, JSX at bottom — can't edit one without seeing the other |
+| `components/slatedrop/SlateDropClient.tsx` | 2,030 | Multi-phase upload + preview logic |
+| `components/project-hub/ClientPage.tsx` | 834 | Mutation + display interleaved |
+
+When editing these, always read both the state declarations AND the JSX sections.
+
+## Latest Session Handoff
+
+<!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
+
+### Session Handoff — 2026-03-11
+
+#### What Changed
+- `.github/copilot-instructions.md`: Added Token Budget Rules, Pre-Edit Checklist, No Phantom Fixes, Async/Race Condition Guard, Session Handoff/Startup, Bug Registry Discipline, Acceptance Criteria, Working Style, Safety Rules sections
+- `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`: Added Token Budget section, expanded Pre-Flight with monolith/bug checks, added Async Guard + No Phantom Fixes during-work rules, made End Of Chat Handoff mandatory with "What's Broken" field, added Bug Registry Discipline
+- `SLATE360_PROJECT_MEMORY.md`: Added Known Monolith Files table, added this Latest Session Handoff section
+
+#### What's Broken / Partially Done
+- Nothing broken by this change — docs only
+
+#### Context Files Updated
+- `.github/copilot-instructions.md`: comprehensive rule additions
+- `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`: token budget + build safety rules
+- `SLATE360_PROJECT_MEMORY.md`: monolith table + handoff section
+
+#### Next Steps (ordered)
+1. Continue Market Robot work per `market-automation-notes.md` in repo memory
+2. Address BUG-018 (DrawingManager deprecation) before May 2026 deadline
