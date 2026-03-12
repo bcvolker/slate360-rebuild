@@ -20,7 +20,7 @@ This file tracks current status, build order, prompts, checks, and rebuild-from-
 - CEO Command Center now has a searchable subscriber directory for granting Market access; do not reintroduce manual-email-only workflows as the primary operator path.
 
 ## Current Build Status
-**Active batch: Rescue Batch 3 complete (local) — next recommended batch is Rescue Batch 4**
+**Active batch: Rescue Batch 4.5 complete (local) — next recommended batch is Rescue Batch 5 (conditional backend truth patch)**
 
 2026-03-12 rescue overlay:
 - Batch 1 shipped a new four-section shell: Dashboard, Markets, Automation, Results.
@@ -35,6 +35,17 @@ This file tracks current status, build order, prompts, checks, and rebuild-from-
 - Batch 3 surfaced config-source truth in Automation and explicitly warns when runtime is still on fallback sources (`market_directives` or metadata overlays).
 - Batch 3 moved granular controls behind an explicit disclosure while preserving advanced settings.
 - Batch 3 did not modify `app/api/market/*`, runtime-config resolution, scheduler logic, or summary endpoint logic.
+- Batch 4 unified Results + wallet/readiness truth surfaces: Results now combines open positions, recent history, compact activity logs, wallet snapshot, and live blocker/readiness context from existing hooks.
+- Batch 4 added explicit post-action verification context in Results after buy/scan/automation actions.
+- Batch 4 tightened wallet tab truthfulness so live-ready language requires both local checklist completion and backend `liveServerReady`.
+- Batch 4 did not modify `app/api/market/*`, runtime-config resolution, scheduler logic, or summary endpoint logic.
+
+Batch 4.5 visual unification (2026-03-12):
+- Batch 4.5 converted every remaining white/light card surface across 14 Market presentation components into the dark operator console vocabulary.
+- Files converted: MarketAutomationTab, MarketResultsTab, MarketStartHereTab, MarketSystemStatusCard, MarketResultsVerificationConsole, MarketResultsInsights, MarketOpenPositionsPanel, MarketActivityFeed, MarketAutomationBuilder, MarketPlanList, MarketListingDetailDrawer, MarketAutomationDetailControls, MarketPlanInsights, MarketNumericInput.
+- CSS-only changes; no functional, hook, API, or backend changes.
+- Editor diagnostics: zero errors across all 14 files.
+- Push blocked by terminal `ENOPRO`.
 
 2026-03-12 env diagnostic follow-up (read/verify-only):
 - `vercel whoami`, `vercel env ls production`, and `vercel env ls preview` succeeded in a fresh chat.
@@ -624,6 +635,7 @@ Carry-forward rule
 - then create the next tracker in this same format for Design Studio
 
 ## Session Log
+- 2026-03-12: Rescue Batch 4 (results + wallet/readiness unification pass) — complete (local only). Files changed: components/dashboard/MarketClient.tsx, components/dashboard/market/MarketResultsTab.tsx, components/dashboard/market/MarketLiveWalletTab.tsx, docs/market-robot/MARKET_ROBOT_BUILD_FILE.md, docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md, docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md. Result: Results is now the main post-action verification surface with open positions/history/activity + wallet snapshot + blocker/readiness context; wallet tab now shows backend blockers in plain English and avoids overstating live readiness. Intentionally not changed: all `app/api/market/*` routes, scheduler/runtime-config/summary logic, backend contracts. Validation: editor diagnostics clean; terminal `npm run typecheck` and `npx tsc --noEmit` blocked by `ENOPRO`; GitNexus detect_changes rerun. Push: not performed due terminal blocker. Next: Rescue Batch 5 only if backend truth patch is needed.
 - 2026-03-12: Rescue Batch 3 (automation save/apply/runtime clarity pass) — complete (local only). Files changed: components/dashboard/market/MarketAutomationTab.tsx, components/dashboard/market/MarketAutomationBuilder.tsx, components/dashboard/market/MarketPlanList.tsx, lib/hooks/useMarketAutomationState.ts, lib/market/automation-presets.ts, docs/market-robot/MARKET_ROBOT_BUILD_FILE.md, docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md, docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md. Result: beginner presets, action clarity, honest post-action messaging, explicit config-source fallback truth, advanced disclosure retained. Intentionally not changed: all `app/api/market/*` routes, scheduler/runtime-config/summary logic, backend contracts. Validation: editor diagnostics clean; terminal `npm run typecheck` and `npx tsc --noEmit` blocked by `ENOPRO`; GitNexus detect_changes rerun. Push: not performed due terminal blocker. Next: Rescue Batch 4.
 - 2026-03-12: Rescue Batch 2 continuation preflight rerun — read order completed, GitNexus `detect_changes` rerun complete, repo confirmed non-clean, and no `app/api/market/*` edits introduced. Terminal validation commands remained blocked by `ENOPRO` in this session, so no push performed.
 - 2026-03-12: Rescue Batch 2 (Markets/search rescue) — complete. Files changed: components/dashboard/market/MarketDirectBuyTab.tsx, components/dashboard/market/MarketDirectBuyResults.tsx, components/dashboard/market/MarketListingDetailDrawer.tsx, lib/hooks/useMarketDirectBuyState.ts, docs/market-robot/MARKET_ROBOT_BUILD_FILE.md, docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md, docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md. Result: transparent lexical search workflow, compact sortable results table, row-click detail drawer with wallet impact preview and mode indication, preserved watchlist reachability in Markets, and preserved fallback-aware buy + post-buy refresh behavior. Intentionally not changed: all `app/api/market/*` routes, runtime-config resolution, scheduler logic, automation save/apply logic, and backend contracts. Next: Rescue Batch 3.

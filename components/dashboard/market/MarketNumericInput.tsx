@@ -55,7 +55,7 @@ export default function MarketNumericInput({
           e.currentTarget.blur();
         }
       }}
-      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]"
+      className="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 outline-none focus:border-[#FF4D00]"
     />
   );
 }

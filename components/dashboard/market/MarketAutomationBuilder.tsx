@@ -54,9 +54,9 @@ export default function MarketAutomationBuilder({
   };
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 space-y-4">
+    <div className="border border-slate-700 bg-slate-900/80 rounded-2xl p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-900">
+        <h3 className="font-semibold text-slate-100">
           {editingId ? "Edit Plan" : "Create a Robot Plan"}
           <HelpTip content="Tell the robot how much to spend, what risk level, and which topics to focus on." />
         </h3>
@@ -64,7 +64,7 @@ export default function MarketAutomationBuilder({
 
       {/* Control level selector */}
       <div>
-        <p className="text-xs text-gray-500 mb-2">Choose a quick preset</p>
+        <p className="text-xs text-slate-400 mb-2">Choose a quick preset</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {(["conservative", "balanced", "aggressive"] as const).map((preset) => {
             const active = selectedPreset === preset;
@@ -75,12 +75,12 @@ export default function MarketAutomationBuilder({
                 onClick={() => applyPreset(preset)}
                 className={`rounded-lg border px-3 py-2 text-left transition ${
                   active
-                    ? "border-[#FF4D00] bg-orange-50 text-[#C53B00]"
-                    : "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300"
+                    ? "border-[#FF4D00] bg-orange-500/15 text-orange-200"
+                    : "border-slate-700 bg-slate-950/80 text-slate-300 hover:border-slate-600"
                 }`}
               >
                 <p className="text-xs font-semibold">{getAutomationPresetLabel(preset)}</p>
-                <p className="mt-1 text-[11px] text-gray-500">
+                <p className="mt-1 text-[11px] text-slate-500">
                   {preset === "conservative" && "Slower scans, tighter guardrails, smaller daily risk."}
                   {preset === "balanced" && "Default blend of cadence, risk, and position sizing."}
                   {preset === "aggressive" && "Faster scans, wider limits, higher daily volatility."}
@@ -89,41 +89,41 @@ export default function MarketAutomationBuilder({
             );
           })}
         </div>
-        <p className="text-[11px] text-gray-400 mt-2">
+        <p className="text-[11px] text-slate-500 mt-2">
           Presets are frontend guidance only. They map to existing plan fields and do not change backend contracts.
         </p>
       </div>
 
       <div>
-        <p className="text-xs text-gray-500 mb-2">Preset currently matched</p>
-        <p className="text-sm font-medium text-gray-800">
+        <p className="text-xs text-slate-400 mb-2">Preset currently matched</p>
+        <p className="text-sm font-medium text-slate-200">
           {selectedPreset ? getAutomationPresetLabel(selectedPreset) : "Custom"}
         </p>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+      <div className="rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2">
         <button
           type="button"
           onClick={() => setShowAdvanced((value) => !value)}
-          className="w-full text-left text-xs font-semibold text-gray-700"
+          className="w-full text-left text-xs font-semibold text-slate-300"
         >
           {showAdvanced ? "Hide advanced settings" : "Show advanced settings"}
         </button>
         {showAdvanced && (
           <>
-            <p className="text-[11px] text-gray-500 mt-2">Basic controls are shown by default. Use this area only if you need tighter control over execution behavior.</p>
-            <p className="text-xs text-gray-500 mt-3 mb-2">Detail level</p>
+            <p className="text-[11px] text-slate-500 mt-2">Basic controls are shown by default. Use this area only if you need tighter control over execution behavior.</p>
+            <p className="text-xs text-slate-400 mt-3 mb-2">Detail level</p>
             <div className="flex gap-1">
               {(["basic", "intermediate", "advanced"] as const).map(lvl => (
                 <button key={lvl} onClick={() => onControlLevelChange(lvl)}
                   className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${
-                    controlLevel === lvl ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    controlLevel === lvl ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
                   }`}>
                   {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-gray-400 mt-2">
+            <p className="text-[11px] text-slate-500 mt-2">
               Intermediate and Advanced keep granular controls available without cluttering the primary path.
             </p>
           </>
@@ -132,10 +132,10 @@ export default function MarketAutomationBuilder({
 
       {/* Plan name */}
       <div>
-        <label className="text-xs text-gray-500 mb-1 block">Plan Name</label>
+        <label className="text-xs text-slate-400 mb-1 block">Plan Name</label>
         <input type="text" placeholder="e.g. Conservative Scanner Q1" value={draft.name}
           onChange={e => onFieldChange("name", e.target.value)}
-          className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#FF4D00]" />
+          className="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-[#FF4D00]" />
       </div>
 
       {/* Basic controls — always show */}
@@ -155,7 +155,7 @@ export default function MarketAutomationBuilder({
       {/* Actions */}
       <div className="flex gap-2 pt-1">
         <button onClick={onSave} disabled={!draft.name.trim()}
-          className="flex-1 bg-gray-200 hover:bg-gray-300 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40 text-gray-700">
+          className="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40 text-slate-200">
           {editingId ? "Save Draft Changes" : "Save Draft"}
         </button>
         <button onClick={onSaveAndApply} disabled={!draft.name.trim()}
@@ -164,12 +164,12 @@ export default function MarketAutomationBuilder({
         </button>
         {editingId && (
           <button onClick={onReset}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition text-gray-700">
+            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition text-slate-300">
             Cancel
           </button>
         )}
       </div>
-      <p className="text-[11px] text-gray-400">
+      <p className="text-[11px] text-slate-500">
         Save Draft stores your plan. Save + Start Robot stores the plan, requests runtime start, and triggers a scan. Runtime status is server-confirmed separately.
       </p>
     </div>
@@ -186,7 +186,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
     <>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-gray-500 mb-1 flex items-center">
+          <label className="text-xs text-slate-400 mb-1 flex items-center">
               Total budget ($) <HelpTip content="The maximum capital this plan is allowed to use." />
           </label>
           <MarketNumericInput
@@ -198,14 +198,14 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
           />
         </div>
         <div>
-          <label className="text-xs text-gray-500 mb-1 flex items-center">
+          <label className="text-xs text-slate-400 mb-1 flex items-center">
             Mode <HelpTip content="Practice = no real money. Real = live trades." />
           </label>
           <div className="flex gap-1">
             {(["practice", "real"] as const).map(m => (
               <button key={m} onClick={() => onFieldChange("mode", m)}
                 className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${
-                  draft.mode === m ? (m === "practice" ? "bg-purple-600 text-white" : "bg-green-600 text-white") : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  draft.mode === m ? (m === "practice" ? "bg-purple-600 text-white" : "bg-green-600 text-white") : "bg-slate-800 text-slate-400 hover:bg-slate-700"
                 }`}>
                 {m === "practice" ? "🧪 Practice" : "💵 Real"}
               </button>
@@ -215,14 +215,14 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
       </div>
 
       <div>
-        <label className="text-xs text-gray-500 mb-1 flex items-center">
+        <label className="text-xs text-slate-400 mb-1 flex items-center">
           Risk Level <HelpTip content="Conservative = low risk/reward. Aggressive = high risk/reward." />
         </label>
         <div className="flex gap-1">
           {(["conservative", "balanced", "aggressive"] as const).map(r => (
             <button key={r} onClick={() => onFieldChange("riskLevel", r as RiskLevel)}
               className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${
-                draft.riskLevel === r ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                draft.riskLevel === r ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
               }`}>
               {r === "conservative" ? "Safe" : r === "balanced" ? "Balanced" : "Aggressive"}
             </button>
@@ -232,7 +232,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-gray-500 mb-1 flex items-center">
+          <label className="text-xs text-slate-400 mb-1 flex items-center">
             Daily trade cap <HelpTip content="The most trades the robot can place in one day." />
           </label>
           <MarketNumericInput
@@ -244,7 +244,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
           />
         </div>
         <div>
-          <label className="text-xs text-gray-500 mb-1 flex items-center">
+          <label className="text-xs text-slate-400 mb-1 flex items-center">
             Stop after losing this much today ($) <HelpTip content="When losses hit this amount in one day, the robot should stop trading." />
           </label>
           <MarketNumericInput
@@ -258,7 +258,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-gray-500 mb-1 flex items-center">
+          <label className="text-xs text-slate-400 mb-1 flex items-center">
             Max positions at once <HelpTip content="The most open positions the robot can hold at one time." />
           </label>
           <MarketNumericInput
@@ -270,11 +270,11 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
           />
         </div>
         <div>
-          <label className="text-xs text-gray-500 mb-1 flex items-center">
+          <label className="text-xs text-slate-400 mb-1 flex items-center">
             Scan speed <HelpTip content="Controls how often the robot looks for opportunities. Faster modes create more activity and more noise." />
           </label>
           <select value={draft.scanMode} onChange={e => onFieldChange("scanMode", e.target.value as ScanMode)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#FF4D00]">
+            className="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 outline-none focus:border-[#FF4D00]">
             {(["slow", "balanced", "fast", "closing-soon"] as const).map(s => (
               <option key={s} value={s}>{s === "closing-soon" ? "Soon-ending only" : s.charAt(0).toUpperCase() + s.slice(1)}</option>
             ))}
@@ -283,20 +283,20 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
       </div>
 
       <div>
-        <label className="text-xs text-gray-500 mb-2 flex items-center">
+        <label className="text-xs text-slate-400 mb-2 flex items-center">
           Categories <HelpTip content="Market categories this plan targets." />
         </label>
         <div className="flex flex-wrap gap-1">
           {FOCUS_AREAS.map(area => (
             <button key={area} onClick={() => toggleCategory(area)}
               className={`px-2 py-0.5 text-xs rounded-full transition ${
-                draft.categories.includes(area) ? "bg-[#1E3A8A] text-blue-200" : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                draft.categories.includes(area) ? "bg-[#1E3A8A] text-blue-200" : "bg-slate-800 text-slate-500 hover:bg-slate-700"
               }`}>
               {area}
             </button>
           ))}
         </div>
-        <p className="text-[11px] text-gray-400 mt-2">
+        <p className="text-[11px] text-slate-500 mt-2">
           Budget = total money the robot can use. Daily cap = max buys per day. Positions = how many open bets at once.
         </p>
       </div>

@@ -9,24 +9,23 @@ Last Updated: 2026-03-12
 4. Only then, the batch-specific implementation files named in the active prompt.
 
 ## Current Batch
-- Batch 3 is complete (local changes landed; push blocked by terminal `ENOPRO` in this session).
-- The next recommended batch is Batch 4.
+- Batch 4.5 is complete (local changes landed; push blocked by terminal `ENOPRO`).
+- Batch 4 is complete (local changes landed; push blocked by terminal `ENOPRO`).
+- The next recommended batch is Batch 5 (small backend truth patch only if still required).
 - Rescue implementation is now in progress; do not reset the Market shell back to the pre-Batch-1 six-tab IA.
 
 ## Latest Rescue State
-- Batch 3 upgraded Automation UX with explicit beginner presets (Conservative/Balanced/Aggressive), clearer action labels, and stronger Save Draft vs Save + Start vs Run Scan Now vs Stop/Halt separation.
-- Batch 3 now surfaces config source truth directly in Automation and explicitly warns when runtime is using fallback sources (`market_directives` / metadata) instead of canonical `market_plans`.
-- Batch 3 keeps advanced settings available behind a disclosure toggle rather than removing them.
-- Batch 3 adds honest post-action feedback that differentiates server-persisted save from local fallback save.
-- Batch 3 did not change any `app/api/market/*` route, runtime-config resolution logic, scheduler logic, summary endpoint logic, or backend contracts.
-- Continuation note: terminal command execution (`npm run typecheck`, `npx tsc --noEmit`) is currently blocked in this session by `ENOPRO`; rely on editor diagnostics plus GitNexus until terminal provider is restored.
+- Batch 4.5 converted every remaining white/light card surface across 14 Market presentation components into the dark operator console vocabulary. This is CSS-only; no functional changes.
+- Batch 4 upgraded Results into a verification-first surface that combines open positions, trade history, compact activity feed, wallet snapshot, backend readiness state, and live blockers.
+- Batch 4 adds explicit post-action context after direct buy/scan/automation actions so verification steps are clear.
+- Batch 4 tightens wallet/readiness copy so "live-ready" requires both wallet checklist completion and backend `liveServerReady` from system status.
+- No batch changed any `app/api/market/*` route, runtime-config resolution logic, scheduler logic, summary endpoint logic, or backend contracts.
+- Continuation note: terminal command execution (`npm run typecheck`, `npx tsc --noEmit`) is currently blocked by `ENOPRO`; rely on editor diagnostics plus GitNexus until terminal provider is restored.
 - Verify next chat before widening scope:
-	- 4 primary nav items only
-	- Automation shows explicit action meanings for Save Draft / Save + Start Robot / Run Scan Now / Stop-Halt
-	- Automation summary shows config source and fallback warning when not using `market_plans`
-	- Advanced settings remain reachable via disclosure
-	- Saved plans, current automation status, and Results entry remain reachable
-	- No UI copy implies live automation exists end-to-end
+	- Results shows open positions + history + activity + wallet snapshot + blocker panel in one operator view
+	- Post-action context appears in Results after buys/scans/automation actions
+	- Wallet tab surfaces backend blockers in plain English
+	- No UI copy implies bypassing live blockers or guaranteed live automation
 
 ## Rules Of Engagement
 - Respect the repo-aligned gate: `/market` is controlled by `canAccessMarket`, not entitlements and not blanket internal access.

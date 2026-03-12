@@ -1,14 +1,90 @@
 # Market Robot Build File
 
 Last Updated: 2026-03-12
-Current Batch: Batch 3 - Automation rescue landed (local)
-Status: Batch 3 frontend rescue landed locally. Automation now has beginner presets, explicit Save Draft vs Save + Start Robot vs Run Scan Now vs Stop/Halt semantics, visible runtime config-source truth (including fallback wording), advanced controls behind disclosure, and honest post-action messaging tied to server confirmation boundaries.
+Current Batch: Batch 4.5 - Operator console visual replacement pass (local)
+Status: Batch 4.5 dark-theme visual unification landed locally. Every Market presentation component now uses the dark operator console vocabulary (slate-700/800 borders, slate-900/950 panels, slate-100–500 text). No remaining white/light card surfaces in the Market subtree.
+
+Continuation Note (2026-03-12, Batch 4 preflight + implementation): startup read order was completed in the required sequence. `npm run typecheck` and `npx tsc --noEmit` were each attempted once and both failed with terminal `ENOPRO`, so validation used editor diagnostics on changed files plus GitNexus `detect_changes`. Batch 4 frontend unification changes landed locally without any `app/api/market/*` route edits.
+
+## Batch 4 Outcome — 2026-03-12
+- Status: complete (local changes only; push blocked)
+- Files changed:
+	- `components/dashboard/MarketClient.tsx`
+	- `components/dashboard/market/MarketResultsTab.tsx`
+	- `components/dashboard/market/MarketLiveWalletTab.tsx`
+- What changed:
+	- Results now acts as a verification-first operator surface with a compact terminal-style console that combines open positions, recent history/activity counts, wallet snapshot, server runtime/config source, and live blocker visibility from existing `system-status` data.
+	- Results now shows explicit post-action context after direct buys/scans/automation actions so users know exactly what to verify next (open positions, history, and activity log updates).
+	- Results activity stream remains sourced from existing hooks and is presented in a compact monitor form.
+	- Wallet/readiness copy is now stricter: "live ready" language requires both local checklist pass and backend `liveServerReady`; backend blockers are surfaced in plain English.
+	- Wallet verification test wording no longer implies the app can bypass server blockers.
+- What was intentionally not changed:
+	- No `app/api/market/*` route was edited.
+	- No runtime-config resolution logic changed.
+	- No scheduler logic changed.
+	- No summary endpoint logic changed.
+	- No backend contracts changed.
+	- No Vercel env/redeploy work was mixed into this batch.
+- Validation and command notes:
+	- Attempted `npm run typecheck`: blocked by `ENOPRO`.
+	- Attempted `npx tsc --noEmit`: blocked by `ENOPRO`.
+	- Ran GitNexus `detect_changes` after edits.
+	- Ran editor diagnostics (`get_errors`) on changed files: no errors reported.
+	- Repo was clean before editing according to preflight change detection.
+	- Commit/push not performed due terminal `ENOPRO` blocker.
+- Visible UI things to verify right now:
+	- Results now shows a verification console with open positions, trade/activity counts, wallet snapshot, server runtime/config source, and live blocker count.
+	- After buy/scan/apply actions, Results shows contextual verification guidance.
+	- Results still exposes open positions, trade history, and recent robot activity in one place.
+	- Wallet/readiness now shows backend blocker lines and only marks live-ready when both wallet checks and backend readiness are green.
+	- Copy remains truthful if `NEXT_PUBLIC_POLYMARKET_SPENDER` or other blockers persist.
+- Blockers for Batch 5:
+	- Terminal provider remains blocked (`ENOPRO`) for full CLI validation and git commit/push.
+	- Backend truth-source unification still remains out of scope and unresolved by design in Batch 4.
+	- Live readiness still depends on existing backend/env blockers reported by system status.
 
 Continuation Note (2026-03-12): required preflight/read order was rerun in a fresh chat and GitNexus `detect_changes` was executed successfully. Terminal command execution remains blocked by `ENOPRO`, so `npm run typecheck` / `npx tsc --noEmit` could not be rerun from terminal in this session. No push was performed.
 
 Continuation Note (2026-03-12, Vercel env diagnostic): read/verify-only env triage was run to validate the `NEXT_PUBLIC_POLYMARKET_SPENDER` blocker. This workspace remains terminal-blocked by `ENOPRO`, so live `vercel env ls` and `vercel env run` commands could not be rerun in-chat. Local Vercel link metadata confirms this repo is linked to `slate360-rebuild`, and the latest local Vercel env snapshot file (`.env.vercel.tmp`) still does not include `NEXT_PUBLIC_POLYMARKET_SPENDER`. If the variable was recently added in Vercel UI, production likely needs a fresh build deployment for `NEXT_PUBLIC_*` propagation.
 
 Continuation Note (2026-03-12, Vercel env diagnostic follow-up): `vercel whoami`, `vercel env ls production`, and `vercel env ls preview` were successfully executed in a fresh chat before terminal degradation and all confirmed `NEXT_PUBLIC_POLYMARKET_SPENDER` is present in Vercel env scopes (`Production, Preview, Development`). The same chat then hit `ENOPRO` on `vercel env pull --environment=production --yes`, and `vercel env run -e production -- npm run diag:market-runtime` could not be executed afterward. Local artifacts at chat end still show no `NEXT_PUBLIC_POLYMARKET_SPENDER` in `.env.vercel.tmp` or `.env.local`, so the highest-confidence next step is a production redeploy to force `NEXT_PUBLIC_*` client build propagation, then rerun pull and production env-run diagnostics.
+
+## Batch 4.5 Outcome — 2026-03-12
+- Status: complete (local changes only; push blocked by ENOPRO)
+- Files changed:
+	- `components/dashboard/market/MarketAutomationTab.tsx`
+	- `components/dashboard/market/MarketResultsTab.tsx`
+	- `components/dashboard/market/MarketStartHereTab.tsx`
+	- `components/dashboard/market/MarketSystemStatusCard.tsx`
+	- `components/dashboard/market/MarketResultsVerificationConsole.tsx`
+	- `components/dashboard/market/MarketResultsInsights.tsx`
+	- `components/dashboard/market/MarketOpenPositionsPanel.tsx`
+	- `components/dashboard/market/MarketActivityFeed.tsx`
+	- `components/dashboard/market/MarketAutomationBuilder.tsx`
+	- `components/dashboard/market/MarketPlanList.tsx`
+	- `components/dashboard/market/MarketListingDetailDrawer.tsx`
+	- `components/dashboard/market/MarketAutomationDetailControls.tsx`
+	- `components/dashboard/market/MarketPlanInsights.tsx`
+	- `components/dashboard/market/MarketNumericInput.tsx`
+- What changed:
+	- Every Market presentation component converted from white/light card styling to dark operator console vocabulary.
+	- Dark theme vocabulary: `border-slate-700/800`, `bg-slate-900/80` or `bg-slate-950/70/80` for panels, `text-slate-100/200/300` for content text, `text-slate-400/500` for muted text, transparent color variants for badges/alerts (e.g. `bg-amber-500/15`, `bg-emerald-500/15`, `bg-violet-500/15`).
+	- Outcome panels, preview cards, inputs, toggles, buttons all converted.
+	- Orange `#FF4D00` accent preserved throughout.
+	- Cyan accents on Results header gradient preserved.
+- What was intentionally not changed:
+	- No `app/api/market/*` route was edited.
+	- No runtime-config resolution logic changed.
+	- No scheduler logic changed.
+	- No hooks or utilities changed.
+	- No backend contracts changed.
+	- No functional behavior changed — this is CSS-only.
+	- Files already dark were not touched: MarketConsoleHeaderStrip, MarketOperatorRail, MarketDashboardSection, MarketMarketsSection, MarketTopOverview, MarketSavedMarketsTab, MarketDirectBuyTab, MarketDirectBuyResults, MarketPrimaryNav.
+- Validation:
+	- Editor diagnostics (`get_errors`) on all 14 changed files: zero errors.
+	- Terminal `npm run typecheck` / `npx tsc --noEmit` not attempted (ENOPRO known blocker).
+- Blockers:
+	- Terminal provider remains blocked (`ENOPRO`) for full CLI validation and git commit/push.
 
 ## Batch 3 Outcome — 2026-03-12
 - Status: complete (local changes only; push blocked)

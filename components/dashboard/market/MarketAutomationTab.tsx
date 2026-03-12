@@ -119,20 +119,20 @@ export default function MarketAutomationTab({ botConfig, onApplyPlan, onRunNow, 
         <div
           className={`rounded-xl border px-3 py-2 text-xs ${
             actionFeedback.type === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-200"
               : actionFeedback.type === "warning"
-                ? "border-amber-200 bg-amber-50 text-amber-800"
-                : "border-slate-200 bg-slate-50 text-slate-700"
+                ? "border-amber-500/30 bg-amber-500/15 text-amber-200"
+                : "border-slate-700 bg-slate-900/80 text-slate-300"
           }`}
         >
           {actionFeedback.message}
         </div>
       )}
 
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="border border-slate-800 bg-slate-950/70 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">Automation Plans</h3>
-          <p className="text-xs text-gray-500 mt-1">
+          <h3 className="text-sm font-semibold text-slate-100">Automation Plans</h3>
+          <p className="text-xs text-slate-400 mt-1">
             Build a paper or live robot plan, then start it immediately from here. Practice plans: {quickStats.practicePlans} · Live plans: {quickStats.realPlans}
           </p>
         </div>
@@ -183,9 +183,9 @@ export default function MarketAutomationTab({ botConfig, onApplyPlan, onRunNow, 
         />
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
+      <div className="rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-xs text-slate-400">
         <p>
-          <span className="font-semibold text-slate-800">How this works:</span> Save Draft stores configuration only. Save + Start Robot stores then requests runtime start. Run Scan Now requests an immediate scan using current runtime settings. Stop / Halt sends a stop request. Runtime state and config source are only canonical after server confirmation.
+          <span className="font-semibold text-slate-200">How this works:</span> Save Draft stores configuration only. Save + Start Robot stores then requests runtime start. Run Scan Now requests an immediate scan using current runtime settings. Stop / Halt sends a stop request. Runtime state and config source are only canonical after server confirmation.
         </p>
       </div>
     </div>
@@ -218,22 +218,22 @@ function ActivePlanSummary({
   const [showDebug, setShowDebug] = React.useState(false);
 
   return (
-    <div className={`rounded-2xl border p-4 ${isRunning ? "bg-orange-50 border-orange-200" : "bg-gray-50 border-gray-200"}`}>
+    <div className={`rounded-2xl border p-4 ${isRunning ? "bg-orange-500/10 border-orange-400/25" : "bg-slate-900/80 border-slate-700"}`}>
       {/* Status + actions row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
             {isRunning ? "🟢 Runtime Running" : "⏸️ Runtime Not Running"}
             {botConfig.paperMode && (
-              <span className="text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded-full">Practice</span>
+              <span className="text-[10px] bg-purple-500/15 text-purple-200 border border-purple-400/25 px-1.5 py-0.5 rounded-full">Practice</span>
             )}
           </h3>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             {defaultPlan ? `Plan: ${defaultPlan.name}` : "No plan selected"}
             {" · "}${botConfig.capitalAlloc} budget · {botConfig.maxTradesPerDay} trades/day · {botConfig.riskMix} risk
             {presetLabel && ` · ${getAutomationPresetLabel(presetLabel)} preset`}
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             Save state: {defaultPlan ? "Saved" : "Not saved"} · Runtime state: {runtimeLabel}
           </p>
         </div>
@@ -247,7 +247,7 @@ function ActivePlanSummary({
           {isRunning && (
             <button
               onClick={onStopBot}
-              className="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 transition"
+              className="px-3 py-1.5 rounded-lg border border-red-400/30 bg-red-500/15 text-red-300 text-xs font-semibold hover:bg-red-500/25 transition"
             >
               Stop / Halt
             </button>
@@ -255,13 +255,13 @@ function ActivePlanSummary({
         </div>
       </div>
 
-      <div className="mb-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
+      <div className="mb-3 rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs text-slate-300">
         <p>
           <span className="font-semibold">Config source:</span> {system?.configSourceLabel ?? "Unknown"}
           {system?.configSource ? ` (${system.configSource})` : ""}
         </p>
         {system && system.configSource !== "market_plans" && (
-          <p className="mt-1 text-amber-700">
+          <p className="mt-1 text-amber-300">
             Runtime is using fallback source, not canonical market_plans.
             {system.hasLegacyDirective ? " Legacy directives are active." : ""}
             {system.hasRuntimeMetadata ? " Runtime metadata overlay is active." : ""}
@@ -272,17 +272,17 @@ function ActivePlanSummary({
 
       {/* Quick stats row */}
       <div className="grid grid-cols-3 gap-3 text-center text-xs">
-        <div className="rounded-lg bg-white/70 border border-white px-2 py-1.5">
-          <span className="text-gray-400">Trades today</span>
-          <p className="font-bold text-gray-900">{serverHealth?.tradesToday ?? 0}</p>
+        <div className="rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1.5">
+          <span className="text-slate-500">Trades today</span>
+          <p className="font-bold text-slate-100">{serverHealth?.tradesToday ?? 0}</p>
         </div>
-        <div className="rounded-lg bg-white/70 border border-white px-2 py-1.5">
-          <span className="text-gray-400">Scans today</span>
-          <p className="font-bold text-gray-900">{serverHealth?.runsToday ?? 0}</p>
+        <div className="rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1.5">
+          <span className="text-slate-500">Scans today</span>
+          <p className="font-bold text-slate-100">{serverHealth?.runsToday ?? 0}</p>
         </div>
-        <div className="rounded-lg bg-white/70 border border-white px-2 py-1.5">
-          <span className="text-gray-400">Last scan</span>
-          <p className="font-bold text-gray-900">
+        <div className="rounded-lg border border-slate-700 bg-slate-900/80 px-2 py-1.5">
+          <span className="text-slate-500">Last scan</span>
+          <p className="font-bold text-slate-100">
             {serverHealth?.lastRunIso ? new Date(serverHealth.lastRunIso).toLocaleTimeString() : "—"}
           </p>
         </div>
@@ -292,30 +292,30 @@ function ActivePlanSummary({
       {recentLogLines.length > 0 && (
         <div className="mt-3 space-y-1">
           {recentLogLines.map((line, i) => (
-            <p key={i} className="text-xs text-gray-600">{line}</p>
+            <p key={i} className="text-xs text-slate-400">{line}</p>
           ))}
         </div>
       )}
 
       {serverHealth?.lastError && (
-        <p className="text-xs text-red-600 mt-2">Last error: {serverHealth.lastError}</p>
+        <p className="text-xs text-red-300 mt-2">Last error: {serverHealth.lastError}</p>
       )}
 
       {/* Collapsible debug info */}
       <button
         onClick={() => setShowDebug(v => !v)}
-        className="mt-2 text-[10px] text-gray-400 hover:text-gray-600 transition"
+        className="mt-2 text-[10px] text-slate-500 hover:text-slate-300 transition"
       >
         {showDebug ? "▲ Hide server details" : "▼ Server details"}
       </button>
       {showDebug && (
-        <div className="mt-2 text-xs text-gray-500 space-y-1">
-          <p>Server status: <strong className="text-gray-700 capitalize">{serverStatus}</strong></p>
+        <div className="mt-2 text-xs text-slate-400 space-y-1">
+          <p>Server status: <strong className="text-slate-200 capitalize">{serverStatus}</strong></p>
           {serverHealth?.nextEligibleRunIso && (
             <p>Next background run: {new Date(serverHealth.nextEligibleRunIso).toLocaleTimeString()}</p>
           )}
           {(serverHealth?.tradesToday ?? 0) === 0 && serverStatus !== "stopped" && (
-            <p className="text-amber-700">Robot is on but placed no trades yet — no markets may match your filters right now.</p>
+            <p className="text-amber-300">Robot is on but placed no trades yet — no markets may match your filters right now.</p>
           )}
         </div>
       )}

@@ -6,6 +6,8 @@ import { useMarketBot } from "@/lib/hooks/useMarketBot";
 import { useMarketServerStatus } from "@/lib/hooks/useMarketServerStatus";
 import { useMarketSystemStatus } from "@/lib/hooks/useMarketSystemStatus";
 import MarketPrimaryNav from "@/components/dashboard/market/MarketPrimaryNav";
+import MarketConsoleHeaderStrip from "@/components/dashboard/market/MarketConsoleHeaderStrip";
+import MarketOperatorRail from "@/components/dashboard/market/MarketOperatorRail";
 import MarketAutomationTab from "@/components/dashboard/market/MarketAutomationTab";
 import MarketResultsTab from "@/components/dashboard/market/MarketResultsTab";
 import MarketLiveWalletTab from "@/components/dashboard/market/MarketLiveWalletTab";
@@ -34,6 +36,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   const visibleTabs = layoutPrefs?.visibleTabs ?? [];
   const [activeTabId, setActiveTabId] = useState("dashboard");
   const [scanBanner, setScanBanner] = useState<ScanBanner | null>(null);
+  const [resultsActionContext, setResultsActionContext] = useState<string | null>(null);
   const logsEnabled = activeTabId === "results";
 
   // If active tab is hidden, snap to first visible
@@ -57,6 +60,14 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   const serverStatus = useMarketServerStatus();
   const systemStatus = useMarketSystemStatus();
   const setPrimaryTab = useCallback((tabId: string) => setActiveTabId(normalizeTabId(tabId)), []);
+  const walletSnapshot = {
+    address: wallet.address,
+    isConnected: wallet.isConnected,
+    usdcBalance: wallet.usdcBalance,
+    maticFormatted: wallet.maticData ? `${parseFloat(wallet.maticData.formatted).toFixed(4)} ${wallet.maticData.symbol}` : "—",
+    walletVerified: wallet.walletVerified,
+    liveChecklist: wallet.liveChecklist,
+  };
 
   useEffect(() => {
     fetchTrades();
@@ -136,17 +147,21 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
 
       if (scanResult.tradesPlaced > 0) {
         setScanBanner({ type: "success", message: `Robot placed ${scanResult.tradesPlaced} trade${scanResult.tradesPlaced !== 1 ? "s" : ""}. Check History for details.` });
+        setResultsActionContext("Latest action placed new trade entries. Verify Open Positions, then confirm History and Activity Log updated below.");
         setPrimaryTab("results");
       } else if (scanResult.ok) {
         setScanBanner({ type: "empty", message: `Scan complete — scanned markets but no trades matched your filters right now. The robot will keep scanning automatically.` });
+        setResultsActionContext("Latest action completed with no new trades. Review Activity Log for scan details and blockers/readiness before retrying.");
       } else {
         setScanBanner({ type: "error", message: `Scan error: ${scanResult.error ?? "Unknown error"}` });
+        setResultsActionContext(`Latest action reported an error: ${scanResult.error ?? "Unknown error"}. Use Activity Log and Live Blockers to troubleshoot before retrying.`);
       }
     })();
   }, [bot, setPrimaryTab]);
 
   const handleTradePlaced = useCallback(async () => {
     await refreshTruthSurfaces();
+    setResultsActionContext("Buy request finished. Verify the new entry in Open Positions, then confirm Trade History and Activity Log timing.");
     setPrimaryTab("results");
   }, [refreshTruthSurfaces, setPrimaryTab]);
 
@@ -209,11 +224,14 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
                 const result = await bot.runScan();
                 if (result.tradesPlaced > 0) {
                   setScanBanner({ type: "success", message: `Scan placed ${result.tradesPlaced} trade${result.tradesPlaced !== 1 ? "s" : ""}.` });
+                  setResultsActionContext("Manual scan placed trades. Verify Open Positions and History updates in Results.");
                   setPrimaryTab("results");
                 } else if (result.ok) {
                   setScanBanner({ type: "empty", message: `Scan complete — no opportunities matched filters right now.` });
+                  setResultsActionContext("Manual scan completed with no trades. Review recent activity and blockers before changing filters.");
                 } else {
                   setScanBanner({ type: "error", message: `Scan error: ${result.error ?? "Unknown error"}` });
+                  setResultsActionContext(`Manual scan error: ${result.error ?? "Unknown error"}. Check system blockers and activity log before retrying.`);
                 }
               })();
             }}
@@ -229,6 +247,12 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
             trades={trades}
             activityLogs={activityLogs}
             onRefresh={refreshTruthSurfaces}
+            system={systemStatus.system}
+            systemLoading={systemStatus.loading}
+            systemError={systemStatus.error}
+            serverStatus={serverStatus.status}
+            walletSnapshot={walletSnapshot}
+            postActionContext={resultsActionContext}
           />
         );
       default:
@@ -236,18 +260,23 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
     }
   }
   const normalizedVisibleTabs = visibleTabs.map((tab) => ({ ...tab, id: normalizeTabId(tab.id) }));
+  const activeTabLabel = normalizedVisibleTabs.find((tab) => tab.id === activeTabId)?.label ?? "Dashboard";
+  const openPositionsCount = trades.filter((trade) => trade.status === "open" && !trade.closedAt).length;
+  const lastRunLabel = serverStatus.health?.lastRunIso
+    ? new Date(serverStatus.health.lastRunIso).toLocaleTimeString()
+    : "Unavailable";
 
   return (
     <div className="space-y-6 text-slate-100">
-      <div className="rounded-[32px] border border-cyan-500/20 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.15),transparent_24%),radial-gradient(circle_at_top_right,rgba(249,115,22,0.18),transparent_20%),linear-gradient(180deg,#020617,#0f172a)] px-5 py-6 shadow-[0_24px_80px_rgba(2,6,23,0.5)]">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300/80">Market Robot</p>
-          <h1 className="mt-2 text-3xl font-black text-slate-50">Dark terminal shell, beginner-first sections, server-grounded status</h1>
-          <p className="mt-2 text-sm text-slate-300">
-            Primary navigation is limited to Dashboard, Markets, Automation, and Results. Watchlist now lives under Markets, and wallet/live readiness is reachable from Dashboard.
-          </p>
-        </div>
-      </div>
+      <MarketConsoleHeaderStrip
+        activeTabLabel={activeTabLabel}
+        runtimeStatus={serverStatus.status === "unknown" ? "Unavailable" : serverStatus.status}
+        configSourceLabel={systemStatus.system?.configSourceLabel ?? "Unavailable"}
+        blockerCount={systemStatus.system?.blockers.length ?? 0}
+        liveReady={systemStatus.system?.liveServerReady ?? false}
+        openPositionsCount={openPositionsCount}
+        lastRunLabel={lastRunLabel}
+      />
 
       <MarketPrimaryNav
         tabs={normalizedVisibleTabs}
@@ -267,7 +296,16 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
         </div>
       )}
 
-      {renderActiveTab()}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
+        <div className="min-w-0">{renderActiveTab()}</div>
+        <MarketOperatorRail
+          walletSnapshot={walletSnapshot}
+          system={systemStatus.system}
+          serverStatus={serverStatus.status}
+          activityLogs={activityLogs}
+          onNavigate={setPrimaryTab}
+        />
+      </div>
     </div>
   );
 }

@@ -43,11 +43,11 @@ export default function MarketDashboardSection({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[32px] border border-cyan-500/20 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_24%),radial-gradient(circle_at_top_right,rgba(249,115,22,0.18),transparent_22%),linear-gradient(180deg,#020617,#0f172a)] p-5 shadow-[0_24px_80px_rgba(2,6,23,0.55)]">
+      <section className="rounded-[32px] border border-cyan-500/20 bg-[linear-gradient(135deg,rgba(8,15,31,0.96),rgba(15,23,42,0.96))] p-5 shadow-[0_24px_80px_rgba(2,6,23,0.55)]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-cyan-300/80">Dashboard</p>
-            <h2 className="mt-2 text-3xl font-black text-slate-50">Truth-first command deck</h2>
+            <h2 className="mt-2 text-2xl font-black text-slate-50">Operator command deck</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
               Visible status here is grounded only in trades, bot-status, scheduler health, and system-status.
               When the server cannot confirm a value, the UI stays neutral instead of inferring from local config.
@@ -81,43 +81,47 @@ export default function MarketDashboardSection({
         </div>
       </section>
 
-      <MarketTopOverview
-        trades={trades}
-        system={system}
-        serverStatus={serverStatus.status}
-        serverHealth={serverStatus.health as SchedulerHealthViewModel | null}
-        onOpenResults={() => onNavigate("results")}
-        onOpenAutomation={() => onNavigate("automation")}
-        onOpenWallet={() => setWalletOpen(true)}
-      />
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.9fr)] xl:items-start">
+        <MarketStartHereTab
+          onNavigate={onNavigate}
+          onApplyRecommendation={onApplyRecommendation}
+          onQuickStart={onQuickStart}
+          onStopBot={onStopBot}
+          paperMode={paperMode}
+          serverStatus={serverStatus.status}
+          serverConfirmed={serverStatus.isConfirmed}
+          serverHealth={serverStatus.health}
+        />
 
-      {walletOpen && (
-        <section className="rounded-[32px] border border-slate-800 bg-slate-950/70 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.45)]">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Wallet And Live Readiness</p>
-              <p className="mt-1 text-sm text-slate-300">
-                Live mode remains blocked until both wallet prerequisites and backend readiness are green.
-              </p>
-            </div>
-            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${paperMode ? "bg-violet-500/20 text-violet-200" : "bg-emerald-500/20 text-emerald-200"}`}>
-              {paperMode ? "Practice Default" : "Live Default"}
-            </span>
-          </div>
-          {walletPanel}
-        </section>
-      )}
+        <div className="space-y-6">
+          <MarketTopOverview
+            trades={trades}
+            system={system}
+            serverStatus={serverStatus.status}
+            serverHealth={serverStatus.health as SchedulerHealthViewModel | null}
+            onOpenResults={() => onNavigate("results")}
+            onOpenAutomation={() => onNavigate("automation")}
+            onOpenWallet={() => setWalletOpen(true)}
+          />
 
-      <MarketStartHereTab
-        onNavigate={onNavigate}
-        onApplyRecommendation={onApplyRecommendation}
-        onQuickStart={onQuickStart}
-        onStopBot={onStopBot}
-        paperMode={paperMode}
-        serverStatus={serverStatus.status}
-        serverConfirmed={serverStatus.isConfirmed}
-        serverHealth={serverStatus.health}
-      />
+          {walletOpen && (
+            <section className="rounded-[32px] border border-slate-800 bg-slate-950/70 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.45)]">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Wallet And Live Readiness</p>
+                  <p className="mt-1 text-sm text-slate-300">
+                    Live mode remains blocked until both wallet prerequisites and backend readiness are green.
+                  </p>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${paperMode ? "bg-violet-500/20 text-violet-200" : "bg-emerald-500/20 text-emerald-200"}`}>
+                  {paperMode ? "Practice Default" : "Live Default"}
+                </span>
+              </div>
+              {walletPanel}
+            </section>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

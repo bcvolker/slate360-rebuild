@@ -114,7 +114,7 @@ export default function MarketStartHereTab({
       <div className={`rounded-[28px] p-5 sm:p-6 transition-colors ${
         isActive
           ? "bg-[radial-gradient(ellipse_at_top_right,#ff6b1a22,transparent),linear-gradient(135deg,#0f172a,#1e293b)]"
-          : "bg-white border border-gray-100 shadow-sm"
+          : "border border-slate-800 bg-slate-950/70"
       }`}>
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
@@ -146,11 +146,11 @@ export default function MarketStartHereTab({
               </>
             ) : (
               <>
-                <p className="text-base font-bold text-gray-800 mb-1">🤖 Robot is not running</p>
-                <p className="text-sm text-gray-500 max-w-sm leading-relaxed">
-                  Start in <strong>practice mode</strong> — the robot scans real Polymarket listings,
+                <p className="text-base font-bold text-slate-100 mb-1">🤖 Robot is not running</p>
+                <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
+                  Start in <strong className="text-slate-200">practice mode</strong> — the robot scans real Polymarket listings,
                   picks trades automatically, and logs results.{" "}
-                  <strong>No real money required.</strong>
+                  <strong className="text-slate-200">No real money required.</strong>
                 </p>
               </>
             )}
@@ -209,11 +209,11 @@ export default function MarketStartHereTab({
           {[
             { label: "Trades today", value: String(tradesToday) },
             { label: "Runs today", value: String(serverHealth?.runsToday ?? "—") },
-            { label: "Mode", value: isPaper ? "Practice" : "Live", color: isPaper ? "text-purple-700" : "text-green-700" },
+            { label: "Mode", value: isPaper ? "Practice" : "Live", color: isPaper ? "text-purple-300" : "text-green-300" },
           ].map(stat => (
-            <div key={stat.label} className="rounded-2xl bg-white border border-gray-100 shadow-sm p-3 text-center">
-              <p className="text-[10px] text-gray-400 uppercase tracking-wide">{stat.label}</p>
-              <p className={`text-xl font-black mt-1 ${stat.color ?? "text-gray-900"}`}>{stat.value}</p>
+            <div key={stat.label} className="rounded-2xl border border-slate-700 bg-slate-900/80 p-3 text-center">
+              <p className="text-[10px] text-slate-500 uppercase tracking-wide">{stat.label}</p>
+              <p className={`text-xl font-black mt-1 ${stat.color ?? "text-slate-100"}`}>{stat.value}</p>
             </div>
           ))}
         </div>
@@ -222,7 +222,7 @@ export default function MarketStartHereTab({
       {/* ── Quick-start templates (only when bot is idle) ── */}
       {!isActive && (
         <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">
             Or choose a template to start with
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -230,12 +230,12 @@ export default function MarketStartHereTab({
               <button
                 key={rec.id}
                 onClick={() => onApplyRecommendation(presetToPlan(rec, "practice"))}
-                className="p-4 rounded-2xl border border-gray-100 bg-white shadow-sm text-left hover:border-[#FF4D00]/40 hover:shadow-md transition"
+                className="p-4 rounded-2xl border border-slate-700 bg-slate-950/70 text-left hover:border-cyan-400/30 hover:bg-slate-900 transition"
               >
                 <p className="text-2xl mb-2">{rec.emoji}</p>
-                <p className="font-semibold text-gray-900 text-sm leading-snug">{rec.title}</p>
-                <p className="text-[11px] text-gray-400 mt-1 mb-3 leading-relaxed">{rec.why}</p>
-                <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                <p className="font-semibold text-slate-100 text-sm leading-snug">{rec.title}</p>
+                <p className="text-[11px] text-slate-400 mt-1 mb-3 leading-relaxed">{rec.why}</p>
+                <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-200 border border-purple-400/25">
                   Practice mode
                 </span>
               </button>
@@ -255,7 +255,7 @@ export default function MarketStartHereTab({
           <button
             key={link.id}
             onClick={() => onNavigate(link.id)}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-100 bg-white shadow-sm text-sm text-gray-700 hover:bg-orange-50 hover:border-orange-200 transition font-medium"
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-700 bg-slate-950/70 text-sm text-slate-200 hover:bg-slate-900 hover:border-cyan-400/30 transition font-medium"
           >
             <span>{link.emoji}</span> {link.label}
           </button>
@@ -263,21 +263,21 @@ export default function MarketStartHereTab({
       </div>
 
       {/* ── YES/NO explainer ── */}
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+      <div className="border border-slate-700 bg-slate-950/70 rounded-2xl overflow-hidden">
         <button
           onClick={() => setExplainerOpen(v => !v)}
-          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-200 hover:bg-slate-900 transition"
         >
           <span>ℹ️ What is YES / NO betting on Polymarket?</span>
-          <span className="text-gray-400 text-xs">{explainerOpen ? "▲ Hide" : "▼ Show"}</span>
+          <span className="text-slate-500 text-xs">{explainerOpen ? "▲ Hide" : "▼ Show"}</span>
         </button>
         {explainerOpen && (
-          <div className="px-4 pb-4 space-y-2 text-xs text-gray-600 border-t border-gray-100 pt-3">
-            <p><strong>YES</strong> — you think an event will happen. Pays $1 per share if it resolves YES.</p>
-            <p><strong>NO</strong> — you think it won&apos;t happen. Pays $1 per share if it resolves NO.</p>
+          <div className="px-4 pb-4 space-y-2 text-xs text-slate-400 border-t border-slate-700 pt-3">
+            <p><strong className="text-slate-200">YES</strong> — you think an event will happen. Pays $1 per share if it resolves YES.</p>
+            <p><strong className="text-slate-200">NO</strong> — you think it won&apos;t happen. Pays $1 per share if it resolves NO.</p>
             <p>Prices are in cents (0–99¢). A YES at 60¢ means roughly a 60% probability the event happens.</p>
-            <p>Your <strong>max loss</strong> is always the amount you spend. Your <strong>max win</strong> = shares × $1.00.</p>
-            <p className="text-gray-400">
+            <p>Your <strong className="text-slate-200">max loss</strong> is always the amount you spend. Your <strong className="text-slate-200">max win</strong> = shares × $1.00.</p>
+            <p className="text-slate-500">
               Example: 10 YES shares at 40¢ = $4 spent. Resolves YES → you receive $10 (profit: $6).
             </p>
             <button

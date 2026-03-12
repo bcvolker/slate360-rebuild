@@ -83,6 +83,8 @@ export default function MarketLiveWalletTab({
   const allPassed = readinessChecks.every((c) => c.passed);
   const passedCount = readinessChecks.filter((c) => c.passed).length;
   const blockers = readinessChecks.filter((c) => !c.passed);
+  const serverLiveReady = systemStatus.system?.liveServerReady ?? false;
+  const effectiveLiveReady = allPassed && serverLiveReady;
 
   const handleTestFlow = useCallback(async () => {
     setTestRunning(true);
@@ -97,27 +99,33 @@ export default function MarketLiveWalletTab({
       if (!liveChecklist.usdcApproved) issues.push("USDC not approved");
       if (!liveChecklist.usdcFunded) issues.push("No USDC balance");
       if (!gasOk) issues.push("Insufficient gas");
-      setTestResult(issues.length === 0 ? "All systems go — ready for live trading!" : `${issues.length} issue(s): ${issues.join(", ")}`);
+      if (issues.length > 0) {
+        setTestResult(`${issues.length} issue(s): ${issues.join(", ")}`);
+      } else if (!serverLiveReady) {
+        setTestResult("Wallet checks passed, but backend status still reports live blockers. Keep using Practice mode until server readiness is green.");
+      } else {
+        setTestResult("Wallet checks and backend status are aligned for live readiness.");
+      }
     } finally {
       setTestRunning(false);
     }
-  }, [isConnected, networkOk, walletVerified, liveChecklist, gasOk]);
+  }, [isConnected, networkOk, walletVerified, liveChecklist, gasOk, serverLiveReady]);
 
   return (
     <div className="space-y-5">
       {/* Overall readiness */}
-      <div className={`rounded-2xl border-2 p-5 ${allPassed ? "border-green-300 bg-green-50/50" : "border-amber-300 bg-amber-50/50"}`}>
+      <div className={`rounded-2xl border-2 p-5 ${effectiveLiveReady ? "border-green-300 bg-green-50/50" : "border-amber-300 bg-amber-50/50"}`}>
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              {allPassed ? "🟢 Ready for Live Trading" : "⚠️ Setup Incomplete"}
+              {effectiveLiveReady ? "Live Setup Looks Ready" : "Setup Incomplete Or Server-Blocked"}
               <HelpTip content="All checks must be green before live trading can start" />
             </h3>
             <p className="text-sm text-gray-600 mt-1">
               {passedCount} of {readinessChecks.length} checks passed
             </p>
           </div>
-          <StatusBadge status={allPassed ? "connected" : "idle"} />
+          <StatusBadge status={effectiveLiveReady ? "connected" : "idle"} />
         </div>
 
         {!allPassed && blockers.length > 0 && (
@@ -142,6 +150,16 @@ export default function MarketLiveWalletTab({
         error={systemStatus.error}
         title="Live-trading backend health"
       />
+      {systemStatus.system && systemStatus.system.blockers.length > 0 && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">Live blockers from backend status</p>
+          <div className="mt-2 space-y-1.5">
+            {systemStatus.system.blockers.slice(0, 4).map((blocker) => (
+              <p key={blocker.code} className="text-xs text-amber-800">• {blocker.label}: {blocker.detail}</p>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Wallet connect */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 space-y-4">
@@ -227,10 +245,10 @@ export default function MarketLiveWalletTab({
       {/* Risk disclaimer */}
       {!disclaimerAccepted && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-          <h4 className="text-sm font-bold text-amber-800 mb-2">⚠️ Risk Disclaimer</h4>
+          <h4 className="text-sm font-bold text-amber-800 mb-2">Risk Disclaimer</h4>
           <p className="text-xs text-amber-700 mb-3">
-            Live trading uses real funds. Market Robot executes trades autonomously based on your configured settings.
-            You can lose money. Past performance does not guarantee future results. Only use funds you can afford to lose.
+            Live trading uses real funds. Direct actions and automation controls can place orders only when wallet and backend readiness checks pass.
+            You can lose money, and past performance does not guarantee future results. Only use funds you can afford to lose.
           </p>
           <button onClick={() => setDisclaimerAccepted(true)}
             className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-xl text-sm transition">

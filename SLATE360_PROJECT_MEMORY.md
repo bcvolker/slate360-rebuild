@@ -152,32 +152,38 @@ When editing these, always read both the state declarations AND the JSX sections
 ### Session Handoff — 2026-03-12
 
 #### What Changed
-- Ran a read/verify-only Vercel env diagnostic pass focused on `NEXT_PUBLIC_POLYMARKET_SPENDER`
-- Verified Vercel CLI auth and project linkage in-chat:
-	- `vercel whoami` returned `slate360ceo-8370`
-	- `.vercel/project.json` confirms project `slate360-rebuild` in org `team_sI0m72uIMs2FPbYIlkgp7RRS`
-- Verified env scope presence in-chat:
-	- `vercel env ls production` includes `NEXT_PUBLIC_POLYMARKET_SPENDER`
-	- `vercel env ls preview` includes `NEXT_PUBLIC_POLYMARKET_SPENDER`
-- Hit terminal blocker mid-pass:
-	- `vercel env pull --environment=production --yes` failed with `ENOPRO`
-	- `vercel env run -e production -- npm run diag:market-runtime` was not runnable after that failure
-- Local artifact inspection at chat end:
-	- `.env.vercel.tmp` exists but does not include `NEXT_PUBLIC_POLYMARKET_SPENDER`
-	- `.env.local` does not include `NEXT_PUBLIC_POLYMARKET_SPENDER`
+- Completed Market Robot Rescue Batch 4.5 — operator console visual replacement pass (local only).
+- Converted 14 Market presentation components from white/light card styling to dark operator console vocabulary.
+- Files changed:
+	- MarketAutomationTab.tsx — action feedback, plans header, explanation box, ActivePlanSummary
+	- MarketResultsTab.tsx — header gradient, StatCard, trade history, filters, PnL panels
+	- MarketStartHereTab.tsx — inactive card, stats, templates, nav shortcuts, explainer
+	- MarketSystemStatusCard.tsx — outer container, stat cards, blocker tones
+	- MarketResultsVerificationConsole.tsx — post-action context box
+	- MarketResultsInsights.tsx — all 3 insight cards
+	- MarketOpenPositionsPanel.tsx — container, PnL colors, trade buttons, badges
+	- MarketActivityFeed.tsx — all panels and log entries
+	- MarketAutomationBuilder.tsx — container, presets, settings panel, inputs, BasicControls
+	- MarketPlanList.tsx — header, empty state, PlanCard, badges, action buttons
+	- MarketListingDetailDrawer.tsx — main panel, category/mode badges, pricing card, wallet card, outcome panels, preview cards
+	- MarketAutomationDetailControls.tsx — labels, borders, toggle
+	- MarketPlanInsights.tsx — health tones, stat cards, warnings
+	- MarketNumericInput.tsx — input styling
+- No API routes, hooks, utilities, or backend contracts changed. CSS-only.
+- Editor diagnostics: zero errors across all 14 files.
 
 #### What's Broken / Partially Done
-- Terminal command execution degraded to `ENOPRO` after successful `vercel env ls` commands, blocking completion of pull and env-run verification in this chat
-- Runtime diagnostic re-check in production context is still pending (`vercel env run -e production -- npm run diag:market-runtime`)
-- `NEXT_PUBLIC_POLYMARKET_SPENDER` appears present in Vercel env scopes but still not reflected in local pulled env artifacts available in this workspace
+- Terminal command execution remains blocked by `ENOPRO`; `npm run typecheck` and git push could not be performed.
+- Batches 1–4.5 local changes have never been pushed due to persistent terminal blocker.
 
 #### Context Files Updated
-- `docs/market-robot/MARKET_ROBOT_ENV_AND_TOOL_MATRIX.md`: fresh-chat env check results plus ENOPRO blocker point and redeploy guidance
-- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: continuation note for env follow-up with successful env-list evidence and blocked pull/run steps
-- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: added env diagnostic follow-up log entry
-- `SLATE360_PROJECT_MEMORY.md`: Latest Session Handoff overwritten for this diagnostic pass
+- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: added Batch 4.5 outcome with file list and validation
+- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: added Batch 4.5 section with status
+- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: updated current batch and latest rescue state
+- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: updated active batch and added Batch 4.5 summary
+- `SLATE360_PROJECT_MEMORY.md`: Latest Session Handoff overwritten for Batch 4.5
 
 #### Next Steps (ordered)
-1. Restore terminal provider and rerun `vercel env pull --environment=production --yes` to refresh local snapshot
-2. Run `vercel env run -e production -- npm run diag:market-runtime` to verify runtime sees `NEXT_PUBLIC_POLYMARKET_SPENDER`
-3. If spender is still failing in production runtime after env presence confirmation, execute a production redeploy to propagate `NEXT_PUBLIC_*` into a fresh client build
+1. Restore terminal provider and commit/push all local changes (Batches 1–4.5)
+2. Visually verify Market Robot in browser — every surface should be dark/cohesive
+3. Start Batch 5 only if needed for a narrowly-scoped backend truth patch (no contract redesign)
