@@ -152,28 +152,33 @@ When editing these, always read both the state declarations AND the JSX sections
 ### Session Handoff — 2026-03-12
 
 #### What Changed
-- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: Replaced the prior short Market note with a full rescue preflight build file covering constraints, architecture map, source-of-truth map, broken states, env/tool blockers, safe boundaries, batch sequence, batch guardrails, verification checklist, rollback notes, and next batch guidance
-- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: Added a fresh-chat resume protocol for future Market Robot implementation batches
-- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: Added structured summaries, risks, preconditions, hallucination traps, and success criteria for Batches 0 through 6
-- `docs/market-robot/MARKET_ROBOT_ENV_AND_TOOL_MATRIX.md`: Added Market env and tool verification matrix based on repo search plus runtime diagnostics
-- `SLATE360_PROJECT_MEMORY.md`: Updated Latest Session Handoff for this docs/build-file setup pass
+- Executed Rescue Batch 3 automation rescue pass in one chat flow with required read order and preflight attempts
+- `components/dashboard/market/MarketAutomationTab.tsx`: added explicit runtime/save-state distinction, config-source truth block with fallback warnings, action-meaning copy, and honest post-action feedback banners
+- `components/dashboard/market/MarketAutomationBuilder.tsx`: added three beginner preset entry paths (Conservative/Balanced/Aggressive), visible preset match text, Save Draft / Save + Start Robot labels, and advanced disclosure toggle
+- `components/dashboard/market/MarketPlanList.tsx`: surfaced matched preset per saved plan and clarified start action copy as Save + Start Robot
+- `lib/hooks/useMarketAutomationState.ts`: save now returns server-persisted vs local-fallback metadata for truthful UI feedback
+- `lib/market/automation-presets.ts`: new shared preset mapping/detection helper used by builder and plan list
+- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: added full Batch 3 outcome record, intentional non-changes, verification points, and blockers
+- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: marked Batch 3 implemented with actual landed behavior
+- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: advanced current batch guidance to post-Batch-3 state
+- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: updated active batch and added Batch 3 session-log entry
+- `SLATE360_PROJECT_MEMORY.md`: overwrote Latest Session Handoff for Batch 3
 
 #### What's Broken / Partially Done
-- Market Robot rescue is still pre-implementation only; no Batch 1 code has been applied yet
-- Market truth remains split across `market_plans`, `market_directives`, `user_metadata.marketBotConfig`, localStorage, `market_bot_runtime`, and client state
-- `NEXT_PUBLIC_POLYMARKET_SPENDER` is still the confirmed live blocker from `npm run diag:market-runtime`
-- `app/api/market/summary/route.ts` still derives mode/starting balance from directives and metadata rather than preferring `market_plans`
-- `app/api/market/scan/route.ts` still executes only paper trades; live automation is not implemented end-to-end
-- `lib/hooks/useMarketDirectBuyState.ts` still treats any successful `/api/market/buy` response as a generic success and does not surface fallback truth strongly enough
+- Terminal command execution remains blocked by `ENOPRO` in this workspace session, preventing terminal runs of `npm run typecheck` and `npx tsc --noEmit`
+- Commit/push from this session is blocked because terminal/git command execution is unavailable (`ENOPRO`)
+- Market runtime truth is still split between canonical plans and fallback layers (directives/metadata); Batch 3 only made that visible and honest in UI
+- `NEXT_PUBLIC_POLYMARKET_SPENDER` remains a live-readiness blocker
+- `app/api/market/scan/route.ts` remains paper-only execution behavior; no live automation claim is valid
 
 #### Context Files Updated
-- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: canonical Market rescue status and constraints
-- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: future chat startup rules for Market work
-- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: planned batch structure and risks
-- `docs/market-robot/MARKET_ROBOT_ENV_AND_TOOL_MATRIX.md`: env/tool verification record
+- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: Batch 3 implementation status and verification checklist
+- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: Batch 3 status update
+- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: next-batch resume state
+- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: active batch/session log update
 - `SLATE360_PROJECT_MEMORY.md`: session handoff update
 
 #### Next Steps (ordered)
-1. Run Batch 1 only: shell/IA/truthfulness pass with explicit forbidden contracts
-2. Keep Batch 1 focused on truthful UI surfaces and re-homing, not backend redesign
-3. After Batch 1, reassess whether a small backend truth patch is required before claiming server-grounded summary behavior
+1. Run Rescue Batch 4 for Results and wallet/readiness unification using the same truth-first UI language
+2. Re-run terminal validations and git push once `ENOPRO` is resolved
+3. Keep backend truth unification and any `/api/market/summary` contract changes in a separate later batch

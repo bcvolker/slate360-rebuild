@@ -21,10 +21,18 @@ Last Updated: 2026-03-12
 - Add explicit blocker and config-source visibility.
 - Make overview/status messaging truthful and beginner-first.
 
+### Status After 2026-03-12 Implementation
+- Complete.
+- Landed a dark four-section shell, re-homed Saved Markets into Markets, and moved wallet/live-readiness access into Dashboard.
+- Re-grounded dashboard overview cards to `market_trades`, `useMarketServerStatus()`, and `useMarketSystemStatus()`.
+- Added explicit manual buy fallback messaging for `paper_fallback` and related live-fallback response modes.
+- Preserved post-buy refresh for trades, Results, bot-status, scheduler health, activity logs, and system-status.
+- Intentionally left backend truth unification, `/api/market/summary` alignment, runtime-config resolution, and scheduler behavior for later batches.
+
 ### Risks / Preconditions
 - Do not change API contracts.
 - Do not hide wallet readiness, saved markets, or results without a reachable replacement path.
-- Do not use [app/api/market/summary/route.ts](/workspaces/slate360-rebuild/app/api/market/summary/route.ts) as authoritative for plan-driven truth unless the batch explicitly proves the values are correct for that surface.
+- Do not use [app/api/market/summary/route.ts](../../app/api/market/summary/route.ts) as authoritative for plan-driven truth unless the batch explicitly proves the values are correct for that surface.
 - Preserve layout customization compatibility.
 
 ### Success Criteria
@@ -39,6 +47,16 @@ Last Updated: 2026-03-12
 - Add row click to drawer/modal.
 - Re-home save/bookmark/watchlist behavior.
 - Add buy impact preview and a reliable post-buy refresh path.
+
+### Status After 2026-03-12 Implementation
+- Complete.
+- Search workflow now exposes current keyword, active filters, active sort, loaded set size, visible result count, and fetch-source context.
+- UI copy is explicit that search remains lexical keyword matching; no semantic claim is made.
+- Results are now shown in a compact scrollable table with clearer trading columns and sortable controls.
+- Market row click opens a cleaner detail drawer that includes mode indication, save/watchlist action, and wallet impact preview (ticket size, max loss, payout, potential profit).
+- Detail drawer routes into buy flow with selected amount, and post-buy refresh wiring remains intact.
+- Kept all backend contracts untouched (`/api/market/buy`, `/api/market/polymarket`, `/api/market/watchlist`, `/api/market/trades`).
+- Continuation validation note: GitNexus `detect_changes` reran successfully; terminal `tsc` rerun remained blocked by `ENOPRO` in this session, so no push was performed.
 
 ### Risks / Preconditions
 - Preserve `/api/market/buy` request and response contracts.
@@ -58,6 +76,15 @@ Last Updated: 2026-03-12
 - Show current config source.
 - Expose Run scan now and kill switch clearly.
 - Keep advanced controls behind disclosure.
+
+### Status After 2026-03-12 Implementation
+- Complete (local changes landed; push blocked by terminal `ENOPRO` in this session).
+- Added clear beginner preset entry points (Conservative, Balanced, Aggressive) as frontend mapping to existing plan fields.
+- Added explicit Save Draft vs Save + Start Robot vs Run Scan Now vs Stop / Halt semantics across builder, plan list, and active automation summary.
+- Added config-source visibility in Automation with explicit fallback wording when runtime is not using `market_plans`.
+- Added honest post-action feedback messaging that distinguishes server-confirmed save from local fallback save.
+- Kept advanced controls available but hidden behind explicit disclosure.
+- Preserved existing handlers/contracts and avoided `app/api/market/*` edits.
 
 ### Risks / Preconditions
 - Preserve `/api/market/plans` and `/api/market/scan` contracts.
@@ -118,7 +145,7 @@ Last Updated: 2026-03-12
 - Build files and handoff notes reflect the true final rescue state.
 
 ## Recommended Order Changes
-- Keep Batch 1 first, but narrow it to shell, IA, truth banners, config-source visibility, and safe overview grounding.
+- Batch 1 is now complete.
 - Keep Batch 2 and Batch 3 separate. Search rescue and automation rescue touch different state tangles.
 - Keep Batch 5 conditional, but expect it may be required before the rescue can truthfully claim server-grounded summary behavior.
 

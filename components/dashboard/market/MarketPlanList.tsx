@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { StatusBadge } from "@/components/dashboard/market/MarketSharedUi";
+import { detectAutomationPreset, getAutomationPresetLabel } from "@/lib/market/automation-presets";
 import type { AutomationPlan } from "@/components/dashboard/market/types";
 
 interface MarketPlanListProps {
@@ -93,6 +94,7 @@ function PlanCard({ plan, archived, renamingId, renameValue, onRenameValueChange
   onApply: (plan: AutomationPlan) => void;
 }) {
   const isRenaming = renamingId === plan.id;
+  const matchedPreset = detectAutomationPreset(plan);
   return (
     <div className={`bg-white border rounded-2xl shadow-sm p-4 ${archived ? "border-gray-200 opacity-60" : "border-gray-100"}`}>
       <div className="flex items-start justify-between gap-2 mb-2">
@@ -111,6 +113,9 @@ function PlanCard({ plan, archived, renamingId, renameValue, onRenameValueChange
           )}
           <p className="text-xs text-gray-400 mt-0.5">
             ${plan.budget} · {plan.riskLevel} · {plan.maxTradesPerDay}/day · {plan.scanMode} scan
+          </p>
+          <p className="text-[11px] text-gray-500 mt-0.5">
+            Preset: {matchedPreset ? getAutomationPresetLabel(matchedPreset) : "Custom"}
           </p>
           <p className="text-[11px] text-gray-400 mt-0.5">
             Loss cap ${plan.maxDailyLoss} · {plan.maxOpenPositions} positions · {plan.categories.join(", ")}
@@ -132,10 +137,10 @@ function PlanCard({ plan, archived, renamingId, renameValue, onRenameValueChange
           <TooltipTrigger asChild>
             <button onClick={() => onApply(plan)}
               className="bg-[#FF4D00] hover:bg-orange-600 text-white text-xs py-1.5 px-3 rounded-lg font-medium transition">
-              ▶ Start this plan
+              ▶ Save + Start Robot
             </button>
           </TooltipTrigger>
-          <TooltipContent>Turn the robot on using this plan&apos;s settings.</TooltipContent>
+          <TooltipContent>Apply this saved plan, request runtime start, and run a scan now.</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>

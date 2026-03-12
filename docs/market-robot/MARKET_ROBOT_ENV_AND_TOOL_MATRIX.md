@@ -2,6 +2,28 @@
 
 Last Updated: 2026-03-12
 
+## Vercel Env Diagnostic — 2026-03-12 (read/verify-only)
+
+- Scope: verify why `NEXT_PUBLIC_POLYMARKET_SPENDER` still fails `npm run diag:market-runtime`.
+- Terminal state in this session: blocked by `ENOPRO`, so direct execution of:
+	- `vercel env ls production`
+	- `vercel env ls preview`
+	- `vercel env pull --environment=production --yes`
+	- `vercel env run -e production -- npm run diag:market-runtime`
+	could not be rerun from this chat.
+- Verified Vercel project link from local artifact:
+	- `.vercel/project.json` shows linked project `slate360-rebuild` under team `team_sI0m72uIMs2FPbYIlkgp7RRS`.
+- Verified latest local Vercel env snapshot (created by Vercel CLI):
+	- `.env.vercel.tmp` exists and includes many `NEXT_PUBLIC_*` and `POLYMARKET_*` keys.
+	- `NEXT_PUBLIC_POLYMARKET_SPENDER` is not present in `.env.vercel.tmp`.
+	- `NEXT_PUBLIC_POLYMARKET_SPENDER` is also not present in `.env.local`.
+- Interpretation:
+	- If Vercel UI shows the variable as added, but a fresh production pull still omits it, the likely causes are:
+		1. Variable added to a different environment scope/team/project.
+		2. Variable saved after the last pull/diagnostic and not yet re-pulled in this workspace.
+		3. Production deployment was built before the variable was available, so runtime/build output is still stale.
+	- For this app, `NEXT_PUBLIC_*` values are build-time client envs, so a redeploy is normally required after adding/changing them.
+
 ## Environment Variables
 
 | Variable name | Where referenced | Required for practice mode? | Required for live mode? | Current status | Risk if wrong | Verification notes |
@@ -34,7 +56,7 @@ Last Updated: 2026-03-12
 | --- | --- | --- |
 | Git | Confirmed usable | `git` present, repo on `main` |
 | GitHub CLI | Confirmed usable | `gh` present and authenticated |
-| Vercel CLI | Confirmed usable | `vercel` present and authenticated |
+| Vercel CLI | Partially verified this session | Local project link artifact exists, but terminal execution is currently blocked by `ENOPRO`, so live `vercel env ls/run` checks could not be rerun |
 | Supabase CLI | Unavailable in container | `supabase` command missing |
 | AWS CLI | Unavailable in container | `aws` command missing |
 | kubectl | Installed, auth unknown | `kubectl` binary present, no cluster auth check run |

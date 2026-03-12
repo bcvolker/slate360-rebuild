@@ -59,6 +59,11 @@ export default function MarketBuyPanel({
   const profit = payout - amount;
   const targetExitPrice = Math.min(0.99, avgPrice * 1.1);
   const targetExitPnl = shares * (targetExitPrice - avgPrice);
+  const feedbackTone = success.startsWith("✅")
+    ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+    : success.includes("Live execution blocked")
+      ? "border-amber-300 bg-amber-50 text-amber-800"
+      : "border-rose-300 bg-rose-50 text-rose-700";
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:justify-end p-0 sm:p-6">
@@ -218,9 +223,7 @@ export default function MarketBuyPanel({
         </div>
       )}
 
-      {success && (
-        <p className={`text-sm text-center font-medium ${success.startsWith("✅") ? "text-green-600" : "text-red-600"}`}>{success}</p>
-      )}
+      {success && <div className={`rounded-xl border px-4 py-3 text-sm font-semibold ${feedbackTone}`}>{success}</div>}
       {!payloadReady && (
         <p className="text-xs text-center text-red-500">Disabled: {payloadIssues.join(", ")}</p>
       )}

@@ -1,42 +1,90 @@
 "use client";
 
 import React from "react";
-import type { BotConfig, MarketTrade } from "@/components/dashboard/market/types";
+import type { MarketTrade } from "@/components/dashboard/market/types";
+import type { MarketSystemStatusViewModel, SchedulerHealthViewModel } from "@/lib/market/contracts";
+import type { ServerBotStatus } from "@/lib/hooks/useMarketServerStatus";
 
 interface MarketTopOverviewProps {
   trades: MarketTrade[];
-  botConfig: BotConfig;
+  system: MarketSystemStatusViewModel | null;
+  serverStatus: ServerBotStatus;
+  serverHealth: SchedulerHealthViewModel | null;
   onOpenResults: () => void;
   onOpenAutomation: () => void;
+  onOpenWallet: () => void;
 }
 
-export default function MarketTopOverview({ trades, botConfig, onOpenResults, onOpenAutomation }: MarketTopOverviewProps) {
+function runtimeLabel(status: ServerBotStatus): string {
+  if (status === "unknown") return "Unavailable";
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+function cardTone(isAlert: boolean): string {
+  return isAlert
+    ? "border-amber-500/30 bg-amber-500/10 text-amber-50"
+    : "border-cyan-500/20 bg-slate-950/70 text-slate-50";
+}
+
+export default function MarketTopOverview({
+  trades,
+  system,
+  serverStatus,
+  serverHealth,
+  onOpenResults,
+  onOpenAutomation,
+  onOpenWallet,
+}: MarketTopOverviewProps) {
   const openTrades = trades.filter((trade) => trade.status === "open" && !trade.closedAt);
   const openExposure = openTrades.reduce((sum, trade) => sum + trade.total, 0);
+  const blockerLabel =
+    system == null ? "Unavailable" : system.blockers.length === 0 ? "None" : `${system.blockers.length} blocker(s)`;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <button onClick={onOpenResults} className="text-left bg-white border border-gray-100 rounded-2xl shadow-sm p-4 hover:border-[#FF4D00]/30 transition">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Open Positions</p>
+    <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-4">
+      <button onClick={onOpenResults} className={`rounded-[28px] border p-4 text-left shadow-[0_18px_40px_rgba(2,6,23,0.22)] transition hover:border-cyan-400/30 ${cardTone(false)}`}>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Open Positions</p>
         <div className="flex items-end justify-between mt-2 gap-3">
           <div>
-            <p className="text-2xl font-black text-gray-900">{openTrades.length}</p>
-            <p className="text-sm text-gray-500 mt-1">${openExposure.toFixed(2)} currently deployed</p>
+            <p className="text-2xl font-black text-slate-50">{openTrades.length}</p>
+            <p className="mt-1 text-sm text-slate-400">${openExposure.toFixed(2)} currently deployed</p>
           </div>
-          <span className="text-sm font-semibold text-[#FF4D00]">View positions →</span>
+          <span className="text-sm font-semibold text-cyan-200">View positions →</span>
         </div>
       </button>
 
-      <button onClick={onOpenAutomation} className="text-left bg-white border border-gray-100 rounded-2xl shadow-sm p-4 hover:border-[#FF4D00]/30 transition">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Automation Programmed</p>
+      <button onClick={onOpenAutomation} className={`rounded-[28px] border p-4 text-left shadow-[0_18px_40px_rgba(2,6,23,0.22)] transition hover:border-cyan-400/30 ${cardTone(false)}`}>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Last Known Runtime</p>
         <div className="flex items-end justify-between mt-2 gap-3">
           <div>
-            <p className="text-2xl font-black text-gray-900">{botConfig.botRunning && !botConfig.botPaused ? "Running" : botConfig.botPaused ? "Paused" : "Idle"}</p>
-            <p className="text-sm text-gray-500 mt-1">
-              ${botConfig.capitalAlloc} budget · {botConfig.maxTradesPerDay}/day · {botConfig.maxPositions} max open
+            <p className="text-2xl font-black text-slate-50">{runtimeLabel(serverStatus)}</p>
+            <p className="mt-1 text-sm text-slate-400">
+              Last run: {serverHealth?.lastRunIso ? new Date(serverHealth.lastRunIso).toLocaleTimeString() : "Unavailable"}
             </p>
           </div>
-          <span className="text-sm font-semibold text-[#FF4D00]">Open automation →</span>
+          <span className="text-sm font-semibold text-cyan-200">Open automation →</span>
+        </div>
+      </button>
+
+      <button onClick={onOpenAutomation} className={`rounded-[28px] border p-4 text-left shadow-[0_18px_40px_rgba(2,6,23,0.22)] transition hover:border-cyan-400/30 ${cardTone(false)}`}>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Config Source</p>
+        <div className="mt-2 flex items-end justify-between gap-3">
+          <div>
+            <p className="text-2xl font-black text-slate-50">{system?.configSourceLabel ?? "Unavailable"}</p>
+            <p className="mt-1 text-sm text-slate-400">Runs today: {system?.runsToday ?? "Unavailable"}</p>
+          </div>
+          <span className="text-sm font-semibold text-cyan-200">Review automation →</span>
+        </div>
+      </button>
+
+      <button onClick={onOpenWallet} className={`rounded-[28px] border p-4 text-left shadow-[0_18px_40px_rgba(2,6,23,0.22)] transition hover:border-amber-400/30 ${cardTone((system?.blockers.length ?? 0) > 0)}`}>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Live Blockers</p>
+        <div className="mt-2 flex items-end justify-between gap-3">
+          <div>
+            <p className="text-2xl font-black text-slate-50">{blockerLabel}</p>
+            <p className="mt-1 text-sm text-slate-400">{system?.liveServerReady ? "Server ready" : "Wallet or backend still blocked"}</p>
+          </div>
+          <span className="text-sm font-semibold text-amber-200">Open readiness →</span>
         </div>
       </button>
     </div>

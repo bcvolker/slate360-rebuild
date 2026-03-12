@@ -3,7 +3,7 @@
  * Follows the TabLayoutPrefs contract from CUSTOMIZATION_SYSTEM.md.
  */
 
-export const MARKET_LAYOUT_PREFS_VERSION = 1;
+export const MARKET_LAYOUT_PREFS_VERSION = 2;
 
 export type MarketLayoutMode = "simple" | "standard" | "advanced" | "custom";
 
@@ -22,12 +22,10 @@ export interface MarketLayoutPrefs {
 }
 
 export const DEFAULT_MARKET_TABS: MarketTabPref[] = [
-  { id: "start-here", label: "Overview", visible: true, order: 0 },
-  { id: "direct-buy", label: "Browse Markets", visible: true, order: 1 },
-  { id: "automation", label: "Robot Setup", visible: true, order: 2 },
-  { id: "saved-markets", label: "Watchlist", visible: true, order: 3 },
-  { id: "results", label: "History", visible: true, order: 4 },
-  { id: "live-wallet", label: "Go Live", visible: true, order: 5 },
+  { id: "dashboard", label: "Dashboard", visible: true, order: 0 },
+  { id: "markets", label: "Markets", visible: true, order: 1 },
+  { id: "automation", label: "Automation", visible: true, order: 2 },
+  { id: "results", label: "Results", visible: true, order: 3 },
 ];
 
 export const DEFAULT_MARKET_LAYOUT: MarketLayoutPrefs = {

@@ -24,7 +24,7 @@ export default function MarketRouteShell({ user, tier, isCeo, internalAccess, ch
   const closeCustomize = useCallback(() => setCustomizeOpen(false), []);
 
   return (
-    <div className="min-h-screen bg-[#ECEEF2] overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden bg-[linear-gradient(180deg,#020617,#0f172a_28%,#111827_100%)]">
       <div className="relative">
         <DashboardHeader
           user={user}
@@ -48,7 +48,7 @@ export default function MarketRouteShell({ user, tier, isCeo, internalAccess, ch
         />
       </div>
 
-      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden">
+      <main className="mx-auto max-w-[1440px] overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8">
         {React.Children.map(children, (child) => {
           if (React.isValidElement(child)) {
             return React.cloneElement(child as React.ReactElement<{ layoutPrefs?: MarketShellContext }>, {

@@ -3,11 +3,11 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import type { MarketListing, MktTimeframe, MktRiskTag, MarketSortDirection, MarketSortKey } from "@/components/dashboard/market/types";
 import type { ApiEnvelope, MarketViewModel } from "@/lib/market/contracts";
+import { resolveDirectBuyFeedback, type DirectBuyResponse } from "@/lib/market/direct-buy-feedback";
 import { buildTableInsights, filterAndSortMarkets } from "@/lib/market/direct-buy-table";
 import { getDirectBuyFetchPlan } from "@/lib/market/direct-buy-fetch";
 
 const FETCH_BATCH_SIZE = 200;
-
 export function useMarketDirectBuyState({
   paperMode,
   walletAddress,
@@ -116,10 +116,9 @@ export function useMarketDirectBuyState({
 
   const autoLoaded = useRef(false);
   useEffect(() => {
-    if (!autoLoaded.current) {
-      autoLoaded.current = true;
-      fetchMarkets();
-    }
+    if (autoLoaded.current) return;
+    autoLoaded.current = true;
+    fetchMarkets();
   }, [fetchMarkets]);
 
   useEffect(() => {
@@ -140,23 +139,21 @@ export function useMarketDirectBuyState({
     setSortDirection(nextSort === "title" || nextSort === "endDate" ? "asc" : "desc");
   }, [sortBy]);
 
-  const filteredMarkets = useMemo(() => {
-    return filterAndSortMarkets({
-      markets,
-      query,
-      timeframe,
-      category,
-      probMin,
-      probMax,
-      minEdge,
-      riskTag,
-      sortBy,
-      sortDirection,
-      minVolume,
-      minLiquidity,
-      maxSpread,
-    });
-  }, [markets, query, timeframe, category, probMin, probMax, minEdge, riskTag, sortBy, sortDirection, minVolume, minLiquidity, maxSpread]);
+  const filteredMarkets = useMemo(() => filterAndSortMarkets({
+    markets,
+    query,
+    timeframe,
+    category,
+    probMin,
+    probMax,
+    minEdge,
+    riskTag,
+    sortBy,
+    sortDirection,
+    minVolume,
+    minLiquidity,
+    maxSpread,
+  }), [markets, query, timeframe, category, probMin, probMax, minEdge, riskTag, sortBy, sortDirection, minVolume, minLiquidity, maxSpread]);
 
   const tableInsights = useMemo(() => buildTableInsights(filteredMarkets), [filteredMarkets]);
 
@@ -202,15 +199,23 @@ export function useMarketDirectBuyState({
 
   const buyPayloadReady = buyPayloadIssues.length === 0;
 
-  const openBuyPanel = (m: MarketListing, o: "YES" | "NO" = "YES") => {
+  const openBuyPanel = (m: MarketListing, o: "YES" | "NO" = "YES", preferredAmount?: number) => {
+    const safeAmount = Math.max(5, Math.round(preferredAmount ?? 25));
     setBuyMarket(m);
     setBuyOutcome(o);
-    setBuyAmount(25);
+    setBuyAmount(safeAmount);
     setBuySuccess("");
     setBuyPaper(paperMode);
   };
 
   const closeBuyPanel = () => setBuyMarket(null);
+  const finalizeBuyFeedback = useCallback((message: string, shouldRefresh: boolean, closeDelayMs = 1200) => {
+    setBuySuccess(message);
+    window.setTimeout(() => {
+      setBuyMarket(null);
+      if (shouldRefresh) void onTradePlaced?.();
+    }, closeDelayMs);
+  }, [onTradePlaced]);
 
   const handleBuy = useCallback(async () => {
     if (!buyMarket) return;
@@ -238,13 +243,17 @@ export function useMarketDirectBuyState({
           idempotency_key: crypto.randomUUID(),
         }),
       });
-      const data = await res.json() as { error?: string; openPositions?: number; limit?: number; help?: string };
-      if (res.ok) {
-        setBuySuccess(`✅ ${buyPaper ? "Paper " : ""}Buy placed — ${(buyAmount / avgPrice).toFixed(1)} shares ${buyOutcome}`);
-        window.setTimeout(() => {
-          setBuyMarket(null);
-          void onTradePlaced?.();
-        }, 900);
+      const data = await res.json() as DirectBuyResponse;
+      const feedback = resolveDirectBuyFeedback({
+        avgPrice,
+        amount: buyAmount,
+        data,
+        ok: res.ok,
+        outcome: buyOutcome,
+        requestedPaperMode: buyPaper,
+      });
+      if (feedback) {
+        finalizeBuyFeedback(feedback.message, feedback.shouldRefresh, feedback.closeDelayMs);
       } else {
         if (typeof data.openPositions === "number" && typeof data.limit === "number") {
           setBuySuccess(`❌ ${data.error ?? "Buy failed"} — ${data.openPositions}/${data.limit} open. ${data.help ?? "Raise 'Max positions at once' in Automation."}`);
@@ -257,7 +266,7 @@ export function useMarketDirectBuyState({
     } finally {
       setBuySubmitting(false);
     }
-  }, [buyAmount, buyMarket, buyOutcome, buyPaper, onTradePlaced, walletAddress]);
+  }, [buyAmount, buyMarket, buyOutcome, buyPaper, finalizeBuyFeedback, walletAddress]);
 
   const fetchModeLabel = fetchPlan.label;
 
@@ -277,6 +286,7 @@ export function useMarketDirectBuyState({
     maxSpread, setMaxSpread,
     filtersOpen, setFiltersOpen,
     availableCategories,
+    loadedMarketCount: markets.length,
     filteredMarkets,
     filteredCount: filteredMarkets.length,
     fetchModeLabel,

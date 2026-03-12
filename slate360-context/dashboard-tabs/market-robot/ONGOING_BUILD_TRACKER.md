@@ -20,7 +20,21 @@ This file tracks current status, build order, prompts, checks, and rebuild-from-
 - CEO Command Center now has a searchable subscriber directory for granting Market access; do not reintroduce manual-email-only workflows as the primary operator path.
 
 ## Current Build Status
-**Active batch: 9+ — see Ready-To-Paste Prompt below**
+**Active batch: Rescue Batch 3 complete (local) — next recommended batch is Rescue Batch 4**
+
+2026-03-12 rescue overlay:
+- Batch 1 shipped a new four-section shell: Dashboard, Markets, Automation, Results.
+- Saved Markets is now re-homed under Markets. Wallet/live readiness is reachable from Dashboard.
+- Dashboard overview cards now rely on `market_trades`, `useMarketServerStatus()`, and `useMarketSystemStatus()` instead of local optimistic bot config.
+- Manual buy fallback messaging is now explicit when `/api/market/buy` downgrades live execution to paper.
+- No `app/api/market/*` route, runtime-config resolution helper, or scheduler logic changed in this rescue batch.
+- Batch 2 hardened Markets/search UX with explicit lexical-search transparency, active-filter/source badges, and a compact sortable results table.
+- Batch 2 added row-click market detail flow with mode indication plus wallet impact preview, while preserving watchlist reachability and post-buy refresh behavior.
+- Batch 2 kept backend contracts untouched and avoided scheduler/runtime/automation save/apply changes.
+- Batch 3 hardened Automation UX with explicit Conservative/Balanced/Aggressive presets, visible preset mapping, and clear Save Draft vs Save + Start Robot vs Run Scan Now vs Stop/Halt action semantics.
+- Batch 3 surfaced config-source truth in Automation and explicitly warns when runtime is still on fallback sources (`market_directives` or metadata overlays).
+- Batch 3 moved granular controls behind an explicit disclosure while preserving advanced settings.
+- Batch 3 did not modify `app/api/market/*`, runtime-config resolution, scheduler logic, or summary endpoint logic.
 
 `MarketClient` has zero external callers outside `app/market/page.tsx` (confirmed via GitNexus).
 This makes large batches safe. The revised strategy is ~10 prompts by combining related steps.
@@ -602,6 +616,10 @@ Carry-forward rule
 - then create the next tracker in this same format for Design Studio
 
 ## Session Log
+- 2026-03-12: Rescue Batch 3 (automation save/apply/runtime clarity pass) — complete (local only). Files changed: components/dashboard/market/MarketAutomationTab.tsx, components/dashboard/market/MarketAutomationBuilder.tsx, components/dashboard/market/MarketPlanList.tsx, lib/hooks/useMarketAutomationState.ts, lib/market/automation-presets.ts, docs/market-robot/MARKET_ROBOT_BUILD_FILE.md, docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md, docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md. Result: beginner presets, action clarity, honest post-action messaging, explicit config-source fallback truth, advanced disclosure retained. Intentionally not changed: all `app/api/market/*` routes, scheduler/runtime-config/summary logic, backend contracts. Validation: editor diagnostics clean; terminal `npm run typecheck` and `npx tsc --noEmit` blocked by `ENOPRO`; GitNexus detect_changes rerun. Push: not performed due terminal blocker. Next: Rescue Batch 4.
+- 2026-03-12: Rescue Batch 2 continuation preflight rerun — read order completed, GitNexus `detect_changes` rerun complete, repo confirmed non-clean, and no `app/api/market/*` edits introduced. Terminal validation commands remained blocked by `ENOPRO` in this session, so no push performed.
+- 2026-03-12: Rescue Batch 2 (Markets/search rescue) — complete. Files changed: components/dashboard/market/MarketDirectBuyTab.tsx, components/dashboard/market/MarketDirectBuyResults.tsx, components/dashboard/market/MarketListingDetailDrawer.tsx, lib/hooks/useMarketDirectBuyState.ts, docs/market-robot/MARKET_ROBOT_BUILD_FILE.md, docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md, docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md. Result: transparent lexical search workflow, compact sortable results table, row-click detail drawer with wallet impact preview and mode indication, preserved watchlist reachability in Markets, and preserved fallback-aware buy + post-buy refresh behavior. Intentionally not changed: all `app/api/market/*` routes, runtime-config resolution, scheduler logic, automation save/apply logic, and backend contracts. Next: Rescue Batch 3.
+- 2026-03-12: Rescue Batch 1 (Shell + truthfulness pass) — complete. Files changed: components/dashboard/MarketClient.tsx, components/dashboard/market/MarketDashboardSection.tsx, components/dashboard/market/MarketMarketsSection.tsx, components/dashboard/market/MarketPrimaryNav.tsx, components/dashboard/market/MarketRouteShell.tsx, components/dashboard/market/MarketTopOverview.tsx, components/dashboard/market/MarketBuyPanel.tsx, lib/hooks/useMarketDirectBuyState.ts, lib/market/direct-buy-feedback.ts, lib/market/layout-presets.ts, docs/market-robot/MARKET_ROBOT_BUILD_FILE.md, docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md, docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md. Result: 4 primary sections only, truthful dashboard truth surfaces, Saved Markets re-homed under Markets, wallet/live readiness reachable from Dashboard, explicit live-fallback warning in manual buy flow, stronger post-buy refresh wiring. Intentionally not changed: all `app/api/market/*` routes, runtime-config resolution logic, scheduler logic, `/api/market/summary` truth contract. Next: Rescue Batch 2.
 - 2026-03-06: Initial tracker created after CEO/internal-access groundwork.
 - 2026-03-06: Tracker rewritten — phased prompts, push gates, app-ecosystem constraints, summary table, per-checkpoint done-when criteria added.
 - 2026-03-06: Tracker restructured into 7 batches (~10 prompts total). GitNexus confirmed MarketClient has zero external callers, enabling larger safe batches. MCP guidance added per batch.

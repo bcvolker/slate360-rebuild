@@ -7,14 +7,33 @@ import { formatCents, marketChanceLabel, marketResolutionLabel, outcomeExplanati
 
 interface MarketListingDetailDrawerProps {
   market: MarketListing | null;
+  paperMode: boolean;
+  draftAmount: number;
+  onDraftAmountChange: (amount: number) => void;
   isSaved: boolean;
   onClose: () => void;
   onToggleSave: (market: MarketListing) => void;
-  onBuy: (market: MarketListing, outcome: "YES" | "NO") => void;
+  onBuy: (market: MarketListing, outcome: "YES" | "NO", amount: number) => void;
 }
 
-export default function MarketListingDetailDrawer({ market, isSaved, onClose, onToggleSave, onBuy }: MarketListingDetailDrawerProps) {
+export default function MarketListingDetailDrawer({
+  market,
+  paperMode,
+  draftAmount,
+  onDraftAmountChange,
+  isSaved,
+  onClose,
+  onToggleSave,
+  onBuy,
+}: MarketListingDetailDrawerProps) {
   if (!market) return null;
+
+  const yesShares = draftAmount / Math.max(0.01, market.yesPrice || market.probabilityPct / 100);
+  const noShares = draftAmount / Math.max(0.01, market.noPrice || 1 - market.probabilityPct / 100);
+  const yesPayout = yesShares;
+  const noPayout = noShares;
+  const yesProfit = yesPayout - draftAmount;
+  const noProfit = noPayout - draftAmount;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
@@ -28,6 +47,9 @@ export default function MarketListingDetailDrawer({ market, isSaved, onClose, on
               <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 font-semibold text-slate-700">{market.category}</span>
               <span>Resolves {marketResolutionLabel(market)}</span>
               <MarketOpportunityBadge market={market} />
+              <span className={`rounded-full border px-3 py-1 font-semibold ${paperMode ? "border-violet-200 bg-violet-50 text-violet-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
+                {paperMode ? "Practice mode" : "Live mode requested"}
+              </span>
             </div>
           </div>
           <button onClick={onClose} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-500 transition hover:border-slate-300 hover:text-slate-900">
@@ -67,7 +89,7 @@ export default function MarketListingDetailDrawer({ market, isSaved, onClose, on
             price={formatCents(market.yesPrice)}
             subtitle={outcomeExplanation("YES")}
             tone="emerald"
-            onClick={() => onBuy(market, "YES")}
+            onClick={() => onBuy(market, "YES", draftAmount)}
           />
           <OutcomePanel
             title={outcomePlainLabel("NO")}
@@ -75,8 +97,27 @@ export default function MarketListingDetailDrawer({ market, isSaved, onClose, on
             price={formatCents(market.noPrice)}
             subtitle={outcomeExplanation("NO")}
             tone="rose"
-            onClick={() => onBuy(market, "NO")}
+            onClick={() => onBuy(market, "NO", draftAmount)}
           />
+        </div>
+
+        <div className="mt-6 rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-sm">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Wallet impact preview</p>
+          <div className="mt-3 flex items-center gap-3">
+            <label className="text-xs text-slate-500">Ticket size (USDC)</label>
+            <input
+              type="number"
+              min={5}
+              step={5}
+              value={draftAmount}
+              onChange={(event) => onDraftAmountChange(Math.max(5, Number(event.target.value) || 5))}
+              className="w-28 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-900"
+            />
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <PreviewCard title="YES scenario" shares={yesShares} maxLoss={draftAmount} payout={yesPayout} profit={yesProfit} />
+            <PreviewCard title="NO scenario" shares={noShares} maxLoss={draftAmount} payout={noPayout} profit={noProfit} />
+          </div>
         </div>
 
         <div className="mt-6 rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-sm">
@@ -132,5 +173,19 @@ function OutcomePanel({ title, badge, price, subtitle, tone, onClick }: { title:
         <span className="rounded-full border border-slate-200 bg-white/85 px-4 py-2 text-sm font-semibold text-slate-700">Open trade</span>
       </div>
     </button>
+  );
+}
+
+function PreviewCard({ title, shares, maxLoss, payout, profit }: { title: string; shares: number; maxLoss: number; payout: number; profit: number }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-600">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{title}</p>
+      <div className="mt-2 space-y-1">
+        <p>Shares: <span className="font-semibold text-slate-900">{shares.toFixed(2)}</span></p>
+        <p>Max loss: <span className="font-semibold text-rose-700">-${maxLoss.toFixed(2)}</span></p>
+        <p>Potential payout: <span className="font-semibold text-emerald-700">${payout.toFixed(2)}</span></p>
+        <p>Potential profit: <span className={`font-semibold ${profit >= 0 ? "text-emerald-700" : "text-rose-700"}`}>{profit >= 0 ? "+" : "-"}${Math.abs(profit).toFixed(2)}</span></p>
+      </div>
+    </div>
   );
 }

@@ -29,12 +29,14 @@ const QUICK_TIMEFRAMES: { key: MktTimeframe; label: string }[] = [
 ];
 
 const fmt = (v: number) => `$${v.toFixed(2)}`;
+const DEFAULT_DETAIL_AMOUNT = 50;
 
 export default function MarketDirectBuyTab({ paperMode, walletAddress, liveChecklist, onTradePlaced, onOpenAutomation }: MarketDirectBuyTabProps) {
   const s = useMarketDirectBuyState({ paperMode, walletAddress, liveChecklist, onTradePlaced });
   const systemStatus = useMarketSystemStatus();
   const watchlist = useMarketWatchlist();
   const [detailMarket, setDetailMarket] = useState<MarketListing | null>(null);
+  const [detailAmount, setDetailAmount] = useState(DEFAULT_DETAIL_AMOUNT);
 
   const applyPreset = (presetId: string) => {
     s.clearFilters();
@@ -53,27 +55,45 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
     }
   };
 
+  const searchTerm = s.query.trim();
+  const activeFilters = [
+    s.timeframe !== "all" ? `Time: ${QUICK_TIMEFRAMES.find((tf) => tf.key === s.timeframe)?.label ?? s.timeframe}` : null,
+    s.category !== "all" ? `Topic: ${s.category}` : null,
+    s.minEdge > 0 ? `Min edge: ${s.minEdge}%` : null,
+    s.minVolume > 0 ? `Min volume: $${s.minVolume.toLocaleString()}` : null,
+    s.minLiquidity > 0 ? `Min liquidity: $${s.minLiquidity.toLocaleString()}` : null,
+    s.maxSpread < 100 ? `Spread <= ${s.maxSpread}%` : null,
+    s.riskTag !== "all" ? `Risk tag: ${s.riskTag}` : null,
+    s.probMin > 0 || s.probMax < 100 ? `Prob: ${s.probMin}% to ${s.probMax}%` : null,
+  ].filter((chip): chip is string => chip !== null);
+
+  const openDetails = (market: MarketListing) => {
+    setDetailMarket(market);
+    setDetailAmount(DEFAULT_DETAIL_AMOUNT);
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-slate-100">
       {/* Header */}
-      <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,rgba(255,124,32,0.12),transparent_25%),linear-gradient(135deg,#ffffff,#f4f7fb)] p-5 shadow-sm">
+      <div className="overflow-hidden rounded-[32px] border border-cyan-500/25 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_25%),radial-gradient(circle_at_top_right,rgba(249,115,22,0.14),transparent_20%),linear-gradient(150deg,#020617,#111827)] p-5 shadow-[0_24px_70px_rgba(2,6,23,0.45)]">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Manual trading workspace</p>
-          <h2 className="mt-2 text-3xl font-black text-slate-900">Browse prediction markets</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Search events, filter by topic and time, then open a market to review pricing and place a trade.</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-300/80">Manual trading workspace</p>
+          <h2 className="mt-2 text-3xl font-black text-slate-50">Browse markets with honest search signals</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">Search is lexical keyword matching against title/topic text. It is responsive and transparent, but it is not semantic retrieval.</p>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
-          <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 font-semibold text-slate-700">Mode: {paperMode ? "Practice by default" : "Live-ready by default"}</span>
-          <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1">{s.fetchModeLabel}</span>
-          {systemStatus.system && <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1">Open-position cap: {systemStatus.system.effectiveMaxOpenPositions}</span>}
-          {s.buyMarket && <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 font-semibold text-orange-700">Trade ticket open</span>}
+        <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-300">
+          <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 font-semibold text-cyan-100">Mode: {paperMode ? "Practice by default" : "Live-ready by default"}</span>
+          <span className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1">Lexical search mode</span>
+          <span className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1">{s.fetchModeLabel}</span>
+          {systemStatus.system && <span className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1">Open-position cap: {systemStatus.system.effectiveMaxOpenPositions}</span>}
+          {s.buyMarket && <span className="rounded-full border border-amber-400/30 bg-amber-500/20 px-3 py-1 font-semibold text-amber-100">Trade ticket open</span>}
         </div>
         {systemStatus.system && onOpenAutomation && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-300">
             <span>Your manual buys now use the same open-position cap as your saved plan.</span>
             <button
               onClick={onOpenAutomation}
-              className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 font-semibold text-orange-700 hover:bg-orange-100 transition"
+              className="rounded-full border border-amber-400/30 bg-amber-500/20 px-3 py-1 font-semibold text-amber-100 transition hover:bg-amber-500/30"
             >
               Adjust cap in Automation
             </button>
@@ -111,43 +131,43 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
       )}
 
       {/* Search toolbar */}
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-3">
+      <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/80 p-4 shadow-[0_18px_45px_rgba(2,6,23,0.35)]">
         <div className="flex gap-2">
           <input
             type="text"
             value={s.query}
             onChange={e => s.setQuery(e.target.value)}
             placeholder="Search events (example: election, bitcoin, weather)"
-            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/30"
+            className="flex-1 rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
           />
           <button
             onClick={() => s.fetchMarkets()}
             disabled={s.loading}
-            className="px-4 py-2 bg-[#FF4D00] text-white rounded-lg text-sm font-semibold hover:bg-[#e04400] disabled:opacity-50 transition"
+            className="rounded-lg bg-[#FF4D00] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#e04400] disabled:opacity-50"
           >
             {s.loading ? "…" : s.loaded ? "Refresh" : "Search"}
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <label className="text-xs text-gray-600">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <label className="text-xs text-slate-400">
             Time range
             <select
               value={s.timeframe}
               onChange={(e) => s.setTimeframe(e.target.value as MktTimeframe)}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/30"
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/90 px-2.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
             >
               {QUICK_TIMEFRAMES.map((tf) => (
                 <option key={tf.key} value={tf.key}>{tf.label}</option>
               ))}
             </select>
           </label>
-          <label className="text-xs text-gray-600">
+          <label className="text-xs text-slate-400">
             Topic
             <select
               value={s.category}
               onChange={(e) => s.setCategory(e.target.value)}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/30"
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/90 px-2.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
             >
               <option value="all">All topics</option>
               {s.availableCategories.map((c) => (
@@ -155,12 +175,12 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
               ))}
             </select>
           </label>
-          <label className="text-xs text-gray-600">
+          <label className="text-xs text-slate-400">
             Sort results by
             <select
               value={s.sortBy}
               onChange={(e) => s.setSortBy(e.target.value as typeof s.sortBy)}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/30"
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900/90 px-2.5 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
             >
               <option value="edge">Best value</option>
               <option value="volume">Most active</option>
@@ -174,16 +194,34 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
         <div className="flex items-center gap-2">
           <button
             onClick={() => s.setFiltersOpen(!s.filtersOpen)}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+            className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-800"
           >
             {s.filtersOpen ? "Hide extra filters" : "Show extra filters"}
           </button>
           <button
             onClick={s.clearFilters}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+            className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-800"
           >
             Reset filters
           </button>
+        </div>
+
+        <div className="space-y-2 rounded-xl border border-slate-800 bg-slate-900/70 p-3 text-xs">
+          <div className="flex flex-wrap gap-2 text-slate-300">
+            <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1">Searching: {searchTerm.length > 0 ? `"${searchTerm}"` : "No keyword"}</span>
+            <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1">Sort: {s.sortBy} ({s.sortDirection})</span>
+            <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1">Loaded set: {s.loadedMarketCount.toLocaleString()} markets</span>
+            <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1">Visible: {s.filteredCount.toLocaleString()}</span>
+          </div>
+          <div className="flex flex-wrap gap-2 text-slate-400">
+            {activeFilters.length === 0 ? (
+              <span className="rounded-full border border-dashed border-slate-700 px-3 py-1">Active filters: none</span>
+            ) : (
+              activeFilters.map((filter) => (
+                <span key={filter} className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-3 py-1 text-cyan-100">{filter}</span>
+              ))
+            )}
+          </div>
         </div>
 
         {/* Advanced filters */}
@@ -216,14 +254,14 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
       {!s.loaded && !s.loading && (
         <div className="text-center py-12">
           <div className="animate-spin w-6 h-6 border-2 border-[#FF4D00] border-t-transparent rounded-full mx-auto" />
-          <p className="text-xs text-gray-400 mt-2">Loading markets…</p>
+          <p className="mt-2 text-xs text-slate-400">Loading markets…</p>
         </div>
       )}
 
       {s.loading && (
         <div className="text-center py-12">
           <div className="animate-spin w-6 h-6 border-2 border-[#FF4D00] border-t-transparent rounded-full mx-auto" />
-          <p className="text-xs text-gray-400 mt-2">Loading markets…</p>
+          <p className="mt-2 text-xs text-slate-400">Loading markets…</p>
         </div>
       )}
 
@@ -231,11 +269,11 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
       {s.loaded && !s.loading && (
         <>
           {s.loadError && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
               {s.loadError}
             </div>
           )}
-          <div className="flex items-center justify-between text-xs text-gray-500 px-1">
+          <div className="flex items-center justify-between px-1 text-xs text-slate-400">
             <span>
               {s.filteredCount} market{s.filteredCount !== 1 ? "s" : ""}
               {s.filteredCount > 0 && " · showing all matches"}
@@ -252,19 +290,22 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
             savedMarketIds={watchlist.items.map((item) => item.marketId)}
             onToggleSave={(market) => void watchlist.toggleSave(market)}
             onBuy={s.openBuyPanel}
-            onOpenDetails={setDetailMarket}
+            onOpenDetails={openDetails}
           />
         </>
       )}
 
       <MarketListingDetailDrawer
         market={detailMarket}
+        paperMode={paperMode}
+        draftAmount={detailAmount}
+        onDraftAmountChange={setDetailAmount}
         isSaved={detailMarket ? watchlist.isSaved(detailMarket.id) : false}
         onClose={() => setDetailMarket(null)}
         onToggleSave={(market) => void watchlist.toggleSave(market)}
-        onBuy={(market, outcome) => {
+        onBuy={(market, outcome, amount) => {
           setDetailMarket(null);
-          s.openBuyPanel(market, outcome);
+          s.openBuyPanel(market, outcome, amount);
         }}
       />
     </div>

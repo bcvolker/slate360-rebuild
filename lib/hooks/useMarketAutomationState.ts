@@ -67,6 +67,11 @@ async function deletePlanFromServer(id: string): Promise<boolean> {
   }
 }
 
+export interface SavePlanResult {
+  plan: AutomationPlan;
+  persistedToServer: boolean;
+}
+
 export function useMarketAutomationState() {
   const [plans, setPlans] = useState<AutomationPlan[]>([]);
   const [draft, setDraft] = useState<AutomationPlan>(defaultPlan);
@@ -99,7 +104,7 @@ export function useMarketAutomationState() {
     setControlLevel("basic");
   }, []);
 
-  const savePlan = useCallback(async () => {
+  const savePlan = useCallback(async (): Promise<SavePlanResult | null> => {
     if (!draft.name.trim()) return;
     const now = new Date().toISOString();
     const optimistic: AutomationPlan = {
@@ -120,9 +125,11 @@ export function useMarketAutomationState() {
         : [saved, ...next.filter((plan) => plan.id !== optimistic.id)];
       setPlans(refreshed);
       persistPlans(refreshed);
+      resetDraft();
+      return { plan: saved, persistedToServer: true };
     }
     resetDraft();
-    return saved ?? optimistic;
+    return { plan: optimistic, persistedToServer: false };
   }, [draft, editingId, plans, resetDraft]);
 
   const deletePlan = useCallback(async (id: string) => {

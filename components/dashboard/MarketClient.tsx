@@ -1,18 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { StatusBadge } from "@/components/dashboard/market/MarketSharedUi";
 import { useMarketTradeData } from "@/lib/hooks/useMarketTradeData";
 import { useMarketBot } from "@/lib/hooks/useMarketBot";
 import { useMarketServerStatus } from "@/lib/hooks/useMarketServerStatus";
+import { useMarketSystemStatus } from "@/lib/hooks/useMarketSystemStatus";
 import MarketPrimaryNav from "@/components/dashboard/market/MarketPrimaryNav";
-import MarketStartHereTab from "@/components/dashboard/market/MarketStartHereTab";
-import MarketDirectBuyTab from "@/components/dashboard/market/MarketDirectBuyTab";
 import MarketAutomationTab from "@/components/dashboard/market/MarketAutomationTab";
 import MarketResultsTab from "@/components/dashboard/market/MarketResultsTab";
 import MarketLiveWalletTab from "@/components/dashboard/market/MarketLiveWalletTab";
-import MarketSavedMarketsTab from "@/components/dashboard/market/MarketSavedMarketsTab";
-import MarketTopOverview from "@/components/dashboard/market/MarketTopOverview";
+import MarketDashboardSection from "@/components/dashboard/market/MarketDashboardSection";
+import MarketMarketsSection from "@/components/dashboard/market/MarketMarketsSection";
 import { useMarketWalletState } from "@/lib/hooks/useMarketWalletState";
 import { normalizeFocusAreas } from "@/lib/market/runtime-config";
 import { syncAutomationPlan, ensureBotRunning } from "@/lib/market/sync-automation-plan";
@@ -26,16 +24,23 @@ interface MarketClientProps {
   layoutPrefs?: MarketShellContext;
 }
 
+function normalizeTabId(tabId: string): string {
+  if (tabId === "start-here" || tabId === "live-wallet" || tabId === "dashboard") return "dashboard";
+  if (tabId === "direct-buy" || tabId === "saved-markets" || tabId === "markets") return "markets";
+  return tabId;
+}
+
 export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   const visibleTabs = layoutPrefs?.visibleTabs ?? [];
-  const [activeTabId, setActiveTabId] = useState("start-here");
+  const [activeTabId, setActiveTabId] = useState("dashboard");
   const [scanBanner, setScanBanner] = useState<ScanBanner | null>(null);
   const logsEnabled = activeTabId === "results";
 
   // If active tab is hidden, snap to first visible
   useEffect(() => {
-    if (visibleTabs.length > 0 && !visibleTabs.find((t) => t.id === activeTabId)) {
-      setActiveTabId(visibleTabs[0].id);
+    const normalizedVisibleTabs = visibleTabs.map((tab) => ({ ...tab, id: normalizeTabId(tab.id) }));
+    if (normalizedVisibleTabs.length > 0 && !normalizedVisibleTabs.find((t) => t.id === activeTabId)) {
+      setActiveTabId(normalizedVisibleTabs[0].id);
     }
   }, [visibleTabs, activeTabId]);
 
@@ -50,6 +55,8 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   });
   const wallet = useMarketWalletState({ addLog: bot.addLog });
   const serverStatus = useMarketServerStatus();
+  const systemStatus = useMarketSystemStatus();
+  const setPrimaryTab = useCallback((tabId: string) => setActiveTabId(normalizeTabId(tabId)), []);
 
   useEffect(() => {
     fetchTrades();
@@ -66,6 +73,14 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
       void fetchMarketLogs();
     }
   }, [activeTabId, fetchTrades, fetchSummary, fetchSchedulerHealth, fetchMarketLogs]);
+
+  const refreshTruthSurfaces = useCallback(async () => {
+    await fetchTrades();
+    await fetchSchedulerHealth();
+    await fetchMarketLogs();
+    await serverStatus.refresh();
+    await systemStatus.refresh();
+  }, [fetchMarketLogs, fetchSchedulerHealth, fetchTrades, serverStatus, systemStatus]);
 
   const handleApplyPlan = useCallback((plan: AutomationPlan) => {
     void (async () => {
@@ -121,45 +136,66 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
 
       if (scanResult.tradesPlaced > 0) {
         setScanBanner({ type: "success", message: `Robot placed ${scanResult.tradesPlaced} trade${scanResult.tradesPlaced !== 1 ? "s" : ""}. Check History for details.` });
-        setActiveTabId("results");
+        setPrimaryTab("results");
       } else if (scanResult.ok) {
         setScanBanner({ type: "empty", message: `Scan complete — scanned markets but no trades matched your filters right now. The robot will keep scanning automatically.` });
       } else {
         setScanBanner({ type: "error", message: `Scan error: ${scanResult.error ?? "Unknown error"}` });
       }
     })();
-  }, [bot]);
+  }, [bot, setPrimaryTab]);
 
   const handleTradePlaced = useCallback(async () => {
-    await fetchTrades();
-    await fetchSummary();
-    await fetchSchedulerHealth();
-    setActiveTabId("results");
-  }, [fetchSchedulerHealth, fetchSummary, fetchTrades]);
+    await refreshTruthSurfaces();
+    setPrimaryTab("results");
+  }, [refreshTruthSurfaces, setPrimaryTab]);
 
   function renderActiveTab() {
     switch (activeTabId) {
-      case "start-here":
+      case "dashboard":
         return (
-          <MarketStartHereTab
-            onNavigate={setActiveTabId}
+          <MarketDashboardSection
+            trades={trades}
+            paperMode={bot.config.paperMode}
+            system={systemStatus.system}
+            serverStatus={serverStatus}
+            onNavigate={setPrimaryTab}
             onApplyRecommendation={handleApplyPlan}
             onQuickStart={bot.handleStartBot}
             onStopBot={bot.handleStopBot}
-            paperMode={bot.config.paperMode}
-            serverStatus={serverStatus.status}
-            serverConfirmed={serverStatus.isConfirmed}
-            serverHealth={serverStatus.health}
+            walletPanel={
+              <MarketLiveWalletTab
+                address={wallet.address}
+                isConnected={wallet.isConnected}
+                chain={wallet.chain as { id: number; name: string } | undefined}
+                isConnecting={wallet.isConnecting}
+                isApproving={wallet.isApproving}
+                waitingApproveReceipt={wallet.waitingApproveReceipt}
+                approveSuccess={wallet.approveSuccess}
+                usdcBalance={wallet.usdcBalance}
+                maticData={wallet.maticData as { formatted: string; symbol: string } | undefined}
+                walletVerified={wallet.walletVerified}
+                walletError={wallet.walletError}
+                walletChoice={wallet.walletChoice}
+                setWalletChoice={wallet.setWalletChoice}
+                liveChecklist={wallet.liveChecklist}
+                handleConnectWallet={wallet.handleConnectWallet}
+                handleApproveUsdc={wallet.handleApproveUsdc}
+                disconnect={wallet.disconnect}
+                paperMode={bot.config.paperMode}
+              />
+            }
           />
         );
-      case "direct-buy":
+      case "markets":
         return (
-          <MarketDirectBuyTab
+          <MarketMarketsSection
             paperMode={bot.config.paperMode}
             walletAddress={wallet.address}
             liveChecklist={wallet.liveChecklist}
             onTradePlaced={handleTradePlaced}
-            onOpenAutomation={() => setActiveTabId("automation")}
+            onOpenAutomation={() => setPrimaryTab("automation")}
+            onNavigate={setPrimaryTab}
           />
         );
       case "automation":
@@ -173,7 +209,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
                 const result = await bot.runScan();
                 if (result.tradesPlaced > 0) {
                   setScanBanner({ type: "success", message: `Scan placed ${result.tradesPlaced} trade${result.tradesPlaced !== 1 ? "s" : ""}.` });
-                  setActiveTabId("results");
+                  setPrimaryTab("results");
                 } else if (result.ok) {
                   setScanBanner({ type: "empty", message: `Scan complete — no opportunities matched filters right now.` });
                 } else {
@@ -187,103 +223,44 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
             scanLog={bot.scanLog}
           />
         );
-      case "saved-markets":
-        return <MarketSavedMarketsTab onNavigate={setActiveTabId} />;
       case "results":
         return (
           <MarketResultsTab
             trades={trades}
             activityLogs={activityLogs}
-            onRefresh={async () => {
-              await fetchTrades();
-              await fetchSummary();
-              await fetchSchedulerHealth();
-              await fetchMarketLogs();
-            }}
-          />
-        );
-      case "live-wallet":
-        return (
-          <MarketLiveWalletTab
-            address={wallet.address}
-            isConnected={wallet.isConnected}
-            chain={wallet.chain as { id: number; name: string } | undefined}
-            isConnecting={wallet.isConnecting}
-            isApproving={wallet.isApproving}
-            waitingApproveReceipt={wallet.waitingApproveReceipt}
-            approveSuccess={wallet.approveSuccess}
-            usdcBalance={wallet.usdcBalance}
-            maticData={wallet.maticData as { formatted: string; symbol: string } | undefined}
-            walletVerified={wallet.walletVerified}
-            walletError={wallet.walletError}
-            walletChoice={wallet.walletChoice}
-            setWalletChoice={wallet.setWalletChoice}
-            liveChecklist={wallet.liveChecklist}
-            handleConnectWallet={wallet.handleConnectWallet}
-            handleApproveUsdc={wallet.handleApproveUsdc}
-            disconnect={wallet.disconnect}
-            paperMode={bot.config.paperMode}
+            onRefresh={refreshTruthSurfaces}
           />
         );
       default:
         return null;
     }
   }
-
-  const displayStatus = serverStatus.isConfirmed ? serverStatus.status : "unknown";
-  const statusLabels: Record<string, string> = { running: "Running", paused: "Paused", paper: "Paper", stopped: "Stopped" };
-  const displayStatusLabel = statusLabels[displayStatus] ?? "Checking…";
+  const normalizedVisibleTabs = visibleTabs.map((tab) => ({ ...tab, id: normalizeTabId(tab.id) }));
 
   return (
-    <div className="text-gray-900">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div className="space-y-6 text-slate-100">
+      <div className="rounded-[32px] border border-cyan-500/20 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.15),transparent_24%),radial-gradient(circle_at_top_right,rgba(249,115,22,0.18),transparent_20%),linear-gradient(180deg,#020617,#0f172a)] px-5 py-6 shadow-[0_24px_80px_rgba(2,6,23,0.5)]">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-gray-900 flex items-center gap-2 flex-wrap">
-            Market Robot{" "}
-            <StatusBadge status={displayStatus === "unknown" ? "idle" : displayStatus} />
-            {!serverStatus.isConfirmed && !serverStatus.isLoading && (
-              <span className="text-[10px] text-gray-400 font-normal">(unconfirmed)</span>
-            )}
-            {bot.config.paperMode && (
-              <span className="text-xs bg-purple-100 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full">
-                Paper Mode
-              </span>
-            )}
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            AI-powered prediction market bot
-            {serverStatus.isConfirmed && (
-              <> — Server: <strong className="text-gray-700">{displayStatusLabel}</strong></>
-            )}
-            {serverStatus.health?.lastRunIso && (
-              <> · Last run: {new Date(serverStatus.health.lastRunIso).toLocaleTimeString()}</>
-            )}
-            {serverStatus.health && (
-              <> · {serverStatus.health.tradesToday} trade{serverStatus.health.tradesToday !== 1 ? "s" : ""} today</>
-            )}
+          <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300/80">Market Robot</p>
+          <h1 className="mt-2 text-3xl font-black text-slate-50">Dark terminal shell, beginner-first sections, server-grounded status</h1>
+          <p className="mt-2 text-sm text-slate-300">
+            Primary navigation is limited to Dashboard, Markets, Automation, and Results. Watchlist now lives under Markets, and wallet/live readiness is reachable from Dashboard.
           </p>
         </div>
       </div>
 
       <MarketPrimaryNav
-        tabs={visibleTabs}
+        tabs={normalizedVisibleTabs}
         activeTabId={activeTabId}
-        onTabChange={setActiveTabId}
-      />
-
-      <MarketTopOverview
-        trades={trades}
-        botConfig={bot.config}
-        onOpenResults={() => setActiveTabId("results")}
-        onOpenAutomation={() => setActiveTabId("automation")}
+        onTabChange={setPrimaryTab}
       />
 
       {/* Scan feedback banner — visible on all tabs */}
       {scanBanner && (
-        <div className={`mb-4 rounded-xl border px-4 py-3 text-sm flex items-center justify-between ${
-          scanBanner.type === "success" ? "bg-green-50 border-green-200 text-green-800" :
-          scanBanner.type === "empty" ? "bg-amber-50 border-amber-200 text-amber-800" :
-          "bg-red-50 border-red-200 text-red-800"
+        <div className={`mb-4 flex items-center justify-between rounded-2xl border px-4 py-3 text-sm ${
+          scanBanner.type === "success" ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-100" :
+          scanBanner.type === "empty" ? "border-amber-400/30 bg-amber-500/10 text-amber-100" :
+          "border-rose-400/30 bg-rose-500/10 text-rose-100"
         }`}>
           <span>{scanBanner.message}</span>
           <button onClick={() => setScanBanner(null)} className="ml-3 text-current opacity-60 hover:opacity-100 text-xs font-bold">✕</button>

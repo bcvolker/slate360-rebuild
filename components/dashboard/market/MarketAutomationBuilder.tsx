@@ -5,6 +5,12 @@ import MarketAutomationDetailControls from "@/components/dashboard/market/Market
 import MarketPlanInsights from "@/components/dashboard/market/MarketPlanInsights";
 import MarketNumericInput from "@/components/dashboard/market/MarketNumericInput";
 import { FOCUS_AREAS } from "@/components/dashboard/market/market-constants";
+import {
+  applyAutomationPreset,
+  detectAutomationPreset,
+  getAutomationPresetLabel,
+  type AutomationPresetKey,
+} from "@/lib/market/automation-presets";
 import type { AutomationPlan, RiskLevel, ScanMode } from "@/components/dashboard/market/types";
 
 interface MarketAutomationBuilderProps {
@@ -22,11 +28,29 @@ export default function MarketAutomationBuilder({
   draft, editingId, controlLevel,
   onControlLevelChange, onFieldChange, onSave, onSaveAndApply, onReset,
 }: MarketAutomationBuilderProps) {
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
+  const selectedPreset = detectAutomationPreset(draft);
+
   const toggleCategory = (cat: string) => {
     const next = draft.categories.includes(cat)
       ? draft.categories.filter(c => c !== cat)
       : [...draft.categories, cat];
     onFieldChange("categories", next);
+  };
+
+  const applyPreset = (preset: AutomationPresetKey) => {
+    const next = applyAutomationPreset(draft, preset);
+    onFieldChange("riskLevel", next.riskLevel);
+    onFieldChange("budget", next.budget);
+    onFieldChange("maxTradesPerDay", next.maxTradesPerDay);
+    onFieldChange("maxDailyLoss", next.maxDailyLoss);
+    onFieldChange("maxOpenPositions", next.maxOpenPositions);
+    onFieldChange("scanMode", next.scanMode);
+    onFieldChange("maxPctPerTrade", next.maxPctPerTrade);
+    onFieldChange("minimumLiquidity", next.minimumLiquidity);
+    onFieldChange("maximumSpread", next.maximumSpread);
+    onFieldChange("largeTraderSignals", next.largeTraderSignals);
+    onFieldChange("closingSoonFocus", next.closingSoonFocus);
   };
 
   return (
@@ -40,20 +64,70 @@ export default function MarketAutomationBuilder({
 
       {/* Control level selector */}
       <div>
-        <p className="text-xs text-gray-500 mb-2">Control level</p>
-        <div className="flex gap-1">
-          {(["basic", "intermediate", "advanced"] as const).map(lvl => (
-            <button key={lvl} onClick={() => onControlLevelChange(lvl)}
-              className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${
-                controlLevel === lvl ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}>
-              {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
-            </button>
-          ))}
+        <p className="text-xs text-gray-500 mb-2">Choose a quick preset</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {(["conservative", "balanced", "aggressive"] as const).map((preset) => {
+            const active = selectedPreset === preset;
+            return (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => applyPreset(preset)}
+                className={`rounded-lg border px-3 py-2 text-left transition ${
+                  active
+                    ? "border-[#FF4D00] bg-orange-50 text-[#C53B00]"
+                    : "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <p className="text-xs font-semibold">{getAutomationPresetLabel(preset)}</p>
+                <p className="mt-1 text-[11px] text-gray-500">
+                  {preset === "conservative" && "Slower scans, tighter guardrails, smaller daily risk."}
+                  {preset === "balanced" && "Default blend of cadence, risk, and position sizing."}
+                  {preset === "aggressive" && "Faster scans, wider limits, higher daily volatility."}
+                </p>
+              </button>
+            );
+          })}
         </div>
         <p className="text-[11px] text-gray-400 mt-2">
-          Basic is recommended. Intermediate and Advanced expose extra controls that most users do not need.
+          Presets are frontend guidance only. They map to existing plan fields and do not change backend contracts.
         </p>
+      </div>
+
+      <div>
+        <p className="text-xs text-gray-500 mb-2">Preset currently matched</p>
+        <p className="text-sm font-medium text-gray-800">
+          {selectedPreset ? getAutomationPresetLabel(selectedPreset) : "Custom"}
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+        <button
+          type="button"
+          onClick={() => setShowAdvanced((value) => !value)}
+          className="w-full text-left text-xs font-semibold text-gray-700"
+        >
+          {showAdvanced ? "Hide advanced settings" : "Show advanced settings"}
+        </button>
+        {showAdvanced && (
+          <>
+            <p className="text-[11px] text-gray-500 mt-2">Basic controls are shown by default. Use this area only if you need tighter control over execution behavior.</p>
+            <p className="text-xs text-gray-500 mt-3 mb-2">Detail level</p>
+            <div className="flex gap-1">
+              {(["basic", "intermediate", "advanced"] as const).map(lvl => (
+                <button key={lvl} onClick={() => onControlLevelChange(lvl)}
+                  className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${
+                    controlLevel === lvl ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}>
+                  {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-gray-400 mt-2">
+              Intermediate and Advanced keep granular controls available without cluttering the primary path.
+            </p>
+          </>
+        )}
       </div>
 
       {/* Plan name */}
@@ -67,8 +141,8 @@ export default function MarketAutomationBuilder({
       {/* Basic controls — always show */}
       <BasicControls draft={draft} onFieldChange={onFieldChange} toggleCategory={toggleCategory} />
 
-      {/* Intermediate controls */}
-      {(controlLevel === "intermediate" || controlLevel === "advanced") && (
+      {/* Intermediate and advanced controls remain available through disclosure */}
+      {showAdvanced && (controlLevel === "intermediate" || controlLevel === "advanced") && (
         <MarketAutomationDetailControls
           draft={draft}
           level={controlLevel}
@@ -82,11 +156,11 @@ export default function MarketAutomationBuilder({
       <div className="flex gap-2 pt-1">
         <button onClick={onSave} disabled={!draft.name.trim()}
           className="flex-1 bg-gray-200 hover:bg-gray-300 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40 text-gray-700">
-          {editingId ? "Save changes" : "Save plan"}
+          {editingId ? "Save Draft Changes" : "Save Draft"}
         </button>
         <button onClick={onSaveAndApply} disabled={!draft.name.trim()}
           className="flex-1 bg-[#FF4D00] hover:bg-orange-600 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40 text-white">
-          ▶ {editingId ? "Save & start" : "Save & start robot"}
+          ▶ {editingId ? "Save + Start Robot" : "Save + Start Robot"}
         </button>
         {editingId && (
           <button onClick={onReset}
@@ -96,7 +170,7 @@ export default function MarketAutomationBuilder({
         )}
       </div>
       <p className="text-[11px] text-gray-400">
-        "Save plan" stores your settings without starting. "Save & start" saves, turns the robot on, and runs a scan immediately.
+        Save Draft stores your plan. Save + Start Robot stores the plan, requests runtime start, and triggers a scan. Runtime status is server-confirmed separately.
       </p>
     </div>
   );

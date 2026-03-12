@@ -6,7 +6,11 @@ import MarketAutomationBuilder from "@/components/dashboard/market/MarketAutomat
 import MarketPlanList from "@/components/dashboard/market/MarketPlanList";
 import MarketSystemStatusCard from "@/components/dashboard/market/MarketSystemStatusCard";
 import type { AutomationPlan, BotConfig } from "@/components/dashboard/market/types";
-import type { SchedulerHealthViewModel } from "@/lib/market/contracts";
+import {
+  detectAutomationPreset,
+  getAutomationPresetLabel,
+} from "@/lib/market/automation-presets";
+import type { MarketSystemStatusViewModel, SchedulerHealthViewModel } from "@/lib/market/contracts";
 import type { ServerBotStatus } from "@/lib/hooks/useMarketServerStatus";
 import { useMarketSystemStatus } from "@/lib/hooks/useMarketSystemStatus";
 
@@ -20,9 +24,15 @@ interface MarketAutomationTabProps {
   scanLog: string[];
 }
 
+type ActionFeedback = {
+  type: "info" | "success" | "warning";
+  message: string;
+};
+
 export default function MarketAutomationTab({ botConfig, onApplyPlan, onRunNow, onStopBot, serverStatus, serverHealth, scanLog }: MarketAutomationTabProps) {
   const auto = useMarketAutomationState();
   const [composerOpen, setComposerOpen] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
   const systemStatus = useMarketSystemStatus();
 
   const handleApply = useCallback((plan: AutomationPlan) => {
@@ -30,19 +40,61 @@ export default function MarketAutomationTab({ botConfig, onApplyPlan, onRunNow, 
   }, [onApplyPlan]);
 
   const handleSave = useCallback(async () => {
-    const saved = await auto.savePlan();
-    if (saved) {
+    const result = await auto.savePlan();
+    if (result) {
       setComposerOpen(false);
+      await systemStatus.refresh();
+      setActionFeedback(
+        result.persistedToServer
+          ? {
+              type: "success",
+              message: "Saved: plan is persisted to server and available for later start.",
+            }
+          : {
+              type: "warning",
+              message: "Saved locally only: server save did not confirm, so this draft is not canonical runtime truth yet.",
+            },
+      );
     }
-  }, [auto]);
+  }, [auto, systemStatus]);
 
   const handleSaveAndApply = useCallback(async () => {
-    const saved = await auto.savePlan();
-    if (saved) {
+    const result = await auto.savePlan();
+    if (result) {
       setComposerOpen(false);
-      onApplyPlan(saved);
+      onApplyPlan(result.plan);
+      await systemStatus.refresh();
+      setActionFeedback(
+        result.persistedToServer
+          ? {
+              type: "info",
+              message: "Saved + Started requested: waiting for server runtime confirmation before treating this as running.",
+            }
+          : {
+              type: "warning",
+              message: "Start requested from local fallback save. Runtime may use older server config until server save succeeds.",
+            },
+      );
     }
-  }, [auto, onApplyPlan]);
+  }, [auto, onApplyPlan, systemStatus]);
+
+  const handleRunNow = useCallback(async () => {
+    onRunNow();
+    await systemStatus.refresh();
+    setActionFeedback({
+      type: "info",
+      message: "Run Scan Now requested: check Runtime Status and recent scan messages for confirmed execution.",
+    });
+  }, [onRunNow, systemStatus]);
+
+  const handleStopBot = useCallback(async () => {
+    onStopBot();
+    await systemStatus.refresh();
+    setActionFeedback({
+      type: "info",
+      message: "Stop requested: shown as stopped only after server runtime status confirms it.",
+    });
+  }, [onStopBot, systemStatus]);
 
   const quickStats = useMemo(() => ({
     practicePlans: auto.plans.filter((plan) => !plan.isArchived && plan.mode === "practice").length,
@@ -55,12 +107,27 @@ export default function MarketAutomationTab({ botConfig, onApplyPlan, onRunNow, 
       <ActivePlanSummary
         botConfig={botConfig}
         defaultPlan={auto.plans.find(p => p.isDefault)}
+        system={systemStatus.system}
         serverStatus={serverStatus}
         serverHealth={serverHealth}
         scanLog={scanLog}
-        onRunNow={onRunNow}
-        onStopBot={onStopBot}
+        onRunNow={handleRunNow}
+        onStopBot={handleStopBot}
       />
+
+      {actionFeedback && (
+        <div
+          className={`rounded-xl border px-3 py-2 text-xs ${
+            actionFeedback.type === "success"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : actionFeedback.type === "warning"
+                ? "border-amber-200 bg-amber-50 text-amber-800"
+                : "border-slate-200 bg-slate-50 text-slate-700"
+          }`}
+        >
+          {actionFeedback.message}
+        </div>
+      )}
 
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -118,7 +185,7 @@ export default function MarketAutomationTab({ botConfig, onApplyPlan, onRunNow, 
 
       <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
         <p>
-          <span className="font-semibold text-slate-800">How this works:</span> Save Draft only stores the plan. Save + Start Robot stores it, applies it, switches the robot on, and triggers an immediate scan. Run scan now is the fastest way to verify that paper-mode execution is alive.
+          <span className="font-semibold text-slate-800">How this works:</span> Save Draft stores configuration only. Save + Start Robot stores then requests runtime start. Run Scan Now requests an immediate scan using current runtime settings. Stop / Halt sends a stop request. Runtime state and config source are only canonical after server confirmation.
         </p>
       </div>
     </div>
@@ -128,6 +195,7 @@ export default function MarketAutomationTab({ botConfig, onApplyPlan, onRunNow, 
 function ActivePlanSummary({
   botConfig,
   defaultPlan,
+  system,
   serverStatus,
   serverHealth,
   scanLog,
@@ -136,13 +204,16 @@ function ActivePlanSummary({
 }: {
   botConfig: BotConfig;
   defaultPlan?: AutomationPlan;
+  system: MarketSystemStatusViewModel | null;
   serverStatus: ServerBotStatus;
   serverHealth: SchedulerHealthViewModel | null;
   scanLog: string[];
   onRunNow: () => void;
   onStopBot: () => void;
 }) {
-  const isRunning = botConfig.botRunning && !botConfig.botPaused;
+  const isRunning = serverStatus === "running" || serverStatus === "paper";
+  const runtimeLabel = isRunning ? "Running" : serverStatus === "paused" ? "Paused" : "Stopped";
+  const presetLabel = defaultPlan ? detectAutomationPreset(defaultPlan) : null;
   const recentLogLines = scanLog.slice(0, 4);
   const [showDebug, setShowDebug] = React.useState(false);
 
@@ -152,7 +223,7 @@ function ActivePlanSummary({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
         <div>
           <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-            {isRunning ? "🟢 Robot Running" : "⏸️ Robot Idle"}
+            {isRunning ? "🟢 Runtime Running" : "⏸️ Runtime Not Running"}
             {botConfig.paperMode && (
               <span className="text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded-full">Practice</span>
             )}
@@ -160,6 +231,10 @@ function ActivePlanSummary({
           <p className="text-xs text-gray-500 mt-1">
             {defaultPlan ? `Plan: ${defaultPlan.name}` : "No plan selected"}
             {" · "}${botConfig.capitalAlloc} budget · {botConfig.maxTradesPerDay} trades/day · {botConfig.riskMix} risk
+            {presetLabel && ` · ${getAutomationPresetLabel(presetLabel)} preset`}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Save state: {defaultPlan ? "Saved" : "Not saved"} · Runtime state: {runtimeLabel}
           </p>
         </div>
         <div className="flex gap-2">
@@ -167,17 +242,32 @@ function ActivePlanSummary({
             onClick={onRunNow}
             className="px-3 py-1.5 rounded-lg bg-[#FF4D00] text-white text-xs font-semibold hover:bg-[#e04400] transition"
           >
-            Run scan now
+            Run Scan Now
           </button>
           {isRunning && (
             <button
               onClick={onStopBot}
               className="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 transition"
             >
-              Stop robot
+              Stop / Halt
             </button>
           )}
         </div>
+      </div>
+
+      <div className="mb-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
+        <p>
+          <span className="font-semibold">Config source:</span> {system?.configSourceLabel ?? "Unknown"}
+          {system?.configSource ? ` (${system.configSource})` : ""}
+        </p>
+        {system && system.configSource !== "market_plans" && (
+          <p className="mt-1 text-amber-700">
+            Runtime is using fallback source, not canonical market_plans.
+            {system.hasLegacyDirective ? " Legacy directives are active." : ""}
+            {system.hasRuntimeMetadata ? " Runtime metadata overlay is active." : ""}
+          </p>
+        )}
+        <p className="mt-1 text-slate-500">Action meanings: Save Draft = config only. Save + Start Robot = config + start request. Run Scan Now = one immediate scan request. Stop / Halt = stop request.</p>
       </div>
 
       {/* Quick stats row */}
