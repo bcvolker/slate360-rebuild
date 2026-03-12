@@ -152,33 +152,32 @@ When editing these, always read both the state declarations AND the JSX sections
 ### Session Handoff — 2026-03-12
 
 #### What Changed
-- Executed Rescue Batch 3 automation rescue pass in one chat flow with required read order and preflight attempts
-- `components/dashboard/market/MarketAutomationTab.tsx`: added explicit runtime/save-state distinction, config-source truth block with fallback warnings, action-meaning copy, and honest post-action feedback banners
-- `components/dashboard/market/MarketAutomationBuilder.tsx`: added three beginner preset entry paths (Conservative/Balanced/Aggressive), visible preset match text, Save Draft / Save + Start Robot labels, and advanced disclosure toggle
-- `components/dashboard/market/MarketPlanList.tsx`: surfaced matched preset per saved plan and clarified start action copy as Save + Start Robot
-- `lib/hooks/useMarketAutomationState.ts`: save now returns server-persisted vs local-fallback metadata for truthful UI feedback
-- `lib/market/automation-presets.ts`: new shared preset mapping/detection helper used by builder and plan list
-- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: added full Batch 3 outcome record, intentional non-changes, verification points, and blockers
-- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: marked Batch 3 implemented with actual landed behavior
-- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: advanced current batch guidance to post-Batch-3 state
-- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: updated active batch and added Batch 3 session-log entry
-- `SLATE360_PROJECT_MEMORY.md`: overwrote Latest Session Handoff for Batch 3
+- Ran a read/verify-only Vercel env diagnostic pass focused on `NEXT_PUBLIC_POLYMARKET_SPENDER`
+- Verified Vercel CLI auth and project linkage in-chat:
+	- `vercel whoami` returned `slate360ceo-8370`
+	- `.vercel/project.json` confirms project `slate360-rebuild` in org `team_sI0m72uIMs2FPbYIlkgp7RRS`
+- Verified env scope presence in-chat:
+	- `vercel env ls production` includes `NEXT_PUBLIC_POLYMARKET_SPENDER`
+	- `vercel env ls preview` includes `NEXT_PUBLIC_POLYMARKET_SPENDER`
+- Hit terminal blocker mid-pass:
+	- `vercel env pull --environment=production --yes` failed with `ENOPRO`
+	- `vercel env run -e production -- npm run diag:market-runtime` was not runnable after that failure
+- Local artifact inspection at chat end:
+	- `.env.vercel.tmp` exists but does not include `NEXT_PUBLIC_POLYMARKET_SPENDER`
+	- `.env.local` does not include `NEXT_PUBLIC_POLYMARKET_SPENDER`
 
 #### What's Broken / Partially Done
-- Terminal command execution remains blocked by `ENOPRO` in this workspace session, preventing terminal runs of `npm run typecheck` and `npx tsc --noEmit`
-- Commit/push from this session is blocked because terminal/git command execution is unavailable (`ENOPRO`)
-- Market runtime truth is still split between canonical plans and fallback layers (directives/metadata); Batch 3 only made that visible and honest in UI
-- `NEXT_PUBLIC_POLYMARKET_SPENDER` remains a live-readiness blocker
-- `app/api/market/scan/route.ts` remains paper-only execution behavior; no live automation claim is valid
+- Terminal command execution degraded to `ENOPRO` after successful `vercel env ls` commands, blocking completion of pull and env-run verification in this chat
+- Runtime diagnostic re-check in production context is still pending (`vercel env run -e production -- npm run diag:market-runtime`)
+- `NEXT_PUBLIC_POLYMARKET_SPENDER` appears present in Vercel env scopes but still not reflected in local pulled env artifacts available in this workspace
 
 #### Context Files Updated
-- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: Batch 3 implementation status and verification checklist
-- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: Batch 3 status update
-- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: next-batch resume state
-- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: active batch/session log update
-- `SLATE360_PROJECT_MEMORY.md`: session handoff update
+- `docs/market-robot/MARKET_ROBOT_ENV_AND_TOOL_MATRIX.md`: fresh-chat env check results plus ENOPRO blocker point and redeploy guidance
+- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: continuation note for env follow-up with successful env-list evidence and blocked pull/run steps
+- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: added env diagnostic follow-up log entry
+- `SLATE360_PROJECT_MEMORY.md`: Latest Session Handoff overwritten for this diagnostic pass
 
 #### Next Steps (ordered)
-1. Run Rescue Batch 4 for Results and wallet/readiness unification using the same truth-first UI language
-2. Re-run terminal validations and git push once `ENOPRO` is resolved
-3. Keep backend truth unification and any `/api/market/summary` contract changes in a separate later batch
+1. Restore terminal provider and rerun `vercel env pull --environment=production --yes` to refresh local snapshot
+2. Run `vercel env run -e production -- npm run diag:market-runtime` to verify runtime sees `NEXT_PUBLIC_POLYMARKET_SPENDER`
+3. If spender is still failing in production runtime after env presence confirmation, execute a production redeploy to propagate `NEXT_PUBLIC_*` into a fresh client build

@@ -36,6 +36,14 @@ This file tracks current status, build order, prompts, checks, and rebuild-from-
 - Batch 3 moved granular controls behind an explicit disclosure while preserving advanced settings.
 - Batch 3 did not modify `app/api/market/*`, runtime-config resolution, scheduler logic, or summary endpoint logic.
 
+2026-03-12 env diagnostic follow-up (read/verify-only):
+- `vercel whoami`, `vercel env ls production`, and `vercel env ls preview` succeeded in a fresh chat.
+- `NEXT_PUBLIC_POLYMARKET_SPENDER` is present in Vercel env scopes (`Production, Preview, Development`).
+- Terminal degraded mid-pass with `ENOPRO` on `vercel env pull --environment=production --yes`; no further Vercel terminal retries were attempted per protocol.
+- `vercel env run -e production -- npm run diag:market-runtime` could not be executed after `ENOPRO`.
+- Local artifacts still omit `NEXT_PUBLIC_POLYMARKET_SPENDER` in `.env.vercel.tmp` and `.env.local`.
+- Next safe move is production redeploy for `NEXT_PUBLIC_*` propagation, then rerun env pull and production env-run diagnostic.
+
 `MarketClient` has zero external callers outside `app/market/page.tsx` (confirmed via GitNexus).
 This makes large batches safe. The revised strategy is ~10 prompts by combining related steps.
 

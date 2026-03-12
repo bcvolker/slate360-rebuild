@@ -8,6 +8,8 @@ Continuation Note (2026-03-12): required preflight/read order was rerun in a fre
 
 Continuation Note (2026-03-12, Vercel env diagnostic): read/verify-only env triage was run to validate the `NEXT_PUBLIC_POLYMARKET_SPENDER` blocker. This workspace remains terminal-blocked by `ENOPRO`, so live `vercel env ls` and `vercel env run` commands could not be rerun in-chat. Local Vercel link metadata confirms this repo is linked to `slate360-rebuild`, and the latest local Vercel env snapshot file (`.env.vercel.tmp`) still does not include `NEXT_PUBLIC_POLYMARKET_SPENDER`. If the variable was recently added in Vercel UI, production likely needs a fresh build deployment for `NEXT_PUBLIC_*` propagation.
 
+Continuation Note (2026-03-12, Vercel env diagnostic follow-up): `vercel whoami`, `vercel env ls production`, and `vercel env ls preview` were successfully executed in a fresh chat before terminal degradation and all confirmed `NEXT_PUBLIC_POLYMARKET_SPENDER` is present in Vercel env scopes (`Production, Preview, Development`). The same chat then hit `ENOPRO` on `vercel env pull --environment=production --yes`, and `vercel env run -e production -- npm run diag:market-runtime` could not be executed afterward. Local artifacts at chat end still show no `NEXT_PUBLIC_POLYMARKET_SPENDER` in `.env.vercel.tmp` or `.env.local`, so the highest-confidence next step is a production redeploy to force `NEXT_PUBLIC_*` client build propagation, then rerun pull and production env-run diagnostics.
+
 ## Batch 3 Outcome — 2026-03-12
 - Status: complete (local changes only; push blocked)
 - Files changed:
