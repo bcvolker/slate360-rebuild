@@ -149,21 +149,31 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-11
+### Session Handoff — 2026-03-12
 
 #### What Changed
-- `.github/copilot-instructions.md`: Added Token Budget Rules, Pre-Edit Checklist, No Phantom Fixes, Async/Race Condition Guard, Session Handoff/Startup, Bug Registry Discipline, Acceptance Criteria, Working Style, Safety Rules sections
-- `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`: Added Token Budget section, expanded Pre-Flight with monolith/bug checks, added Async Guard + No Phantom Fixes during-work rules, made End Of Chat Handoff mandatory with "What's Broken" field, added Bug Registry Discipline
-- `SLATE360_PROJECT_MEMORY.md`: Added Known Monolith Files table, added this Latest Session Handoff section
+- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: Replaced the prior short Market note with a full rescue preflight build file covering constraints, architecture map, source-of-truth map, broken states, env/tool blockers, safe boundaries, batch sequence, batch guardrails, verification checklist, rollback notes, and next batch guidance
+- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: Added a fresh-chat resume protocol for future Market Robot implementation batches
+- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: Added structured summaries, risks, preconditions, hallucination traps, and success criteria for Batches 0 through 6
+- `docs/market-robot/MARKET_ROBOT_ENV_AND_TOOL_MATRIX.md`: Added Market env and tool verification matrix based on repo search plus runtime diagnostics
+- `SLATE360_PROJECT_MEMORY.md`: Updated Latest Session Handoff for this docs/build-file setup pass
 
 #### What's Broken / Partially Done
-- Nothing broken by this change — docs only
+- Market Robot rescue is still pre-implementation only; no Batch 1 code has been applied yet
+- Market truth remains split across `market_plans`, `market_directives`, `user_metadata.marketBotConfig`, localStorage, `market_bot_runtime`, and client state
+- `NEXT_PUBLIC_POLYMARKET_SPENDER` is still the confirmed live blocker from `npm run diag:market-runtime`
+- `app/api/market/summary/route.ts` still derives mode/starting balance from directives and metadata rather than preferring `market_plans`
+- `app/api/market/scan/route.ts` still executes only paper trades; live automation is not implemented end-to-end
+- `lib/hooks/useMarketDirectBuyState.ts` still treats any successful `/api/market/buy` response as a generic success and does not surface fallback truth strongly enough
 
 #### Context Files Updated
-- `.github/copilot-instructions.md`: comprehensive rule additions
-- `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`: token budget + build safety rules
-- `SLATE360_PROJECT_MEMORY.md`: monolith table + handoff section
+- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: canonical Market rescue status and constraints
+- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: future chat startup rules for Market work
+- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: planned batch structure and risks
+- `docs/market-robot/MARKET_ROBOT_ENV_AND_TOOL_MATRIX.md`: env/tool verification record
+- `SLATE360_PROJECT_MEMORY.md`: session handoff update
 
 #### Next Steps (ordered)
-1. Continue Market Robot work per `market-automation-notes.md` in repo memory
-2. Address BUG-018 (DrawingManager deprecation) before May 2026 deadline
+1. Run Batch 1 only: shell/IA/truthfulness pass with explicit forbidden contracts
+2. Keep Batch 1 focused on truthful UI surfaces and re-homing, not backend redesign
+3. After Batch 1, reassess whether a small backend truth patch is required before claiming server-grounded summary behavior
