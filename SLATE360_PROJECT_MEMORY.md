@@ -149,41 +149,34 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-12
+### Session Handoff — 2026-03-13 (Batch 4.6A)
 
 #### What Changed
-- Completed Market Robot Rescue Batch 4.5 — operator console visual replacement pass (local only).
-- Converted 14 Market presentation components from white/light card styling to dark operator console vocabulary.
-- Files changed:
-	- MarketAutomationTab.tsx — action feedback, plans header, explanation box, ActivePlanSummary
-	- MarketResultsTab.tsx — header gradient, StatCard, trade history, filters, PnL panels
-	- MarketStartHereTab.tsx — inactive card, stats, templates, nav shortcuts, explainer
-	- MarketSystemStatusCard.tsx — outer container, stat cards, blocker tones
-	- MarketResultsVerificationConsole.tsx — post-action context box
-	- MarketResultsInsights.tsx — all 3 insight cards
-	- MarketOpenPositionsPanel.tsx — container, PnL colors, trade buttons, badges
-	- MarketActivityFeed.tsx — all panels and log entries
-	- MarketAutomationBuilder.tsx — container, presets, settings panel, inputs, BasicControls
-	- MarketPlanList.tsx — header, empty state, PlanCard, badges, action buttons
-	- MarketListingDetailDrawer.tsx — main panel, category/mode badges, pricing card, wallet card, outcome panels, preview cards
-	- MarketAutomationDetailControls.tsx — labels, borders, toggle
-	- MarketPlanInsights.tsx — health tones, stat cards, warnings
-	- MarketNumericInput.tsx — input styling
-- No API routes, hooks, utilities, or backend contracts changed. CSS-only.
-- Editor diagnostics: zero errors across all 14 files.
+- `app/api/market/buy/route.ts`: Separated direct-buy position cap from automation plan cap. Direct buys no longer call `resolveUserMaxOpenPositions`. Paper buys have 2000 cap, live buys 500 cap. Removed unused import.
+- `lib/market/search-synonyms.ts`: Added `queryMatchesText()` with word-boundary matching for synonym expansions. Removed "wind" from weather synonyms.
+- `app/api/market/polymarket/route.ts`: Use `queryMatchesText` instead of `expandSearchTerms` + substring for server-side search matching.
+- `lib/market/direct-buy-table.ts`: Use `queryMatchesText` instead of `expandSearchTerms` + substring for client-side filtering.
+- `lib/hooks/useMarketDirectBuyState.ts`: Updated fallback error text for position cap errors.
+- `components/dashboard/MarketClient.tsx`: Fixed `.formatted` TS error (wagmi v2 `useBalance` returns `{value, decimals, symbol}` not `.formatted`).
+- `lib/hooks/useMarketAutomationState.ts`: Fixed `return;` → `return null;` to match `Promise<SavePlanResult | null>` type.
+- All 5 tracker/build doc files updated.
 
 #### What's Broken / Partially Done
-- Terminal command execution remains blocked by `ENOPRO`; `npm run typecheck` and git push could not be performed.
-- Batches 1–4.5 local changes have never been pushed due to persistent terminal blocker.
+- 5 Market component files still have white/light card surfaces: MarketBuyPanel.tsx, MarketLiveWalletTab.tsx, MarketAdvancedFilters.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx (deferred to 4.6B)
+- Market live automation path remains incomplete (scan execution is paper-only)
+- Direct-buy UX can overstate live success when backend falls back to paper (partially addressed in Batch 1 but not fully redesigned)
+- Summary metric source remains partially legacy
+- Accumulated open paper trades (1000+) are not auto-resolved — users should eventually close/resolve old paper positions
 
 #### Context Files Updated
-- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: added Batch 4.5 outcome with file list and validation
-- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: added Batch 4.5 section with status
-- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: updated current batch and latest rescue state
-- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: updated active batch and added Batch 4.5 summary
-- `SLATE360_PROJECT_MEMORY.md`: Latest Session Handoff overwritten for Batch 4.5
+- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: Batch 4.6A root cause, fix, and findings
+- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: Current batch state, latest rescue state
+- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: Added Batch 4.6A + 4.6B entries
+- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: Build status header updated
+- `SLATE360_PROJECT_MEMORY.md`: Session handoff
 
 #### Next Steps (ordered)
-1. Restore terminal provider and commit/push all local changes (Batches 1–4.5)
-2. Visually verify Market Robot in browser — every surface should be dark/cohesive
-3. Start Batch 5 only if needed for a narrowly-scoped backend truth patch (no contract redesign)
+1. Run Batch 4.6B: CSS-only dark theme conversion of the 5 remaining files
+2. Typecheck + push Batch 4.6B
+3. Then proceed to Batch 5 backend truth patch if still needed
+4. Consider adding a bulk-resolve / auto-close path for accumulated old paper trades

@@ -1,6 +1,6 @@
 # Market Robot Chat Resume Protocol
 
-Last Updated: 2026-03-12
+Last Updated: 2026-03-13
 
 ## Files To Read First
 1. [SLATE360_PROJECT_MEMORY.md](../../SLATE360_PROJECT_MEMORY.md)
@@ -9,13 +9,17 @@ Last Updated: 2026-03-12
 4. Only then, the batch-specific implementation files named in the active prompt.
 
 ## Current Batch
-- Batch 4.5 is complete (local changes landed; push blocked by terminal `ENOPRO`).
-- Batch 4 is complete (local changes landed; push blocked by terminal `ENOPRO`).
-- The next recommended batch is Batch 5 (small backend truth patch only if still required).
-- Rescue implementation is now in progress; do not reset the Market shell back to the pre-Batch-1 six-tab IA.
+- **Batch 4.6A is complete** (direct-buy/search logic fix, 2026-03-13).
+- Direct-buy 400 root-caused and fixed: automation plan's `max_open_positions` was incorrectly applied to manual direct buys. Now separated with a higher direct-buy-specific cap.
+- Search/category mismatch reduced: synonym expansions now use word-boundary matching to prevent false positives ("rain" → "Rainbow", "storm" → "Brainstorm").
+- 2 pre-existing TS errors fixed (MarketClient maticData.formatted, useMarketAutomationState return type).
+- Typecheck clean (zero errors).
+- **5 files still need dark theme conversion** (MarketBuyPanel.tsx, MarketLiveWalletTab.tsx, MarketAdvancedFilters.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx) — deferred to Batch 4.6B.
+- Rescue implementation is in progress; do not reset the Market shell back to the pre-Batch-1 six-tab IA.
 
 ## Latest Rescue State
-- Batch 4.5 converted every remaining white/light card surface across 14 Market presentation components into the dark operator console vocabulary. This is CSS-only; no functional changes.
+- **Batch 4.6A** (2026-03-13): Fixed direct-buy 400 (automation cap was blocking manual buys), tightened search synonym matching with word boundaries, fixed 2 pre-existing TS errors.
+- 5 files still need dark theme conversion (deferred to 4.6B): MarketBuyPanel.tsx, MarketLiveWalletTab.tsx, MarketAdvancedFilters.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx.
 - Batch 4 upgraded Results into a verification-first surface that combines open positions, trade history, compact activity feed, wallet snapshot, backend readiness state, and live blockers.
 - Batch 4 adds explicit post-action context after direct buy/scan/automation actions so verification steps are clear.
 - Batch 4 tightens wallet/readiness copy so "live-ready" requires both wallet checklist completion and backend `liveServerReady` from system status.

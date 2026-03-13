@@ -11,13 +11,19 @@ import {
   insertMarketTradesWithFallback,
   updateMarketTradeWithFallback,
 } from "@/lib/market/trade-persistence";
-import { resolveUserMaxOpenPositions } from "@/lib/market/user-position-limit";
 
 const EVM_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
 const CLOB_ORDER_PATH = process.env.POLYMARKET_CLOB_ORDER_PATH ?? "/order";
 const CLOB_ORDER_TYPE = process.env.POLYMARKET_CLOB_ORDER_TYPE ?? "GTC";
 const CLOB_FEE_RATE_BPS = process.env.POLYMARKET_CLOB_FEE_RATE_BPS ?? "200";
-const DEFAULT_MAX_OPEN_POSITIONS = 25;
+
+/**
+ * Direct buys use a separate, higher position cap than the automation robot.
+ * The plan's max_open_positions controls how many positions the robot manages
+ * concurrently — it should not block manual practice or live trades.
+ */
+const DIRECT_BUY_MAX_OPEN_POSITIONS =
+  Number(process.env.MARKET_DIRECT_BUY_MAX_OPEN_POSITIONS) || 500;
 
 function makeOrderNonce(): string {
   const micros = BigInt(Date.now()) * BigInt(1000);
@@ -103,17 +109,16 @@ export const POST = (req: NextRequest) =>
       capitalAlloc: amount,
     });
 
-    // Unified safety constraints (shared with scan route)
-    const fallbackMaxOpenPositions = Number(process.env.MARKET_MAX_OPEN_POSITIONS) || DEFAULT_MAX_OPEN_POSITIONS;
-    const { maxOpenPositions, source: limitSource } = await resolveUserMaxOpenPositions({
-      supabase: admin,
-      user,
-      fallback: fallbackMaxOpenPositions,
-    });
+    // Direct buys use a separate, higher cap than the automation plan's limit.
+    // The automation plan's max_open_positions controls the robot, not manual buys.
+    const directBuyCap = paper_mode
+      ? Math.max(DIRECT_BUY_MAX_OPEN_POSITIONS, 2000)
+      : DIRECT_BUY_MAX_OPEN_POSITIONS;
+
     const safetyCheck = await checkSafetyConstraints({
       userId: user.id,
       supabase: admin,
-      maxOpenPositions,
+      maxOpenPositions: directBuyCap,
     });
 
     if (!safetyCheck.allowed) {
@@ -121,9 +126,11 @@ export const POST = (req: NextRequest) =>
         {
           error: safetyCheck.reason,
           openPositions: safetyCheck.openPositionsCount,
-          limit: maxOpenPositions,
-          limitSource,
-          help: "Raise 'Max positions at once' in Automation, save the plan, and start the robot again so manual and automated execution use the same cap.",
+          limit: directBuyCap,
+          limitSource: "direct_buy",
+          help: paper_mode
+            ? "You have a very large number of open paper positions. Consider closing or resolving older paper trades."
+            : "You have reached the maximum number of open live positions. Close some existing positions before placing new trades.",
         },
         { status: 400 }
       );

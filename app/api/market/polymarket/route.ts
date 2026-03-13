@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { ApiEnvelope, MarketViewModel } from "@/lib/market/contracts";
 import { mapGammaMarketToMarketVM } from "@/lib/market/mappers";
-import { expandSearchTerms } from "@/lib/market/search-synonyms";
+import { queryMatchesText } from "@/lib/market/search-synonyms";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 
 export const runtime = "nodejs";
@@ -51,9 +51,8 @@ function parseRows(upstreamData: unknown): unknown[] {
 }
 
 function matchesQuery(market: MarketViewModel, query: string): boolean {
-  const haystack = `${market.title} ${market.category}`.toLowerCase();
-  const terms = expandSearchTerms(query.toLowerCase());
-  return terms.some(term => haystack.includes(term));
+  const haystack = `${market.title} ${market.category}`;
+  return queryMatchesText(query, haystack);
 }
 
 function isUpcomingMarket(market: MarketViewModel): boolean {

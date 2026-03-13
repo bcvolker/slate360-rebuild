@@ -105,7 +105,7 @@ export function useMarketAutomationState() {
   }, []);
 
   const savePlan = useCallback(async (): Promise<SavePlanResult | null> => {
-    if (!draft.name.trim()) return;
+    if (!draft.name.trim()) return null;
     const now = new Date().toISOString();
     const optimistic: AutomationPlan = {
       ...draft,

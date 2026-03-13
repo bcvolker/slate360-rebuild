@@ -139,6 +139,30 @@ Last Updated: 2026-03-12
 - All components visually consistent with the dark operator console shell.
 - No TypeScript errors introduced.
 
+## Batch 4.6A Direct Buy / Search Logic Fix
+
+### Status After 2026-03-13 Implementation
+- Complete.
+- Direct-buy 400 root-caused: `resolveUserMaxOpenPositions()` returned the automation plan's `max_open_positions` (5), while `checkSafetyConstraints()` counted 1000+ accumulated open paper trades → `1000/5` → 400 on every manual buy.
+- Fix: Direct buys now use a separate higher cap (`DIRECT_BUY_MAX_OPEN_POSITIONS` = 500, paper buys = 2000) instead of the automation plan's cap. Automation scan route unchanged.
+- Search mismatch fixed: `queryMatchesText()` uses word-boundary matching for synonym expansions so "rain" doesn't match "Rainbow" and "storm" doesn't match "Brainstorm".
+- 2 pre-existing TS errors fixed (`.formatted` property, `return;` vs `return null;`).
+- Typecheck clean.
+
+### Risks / Preconditions
+- Preserved `/api/market/buy` response envelope contract.
+- Preserved `/api/market/scan` automation cap behavior.
+- Did not change layout, tabs, scheduler, runtime-config, or summary logic.
+
+### Success Criteria
+- Direct buy no longer returns 400 due to automation position cap.
+- Error messages are truthful when cap is actually hit.
+- Weather searches no longer return Rainbow Six / esports-style results.
+
+## Batch 4.6B Theme Cleanup (Next)
+- 5 remaining files need dark theme conversion: MarketBuyPanel.tsx, MarketLiveWalletTab.tsx, MarketAdvancedFilters.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx.
+- CSS-only, same rules as Batch 4.5.
+
 ## Batch 5 Backend Truth Patch Prompt Summary
 - Only if still needed after Batches 1 to 4.
 - Patch misleading or incomplete server truth surfaces.

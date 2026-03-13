@@ -64,7 +64,7 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
     address: wallet.address,
     isConnected: wallet.isConnected,
     usdcBalance: wallet.usdcBalance,
-    maticFormatted: wallet.maticData ? `${parseFloat(wallet.maticData.formatted).toFixed(4)} ${wallet.maticData.symbol}` : "—",
+    maticFormatted: wallet.maticData ? `${(Number(wallet.maticData.value) / 10 ** wallet.maticData.decimals).toFixed(4)} ${wallet.maticData.symbol}` : "—",
     walletVerified: wallet.walletVerified,
     liveChecklist: wallet.liveChecklist,
   };

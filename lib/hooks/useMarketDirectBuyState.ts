@@ -256,7 +256,7 @@ export function useMarketDirectBuyState({
         finalizeBuyFeedback(feedback.message, feedback.shouldRefresh, feedback.closeDelayMs);
       } else {
         if (typeof data.openPositions === "number" && typeof data.limit === "number") {
-          setBuySuccess(`❌ ${data.error ?? "Buy failed"} — ${data.openPositions}/${data.limit} open. ${data.help ?? "Raise 'Max positions at once' in Automation."}`);
+          setBuySuccess(`❌ ${data.error ?? "Buy failed"} — ${data.openPositions}/${data.limit} open. ${data.help ?? "Close some existing positions before placing new trades."}`);
         } else {
           setBuySuccess(`❌ ${data.error ?? "Buy failed"}`);
         }
