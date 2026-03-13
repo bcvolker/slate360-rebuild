@@ -23,33 +23,42 @@ function asRecord(raw: unknown): Record<string, unknown> {
 function normalizeCategoryBucket(rawCategory: string): string | null {
   const text = normalizeWhitespace(rawCategory).toLowerCase();
   if (!text) return null;
-  if (/weather|climate|storms?/.test(text)) return "Weather";
-  if (/construction|infrastructure|building|contractor|housing starts?/.test(text)) return "Construction";
-  if (/real estate|housing|mortgage|rent/.test(text)) return "Real Estate";
-  if (/economy|economic|business|finance|financial|macro|markets?/.test(text)) return "Economy";
-  if (/entertainment|movies?|film|music|television|tv|celebrity|awards?/.test(text)) return "Entertainment";
-  if (/politics|policy|government|world|middle east|elections?/.test(text)) return "Politics";
-  if (/sports?|soccer|football|basketball|baseball|ufc|tennis/.test(text)) return "Sports";
-  if (/crypto|bitcoin|ethereum|defi|blockchain|tokens?/.test(text)) return "Crypto";
-  if (/science|research|space|health|medicine/.test(text)) return "Science";
-  if (/tech|technology|ai|artificial intelligence|software|hardware/.test(text)) return "Tech";
-  if (/general|other|news/.test(text)) return "General";
+  if (/\b(?:weather|climate)\b/.test(text) || /\bstorm(?:s)?\b/.test(text)) return "Weather";
+  if (/\b(?:construction|infrastructure|building|contractor|housing starts?)\b/.test(text)) return "Construction";
+  if (/\b(?:real estate|housing|mortgage|rent)\b/.test(text)) return "Real Estate";
+  if (/\b(?:economy|economic|business|finance|financial|macro)\b/.test(text) || /\bmarkets?\b/.test(text)) return "Economy";
+  if (/\b(?:entertainment|movies?|film|music|television|celebrity|awards?)\b/.test(text) || /\btv\b/.test(text)) return "Entertainment";
+  if (/\b(?:politics|policy|government|world|middle east|elections?)\b/.test(text)) return "Politics";
+  if (/\b(?:sports?|soccer|football|basketball|baseball|ufc|tennis)\b/.test(text)) return "Sports";
+  if (/\b(?:crypto|bitcoin|ethereum|defi|blockchain)\b/.test(text) || /\btokens?\b/.test(text)) return "Crypto";
+  if (/\b(?:science|research|space|health|medicine)\b/.test(text)) return "Science";
+  if (/\b(?:technology|artificial intelligence|software|hardware)\b/.test(text) || /\btech\b/.test(text) || /\bai\b/.test(text)) return "Tech";
+  if (/\b(?:general|other|news)\b/.test(text)) return "General";
   return null;
 }
 
 function deriveCategory(question: string, rawCategory: string): string {
   const text = normalizeWhitespace(`${question} ${rawCategory}`).toLowerCase();
 
-  if (/weather|hurricane|storm|temperature|snow|rain|climate|forecast/.test(text)) return "Weather";
-  if (/construction|infrastructure|building|contractor|permit|zoning|cement|lumber/.test(text)) return "Construction";
-  if (/real estate|housing|mortgage|rent|home price|commercial property/.test(text)) return "Real Estate";
-  if (/economy|economic|gdp|inflation|fed|interest rate|rates|jobs|recession|finance|financial/.test(text)) return "Economy";
-  if (/entertainment|movie|film|box office|music|album|oscars|emmys|celebrity|tv|television/.test(text)) return "Entertainment";
-  if (/politics|election|president|congress|senate|vote|ballot|campaign/.test(text)) return "Politics";
-  if (/sports|nfl|nba|mlb|nhl|soccer|football|baseball|basketball|ufc|tennis/.test(text)) return "Sports";
-  if (/crypto|bitcoin|ethereum|btc|eth|solana|defi|token|blockchain/.test(text)) return "Crypto";
-  if (/science|research|space|nasa|physics|biology|chemistry/.test(text)) return "Science";
-  if (/tech|technology|ai|artificial intelligence|apple|google|meta|tesla|software|hardware/.test(text)) return "Tech";
+  // Use word-boundary matching so partial substring hits don't miscategorize
+  // e.g. "brainstorm" should NOT match Weather's "storm", "rainbow" should NOT match "rain"
+  if (/\b(?:weather|hurricane|temperature|snow|climate|forecast)\b/.test(text)) return "Weather";
+  if (/\bstorm(?:s)?\b/.test(text) && !/\b(?:brainstorm|firestorm|thunderstorm)\b/.test(text) || /\b(?:rain|hail)\b/.test(text) && !/\b(?:rainbow|brain|terrain|drain)\b/.test(text)) return "Weather";
+  if (/\b(?:construction|infrastructure|contractor|permit|zoning|cement|lumber)\b/.test(text)) return "Construction";
+  if (/\bbuilding\b/.test(text) && /\b(?:permit|code|inspector|housing|construct)\b/.test(text)) return "Construction";
+  if (/\b(?:real estate|housing|mortgage|rent|home price|commercial property)\b/.test(text)) return "Real Estate";
+  if (/\b(?:economy|economic|gdp|inflation|fed\b|interest rate|rates\b|jobs\b|recession|financial)\b/.test(text)) return "Economy";
+  if (/\b(?:finance)\b/.test(text) && !/\b(?:defi|decentralized)\b/.test(text)) return "Economy";
+  if (/\b(?:entertainment|movie|film|box office|music|album|oscars|emmys|celebrity|television)\b/.test(text)) return "Entertainment";
+  if (/\btv\b/.test(text) && /\b(?:show|series|season|episode|network|ratings)\b/.test(text)) return "Entertainment";
+  if (/\b(?:politics|election|president|congress|senate|vote|ballot|campaign|ceasefire|treaty|diplomatic|geopolitics|war\b|sanctions)\b/.test(text)) return "Politics";
+  if (/\b(?:sports|nfl|nba|mlb|nhl|soccer|football|baseball|basketball|ufc|tennis)\b/.test(text)) return "Sports";
+  if (/\b(?:crypto|bitcoin|ethereum|btc|eth|solana|defi|blockchain)\b/.test(text)) return "Crypto";
+  if (/\btoken(?:s)?\b/.test(text) && /\b(?:crypto|blockchain|defi|mint|airdrop)\b/.test(text)) return "Crypto";
+  if (/\b(?:science|research|space|nasa|physics|biology|chemistry)\b/.test(text)) return "Science";
+  if (/\b(?:technology|artificial intelligence|apple|google|meta|tesla|software|hardware)\b/.test(text)) return "Tech";
+  if (/\bai\b/.test(text) && /\b(?:model|chatbot|openai|anthropic|gpt|llm|machine learning)\b/.test(text)) return "Tech";
+  if (/\btech\b/.test(text) && !/\b(?:biotech)\b/.test(text)) return "Tech";
 
   const normalizedRaw = normalizeWhitespace(rawCategory);
   const normalizedBucket = normalizeCategoryBucket(normalizedRaw);

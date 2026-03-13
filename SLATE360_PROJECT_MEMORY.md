@@ -149,34 +149,34 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-13 (Batch 4.6A)
+### Session Handoff — 2026-03-13 (Batch 4.6C)
 
 #### What Changed
-- `app/api/market/buy/route.ts`: Separated direct-buy position cap from automation plan cap. Direct buys no longer call `resolveUserMaxOpenPositions`. Paper buys have 2000 cap, live buys 500 cap. Removed unused import.
-- `lib/market/search-synonyms.ts`: Added `queryMatchesText()` with word-boundary matching for synonym expansions. Removed "wind" from weather synonyms.
-- `app/api/market/polymarket/route.ts`: Use `queryMatchesText` instead of `expandSearchTerms` + substring for server-side search matching.
-- `lib/market/direct-buy-table.ts`: Use `queryMatchesText` instead of `expandSearchTerms` + substring for client-side filtering.
-- `lib/hooks/useMarketDirectBuyState.ts`: Updated fallback error text for position cap errors.
-- `components/dashboard/MarketClient.tsx`: Fixed `.formatted` TS error (wagmi v2 `useBalance` returns `{value, decimals, symbol}` not `.formatted`).
-- `lib/hooks/useMarketAutomationState.ts`: Fixed `return;` → `return null;` to match `Promise<SavePlanResult | null>` type.
-- All 5 tracker/build doc files updated.
+- `components/dashboard/market/MarketDirectBuyTab.tsx`: Removed oversized hero header, compacted search toolbar and filter chips (313→248 lines)
+- `components/dashboard/market/MarketBuyPanel.tsx`: Full dark theme redesign, Practice/Live mode selector with two-step live confirmation, post-buy verification guidance (246→225 lines)
+- `components/dashboard/market/MarketAdvancedFilters.tsx`: Dark theme conversion, compacted grid (164→111 lines)
+- `components/dashboard/market/MarketSharedUi.tsx`: Dark HelpTip, collapsible MarketTableLegend (81→69 lines)
+- `components/dashboard/market/MarketQuickSearchPills.tsx`: Inline pill buttons replacing card grid (29→25 lines)
+- `components/dashboard/market/MarketMarketsSection.tsx`: Removed section header block (30→22 lines)
+- `components/dashboard/market/MarketDirectBuyResults.tsx`: Removed legend render, tightened styling (127→125 lines)
+- `lib/market/mappers.ts`: Word-boundary regex in deriveCategory/normalizeCategoryBucket, added geopolitical terms to Politics (241→250 lines)
 
 #### What's Broken / Partially Done
-- 5 Market component files still have white/light card surfaces: MarketBuyPanel.tsx, MarketLiveWalletTab.tsx, MarketAdvancedFilters.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx (deferred to 4.6B)
+- 3 Market component files still need dark theme: MarketLiveWalletTab.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx (deferred to 4.6B)
 - Market live automation path remains incomplete (scan execution is paper-only)
-- Direct-buy UX can overstate live success when backend falls back to paper (partially addressed in Batch 1 but not fully redesigned)
+- Direct-buy UX can overstate live success when backend falls back to paper
 - Summary metric source remains partially legacy
-- Accumulated open paper trades (1000+) are not auto-resolved — users should eventually close/resolve old paper positions
+- Accumulated open paper trades (1000+) are not auto-resolved
 
 #### Context Files Updated
-- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: Batch 4.6A root cause, fix, and findings
-- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: Current batch state, latest rescue state
-- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: Added Batch 4.6A + 4.6B entries
-- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: Build status header updated
+- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: Batch 4.6C section added
+- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: Current batch and latest rescue state updated
+- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: Batch 4.6C entry added, 4.6B updated to 3 files
+- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: Build status header and 4.6C entry added
 - `SLATE360_PROJECT_MEMORY.md`: Session handoff
 
 #### Next Steps (ordered)
-1. Run Batch 4.6B: CSS-only dark theme conversion of the 5 remaining files
+1. Run Batch 4.6B: CSS-only dark theme conversion of the 3 remaining files
 2. Typecheck + push Batch 4.6B
 3. Then proceed to Batch 5 backend truth patch if still needed
 4. Consider adding a bulk-resolve / auto-close path for accumulated old paper trades

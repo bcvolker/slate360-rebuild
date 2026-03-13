@@ -1,6 +1,6 @@
 "use client";
 
-import { MarketOpportunityBadge, MarketTableLegend } from "@/components/dashboard/market/MarketSharedUi";
+import { MarketOpportunityBadge } from "@/components/dashboard/market/MarketSharedUi";
 import type { MarketListing, MarketSortDirection, MarketSortKey } from "@/components/dashboard/market/types";
 import { formatCents, marketResolutionLabel } from "@/lib/market/market-display";
 
@@ -36,9 +36,7 @@ export default function MarketDirectBuyResults({ markets, sortBy, sortDirection,
 
   return (
     <>
-      <MarketTableLegend />
-
-      <div className="mt-4 flex flex-col gap-3 rounded-[28px] border border-slate-800 bg-slate-950/80 p-4 shadow-[0_18px_45px_rgba(2,6,23,0.35)] lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-950/80 p-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-3 text-sm text-slate-300">
           <span className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 font-semibold text-slate-100">{markets.length} setups</span>
           <span>{highQualityCount} high-quality ideas</span>
@@ -58,7 +56,7 @@ export default function MarketDirectBuyResults({ markets, sortBy, sortDirection,
         </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-[28px] border border-slate-800 bg-slate-950/85 shadow-[0_20px_55px_rgba(2,6,23,0.4)]">
+      <div className="mt-2 overflow-hidden rounded-xl border border-slate-800 bg-slate-950/85">
         {markets.length === 0 ? (
           <p className="py-12 text-center text-sm text-slate-400">No markets match your filters.</p>
         ) : (

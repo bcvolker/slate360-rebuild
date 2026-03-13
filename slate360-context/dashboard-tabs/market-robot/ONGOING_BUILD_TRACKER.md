@@ -20,7 +20,7 @@ This file tracks current status, build order, prompts, checks, and rebuild-from-
 - CEO Command Center now has a searchable subscriber directory for granting Market access; do not reintroduce manual-email-only workflows as the primary operator path.
 
 ## Current Build Status
-**Active batch: Rescue Batch 4.6A complete (direct-buy/search logic fix) — next batch is 4.6B (dark theme on 5 remaining files)**
+**Active batch: Rescue Batch 4.6C complete (Market Search product cleanup) — next batch is 4.6B (dark theme on 3 remaining files: MarketLiveWalletTab, MarketCustomizeDrawer, MarketTradeReplayDrawer)**
 
 2026-03-12 rescue overlay:
 - Batch 1 shipped a new four-section shell: Dashboard, Markets, Automation, Results.
@@ -46,6 +46,19 @@ Batch 4.5 visual unification (2026-03-12):
 - CSS-only changes; no functional, hook, API, or backend changes.
 - Editor diagnostics: zero errors across all 14 files.
 - Push blocked by terminal `ENOPRO`.
+
+Batch 4.6C Market Search product cleanup (2026-03-13):
+- Removed oversized clutter: hero header, Quick Guide legend, Markets section header, verbose status chips.
+- MarketDirectBuyTab compacted (313→248 lines): compact header strip, inline filter controls, compact filter chips.
+- MarketBuyPanel redesigned to dark theme (246→225 lines): compact layout, Practice/Live mode selector with two-step live confirmation, post-buy verification guidance.
+- MarketAdvancedFilters converted to dark theme and compacted (164→111 lines).
+- MarketQuickSearchPills converted from card grid to inline pills (29→25 lines).
+- MarketSharedUi MarketTableLegend converted to collapsible dark `<details>` (81→69 lines).
+- MarketMarketsSection removed section header (30→22 lines).
+- MarketDirectBuyResults removed legend render call (127→125 lines).
+- Category honesty fix in mappers.ts: `deriveCategory()` and `normalizeCategoryBucket()` now use word-boundary regex to prevent false positives. Added geopolitical terms to Politics.
+- No API route, scheduler, runtime-config, or backend changes.
+- Typecheck clean, all files under 300 lines.
 
 2026-03-12 env diagnostic follow-up (read/verify-only):
 - `vercel whoami`, `vercel env ls production`, and `vercel env ls preview` succeeded in a fresh chat.

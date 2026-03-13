@@ -160,8 +160,34 @@ Last Updated: 2026-03-12
 - Weather searches no longer return Rainbow Six / esports-style results.
 
 ## Batch 4.6B Theme Cleanup (Next)
-- 5 remaining files need dark theme conversion: MarketBuyPanel.tsx, MarketLiveWalletTab.tsx, MarketAdvancedFilters.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx.
+- 3 remaining files need dark theme conversion: MarketLiveWalletTab.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx.
 - CSS-only, same rules as Batch 4.5.
+- MarketBuyPanel.tsx and MarketAdvancedFilters.tsx were converted in 4.6C.
+
+## Batch 4.6C Market Search Product Cleanup
+
+### Status After 2026-03-13 Implementation
+- Complete.
+- Removed oversized Market Search clutter: hero header block, Quick Guide legend, Markets section header, verbose status badge chips.
+- MarketDirectBuyTab compacted from 313→248 lines: compact header strip, inline filter controls, compact filter chips.
+- MarketBuyPanel redesigned to dark theme: compact single-column layout, integrated Practice/Live mode selector with two-step live confirmation, post-buy verification guidance.
+- MarketAdvancedFilters converted from light to dark theme, compacted from 164→111 lines.
+- MarketQuickSearchPills converted from large card grid to compact inline pills.
+- MarketSharedUi MarketTableLegend converted from large 3-card white explainer to collapsible dark `<details>`.
+- Category/topic honesty improved: `deriveCategory()` and `normalizeCategoryBucket()` now use word-boundary matching to prevent false positives. Added geopolitical terms (ceasefire, sanctions, war, treaty) to Politics.
+- Typecheck clean, all changed files under 300 lines.
+
+### Risks / Preconditions
+- No API route changes.
+- No scheduler/runtime-config changes.
+- Preserved all existing hook behavior and MarketListing type contracts.
+
+### Success Criteria
+- Market Search page prioritizes trading workflow over tutorial content.
+- Topic/category labeling is more honest.
+- Buy panel matches new Market Robot dark theme.
+- Practice/Live mode is clearer with two-step live confirmation.
+- Post-buy verification guidance tells user where to check results.
 
 ## Batch 5 Backend Truth Patch Prompt Summary
 - Only if still needed after Batches 1 to 4.

@@ -9,17 +9,18 @@ Last Updated: 2026-03-13
 4. Only then, the batch-specific implementation files named in the active prompt.
 
 ## Current Batch
-- **Batch 4.6A is complete** (direct-buy/search logic fix, 2026-03-13).
-- Direct-buy 400 root-caused and fixed: automation plan's `max_open_positions` was incorrectly applied to manual direct buys. Now separated with a higher direct-buy-specific cap.
-- Search/category mismatch reduced: synonym expansions now use word-boundary matching to prevent false positives ("rain" → "Rainbow", "storm" → "Brainstorm").
-- 2 pre-existing TS errors fixed (MarketClient maticData.formatted, useMarketAutomationState return type).
-- Typecheck clean (zero errors).
-- **5 files still need dark theme conversion** (MarketBuyPanel.tsx, MarketLiveWalletTab.tsx, MarketAdvancedFilters.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx) — deferred to Batch 4.6B.
-- Rescue implementation is in progress; do not reset the Market shell back to the pre-Batch-1 six-tab IA.
+- **Batch 4.6C is complete** (Market Search product cleanup, 2026-03-13).
+- Oversized Market Search clutter removed: hero header, Quick Guide legend, Markets section header, verbose status chips all replaced with compact dark-themed equivalents.
+- Topic/category derivation honesty improved: `deriveCategory()` and `normalizeCategoryBucket()` now use word-boundary matching to prevent false positives (e.g. "brainstorm" no longer tagged as Weather, ceasefire events correctly tagged as Politics).
+- Buy panel completely redesigned: dark theme, compact layout, integrated Practice/Live mode selector with two-step live confirmation, post-buy verification guidance.
+- Advanced filters and quick search pills converted to dark theme.
+- Typecheck clean.
+- **MarketLiveWalletTab, MarketCustomizeDrawer, MarketTradeReplayDrawer still need dark theme conversion** — deferred from 4.6B scope, not addressed in 4.6C.
 
 ## Latest Rescue State
+- **Batch 4.6C** (2026-03-13): Market Search product cleanup — removed oversized clutter, compacted layout, fixed category honesty with word boundaries, redesigned buy panel to dark theme with mode control and post-buy verification.
 - **Batch 4.6A** (2026-03-13): Fixed direct-buy 400 (automation cap was blocking manual buys), tightened search synonym matching with word boundaries, fixed 2 pre-existing TS errors.
-- 5 files still need dark theme conversion (deferred to 4.6B): MarketBuyPanel.tsx, MarketLiveWalletTab.tsx, MarketAdvancedFilters.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx.
+- 3 files still need dark theme conversion (deferred from 4.6B): MarketLiveWalletTab.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx.
 - Batch 4 upgraded Results into a verification-first surface that combines open positions, trade history, compact activity feed, wallet snapshot, backend readiness state, and live blockers.
 - Batch 4 adds explicit post-action context after direct buy/scan/automation actions so verification steps are clear.
 - Batch 4 tightens wallet/readiness copy so "live-ready" requires both wallet checklist completion and backend `liveServerReady` from system status.

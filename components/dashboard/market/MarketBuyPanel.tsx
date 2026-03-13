@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpTip } from "@/components/dashboard/market/MarketSharedUi";
 import type { MarketListing, LiveChecklist } from "@/components/dashboard/market/types";
@@ -18,7 +18,6 @@ export interface MarketBuyPanelProps {
   liveChecklist: LiveChecklist;
   payloadReady: boolean;
   payloadIssues: string[];
-  /** TP/SL controls are hidden by default — backend exit lifecycle is not yet enforced. */
   showTpSlControls?: boolean;
   formatMoney: (usd: number) => string;
   onOutcomeChange: (o: "YES" | "NO") => void;
@@ -34,212 +33,192 @@ export default function MarketBuyPanel({
   market,
   outcome,
   amount,
-  takeProfitPct,
-  stopLossPct,
   paper,
   submitting,
   success,
   liveChecklist,
   payloadReady,
   payloadIssues,
-  showTpSlControls = false,
   formatMoney,
   onOutcomeChange,
   onAmountChange,
-  onTakeProfitChange,
-  onStopLossChange,
   onPaperToggle,
   onSubmit,
   onClose,
 }: MarketBuyPanelProps) {
+  const [showLiveConfirm, setShowLiveConfirm] = useState(false);
   const price = outcome === "YES" ? market.yesPrice : market.noPrice;
   const avgPrice = price > 0 ? price : market.probabilityPct / 100;
   const shares = amount / avgPrice;
   const payout = shares;
   const profit = payout - amount;
-  const targetExitPrice = Math.min(0.99, avgPrice * 1.1);
-  const targetExitPnl = shares * (targetExitPrice - avgPrice);
-  const feedbackTone = success.startsWith("✅")
-    ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+  const isPostBuy = success.length > 0;
+  const successTone = success.startsWith("✅")
+    ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-200"
     : success.includes("Live execution blocked")
-      ? "border-amber-300 bg-amber-50 text-amber-800"
-      : "border-rose-300 bg-rose-50 text-rose-700";
+      ? "border-amber-500/30 bg-amber-500/15 text-amber-200"
+      : "border-rose-500/30 bg-rose-500/15 text-rose-200";
+
+  const handleModeSwitch = () => {
+    if (paper) {
+      // Switching from practice to live — require confirmation
+      setShowLiveConfirm(true);
+    } else {
+      // Switching from live back to practice — no confirmation needed
+      onPaperToggle();
+    }
+  };
+
+  const confirmLive = () => {
+    setShowLiveConfirm(false);
+    onPaperToggle();
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:justify-end p-0 sm:p-6">
-      <button className="absolute inset-0 bg-black/30" onClick={onClose} aria-label="Close buy panel" />
-      <div className="relative w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto border border-white/60 bg-[radial-gradient(circle_at_top_left,rgba(255,120,28,0.14),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,247,250,0.98))] p-5 shadow-2xl rounded-t-2xl sm:rounded-[32px] space-y-5">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1">
-          <p className="text-[10px] text-slate-400 uppercase tracking-[0.22em] mb-1">Trade ticket</p>
-          <p className="text-lg font-black text-slate-900 leading-snug">{market.title}</p>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-            <span className="rounded-full border border-slate-200 bg-white/85 px-3 py-1 font-semibold text-slate-700">{market.category}</span>
-            <span>{marketChanceLabel(market.probabilityPct)}</span>
-            <span>Edge {market.edgePct}%</span>
-          </div>
-        </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-800 text-lg leading-none transition">×</button>
-      </div>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:justify-end p-0 sm:p-4">
+      <button className="absolute inset-0 bg-black/50" onClick={onClose} aria-label="Close buy panel" />
+      <div className="relative w-full sm:max-w-md max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl border border-slate-700 bg-slate-950 p-4 shadow-2xl space-y-4">
 
-      {/* YES / NO toggle */}
-      <div>
-        <label className="text-xs text-slate-500 mb-2 block">Choose your side</label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <button
-            onClick={() => onOutcomeChange("YES")}
-            className={`rounded-[24px] border p-4 text-left transition ${outcome === "YES" ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"}`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-base font-black">{outcomePlainLabel("YES")}</p>
-                <p className="mt-1 text-xs opacity-80">{outcomeExplanation("YES")}</p>
-              </div>
-              <span className="rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-bold tracking-[0.16em] text-white">YES</span>
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Trade ticket</p>
+            <p className="mt-1 text-base font-bold text-slate-100 leading-snug line-clamp-2">{market.title}</p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
+              <span className="rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5">{market.category}</span>
+              <span>{marketChanceLabel(market.probabilityPct)}</span>
             </div>
-            <p className="mt-3 text-2xl font-black">{formatCents(market.yesPrice)}</p>
-            <p className="mt-1 text-xs opacity-75">Current entry price</p>
-          </button>
-          <button
-            onClick={() => onOutcomeChange("NO")}
-            className={`rounded-[24px] border p-4 text-left transition ${outcome === "NO" ? "border-rose-300 bg-rose-50 text-rose-900" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"}`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-base font-black">{outcomePlainLabel("NO")}</p>
-                <p className="mt-1 text-xs opacity-80">{outcomeExplanation("NO")}</p>
-              </div>
-              <span className="rounded-full bg-rose-600 px-3 py-1 text-[11px] font-bold tracking-[0.16em] text-white">NO</span>
+          </div>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-200 text-lg leading-none transition">×</button>
+        </div>
+
+        {/* Mode control — Practice/Live toggle */}
+        <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${paper ? "bg-violet-500/20 text-violet-300 border border-violet-500/30" : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"}`}>
+                {paper ? "PRACTICE" : "LIVE"}
+              </span>
+              <span className="text-xs text-slate-400">
+                {paper ? "No real money used" : "Real USDC on Polymarket"}
+              </span>
+              <HelpTip content={paper ? "Practice mode simulates the trade. No real money is spent." : "Live mode will attempt to execute a real trade on Polymarket using your connected wallet."} />
             </div>
-            <p className="mt-3 text-2xl font-black">{formatCents(market.noPrice)}</p>
-            <p className="mt-1 text-xs opacity-75">Current entry price</p>
+            <button onClick={handleModeSwitch}
+              className={`relative w-9 h-5 rounded-full transition ${paper ? "bg-violet-600" : "bg-emerald-600"}`}>
+              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${paper ? "translate-x-4" : "translate-x-0.5"}`} />
+            </button>
+          </div>
+
+          {/* Live confirmation step */}
+          {showLiveConfirm && (
+            <div className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-200">
+              <p className="font-semibold">Switch to live mode?</p>
+              <p className="mt-1 text-amber-300/80">This will use real USDC from your connected wallet. Make sure your wallet is funded and connected.</p>
+              <div className="mt-2 flex gap-2">
+                <button onClick={confirmLive} className="rounded-md bg-amber-600 px-3 py-1 text-[11px] font-bold text-white transition hover:bg-amber-500">Yes, switch to live</button>
+                <button onClick={() => setShowLiveConfirm(false)} className="rounded-md border border-slate-600 px-3 py-1 text-[11px] text-slate-300 transition hover:bg-slate-800">Cancel</button>
+              </div>
+            </div>
+          )}
+
+          {/* Live checklist */}
+          {!paper && (
+            <div className="mt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-400">
+              <span>{liveChecklist.walletConnected ? "✅" : "⬜"} Wallet</span>
+              <span>{liveChecklist.polygonSelected ? "✅" : "⬜"} Polygon</span>
+              <span>{liveChecklist.signatureVerified ? "✅" : "⬜"} Signature</span>
+              <span>{liveChecklist.usdcApproved ? "✅" : "⬜"} USDC approved</span>
+            </div>
+          )}
+        </div>
+
+        {/* YES / NO toggle — compact */}
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={() => onOutcomeChange("YES")}
+            className={`rounded-xl border p-3 text-left transition ${outcome === "YES" ? "border-emerald-500/40 bg-emerald-500/15" : "border-slate-700 bg-slate-900 hover:border-slate-600"}`}>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-100">{outcomePlainLabel("YES")}</span>
+              <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">YES</span>
+            </div>
+            <p className="mt-1 text-lg font-black text-slate-100">{formatCents(market.yesPrice)}</p>
+            <p className="text-[10px] text-slate-500">{outcomeExplanation("YES")}</p>
+          </button>
+          <button onClick={() => onOutcomeChange("NO")}
+            className={`rounded-xl border p-3 text-left transition ${outcome === "NO" ? "border-rose-500/40 bg-rose-500/15" : "border-slate-700 bg-slate-900 hover:border-slate-600"}`}>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-100">{outcomePlainLabel("NO")}</span>
+              <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold text-white">NO</span>
+            </div>
+            <p className="mt-1 text-lg font-black text-slate-100">{formatCents(market.noPrice)}</p>
+            <p className="text-[10px] text-slate-500">{outcomeExplanation("NO")}</p>
           </button>
         </div>
-      </div>
 
-      {/* Amount */}
-      <div>
-        <label className="text-xs text-gray-500 mb-1 block flex items-center">
-          Amount (USDC): <span className="text-gray-900 font-semibold font-mono ml-1">${amount}</span>
-          <HelpTip content="How much USDC to spend on this trade." />
-        </label>
-        <p className="text-[11px] text-gray-400 mb-2">Display value: {formatMoney(amount)}</p>
-        <div className="mb-3 flex items-center gap-3">
-          <input
-            type="number"
-            min={5}
-            step={5}
-            value={amount}
-            onChange={(event) => onAmountChange(Math.max(5, Number(event.target.value) || 5))}
-            className="w-32 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 outline-none ring-0 transition focus:border-[#FF4D00]"
-          />
-          <span className="text-sm text-slate-500">Your max loss is limited to this amount.</span>
-        </div>
-        <input
-          type="range" min={5} max={5000} step={5} value={amount}
-          onChange={e => onAmountChange(+e.target.value)}
-          className="w-full accent-[#FF4D00] mb-2"
-        />
-        <div className="flex gap-1 flex-wrap">
-          {[10, 25, 50, 100, 250, 500, 1000].map(v => (
-            <button key={v} onClick={() => onAmountChange(v)}
-              className={`px-2 py-1 text-xs rounded transition ${amount === v ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-            >${v}</button>
-          ))}
-        </div>
-      </div>
-
-      {/* TP/SL controls */}
-      {showTpSlControls && (
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">Take Profit %</label>
-            <input type="range" min={5} max={100} value={takeProfitPct}
-              onChange={e => onTakeProfitChange(Number(e.target.value))} className="w-full accent-[#22c55e]" />
-            <p className="text-[11px] text-gray-500">{takeProfitPct}%</p>
+        {/* Amount */}
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <label className="text-xs text-slate-400">Amount</label>
+            <input type="number" min={5} step={5} value={amount}
+              onChange={(e) => onAmountChange(Math.max(5, Number(e.target.value) || 5))}
+              className="w-24 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-sm font-semibold text-slate-100 outline-none focus:border-[#FF4D00]" />
+            <span className="text-xs text-slate-500">USDC</span>
           </div>
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">Stop Loss %</label>
-            <input type="range" min={2} max={50} value={stopLossPct}
-              onChange={e => onStopLossChange(Number(e.target.value))} className="w-full accent-[#ef4444]" />
-            <p className="text-[11px] text-gray-500">{stopLossPct}%</p>
+          <input type="range" min={5} max={5000} step={5} value={amount}
+            onChange={e => onAmountChange(+e.target.value)} className="w-full accent-[#FF4D00] h-1.5" />
+          <div className="mt-1 flex gap-1 flex-wrap">
+            {[10, 25, 50, 100, 250, 500].map(v => (
+              <button key={v} onClick={() => onAmountChange(v)}
+                className={`px-2 py-0.5 text-[11px] rounded-md transition ${amount === v ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+              >${v}</button>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* Preview */}
-      <div className="space-y-2 rounded-[24px] border border-slate-200 bg-white/85 p-4 shadow-sm">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+        {/* Wallet impact preview — compact grid */}
+        <div className="grid grid-cols-4 gap-2 rounded-xl border border-slate-700 bg-slate-900/80 p-3 text-center">
           <div>
-            <p className="text-[10px] text-gray-400 mb-1">Shares</p>
-            <p className="text-sm font-bold text-gray-900">{shares.toFixed(1)}</p>
+            <p className="text-[9px] uppercase text-slate-500">Shares</p>
+            <p className="text-sm font-bold text-slate-100">{shares.toFixed(1)}</p>
           </div>
           <div>
-            <p className="text-[10px] text-gray-400 mb-1">Max Payout</p>
-            <p className="text-sm font-bold text-green-600">{formatMoney(payout)}</p>
+            <p className="text-[9px] uppercase text-slate-500">Max payout</p>
+            <p className="text-sm font-bold text-emerald-400">{formatMoney(payout)}</p>
           </div>
           <div>
-            <p className="text-[10px] text-gray-400 mb-1">Max Profit</p>
-            <p className={`text-sm font-bold ${profit > 0 ? "text-green-600" : "text-red-600"}`}>
-              {profit >= 0 ? "+" : ""}{formatMoney(Math.abs(profit))}
-            </p>
+            <p className="text-[9px] uppercase text-slate-500">Profit if right</p>
+            <p className={`text-sm font-bold ${profit > 0 ? "text-emerald-400" : "text-rose-400"}`}>{profit >= 0 ? "+" : ""}{formatMoney(Math.abs(profit))}</p>
           </div>
           <div>
-            <p className="text-[10px] text-gray-400 mb-1">Max Loss</p>
-            <p className="text-sm font-bold text-red-600">-{formatMoney(amount)}</p>
+            <p className="text-[9px] uppercase text-slate-500">Max loss</p>
+            <p className="text-sm font-bold text-rose-400">-{formatMoney(amount)}</p>
           </div>
         </div>
-        <div className="rounded-[20px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-xs text-gray-600 space-y-1">
-          <p className="font-semibold text-gray-700">What happens next</p>
-          <p>If {outcome} resolves true: <span className="font-semibold text-green-600">+{formatMoney(profit)}</span></p>
-          <p>If {outcome === "YES" ? "NO" : "YES"} resolves true: <span className="font-semibold text-red-600">-{formatMoney(amount)}</span></p>
-          <p>If price rises 10% and you exit early: <span className={`font-semibold ${targetExitPnl >= 0 ? "text-green-600" : "text-red-600"}`}>{targetExitPnl >= 0 ? "+" : "-"}{formatMoney(Math.abs(targetExitPnl))}</span></p>
-        </div>
-      </div>
 
-      {/* Practice mode toggle */}
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-700 flex items-center gap-1">
-          Practice Mode <HelpTip content="Practice mode saves the trade without spending real money. Ideal for testing." />
-        </span>
-        <button onClick={onPaperToggle}
-          className={`relative w-10 h-5 rounded-full transition ${paper ? "bg-purple-600" : "bg-green-700"}`}>
-          <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${paper ? "translate-x-5" : "translate-x-0.5"}`} />
-        </button>
-      </div>
-      <p className="text-xs text-center text-gray-400">
-        {paper ? "This will be saved as a practice trade without spending real money." : "This will attempt a live buy on Polymarket once wallet and API prerequisites are satisfied."}
-      </p>
+        {/* Feedback */}
+        {success && (
+          <div className="space-y-2">
+            <div className={`rounded-lg border px-3 py-2 text-sm font-semibold ${successTone}`}>{success}</div>
+            {isPostBuy && success.startsWith("✅") && (
+              <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200">
+                <p className="font-semibold">Where to verify</p>
+                <p className="mt-1 text-cyan-300/80">Check <strong>Results → Open Positions</strong> for your new entry. Trade History and the Activity Log also update within a few seconds.</p>
+              </div>
+            )}
+          </div>
+        )}
+        {!payloadReady && <p className="text-[11px] text-center text-rose-400">Disabled: {payloadIssues.join(", ")}</p>}
 
-      {/* Live checklist */}
-      {!paper && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-700 space-y-1">
-          <p className="font-semibold">Live trade checklist</p>
-          <p>{liveChecklist.walletConnected ? "✅" : "⬜"} Wallet connected</p>
-          <p>{liveChecklist.polygonSelected ? "✅" : "⬜"} Polygon selected</p>
-          <p>{liveChecklist.signatureVerified ? "✅" : "⬜"} Signature verified</p>
-          <p>{liveChecklist.usdcApproved ? "✅" : "⬜"} USDC approved</p>
-        </div>
-      )}
-
-      {success && <div className={`rounded-xl border px-4 py-3 text-sm font-semibold ${feedbackTone}`}>{success}</div>}
-      {!payloadReady && (
-        <p className="text-xs text-center text-red-500">Disabled: {payloadIssues.join(", ")}</p>
-      )}
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            onClick={onSubmit}
-            disabled={submitting || !payloadReady}
-            className="w-full bg-[#FF4D00] hover:bg-orange-600 py-3 rounded-xl text-sm font-bold text-white transition disabled:opacity-50"
-          >
-            {submitting ? "Processing…" : `Confirm ${paper ? "Practice " : ""}Buy — $${amount} ${outcome}`}
-          </button>
-        </TooltipTrigger>
-        <TooltipContent>Submit trade to Polymarket (or simulate in practice mode).</TooltipContent>
-      </Tooltip>
+        {/* Submit */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={onSubmit} disabled={submitting || !payloadReady}
+              className="w-full bg-[#FF4D00] hover:bg-orange-600 py-2.5 rounded-xl text-sm font-bold text-white transition disabled:opacity-50">
+              {submitting ? "Processing…" : `Confirm ${paper ? "Practice " : ""}Buy · $${amount} ${outcome}`}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>{paper ? "Simulate this trade in practice mode." : "Submit a real trade to Polymarket."}</TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );

@@ -146,4 +146,28 @@ Last Updated: 2026-03-13
 - 5 remaining dark-theme files (MarketBuyPanel, MarketLiveWalletTab, MarketAdvancedFilters, MarketCustomizeDrawer, MarketTradeReplayDrawer) untouched — deferred to 4.6B
 
 ## Last Updated Summary
-- Batch 4.6A complete: direct-buy 400 root-caused and fixed (automation plan cap was applied to manual buys), search synonym matching tightened with word boundaries, 2 pre-existing TS errors fixed, typecheck clean.
+- Batch 4.6C complete: Market Search product cleanup — oversized clutter removed, topic/category derivation honesty improved with word-boundary matching, buy panel redesigned to dark theme with mode control and post-buy verification, advanced filters dark-themed, quick search pills compacted. Typecheck clean.
+
+## Batch 4.6C — Market Search Product Cleanup (2026-03-13)
+
+### What Changed
+- **MarketDirectBuyTab.tsx** (313→248 lines): Removed oversized hero header (~30 lines of gradient/badge/explainer). Replaced with compact one-line header strip. Compacted search toolbar from 3-column grid to inline flex. Replaced verbose status chips with compact inline filter chips. Merged duplicate loading states. Removed unused `systemStatus` import and `onOpenAutomation` destructured usage.
+- **MarketBuyPanel.tsx** (246→225 lines): Full dark theme conversion (was white/light). Redesigned to compact single-column layout (was 2xl max-width). Added explicit Practice/Live mode selector with two-step confirmation for live switch. Added post-buy verification guidance ("Where to verify → Results → Open Positions"). Removed unused TP/SL controls from destructuring. Compacted YES/NO buttons, amount input, wallet impact grid.
+- **MarketAdvancedFilters.tsx** (164→111 lines): Full dark theme conversion. Compacted to 3-col grid with smaller inputs. Labels shortened.
+- **MarketSharedUi.tsx** (81→69 lines): HelpTip tooltip background changed from light gray to dark slate. MarketTableLegend converted from large white 3-card explainer to dark `<details>` collapsible help section.
+- **MarketQuickSearchPills.tsx** (29→25 lines): Converted from large white 2-col card grid with descriptions to compact inline pill buttons. Dark themed.
+- **MarketMarketsSection.tsx** (30→22 lines): Removed oversized Markets section header block (gradient, explainer, uppercase heading). Direct render of DirectBuy + SavedMarkets grid. Tightened spacing.
+- **MarketDirectBuyResults.tsx** (127→125 lines): Removed MarketTableLegend import/render. Tightened border radius and shadow. Removed excess margins.
+- **lib/market/mappers.ts** (241→250 lines): `deriveCategory()` now uses `\b` word-boundary matching to prevent false positives. Added geopolitical terms (ceasefire, treaty, sanctions, war) to Politics. Split ambiguous terms (storm vs brainstorm, rain vs rainbow, building construction vs generic "building", TV context, AI context, token+crypto context, finance vs defi, tech vs biotech). `normalizeCategoryBucket()` similarly updated with word boundaries.
+
+### Category Honesty Fix Detail
+- Before: "storm" anywhere in title/category → Weather. "Brainstorm" → Weather. "Rainbow" → Weather. "Russia ceasefire" → no specific category. "AI" → Tech even in non-tech contexts.
+- After: word-boundary matching prevents substring false positives. Geopolitical events (ceasefire, sanctions, treaty) map to Politics. Ambiguous terms (building, storm, rain, tv, ai, token, tech, finance) require surrounding context words to trigger category assignment.
+
+### Intentionally Not Changed
+- No `app/api/market/*` routes touched
+- No scheduler/runtime-config/source-of-truth logic changed
+- No Vercel env/redeploy work
+- MarketLiveWalletTab, MarketCustomizeDrawer, MarketTradeReplayDrawer dark-theme conversion not done (still pending from 4.6B scope)
+- No backend buy logic changed
+- MarketListingDetailDrawer unchanged (already dark themed)

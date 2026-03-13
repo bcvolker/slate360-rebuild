@@ -6,7 +6,7 @@ export function HelpTip({ content }: { content: string }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-300 text-gray-700 text-[10px] cursor-help ml-1 select-none">?</span>
+        <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-700 text-slate-300 text-[10px] cursor-help ml-1 select-none">?</span>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs text-xs">
         {content}
@@ -55,27 +55,15 @@ export function MarketOpportunityBadge({ market }: { market: MarketListing }) {
 
 export function MarketTableLegend() {
   return (
-    <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(135deg,rgba(255,122,26,0.12),rgba(255,255,255,0.88))] p-5 shadow-sm">
-      <div className="flex flex-wrap items-center gap-2">
-        <p className="text-sm font-black text-slate-900">Quick guide</p>
-        <span className="rounded-full border border-white/80 bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-          Built for first-time Polymarket users
-        </span>
+    <details className="rounded-xl border border-slate-800 bg-slate-950/80">
+      <summary className="cursor-pointer px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200">
+        Help: how to read market prices
+      </summary>
+      <div className="grid gap-2 px-4 pb-3 pt-1 sm:grid-cols-3 text-[11px] text-slate-400">
+        <p><strong className="text-slate-200">Backing an outcome:</strong> Buy YES to profit if the event happens. Buy NO to profit if it doesn&apos;t.</p>
+        <p><strong className="text-slate-200">Price:</strong> A 62c entry price means $0.62 per share, paying $1 if correct.</p>
+        <p><strong className="text-slate-200">Signals:</strong> Edge, volume, and liquidity are confidence cues, not guarantees.</p>
       </div>
-      <div className="mt-4 grid gap-3 lg:grid-cols-3">
-        <div className="rounded-2xl border border-white/70 bg-white/80 p-4 text-xs text-slate-600">
-          <p className="font-semibold text-slate-900">Backing an outcome</p>
-          <p className="mt-2 leading-6">Buying <span className="font-semibold text-emerald-700">This happens</span> means you profit if the event resolves YES. Buying <span className="font-semibold text-rose-700">This does not happen</span> means you profit if it resolves NO.</p>
-        </div>
-        <div className="rounded-2xl border border-white/70 bg-white/80 p-4 text-xs text-slate-600">
-          <p className="font-semibold text-slate-900">Reading the price</p>
-          <p className="mt-2 leading-6">A 62c entry price means one share costs $0.62 today and pays out $1 if your side is correct. The implied chance shows what the market currently believes.</p>
-        </div>
-        <div className="rounded-2xl border border-white/70 bg-white/80 p-4 text-xs text-slate-600">
-          <p className="font-semibold text-slate-900">Quality signals</p>
-          <p className="mt-2 leading-6">Pricing edge, signal quality, volume, and liquidity help you judge how tradable a market is. They are confidence cues, not guarantees.</p>
-        </div>
-      </div>
-    </div>
+    </details>
   );
 }
