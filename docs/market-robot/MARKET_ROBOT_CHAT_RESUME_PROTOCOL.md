@@ -1,6 +1,6 @@
 # Market Robot Chat Resume Protocol
 
-Last Updated: 2026-03-13
+Last Updated: 2026-03-18
 
 ## Files To Read First
 1. [SLATE360_PROJECT_MEMORY.md](../../SLATE360_PROJECT_MEMORY.md)
@@ -9,15 +9,16 @@ Last Updated: 2026-03-13
 4. Only then, the batch-specific implementation files named in the active prompt.
 
 ## Current Batch
-- **Batch 4.6C is complete** (Market Search product cleanup, 2026-03-13).
-- Oversized Market Search clutter removed: hero header, Quick Guide legend, Markets section header, verbose status chips all replaced with compact dark-themed equivalents.
-- Topic/category derivation honesty improved: `deriveCategory()` and `normalizeCategoryBucket()` now use word-boundary matching to prevent false positives (e.g. "brainstorm" no longer tagged as Weather, ceasefire events correctly tagged as Politics).
-- Buy panel completely redesigned: dark theme, compact layout, integrated Practice/Live mode selector with two-step live confirmation, post-buy verification guidance.
-- Advanced filters and quick search pills converted to dark theme.
-- Typecheck clean.
-- **MarketLiveWalletTab, MarketCustomizeDrawer, MarketTradeReplayDrawer still need dark theme conversion** — deferred from 4.6B scope, not addressed in 4.6C.
+- **Batch 4.6D is complete** (Market Search 2-column workspace + buy verification UX, 2026-03-18).
+- Market Search restructured into proper 2-column `grid grid-cols-12` trading workspace: results table dominates left (col-span-8), buy ticket + saved markets in sticky right sidebar (col-span-4).
+- Buy success verification is now prominent: explicit paper/live messaging, "Open Results → View Positions" action button.
+- Esports title filtering added: `isEsportsTitle()` function prevents gaming titles (Rainbow Six, Valorant, Dota, etc.) from appearing in Weather/Science category views.
+- MarketBuyPanel supports both inline sidebar mode (desktop) and full-screen overlay mode (mobile).
+- Typecheck clean, all files under 300 lines.
+- **MarketLiveWalletTab, MarketCustomizeDrawer, MarketTradeReplayDrawer still need dark theme conversion** — deferred from 4.6B scope.
 
 ## Latest Rescue State
+- **Batch 4.6D** (2026-03-18): Market Search 2-column workspace + buy verification UX — restructured layout into `grid grid-cols-12`, inline buy sidebar on desktop, prominent post-buy success state with "Open Results" action, esports title filtering for Weather/Science honesty.
 - **Batch 4.6C** (2026-03-13): Market Search product cleanup — removed oversized clutter, compacted layout, fixed category honesty with word boundaries, redesigned buy panel to dark theme with mode control and post-buy verification.
 - **Batch 4.6A** (2026-03-13): Fixed direct-buy 400 (automation cap was blocking manual buys), tightened search synonym matching with word boundaries, fixed 2 pre-existing TS errors.
 - 3 files still need dark theme conversion (deferred from 4.6B): MarketLiveWalletTab.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx.

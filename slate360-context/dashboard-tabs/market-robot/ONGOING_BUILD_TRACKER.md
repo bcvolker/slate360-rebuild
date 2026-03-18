@@ -20,7 +20,7 @@ This file tracks current status, build order, prompts, checks, and rebuild-from-
 - CEO Command Center now has a searchable subscriber directory for granting Market access; do not reintroduce manual-email-only workflows as the primary operator path.
 
 ## Current Build Status
-**Active batch: Rescue Batch 4.6C complete (Market Search product cleanup) — next batch is 4.6B (dark theme on 3 remaining files: MarketLiveWalletTab, MarketCustomizeDrawer, MarketTradeReplayDrawer)**
+**Active batch: Rescue Batch 4.6D complete (Market Search 2-column workspace + buy verification UX, 2026-03-18) — next batch is 4.6B (dark theme on 3 remaining files: MarketLiveWalletTab, MarketCustomizeDrawer, MarketTradeReplayDrawer)**
 
 2026-03-12 rescue overlay:
 - Batch 1 shipped a new four-section shell: Dashboard, Markets, Automation, Results.
@@ -57,6 +57,16 @@ Batch 4.6C Market Search product cleanup (2026-03-13):
 - MarketMarketsSection removed section header (30→22 lines).
 - MarketDirectBuyResults removed legend render call (127→125 lines).
 - Category honesty fix in mappers.ts: `deriveCategory()` and `normalizeCategoryBucket()` now use word-boundary regex to prevent false positives. Added geopolitical terms to Politics.
+- No API route, scheduler, runtime-config, or backend changes.
+- Typecheck clean, all files under 300 lines.
+
+Batch 4.6D Market Search 2-column workspace + buy verification UX (2026-03-18):
+- MarketDirectBuyTab restructured into 2-column `grid grid-cols-12` layout (248→286 lines): left col-span-8 has search/filters/results, right col-span-4 has sticky inline buy panel + saved markets. Mobile remains full-width stacked.
+- MarketBuyPanel gained `inline` prop for sidebar rendering + `onOpenResults` callback (225→238 lines). Prominent post-buy success state with "Open Results → View Positions" button. Explicit paper/live messaging.
+- MarketMarketsSection simplified to pass-through (22→13 lines), removed separate saved markets layout.
+- lib/market/search-synonyms.ts added `ESPORTS_BLOCKLIST_RE` and `isEsportsTitle()` export (47→55 lines).
+- lib/market/direct-buy-table.ts added esports exclusion for Weather/Science category views (120→122 lines).
+- lib/market/mappers.ts added esports guard in `deriveCategory()` — gaming titles categorized as "Esports" (250→254 lines).
 - No API route, scheduler, runtime-config, or backend changes.
 - Typecheck clean, all files under 300 lines.
 

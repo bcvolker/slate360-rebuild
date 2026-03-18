@@ -1,6 +1,6 @@
 # Market Robot Prompt Backlog
 
-Last Updated: 2026-03-12
+Last Updated: 2026-03-18
 
 ## Batch 0 Analysis Prompt Summary
 - Audit the current Market Robot route, hooks, APIs, env usage, and tool access.
@@ -158,6 +158,33 @@ Last Updated: 2026-03-12
 - Direct buy no longer returns 400 due to automation position cap.
 - Error messages are truthful when cap is actually hit.
 - Weather searches no longer return Rainbow Six / esports-style results.
+
+## Batch 4.6D Market Search 2-Column Workspace + Buy Verification UX
+
+### Status After 2026-03-18 Implementation
+- Complete.
+- Market Search restructured into proper 2-column `grid grid-cols-12` trading workspace.
+- Left column (col-span-8 on xl+): search toolbar, filters, active chips, dense results table.
+- Right column (col-span-4 on xl+): sticky sidebar with inline buy panel + saved markets/watchlist.
+- Mobile/tablet: full-width stacked layout with buy panel as overlay.
+- MarketBuyPanel now supports `inline` prop for sidebar rendering and `onOpenResults` callback.
+- Post-buy success state is prominent: explicit paper/live messaging, "Open Results → View Positions" button.
+- Esports title filtering added: `isEsportsTitle()` prevents gaming titles from appearing in Weather/Science.
+- `deriveCategory()` now classifies esports titles as "Esports" category.
+- No API routes, scheduler, runtime-config, or backend changes.
+- Typecheck clean, all files under 300 lines.
+
+### Risks / Preconditions
+- No API route changes.
+- MarketBuyPanel overlay mode must continue to work for mobile.
+- SavedMarketsTab must remain functional in the right sidebar.
+
+### Success Criteria
+- Market Search behaves like a 2-column trading workspace on desktop.
+- Results table visually dominates the page.
+- Buy success is clearly verifiable with explicit paper/live messaging.
+- Weather/Science categories don't show esports/gaming content.
+- Trade ticket is cleaner with clear Practice/Live mode.
 
 ## Batch 4.6B Theme Cleanup (Next)
 - 3 remaining files need dark theme conversion: MarketLiveWalletTab.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx.

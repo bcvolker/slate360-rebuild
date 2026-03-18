@@ -6,6 +6,9 @@ const SYNONYMS: Record<string, string[]> = {
   economy: ["economy", "gdp", "inflation", "interest rate", "fed", "federal reserve", "recession", "unemployment"],
 };
 
+/** Titles containing these terms are esports/gaming, not weather or science. */
+const ESPORTS_BLOCKLIST_RE = /\b(?:rainbow\s*six|cs:?go|counter[\s-]?strike|valorant|dota|league\s+of\s+legends|overwatch|fortnite|esports?|e[\s-]?sports?|pubg|apex\s+legends|call\s+of\s+duty|cod\b|rocket\s+league|halo\s+infinite)\b/i;
+
 /** Expand search queries with synonyms so users find markets with related terms. */
 export function expandSearchTerms(query: string): string[] {
   const terms = [query];
@@ -44,4 +47,9 @@ export function queryMatchesText(query: string, text: string): boolean {
   }
 
   return false;
+}
+
+/** Returns true if the title looks like an esports/gaming market. */
+export function isEsportsTitle(title: string): boolean {
+  return ESPORTS_BLOCKLIST_RE.test(title);
 }

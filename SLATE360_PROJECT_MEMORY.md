@@ -149,34 +149,35 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-13 (Batch 4.6C)
+### Session Handoff — 2026-03-18 (Batch 4.6D)
 
 #### What Changed
-- `components/dashboard/market/MarketDirectBuyTab.tsx`: Removed oversized hero header, compacted search toolbar and filter chips (313→248 lines)
-- `components/dashboard/market/MarketBuyPanel.tsx`: Full dark theme redesign, Practice/Live mode selector with two-step live confirmation, post-buy verification guidance (246→225 lines)
-- `components/dashboard/market/MarketAdvancedFilters.tsx`: Dark theme conversion, compacted grid (164→111 lines)
-- `components/dashboard/market/MarketSharedUi.tsx`: Dark HelpTip, collapsible MarketTableLegend (81→69 lines)
-- `components/dashboard/market/MarketQuickSearchPills.tsx`: Inline pill buttons replacing card grid (29→25 lines)
-- `components/dashboard/market/MarketMarketsSection.tsx`: Removed section header block (30→22 lines)
-- `components/dashboard/market/MarketDirectBuyResults.tsx`: Removed legend render, tightened styling (127→125 lines)
-- `lib/market/mappers.ts`: Word-boundary regex in deriveCategory/normalizeCategoryBucket, added geopolitical terms to Politics (241→250 lines)
+- `components/dashboard/market/MarketDirectBuyTab.tsx`: Restructured into 2-column `grid grid-cols-12` workspace layout — search/filters/results on left (col-span-8), sticky buy panel + saved markets on right (col-span-4). Mobile remains stacked. (248→286 lines)
+- `components/dashboard/market/MarketBuyPanel.tsx`: Added `inline` prop for sidebar rendering, `onOpenResults` callback. Prominent post-buy success state with explicit paper/live messaging and "Open Results → View Positions" action button. (225→238 lines)
+- `components/dashboard/market/MarketMarketsSection.tsx`: Simplified to pass-through wrapper forwarding `onNavigate` prop. Removed separate saved-markets layout. (22→13 lines)
+- `lib/market/search-synonyms.ts`: Added `ESPORTS_BLOCKLIST_RE` regex and `isEsportsTitle()` export for gaming title detection. (47→55 lines)
+- `lib/market/direct-buy-table.ts`: Added esports exclusion filter for Weather/Science category views. (120→122 lines)
+- `lib/market/mappers.ts`: Added esports guard in `deriveCategory()` — gaming titles now categorized as "Esports" instead of being miscategorized. (250→254 lines)
 
 #### What's Broken / Partially Done
 - 3 Market component files still need dark theme: MarketLiveWalletTab.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx (deferred to 4.6B)
 - Market live automation path remains incomplete (scan execution is paper-only)
-- Direct-buy UX can overstate live success when backend falls back to paper
+- Direct-buy UX can still overstate live success when backend falls back to paper
 - Summary metric source remains partially legacy
 - Accumulated open paper trades (1000+) are not auto-resolved
+- The 2-column layout only kicks in at `xl` breakpoint (1280px+); smaller desktops see full-width stacked
 
 #### Context Files Updated
-- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: Batch 4.6C section added
-- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: Current batch and latest rescue state updated
-- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: Batch 4.6C entry added, 4.6B updated to 3 files
-- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: Build status header and 4.6C entry added
+- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: Batch 4.6D section added with full change log
+- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: Current batch and latest rescue state updated to 4.6D
+- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: Batch 4.6D entry added
+- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: 4.6D entry added
 - `SLATE360_PROJECT_MEMORY.md`: Session handoff
 
 #### Next Steps (ordered)
-1. Run Batch 4.6B: CSS-only dark theme conversion of the 3 remaining files
-2. Typecheck + push Batch 4.6B
-3. Then proceed to Batch 5 backend truth patch if still needed
+1. Run Batch 4.6B: CSS-only dark theme conversion of the 3 remaining files (MarketLiveWalletTab, MarketCustomizeDrawer, MarketTradeReplayDrawer)
+2. Verify the 2-column layout in browser at xl breakpoint
+3. Verify esports titles don't appear in Weather/Science filtered views
+4. Verify "Open Results → View Positions" button works after successful paper buy
+5. Then proceed to Batch 5 backend truth patch if still needed
 4. Consider adding a bulk-resolve / auto-close path for accumulated old paper trades

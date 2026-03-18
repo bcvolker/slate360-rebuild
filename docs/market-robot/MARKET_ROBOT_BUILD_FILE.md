@@ -1,6 +1,6 @@
 # Market Robot Build File
 
-Last Updated: 2026-03-13
+Last Updated: 2026-03-18
 
 ## Canonical Constraints
 - Route and access gate: /market must remain gated by resolveServerOrgContext().canAccessMarket in app/market/page.tsx.
@@ -145,8 +145,32 @@ Last Updated: 2026-03-13
 - `app/api/market/scan/route.ts` unchanged — automation cap remains via `resolveUserMaxOpenPositions`
 - 5 remaining dark-theme files (MarketBuyPanel, MarketLiveWalletTab, MarketAdvancedFilters, MarketCustomizeDrawer, MarketTradeReplayDrawer) untouched — deferred to 4.6B
 
+## Batch 4.6D — Market Search 2-Column Workspace + Buy Verification UX (2026-03-18)
+
+### What Changed
+- **MarketDirectBuyTab.tsx** (248→286 lines): Restructured into proper `grid grid-cols-12` 2-column workspace layout. Left column (col-span-8 on xl+): search toolbar + filters + results table. Right column (col-span-4 on xl+): sticky sidebar with inline buy panel + saved markets/watchlist. Mobile: full-width stacked layout with buy panel rendered as overlay. Removed oversized tutorial blocks. Compact header strip retained. Added `onNavigate` prop for Results navigation. Added `MarketSavedMarketsTab` import/render in sidebar.
+- **MarketBuyPanel.tsx** (225→238 lines): Added `inline` prop to render as sidebar panel (no fixed overlay) on desktop. Added `onOpenResults` callback prop. Added prominent post-buy success state with explicit paper/live messaging, "Open Results → View Positions" action button. Mode selector now shows PRACTICE/LIVE badges with color coding. Two-step live confirmation preserved. Kept full-screen overlay mode for mobile via `xl:hidden` conditional.
+- **MarketMarketsSection.tsx** (22→13 lines): Simplified to pass-through wrapper that forwards `onNavigate` prop. Removed separate saved-markets layout (now integrated into MarketDirectBuyTab right sidebar).
+- **lib/market/search-synonyms.ts** (47→55 lines): Added `ESPORTS_BLOCKLIST_RE` regex matching esports/gaming titles (Rainbow Six, CS:GO, Valorant, Dota, etc.). Added `isEsportsTitle()` export function.
+- **lib/market/direct-buy-table.ts** (120→122 lines): Added esports exclusion filter — markets matching esports titles are now excluded from Weather and Science category views.
+- **lib/market/mappers.ts** (250→254 lines): Added `isEsportsTitle()` guard at top of `deriveCategory()` — esports/gaming titles are now categorized as "Esports" instead of potentially being miscategorized as Weather or Science.
+
+### Files NOT Changed (intentionally preserved)
+- All `app/api/market/*` routes — zero API changes
+- `lib/market/execution-policy.ts` — execution policy untouched
+- Scheduler/runtime-config files — untouched
+- Automation and results logic from prior batches — untouched
+- `lib/hooks/useMarketDirectBuyState.ts` — hook interface unchanged
+- `lib/market/market-display.ts` — display helpers unchanged
+
+### Validation
+- `npx tsc --noEmit` — clean, zero errors
+- All changed files under 300 lines (max: MarketDirectBuyTab at 286)
+- No API routes in diff
+- `get_errors` on all 6 changed files — zero errors
+
 ## Last Updated Summary
-- Batch 4.6C complete: Market Search product cleanup — oversized clutter removed, topic/category derivation honesty improved with word-boundary matching, buy panel redesigned to dark theme with mode control and post-buy verification, advanced filters dark-themed, quick search pills compacted. Typecheck clean.
+- Batch 4.6D complete: Market Search restructured into 2-column trading workspace (results left, buy ticket + saved markets right on desktop). Buy success verification now prominent with explicit paper/live messaging and direct "Open Results" action. Esports title filtering added for Weather/Science honesty. Typecheck clean.
 
 ## Batch 4.6C — Market Search Product Cleanup (2026-03-13)
 

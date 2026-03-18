@@ -6,6 +6,7 @@ import {
   toNumberOrNull,
   toNumberOrZero,
 } from "./contracts";
+import { isEsportsTitle } from "./search-synonyms";
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -39,6 +40,9 @@ function normalizeCategoryBucket(rawCategory: string): string | null {
 
 function deriveCategory(question: string, rawCategory: string): string {
   const text = normalizeWhitespace(`${question} ${rawCategory}`).toLowerCase();
+
+  // Esports/gaming titles must never be categorized as Weather, Science, etc.
+  if (isEsportsTitle(question)) return "Esports";
 
   // Use word-boundary matching so partial substring hits don't miscategorize
   // e.g. "brainstorm" should NOT match Weather's "storm", "rainbow" should NOT match "rain"
