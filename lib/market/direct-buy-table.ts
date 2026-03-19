@@ -1,6 +1,6 @@
 import type { MarketListing, MarketSortDirection, MarketSortKey, MktRiskTag, MktTimeframe } from "@/components/dashboard/market/types";
 import { getMarketOpportunitySignal, getMarketSpreadPct } from "@/lib/market/opportunity";
-import { queryMatchesText, isEsportsTitle } from "@/lib/market/search-synonyms";
+import { queryMatchesText, isEsportsTitle, isWeatherRelevant } from "@/lib/market/search-synonyms";
 
 export function endCutoff(tf: MktTimeframe): number {
   const now = Date.now();
@@ -68,6 +68,9 @@ export function filterAndSortMarkets({
       if (category !== "all" && market.category !== category) return false;
       // Exclude esports/gaming titles from Weather and Science category views
       if ((category === "Weather" || category === "Science") && isEsportsTitle(market.title)) return false;
+      // Weather truth guard: if user selected Weather category, only show markets
+      // whose title actually contains weather-related terms (prevents miscategorized leakage)
+      if (category === "Weather" && !isWeatherRelevant(market.title)) return false;
       if (market.probabilityPct < probMin || market.probabilityPct > probMax) return false;
       if (market.edgePct < minEdge) return false;
       if (riskTag !== "all") {

@@ -41,11 +41,11 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
   const applyPreset = (presetId: string) => {
     s.clearFilters();
     if (presetId === "weather-hour") {
-      s.setQuery("weather"); s.setTimeframe("hour"); s.setSortBy("endDate");
+      s.setQuery("weather"); s.setCategory("Weather"); s.setTimeframe("hour"); s.setSortBy("endDate");
     } else if (presetId === "bitcoin-month") {
-      s.setQuery("bitcoin"); s.setTimeframe("month"); s.setSortBy("volume");
+      s.setQuery("bitcoin"); s.setCategory("Crypto"); s.setTimeframe("month"); s.setSortBy("volume");
     } else if (presetId === "election-week") {
-      s.setQuery("election"); s.setTimeframe("week"); s.setSortBy("volume");
+      s.setQuery("election"); s.setCategory("Politics"); s.setTimeframe("week"); s.setSortBy("volume");
     } else if (presetId === "closing-soon") {
       s.setTimeframe("day"); s.setSortBy("endDate"); s.setMinVolume(5000);
     } else if (presetId === "high-liquidity") {
@@ -56,16 +56,18 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
   };
 
   const searchTerm = s.query.trim();
-  const activeFilters = [
-    s.timeframe !== "all" ? `Time: ${QUICK_TIMEFRAMES.find((tf) => tf.key === s.timeframe)?.label ?? s.timeframe}` : null,
-    s.category !== "all" ? `Topic: ${s.category}` : null,
-    s.minEdge > 0 ? `Edge ≥${s.minEdge}%` : null,
-    s.minVolume > 0 ? `Vol ≥$${s.minVolume.toLocaleString()}` : null,
-    s.minLiquidity > 0 ? `Liq ≥$${s.minLiquidity.toLocaleString()}` : null,
-    s.maxSpread < 100 ? `Spread ≤${s.maxSpread}%` : null,
-    s.riskTag !== "all" ? `${s.riskTag}` : null,
-    s.probMin > 0 || s.probMax < 100 ? `${s.probMin}–${s.probMax}%` : null,
-  ].filter((chip): chip is string => chip !== null);
+  const SORT_LABELS: Record<string, string> = { edge: "Value", volume: "Active", probability: "Likely", endDate: "Ending", title: "A-Z" };
+  const activeFilters: { label: string; clear?: () => void }[] = [
+    s.timeframe !== "all" ? { label: `Time: ${QUICK_TIMEFRAMES.find((tf) => tf.key === s.timeframe)?.label ?? s.timeframe}`, clear: () => s.setTimeframe("all") } : null,
+    s.category !== "all" ? { label: `Topic: ${s.category}`, clear: () => s.setCategory("all") } : null,
+    s.sortBy !== "edge" ? { label: `Sort: ${SORT_LABELS[s.sortBy] ?? s.sortBy}`, clear: () => s.setSortBy("edge") } : null,
+    s.minEdge > 0 ? { label: `Edge ≥${s.minEdge}%`, clear: () => s.setMinEdge(0) } : null,
+    s.minVolume > 0 ? { label: `Vol ≥$${s.minVolume.toLocaleString()}`, clear: () => s.setMinVolume(0) } : null,
+    s.minLiquidity > 0 ? { label: `Liq ≥$${s.minLiquidity.toLocaleString()}`, clear: () => s.setMinLiquidity(0) } : null,
+    s.maxSpread < 100 ? { label: `Spread ≤${s.maxSpread}%`, clear: () => s.setMaxSpread(100) } : null,
+    s.riskTag !== "all" ? { label: `${s.riskTag}`, clear: () => s.setRiskTag("all") } : null,
+    s.probMin > 0 || s.probMax < 100 ? { label: `${s.probMin}–${s.probMax}%`, clear: () => { s.setProbMin(0); s.setProbMax(100); } } : null,
+  ].filter((chip): chip is { label: string; clear?: () => void } => chip !== null);
 
   const openDetails = (market: MarketListing) => {
     setDetailMarket(market);
@@ -89,7 +91,7 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
       {/* 2-column workspace */}
       <div className="grid grid-cols-12 gap-4 items-start">
         {/* LEFT: search + filters + results */}
-        <div className={`space-y-3 ${hasBuy ? "col-span-12 xl:col-span-8" : "col-span-12"}`}>
+        <div className={`space-y-3 ${hasBuy ? "col-span-12 lg:col-span-8" : "col-span-12"}`}>
           {/* Search toolbar */}
           <div className="space-y-2 rounded-xl border border-slate-800 bg-slate-950/80 p-3">
             <div className="flex gap-2">
@@ -138,9 +140,17 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
 
             {/* Active filter chips */}
             {(searchTerm.length > 0 || activeFilters.length > 0) && (
-              <div className="flex flex-wrap gap-1.5 text-[10px] text-slate-400">
-                {searchTerm.length > 0 && <span className="rounded-full border border-slate-700 bg-slate-950 px-2 py-0.5">&ldquo;{searchTerm}&rdquo;</span>}
-                {activeFilters.map((f) => <span key={f} className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-2 py-0.5 text-cyan-200">{f}</span>)}
+              <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400">
+                {searchTerm.length > 0 && (
+                  <button onClick={() => s.setQuery("")} className="group flex items-center gap-1 rounded-full border border-slate-700 bg-slate-950 px-2 py-0.5 hover:border-slate-500">
+                    &ldquo;{searchTerm}&rdquo; <span className="text-slate-600 group-hover:text-slate-300">×</span>
+                  </button>
+                )}
+                {activeFilters.map((f) => (
+                  <button key={f.label} onClick={f.clear} className="group flex items-center gap-1 rounded-full border border-cyan-500/25 bg-cyan-500/10 px-2 py-0.5 text-cyan-200 hover:border-cyan-400/40">
+                    {f.label} {f.clear && <span className="text-cyan-400/40 group-hover:text-cyan-200">×</span>}
+                  </button>
+                ))}
                 <span className="rounded-full border border-slate-700 bg-slate-950 px-2 py-0.5">{s.filteredCount}/{s.loadedMarketCount.toLocaleString()}</span>
               </div>
             )}
@@ -196,7 +206,7 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
 
         {/* RIGHT SIDEBAR: buy ticket + saved markets (visible when a buy is active on xl+) */}
         {hasBuy && (
-          <aside className="hidden xl:block col-span-4 sticky top-4 space-y-3">
+          <aside className="hidden lg:block col-span-4 sticky top-4 space-y-3">
             {s.buyMarket && (
               <MarketBuyPanel
                 market={s.buyMarket}
@@ -230,9 +240,9 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
         )}
       </div>
 
-      {/* Mobile/tablet buy panel overlay (below xl breakpoint) */}
+      {/* Mobile/tablet buy panel overlay (below lg breakpoint) */}
       {s.buyMarket && (
-        <div className="xl:hidden">
+        <div className="lg:hidden">
           <MarketBuyPanel
             market={s.buyMarket}
             outcome={s.buyOutcome}

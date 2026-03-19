@@ -53,3 +53,11 @@ export function queryMatchesText(query: string, text: string): boolean {
 export function isEsportsTitle(title: string): boolean {
   return ESPORTS_BLOCKLIST_RE.test(title);
 }
+
+const WEATHER_RELEVANCE_RE = /\b(?:weather|rain|snow|temperature|hurricane|storm|tornado|flood|climate|forecast|drought|hail|blizzard|wildfire|heat\s*wave|cold\s*front|wind\s*chill|ice\s*storm|typhoon|monsoon|el\s*ni[ñn]o|la\s*ni[ñn]a)\b/i;
+
+/** Returns true if the title contains weather-related terms — used as a truth guard
+ *  to prevent miscategorized markets from appearing under the Weather topic filter. */
+export function isWeatherRelevant(title: string): boolean {
+  return WEATHER_RELEVANCE_RE.test(title);
+}
