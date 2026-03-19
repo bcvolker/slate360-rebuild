@@ -149,7 +149,31 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-18 (Batch 4.6D)
+### Session Handoff — 2026-03-19 (Dev Environment / Continue.dev)
+
+#### What Changed
+- **Dev environment only — no Slate360 code touched.**
+- `~/.continue/config.yaml`: Added Grok 4.2 model entry for Continue.dev.
+  - provider: `openai` (OpenAI-compatible), model: `grok-beta`, apiBase: `https://api.x.ai/v1`
+  - API key reads from `$XAI_API_KEY` env var (not hardcoded). Backup at `~/.continue/config.yaml.bak`.
+  - **On next login**: Set `XAI_API_KEY` as a Codespace secret, then select "Grok 4.2" from the Continue chat model dropdown (bottom of Continue panel).
+
+#### What's Broken / Partially Done
+- Continue.dev reload was cancelled this session — if Grok 4.2 doesn't appear in the dropdown on next login, run Command Palette → "Developer: Reload Window".
+- `~/.continue/config.yaml` lives in Codespace user home and does NOT auto-persist to a brand-new machine. If spinning up a fresh Codespace, re-add the Grok 4.2 entry or copy from this handoff.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: Session handoff
+
+#### Next Steps (ordered)
+1. On next login: open Continue panel → click model selector at bottom → confirm "Grok 4.2" appears.
+2. If missing: Command Palette → "Developer: Reload Window".
+3. Resume Slate360 work from Batch 4.6D (see previous handoff below).
+4. Next Slate360 batch: Batch 4.6B — dark theme for MarketLiveWalletTab, MarketCustomizeDrawer, MarketTradeReplayDrawer.
+
+---
+
+### Previous Session Handoff — 2026-03-18 (Batch 4.6D)
 
 #### What Changed
 - `components/dashboard/market/MarketDirectBuyTab.tsx`: Restructured into 2-column `grid grid-cols-12` workspace layout — search/filters/results on left (col-span-8), sticky buy panel + saved markets on right (col-span-4). Mobile remains stacked. (248→286 lines)
