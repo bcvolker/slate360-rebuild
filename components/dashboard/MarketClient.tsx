@@ -13,6 +13,7 @@ import MarketResultsTab from "@/components/dashboard/market/MarketResultsTab";
 import MarketLiveWalletTab from "@/components/dashboard/market/MarketLiveWalletTab";
 import MarketDashboardSection from "@/components/dashboard/market/MarketDashboardSection";
 import MarketMarketsSection from "@/components/dashboard/market/MarketMarketsSection";
+import MarketRobotWorkspace from "@/components/dashboard/market/MarketRobotWorkspace";
 import { useMarketWalletState } from "@/lib/hooks/useMarketWalletState";
 import { normalizeFocusAreas } from "@/lib/market/runtime-config";
 import { syncAutomationPlan, ensureBotRunning } from "@/lib/market/sync-automation-plan";
@@ -34,7 +35,7 @@ function normalizeTabId(tabId: string): string {
 
 export default function MarketClient({ layoutPrefs }: MarketClientProps) {
   const visibleTabs = layoutPrefs?.visibleTabs ?? [];
-  const [activeTabId, setActiveTabId] = useState("dashboard");
+  const [activeTabId, setActiveTabId] = useState("markets");
   const [scanBanner, setScanBanner] = useState<ScanBanner | null>(null);
   const [resultsActionContext, setResultsActionContext] = useState<string | null>(null);
   const logsEnabled = activeTabId === "results";
@@ -204,10 +205,12 @@ export default function MarketClient({ layoutPrefs }: MarketClientProps) {
         );
       case "markets":
         return (
-          <MarketMarketsSection
-            paperMode={bot.config.paperMode}
-            walletAddress={wallet.address}
-            liveChecklist={wallet.liveChecklist}
+          <MarketRobotWorkspace
+            layoutPrefs={layoutPrefs}
+            bot={bot}
+            wallet={wallet}
+            systemStatus={systemStatus}
+            serverStatus={serverStatus}
             onTradePlaced={handleTradePlaced}
             onOpenAutomation={() => setPrimaryTab("automation")}
             onNavigate={setPrimaryTab}
