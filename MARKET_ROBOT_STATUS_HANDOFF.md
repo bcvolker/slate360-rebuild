@@ -138,3 +138,31 @@ Next recommended: Phase 3 - MarketStartHereTab.tsx and update MarketClient.tsx
 
 Next recommended: Phase 4 - Update MarketClient.tsx to wire new tabs + Direct Buy rebuild
 
+
+**Phase 4 Progress - MarketClient Update (Anti-Stall Batch Command)**
+
+- Updated MarketClient.tsx to wire new MarketPrimaryNav and default to MarketStartHereTab
+- Removed monolith content, now a thin orchestrator per IMPLEMENTATION_PLAN.md
+- Uses shared design tokens for easy global aesthetic unification
+- Typecheck run (see output)
+
+**Completion Tracker**
+- Phase 0: 100%
+- Phase 1: 100%
+- Phase 2: 100%
+- Phase 3: 100%
+- Phase 4: 50%
+- Remaining focused prompts/sessions to have a complete and working Market Robot tab: **5-7**
+
+**Deployment/Build Verification Checklist (Critical Update)**
+1. After Vercel deploy, visit /market
+2. 'Start Here' tab should be the default view with clean 'Market Robot' title, paper vs live mode boxes, and two buttons ('Go to Direct Buy', 'Set up Automation')
+3. No old content like "Operator command deck" or "Browse Markets" should appear (or be minimal)
+4. Top nav should show all 6 new tabs (Start Here, Direct Buy, Automation, Saved Markets, Results, Live Wallet)
+5. No console errors in browser dev tools
+6. Scrollbars and visual "eye sores" should be reduced (if not, note where they appear)
+7. Page should start looking professional
+8. If still wrong, force a Vercel redeploy via dashboard or CLI (vercel deploy --prod)
+
+Next recommended: Phase 5 - Direct Buy tab rebuild
+
