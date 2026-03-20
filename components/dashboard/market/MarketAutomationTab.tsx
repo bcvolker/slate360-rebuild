@@ -29,7 +29,7 @@ type ActionFeedback = {
   message: string;
 };
 
-export default function MarketAutomationTab({ botConfig, onApplyPlan, onRunNow, onStopBot, serverStatus, serverHealth, scanLog }: MarketAutomationTabProps) {
+export default function MarketAutomationTab({ onNavigate, paperMode, liveChecklist, onQuickStart, onStopBot, activePlan, onApplyPlan, onDeletePlan, }: { onNavigate: (tabId: string) => void; paperMode: boolean; liveChecklist: any; onQuickStart?: () => void; onStopBot?: () => void; activePlan: any; onApplyPlan: () => void; onDeletePlan: () => void; }) { botConfig, onApplyPlan, onRunNow, onStopBot, serverStatus, serverHealth, scanLog }: MarketAutomationTabProps) {
   const auto = useMarketAutomationState();
   const [composerOpen, setComposerOpen] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);

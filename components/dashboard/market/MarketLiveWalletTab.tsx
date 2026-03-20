@@ -57,7 +57,7 @@ function CheckRow({ check }: { check: ReadinessCheck }) {
   );
 }
 
-export default function MarketLiveWalletTab({
+export default function MarketLiveWalletTab({ onNavigate, paperMode, liveChecklist, walletSnapshot, system, onOpenAutomation, }: { onNavigate: (tabId: string) => void; paperMode: boolean; liveChecklist: any; walletSnapshot: any; system: any; onOpenAutomation: () => void; }) {
   address, isConnected, chain, isConnecting, isApproving,
   waitingApproveReceipt, approveSuccess, usdcBalance, maticData,
   walletVerified, walletError, walletChoice, setWalletChoice,

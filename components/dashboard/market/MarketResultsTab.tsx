@@ -50,7 +50,7 @@ function StatCard({ label, children, tip }: { label: string; children: React.Rea
   );
 }
 
-export default function MarketResultsTab({
+export default function MarketResultsTab({ onNavigate, paperMode, trades, system, serverHealth, onOpenPositions, onOpenAutomation, }: { onNavigate: (tabId: string) => void; paperMode: boolean; trades: any[]; system: any; serverHealth: any; onOpenPositions: () => void; onOpenAutomation: () => void; }) {
   trades,
   activityLogs,
   onRefresh,
