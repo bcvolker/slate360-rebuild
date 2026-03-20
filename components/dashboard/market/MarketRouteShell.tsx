@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import DashboardHeader from "@/components/shared/DashboardHeader";
-import MarketCustomizeDrawer from "@/components/dashboard/market/MarketCustomizeDrawer";
-import { useMarketLayoutPrefs } from "@/lib/hooks/useMarketLayoutPrefs";
-import type { Tier } from "@/lib/entitlements";
+import DashboardHeader from \"@/components/shared/DashboardHeader\";
+import MarketCustomizeDrawer from \"@/components/dashboard/market/MarketCustomizeDrawer\";
+import { useMarketLayoutPrefs } from \"@/lib/hooks/useMarketLayoutPrefs\";
+import type { Tier } from \"@/lib/entitlements\";
 
 type MarketRouteShellProps = {
   user: { name: string; email: string; avatar?: string };
@@ -24,15 +24,15 @@ export default function MarketRouteShell({ user, tier, isCeo, internalAccess, ch
   const closeCustomize = useCallback(() => setCustomizeOpen(false), []);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[linear-gradient(180deg,#020617,#0f172a_28%,#111827_100%)]">
-      <div className="relative">
+    <div className=\"min-h-screen bg-slate-950 text-slate-200 overflow-hidden\">
+      <div className=\"relative\">
         <DashboardHeader
           user={user}
           tier={tier}
           isCeo={isCeo}
           internalAccess={internalAccess}
           showBackLink
-          searchPlaceholder="Search Market Robot..."
+          searchPlaceholder=\"Search markets, events, or automation...\"
           onCustomizeOpen={openCustomize}
           prefsDirty={layoutPrefs.isDirty}
         />
@@ -48,7 +48,7 @@ export default function MarketRouteShell({ user, tier, isCeo, internalAccess, ch
         />
       </div>
 
-      <main className="mx-auto max-w-[1440px] overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8">
+      <main className=\"mx-auto max-w-[1480px] px-6 py-8 overflow-auto\" style={{ height: \"calc(100vh - 73px)\" }}>
         {React.Children.map(children, (child) => {
           if (React.isValidElement(child)) {
             return React.cloneElement(child as React.ReactElement<{ layoutPrefs?: MarketShellContext }>, {

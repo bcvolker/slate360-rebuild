@@ -12,12 +12,12 @@ interface MarketConsoleHeaderStripProps {
 
 function toneClass(liveReady: boolean, blockerCount: number): string {
   if (liveReady && blockerCount === 0) {
-    return "border-emerald-400/30 bg-emerald-500/10 text-emerald-100";
+    return "border-emerald-500/30 bg-emerald-950 text-emerald-300";
   }
   if (blockerCount > 0) {
-    return "border-amber-400/30 bg-amber-500/10 text-amber-100";
+    return "border-amber-500/30 bg-amber-950 text-amber-300";
   }
-  return "border-cyan-400/30 bg-cyan-500/10 text-cyan-100";
+  return "border-slate-700 bg-slate-900 text-slate-400";
 }
 
 export default function MarketConsoleHeaderStrip({
@@ -30,34 +30,35 @@ export default function MarketConsoleHeaderStrip({
   lastRunLabel,
 }: MarketConsoleHeaderStripProps) {
   return (
-    <section className="rounded-[28px] border border-cyan-500/20 bg-[linear-gradient(135deg,rgba(8,15,31,0.96),rgba(15,23,42,0.96))] px-4 py-3 shadow-[0_20px_60px_rgba(2,6,23,0.45)]">
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex items-center gap-3">
-          <span className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-100">
-            Market Robot Console
-          </span>
-          <span className="text-sm font-semibold text-slate-200">{activeTabLabel}</span>
-        </div>
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
-          <Metric label="Runtime" value={runtimeStatus} />
-          <Metric label="Config Source" value={configSourceLabel} />
-          <Metric label="Open Positions" value={String(openPositionsCount)} />
-          <Metric label="Last Run" value={lastRunLabel} />
-          <div className={`rounded-2xl border px-3 py-2 ${toneClass(liveReady, blockerCount)}`}>
-            <p className="text-[10px] uppercase tracking-[0.2em] opacity-70">Live Readiness</p>
-            <p className="mt-1 text-sm font-semibold">{liveReady ? "Ready" : `${blockerCount} blocker${blockerCount === 1 ? "" : "s"}`}</p>
-          </div>
+    <div className="mb-8 flex items-center justify-between rounded-3xl border border-slate-700 bg-slate-950 px-8 py-5">
+      <div className="flex items-center gap-4">
+        <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 text-2xl">🤖</div>
+        <div>
+          <div className="text-xs font-mono tracking-[2px] text-slate-500">MARKET ROBOT</div>
+          <div className="text-2xl font-semibold text-white -mt-1">{activeTabLabel}</div>
         </div>
       </div>
-    </section>
-  );
-}
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-950/80 px-3 py-2 text-slate-100">
-      <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{label}</p>
-      <p className="mt-1 text-sm font-semibold">{value}</p>
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-8 text-sm">
+          <div>
+            <span className="text-slate-500 text-xs">STATUS</span><br />
+            <span className="font-mono text-emerald-400">{runtimeStatus.toUpperCase()}</span>
+          </div>
+          <div>
+            <span className="text-slate-500 text-xs">POSITIONS</span><br />
+            <span className="font-semibold text-white">{openPositionsCount}</span>
+          </div>
+          <div>
+            <span className="text-slate-500 text-xs">LAST RUN</span><br />
+            <span className="font-mono text-slate-400">{lastRunLabel}</span>
+          </div>
+        </div>
+
+        <div className={`rounded-2xl border px-5 py-2.5 text-sm font-medium ${toneClass(liveReady, blockerCount)}`}>
+          LIVE READY: {liveReady ? "✅ YES" : `${blockerCount} BLOCKERS`}
+        </div>
+      </div>
     </div>
   );
 }

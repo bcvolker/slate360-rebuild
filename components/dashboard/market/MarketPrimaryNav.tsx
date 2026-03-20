@@ -13,10 +13,10 @@ export const MARKET_TASK_TABS = [
 export type MarketTaskTab = (typeof MARKET_TASK_TABS)[number];
 
 const TAB_ICONS: Record<string, string> = {
-  "dashboard": "⌁",
+  "dashboard": "◉",
   "markets": "◈",
-  "automation": "⚙️",
-  "results": "▣",
+  "automation": "⚙",
+  "results": "▦",
 };
 
 interface MarketPrimaryNavProps {
@@ -27,21 +27,28 @@ interface MarketPrimaryNavProps {
 
 export default function MarketPrimaryNav({ tabs, activeTabId, onTabChange }: MarketPrimaryNavProps) {
   return (
-    <div className="mb-6 flex flex-wrap gap-2 rounded-[28px] border border-cyan-500/20 bg-slate-950/80 p-2 shadow-[0_18px_40px_rgba(2,6,23,0.35)]">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => onTabChange(tab.id)}
-          className={`flex items-center gap-2 rounded-[20px] px-4 py-2.5 text-sm font-semibold transition ${
-            activeTabId === tab.id
-              ? "bg-cyan-400/15 text-cyan-100 shadow-[inset_0_0_0_1px_rgba(34,211,238,0.28)]"
-              : "text-slate-400 hover:bg-slate-900 hover:text-slate-100"
-          }`}
-        >
-          <span className="text-base">{TAB_ICONS[tab.id] ?? "⌘"}</span>
-          {tab.label}
-        </button>
-      ))}
+    <div className="mb-8 flex border-b border-slate-800">
+      {tabs.map((tab) => {
+        const isActive = activeTabId === tab.id;
+        return (
+          <button
+            key={tab.id}
+            onClick={() => onTabChange(tab.id)}
+            className={`group flex items-center gap-3 px-8 py-5 text-sm font-medium border-b-2 transition-all ${
+              isActive
+                ? "border-orange-500 text-white"
+                : "border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700"
+            }`}
+          >
+            <span className={`text-xl transition-colors ${
+              isActive ? "text-orange-400" : "text-slate-500 group-hover:text-slate-400"
+            }`}>
+              {TAB_ICONS[tab.id] ?? "⌘"}
+            </span>
+            {tab.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
