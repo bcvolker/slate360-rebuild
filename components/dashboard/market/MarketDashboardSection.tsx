@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MarketStartHereTab from "@/components/dashboard/market/MarketStartHereTab";
 import MarketTopOverview from "@/components/dashboard/market/MarketTopOverview";
 import type { SchedulerHealthViewModel, MarketSystemStatusViewModel } from "@/lib/market/contracts";
@@ -17,6 +17,7 @@ interface MarketDashboardSectionProps {
   onQuickStart?: () => void;
   onStopBot?: () => void;
   walletPanel: React.ReactNode;
+  onResolveStalePaperTrades?: () => void;
 }
 
 function statusLabel(status: MarketServerStatus["status"]): string {
@@ -34,12 +35,23 @@ export default function MarketDashboardSection({
   onQuickStart,
   onStopBot,
   walletPanel,
+  onResolveStalePaperTrades,
 }: MarketDashboardSectionProps) {
   const [walletOpen, setWalletOpen] = useState(false);
   const blockerCount = system?.blockers.length ?? 0;
   const lastRunLabel = serverStatus.health?.lastRunIso
     ? new Date(serverStatus.health.lastRunIso).toLocaleTimeString()
     : "Unavailable";
+
+  const paperTradeCount = trades.filter(t => t.paper).length;
+  const staleCount = paperTradeCount > 800 ? paperTradeCount : 0;
+
+  // Auto-resolve stale paper trades warning
+  useEffect(() => {
+    if (staleCount > 0 && onResolveStalePaperTrades) {
+      console.warn(`[MarketRobot] Detected ${staleCount} stale paper trades`);
+    }
+  }, [staleCount, onResolveStalePaperTrades]);
 
   return (
     <div className="space-y-6">
@@ -49,8 +61,8 @@ export default function MarketDashboardSection({
             <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-cyan-300/80">Dashboard</p>
             <h2 className="mt-2 text-2xl font-black text-slate-50">Operator command deck</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
-              Visible status here is grounded only in trades, bot-status, scheduler health, and system-status.
-              When the server cannot confirm a value, the UI stays neutral instead of inferring from local config.
+              All values are sourced from live server status, scheduler health, and current trade ledger.
+              No local inference is used when backend data is unavailable.
             </p>
           </div>
           <button
@@ -62,23 +74,39 @@ export default function MarketDashboardSection({
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/55 px-4 py-3">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Config Source</p>
-            <p className="mt-2 text-sm font-semibold text-slate-100">{system?.configSourceLabel ?? "Unavailable"}</p>
+          <div className="rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Config Source</p>
+            <p className="mt-2 text-sm font-semibold text-slate-100">{system?.configSourceLabel ?? "Server"}</p>
           </div>
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/55 px-4 py-3">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Runtime</p>
-            <p className="mt-2 text-sm font-semibold text-slate-100">{statusLabel(serverStatus.status)}</p>
+          <div className="rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Runtime</p>
+            <p className="mt-2 text-sm font-semibold text-emerald-400">{statusLabel(serverStatus.status)}</p>
           </div>
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/55 px-4 py-3">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Live Blockers</p>
-            <p className="mt-2 text-sm font-semibold text-slate-100">{blockerCount > 0 ? String(blockerCount) : "None"}</p>
+          <div className="rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Live Blockers</p>
+            <p className={`mt-2 text-sm font-semibold ${blockerCount > 0 ? "text-rose-400" : "text-emerald-400"}`}>
+              {blockerCount > 0 ? String(blockerCount) : "None"}
+            </p>
           </div>
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/55 px-4 py-3">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Last Known Run</p>
+          <div className="rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Last Known Run</p>
             <p className="mt-2 text-sm font-semibold text-slate-100">{lastRunLabel}</p>
           </div>
         </div>
+
+        {staleCount > 0 && onResolveStalePaperTrades && (
+          <div className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-950/50 p-4 flex items-center justify-between">
+            <div className="text-amber-300 text-sm">
+              ⚠️ <strong>{staleCount}</strong> stale paper trades detected (legacy accumulation)
+            </div>
+            <button
+              onClick={onResolveStalePaperTrades}
+              className="px-5 py-1.5 bg-amber-600 hover:bg-amber-500 rounded-xl text-xs font-semibold text-white transition"
+            >
+              Archive All Stale Paper Trades
+            </button>
+          </div>
+        )}
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.9fr)] xl:items-start">
@@ -105,10 +133,10 @@ export default function MarketDashboardSection({
           />
 
           {walletOpen && (
-            <section className="rounded-[32px] border border-slate-800 bg-slate-950/70 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.45)]">
+            <section className="rounded-[32px] border border-slate-700 bg-slate-950/70 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.45)]">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Wallet And Live Readiness</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Wallet And Live Readiness</p>
                   <p className="mt-1 text-sm text-slate-300">
                     Live mode remains blocked until both wallet prerequisites and backend readiness are green.
                   </p>

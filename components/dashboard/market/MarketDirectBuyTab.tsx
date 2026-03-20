@@ -57,7 +57,7 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
 
   const searchTerm = s.query.trim();
   const SORT_LABELS: Record<string, string> = { edge: "Value", volume: "Active", probability: "Likely", endDate: "Ending", title: "A-Z" };
-  const activeFilters: { label: string; clear?: () => void }[] = [
+  const activeFilters: { label: string; clear: () => void }[] = [
     s.timeframe !== "all" ? { label: `Time: ${QUICK_TIMEFRAMES.find((tf) => tf.key === s.timeframe)?.label ?? s.timeframe}`, clear: () => s.setTimeframe("all") } : null,
     s.category !== "all" ? { label: `Topic: ${s.category}`, clear: () => s.setCategory("all") } : null,
     s.sortBy !== "edge" ? { label: `Sort: ${SORT_LABELS[s.sortBy] ?? s.sortBy}`, clear: () => s.setSortBy("edge") } : null,
@@ -67,7 +67,7 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
     s.maxSpread < 100 ? { label: `Spread ≤${s.maxSpread}%`, clear: () => s.setMaxSpread(100) } : null,
     s.riskTag !== "all" ? { label: `${s.riskTag}`, clear: () => s.setRiskTag("all") } : null,
     s.probMin > 0 || s.probMax < 100 ? { label: `${s.probMin}–${s.probMax}%`, clear: () => { s.setProbMin(0); s.setProbMax(100); } } : null,
-  ].filter((chip): chip is { label: string; clear?: () => void } => chip !== null);
+  ].filter((chip): chip is { label: string; clear: () => void } => chip !== null);
 
   const openDetails = (market: MarketListing) => {
     setDetailMarket(market);
@@ -78,12 +78,18 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
 
   return (
     <div className="text-slate-100">
-      {/* Compact header strip */}
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-950/80 px-4 py-2">
-        <div className="flex items-center gap-2">
-          <h2 className="text-sm font-bold text-slate-100">Market Search</h2>
-          <span className="rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5 text-[10px] text-slate-400">Keyword</span>
-          <span className="rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5 text-[10px] text-slate-400">{s.fetchModeLabel}</span>
+      {/* Dominant Market Search centerpiece */}
+      <div className="mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 text-2xl shadow-inner">🔎</div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tighter text-white">Market Search</h1>
+            <p className="text-slate-400">Discover high-edge prediction markets • Real-time • Global</p>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-400">Keyword + Filters</span>
+            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400">{s.fetchModeLabel}</span>
+          </div>
         </div>
         <MarketQuickSearchPills onApplyPreset={applyPreset} />
       </div>
@@ -148,7 +154,7 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
                 )}
                 {activeFilters.map((f) => (
                   <button key={f.label} onClick={f.clear} className="group flex items-center gap-1 rounded-full border border-cyan-500/25 bg-cyan-500/10 px-2 py-0.5 text-cyan-200 hover:border-cyan-400/40">
-                    {f.label} {f.clear && <span className="text-cyan-400/40 group-hover:text-cyan-200">×</span>}
+                    {f.label} <span className="text-cyan-400/40 group-hover:text-cyan-200">×</span>
                   </button>
                 ))}
                 <span className="rounded-full border border-slate-700 bg-slate-950 px-2 py-0.5">{s.filteredCount}/{s.loadedMarketCount.toLocaleString()}</span>
@@ -212,20 +218,15 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
                 market={s.buyMarket}
                 outcome={s.buyOutcome}
                 amount={s.buyAmount}
-                takeProfitPct={20}
-                stopLossPct={10}
                 paper={s.buyPaper}
                 submitting={s.buySubmitting}
                 success={s.buySuccess}
                 liveChecklist={liveChecklist}
                 payloadReady={s.buyPayloadReady}
                 payloadIssues={s.buyPayloadIssues}
-                showTpSlControls={false}
                 formatMoney={fmt}
                 onOutcomeChange={s.setBuyOutcome}
                 onAmountChange={s.setBuyAmount}
-                onTakeProfitChange={() => {}}
-                onStopLossChange={() => {}}
                 onPaperToggle={() => s.setBuyPaper(!s.buyPaper)}
                 onSubmit={s.handleBuy}
                 onClose={s.closeBuyPanel}
@@ -247,20 +248,15 @@ export default function MarketDirectBuyTab({ paperMode, walletAddress, liveCheck
             market={s.buyMarket}
             outcome={s.buyOutcome}
             amount={s.buyAmount}
-            takeProfitPct={20}
-            stopLossPct={10}
             paper={s.buyPaper}
             submitting={s.buySubmitting}
             success={s.buySuccess}
             liveChecklist={liveChecklist}
             payloadReady={s.buyPayloadReady}
             payloadIssues={s.buyPayloadIssues}
-            showTpSlControls={false}
             formatMoney={fmt}
             onOutcomeChange={s.setBuyOutcome}
             onAmountChange={s.setBuyAmount}
-            onTakeProfitChange={() => {}}
-            onStopLossChange={() => {}}
             onPaperToggle={() => s.setBuyPaper(!s.buyPaper)}
             onSubmit={s.handleBuy}
             onClose={s.closeBuyPanel}

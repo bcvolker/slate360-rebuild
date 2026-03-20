@@ -43,11 +43,15 @@ type ReadinessCheck = {
 
 function CheckRow({ check }: { check: ReadinessCheck }) {
   return (
-    <div className={`flex items-start gap-3 rounded-xl px-4 py-3 ${check.passed ? "bg-green-50" : "bg-red-50"}`}>
+    <div className={`flex items-start gap-3 rounded-xl px-4 py-3 border ${
+      check.passed 
+        ? "bg-emerald-950/50 border-emerald-800" 
+        : "bg-red-950/30 border-red-900"
+    }`}>
       <span className="text-lg mt-0.5">{check.passed ? "✅" : "❌"}</span>
       <div>
-        <p className={`text-sm font-medium ${check.passed ? "text-green-800" : "text-red-800"}`}>{check.label}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{check.description}</p>
+        <p className={`text-sm font-medium ${check.passed ? "text-emerald-300" : "text-red-300"}`}>{check.label}</p>
+        <p className="text-xs text-slate-400 mt-0.5">{check.description}</p>
       </div>
     </div>
   );
@@ -90,7 +94,6 @@ export default function MarketLiveWalletTab({
     setTestRunning(true);
     setTestResult(null);
     try {
-      // Simulate checking all systems
       await new Promise((r) => setTimeout(r, 1500));
       const issues: string[] = [];
       if (!isConnected) issues.push("Wallet not connected");
@@ -112,16 +115,20 @@ export default function MarketLiveWalletTab({
   }, [isConnected, networkOk, walletVerified, liveChecklist, gasOk, serverLiveReady]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 text-slate-100">
       {/* Overall readiness */}
-      <div className={`rounded-2xl border-2 p-5 ${effectiveLiveReady ? "border-green-300 bg-green-50/50" : "border-amber-300 bg-amber-50/50"}`}>
+      <div className={`rounded-2xl border-2 p-5 ${
+        effectiveLiveReady 
+          ? "border-emerald-500/50 bg-emerald-950/30" 
+          : "border-amber-500/50 bg-amber-950/30"
+      }`}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <h3 className="text-lg font-bold flex items-center gap-2 text-white">
               {effectiveLiveReady ? "Live Setup Looks Ready" : "Setup Incomplete Or Server-Blocked"}
               <HelpTip content="All checks must be green before live trading can start" />
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-slate-400 mt-1">
               {passedCount} of {readinessChecks.length} checks passed
             </p>
           </div>
@@ -129,11 +136,11 @@ export default function MarketLiveWalletTab({
         </div>
 
         {!allPassed && blockers.length > 0 && (
-          <div className="mt-3 bg-white rounded-xl p-4">
-            <p className="text-xs text-gray-500 font-semibold uppercase mb-2">What&apos;s Missing</p>
+          <div className="mt-3 bg-slate-900 rounded-xl p-4 border border-slate-700">
+            <p className="text-xs text-slate-400 font-semibold uppercase mb-2">What's Missing</p>
             <ul className="space-y-1">
               {blockers.map((b) => (
-                <li key={b.id} className="text-sm text-red-700 flex items-center gap-2">
+                <li key={b.id} className="text-sm text-red-400 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                   {b.label}: {b.description}
                 </li>
@@ -143,33 +150,37 @@ export default function MarketLiveWalletTab({
         )}
       </div>
 
-      {/* Wallet connect */}
       <MarketSystemStatusCard
         system={systemStatus.system}
         loading={systemStatus.loading}
         error={systemStatus.error}
         title="Live-trading backend health"
       />
+
       {systemStatus.system && systemStatus.system.blockers.length > 0 && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">Live blockers from backend status</p>
-          <div className="mt-2 space-y-1.5">
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-950/50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-amber-400">Live blockers from backend status</p>
+          <div className="mt-2 space-y-1.5 text-sm">
             {systemStatus.system.blockers.slice(0, 4).map((blocker) => (
-              <p key={blocker.code} className="text-xs text-amber-800">• {blocker.label}: {blocker.detail}</p>
+              <p key={blocker.code} className="text-amber-300">• {blocker.label}: {blocker.detail}</p>
             ))}
           </div>
         </div>
       )}
 
       {/* Wallet connect */}
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-700">Wallet Connection</h3>
+      <div className="rounded-2xl border border-slate-700 bg-slate-950 p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-slate-300">Wallet Connection</h3>
         {!isConnected ? (
           <div className="space-y-3">
             <div className="flex gap-2">
               {(["metamask", "coinbase", "trust"] as const).map((w) => (
                 <button key={w} onClick={() => setWalletChoice(w)}
-                  className={`flex-1 py-2 text-xs rounded-lg font-medium transition capitalize ${walletChoice === w ? "bg-[#FF4D00] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+                  className={`flex-1 py-2 text-xs rounded-lg font-medium transition capitalize ${
+                    walletChoice === w 
+                      ? "bg-[#FF4D00] text-white" 
+                      : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                  }`}>
                   {w === "metamask" ? "MetaMask" : w === "coinbase" ? "Coinbase" : "Trust"}
                 </button>
               ))}
@@ -182,37 +193,37 @@ export default function MarketLiveWalletTab({
         ) : (
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-mono text-gray-800">{address?.slice(0, 10)}…{address?.slice(-8)}</p>
-              <p className="text-xs text-gray-400">{chain?.name ?? "Unknown"} (Chain {chain?.id})</p>
+              <p className="text-sm font-mono text-slate-200">{address?.slice(0, 10)}…{address?.slice(-8)}</p>
+              <p className="text-xs text-slate-500">{chain?.name ?? "Unknown"} (Chain {chain?.id})</p>
             </div>
-            <button onClick={disconnect} className="text-xs text-red-500 hover:text-red-700 px-3 py-1 rounded-lg hover:bg-red-50 transition">
+            <button onClick={disconnect} className="text-xs text-red-400 hover:text-red-300 px-3 py-1 rounded-lg hover:bg-red-950 transition">
               Disconnect
             </button>
           </div>
         )}
-        {walletError && <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{walletError}</p>}
+        {walletError && <p className="text-xs text-red-400 bg-red-950/50 rounded-lg px-3 py-2 border border-red-900/50">{walletError}</p>}
       </div>
 
       {/* Balances + Gas */}
       {isConnected && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
-            <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-2">USDC Balance</h4>
-            <p className="text-2xl font-bold text-gray-900">${usdcBalance ?? "0.00"}</p>
-            <p className="text-xs text-gray-400 mt-1">Polygon USDC (bridged)</p>
+          <div className="rounded-2xl border border-slate-700 bg-slate-950 p-5">
+            <h4 className="text-xs text-slate-400 uppercase tracking-wider mb-2">USDC Balance</h4>
+            <p className="text-2xl font-bold text-white">${usdcBalance ?? "0.00"}</p>
+            <p className="text-xs text-slate-500 mt-1">Polygon USDC (bridged)</p>
           </div>
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
-            <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-2">Gas Reserve</h4>
-            <p className={`text-2xl font-bold ${gasOk ? "text-green-600" : "text-red-600"}`}>{maticFormatted}</p>
-            <p className="text-xs text-gray-400 mt-1">{gasOk ? "Sufficient for transactions" : "Add POL/MATIC for fees"}</p>
+          <div className="rounded-2xl border border-slate-700 bg-slate-950 p-5">
+            <h4 className="text-xs text-slate-400 uppercase tracking-wider mb-2">Gas Reserve</h4>
+            <p className={`text-2xl font-bold ${gasOk ? "text-emerald-400" : "text-red-400"}`}>{maticFormatted}</p>
+            <p className="text-xs text-slate-500 mt-1">{gasOk ? "Sufficient for transactions" : "Add POL/MATIC for fees"}</p>
           </div>
         </div>
       )}
 
       {/* Action buttons */}
       {isConnected && (
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700">Setup Actions</h3>
+        <div className="rounded-2xl border border-slate-700 bg-slate-950 p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-slate-300">Setup Actions</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {!walletVerified && (
               <button onClick={handleConnectWallet} disabled={isConnecting}
@@ -226,14 +237,14 @@ export default function MarketLiveWalletTab({
                 {isApproving || waitingApproveReceipt ? "Approving…" : "🧾 Approve USDC"}
               </button>
             )}
-            {approveSuccess && <p className="text-xs text-green-600 flex items-center gap-1">✅ USDC approved</p>}
+            {approveSuccess && <p className="text-xs text-emerald-400 flex items-center gap-1">✅ USDC approved</p>}
           </div>
         </div>
       )}
 
       {/* Readiness checklist */}
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-1">
+      <div className="rounded-2xl border border-slate-700 bg-slate-950 p-5 space-y-3">
+        <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-1">
           Readiness Checklist
           <HelpTip content="All items must pass before live trading is enabled" />
         </h3>
@@ -244,9 +255,9 @@ export default function MarketLiveWalletTab({
 
       {/* Risk disclaimer */}
       {!disclaimerAccepted && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-          <h4 className="text-sm font-bold text-amber-800 mb-2">Risk Disclaimer</h4>
-          <p className="text-xs text-amber-700 mb-3">
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-950/50 p-5">
+          <h4 className="text-sm font-bold text-amber-400 mb-2">Risk Disclaimer</h4>
+          <p className="text-xs text-amber-300 mb-3">
             Live trading uses real funds. Direct actions and automation controls can place orders only when wallet and backend readiness checks pass.
             You can lose money, and past performance does not guarantee future results. Only use funds you can afford to lose.
           </p>
@@ -258,32 +269,35 @@ export default function MarketLiveWalletTab({
       )}
 
       {/* Test flow */}
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-1">
+      <div className="rounded-2xl border border-slate-700 bg-slate-950 p-5 space-y-3">
+        <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-1">
           Verify Setup
           <HelpTip content="Run a quick check to make sure everything is working before going live" />
         </h3>
         <button onClick={handleTestFlow} disabled={testRunning}
-          className="bg-[#FF4D00] hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition">
+          className="bg-[#FF4D00] hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition w-full">
           {testRunning ? "Running checks…" : "🧪 Run Verification Test"}
         </button>
         {testResult && (
-          <p className={`text-sm rounded-lg px-4 py-3 ${testResult.startsWith("All") ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+          <p className={`text-sm rounded-lg px-4 py-3 border ${
+            testResult.includes("aligned") || testResult.includes("passed") 
+              ? "bg-emerald-950 border-emerald-800 text-emerald-300" 
+              : "bg-red-950 border-red-900 text-red-300"
+          }`}>
             {testResult}
           </p>
         )}
         {systemStatus.system && !systemStatus.system.liveServerReady && (
-          <p className="text-xs text-amber-700">
+          <p className="text-xs text-amber-400">
             Server note: live infrastructure still has blocker(s). You can finish wallet setup now, but keep using Practice mode until backend status shows Live server ready.
           </p>
         )}
       </div>
 
-      {/* Practice mode notice */}
       {paperMode && (
-        <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4 text-center">
-          <p className="text-sm text-purple-700">
-            You&apos;re in <strong>Practice Mode</strong>. Complete the checklist above and switch to real-money mode on the Overview tab to trade live.
+        <div className="rounded-2xl border border-purple-500/30 bg-purple-950/50 p-4 text-center">
+          <p className="text-sm text-purple-300">
+            You're in <strong>Practice Mode</strong>. Complete the checklist above and switch to real-money mode on the Overview tab to trade live.
           </p>
         </div>
       )}

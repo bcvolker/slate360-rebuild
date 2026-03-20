@@ -5,16 +5,16 @@ import MarketMarketsSection from "./MarketMarketsSection";
 import MarketOperatorRail from "./MarketOperatorRail";
 import type { MarketShellContext } from "./MarketRouteShell";
 import type { UseMarketBotReturn } from "@/lib/hooks/useMarketBot";
-import type { UseMarketWalletStateReturn } from "@/lib/hooks/useMarketWalletState";
-import type { UseMarketSystemStatusReturn } from "@/lib/hooks/useMarketSystemStatus";
-import type { UseMarketServerStatusReturn } from "@/lib/hooks/useMarketServerStatus";
+import { useMarketWalletState } from "@/lib/hooks/useMarketWalletState";
+import { useMarketSystemStatus } from "@/lib/hooks/useMarketSystemStatus";
+import { useMarketServerStatus } from "@/lib/hooks/useMarketServerStatus";
 
 type MarketRobotWorkspaceProps = {
   layoutPrefs?: MarketShellContext;
   bot: UseMarketBotReturn;
-  wallet: UseMarketWalletStateReturn;
-  systemStatus: UseMarketSystemStatusReturn;
-  serverStatus: UseMarketServerStatusReturn;
+  wallet: ReturnType<typeof useMarketWalletState>;
+  systemStatus: ReturnType<typeof useMarketSystemStatus>;
+  serverStatus: ReturnType<typeof useMarketServerStatus>;
   onTradePlaced: () => void;
   onOpenAutomation: () => void;
   onNavigate: (tab: string) => void;

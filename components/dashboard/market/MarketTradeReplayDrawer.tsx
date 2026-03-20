@@ -5,7 +5,7 @@ import type { TradeReplay } from "@/components/dashboard/market/types";
 import { outcomeExplanation, outcomePlainLabel, tradeModeLabel } from "@/lib/market/market-display";
 
 function PnlValue({ value }: { value: number }) {
-  const color = value > 0 ? "text-emerald-600" : value < 0 ? "text-rose-600" : "text-slate-600";
+  const color = value > 0 ? "text-emerald-400" : value < 0 ? "text-rose-400" : "text-slate-400";
   return <span className={`font-bold ${color}`}>{value >= 0 ? "+" : ""}${value.toFixed(2)}</span>;
 }
 
@@ -15,15 +15,21 @@ export default function MarketTradeReplayDrawer({ replay, onClose }: { replay: T
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
-      <div className="absolute inset-0 bg-slate-950/35 backdrop-blur-[1px]" />
-      <div className="relative h-full w-full max-w-xl overflow-y-auto border-l border-white/50 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,248,251,0.98))] p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+      <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" />
+      <div 
+        className="relative h-full w-full max-w-xl overflow-y-auto border-l border-slate-700 bg-slate-950 p-6 shadow-2xl text-slate-200" 
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Position detail</p>
-            <h3 className="mt-2 text-xl font-black text-slate-900">{trade.marketTitle}</h3>
-            <p className="mt-2 text-sm text-slate-500">{tradeModeLabel(trade)}. You backed <span className="font-semibold text-slate-900">{outcomeLabel}</span>.</p>
+            <h3 className="mt-2 text-xl font-bold text-white">{trade.marketTitle}</h3>
+            <p className="mt-2 text-sm text-slate-400">{tradeModeLabel(trade)}. You backed <span className="font-semibold text-slate-100">{outcomeLabel}</span>.</p>
           </div>
-          <button onClick={onClose} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-500 transition hover:border-slate-300 hover:text-slate-900">
+          <button 
+            onClick={onClose} 
+            className="rounded-full border border-slate-700 bg-slate-900 px-4 py-1.5 text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
+          >
             Close
           </button>
         </div>
@@ -37,22 +43,22 @@ export default function MarketTradeReplayDrawer({ replay, onClose }: { replay: T
           <DetailStat label="Shares owned" value={trade.shares.toFixed(1)} tone="slate" />
         </div>
 
-        <div className="mt-5 rounded-3xl border border-slate-200/80 bg-white/80 p-5 shadow-sm">
+        <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Current result</p>
-              <p className="mt-1 text-sm text-slate-500">{outcomeExplanation(trade.outcome)}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Current result</p>
+              <p className="mt-2 text-sm text-slate-300">{outcomeExplanation(trade.outcome)}</p>
             </div>
             <div className="text-right">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">P/L</p>
-              <div className="mt-1 text-lg"><PnlValue value={trade.pnl ?? 0} /></div>
+              <p className="text-[11px] uppercase tracking-widest text-slate-400">P/L</p>
+              <div className="mt-1 text-xl"><PnlValue value={trade.pnl ?? 0} /></div>
             </div>
           </div>
         </div>
 
         {reasoning && (
           <Section title="Why the trade was taken">
-            <p className="text-sm leading-6 text-slate-600">{reasoning}</p>
+            <p className="text-sm leading-relaxed text-slate-300">{reasoning}</p>
           </Section>
         )}
 
@@ -60,7 +66,7 @@ export default function MarketTradeReplayDrawer({ replay, onClose }: { replay: T
           <Section title="Automation checks that matched">
             <div className="flex flex-wrap gap-2">
               {matchedConstraints.map((constraint) => (
-                <span key={constraint} className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
+                <span key={constraint} className="rounded-full border border-cyan-500/30 bg-cyan-950 px-3 py-1 text-xs font-medium text-cyan-300">
                   {constraint}
                 </span>
               ))}
@@ -70,11 +76,11 @@ export default function MarketTradeReplayDrawer({ replay, onClose }: { replay: T
 
         {exitReason && (
           <Section title="Exit reason">
-            <p className="text-sm leading-6 text-slate-600">{exitReason}</p>
+            <p className="text-sm leading-relaxed text-slate-300">{exitReason}</p>
           </Section>
         )}
 
-        <div className="mt-6 border-t border-slate-200 pt-4 text-xs text-slate-400">
+        <div className="mt-8 border-t border-slate-800 pt-4 text-xs text-slate-500">
           Opened: {new Date(trade.createdAt).toLocaleString()}
           {trade.closedAt ? ` · Closed: ${new Date(trade.closedAt).toLocaleString()}` : " · Position still open"}
         </div>
@@ -85,20 +91,25 @@ export default function MarketTradeReplayDrawer({ replay, onClose }: { replay: T
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mt-5 rounded-3xl border border-slate-200/80 bg-white/80 p-5 shadow-sm">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">{title}</p>
+    <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">{title}</p>
       <div className="mt-3">{children}</div>
     </div>
   );
 }
 
 function DetailStat({ label, value, tone }: { label: string; value: string; tone: "emerald" | "rose" | "slate" }) {
-  const toneClass = tone === "emerald" ? "text-emerald-700 bg-emerald-50 border-emerald-200" : tone === "rose" ? "text-rose-700 bg-rose-50 border-rose-200" : "text-slate-900 bg-white border-slate-200";
+  const toneClass = 
+    tone === "emerald" 
+      ? "text-emerald-300 bg-emerald-950/60 border-emerald-800" 
+      : tone === "rose" 
+        ? "text-rose-300 bg-rose-950/60 border-rose-800" 
+        : "text-slate-200 bg-slate-900 border-slate-700";
 
   return (
     <div className={`rounded-2xl border p-4 ${toneClass}`}>
-      <p className="text-[11px] uppercase tracking-[0.2em] opacity-60">{label}</p>
-      <p className="mt-2 text-base font-black">{value}</p>
+      <p className="text-[11px] uppercase tracking-widest text-slate-500">{label}</p>
+      <p className="mt-2 text-base font-bold text-white">{value}</p>
     </div>
   );
 }
