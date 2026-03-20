@@ -44,6 +44,16 @@ export default function MarketClient({
     setActiveTab(tabId);
   };
 
+  // Dummy liveChecklist for compatibility with restored components
+  const liveChecklist = {
+    isConnected: false,
+    walletVerified: false,
+    signatureComplete: false,
+    usdcApproved: false,
+    canTradeLive: false,
+    blockers: ["Wallet not connected"],
+  };
+
   // Render the correct tab content
   const renderTabContent = () => {
     switch (activeTab) {
@@ -61,13 +71,13 @@ export default function MarketClient({
           />
         );
       case "direct-buy":
-        return <MarketDirectBuyTab onNavigate={handleTabChange} />;
+        return <MarketDirectBuyTab onNavigate={handleTabChange} paperMode={paperMode} liveChecklist={liveChecklist} />;
       case "automation":
-        return <MarketAutomationTab onNavigate={handleTabChange} />;
+        return <MarketAutomationTab onNavigate={handleTabChange} paperMode={paperMode} liveChecklist={liveChecklist} onQuickStart={onQuickStart} onStopBot={onStopBot} />;
       case "results":
-        return <MarketResultsTab onNavigate={handleTabChange} />;
+        return <MarketResultsTab onNavigate={handleTabChange} paperMode={paperMode} />;
       case "live-wallet":
-        return <MarketLiveWalletTab onNavigate={handleTabChange} />;
+        return <MarketLiveWalletTab onNavigate={handleTabChange} paperMode={paperMode} liveChecklist={liveChecklist} />;
       default:
         return <div className="text-slate-200 p-6">Placeholder for {activeTab} tab (under construction)</div>;
     }
