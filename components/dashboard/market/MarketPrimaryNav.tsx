@@ -3,20 +3,28 @@
 import React from "react";
 import type { MarketTabPref } from "@/lib/market/layout-presets";
 
+// Updated for new task-based IA per IMPLEMENTATION_PLAN.md
+// Data-driven tabs make global design, aesthetics, and UI changes easy across the project
 export const MARKET_TASK_TABS = [
-  "Dashboard",
-  "Markets",
+  "Start Here",
+  "Direct Buy",
   "Automation",
+  "Saved Markets",
   "Results",
+  "Live Wallet",
 ] as const;
 
 export type MarketTaskTab = (typeof MARKET_TASK_TABS)[number];
 
 const TAB_ICONS: Record<string, string> = {
+  "start-here": "🏠",
+  "direct-buy": "💰",
+  "automation": "🤖",
+  "saved-markets": "⭐",
+  "results": "📊",
+  "live-wallet": "💼",
   "dashboard": "◉",
   "markets": "◈",
-  "automation": "⚙",
-  "results": "▦",
 };
 
 interface MarketPrimaryNavProps {
