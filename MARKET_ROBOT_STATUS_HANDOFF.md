@@ -11,6 +11,8 @@ The Market Robot tab system **routes correctly** (6 tabs, navigation works, 0 Ty
 
 **Before touching any tab UI, the data wiring in MarketClient.tsx must be fixed first.**
 
+**Decision (2026-03-20): Do a clean V2 rebuild.** The backend is confirmed production-grade — this is not a "maybe fixable" situation. The data layer is solid and the V1 tab scaffolding just needs to be reconnected to it. See "V2 Feasibility Assessment" section below.
+
 ---
 
 ## Current File Inventory
@@ -181,6 +183,52 @@ Quick search presets (weather-hour, moonshots, high-liquidity) are developer-def
 - 1000+ accumulated open paper trades not auto-resolved
 - 2-column layout only at xl (1280px+) — smaller desktops see stacked
 - MarketCustomizeDrawer and MarketTradeReplayDrawer still need dark theme
+
+---
+
+## V2 Feasibility Assessment (2026-03-20)
+
+### Verdict: YES — Clean V2 rebuild is the right move.
+
+The backend/data layer was thoroughly audited and is **production-grade, not stubs**:
+
+**Hooks (all 8 are real, working implementations):**
+- `useMarketBot` (315 lines) — loads server config from plans/directives/bot-status, runs scans, manages bot state. Returns typed `UseMarketBotReturn` with `config: BotConfig`, `runScan()`, `handleStartBot/Pause/Stop()`, `setPaperMode()`, preset setters
+- `useMarketTradeData` — fetches trades, P&L chart data, summary, scheduler health, activity logs. Full data pipeline
+- `useMarketWalletState` — wagmi integration, USDC balance/allowance reads, wallet verification, live checklist computation, connect/approve handlers
+- `useMarketDirectBuyState` (273+ lines) — search, filter, sort, buy panel, validation, market fetch via `/api/market/polymarket`
+- `useMarketWatchlist` — clean CRUD with optimistic updates via `/api/market/watchlist`
+- `useMarketAutomationState` — plans CRUD, draft management, hybrid server/localStorage persistence
+- `useMarketServerStatus` — polls bot-status + scheduler health every 30s
+- `useMarketSystemStatus` — polls system-status every 45s
+
+**API Routes (17 under `/api/market/`, all authenticated):**
+- scan, plans (CRUD), trades, summary, bot-status, polymarket (CORS proxy), scheduler/health, system-status, buy, watchlist, wallet-connect, directives, logs, activity, book, resolution, settle-trades, tab-prefs, whales
+- All use `withAuth`/`withMarketAuth`/`resolveServerOrgContext`, `force-dynamic`, `no-store`
+
+**Lib utilities (25 files in `lib/market/`):**
+- Typed contracts: `ApiEnvelope<T>`, `TradeViewModel`, `MarketSummaryViewModel`, `BotConfig`, etc.
+- Bot engine: `fetchMarkets()`, `scoreOpportunities()`, `decideTrades()`, `simulatePaperTrade()`
+- Execution: position sizing, daily loss caps, max open positions
+- Search: synonyms, esports blocklist, category derivation
+- Scheduler: guards, activity logging, per-user runs
+
+**Route setup:** `app/market/page.tsx` properly gates via `resolveServerOrgContext().canAccessMarket`, wraps in `<MarketProviders>` (wagmi context)
+
+### Why V1 failed (and V2 won't)
+
+Grok built UI top-down: scaffolding first, "wire data later." "Later" never happened across 8 phases. Each subsequent session patched UI symptoms without fixing the root: the orchestrator doesn't connect to any data. V2 works bottom-up: wire the orchestrator to hooks first (1 file change), then rebuild each tab with real data flowing through it. Each tab fix is isolated and testable.
+
+### V2 approach
+1. **Keep**: `app/market/page.tsx`, `MarketPrimaryNav.tsx`, `MarketRouteShell.tsx`, all hooks, all API routes, all `lib/market/` utilities
+2. **Rewrite**: `MarketClient.tsx` (~99→~120 lines) to import 5 core hooks and pass real data
+3. **Rebuild tabs one at a time**: Start with Direct Buy (closest to working), then Start Here, then others
+4. **Delete**: Old orphaned `components/dashboard/MarketClient.tsx`, `MarketRobotWorkspace.tsx` (unused), `.bak` file
+
+### Dependencies to verify before starting
+- `useMarketBot` requires `trades` and `fetchTrades/fetchSummary/fetchSchedulerHealth/fetchMarketLogs` from `useMarketTradeData` as deps — call trade data hook first, pass results to bot hook
+- `useMarketDirectBuyState` requires `{ paperMode, walletAddress, liveChecklist, onTradePlaced }` — all from bot + wallet hooks
+- `NEXT_PUBLIC_POLYMARKET_SPENDER` env var must be set (present in Vercel, missing locally)
 
 ---
 

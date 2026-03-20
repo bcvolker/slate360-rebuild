@@ -110,19 +110,25 @@ Route and gate:
 - Route: `/market`
 - Gate: `resolveServerOrgContext().canAccessMarket`
 
-Current reality:
-- Paper-mode flow is partly working
-- Live mode still needs real Polymarket credentials and spender config
-- Background automation still depends on Vercel cron and scheduler health
-- Runtime state is improved but not fully unified yet
+Current reality (2026-03-20):
+- Tab routing works (6 tabs), 0 TS errors, deploys cleanly
+- **Data wiring is completely disconnected** — orchestrator passes dummy data to all tabs
+- Backend is production-grade: 8 real hooks, 17 API routes, 25 lib utilities, typed contracts
+- V2 rebuild approved — wire orchestrator to hooks first, then rebuild tabs one at a time
+- See `MARKET_ROBOT_STATUS_HANDOFF.md` for full critique, V2 plan, and prompt templates
 
 Most important Market files:
-- `app/market/page.tsx`
-- `components/dashboard/MarketClient.tsx`
-- `components/dashboard/market/`
-- `lib/hooks/useMarket*`
-- `lib/market/`
-- `app/api/market/`
+- `app/market/page.tsx` — route entry (server component, auth gate)
+- `components/dashboard/market/MarketClient.tsx` — orchestrator (needs rewiring)
+- `components/dashboard/market/` — all tab components
+- `lib/hooks/useMarket*` — 8 working hooks (the entire data layer)
+- `lib/market/` — 25 utility files (contracts, mappers, bot engine, scheduler)
+- `app/api/market/` — 17 API routes
+
+Files to delete:
+- `components/dashboard/MarketClient.tsx` (old, orphaned, 75 lines)
+- `components/dashboard/market/MarketRobotWorkspace.tsx` (unused, 84 lines)
+- `MARKET_ROBOT_STATUS_HANDOFF.md.bak` (backup of old handoff)
 
 ## Archive And Token Policy
 
@@ -149,43 +155,47 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-21 (Market Robot UX Audit + Fixes)
+### Session Handoff — 2026-03-20 (Market Robot UX Audit + V2 Decision)
 
-#### What Changed
-- `app/market/page.tsx`: Fixed import path — now imports `MarketClient` from `@/components/dashboard/market/MarketClient` (was incorrectly importing from `@/components/dashboard/MarketClient`, the old gutted orchestrator)
-- `components/dashboard/market/MarketAutomationTab.tsx`: Fixed 6 TS errors — removed missing `LiveChecklist` import, removed `useMarketBot()` call, fixed `MarketSystemStatusCard` and `MarketPlanInsights` prop interfaces
-- `components/dashboard/market/MarketResultsTab.tsx`: Fixed `MarketResultsInsights` — now receives proper `analytics` object instead of bare `trades` array
-- `components/dashboard/market/MarketLiveWalletTab.tsx`: Fixed `MarketSystemStatusCard` props (removed mode/paperMode/liveChecklist/serverStatus, added system/loading/error/title)
-- `components/dashboard/market/MarketClient.tsx`: Fixed liveChecklist type to match actual component expectations
-- `~/.continue/config.yaml`: Fixed Grok model name `grok-beta` → `grok-3` (old model deprecated). Provider stays `openai` with apiBase `https://api.x.ai/v1`.
-- `MARKET_ROBOT_STATUS_HANDOFF.md`: Complete rewrite — replaced stale Grok phase tracking with comprehensive UX critique, file inventory with grades, problem list ordered by priority, hook reference table, fix execution order, and copy-paste prompt templates for each fix
+#### What Changed (across 2 sub-sessions)
+- `app/market/page.tsx`: Fixed import — now imports from `@/components/dashboard/market/MarketClient` (was importing old gutted `@/components/dashboard/MarketClient`)
+- `components/dashboard/market/MarketAutomationTab.tsx`: Fixed 6 TS errors (removed missing LiveChecklist import, removed useMarketBot() call, fixed MarketSystemStatusCard and MarketPlanInsights props)
+- `components/dashboard/market/MarketResultsTab.tsx`: Fixed MarketResultsInsights to receive proper analytics object
+- `components/dashboard/market/MarketLiveWalletTab.tsx`: Fixed MarketSystemStatusCard props
+- `components/dashboard/market/MarketClient.tsx`: Fixed liveChecklist type
+- `~/.continue/config.yaml`: Fixed Grok model `grok-beta` → `grok-3` (deprecated). Provider: `openai`, apiBase: `https://api.x.ai/v1`
+- `MARKET_ROBOT_STATUS_HANDOFF.md`: Complete rewrite with UX critique, file grades, problem list, hook table, fix plan, prompt templates, AND V2 feasibility assessment
+
+#### Key Decision: Clean V2 Rebuild Approved
+The entire backend/hook/API layer was audited and confirmed **production-grade** (8 working hooks, 17 API routes, 25 lib utilities, typed contracts). The problem is exclusively that Grok's UI scaffolding never connected to any of it. A V2 rebuild is straightforward — wire the orchestrator to hooks, then rebuild tabs one at a time. See `MARKET_ROBOT_STATUS_HANDOFF.md` "V2 Feasibility Assessment" section for full details.
 
 #### What's Broken / Partially Done
-- **MarketClient.tsx data wiring** — all hooks disconnected, all callbacks are console.log stubs. This is the #1 blocker.
+- **MarketClient.tsx data wiring** — all hooks disconnected, all callbacks are console.log stubs. #1 blocker.
 - **4 of 6 tabs are placeholder UI** — Results (F), Live Wallet (F), Saved Markets (F), Automation (D-)
 - **No Practice/Live toggle** anywhere in the UI
-- **Developer jargon** throughout user-facing text (edge, scan, runtime status)
 - **Dead buttons**: Connect Wallet (LiveWallet), Save Plan (Automation)
-- **Automation form inputs** have no onChange/useState — typing does nothing
-- `components/dashboard/MarketClient.tsx` (old, 75 lines) — orphaned, should be deleted
-- Full UX critique and fix plan documented in `MARKET_ROBOT_STATUS_HANDOFF.md`
+- **Developer jargon** in user-facing text (edge, scan, runtime status)
+- `components/dashboard/MarketClient.tsx` (old, 75 lines) — orphaned, delete it
+- `MARKET_ROBOT_STATUS_HANDOFF.md.bak` — can be deleted after confirming new file
 
 #### Context Files Updated
-- `MARKET_ROBOT_STATUS_HANDOFF.md`: Full rewrite with UX critique, grades, fix plan, prompt templates
-- `SLATE360_PROJECT_MEMORY.md`: Session handoff (this section)
+- `MARKET_ROBOT_STATUS_HANDOFF.md`: Full rewrite + V2 feasibility assessment + hook dependency map
+- `SLATE360_PROJECT_MEMORY.md`: This handoff
 
-#### Next Steps (ordered)
-1. Read `MARKET_ROBOT_STATUS_HANDOFF.md` — it has the complete critique and 8 copy-paste prompt templates
-2. **Fix 1: Wire MarketClient.tsx** — import useMarketBot, useMarketTradeData, useMarketWalletState, useMarketServerStatus, useMarketSystemStatus. Replace console.log stubs with real hook methods. This unblocks all tabs.
-3. **Fix 2: Kill placeholder text** — replace all "(Placeholder)" / "after implementation" divs with empty states + CTAs
-4. **Fix 3-8: Tab-by-tab rebuilds** — Start Here, Direct Buy, Automation, Results, Live Wallet, Saved Markets (see prompt templates in MARKET_ROBOT_STATUS_HANDOFF.md)
-5. Delete orphaned `components/dashboard/MarketClient.tsx` (old 75-line file)
-6. Delete `MARKET_ROBOT_STATUS_HANDOFF.md.bak` after confirming new file is correct
+#### Next Steps (ordered) — READ MARKET_ROBOT_STATUS_HANDOFF.md FIRST
+1. Read `MARKET_ROBOT_STATUS_HANDOFF.md` — has the complete critique, V2 plan, hook dependency map, and 8 copy-paste prompt templates
+2. **Step 1: Wire MarketClient.tsx** — import useMarketTradeData first (bot hook depends on its outputs), then useMarketBot, useMarketWalletState, useMarketServerStatus, useMarketSystemStatus. Replace all console.log stubs. This single change unblocks every tab.
+3. **Step 2: Kill placeholder text** — replace all "(Placeholder)" / "after implementation" with empty states + CTAs
+4. **Steps 3-8: Tab rebuilds** — one at a time, each as a single commit. Direct Buy first (closest to working), then Start Here, Automation, Results, Live Wallet, Saved Markets. Copy-paste prompt templates are in the handoff doc.
+5. **Cleanup**: Delete orphaned `components/dashboard/MarketClient.tsx` (old 75-line file), `MarketRobotWorkspace.tsx` (unused), `.bak` file
 
-#### Next Steps (ordered)
-1. Run Batch 4.6B: CSS-only dark theme conversion of the 3 remaining files (MarketLiveWalletTab, MarketCustomizeDrawer, MarketTradeReplayDrawer)
-2. Verify the 2-column layout in browser at xl breakpoint
-3. Verify esports titles don't appear in Weather/Science filtered views
-4. Verify "Open Results → View Positions" button works after successful paper buy
-5. Then proceed to Batch 5 backend truth patch if still needed
-4. Consider adding a bulk-resolve / auto-close path for accumulated old paper trades
+#### Hook Dependency Order (critical for wiring)
+```
+useMarketTradeData → provides { trades, fetchTrades, fetchSummary, fetchSchedulerHealth, fetchMarketLogs }
+  ↓ (pass as deps)
+useMarketBot(deps) → provides { config, runScan, handleStartBot, setPaperMode, ... }
+  ↓ (read config.paperMode, wallet.liveChecklist)
+useMarketWalletState → provides { address, isConnected, usdcBalance, liveChecklist, handleConnectWallet }
+useMarketServerStatus → provides { status, health, isConfirmed }
+useMarketSystemStatus → provides { system, loading, error }
+```
