@@ -3,12 +3,17 @@
 import React, { useState, useEffect } from "react";
 import MarketPrimaryNav from "@/components/dashboard/market/MarketPrimaryNav";
 import MarketStartHereTab from "@/components/dashboard/market/MarketStartHereTab";
+import MarketDirectBuyTab from "@/components/dashboard/market/MarketDirectBuyTab";
+import MarketAutomationTab from "@/components/dashboard/market/MarketAutomationTab";
+import MarketResultsTab from "@/components/dashboard/market/MarketResultsTab";
+import MarketLiveWalletTab from "@/components/dashboard/market/MarketLiveWalletTab";
+import MarketSavedTab from "@/components/dashboard/market/MarketSavedTab";
 import { useMarketLayoutPrefs } from "@/lib/hooks/useMarketLayoutPrefs";
 
 /**
  * MarketClient - Thin orchestrator for Market Robot.
  * Wires hooks, manages active tab state, passes layout prefs.
- * Updated in Phase 4 to use new task-based IA and remove monolith content.
+ * Updated in Phase 4+5+6+7+8 to use new task-based IA and remove monolith content.
  * Uses shared design tokens for easy global aesthetic unification.
  */
 
@@ -40,6 +45,20 @@ export default function MarketClient({
     setActiveTab(tabId);
   };
 
+  // Dummy liveChecklist for compatibility with restored components
+  const liveChecklist = {
+    isConnected: false,
+    walletConnected: false,
+    walletVerified: false,
+    signatureComplete: false,
+    signatureVerified: false,
+    usdcApproved: false,
+    usdcFunded: false,
+    polygonSelected: false,
+    canTradeLive: false,
+    blockers: ["Wallet not connected"],
+  };
+
   // Render the correct tab content
   const renderTabContent = () => {
     switch (activeTab) {
@@ -47,6 +66,7 @@ export default function MarketClient({
         return (
           <MarketStartHereTab
             onNavigate={handleTabChange}
+            onApplyRecommendation={() => console.log("Apply recommendation triggered")}
             onQuickStart={onQuickStart}
             onStopBot={onStopBot}
             paperMode={paperMode}
@@ -55,6 +75,27 @@ export default function MarketClient({
             serverHealth={serverStatus.health}
           />
         );
+      case "direct-buy":
+        return <MarketDirectBuyTab onNavigate={handleTabChange} paperMode={paperMode} liveChecklist={liveChecklist} />;
+      case "automation":
+        return (
+          <MarketAutomationTab 
+            onNavigate={handleTabChange} 
+            paperMode={paperMode} 
+            liveChecklist={liveChecklist} 
+            onQuickStart={onQuickStart} 
+            onStopBot={onStopBot} 
+            activePlan={null} 
+            onApplyPlan={() => console.log("Apply plan triggered")} 
+            onDeletePlan={() => console.log("Delete plan triggered")} 
+          />
+        );
+      case "saved-markets":
+        return <MarketSavedTab onNavigate={handleTabChange} />;
+      case "results":
+        return <MarketResultsTab onNavigate={handleTabChange} paperMode={paperMode} trades={[]} system={null} serverHealth={null} onOpenPositions={() => console.log("Open positions triggered")} onOpenAutomation={() => handleTabChange("automation")} />;
+      case "live-wallet":
+        return <MarketLiveWalletTab onNavigate={handleTabChange} paperMode={paperMode} liveChecklist={liveChecklist} walletSnapshot={{ address: "", isConnected: false, usdcBalance: "0.00", maticFormatted: "--", walletVerified: false }} system={null} onOpenAutomation={() => handleTabChange("automation")} />;
       default:
         return <div className="text-slate-200 p-6">Placeholder for {activeTab} tab (under construction)</div>;
     }
