@@ -7,12 +7,13 @@ import MarketDirectBuyTab from "@/components/dashboard/market/MarketDirectBuyTab
 import MarketAutomationTab from "@/components/dashboard/market/MarketAutomationTab";
 import MarketResultsTab from "@/components/dashboard/market/MarketResultsTab";
 import MarketLiveWalletTab from "@/components/dashboard/market/MarketLiveWalletTab";
+import MarketSavedTab from "@/components/dashboard/market/MarketSavedTab";
 import { useMarketLayoutPrefs } from "@/lib/hooks/useMarketLayoutPrefs";
 
 /**
  * MarketClient - Thin orchestrator for Market Robot.
  * Wires hooks, manages active tab state, passes layout prefs.
- * Updated in Phase 4+5+6+7 to use new task-based IA and remove monolith content.
+ * Updated in Phase 4+5+6+7+8 to use new task-based IA and remove monolith content.
  * Uses shared design tokens for easy global aesthetic unification.
  */
 
@@ -89,6 +90,8 @@ export default function MarketClient({
             onDeletePlan={() => console.log("Delete plan triggered")} 
           />
         );
+      case "saved-markets":
+        return <MarketSavedTab onNavigate={handleTabChange} />;
       case "results":
         return <MarketResultsTab onNavigate={handleTabChange} paperMode={paperMode} trades={[]} system={null} serverHealth={null} onOpenPositions={() => console.log("Open positions triggered")} onOpenAutomation={() => handleTabChange("automation")} />;
       case "live-wallet":
