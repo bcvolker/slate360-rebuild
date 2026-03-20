@@ -10,6 +10,7 @@ import React from "react";
 
 export default function MarketStartHereTab({
   onNavigate,
+  onApplyRecommendation,
   onQuickStart,
   onStopBot,
   paperMode,
@@ -18,6 +19,7 @@ export default function MarketStartHereTab({
   serverHealth,
 }: {
   onNavigate: (tabId: string) => void;
+  onApplyRecommendation?: (plan: any) => void;
   onQuickStart?: () => void;
   onStopBot?: () => void;
   paperMode: boolean;
