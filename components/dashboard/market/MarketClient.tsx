@@ -47,9 +47,13 @@ export default function MarketClient({
   // Dummy liveChecklist for compatibility with restored components
   const liveChecklist = {
     isConnected: false,
+    walletConnected: false,
     walletVerified: false,
     signatureComplete: false,
+    signatureVerified: false,
     usdcApproved: false,
+    usdcFunded: false,
+    polygonSelected: false,
     canTradeLive: false,
     blockers: ["Wallet not connected"],
   };
@@ -73,11 +77,22 @@ export default function MarketClient({
       case "direct-buy":
         return <MarketDirectBuyTab onNavigate={handleTabChange} paperMode={paperMode} liveChecklist={liveChecklist} />;
       case "automation":
-        return <MarketAutomationTab onNavigate={handleTabChange} paperMode={paperMode} liveChecklist={liveChecklist} onQuickStart={onQuickStart} onStopBot={onStopBot} />;
+        return (
+          <MarketAutomationTab 
+            onNavigate={handleTabChange} 
+            paperMode={paperMode} 
+            liveChecklist={liveChecklist} 
+            onQuickStart={onQuickStart} 
+            onStopBot={onStopBot} 
+            activePlan={null} 
+            onApplyPlan={() => console.log("Apply plan triggered")} 
+            onDeletePlan={() => console.log("Delete plan triggered")} 
+          />
+        );
       case "results":
-        return <MarketResultsTab onNavigate={handleTabChange} paperMode={paperMode} />;
+        return <MarketResultsTab onNavigate={handleTabChange} paperMode={paperMode} trades={[]} system={null} serverHealth={null} onOpenPositions={() => console.log("Open positions triggered")} onOpenAutomation={() => handleTabChange("automation")} />;
       case "live-wallet":
-        return <MarketLiveWalletTab onNavigate={handleTabChange} paperMode={paperMode} liveChecklist={liveChecklist} />;
+        return <MarketLiveWalletTab onNavigate={handleTabChange} paperMode={paperMode} liveChecklist={liveChecklist} walletSnapshot={{ address: "", isConnected: false, usdcBalance: "0.00", maticFormatted: "--", walletVerified: false }} system={null} onOpenAutomation={() => handleTabChange("automation")} />;
       default:
         return <div className="text-slate-200 p-6">Placeholder for {activeTab} tab (under construction)</div>;
     }
