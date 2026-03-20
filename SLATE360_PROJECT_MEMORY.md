@@ -149,54 +149,38 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-19 (Dev Environment / Continue.dev)
+### Session Handoff — 2026-03-21 (Market Robot UX Audit + Fixes)
 
 #### What Changed
-- **Dev environment only — no Slate360 code touched.**
-- `~/.continue/config.yaml`: Added Grok 4.2 model entry for Continue.dev.
-  - provider: `openai` (OpenAI-compatible), model: `grok-beta`, apiBase: `https://api.x.ai/v1`
-  - API key reads from `$XAI_API_KEY` env var (not hardcoded). Backup at `~/.continue/config.yaml.bak`.
-  - **On next login**: Set `XAI_API_KEY` as a Codespace secret, then select "Grok 4.2" from the Continue chat model dropdown (bottom of Continue panel).
+- `app/market/page.tsx`: Fixed import path — now imports `MarketClient` from `@/components/dashboard/market/MarketClient` (was incorrectly importing from `@/components/dashboard/MarketClient`, the old gutted orchestrator)
+- `components/dashboard/market/MarketAutomationTab.tsx`: Fixed 6 TS errors — removed missing `LiveChecklist` import, removed `useMarketBot()` call, fixed `MarketSystemStatusCard` and `MarketPlanInsights` prop interfaces
+- `components/dashboard/market/MarketResultsTab.tsx`: Fixed `MarketResultsInsights` — now receives proper `analytics` object instead of bare `trades` array
+- `components/dashboard/market/MarketLiveWalletTab.tsx`: Fixed `MarketSystemStatusCard` props (removed mode/paperMode/liveChecklist/serverStatus, added system/loading/error/title)
+- `components/dashboard/market/MarketClient.tsx`: Fixed liveChecklist type to match actual component expectations
+- `~/.continue/config.yaml`: Fixed Grok model name `grok-beta` → `grok-3` (old model deprecated). Provider stays `openai` with apiBase `https://api.x.ai/v1`.
+- `MARKET_ROBOT_STATUS_HANDOFF.md`: Complete rewrite — replaced stale Grok phase tracking with comprehensive UX critique, file inventory with grades, problem list ordered by priority, hook reference table, fix execution order, and copy-paste prompt templates for each fix
 
 #### What's Broken / Partially Done
-- Continue.dev reload was cancelled this session — if Grok 4.2 doesn't appear in the dropdown on next login, run Command Palette → "Developer: Reload Window".
-- `~/.continue/config.yaml` lives in Codespace user home and does NOT auto-persist to a brand-new machine. If spinning up a fresh Codespace, re-add the Grok 4.2 entry or copy from this handoff.
+- **MarketClient.tsx data wiring** — all hooks disconnected, all callbacks are console.log stubs. This is the #1 blocker.
+- **4 of 6 tabs are placeholder UI** — Results (F), Live Wallet (F), Saved Markets (F), Automation (D-)
+- **No Practice/Live toggle** anywhere in the UI
+- **Developer jargon** throughout user-facing text (edge, scan, runtime status)
+- **Dead buttons**: Connect Wallet (LiveWallet), Save Plan (Automation)
+- **Automation form inputs** have no onChange/useState — typing does nothing
+- `components/dashboard/MarketClient.tsx` (old, 75 lines) — orphaned, should be deleted
+- Full UX critique and fix plan documented in `MARKET_ROBOT_STATUS_HANDOFF.md`
 
 #### Context Files Updated
-- `SLATE360_PROJECT_MEMORY.md`: Session handoff
+- `MARKET_ROBOT_STATUS_HANDOFF.md`: Full rewrite with UX critique, grades, fix plan, prompt templates
+- `SLATE360_PROJECT_MEMORY.md`: Session handoff (this section)
 
 #### Next Steps (ordered)
-1. On next login: open Continue panel → click model selector at bottom → confirm "Grok 4.2" appears.
-2. If missing: Command Palette → "Developer: Reload Window".
-3. Resume Slate360 work from Batch 4.6D (see previous handoff below).
-4. Next Slate360 batch: Batch 4.6B — dark theme for MarketLiveWalletTab, MarketCustomizeDrawer, MarketTradeReplayDrawer.
-
----
-
-### Previous Session Handoff — 2026-03-18 (Batch 4.6D)
-
-#### What Changed
-- `components/dashboard/market/MarketDirectBuyTab.tsx`: Restructured into 2-column `grid grid-cols-12` workspace layout — search/filters/results on left (col-span-8), sticky buy panel + saved markets on right (col-span-4). Mobile remains stacked. (248→286 lines)
-- `components/dashboard/market/MarketBuyPanel.tsx`: Added `inline` prop for sidebar rendering, `onOpenResults` callback. Prominent post-buy success state with explicit paper/live messaging and "Open Results → View Positions" action button. (225→238 lines)
-- `components/dashboard/market/MarketMarketsSection.tsx`: Simplified to pass-through wrapper forwarding `onNavigate` prop. Removed separate saved-markets layout. (22→13 lines)
-- `lib/market/search-synonyms.ts`: Added `ESPORTS_BLOCKLIST_RE` regex and `isEsportsTitle()` export for gaming title detection. (47→55 lines)
-- `lib/market/direct-buy-table.ts`: Added esports exclusion filter for Weather/Science category views. (120→122 lines)
-- `lib/market/mappers.ts`: Added esports guard in `deriveCategory()` — gaming titles now categorized as "Esports" instead of being miscategorized. (250→254 lines)
-
-#### What's Broken / Partially Done
-- 3 Market component files still need dark theme: MarketLiveWalletTab.tsx, MarketCustomizeDrawer.tsx, MarketTradeReplayDrawer.tsx (deferred to 4.6B)
-- Market live automation path remains incomplete (scan execution is paper-only)
-- Direct-buy UX can still overstate live success when backend falls back to paper
-- Summary metric source remains partially legacy
-- Accumulated open paper trades (1000+) are not auto-resolved
-- The 2-column layout only kicks in at `xl` breakpoint (1280px+); smaller desktops see full-width stacked
-
-#### Context Files Updated
-- `docs/market-robot/MARKET_ROBOT_BUILD_FILE.md`: Batch 4.6D section added with full change log
-- `docs/market-robot/MARKET_ROBOT_CHAT_RESUME_PROTOCOL.md`: Current batch and latest rescue state updated to 4.6D
-- `docs/market-robot/MARKET_ROBOT_PROMPT_BACKLOG.md`: Batch 4.6D entry added
-- `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`: 4.6D entry added
-- `SLATE360_PROJECT_MEMORY.md`: Session handoff
+1. Read `MARKET_ROBOT_STATUS_HANDOFF.md` — it has the complete critique and 8 copy-paste prompt templates
+2. **Fix 1: Wire MarketClient.tsx** — import useMarketBot, useMarketTradeData, useMarketWalletState, useMarketServerStatus, useMarketSystemStatus. Replace console.log stubs with real hook methods. This unblocks all tabs.
+3. **Fix 2: Kill placeholder text** — replace all "(Placeholder)" / "after implementation" divs with empty states + CTAs
+4. **Fix 3-8: Tab-by-tab rebuilds** — Start Here, Direct Buy, Automation, Results, Live Wallet, Saved Markets (see prompt templates in MARKET_ROBOT_STATUS_HANDOFF.md)
+5. Delete orphaned `components/dashboard/MarketClient.tsx` (old 75-line file)
+6. Delete `MARKET_ROBOT_STATUS_HANDOFF.md.bak` after confirming new file is correct
 
 #### Next Steps (ordered)
 1. Run Batch 4.6B: CSS-only dark theme conversion of the 3 remaining files (MarketLiveWalletTab, MarketCustomizeDrawer, MarketTradeReplayDrawer)
