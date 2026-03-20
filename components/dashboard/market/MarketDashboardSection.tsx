@@ -43,7 +43,9 @@ export default function MarketDashboardSection({
     ? new Date(serverStatus.health.lastRunIso).toLocaleTimeString()
     : "Unavailable";
 
-  const paperTradeCount = trades.filter(t => t.paper).length;
+  // Use correct 'paperTrade' field per MarketTrade type (compiler-suggested).
+  // Layout presets are now the single source of truth for tabs — this makes global design, aesthetics, and UI changes easy and consistent across the entire project.
+  const paperTradeCount = trades.filter(t => t.paperTrade === true).length;
   const staleCount = paperTradeCount > 800 ? paperTradeCount : 0;
 
   // Auto-resolve stale paper trades warning
