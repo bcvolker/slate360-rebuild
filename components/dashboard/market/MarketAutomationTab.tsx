@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import MarketSystemStatusCard from "@/components/dashboard/market/MarketSystemStatusCard";
 import MarketPlanInsights from "@/components/dashboard/market/MarketPlanInsights";
-import { useMarketBot } from "@/lib/hooks/useMarketBot";
 import { useMarketAutomationState } from "@/lib/hooks/useMarketAutomationState";
-import type { LiveChecklist } from "@/lib/market/contracts";
+import { useMarketSystemStatus } from "@/lib/hooks/useMarketSystemStatus";
 
 /**
  * MarketAutomationTab - Build, save, edit, and run automation plans.
@@ -16,7 +15,6 @@ import type { LiveChecklist } from "@/lib/market/contracts";
 export default function MarketAutomationTab({
   onNavigate,
   paperMode,
-  liveChecklist,
   onQuickStart,
   onStopBot,
   activePlan,
@@ -25,30 +23,21 @@ export default function MarketAutomationTab({
 }: {
   onNavigate: (tabId: string) => void;
   paperMode: boolean;
-  liveChecklist: LiveChecklist;
   onQuickStart?: () => void;
   onStopBot?: () => void;
-  activePlan: any;
-  onApplyPlan: (plan: any) => void;
-  onDeletePlan: (planId: string) => void;
+  activePlan?: unknown;
+  onApplyPlan?: (plan: unknown) => void;
+  onDeletePlan?: (planId: string) => void;
 }) {
-  const bot = useMarketBot();
   const automation = useMarketAutomationState();
+  const systemStatus = useMarketSystemStatus();
   const [showAdvanced, setShowAdvanced] = useState(false);
-
-  // Sync local state with bot runtime on mount or mode change
-  useEffect(() => {
-    if (!bot.isLoading && !bot.error && bot.config.paperMode !== paperMode) {
-      bot.setPaperMode(paperMode);
-    }
-  }, [bot, paperMode]);
+  const [botRunning, setBotRunning] = useState(false);
 
   const handleToggleAdvanced = () => setShowAdvanced(!showAdvanced);
 
-  const canRunLive = liveChecklist.canTradeLive;
-  const automationReady = bot.isReady && !bot.isRunning;
   const hasActivePlan = activePlan !== null || automation.plans.length > 0;
-  const canStartAutomation = automationReady && hasActivePlan && (paperMode || canRunLive);
+  const canStartAutomation = hasActivePlan && !botRunning;
 
   return (
     <section className="rounded-[32px] border border-slate-700 bg-slate-950/70 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.45)] mb-6">
@@ -59,14 +48,9 @@ export default function MarketAutomationTab({
 
       <MarketSystemStatusCard
         title="Automation Readiness"
-        mode="automation"
-        paperMode={paperMode}
-        liveChecklist={liveChecklist}
-        system={null}
-        serverStatus="unknown"
-        extraBlockers={hasActivePlan ? [] : ["No saved plan"]}
-        extraWarnings={[]}
-        onGoLive={() => onNavigate("live-wallet")}
+        system={systemStatus.system}
+        loading={systemStatus.loading}
+        error={systemStatus.error}
       />
 
       <div className="rounded-2xl border border-slate-700 bg-slate-900/50 p-5 mb-6 mt-6">
@@ -104,16 +88,16 @@ export default function MarketAutomationTab({
           </button>
           {canStartAutomation && onQuickStart && (
             <button
-              onClick={onQuickStart}
-              disabled={bot.isRunning || !bot.isReady}
+              onClick={() => { onQuickStart(); setBotRunning(true); }}
+              disabled={botRunning}
               className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition shadow-[0_4px_12px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {paperMode ? "Run One Paper Scan" : "Run Live Scan"}
             </button>
           )}
-          {bot.isRunning && onStopBot && (
+          {botRunning && onStopBot && (
             <button
-              onClick={onStopBot}
+              onClick={() => { onStopBot(); setBotRunning(false); }}
               className="px-6 py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold rounded-lg transition shadow-[0_4px_12px_rgba(239,68,68,0.3)]"
             >
               Stop Automation
@@ -151,13 +135,9 @@ export default function MarketAutomationTab({
         )}
       </div>
 
-      <MarketPlanInsights
-        plans={automation.plans}
-        activePlan={activePlan}
-        onApply={onApplyPlan}
-        onDelete={onDeletePlan}
-        onCreate={() => console.log("Create new plan triggered")}
-      />
+      {automation.draft && (
+        <MarketPlanInsights draft={automation.draft} />
+      )}
     </section>
   );
 }

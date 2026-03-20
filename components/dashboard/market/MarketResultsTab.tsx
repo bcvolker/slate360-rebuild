@@ -56,7 +56,13 @@ export default function MarketResultsTab({
         <p className="text-slate-400 text-sm">Automation activity logs will appear here after implementation.</p>
       </div>
 
-      <MarketResultsInsights trades={trades} />
+      <MarketResultsInsights analytics={{
+        realizedPnl: 0, unrealizedPnl: 0, feeAdjustedPnl: 0, totalPnl: 0,
+        expectancy: 0, profitFactor: 0, winRate: 0, avgHoldTimeMs: 0,
+        totalTrades: trades.length, openTrades: trades.filter((t: { status: string }) => t.status === "open").length,
+        closedTrades: trades.filter((t: { status: string }) => t.status === "closed").length,
+        pnlByCategory: [], paperVsLive: [],
+      }} />
     </section>
   );
 }

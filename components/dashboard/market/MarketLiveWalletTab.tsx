@@ -32,14 +32,9 @@ export default function MarketLiveWalletTab({
 
       <MarketSystemStatusCard
         title="Live Trading Readiness"
-        mode="live"
-        paperMode={paperMode}
-        liveChecklist={liveChecklist}
         system={system}
-        serverStatus="unknown"
-        extraBlockers={[]}
-        extraWarnings={[]}
-        onGoLive={() => console.log("Go live triggered")}
+        loading={false}
+        error={null}
       />
 
       <div className="rounded-2xl border border-slate-700 bg-slate-900/50 p-5 mb-6 mt-6">

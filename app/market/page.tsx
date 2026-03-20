@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
-import MarketClient from "@/components/dashboard/MarketClient";
+import MarketClient from "@/components/dashboard/market/MarketClient";
 import MarketRouteShell from "@/components/dashboard/market/MarketRouteShell";
 import MarketProviders from "./MarketProviders";
 

@@ -82,7 +82,6 @@ export default function MarketClient({
           <MarketAutomationTab 
             onNavigate={handleTabChange} 
             paperMode={paperMode} 
-            liveChecklist={liveChecklist} 
             onQuickStart={onQuickStart} 
             onStopBot={onStopBot} 
             activePlan={null} 
