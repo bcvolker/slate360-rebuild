@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import DashboardHeader from \"@/components/shared/DashboardHeader\";
-import MarketCustomizeDrawer from \"@/components/dashboard/market/MarketCustomizeDrawer\";
-import { useMarketLayoutPrefs } from \"@/lib/hooks/useMarketLayoutPrefs\";
-import type { Tier } from \"@/lib/entitlements\";
+import DashboardHeader from "@/components/shared/DashboardHeader";
+import MarketCustomizeDrawer from "@/components/dashboard/market/MarketCustomizeDrawer";
+import { useMarketLayoutPrefs } from "@/lib/hooks/useMarketLayoutPrefs";
+import type { Tier } from "@/lib/entitlements";
 
 type MarketRouteShellProps = {
   user: { name: string; email: string; avatar?: string };
@@ -16,7 +16,13 @@ type MarketRouteShellProps = {
 
 export type MarketShellContext = ReturnType<typeof useMarketLayoutPrefs>;
 
-export default function MarketRouteShell({ user, tier, isCeo, internalAccess, children }: MarketRouteShellProps) {
+export default function MarketRouteShell({ 
+  user, 
+  tier, 
+  isCeo, 
+  internalAccess, 
+  children 
+}: MarketRouteShellProps) {
   const layoutPrefs = useMarketLayoutPrefs();
   const [customizeOpen, setCustomizeOpen] = useState(false);
 
@@ -24,15 +30,15 @@ export default function MarketRouteShell({ user, tier, isCeo, internalAccess, ch
   const closeCustomize = useCallback(() => setCustomizeOpen(false), []);
 
   return (
-    <div className=\"min-h-screen bg-slate-950 text-slate-200 overflow-hidden\">
-      <div className=\"relative\">
+    <div className="min-h-screen bg-slate-950 text-slate-200 overflow-hidden">
+      <div className="relative">
         <DashboardHeader
           user={user}
           tier={tier}
           isCeo={isCeo}
           internalAccess={internalAccess}
           showBackLink
-          searchPlaceholder=\"Search markets, events, or automation...\"
+          searchPlaceholder="Search markets, events, or automation..."
           onCustomizeOpen={openCustomize}
           prefsDirty={layoutPrefs.isDirty}
         />
@@ -48,7 +54,7 @@ export default function MarketRouteShell({ user, tier, isCeo, internalAccess, ch
         />
       </div>
 
-      <main className=\"mx-auto max-w-[1480px] px-6 py-8 overflow-auto\" style={{ height: \"calc(100vh - 73px)\" }}>
+      <main className="mx-auto max-w-[1480px] px-6 py-8 overflow-auto" style={{ height: "calc(100vh - 73px)" }}>
         {React.Children.map(children, (child) => {
           if (React.isValidElement(child)) {
             return React.cloneElement(child as React.ReactElement<{ layoutPrefs?: MarketShellContext }>, {
