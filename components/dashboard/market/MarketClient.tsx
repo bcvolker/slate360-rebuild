@@ -4,12 +4,13 @@ import React, { useState, useEffect } from "react";
 import MarketPrimaryNav from "@/components/dashboard/market/MarketPrimaryNav";
 import MarketStartHereTab from "@/components/dashboard/market/MarketStartHereTab";
 import MarketDirectBuyTab from "@/components/dashboard/market/MarketDirectBuyTab";
+import MarketAutomationTab from "@/components/dashboard/market/MarketAutomationTab";
 import { useMarketLayoutPrefs } from "@/lib/hooks/useMarketLayoutPrefs";
 
 /**
  * MarketClient - Thin orchestrator for Market Robot.
  * Wires hooks, manages active tab state, passes layout prefs.
- * Updated in Phase 4+5 to use new task-based IA and remove monolith content.
+ * Updated in Phase 4+5+6 to use new task-based IA and remove monolith content.
  * Uses shared design tokens for easy global aesthetic unification.
  */
 
@@ -59,6 +60,8 @@ export default function MarketClient({
         );
       case "direct-buy":
         return <MarketDirectBuyTab onNavigate={handleTabChange} />;
+      case "automation":
+        return <MarketAutomationTab onNavigate={handleTabChange} />;
       default:
         return <div className="text-slate-200 p-6">Placeholder for {activeTab} tab (under construction)</div>;
     }

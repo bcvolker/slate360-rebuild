@@ -194,3 +194,32 @@ Next recommended: Phase 5 - Direct Buy tab rebuild
 
 Next recommended: Phase 6 - Automation tab rebuild
 
+
+**Phase 6 Progress - Automation Tab Rebuild (Anti-Stall Batch Command)**
+
+- Created MarketAutomationTab.tsx with clean UI for building automation plans
+- Updated MarketClient.tsx to wire Automation tab navigation
+- Uses shared design tokens for easy global aesthetic unification
+- Typecheck run (see output)
+
+**Completion Tracker**
+- Phase 0: 100%
+- Phase 1: 100%
+- Phase 2: 100%
+- Phase 3: 100%
+- Phase 4: 100%
+- Phase 5: 100%
+- Phase 6: 50%
+- Remaining focused prompts/sessions to have a complete and working Market Robot tab: **3-5**
+
+**Deployment/Build Verification Checklist (After Phase 6)**
+1. After Vercel deploy, visit /market
+2. Click 'Go to Direct Buy' button — it should navigate to Direct Buy tab with search toolbar
+3. Click 'Set Up Automation' button or 'Automation' tab — it should show a form for creating automation plans
+4. 'Start Here' tab should remain clean and unchanged
+5. Top nav should still show all 6 new tabs; clicking should switch tabs
+6. No console errors in browser dev tools (async error should be gone after redeploy)
+7. If issues persist (e.g., placeholder text instead of content), force a Vercel redeploy (vercel deploy --prod)
+
+Next recommended: Phase 7 - Results and Live Wallet tabs
+
