@@ -113,6 +113,30 @@ export function calculatePositionSize(input: PositionSizingInput): PositionSizin
   };
 }
 
+/* ─── Fee Threshold Guard ───────────────────────────────────── */
+
+/**
+ * Checks whether a trade's edge is large enough to be profitable after fees.
+ * Returns null if the trade is safe, or a reason string if it should be skipped.
+ *
+ * Default fee estimate: 2% (covers platform + gas on Polygon).
+ * This is conservative — actual fees may be lower with gasless Builder keys.
+ */
+export function checkFeeThreshold(
+  edgePct: number,
+  isArbitrage: boolean,
+  feeEstimatePct = 2,
+): string | null {
+  // Arbitrage trades are inherently profitable (YES+NO < $1), skip fee check
+  if (isArbitrage) return null;
+
+  if (edgePct <= feeEstimatePct) {
+    return `Skipped: ${edgePct.toFixed(1)}% value is below ${feeEstimatePct}% fee threshold`;
+  }
+
+  return null;
+}
+
 /* ─── Safety Constraints ────────────────────────────────────── */
 
 export async function checkSafetyConstraints(

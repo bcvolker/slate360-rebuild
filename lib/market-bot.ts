@@ -37,6 +37,8 @@ export interface MarketOpportunity {
   riskTier: RiskLevel;
   confidence: number;
   expiresAt: string;
+  /** true when YES + NO prices sum to less than $1 (guaranteed profit window) */
+  isArbitrage: boolean;
 }
 
 export interface TradeRecord {
@@ -172,11 +174,15 @@ export function scoreOpportunities(
       const spread = Math.abs(1 - yesPrice - noPrice);
       const edge = spread * 100;
 
+      // Arbitrage: YES + NO cost less than $1 → buying both sides locks in profit
+      const isArbitrage = (yesPrice + noPrice) < 1 && yesPrice > 0 && noPrice > 0;
+
       const minEdge = Number.isFinite(config.minOpportunityEdgePct)
         ? Math.max(0, config.minOpportunityEdgePct)
         : 1;
 
-      if (edge < minEdge) continue;
+      // Always allow arbitrage opportunities through, even if below min edge
+      if (edge < minEdge && !isArbitrage) continue;
 
       const riskTier = assessRisk(spread, mkt.liquidity, mkt.volume24hr);
       const cat = categorize(mkt.question, mkt.category);
@@ -193,7 +199,9 @@ export function scoreOpportunities(
       const volScore = Math.min(mkt.volume24hr / 50000, 1) * 25;
       const liqScore = Math.min(mkt.liquidity / 100000, 1) * 20;
       const edgeScore = Math.min(edge / 8, 1) * 30;
-      const confidence = Math.round(volScore + liqScore + edgeScore + timeDecayBonus + probEdgeBonus);
+      // Arbitrage gets a flat +20 confidence bonus — it's the safest trade type
+      const arbBonus = isArbitrage ? 20 : 0;
+      const confidence = Math.round(volScore + liqScore + edgeScore + timeDecayBonus + probEdgeBonus + arbBonus);
 
       opps.push({
         id: mkt.id,
@@ -208,6 +216,7 @@ export function scoreOpportunities(
         riskTier,
         confidence,
         expiresAt: mkt.endDate,
+        isArbitrage,
       });
     } catch {
       continue;
@@ -218,89 +227,14 @@ export function scoreOpportunities(
     ? Math.min(Math.max(Math.floor(config.maxCandidates), 1), 5000)
     : 200;
 
+  // Arbitrage opportunities sort first (guaranteed profit), then by edge + confidence
   return opps
-    .sort((a, b) => b.edge - a.edge || b.confidence - a.confidence)
+    .sort((a, b) => {
+      if (a.isArbitrage !== b.isArbitrage) return a.isArbitrage ? -1 : 1;
+      return b.edge - a.edge || b.confidence - a.confidence;
+    })
     .slice(0, maxCandidates);
 }
 
-export function decideTrades(
-  opportunities: MarketOpportunity[],
-  config: BotConfig,
-  dailyPnl: number,
-): { opp: MarketOpportunity; side: "YES" | "NO"; shares: number; reason: string }[] {
-  const trades: { opp: MarketOpportunity; side: "YES" | "NO"; shares: number; reason: string }[] = [];
-
-  if (dailyPnl <= -config.maxDailyLoss) {
-    return [];
-  }
-
-  const remainingBudget = config.maxDailyLoss + dailyPnl;
-  if (remainingBudget <= 0) return [];
-
-  for (const opp of opportunities) {
-    const mixPct = config.portfolioMix[opp.riskTier] ?? 0;
-    if (mixPct === 0) continue;
-
-    const minConfidence: Record<RiskLevel, number> = {
-      low: 25,
-      medium: 15,
-      high: 5,
-    };
-
-    if (opp.confidence < minConfidence[config.riskLevel]) continue;
-
-    if (!config.focusAreas.includes("all") && !config.focusAreas.includes(opp.category)) {
-      continue;
-    }
-
-    const side: "YES" | "NO" = opp.yesPrice < opp.noPrice ? "YES" : "NO";
-    const price = side === "YES" ? opp.yesPrice : opp.noPrice;
-
-    const budgetForTier = (remainingBudget * mixPct) / 100;
-    const configuredMaxPositionUsd = Number.isFinite(config.maxPositionUsd)
-      ? Math.max(config.maxPositionUsd, 1)
-      : 50;
-    const maxPositionSize = Math.min(budgetForTier, configuredMaxPositionUsd);
-    const shares = Math.max(1, Math.floor(maxPositionSize / price));
-
-    if (shares * price < 1) continue;
-
-    trades.push({
-      opp,
-      side,
-      shares,
-      reason: `${opp.edge}% edge, ${opp.confidence}% confidence, ${opp.riskTier} risk`,
-    });
-
-    const maxTradesPerScan = Number.isFinite(config.maxTradesPerScan)
-      ? Math.max(1, Math.floor(config.maxTradesPerScan))
-      : 3;
-    if (trades.length >= maxTradesPerScan) break;
-  }
-
-  return trades;
-}
-
-export function simulatePaperTrade(
-  userId: string,
-  opp: MarketOpportunity,
-  side: "YES" | "NO",
-  shares: number,
-): TradeRecord {
-  const price = side === "YES" ? opp.yesPrice : opp.noPrice;
-  return {
-    id: `paper_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    userId,
-    marketId: opp.id,
-    question: opp.question,
-    side,
-    shares,
-    price,
-    total: Math.round(shares * price * 100) / 100,
-    status: "open",
-    pnl: null,
-    paperTrade: true,
-    createdAt: new Date().toISOString(),
-    closedAt: null,
-  };
-}
+// Trade decision logic extracted to lib/market/trade-decisions.ts for file size compliance
+export { decideTrades, simulatePaperTrade } from "@/lib/market/trade-decisions";

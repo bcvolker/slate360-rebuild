@@ -12,6 +12,8 @@ import {
   type MarketPlanRuntimeRow,
 } from "@/lib/market/runtime-config";
 import { insertMarketTradesWithFallback } from "@/lib/market/trade-persistence";
+import { monitorPositions } from "@/lib/market/position-monitor";
+import { checkFeeThreshold } from "@/lib/market/execution-policy";
 import { clamp, fetchMarketsCached, isoDay, riskLevelFromMix, type MarketsPromiseCache, type SchedulerConfig } from "@/lib/market/scheduler-utils";
 
 type RuntimeRowStatus = "running" | "paused" | "stopped" | "paper";
@@ -207,12 +209,19 @@ export async function runForUser(
   botConfig.maxTradesPerScan = guardResult.maxTradesPerScan;
   const totalPnl = guardResult.totalPnl;
   const maxDecisions = Math.max(0, Math.min(maxPositions, remainingOpenSlots || maxPositions));
-  const decisions = applyDecisionShareCaps(
+  const feeThreshold = runtimeConfig.feeAlertThreshold ?? 2;
+  const rawDecisions = applyDecisionShareCaps(
     decideTrades(scored, botConfig, dailyPnl),
     capitalBase,
     runtimeConfig,
     maxDecisions,
   );
+
+  // Filter out trades where the edge doesn't cover fees (except arbitrage)
+  const decisions = rawDecisions.filter((d) => {
+    const feeBlock = checkFeeThreshold(d.opp.edge, d.opp.isArbitrage, feeThreshold);
+    return feeBlock === null;
+  });
 
   let executed = 0;
 
@@ -282,6 +291,13 @@ export async function runForUser(
     },
     { onConflict: "user_id" },
   );
+
+  // Check open positions for stop-loss / take-profit triggers
+  try {
+    await monitorPositions(admin, userId);
+  } catch (err) {
+    console.error(`[scheduler] position monitor error for ${userId}:`, err);
+  }
 
   return {
     userId,
