@@ -155,47 +155,50 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-20 (Market Robot UX Audit + V2 Decision)
+### Session Handoff — 2026-03-21 (Market Robot V2 — All 6 Tabs Complete)
 
-#### What Changed (across 2 sub-sessions)
-- `app/market/page.tsx`: Fixed import — now imports from `@/components/dashboard/market/MarketClient` (was importing old gutted `@/components/dashboard/MarketClient`)
-- `components/dashboard/market/MarketAutomationTab.tsx`: Fixed 6 TS errors (removed missing LiveChecklist import, removed useMarketBot() call, fixed MarketSystemStatusCard and MarketPlanInsights props)
-- `components/dashboard/market/MarketResultsTab.tsx`: Fixed MarketResultsInsights to receive proper analytics object
-- `components/dashboard/market/MarketLiveWalletTab.tsx`: Fixed MarketSystemStatusCard props
-- `components/dashboard/market/MarketClient.tsx`: Fixed liveChecklist type
-- `~/.continue/config.yaml`: Fixed Grok model `grok-beta` → `grok-3` (deprecated). Provider: `openai`, apiBase: `https://api.x.ai/v1`
-- `MARKET_ROBOT_STATUS_HANDOFF.md`: Complete rewrite with UX critique, file grades, problem list, hook table, fix plan, prompt templates, AND V2 feasibility assessment
+#### What Changed
+- **UX Fixes (commit a7f8e63)**: 5 corrections across 9 files
+  - Background: slate-950 → zinc-950 across MarketRouteShell, MarketClient, tab components
+  - Default tab: start-here → direct-buy
+  - Tab order: Markets first, Guide last (layout-presets.ts)
+  - Custom scrollbar CSS in globals.css
+  - Search synonym guards (weather/esports) in API route
+  - Buy panel: removed 1.2s auto-close on confirmation
+- **MarketLiveWalletTab.tsx (commit 756f9d6)**: V2 rewrite — 187 lines, typed props (no `any`), wallet status card, USDC/MATIC balances, 5-step live readiness checklist with progress bar, system status card, quick action buttons
+- **MarketSavedTab.tsx (commit 756f9d6)**: V2 rewrite — 106 lines, wired to `useMarketWatchlist()`, grid cards with prices/category/dates, remove button, empty state CTA, refresh button
 
-#### Key Decision: Clean V2 Rebuild Approved
-The entire backend/hook/API layer was audited and confirmed **production-grade** (8 working hooks, 17 API routes, 25 lib utilities, typed contracts). The problem is exclusively that Grok's UI scaffolding never connected to any of it. A V2 rebuild is straightforward — wire the orchestrator to hooks, then rebuild tabs one at a time. See `MARKET_ROBOT_STATUS_HANDOFF.md` "V2 Feasibility Assessment" section for full details.
+#### V2 Tab Status (all 6 complete)
+| Tab | File | Lines | Status |
+|---|---|---|---|
+| Markets (Direct Buy) | MarketDirectBuyTab.tsx | 237 | ✅ V2 |
+| Portfolio (Results) | MarketResultsTab.tsx | ~180 | ✅ V2 |
+| Automation | MarketAutomationTab.tsx | 85 | ✅ V2 |
+| Saved | MarketSavedTab.tsx | 106 | ✅ V2 |
+| Wallet | MarketLiveWalletTab.tsx | 187 | ✅ V2 |
+| Guide (Start Here) | MarketStartHereTab.tsx | 105 | ✅ V2 |
+| Orchestrator | MarketClient.tsx | 147 | ✅ V2, 5 hooks wired |
 
 #### What's Broken / Partially Done
-- **MarketClient.tsx data wiring** — all hooks disconnected, all callbacks are console.log stubs. #1 blocker.
-- **4 of 6 tabs are placeholder UI** — Results (F), Live Wallet (F), Saved Markets (F), Automation (D-)
-- **No Practice/Live toggle** anywhere in the UI
-- **Dead buttons**: Connect Wallet (LiveWallet), Save Plan (Automation)
-- **Developer jargon** in user-facing text (edge, scan, runtime status)
-- `components/dashboard/MarketClient.tsx` (old, 75 lines) — orphaned, delete it
-- `MARKET_ROBOT_STATUS_HANDOFF.md.bak` — can be deleted after confirming new file
+- **Orphan files still exist**: `components/dashboard/MarketClient.tsx` (old 75-line orphan), `MarketRobotWorkspace.tsx` (unused), `MARKET_ROBOT_STATUS_HANDOFF.md.bak`
+- **Sub-components still use slate-950**: Cards/inputs in MarketAutomationBuilder, MarketActivityFeed, MarketSharedUi, etc. use `bg-slate-950/80` for element backgrounds — these are intentional contrast against zinc-950 page bg, but may want review
+- **Start Here tab is static** — user wants landing to show wallet/performance metrics, trending opportunities, real-time data instead of static welcome text
+- **Column sorting** in DirectBuyResults — no visual sort indicators
+- **Result detail click-through** — MarketListingDetailDrawer exists but UX needs polish
+- **Practice/Live mode toggle** — bot.config.paperMode is wired but no toggle UI in the nav or orchestrator
 
 #### Context Files Updated
-- `MARKET_ROBOT_STATUS_HANDOFF.md`: Full rewrite + V2 feasibility assessment + hook dependency map
 - `SLATE360_PROJECT_MEMORY.md`: This handoff
 
-#### Next Steps (ordered) — READ MARKET_ROBOT_STATUS_HANDOFF.md FIRST
-1. Read `MARKET_ROBOT_STATUS_HANDOFF.md` — has the complete critique, V2 plan, hook dependency map, and 8 copy-paste prompt templates
-2. **Step 1: Wire MarketClient.tsx** — import useMarketTradeData first (bot hook depends on its outputs), then useMarketBot, useMarketWalletState, useMarketServerStatus, useMarketSystemStatus. Replace all console.log stubs. This single change unblocks every tab.
-3. **Step 2: Kill placeholder text** — replace all "(Placeholder)" / "after implementation" with empty states + CTAs
-4. **Steps 3-8: Tab rebuilds** — one at a time, each as a single commit. Direct Buy first (closest to working), then Start Here, Automation, Results, Live Wallet, Saved Markets. Copy-paste prompt templates are in the handoff doc.
-5. **Cleanup**: Delete orphaned `components/dashboard/MarketClient.tsx` (old 75-line file), `MarketRobotWorkspace.tsx` (unused), `.bak` file
+#### Next Steps (ordered)
+1. **Cleanup**: Delete orphan files (old MarketClient.tsx, MarketRobotWorkspace.tsx, .bak)
+2. **Landing redesign**: Convert Start Here into a compact dashboard with wallet stats, P&L chart, trending markets, quick actions — or remove as tab and integrate into Direct Buy header
+3. **Practice/Live mode toggle**: Add toggle UI to nav or orchestrator area
+4. **UI polish**: Sort indicators on columns, detail drawer improvements, reduce pills/cards
+5. **Polymarket category alignment**: Verify search categories match actual Polymarket taxonomy
+6. **Context doc updates**: Update MARKET_ROBOT_STATUS_HANDOFF.md with V2 completion status
 
-#### Hook Dependency Order (critical for wiring)
-```
-useMarketTradeData → provides { trades, fetchTrades, fetchSummary, fetchSchedulerHealth, fetchMarketLogs }
-  ↓ (pass as deps)
-useMarketBot(deps) → provides { config, runScan, handleStartBot, setPaperMode, ... }
-  ↓ (read config.paperMode, wallet.liveChecklist)
-useMarketWalletState → provides { address, isConnected, usdcBalance, liveChecklist, handleConnectWallet }
-useMarketServerStatus → provides { status, health, isConfirmed }
-useMarketSystemStatus → provides { system, loading, error }
+#### Commits This Session
+- `a7f8e63` — 5 UX corrections (bg, default tab, scrollbar, search, buy confirmation)
+- `756f9d6` — V2 LiveWalletTab + SavedTab
 ```
