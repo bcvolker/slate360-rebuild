@@ -34,14 +34,16 @@ export default function MarketCommandCenter({
     query,
     setQuery,
     fetchMarkets,
-    markets,
+    filteredMarkets,
     loading,
     loaded,
     category,
     setCategory,
     sortBy,
     sortDirection,
-    onToggleSort
+    toggleSort,
+    tableInsights,
+    openBuyPanel,
   } = useMarketDirectBuyState({ paperMode, walletAddress, liveChecklist, onTradePlaced });
 
   const [searchTriggered, setSearchTriggered] = useState(false);
@@ -167,7 +169,7 @@ export default function MarketCommandCenter({
               placeholder="Search markets..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyPress={handleSearchKeyPress}
+              onKeyDown={handleSearchKeyPress}
               className="w-full p-2 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-100 outline-none focus:ring-1 focus:ring-[#FF4D00] mb-3"
             />
             <div className="quick-filters flex flex-wrap gap-2">
@@ -188,16 +190,19 @@ export default function MarketCommandCenter({
               <div className="empty-state h-full flex items-center justify-center text-zinc-400 text-sm">
                 <p>Search to find markets</p>
               </div>
+            ) : loading ? (
+              <div className="h-full flex items-center justify-center text-zinc-400 text-sm">
+                <p>Searching markets...</p>
+              </div>
             ) : (
               <MarketDirectBuyResults
-                markets={markets}
+                markets={filteredMarkets}
                 sortBy={sortBy}
                 sortDirection={sortDirection}
-                onToggleSort={onToggleSort}
-                isLoading={loading}
-                onBuy={() => {}}
+                onToggleSort={toggleSort}
+                onBuy={(market, outcome) => openBuyPanel(market, outcome)}
                 onOpenDetails={() => {}}
-                tableInsights={{}}
+                tableInsights={tableInsights}
                 savedMarketIds={[]}
                 onToggleSave={() => {}}
               />

@@ -24,12 +24,13 @@ export interface MarketLayoutPrefs {
 // Updated for new task-based IA (Start Here, Direct Buy, Automation, Saved Markets, Results, Live Wallet) per IMPLEMENTATION_PLAN.md
 // Data-driven structure makes global design, aesthetics, and UI changes easy and consistent across the project.
 export const DEFAULT_MARKET_TABS: MarketTabPref[] = [
-  { id: "direct-buy", label: "Markets", visible: true, order: 0 },
-  { id: "results", label: "Portfolio", visible: true, order: 1 },
-  { id: "automation", label: "Automation", visible: true, order: 2 },
-  { id: "saved-markets", label: "Saved", visible: true, order: 3 },
-  { id: "live-wallet", label: "Wallet", visible: true, order: 4 },
-  { id: "start-here", label: "Guide", visible: true, order: 5 },
+  { id: "command-center", label: "Command Center", visible: true, order: 0 },
+  { id: "direct-buy", label: "Markets", visible: true, order: 1 },
+  { id: "results", label: "Portfolio", visible: true, order: 2 },
+  { id: "automation", label: "Automation", visible: true, order: 3 },
+  { id: "saved-markets", label: "Saved", visible: true, order: 4 },
+  { id: "live-wallet", label: "Wallet", visible: true, order: 5 },
+  { id: "start-here", label: "Guide", visible: true, order: 6 },
 ];
 
 export const DEFAULT_MARKET_LAYOUT: MarketLayoutPrefs = {

@@ -155,50 +155,62 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-21 (Market Robot V2 — All 6 Tabs Complete)
+### Session Handoff — 2026-03-21 (Market Robot V3 — Foundation + Command Center)
 
-#### What Changed
-- **UX Fixes (commit a7f8e63)**: 5 corrections across 9 files
-  - Background: slate-950 → zinc-950 across MarketRouteShell, MarketClient, tab components
-  - Default tab: start-here → direct-buy
-  - Tab order: Markets first, Guide last (layout-presets.ts)
-  - Custom scrollbar CSS in globals.css
-  - Search synonym guards (weather/esports) in API route
-  - Buy panel: removed 1.2s auto-close on confirmation
-- **MarketLiveWalletTab.tsx (commit 756f9d6)**: V2 rewrite — 187 lines, typed props (no `any`), wallet status card, USDC/MATIC balances, 5-step live readiness checklist with progress bar, system status card, quick action buttons
-- **MarketSavedTab.tsx (commit 756f9d6)**: V2 rewrite — 106 lines, wired to `useMarketWatchlist()`, grid cards with prices/category/dates, remove button, empty state CTA, refresh button
+#### What Changed This Session
+- **Prompt 9 (commit 965eec3)**: Cross-cutting sweep across 32 market files
+  - Color: All `bg-slate-950/900` → `bg-zinc-950/900`, all `border-slate-700/800` → `border-zinc-800`
+  - Navy: All `#1E3A8A` hex, `rgba(15,23,42)`, `rgba(2,6,23)`, `rgba(8,15,31)` gradients replaced with zinc-neutral equivalents
+  - Pills: All decorative `rounded-full` badges/chips → `rounded-lg` (preserved status dots, spinners, toggles, progress bars)
+  - Jargon: edge→opportunity, whale→removed, signal→removed, robot→auto-buy, liquidity→depth, spread→price gap, slippage→removed, fill policy→removed
+- **Prompt 10 (in progress via Grok)**: MarketCommandCenter — replacing static Start Here with real-time dashboard landing
+- **Bot Engine Upgrade (commit 88dba10)**: 4 trading improvements
+  - Arbitrage detection: `isArbitrage` flag on `MarketOpportunity` when YES+NO < $1, bypasses min-edge filter, +20 confidence, sorts first
+  - Kelly position sizing: half-Kelly replaces flat `floor(amount/price)` — sizes bets proportional to edge strength
+  - Fee-threshold guard: `checkFeeThreshold()` blocks trades where edge < estimated fees (default 2%), except arbitrage
+  - Position monitor: new `position-monitor.ts` checks open trades each tick, auto-closes on TP/SL hit
+  - Extraction: `decideTrades` + `simulatePaperTrade` moved to `lib/market/trade-decisions.ts` (file size compliance)
 
-#### V2 Tab Status (all 6 complete)
-| Tab | File | Lines | Status |
-|---|---|---|---|
-| Markets (Direct Buy) | MarketDirectBuyTab.tsx | 237 | ✅ V2 |
-| Portfolio (Results) | MarketResultsTab.tsx | ~180 | ✅ V2 |
-| Automation | MarketAutomationTab.tsx | 85 | ✅ V2 |
-| Saved | MarketSavedTab.tsx | 106 | ✅ V2 |
-| Wallet | MarketLiveWalletTab.tsx | 187 | ✅ V2 |
-| Guide (Start Here) | MarketStartHereTab.tsx | 105 | ✅ V2 |
-| Orchestrator | MarketClient.tsx | 147 | ✅ V2, 5 hooks wired |
+#### V3 Issue Tracker (user-reported — verify & close when resolved)
+| # | Issue | Status | Prompt |
+|---|-------|--------|--------|
+| I1 | First page is "Markets" not a real-time dashboard | 🔧 In progress (Prompt 10) | 10 |
+| I2 | UI still has navy/blue-tinted colors | ✅ Fixed (Prompt 9) | 9 |
+| I3 | Pill/card-heavy UI looks archaic | ✅ Fixed (Prompt 9) | 9 |
+| I4 | AI jargon that first-time users won't understand | ✅ Fixed (Prompt 9) | 9 |
+| I5 | Unnecessary scrollbars — layout should fit viewport | ⬜ Not started | 16 |
+| I6 | Search results not sortable by clicking columns | ⬜ Not started | 11 |
+| I7 | Search results don't mirror Polymarket categories | ⬜ Not started | 11 |
+| I8 | Open positions not clickable/drillable | ⬜ Not started | 13 |
+| I9 | Placeholder data instead of real empty states | ⬜ Not started | 13 |
+| I10 | Buy panel pills still had navy color | ✅ Fixed (Prompt 9) | 9 |
+| I11 | After buy, no inline position tracker on same page | ⬜ Not started | 12 |
+| I12 | Automation inputs not user-friendly / too much jargon | ✅ Partially fixed (Prompt 9 labels), needs Prompt 14 | 14 |
+| I13 | Automation not optimized for high-volume 24/7 micro-buys | ⬜ Not started | 15 |
+| I14 | No Volume Scalper mode (goal: $7K/mo from micro-buys) | ⬜ Not started | 15 |
+| I15 | Orphan files still exist | ⬜ Not started | cleanup |
 
-#### What's Broken / Partially Done
-- **Orphan files still exist**: `components/dashboard/MarketClient.tsx` (old 75-line orphan), `MarketRobotWorkspace.tsx` (unused), `MARKET_ROBOT_STATUS_HANDOFF.md.bak`
-- **Sub-components still use slate-950**: Cards/inputs in MarketAutomationBuilder, MarketActivityFeed, MarketSharedUi, etc. use `bg-slate-950/80` for element backgrounds — these are intentional contrast against zinc-950 page bg, but may want review
-- **Start Here tab is static** — user wants landing to show wallet/performance metrics, trending opportunities, real-time data instead of static welcome text
-- **Column sorting** in DirectBuyResults — no visual sort indicators
-- **Result detail click-through** — MarketListingDetailDrawer exists but UX needs polish
-- **Practice/Live mode toggle** — bot.config.paperMode is wired but no toggle UI in the nav or orchestrator
-
-#### Context Files Updated
-- `SLATE360_PROJECT_MEMORY.md`: This handoff
-
-#### Next Steps (ordered)
-1. **Cleanup**: Delete orphan files (old MarketClient.tsx, MarketRobotWorkspace.tsx, .bak)
-2. **Landing redesign**: Convert Start Here into a compact dashboard with wallet stats, P&L chart, trending markets, quick actions — or remove as tab and integrate into Direct Buy header
-3. **Practice/Live mode toggle**: Add toggle UI to nav or orchestrator area
-4. **UI polish**: Sort indicators on columns, detail drawer improvements, reduce pills/cards
-5. **Polymarket category alignment**: Verify search categories match actual Polymarket taxonomy
-6. **Context doc updates**: Update MARKET_ROBOT_STATUS_HANDOFF.md with V2 completion status
+#### Prompt Tracker
+| # | Prompt | Status |
+|---|--------|--------|
+| 1–8 | V2 tabs + UX fixes | ✅ Complete |
+| 9 | Color + pill + jargon purge | ✅ Complete (965eec3) |
+| 10 | Command Center landing | 🔧 In progress (Grok) |
+| 11 | Search: clickable column sort + Polymarket mirror | ⬜ |
+| 12 | Buy flow + inline position tracker | ⬜ |
+| 13 | Open position drill-down | ⬜ |
+| 14 | Automation: plain language rewrite | ⬜ |
+| 15 | Volume Scalper mode (high-freq micro-buys) | ⬜ |
+| 16 | Layout & scroll fix pass | ⬜ |
 
 #### Commits This Session
-- `a7f8e63` — 5 UX corrections (bg, default tab, scrollbar, search, buy confirmation)
-- `756f9d6` — V2 LiveWalletTab + SavedTab
-```
+- `965eec3` — Prompt 9: color purge, pill reduction, jargon cleanup, navy removal (32 files)
+- `88dba10` — Bot engine: arbitrage detection, Kelly sizing, fee guard, position monitor (6 files)
+
+#### Next Steps
+1. Get Grok CLOB research (WebSocket endpoint, fee numbers, arb reality check)
+2. Review Grok's Prompt 10 (Command Center) output → verify + wire
+3. Prompt 11: Clickable column sort + Polymarket search alignment
+4. Prompt 12: Inline position tracker after buy
+5. Wire live CLOB execution (needs API credentials + Grok research)
+6. Continue through Prompt 16

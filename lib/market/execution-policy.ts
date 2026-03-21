@@ -119,13 +119,14 @@ export function calculatePositionSize(input: PositionSizingInput): PositionSizin
  * Checks whether a trade's edge is large enough to be profitable after fees.
  * Returns null if the trade is safe, or a reason string if it should be skipped.
  *
- * Default fee estimate: 2% (covers platform + gas on Polygon).
- * This is conservative — actual fees may be lower with gasless Builder keys.
+ * Default fee estimate: 0.5% — most Polymarket markets have 0% fees.
+ * Some crypto markets charge up to 1.56% taker at 50/50 odds.
+ * Gas is gasless via Builder keys (Polymarket pays).
  */
 export function checkFeeThreshold(
   edgePct: number,
   isArbitrage: boolean,
-  feeEstimatePct = 2,
+  feeEstimatePct = 0.5,
 ): string | null {
   // Arbitrage trades are inherently profitable (YES+NO < $1), skip fee check
   if (isArbitrage) return null;

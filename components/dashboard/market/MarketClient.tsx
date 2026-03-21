@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import MarketPrimaryNav from "@/components/dashboard/market/MarketPrimaryNav";
 import MarketStartHereTab from "@/components/dashboard/market/MarketStartHereTab";
+import MarketCommandCenter from "@/components/dashboard/market/MarketCommandCenter";
 import MarketDirectBuyTab from "@/components/dashboard/market/MarketDirectBuyTab";
 import MarketAutomationTab from "@/components/dashboard/market/MarketAutomationTab";
 import MarketResultsTab from "@/components/dashboard/market/MarketResultsTab";
@@ -24,7 +25,7 @@ import { useMarketSystemStatus } from "@/lib/hooks/useMarketSystemStatus";
  */
 
 export default function MarketClient({ 
-  initialTab = "direct-buy"
+  initialTab = "command-center"
 }: {
   initialTab?: string;
 }) {
@@ -50,7 +51,7 @@ export default function MarketClient({
   useEffect(() => {
     const validTabs = layoutPrefs.prefs.tabs.filter(t => t.visible).map(t => t.id);
     if (!validTabs.includes(activeTab)) {
-      setActiveTab("direct-buy");
+      setActiveTab("command-center");
     }
   }, [layoutPrefs.prefs.tabs, activeTab]);
 
@@ -72,6 +73,22 @@ export default function MarketClient({
             serverStatus={serverStatus.status}
             serverConfirmed={serverStatus.isConfirmed}
             serverHealth={serverStatus.health}
+          />
+        );
+      case "command-center":
+        return (
+          <MarketCommandCenter
+            paperMode={bot.config.paperMode}
+            walletAddress={wallet.address}
+            liveChecklist={wallet.liveChecklist}
+            onNavigate={handleTabChange}
+            onTradePlaced={tradeData.fetchTrades}
+            trades={tradeData.trades}
+            usdcBalance={wallet.usdcBalance || "0.00"}
+            maticFormatted={wallet.maticData
+              ? `${(Number(wallet.maticData.value) / 10 ** wallet.maticData.decimals).toFixed(4)} ${wallet.maticData.symbol}`
+              : "--"}
+            isConnected={wallet.isConnected}
           />
         );
       case "direct-buy":
