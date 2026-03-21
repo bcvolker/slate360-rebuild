@@ -41,7 +41,7 @@ export default function MarketResultsTab({
   );
 
   return (
-    <div className="results-tab bg-slate-950 text-slate-200 p-6 max-w-full overflow-hidden">
+    <div className="results-tab bg-zinc-950 text-slate-200 p-6 max-w-full overflow-hidden">
       <div className="header mb-6">
         <h1 className="text-2xl font-bold text-slate-100">Results</h1>
         <p className="text-base text-slate-300">Track your trades and performance.</p>
@@ -52,19 +52,19 @@ export default function MarketResultsTab({
       </div>
 
       <div className="summary-stats grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="stat-card bg-slate-900 rounded-2xl p-4">
+        <div className="stat-card bg-zinc-900 rounded-2xl p-4">
           <h3 className="text-sm text-slate-400">Total Trades</h3>
           <p className="text-xl font-bold text-slate-100">{stats.totalTrades}</p>
         </div>
-        <div className="stat-card bg-slate-900 rounded-2xl p-4">
+        <div className="stat-card bg-zinc-900 rounded-2xl p-4">
           <h3 className="text-sm text-slate-400">Open</h3>
           <p className="text-xl font-bold text-slate-100">{stats.openTrades}</p>
         </div>
-        <div className="stat-card bg-slate-900 rounded-2xl p-4">
+        <div className="stat-card bg-zinc-900 rounded-2xl p-4">
           <h3 className="text-sm text-slate-400">Win Rate</h3>
           <p className="text-xl font-bold text-slate-100">{stats.winRate}</p>
         </div>
-        <div className="stat-card bg-slate-900 rounded-2xl p-4">
+        <div className="stat-card bg-zinc-900 rounded-2xl p-4">
           <h3 className="text-sm text-slate-400">Total P&L</h3>
           <p className={`text-xl font-bold ${stats.pnlColor}`}>{stats.totalPnl}</p>
         </div>
@@ -73,11 +73,11 @@ export default function MarketResultsTab({
       <div className="open-positions mb-6">
         <h2 className="text-xl font-semibold text-slate-100 mb-3">Open Positions</h2>
         {openPositions.length === 0 ? (
-          <div className="empty-state bg-slate-900 rounded-2xl p-6 text-slate-400 text-center">
+          <div className="empty-state bg-zinc-900 rounded-2xl p-6 text-slate-400 text-center">
             <p>No open positions</p>
           </div>
         ) : (
-          <div className="positions-list bg-slate-900 rounded-2xl p-2 max-h-[300px] overflow-auto">
+          <div className="positions-list bg-zinc-900 rounded-2xl p-2 max-h-[300px] overflow-auto">
             {openPositions.map(trade => {
               const outcomeColor = trade.outcome === "YES" ? "bg-green-500" : "bg-red-500";
               const unrealizedPnlColor = trade.pnl > 0 ? "text-green-500" : trade.pnl < 0 ? "text-red-500" : "text-slate-400";
@@ -101,7 +101,7 @@ export default function MarketResultsTab({
       <div className="recent-trades">
         <h2 className="text-xl font-semibold text-slate-100 mb-3">Recent Trades</h2>
         {recentTrades.length === 0 ? (
-          <div className="empty-state bg-slate-900 rounded-2xl p-6 text-slate-400 text-center">
+          <div className="empty-state bg-zinc-900 rounded-2xl p-6 text-slate-400 text-center">
             <p>No trades yet — browse markets to get started</p>
             <button 
               onClick={() => onNavigate("direct-buy")} 
@@ -111,7 +111,7 @@ export default function MarketResultsTab({
             </button>
           </div>
         ) : (
-          <div className="trades-list bg-slate-900 rounded-2xl p-2 max-h-[300px] overflow-auto">
+          <div className="trades-list bg-zinc-900 rounded-2xl p-2 max-h-[300px] overflow-auto">
             {recentTrades.map(trade => {
               const outcomeColor = trade.outcome === "YES" ? "bg-green-500" : "bg-red-500";
               const pnlColor = trade.pnl > 0 ? "text-green-500" : trade.pnl < 0 ? "text-red-500" : "text-slate-400";

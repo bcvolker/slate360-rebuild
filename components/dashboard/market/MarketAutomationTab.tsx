@@ -37,7 +37,7 @@ export default function MarketAutomationTab({
     }
   };
   return (
-    <div className="automation-tab bg-slate-950 text-slate-200 p-6 max-w-full overflow-hidden">
+    <div className="automation-tab bg-zinc-950 text-slate-200 p-6 max-w-full overflow-hidden">
       <div className="header mb-6">
         <h1 className="text-2xl font-bold text-slate-100">Automation</h1>
         <p className="text-base text-slate-300">Create rules to trade automatically. Save multiple plans and switch between them.</p>
@@ -48,7 +48,7 @@ export default function MarketAutomationTab({
       </div>
 
       <div className="panels flex flex-col lg:flex-row gap-6">
-        <div className="builder-panel lg:w-1/2 bg-slate-900 rounded-2xl p-4 min-h-[300px]">
+        <div className="builder-panel lg:w-1/2 bg-zinc-900 rounded-2xl p-4 min-h-[300px]">
           <MarketAutomationBuilder
             draft={automation.draft}
             editingId={automation.editingId}
@@ -60,7 +60,7 @@ export default function MarketAutomationTab({
             onReset={automation.resetDraft}
           />
         </div>
-        <div className="plans-panel lg:w-1/2 bg-slate-900 rounded-2xl p-4 min-h-[300px]">
+        <div className="plans-panel lg:w-1/2 bg-zinc-900 rounded-2xl p-4 min-h-[300px]">
           {automation.plans.length === 0 ? (
             <div className="empty-state flex items-center justify-center h-full text-slate-400">
               <p>No saved plans yet — create one above</p>

@@ -30,7 +30,7 @@ export default function MarketRouteShell({
   const closeCustomize = useCallback(() => setCustomizeOpen(false), []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 overflow-hidden">
+    <div className="min-h-screen bg-zinc-950 text-slate-200 overflow-hidden">
       <div className="relative">
         <DashboardHeader
           user={user}

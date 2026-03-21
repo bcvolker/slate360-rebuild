@@ -24,7 +24,7 @@ import { useMarketSystemStatus } from "@/lib/hooks/useMarketSystemStatus";
  */
 
 export default function MarketClient({ 
-  initialTab = "start-here"
+  initialTab = "direct-buy"
 }: {
   initialTab?: string;
 }) {
@@ -50,7 +50,7 @@ export default function MarketClient({
   useEffect(() => {
     const validTabs = layoutPrefs.prefs.tabs.filter(t => t.visible).map(t => t.id);
     if (!validTabs.includes(activeTab)) {
-      setActiveTab("start-here");
+      setActiveTab("direct-buy");
     }
   }, [layoutPrefs.prefs.tabs, activeTab]);
 
@@ -133,7 +133,7 @@ export default function MarketClient({
   };
 
   return (
-    <div className="market-client bg-slate-950 text-slate-200">
+    <div className="market-client bg-zinc-950 text-slate-200">
       <MarketPrimaryNav
         tabs={layoutPrefs.prefs.tabs}
         activeTabId={activeTab}

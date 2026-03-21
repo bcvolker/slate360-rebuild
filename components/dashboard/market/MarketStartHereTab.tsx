@@ -46,7 +46,7 @@ export default function MarketStartHereTab({
   const modeColor = paperMode ? "bg-green-600" : "bg-amber-600";
 
   return (
-    <div className="start-here-tab bg-slate-950 text-slate-200 p-6 max-w-full overflow-hidden">
+    <div className="start-here-tab bg-zinc-950 text-slate-200 p-6 max-w-full overflow-hidden">
       <div className="welcome-section mb-6">
         <h1 className="text-2xl font-bold mb-2 text-slate-100">Welcome to Prediction Markets</h1>
         <p className="text-base text-slate-300">
@@ -68,7 +68,7 @@ export default function MarketStartHereTab({
       <div className="quick-actions grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <button 
           onClick={() => onNavigate("direct-buy")} 
-          className="action-card bg-slate-900 rounded-2xl p-4 text-left hover:bg-slate-800 transition-colors"
+          className="action-card bg-zinc-900 rounded-2xl p-4 text-left hover:bg-slate-800 transition-colors"
         >
           <div className="icon mb-2 text-[#FF4D00]">🔍</div>
           <h2 className="text-lg font-semibold text-slate-100">Browse Markets</h2>
@@ -76,7 +76,7 @@ export default function MarketStartHereTab({
         </button>
         <button 
           onClick={() => onNavigate("automation")} 
-          className="action-card bg-slate-900 rounded-2xl p-4 text-left hover:bg-slate-800 transition-colors"
+          className="action-card bg-zinc-900 rounded-2xl p-4 text-left hover:bg-slate-800 transition-colors"
         >
           <div className="icon mb-2 text-[#FF4D00]">⚙️</div>
           <h2 className="text-lg font-semibold text-slate-100">Set Up Automation</h2>
@@ -84,7 +84,7 @@ export default function MarketStartHereTab({
         </button>
         <button 
           onClick={() => onNavigate("results")} 
-          className="action-card bg-slate-900 rounded-2xl p-4 text-left hover:bg-slate-800 transition-colors"
+          className="action-card bg-zinc-900 rounded-2xl p-4 text-left hover:bg-slate-800 transition-colors"
         >
           <div className="icon mb-2 text-[#FF4D00]">📊</div>
           <h2 className="text-lg font-semibold text-slate-100">View Results</h2>

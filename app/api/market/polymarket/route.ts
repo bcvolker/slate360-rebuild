@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { ApiEnvelope, MarketViewModel } from "@/lib/market/contracts";
 import { mapGammaMarketToMarketVM } from "@/lib/market/mappers";
-import { queryMatchesText } from "@/lib/market/search-synonyms";
+import { queryMatchesText, isWeatherRelevant, isEsportsTitle } from "@/lib/market/search-synonyms";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 
 export const runtime = "nodejs";
@@ -52,7 +52,16 @@ function parseRows(upstreamData: unknown): unknown[] {
 
 function matchesQuery(market: MarketViewModel, query: string): boolean {
   const haystack = `${market.title} ${market.category}`;
-  return queryMatchesText(query, haystack);
+  if (!queryMatchesText(query, haystack)) return false;
+
+  // Guard against synonym false positives: if user searched a topic keyword,
+  // verify the market is actually relevant (e.g. "weather" shouldn't match
+  // a sports team named "Storm").
+  const q = query.trim().toLowerCase();
+  if (q.includes("weather") && !isWeatherRelevant(market.title)) return false;
+  if (isEsportsTitle(market.title) && !q.includes("esport") && !q.includes("gaming")) return false;
+
+  return true;
 }
 
 function isUpcomingMarket(market: MarketViewModel): boolean {

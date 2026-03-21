@@ -209,12 +209,11 @@ export function useMarketDirectBuyState({
   };
 
   const closeBuyPanel = () => setBuyMarket(null);
-  const finalizeBuyFeedback = useCallback((message: string, shouldRefresh: boolean, closeDelayMs = 1200) => {
+  const finalizeBuyFeedback = useCallback((message: string, shouldRefresh: boolean, _closeDelayMs = 0) => {
     setBuySuccess(message);
-    window.setTimeout(() => {
-      setBuyMarket(null);
-      if (shouldRefresh) void onTradePlaced?.();
-    }, closeDelayMs);
+    // Refresh trade data immediately but keep the panel open so the user
+    // can see the confirmation and choose to navigate or dismiss manually.
+    if (shouldRefresh) void onTradePlaced?.();
   }, [onTradePlaced]);
 
   const handleBuy = useCallback(async () => {
