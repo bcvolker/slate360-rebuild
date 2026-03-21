@@ -9,29 +9,42 @@ import MarketResultsTab from "@/components/dashboard/market/MarketResultsTab";
 import MarketLiveWalletTab from "@/components/dashboard/market/MarketLiveWalletTab";
 import MarketSavedTab from "@/components/dashboard/market/MarketSavedTab";
 import { useMarketLayoutPrefs } from "@/lib/hooks/useMarketLayoutPrefs";
+import { useMarketBot } from "@/lib/hooks/useMarketBot";
+import { useMarketTradeData } from "@/lib/hooks/useMarketTradeData";
+import { useMarketWalletState } from "@/lib/hooks/useMarketWalletState";
+import { useMarketServerStatus } from "@/lib/hooks/useMarketServerStatus";
+import { useMarketSystemStatus } from "@/lib/hooks/useMarketSystemStatus";
 
 /**
  * MarketClient - Thin orchestrator for Market Robot.
  * Wires hooks, manages active tab state, passes layout prefs.
  * Updated in Phase 4+5+6+7+8 to use new task-based IA and remove monolith content.
  * Uses shared design tokens for easy global aesthetic unification.
+ * V2 Rebuild: Wired with real data hooks to replace dummy data.
  */
 
 export default function MarketClient({ 
-  initialTab = "start-here",
-  paperMode = true,
-  serverStatus = { status: "unknown", isConfirmed: false, health: null },
-  onQuickStart = () => console.log("Quick start triggered"),
-  onStopBot = () => console.log("Stop bot triggered"),
+  initialTab = "start-here"
 }: {
   initialTab?: string;
-  paperMode?: boolean;
-  serverStatus?: { status: string; isConfirmed: boolean; health: any };
-  onQuickStart?: () => void;
-  onStopBot?: () => void;
 }) {
   const layoutPrefs = useMarketLayoutPrefs();
   const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Fetch real data from hooks — order matters:
+  // 1. tradeData first (bot depends on its outputs)
+  // 2. bot second (wallet depends on bot.addLog)
+  const tradeData = useMarketTradeData();
+  const bot = useMarketBot({
+    trades: tradeData.trades,
+    fetchTrades: tradeData.fetchTrades,
+    fetchSummary: tradeData.fetchSummary,
+    fetchSchedulerHealth: tradeData.fetchSchedulerHealth,
+    fetchMarketLogs: tradeData.fetchMarketLogs,
+  });
+  const wallet = useMarketWalletState({ addLog: bot.addLog });
+  const serverStatus = useMarketServerStatus();
+  const systemStatus = useMarketSystemStatus();
 
   // Default to Start Here if tab is invalid
   useEffect(() => {
@@ -45,56 +58,75 @@ export default function MarketClient({
     setActiveTab(tabId);
   };
 
-  // Dummy liveChecklist for compatibility with restored components
-  const liveChecklist = {
-    isConnected: false,
-    walletConnected: false,
-    walletVerified: false,
-    signatureComplete: false,
-    signatureVerified: false,
-    usdcApproved: false,
-    usdcFunded: false,
-    polygonSelected: false,
-    canTradeLive: false,
-    blockers: ["Wallet not connected"],
-  };
-
-  // Render the correct tab content
+  // Render the correct tab content with real data
   const renderTabContent = () => {
     switch (activeTab) {
       case "start-here":
         return (
           <MarketStartHereTab
             onNavigate={handleTabChange}
-            onApplyRecommendation={() => console.log("Apply recommendation triggered")}
-            onQuickStart={onQuickStart}
-            onStopBot={onStopBot}
-            paperMode={paperMode}
+            onApplyRecommendation={() => bot.handleStartBot()}
+            onQuickStart={() => bot.handleStartBot()}
+            onStopBot={() => bot.handleStopBot()}
+            paperMode={bot.config.paperMode}
             serverStatus={serverStatus.status}
             serverConfirmed={serverStatus.isConfirmed}
             serverHealth={serverStatus.health}
           />
         );
       case "direct-buy":
-        return <MarketDirectBuyTab onNavigate={handleTabChange} paperMode={paperMode} liveChecklist={liveChecklist} />;
+        return (
+          <MarketDirectBuyTab 
+            onNavigate={handleTabChange} 
+            paperMode={bot.config.paperMode} 
+            liveChecklist={wallet.liveChecklist} 
+          />
+        );
       case "automation":
         return (
           <MarketAutomationTab 
             onNavigate={handleTabChange} 
-            paperMode={paperMode} 
-            onQuickStart={onQuickStart} 
-            onStopBot={onStopBot} 
+            paperMode={bot.config.paperMode} 
+            onQuickStart={() => bot.handleStartBot()}
+            onStopBot={() => bot.handleStopBot()}
             activePlan={null} 
-            onApplyPlan={() => console.log("Apply plan triggered")} 
-            onDeletePlan={() => console.log("Delete plan triggered")} 
+            onApplyPlan={() => bot.handleStartBot()} 
+            onDeletePlan={() => console.log("Delete plan functionality to be implemented")} 
           />
         );
       case "saved-markets":
         return <MarketSavedTab onNavigate={handleTabChange} />;
       case "results":
-        return <MarketResultsTab onNavigate={handleTabChange} paperMode={paperMode} trades={[]} system={null} serverHealth={null} onOpenPositions={() => console.log("Open positions triggered")} onOpenAutomation={() => handleTabChange("automation")} />;
+        return (
+          <MarketResultsTab 
+            onNavigate={handleTabChange} 
+            paperMode={bot.config.paperMode} 
+            trades={tradeData.trades} 
+            system={systemStatus.system} 
+            serverHealth={serverStatus.health} 
+            onOpenPositions={() => handleTabChange("live-wallet")} 
+            onOpenAutomation={() => handleTabChange("automation")} 
+          />
+        );
       case "live-wallet":
-        return <MarketLiveWalletTab onNavigate={handleTabChange} paperMode={paperMode} liveChecklist={liveChecklist} walletSnapshot={{ address: "", isConnected: false, usdcBalance: "0.00", maticFormatted: "--", walletVerified: false }} system={null} onOpenAutomation={() => handleTabChange("automation")} />;
+        return (
+          <MarketLiveWalletTab 
+            onNavigate={handleTabChange} 
+            paperMode={bot.config.paperMode} 
+            liveChecklist={wallet.liveChecklist} 
+            walletSnapshot={{
+              address: wallet.address || "",
+              isConnected: wallet.isConnected,
+              usdcBalance: wallet.usdcBalance || "0.00",
+              maticFormatted: wallet.maticData
+                ? `${(Number(wallet.maticData.value) / 10 ** wallet.maticData.decimals).toFixed(4)} ${wallet.maticData.symbol}`
+                : "--",
+              walletVerified: wallet.walletVerified || false
+            }} 
+            system={systemStatus.system} 
+            onOpenAutomation={() => handleTabChange("automation")} 
+          />
+        );
       default:
         return <div className="text-slate-200 p-6">Placeholder for {activeTab} tab (under construction)</div>;
     }

@@ -1,63 +1,105 @@
 "use client";
 
 import React from "react";
+import type { SchedulerHealthViewModel } from "@/lib/market/contracts";
+import type { AutomationPlan } from "@/components/dashboard/market/types";
 
-/**
- * MarketStartHereTab - First screen for Market Robot.
- * Explains the tool, paper vs live mode, and routes to direct buy or automation.
- * Clean design with shared CSS tokens for easy global aesthetic changes.
- */
-
-export default function MarketStartHereTab({
-  onNavigate,
-  onApplyRecommendation,
-  onQuickStart,
-  onStopBot,
-  paperMode,
-  serverStatus,
-  serverConfirmed,
-  serverHealth,
-}: {
+interface MarketStartHereTabProps {
   onNavigate: (tabId: string) => void;
-  onApplyRecommendation?: (plan: any) => void;
+  onApplyRecommendation?: (plan: AutomationPlan) => void;
   onQuickStart?: () => void;
   onStopBot?: () => void;
   paperMode: boolean;
-  serverStatus: string;
+  serverStatus: string; // "running" | "paused" | "stopped" | "paper" | "unknown"
   serverConfirmed: boolean;
-  serverHealth: any;
-}) {
+  serverHealth: SchedulerHealthViewModel | null;
+}
+
+export default function MarketStartHereTab({
+  onNavigate,
+  paperMode,
+  serverStatus,
+  serverConfirmed
+}: MarketStartHereTabProps) {
+  const getServerStatusLabel = () => {
+    if (!serverConfirmed) return "Connecting...";
+    switch (serverStatus) {
+      case "running": return "Active";
+      case "paper": return "Practice Active";
+      case "paused": return "Paused";
+      case "stopped": return "Idle";
+      default: return "Checking...";
+    }
+  };
+
+  const getServerStatusColor = () => {
+    if (!serverConfirmed) return "bg-slate-400";
+    switch (serverStatus) {
+      case "running":
+      case "paper": return "bg-green-500";
+      case "paused": return "bg-yellow-500";
+      default: return "bg-slate-400";
+    }
+  };
+
+  const modeLabel = paperMode ? "Practice Mode" : "Live Mode";
+  const modeColor = paperMode ? "bg-green-600" : "bg-amber-600";
+
   return (
-    <section className="rounded-[32px] border border-slate-700 bg-slate-950/70 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.45)] mb-6">
-      <h1 className="text-3xl font-black text-slate-50 mb-3">Market Robot</h1>
-      <p className="text-slate-300 text-base max-w-3xl mb-6 leading-7">
-        Automate trading or make direct buys on Polymarket. Start with <strong>practice mode</strong> to test strategies, then switch to <strong>real money</strong> when ready.
-      </p>
-      <div className="grid md:grid-cols-2 gap-6 mb-6">
-        <div className="rounded-2xl border border-violet-500/30 bg-violet-950/20 p-5">
-          <h2 className="text-xl font-bold text-violet-200 mb-2">Practice Mode {paperMode && <span className="text-xs bg-violet-600 text-white px-2 py-1 rounded-full">Active</span>}</h2>
-          <p className="text-violet-100 text-sm leading-6">Test strategies with virtual funds. No risk, full learning.</p>
-        </div>
-        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-5">
-          <h2 className="text-xl font-bold text-emerald-200 mb-2">Live Mode {!paperMode && <span className="text-xs bg-emerald-600 text-white px-2 py-1 rounded-full">Active</span>}</h2>
-          <p className="text-emerald-100 text-sm leading-6">Trade with real money. Requires wallet connection and backend readiness.</p>
+    <div className="start-here-tab bg-slate-950 text-slate-200 p-6 max-w-full overflow-hidden">
+      <div className="welcome-section mb-6">
+        <h1 className="text-2xl font-bold mb-2 text-slate-100">Welcome to Prediction Markets</h1>
+        <p className="text-base text-slate-300">
+          Prediction markets let you trade on real-world outcomes — elections, sports, crypto, and more. 
+          Browse markets to find opportunities, or let automation do the work.
+        </p>
+        <div className="status-indicators flex gap-4 mt-4">
+          <div className="mode-indicator flex items-center gap-2">
+            <span className={`w-3 h-3 rounded-full ${modeColor}`}></span>
+            <span className="text-sm text-slate-400">{modeLabel}</span>
+          </div>
+          <div className="server-status flex items-center gap-2">
+            <span className={`w-3 h-3 rounded-full ${getServerStatusColor()}`}></span>
+            <span className="text-sm text-slate-400">{getServerStatusLabel()}</span>
+          </div>
         </div>
       </div>
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
-        <button
-          onClick={() => onNavigate("direct-buy")}
-          className="px-6 py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-base rounded-xl transition shadow-[0_8px_24px_rgba(6,182,212,0.4)] hover:shadow-[0_12px_32px_rgba(6,182,212,0.5)]"
+
+      <div className="quick-actions grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <button 
+          onClick={() => onNavigate("direct-buy")} 
+          className="action-card bg-slate-900 rounded-2xl p-4 text-left hover:bg-slate-800 transition-colors"
         >
-          Go to Direct Buy
+          <div className="icon mb-2 text-[#FF4D00]">🔍</div>
+          <h2 className="text-lg font-semibold text-slate-100">Browse Markets</h2>
+          <p className="text-sm text-slate-400">Find and trade on current opportunities</p>
         </button>
-        <button
-          onClick={() => onNavigate("automation")}
-          className="px-6 py-4 bg-orange-600 hover:bg-orange-500 text-white font-semibold text-base rounded-xl transition shadow-[0_8px_24px_rgba(253,101,41,0.4)] hover:shadow-[0_12px_32px_rgba(253,101,41,0.5)]"
+        <button 
+          onClick={() => onNavigate("automation")} 
+          className="action-card bg-slate-900 rounded-2xl p-4 text-left hover:bg-slate-800 transition-colors"
         >
-          Set Up Automation
+          <div className="icon mb-2 text-[#FF4D00]">⚙️</div>
+          <h2 className="text-lg font-semibold text-slate-100">Set Up Automation</h2>
+          <p className="text-sm text-slate-400">Let the system trade for you</p>
+        </button>
+        <button 
+          onClick={() => onNavigate("results")} 
+          className="action-card bg-slate-900 rounded-2xl p-4 text-left hover:bg-slate-800 transition-colors"
+        >
+          <div className="icon mb-2 text-[#FF4D00]">📊</div>
+          <h2 className="text-lg font-semibold text-slate-100">View Results</h2>
+          <p className="text-sm text-slate-400">Track your trades and performance</p>
         </button>
       </div>
-      <div className="text-slate-400 text-xs italic">Current runtime status: {serverStatus}. {serverConfirmed ? "Confirmed by server." : "Awaiting server confirmation."}</div>
-    </section>
+
+      <div className="getting-started mb-6">
+        <h2 className="text-xl font-semibold mb-3 text-slate-100">Getting Started</h2>
+        <ol className="list-decimal list-inside text-slate-300 space-y-2 text-base">
+          <li>Search for markets you're interested in</li>
+          <li>Place trades manually or set up automated rules</li>
+          <li>Track your results and adjust your strategy</li>
+        </ol>
+      </div>
+    </div>
   );
 }
