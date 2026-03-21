@@ -7,8 +7,8 @@ const PRESETS = [
   { id: "bitcoin-month", label: "Bitcoin", hint: "Search: bitcoin · Topic: Crypto · Time: This month · Sort: Active" },
   { id: "election-week", label: "Elections", hint: "Search: election · Topic: Politics · Time: This week · Sort: Active" },
   { id: "closing-soon", label: "Closing soon", hint: "Time: Today · Sort: Ending" },
-  { id: "high-liquidity", label: "Deep liquidity", hint: "Vol ≥$50k · Liq ≥$50k · Sort: Active" },
-  { id: "moonshots", label: "Moonshots", hint: "Chance 5–35% · Vol ≥$1k · Time: This month · Sort: Value" },
+  { id: "high-liquidity", label: "High depth", hint: "Activity ≥$50k · Depth ≥$50k · Sort: Active" },
+  { id: "moonshots", label: "Long shots", hint: "Odds 5–35% · Activity ≥$1k · Time: This month · Sort: Value" },
 ] as const;
 
 export default function MarketQuickSearchPills({ onApplyPreset }: { onApplyPreset: (presetId: string) => void }) {
@@ -19,7 +19,7 @@ export default function MarketQuickSearchPills({ onApplyPreset }: { onApplyPrese
           <TooltipTrigger asChild>
             <button
               onClick={() => onApplyPreset(preset.id)}
-              className="rounded-full border border-slate-700 bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-slate-300 transition hover:border-[#FF4D00]/40 hover:text-orange-200"
+              className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] font-medium text-slate-300 transition hover:border-[#FF4D00]/40 hover:text-orange-200"
             >
               {preset.label}
             </button>

@@ -17,7 +17,7 @@ function toneClass(liveReady: boolean, blockerCount: number): string {
   if (blockerCount > 0) {
     return "border-amber-500/30 bg-amber-950 text-amber-300";
   }
-  return "border-slate-700 bg-slate-900 text-slate-400";
+  return "border-zinc-800 bg-zinc-900 text-slate-400";
 }
 
 export default function MarketConsoleHeaderStrip({
@@ -30,7 +30,7 @@ export default function MarketConsoleHeaderStrip({
   lastRunLabel,
 }: MarketConsoleHeaderStripProps) {
   return (
-    <div className="mb-8 flex items-center justify-between rounded-3xl border border-slate-700 bg-slate-950 px-8 py-5">
+    <div className="mb-8 flex items-center justify-between rounded-3xl border border-zinc-800 bg-zinc-950 px-8 py-5">
       <div className="flex items-center gap-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 text-2xl">🤖</div>
         <div>

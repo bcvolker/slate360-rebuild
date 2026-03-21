@@ -35,7 +35,7 @@ interface MarketPrimaryNavProps {
 
 export default function MarketPrimaryNav({ tabs, activeTabId, onTabChange }: MarketPrimaryNavProps) {
   return (
-    <div className="mb-8 flex border-b border-slate-800">
+    <div className="mb-8 flex border-b border-zinc-800">
       {tabs.map((tab) => {
         const isActive = activeTabId === tab.id;
         return (
@@ -45,7 +45,7 @@ export default function MarketPrimaryNav({ tabs, activeTabId, onTabChange }: Mar
             className={`group flex items-center gap-3 px-8 py-5 text-sm font-medium border-b-2 transition-all ${
               isActive
                 ? "border-orange-500 text-white"
-                : "border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                : "border-transparent text-slate-400 hover:text-slate-200 hover:border-zinc-800"
             }`}
           >
             <span className={`text-xl transition-colors ${

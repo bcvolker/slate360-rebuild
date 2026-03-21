@@ -47,7 +47,7 @@ export default function MarketLiveWalletTab({
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-2xl font-bold text-slate-50">Wallet &amp; Live Trading</h1>
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+          <span className={`rounded-lg px-2.5 py-0.5 text-xs font-semibold ${
             paperMode
               ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
               : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
@@ -64,7 +64,7 @@ export default function MarketLiveWalletTab({
         {/* Left column: Connection + Balances */}
         <div className="space-y-5">
           {/* Wallet status card */}
-          <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">Wallet</h2>
             {walletSnapshot.isConnected ? (
               <div className="space-y-3">
@@ -74,7 +74,7 @@ export default function MarketLiveWalletTab({
                 </div>
                 <p className="font-mono text-xs text-slate-400 break-all">{walletSnapshot.address}</p>
                 {walletSnapshot.walletVerified && (
-                  <span className="inline-block rounded-full bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
+                  <span className="inline-block rounded-lg bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
                     Verified
                   </span>
                 )}
@@ -93,7 +93,7 @@ export default function MarketLiveWalletTab({
           </div>
 
           {/* Balances card */}
-          <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">Balances</h2>
             {walletSnapshot.isConnected ? (
               <div className="grid grid-cols-2 gap-4">
@@ -122,7 +122,7 @@ export default function MarketLiveWalletTab({
 
         {/* Right column: Live Readiness Checklist */}
         <div className="space-y-5">
-          <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-5">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Live Readiness</h2>
               <span className="text-xs font-medium text-slate-400">{passedCount}/{CHECKLIST_ITEMS.length}</span>
@@ -145,7 +145,7 @@ export default function MarketLiveWalletTab({
                     <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                       passed
                         ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                        : "bg-slate-800 text-slate-600 border border-slate-700"
+                        : "bg-slate-800 text-slate-600 border border-zinc-800"
                     }`}>
                       {passed ? "✓" : ""}
                     </span>
@@ -169,7 +169,7 @@ export default function MarketLiveWalletTab({
           <div className="flex gap-3">
             <button
               onClick={onOpenAutomation}
-              className="flex-1 rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-3 text-sm font-medium text-slate-300 transition hover:border-slate-600 hover:text-slate-100"
+              className="flex-1 rounded-xl border border-zinc-800 bg-slate-800/60 px-4 py-3 text-sm font-medium text-slate-300 transition hover:border-zinc-700 hover:text-slate-100"
             >
               Set Up Automation →
             </button>

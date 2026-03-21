@@ -49,7 +49,7 @@ export default function MarketOperatorRail({ walletSnapshot, system, serverStatu
             <p className="text-sm font-semibold text-slate-100">{runtimeLabel(serverStatus)}</p>
             <p className="mt-1 text-xs text-slate-400">Config: {system?.configSourceLabel ?? "Unavailable"}</p>
           </div>
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${blockerCount > 0 ? "bg-amber-500/15 text-amber-100" : "bg-emerald-500/15 text-emerald-100"}`}>
+          <span className={`rounded-lg px-3 py-1 text-xs font-semibold ${blockerCount > 0 ? "bg-amber-500/15 text-amber-100" : "bg-emerald-500/15 text-emerald-100"}`}>
             {blockerCount > 0 ? `${blockerCount} active` : "Clear"}
           </span>
         </div>
@@ -74,7 +74,7 @@ export default function MarketOperatorRail({ walletSnapshot, system, serverStatu
         ) : (
           <div className="space-y-2">
             {recentLogs.map((log) => (
-              <div key={log.id} className="rounded-2xl border border-slate-800 bg-slate-950/80 px-3 py-2">
+              <div key={log.id} className="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-3 py-2">
                 <p className="text-xs leading-5 text-slate-200">{log.message}</p>
                 <p className="mt-1 text-[11px] text-slate-500">{new Date(log.created_at).toLocaleTimeString()}</p>
               </div>
@@ -94,7 +94,7 @@ export default function MarketOperatorRail({ walletSnapshot, system, serverStatu
             <button
               key={action.id}
               onClick={() => onNavigate(action.id)}
-              className="rounded-2xl border border-slate-800 bg-slate-950/80 px-3 py-2 text-left text-xs font-semibold text-slate-200 transition hover:border-cyan-400/30 hover:bg-slate-900"
+              className="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-3 py-2 text-left text-xs font-semibold text-slate-200 transition hover:border-cyan-400/30 hover:bg-zinc-900"
             >
               {action.label}
             </button>
@@ -107,7 +107,7 @@ export default function MarketOperatorRail({ walletSnapshot, system, serverStatu
 
 function RailPanel({ title, eyebrow, children }: { title: string; eyebrow: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-[28px] border border-slate-800 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,0.96))] p-4 shadow-[0_18px_45px_rgba(2,6,23,0.35)]">
+    <section className="rounded-[28px] border border-zinc-800 bg-[linear-gradient(180deg,rgba(24,24,27,0.96),rgba(9,9,11,0.96))] p-4 shadow-[0_18px_45px_rgba(9,9,11,0.35)]">
       <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">{eyebrow}</p>
       <h3 className="mt-1 text-sm font-semibold text-slate-100">{title}</h3>
       <div className="mt-3">{children}</div>
@@ -117,7 +117,7 @@ function RailPanel({ title, eyebrow, children }: { title: string; eyebrow: strin
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-950/80 px-2.5 py-2">
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-2.5 py-2">
       <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">{label}</p>
       <p className="mt-1 text-xs font-semibold text-slate-100">{value}</p>
     </div>

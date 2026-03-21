@@ -20,7 +20,7 @@ export default function MarketPlanInsights({ draft }: { draft: AutomationPlan })
   if (draft.riskLevel === "aggressive" && draft.maxTradesPerDay > 25) warnings.push("Aggressive risk plus high frequency increases variance quickly.");
 
   return (
-    <div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-4 shadow-sm">
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Plan sanity check</p>
@@ -32,15 +32,15 @@ export default function MarketPlanInsights({ draft }: { draft: AutomationPlan })
       </div>
 
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-3">
+        <div className="rounded-xl border border-zinc-800 bg-zinc-950/80 px-3 py-3">
           <p className="text-xs text-slate-400">Budget per position</p>
           <p className="mt-1 text-lg font-bold text-slate-100">${budgetPerPosition.toFixed(2)}</p>
         </div>
-        <div className="rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-3">
+        <div className="rounded-xl border border-zinc-800 bg-zinc-950/80 px-3 py-3">
           <p className="text-xs text-slate-400">Average trade cadence</p>
           <p className="mt-1 text-lg font-bold text-slate-100">{hoursBetweenTrades >= 1 ? `${hoursBetweenTrades.toFixed(1)}h` : `${Math.round(hoursBetweenTrades * 60)}m`}</p>
         </div>
-        <div className="rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-3">
+        <div className="rounded-xl border border-zinc-800 bg-zinc-950/80 px-3 py-3">
           <p className="text-xs text-slate-400">Capital protection</p>
           <p className="mt-1 text-lg font-bold text-slate-100">${draft.maxDailyLoss.toFixed(0)} / day</p>
         </div>

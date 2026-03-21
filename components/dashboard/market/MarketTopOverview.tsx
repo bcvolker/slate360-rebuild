@@ -23,7 +23,7 @@ function runtimeLabel(status: ServerBotStatus): string {
 function cardTone(isAlert: boolean): string {
   return isAlert
     ? "border-amber-500/30 bg-amber-500/10 text-amber-50"
-    : "border-cyan-500/20 bg-slate-950/70 text-slate-50";
+    : "border-cyan-500/20 bg-zinc-950/70 text-slate-50";
 }
 
 export default function MarketTopOverview({
@@ -42,7 +42,7 @@ export default function MarketTopOverview({
 
   return (
     <div className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-4">
-      <button onClick={onOpenResults} className={`rounded-[28px] border p-4 text-left shadow-[0_18px_40px_rgba(2,6,23,0.22)] transition hover:border-cyan-400/30 ${cardTone(false)}`}>
+      <button onClick={onOpenResults} className={`rounded-[28px] border p-4 text-left shadow-[0_18px_40px_rgba(9,9,11,0.22)] transition hover:border-cyan-400/30 ${cardTone(false)}`}>
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Open Positions</p>
         <div className="flex items-end justify-between mt-2 gap-3">
           <div>
@@ -53,7 +53,7 @@ export default function MarketTopOverview({
         </div>
       </button>
 
-      <button onClick={onOpenAutomation} className={`rounded-[28px] border p-4 text-left shadow-[0_18px_40px_rgba(2,6,23,0.22)] transition hover:border-cyan-400/30 ${cardTone(false)}`}>
+      <button onClick={onOpenAutomation} className={`rounded-[28px] border p-4 text-left shadow-[0_18px_40px_rgba(9,9,11,0.22)] transition hover:border-cyan-400/30 ${cardTone(false)}`}>
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Last Known Runtime</p>
         <div className="flex items-end justify-between mt-2 gap-3">
           <div>
@@ -66,7 +66,7 @@ export default function MarketTopOverview({
         </div>
       </button>
 
-      <button onClick={onOpenAutomation} className={`rounded-[28px] border p-4 text-left shadow-[0_18px_40px_rgba(2,6,23,0.22)] transition hover:border-cyan-400/30 ${cardTone(false)}`}>
+      <button onClick={onOpenAutomation} className={`rounded-[28px] border p-4 text-left shadow-[0_18px_40px_rgba(9,9,11,0.22)] transition hover:border-cyan-400/30 ${cardTone(false)}`}>
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Config Source</p>
         <div className="mt-2 flex items-end justify-between gap-3">
           <div>
@@ -77,7 +77,7 @@ export default function MarketTopOverview({
         </div>
       </button>
 
-      <button onClick={onOpenWallet} className={`rounded-[28px] border p-4 text-left shadow-[0_18px_40px_rgba(2,6,23,0.22)] transition hover:border-amber-400/30 ${cardTone((system?.blockers.length ?? 0) > 0)}`}>
+      <button onClick={onOpenWallet} className={`rounded-[28px] border p-4 text-left shadow-[0_18px_40px_rgba(9,9,11,0.22)] transition hover:border-amber-400/30 ${cardTone((system?.blockers.length ?? 0) > 0)}`}>
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Live Blockers</p>
         <div className="mt-2 flex items-end justify-between gap-3">
           <div>

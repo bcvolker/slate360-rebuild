@@ -26,13 +26,13 @@ export default function MarketSavedMarketsTab({ onNavigate }: MarketSavedMarkets
       </div>
 
       {watchlist.loading && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-10 text-center text-sm text-slate-500">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-10 text-center text-sm text-slate-500">
           Loading saved markets…
         </div>
       )}
 
       {!watchlist.loading && watchlist.items.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900/80 p-10 text-center">
+        <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/80 p-10 text-center">
           <div className="mb-3 text-3xl">🔖</div>
           <h2 className="mb-1 text-lg font-semibold text-slate-100">No saved markets yet</h2>
           <p className="text-sm text-slate-400">Save markets from Direct Buy to build a reusable shortlist.</p>
@@ -42,7 +42,7 @@ export default function MarketSavedMarketsTab({ onNavigate }: MarketSavedMarkets
       {!watchlist.loading && watchlist.items.length > 0 && (
         <div className="grid gap-3">
           {watchlist.items.map((item) => (
-            <div key={item.id} className="rounded-[24px] border border-slate-800 bg-slate-900/80 p-4 shadow-[0_16px_35px_rgba(2,6,23,0.24)]">
+            <div key={item.id} className="rounded-[24px] border border-zinc-800 bg-zinc-900/80 p-4 shadow-[0_16px_35px_rgba(9,9,11,0.24)]">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-slate-100">{item.title}</p>

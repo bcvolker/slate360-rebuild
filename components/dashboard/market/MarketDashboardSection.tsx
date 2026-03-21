@@ -57,40 +57,39 @@ export default function MarketDashboardSection({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[32px] border border-cyan-500/20 bg-[linear-gradient(135deg,rgba(8,15,31,0.96),rgba(15,23,42,0.96))] p-5 shadow-[0_24px_80px_rgba(2,6,23,0.55)]">
+      <section className="rounded-[32px] border border-cyan-500/20 bg-[linear-gradient(135deg,rgba(9,9,11,0.96),rgba(24,24,27,0.96))] p-5 shadow-[0_24px_80px_rgba(9,9,11,0.55)]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-cyan-300/80">Dashboard</p>
-            <h2 className="mt-2 text-2xl font-black text-slate-50">Operator command deck</h2>
+            <h2 className="mt-2 text-2xl font-black text-slate-50">Command Center</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
-              All values are sourced from live server status, scheduler health, and current trade ledger.
-              No local inference is used when backend data is unavailable.
+              Real-time data from your wallet, trades, and automation status.
             </p>
           </div>
           <button
             onClick={() => setWalletOpen((value) => !value)}
-            className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100 transition hover:bg-cyan-400/20"
+            className="rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100 transition hover:bg-cyan-400/20"
           >
             {walletOpen ? "Hide Wallet Readiness" : "Open Wallet Readiness"}
           </button>
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-4">
-          <div className="rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-3">
             <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Config Source</p>
             <p className="mt-2 text-sm font-semibold text-slate-100">{system?.configSourceLabel ?? "Server"}</p>
           </div>
-          <div className="rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-3">
             <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Runtime</p>
             <p className="mt-2 text-sm font-semibold text-emerald-400">{statusLabel(serverStatus.status)}</p>
           </div>
-          <div className="rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-3">
             <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Live Blockers</p>
             <p className={`mt-2 text-sm font-semibold ${blockerCount > 0 ? "text-rose-400" : "text-emerald-400"}`}>
               {blockerCount > 0 ? String(blockerCount) : "None"}
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-3">
             <p className="text-[11px] uppercase tracking-[0.22em] text-slate-400">Last Known Run</p>
             <p className="mt-2 text-sm font-semibold text-slate-100">{lastRunLabel}</p>
           </div>
@@ -135,7 +134,7 @@ export default function MarketDashboardSection({
           />
 
           {walletOpen && (
-            <section className="rounded-[32px] border border-slate-700 bg-slate-950/70 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.45)]">
+            <section className="rounded-[32px] border border-zinc-800 bg-zinc-950/70 p-4 shadow-[0_20px_60px_rgba(24,24,27,0.45)]">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Wallet And Live Readiness</p>
@@ -143,7 +142,7 @@ export default function MarketDashboardSection({
                     Live mode remains blocked until both wallet prerequisites and backend readiness are green.
                   </p>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${paperMode ? "bg-violet-500/20 text-violet-200" : "bg-emerald-500/20 text-emerald-200"}`}>
+                <span className={`rounded-lg px-3 py-1 text-xs font-semibold ${paperMode ? "bg-violet-500/20 text-violet-200" : "bg-emerald-500/20 text-emerald-200"}`}>
                   {paperMode ? "Practice Default" : "Live Default"}
                 </span>
               </div>

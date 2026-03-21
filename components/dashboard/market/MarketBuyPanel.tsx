@@ -66,14 +66,14 @@ export default function MarketBuyPanel({
     <div className="space-y-6">
       <div className="flex justify-between">
         <div>
-          <p className="text-xs tracking-[1px] text-slate-500">TRADE TICKET</p>
+          <p className="text-xs tracking-[1px] text-slate-500">BUY ORDER</p>
           <p className="font-semibold text-slate-100 mt-1 leading-tight">{market.title}</p>
         </div>
         <button onClick={onClose} className="text-3xl text-slate-500 hover:text-white leading-none">×</button>
       </div>
 
       {/* MODE SELECTOR - VERY PROMINENT */}
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl p-1">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-1">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <div className={`px-5 py-2 rounded-xl text-sm font-bold ${
@@ -108,7 +108,7 @@ export default function MarketBuyPanel({
           className={`p-5 rounded-3xl border-2 transition-all ${
             outcome === "YES" 
               ? "border-emerald-400 bg-emerald-500/10" 
-              : "border-slate-700 hover:border-slate-600"
+              : "border-zinc-800 hover:border-zinc-700"
           }`}
         >
           <div className="text-emerald-400 text-xs font-bold mb-2">YES</div>
@@ -120,7 +120,7 @@ export default function MarketBuyPanel({
           className={`p-5 rounded-3xl border-2 transition-all ${
             outcome === "NO" 
               ? "border-rose-400 bg-rose-500/10" 
-              : "border-slate-700 hover:border-slate-600"
+              : "border-zinc-800 hover:border-zinc-700"
           }`}
         >
           <div className="text-rose-400 text-xs font-bold mb-2">NO</div>
@@ -139,7 +139,7 @@ export default function MarketBuyPanel({
               className={`flex-1 py-4 rounded-2xl text-sm font-semibold transition-all ${
                 amount === v 
                   ? "bg-[#FF4D00] text-white shadow-lg shadow-orange-500/30" 
-                  : "bg-slate-800 hover:bg-slate-700"
+                  : "bg-slate-800 hover:bg-zinc-800"
               }`}
             >
               ${v}
@@ -149,7 +149,7 @@ export default function MarketBuyPanel({
       </div>
 
       {/* Summary */}
-      <div className="bg-slate-900/60 border border-slate-700 rounded-2xl p-5 grid grid-cols-2 gap-6 text-center">
+      <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-5 grid grid-cols-2 gap-6 text-center">
         <div>
           <div className="text-xs text-slate-400">IF YOU WIN</div>
           <div className="text-2xl font-bold text-emerald-400 mt-1">{formatMoney(payout)}</div>
@@ -199,12 +199,12 @@ export default function MarketBuyPanel({
   );
 
   if (inline) {
-    return <div className="p-6 border border-slate-700 rounded-3xl bg-slate-950">{panelContent}</div>;
+    return <div className="p-6 border border-zinc-800 rounded-3xl bg-zinc-950">{panelContent}</div>;
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div className="bg-slate-950 border border-slate-700 rounded-3xl w-full max-w-md max-h-[92vh] overflow-auto">
+      <div className="bg-zinc-950 border border-zinc-800 rounded-3xl w-full max-w-md max-h-[92vh] overflow-auto">
         <div className="p-6">{panelContent}</div>
       </div>
     </div>

@@ -37,7 +37,7 @@ export function StatusBadge({ status }: { status: string }) {
   };
 
   return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${colors[status] || colors.idle}`}>
+    <span className={`text-xs px-2 py-0.5 rounded-lg font-medium ${colors[status] || colors.idle}`}>
       {labels[status] ?? (status.charAt(0).toUpperCase() + status.slice(1))}
     </span>
   );
@@ -47,7 +47,7 @@ export function MarketOpportunityBadge({ market }: { market: MarketListing }) {
   const signal = getMarketOpportunitySignal(market);
 
   return (
-    <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] shadow-sm ${signal.tone}`} title={signal.detail}>
+    <span className={`inline-flex rounded-lg px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] shadow-sm ${signal.tone}`} title={signal.detail}>
       {signal.label}
     </span>
   );
@@ -55,14 +55,14 @@ export function MarketOpportunityBadge({ market }: { market: MarketListing }) {
 
 export function MarketTableLegend() {
   return (
-    <details className="rounded-xl border border-slate-800 bg-slate-950/80">
+    <details className="rounded-xl border border-zinc-800 bg-zinc-950/80">
       <summary className="cursor-pointer px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200">
         Help: how to read market prices
       </summary>
       <div className="grid gap-2 px-4 pb-3 pt-1 sm:grid-cols-3 text-[11px] text-slate-400">
         <p><strong className="text-slate-200">Backing an outcome:</strong> Buy YES to profit if the event happens. Buy NO to profit if it doesn&apos;t.</p>
         <p><strong className="text-slate-200">Price:</strong> A 62c entry price means $0.62 per share, paying $1 if correct.</p>
-        <p><strong className="text-slate-200">Signals:</strong> Edge, volume, and liquidity are confidence cues, not guarantees.</p>
+        <p><strong className="text-slate-200">Market indicators:</strong> Value, activity, and depth are confidence cues, not guarantees.</p>
       </div>
     </details>
   );

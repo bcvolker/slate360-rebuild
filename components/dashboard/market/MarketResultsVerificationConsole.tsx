@@ -64,7 +64,7 @@ export default function MarketResultsVerificationConsole({
         </div>
       )}
 
-      <div className="rounded-[28px] border border-slate-700 bg-slate-950 p-4 text-slate-100 shadow-[0_20px_40px_rgba(2,6,23,0.35)]">
+      <div className="rounded-[28px] border border-zinc-800 bg-zinc-950 p-4 text-slate-100 shadow-[0_20px_40px_rgba(9,9,11,0.35)]">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Verification Console</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <MetricCard label="Open Positions" value={String(openPositionsCount)} />
@@ -74,14 +74,14 @@ export default function MarketResultsVerificationConsole({
           <MetricCard label="Live Blockers" value={systemLoading ? "..." : String(blockerCount)} />
         </div>
         <div className="mt-3 grid gap-3 lg:grid-cols-2">
-          <div className="rounded-2xl border border-slate-700 bg-slate-900/80 px-3 py-3 text-xs text-slate-300">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 px-3 py-3 text-xs text-slate-300">
             <p className="font-semibold uppercase tracking-[0.18em] text-slate-500">Wallet Snapshot</p>
             <p className="mt-2">Connection: {walletSnapshot.isConnected ? "Connected" : "Disconnected"}</p>
             <p className="mt-1">Address: {walletSnapshot.address ? `${walletSnapshot.address.slice(0, 6)}...${walletSnapshot.address.slice(-4)}` : "Unavailable"}</p>
             <p className="mt-1">USDC: ${walletSnapshot.usdcBalance ?? "0.00"} · Gas: {walletSnapshot.maticFormatted}</p>
             <p className="mt-1">Signature: {walletSnapshot.walletVerified ? "Verified" : "Not verified"}</p>
           </div>
-          <div className="rounded-2xl border border-slate-700 bg-slate-900/80 px-3 py-3 text-xs text-slate-300">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 px-3 py-3 text-xs text-slate-300">
             <p className="font-semibold uppercase tracking-[0.18em] text-slate-500">Server Readiness</p>
             <p className="mt-2">Runtime status: {statusLabel(serverStatus)}</p>
             <p className="mt-1">Config source: {system?.configSourceLabel ?? "Unavailable"}</p>
@@ -103,7 +103,7 @@ export default function MarketResultsVerificationConsole({
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-700 bg-slate-900/80 px-3 py-2">
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 px-3 py-2">
       <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">{label}</p>
       <p className="mt-1 text-lg font-bold text-slate-100">{value}</p>
     </div>

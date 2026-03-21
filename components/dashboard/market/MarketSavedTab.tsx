@@ -23,7 +23,7 @@ export default function MarketSavedTab({ onNavigate }: MarketSavedTabProps) {
         {items.length > 0 && (
           <button
             onClick={() => void refresh()}
-            className="rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-400 transition hover:text-slate-200 hover:border-slate-600"
+            className="rounded-lg border border-zinc-800 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-400 transition hover:text-slate-200 hover:border-zinc-700"
           >
             Refresh
           </button>
@@ -33,13 +33,13 @@ export default function MarketSavedTab({ onNavigate }: MarketSavedTabProps) {
       {/* Loading state */}
       {loading && items.length === 0 && (
         <div className="flex items-center justify-center py-16">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-700 border-t-[#FF4D00]" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-[#FF4D00]" />
         </div>
       )}
 
       {/* Empty state */}
       {!loading && items.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-900/30 py-16 px-6 text-center">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30 py-16 px-6 text-center">
           <p className="text-slate-400 text-sm mb-1">No saved markets yet</p>
           <p className="text-slate-500 text-xs mb-5 max-w-xs">
             Browse markets and tap the bookmark icon to save them here for quick access.
@@ -59,7 +59,7 @@ export default function MarketSavedTab({ onNavigate }: MarketSavedTabProps) {
           {items.map(item => (
             <div
               key={item.id}
-              className="group rounded-xl border border-slate-700 bg-slate-900/60 p-4 transition hover:border-slate-600"
+              className="group rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 transition hover:border-zinc-700"
             >
               <div className="flex items-start justify-between gap-2 mb-3">
                 <h3 className="text-sm font-medium text-slate-200 leading-snug line-clamp-2">

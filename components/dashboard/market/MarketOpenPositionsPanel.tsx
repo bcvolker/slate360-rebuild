@@ -11,7 +11,7 @@ function PnlValue({ value }: { value: number }) {
 
 export default function MarketOpenPositionsPanel({ trades, onOpenTrade }: { trades: MarketTrade[]; onOpenTrade: (trade: MarketTrade) => void }) {
   return (
-    <div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-5">
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-5">
       <h3 className="text-lg font-black text-slate-100">Open positions</h3>
       <p className="text-sm text-slate-400 mt-1 mb-4">
         {trades.length === 0
@@ -24,11 +24,11 @@ export default function MarketOpenPositionsPanel({ trades, onOpenTrade }: { trad
       ) : (
         <div className="space-y-2 max-h-[320px] overflow-y-auto">
           {trades.slice(0, 8).map((trade) => (
-            <button key={trade.id} onClick={() => onOpenTrade(trade)} className="w-full rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-4 text-left flex items-start justify-between gap-3 transition hover:border-cyan-400/30 hover:bg-slate-900">
+            <button key={trade.id} onClick={() => onOpenTrade(trade)} className="w-full rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-4 text-left flex items-start justify-between gap-3 transition hover:border-cyan-400/30 hover:bg-zinc-900">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-slate-100 truncate">{trade.marketTitle}</p>
                 <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-400">
-                  <span className={`px-2 py-0.5 rounded-full font-medium ${trade.outcome === "YES" ? "bg-green-500/15 text-green-300" : "bg-red-500/15 text-red-300"}`}>
+                  <span className={`px-2 py-0.5 rounded-lg font-medium ${trade.outcome === "YES" ? "bg-green-500/15 text-green-300" : "bg-red-500/15 text-red-300"}`}>
                     {outcomePlainLabel(trade.outcome)}
                   </span>
                   <span>{tradeModeLabel(trade)}</span>

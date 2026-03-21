@@ -54,11 +54,11 @@ export default function MarketAutomationBuilder({
   };
 
   return (
-    <div className="border border-slate-700 bg-slate-900/80 rounded-2xl p-5 space-y-4">
+    <div className="border border-zinc-800 bg-zinc-900/80 rounded-2xl p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-slate-100">
-          {editingId ? "Edit Plan" : "Create a Robot Plan"}
-          <HelpTip content="Tell the robot how much to spend, what risk level, and which topics to focus on." />
+          {editingId ? "Edit Plan" : "Create an Auto-Buy Plan"}
+          <HelpTip content="Set how much to spend, what risk level, and which topics to focus on." />
         </h3>
       </div>
 
@@ -76,7 +76,7 @@ export default function MarketAutomationBuilder({
                 className={`rounded-lg border px-3 py-2 text-left transition ${
                   active
                     ? "border-[#FF4D00] bg-orange-500/15 text-orange-200"
-                    : "border-slate-700 bg-slate-950/80 text-slate-300 hover:border-slate-600"
+                    : "border-zinc-800 bg-zinc-950/80 text-slate-300 hover:border-zinc-700"
                 }`}
               >
                 <p className="text-xs font-semibold">{getAutomationPresetLabel(preset)}</p>
@@ -101,7 +101,7 @@ export default function MarketAutomationBuilder({
         </p>
       </div>
 
-      <div className="rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2">
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950/80 px-3 py-2">
         <button
           type="button"
           onClick={() => setShowAdvanced((value) => !value)}
@@ -117,7 +117,7 @@ export default function MarketAutomationBuilder({
               {(["basic", "intermediate", "advanced"] as const).map(lvl => (
                 <button key={lvl} onClick={() => onControlLevelChange(lvl)}
                   className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${
-                    controlLevel === lvl ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                    controlLevel === lvl ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-zinc-800"
                   }`}>
                   {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
                 </button>
@@ -135,7 +135,7 @@ export default function MarketAutomationBuilder({
         <label className="text-xs text-slate-400 mb-1 block">Plan Name</label>
         <input type="text" placeholder="e.g. Conservative Scanner Q1" value={draft.name}
           onChange={e => onFieldChange("name", e.target.value)}
-          className="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-[#FF4D00]" />
+          className="w-full bg-zinc-950/80 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-[#FF4D00]" />
       </div>
 
       {/* Basic controls — always show */}
@@ -160,17 +160,17 @@ export default function MarketAutomationBuilder({
         </button>
         <button onClick={onSaveAndApply} disabled={!draft.name.trim()}
           className="flex-1 bg-[#FF4D00] hover:bg-orange-600 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40 text-white">
-          ▶ {editingId ? "Save + Start Robot" : "Save + Start Robot"}
+          ▶ {editingId ? "Save + Start Auto-Buy" : "Save + Start Auto-Buy"}
         </button>
         {editingId && (
           <button onClick={onReset}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition text-slate-300">
+            className="px-4 py-2 bg-slate-800 hover:bg-zinc-800 rounded-lg text-sm transition text-slate-300">
             Cancel
           </button>
         )}
       </div>
       <p className="text-[11px] text-slate-500">
-        Save Draft stores your plan. Save + Start Robot stores the plan, requests runtime start, and triggers a scan. Runtime status is server-confirmed separately.
+        Save Draft stores your plan. Save + Start Auto-Buy stores the plan, requests runtime start, and triggers a scan. Runtime status is server-confirmed separately.
       </p>
     </div>
   );
@@ -205,7 +205,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
             {(["practice", "real"] as const).map(m => (
               <button key={m} onClick={() => onFieldChange("mode", m)}
                 className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${
-                  draft.mode === m ? (m === "practice" ? "bg-purple-600 text-white" : "bg-green-600 text-white") : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                  draft.mode === m ? (m === "practice" ? "bg-purple-600 text-white" : "bg-green-600 text-white") : "bg-slate-800 text-slate-400 hover:bg-zinc-800"
                 }`}>
                 {m === "practice" ? "🧪 Practice" : "💵 Real"}
               </button>
@@ -222,7 +222,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
           {(["conservative", "balanced", "aggressive"] as const).map(r => (
             <button key={r} onClick={() => onFieldChange("riskLevel", r as RiskLevel)}
               className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${
-                draft.riskLevel === r ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                draft.riskLevel === r ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-zinc-800"
               }`}>
               {r === "conservative" ? "Safe" : r === "balanced" ? "Balanced" : "Aggressive"}
             </button>
@@ -233,7 +233,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs text-slate-400 mb-1 flex items-center">
-            Daily trade cap <HelpTip content="The most trades the robot can place in one day." />
+            Daily trade cap <HelpTip content="The most buys the system can make in one day." />
           </label>
           <MarketNumericInput
             value={draft.maxTradesPerDay}
@@ -245,7 +245,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
         </div>
         <div>
           <label className="text-xs text-slate-400 mb-1 flex items-center">
-            Stop after losing this much today ($) <HelpTip content="When losses hit this amount in one day, the robot should stop trading." />
+            Stop after losing this much today ($) <HelpTip content="When losses hit this amount in one day, buying pauses automatically." />
           </label>
           <MarketNumericInput
             value={draft.maxDailyLoss}
@@ -259,7 +259,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs text-slate-400 mb-1 flex items-center">
-            Max positions at once <HelpTip content="The most open positions the robot can hold at one time." />
+            Max positions at once <HelpTip content="The most active bets the system can hold at once." />
           </label>
           <MarketNumericInput
             value={draft.maxOpenPositions}
@@ -271,10 +271,10 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
         </div>
         <div>
           <label className="text-xs text-slate-400 mb-1 flex items-center">
-            Scan speed <HelpTip content="Controls how often the robot looks for opportunities. Faster modes create more activity and more noise." />
+            How often to scan <HelpTip content="Controls how often the system scans for new markets. Faster = more buys, but also more noise." />
           </label>
           <select value={draft.scanMode} onChange={e => onFieldChange("scanMode", e.target.value as ScanMode)}
-            className="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 outline-none focus:border-[#FF4D00]">
+            className="w-full bg-zinc-950/80 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-slate-100 outline-none focus:border-[#FF4D00]">
             {(["slow", "balanced", "fast", "closing-soon"] as const).map(s => (
               <option key={s} value={s}>{s === "closing-soon" ? "Soon-ending only" : s.charAt(0).toUpperCase() + s.slice(1)}</option>
             ))}
@@ -289,8 +289,8 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
         <div className="flex flex-wrap gap-1">
           {FOCUS_AREAS.map(area => (
             <button key={area} onClick={() => toggleCategory(area)}
-              className={`px-2 py-0.5 text-xs rounded-full transition ${
-                draft.categories.includes(area) ? "bg-[#1E3A8A] text-blue-200" : "bg-slate-800 text-slate-500 hover:bg-slate-700"
+              className={`px-2 py-0.5 text-xs rounded-lg transition ${
+                draft.categories.includes(area) ? "bg-[#FF4D00] text-blue-200" : "bg-slate-800 text-slate-500 hover:bg-zinc-800"
               }`}>
               {area}
             </button>

@@ -68,7 +68,7 @@ export default function MarketStartHereTab({
       <div className="quick-actions grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <button 
           onClick={() => onNavigate("direct-buy")} 
-          className="action-card bg-zinc-900 rounded-2xl p-4 text-left hover:bg-slate-800 transition-colors"
+          className="action-card bg-zinc-900 rounded-2xl p-4 text-left hover:bg-zinc-800 transition-colors"
         >
           <div className="icon mb-2 text-[#FF4D00]">🔍</div>
           <h2 className="text-lg font-semibold text-slate-100">Browse Markets</h2>
@@ -76,7 +76,7 @@ export default function MarketStartHereTab({
         </button>
         <button 
           onClick={() => onNavigate("automation")} 
-          className="action-card bg-zinc-900 rounded-2xl p-4 text-left hover:bg-slate-800 transition-colors"
+          className="action-card bg-zinc-900 rounded-2xl p-4 text-left hover:bg-zinc-800 transition-colors"
         >
           <div className="icon mb-2 text-[#FF4D00]">⚙️</div>
           <h2 className="text-lg font-semibold text-slate-100">Set Up Automation</h2>
@@ -84,7 +84,7 @@ export default function MarketStartHereTab({
         </button>
         <button 
           onClick={() => onNavigate("results")} 
-          className="action-card bg-zinc-900 rounded-2xl p-4 text-left hover:bg-slate-800 transition-colors"
+          className="action-card bg-zinc-900 rounded-2xl p-4 text-left hover:bg-zinc-800 transition-colors"
         >
           <div className="icon mb-2 text-[#FF4D00]">📊</div>
           <h2 className="text-lg font-semibold text-slate-100">View Results</h2>

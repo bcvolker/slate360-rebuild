@@ -31,7 +31,7 @@ export default function MarketSortHeader({
   }
 
   return (
-    <button onClick={onClick} className={`inline-flex w-full items-center gap-1 ${alignClass} font-medium ${active ? "text-[#1E3A8A]" : "text-gray-400 hover:text-gray-600"}`}>
+    <button onClick={onClick} className={`inline-flex w-full items-center gap-1 ${alignClass} font-medium ${active ? "text-[#FF4D00]" : "text-gray-400 hover:text-gray-600"}`}>
       <span>{label}</span>
       <span className={`text-[10px] ${active ? "text-[#FF4D00]" : "text-gray-300"}`}>{arrow}</span>
       {help ? <HelpTip content={help} /> : null}

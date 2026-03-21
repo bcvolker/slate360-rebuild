@@ -30,7 +30,7 @@ const QUICK_TIMEFRAMES: { key: MktTimeframe; label: string }[] = [
 ];
 
 const SORT_LABELS: Record<string, string> = {
-  edge: "Opportunity", volume: "Most Active", probability: "Most Likely", endDate: "Ending Soon", title: "A–Z",
+  edge: "Best Opportunity", volume: "Most Active", probability: "Most Likely", endDate: "Ending Soon", title: "A–Z",
 };
 
 const fmt = (v: number) => `$${v.toFixed(2)}`;
@@ -63,7 +63,7 @@ export default function MarketDirectBuyTab({
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-md">
         {CATEGORIES.map((cat) => (
           <button key={cat} onClick={() => handleCategoryPick(cat)}
-            className="rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm font-medium text-slate-200 transition hover:border-[#FF4D00] hover:bg-[#FF4D00]/10">
+            className="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm font-medium text-slate-200 transition hover:border-[#FF4D00] hover:bg-[#FF4D00]/10">
             {cat}
           </button>
         ))}
@@ -77,10 +77,10 @@ export default function MarketDirectBuyTab({
     s.timeframe !== "all" ? { label: `Time: ${QUICK_TIMEFRAMES.find(t => t.key === s.timeframe)?.label ?? s.timeframe}`, clear: () => s.setTimeframe("all") } : null,
     s.category !== "all" ? { label: `Topic: ${s.category}`, clear: () => s.setCategory("all") } : null,
     s.sortBy !== "edge" ? { label: `Sort: ${SORT_LABELS[s.sortBy] ?? s.sortBy}`, clear: () => s.setSortBy("edge") } : null,
-    s.minEdge > 0 ? { label: `Opp ≥${s.minEdge}%`, clear: () => s.setMinEdge(0) } : null,
-    s.minVolume > 0 ? { label: `Vol ≥$${s.minVolume.toLocaleString()}`, clear: () => s.setMinVolume(0) } : null,
-    s.minLiquidity > 0 ? { label: `Liq ≥$${s.minLiquidity.toLocaleString()}`, clear: () => s.setMinLiquidity(0) } : null,
-    s.maxSpread < 100 ? { label: `Spread ≤${s.maxSpread}%`, clear: () => s.setMaxSpread(100) } : null,
+    s.minEdge > 0 ? { label: `Value ≥${s.minEdge}%`, clear: () => s.setMinEdge(0) } : null,
+    s.minVolume > 0 ? { label: `Activity ≥$${s.minVolume.toLocaleString()}`, clear: () => s.setMinVolume(0) } : null,
+    s.minLiquidity > 0 ? { label: `Depth ≥$${s.minLiquidity.toLocaleString()}`, clear: () => s.setMinLiquidity(0) } : null,
+    s.maxSpread < 100 ? { label: `Gap ≤${s.maxSpread}%`, clear: () => s.setMaxSpread(100) } : null,
     s.riskTag !== "all" ? { label: s.riskTag, clear: () => s.setRiskTag("all") } : null,
     (s.probMin > 0 || s.probMax < 100) ? { label: `${s.probMin}–${s.probMax}%`, clear: () => { s.setProbMin(0); s.setProbMax(100); } } : null,
   ].filter((c): c is { label: string; clear: () => void } => c !== null);
@@ -88,11 +88,11 @@ export default function MarketDirectBuyTab({
   return (
     <div className="text-slate-100">
       {/* ---- Header: search + filters ---- */}
-      <div className="mb-5 space-y-3 rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
+      <div className="mb-5 space-y-3 rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4">
         <div className="flex gap-2">
           <input type="text" value={s.query} onChange={e => s.setQuery(e.target.value)} onKeyDown={handleKeyDown}
             placeholder="Search markets (e.g. election, bitcoin, weather)"
-            className="flex-1 rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/40" />
+            className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900/90 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/40" />
           <button onClick={() => s.fetchMarkets()} disabled={s.loading}
             className="rounded-lg bg-[#FF4D00] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#e04400] disabled:opacity-50">
             {s.loading ? "…" : s.loaded ? "Refresh" : "Search"}
@@ -104,14 +104,14 @@ export default function MarketDirectBuyTab({
           <label className="text-[11px] text-slate-400">
             Time
             <select value={s.timeframe} onChange={e => s.setTimeframe(e.target.value as MktTimeframe)}
-              className="mt-0.5 block w-28 rounded-md border border-slate-700 bg-slate-900/90 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30">
+              className="mt-0.5 block w-28 rounded-md border border-zinc-800 bg-zinc-900/90 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30">
               {QUICK_TIMEFRAMES.map(tf => <option key={tf.key} value={tf.key}>{tf.label}</option>)}
             </select>
           </label>
           <label className="text-[11px] text-slate-400">
             Topic
             <select value={s.category} onChange={e => s.setCategory(e.target.value)}
-              className="mt-0.5 block w-28 rounded-md border border-slate-700 bg-slate-900/90 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30">
+              className="mt-0.5 block w-28 rounded-md border border-zinc-800 bg-zinc-900/90 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30">
               <option value="all">All</option>
               {s.availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -119,16 +119,16 @@ export default function MarketDirectBuyTab({
           <label className="text-[11px] text-slate-400">
             Sort
             <select value={s.sortBy} onChange={e => s.setSortBy(e.target.value as typeof s.sortBy)}
-              className="mt-0.5 block w-32 rounded-md border border-slate-700 bg-slate-900/90 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30">
+              className="mt-0.5 block w-32 rounded-md border border-zinc-800 bg-zinc-900/90 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30">
               {Object.entries(SORT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </label>
           <button onClick={() => setExpertMode(!expertMode)}
-            className="rounded-md bg-slate-900 px-2 py-1 text-[11px] font-medium text-slate-300 transition hover:bg-slate-800">
+            className="rounded-md bg-zinc-900 px-2 py-1 text-[11px] font-medium text-slate-300 transition hover:bg-zinc-800">
             {expertMode ? "− Expert" : "+ Expert"}
           </button>
           <button onClick={s.clearFilters}
-            className="rounded-md bg-slate-900 px-2 py-1 text-[11px] font-medium text-slate-300 transition hover:bg-slate-800">Reset</button>
+            className="rounded-md bg-zinc-900 px-2 py-1 text-[11px] font-medium text-slate-300 transition hover:bg-zinc-800">Reset</button>
         </div>
 
         {/* Expert-mode advanced filters */}
@@ -152,11 +152,11 @@ export default function MarketDirectBuyTab({
           <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400">
             {chips.map(c => (
               <button key={c.label} onClick={c.clear}
-                className="group flex items-center gap-1 rounded-full border border-cyan-500/25 bg-cyan-500/10 px-2 py-0.5 text-cyan-200 hover:border-cyan-400/40">
+                className="group flex items-center gap-1 rounded-lg border border-cyan-500/25 bg-cyan-500/10 px-2 py-0.5 text-cyan-200 hover:border-cyan-400/40">
                 {c.label} <span className="text-cyan-400/40 group-hover:text-cyan-200">×</span>
               </button>
             ))}
-            <span className="rounded-full border border-slate-700 bg-slate-950 px-2 py-0.5">
+            <span className="rounded-lg border border-zinc-800 bg-zinc-950 px-2 py-0.5">
               {s.filteredCount}/{s.loadedMarketCount.toLocaleString()}
             </span>
           </div>

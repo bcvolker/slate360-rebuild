@@ -62,7 +62,7 @@ export default function MarketCustomizeDrawer({
   return (
     <div
       ref={drawerRef}
-      className="absolute right-0 top-full mt-1 z-50 bg-slate-950 border border-slate-700 rounded-2xl shadow-2xl p-5 w-80 text-slate-200"
+      className="absolute right-0 top-full mt-1 z-50 bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl p-5 w-80 text-slate-200"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
@@ -87,7 +87,7 @@ export default function MarketCustomizeDrawer({
       {/* Mode selector */}
       <div className="mb-5">
         <label className="text-xs text-slate-400 block mb-2">Layout Mode</label>
-        <div className="flex gap-1 bg-slate-900 p-1 rounded-xl">
+        <div className="flex gap-1 bg-zinc-900 p-1 rounded-xl">
           {(Object.keys(MODE_LABELS) as MarketLayoutMode[]).map((m) => (
             <button
               key={m}
@@ -95,7 +95,7 @@ export default function MarketCustomizeDrawer({
               className={`flex-1 px-4 py-2 text-xs rounded-[10px] font-medium transition-all ${
                 mode === m
                   ? "bg-[#FF4D00] text-white shadow-inner"
-                  : "text-slate-400 hover:bg-slate-800"
+                  : "text-slate-400 hover:bg-zinc-800"
               }`}
             >
               {MODE_LABELS[m]}
@@ -119,7 +119,7 @@ export default function MarketCustomizeDrawer({
               group flex items-center gap-3 px-4 py-3 rounded-xl text-sm cursor-grab active:cursor-grabbing border
               ${dragOver === tab.id && dragging !== tab.id 
                 ? "bg-orange-500/10 border-orange-500/30" 
-                : "border-transparent hover:bg-slate-900"
+                : "border-transparent hover:bg-zinc-900"
               }
               ${!tab.visible ? "opacity-60" : ""}
             `}

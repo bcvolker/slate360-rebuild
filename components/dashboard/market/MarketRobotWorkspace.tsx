@@ -46,13 +46,13 @@ export default function MarketRobotWorkspace({
   const isPracticeMode = bot.config.paperMode;
 
   return (
-    <div className="flex h-[calc(100vh-140px)] flex-col bg-slate-950">
-      <div className="flex flex-1 overflow-hidden border-t border-slate-800">
+    <div className="flex h-[calc(100vh-140px)] flex-col bg-zinc-950">
+      <div className="flex flex-1 overflow-hidden border-t border-zinc-800">
         {/* MAIN TRADING WORKSPACE - Dominant Search Area */}
-        <div className="flex-1 overflow-auto bg-slate-900 p-6">
+        <div className="flex-1 overflow-auto bg-zinc-900 p-6">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+              <div className={`px-3 py-1 rounded-lg text-xs font-medium ${
                 isPracticeMode 
                   ? "bg-emerald-500/10 text-emerald-400" 
                   : "bg-rose-500/10 text-rose-400"
@@ -69,7 +69,7 @@ export default function MarketRobotWorkspace({
         </div>
 
         {/* STRENGTHENED OPERATOR RAIL */}
-        <div className="w-80 border-l border-slate-800 bg-slate-950 overflow-auto">
+        <div className="w-80 border-l border-zinc-800 bg-zinc-950 overflow-auto">
           <MarketOperatorRail
             walletSnapshot={walletSnapshot}
             system={systemStatus.system}

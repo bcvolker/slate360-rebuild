@@ -82,7 +82,7 @@ export default function MarketResultsTab({
               const outcomeColor = trade.outcome === "YES" ? "bg-green-500" : "bg-red-500";
               const unrealizedPnlColor = trade.pnl > 0 ? "text-green-500" : trade.pnl < 0 ? "text-red-500" : "text-slate-400";
               return (
-                <div key={trade.id} className="position-item p-2 border-b border-slate-800 last:border-0">
+                <div key={trade.id} className="position-item p-2 border-b border-zinc-800 last:border-0">
                   <p className="text-base text-slate-100 truncate">{trade.marketTitle}</p>
                   <div className="details flex justify-between text-sm text-slate-400">
                     <span className={`px-2 py-1 rounded text-xs ${outcomeColor} text-slate-100`}>{trade.outcome}</span>
@@ -118,7 +118,7 @@ export default function MarketResultsTab({
               const modeBadge = trade.paperTrade ? "Practice" : "Live";
               const date = new Date(trade.createdAt).toLocaleDateString();
               return (
-                <div key={trade.id} className="trade-item p-2 border-b border-slate-800 last:border-0">
+                <div key={trade.id} className="trade-item p-2 border-b border-zinc-800 last:border-0">
                   <p className="text-base text-slate-100 truncate">{trade.marketTitle}</p>
                   <div className="details flex justify-between text-sm text-slate-400">
                     <span className={`px-2 py-1 rounded text-xs ${outcomeColor} text-slate-100`}>{trade.outcome}</span>

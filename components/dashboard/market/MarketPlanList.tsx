@@ -52,7 +52,7 @@ export default function MarketPlanList({
       </h3>
 
       {activePlans.length === 0 && (
-        <div className="border border-slate-700 bg-slate-950/70 rounded-2xl p-6 text-center text-slate-500 text-sm">
+        <div className="border border-zinc-800 bg-zinc-950/70 rounded-2xl p-6 text-center text-slate-500 text-sm">
           No saved plans yet. Create one using the builder.
         </div>
       )}
@@ -96,7 +96,7 @@ function PlanCard({ plan, archived, renamingId, renameValue, onRenameValueChange
   const isRenaming = renamingId === plan.id;
   const matchedPreset = detectAutomationPreset(plan);
   return (
-    <div className={`border border-slate-700 bg-slate-900/80 rounded-2xl p-4 ${archived ? "opacity-60" : ""}`}>
+    <div className={`border border-zinc-800 bg-zinc-900/80 rounded-2xl p-4 ${archived ? "opacity-60" : ""}`}>
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex-1 min-w-0">
           {isRenaming ? (
@@ -104,7 +104,7 @@ function PlanCard({ plan, archived, renamingId, renameValue, onRenameValueChange
               <input type="text" value={renameValue}
                 onChange={e => onRenameValueChange(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && onCommitRename()}
-                className="flex-1 bg-slate-950/80 border border-slate-600 rounded-lg px-2 py-1 text-sm text-slate-100 outline-none focus:border-[#FF4D00]"
+                className="flex-1 bg-zinc-950/80 border border-zinc-700 rounded-lg px-2 py-1 text-sm text-slate-100 outline-none focus:border-[#FF4D00]"
                 autoFocus />
               <button onClick={onCommitRename} className="text-xs text-green-400 hover:text-green-300 px-1">✓</button>
             </div>
@@ -144,31 +144,31 @@ function PlanCard({ plan, archived, renamingId, renameValue, onRenameValueChange
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button onClick={() => onEdit(plan.id)} className="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">✏️</button>
+            <button onClick={() => onEdit(plan.id)} className="px-2 py-1.5 bg-slate-800 hover:bg-zinc-800 text-slate-400 text-xs rounded-lg transition">✏️</button>
           </TooltipTrigger>
           <TooltipContent>Edit plan</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button onClick={() => onClone(plan.id)} className="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">📋</button>
+            <button onClick={() => onClone(plan.id)} className="px-2 py-1.5 bg-slate-800 hover:bg-zinc-800 text-slate-400 text-xs rounded-lg transition">📋</button>
           </TooltipTrigger>
           <TooltipContent>Duplicate plan</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button onClick={() => onStartRename(plan)} className="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">✍️</button>
+            <button onClick={() => onStartRename(plan)} className="px-2 py-1.5 bg-slate-800 hover:bg-zinc-800 text-slate-400 text-xs rounded-lg transition">✍️</button>
           </TooltipTrigger>
           <TooltipContent>Rename</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button onClick={() => onSetDefault(plan.id)} className="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">⭐</button>
+            <button onClick={() => onSetDefault(plan.id)} className="px-2 py-1.5 bg-slate-800 hover:bg-zinc-800 text-slate-400 text-xs rounded-lg transition">⭐</button>
           </TooltipTrigger>
           <TooltipContent>Set as default</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button onClick={() => onArchive(plan.id)} className="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-lg transition">
+            <button onClick={() => onArchive(plan.id)} className="px-2 py-1.5 bg-slate-800 hover:bg-zinc-800 text-slate-400 text-xs rounded-lg transition">
               {archived ? "📤" : "📥"}
             </button>
           </TooltipTrigger>

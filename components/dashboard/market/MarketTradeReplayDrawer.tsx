@@ -15,9 +15,9 @@ export default function MarketTradeReplayDrawer({ replay, onClose }: { replay: T
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
-      <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-zinc-950/70 backdrop-blur-sm" />
       <div 
-        className="relative h-full w-full max-w-xl overflow-y-auto border-l border-slate-700 bg-slate-950 p-6 shadow-2xl text-slate-200" 
+        className="relative h-full w-full max-w-xl overflow-y-auto border-l border-zinc-800 bg-zinc-950 p-6 shadow-2xl text-slate-200" 
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
@@ -28,7 +28,7 @@ export default function MarketTradeReplayDrawer({ replay, onClose }: { replay: T
           </div>
           <button 
             onClick={onClose} 
-            className="rounded-full border border-slate-700 bg-slate-900 px-4 py-1.5 text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
+            className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-1.5 text-sm text-slate-300 transition hover:bg-zinc-800 hover:text-white"
           >
             Close
           </button>
@@ -43,7 +43,7 @@ export default function MarketTradeReplayDrawer({ replay, onClose }: { replay: T
           <DetailStat label="Shares owned" value={trade.shares.toFixed(1)} tone="slate" />
         </div>
 
-        <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
+        <div className="mt-5 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Current result</p>
@@ -66,7 +66,7 @@ export default function MarketTradeReplayDrawer({ replay, onClose }: { replay: T
           <Section title="Automation checks that matched">
             <div className="flex flex-wrap gap-2">
               {matchedConstraints.map((constraint) => (
-                <span key={constraint} className="rounded-full border border-cyan-500/30 bg-cyan-950 px-3 py-1 text-xs font-medium text-cyan-300">
+                <span key={constraint} className="rounded-lg border border-cyan-500/30 bg-cyan-950 px-3 py-1 text-xs font-medium text-cyan-300">
                   {constraint}
                 </span>
               ))}
@@ -80,7 +80,7 @@ export default function MarketTradeReplayDrawer({ replay, onClose }: { replay: T
           </Section>
         )}
 
-        <div className="mt-8 border-t border-slate-800 pt-4 text-xs text-slate-500">
+        <div className="mt-8 border-t border-zinc-800 pt-4 text-xs text-slate-500">
           Opened: {new Date(trade.createdAt).toLocaleString()}
           {trade.closedAt ? ` · Closed: ${new Date(trade.closedAt).toLocaleString()}` : " · Position still open"}
         </div>
@@ -91,7 +91,7 @@ export default function MarketTradeReplayDrawer({ replay, onClose }: { replay: T
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
+    <div className="mt-5 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5">
       <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">{title}</p>
       <div className="mt-3">{children}</div>
     </div>
@@ -104,7 +104,7 @@ function DetailStat({ label, value, tone }: { label: string; value: string; tone
       ? "text-emerald-300 bg-emerald-950/60 border-emerald-800" 
       : tone === "rose" 
         ? "text-rose-300 bg-rose-950/60 border-rose-800" 
-        : "text-slate-200 bg-slate-900 border-slate-700";
+        : "text-slate-200 bg-zinc-900 border-zinc-800";
 
   return (
     <div className={`rounded-2xl border p-4 ${toneClass}`}>

@@ -15,5 +15,5 @@ export const RISK_COLORS = {
   hot: "#FF4D00",
   "high-risk": "#ef4444",
   "high-potential": "#22c55e",
-  construction: "#1E3A8A",
+  construction: "#a855f7",
 };
