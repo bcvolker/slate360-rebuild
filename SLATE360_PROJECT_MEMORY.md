@@ -54,6 +54,8 @@ Tier note:
 | If you are working on | Read |
 |---|---|
 | Market Robot | `slate360-context/dashboard-tabs/market-robot/START_HERE.md` |
+| Design Studio | `slate360-context/dashboard-tabs/design-studio/START_HERE.md` |
+| 360 Tour Builder | `slate360-context/dashboard-tabs/tour-builder/START_HERE.md` |
 | Backend/auth/billing/storage | `slate360-context/BACKEND.md` |
 | Shared dashboard/tab behavior | `slate360-context/DASHBOARD.md`, `slate360-context/dashboard-tabs/MODULE_REGISTRY.md`, `slate360-context/dashboard-tabs/CUSTOMIZATION_SYSTEM.md` |
 | Project Hub | `slate360-context/PROJECT_HUB.md` |
@@ -145,9 +147,17 @@ Use those files only for deep history, roadmap, or recovery work.
 
 | File | Lines | Risk |
 |---|---|---|
-| `components/dashboard/DashboardClient.tsx` | 2,800+ | State at top, JSX at bottom — can't edit one without seeing the other |
-| `components/slatedrop/SlateDropClient.tsx` | 2,030 | Multi-phase upload + preview logic |
-| `components/project-hub/ClientPage.tsx` | 834 | Mutation + display interleaved |
+| `components/dashboard/DashboardClient.tsx` | 1,961 | State at top, JSX at bottom — can't edit one without seeing the other |
+| `components/slatedrop/SlateDropClient.tsx` | 451 | Decomposed but still large; multi-phase upload + preview logic |
+| `app/(dashboard)/project-hub/[projectId]/management/page.tsx` | 931 | Oversized — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/photos/page.tsx` | 599 | Oversized — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/submittals/page.tsx` | 579 | Oversized — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/schedule/page.tsx` | 465 | Oversized — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/drawings/page.tsx` | 448 | Oversized — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/budget/page.tsx` | 421 | Oversized — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/punch-list/page.tsx` | 403 | Oversized — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/daily-logs/page.tsx` | 358 | Oversized — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/rfis/page.tsx` | 339 | Oversized — needs extraction |
 
 When editing these, always read both the state declarations AND the JSX sections.
 
@@ -155,62 +165,87 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-21 (Market Robot V3 — Foundation + Command Center)
+### Session Handoff — 2026-03-22 (Multi-Module Prep + Market Robot Pause)
+
+#### Session Summary
+Market Robot V3 is paused at Prompts 10/16 complete — waiting for wallet USDC funding to test live CLOB buys. This session prepared the project for multi-module work across chats/computers by creating START_HERE.md files for Design Studio and 360 Tour Builder, updating all context docs, and auditing readiness of dashboard/slatedrop/project-hub.
 
 #### What Changed This Session
-- **Prompt 9 (commit 965eec3)**: Cross-cutting sweep across 32 market files
-  - Color: All `bg-slate-950/900` → `bg-zinc-950/900`, all `border-slate-700/800` → `border-zinc-800`
-  - Navy: All `#1E3A8A` hex, `rgba(15,23,42)`, `rgba(2,6,23)`, `rgba(8,15,31)` gradients replaced with zinc-neutral equivalents
-  - Pills: All decorative `rounded-full` badges/chips → `rounded-lg` (preserved status dots, spinners, toggles, progress bars)
-  - Jargon: edge→opportunity, whale→removed, signal→removed, robot→auto-buy, liquidity→depth, spread→price gap, slippage→removed, fill policy→removed
-- **Prompt 10 (in progress via Grok)**: MarketCommandCenter — replacing static Start Here with real-time dashboard landing
-- **Bot Engine Upgrade (commit 88dba10)**: 4 trading improvements
-  - Arbitrage detection: `isArbitrage` flag on `MarketOpportunity` when YES+NO < $1, bypasses min-edge filter, +20 confidence, sorts first
-  - Kelly position sizing: half-Kelly replaces flat `floor(amount/price)` — sizes bets proportional to edge strength
-  - Fee-threshold guard: `checkFeeThreshold()` blocks trades where edge < estimated fees (default 2%), except arbitrage
-  - Position monitor: new `position-monitor.ts` checks open trades each tick, auto-closes on TP/SL hit
-  - Extraction: `decideTrades` + `simulatePaperTrade` moved to `lib/market/trade-decisions.ts` (file size compliance)
+- Created `slate360-context/dashboard-tabs/design-studio/START_HERE.md` — full build guide with 10-step progress tracker
+- Created `slate360-context/dashboard-tabs/tour-builder/START_HERE.md` — full build guide with 12-step progress tracker
+- Updated `slate360-context/dashboard-tabs/market-robot/START_HERE.md` — marked PAUSED, added CLOB status, remaining prompts, resume instructions
+- Updated `SLATE360_PROJECT_MEMORY.md` — added Design Studio + Tour Builder to task map, updated monolith table with accurate line counts, comprehensive handoff
+- No code changes this session (context/docs only)
 
-#### V3 Issue Tracker (user-reported — verify & close when resolved)
-| # | Issue | Status | Prompt |
-|---|-------|--------|--------|
-| I1 | First page is "Markets" not a real-time dashboard | 🔧 In progress (Prompt 10) | 10 |
-| I2 | UI still has navy/blue-tinted colors | ✅ Fixed (Prompt 9) | 9 |
-| I3 | Pill/card-heavy UI looks archaic | ✅ Fixed (Prompt 9) | 9 |
-| I4 | AI jargon that first-time users won't understand | ✅ Fixed (Prompt 9) | 9 |
-| I5 | Unnecessary scrollbars — layout should fit viewport | ⬜ Not started | 16 |
-| I6 | Search results not sortable by clicking columns | ⬜ Not started | 11 |
-| I7 | Search results don't mirror Polymarket categories | ⬜ Not started | 11 |
-| I8 | Open positions not clickable/drillable | ⬜ Not started | 13 |
-| I9 | Placeholder data instead of real empty states | ⬜ Not started | 13 |
-| I10 | Buy panel pills still had navy color | ✅ Fixed (Prompt 9) | 9 |
-| I11 | After buy, no inline position tracker on same page | ⬜ Not started | 12 |
-| I12 | Automation inputs not user-friendly / too much jargon | ✅ Partially fixed (Prompt 9 labels), needs Prompt 14 | 14 |
-| I13 | Automation not optimized for high-volume 24/7 micro-buys | ⬜ Not started | 15 |
-| I14 | No Volume Scalper mode (goal: $7K/mo from micro-buys) | ⬜ Not started | 15 |
-| I15 | Orphan files still exist | ⬜ Not started | cleanup |
+#### Module Health Summary
 
-#### Prompt Tracker
-| # | Prompt | Status |
-|---|--------|--------|
-| 1–8 | V2 tabs + UX fixes | ✅ Complete |
-| 9 | Color + pill + jargon purge | ✅ Complete (965eec3) |
-| 10 | Command Center landing | 🔧 In progress (Grok) |
-| 11 | Search: clickable column sort + Polymarket mirror | ⬜ |
-| 12 | Buy flow + inline position tracker | ⬜ |
-| 13 | Open position drill-down | ⬜ |
-| 14 | Automation: plain language rewrite | ⬜ |
-| 15 | Volume Scalper mode (high-freq micro-buys) | ⬜ |
-| 16 | Layout & scroll fix pass | ⬜ |
+| Module | Status | Main File(s) | Lines | Action Needed |
+|--------|--------|-------------|-------|---------------|
+| **Market Robot** | ⏸️ Paused (Prompts 11-16 remain) | `MarketClient.tsx` | 164 | Fund wallet → test $1 buy → continue prompts |
+| **Dashboard** | ⚠️ Live but monolithic | `DashboardClient.tsx` | 1,961 | Needs decomposition into ~10 smaller components |
+| **SlateDrop** | ✅ Good shape | `SlateDropClient.tsx` | 451 | BUG-001 phase 2 (folder migration), edge cases |
+| **Project Hub** | ⚠️ Live, 9 oversized files | `ClientPage.tsx` | 255 | 9 Tier-3 tool pages exceed 300 lines — need extraction |
+| **Design Studio** | 🔲 Scaffolded only | `DesignStudioShell.tsx` | 37 | Full build needed (viewer, DB, API, UI) |
+| **360 Tour Builder** | 🔲 Scaffolded only | `ToursShell.tsx` | 37 | Full build needed (panorama, DB, API, UI) |
 
-#### Commits This Session
-- `965eec3` — Prompt 9: color purge, pill reduction, jargon cleanup, navy removal (32 files)
-- `88dba10` — Bot engine: arbitrage detection, Kelly sizing, fee guard, position monitor (6 files)
+#### Market Robot Pause State
+- **Prompts 1-10**: ✅ Complete (commits 965eec3, 88dba10, f3c346f)
+- **Prompts 11-16**: ⬜ Not started (column sort, buy flow, positions, automation, scalper, layout)
+- **CLOB code**: Built but unverified (`clob-api.ts` HMAC signing, `buy/route.ts` live path with 4 fallbacks)
+- **API keys**: All present in `.env.local` + Vercel
+- **Builder key**: Created, signed via MetaMask on Polygon (chain 137)
+- **Blocker**: No USDC in wallet → can't test live buy → can't verify CLOB format
+- **Resume**: Fund wallet → add `NEXT_PUBLIC_POLYMARKET_SPENDER` to `.env.local` → test $1 buy → continue Prompt 11
 
-#### Next Steps
-1. Get Grok CLOB research (WebSocket endpoint, fee numbers, arb reality check)
-2. Review Grok's Prompt 10 (Command Center) output → verify + wire
-3. Prompt 11: Clickable column sort + Polymarket search alignment
-4. Prompt 12: Inline position tracker after buy
-5. Wire live CLOB execution (needs API credentials + Grok research)
-6. Continue through Prompt 16
+#### New Tab Build Readiness
+
+**Design Studio** (`/(dashboard)/design-studio`):
+- Gate: `getEntitlements(tier).canAccessDesignStudio` (Model+ tier)
+- Has: route scaffold, shell, sidebar, QuickNav, system folder provisioning, feature marketing page
+- Missing: viewer stack (Three.js/PDF.js/IFC), database tables, API routes, functional UI
+- Context: `slate360-context/dashboard-tabs/design-studio/START_HERE.md` ← read this first
+- Dependencies: viewer stack decision needed before building
+
+**360 Tour Builder** (`/(dashboard)/tours`):
+- Gate: `getEntitlements(tier).canAccessTours` (Creator+ tier)
+- Has: route scaffold, shell, sidebar, QuickNav, system folder, feature page with Pannellum demo
+- Missing: panorama pipeline, database tables, API routes, hotspot system, sharing, functional UI
+- Context: `slate360-context/dashboard-tabs/tour-builder/START_HERE.md` ← read this first
+- Dependencies: Pannellum likely viewer (already in feature page demo)
+
+#### Dashboard Decomposition Needs
+- `DashboardClient.tsx` is 1,961 lines — 6.5× the 300-line limit
+- Already partially decomposed: DashboardHeader, DashboardTabShell, 12 widget components extracted
+- Remaining work: extract tab rendering logic, sidebar, state management into smaller files
+- Start with `slate360-context/DASHBOARD.md` for full blueprint
+
+#### Project Hub Decomposition Needs
+- 9 of 14 Tier-3 tool pages exceed 300 lines (management: 931, photos: 599, submittals: 579, etc.)
+- Each needs component extraction (table, form, toolbar → separate files)
+- Start with `slate360-context/PROJECT_HUB.md` for full blueprint
+
+#### Files to Delete (orphans from prior refactors)
+- `components/dashboard/MarketClient.tsx` (old orphaned copy, 75 lines)
+- `components/dashboard/market/MarketRobotWorkspace.tsx` (unused, 84 lines)
+- `MARKET_ROBOT_STATUS_HANDOFF.md.bak` (backup of old handoff)
+
+#### Context Files Updated This Session
+- `slate360-context/dashboard-tabs/design-studio/START_HERE.md` — CREATED
+- `slate360-context/dashboard-tabs/tour-builder/START_HERE.md` — CREATED
+- `slate360-context/dashboard-tabs/market-robot/START_HERE.md` — UPDATED (pause state + resume guide)
+- `SLATE360_PROJECT_MEMORY.md` — UPDATED (task map, monolith table, handoff)
+
+#### Priority Order for Next Work
+
+**Tier 1 — Revenue/Core (choose based on what you're ready for):**
+1. Market Robot resume (when wallet funded) — Prompts 11-16 → live CLOB → WebSocket
+2. Dashboard decomposition — DashboardClient.tsx from 1,961 → ~10 files under 300 each
+3. Project Hub decomposition — 9 tool pages need extraction
+
+**Tier 2 — New Features:**
+4. Design Studio build — viewer stack decision first, then 10-step build
+5. 360 Tour Builder build — Pannellum integration, then 12-step build
+
+**Tier 3 — Polish:**
+6. SlateDrop BUG-001 phase 2 (folder migration)
+7. Orphan file cleanup
