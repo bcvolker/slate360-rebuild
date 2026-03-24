@@ -53,8 +53,16 @@ export async function POST(req: Request) {
 
     // Send the confirmation email via Resend
     const confirmUrl = linkData.properties?.action_link;
+    console.log("[signup action_link present:", !!confirmUrl, "user id:", linkData?.user?.id);
     let emailSent = false;
     let emailError: string | null = null;
+
+    if (!confirmUrl) {
+    return NextResponse.json(
+        { error: "Account setup failed — could not generate confirmation link. Please try again." },
+      { status: 500 }
+    );
+  }
 
     if (confirmUrl) {
       try {
@@ -66,19 +74,24 @@ export async function POST(req: Request) {
         emailSent = true;
       } catch (err: unknown) {
         emailError = err instanceof Error ? err.message : String(err);
-        console.error("Email send error:", emailError);
+        console.error("[signup] Resend error detail:", { email, emailError, confirmUrlPresent: !!confirmUrl });
         // Account was created, but email failed. Surface the real reason.
-      }
+        // Delete the dangling unconfirmed account
+        await supabase.auth.admin.deleteUser(linkData.user.id);
+}
+    }
+
+    if (emailError) {
+      return NextResponse.json(
+        { error: "Account created but confirmation email failed: " + emailError },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
       success: true,
-      message: emailSent
-        ? "Account created. Check your email for your verification link."
-        : "Account created, but the confirmation email could not be sent.",
-      emailSent,
-      // Include error detail for server logs; always return to client for debugging
-      ...(emailError ? { emailError } : {}),
+      message: "Account created. Check your email for your verification link.",
+      emailSent: true,
     });
 
   } catch (error) {
@@ -89,3 +102,4 @@ export async function POST(req: Request) {
     );
   }
 }
+
