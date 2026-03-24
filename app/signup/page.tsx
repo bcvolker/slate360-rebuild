@@ -124,7 +124,7 @@ export default function SignupPage() {
         <div className="flex-1 flex items-center justify-center px-4 py-12">
           <div className="w-full max-w-md bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center">
             <CheckCircle2 size={48} className="mx-auto mb-4" style={{ color: emailSent ? "#FF4D00" : "#f59e0b" }} />
-            <h2 className="text-2xl font-black mb-2" style={{ color: "#1E3A8A" }}>
+            <h2 className="text-2xl font-black mb-2 text-zinc-900">
               {emailSent ? "Check your email" : "Account created!"}
             </h2>
             {emailSent ? (
@@ -137,8 +137,17 @@ export default function SignupPage() {
                     Your {selectedPlan} ({selectedBilling}) selection is saved — after confirmation, sign in and continue checkout.
                   </p>
                 )}
+                <Link
+                  href="/login"
+                  className="inline-block bg-[#FF4D00] text-white px-6 py-2.5 rounded-xl font-semibold text-sm mb-4"
+                >
+                  Already confirmed? Sign in →
+                </Link>
+                <p className="text-xs text-gray-400 mb-2">
+                  Confirmed on another device? Click above to sign in here.
+                </p>
                 <p className="text-xs text-gray-400">
-                  Didn&apos;t get it? Check your spam folder or{" "}
+                  Didn&apos;t get the email? Check spam or{" "}
                   <button onClick={handleResendConfirmation} disabled={resending} className="text-[#FF4D00] underline disabled:opacity-50">
                     {resending ? "sending…" : "resend it"}
                   </button>.
@@ -190,7 +199,7 @@ export default function SignupPage() {
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-black mb-1" style={{ color: "#1E3A8A" }}>Start your free trial</h1>
+            <h1 className="text-2xl font-black mb-1 text-zinc-900">Start your free trial</h1>
             <p className="text-sm text-gray-500">No credit card required. All modules included.</p>
             {selectedPlan && (
               <p className="text-xs text-gray-500 mt-2">
@@ -257,7 +266,7 @@ export default function SignupPage() {
                 />
                 <span className="text-xs text-gray-600 leading-relaxed">
                   I agree to the{" "}
-                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#1E3A8A] underline hover:text-[#FF4D00]">Terms of Service</Link>{" "}
+                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-zinc-700 underline hover:text-[#FF4D00]">Terms of Service</Link>{" "}
                   <span className="text-red-500 font-bold">*</span>
                 </span>
               </label>
@@ -271,7 +280,7 @@ export default function SignupPage() {
                 />
                 <span className="text-xs text-gray-600 leading-relaxed">
                   I agree to the{" "}
-                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#1E3A8A] underline hover:text-[#FF4D00]">Privacy Policy</Link>{" "}
+                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-zinc-700 underline hover:text-[#FF4D00]">Privacy Policy</Link>{" "}
                   and consent to receiving product updates{" "}
                   <span className="text-red-500 font-bold">*</span>
                 </span>

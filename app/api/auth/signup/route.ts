@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     const supabase = createAdminClient();
     const origin = new URL(req.url).origin;
-    const redirectTo = `${origin}/auth/callback`;
+    const redirectTo = `${origin}/auth/callback?next=/dashboard`;
 
     // Use generateLink which creates user + generates confirmation link in one step
     // This does NOT send Supabase's email - we send via Resend instead

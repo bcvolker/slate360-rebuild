@@ -30,6 +30,8 @@ export async function GET(request: Request) {
 
       return NextResponse.redirect(`${origin}${next}`);
     }
+    // Exchange failed — could be expired or already-used token
+    console.error("[auth/callback] exchangeCodeForSession error:", error?.message);
   }
   return NextResponse.redirect(`${origin}/login?error=auth-callback-failed`);
 }

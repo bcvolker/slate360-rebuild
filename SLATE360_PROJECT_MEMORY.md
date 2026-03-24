@@ -165,20 +165,73 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-24 (Design/UI Overhaul Planning + Remote Fix)
+### Session Handoff — 2026-03-24 (Auth + Design Token Foundation + DNS)
 
 #### Session Summary
-Assessed Gemini 3.1's damage (truncated globals.css pushed as broken commit `8a3ab35` to remote), evaluated its 8-prompt design plan, built a comprehensive 8-phase safe execution plan for the full UI overhaul, and created `DESIGN_UI_OVERHAUL_PLAN.md` as the implementation guide. Local build is healthy at `1c09352`. Remote was force-pushed to match.
+1. Fixed entire auth flow: email confirmation via Resend now delivers to inbox (not spam). Fixed DNS in Cloudflare (removed duplicate DMARC `p=reject`, added `amazonses.com` to root SPF). Created `/forgot-password` page. Fixed resend-confirmation 400. Cleared test accounts from Supabase.
+2. Applied **Prompt #2 — Design Token Foundation**: replaced navy (#1E3A8A) with zinc (#18181b) in CSS tokens, homepage, signup, login, and callback. Added `--slate-accent` CSS vars. This is committed but NOT YET PUSHED — see "Pending Push" below.
 
-#### What Changed This Session
-- Created `DESIGN_UI_OVERHAUL_PLAN.md` — full 8-phase execution plan with rollback paths, design tokens, decomposition steps, and platform recommendations
-- Updated `SLATE360_PROJECT_MEMORY.md` — this handoff
-- Force-pushed `main` to fix broken remote (commit `8a3ab35` → `1c09352`)
+#### Pending Push (MUST DO FIRST)
+There are 8 modified files that need to be committed and pushed. Run these commands:
+```bash
+cd /workspaces/slate360-rebuild
+git add -A
+git commit -m "style: design token foundation + auth callback fix — navy to zinc, accent vars, redirect fix"
+git push
+```
 
-#### CRITICAL: Start Next Session Here
-1. Read `DESIGN_UI_OVERHAUL_PLAN.md` — the complete execution plan
-2. Verify remote is healthy: `git log --oneline origin/main -3`
-3. Start at Phase 1 (CSS tokens) unless Phase 0 force-push failed
+#### Files Changed (Uncommitted)
+- `app/globals.css` — CSS tokens: `--slate-blue` → `#18181b`, `--module-hub/analytics` → `#FF4D00`, added `--slate-accent*` vars
+- `app/page.tsx` — homepage: all `#1E3A8A` → `#18181b`, `bg-blue-*` → `bg-zinc-*`, `text-blue-*` → `text-zinc-*`
+- `app/signup/page.tsx` — headings: `style={{ color: "#1E3A8A" }}` → `className="text-zinc-900"`, `text-[#1E3A8A]` → `text-zinc-900`, added "Already confirmed? Sign in" link
+- `app/login/page.tsx` — same navy→zinc replacement in headings
+- `app/auth/callback/route.ts` — added `console.error` for exchange failures
+- `app/api/auth/signup/route.ts` — `redirectTo` includes `?next=/dashboard`
+- `app/api/auth/resend-confirmation/route.ts` — `redirectTo` includes `?next=/dashboard`
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+- `scripts/delete-test-users.mjs` — new: helper for clearing test accounts
+- `app/signup/page.tsx.bak` — can be deleted (backup of Grok's truncated file)
+
+#### Previously Pushed (commit `eea80a8`)
+- Restored `signup/page.tsx` (Grok truncated to 28 lines)
+- Fixed 409 flow: shows "Account exists" + Sign In CTA
+- Created `app/forgot-password/page.tsx`
+- Fixed `resend-confirmation/route.ts`: user lookup, clear 400/404
+- Fixed `signup/route.ts`: delete user on email failure, detailed logging
+
+#### DNS Changes (Cloudflare — already applied by user)
+- Deleted duplicate `_dmarc` TXT record with `p=reject` (GoDaddy default)
+- Edited remaining `_dmarc` to `v=DMARC1; p=none; rua=mailto:noreply@slate360.ai`
+- Added `include:amazonses.com` to root domain SPF record
+- Result: confirmation emails now reach Yahoo/Gmail inbox
+
+#### Auth System Status — COMPLETE ✅
+All paths working: signup → confirmation email → `/dashboard`, existing email → sign-in prompt, forgot password, resend confirmation.
+
+#### What's Still Broken / Needs Work
+- **60+ files still have `#1E3A8A`** — only homepage/signup/login/globals.css were done in this session. Need a codebase-wide navy purge (dashboard, project-hub, slatedrop, features pages, email templates)
+- **`DashboardClient.tsx`** — 1,954 lines, needs decomposition (Phase 4 of `DESIGN_UI_OVERHAUL_PLAN.md`)
+- **`components/ui/`** — only 3 files, missing all shadcn basics (Phase 3)
+- **Creator tier** missing `canAccessHub: true` in `lib/entitlements.ts` — user saw limited tabs on trial login
+- **Mobile optimization** — not started
+- **SEO** — minimal, needs metadata/OG images
+- **Email templates** (`lib/email.ts`) — still use `#1E3A8A` navy header background
+
+#### Accesses Confirmed Working
+- **Supabase admin**: `createAdminClient()` via `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`
+- **Resend API**: `re_UmiW3RXd_...` — domain `slate360.ai` verified, sending works
+- **Vercel CLI**: `vercel whoami` → `slate360ceo-8370`, can list deploys + pull/push env vars
+- **Git**: push to `origin/main` triggers Vercel auto-deploy
+- **AWS S3**: bucket `slate360-storage`, region `us-east-2`, client in `lib/s3.ts`
+
+#### Next Steps (Ordered)
+1. **Push the pending commit** (see commands above)
+2. **Codebase-wide navy purge** — `grep -r "#1E3A8A" --include="*.tsx" --include="*.ts" --include="*.css" -l` to find all remaining files, then batch-replace
+3. **Install shadcn/ui** — `npx shadcn@latest init` then add Button, Card, Dialog, Input, Badge, Tabs primitives
+4. **Fix entitlements** — add `canAccessHub: true` to creator tier in `lib/entitlements.ts`
+5. **Dashboard decomposition** — extract My Account, tab panels, header from `DashboardClient.tsx`
+6. **Mobile responsive pass** — viewport meta, responsive nav, touch targets
+7. **SEO** — metadata, OG images, structured data for construction industry keywords
 
 #### What's Broken / Needs Attention
 - Remote `origin/main` had broken commit `8a3ab35` — force-push applied to fix

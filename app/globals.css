@@ -127,18 +127,21 @@
   --slate-orange: #FF4D00;
   --slate-orange-hover: #E04400;
   --slate-orange-light: rgba(255, 77, 0, 0.08);
-  --slate-blue: #1E3A8A;
-  --slate-blue-hover: #162D69;
-  --slate-blue-light: rgba(30, 58, 138, 0.08);
+  --slate-accent: #FF4D00;
+  --slate-accent-hover: #E04400;
+  --slate-accent-ring: rgba(255, 77, 0, 0.5);
+  --slate-blue: #18181b;
+  --slate-blue-hover: #27272a;
+  --slate-blue-light: rgba(24, 24, 27, 0.08);
 
   /* Module accent colors */
-  --module-hub: #1E3A8A;
+  --module-hub: #FF4D00;
   --module-design: #7C3AED;
   --module-content: #EC4899;
   --module-tours: #0891B2;
   --module-geo: #059669;
   --module-virtual: #D97706;
-  --module-analytics: #1E3A8A;
+  --module-analytics: #FF4D00;
   --module-slatedrop: #FF4D00;
 
   /* Status colors — used for RFIs, submittals, punch items */

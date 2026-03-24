@@ -39,8 +39,8 @@ const platforms = [
     label: "Manage",
     title: "Project Hub",
     desc: "Command center for every project — RFIs, submittals, budgets, schedules, and team coordination in one place.",
-    accent: "#1E3A8A",
-    bg: "from-blue-50 to-white",
+    accent: "#FF4D00",
+    bg: "from-zinc-50 to-white",
   },
   {
     key: "design-studio",
@@ -69,8 +69,8 @@ const platforms = [
     title: "360 Tour Builder",
     desc: "Capture and share immersive 360° walkthroughs of any site, structure, or space. Embed anywhere.",
     href: "/features/360-tour-builder",
-    accent: "#1E3A8A",
-    bg: "from-blue-50 to-white",
+    accent: "#FF4D00",
+    bg: "from-zinc-50 to-white",
   },
   {
     key: "geospatial-robotics",
@@ -89,8 +89,8 @@ const platforms = [
     title: "Virtual Studio",
     desc: "Photorealistic renderings, fly-through animations, and client-ready presentations from your 3D models.",
     href: "/features/virtual-studio",
-    accent: "#1E3A8A",
-    bg: "from-blue-50 to-white",
+    accent: "#FF4D00",
+    bg: "from-zinc-50 to-white",
   },
   {
     key: "analytics-reports",
@@ -109,8 +109,8 @@ const platforms = [
     title: "Slate360 Apps",
     desc: "Downloadable and subscribable apps that integrate seamlessly — one login, one file system, one subscription.",
     href: "/features/ecosystem-apps",
-    accent: "#1E3A8A",
-    bg: "from-blue-50 to-white",
+    accent: "#FF4D00",
+    bg: "from-zinc-50 to-white",
   },
 ];
 
@@ -296,13 +296,12 @@ export default function HomePage() {
       <Navbar />
 
       {/* ────── HERO — full viewport ────── */}
-      <section className="min-h-[100dvh] flex flex-col justify-center pt-16 pb-[max(env(safe-area-inset-bottom),1rem)] px-6 sm:px-10 lg:px-16 bg-gradient-to-br from-blue-50/40 via-white to-orange-50/30">
+      <section className="min-h-[100dvh] flex flex-col justify-center pt-16 pb-[max(env(safe-area-inset-bottom),1rem)] px-6 sm:px-10 lg:px-16 bg-gradient-to-br from-zinc-50/40 via-white to-orange-50/30">
         <div className="max-w-[88rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-14 items-center py-4 lg:py-0">
           {/* Left: headline + CTAs (~50%) */}
           <div className="lg:col-span-6 max-w-2xl lg:pl-2">
             <h1
-              className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.04] mb-4 sm:mb-6"
-              style={{ color: "#1E3A8A" }}
+              className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.04] mb-4 sm:mb-6 text-zinc-900"
             >
               See it. Experience it.
               <br />
@@ -375,13 +374,12 @@ export default function HomePage() {
           <div className="text-center mb-14">
             <span
               className="inline-block text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full mb-4"
-              style={{ backgroundColor: "#1E3A8A1A", color: "#1E3A8A" }}
+              style={{ backgroundColor: "#18181b1a", color: "#18181b" }}
             >
               Everything in one platform
             </span>
             <h2
-              className="text-4xl sm:text-5xl font-black tracking-tight"
-              style={{ color: "#1E3A8A" }}
+              className="text-4xl sm:text-5xl font-black tracking-tight text-zinc-900"
             >
               The Platform
             </h2>
@@ -403,7 +401,7 @@ export default function HomePage() {
                   >
                     {p.label}
                   </span>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#1E3A8A] transition-colors">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#FF4D00] transition-colors">
                     {p.title}
                   </h3>
                   <p className="text-sm text-gray-500 leading-relaxed mb-6 flex-grow">
@@ -512,8 +510,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <h2
-              className="text-4xl sm:text-5xl font-black tracking-tight"
-              style={{ color: "#1E3A8A" }}
+              className="text-4xl sm:text-5xl font-black tracking-tight text-zinc-900"
             >
               More powerful tools
             </h2>
@@ -534,7 +531,7 @@ export default function HomePage() {
                 >
                   {t.icon}
                 </div>
-                <h3 className="text-base font-bold text-gray-900 mb-2 group-hover:text-[#1E3A8A] transition-colors">
+                <h3 className="text-base font-bold text-gray-900 mb-2 group-hover:text-[#FF4D00] transition-colors">
                   {t.title}
                 </h3>
                 <p className="text-sm text-gray-500 leading-relaxed">
@@ -560,8 +557,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2
-              className="text-4xl sm:text-5xl font-black tracking-tight"
-              style={{ color: "#1E3A8A" }}
+              className="text-4xl sm:text-5xl font-black tracking-tight text-zinc-900"
             >
               Simple, transparent pricing
             </h2>
@@ -609,12 +605,11 @@ export default function HomePage() {
                   <p className="text-xs text-gray-500 mb-4">{plan.desc}</p>
                   <div className="flex items-baseline gap-1 mb-5">
                     {plan.price === "Custom" ? (
-                      <span className="text-3xl font-black" style={{ color: "#1E3A8A" }}>Custom</span>
+                      <span className="text-3xl font-black text-zinc-800">Custom</span>
                     ) : (
                       <>
                         <span
-                          className="text-3xl font-black"
-                          style={{ color: "#1E3A8A" }}
+                          className="text-3xl font-black text-zinc-800"
                         >
                           {billing === "annual" ? plan.annualPrice : plan.price}
                         </span>
@@ -670,13 +665,13 @@ export default function HomePage() {
       {/* ────── CTA ────── */}
       <section
         className="py-24 px-4 sm:px-6 text-white"
-        style={{ backgroundColor: "#1E3A8A" }}
+        style={{ backgroundColor: "#18181b" }}
       >
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight mb-4">
             Your next project, fully managed.
           </h2>
-          <p className="text-blue-200 text-lg mb-10 leading-relaxed">
+            <p className="text-zinc-400 text-lg mb-10 leading-relaxed">
             Join professionals who manage, visualize, and deliver projects with
             Slate360. No credit card required.
           </p>

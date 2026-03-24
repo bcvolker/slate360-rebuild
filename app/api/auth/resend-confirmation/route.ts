@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
     const supabase = createAdminClient();
     const origin = new URL(req.url).origin;
-    const redirectTo = `${origin}/auth/callback`;
+    const redirectTo = `${origin}/auth/callback?next=/dashboard`;
 
     // Look up the user first to check their confirmation status
     const { data: listData, error: listError } =
