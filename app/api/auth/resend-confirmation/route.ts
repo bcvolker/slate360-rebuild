@@ -21,6 +21,31 @@ export async function POST(req: Request) {
     const origin = new URL(req.url).origin;
     const redirectTo = `${origin}/auth/callback`;
 
+    // Look up the user first to check their confirmation status
+    const { data: listData, error: listError } =
+      await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+
+    if (listError) {
+      console.error("Resend confirm list error:", listError);
+      return NextResponse.json({ error: listError.message }, { status: 500 });
+    }
+
+    const existingUser = listData.users.find((u) => u.email === email);
+
+    if (!existingUser) {
+      return NextResponse.json(
+        { error: "No account found with this email. Please sign up." },
+        { status: 404 }
+      );
+    }
+
+    if (existingUser.email_confirmed_at) {
+      return NextResponse.json(
+        { error: "This account is already confirmed. Please sign in." },
+        { status: 400 }
+      );
+    }
+
     // Generate a new confirmation link (does NOT re-create the user)
     const { data: linkData, error: linkError } =
       await supabase.auth.admin.generateLink({

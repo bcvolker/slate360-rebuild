@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
     // Send the confirmation email via Resend
     const confirmUrl = linkData.properties?.action_link;
-    console.log("[signup action_link present:", !!confirmUrl, "user id:", linkData?.user?.id);
+    console.log("[signup] action_link present:", !!confirmUrl, "user id:", linkData?.user?.id);
     let emailSent = false;
     let emailError: string | null = null;
 
