@@ -130,7 +130,7 @@ function FolderTreeItem({
             onSelect(node.id);
             if (hasChildren && !isExpanded) onToggle(node.id);
           }}
-          className={`w-full flex items-center gap-2 py-1.5 rounded-lg text-left transition-all text-[13px] group ${
+          className={`w-full flex items-center gap-2 py-2.5 rounded-lg text-left transition-all text-sm group ${
             isActive
               ? "bg-[#FF4D00]/10 text-[#FF4D00] font-semibold"
               : "text-gray-600 hover:bg-gray-100"
@@ -157,7 +157,7 @@ function FolderTreeItem({
           {node.icon ? (
             <span className="text-sm shrink-0">{node.icon}</span>
           ) : node.isSystem ? (
-            <Folder size={14} className="shrink-0 text-[#1E3A8A]" />
+            <Folder size={14} className="shrink-0 text-zinc-600" />
           ) : (
             <FolderOpen size={14} className="shrink-0 text-gray-400" />
           )}

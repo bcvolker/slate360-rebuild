@@ -369,7 +369,7 @@ export default function HomePage() {
       </section>
 
       {/* ────── THE PLATFORM — 7 cards ────── */}
-      <section className="py-24 px-4 sm:px-6" style={{ backgroundColor: "#E8EEF6" }}>
+      <section className="py-24 px-4 sm:px-6 bg-zinc-100">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <span
@@ -553,7 +553,7 @@ export default function HomePage() {
       </section>
 
       {/* ────── PRICING TEASER ────── */}
-      <section className="py-24 px-4 sm:px-6" style={{ backgroundColor: "#E8EEF6" }}>
+      <section className="py-24 px-4 sm:px-6 bg-zinc-100">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2

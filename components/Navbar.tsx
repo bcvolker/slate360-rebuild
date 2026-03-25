@@ -238,37 +238,37 @@ export default function Navbar() {
 
           <div
             ref={mobileMenuRef}
-            className="absolute top-16 left-0 right-0 bg-white z-50 shadow-2xl flex flex-col md:hidden border-t border-gray-100 max-h-[66vh] overflow-hidden rounded-b-3xl"
+            className="absolute top-16 left-0 right-0 bg-white z-50 shadow-2xl flex flex-col md:hidden border-t border-gray-100 max-h-[calc(100dvh-4rem)] overflow-hidden rounded-b-3xl"
           >
             {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto px-6 py-6">
+            <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-6">
               {/* Primary Links */}
-              <div className="flex flex-col gap-4 mb-6">
+              <div className="flex flex-col gap-1 mb-6">
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors"
+                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors py-2"
                 >
                   Login
                 </Link>
                 <Link
                   href="/plans"
                   onClick={() => setMobileOpen(false)}
-                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors"
+                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors py-2"
                 >
                   Pricing
                 </Link>
                 <Link
                   href="/about"
                   onClick={() => setMobileOpen(false)}
-                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors"
+                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors py-2"
                 >
                   About
                 </Link>
                 <Link
                   href="/contact"
                   onClick={() => setMobileOpen(false)}
-                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors"
+                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors py-2"
                 >
                   Contact
                 </Link>
@@ -280,16 +280,16 @@ export default function Navbar() {
               <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
                 Features
               </p>
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 gap-1">
                 {features.map((f) => (
                   <Link
                     key={f.href}
                     href={f.href}
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-3 group"
+                    className="flex items-center gap-3 py-2 group min-h-[44px]"
                   >
-                    <span className="text-xl bg-gray-50 w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-[#FF4D00]/10 transition-colors">{f.icon}</span>
-                    <span className="text-sm font-medium text-gray-700 group-hover:text-[#FF4D00] transition-colors">
+                    <span className="text-xl bg-gray-50 w-10 h-10 rounded-lg flex items-center justify-center group-hover:bg-[#FF4D00]/10 transition-colors shrink-0">{f.icon}</span>
+                    <span className="text-[15px] font-medium text-gray-700 group-hover:text-[#FF4D00] transition-colors">
                       {f.label}
                     </span>
                   </Link>

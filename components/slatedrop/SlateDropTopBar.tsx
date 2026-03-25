@@ -36,18 +36,18 @@ export default function SlateDropTopBar({
 
           <button
             onClick={onToggleMobileSidebar}
-            className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100"
+            className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100"
           >
-            <FolderOpen size={16} />
+            <FolderOpen size={18} />
           </button>
         </div>
 
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-100 transition-colors"
           >
-            <Home size={13} /> Dashboard
+            <Home size={13} /> <span className="hidden sm:inline">Dashboard</span>
           </Link>
 
           <button className="relative w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100">
@@ -58,7 +58,7 @@ export default function SlateDropTopBar({
           <div className="relative">
             <button
               onClick={onToggleUserMenu}
-              className="w-8 h-8 rounded-full bg-[#1E3A8A] flex items-center justify-center text-white text-[10px] font-bold"
+              className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-white text-[10px] font-bold"
             >
               {user.name.charAt(0).toUpperCase()}
             </button>
