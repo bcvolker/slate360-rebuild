@@ -54,7 +54,7 @@ export default function MarketRouteShell({
         />
       </div>
 
-      <main className="mx-auto max-w-[1480px] px-6 py-8 overflow-auto" style={{ height: "calc(100vh - 73px)" }}>
+      <main className="mx-auto max-w-[1480px] w-full px-3 sm:px-6 py-4 sm:py-8 overflow-auto overflow-x-hidden" style={{ height: "calc(100vh - 73px)" }}>
         {React.Children.map(children, (child) => {
           if (React.isValidElement(child)) {
             return React.cloneElement(child as React.ReactElement<{ layoutPrefs?: MarketShellContext }>, {

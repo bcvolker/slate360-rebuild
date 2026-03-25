@@ -68,8 +68,8 @@ export default function MarketRobotWorkspace({
           <div className="text-slate-200 p-6">Placeholder for Market Markets Section (under construction)</div>
         </div>
 
-        {/* STRENGTHENED OPERATOR RAIL */}
-        <div className="w-80 border-l border-zinc-800 bg-zinc-950 overflow-auto">
+        {/* STRENGTHENED OPERATOR RAIL — hidden on mobile, sidebar on md+ */}
+        <div className="hidden md:block w-80 shrink-0 border-l border-zinc-800 bg-zinc-950 overflow-auto">
           <MarketOperatorRail
             walletSnapshot={walletSnapshot}
             system={systemStatus.system}
