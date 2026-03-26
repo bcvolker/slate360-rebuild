@@ -57,7 +57,7 @@ function brandedHtml(title: string, body: string): string {
         <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
           <!-- Header -->
           <tr>
-            <td style="background:#1E3A8A;padding:28px 40px;">
+            <td style="background:#18181b;padding:28px 40px;">
               <table cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="width:8px;height:28px;background:#FF4D00;border-radius:3px;"></td>
@@ -113,7 +113,7 @@ export async function sendWelcomeEmail({
 }) {
   const displayName = name ?? to.split("@")[0];
   const body = `
-    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">Welcome to Slate360${displayName ? `, ${displayName}` : ""}! 🎉</h2>
+    <h2 style="margin:0 0 8px;color:#FF4D00;font-size:24px;font-weight:800;">Welcome to Slate360${displayName ? `, ${displayName}` : ""}! 🎉</h2>
     <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
       Your email has been verified and your account is ready. You now have access to your dashboard, SlateDrop file manager, and all Slate360 modules.
     </p>
@@ -148,7 +148,7 @@ export async function sendSecureSendEmail({
   message?: string;
 }) {
   const body = `
-    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">${senderName} shared a file with you</h2>
+    <h2 style="margin:0 0 8px;color:#FF4D00;font-size:24px;font-weight:800;">${senderName} shared a file with you</h2>
     <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
       You have been granted <strong>${permission}</strong> access to the file <strong>${fileName}</strong> via SlateDrop.
     </p>
@@ -186,7 +186,7 @@ export async function sendPasswordResetEmail({
 }) {
   const displayName = name ?? to.split("@")[0];
   const body = `
-    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">Reset your password</h2>
+    <h2 style="margin:0 0 8px;color:#FF4D00;font-size:24px;font-weight:800;">Reset your password</h2>
     <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
       Hi ${displayName},<br/><br/>
       We received a request to reset the password for your Slate360 account. Click the button below to choose a new password.
@@ -224,11 +224,11 @@ export async function sendExternalResponseRequestEmail({
   message?: string;
 }) {
   const body = `
-    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">Response requested for ${itemType}</h2>
+    <h2 style="margin:0 0 8px;color:#FF4D00;font-size:24px;font-weight:800;">Response requested for ${itemType}</h2>
     <p style="margin:0 0 18px;color:#6b7280;font-size:15px;line-height:1.7;">
       ${senderName} requested your response in <strong>${projectName}</strong>.
     </p>
-    <div style="margin:0 0 20px;padding:14px 16px;background:#f3f4f6;border-left:4px solid #1E3A8A;border-radius:6px;">
+    <div style="margin:0 0 20px;padding:14px 16px;background:#f3f4f6;border-left:4px solid #FF4D00;border-radius:6px;">
       <p style="margin:0;color:#374151;font-size:13px;"><strong>${itemType}:</strong> ${itemTitle}</p>
       ${
         message
@@ -266,7 +266,7 @@ export async function sendConfirmationEmail({
 }) {
   const displayName = name ?? to.split("@")[0];
   const body = `
-    <h2 style="margin:0 0 8px;color:#1E3A8A;font-size:24px;font-weight:800;">Confirm your email</h2>
+    <h2 style="margin:0 0 8px;color:#FF4D00;font-size:24px;font-weight:800;">Confirm your email</h2>
     <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
       Hi ${displayName},<br/><br/>
       Please confirm your email address to complete your Slate360 registration.

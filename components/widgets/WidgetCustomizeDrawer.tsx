@@ -149,7 +149,7 @@ export default function WidgetCustomizeDrawer({
                       className={[
                         "w-6 h-6 rounded text-[9px] font-bold flex items-center justify-center transition-colors",
                         pref.size === s
-                          ? "bg-[#1E3A8A]/10 text-[#1E3A8A]"
+                          ? "bg-[#FF4D00]/10 text-[#FF4D00]"
                           : "text-gray-300 hover:text-gray-500 hover:bg-gray-100",
                       ].join(" ")}
                       title={getWidgetSizeLabel(s)}

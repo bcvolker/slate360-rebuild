@@ -79,7 +79,7 @@ export default function DashboardSeatsWidget({
                         member.role === "Owner"
                           ? "bg-[#FF4D00]/10 text-[#FF4D00]"
                           : member.role === "Admin"
-                            ? "bg-[#1E3A8A]/10 text-[#1E3A8A]"
+                            ? "bg-[#6366F1]/10 text-[#6366F1]"
                             : "bg-gray-100 text-gray-600"
                       }`}
                     >

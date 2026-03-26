@@ -66,7 +66,7 @@ export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Hero */}
-      <div className="bg-[#1E3A8A] py-16 text-center">
+      <div className="bg-zinc-900 py-16 text-center">
         <div className="mx-auto max-w-3xl px-4">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
             <Shield size={24} className="text-white" />
@@ -88,7 +88,7 @@ export default function PrivacyPage() {
         </div>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Link href="/terms" className="text-sm font-semibold text-[#1E3A8A] hover:underline">Terms of Service</Link>
+          <Link href="/terms" className="text-sm font-semibold text-[#FF4D00] hover:underline">Terms of Service</Link>
           <span className="text-gray-300">·</span>
           <Link href="/signup" className="text-sm font-semibold text-[#FF4D00] hover:underline">Create Account</Link>
           <span className="text-gray-300">·</span>

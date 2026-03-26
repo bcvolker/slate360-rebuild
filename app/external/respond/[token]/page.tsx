@@ -106,7 +106,7 @@ export default function ExternalRespondPage() {
     return (
       <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-4 flex items-center justify-center">
         <div className="max-w-md w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="bg-[#1E3A8A] px-6 py-4">
+          <div className="bg-[#FF4D00] px-6 py-4">
             <img src="/logo.svg" alt="Slate360" className="h-6 w-auto brightness-0 invert mb-2 opacity-90" />
             <p className="text-sm text-blue-100">Slate360 Secure Portal</p>
           </div>
@@ -133,7 +133,7 @@ export default function ExternalRespondPage() {
 
       <section className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         {/* Branded header bar */}
-        <div className="bg-gradient-to-r from-[#1E3A8A] to-[#162D69] px-6 py-5 text-white">
+        <div className="bg-gradient-to-r from-[#FF4D00] to-[#162D69] px-6 py-5 text-white">
           <div className="flex items-start justify-between gap-4">
             <div>
               <span className="inline-block text-[10px] font-bold uppercase tracking-widest text-blue-200/80 mb-1.5 bg-white/10 px-2 py-0.5 rounded-full">

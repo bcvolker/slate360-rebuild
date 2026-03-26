@@ -56,7 +56,7 @@ export default function ProjectHubWidgetBody({
             onClick={() => onSlateDropWidgetViewChange("folders")}
             className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors ${
               slateDropWidgetView === "folders"
-                ? "bg-[#1E3A8A] text-white"
+                ? "bg-[#FF4D00] text-white"
                 : "text-gray-600 hover:bg-gray-100"
             }`}
           >

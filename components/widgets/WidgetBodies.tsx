@@ -158,7 +158,7 @@ export function CalendarWidgetBody({
         const isPast = d < today && !isToday;
         return (
           <div key={i} className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${isToday ? "bg-[#FF4D00]/10 border border-[#FF4D00]/20" : isPast ? "opacity-50" : "bg-white border border-gray-100"}`}>
-            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ev.color ?? (isToday ? "#FF4D00" : "#1E3A8A") }} />
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ev.color ?? (isToday ? "#FF4D00" : "#6366F1") }} />
             <span className="text-xs text-gray-700 truncate flex-1">{ev.title}</span>
             <span className={`text-[9px] font-bold shrink-0 ${isToday ? "text-[#FF4D00]" : "text-gray-400"}`}>{isToday ? "Today" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
           </div>
@@ -252,7 +252,7 @@ export function ProjectInfoWidgetBody({
       {projectName ? (
         <>
           <div className="flex items-start gap-2">
-            <Building2 size={16} className="text-[#1E3A8A] mt-0.5 shrink-0" />
+            <Building2 size={16} className="text-zinc-400 mt-0.5 shrink-0" />
             <div className="min-w-0">
               <p className="text-sm font-black text-gray-900 truncate">{projectName}</p>
               {projectAddress && <p className="text-[10px] text-gray-500 flex items-center gap-1 mt-0.5"><MapPin size={9} />{projectAddress}</p>}
@@ -464,7 +464,7 @@ export function DataUsageWidgetBody({
           </span>
         </div>
         <div className={bar}>
-          <div className={fill} style={{ width: `${storagePct}%`, backgroundColor: "#1E3A8A" }} />
+          <div className={fill} style={{ width: `${storagePct}%`, backgroundColor: "#FF4D00" }} />
         </div>
         <p className="text-[10px] text-gray-400 mt-1">
           {(storageLimitGb - storageUsedGb).toFixed(1)} GB available

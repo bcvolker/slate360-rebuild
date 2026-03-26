@@ -59,7 +59,7 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
   const pendingTasks = allTasks.filter((t: any) => t.status !== "Completed" && t.status !== "Done").length;
 
   const stats = [
-    { label: "Open RFIs", value: openRfis, sub: `${rfisData.length} total`, href: `/project-hub/${projectId}/rfis`, color: "#1E3A8A", Icon: ClipboardList },
+    { label: "Open RFIs", value: openRfis, sub: `${rfisData.length} total`, href: `/project-hub/${projectId}/rfis`, color: "#FF4D00", Icon: ClipboardList },
     { label: "Submittals", value: openSubmittals, sub: "pending review", href: `/project-hub/${projectId}/submittals`, color: "#7C3AED", Icon: FileCheck2 },
     { label: "Schedule Tasks", value: pendingTasks, sub: "active tasks", href: `/project-hub/${projectId}/schedule`, color: "#FF4D00", Icon: CalendarCheck2 },
     { label: "Budget", value: "View", sub: "Financials", href: `/project-hub/${projectId}/budget`, color: "#059669", Icon: DollarSign },

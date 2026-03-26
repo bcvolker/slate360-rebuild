@@ -8,25 +8,25 @@ const features = [
   { key: "design-studio", icon: "✏️", label: "Design", title: "Design Studio", accent: "#FF4D00", highlight: true,
     desc: "Context-aware 3D modeling, 2D plan markup, fabrication prep, and version control in one workspace that adapts to your task.",
     href: "/features/design-studio" },
-  { key: "project-hub", icon: "📋", label: "Manage", title: "Project Hub", accent: "#1E3A8A",
+  { key: "project-hub", icon: "📋", label: "Manage", title: "Project Hub", accent: "#FF4D00",
     desc: "Command center for every project — RFIs, submittals, budgets, schedules, and team coordination in one place.",
     href: "/project-hub" },
   { key: "content-studio", icon: "🎨", label: "Create", title: "Content Studio", accent: "#FF4D00",
     desc: "Branded reports, bid packages, social posts, and client microsites from your live project data.",
     href: "/features/content-studio" },
-  { key: "360-tour-builder", icon: "🔭", label: "Visualize", title: "360 Tour Builder", accent: "#1E3A8A",
+  { key: "360-tour-builder", icon: "🔭", label: "Visualize", title: "360 Tour Builder", accent: "#FF4D00",
     desc: "Capture and share immersive 360° walkthroughs of any site or structure. Embed anywhere.",
     href: "/features/360-tour-builder" },
   { key: "geospatial-robotics", icon: "🛰️", label: "Survey", title: "Geospatial & Robotics", accent: "#FF4D00",
     desc: "Drone mapping, photogrammetry, LiDAR, and volumetric calculations — fully automated.",
     href: "/features/geospatial-robotics" },
-  { key: "virtual-studio", icon: "🎬", label: "Present", title: "Virtual Studio", accent: "#1E3A8A",
+  { key: "virtual-studio", icon: "🎬", label: "Present", title: "Virtual Studio", accent: "#FF4D00",
     desc: "Photorealistic renderings, fly-through animations, and polished presentations from your models.",
     href: "/features/virtual-studio" },
   { key: "analytics-reports", icon: "📊", label: "Analyze", title: "Analytics & Reports", accent: "#FF4D00",
     desc: "Portfolio dashboards, credit trends, team activity, and exportable reports.",
     href: "/features/analytics-reports" },
-  { key: "slate360-apps", icon: "🧩", label: "Extend", title: "Slate360 Apps", accent: "#1E3A8A",
+  { key: "slate360-apps", icon: "🧩", label: "Extend", title: "Slate360 Apps", accent: "#FF4D00",
     desc: "Downloadable and subscribable apps that integrate seamlessly — one login, one file system, one subscription.",
     href: "/features/ecosystem-apps" },
   { key: "slatedrop", icon: "📂", label: "Organize", title: "SlateDrop", accent: "#FF4D00",
@@ -44,7 +44,7 @@ export default function FeaturesPage() {
             <span className="inline-block text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full mb-4" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
               The full platform
             </span>
-            <h1 className="text-5xl sm:text-6xl font-black tracking-tight" style={{ color: "#1E3A8A" }}>Platform Features</h1>
+            <h1 className="text-5xl sm:text-6xl font-black tracking-tight" style={{ color: "#FF4D00" }}>Platform Features</h1>
             <p className="text-gray-500 mt-4 text-lg max-w-xl mx-auto">Nine integrated modules. One login, zero context switching.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -53,7 +53,7 @@ export default function FeaturesPage() {
                 {f.highlight && <span className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: "#FF4D00" }}>Start here</span>}
                 <div className="text-3xl mb-4">{f.icon}</div>
                 <span className="text-[10px] font-bold uppercase tracking-widest mb-1 block" style={{ color: f.accent }}>{f.label}</span>
-                <h2 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#1E3A8A] transition-colors">{f.title}</h2>
+                <h2 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#FF4D00] transition-colors">{f.title}</h2>
                 <p className="text-sm text-gray-500 leading-relaxed mb-4">{f.desc}</p>
                 <span className="inline-flex items-center gap-1 text-sm font-semibold transition-all group-hover:gap-2" style={{ color: f.accent }}>
                   Learn more <ArrowRight size={14} />

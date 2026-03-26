@@ -17,7 +17,7 @@ export default async function AnalyticsPage() {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center bg-[#ECEEF2] px-6 py-12">
         <section className="w-full rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-xl">
-          <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#1E3A8A]/10">
+          <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#FF4D00]/10">
             <Lock className="h-6 w-6 text-[#FF4D00]" />
           </div>
           <h1 className="text-2xl font-black text-gray-900">Upgrade Required</h1>

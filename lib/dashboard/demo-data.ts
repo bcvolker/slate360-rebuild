@@ -47,7 +47,7 @@ export const DEMO_PROJECTS: DashboardProject[] = [
 
 export const DEMO_EVENTS: DashboardCalEvent[] = [
   { id: "de1", title: "Site inspection", date: "2026-03-10", color: "#FF4D00", project: "Maple Heights" },
-  { id: "de2", title: "Client presentation", date: "2026-03-15", color: "#1E3A8A", project: "Harbor Point" },
+  { id: "de2", title: "Client presentation", date: "2026-03-15", color: "#6366F1", project: "Harbor Point" },
   { id: "de3", title: "Foundation review", date: "2026-03-20", color: "#059669" },
   { id: "de4", title: "Budget sync — Q1", date: "2026-03-28", color: "#7C3AED" },
 ];

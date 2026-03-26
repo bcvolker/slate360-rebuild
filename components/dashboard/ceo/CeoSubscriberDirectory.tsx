@@ -203,7 +203,7 @@ export default function CeoSubscriberDirectory({
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="truncate text-sm font-semibold text-gray-900">{entry.displayName}</p>
                       {entry.isOwnerAccount && (
-                        <span className="rounded-full bg-[#1E3A8A]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#1E3A8A]">
+                        <span className="rounded-full bg-[#6366F1]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#6366F1]">
                           CEO Owner
                         </span>
                       )}
@@ -218,7 +218,7 @@ export default function CeoSubscriberDirectory({
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wide">
-                    <span className={`rounded-full px-2 py-1 ${marketOn ? "bg-[#1E3A8A]/10 text-[#1E3A8A]" : "bg-gray-100 text-gray-400"}`}>
+                    <span className={`rounded-full px-2 py-1 ${marketOn ? "bg-[#6366F1]/10 text-[#6366F1]" : "bg-gray-100 text-gray-400"}`}>
                       <Bot size={10} className="mr-1 inline" />
                       Market
                     </span>
@@ -232,7 +232,7 @@ export default function CeoSubscriberDirectory({
                     <button
                       disabled={pending || entry.isOwnerAccount || marketOn}
                       onClick={() => void applyMarketAccess(entry)}
-                      className="rounded-lg bg-[#1E3A8A] px-3 py-2 text-xs font-bold text-white hover:bg-[#1E3A8A]/90 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rounded-lg bg-[#FF4D00] px-3 py-2 text-xs font-bold text-white hover:bg-[#E04400] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {pending ? "Saving..." : marketOn ? "Market Enabled" : "Grant Market"}
                     </button>

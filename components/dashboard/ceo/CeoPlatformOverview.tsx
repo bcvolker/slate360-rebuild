@@ -21,7 +21,7 @@ const TIER_COLORS: Record<string, string> = {
   creator: "#60A5FA",
   model: "#8B5CF6",
   business: "#F97316",
-  enterprise: "#1E3A8A",
+  enterprise: "#6366F1",
 };
 
 export default function CeoPlatformOverview() {
@@ -57,7 +57,7 @@ export default function CeoPlatformOverview() {
       label: "Organizations",
       value: data?.totalOrgs ?? 0,
       icon: Building2,
-      accent: "#1E3A8A",
+      accent: "#FF4D00",
     },
     {
       label: "Total Users",
@@ -122,7 +122,7 @@ export default function CeoPlatformOverview() {
           {data && Object.keys(data.tierBreakdown).length > 0 && (
             <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
               <div className="flex items-center gap-2 mb-3">
-                <TrendingUp size={14} className="text-[#1E3A8A]" />
+                <TrendingUp size={14} className="text-[#FF4D00]" />
                 <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
                   Subscription Breakdown
                 </p>

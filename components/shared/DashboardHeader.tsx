@@ -225,7 +225,7 @@ export default function DashboardHeader({
               {user.avatar ? (
                 <img src={user.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-[#1E3A8A] flex items-center justify-center text-white text-xs font-bold">
+                <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-white text-xs font-bold">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
               )}

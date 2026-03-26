@@ -342,7 +342,7 @@ function Controller({
       {/* Drawing hint */}
       {isDrawingPolygon && (
         <div className="absolute top-14 left-2 right-2 z-10 pointer-events-none">
-          <div className="bg-[#1E3A8A]/90 backdrop-blur-sm rounded-lg px-3 py-1.5 text-[11px] text-white font-semibold text-center">
+          <div className="bg-zinc-900/95 backdrop-blur-sm rounded-lg px-3 py-1.5 text-[11px] text-white font-semibold text-center">
             {drawingVertices.length < 3
               ? `Click map to add vertices (${drawingVertices.length} so far, need 3 min)`
               : `${drawingVertices.length} pts — click ⧆ again to close boundary`}

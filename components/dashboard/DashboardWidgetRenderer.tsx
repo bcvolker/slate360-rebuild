@@ -223,7 +223,7 @@ export default function DashboardWidgetRenderer({
                 <span className="text-xs font-bold text-gray-900">{ctx.storageUsed} GB / {ctx.entitlements.maxStorageGB} GB</span>
               </div>
               <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-                <div className="h-full rounded-full bg-[#1E3A8A] transition-all duration-1000 ease-out" style={{ width: `${Math.min((ctx.storageUsed / ctx.entitlements.maxStorageGB) * 100, 100)}%` }} />
+                <div className="h-full rounded-full bg-[#FF4D00] transition-all duration-1000 ease-out" style={{ width: `${Math.min((ctx.storageUsed / ctx.entitlements.maxStorageGB) * 100, 100)}%` }} />
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
@@ -281,7 +281,7 @@ export default function DashboardWidgetRenderer({
                   <span className="text-[9px] text-gray-400 font-medium">{f.credits > 0 ? `${(f.credits / 1000).toFixed(1)}k` : ""}</span>
                   <div className="w-full relative flex items-end justify-center" style={{ height: "80px" }}>
                     <div className="w-full max-w-[32px] rounded-t-md transition-all duration-700 ease-out hover:opacity-80"
-                      style={{ height: `${(f.credits / ctx.financialMax) * 100}%`, backgroundColor: i === ctx.liveFinancial.length - 1 ? "#FF4D00" : "#1E3A8A", opacity: i === ctx.liveFinancial.length - 1 ? 1 : 0.6 }}
+                      style={{ height: `${(f.credits / ctx.financialMax) * 100}%`, backgroundColor: i === ctx.liveFinancial.length - 1 ? "#FF4D00" : "#6366F1", opacity: i === ctx.liveFinancial.length - 1 ? 1 : 0.6 }}
                     />
                   </div>
                   <span className="text-[10px] text-gray-400">{f.month}</span>
@@ -476,7 +476,7 @@ export default function DashboardWidgetRenderer({
                       <td className="py-3 pr-4 text-xs font-semibold text-gray-900">{m.name}</td>
                       <td className="py-3 pr-4 text-xs text-gray-500">{m.email}</td>
                       <td className="py-3 pr-4">
-                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${m.role === "Owner" ? "bg-[#FF4D00]/10 text-[#FF4D00]" : m.role === "Admin" ? "bg-[#1E3A8A]/10 text-[#1E3A8A]" : "bg-gray-100 text-gray-600"}`}>{m.role}</span>
+                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${m.role === "Owner" ? "bg-[#FF4D00]/10 text-[#FF4D00]" : m.role === "Admin" ? "bg-[#6366F1]/10 text-[#6366F1]" : "bg-gray-100 text-gray-600"}`}>{m.role}</span>
                       </td>
                       <td className="py-3">
                         <span className={`flex items-center gap-1.5 text-[10px] font-medium ${m.active ? "text-emerald-600" : "text-gray-400"}`}>

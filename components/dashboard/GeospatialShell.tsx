@@ -20,7 +20,7 @@ export default function GeospatialShell({ user, tier, isCeo, internalAccess }: P
       internalAccess={internalAccess}
       title="Geospatial"
       icon={Globe}
-      accent="#1E3A8A"
+      accent="#FF4D00"
       status="coming-soon"
     >
       <div className="rounded-2xl border border-gray-200 bg-white px-6 py-10 text-center">

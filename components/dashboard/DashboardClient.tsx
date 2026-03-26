@@ -277,19 +277,19 @@ export default function DashboardClient({
 
   // Build the ordered, filtered tab list based on tier entitlements + identity
   const visibleTabs: DashTab[] = ([
-    { id: "project-hub",    label: "Project Hub",    icon: LayoutDashboard, color: "#1E3A8A" },
-    { id: "design-studio",  label: "Design Studio",  icon: Palette,         color: "#FF4D00" },
-    { id: "content-studio", label: "Content Studio", icon: Layers,          color: "#1E3A8A" },
-    { id: "tours",          label: "360 Tours",      icon: Compass,         color: "#FF4D00" },
-    { id: "geospatial",     label: "Geospatial",     icon: Globe,           color: "#1E3A8A" },
-    { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#FF4D00" },
-    { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#1E3A8A" },
-    { id: "slatedrop",      label: "SlateDrop",      icon: FolderOpen, FolderKanban,      color: "#FF4D00" },
-    { id: "my-account",     label: "My Account",     icon: User,            color: "#1E3A8A" },
+    { id: "project-hub",    label: "Project Hub",    icon: LayoutDashboard, color: "#FF4D00" },
+    { id: "design-studio",  label: "Design Studio",  icon: Palette,         color: "#7C3AED" },
+    { id: "content-studio", label: "Content Studio", icon: Layers,          color: "#EC4899" },
+    { id: "tours",          label: "360 Tours",      icon: Compass,         color: "#0891B2" },
+    { id: "geospatial",     label: "Geospatial",     icon: Globe,           color: "#059669" },
+    { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#D97706" },
+    { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#6366F1" },
+    { id: "slatedrop",      label: "SlateDrop",      icon: FolderOpen,      color: "#FF4D00" },
+    { id: "my-account",     label: "My Account",     icon: User,            color: "#FF4D00" },
     ...((canAccessCeo || canAccessMarket || canAccessAthlete360) ? ([
-      { id: "ceo",        label: "CEO",        icon: Shield,      color: "#FF4D00", isCEOOnly: true },
-      { id: "market",     label: "Market Robot", icon: TrendingUp,  color: "#1E3A8A", isCEOOnly: true },
-      { id: "athlete360", label: "Athlete360", icon: Zap,         color: "#FF4D00", isCEOOnly: true },
+      { id: "ceo",        label: "CEO",          icon: Shield,      color: "#FF4D00", isCEOOnly: true },
+      { id: "market",     label: "Market Robot", icon: TrendingUp,  color: "#6366F1", isCEOOnly: true },
+      { id: "athlete360", label: "Athlete360",   icon: Zap,         color: "#FF4D00", isCEOOnly: true },
     ] as DashTab[]) : []),
   ] as DashTab[]).filter((tab) => {
     switch (tab.id) {
@@ -1137,7 +1137,7 @@ export default function DashboardClient({
           <div className="relative">
             <button
               onClick={() => setMobileNavOpen((v) => !v)}
-              className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[#1E3A8A] to-[#162D69] text-white shadow-lg hover:shadow-xl transition-all active:scale-[0.99]"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[#FF4D00] to-[#E04400] text-white shadow-lg hover:shadow-xl transition-all active:scale-[0.99]"
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
@@ -1155,9 +1155,9 @@ export default function DashboardClient({
                 <div className="fixed inset-0 z-30" onClick={() => setMobileNavOpen(false)} />
                 <div className="relative z-40 mt-2 rounded-2xl border border-gray-100 bg-white shadow-2xl overflow-hidden">
                   {([
-                    { label: "Dashboard",   icon: Home,        href: "/dashboard",    color: "#1E3A8A", desc: "Overview, widgets & projects" },
-                    { label: "Project Hub", icon: FolderKanban, href: "/project-hub",  color: "#1E3A8A", desc: "RFIs, schedules & budgets" },
-                    { label: "Analytics",   icon: BarChart3,   href: "/analytics",    color: "#1E3A8A", desc: "Reports & performance insights" },
+                    { label: "Dashboard",   icon: Home,         href: "/dashboard",   color: "#FF4D00", desc: "Overview, widgets & projects" },
+                    { label: "Project Hub", icon: FolderKanban,  href: "/project-hub", color: "#FF4D00", desc: "RFIs, schedules & budgets" },
+                    { label: "Analytics",   icon: BarChart3,    href: "/analytics",   color: "#6366F1", desc: "Reports & performance insights" },
                     { label: "SlateDrop",   icon: Layers,      href: "/slatedrop",    color: "#FF4D00", desc: "Files, folders & secure sharing" },
                   ]).map((item) => {
                     const NavIcon = item.icon as any;
@@ -1181,7 +1181,7 @@ export default function DashboardClient({
                       </Link>
                     );
                   })}
-                  <div className="px-4 py-3 bg-gradient-to-r from-[#FF4D00]/5 to-[#1E3A8A]/5 border-t border-gray-100">
+                  <div className="px-4 py-3 bg-gradient-to-r from-[#FF4D00]/5 to-zinc-900/5 border-t border-gray-100">
                     <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest text-center">Powered by Slate360</p>
                   </div>
                 </div>
@@ -1597,7 +1597,7 @@ export default function DashboardClient({
                       <span className="text-xs font-bold text-gray-900">{profileCompletion}%</span>
                     </div>
                     <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-                      <div className="h-full rounded-full bg-[#1E3A8A]" style={{ width: `${profileCompletion}%` }} />
+                      <div className="h-full rounded-full bg-[#FF4D00]" style={{ width: `${profileCompletion}%` }} />
                     </div>
                   </div>
                   <button onClick={() => void saveAccountPreferences()} className="w-full text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Save Preferences</button>
@@ -1646,7 +1646,7 @@ export default function DashboardClient({
                     </div>
                     <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-[#1E3A8A]"
+                        className="h-full rounded-full bg-[#FF4D00]"
                         style={{ width: `${Math.min(((accountOverview?.usage.storageUsedGb ?? storageUsed) / (accountOverview?.usage.storageLimitGb ?? ent.maxStorageGB)) * 100, 100)}%` }}
                       />
                     </div>
@@ -1778,7 +1778,7 @@ export default function DashboardClient({
             <p className="mt-1 text-sm text-gray-500">Integrations now runs in its dedicated workspace route.</p>
             <Link
               href="/integrations"
-              className="mt-4 inline-flex items-center rounded-lg bg-[#1E3A8A] px-3 py-2 text-xs font-semibold text-white hover:bg-[#162D69]"
+              className="mt-4 inline-flex items-center rounded-lg bg-[#FF4D00] px-3 py-2 text-xs font-semibold text-white hover:bg-[#E04400]"
             >
               Go to Integrations
             </Link>
@@ -1790,7 +1790,7 @@ export default function DashboardClient({
             <p className="mt-1 text-sm text-gray-500">Analytics &amp; Reports now runs in its dedicated workspace route.</p>
             <Link
               href="/analytics"
-              className="mt-4 inline-flex items-center rounded-lg bg-[#1E3A8A] px-3 py-2 text-xs font-semibold text-white hover:bg-[#162D69]"
+              className="mt-4 inline-flex items-center rounded-lg bg-[#FF4D00] px-3 py-2 text-xs font-semibold text-white hover:bg-[#E04400]"
             >
               Go to Analytics
             </Link>

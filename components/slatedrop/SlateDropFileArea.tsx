@@ -106,7 +106,7 @@ export default function SlateDropFileArea({
       )}
 
       {projectBanner && (
-        <div className="mb-5 rounded-2xl border border-[#FF4D00]/20 bg-gradient-to-r from-[#FF4D00]/5 to-[#1E3A8A]/5 p-4 flex items-center justify-between gap-4">
+        <div className="mb-5 rounded-2xl border border-[#FF4D00]/20 bg-gradient-to-r from-[#FF4D00]/5 to-[#FF4D00]/3 p-4 flex items-center justify-between gap-4">
           <div>
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Project Sandbox</p>
             <h3 className="text-base font-black text-gray-900">{projectBanner.name}</h3>
@@ -140,7 +140,7 @@ export default function SlateDropFileArea({
                 onContextMenu={(event) => onSubFolderContextMenu(event, folder)}
                 className="flex items-center gap-2.5 p-3 rounded-xl border border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm transition-all text-left group"
               >
-                <Folder size={18} className="text-[#1E3A8A] shrink-0" />
+                <Folder size={18} className="text-zinc-400 shrink-0" />
                 <span className="text-xs font-medium text-gray-700 truncate group-hover:text-[#FF4D00] transition-colors">{folder.name}</span>
                 {folder.isSystem && <Lock size={8} className="text-gray-300 shrink-0" />}
               </button>

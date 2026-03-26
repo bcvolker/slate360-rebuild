@@ -38,7 +38,7 @@ export default function Page() {
           <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-5" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
             Design
           </span>
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-none mb-6" style={{ color: "#1E3A8A" }}>
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-none mb-6" style={{ color: "#FF4D00" }}>
             Design Studio
           </h1>
           <p className="text-xl text-gray-500 leading-relaxed max-w-2xl mb-8">Your all-in-one workspace for 3D modeling, 2D plan markup, and fabrication preparation — context-aware tools that adapt to every task.</p>
@@ -63,7 +63,7 @@ export default function Page() {
       {/* Highlights */}
       <section className="py-20 px-4 sm:px-6 bg-white">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-black mb-10" style={{ color: "#1E3A8A" }}>What&apos;s included</h2>
+          <h2 className="text-3xl font-black mb-10" style={{ color: "#FF4D00" }}>What&apos;s included</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {highlights.map((h) => (
               <div key={h} className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 bg-gray-50">
@@ -78,7 +78,7 @@ export default function Page() {
       {/* CTA */}
       <section className="py-20 px-4 sm:px-6 bg-gray-50 text-center">
         <div className="max-w-xl mx-auto">
-          <h2 className="text-3xl font-black mb-4" style={{ color: "#1E3A8A" }}>Ready to get started?</h2>
+          <h2 className="text-3xl font-black mb-4" style={{ color: "#FF4D00" }}>Ready to get started?</h2>
           <p className="text-gray-500 mb-8">No credit card required. Cancel anytime.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup" className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-semibold text-white transition-all hover:opacity-90 hover:scale-105" style={{ backgroundColor: "#FF4D00" }}>

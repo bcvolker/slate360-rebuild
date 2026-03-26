@@ -38,7 +38,7 @@ const PLANS = [
 const MOCK_METRICS = [
   { label: "MRR", value: "$128,400", icon: TrendingUp, accent: "#FF6B35" },
   { label: "Churn", value: "2.8%", icon: Percent, accent: "#3B82F6" },
-  { label: "Margin", value: "67%", icon: Gauge, accent: "#1E3A8A" },
+  { label: "Margin", value: "67%", icon: Gauge, accent: "#6366F1" },
   { label: "Runway", value: "22 months", icon: WalletCards, accent: "#F97316" },
   { label: "Active Subs", value: "1,942", icon: Users2, accent: "#60A5FA" },
 ];
@@ -64,7 +64,7 @@ export default function CeoCommandCenterClient({ user, tier, isCeo = false, inte
       tier={tier}
       title="CEO Command Center"
       icon={Shield}
-      accent="#1E3A8A"
+      accent="#FF4D00"
       status="live"
       isCeo={isCeo}
       internalAccess={internalAccess}
@@ -84,7 +84,7 @@ export default function CeoCommandCenterClient({ user, tier, isCeo = false, inte
             onClick={() => setActiveTab(id)}
             className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
               activeTab === id
-                ? "bg-[#1E3A8A] text-white shadow-sm"
+                ? "bg-[#FF4D00] text-white shadow-sm"
                 : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
             }`}
           >

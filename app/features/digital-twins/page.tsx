@@ -38,7 +38,7 @@ export default function Page() {
           </span>
           <h1
             className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-none mb-6"
-            style={{ color: "#1E3A8A" }}
+            style={{ color: "#FF4D00" }}
           >
             Digital Twin Creation
           </h1>
@@ -75,7 +75,7 @@ export default function Page() {
         <div className="max-w-4xl mx-auto">
           <h2
             className="text-3xl font-black mb-10"
-            style={{ color: "#1E3A8A" }}
+            style={{ color: "#FF4D00" }}
           >
             What&apos;s included
           </h2>
@@ -104,7 +104,7 @@ export default function Page() {
         <div className="max-w-xl mx-auto">
           <h2
             className="text-3xl font-black mb-4"
-            style={{ color: "#1E3A8A" }}
+            style={{ color: "#FF4D00" }}
           >
             Build your first digital twin
           </h2>

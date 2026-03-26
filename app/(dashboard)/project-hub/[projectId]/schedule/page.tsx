@@ -211,8 +211,8 @@ export default function ProjectSchedulePage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded-lg border border-gray-200 bg-white overflow-hidden">
-            <button onClick={() => setViewMode("gantt")} className={`px-3 py-2 text-xs font-semibold transition ${viewMode === "gantt" ? "bg-[#1E3A8A] text-white" : "text-gray-600 hover:bg-gray-50"}`}>Gantt</button>
-            <button onClick={() => setViewMode("table")} className={`px-3 py-2 text-xs font-semibold transition ${viewMode === "table" ? "bg-[#1E3A8A] text-white" : "text-gray-600 hover:bg-gray-50"}`}>Table</button>
+            <button onClick={() => setViewMode("gantt")} className={`px-3 py-2 text-xs font-semibold transition ${viewMode === "gantt" ? "bg-[#FF4D00] text-white" : "text-gray-600 hover:bg-gray-50"}`}>Gantt</button>
+            <button onClick={() => setViewMode("table")} className={`px-3 py-2 text-xs font-semibold transition ${viewMode === "table" ? "bg-[#FF4D00] text-white" : "text-gray-600 hover:bg-gray-50"}`}>Table</button>
           </div>
           {viewMode === "gantt" && (
             <div className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1.5">

@@ -203,7 +203,7 @@ export default function ContactDetailPanel({ contact, onClose, onUpdate, onDelet
                   <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Projects</label>
                   <div className="flex flex-wrap gap-1.5">
                     {contact.contact_projects!.map((cp) => (
-                      <span key={cp.project_id} className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#1E3A8A]/8 text-[#1E3A8A]">
+                      <span key={cp.project_id} className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#6366F1]/10 text-[#6366F1]">
                         {cp.projects.name}
                       </span>
                     ))}

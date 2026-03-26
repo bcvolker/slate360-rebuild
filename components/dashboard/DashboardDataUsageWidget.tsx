@@ -81,7 +81,7 @@ export default function DashboardDataUsageWidget({
           </div>
           <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
             <div
-              className="h-full rounded-full bg-[#1E3A8A] transition-all duration-1000 ease-out"
+              className="h-full rounded-full bg-[#FF4D00] transition-all duration-1000 ease-out"
               style={{ width: `${Math.min((storageUsed / maxStorageGB) * 100, 100)}%` }}
             />
           </div>

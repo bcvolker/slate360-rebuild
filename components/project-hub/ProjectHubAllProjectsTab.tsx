@@ -61,7 +61,7 @@ export default function ProjectHubAllProjectsTab({ loading, projects, onOpenDele
                     style={{ backgroundImage: `url(${staticMapUrl})` }}
                   />
                 ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A] to-[#1e293b]" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-800" />
                 )}
                 {staticMapUrl && <div className="absolute inset-0 bg-black/45" />}
                 <div className="absolute inset-0 p-4 flex flex-col justify-between">

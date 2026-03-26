@@ -37,7 +37,7 @@ export default function MyAccountShell({ user, tier, isCeo, internalAccess }: Pr
       internalAccess={internalAccess}
       title="My Account"
       icon={User}
-      accent="#1E3A8A"
+      accent="#FF4D00"
       status="coming-soon"
     >
       {/* Identity card */}
@@ -45,7 +45,7 @@ export default function MyAccountShell({ user, tier, isCeo, internalAccess }: Pr
         {user.avatar ? (
           <img src={user.avatar} alt="" className="w-14 h-14 rounded-2xl object-cover" />
         ) : (
-          <div className="w-14 h-14 rounded-2xl bg-[#1E3A8A] flex items-center justify-center text-white text-xl font-bold">
+          <div className="w-14 h-14 rounded-2xl bg-zinc-700 flex items-center justify-center text-white text-xl font-bold">
             {user.name.charAt(0).toUpperCase()}
           </div>
         )}
@@ -61,8 +61,8 @@ export default function MyAccountShell({ user, tier, isCeo, internalAccess }: Pr
           const Icon = s.icon;
           return (
             <div key={s.label} className="rounded-2xl border border-gray-200 bg-white p-5 flex items-start gap-3">
-              <div className="h-9 w-9 shrink-0 rounded-xl bg-[#1E3A8A]/8 flex items-center justify-center">
-                <Icon size={16} className="text-[#1E3A8A]" />
+              <div className="h-9 w-9 shrink-0 rounded-xl bg-zinc-800 flex items-center justify-center">
+                <Icon size={16} className="text-zinc-400" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-bold text-gray-900">{s.label}</p>
@@ -87,7 +87,7 @@ export default function MyAccountShell({ user, tier, isCeo, internalAccess }: Pr
               if (data.url) window.location.href = data.url;
             } catch { /* handled */ }
           }}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#1E3A8A] px-4 py-2 text-xs font-semibold text-white hover:bg-[#162D69] transition-colors"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#FF4D00] px-4 py-2 text-xs font-semibold text-white hover:bg-[#E04400] transition-colors"
         >
           Open Portal <ArrowRight size={14} />
         </button>
@@ -96,7 +96,7 @@ export default function MyAccountShell({ user, tier, isCeo, internalAccess }: Pr
       {/* Integrations */}
       <div>
         <div className="flex items-center gap-2 mb-3">
-          <Plug size={16} className="text-[#1E3A8A]" />
+          <Plug size={16} className="text-zinc-400" />
           <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500">Integrations</h2>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">

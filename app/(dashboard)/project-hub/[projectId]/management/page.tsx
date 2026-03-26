@@ -357,7 +357,7 @@ export default function ProjectManagementPage() {
       {/* ── Quick stats ─────────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: "Total Stakeholders", value: stakeholders.length,  color: "text-[#1E3A8A]",  icon: Users },
+          { label: "Total Stakeholders", value: stakeholders.length,  color: "text-[#FF4D00]",  icon: Users },
           { label: "Active Contracts",   value: contracts.filter((c)=>c.status==="Executed").length, color: "text-emerald-600", icon: FileSignature },
           { label: "Contracts Drafted",  value: contracts.filter((c)=>c.status==="Draft").length, color: "text-amber-600",   icon: FileText },
           { label: "Subcontractors",     value: stakeholders.filter((s)=>s.role==="Subcontractor").length, color: "text-orange-600", icon: Building2 },
@@ -396,11 +396,11 @@ export default function ProjectManagementPage() {
           <div className="xl:col-span-2 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap gap-2">
-                <button onClick={() => setRoleFilter("all")} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${roleFilter==="all" ? "bg-[#1E3A8A] text-white border-[#1E3A8A]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+                <button onClick={() => setRoleFilter("all")} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${roleFilter==="all" ? "bg-[#FF4D00] text-white border-[#FF4D00]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
                   All ({stakeholders.length})
                 </button>
                 {Object.entries(roleGroups).map(([role, count]) => (
-                  <button key={role} onClick={() => setRoleFilter(role)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${roleFilter===role ? "bg-[#1E3A8A] text-white border-[#1E3A8A]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+                  <button key={role} onClick={() => setRoleFilter(role)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${roleFilter===role ? "bg-[#FF4D00] text-white border-[#FF4D00]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
                     {role} ({count})
                   </button>
                 ))}
@@ -426,8 +426,8 @@ export default function ProjectManagementPage() {
                   return (
                     <div key={s.id} className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                       <button onClick={() => setExpandedSId(isExp ? null : s.id)} className="flex w-full items-center gap-3 p-4 text-left hover:bg-gray-50/50 transition">
-                        <div className="w-10 h-10 rounded-xl bg-[#1E3A8A]/10 flex items-center justify-center shrink-0">
-                          <User size={16} className="text-[#1E3A8A]" />
+                        <div className="w-10 h-10 rounded-xl bg-[#FF4D00]/10 flex items-center justify-center shrink-0">
+                          <User size={16} className="text-[#FF4D00]" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-gray-900 truncate">{s.name}</p>
@@ -486,12 +486,12 @@ export default function ProjectManagementPage() {
               </div>
               {!showSForm ? (
                 <div className="p-5 flex flex-col items-center gap-3 text-center">
-                  <div className="w-12 h-12 rounded-xl bg-[#1E3A8A]/10 flex items-center justify-center">
-                    <Users size={20} className="text-[#1E3A8A]" />
+                  <div className="w-12 h-12 rounded-xl bg-[#FF4D00]/10 flex items-center justify-center">
+                    <Users size={20} className="text-[#FF4D00]" />
                   </div>
                   <p className="text-xs text-gray-500">Add owners, architects, GCs, subs, engineers, or any project stakeholder.</p>
                   <button onClick={() => { setSForm({ ...EMPTY_S_FORM }); setEditingSId(null); setShowSForm(true); }}
-                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#1E3A8A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#162d6e] transition">
+                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#FF4D00] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E04400] transition">
                     <Plus size={14} /> Add Stakeholder
                   </button>
                 </div>
@@ -499,50 +499,50 @@ export default function ProjectManagementPage() {
                 <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
                   <div>
                     <label className="mb-1 block text-xs font-bold text-gray-700">Name *</label>
-                    <input value={sForm.name} onChange={(e) => setSForm({...sForm, name: e.target.value})} placeholder="Full name" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#1E3A8A] focus:ring-1 focus:ring-[#1E3A8A]/20" />
+                    <input value={sForm.name} onChange={(e) => setSForm({...sForm, name: e.target.value})} placeholder="Full name" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]/20" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="mb-1 block text-xs font-bold text-gray-700">Role *</label>
-                      <select value={sForm.role} onChange={(e) => setSForm({...sForm, role: e.target.value})} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#1E3A8A]">
+                      <select value={sForm.role} onChange={(e) => setSForm({...sForm, role: e.target.value})} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]">
                         {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                       </select>
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-bold text-gray-700">Status</label>
-                      <select value={sForm.status} onChange={(e) => setSForm({...sForm, status: e.target.value})} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#1E3A8A]">
+                      <select value={sForm.status} onChange={(e) => setSForm({...sForm, status: e.target.value})} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]">
                         <option>Active</option><option>Inactive</option>
                       </select>
                     </div>
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-bold text-gray-700">Company</label>
-                    <input value={sForm.company} onChange={(e) => setSForm({...sForm, company: e.target.value})} placeholder="Company name" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#1E3A8A]" />
+                    <input value={sForm.company} onChange={(e) => setSForm({...sForm, company: e.target.value})} placeholder="Company name" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="mb-1 block text-xs font-bold text-gray-700"><Mail size={10} className="inline mr-1" />Email</label>
-                      <input type="email" value={sForm.email} onChange={(e) => setSForm({...sForm, email: e.target.value})} placeholder="email@co.com" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#1E3A8A]" />
+                      <input type="email" value={sForm.email} onChange={(e) => setSForm({...sForm, email: e.target.value})} placeholder="email@co.com" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]" />
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-bold text-gray-700"><Phone size={10} className="inline mr-1" />Phone</label>
-                      <input type="tel" value={sForm.phone} onChange={(e) => setSForm({...sForm, phone: e.target.value})} placeholder="(555) 000-0000" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#1E3A8A]" />
+                      <input type="tel" value={sForm.phone} onChange={(e) => setSForm({...sForm, phone: e.target.value})} placeholder="(555) 000-0000" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]" />
                     </div>
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-bold text-gray-700"><MapPin size={10} className="inline mr-1" />Address</label>
-                    <input value={sForm.address} onChange={(e) => setSForm({...sForm, address: e.target.value})} placeholder="123 Main St, City, ST" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#1E3A8A]" />
+                    <input value={sForm.address} onChange={(e) => setSForm({...sForm, address: e.target.value})} placeholder="123 Main St, City, ST" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]" />
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-bold text-gray-700"><Hash size={10} className="inline mr-1" />License / Cert #</label>
-                    <input value={sForm.license_no} onChange={(e) => setSForm({...sForm, license_no: e.target.value})} placeholder="GC-12345" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#1E3A8A]" />
+                    <input value={sForm.license_no} onChange={(e) => setSForm({...sForm, license_no: e.target.value})} placeholder="GC-12345" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]" />
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-bold text-gray-700">Notes</label>
-                    <textarea value={sForm.notes} onChange={(e) => setSForm({...sForm, notes: e.target.value})} rows={2} placeholder="Scope, specialty, payment terms…" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#1E3A8A] resize-none" />
+                    <textarea value={sForm.notes} onChange={(e) => setSForm({...sForm, notes: e.target.value})} rows={2} placeholder="Scope, specialty, payment terms…" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00] resize-none" />
                   </div>
                   <button onClick={handleSSubmit} disabled={sSaving || !sForm.name.trim()}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#1E3A8A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#162d6e] disabled:opacity-50 transition">
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#FF4D00] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E04400] disabled:opacity-50 transition">
                     {sSaving && <Loader2 size={14} className="animate-spin" />}
                     {editingSId ? "Update" : "Add Stakeholder"}
                   </button>
@@ -813,7 +813,7 @@ export default function ProjectManagementPage() {
               </div>
             ) : (
               <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                <div className="bg-[#1E3A8A] px-6 py-5">
+                <div className="bg-[#FF4D00] px-6 py-5">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-blue-200 mb-1">Slate360 Professional Report</p>
                   <h3 className="text-lg font-black text-white">{reportResult.title}</h3>
                   <p className="text-[11px] text-blue-200 mt-1">Generated {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>

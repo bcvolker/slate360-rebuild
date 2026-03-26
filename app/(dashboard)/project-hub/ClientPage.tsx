@@ -158,7 +158,7 @@ export default function ProjectHubPage({ user, tier, isCeo = false, internalAcce
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h1 className="text-xl sm:text-2xl font-black text-gray-900 flex items-center gap-3">
-            <FolderKanban size={28} className="text-[#1E3A8A]" /> Project Hub
+            <FolderKanban size={28} className="text-[#FF4D00]" /> Project Hub
           </h1>
           <button
             onClick={() => setWizardOpen(true)}

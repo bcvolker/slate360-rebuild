@@ -108,7 +108,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
       tier={tier}
       title="Analytics & Reports"
       icon={BarChart3}
-      accent="#1E3A8A"
+      accent="#6366F1"
       status="live"
       isCeo={isCeo}
       internalAccess={internalAccess}
@@ -224,7 +224,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
                 onClick={() => toggleSection(s.id)}
                 className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
                   selectedSections.includes(s.id)
-                    ? "border-[#1E3A8A] bg-[#1E3A8A]/5 text-[#1E3A8A]"
+                    ? "border-[#6366F1] bg-[#6366F1]/5 text-[#6366F1]"
                     : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
                 }`}
               >

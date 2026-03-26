@@ -130,7 +130,7 @@ export default function WidgetCard({
                     className={[
                       "w-6 h-6 rounded-md flex items-center justify-center transition-all",
                       isActive
-                        ? "bg-white shadow-sm text-[#1E3A8A]"
+                        ? "bg-white shadow-sm text-[#FF4D00]"
                         : "text-gray-400 hover:text-gray-600",
                     ].join(" ")}
                     title={`${opt.label} size`}

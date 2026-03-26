@@ -197,7 +197,7 @@ export default function ObservationsClient() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {[
-          { label: "Total", value: counts.total, color: "#1E3A8A" },
+          { label: "Total", value: counts.total, color: "#FF4D00" },
           { label: "Positive", value: counts.positive, color: "#059669" },
           { label: "Negative", value: counts.negative, color: "#DC2626" },
           { label: "Neutral", value: counts.neutral, color: "#6B7280" },

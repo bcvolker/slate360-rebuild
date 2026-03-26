@@ -39,10 +39,10 @@ export default function Page() {
           <Link href="/features" className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#FF4D00] transition-colors mb-8">
             <ChevronLeft size={12} /> All features
           </Link>
-          <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-5" style={{ backgroundColor: "#1E3A8A1A", color: "#1E3A8A" }}>
+          <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-5" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
             Analyze
           </span>
-          <h1 className="text-5xl sm:text-6xl font-black tracking-tight leading-tight mb-5" style={{ color: "#1E3A8A" }}>
+          <h1 className="text-5xl sm:text-6xl font-black tracking-tight leading-tight mb-5" style={{ color: "#FF4D00" }}>
             Analytics & Reports
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl leading-relaxed mb-8">
@@ -62,7 +62,7 @@ export default function Page() {
       {/* Highlights */}
       <section className="py-20 px-4 sm:px-6 bg-gray-50">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-10" style={{ color: "#1E3A8A" }}>What you can do</h2>
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-10" style={{ color: "#FF4D00" }}>What you can do</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {highlights.map((h) => (
               <div key={h} className="flex items-start gap-3 p-4 rounded-xl bg-white border border-gray-200">
@@ -75,7 +75,7 @@ export default function Page() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 sm:px-6 text-white" style={{ backgroundColor: "#1E3A8A" }}>
+      <section className="py-20 px-4 sm:px-6 text-white" style={{ backgroundColor: "#FF4D00" }}>
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-4xl font-black tracking-tight mb-4">Know exactly where every project stands.</h2>
           <p className="text-blue-200 text-lg mb-8">Real-time portfolio intelligence, not static spreadsheets.</p>

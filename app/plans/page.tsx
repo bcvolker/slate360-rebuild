@@ -127,7 +127,7 @@ export default function PlansPage() {
       <section className="pt-24 pb-6 px-4 sm:px-6 text-center">
         <div className="max-w-2xl mx-auto">
           <span className="inline-block text-[10px] font-semibold uppercase tracking-widest px-3 py-1 rounded-full mb-3" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>Pricing</span>
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-3" style={{ color: "#1E3A8A" }}>Simple, transparent pricing</h1>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-3" style={{ color: "#FF4D00" }}>Simple, transparent pricing</h1>
           <p className="text-base text-gray-500 mb-6">Credits are generous. Storage is real. No surprise bills.</p>
           <div className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 p-1">
             {(["monthly", "annual"] as const).map((b) => (
@@ -156,10 +156,10 @@ export default function PlansPage() {
                 <p className="text-xs text-gray-500 mb-3">{t.desc}</p>
                 <div className="flex items-baseline gap-1 mb-4">
                   {t.price === "Custom" ? (
-                    <span className="text-2xl font-black" style={{ color: "#1E3A8A" }}>Custom</span>
+                    <span className="text-2xl font-black" style={{ color: "#FF4D00" }}>Custom</span>
                   ) : (
                     <>
-                      <span className="text-3xl font-black" style={{ color: "#1E3A8A" }}>{billing === "annual" ? t.annualPrice : t.price}</span>
+                      <span className="text-3xl font-black" style={{ color: "#FF4D00" }}>{billing === "annual" ? t.annualPrice : t.price}</span>
                       <span className="text-gray-400 text-xs">/mo</span>
                     </>
                   )}
@@ -192,7 +192,7 @@ export default function PlansPage() {
       </section>
       <section className="py-20 px-4 sm:px-6 bg-gray-50">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-black mb-10 text-center" style={{ color: "#1E3A8A" }}>Frequently asked questions</h2>
+          <h2 className="text-3xl font-black mb-10 text-center" style={{ color: "#FF4D00" }}>Frequently asked questions</h2>
           <div className="space-y-5">
             {faqs.map((faq) => (
               <div key={faq.q} className="p-5 rounded-xl bg-white border border-gray-100 shadow-sm">

@@ -106,8 +106,8 @@ function resolveProjectLocation(metadata: unknown, profileAddress: string | null
 
 /* ─── Widget metadata ─────────────────────────────────────────── */
 const PROJECT_WIDGET_META: WidgetMeta[] = [
-  { id: "project-info",      label: "Project Info",       icon: Info,           color: "#1E3A8A" },
-  { id: "location",          label: "Site Location",      icon: MapPin,         color: "#1E3A8A" },
+  { id: "project-info",      label: "Project Info",       icon: Info,           color: "#FF4D00" },
+  { id: "location",          label: "Site Location",      icon: MapPin,         color: "#FF4D00" },
   { id: "weather",           label: "Weather",            icon: Sun,            color: "#0891B2" },
   { id: "budget-snapshot",   label: "Budget Snapshot",    icon: BarChart2,      color: "#059669" },
   { id: "schedule-snapshot", label: "Schedule Snapshot",  icon: CalendarCheck2, color: "#FF4D00" },
@@ -257,7 +257,7 @@ export default function ProjectDashboardGrid({
       return (
         <div className="rounded-xl bg-gradient-to-br from-slate-50 to-blue-50 border border-slate-100 p-4 flex-1 space-y-3">
           <div className="flex items-start gap-2.5">
-            <Building2 size={18} className="text-[#1E3A8A] mt-0.5 shrink-0" />
+            <Building2 size={18} className="text-[#FF4D00] mt-0.5 shrink-0" />
             <div className="min-w-0">
               <p className="text-sm font-black text-gray-900 truncate">{project.name ?? "—"}</p>
               {locationStr && (
@@ -281,7 +281,7 @@ export default function ProjectDashboardGrid({
             {rfiCount !== null && (
               <div className="bg-white/70 rounded-lg p-2">
                 <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Open RFIs</p>
-                <p className="text-xs font-bold text-[#1E3A8A] mt-0.5">{rfiCount.open} <span className="text-gray-400 font-normal">/ {rfiCount.total}</span></p>
+                <p className="text-xs font-bold text-[#FF4D00] mt-0.5">{rfiCount.open} <span className="text-gray-400 font-normal">/ {rfiCount.total}</span></p>
               </div>
             )}
             {subCount !== null && (
@@ -296,7 +296,7 @@ export default function ProjectDashboardGrid({
           )}
           <button
             onClick={() => setProfileOpen(true)}
-            className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-gray-200 py-1.5 text-[10px] font-semibold text-gray-400 hover:text-[#1E3A8A] hover:border-[#1E3A8A]/30 transition"
+            className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-gray-200 py-1.5 text-[10px] font-semibold text-gray-400 hover:text-[#FF4D00] hover:border-[#FF4D00]/30 transition"
           >
             <Settings size={10} /> Edit Company Profile (Auto-fill)
           </button>
@@ -424,7 +424,7 @@ export default function ProjectDashboardGrid({
     /* QUICK ACTIONS */
     if (id === "quick-actions") {
       const actions = [
-        { label: "New RFI",       href: `/project-hub/${projectId}/rfis`,       icon: ClipboardList, color: "#1E3A8A" },
+        { label: "New RFI",       href: `/project-hub/${projectId}/rfis`,       icon: ClipboardList, color: "#FF4D00" },
         { label: "Add Submittal", href: `/project-hub/${projectId}/submittals`,  icon: FileCheck2,    color: "#7C3AED" },
         { label: "Daily Log",     href: `/project-hub/${projectId}/daily-logs`,  icon: Layers,        color: "#FF4D00" },
         { label: "Punch List",    href: `/project-hub/${projectId}/punch-list`,  icon: ShieldAlert,   color: "#DC2626" },
@@ -494,14 +494,14 @@ export default function ProjectDashboardGrid({
           <button
             onClick={() => setProfileOpen(true)}
             title="Company auto-fill profile"
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-[#1E3A8A] transition-colors"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-[#FF4D00] transition-colors"
           >
             <Settings size={15} />
           </button>
           <button
             onClick={() => setCustomizeOpen(true)}
             title="Customize widgets"
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-[#1E3A8A] transition-colors"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-[#FF4D00] transition-colors"
           >
             <SlidersHorizontal size={16} />
           </button>

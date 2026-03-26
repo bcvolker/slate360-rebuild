@@ -25,7 +25,7 @@ export default function DashboardTabShell({
   tier,
   title,
   icon: Icon,
-  accent = "#1E3A8A",
+  accent = "#FF4D00",
   status = "coming-soon",
   isCeo = false,
   internalAccess,
