@@ -1,8 +1,9 @@
 # Slate360 — Design & UI Overhaul Execution Plan
 
 Created: 2026-03-24
-Status: Ready for execution
-Branch: main (local commit `1c09352`)
+Updated: 2026-03-26
+Status: Phase 4 — DashboardClient decomposition (NEXT)
+Branch: main
 
 ## Context
 
@@ -10,14 +11,18 @@ The dashboard and platform UI has accumulated inconsistent styling — navy blue
 
 ### Current State
 
-- **Remote is broken**: `origin/main` has commit `8a3ab35` (Gemini's truncated `globals.css`). Local `main` is at `1c09352` (healthy). **Phase 0 must run first.**
-- **globals.css**: 227 lines, healthy locally. Contains `--slate-blue: #1E3A8A` tokens that need replacement.
-- **DashboardClient.tsx**: 1,954 lines, 55 useState vars, JSX starts at ~L1018. My Account inline at ~L1384-1790.
-- **components/ui/**: Only 3 files — `EmptyState.tsx`, `StatusPill.tsx`, `tooltip.tsx`. Missing all shadcn basics.
-- **entitlements.ts**: 136 lines. Creator missing `canAccessHub: true`. Trial blocks tabs instead of showing upgrade prompts.
-- **app/page.tsx**: 780 lines (homepage monolith).
-- **Navy blue `#1E3A8A`**: Found in 60+ files — `app/features/**`, `components/dashboard/**`, `components/project-hub/**`, `components/slatedrop/**`, `app/(dashboard)/**`.
-- **9 orphaned widget files**: Exist in `components/dashboard/` but imported by nothing.
+**As of 2026-03-26 — Phases 0-3.5 complete:**
+
+- **Remote:** Healthy. Force-push fixed broken `8a3ab35`. Current HEAD is `5343dbf`.
+- **globals.css:** 230 lines, all `#1E3A8A` removed. Module tokens correct: hub/slatedrop/my-account orange, analytics/market indigo, design purple, content pink, tours cyan, geo green, virtual amber.
+- **DashboardClient.tsx:** ~1,961 lines. Navy purged. Still a monolith — Phase 4 decomposes it.
+- **components/ui/:** 13 files — 3 pre-existing (`EmptyState.tsx`, `StatusPill.tsx`, `tooltip.tsx`) + 10 from Phase 3 shadcn install (`button`, `card`, `input`, `badge`, `separator`, `avatar`, `select`, `dialog`, `dropdown-menu`, `tabs`).
+- **entitlements.ts:** 136 lines — still unmodified (Phase 5).
+- **app/page.tsx:** ~780 lines — still a monolith (Phase 6).
+- **Navy `#1E3A8A`:** Intentionally kept only in 3 files (user-selectable color swatches): `components/contacts/AddContactModal.tsx`, `app/api/contacts/route.ts`, `app/api/dashboard/widgets/route.ts`.
+- **9 orphaned widget files:** Still present, Phase 4.5 wires them in.
+- **Husky + lint-staged:** Installed. Pre-commit hook runs ESLint + CSS brace-balance check.
+- **GitHub Actions CI:** `release-gates.yml` already runs typecheck + build + architecture guards on every push/PR. No duplicate CI needed.
 
 ### Design System Target
 
@@ -33,164 +38,68 @@ The dashboard and platform UI has accumulated inconsistent styling — navy blue
 
 ---
 
-## Phase 0 — Fix Remote (BLOCKING — do first)
+## ✅ Phase 0 — Fix Remote (COMPLETE)
 
-**Risk:** Low | **Rollback:** `git push origin 8a3ab35:main --force`
-
-```bash
-# 1. Back up env
-cp .env.local ~/env-backup
-
-# 2. Force-push healthy local to remote
-git push --force origin main
-
-# 3. Verify Vercel redeploys (check dashboard or wait ~2 min)
-```
-
-**Why:** Remote `origin/main` is at broken commit `8a3ab35` (Gemini truncated `globals.css`, missing closing bracket at line 103). Local `main` at `1c09352` is healthy with build passing. Force-push overwrites the one broken commit.
+Force-pushed `1c09352` → fixed broken `8a3ab35` (Gemini's truncated globals.css).
 
 ---
 
-## Phase 1 — Design Token Foundation
+## ✅ Phase 1 — Design Token Foundation (COMPLETE)
 
-**Risk:** Low | **File:** `app/globals.css` | **Rollback:** `git checkout -- app/globals.css`
-
-### Changes to make in the Slate360 Design Tokens section (~line 123-172):
-
-```css
-/* REPLACE these values: */
-
-/* Brand colors — OLD */
---slate-blue: #1E3A8A;
---slate-blue-hover: #162D69;
---slate-blue-light: rgba(30, 58, 138, 0.08);
-
-/* Brand colors — NEW */
---slate-blue: #27272a;           /* zinc-800 — legacy var kept for compat */
---slate-blue-hover: #3f3f46;     /* zinc-700 */
---slate-blue-light: rgba(39, 39, 42, 0.08);
-
-/* ADD new canonical accent variable after --slate-orange-light: */
---slate-accent: #FF4D00;
---slate-accent-hover: #E04400;
---slate-accent-ring: rgba(255, 77, 0, 0.5);
-
-/* Module accent colors — OLD */
---module-hub: #1E3A8A;
---module-analytics: #1E3A8A;
-
-/* Module accent colors — NEW */
---module-hub: #FF4D00;           /* Hub = brand orange */
---module-analytics: #6366F1;     /* Indigo — distinct from other modules */
-
-/* Surface — OLD */
---surface-page: #ECEEF2;
-
-/* Surface — NEW (dark-mode-first) */
---surface-page: oklch(0.09 0 0);  /* zinc-950 equivalent */
-```
-
-### Verify
-
-```bash
-npm run dev
-# Navigate to /dashboard — check colors render, no broken backgrounds
-```
+`app/globals.css` updated: `--slate-orange: #FF4D00`, `--slate-accent: #FF4D00`, zinc for backgrounds, module accent tokens for all 10 tabs. `--slate-blue` kept as zinc-800 (`#18181b`) for backward compat.
 
 ---
 
-## Phase 2 — Navy Blue Purge (Batch Find-Replace)
+## ✅ Phase 2 — Navy Blue Purge (COMPLETE — commit `5343dbf`)
 
-**Risk:** Low-Medium | **Touches ~60 files** | **Rollback per batch:** `git checkout -- <batch files>`
-
-### Strategy: One commit per batch, verify between each.
-
-**Batch A — Feature pages** (`app/features/**`):
-```bash
-# Find all navy refs in feature pages
-grep -rn "#1E3A8A" app/features/
-# Replace with appropriate zinc or orange values:
-# - Backgrounds: bg-zinc-900
-# - Text: text-zinc-100 or text-white  
-# - Accents/buttons: #FF4D00 (orange)
-# - Borders: border-zinc-800
-```
-
-**Batch B — Dashboard components** (`components/dashboard/**`):
-```bash
-grep -rn "#1E3A8A\|bg-blue-900\|bg-blue-800\|text-blue-" components/dashboard/
-# Replace:
-# - bg-blue-900 → bg-zinc-900
-# - bg-blue-800 → bg-zinc-800  
-# - text-blue-400 → text-zinc-400
-# - #1E3A8A → bg-zinc-900 or var(--slate-accent)
-```
-
-**Batch C — Project Hub** (`components/project-hub/**`, `app/(dashboard)/project-hub/**`):
-```bash
-grep -rn "#1E3A8A" components/project-hub/ app/\(dashboard\)/project-hub/
-# Same replacements as Batch B
-```
-
-**Batch D — SlateDrop** (`components/slatedrop/**`):
-```bash
-grep -rn "#1E3A8A" components/slatedrop/
-```
-
-**Batch E — Remaining files** (catch-all):
-```bash
-grep -rn "#1E3A8A" --include="*.tsx" --include="*.ts" .
-# Also catch bg-slate-* leftovers:
-grep -rn "bg-slate-900\|bg-slate-800" --include="*.tsx" .
-# Replace: bg-slate-900 → bg-zinc-900, bg-slate-800 → bg-zinc-800
-```
-
-### Verify per batch
-
-```bash
-npm run dev
-# Spot-check each affected page
-npm run typecheck
-```
-
-### Commit per batch
-
-```bash
-git add -A && git commit -m "style: purge navy blue from {batch name}"
-```
+55 files fixed across all directories. 3 files intentionally left (color swatches). All `#1E3A8A` removed from production UI.
 
 ---
 
-## Phase 3 — Install Shared UI Primitives
+## ✅ Phase 3 — Install Shared UI Primitives (COMPLETE)
 
-**Risk:** Low (additive only) | **Rollback:** `git checkout -- components/ui/`
+`components/ui/` now has 13 files. 10 added via `npx --yes shadcn@latest add ...`:
+`button`, `card`, `input`, `badge`, `separator`, `avatar`, `select`, `dialog`, `dropdown-menu`, `tabs`
 
-```bash
-npx shadcn@latest add button card input badge dialog dropdown-menu tabs separator avatar
-```
-
-This populates `components/ui/` with properly typed, accessible components. Do NOT refactor existing consumers yet — just make them available.
-
-### Verify
-
-```bash
-npm run typecheck
-ls components/ui/  # Should now have button.tsx, card.tsx, input.tsx, etc.
-```
-
-### Commit
-
-```bash
-git add -A && git commit -m "feat(ui): install shadcn button, card, input, badge, dialog, tabs"
-```
+`eslint-plugin-tailwindcss` blocked by Tailwind v4 peer dep conflict — skip until stable support ships. Style: New York, RSC-compatible.
 
 ---
 
-## Phase 4 — DashboardClient.tsx Decomposition
+## ✅ Phase 3.5 — Guardrails (COMPLETE)
+
+Added during 2026-03-26 session based on Gemini engineering analysis:
+
+- **Husky + lint-staged:** Pre-commit hook runs ESLint on staged `.ts/.tsx` and a CSS brace-balance check on staged `.css` files. This is the guard against broken CSS like Gemini's `8a3ab35` truncation.
+- **lint-staged config:** In `package.json` — ESLint with `--max-warnings=0 --fix` for TS, brace-count validation for CSS.
+- **GitHub Actions CI:** Already covered by `.github/workflows/release-gates.yml` — runs typecheck (`npx tsc --noEmit`), build stability check, architecture guardrails, and file-size regression on every push and PR. No new CI workflow needed.
+- **`tailwind-merge` + `clsx` + `cn()`:** Already installed pre-session. `lib/utils.ts` has the canonical `cn()` helper.
+- **`@tanstack/react-query` v5:** Already installed. Use for all async dashboard data fetching in Phase 4.
+
+### Gemini Recommendations Assessment
+
+| Recommendation | Status | Notes |
+|---|---|---|
+| Remove magic color values | ✅ Done | 55 files fixed, tokens in globals.css |
+| tailwind-merge / clsx / cn() | ✅ Already installed | lib/utils.ts has `cn()` |
+| React Query | ✅ Already installed | @tanstack/react-query v5 |
+| shadcn primitives | ✅ Done Phase 3 | 10 components added |
+| Husky + lint-staged | ✅ Done Phase 3.5 | Pre-commit hook in place |
+| GitHub Actions CI | ✅ Already existed | release-gates.yml covers this |
+| Zod API validation | ⬜ Phase 5.5 | Add after entitlements fix |
+| nuqs (URL-synced tab state) | ⬜ Phase 4 | Use for activeTab in DashboardClient |
+| eslint-plugin-tailwindcss | ❌ Blocked | No Tailwind v4 support yet |
+| Storybook | ❌ Skip | Overkill at current stage |
+| Figma MCP | ❌ Skip | External workflow choice |
+
+---
+
+## 🔜 Phase 4 — DashboardClient.tsx Decomposition (NEXT)
 
 **Risk:** Medium | **This is the most complex phase** | **Rollback per extraction:** `git checkout -- components/dashboard/`
 
-### Current structure of DashboardClient.tsx (1,954 lines):
+**New addition from Gemini analysis:** Use `nuqs` for `activeTab` URL state. Install: `npm install nuqs`. Replace the `activeTab` useState in DashboardClient with `useQueryState('tab', parseAsString.withDefault('project-hub'))`. This makes tab navigation bookmarkable and shareable.
+
+### Current structure of DashboardClient.tsx (~1,961 lines):
 
 | Section | Lines | What |
 |---------|-------|------|
@@ -291,6 +200,27 @@ Then create `components/shared/UpgradeGate.tsx`:
 
 ---
 
+## Phase 5.5 — Zod API Validation
+
+**Risk:** Low | **Install:** `npm install zod` | **Rollback:** remove zod, revert route files
+
+Add Zod schemas at API route boundaries to catch malformed payloads early. Start with:
+- `app/api/market/**` routes (most complex, most risk)
+- `app/api/contacts/route.ts`
+- `app/api/dashboard/widgets/route.ts`
+
+Pattern:
+```typescript
+import { z } from "zod";
+const schema = z.object({ ... });
+const result = schema.safeParse(req body);
+if (!result.success) return apiError(400, result.error.message);
+```
+
+Do NOT add Zod to every route at once — add per-route when touching that route for another reason.
+
+---
+
 ## Phase 6 — Homepage Decomposition
 
 **Risk:** Medium | **File:** `app/page.tsx` (780 lines) | **Rollback:** `git checkout -- app/page.tsx components/home/`
@@ -369,15 +299,17 @@ Then create `components/shared/UpgradeGate.tsx`:
 ## Execution Order Summary
 
 ```
-Phase 0  Fix remote (force-push)           ← MUST do first
-Phase 1  CSS tokens in globals.css          ← Safe, sets visual foundation  
-Phase 2  Navy blue purge (60 files)         ← Mechanical, batch commits
-Phase 3  Install shadcn primitives          ← Additive, zero risk
-Phase 4  DashboardClient decomposition      ← Highest value, highest effort
-Phase 5  Entitlements fix                   ← Small, standalone
-Phase 6  Homepage decomposition             ← After dashboard stable
-Phase 7  Visual polish                      ← Only after structure solid
-Phase 8  New feature readiness              ← Final layer
+Phase 0    Fix remote (force-push)           ✅ COMPLETE
+Phase 1    CSS tokens in globals.css          ✅ COMPLETE
+Phase 2    Navy blue purge (55 files)         ✅ COMPLETE (commit 5343dbf)
+Phase 3    Install shadcn primitives          ✅ COMPLETE (13 files in components/ui/)
+Phase 3.5  Guardrails (Husky, lint-staged)    ✅ COMPLETE
+Phase 4    DashboardClient decomposition      🔜 NEXT — includes nuqs for activeTab
+Phase 5    Entitlements fix                   ⬜ After Phase 4
+Phase 5.5  Zod API validation                 ⬜ Add per-route as touched
+Phase 6    Homepage decomposition             ⬜ After dashboard stable
+Phase 7    Visual polish                      ⬜ Only after structure solid
+Phase 8    New feature readiness              ⬜ Final layer
 ```
 
 Each phase has its own rollback. No phase depends on a later phase. Phases 1-3 can run in a single session. Phase 4 should be its own focused session.
@@ -396,11 +328,11 @@ Each phase has its own rollback. No phase depends on a later phase. Phases 1-3 c
 
 | File | Lines | Role |
 |------|-------|------|
-| `app/globals.css` | 227 | Design tokens (Phase 1) |
-| `components/dashboard/DashboardClient.tsx` | 1,954 | Main monolith (Phase 4) |
+| `app/globals.css` | ~230 | Design tokens (✅ complete) |
+| `components/dashboard/DashboardClient.tsx` | ~1,961 | Main monolith (Phase 4) |
 | `lib/entitlements.ts` | 136 | Tier gates (Phase 5) |
-| `app/page.tsx` | 780 | Homepage (Phase 6) |
-| `components/ui/*` | 3 files | UI primitives (Phase 3) |
+| `app/page.tsx` | ~780 | Homepage (Phase 6) |
+| `components/ui/*` | 13 files | UI primitives (✅ Phase 3 complete) |
 | `components/shared/DashboardHeader.tsx` | 286 | Shared header (referenced by Phase 4) |
 | `components/shared/DashboardTabShell.tsx` | 96 | Tab wrapper (Phase 8) |
 | `components/dashboard/DashboardWidgetRenderer.tsx` | 513 | Widget renderer (Phase 4.5) |

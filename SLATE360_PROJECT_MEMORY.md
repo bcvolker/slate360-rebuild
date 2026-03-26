@@ -165,7 +165,56 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-24 (Auth + Design Token Foundation + DNS)
+### Session Handoff — 2026-03-26 (Navy Purge Complete + shadcn + Guardrails)
+
+#### What Changed
+- `app/globals.css`: Module tokens finalized. All `#1E3A8A` removed. 10 module accent tokens correct.
+- 55 files (dashboard, project-hub, slatedrop, features, public pages, lib files): Navy blue completely purged → zinc/orange/indigo design system. Commit `5343dbf`.
+- `components/ui/`: 10 new shadcn components added (button, card, input, badge, separator, avatar, select, dialog, dropdown-menu, tabs). Now 13 files total.
+- `package.json`: `husky` ^9.1.7 + `lint-staged` ^16.4.0 added to devDeps. `lint-staged` config block added (ESLint for TS, CSS brace check for CSS).
+- `.husky/pre-commit`: Now runs `npx lint-staged` (replaced default `npm test`).
+- `DESIGN_UI_OVERHAUL_PLAN.md`: Updated — Phases 0-3.5 marked complete, Phase 3.5 (Guardrails) added, Gemini assessment table added, Phase 5.5 (Zod) added, nuqs call-out in Phase 4, execution order summary updated.
+
+#### What's Broken / Partially Done
+- Nothing broken. Phase 3.5 is fully complete.
+- `eslint-plugin-tailwindcss` was intentionally skipped — no Tailwind v4 peer dep support yet. Document in plan only.
+
+#### Files Intentionally Left With #1E3A8A (color swatches — do NOT change)
+- `components/contacts/AddContactModal.tsx` — user-selectable COLORS array
+- `app/api/contacts/route.ts` — same COLORS array
+- `app/api/dashboard/widgets/route.ts` — CONTACT_COLORS array
+
+#### Context Files Updated
+- `DESIGN_UI_OVERHAUL_PLAN.md`: Phase status, Gemini assessment, Phase 5.5, nuqs in Phase 4
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+
+#### Next Steps (Ordered)
+
+1. **Commit + push this session's work:**
+   ```bash
+   git add -A
+   git commit -m "feat: Phase 3 complete — shadcn primitives + Husky guardrails + docs update"
+   git push origin main
+   ```
+
+2. **Phase 4 — DashboardClient.tsx decomposition** (~1,961 lines → ~400 lines)
+   - Before starting: `wc -l components/dashboard/DashboardClient.tsx`
+   - Read `DESIGN_UI_OVERHAUL_PLAN.md` Phase 4 section for extraction order
+   - Install nuqs first: `npm install nuqs`, then use `useQueryState` for `activeTab`
+   - Extract order: DashboardMyAccount → DashboardOverview → DashboardSidebar → useDashboardState hook → wire 9 orphaned widgets
+   - Test between each extraction: `npm run typecheck && npm run dev`
+
+3. **Phase 5 — Entitlements fix:** `lib/entitlements.ts` — add `canAccessHub: true` to creator tier
+
+4. **Phase 5.5 — Zod** (add per-route as touched, not a bulk pass)
+
+#### Module Health Summary
+
+| Module | Status | Main File(s) | Lines | Action Needed |
+|--------|--------|-------------|-------|---------------|
+| **Market Robot** | ⏸️ Paused (Prompts 11-16 remain) | `MarketClient.tsx` | 164 | Fund wallet → test $1 buy → continue prompts |
+| **Dashboard** | ⚠️ Live but monolithic | `DashboardClient.tsx` | ~1,961 | Phase 4: extract 6 components + hook |
+| **SlateDrop** | ✅ Good shape | `SlateDropClient.tsx` | 451 | BUG-001 phase 2 (folder migration) |
 
 #### Session Summary
 1. Fixed entire auth flow: email confirmation via Resend now delivers to inbox (not spam). Fixed DNS in Cloudflare (removed duplicate DMARC `p=reject`, added `amazonses.com` to root SPF). Created `/forgot-password` page. Fixed resend-confirmation 400. Cleared test accounts from Supabase.
