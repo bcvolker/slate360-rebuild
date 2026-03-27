@@ -64,6 +64,7 @@ Tier note:
 | Widgets | `slate360-context/WIDGETS.md` |
 | Active bugs | `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json` |
 | Release readiness | `ops/module-manifest.json`, `ops/release-gates.json` |
+| Dashboard/Project Hub/SlateDrop refactoring | `slate360-context/refactor/DASHBOARD_REFACTOR_GUIDE.md`, `slate360-context/refactor/PROJECT_HUB_REFACTOR_GUIDE.md`, `slate360-context/refactor/SLATEDROP_REFACTOR_GUIDE.md` |
 
 ## Backend Quick Access
 
@@ -166,117 +167,42 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-<<<<<<< HEAD removed >>>
+### Session Handoff — 2026-03-27 (Refactor Guides: Dashboard, Project Hub, SlateDrop)
 
-### Session Handoff — 2026-03-27 (Phase 5: DashboardClient Extraction + Tour Builder Docs)
+#### What Changed
+- `slate360-context/refactor/DASHBOARD_REFACTOR_GUIDE.md` (NEW): Safe extraction plan for `useDashboardState.ts` (775 lines → sub-hooks), `DashboardWidgetRenderer.tsx` (513 lines), `LocationMap.tsx` (1,892 lines, BUG-018 DrawingManager migration May 2026 deadline). Includes Phases 5B–9, UI fix queue UI-001–UI-005, safe-build checklist, phase tracker.
+- `slate360-context/refactor/PROJECT_HUB_REFACTOR_GUIDE.md` (NEW): Safe extraction plan for all 9 tool pages over 300 lines (management=931, photos=599, submittals=579, etc.) and component files (ProjectDashboardGrid=560, WizardLocationPicker=412, ObservationsClient=334). Includes BUG-013 fix plan, Phases 1–9, UI fix queue UI-PH-001–UI-PH-005, safe-build checklist.
+- `slate360-context/refactor/SLATEDROP_REFACTOR_GUIDE.md` (NEW): Safe extraction plan for `SlateDropClient.tsx` (451 lines) and `ProjectFileExplorer.tsx` (363 lines). Includes BUG-019 fix plan, BUG-001 `file_folders` migration plan, widget styling unification, Phases 1–5, UI fix queue UI-SD-001–UI-SD-006, safe-build checklist.
+- `SLATE360_PROJECT_MEMORY.md` Task-Based Read Map: added refactor guides row.
+- All pushed to `origin/main` in commit `f7cbf77`.
+
+#### What's Broken / Partially Done
+- Nothing newly broken. All files above are planning docs only — no code changed.
+- BUG-018 (`LocationMap.tsx` DrawingManager): **May 2026 hard deadline**, no implementation started. Roadmap is in DASHBOARD_REFACTOR_GUIDE.md Phase 7.
+- BUG-019 (SlateDrop widget extra click): plan in SLATEDROP_REFACTOR_GUIDE.md Phase 2, not yet implemented.
+- BUG-001 (`file_folders` → `project_folders`): plan in SLATEDROP_REFACTOR_GUIDE.md Phase 1, not yet implemented.
+- `useDashboardState.ts` still at 775 lines — over limit. Phase 5B plan in DASHBOARD_REFACTOR_GUIDE.md.
+- Design Studio + Content Studio BUILD_GUIDEs created last session but not yet implemented. Research Intake Template sections waiting for user to fill in.
+
+#### Context Files Updated
+- `slate360-context/refactor/DASHBOARD_REFACTOR_GUIDE.md`: created
+- `slate360-context/refactor/PROJECT_HUB_REFACTOR_GUIDE.md`: created
+- `slate360-context/refactor/SLATEDROP_REFACTOR_GUIDE.md`: created
+- `SLATE360_PROJECT_MEMORY.md`: task map + this handoff
+
+#### Next Steps (Ordered)
+1. **BUG-018 priority** — DrawingManager migration in `LocationMap.tsx`. May 2026 deadline. Read DASHBOARD_REFACTOR_GUIDE.md Phase 7 before starting.
+2. **Phase 5B** — Split `useDashboardState.ts` (775 lines) into domain-scoped sub-hooks. Read DASHBOARD_REFACTOR_GUIDE.md Phase 5B section.
+3. **BUG-001** — Complete `file_folders` → `project_folders` migration. Read SLATEDROP_REFACTOR_GUIDE.md Phase 1.
+4. **BUG-019** — Fix SlateDrop widget extra click. Read SLATEDROP_REFACTOR_GUIDE.md Phase 2.
+5. **Market Robot V2** — Wire orchestrator to real hooks. Read `MARKET_ROBOT_STATUS_HANDOFF.md`.
+6. **Design Studio / Content Studio / Tour Builder** — implementations not started. Read respective `START_HERE.md` + `BUILD_GUIDE.md` before starting.
 
 #### What Changed
 - `lib/hooks/useDashboardState.ts` (NEW, 775 lines): extracted ALL ~48 useState declarations, useEffect side-effects, useCallback handlers, useMemo computations from DashboardClient
 - `components/dashboard/DashboardClient.tsx`: 1,089 → 277 lines (under 300 limit). Now a thin render shell that calls `useDashboardState()` and passes data to child components
-- `components/dashboard/TabWireframe.tsx` (NEW, 54 lines): extracted wireframe placeholder component
-- `components/dashboard/TabRedirectCard.tsx` (NEW, 42 lines): extracted tab redirect card with route map
-- Removed dead `useRouter` import, removed duplicate local `AccountOverview` type (uses shared `DashboardAccountOverview` from `lib/types/dashboard`)
-- Commit `5c81451`, pushed to origin
-- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md` (NEW, 729 lines): working-memory + safe-build guide for Tour Builder. Includes MVP-lite scope, GitNexus protocol, cross-tab isolation rules, hard do-not-touch list, explicit wiring points, intra-module safety rules, proposed schema/file structure, Zoom/presentation strategy, 8-prompt sequence, and research intake template.
-- `slate360-context/dashboard-tabs/tour-builder/START_HERE.md`: updated to point to BUILD_GUIDE.md
+- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md` (NEW): Tour Builder planning guide with GitNexus protocol, cross-tab safety rules, 8-prompt sequence.
+- `slate360-context/dashboard-tabs/design-studio/BUILD_GUIDE.md` (NEW): Design Studio planning guide.
+- `slate360-context/dashboard-tabs/content-studio/BUILD_GUIDE.md` (NEW): Content Studio planning guide.
 
-#### What's Broken / Partially Done
-- Nothing broken. `npx tsc --noEmit` passes with 0 errors.
-- `useDashboardState.ts` at 775 lines — over 300-line limit. Further decomposition into sub-hooks (e.g., `useBillingState`, `useWidgetPrefs`, `useWeatherState`) deferred to Phase 5B.
-- Tour Builder is still scaffold-only in code. No implementation started. MVP-lite scope is frozen; fill in research intake template in BUILD_GUIDE.md before first implementation prompt.
-
-#### Next Steps (Ordered)
-
-1. **Phase 5B — Split useDashboardState into sub-hooks** (775 → multiple files under 300 each). Split by domain: billing, widget prefs, weather, account/API-keys, notifications, suggest-feature.
-2. **Phase 5.5 — Zod validation** (add per-route as touched, not a bulk pass).
-3. **SlateDropClient decomposition** — 451 lines, over 300-line limit.
-4. **Tour Builder implementation** — start with Prompt 1 (types + schema). Read BUILD_GUIDE.md in that chat before any code. Freeze decisions in Research Intake Template first.
-
-#### Module Health Summary
-
-| Module | Status | Main File(s) | Lines | Action |
-|--------|--------|-------------|-------|--------|
-| **Dashboard** | ✅ Under limit | `DashboardClient.tsx` | 277 | Done |
-| **Dashboard State** | ⚠️ Over limit | `useDashboardState.ts` | 775 | Split into sub-hooks |
-| **DashboardMyAccount** | ✅ Under limit | `DashboardMyAccount.tsx` | 267 | Done |
-| **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 164 | Fund wallet → test |
-| **SlateDrop** | ⚠️ Over limit | `SlateDropClient.tsx` | 451 | Decompose |
-| **Tour Builder** | 🔴 Scaffold only | `ToursShell.tsx` | 37 | Build guide ready; implement when ready |
-
-#### Git State
-- All commits pushed to origin/main
-- Clean working tree
-
-#### Auth System Status — COMPLETE ✅
-All paths working: signup → confirmation email → `/dashboard`, existing email → sign-in prompt, forgot password, resend confirmation.
-
-#### What's Still Broken / Needs Work
-- **60+ files still have `#1E3A8A`** — only homepage/signup/login/globals.css were done in this session. Need a codebase-wide navy purge (dashboard, project-hub, slatedrop, features pages, email templates)
-- **`DashboardClient.tsx`** — 1,954 lines, needs decomposition (Phase 4 of `DESIGN_UI_OVERHAUL_PLAN.md`)
-- **`components/ui/`** — only 3 files, missing all shadcn basics (Phase 3)
-- **Creator tier** missing `canAccessHub: true` in `lib/entitlements.ts` — user saw limited tabs on trial login
-- **Mobile optimization** — not started
-- **SEO** — minimal, needs metadata/OG images
-- **Email templates** (`lib/email.ts`) — still use `#1E3A8A` navy header background
-
-#### Accesses Confirmed Working
-- **Supabase admin**: `createAdminClient()` via `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`
-- **Resend API**: `re_UmiW3RXd_...` — domain `slate360.ai` verified, sending works
-- **Vercel CLI**: `vercel whoami` → `slate360ceo-8370`, can list deploys + pull/push env vars
-- **Git**: push to `origin/main` triggers Vercel auto-deploy
-- **AWS S3**: bucket `slate360-storage`, region `us-east-2`, client in `lib/s3.ts`
-
-#### Next Steps (Ordered)
-1. **Push the pending commit** (see commands above)
-2. **Codebase-wide navy purge** — `grep -r "#1E3A8A" --include="*.tsx" --include="*.ts" --include="*.css" -l` to find all remaining files, then batch-replace
-3. **Install shadcn/ui** — `npx shadcn@latest init` then add Button, Card, Dialog, Input, Badge, Tabs primitives
-4. **Fix entitlements** — add `canAccessHub: true` to creator tier in `lib/entitlements.ts`
-5. **Dashboard decomposition** — extract My Account, tab panels, header from `DashboardClient.tsx`
-6. **Mobile responsive pass** — viewport meta, responsive nav, touch targets
-7. **SEO** — metadata, OG images, structured data for construction industry keywords
-
-#### What's Broken / Needs Attention
-- Remote `origin/main` had broken commit `8a3ab35` — force-push applied to fix
-- `DashboardClient.tsx` is still 1,954 lines (decomposition in Phase 4)
-- 60+ files still contain `#1E3A8A` navy blue (purge in Phase 2)
-- `components/ui/` only has 3 files — missing all shadcn basics (Phase 3)
-- Creator tier missing `canAccessHub: true` in `lib/entitlements.ts` (Phase 5)
-- 9 orphaned widget files not imported anywhere (Phase 4.5)
-
-#### Module Health Summary
-
-| Module | Status | Main File(s) | Lines | Action Needed |
-|--------|--------|-------------|-------|---------------|
-| **Market Robot** | ⏸️ Paused (Prompts 11-16 remain) | `MarketClient.tsx` | 164 | Fund wallet → test $1 buy → continue prompts |
-| **Dashboard** | ⚠️ Live but monolithic | `DashboardClient.tsx` | 1,954 | Phase 4 of DESIGN_UI_OVERHAUL_PLAN.md |
-| **SlateDrop** | ✅ Good shape | `SlateDropClient.tsx` | 451 | BUG-001 phase 2 (folder migration) |
-| **Project Hub** | ⚠️ Live, 9 oversized files | `ClientPage.tsx` | 255 | 9 tool pages exceed 300 lines |
-| **Design Studio** | 🔲 Scaffolded only | `DesignStudioShell.tsx` | 37 | Full build needed |
-| **360 Tour Builder** | 🔲 Scaffolded only | `ToursShell.tsx` | 37 | Full build needed |
-
-#### Agent Coordination Lessons
-- **Grok 4.2**: Good at UX concepts/research. Invents fictional APIs for hooks (~20 type errors). Protocol: Copilot provides type contracts → Grok writes UI → Copilot verifies.
-- **Gemini 3.1**: Good for design consultation. **Do NOT let it execute code** — truncated globals.css, broke remote. Design mockups/specs only.
-- **Copilot (Claude Opus 4.6)**: Primary codebase owner. All code changes, decomposition, verification.
-
-#### Files to Delete (orphans from prior refactors)
-- `components/dashboard/MarketClient.tsx` (old orphaned copy, 75 lines)
-- `components/dashboard/market/MarketRobotWorkspace.tsx` (unused, 84 lines)
-- `MARKET_ROBOT_STATUS_HANDOFF.md.bak` (backup of old handoff)
-
-#### Priority Order for Next Work
-
-**Tier 0 — Design/UI Overhaul (active plan):**
-Execute `DESIGN_UI_OVERHAUL_PLAN.md` phases 1-8 in order.
-
-**Tier 1 — Revenue/Core:**
-1. Market Robot resume (when wallet funded) — Prompts 11-16
-2. Project Hub decomposition — 9 tool pages need extraction
-
-**Tier 2 — New Features:**
-3. Design Studio build — viewer stack decision first
-4. 360 Tour Builder build — Pannellum integration
-
-**Tier 3 — Polish:**
-5. SlateDrop BUG-001 phase 2
-6. Orphan file cleanup
+*[Full prior session history archived — current handoff is the one above.]*
