@@ -165,38 +165,29 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-27 (Phase 4B: DashboardMyAccount Decomposition — Complete)
+### Session Handoff — 2026-03-27 (Phase 4C: nuqs + Entitlements Fix — Complete)
 
 #### What Changed
-- `components/dashboard/DashboardMyAccount.tsx`: 745 → 267 lines (64% reduction, 3 extractions)
-- `components/dashboard/AccountOverviewRow.tsx`: NEW (255 lines) — Account At A Glance + Subscription & Billing cards
-- `components/dashboard/AccountPreferencesCard.tsx`: NEW (142 lines) — Profile & Preferences card
-- `components/dashboard/AccountAdminCards.tsx`: NEW (255 lines) — Data & Storage + API & Integrations + Audit Log (admin-only)
-- Security & Access card kept inline in parent (~60 lines)
-- Commit `9ccd068`, pushed to origin
+- `components/dashboard/DashboardClient.tsx`: wired `useQueryState('tab')` from nuqs — activeTab now syncs to URL (`?tab=my-account`)
+- `app/layout.tsx`: wrapped children with `NuqsAdapter` from `nuqs/adapters/next/app`
+- `lib/entitlements.ts`: set `canAccessHub: true` for creator AND model tiers (was `false`, blocking Project Hub for paying users)
+- Commit `785ac38`, pushed to origin
 
-#### Also done this session (Phase 4 QA pass):
-- Removed duplicate local `DashTab` interface, unused imports (`DEMO_WEATHER`, `CalEvent`, `LucideIcon`)
-- Removed 99 lines of dead calendar/contact code from DashboardClient.tsx (1,188 → 1,089 lines)
-- Commit `0a33f9f`
+#### Also done this session:
+- Phase 4 QA: removed duplicate DashTab, dead calendar/contact code (DashboardClient 1,188 → 1,089). Commit `0a33f9f`
+- Phase 4B: decomposed DashboardMyAccount 745 → 267 lines (3 sub-components). Commit `9ccd068`
 
 #### What's Broken / Partially Done
 - Nothing broken. `npx tsc --noEmit` passes with 0 errors.
 - `DashboardClient.tsx` at 1,089 lines — still holds ~48 useStates + callbacks + effects. Further decomposition via `useDashboardState` hook deferred.
-- `nuqs` installed but NOT yet wired to `activeTab`.
-
-#### Context Files Updated
-- `SLATE360_PROJECT_MEMORY.md`: This handoff
 
 #### Next Steps (Ordered)
 
-1. **Wire nuqs for activeTab** — replace `useState("overview")` with `useQueryState('tab', parseAsString.withDefault('overview'))` in DashboardClient.
+1. **Phase 5.5 — Zod validation** (add per-route as touched, not a bulk pass).
 
-2. **Phase 5 — Entitlements fix:** `lib/entitlements.ts` — add `canAccessHub: true` to creator tier.
+2. **Continue DashboardClient decomposition** — extract state+callbacks into `useDashboardState` hook when ready.
 
-3. **Phase 5.5 — Zod** (add per-route as touched, not a bulk pass).
-
-4. **Continue DashboardClient decomposition** — extract state+callbacks into `useDashboardState` hook when ready.
+3. **SlateDropClient decomposition** — 451 lines, over 300-line limit.
 
 #### Module Health Summary
 
@@ -205,18 +196,12 @@ When editing these, always read both the state declarations AND the JSX sections
 | **Dashboard** | 🔄 Phase 4 in progress | `DashboardClient.tsx` | 1,089 | Extract state hook |
 | **DashboardMyAccount** | ✅ Under limit | `DashboardMyAccount.tsx` | 267 | Done |
 | **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 164 | Fund wallet → test |
-| **SlateDrop** | ✅ Good shape | `SlateDropClient.tsx` | 451 | BUG-001 phase 2 |
+| **SlateDrop** | ⚠️ Over limit | `SlateDropClient.tsx` | 451 | Decompose |
 
 #### Git State
-- HEAD: `9ccd068` (refactor: decompose DashboardMyAccount into 3 sub-components — Phase 4B)
+- HEAD: `785ac38` (feat: wire nuqs for activeTab URL sync + fix canAccessHub — Phase 4C)
 - All commits pushed to origin/main
 - Clean working tree
-
-#### DNS Changes (Cloudflare — already applied by user)
-- Deleted duplicate `_dmarc` TXT record with `p=reject` (GoDaddy default)
-- Edited remaining `_dmarc` to `v=DMARC1; p=none; rua=mailto:noreply@slate360.ai`
-- Added `include:amazonses.com` to root domain SPF record
-- Result: confirmation emails now reach Yahoo/Gmail inbox
 
 #### Auth System Status — COMPLETE ✅
 All paths working: signup → confirmation email → `/dashboard`, existing email → sign-in prompt, forgot password, resend confirmation.
