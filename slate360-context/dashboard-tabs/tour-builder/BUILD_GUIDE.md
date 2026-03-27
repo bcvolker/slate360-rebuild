@@ -78,12 +78,12 @@ Reference-only unless needed:
 
 ## MVP-Lite Definition
 
-MVP-lite intentionally excludes stitching, AI, VR export, Google Street View export, MLS export, and advanced analytics.
+MVP-lite intentionally excludes stitching pipelines, AI hotspots, VR export, MLS export, and advanced analytics.
 
-MVP-lite includes only:
+MVP-lite includes:
 
 1. Create a tour record
-2. Upload existing finished 360 panoramas
+2. Upload finished equirectangular 360 panoramas (from any camera or drone that exports standard format)
 3. Add multiple scenes to a tour
 4. Reorder scenes with drag-and-drop
 5. View scenes in a 360 viewer
@@ -91,15 +91,74 @@ MVP-lite includes only:
 7. Adjust logo size and opacity
 8. Publish a clean viewer link
 9. Use the clean viewer in fullscreen for Zoom screen sharing
+10. Generate embed code (iframe snippet) for clients to embed on their own website
+11. Save and resume — draft state persists so user can close and reopen from where they left off
 
-Optional after MVP-lite:
+Post-MVP-lite (Phase 2 of Tour Builder, after first subscribers):
 
-- Popout/new-window presenter mode
+- Google Maps / Street View publication
+- Scene-level hotspot navigation
 - Scene-level branding overrides
-- Hotspot authoring
 - Password/expiry share policies
-- Embed code builder
-- Analytics events
+- Analytics events (views per tour, scene dwell time)
+- Popout/new-window presenter mode
+- QR code generation for printed materials
+- White-label custom domains
+
+## Camera and File Format Compatibility
+
+The Tour Builder must accept panoramas from the cameras and drones that construction, real estate, and architecture professionals actually use in the field. The upload pipeline validates and labels file source where possible, but does NOT stitch or convert — it accepts only already-finished equirectangular or dual-fisheye outputs.
+
+### Supported Cameras and Their Output Formats
+
+| Camera | Format | Notes |
+|---|---|---|
+| Ricoh Theta Z1, X, SC2 | `.jpg` equirectangular | Theta shoots equirectangular natively. No conversion needed. |
+| Insta360 ONE X2, X3, RS | `.jpg` equirectangular (exported from app) | Raw `.insv` files are NOT equirectangular — user must export from Insta360 Studio first. |
+| GoPro MAX | `.jpg` equirectangular (exported) | Raw `.360` files need export from GoPro Player. App should warn if `.360` file is uploaded. |
+| DJI Osmo 360 | `.jpg` equirectangular | Shoots equirectangular natively from the DJI app. |
+| DJI Sphere mode (Mini 4 Pro, Mini 3 Pro) | `.jpg` equirectangular stitched in-app | DJI Fly app exports a single equirectangular JPEG. Accept this. |
+| DJI raw (.DNG) | ❌ NOT supported | DNG from DJI is a flat photo, NOT a 360 panorama. Reject with a clear error message. |
+| DSLR/mirrorless manual panorama | `.jpg` equirectangular (from PTGui/Hugin) | Accept the finished equirectangular output. Stitching is the user's job. |
+| Samsung Gear 360 (older) | `.jpg` equirectangular | Legacy camera, still widely used. Accept. |
+
+### Upload Validation Logic
+
+When a file is uploaded, check:
+1. Is it a JPEG or PNG? (Accept)
+2. Does it have an aspect ratio of approximately 2:1 (e.g., 5760×2880)? (It's likely equirectangular — accept)
+3. Does it have XMP metadata marking it as panoramic (`ProjectionType = equirectangular`)? (Confirmed equirectangular)
+4. Is it `.insv`, `.360`, or `.dng`? Reject with a user-friendly message explaining next steps:
+   > "This looks like a raw camera file. Please export a finished panorama from [Insta360 Studio / GoPro Player / DJI Fly] first, then upload the JPEG."
+
+### Mobile Upload Flow (Critical For Field Use)
+
+Users in the field must be able to go from camera → phone → Tour Builder in under 2 minutes. Design the upload flow for this:
+
+1. Camera exports JPEG to phone via Bluetooth or USB
+2. User opens Tour Builder on phone (mobile browser or PWA)
+3. Taps "Upload Scene" → phone photo library opens
+4. Selects the panorama JPEG
+5. Tour Builder uploads to S3 (existing presigned URL backbone)
+6. Scene appears in the tour immediately
+
+On mobile: drag-and-drop does not work. Use a prominent tap-to-upload button instead. The upload button must be at least 56px tall and immediately visible without scrolling.
+
+### File Size Limits Per Tier (Profit Margin Control)
+
+Data costs must be managed to maintain 90–95% gross margin. Set limits by subscription tier:
+
+| Limit | Standalone ($49/mo) | Business Platform |
+|---|---|---|
+| Storage total | 5 GB | 20 GB |
+| Max scenes per tour | 30 | 100 |
+| Max tours | 20 | Unlimited |
+| Max file size per panorama | 100 MB | 200 MB |
+| Additional storage (upsell) | +5 GB for $9/mo | +20 GB for $29/mo |
+
+Store quota usage in the DB. Show a storage meter in the builder UI. When a user approaches 80% of their limit, show a warning banner. Block uploads when over the limit with a clear upsell prompt.
+
+AWS S3 storage cost reference: ~$0.023/GB/month. At 5 GB per subscriber: ~$0.12/subscriber/month — easily sub-1% of the $49 subscription price.
 
 ## Explicit Non-Goals For First Build
 
@@ -109,10 +168,11 @@ Do not include these in the first implementation pass:
 - Hugin/queue/Lambda/Upstash infrastructure
 - AI hotspot suggestions
 - Advanced branding transitions or keyframes
-- Deep integration with Geospatial, Content, Design, or Project Hub
+- Deep integration with Content Studio, Design Studio, or Project Hub
 - White-label custom domains
-- PWA capture mode
+- PWA offline capture mode
 - Multi-scene hotspot navigation editor
+- Google Maps / Street View publication (Phase 2)
 
 These features add complexity and risk without being required for the first usable outcome.
 
@@ -524,17 +584,24 @@ Exit criteria:
 
 - Can create a tour and persist ordered scenes
 
-### Prompt 3 — Upload Pipeline For Existing Panoramas
+### Prompt 3 — Upload Pipeline + Camera Format Validation
 
 Deliver:
 
-- Upload route for panoramas
-- S3 path convention for tours
-- Panorama metadata handling only as needed
+- Upload route for panoramas (`app/api/tours/[tourId]/scenes/upload/route.ts`)
+- S3 path convention for tours: `tours/{orgId}/{tourId}/scenes/{sceneId}.jpg`
+- File validation: check aspect ratio ~2:1 and XMP metadata for `ProjectionType=equirectangular`
+- Rejection handler for `.insv`, `.360`, `.dng` with user-friendly messages
+- Storage quota check before upload (compare org's used bytes vs tier limit)
+- Mobile-friendly upload UI: tap-to-upload, no drag-only patterns
+- Progress indicator for large panorama files
 
 Exit criteria:
 
-- User can upload finished panoramas without touching stitching logic
+- User can upload a Ricoh Theta JPEG and it appears as a scene
+- Uploading a `.dng` file shows a clear rejection message with next-step instructions
+- Uploading when over quota shows a storage limit warning, not a generic error
+- Upload UI is operable on a phone with one hand
 
 ### Prompt 4 — Builder Shell Layout
 
@@ -573,7 +640,7 @@ Exit criteria:
 
 - Logo changes persist and render in builder preview and viewer
 
-### Prompt 7 — Publish + Clean Viewer Route
+### Prompt 7 — Publish + Embed Code + Clean Viewer Route
 
 Deliver:
 
@@ -681,72 +748,139 @@ Mitigation:
 
 ## Research Intake Template
 
-Use this section to add reference material before implementation.
+Use this section to add reference material and decisions before implementation.
+
+### Competitive Landscape (Filled In)
+
+| Platform | Price | Strengths | Weaknesses | Slate360 Advantage |
+|---|---|---|---|---|
+| Matterport | $69–$309+/mo | Dominant in real estate, very polished | Requires proprietary camera ($600–$4,000), no project management | No camera required; bundles with PM tools |
+| Kuula | Free–$99/mo | Browser-based, simple, popular with photographers | No PM integration, no construction-specific features | Project Hub + SlateDrop integration |
+| Roundme | Free–$24/mo | Very cheap, easy to use | Feature-poor, consumer-oriented | Business-grade, API-driven |
+| 3DVista | $499 one-time | Very powerful, professional-grade | Desktop only, steep learning curve | Cloud-native, mobile upload |
+| CloudPano | $49–$199/mo | Similar market position to Slate360 | No PM integration, no team features | Full platform integration |
+| Google Street View | Free | On Google Maps = SEO | No branding, no client delivery workflow | Publish to Street View as a Phase 2 feature |
+
+**Differentiator summary:** Only Slate360 combines 360 tour delivery + project management + file delivery (SlateDrop) in one subscription. No competitor bundles these.
 
 ### Reference Platforms
 
-- Platform name:
-- Link or screenshot source:
-- What is worth copying:
-- What should be avoided:
+- Kuula.co — copy: simple scene list, quick publish to link, clean viewer UI
+- CloudPano — copy: camera format guide for users, tiered storage meter UI
+- Insta360 Studio app — study: how they handle format export UX (instructional UI pattern)
+- Google Street View Publish — study: what metadata is required for future Phase 2 Maps integration
+
+### Camera Format Research Notes
+
+*(Confirm before Prompt 3)*
+
+- Ricoh Theta Z1 output: 6720×3360 JPEG equirectangular (2:1) — confirm ✅
+- Insta360 X3 output from Insta360 Studio: 6080×3040 JPEG equirectangular (2:1) — confirm ✅
+- GoPro MAX output from GoPro Player: 5376×2688 JPEG equirectangular (2:1) — confirm ✅
+- DJI Mini 4 Pro sphere mode from DJI Fly app: 8192×4096 JPEG equirectangular (2:1) — confirm ✅
+- DJI DNG files: flat RAW, NOT equirectangular — reject with instructions ✅
+- XMP detection field: `GPano:ProjectionType = equirectangular` (from Google photo sphere spec)
+- Maximum practical file size: Ricoh Theta Z1 is ~8–15 MB per shot; DJI sphere can be ~20–40 MB
+- 100 MB per-file limit is safe for MVP; revisit if users hit it
+
+### Storage Tier Decisions
+
+*(Confirm before Prompt 1 — affects DB schema)*
+
+- Storage limit — standalone ($49/mo): **5 GB**
+- Storage limit — platform business ($499/mo): **20 GB**
+- Max scenes per tour — standalone: **30 scenes**
+- Max tours — standalone: **20 tours**
+- Upsell storage pack: **+5 GB for $9/mo**
+- DB column tracking usage: `org_storage_used_bytes BIGINT DEFAULT 0` on `organizations` table
+- S3 cost per subscriber at 5 GB cap: ~$0.12/month (sub-1% of $49 price — margin safe ✅)
 
 ### UI Requirements
 
-- Required builder controls:
-- Required viewer controls:
-- Must-have layout constraints:
-- Mobile behavior expectations:
+- Required builder controls: scene list (drag-to-reorder), viewer pane, upload button, branding tab, publish button, embed code copy button, storage meter
+- Required viewer controls: fullscreen button, scene navigation arrows (when multiple scenes)
+- Must-have layout constraints: scene list on left, viewer on right on desktop; stacked (viewer top, scenes bottom) on mobile
+- Mobile upload behavior: tap-open phone photo library (`<input type="file" accept="image/*" multiple>`); no drag-only patterns
+- Storage meter: show in top-right of builder, e.g. "2.3 GB / 5 GB used (46%)" — yellow at 80%, red at 95%
 
 ### Workflow Requirements
 
-- Create tour flow:
-- Upload flow:
-- Scene ordering behavior:
-- Publish/share flow:
+- Create tour flow: dashboard → "New Tour" button → name input → enter builder
+- Upload flow: tap/click "Add Scene" → file picker → validation → S3 upload → scene thumbnail appears
+- Scene ordering: drag handles on desktop, up/down arrows on mobile (no drag on touch)
+- Publish/share flow: "Publish" button → toggle public on → copy link → copy embed code
+- Embed copy flow: one-click-copy of full `<iframe ...>` snippet; show preview with correct dimensions
 
 ### Backend Decisions
 
-- Table names:
-- Route patterns:
-- Storage path convention:
-- Viewer auth model:
+- Tables: `project_tours`, `tour_scenes`, `org_storage_usage` (new)
+- Route pattern: `/api/tours/`, `/api/tours/[tourId]/scenes/`
+- Storage path convention: `tours/{orgId}/{tourId}/scenes/{sceneId}.{ext}`
+- Viewer auth model: published tours are public (no Slate360 login required for embedded viewer)
+- Auto-save: every state change triggers a debounced PATCH to the DB (500ms debounce); no "Save" button
 
 ### Sharing / Presentation Decisions
 
-- Viewer URL pattern:
-- Public vs tokenized access:
-- Fullscreen behavior:
-- Popout requirement:
-- Scene navigation UI:
+- Viewer URL: `/v/[tourSlug]` (public) or `/view/[tourId]` (internal with auth)
+- Public vs tokenized: published tours are fully public by default; password-protect is Phase 2
+- Fullscreen: viewer has a native fullscreen button; `requestFullscreen()` on the viewer div
+- Popout: "Open in new window" button opens `/v/[tourSlug]?mode=present` (Phase 2)
+- Scene navigation: prev/next arrows in viewer when tour has multiple scenes; scene thumbnail strip below viewer
 
 ### Branding Decisions
 
-- Logo upload source:
-- Position presets:
-- Size scale range:
-- Opacity range:
+- Logo upload: PNG only; stored in S3 alongside tour assets
+- Position presets: top-left, top-right, bottom-left, bottom-right (four options)
+- Size scale: 5%–25% of viewer width (slider)
+- Opacity: 20%–100% (slider)
+
+### Embeddable Viewer Decisions
+
+*(Confirm before Prompt 7)*
+
+- Iframe URL: `/v/[tourSlug]?embed=1` — suppress Slate360 nav chrome
+- Default embed code: `<iframe src="https://slate360.ai/v/[slug]?embed=1" width="100%" height="600" frameborder="0" allowfullscreen></iframe>`
+- Dimension presets: Widescreen (16:9), Standard (4:3), Square (1:1); user picks or enters custom
+- Branding in embed: Slate360 "Powered by" watermark on standalone tier; removable on business+ tier
+- Autoplay: yes, first scene loads immediately when embed page opens
+
+### Google Maps / Street View (Phase 2 — Not MVP)
+
+*(Research before Phase 2 begins — do not implement in MVP)*
+
+- Google Street View Publish API accepts equirectangular JPEGs via REST API
+- Required metadata: GPS coordinates (lat/lng), heading, pitch, roll (from EXIF or user input)
+- Auth model: user must grant Google OAuth scope `https://www.googleapis.com/auth/streetviewpublish`
+- Alternative: Google Maps Photos API (Business Profile) — targets local businesses, slightly different workflow
+- Strategy: add "Publish to Google Maps" button in the publish panel (Phase 2); user connects Google account once
+- Marketing angle: businesses WANT their properties on Google Maps — this is a viral growth feature
 
 ## Build Readiness Criteria
 
 Start implementation only when these are decided:
 
 1. MVP-lite scope is frozen
-2. First-pass data model is approved
+2. First-pass data model is approved (include storage quota columns)
 3. Viewer route strategy is approved
 4. Branding behavior is approved
 5. Pannellum integration approach is approved
+6. Storage tier limits are confirmed (fill in Research Intake Template below)
+7. Embed iframe approach is approved (same-origin? CDN-hosted?)
 
 ## Definition Of Done For MVP-Lite
 
 The first implementation is done when:
 
-- A user can create a tour
-- A user can upload finished 360 panoramas
-- A user can reorder scenes
-- A user can save and reopen the tour
-- A user can add a PNG logo and adjust size and opacity
+- A user can create a tour and reopen it from where they left off (auto-save/draft state)
+- A user can upload a finished equirectangular JPEG from Ricoh Theta, Insta360, GoPro MAX, or DJI drone
+- Uploading a raw camera file (.insv, .dng, .360) shows a clear rejection message with instructions
+- A user can add multiple scenes and reorder them
+- A user can add a PNG logo overlay and adjust size and opacity
 - A user can publish a clean viewer link
-- A user can open the viewer in fullscreen and present it cleanly in Zoom
+- A user can copy an iframe embed code to paste on their client's website
+- The embed viewer works without Slate360 auth (public, no login required)
+- A user can open the viewer in fullscreen for Zoom screen sharing
+- Storage quota is tracked and shown in the UI with a warning near the limit
 - The implementation stays modular and additive without broad shared regressions
 
 ---

@@ -58,6 +58,82 @@ At revised pricing:
 
 ---
 
+---
+
+## Startup Pricing Reality — Pre-Revenue Phase
+
+**The financial pressure is real: more going out than coming in. The plan below accounts for where you actually are, not where you wish to be.**
+
+### The Hard Facts
+
+- You cannot immediately charge $499/month if no one knows the product exists
+- You cannot market at standard rates without a marketing budget
+- The fastest cash comes from personal outreach, not SEO or ads
+- The first 10–20 subscribers need a reason to take a risk on a new product
+- "Beta" pricing is not a discount — it is a business tool to acquire proof-of-use
+
+### Beta Pricing Strategy (First 20 Subscribers)
+
+Lock in early adopters with a limited-time beta price:
+
+| Product | Full Price | Beta Price | Term |
+|---|---|---|---|
+| Creator platform | $79/mo | $39/mo | First 6 months, then $79 |
+| Tour Builder standalone | $49/mo | $24/mo | First 6 months, then $49 |
+| PunchWalk standalone | $39/mo | $19/mo | First 6 months, then $39 |
+
+**Beta rules:**
+- Maximum 20 beta slots per product (artificial scarcity is real scarcity when you're 1 person)
+- Beta subscribers get: early access, direct access to you for feature requests, credit toward future upgrades
+- Use a simple Stripe coupon (`BETA50` = 50% off for 6 months) — no code required
+
+**Beta revenue floor (if 20 beta Tour Builder subscribers month 1):**
+> 20 × $24/mo = $480/mo immediately
+> At month 7, those 20 roll over to $49/mo: $980/mo from the same 20 people
+
+### Free Marketing Channels That Actually Work for Construction SaaS
+
+You have no marketing budget. That's fine — the construction industry responds to direct outreach more than any other B2B market.
+
+**Week 1 actions (zero dollars):**
+
+1. **Post in one Facebook Group** — "Residential Construction Community" (~140k members) or AGC's LinkedIn group. Show a 30-second Loom video of a tour you built. One genuine post with a real demo gets clicks.
+2. **Ask 3 GCs or architects you know** — not "want to buy?" but "would you try this free for 2 weeks and tell me what's wrong with it?" Real feedback creates real testimonials.
+3. **List on Capterra / G2 / GetApp** — free to list, construction folks search these. Single-day setup.
+4. **Local architecture / GC firms** — one cold email to 20 local firms per week. A 5% reply rate is 1 conversation. A 10% close rate from conversations is 1 subscriber. 20 emails/week × 52 weeks = 104 emails → potentially 5 new subscribers/year from zero budget.
+5. **Google Maps integration (Phase 2)** — once Tour Builder can publish scenes to Google Street View, EVERY published tour becomes free marketing. A business that wants their property on Google Maps will find Slate360 through their Google Business Profile portal.
+
+### Scope Reduction — What To Stop Building (Important for Financial Focus)
+
+Building things that don't generate revenue is burning runway. Consider pausing or removing:
+
+| Module | Status | Revenue Potential | Recommendation |
+|---|---|---|---|
+| Geospatial & Robotics tab | Scaffolded shell, no features | None in next 12 months | **Pause — hide the tab, don't build** |
+| Virtual Studio tab | Scaffolded shell, no features | Unclear market | **Pause — hide the tab, don't build** |
+| Athlete360 | Internal route, out of scope | None | **Remove the nav entry, archive the route** |
+| Content Studio | Planned, not built | Medium-term | **Build after Tour Builder is live and paying** |
+| Design Studio | Planned, not built | Long-term | **Do not build until platform has 30+ subscribers** |
+
+**Rule of thumb:** If a module is not on the path to your first paying subscribers, don't touch it.
+
+### Bridge to $7k Map
+
+| Month | Milestone | Revenue |
+|---|---|---|
+| 1 | 5 beta subscribers (Tour Builder $24/mo) | $120/mo |
+| 2 | Stripe verified, 10 beta subscribers, 2 platform Creator | $392/mo |
+| 3 | Tour Builder live + embed feature, 20 beta subscribers, 5 Creator | $870/mo |
+| 4 | PunchWalk beta launch, 20 Tour Builder + 10 PunchWalk beta | $670/mo |
+| 5 | First non-beta subscribers start converting, platform growing | $1,400/mo |
+| 6 | Beta cohort rolls to full price; referrals kicking in | $2,800/mo |
+| 9 | App Store listing live, SEO starting; word-of-mouth | $4,500/mo |
+| 12 | 68 subscribers blended portfolio | **$7,082/mo** |
+
+This is aggressive but achievable if you start personal outreach in week 1.
+
+---
+
 ## Do These Things Right Now (No Code Required)
 
 These are configuration and admin steps. Do them today in parallel with development.

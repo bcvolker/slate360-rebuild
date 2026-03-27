@@ -62,6 +62,20 @@ Group B (platform stabilization — the 300-line refactors) does NOT need to com
 | PWA service worker | 🔴 Does not exist | — | Phase G |
 | App stores (iOS/Android) | 🔴 Does not exist | — | Phase H |
 
+### Scope Reduction Consideration (Owner Decision Required)
+
+The following modules are scaffolded shells with no features and no near-term revenue path. The owner is considering pausing or removing them to focus development on revenue-generating modules.
+
+| Module | Entitlement | Route | Status | Recommendation |
+|---|---|---|---|---|
+| Geospatial & Robotics | `canAccessGeospatial` | `/(dashboard)/geospatial` | Scaffolded, 37-line shell | **Pause — hide the tab** |
+| Virtual Studio | `canAccessVirtualStudio` | `/(dashboard)/virtual-studio` | Scaffolded, 37-line shell | **Pause — hide the tab** |
+| Athlete360 | `canAccessAthlete360` (internal only) | `/athlete360` | Internal route stub | **Confirmed out of scope — archive** |
+
+**To hide a tab without deleting it:** Remove its entry from `MODULE_REGISTRY.md` and comment out its nav entry in the dashboard tab config. Do not delete the shell files — they can be restored later. Update `ops/module-manifest.json` to mark status as `paused`.
+
+**Decision is NOT yet made.** Do not act on this until the owner confirms.
+
 ---
 
 ## Phase Groups: Ordered Execution
