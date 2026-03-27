@@ -165,60 +165,55 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-27 (Phase 4: DashboardClient Decomposition — In Progress)
+### Session Handoff — 2026-03-27 (Phase 4: DashboardClient Decomposition — QA Pass Complete)
 
 #### What Changed
-- `components/dashboard/DashboardClient.tsx`: 1,961 → 1,188 lines (40% reduction, 5 extractions)
-- `components/dashboard/DashboardMyAccount.tsx`: NEW (745 lines) — extracted My Account tab UI. Commit `fa9c879`.
-- `components/dashboard/DashboardSlateDropWindow.tsx`: NEW (190 lines) — self-contained macOS-style floating SlateDrop window. Commit `9aed8dd`.
-- `components/dashboard/DashboardWidgetPopout.tsx`: REWRITTEN (199 lines) — was orphaned 102-line dumb component, now self-contained floating widget window. Commit `365b7e8`.
-- `components/dashboard/DashboardOverview.tsx`: NEW (271 lines) — extracted overview tab (welcome banner, module tiles, project carousel, widget grid). Commit `33ca656`.
-- `components/dashboard/MobileQuickAccess.tsx`: NEW (77 lines) — extracted mobile quick access dropdown. Commit `33ca656`.
-- `package.json`: `nuqs` v2.8.9 installed (not yet wired to activeTab).
-- `DESIGN_UI_OVERHAUL_PLAN.md`: Phase 4 status updated to IN PROGRESS.
-- Removed 17 unused icon imports + 6 unused component imports from DashboardClient.
-- Full `npx tsc --noEmit` passes with 0 errors.
+- `components/dashboard/DashboardClient.tsx`: 1,188 → 1,089 lines (additional 99 lines removed in QA pass)
+  - Removed duplicate local `DashTab` interface (now uses shared type from `lib/types/dashboard.ts`)
+  - Removed unused `LucideIcon` import
+  - Removed unused `DEMO_WEATHER` import
+  - Removed unused `CalEvent` type import
+  - Removed dead code: `MONTHS`, `DAYS` arrays, `getCalendarDays` function
+  - Removed 7 dead useState declarations: `calMonth`, `calYear`, `calSelected`, `events`, `addingEvent`, `newEventTitle`, `contactSearch`
+  - Removed dead computed values: `calDays`, `todayStr`, `filteredContacts`, `selectedDayEvents`
+  - Removed dead handlers: `handleAddEvent`, `prevMonth`, `nextMonth`
+  - Removed calendar load/save localStorage effects
+  - Commit `0a33f9f`, pushed to origin
 
 #### What's Broken / Partially Done
-- Nothing broken. All extractions compile clean.
-- `DashboardMyAccount.tsx` at 745 lines is over the 300-line limit — needs further decomposition (billing section, API keys section, preferences section as candidates).
-- `DashboardClient.tsx` at 1,188 lines still holds ~55 useStates + ~250 lines of callbacks + ~150 lines of effects. Further decomposition possible via `useDashboardState` hook but was deferred as complex/risky.
-- `nuqs` installed but NOT yet wired to `activeTab` — `useState("overview")` still used. Wire it when ready.
+- Nothing broken. `npx tsc --noEmit` passes with 0 errors.
+- `DashboardMyAccount.tsx` at 745 lines — needs decomposition (billing, API keys, preferences sections).
+- `DashboardClient.tsx` at 1,089 lines — still holds ~48 useStates + callbacks + effects. Further decomposition via `useDashboardState` hook deferred.
+- `nuqs` installed but NOT yet wired to `activeTab`.
 
 #### Context Files Updated
-- `DESIGN_UI_OVERHAUL_PLAN.md`: Phase 4 status → IN PROGRESS
-- `SLATE360_PROJECT_MEMORY.md`: This handoff + monolith table updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff
 
 #### Next Steps (Ordered)
 
-1. **Push all Phase 4 work to origin:**
-   ```bash
-   git push origin main
-   ```
-   (4 commits: fa9c879, 9aed8dd, 365b7e8, 33ca656)
-
-2. **Continue Phase 4 — DashboardMyAccount decomposition** (745 → <300 lines)
+1. **Continue Phase 4 — DashboardMyAccount decomposition** (745 → <300 lines)
    - Extract billing section → `DashboardBillingSection.tsx`
    - Extract API keys section → `DashboardApiKeys.tsx`
    - Extract preferences section → `DashboardPreferences.tsx`
 
-3. **Wire nuqs for activeTab** — replace `useState("overview")` with `useQueryState('tab', parseAsString.withDefault('overview'))` in DashboardClient.
+2. **Wire nuqs for activeTab** — replace `useState("overview")` with `useQueryState('tab', parseAsString.withDefault('overview'))` in DashboardClient.
 
-4. **Phase 5 — Entitlements fix:** `lib/entitlements.ts` — add `canAccessHub: true` to creator tier.
+3. **Phase 5 — Entitlements fix:** `lib/entitlements.ts` — add `canAccessHub: true` to creator tier.
 
-5. **Phase 5.5 — Zod** (add per-route as touched, not a bulk pass).
+4. **Phase 5.5 — Zod** (add per-route as touched, not a bulk pass).
 
 #### Module Health Summary
 
 | Module | Status | Main File(s) | Lines | Action |
 |--------|--------|-------------|-------|--------|
-| **Dashboard** | 🔄 Phase 4 in progress | `DashboardClient.tsx` | 1,188 | Continue decomposition |
-| **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 164 | Fund wallet → test → continue prompts |
+| **Dashboard** | 🔄 Phase 4 in progress | `DashboardClient.tsx` | 1,089 | Continue decomposition |
+| **DashboardMyAccount** | 🔴 Over limit | `DashboardMyAccount.tsx` | 745 | Decompose to <300 |
+| **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 164 | Fund wallet → test |
 | **SlateDrop** | ✅ Good shape | `SlateDropClient.tsx` | 451 | BUG-001 phase 2 |
 
 #### Git State
-- HEAD: `33ca656` (refactor: extract DashboardOverview + MobileQuickAccess — Phase 4.4)
-- 4 unpushed commits on `main`
+- HEAD: `0a33f9f` (fix: remove duplicate DashTab + dead calendar/contact code — Phase 4 cleanup)
+- All commits pushed to origin/main
 - Clean working tree
 
 #### DNS Changes (Cloudflare — already applied by user)
