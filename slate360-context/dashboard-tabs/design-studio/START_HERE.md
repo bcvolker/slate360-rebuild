@@ -1,7 +1,7 @@
 # Design Studio — Start Here
 
-Last Updated: 2026-03-22
-Use this file first for any Design Studio task. Only open the longer docs if this file does not answer the question.
+Last Updated: 2026-03-27
+Use this file first for any Design Studio task. Then read `BUILD_GUIDE.md` for the full safe-build strategy, GitNexus protocol, cross-tab isolation rules, and prompt sequence. Only open IMPLEMENTATION_PLAN.md or raw-upload.txt if you need deep spec history.
 
 ## What Matters First
 
@@ -94,3 +94,9 @@ This tab is buildable across multiple chats with this START_HERE + IMPLEMENTATIO
 - Tier gate enforced both client-side (sidebar filter) and server-side (route check)
 - No file over 300 lines; one component per file
 - All types in `lib/types/`
+
+---
+
+## What's Next
+
+Read `slate360-context/dashboard-tabs/design-studio/BUILD_GUIDE.md` for the full implementation strategy, GitNexus protocol, cross-tab isolation rules, viewer technology decisions, and prompt sequence.

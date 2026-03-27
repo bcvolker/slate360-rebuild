@@ -54,8 +54,9 @@ Tier note:
 | If you are working on | Read |
 |---|---|
 | Market Robot | `slate360-context/dashboard-tabs/market-robot/START_HERE.md` |
-| Design Studio | `slate360-context/dashboard-tabs/design-studio/START_HERE.md` |
-| 360 Tour Builder | `slate360-context/dashboard-tabs/tour-builder/START_HERE.md` |
+| Design Studio | `slate360-context/dashboard-tabs/design-studio/START_HERE.md`, then `BUILD_GUIDE.md` |
+| Content Studio | `slate360-context/dashboard-tabs/content-studio/START_HERE.md`, then `BUILD_GUIDE.md` |
+| 360 Tour Builder | `slate360-context/dashboard-tabs/tour-builder/START_HERE.md`, then `BUILD_GUIDE.md` |
 | Backend/auth/billing/storage | `slate360-context/BACKEND.md` |
 | Shared dashboard/tab behavior | `slate360-context/DASHBOARD.md`, `slate360-context/dashboard-tabs/MODULE_REGISTRY.md`, `slate360-context/dashboard-tabs/CUSTOMIZATION_SYSTEM.md` |
 | Project Hub | `slate360-context/PROJECT_HUB.md` |
