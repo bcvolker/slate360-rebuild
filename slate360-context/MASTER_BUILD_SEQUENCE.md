@@ -7,6 +7,37 @@ Status: Living document. Update the Phase Completion Tracker after every session
 
 This document ties together all refactor guides, app build guides, and ecosystem plans into one ordered sequence. Every phase is listed in execution priority with prompt estimates and dependency chains.
 
+For revenue math, pricing analysis, agent collaboration protocol, and app store submission strategy, read:
+→ `slate360-context/REVENUE_ROADMAP.md`
+
+---
+
+## Critical Insight: Group B Does NOT Block Revenue
+
+Group B (platform stabilization — the 300-line refactors) does NOT need to complete before Tour Builder and PunchWalk are live and generating revenue. Those are new modules that do not touch the existing monolith files.
+
+**Revenue-first path skips Group B entirely:** Groups A → C → D → E = ~23 prompts to Tour Builder live and billable.
+
+**When to do Group B:**
+- B1 (useDashboardState split): before building Design Studio or Content Studio
+- B2 (BUG-013 analytics): quick win, 1 prompt, do any time
+- B3–B5 (Dashboard + PH extractions): when those files need new features
+- B6–B8 (SlateDrop + LocationMap): when adding SlateDrop features or after A1
+
+---
+
+## Time Estimates Per Prompt Type
+
+| Prompt Type | Examples | Prompts/Day |
+|---|---|---|
+| Config / admin (no code) | Stripe product creation, Apple Developer application | 10–20 |
+| Quick bug fix | BUG-019, BUG-001 | 8–12 |
+| Refactor (monolith file) | useDashboardState split, LocationMap DrawingManager | 3–5 |
+| Build (green-field module) | Tour Builder API, PunchWalk components | 8–12 |
+| Stabilization | typecheck + wiring verification | 8–12 |
+
+**Typical day fast building (green-field): 10+ prompts. Typical day fixing/refactoring: 4–6 prompts.**
+
 ---
 
 ## Current State Snapshot

@@ -68,6 +68,7 @@ Tier note:
 | App ecosystem strategy / Stripe / PWA / app stores | `slate360-context/apps/APP_ECOSYSTEM_GUIDE.md` |
 | PunchWalk app | `slate360-context/apps/PUNCHWAIK_BUILD_GUIDE.md` |
 | **Full ordered build sequence (start here for any new work)** | `slate360-context/MASTER_BUILD_SEQUENCE.md` |
+| Revenue math, pricing, timeline, agent collaboration, app store strategy | `slate360-context/REVENUE_ROADMAP.md` |
 
 ## Backend Quick Access
 
@@ -170,41 +171,28 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-27 (MASTER_BUILD_SEQUENCE + BUG-019 overlap fix)
+### Session Handoff — 2026-03-27 (REVENUE_ROADMAP + time estimates + revenue-first reordering)
 
 #### What Changed
-- `slate360-context/MASTER_BUILD_SEQUENCE.md` (NEW): Single bird's-eye sequence doc covering ALL phases from critical fixes through iOS/Android app stores. Combines refactor guides + App Ecosystem Guide + PunchWalk into one ordered view. Includes phase tracker (Groups A–I), dependency chain diagram, prompt count estimates (~62 total to both apps in app stores), quick-start prompt templates for each group, and multi-chat memory protocol. Read this first in any chat where you're unsure what to work on next.
-- `slate360-context/refactor/DASHBOARD_REFACTOR_GUIDE.md`: Fixed Phase 6 — removed the incorrect "BUG-019 Fix Embedded In This Phase" section. BUG-019 fix lives in SlateDrop (SLATEDROP_REFACTOR_GUIDE Phase 2 / Group A2), not in DashboardWidgetRenderer extraction.
-- `SLATE360_PROJECT_MEMORY.md`: Added MASTER_BUILD_SEQUENCE.md to task map.
+- `slate360-context/REVENUE_ROADMAP.md` (NEW): Revenue math to $7k/month using real pricing (Creator=$79, Model=$199, Business=$499). Revised app pricing recommendation (Tour Builder $49/mo, PunchWalk $39/mo). 6-week timeline to both app stores. Agent collaboration protocol (Grok/Gemini roles). Immediate no-code actions (Apple Developer, Google Play, Stripe Tax). App store submission strategy. One-sitting UX requirements.
+- `slate360-context/MASTER_BUILD_SEQUENCE.md`: Added critical insight header (Group B does NOT block revenue), added time estimates table, linked to REVENUE_ROADMAP.
+- `SLATE360_PROJECT_MEMORY.md`: REVENUE_ROADMAP added to task map.
 
-#### Current Phase
-**Platform stabilization.** The signup page being open suggests platform-level review. No refactor or app work has started yet.
+#### Immediate No-Code Actions (Do These Today)
+1. Apply for Apple Developer Program — developer.apple.com ($99/yr, takes 2–5 days to approve)
+2. Create Google Play Developer account — play.google.com/console ($25, approved within hours)
+3. Enable Stripe Tax collection — Stripe Dashboard → Tax → Settings
+4. Decide final pricing: Tour Builder $49/mo / $490/yr, PunchWalk $39/mo / $390/yr
 
-#### What's Broken / Partially Done
-- BUG-018 (`LocationMap.tsx` DrawingManager): **May 2026 hard deadline**, not started. → Group A1
-- BUG-019 (SlateDrop widget extra click): not started. → Group A2
-- BUG-001 (`file_folders` migration): not started. → Group A3
-- `useDashboardState.ts` still at 775 lines — over limit. → Group B1
-- Stripe platform billing: connected but NOT smoke-tested. → Group C1
-- `org_feature_flags` table: does not exist. → Group C3
-- Tour Builder: scaffold shell only, no implementation. → Group D (after C complete)
-- PunchWalk: BUILD_GUIDE ready, 0% implementation. → Group F (after C complete)
-
-#### Next Steps (Ordered — Use MASTER_BUILD_SEQUENCE.md Groups)
-1. **Group A1** — BUG-018 DrawingManager (May 2026 deadline, do first)
-2. **Group C1** — Stripe smoke test (can run in parallel with A, no code overlap)
-3. **Group A2** — BUG-019 SlateDrop widget fix
-4. **Group A3** — BUG-001 file_folders migration
-5. **Group B1** — Split useDashboardState (775 lines)
-6. **Group C2–C7** — App foundation (Stripe products, org_feature_flags, entitlements, funnel)
-7. **Group D** — Tour Builder MVP (8 prompts)
-8. **Group E** — Tour Builder standalone + subscription (3 prompts)
-9. **Group F** — PunchWalk MVP (8 prompts)
-10. **Group G** — PWA infrastructure
-11. **Group H** — PunchWalk subscription
-12. **Group I** — Capacitor / iOS / Android
+#### Next Execution Steps (Code)
+1. **C1** — Stripe smoke test (test card `4242 4242 4242 4242`, verify webhook updates org tier)
+2. **A1** — BUG-018 DrawingManager migration, 3 prompts (May 2026 deadline)
+3. **A2 + A3** — BUG-019 + BUG-001 quick fixes
+4. **C2–C7** — App foundation (entitlements, app pages, funnel)
+5. **D1–D8** — Tour Builder MVP (8 prompts, ~1 day)
+6. **E1–E3** — Tour Builder standalone + first subscriber possible
 
 #### Context Files Updated
-- `slate360-context/MASTER_BUILD_SEQUENCE.md`: created
-- `slate360-context/refactor/DASHBOARD_REFACTOR_GUIDE.md`: Phase 6 BUG-019 reference corrected
+- `slate360-context/REVENUE_ROADMAP.md`: created
+- `slate360-context/MASTER_BUILD_SEQUENCE.md`: time estimates + revenue-first note
 - `SLATE360_PROJECT_MEMORY.md`: task map + this handoff
