@@ -13,11 +13,11 @@ import LocationMap from "./LocationMap";
 import WidgetCard from "@/components/widgets/WidgetCard";
 import SlateDropWidgetBody from "@/components/widgets/SlateDropWidgetBody";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
-import SlateDropClient from "@/components/slatedrop/SlateDropClient";
 import ContactsWidget from "@/components/contacts/ContactsWidget";
 import CalendarWidget from "@/components/calendar/CalendarWidget";
 import DashboardWidgetRenderer, { type WidgetRendererContext } from "@/components/dashboard/DashboardWidgetRenderer";
 import DashboardMyAccount from "@/components/dashboard/DashboardMyAccount";
+import DashboardSlateDropWindow from "@/components/dashboard/DashboardSlateDropWindow";
 import {
   WIDGET_META,
   type WidgetPref,
@@ -368,12 +368,6 @@ export default function DashboardClient({
 
   // ── SlateDrop floating window ───────────────────────────────
   const [slateDropOpen, setSlateDropOpen] = useState(false);
-  const [sdMinimized, setSdMinimized] = useState(false);
-  const [sdPos, setSdPos] = useState({ x: 0, y: 0 });
-  const [sdSize, setSdSize] = useState({ w: 1000, h: 680 });
-  const [sdIsMobile, setSdIsMobile] = useState(false);
-  const sdDragMode = useRef<"title" | "resize" | null>(null);
-  const sdDragStart = useRef({ clientX: 0, clientY: 0, startX: 0, startY: 0, startW: 0, startH: 0 });
 
   const [widgetPopoutId, setWidgetPopoutId] = useState<string | null>(null);
   const [wdMinimized, setWdMinimized] = useState(false);
@@ -384,46 +378,8 @@ export default function DashboardClient({
   const wdDragStart = useRef({ clientX: 0, clientY: 0, startX: 0, startY: 0, startW: 0, startH: 0 });
 
   function openSlateDrop() {
-    const isMobile = window.innerWidth < 768;
-    setSdIsMobile(isMobile);
-    if (isMobile) {
-      setSdPos({ x: 0, y: 0 });
-      setSdSize({ w: window.innerWidth, h: window.innerHeight });
-      setSdMinimized(false);
-      setSlateDropOpen(true);
-      return;
-    }
-    setSdPos({
-      x: Math.max(0, (window.innerWidth - 1000) / 2),
-      y: Math.max(10, (window.innerHeight - 680) / 4),
-    });
-    setSdSize({ w: 1000, h: 680 });
-    setSdMinimized(false);
     setSlateDropOpen(true);
   }
-
-  function onSdTitleDown(e: React.PointerEvent) {
-    sdDragMode.current = "title";
-    sdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: sdPos.x, startY: sdPos.y, startW: sdSize.w, startH: sdSize.h };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  }
-  function onSdResizeDown(e: React.PointerEvent) {
-    sdDragMode.current = "resize";
-    sdDragStart.current = { clientX: e.clientX, clientY: e.clientY, startX: sdPos.x, startY: sdPos.y, startW: sdSize.w, startH: sdSize.h };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    e.stopPropagation();
-  }
-  function onSdPointerMove(e: React.PointerEvent) {
-    if (!sdDragMode.current) return;
-    const dx = e.clientX - sdDragStart.current.clientX;
-    const dy = e.clientY - sdDragStart.current.clientY;
-    if (sdDragMode.current === "title") {
-      setSdPos({ x: sdDragStart.current.startX + dx, y: sdDragStart.current.startY + dy });
-    } else {
-      setSdSize({ w: Math.max(560, sdDragStart.current.startW + dx), h: Math.max(420, sdDragStart.current.startH + dy) });
-    }
-  }
-  function onSdPointerUp() { sdDragMode.current = null; }
 
   const loadUnreadNotifications = useCallback(async () => {
     setNotificationsLoading(true);
@@ -1526,66 +1482,12 @@ export default function DashboardClient({
       />
 
       {/* ════════ SLATEDROP FLOATING WINDOW ════════ */}
-      {slateDropOpen && (
-        <div
-          className={`fixed z-[9999] flex flex-col overflow-hidden shadow-[0_32px_80px_-12px_rgba(0,0,0,0.55)] ${sdIsMobile ? "rounded-none border-0" : "rounded-2xl border border-gray-700/70"}`}
-          style={{
-            left: sdIsMobile ? 0 : sdPos.x,
-            top: sdIsMobile ? 0 : sdPos.y,
-            width: sdIsMobile ? "100vw" : sdSize.w,
-            height: sdMinimized ? "auto" : (sdIsMobile ? "100dvh" : sdSize.h),
-          }}
-        >
-          {/* ── Title bar / drag handle ── */}
-          <div
-            className={`flex items-center gap-3 px-4 h-11 bg-gray-900 select-none shrink-0 ${sdIsMobile ? "" : "cursor-grab active:cursor-grabbing"}`}
-            onPointerDown={sdIsMobile ? undefined : onSdTitleDown}
-            onPointerMove={sdIsMobile ? undefined : onSdPointerMove}
-            onPointerUp={sdIsMobile ? undefined : onSdPointerUp}
-          >
-            {/* Traffic-light buttons */}
-            <div className="flex items-center gap-1.5" onPointerDown={(e) => e.stopPropagation()}>
-              <button
-                onClick={() => setSlateDropOpen(false)}
-                className="w-3.5 h-3.5 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center group transition-colors"
-                title="Close"
-              >
-                <X size={7} className="text-red-900 opacity-0 group-hover:opacity-100" />
-              </button>
-              <button
-                onClick={() => setSdMinimized((v) => !v)}
-                className="w-3.5 h-3.5 rounded-full bg-yellow-400 hover:bg-yellow-300 transition-colors"
-                title={sdMinimized ? "Restore" : "Minimise"}
-              />
-              {!sdIsMobile && <button
-                onClick={() => { setSdSize({ w: window.innerWidth - 32, h: window.innerHeight - 32 }); setSdPos({ x: 16, y: 16 }); setSdMinimized(false); }}
-                className="w-3.5 h-3.5 rounded-full bg-green-500 hover:bg-green-400 transition-colors"
-                title="Maximise"
-              />}
-            </div>
-            <FolderOpen size={14} className="text-[#FF4D00] ml-1 shrink-0" />
-            <span className="text-[13px] font-semibold text-white/90 flex-1 text-center -ml-8 pointer-events-none">SlateDrop</span>
-          </div>
-
-          {/* ── Embedded SlateDropClient ── */}
-          {!sdMinimized && (
-            <div className="flex-1 overflow-hidden">
-              <SlateDropClient user={user} tier={tier} embedded />
-            </div>
-          )}
-
-          {/* ── Resize handle (bottom-right corner) ── */}
-          {!sdMinimized && !sdIsMobile && (
-            <div
-              className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize"
-              style={{ background: "linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.18) 50%)" }}
-              onPointerDown={onSdResizeDown}
-              onPointerMove={onSdPointerMove}
-              onPointerUp={onSdPointerUp}
-            />
-          )}
-        </div>
-      )}
+      <DashboardSlateDropWindow
+        open={slateDropOpen}
+        onClose={() => setSlateDropOpen(false)}
+        user={user}
+        tier={tier}
+      />
 
       {/* ── Create Project Wizard ── */}
       <CreateProjectWizard
