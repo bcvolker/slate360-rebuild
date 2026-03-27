@@ -8,23 +8,16 @@ import { getEntitlements, type Tier } from "@/lib/entitlements";
 import DashboardHeader from "@/components/shared/DashboardHeader";
 import CreateProjectWizard, { type CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
 import MarketClient from "@/components/dashboard/MarketClient";
-import DashboardProjectCard from "@/components/dashboard/DashboardProjectCard";
-import LocationMap from "./LocationMap";
-import WidgetCard from "@/components/widgets/WidgetCard";
-import SlateDropWidgetBody from "@/components/widgets/SlateDropWidgetBody";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
-import ContactsWidget from "@/components/contacts/ContactsWidget";
-import CalendarWidget from "@/components/calendar/CalendarWidget";
-import DashboardWidgetRenderer, { type WidgetRendererContext } from "@/components/dashboard/DashboardWidgetRenderer";
+import { type WidgetRendererContext } from "@/components/dashboard/DashboardWidgetRenderer";
 import DashboardMyAccount from "@/components/dashboard/DashboardMyAccount";
 import DashboardSlateDropWindow from "@/components/dashboard/DashboardSlateDropWindow";
-import DashboardWidgetPopout from "@/components/dashboard/DashboardWidgetPopout";
+import DashboardOverview from "@/components/dashboard/DashboardOverview";
 import {
   WIDGET_META,
   type WidgetPref,
   type WidgetMeta,
   type WidgetSize,
-  getWidgetSpan,
   buildDefaultPrefs,
   DASHBOARD_STORAGE_KEY,
 } from "@/lib/widgets/widget-meta";
@@ -35,28 +28,12 @@ import {
   WIDGET_PREFS_SCHEMA_VERSION,
 } from "@/lib/widgets/widget-prefs-storage";
 import {
-  Search,
-  Bell,
-  ChevronDown,
   ChevronLeft,
-  ChevronRight,
-  Plus,
   ArrowRight,
-  Activity,
   TrendingUp,
-  Calendar as CalendarIcon,
-  Users,
-  Lightbulb,
-  Cpu,
-  FolderOpen, FolderKanban,
+  FolderOpen,
   BarChart3,
   Zap,
-  MapPin,
-  Send,
-  Loader2,
-  AlertTriangle,
-  UserPlus,
-  MessageSquare,
   Palette,
   Globe,
   Film,
@@ -66,15 +43,6 @@ import {
   User,
   Shield,
   LayoutDashboard,
-  GripVertical,
-  Eye,
-  EyeOff,
-  ChevronUp,
-  FileText,
-  ArrowUpRight,
-  Home,
-  Plug,
-  CreditCard,
 } from "lucide-react";
 import type {
   DashboardProject as Project,
@@ -917,6 +885,31 @@ export default function DashboardClient({
 
   const financialMax = Math.max(1, ...liveFinancial.map((f) => f.credits));
 
+  /* ── Computed widget context for overview ── */
+  const availableWidgets = useMemo(() => new Set<string>([
+    ...(ent.canViewSlateDropWidget ? ["slatedrop"] : []),
+    "location",
+    "data-usage","processing","financial","calendar","weather","continue","contacts","suggest",
+    ...(ent.canManageSeats ? ["seats"] : ["upgrade"]),
+  ]), [ent.canViewSlateDropWidget, ent.canManageSeats]);
+
+  const widgetCtx: WidgetRendererContext = useMemo(() => ({
+    user, tier,
+    entitlements: { maxCredits: ent.maxCredits, maxStorageGB: ent.maxStorageGB, maxSeats: ent.maxSeats, label: ent.label, canViewSlateDropWidget: ent.canViewSlateDropWidget, canManageSeats: ent.canManageSeats },
+    userCoords, liveWeather, liveSeatMembers, liveContacts, liveProjects, liveJobs, liveFinancial, liveContinueWorking,
+    creditsUsed, storageUsed, financialMax,
+    billingBusy, billingError, handleBuyCredits, handleUpgradePlan,
+    suggestTitle, suggestDesc, suggestPriority, suggestLoading, suggestDone,
+    setSuggestTitle, setSuggestDesc, setSuggestPriority, handleSuggestFeature,
+    weatherLogged, setWeatherLogged, setWidgetPrefs, setPrefsDirty,
+  }), [
+    user, tier, ent, userCoords, liveWeather, liveSeatMembers, liveContacts,
+    liveProjects, liveJobs, liveFinancial, liveContinueWorking, creditsUsed,
+    storageUsed, financialMax, billingBusy, billingError, handleBuyCredits,
+    handleUpgradePlan, suggestTitle, suggestDesc, suggestPriority, suggestLoading,
+    suggestDone, handleSuggestFeature, weatherLogged,
+  ]);
+
   /* ================================================================
      RENDER
      ================================================================ */
@@ -973,264 +966,38 @@ export default function DashboardClient({
 
         {/* ════════ OVERVIEW TAB CONTENT ════════ */}
         {activeTab === "overview" && (
-        <>
-
-        {/* ════════ WELCOME BANNER + WORKSPACE QUICK-ACCESS ════════ */}
-        <div className="mb-10">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-5">
-            <div>
-              <h2 className="text-2xl font-black text-gray-900">Welcome back, {user.name.split(" ")[0]} 👋</h2>
-              <p className="text-sm text-gray-500 mt-1">Pick a module below or jump into a project to get started.</p>
-            </div>
-          </div>
-          {prefShowDashboardTiles && (() => {
-            // Include all visible tabs: modules + My Account + CEO-only tabs
-            const allTiles = visibleTabs;
-            const count = allTiles.length;
-            // Tier-aware sizing: fewer modules → larger icons, more modules → compact
-            const iconSize = count <= 4 ? 26 : count <= 6 ? 22 : count <= 10 ? 18 : 16;
-            const iconBox = count <= 4 ? "w-14 h-14" : count <= 6 ? "w-12 h-12" : count <= 10 ? "w-10 h-10" : "w-9 h-9";
-            const iconRadius = count <= 6 ? "rounded-2xl" : "rounded-xl";
-            const labelSize = count <= 4 ? "text-sm" : count <= 6 ? "text-xs" : "text-[11px]";
-            const pad = count <= 4 ? "p-5" : count <= 6 ? "p-4" : count <= 10 ? "p-3" : "p-2.5";
-            return (
-              <div className="hidden md:flex gap-3 pb-1">
-                {allTiles.map((tab) => {
-                  const TabIcon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        if (tab.id === "slatedrop") { openSlateDrop(); return; }
-                        // All tabs now have standalone routes
-                        const routeMap: Record<string, string> = {
-                          "project-hub": "/project-hub",
-                          "design-studio": "/design-studio",
-                          "content-studio": "/content-studio",
-                          "tours": "/tours",
-                          "geospatial": "/geospatial",
-                          "virtual-studio": "/virtual-studio",
-                          "analytics": "/analytics",
-                          "my-account": "/my-account",
-                          "ceo": "/ceo",
-                          "market": "/market",
-                          "athlete360": "/athlete360",
-                        };
-                        const route = routeMap[tab.id];
-                        if (route) { router.push(route); return; }
-                        setActiveTab(tab.id);
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}
-                      className={`group md:flex-1 md:min-w-0 flex flex-col items-center gap-1.5 sm:gap-2 ${pad} rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-center`}
-                    >
-                      <div
-                        className={`${iconBox} ${iconRadius} flex items-center justify-center transition-all group-hover:scale-110`}
-                        style={{ backgroundColor: `${tab.color}15` }}
-                      >
-                        <TabIcon size={iconSize} style={{ color: tab.color }} />
-                      </div>
-                      <span className={`${labelSize} font-semibold text-gray-700 group-hover:text-gray-900 leading-tight truncate max-w-full`}>{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* ════════ MOBILE QUICK ACCESS — above Your Projects, mobile only ════════ */}
-        <div className="block md:hidden mb-6">
-          <div className="relative">
-            <button
-              onClick={() => setMobileNavOpen((v) => !v)}
-              className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[#FF4D00] to-[#E04400] text-white shadow-lg hover:shadow-xl transition-all active:scale-[0.99]"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
-                  <LayoutDashboard size={16} />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-black tracking-wide">Quick Access</p>
-                  <p className="text-[11px] text-blue-200/80">Navigate modules &amp; tools</p>
-                </div>
-              </div>
-              <ChevronDown size={16} className={`transition-transform duration-200 ${mobileNavOpen ? "rotate-180" : ""}`} />
-            </button>
-            {mobileNavOpen && (
-              <>
-                <div className="fixed inset-0 z-30" onClick={() => setMobileNavOpen(false)} />
-                <div className="relative z-40 mt-2 rounded-2xl border border-gray-100 bg-white shadow-2xl overflow-hidden">
-                  {([
-                    { label: "Dashboard",   icon: Home,         href: "/dashboard",   color: "#FF4D00", desc: "Overview, widgets & projects" },
-                    { label: "Project Hub", icon: FolderKanban,  href: "/project-hub", color: "#FF4D00", desc: "RFIs, schedules & budgets" },
-                    { label: "Analytics",   icon: BarChart3,    href: "/analytics",   color: "#6366F1", desc: "Reports & performance insights" },
-                    { label: "SlateDrop",   icon: Layers,      href: "/slatedrop",    color: "#FF4D00", desc: "Files, folders & secure sharing" },
-                  ]).map((item) => {
-                    const NavIcon = item.icon as any;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setMobileNavOpen(false)}
-                        className="flex items-center gap-3.5 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50 last:border-0"
-                      >
-                        <div
-                          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ backgroundColor: `${item.color}18` }}
-                        >
-                          <NavIcon size={16} style={{ color: item.color }} />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-bold text-gray-900 leading-tight">{item.label}</p>
-                          <p className="text-xs text-gray-500 leading-snug truncate">{item.desc}</p>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                  <div className="px-4 py-3 bg-gradient-to-r from-[#FF4D00]/5 to-zinc-900/5 border-t border-gray-100">
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest text-center">Powered by Slate360</p>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* ════════ PROJECT CAROUSEL ════════ */}
-        <div className="relative mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Your Projects</h2>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <button
-                  onClick={() => setProjectDropdownOpen((v) => !v)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:border-gray-300 transition-colors"
-                >
-                  <FolderOpen size={13} className="text-gray-400" />
-                  {selectedProject === "all" ? "All projects" : liveProjects.find((p) => p.id === selectedProject)?.name ?? "All projects"}
-                  <ChevronDown size={12} className="text-gray-400" />
-                </button>
-                {projectDropdownOpen && (
-                  <>
-                    <div className="fixed inset-0 z-30" onClick={() => setProjectDropdownOpen(false)} />
-                    <div className="absolute right-0 top-10 w-56 bg-white rounded-xl border border-gray-100 shadow-xl z-40 overflow-hidden">
-                      <button onClick={() => { setSelectedProject("all"); setProjectDropdownOpen(false); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === "all" ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}>All projects</button>
-                      {liveProjects.map((p) => (
-                        <button key={p.id} onClick={() => { setSelectedProject(p.id); setProjectDropdownOpen(false); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === p.id ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}>{p.name}</button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-              <button
-                onClick={() => setCreateWizardOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
-                style={{ backgroundColor: "#FF4D00" }}
-              >
-                <Plus size={13} /> New Project
-              </button>
-              <button onClick={() => scrollCarousel(-1)} className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                <ChevronLeft size={16} />
-              </button>
-              <button onClick={() => scrollCarousel(1)} className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-
-          <div
-            ref={carouselRef}
-            className="flex gap-5 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide"
-            style={{ scrollbarWidth: "none" }}
-          >
-            {liveProjects.map((p) => (
-              <DashboardProjectCard
-                key={p.id}
-                project={p}
-                projectTypeEmoji={projectTypeEmoji}
-                onDeleted={() => {
-                  setWidgetsData((prev) =>
-                    prev
-                      ? { ...prev, projects: prev.projects.filter((pr) => pr.id !== p.id) }
-                      : prev
-                  );
-                }}
-              />
-            ))}
-
-            {liveProjects.length === 0 && (
-              <div className="snap-start shrink-0 w-full rounded-2xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
-                No projects yet. Create a project in Project Hub to populate this dashboard.
-              </div>
-            )}
-
-            {/* + New Project card */}
-            <button
-              type="button"
-              onClick={() => setCreateWizardOpen(true)}
-              className="snap-start shrink-0 w-[300px] h-[200px] rounded-2xl border-2 border-dashed border-gray-200 hover:border-[#FF4D00] flex flex-col items-center justify-center gap-3 text-gray-400 hover:text-[#FF4D00] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white/50"
-            >
-              <div className="w-14 h-14 rounded-2xl border-2 border-dashed border-current flex items-center justify-center">
-                <Plus size={24} />
-              </div>
-              <span className="text-sm font-semibold">New Project</span>
-            </button>
-          </div>
-        </div>
-
-        {/* ════════ WIDGET GRID (data-driven, respects customization prefs) ════════ */}
-        {(() => {
-          // Compute which widgets are available for this tier
-          const available = new Set<string>([
-            ...(ent.canViewSlateDropWidget ? ["slatedrop"] : []),
-            "location",
-            "data-usage","processing","financial","calendar","weather","continue","contacts","suggest",
-            ...(ent.canManageSeats ? ["seats"] : ["upgrade"]),
-          ]);
-
-          const widgetCtx: WidgetRendererContext = {
-            user, tier,
-            entitlements: { maxCredits: ent.maxCredits, maxStorageGB: ent.maxStorageGB, maxSeats: ent.maxSeats, label: ent.label, canViewSlateDropWidget: ent.canViewSlateDropWidget, canManageSeats: ent.canManageSeats },
-            userCoords, liveWeather, liveSeatMembers, liveContacts, liveProjects, liveJobs, liveFinancial, liveContinueWorking,
-            creditsUsed, storageUsed, financialMax,
-            billingBusy, billingError, handleBuyCredits, handleUpgradePlan,
-            suggestTitle, suggestDesc, suggestPriority, suggestLoading, suggestDone,
-            setSuggestTitle, setSuggestDesc, setSuggestPriority, handleSuggestFeature,
-            weatherLogged, setWeatherLogged, setWidgetPrefs, setPrefsDirty,
-          };
-
-          const orderedVisible = [...widgetPrefs]
-            .filter((p) => p.visible && available.has(p.id))
-            .sort((a, b) => a.order - b.order);
-
-          return (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {orderedVisible.map((p, idx) => (
-                  <div
-                    key={p.id}
-                    draggable={(p.size === "default" || p.size === "sm") && p.id !== "location"}
-                    onDragStart={() => handleDashDragStart(idx)}
-                    onDragOver={(e) => handleDashDragOver(e, idx)}
-                    onDragEnd={handleDashDragEnd}
-                    className={`${(p.size !== "default" && p.size !== "sm") ? "" : "cursor-grab active:cursor-grabbing"} ${dashDragIdx === idx ? "opacity-50 scale-95" : ""} ${getWidgetSpan(p.id, p.size)} transition-all duration-200`}
-                  >
-                    <DashboardWidgetRenderer id={p.id} widgetSize={p.size} ctx={widgetCtx} />
-                  </div>
-                ))}
-              </div>
-
-              <DashboardWidgetPopout
-                widgetId={widgetPopoutId}
-                onClose={() => setWidgetPopoutId(null)}
-                availableWidgets={available}
-                ctx={widgetCtx}
-              />
-            </>
-          );
-        })()}
-
-        </>
+          <DashboardOverview
+            userName={user.name.split(" ")[0]}
+            visibleTabs={visibleTabs}
+            showDashboardTiles={prefShowDashboardTiles}
+            onOpenSlateDrop={openSlateDrop}
+            onSetActiveTab={setActiveTab}
+            mobileNavOpen={mobileNavOpen}
+            onMobileNavToggle={() => setMobileNavOpen((v) => !v)}
+            projects={liveProjects}
+            selectedProject={selectedProject}
+            onSelectProject={(id) => { setSelectedProject(id); setProjectDropdownOpen(false); }}
+            projectDropdownOpen={projectDropdownOpen}
+            onProjectDropdownToggle={() => setProjectDropdownOpen((v) => !v)}
+            projectTypeEmoji={projectTypeEmoji}
+            onCreateProject={() => setCreateWizardOpen(true)}
+            carouselRef={carouselRef}
+            onScrollCarousel={scrollCarousel}
+            onProjectDeleted={(id) => {
+              setWidgetsData((prev) =>
+                prev ? { ...prev, projects: prev.projects.filter((pr) => pr.id !== id) } : prev
+              );
+            }}
+            widgetPrefs={widgetPrefs}
+            widgetPopoutId={widgetPopoutId}
+            onCloseWidgetPopout={() => setWidgetPopoutId(null)}
+            dashDragIdx={dashDragIdx}
+            onDragStart={handleDashDragStart}
+            onDragOver={handleDashDragOver}
+            onDragEnd={handleDashDragEnd}
+            availableWidgets={availableWidgets}
+            widgetCtx={widgetCtx}
+          />
         )}
 
         {/* ════════ SPECIFIC TAB WIREFRAME ════════ */}
