@@ -5,6 +5,26 @@ Status: Planning guide for MVP-lite
 
 Use this file as the working memory and safe-build guide for the 360 Tour Builder before implementation starts.
 
+## Ecosystem Context
+
+This BUILD_GUIDE covers the core Tour Builder MVP (8 prompts). For the standalone app subscription system, Stripe setup, PWA delivery, and iOS/Android app store strategy, read:
+
+- `slate360-context/apps/APP_ECOSYSTEM_GUIDE.md`
+
+The Tour Builder is the **first priority app** in the ecosystem revenue-first launch order. Build it first, validate it as a standalone subscription, then use the same pattern for PunchWalk.
+
+**Prerequisites before starting the 8-prompt sequence:**
+- App Phase 1 (Stripe smoke test + Tour Builder product created): see APP_ECOSYSTEM_GUIDE.md
+- App Phase 2 (`org_feature_flags` + entitlement merge): see APP_ECOSYSTEM_GUIDE.md
+
+**After the 8-prompt MVP is complete:**
+- Add Tour Builder standalone route and subscription gating (~2 prompts)
+- Wire into `/apps/tour-builder` landing page and checkout flow (~1 prompt)
+- PWA + Capacitor wrapping shared with PunchWalk (see APP_ECOSYSTEM_GUIDE.md Phases 4–5)
+
+**Estimated total prompts from zero to live in app stores (Tour Builder only):**
+~3 (ecosystem foundation) + 8 (MVP) + 3 (standalone/subscription/app page) + 5 (shared PWA + Capacitor) = **~19 prompts**
+
 ## Purpose
 
 This file consolidates the verified current state, MVP-lite target, safe-build strategy, implementation order, and planning placeholders for future research.
@@ -728,3 +748,47 @@ The first implementation is done when:
 - A user can publish a clean viewer link
 - A user can open the viewer in fullscreen and present it cleanly in Zoom
 - The implementation stays modular and additive without broad shared regressions
+
+---
+
+## Standalone App Delivery (Post-MVP Prompts 9–11)
+
+After the 8-prompt MVP is complete and verified, add standalone subscription delivery.
+
+### Prompt 9 — Standalone Route + Entitlement Gating
+
+Deliver:
+- `app/apps/tour-builder/page.tsx` — landing page with pricing and feature summary
+- `app/apps/tour-builder/subscribe/page.tsx` — Stripe checkout trigger (reuses App Ecosystem foundation from APP_ECOSYSTEM_GUIDE.md Phase 3)
+- Entitlement gating in `app/(dashboard)/tours/page.tsx`: redirect non-subscribers to `/apps/tour-builder`
+- Platform tier users (`model+` or `business+`) retain access without extra subscription
+
+Exit criteria:
+- A trial user who navigates to `/tours` is redirected to the landing page.
+- A user who subscribes to Tour Builder gets the `standalone_tour_builder` flag and lands in the builder.
+- Business+ platform users are not blocked by the entitlement check.
+
+### Prompt 10 — Post-Checkout Onboarding
+
+Deliver:
+- `app/apps/tour-builder/onboarding/page.tsx`
+- First-time user experience: create your first tour prompt, sample panorama option
+- "Add to Home Screen" install prompt shown after onboarding (reuses `components/pwa/InstallPrompt.tsx` when available)
+
+Exit criteria:
+- New subscriber lands on onboarding page after Stripe checkout.
+- Onboarding guides user to create their first tour.
+- Completing onboarding navigates to the builder.
+
+### Prompt 11 — Stabilization + Context Docs
+
+Deliver:
+- Smoke-test checklist for all three access paths: platform user, standalone subscriber, unauthenticated visitor
+- Update `APP_ECOSYSTEM_GUIDE.md` phase tracker
+- Confirm no regressions in shared billing or auth flows
+- Update this BUILD_GUIDE and `SLATE360_PROJECT_MEMORY.md` handoff
+
+Exit criteria:
+- All three access paths work correctly.
+- No TypeScript errors.
+- No broken billing or auth flows.
