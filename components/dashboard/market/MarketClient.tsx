@@ -134,6 +134,7 @@ export default function MarketClient({
             walletSnapshot={{
               address: wallet.address || "",
               isConnected: wallet.isConnected,
+              chainId: wallet.chain?.id ?? null,
               usdcBalance: wallet.usdcBalance || "0.00",
               maticFormatted: wallet.maticData
                 ? `${(Number(wallet.maticData.value) / 10 ** wallet.maticData.decimals).toFixed(4)} ${wallet.maticData.symbol}`
@@ -143,12 +144,14 @@ export default function MarketClient({
             system={systemStatus.system} 
             onOpenAutomation={() => handleTabChange("automation")}
             onConnectWallet={wallet.handleConnectWallet}
+            onSwitchToPolygon={wallet.handleSwitchToPolygon}
             onApproveUsdc={wallet.handleApproveUsdc}
             onDisconnect={wallet.disconnect}
             walletChoice={wallet.walletChoice}
             onWalletChoiceChange={wallet.setWalletChoice}
             walletError={wallet.walletError}
             isConnecting={wallet.isConnecting}
+            isSwitchingChain={wallet.isSwitchingChain}
             isApproving={wallet.isApproving}
           />
         );

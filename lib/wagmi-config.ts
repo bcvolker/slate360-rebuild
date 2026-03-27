@@ -1,5 +1,5 @@
 import { http, createConfig } from "wagmi";
-import { polygon, mainnet } from "wagmi/chains";
+import { polygon } from "wagmi/chains";
 import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
 
 const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
@@ -23,11 +23,10 @@ const connectors = [
 ];
 
 export const wagmiConfig = createConfig({
-  chains: [polygon, mainnet],
+  chains: [polygon],
   connectors,
   transports: {
     [polygon.id]: http(),
-    [mainnet.id]: http(),
   },
   ssr: true,
 });

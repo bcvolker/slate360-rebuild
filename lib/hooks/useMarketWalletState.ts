@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   useAccount, useConnect, useDisconnect, useSignMessage, useBalance,
   useReadContract, useWriteContract, useWaitForTransactionReceipt,
+  useSwitchChain,
 } from "wagmi";
 import type { LiveChecklist } from "@/components/dashboard/market/types";
 
@@ -22,6 +23,7 @@ export function useMarketWalletState({ addLog }: UseMarketWalletStateParams) {
   const { connect, connectors, isPending: isConnecting } = useConnect();
   const { disconnect } = useDisconnect();
   const { signMessageAsync } = useSignMessage();
+  const { switchChain, isPending: isSwitchingChain } = useSwitchChain();
   const { writeContract, data: approveHash, isPending: isApproving } = useWriteContract();
   const { isLoading: waitingApproveReceipt, isSuccess: approveSuccess } = useWaitForTransactionReceipt({ hash: approveHash });
   const { data: maticData } = useBalance({ address, chainId: 137, query: { enabled: isConnected && !!address } });
@@ -56,6 +58,16 @@ export function useMarketWalletState({ addLog }: UseMarketWalletStateParams) {
         if (!pref) { setWalletError("No wallet connector available."); return; }
         connect({ connector: pref }); return;
       }
+      // If connected but on wrong network, switch first
+      if (chain?.id !== 137) {
+        try {
+          switchChain({ chainId: 137 });
+          addLog("🔄 Switching to Polygon network…");
+        } catch {
+          setWalletError("Please switch to Polygon network in your wallet.");
+        }
+        return;
+      }
       const message = `Slate360 Market Robot verification: ${Date.now()}`;
       const signature = await signMessageAsync({ message });
       const res = await fetch("/api/market/wallet-connect", {
@@ -72,6 +84,16 @@ export function useMarketWalletState({ addLog }: UseMarketWalletStateParams) {
     } catch (e: unknown) { setWalletError((e as Error).message || "Connection failed"); }
   };
 
+  const handleSwitchToPolygon = () => {
+    setWalletError("");
+    try {
+      switchChain({ chainId: 137 });
+      addLog("🔄 Switching to Polygon network…");
+    } catch (e: unknown) {
+      setWalletError((e as Error).message || "Failed to switch network");
+    }
+  };
+
   const handleApproveUsdc = () => {
     if (!address || !POLYMARKET_SPENDER) { setWalletError("Missing wallet address or spender env."); return; }
     try {
@@ -81,10 +103,10 @@ export function useMarketWalletState({ addLog }: UseMarketWalletStateParams) {
   };
 
   return {
-    address, isConnected, chain, isConnecting, isApproving,
+    address, isConnected, chain, isConnecting, isApproving, isSwitchingChain,
     waitingApproveReceipt, approveSuccess, usdcBalance, maticData,
     walletVerified, setWalletVerified, walletError, walletChoice, setWalletChoice,
-    liveChecklist, handleConnectWallet, handleApproveUsdc, disconnect,
+    liveChecklist, handleConnectWallet, handleApproveUsdc, handleSwitchToPolygon, disconnect,
     POLYMARKET_SPENDER,
   };
 }

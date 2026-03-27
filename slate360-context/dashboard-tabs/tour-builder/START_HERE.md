@@ -1,7 +1,7 @@
 # 360 Tour Builder — Start Here
 
-Last Updated: 2026-03-22
-Use this file first for any 360 Tour Builder task. Only open the longer docs if this file does not answer the question.
+Last Updated: 2026-03-27
+Use this file first for any 360 Tour Builder task. For planning or resuming implementation, read `BUILD_GUIDE.md` next. Only open the longer docs if these files do not answer the question.
 
 ## What Matters First
 
@@ -9,6 +9,7 @@ Use this file first for any 360 Tour Builder task. Only open the longer docs if 
 - Gate: `getEntitlements(tier).canAccessTours` (Creator+ tier: creator, model, business, enterprise)
 - Page entry: `app/(dashboard)/tours/page.tsx` (~20 lines, server component)
 - Shell: `components/dashboard/ToursShell.tsx` (~37 lines, "Coming Soon" placeholder)
+- Planning guide: `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`
 - Sidebar registration: `components/dashboard/DashboardClient.tsx` (Compass icon, id: "tours")
 - QuickNav: `components/shared/QuickNav.tsx` (listed as "360 Tours")
 - System folder: `lib/slatedrop/folderTree.ts` (🔭 "360-tour-builder" folder auto-provisioned)

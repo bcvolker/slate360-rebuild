@@ -165,7 +165,9 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-27 (Phase 5: DashboardClient State Hook Extraction — Complete)
+<<<<<<< HEAD removed >>>
+
+### Session Handoff — 2026-03-27 (Phase 5: DashboardClient Extraction + Tour Builder Docs)
 
 #### What Changed
 - `lib/hooks/useDashboardState.ts` (NEW, 775 lines): extracted ALL ~48 useState declarations, useEffect side-effects, useCallback handlers, useMemo computations from DashboardClient
@@ -174,18 +176,20 @@ When editing these, always read both the state declarations AND the JSX sections
 - `components/dashboard/TabRedirectCard.tsx` (NEW, 42 lines): extracted tab redirect card with route map
 - Removed dead `useRouter` import, removed duplicate local `AccountOverview` type (uses shared `DashboardAccountOverview` from `lib/types/dashboard`)
 - Commit `5c81451`, pushed to origin
+- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md` (NEW, 729 lines): working-memory + safe-build guide for Tour Builder. Includes MVP-lite scope, GitNexus protocol, cross-tab isolation rules, hard do-not-touch list, explicit wiring points, intra-module safety rules, proposed schema/file structure, Zoom/presentation strategy, 8-prompt sequence, and research intake template.
+- `slate360-context/dashboard-tabs/tour-builder/START_HERE.md`: updated to point to BUILD_GUIDE.md
 
 #### What's Broken / Partially Done
 - Nothing broken. `npx tsc --noEmit` passes with 0 errors.
 - `useDashboardState.ts` at 775 lines — over 300-line limit. Further decomposition into sub-hooks (e.g., `useBillingState`, `useWidgetPrefs`, `useWeatherState`) deferred to Phase 5B.
+- Tour Builder is still scaffold-only in code. No implementation started. MVP-lite scope is frozen; fill in research intake template in BUILD_GUIDE.md before first implementation prompt.
 
 #### Next Steps (Ordered)
 
 1. **Phase 5B — Split useDashboardState into sub-hooks** (775 → multiple files under 300 each). Split by domain: billing, widget prefs, weather, account/API-keys, notifications, suggest-feature.
-
 2. **Phase 5.5 — Zod validation** (add per-route as touched, not a bulk pass).
-
 3. **SlateDropClient decomposition** — 451 lines, over 300-line limit.
+4. **Tour Builder implementation** — start with Prompt 1 (types + schema). Read BUILD_GUIDE.md in that chat before any code. Freeze decisions in Research Intake Template first.
 
 #### Module Health Summary
 
@@ -196,9 +200,9 @@ When editing these, always read both the state declarations AND the JSX sections
 | **DashboardMyAccount** | ✅ Under limit | `DashboardMyAccount.tsx` | 267 | Done |
 | **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 164 | Fund wallet → test |
 | **SlateDrop** | ⚠️ Over limit | `SlateDropClient.tsx` | 451 | Decompose |
+| **Tour Builder** | 🔴 Scaffold only | `ToursShell.tsx` | 37 | Build guide ready; implement when ready |
 
 #### Git State
-- HEAD: `785ac38` (feat: wire nuqs for activeTab URL sync + fix canAccessHub — Phase 4C)
 - All commits pushed to origin/main
 - Clean working tree
 
