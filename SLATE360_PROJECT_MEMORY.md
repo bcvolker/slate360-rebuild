@@ -147,7 +147,7 @@ Use those files only for deep history, roadmap, or recovery work.
 
 | File | Lines | Risk |
 |---|---|---|
-| `components/dashboard/DashboardClient.tsx` | 1,961 | State at top, JSX at bottom — can't edit one without seeing the other |
+| `components/dashboard/DashboardClient.tsx` | 1,188 | Phase 4 decomposition in progress — was 1,961 |
 | `components/slatedrop/SlateDropClient.tsx` | 451 | Decomposed but still large; multi-phase upload + preview logic |
 | `app/(dashboard)/project-hub/[projectId]/management/page.tsx` | 931 | Oversized — needs extraction |
 | `app/(dashboard)/project-hub/[projectId]/photos/page.tsx` | 599 | Oversized — needs extraction |
@@ -165,88 +165,61 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-26 (Navy Purge Complete + shadcn + Guardrails)
+### Session Handoff — 2026-03-27 (Phase 4: DashboardClient Decomposition — In Progress)
 
 #### What Changed
-- `app/globals.css`: Module tokens finalized. All `#1E3A8A` removed. 10 module accent tokens correct.
-- 55 files (dashboard, project-hub, slatedrop, features, public pages, lib files): Navy blue completely purged → zinc/orange/indigo design system. Commit `5343dbf`.
-- `components/ui/`: 10 new shadcn components added (button, card, input, badge, separator, avatar, select, dialog, dropdown-menu, tabs). Now 13 files total.
-- `package.json`: `husky` ^9.1.7 + `lint-staged` ^16.4.0 added to devDeps. `lint-staged` config block added (ESLint for TS, CSS brace check for CSS).
-- `.husky/pre-commit`: Now runs `npx lint-staged` (replaced default `npm test`).
-- `DESIGN_UI_OVERHAUL_PLAN.md`: Updated — Phases 0-3.5 marked complete, Phase 3.5 (Guardrails) added, Gemini assessment table added, Phase 5.5 (Zod) added, nuqs call-out in Phase 4, execution order summary updated.
+- `components/dashboard/DashboardClient.tsx`: 1,961 → 1,188 lines (40% reduction, 5 extractions)
+- `components/dashboard/DashboardMyAccount.tsx`: NEW (745 lines) — extracted My Account tab UI. Commit `fa9c879`.
+- `components/dashboard/DashboardSlateDropWindow.tsx`: NEW (190 lines) — self-contained macOS-style floating SlateDrop window. Commit `9aed8dd`.
+- `components/dashboard/DashboardWidgetPopout.tsx`: REWRITTEN (199 lines) — was orphaned 102-line dumb component, now self-contained floating widget window. Commit `365b7e8`.
+- `components/dashboard/DashboardOverview.tsx`: NEW (271 lines) — extracted overview tab (welcome banner, module tiles, project carousel, widget grid). Commit `33ca656`.
+- `components/dashboard/MobileQuickAccess.tsx`: NEW (77 lines) — extracted mobile quick access dropdown. Commit `33ca656`.
+- `package.json`: `nuqs` v2.8.9 installed (not yet wired to activeTab).
+- `DESIGN_UI_OVERHAUL_PLAN.md`: Phase 4 status updated to IN PROGRESS.
+- Removed 17 unused icon imports + 6 unused component imports from DashboardClient.
+- Full `npx tsc --noEmit` passes with 0 errors.
 
 #### What's Broken / Partially Done
-- Nothing broken. Phase 3.5 is fully complete.
-- `eslint-plugin-tailwindcss` was intentionally skipped — no Tailwind v4 peer dep support yet. Document in plan only.
-
-#### Files Intentionally Left With #1E3A8A (color swatches — do NOT change)
-- `components/contacts/AddContactModal.tsx` — user-selectable COLORS array
-- `app/api/contacts/route.ts` — same COLORS array
-- `app/api/dashboard/widgets/route.ts` — CONTACT_COLORS array
+- Nothing broken. All extractions compile clean.
+- `DashboardMyAccount.tsx` at 745 lines is over the 300-line limit — needs further decomposition (billing section, API keys section, preferences section as candidates).
+- `DashboardClient.tsx` at 1,188 lines still holds ~55 useStates + ~250 lines of callbacks + ~150 lines of effects. Further decomposition possible via `useDashboardState` hook but was deferred as complex/risky.
+- `nuqs` installed but NOT yet wired to `activeTab` — `useState("overview")` still used. Wire it when ready.
 
 #### Context Files Updated
-- `DESIGN_UI_OVERHAUL_PLAN.md`: Phase status, Gemini assessment, Phase 5.5, nuqs in Phase 4
-- `SLATE360_PROJECT_MEMORY.md`: this handoff
+- `DESIGN_UI_OVERHAUL_PLAN.md`: Phase 4 status → IN PROGRESS
+- `SLATE360_PROJECT_MEMORY.md`: This handoff + monolith table updated
 
 #### Next Steps (Ordered)
 
-1. **Commit + push this session's work:**
+1. **Push all Phase 4 work to origin:**
    ```bash
-   git add -A
-   git commit -m "feat: Phase 3 complete — shadcn primitives + Husky guardrails + docs update"
    git push origin main
    ```
+   (4 commits: fa9c879, 9aed8dd, 365b7e8, 33ca656)
 
-2. **Phase 4 — DashboardClient.tsx decomposition** (~1,961 lines → ~400 lines)
-   - Before starting: `wc -l components/dashboard/DashboardClient.tsx`
-   - Read `DESIGN_UI_OVERHAUL_PLAN.md` Phase 4 section for extraction order
-   - Install nuqs first: `npm install nuqs`, then use `useQueryState` for `activeTab`
-   - Extract order: DashboardMyAccount → DashboardOverview → DashboardSidebar → useDashboardState hook → wire 9 orphaned widgets
-   - Test between each extraction: `npm run typecheck && npm run dev`
+2. **Continue Phase 4 — DashboardMyAccount decomposition** (745 → <300 lines)
+   - Extract billing section → `DashboardBillingSection.tsx`
+   - Extract API keys section → `DashboardApiKeys.tsx`
+   - Extract preferences section → `DashboardPreferences.tsx`
 
-3. **Phase 5 — Entitlements fix:** `lib/entitlements.ts` — add `canAccessHub: true` to creator tier
+3. **Wire nuqs for activeTab** — replace `useState("overview")` with `useQueryState('tab', parseAsString.withDefault('overview'))` in DashboardClient.
 
-4. **Phase 5.5 — Zod** (add per-route as touched, not a bulk pass)
+4. **Phase 5 — Entitlements fix:** `lib/entitlements.ts` — add `canAccessHub: true` to creator tier.
+
+5. **Phase 5.5 — Zod** (add per-route as touched, not a bulk pass).
 
 #### Module Health Summary
 
-| Module | Status | Main File(s) | Lines | Action Needed |
-|--------|--------|-------------|-------|---------------|
-| **Market Robot** | ⏸️ Paused (Prompts 11-16 remain) | `MarketClient.tsx` | 164 | Fund wallet → test $1 buy → continue prompts |
-| **Dashboard** | ⚠️ Live but monolithic | `DashboardClient.tsx` | ~1,961 | Phase 4: extract 6 components + hook |
-| **SlateDrop** | ✅ Good shape | `SlateDropClient.tsx` | 451 | BUG-001 phase 2 (folder migration) |
+| Module | Status | Main File(s) | Lines | Action |
+|--------|--------|-------------|-------|--------|
+| **Dashboard** | 🔄 Phase 4 in progress | `DashboardClient.tsx` | 1,188 | Continue decomposition |
+| **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 164 | Fund wallet → test → continue prompts |
+| **SlateDrop** | ✅ Good shape | `SlateDropClient.tsx` | 451 | BUG-001 phase 2 |
 
-#### Session Summary
-1. Fixed entire auth flow: email confirmation via Resend now delivers to inbox (not spam). Fixed DNS in Cloudflare (removed duplicate DMARC `p=reject`, added `amazonses.com` to root SPF). Created `/forgot-password` page. Fixed resend-confirmation 400. Cleared test accounts from Supabase.
-2. Applied **Prompt #2 — Design Token Foundation**: replaced navy (#1E3A8A) with zinc (#18181b) in CSS tokens, homepage, signup, login, and callback. Added `--slate-accent` CSS vars. This is committed but NOT YET PUSHED — see "Pending Push" below.
-
-#### Pending Push (MUST DO FIRST)
-There are 8 modified files that need to be committed and pushed. Run these commands:
-```bash
-cd /workspaces/slate360-rebuild
-git add -A
-git commit -m "style: design token foundation + auth callback fix — navy to zinc, accent vars, redirect fix"
-git push
-```
-
-#### Files Changed (Uncommitted)
-- `app/globals.css` — CSS tokens: `--slate-blue` → `#18181b`, `--module-hub/analytics` → `#FF4D00`, added `--slate-accent*` vars
-- `app/page.tsx` — homepage: all `#1E3A8A` → `#18181b`, `bg-blue-*` → `bg-zinc-*`, `text-blue-*` → `text-zinc-*`
-- `app/signup/page.tsx` — headings: `style={{ color: "#1E3A8A" }}` → `className="text-zinc-900"`, `text-[#1E3A8A]` → `text-zinc-900`, added "Already confirmed? Sign in" link
-- `app/login/page.tsx` — same navy→zinc replacement in headings
-- `app/auth/callback/route.ts` — added `console.error` for exchange failures
-- `app/api/auth/signup/route.ts` — `redirectTo` includes `?next=/dashboard`
-- `app/api/auth/resend-confirmation/route.ts` — `redirectTo` includes `?next=/dashboard`
-- `SLATE360_PROJECT_MEMORY.md` — this handoff
-- `scripts/delete-test-users.mjs` — new: helper for clearing test accounts
-- `app/signup/page.tsx.bak` — can be deleted (backup of Grok's truncated file)
-
-#### Previously Pushed (commit `eea80a8`)
-- Restored `signup/page.tsx` (Grok truncated to 28 lines)
-- Fixed 409 flow: shows "Account exists" + Sign In CTA
-- Created `app/forgot-password/page.tsx`
-- Fixed `resend-confirmation/route.ts`: user lookup, clear 400/404
-- Fixed `signup/route.ts`: delete user on email failure, detailed logging
+#### Git State
+- HEAD: `33ca656` (refactor: extract DashboardOverview + MobileQuickAccess — Phase 4.4)
+- 4 unpushed commits on `main`
+- Clean working tree
 
 #### DNS Changes (Cloudflare — already applied by user)
 - Deleted duplicate `_dmarc` TXT record with `p=reject` (GoDaddy default)

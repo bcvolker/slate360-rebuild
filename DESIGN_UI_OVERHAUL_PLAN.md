@@ -2,7 +2,7 @@
 
 Created: 2026-03-24
 Updated: 2026-03-26
-Status: Phase 4 — DashboardClient decomposition (NEXT)
+Status: Phase 4 — DashboardClient decomposition (IN PROGRESS)
 Branch: main
 
 ## Context
@@ -304,7 +304,7 @@ Phase 1    CSS tokens in globals.css          ✅ COMPLETE
 Phase 2    Navy blue purge (55 files)         ✅ COMPLETE (commit 5343dbf)
 Phase 3    Install shadcn primitives          ✅ COMPLETE (13 files in components/ui/)
 Phase 3.5  Guardrails (Husky, lint-staged)    ✅ COMPLETE
-Phase 4    DashboardClient decomposition      🔜 NEXT — includes nuqs for activeTab
+Phase 4    DashboardClient decomposition      � IN PROGRESS — 1961→1188 lines (5 extractions done)
 Phase 5    Entitlements fix                   ⬜ After Phase 4
 Phase 5.5  Zod API validation                 ⬜ Add per-route as touched
 Phase 6    Homepage decomposition             ⬜ After dashboard stable
