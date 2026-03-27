@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { Suspense } from "react";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import BuildRuntimeBadge from "@/components/shared/BuildRuntimeBadge";
@@ -44,12 +45,14 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth" data-build="2026-02-26-v4-probe" suppressHydrationWarning>
       <body className={`${geistSans.variable} antialiased`} suppressHydrationWarning>
-        <TooltipProvider>
-          {children}
-          <Suspense fallback={null}>
-            <BuildRuntimeBadge />
-          </Suspense>
-        </TooltipProvider>
+        <NuqsAdapter>
+          <TooltipProvider>
+            {children}
+            <Suspense fallback={null}>
+              <BuildRuntimeBadge />
+            </Suspense>
+          </TooltipProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );

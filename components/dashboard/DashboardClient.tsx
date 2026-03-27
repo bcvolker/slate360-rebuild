@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
+import { useQueryState, parseAsString } from "nuqs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -254,7 +255,7 @@ export default function DashboardClient({
   const [suggestDone, setSuggestDone] = useState(false);
   const [weatherLogged, setWeatherLogged] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useQueryState("tab", parseAsString.withDefault("overview"));
   const [customizeOpen, setCustomizeOpen] = useState(false);
   // Initialize with defaults — sync from localStorage in useEffect to avoid hydration mismatch (#418).
   // Server and client must agree on initial render; localStorage is only available client-side.

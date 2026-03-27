@@ -48,7 +48,7 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
   },
   creator: {
     label: "Creator",
-    canAccessHub: false,
+    canAccessHub: true,
     canAccessDesignStudio: false,
     canAccessContent: true,
     canAccessTourBuilder: true,
@@ -67,7 +67,7 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
   },
   model: {
     label: "Model",
-    canAccessHub: false,
+    canAccessHub: true,
     canAccessDesignStudio: true,
     canAccessContent: true,
     canAccessTourBuilder: true,
