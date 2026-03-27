@@ -20,6 +20,14 @@ interface MarketLiveWalletTabProps {
   walletSnapshot: WalletSnapshot;
   system: MarketSystemStatusViewModel | null;
   onOpenAutomation: () => void;
+  onConnectWallet: () => void;
+  onApproveUsdc: () => void;
+  onDisconnect: () => void;
+  walletChoice: "metamask" | "coinbase" | "trust";
+  onWalletChoiceChange: (choice: "metamask" | "coinbase" | "trust") => void;
+  walletError: string;
+  isConnecting: boolean;
+  isApproving: boolean;
 }
 
 const CHECKLIST_ITEMS: { key: keyof LiveChecklist; label: string; hint: string }[] = [
@@ -37,6 +45,14 @@ export default function MarketLiveWalletTab({
   walletSnapshot,
   system,
   onOpenAutomation,
+  onConnectWallet,
+  onApproveUsdc,
+  onDisconnect,
+  walletChoice,
+  onWalletChoiceChange,
+  walletError,
+  isConnecting,
+  isApproving,
 }: MarketLiveWalletTabProps) {
   const passedCount = CHECKLIST_ITEMS.filter(c => liveChecklist[c.key]).length;
   const allPassed = passedCount === CHECKLIST_ITEMS.length;
@@ -78,6 +94,35 @@ export default function MarketLiveWalletTab({
                     Verified
                   </span>
                 )}
+                {/* Sign to verify — shown when connected but not yet verified */}
+                {!walletSnapshot.walletVerified && (
+                  <button
+                    onClick={onConnectWallet}
+                    disabled={isConnecting}
+                    className="w-full rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-sm font-semibold text-amber-300 transition hover:bg-amber-500/20 disabled:opacity-50"
+                  >
+                    {isConnecting ? "Signing…" : "Sign to Verify Wallet"}
+                  </button>
+                )}
+                {/* Approve USDC — shown when verified but not yet approved */}
+                {walletSnapshot.walletVerified && !liveChecklist.usdcApproved && (
+                  <button
+                    onClick={onApproveUsdc}
+                    disabled={isApproving}
+                    className="w-full rounded-xl border border-[#FF4D00]/40 bg-[#FF4D00]/10 px-4 py-2.5 text-sm font-semibold text-[#FF4D00] transition hover:bg-[#FF4D00]/20 disabled:opacity-50"
+                  >
+                    {isApproving ? "Approving…" : "Approve USDC Spending"}
+                  </button>
+                )}
+                {walletError && (
+                  <p className="text-xs text-red-400">{walletError}</p>
+                )}
+                <button
+                  onClick={onDisconnect}
+                  className="text-xs text-slate-500 underline hover:text-slate-400 transition"
+                >
+                  Disconnect
+                </button>
               </div>
             ) : (
               <div className="space-y-3">
@@ -85,9 +130,32 @@ export default function MarketLiveWalletTab({
                   <span className="h-2.5 w-2.5 rounded-full bg-slate-600" />
                   <span className="text-sm text-slate-400">Not connected</span>
                 </div>
-                <p className="text-xs text-slate-500">
-                  Use the Connect Wallet button in the navigation bar to get started.
-                </p>
+                {/* Wallet choice selector */}
+                <div className="flex gap-2">
+                  {(["metamask", "coinbase", "trust"] as const).map(w => (
+                    <button
+                      key={w}
+                      onClick={() => onWalletChoiceChange(w)}
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
+                        walletChoice === w
+                          ? "border-[#FF4D00]/50 bg-[#FF4D00]/15 text-[#FF4D00]"
+                          : "border-zinc-700 bg-zinc-800/50 text-slate-400 hover:border-zinc-600"
+                      }`}
+                    >
+                      {w === "metamask" ? "MetaMask" : w === "coinbase" ? "Coinbase" : "Trust"}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={onConnectWallet}
+                  disabled={isConnecting}
+                  className="w-full rounded-xl border border-[#FF4D00]/40 bg-[#FF4D00]/10 px-4 py-2.5 text-sm font-semibold text-[#FF4D00] transition hover:bg-[#FF4D00]/20 disabled:opacity-50"
+                >
+                  {isConnecting ? "Connecting…" : "Connect Wallet"}
+                </button>
+                {walletError && (
+                  <p className="text-xs text-red-400">{walletError}</p>
+                )}
               </div>
             )}
           </div>

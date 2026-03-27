@@ -141,7 +141,15 @@ export default function MarketClient({
               walletVerified: wallet.walletVerified || false
             }} 
             system={systemStatus.system} 
-            onOpenAutomation={() => handleTabChange("automation")} 
+            onOpenAutomation={() => handleTabChange("automation")}
+            onConnectWallet={wallet.handleConnectWallet}
+            onApproveUsdc={wallet.handleApproveUsdc}
+            onDisconnect={wallet.disconnect}
+            walletChoice={wallet.walletChoice}
+            onWalletChoiceChange={wallet.setWalletChoice}
+            walletError={wallet.walletError}
+            isConnecting={wallet.isConnecting}
+            isApproving={wallet.isApproving}
           />
         );
       default:
