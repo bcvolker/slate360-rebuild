@@ -69,22 +69,39 @@ The standalone subscriber math assumes individual users. The Enterprise tier cha
 | Tour Builder Enterprise | $499/mo | $4,990/yr | 25 | 100 GB |
 | Capital Programs / Custom | Contact sales | — | Unlimited | Negotiated |
 
-**Revised blended scenario with 3 Enterprise contracts:**
+**Enterprise pricing (PunchWalk):**
+
+| Tier | Monthly | Annual | Seats | Projects |
+|---|---|---|---|---|
+| PunchWalk Standalone | $39/mo | $390/yr | 1 | 10 |
+| PunchWalk Team | $99/mo | $990/yr | 5 | 50 |
+| PunchWalk Enterprise | $299/mo | $2,990/yr | 25 | Unlimited |
+| Custom | Contact sales | — | Unlimited | Unlimited |
+
+**Bundle deals (sell both apps together):**
+- Team Bundle (Tour Builder Team + PunchWalk Team): $199/mo (save $49/mo vs buying separately)
+- Enterprise Bundle (both Enterprise tiers): $699/mo (save $99/mo vs buying separately)
+- This is the pitch for GC companies and capital programs who need both surveying and punch list tools
+
+**Revised blended scenario with enterprise + bundles:**
 
 | Revenue Source | Count | Price | Monthly |
 |---|---|---|---|
-| Enterprise contracts | 3 | $499/mo | $1,497 |
-| Team contracts | 5 | $149/mo | $745 |
+| Tour Builder Enterprise | 2 | $499/mo | $998 |
+| PunchWalk Enterprise | 2 | $299/mo | $598 |
+| Enterprise Bundle | 1 | $699/mo | $699 |
+| Tour Builder Team | 3 | $149/mo | $447 |
+| PunchWalk Team | 3 | $99/mo | $297 |
 | Business platform | 3 | $499/mo | $1,497 |
-| Model platform | 5 | $199/mo | $995 |
-| Tour Builder standalone | 15 | $49/mo | $735 |
-| PunchWalk standalone | 10 | $39/mo | $390 |
-| Creator platform | 10 | $79/mo | $790 |
-| **Total** | **51 paying entities** | — | **$6,649/mo** |
+| Model platform | 4 | $199/mo | $796 |
+| Tour Builder standalone | 10 | $49/mo | $490 |
+| PunchWalk standalone | 8 | $39/mo | $312 |
+| Creator platform | 8 | $79/mo | $632 |
+| **Total** | **44 paying entities** | — | **$6,766/mo** |
 
-**51 contracts including 8 enterprise/team deals** gets to $7k faster than 68 individual standalone subscribers. And enterprise contracts renew annually — reducing churn risk significantly.
+**44 contracts** — fewer total subscribers but larger average contract size. The bundle story is particularly powerful for direct outreach: "One subscription covers your site tours and your punch lists."
 
-**Key insight:** One capital program department, one realtor office, one GC company = up to $499/mo per deal. Direct outreach to these buyers (not app store discovery) is what closes enterprise. The Meeting Mode feature (synchronized 360 viewer for OAC meetings) is the specific hook for capital programs.
+**Key insight:** One capital program department, one realtor office, one GC company = up to $499/mo per deal. Direct outreach to these buyers (not app store discovery) is what closes enterprise. The Meeting Mode feature (synchronized 360 viewer for OAC meetings) is the specific hook for capital programs. The GC company bundle (both apps together) is the highest-LTV single sale available.
 
 ---
 

@@ -1093,6 +1093,68 @@ Enterprise users need a clean desktop interface — simpler and more focused tha
 - Embed viewer removes "Powered by Slate360" watermark
 - Custom subdomain (`tours.theircompany.com → slate360.ai/portal?org=xxx`) — Phase 4
 
+#### 5. Bulk Licensing — Company Seat Purchase and Employee Download Flow
+
+Enterprise customers (realtor offices, GC companies, capital program departments) need a way to buy a block of seats once and distribute access to employees — without requiring each employee to go through individual checkout.
+
+**How it works:**
+
+```
+Company admin buys "Tour Builder Enterprise" or "Team" plan
+  → Stripe checkout for the org (monthly or annual)
+  → Org gets N seats set in org_feature_flags (e.g., seat_limit = 25)
+  → Admin lands on the Enterprise Portal management page
+  → Admin sees: "Your plan includes 25 seats. 3 used. 22 remaining."
+  → Admin clicks "Invite Team Members" → sends invite emails
+  → Each invite email contains a magic link: /portal/accept-invite?token=ABC
+  → Employee clicks link → creates or links a Slate360 account → granted portal_role='viewer' or 'builder'
+  → Employee can now access the portal without any individual payment
+```
+
+**Seat exhaustion UX:**
+- When all seats are filled, new invites fail with: "You've used all 25 seats on your plan. Upgrade to add more."
+- Upgrade CTA: contact form for Custom tier, or self-serve upgrade to next tier
+
+**App store install for employees (Mobile):**
+- For iOS/Android: employees download from App Store / Google Play using their own Apple/Google accounts
+- They sign in with their Slate360 credentials (email + password, or Google OAuth)
+- Entitlement check happens on login: if their account has a portal seat, they get full app access
+- No app store redemption codes needed — the access is tied to the account, not the download
+
+**Volume discount model:**
+| Seats | Per-Seat Price | Monthly Total |
+|---|---|---|
+| 1 (standalone) | $49/seat | $49/mo |
+| 5 (Team) | $30/seat | $149/mo |
+| 25 (Enterprise) | $20/seat | $499/mo |
+| 50+ (Custom) | Contact us | — |
+
+**Schema additions for seat management:**
+```sql
+-- Extend org_feature_flags to track seat counts
+ALTER TABLE org_feature_flags
+  ADD COLUMN tour_builder_seat_limit INT DEFAULT 1,
+  ADD COLUMN tour_builder_seats_used INT DEFAULT 0;
+
+-- Invite tokens for employee onboarding
+CREATE TABLE org_invite_tokens (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  org_id UUID NOT NULL REFERENCES organizations(id),
+  email TEXT NOT NULL,
+  portal_role TEXT NOT NULL DEFAULT 'viewer', -- 'builder' | 'viewer'
+  token TEXT UNIQUE NOT NULL,
+  accepted_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '7 days'),
+  created_by UUID REFERENCES auth.users(id)
+);
+```
+
+**Security notes:**
+- Invite tokens must be single-use and expire
+- Token must be validated server-side (not just client-side)
+- On token acceptance, atomically increment `tour_builder_seats_used` and check it does not exceed `tour_builder_seat_limit`
+- If seats are full when the invite is accepted, reject with a clear message
+
 ### Enterprise Prompt Sequence (Phase 3, after Prompts 9–11)
 
 | Prompt | Task |

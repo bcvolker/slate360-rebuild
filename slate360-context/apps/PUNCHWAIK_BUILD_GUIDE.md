@@ -559,3 +559,121 @@ Fill this in before implementation starts.
 - PunchWalk included with which platform tiers (business+? model+?):
 - Standalone price confirmed: $19/mo Y/N:
 - Annual price confirmed: $190/yr Y/N:
+
+---
+
+## Enterprise Tier — PunchWalk
+
+PunchWalk's enterprise path mirrors Tour Builder's. The buyer is different — GC companies, construction management firms, and capital program departments — but the seat model, portal, and bulk licensing mechanics are identical.
+
+### Who Buys PunchWalk Enterprise
+
+| Buyer | Use Case | What They Pay For |
+|---|---|---|
+| General contractor companies | All supers use PunchWalk on their projects | Org-wide license, no per-user friction |
+| Construction management firms | 10–50 project managers in the field and office | Team seats, shared project access |
+| Capital program departments | Owners rep teams managing multiple active projects | Centralized punch list visibility, PDF reporting |
+| Real estate developers | Multiple property managers running punch lists across portfolio | Portfolio-level access, CSV/PDF export |
+| Facility management companies | Ongoing punch lists for facilities maintenance | Recurring subscription, high renewal rate |
+
+### Enterprise Pricing
+
+| Tier | Monthly | Annual | Included |
+|---|---|---|---|
+| PunchWalk Standalone | $39/mo | $390/yr | 1 user, 10 projects, unlimited items |
+| PunchWalk Team | $99/mo | $990/yr | 5 seats, 50 projects, shared access |
+| PunchWalk Enterprise | $299/mo | $2,990/yr | 25 seats, unlimited projects, PDF + CSV export, org-level reporting |
+| Custom | Contact us | — | Unlimited seats, SSO, SLA, API access |
+
+**Revenue impact:** One GC company with 15 superintendents at $299/mo = $3,588/year from a single PunchWalk sale. Three enterprise PunchWalk contracts = $897/mo added to the blended revenue target.
+
+### Enterprise Feature Set
+
+#### 1. Shared Project Access
+
+In standalone mode, projects are visible only to the user who created them. In Team/Enterprise mode:
+- All seats under the org can see and contribute to all org projects
+- Role-based access: `builder` (can create items, take photos, resolve items), `viewer` (read-only, can export)
+- Project-level permissions: future Phase 4 feature, not required for first enterprise release
+
+#### 2. Org-Level Dashboard / Portal
+
+A read-only overview of all open punch items across all projects — for a PM or owner's rep to monitor field progress from the office:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  PunchWalk Portal        [Org Name]       [Logout]  │
+├──────────────┬──────────────────────────────────────┤
+│              │  Open Items: 47   Resolved: 123      │
+│  Projects    │  ─────────────────────────────────── │
+│              │  Project A   12 open  / 3 critical   │
+│  ├─ Proj A   │  Project B    8 open  / 1 critical   │
+│  ├─ Proj B   │  Project C   27 open  / 0 critical   │
+│  ├─ Proj C   │                                      │
+│              │  [Export All Open — PDF]              │
+└──────────────┴──────────────────────────────────────┘
+```
+
+**Route:** `/portal/punch-walk` — reuses the same portal layout as Tour Builder portal
+**Auth:** Same portal entitlement check (`canAccessTeamPortal` — shared across both apps)
+
+#### 3. Bulk Licensing / Seat Management
+
+Identical to Tour Builder enterprise seats:
+
+```
+Company admin buys PunchWalk Team or Enterprise
+  → Stripe checkout for the org
+  → org_feature_flags gets punch_walk_seat_limit = N
+  → Admin invites employees via email
+  → Employees accept invite, link their account
+  → Employee opens PunchWalk (web or iOS/Android app)
+  → Entitlement check on login — if they have a seat, they're in
+  → No individual payment required from employees
+```
+
+**App store install for employees:**
+- Employees download PunchWalk from App Store / Google Play with their own account
+- Sign in with Slate360 credentials
+- Seat entitlement is account-bound — app works immediately after login
+
+**Schema (shared with Tour Builder seat model):**
+```sql
+-- Add to org_feature_flags
+ALTER TABLE org_feature_flags
+  ADD COLUMN punch_walk_seat_limit INT DEFAULT 1,
+  ADD COLUMN punch_walk_seats_used INT DEFAULT 0;
+
+-- Uses the same org_invite_tokens table from Tour Builder
+-- Just set portal_role for PunchWalk access
+```
+
+#### 4. Org-Level PDF / CSV Export (Enterprise Only)
+
+- "Export all open items across org" — generates a zip of per-project PDFs
+- CSV export for import into Procore, Autodesk Construction Cloud, or Excel
+- Column format: Project, Trade, Description, Location, Priority, Assigned To, Due Date, Status, Photo URL
+- Enterprise only — standalone tier gets per-project PDF only
+
+### Enterprise Prompt Sequence (Phase 3, after PunchWalk Prompts A1–A8 + C1–C2)
+
+| Prompt | Task |
+|---|---|
+| PW-E1 | PunchWalk Team + Enterprise Stripe products + seat flags |
+| PW-E2 | Portal overview dashboard (`/portal/punch-walk`) + project roll-up stats |
+| PW-E3 | Shared project access (org-scoped queries, role enforcement) |
+| PW-E4 | Org-level CSV export + multi-project PDF zip |
+
+**PunchWalk Enterprise Total: 4 prompts**
+**Dependency:** PunchWalk standalone subscription working (C1 + C2)
+
+**Note:** PW-E1 can be combined with Tour Builder E1 — they use the same seat management infrastructure.
+
+### PunchWalk Enterprise Go-To-Market
+
+PunchWalk enterprise sells the same way as Tour Builder enterprise — direct outreach, not app store discovery:
+
+1. **GC company pitch:** "Every superintendent on your jobs gets PunchWalk — one bill, your logo on the export, no apps to buy." Walk them through one demo on a phone.
+2. **Construction associations:** AGC, ABC, NAIOP local chapter meetings. These are where field tech decisions get made.
+3. **Procore integration hook (Phase 4):** GCs already pay for Procore. A lightweight PunchWalk-to-Procore export makes it a no-brainer add-on, not a replacement.
+4. **Capital programs:** Same buyer as Tour Builder enterprise. They likely want both — one enterprise deal covers both apps.

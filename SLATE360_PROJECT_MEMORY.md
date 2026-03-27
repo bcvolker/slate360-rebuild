@@ -171,6 +171,53 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-03-28 (PunchWalk Enterprise + bulk licensing + REVENUE_ROADMAP bundle pricing)
+
+#### What Changed
+- `slate360-context/apps/PUNCHWAIK_BUILD_GUIDE.md`: NEW Enterprise Tier section added — PunchWalk pricing table (Standalone $39 → Team $99 → Enterprise $299), who buys it (GC companies, CM firms, capital programs, facility management), shared portal route (`/portal/punch-walk`), bulk seat licensing with same `org_invite_tokens` infra as Tour Builder, org-level PDF/CSV export for enterprise, 4-prompt enterprise sequence (PW-E1 through PW-E4), go-to-market plan (AGC/ABC outreach, Procore integration hook, bundle with Tour Builder).
+- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`: NEW "Bulk Licensing — Company Seat Purchase and Employee Download Flow" section — admin buys org plan → Stripe checkout → N seats in `org_feature_flags` → invites employees via magic link (`org_invite_tokens` table) → employees accept invite, create/link Slate360 account → granted portal role → download app from App Store with their own account → entitlement check on login grants access. Volume discount table. Schema for `org_invite_tokens` + seat limit columns. Security notes (single-use tokens, atomic seat increment, server-side validation).
+- `slate360-context/REVENUE_ROADMAP.md`: Added PunchWalk enterprise pricing table, bundle pricing (Tour Builder Team + PunchWalk Team = $199/mo; Enterprise Bundle = $699/mo), revised blended scenario (44 entities → $6,766/mo via larger average contract size).
+
+#### Stripe CLI — How to Use in Every New Codespace
+1. Codespace opens → `post-create.sh` installs Stripe CLI automatically
+2. `stripe login` — once per Codespace (opens browser OAuth)
+3. Terminal 1: `npm run dev`
+4. Terminal 2: `npm run stripe:listen`
+5. Terminal 3: `npm run stripe:trigger:sub`
+6. Verify `org_tier` updated in Supabase → C1 done
+
+#### Owner Decisions Still Needed
+1. Confirm scope reduction: pause Geospatial/Virtual Studio? archive Athlete360?
+2. Enterprise pricing confirmed? (Tour Builder Team $149, Enterprise $499; PunchWalk Team $99, Enterprise $299)
+3. Bundle pricing confirmed? ($199 Team Bundle, $699 Enterprise Bundle)
+4. Start beta outreach? Create `BETA50` Stripe coupon?
+5. First enterprise prospect to approach: capital program dept / realtor office / GC company?
+
+#### Next Execution Steps (Revenue-First Order)
+1. **C1** — Stripe smoke-test (test card + webhook + DB tier update)
+2. **C2** — Create Stripe products for Tour Builder + PunchWalk (Stripe Dashboard UI — no code)
+3. **C3–C5** — `org_feature_flags` table + entitlement update + webhook writes
+4. **D1** — Tour Builder schema (`project_tours`, `tour_scenes`, `org_storage_usage`, seat columns)
+5. **D2–D7** — Tour Builder builder: CRUD → upload + validation → viewer → branding → publish + embed
+6. **E1–E3** — Tour Builder standalone landing + Stripe checkout + gate
+7. Then: PunchWalk A1–A8 + C1–C2 (field app MVP)
+8. Then: Enterprise J1–J5 + PW-E1–E4 (meeting mode, portal, seat management)
+
+#### Context Files Updated This Session
+- `slate360-context/apps/PUNCHWAIK_BUILD_GUIDE.md`: PunchWalk enterprise + bulk licensing
+- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`: Tour Builder bulk licensing spec
+- `slate360-context/REVENUE_ROADMAP.md`: PunchWalk enterprise pricing + bundle deals
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+
+#### Previous Session Summary (for reference)
+- `.devcontainer/devcontainer.json` + `post-create.sh`: Stripe CLI auto-installs in every Codespace
+- `.env.example`: Environment variable template for new Codespaces
+- `package.json`: `stripe:listen` and `stripe:trigger:sub` scripts added
+- Tour Builder BUILD_GUIDE: Enterprise Meeting Mode, desktop Portal, team seats, white-label, J1–J5 prompts
+- Tour Builder BUILD_GUIDE: Camera/drone compatibility, upload validation, storage quotas, embed code, mobile upload
+- REVENUE_ROADMAP: Startup pricing reality, beta pricing strategy, scope reduction table
+- MASTER_BUILD_SEQUENCE: Group J enterprise prompts, scope reduction table
+
 ### Session Handoff — 2026-03-28 (Enterprise tier + devcontainer + Stripe CLI + branding features)
 
 #### What Changed
