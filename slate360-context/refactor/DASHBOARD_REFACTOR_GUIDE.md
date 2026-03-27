@@ -154,7 +154,7 @@ components/dashboard/widgets/
   CalendarWidgetRenderer.tsx      ← calendar widget rendering logic
   ProjectWidgetRenderer.tsx       ← project card widget rendering
   MapWidgetRenderer.tsx           ← location map widget rendering
-  SlateDropWidgetRenderer.tsx     ← SlateDrop embedded widget rendering (also fixes BUG-019)
+  SlateDropWidgetRenderer.tsx     ← SlateDrop embedded widget rendering
   WidgetRendererIndex.ts          ← re-exports for DashboardWidgetRenderer.tsx
 ```
 
@@ -164,18 +164,18 @@ components/dashboard/widgets/
 // ~80 lines after extraction
 ```
 
-### BUG-019 Fix — Embedded in This Phase
+### BUG-019 Note — Fix Lives In SlateDrop, Not Here
 
-When extracting `SlateDropWidgetRenderer.tsx`, apply the BUG-019 fix:
-- If `embedded={true}`, render `SlateDropClient` directly without the "Open SlateDrop" CTA button.
-- Remove the redundant shell-level CTA when the client is already embedded and visible.
+BUG-019 (the "Open SlateDrop" CTA button appearing when the embedded client is already visible) is fixed in the **widget shell component files**, which are SlateDrop components — not inside `DashboardWidgetRenderer.tsx`. The fix is documented and executed in `SLATEDROP_REFACTOR_GUIDE.md` Phase 2 (Group A2 in `MASTER_BUILD_SEQUENCE.md`).
+
+When extracting `SlateDropWidgetRenderer.tsx` in this phase, do NOT try to fix BUG-019 here — it will already be fixed by the time this phase runs (Group A2 precedes Group B3).
 
 ### Phase 6 Exit Criteria
 
 - `DashboardWidgetRenderer.tsx` under 100 lines.
 - Each renderer file under 200 lines.
-- BUG-019 resolved: no extra click needed to open embedded SlateDrop widget.
 - All widget types still render correctly (smoke-test each one).
+- SlateDrop widget renders without the extra CTA click (should already be resolved by A2).
 
 ---
 
@@ -343,7 +343,7 @@ The calendar widget's month navigation arrows lack sufficient touch target size 
 |---|---|---|
 | Phase 5 | DashboardClient extraction (2,800 → 277 lines) | ✅ Complete |
 | Phase 5B | Split `useDashboardState.ts` into sub-hooks | ⬜ Not started |
-| Phase 6 | Extract `DashboardWidgetRenderer.tsx` + BUG-019 fix | ⬜ Not started |
+| Phase 6 | Extract `DashboardWidgetRenderer.tsx` (BUG-019 already fixed by A2) | ⬜ Not started |
 | Phase 7 | BUG-018: LocationMap DrawingManager migration | ⬜ Not started |
 | Phase 8 | LocationMap extraction (1,892 → ~300 lines) | ⬜ Not started |
 | Phase 9 | BUG-021: Shared `LocationDisplay` component | ⬜ Not started |

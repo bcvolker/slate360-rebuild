@@ -67,6 +67,7 @@ Tier note:
 | Dashboard/Project Hub/SlateDrop refactoring | `slate360-context/refactor/DASHBOARD_REFACTOR_GUIDE.md`, `slate360-context/refactor/PROJECT_HUB_REFACTOR_GUIDE.md`, `slate360-context/refactor/SLATEDROP_REFACTOR_GUIDE.md` |
 | App ecosystem strategy / Stripe / PWA / app stores | `slate360-context/apps/APP_ECOSYSTEM_GUIDE.md` |
 | PunchWalk app | `slate360-context/apps/PUNCHWAIK_BUILD_GUIDE.md` |
+| **Full ordered build sequence (start here for any new work)** | `slate360-context/MASTER_BUILD_SEQUENCE.md` |
 
 ## Backend Quick Access
 
@@ -169,53 +170,41 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-27 (Refactor Guides + App Ecosystem Guides)
+### Session Handoff — 2026-03-27 (MASTER_BUILD_SEQUENCE + BUG-019 overlap fix)
 
 #### What Changed
-- `slate360-context/refactor/DASHBOARD_REFACTOR_GUIDE.md` (NEW): Safe extraction plan for `useDashboardState.ts` (775 lines → sub-hooks), `DashboardWidgetRenderer.tsx` (513 lines), `LocationMap.tsx` (1,892 lines, BUG-018 DrawingManager migration May 2026 deadline). Includes Phases 5B–9, UI fix queue UI-001–UI-005, safe-build checklist, phase tracker.
-- `slate360-context/refactor/PROJECT_HUB_REFACTOR_GUIDE.md` (NEW): Safe extraction plan for all 9 tool pages over 300 lines (management=931, photos=599, submittals=579, etc.) and component files (ProjectDashboardGrid=560, WizardLocationPicker=412, ObservationsClient=334). Includes BUG-013 fix plan, Phases 1–9, UI fix queue UI-PH-001–UI-PH-005, safe-build checklist.
-- `slate360-context/refactor/SLATEDROP_REFACTOR_GUIDE.md` (NEW): Safe extraction plan for `SlateDropClient.tsx` (451 lines) and `ProjectFileExplorer.tsx` (363 lines). Includes BUG-019 fix plan, BUG-001 `file_folders` migration plan, widget styling unification, Phases 1–5, UI fix queue UI-SD-001–UI-SD-006, safe-build checklist.
-- `slate360-context/apps/APP_ECOSYSTEM_GUIDE.md` (NEW): Master strategy for standalone app subscriptions, Stripe smoke-test + products, `org_feature_flags` table + entitlement merge, new-user app-only subscription funnel, PWA infrastructure, Capacitor iOS/Android app store delivery. Includes phase tracker and risk register. ~46 total prompts estimated to get both Tour Builder and PunchWalk into app stores.
-- `slate360-context/apps/PUNCHWAIK_BUILD_GUIDE.md` (NEW): PunchWalk field capture app BUILD_GUIDE. Mobile-first punch walk app (camera, photo-per-item, offline queue). Covers schema, file structure, 8-prompt Phase A (core web), 3-prompt Phase B (PWA/offline), 2-prompt Phase C (subscription). ~10 prompts to live on web with subscription.
-- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md` UPDATED: Added Ecosystem Context section at top (prerequisites, total prompt count ~19 to app stores), added Prompts 9–11 (standalone route, subscription gating, onboarding) after Definition of Done.
-- `SLATE360_PROJECT_MEMORY.md` Task-Based Read Map: added refactor guides row.
-- All pushed to `origin/main` in commit `f7cbf77`.
+- `slate360-context/MASTER_BUILD_SEQUENCE.md` (NEW): Single bird's-eye sequence doc covering ALL phases from critical fixes through iOS/Android app stores. Combines refactor guides + App Ecosystem Guide + PunchWalk into one ordered view. Includes phase tracker (Groups A–I), dependency chain diagram, prompt count estimates (~62 total to both apps in app stores), quick-start prompt templates for each group, and multi-chat memory protocol. Read this first in any chat where you're unsure what to work on next.
+- `slate360-context/refactor/DASHBOARD_REFACTOR_GUIDE.md`: Fixed Phase 6 — removed the incorrect "BUG-019 Fix Embedded In This Phase" section. BUG-019 fix lives in SlateDrop (SLATEDROP_REFACTOR_GUIDE Phase 2 / Group A2), not in DashboardWidgetRenderer extraction.
+- `SLATE360_PROJECT_MEMORY.md`: Added MASTER_BUILD_SEQUENCE.md to task map.
+
+#### Current Phase
+**Platform stabilization.** The signup page being open suggests platform-level review. No refactor or app work has started yet.
 
 #### What's Broken / Partially Done
-- Nothing newly broken. All files above are planning docs only — no code changed.
-- BUG-018 (`LocationMap.tsx` DrawingManager): **May 2026 hard deadline**, no implementation started. Roadmap in DASHBOARD_REFACTOR_GUIDE.md Phase 7.
-- BUG-019 (SlateDrop widget extra click): plan in SLATEDROP_REFACTOR_GUIDE.md Phase 2, not yet implemented.
-- BUG-001 (`file_folders` → `project_folders`): plan in SLATEDROP_REFACTOR_GUIDE.md Phase 1, not yet implemented.
-- `useDashboardState.ts` still at 775 lines — over limit. Phase 5B plan in DASHBOARD_REFACTOR_GUIDE.md.
-- Stripe business account connected but NOT smoke-tested. Must complete before any app can charge.
-- Tour Builder: 8-prompt MVP planned, prerequisites (App Phase 1 + 2) not started.
-- PunchWalk: BUILD_GUIDE created, 0% implementation.
-- Design Studio + Content Studio BUILD_GUIDEs created but not yet implemented.
+- BUG-018 (`LocationMap.tsx` DrawingManager): **May 2026 hard deadline**, not started. → Group A1
+- BUG-019 (SlateDrop widget extra click): not started. → Group A2
+- BUG-001 (`file_folders` migration): not started. → Group A3
+- `useDashboardState.ts` still at 775 lines — over limit. → Group B1
+- Stripe platform billing: connected but NOT smoke-tested. → Group C1
+- `org_feature_flags` table: does not exist. → Group C3
+- Tour Builder: scaffold shell only, no implementation. → Group D (after C complete)
+- PunchWalk: BUILD_GUIDE ready, 0% implementation. → Group F (after C complete)
+
+#### Next Steps (Ordered — Use MASTER_BUILD_SEQUENCE.md Groups)
+1. **Group A1** — BUG-018 DrawingManager (May 2026 deadline, do first)
+2. **Group C1** — Stripe smoke test (can run in parallel with A, no code overlap)
+3. **Group A2** — BUG-019 SlateDrop widget fix
+4. **Group A3** — BUG-001 file_folders migration
+5. **Group B1** — Split useDashboardState (775 lines)
+6. **Group C2–C7** — App foundation (Stripe products, org_feature_flags, entitlements, funnel)
+7. **Group D** — Tour Builder MVP (8 prompts)
+8. **Group E** — Tour Builder standalone + subscription (3 prompts)
+9. **Group F** — PunchWalk MVP (8 prompts)
+10. **Group G** — PWA infrastructure
+11. **Group H** — PunchWalk subscription
+12. **Group I** — Capacitor / iOS / Android
 
 #### Context Files Updated
-- `slate360-context/refactor/DASHBOARD_REFACTOR_GUIDE.md`: created
-- `slate360-context/refactor/PROJECT_HUB_REFACTOR_GUIDE.md`: created
-- `slate360-context/refactor/SLATEDROP_REFACTOR_GUIDE.md`: created
-- `slate360-context/apps/APP_ECOSYSTEM_GUIDE.md`: created
-- `slate360-context/apps/PUNCHWAIK_BUILD_GUIDE.md`: created
-- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`: updated with ecosystem context + Prompts 9–11
+- `slate360-context/MASTER_BUILD_SEQUENCE.md`: created
+- `slate360-context/refactor/DASHBOARD_REFACTOR_GUIDE.md`: Phase 6 BUG-019 reference corrected
 - `SLATE360_PROJECT_MEMORY.md`: task map + this handoff
-
-#### Next Steps (Ordered)
-1. **BUG-018 (CRITICAL)** — DrawingManager migration in `LocationMap.tsx`. May 2026 deadline. Read DASHBOARD_REFACTOR_GUIDE.md Phase 7.
-2. **Phase 5B** — Split `useDashboardState.ts` (775 lines) into domain sub-hooks. Read DASHBOARD_REFACTOR_GUIDE.md.
-3. **BUG-001** — Complete `file_folders` → `project_folders` migration. Read SLATEDROP_REFACTOR_GUIDE.md Phase 1.
-4. **App Phase 1A** — Smoke-test Stripe platform billing end-to-end. Read APP_ECOSYSTEM_GUIDE.md Phase 1A.
-5. **App Phase 1B** — Create Tour Builder + PunchWalk Stripe products. Read APP_ECOSYSTEM_GUIDE.md Phase 1B.
-6. **App Phase 2** — `org_feature_flags` table + `getEntitlements()` merge. Read APP_ECOSYSTEM_GUIDE.md Phase 2.
-7. **Tour Builder MVP** — 8-prompt sequence. Read tour-builder/BUILD_GUIDE.md. Fill in Research Intake Template first.
-8. **PunchWalk MVP** — Phase A (8 prompts). Read PUNCHWAIK_BUILD_GUIDE.md. Fill in Research Intake Template first.
-
-#### What Changed
-- `lib/hooks/useDashboardState.ts` (NEW, 775 lines): extracted ALL ~48 useState declarations, useEffect side-effects, useCallback handlers, useMemo computations from DashboardClient
-- `components/dashboard/DashboardClient.tsx`: 1,089 → 277 lines (under 300 limit). Now a thin render shell that calls `useDashboardState()` and passes data to child components
-- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md` (NEW): Tour Builder planning guide with GitNexus protocol, cross-tab safety rules, 8-prompt sequence.
-- `slate360-context/dashboard-tabs/design-studio/BUILD_GUIDE.md` (NEW): Design Studio planning guide.
-- `slate360-context/dashboard-tabs/content-studio/BUILD_GUIDE.md` (NEW): Content Studio planning guide.
-
-*[Full prior session history archived — current handoff is the one above.]*
