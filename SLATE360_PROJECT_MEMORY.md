@@ -147,7 +147,7 @@ Use those files only for deep history, roadmap, or recovery work.
 
 | File | Lines | Risk |
 |---|---|---|
-| `components/dashboard/DashboardClient.tsx` | 1,188 | Phase 4 decomposition in progress — was 1,961 |
+| `lib/hooks/useDashboardState.ts` | 775 | State hook — cohesive but large; split sub-hooks in future phase |
 | `components/slatedrop/SlateDropClient.tsx` | 451 | Decomposed but still large; multi-phase upload + preview logic |
 | `app/(dashboard)/project-hub/[projectId]/management/page.tsx` | 931 | Oversized — needs extraction |
 | `app/(dashboard)/project-hub/[projectId]/photos/page.tsx` | 599 | Oversized — needs extraction |
@@ -165,27 +165,25 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-27 (Phase 4C: nuqs + Entitlements Fix — Complete)
+### Session Handoff — 2026-03-27 (Phase 5: DashboardClient State Hook Extraction — Complete)
 
 #### What Changed
-- `components/dashboard/DashboardClient.tsx`: wired `useQueryState('tab')` from nuqs — activeTab now syncs to URL (`?tab=my-account`)
-- `app/layout.tsx`: wrapped children with `NuqsAdapter` from `nuqs/adapters/next/app`
-- `lib/entitlements.ts`: set `canAccessHub: true` for creator AND model tiers (was `false`, blocking Project Hub for paying users)
-- Commit `785ac38`, pushed to origin
-
-#### Also done this session:
-- Phase 4 QA: removed duplicate DashTab, dead calendar/contact code (DashboardClient 1,188 → 1,089). Commit `0a33f9f`
-- Phase 4B: decomposed DashboardMyAccount 745 → 267 lines (3 sub-components). Commit `9ccd068`
+- `lib/hooks/useDashboardState.ts` (NEW, 775 lines): extracted ALL ~48 useState declarations, useEffect side-effects, useCallback handlers, useMemo computations from DashboardClient
+- `components/dashboard/DashboardClient.tsx`: 1,089 → 277 lines (under 300 limit). Now a thin render shell that calls `useDashboardState()` and passes data to child components
+- `components/dashboard/TabWireframe.tsx` (NEW, 54 lines): extracted wireframe placeholder component
+- `components/dashboard/TabRedirectCard.tsx` (NEW, 42 lines): extracted tab redirect card with route map
+- Removed dead `useRouter` import, removed duplicate local `AccountOverview` type (uses shared `DashboardAccountOverview` from `lib/types/dashboard`)
+- Commit `5c81451`, pushed to origin
 
 #### What's Broken / Partially Done
 - Nothing broken. `npx tsc --noEmit` passes with 0 errors.
-- `DashboardClient.tsx` at 1,089 lines — still holds ~48 useStates + callbacks + effects. Further decomposition via `useDashboardState` hook deferred.
+- `useDashboardState.ts` at 775 lines — over 300-line limit. Further decomposition into sub-hooks (e.g., `useBillingState`, `useWidgetPrefs`, `useWeatherState`) deferred to Phase 5B.
 
 #### Next Steps (Ordered)
 
-1. **Phase 5.5 — Zod validation** (add per-route as touched, not a bulk pass).
+1. **Phase 5B — Split useDashboardState into sub-hooks** (775 → multiple files under 300 each). Split by domain: billing, widget prefs, weather, account/API-keys, notifications, suggest-feature.
 
-2. **Continue DashboardClient decomposition** — extract state+callbacks into `useDashboardState` hook when ready.
+2. **Phase 5.5 — Zod validation** (add per-route as touched, not a bulk pass).
 
 3. **SlateDropClient decomposition** — 451 lines, over 300-line limit.
 
@@ -193,7 +191,8 @@ When editing these, always read both the state declarations AND the JSX sections
 
 | Module | Status | Main File(s) | Lines | Action |
 |--------|--------|-------------|-------|--------|
-| **Dashboard** | 🔄 Phase 4 in progress | `DashboardClient.tsx` | 1,089 | Extract state hook |
+| **Dashboard** | ✅ Under limit | `DashboardClient.tsx` | 277 | Done |
+| **Dashboard State** | ⚠️ Over limit | `useDashboardState.ts` | 775 | Split into sub-hooks |
 | **DashboardMyAccount** | ✅ Under limit | `DashboardMyAccount.tsx` | 267 | Done |
 | **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 164 | Fund wallet → test |
 | **SlateDrop** | ⚠️ Over limit | `SlateDropClient.tsx` | 451 | Decompose |
