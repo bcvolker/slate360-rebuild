@@ -27,6 +27,8 @@
     "test:diag:account": "node scripts/account-path-diagnostic.mjs",
     "mcp:setup": "npx gitnexus analyze && npx gitnexus setup",
     "mcp:start": "npx gitnexus mcp",
+    "stripe:listen": "stripe listen --forward-to localhost:3000/api/stripe/webhook",
+    "stripe:trigger:sub": "stripe trigger customer.subscription.created",
     "prepare": "husky"
   },
   "dependencies": {

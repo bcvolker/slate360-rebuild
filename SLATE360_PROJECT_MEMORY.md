@@ -171,6 +171,50 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-03-28 (Enterprise tier + devcontainer + Stripe CLI + branding features)
+
+#### What Changed
+- `.devcontainer/devcontainer.json` (NEW): Devcontainer config for GitHub Codespaces. Uses `mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm` + `ghcr.io/devcontainers-contrib/features/stripe-cli:1` feature. Forwards port 3000. Runs `post-create.sh` automatically.
+- `.devcontainer/post-create.sh` (NEW): Installs Stripe CLI if feature fails, initializes Husky hooks, warns if `.env.local` is missing.
+- `.env.example` (NEW): Template for all environment variables. Copy to `.env.local` for local dev.
+- `package.json`: Added `stripe:listen` and `stripe:trigger:sub` npm scripts for local webhook testing.
+- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`: Major additions — (1) "Logo/Branding Scope" expanded with Phase 2 branding features: nadir/tripod cover (sharp.js server-side compositing), text overlays (scene-level hotspots), default viewing angle (`initial_yaw/pitch/fov` columns), keyframe/intro animation (`intro_animation_json JSONB`), effects (Phase 3). (2) NEW "Enterprise Tier" section with full spec: Meeting Mode (Supabase Realtime sync for coordination meetings), desktop Portal layout, team seat management, white-label, Enterprise prompt sequence J1–J5, go-to-market plan for capital programs / realtor offices.
+- `slate360-context/REVENUE_ROADMAP.md`: Added Enterprise pricing tiers (Standalone $49 → Team $149 → Enterprise $499), revised blended scenario showing 51 contracts reaching $7k faster than 68 standalone subscribers, Enterprise math and sales strategy.
+- `slate360-context/MASTER_BUILD_SEQUENCE.md`: Added Group J (Enterprise) with J1–J5 prompts, updated total prompt count to ~67, added fastest paths table ("19 prompts to first revenue", "24 prompts to $7k path").
+
+#### Stripe CLI — How to Use in New Codespace
+1. Open the Codespace — `post-create.sh` installs Stripe CLI automatically
+2. Run `stripe login` once (opens browser for OAuth — required per Codespace)
+3. Terminal 1: `npm run dev`
+4. Terminal 2: `npm run stripe:listen` (starts webhook forwarding to localhost:3000)
+5. Terminal 3: `npm run stripe:trigger:sub` (sends test subscription.created event)
+6. Verify in DB that `org_tier` updated correctly → C1 complete
+
+#### Owner Decisions Still Needed
+- Confirm scope reduction: pause Geospatial & Robotics / Virtual Studio? archive Athlete360?
+- Start beta outreach? Create `BETA50` Stripe coupon (50% off for first 20 subscribers)?
+- Confirm Enterprise pricing tiers (Team $149/mo, Enterprise $499/mo recommended)?
+- Which enterprise prospect to approach first — capital program dept, realtor office, or GC company?
+
+#### Next Execution Steps (Code — Revenue-First Order)
+1. **C1** — `stripe login` + `npm run stripe:listen` + test card `4242 4242 4242 4242` → verify DB tier update
+2. **C2** — Create Tour Builder + PunchWalk products in Stripe Dashboard (UI, no code)
+3. **C3, C4, C5** — `org_feature_flags` table + entitlement merge + webhook writes flag
+4. **Tour Builder D1** — Schema: `project_tours`, `tour_scenes`, `org_storage_usage`, entitlement columns
+5. **Tour Builder D2–D8** — CRUD API → upload + validation → builder UI → viewer → branding → publish + embed
+6. **Tour Builder E1–E3** — Standalone landing page + Stripe checkout + entitlement gate
+7. **Tour Builder J1–J5** — Enterprise: Meeting Mode + Portal + Team seats (run concurrent with outreach)
+
+#### Context Files Updated
+- `.devcontainer/devcontainer.json`: created
+- `.devcontainer/post-create.sh`: created
+- `.env.example`: created
+- `package.json`: stripe scripts added
+- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`: enterprise + branding
+- `slate360-context/REVENUE_ROADMAP.md`: enterprise pricing + blended scenario
+- `slate360-context/MASTER_BUILD_SEQUENCE.md`: Group J + updated totals
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+
 ### Session Handoff — 2026-03-28 (Tour Builder BUILD_GUIDE expanded + REVENUE_ROADMAP startup pricing + scope reduction)
 
 #### What Changed

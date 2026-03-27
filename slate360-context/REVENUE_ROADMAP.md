@@ -43,7 +43,7 @@ At revised pricing:
 - 143 Tour Builder subscribers @ $49/mo = $7,000
 - 180 PunchWalk subscribers @ $39/mo = $7,002
 
-**Blended scenario toward $7k (realistic first-year target):**
+**Blended scenario toward $7k (realistic first-year target — standalone only):**
 
 | Revenue Source | Count | Price | Monthly |
 |---|---|---|---|
@@ -56,7 +56,35 @@ At revised pricing:
 
 **68 subscribers in the construction industry is very achievable.** One active GC who mentions it to their subs or at a trade association meeting is 5–10 referrals.
 
----
+### Enterprise Tier — The Multiplier
+
+The standalone subscriber math assumes individual users. The Enterprise tier changes the economics entirely — one contract replaces 3–10 standalone subscriptions.
+
+**Enterprise pricing (Tour Builder):**
+
+| Tier | Monthly | Annual | Seats | Storage |
+|---|---|---|---|---|
+| Tour Builder Standalone | $49/mo | $490/yr | 1 | 5 GB |
+| Tour Builder Team | $149/mo | $1,490/yr | 5 | 25 GB |
+| Tour Builder Enterprise | $499/mo | $4,990/yr | 25 | 100 GB |
+| Capital Programs / Custom | Contact sales | — | Unlimited | Negotiated |
+
+**Revised blended scenario with 3 Enterprise contracts:**
+
+| Revenue Source | Count | Price | Monthly |
+|---|---|---|---|
+| Enterprise contracts | 3 | $499/mo | $1,497 |
+| Team contracts | 5 | $149/mo | $745 |
+| Business platform | 3 | $499/mo | $1,497 |
+| Model platform | 5 | $199/mo | $995 |
+| Tour Builder standalone | 15 | $49/mo | $735 |
+| PunchWalk standalone | 10 | $39/mo | $390 |
+| Creator platform | 10 | $79/mo | $790 |
+| **Total** | **51 paying entities** | — | **$6,649/mo** |
+
+**51 contracts including 8 enterprise/team deals** gets to $7k faster than 68 individual standalone subscribers. And enterprise contracts renew annually — reducing churn risk significantly.
+
+**Key insight:** One capital program department, one realtor office, one GC company = up to $499/mo per deal. Direct outreach to these buyers (not app store discovery) is what closes enterprise. The Meeting Mode feature (synchronized 360 viewer for OAC meetings) is the specific hook for capital programs.
 
 ---
 

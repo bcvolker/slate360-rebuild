@@ -538,11 +538,13 @@ Why this order:
 
 ## Logo / Branding Scope
 
-First version should support only a tour-level PNG overlay.
+### MVP (Phase 1)
+
+First version supports a tour-level PNG logo overlay only.
 
 Required controls:
 
-- Upload/select PNG
+- Upload/select PNG logo
 - Position preset: top-left, top-right, bottom-left, bottom-right
 - Width or scale slider
 - Opacity slider
@@ -554,6 +556,57 @@ Recommended defaults:
 - Position: bottom-right
 - Width: 18%
 - Opacity: 0.8
+
+### Phase 2 Branding Features (Post-MVP, after first subscribers)
+
+These are competitive differentiators. No competitor does all of these well.
+
+#### 1. Nadir / Tripod Cover
+
+A circular image placed at the bottom of the equirectangular (the nadir — the spot where the tripod or drone is visible). This is one of the most-requested features in tour software. Users want to hide the tripod with their logo.
+
+- Upload a PNG (ideally circular with transparency)
+- Scale control (0–100% of nadir region)
+- Applied server-side as a composited image OR client-side as a CSS overlay on the Pannellum viewer
+- Client-side approach: Pannellum supports a `hotSpot` at yaw=0, pitch=-90 with a custom CSS class — simpler than image compositing
+- Server-side approach: sharp.js compositing — add circular overlay at bottom of equirectangular before storage. More permanent, works in all viewers including embeds.
+- Recommendation: Use sharp.js server-side for MVP Phase 2. Store both the original and composited version (so user can update the cover later without re-uploading the panorama).
+
+#### 2. Text Overlays (Scene Labels)
+
+Users need to label scenes with room names, measurements, callouts, or directional text.
+
+- Add text at a fixed point in 3D space (yaw + pitch coordinates stored in DB)
+- Text overlays render as Pannellum custom hotspots
+- Properties: content, font size, color, background color with opacity, min/max visible pitch
+- Phase 2 schema addition: `tour_scene_overlays` table: `id, scene_id, type (text|image|icon), yaw, pitch, content_json, visible`
+- Use case: label doors ("Exit"), rooms ("Master Bedroom — 450 sq ft"), or inspection callouts ("Crack in drywall — see report")
+
+#### 3. Default Viewing Angle (Initial Camera Position)
+
+Without this, the viewer opens facing an arbitrary direction (usually east/yaw=0). Users preparing tours for presentations need to control the opening shot.
+
+- `initial_yaw FLOAT DEFAULT 0` and `initial_pitch FLOAT DEFAULT 0` columns on `tour_scenes`
+- `initial_fov FLOAT DEFAULT 100` — field of view (zoom level, 60–120° range)
+- In the builder: a "Set Opening View" button that captures current viewer heading/pitch/FOV and saves it
+- This is a 1-hour implementation once the schema is in place
+
+#### 4. Keyframe / Intro Animation
+
+A short animated camera move that plays when a scene loads. Creates a cinematic "reveal" effect — the camera slowly rotates or tilts into position from a starting point. Impresses clients in presentations.
+
+- `intro_animation_json JSONB` on `tour_scenes` — stores keyframes: `[{yaw, pitch, fov, duration_ms}, ...]`
+- Render using requestAnimationFrame in the viewer — interpolate from keyframe[0] to keyframe[1] at load
+- Pannellum supports `setPitch()`, `setYaw()`, `setHfov()` programmatically — use these for animation
+- Simple Phase 2 implementation: just two keyframes (start + end position, duration). Full keyframe editor is Phase 3.
+- Phase 2 preset: "Slow reveal" — start slightly left of initial_yaw, animate to initial_yaw over 2 seconds
+
+#### 5. Effects (Post-Phase 2, Phase 3)
+
+- Vignette overlay (darkened edges, cinematic look)
+- Blur/focus control (blur distant areas to draw attention to a point — useful for inspections)
+- Day/night toggle (if multiple exposures of same scene are uploaded)
+- These require substantial viewer modification. Do not build until Phase 3.
 
 ## Suggested Prompt Sequence
 
@@ -926,3 +979,140 @@ Exit criteria:
 - All three access paths work correctly.
 - No TypeScript errors.
 - No broken billing or auth flows.
+
+---
+
+## Enterprise Tier — Tour Builder (Phase 3 / Post-Standalone)
+
+The Enterprise tier unlocks Tour Builder for entire organizations — departments, companies, contractor networks, realtor offices. It is the path to the largest contracts and highest LTV customers.
+
+### Who Buys Enterprise
+
+| Buyer | Use Case | What They Pay For |
+|---|---|---|
+| Capital program departments | Share 360 progress tours in weekly OAC meetings | Multi-user org seats, meeting mode, project hierarchy |
+| General contractor headquarters | Superintendents in the field, PMs in the office reviewing the same tour | Team access, no per-seat friction during meetings |
+| Realtor offices | All agents under one subscription, each with their own tours | Per-agent quotas, office-level brand settings |
+| Architecture firms | Design review, client walkthroughs in meetings | Meeting mode, branded viewer for client-facing shares |
+| Commercial real estate | Property marketing, drone aerial tours, Google Maps presence | High storage limits, embed code for property websites |
+
+### Enterprise Pricing
+
+| Tier | Monthly | Annual | Included |
+|---|---|---|---|
+| Tour Builder Standalone | $49/mo | $490/yr | 1 user, 20 tours, 5 GB |
+| Tour Builder Team | $149/mo | $1,490/yr | 5 seats, 100 tours, 25 GB, meeting mode |
+| Tour Builder Enterprise | $499/mo | $4,990/yr | 25 seats, unlimited tours, 100 GB, white-label, priority support |
+| Custom / Capital Programs | Contact us | — | Unlimited seats, custom storage, SLA, SSO |
+
+**Revenue impact:** A single capital program department at $499/mo is worth more than 10 standalone subscribers. One enterprise sale to a realtor office of 30 agents at $149/mo is $1,790/year. These deals close through direct outreach, not app stores.
+
+### Enterprise Feature Set
+
+#### 1. Meeting Mode / Coordination Viewer
+
+The core enterprise differentiator: a shared viewer that makes 360 tours useful in coordination meetings (OAC meetings, design reviews, client walkthroughs via Zoom or in-person).
+
+**Behavior:**
+- Host opens tour in "Meeting Mode" — gets a dedicated URL like `/v/[tourSlug]?mode=meeting&host=1`
+- Attendees open the same URL without `host=1` — they see the same tour
+- Host controls which scene is active — when host changes scene, all attendee views update (Supabase Realtime channel per meeting session)
+- Host controls the active viewing direction (optional "follow me" mode — attendee camera tracks host camera)
+- Simple "Raised hand" or "Take control" button for attendees to request presenter control
+- No video/audio — this is a viewer sync tool, not a video conferencing replacement. Users run Zoom/Teams alongside it.
+
+**Architecture:**
+```
+host browser  →  PATCH /api/tours/[tourId]/sessions/[sessionId]  →  DB update
+                                                                        ↓
+                                              Supabase Realtime broadcast
+                                                                        ↓
+all attendee browsers  ←  receive scene change event  ←  update viewer
+```
+
+**Schema for meeting sessions:**
+```sql
+CREATE TABLE tour_meeting_sessions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tour_id UUID NOT NULL REFERENCES project_tours(id),
+  host_user_id UUID NOT NULL,
+  active_scene_id UUID REFERENCES tour_scenes(id),
+  active_yaw FLOAT DEFAULT 0,
+  active_pitch FLOAT DEFAULT 0,
+  follow_mode BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '4 hours')
+);
+```
+
+#### 2. Desktop Interface / Portal
+
+Enterprise users need a clean desktop interface — simpler and more focused than the full dashboard. Think PowerPoint presenter view, not a builder.
+
+**Route:** `/portal` — separate from the main dashboard, optimized for large screens
+
+**Layout:**
+```
+┌─────────────────────────────────────────────────────┐
+│  [Logo]  Slate360 Tour Portal    [Org Name]  [Logout]│
+├──────────────┬──────────────────────────────────────┤
+│              │                                      │
+│  Project     │   360 Viewer (large, full height)    │
+│  List        │                                      │
+│              │   ├─ Scene strip (bottom thumbnail   │
+│  ├─ Project A│     row, scrollable)                 │
+│  ├─ Project B│                                      │
+│  ├─ Project C│   Meeting Mode button (top right)    │
+│              │                                      │
+└──────────────┴──────────────────────────────────────┘
+```
+
+**Features:**
+- Login via existing Supabase auth (same session)
+- Project list on left — click to expand project's tours
+- Tour opens in large viewer pane on right
+- Scene navigation: thumbnail strip at bottom (click to jump), prev/next keyboard arrows
+- "Start Meeting" button appears for hosts — generates meeting session URL to share
+- "Fullscreen" button for presentation mode
+- No builder controls visible — read-only portal for viewers and meeting attendees
+
+**Route:** `app/(portal)/portal/page.tsx` — separate layout from `(dashboard)` to keep clean
+**Auth:** Reuse existing `withAuth()`, add portal entitlement check (`canAccessTeamPortal`)
+
+#### 3. Team / Seat Management
+
+- Org admin can invite team members to the tour portal
+- Each seat has a role: `owner`, `builder` (can create/edit tours), `viewer` (view only, meeting attendance)
+- Viewer seats are cheaper — enables "add your whole team as viewers" upsell
+- Schema: extend `org_memberships` table with `portal_role ENUM('owner', 'builder', 'viewer')`
+
+#### 4. White-Label Portal
+
+- Enterprise tier: org can set custom logo, brand color, and subdomain alias for the portal
+- `/portal` shows org logo instead of Slate360 logo
+- Embed viewer removes "Powered by Slate360" watermark
+- Custom subdomain (`tours.theircompany.com → slate360.ai/portal?org=xxx`) — Phase 4
+
+### Enterprise Prompt Sequence (Phase 3, after Prompts 9–11)
+
+| Prompt | Task |
+|---|---|---|
+| E1 | Enterprise Stripe products + entitlements (`tour_builder_team`, `tour_builder_enterprise`) |
+| E2 | Portal route + layout (`app/(portal)/portal/`) + project/tour navigation |
+| E3 | Meeting mode: session table + Supabase Realtime scene sync |
+| E4 | Team seat management: invite flow, role assignment, seat count enforcement |
+| E5 | White-label branding: org logo in portal, embed watermark removal for enterprise |
+
+**Group E Total: 5 prompts**
+**Dependency:** Prompts 9–11 complete (standalone subscription working)
+
+### Enterprise Go-To-Market
+
+Enterprise does NOT sell through the app store. It sells through:
+
+1. **Direct email to capital program offices** — county/city/state infrastructure departments, university facilities, hospital construction programs. They all have recurring OAC meetings where a 360 tour tool would be used every week.
+2. **Realtor association outreach** — one email to a local NAR chapter or brokerage network, offer a 30-day team trial.
+3. **GC company-wide deals** — if you have one GC superintendent already using standalone, pitch upgrading to a team plan for their company.
+4. **Demo video specific to the use case** — show a Zoom OAC meeting with Meeting Mode running. That 90-second demo sells itself.
+
+Target: 3 Enterprise contracts at $499/mo = $1,497/mo in addition to standalone subscribers. That closes the gap between the standalone subscriber ramp and the $7k/month goal significantly faster.

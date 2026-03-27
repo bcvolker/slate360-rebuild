@@ -413,6 +413,33 @@ This phase makes both apps installable and enables the "Download from the web" e
 
 ---
 
+### GROUP J — Tour Builder Enterprise Tier
+
+The Enterprise tier unlocks Meeting Mode (synchronized 360 viewer for OAC meetings / coordination calls), a desktop Portal interface, team seat management, and white-label branding. This is the highest-LTV path to $7k/month — one Enterprise contract ($499/mo) replaces 10 standalone subscribers.
+
+**Read `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md` — "Enterprise Tier" section before starting.**
+
+**Prerequisites:**
+- Tour Builder standalone subscription working (Groups D + E complete)
+- `org_feature_flags` table live (C3 complete)
+- At least one test subscriber has validated the core viewer flow
+
+| Prompt | Description |
+|---|---|
+| J1 | Enterprise Stripe products + entitlements (`tour_builder_team`, `tour_builder_enterprise`) + tier limits |
+| J2 | Portal route + layout (`app/(portal)/portal/`) + project/tour list read-only view |
+| J3 | Meeting Mode: `tour_meeting_sessions` table + Supabase Realtime scene sync |
+| J4 | Meeting Mode: host controls (scene change broadcast) + attendee viewer sync |
+| J5 | Team seats: invite flow, `portal_role` field, seat count enforcement |
+
+**Group J Total: 5 prompts**
+
+**Dependency:** Groups D + E complete.
+
+**Revenue impact:** 3 Enterprise contracts = $1,497/mo. Prioritize direct outreach to capital program departments and realtor offices concurrent with code work. A demo video of Meeting Mode in a simulated OAC meeting closes these deals.
+
+---
+
 ### GROUP I — Capacitor: iOS and Android App Stores
 
 This is the final phase — native app store listing for both Tour Builder and PunchWalk simultaneously.
@@ -452,11 +479,16 @@ This is the final phase — native app store listing for both Tour Builder and P
 | G | PWA infrastructure | 3 |
 | H | PunchWalk subscription | 2 |
 | I | Capacitor iOS + Android app stores | 6 |
-| **Total** | **Both apps live in app stores** | **~62 prompts** |
+| J | Enterprise tier (Meeting Mode + Portal + Teams) | 5 |
+| **Total** | **Both apps + Enterprise live** | **~67 prompts** |
 
-**Realistic range:** 55–75 prompts depending on how clean the implementation goes. Stripe issues, schema surprises, or Capacitor WebView bugs each add 2–5 prompts.
+**Fastest path to first revenue (skip A, B, defer J):**
+Groups C + D + E = ~19 prompts to Tour Builder live and billable on the web.
 
-**Fastest path to first revenue:** Groups A + C + D + E = ~25 prompts to Tour Builder live and billable on the web. This alone validates the ecosystem model before investing in PunchWalk and Capacitor.
+**Fastest path to $7k/month:**
+Groups C + D + E + J = ~24 prompts. Enterprise deals close through direct outreach while you build. A demo video of Meeting Mode is worth more than 3 months of app store SEO.
+
+**Realistic range:** 60–80 prompts total depending on Stripe issues, schema surprises, or Capacitor WebView bugs (each adds 2–5 prompts).
 
 ---
 
