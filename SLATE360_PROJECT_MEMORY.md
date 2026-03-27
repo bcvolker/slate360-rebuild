@@ -171,28 +171,35 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-27 (REVENUE_ROADMAP + time estimates + revenue-first reordering)
+### Session Handoff — 2026-03-28 (Tour Builder BUILD_GUIDE expanded + REVENUE_ROADMAP startup pricing + scope reduction)
 
 #### What Changed
-- `slate360-context/REVENUE_ROADMAP.md` (NEW): Revenue math to $7k/month using real pricing (Creator=$79, Model=$199, Business=$499). Revised app pricing recommendation (Tour Builder $49/mo, PunchWalk $39/mo). 6-week timeline to both app stores. Agent collaboration protocol (Grok/Gemini roles). Immediate no-code actions (Apple Developer, Google Play, Stripe Tax). App store submission strategy. One-sitting UX requirements.
-- `slate360-context/MASTER_BUILD_SEQUENCE.md`: Added critical insight header (Group B does NOT block revenue), added time estimates table, linked to REVENUE_ROADMAP.
-- `SLATE360_PROJECT_MEMORY.md`: REVENUE_ROADMAP added to task map.
+- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`: Major expansion — camera/drone format compatibility table (Ricoh Theta, Insta360, GoPro MAX, DJI Osmo 360, DJI drone sphere mode; DJI .DNG rejected); upload validation logic (2:1 aspect ratio + XMP check); mobile upload flow; file size limits per tier (5 GB standalone, 20 GB business); Prompt 7 now includes embed code; embed iframe decisions filled in; "Explicit Non-Goals" recategorized (Google Street View + embed code builder moved from Never to Phase 2); Prompt 3 updated with format validation + quota check + mobile input; Research Intake Template fully filled with competitive landscape (Matterport vs Kuula vs Roundme vs CloudPano), camera format notes, storage tier decisions, UI/UX requirements, embed decisions, and Phase 2 Google Maps notes. Definition of Done and Build Readiness Criteria updated.
+- `slate360-context/REVENUE_ROADMAP.md`: Added "Startup Pricing Reality" section — beta pricing ($24/$19 with 50% coupon for first 20 subscribers), free marketing channel playbook (Facebook groups, Capterra, local outreach, Google Maps as growth hack), scope reduction table (Geospatial/Virtual Studio/Athlete360 = pause/archive), 12-month bridge-to-$7k timeline by month.
+- `slate360-context/MASTER_BUILD_SEQUENCE.md`: Added "Scope Reduction Consideration" table (Geospatial = pause, Virtual Studio = pause, Athlete360 = archive) with instructions for hiding tabs without deleting files. Owner decision required before acting.
 
-#### Immediate No-Code Actions (Do These Today)
-1. Apply for Apple Developer Program — developer.apple.com ($99/yr, takes 2–5 days to approve)
-2. Create Google Play Developer account — play.google.com/console ($25, approved within hours)
-3. Enable Stripe Tax collection — Stripe Dashboard → Tax → Settings
-4. Decide final pricing: Tour Builder $49/mo / $490/yr, PunchWalk $39/mo / $390/yr
+#### Owner Decisions Still Needed
+- Confirm scope reduction: pause Geospatial & Robotics tab? pause Virtual Studio tab? archive Athlete360 route?
+- Confirm storage tier limits (5 GB standalone is recommended — see BUILD_GUIDE Research Intake)
+- Confirm embed code approach (same-origin `/v/[tourSlug]?embed=1` recommended)
+- Start beta outreach? Create `BETA50` Stripe coupon?
 
-#### Next Execution Steps (Code)
-1. **C1** — Stripe smoke test (test card `4242 4242 4242 4242`, verify webhook updates org tier)
-2. **A1** — BUG-018 DrawingManager migration, 3 prompts (May 2026 deadline)
+#### Next Execution Steps (Code — Revenue-First Order)
+1. **C1** — Stripe smoke test (test card `4242 4242 4242 4242`, verify webhook updates org tier in DB)
+2. **A1** — BUG-018 DrawingManager migration (May 2026 deadline, 3 prompts)
 3. **A2 + A3** — BUG-019 + BUG-001 quick fixes
-4. **C2–C7** — App foundation (entitlements, app pages, funnel)
-5. **D1–D8** — Tour Builder MVP (8 prompts, ~1 day)
-6. **E1–E3** — Tour Builder standalone + first subscriber possible
+4. **C2–C7** — App foundation (entitlements, `org_feature_flags` table, app pages, checkout funnel)
+5. **Tour Builder Prompt 1** — DB schema (`project_tours`, `tour_scenes`, `org_storage_usage` tables)
+6. **Tour Builder Prompt 2** — Tour CRUD API
+7. **Tour Builder Prompt 3** — Upload pipeline with camera format validation + quota check
+8. **Tour Builder Prompts 4–7** — Scene reorder, Pannellum viewer, branding, publish + embed
+9. **Tour Builder standalone** — entitlement gating, landing page, Stripe checkout
 
 #### Context Files Updated
-- `slate360-context/REVENUE_ROADMAP.md`: created
-- `slate360-context/MASTER_BUILD_SEQUENCE.md`: time estimates + revenue-first note
-- `SLATE360_PROJECT_MEMORY.md`: task map + this handoff
+- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`: camera formats, embeds, quotas, Research Intake
+- `slate360-context/REVENUE_ROADMAP.md`: startup pricing strategy + scope reduction
+- `slate360-context/MASTER_BUILD_SEQUENCE.md`: scope reduction table
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+
+#### Commits
+- `e62c822` — docs: Tour Builder BUILD_GUIDE camera/drone formats, embed code, quota data model, Research Intake filled; REVENUE_ROADMAP startup pricing strategy + scope reduction; MASTER_BUILD_SEQUENCE scope reduction table
