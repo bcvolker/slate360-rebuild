@@ -39,22 +39,21 @@ import {
   Film,
   Layers,
   Compass,
-  type LucideIcon,
   User,
   Shield,
   LayoutDashboard,
 } from "lucide-react";
 import type {
   DashboardProject as Project,
-  DashboardCalEvent as CalEvent,
   DashboardContact as Contact,
   LiveWeatherState,
   DashboardJob as Job,
   DashboardWidgetsPayload,
   DashboardDeployInfo as DeployInfoPayload,
   DashboardInboxNotification as InboxNotification,
+  DashTab,
 } from "@/lib/types/dashboard";
-import { DEMO_WEATHER } from "@/lib/dashboard/demo-data";
+
 
 /* ================================================================
    TYPES
@@ -71,16 +70,8 @@ interface DashboardProps {
   canAccessAthlete360?: boolean;
 }
 
-// Project, CalEvent, Contact, LiveWeatherState, Job, DashboardWidgetsPayload,
+// Project, Contact, LiveWeatherState, Job, DashboardWidgetsPayload,
 // InboxNotification, DeployInfoPayload — imported from @/lib/types/dashboard
-
-interface DashTab {
-  id: string;
-  label: string;
-  icon: LucideIcon;
-  color: string;
-  isCEOOnly?: boolean;
-}
 
 // WidgetPref — imported from @/lib/widgets/widget-meta
 
@@ -125,28 +116,6 @@ const DEFAULT_WIDGET_PREFS: WidgetPref[] = buildDefaultPrefs({ expandedIds: ["ca
 /* ================================================================
    HELPERS
    ================================================================ */
-
-const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-
-function getCalendarDays(year: number, month: number) {
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const prevDays = new Date(year, month, 0).getDate();
-  const cells: { day: number; inMonth: boolean; dateStr: string }[] = [];
-  for (let i = firstDay - 1; i >= 0; i--) {
-    const d = prevDays - i;
-    cells.push({ day: d, inMonth: false, dateStr: `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}` });
-  }
-  for (let i = 1; i <= daysInMonth; i++) {
-    cells.push({ day: i, inMonth: true, dateStr: `${year}-${String(month + 1).padStart(2, "0")}-${String(i).padStart(2, "0")}` });
-  }
-  const remaining = 42 - cells.length;
-  for (let i = 1; i <= remaining; i++) {
-    cells.push({ day: i, inMonth: false, dateStr: `${year}-${String(month + 2).padStart(2, "0")}-${String(i).padStart(2, "0")}` });
-  }
-  return cells;
-}
 
 /* weatherIcon, statusColor, statusIcon moved to DashboardWidgetRenderer */
 
@@ -278,13 +247,6 @@ export default function DashboardClient({
 
   const [selectedProject, setSelectedProject] = useState("all");
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
-  const [calMonth, setCalMonth] = useState(0);
-  const [calYear, setCalYear] = useState(2026);
-  const [calSelected, setCalSelected] = useState<string | null>(null);
-  const [events, setEvents] = useState<CalEvent[]>([]);
-  const [addingEvent, setAddingEvent] = useState(false);
-  const [newEventTitle, setNewEventTitle] = useState("");
-  const [contactSearch, setContactSearch] = useState("");
   const [suggestTitle, setSuggestTitle] = useState("");
   const [suggestDesc, setSuggestDesc] = useState("");
   const [suggestPriority, setSuggestPriority] = useState<"low" | "medium" | "high">("medium");
@@ -323,9 +285,6 @@ export default function DashboardClient({
 
   useEffect(() => {
     setIsClient(true);
-    const now = new Date();
-    setCalMonth(now.getMonth());
-    setCalYear(now.getFullYear());
     // Sync widget prefs from localStorage now that we are client-side.
     // This must happen after hydration to avoid React error #418.
     const storedPrefs = loadWidgetPrefs(DASHBOARD_STORAGE_KEY, DEFAULT_WIDGET_PREFS);
@@ -435,22 +394,6 @@ export default function DashboardClient({
   }, [supabase]);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(`dashboard_events_${user.email}`);
-      if (saved) {
-        const parsed = JSON.parse(saved) as CalEvent[];
-        if (Array.isArray(parsed)) setEvents(parsed);
-      }
-    } catch {
-      // ignore malformed saved events
-    }
-  }, [user.email]);
-
-  useEffect(() => {
-    localStorage.setItem(`dashboard_events_${user.email}`, JSON.stringify(events));
-  }, [events, user.email]);
-
-  useEffect(() => {
     if (!navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
@@ -554,29 +497,9 @@ export default function DashboardClient({
   const carouselRef = useRef<HTMLDivElement>(null);
 
   /* ── Derived ── */
-  const calDays = useMemo(() => getCalendarDays(calYear, calMonth), [calYear, calMonth]);
-  const todayStr = useMemo(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  }, []);
 
   // Real contacts come from organization_members + project_members via /api/dashboard/widgets
   const liveContacts: Contact[] = widgetsData?.contacts ?? [];
-
-  const filteredContacts = useMemo(
-    () =>
-      liveContacts.filter(
-        (c) =>
-          c.name.toLowerCase().includes(contactSearch.toLowerCase()) ||
-          c.project.toLowerCase().includes(contactSearch.toLowerCase())
-      ),
-    [contactSearch, liveContacts]
-  );
-
-  const selectedDayEvents = useMemo(
-    () => (calSelected ? events.filter((e) => e.date === calSelected) : []),
-    [calSelected, events]
-  );
 
   const liveProjects = widgetsData?.projects ?? [];
   const liveJobs = widgetsData?.jobs ?? [];
@@ -752,19 +675,6 @@ export default function DashboardClient({
     }
   }, [activeTab, loadAccountOverview]);
 
-  const handleAddEvent = useCallback(() => {
-    if (!newEventTitle.trim() || !calSelected) return;
-    const ev: CalEvent = {
-      id: `e${Date.now()}`,
-      title: newEventTitle.trim(),
-      date: calSelected,
-      color: "#FF4D00",
-    };
-    setEvents((prev) => [...prev, ev]);
-    setNewEventTitle("");
-    setAddingEvent(false);
-  }, [newEventTitle, calSelected]);
-
   const handleSuggestFeature = useCallback(async () => {
     if (!suggestTitle.trim() || !suggestDesc.trim()) return;
     setSuggestLoading(true);
@@ -788,15 +698,6 @@ export default function DashboardClient({
       setSuggestLoading(false);
     }
   }, [suggestTitle, suggestDesc, suggestPriority]);
-
-  const prevMonth = () => {
-    if (calMonth === 0) { setCalMonth(11); setCalYear((y) => y - 1); }
-    else setCalMonth((m) => m - 1);
-  };
-  const nextMonth = () => {
-    if (calMonth === 11) { setCalMonth(0); setCalYear((y) => y + 1); }
-    else setCalMonth((m) => m + 1);
-  };
 
   /* ── Pref helpers ── */
   const toggleVisible = useCallback((id: string) => {
