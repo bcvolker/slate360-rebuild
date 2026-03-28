@@ -169,11 +169,12 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-28 (Phase 8 Complete: New Feature Readiness)
+### Session Handoff — 2026-03-28 (Phase 8 + Mobile Header Fix)
 
 #### What Changed (This Session)
 - **Phase 8 complete:** shadcn Tabs integration, UpgradeGate component, tier gating for all tabs (12 files, 204 insertions, 73 deletions)
 - **New file:** `components/shared/UpgradeGate.tsx` (66 lines) — lock overlay with feature name, required tier, upgrade CTA
+- **New file:** `components/shared/MobileModuleBar.tsx` (89 lines) — horizontal scrollable icon strip, mobile-only (`flex sm:hidden`), replaces QuickNav on small screens
 - **New utility:** `tierMeetsRequirement()` in `lib/entitlements.ts` — tier comparison helper
 - **DashTab type extended:** Added `locked?` and `requiredTier?` fields to `lib/types/dashboard.ts`
 - **useVisibleTabs rewritten:** Now shows ALL subscription tabs (not just entitled ones), marks locked ones with `locked: true` + `requiredTier`
@@ -181,10 +182,12 @@ When editing oversized files, always read both the state declarations AND the JS
 - **DashboardOverview:** Module tiles show lock badge + dimmed opacity for locked tabs; clicking routes to in-dashboard UpgradeGate
 - **DashboardTabShell:** Added `requiredTier` prop; when tier < required, renders UpgradeGate instead of children
 - **6 shell components updated:** DesignStudioShell (requiredTier="model"), ToursShell ("creator"), ContentStudioShell ("creator"), GeospatialShell ("model"), VirtualStudioShell ("model"), AnalyticsReportsClient ("business") — all with correct tier + accent color + dark mode banners
+- **Mobile header fix:** QuickNav hidden on mobile (`hidden sm:block`), MobileModuleBar renders below header bar
+- **QuickNav dark-mode fix:** Button + dropdown converted to zinc palette (was still light-mode)
 
 #### Git State
-- HEAD: `5310a7a` — `feat: Phase 8 — new feature readiness (shadcn Tabs, UpgradeGate, tier gating)`
-- Previous: `2835ee5`
+- HEAD: `d9ffc84` — `fix: mobile header — move nav to scrollable module bar below header`
+- Previous: `5310a7a` (Phase 8), `da1c069` (docs)
 - Vercel auto-deploying from `origin/main`
 
 #### TypeScript Status
@@ -193,11 +196,12 @@ When editing oversized files, always read both the state declarations AND the JS
 
 #### What's NOT Broken
 - Auth system: fully working
-- Dashboard: 264 lines, all extractions done, 6 sub-hooks
+- Dashboard: ~280 lines, all extractions done, 6 sub-hooks
 - SlateDrop: 282 lines, 7 sub-hooks
 - Market Robot: 175 lines, compiles clean (paused — needs wallet funding)
 - Homepage: 63 lines, 8 extracted sections all working
 - Navy purge: 0 files with `#1E3A8A`
+- Mobile header: clean with MobileModuleBar below main bar
 
 #### Design & UI Overhaul Phase Tracker (see `DESIGN_UI_OVERHAUL_PLAN.md`)
 
@@ -228,7 +232,7 @@ Also completed outside plan:
 | **Dashboard** | ✅ Done | `DashboardClient.tsx` | 264 | 5 extractions + 6 sub-hooks |
 | **Dashboard State** | ✅ Done | `useDashboardState.ts` | 244 | Thin orchestrator |
 | **DashboardMyAccount** | ✅ Done | `DashboardMyAccount.tsx` | 267 | Under limit |
-| **DashboardHeader** | ✅ Done | `DashboardHeader.tsx` | 286 | Shared across all pages |
+| **DashboardHeader** | ✅ Done | `DashboardHeader.tsx` | 292 | Shared across all pages + MobileModuleBar |
 | **SlateDrop** | ✅ Done | `SlateDropClient.tsx` | 282 | 7 sub-hooks wired |
 | **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 175 | Needs wallet funding to test |
 | **Homepage** | ✅ Done | `app/page.tsx` | 63 | 8 files in `components/home/` |
