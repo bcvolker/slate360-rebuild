@@ -54,10 +54,10 @@ export default function ProjectHubPortfolioOverview({
     {
       id: "active",
       icon: FolderKanban,
-      borderColor: "border-blue-100",
-      bgColor: "bg-blue-50/60",
-      labelColor: "text-blue-500",
-      valueColor: "text-blue-700",
+      borderColor: "border-blue-900/50",
+      bgColor: "bg-blue-950/40",
+      labelColor: "text-blue-400",
+      valueColor: "text-blue-300",
       value: summary?.totals.activeProjects ?? 0,
       label: "Active Projects",
       detail: summary?.recentProjects?.length
@@ -70,10 +70,10 @@ export default function ProjectHubPortfolioOverview({
     {
       id: "rfis",
       icon: ClipboardList,
-      borderColor: "border-orange-100",
-      bgColor: "bg-orange-50/60",
-      labelColor: "text-orange-500",
-      valueColor: "text-orange-700",
+      borderColor: "border-orange-900/50",
+      bgColor: "bg-orange-950/40",
+      labelColor: "text-orange-400",
+      valueColor: "text-orange-300",
       value: summary?.work.openRfis ?? 0,
       label: "Open RFIs",
       toolPath: "rfis",
@@ -85,10 +85,10 @@ export default function ProjectHubPortfolioOverview({
     {
       id: "submittals",
       icon: CheckCircle2,
-      borderColor: "border-purple-100",
-      bgColor: "bg-purple-50/60",
-      labelColor: "text-purple-500",
-      valueColor: "text-purple-700",
+      borderColor: "border-purple-900/50",
+      bgColor: "bg-purple-950/40",
+      labelColor: "text-purple-400",
+      valueColor: "text-purple-300",
       value: summary?.work.pendingSubmittals ?? 0,
       label: "Pending Submittals",
       toolPath: "submittals",
@@ -100,10 +100,10 @@ export default function ProjectHubPortfolioOverview({
     {
       id: "budget",
       icon: DollarSign,
-      borderColor: "border-emerald-100",
-      bgColor: "bg-emerald-50/60",
-      labelColor: "text-emerald-500",
-      valueColor: "text-emerald-700",
+      borderColor: "border-emerald-900/50",
+      bgColor: "bg-emerald-950/40",
+      labelColor: "text-emerald-400",
+      valueColor: "text-emerald-300",
       value: new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
@@ -121,10 +121,10 @@ export default function ProjectHubPortfolioOverview({
     {
       id: "completed",
       icon: BarChart3,
-      borderColor: "border-teal-100",
-      bgColor: "bg-teal-50/60",
-      labelColor: "text-teal-500",
-      valueColor: "text-teal-700",
+      borderColor: "border-teal-900/50",
+      bgColor: "bg-teal-950/40",
+      labelColor: "text-teal-400",
+      valueColor: "text-teal-300",
       value: summary?.totals.completedProjects ?? 0,
       label: "Completed",
       detail: summary?.recentProjects?.length
@@ -137,10 +137,10 @@ export default function ProjectHubPortfolioOverview({
     {
       id: "onhold",
       icon: AlertTriangle,
-      borderColor: "border-red-100",
-      bgColor: "bg-red-50/60",
-      labelColor: "text-red-500",
-      valueColor: "text-red-700",
+      borderColor: "border-red-900/50",
+      bgColor: "bg-red-950/40",
+      labelColor: "text-red-400",
+      valueColor: "text-red-300",
       value: summary?.totals.onHoldProjects ?? 0,
       label: "On Hold",
       detail: [
@@ -151,10 +151,10 @@ export default function ProjectHubPortfolioOverview({
     {
       id: "documents",
       icon: FileText,
-      borderColor: "border-indigo-100",
-      bgColor: "bg-indigo-50/60",
-      labelColor: "text-indigo-500",
-      valueColor: "text-indigo-700",
+      borderColor: "border-indigo-900/50",
+      bgColor: "bg-indigo-950/40",
+      labelColor: "text-indigo-400",
+      valueColor: "text-indigo-300",
       value: summary?.totals.projects ?? fallbackProjectsCount,
       label: "Total Projects",
       toolPath: "documents",
@@ -167,17 +167,17 @@ export default function ProjectHubPortfolioOverview({
   return (
     <div className="space-y-3">
       {/* Portfolio Snapshot header */}
-      <div className="rounded-2xl border border-gray-200 bg-white px-4 py-4 sm:px-5 sm:py-5 shadow-sm">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-4 sm:px-5 sm:py-5">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <p className="text-[11px] uppercase tracking-wider font-bold text-gray-400">
+            <p className="text-[11px] uppercase tracking-wider font-bold text-zinc-500">
               Portfolio Snapshot
             </p>
-            <h2 className="text-base sm:text-lg font-black text-gray-900">
+            <h2 className="text-base sm:text-lg font-black text-white">
               Organization-level project health
             </h2>
           </div>
-          <span className="text-[11px] font-semibold text-gray-500">
+          <span className="text-[11px] font-semibold text-zinc-400">
             {summaryLoading
               ? "Loading summary..."
               : `${summary?.totals.projects ?? fallbackProjectsCount} projects tracked`}
@@ -196,7 +196,7 @@ export default function ProjectHubPortfolioOverview({
                 <button
                   onClick={() => setExpandedCard(isOpen ? null : card.id)}
                   className={`w-full rounded-xl border ${card.borderColor} ${card.bgColor} p-3 text-left transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group ${
-                    isOpen ? "ring-2 ring-gray-300 shadow-md" : ""
+                    isOpen ? "ring-2 ring-zinc-600 shadow-md" : ""
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -218,13 +218,13 @@ export default function ProjectHubPortfolioOverview({
 
                 {/* Expanded detail dropdown */}
                 {isOpen && (
-                  <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-white rounded-xl border border-gray-200 shadow-lg p-3 space-y-1.5 animate-in slide-in-from-top-1">
+                  <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-zinc-800 rounded-xl border border-zinc-700 shadow-lg p-3 space-y-1.5 animate-in slide-in-from-top-1">
                     {card.detail.map((entry, idx) => (
                       <p
                         key={`${card.id}-${idx}`}
-                        className="text-xs text-gray-600 flex items-start gap-2"
+                        className="text-xs text-zinc-300 flex items-start gap-2"
                       >
-                        <span className="mt-1 w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
+                        <span className="mt-1 w-1.5 h-1.5 rounded-full bg-zinc-600 shrink-0" />
                         {entry}
                       </p>
                     ))}
@@ -234,7 +234,7 @@ export default function ProjectHubPortfolioOverview({
                           e.stopPropagation();
                           navigateToTool(card.toolPath);
                         }}
-                        className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg bg-gray-50 border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg bg-zinc-700 border border-zinc-600 px-3 py-1.5 text-xs font-semibold text-zinc-200 hover:bg-zinc-600 transition-colors"
                       >
                         View Details <ArrowUpRight size={10} />
                       </button>

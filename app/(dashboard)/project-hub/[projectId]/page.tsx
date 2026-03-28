@@ -86,15 +86,15 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         {stats.map(({ label, value, sub, href, color, Icon }) => (
-          <Link key={label} href={href} className="group rounded-2xl border border-gray-100 bg-white p-4 shadow-sm hover:shadow-md hover:border-gray-300 transition-all flex flex-col gap-2">
+          <Link key={label} href={href} className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-4 hover:border-zinc-700 transition-all flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <Icon size={16} style={{ color }} />
-              <ChevronRight size={12} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
+              <ChevronRight size={12} className="text-zinc-600 group-hover:text-zinc-400 transition-colors" />
             </div>
-            <p className="text-2xl font-black text-gray-900">{value}</p>
+            <p className="text-2xl font-black text-white">{value}</p>
             <div>
-              <p className="text-xs font-semibold text-gray-700">{label}</p>
-              {sub && <p className="text-[10px] text-gray-400 mt-0.5">{sub}</p>}
+              <p className="text-xs font-semibold text-zinc-300">{label}</p>
+              {sub && <p className="text-[10px] text-zinc-500 mt-0.5">{sub}</p>}
             </div>
           </Link>
         ))}
@@ -108,23 +108,23 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
 
         {/* Schedule snapshot + tool quick-links */}
         <div className="flex flex-col gap-4">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-black text-gray-900 flex items-center gap-2">
+              <h3 className="text-sm font-black text-white flex items-center gap-2">
                 <CalendarCheck2 size={14} className="text-[#FF4D00]" /> Upcoming Schedule
               </h3>
               <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#FF4D00] hover:underline">Open Schedule →</Link>
             </div>
             {nextTasks.length === 0 ? (
-              <p className="text-xs text-gray-400 py-2">No pending tasks.</p>
+              <p className="text-xs text-zinc-500 py-2">No pending tasks.</p>
             ) : (
               <ul className="space-y-2">
                 {nextTasks.map((t) => (
-                  <li key={t.id} className="flex items-start gap-3 p-2.5 rounded-xl bg-gray-50 border border-gray-100">
+                  <li key={t.id} className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-800 border border-zinc-700">
                     <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: t.status === "In Progress" ? "#FF4D00" : "#d1d5db" }} />
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-gray-800 truncate">{t.name}</p>
-                      <p className="text-[10px] text-gray-400">{t.end_date ? `Due ${new Date(t.end_date).toLocaleDateString()}` : "No due date"} · {t.status}</p>
+                      <p className="text-xs font-semibold text-zinc-200 truncate">{t.name}</p>
+                      <p className="text-[10px] text-zinc-500">{t.end_date ? `Due ${new Date(t.end_date).toLocaleDateString()}` : "No due date"} · {t.status}</p>
                     </div>
                   </li>
                 ))}
@@ -132,13 +132,13 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
             )}
           </div>
 
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <h3 className="text-sm font-black text-gray-900 mb-3">All Tools</h3>
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+            <h3 className="text-sm font-black text-white mb-3">All Tools</h3>
             <div className="grid grid-cols-3 gap-2">
               {toolLinks.map(({ label, href, Icon }) => (
-                <Link key={label} href={href} className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl border border-gray-100 bg-gray-50 hover:bg-[#FF4D00]/5 hover:border-[#FF4D00]/30 transition-all text-center">
-                  <Icon size={14} className="text-gray-500" />
-                  <span className="text-[10px] font-semibold text-gray-700 leading-tight">{label}</span>
+                <Link key={label} href={href} className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl border border-zinc-800 bg-zinc-800/50 hover:bg-[#FF4D00]/10 hover:border-[#FF4D00]/30 transition-all text-center">
+                  <Icon size={14} className="text-zinc-400" />
+                  <span className="text-[10px] font-semibold text-zinc-300 leading-tight">{label}</span>
                 </Link>
               ))}
             </div>

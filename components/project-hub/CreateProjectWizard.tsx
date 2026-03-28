@@ -95,32 +95,32 @@ export default function CreateProjectWizard({
     });
   };
 
-  const field = "w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#FF4D00] focus:ring-2 focus:ring-[#FF4D00]/20 focus:outline-none transition-all";
-  const label = "mb-1.5 block text-xs font-semibold text-gray-700";
+  const field = "w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-[#FF4D00] focus:ring-2 focus:ring-[#FF4D00]/20 focus:outline-none transition-all";
+  const label = "mb-1.5 block text-xs font-semibold text-zinc-300";
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl text-gray-900 flex flex-col max-h-[90vh]">
+      <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl text-white flex flex-col max-h-[90vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-800/50 px-5 py-4">
           <div>
-            <h3 className="text-lg font-black text-gray-900">Create New Project</h3>
-            <p className="text-xs text-gray-500 mt-0.5">Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}</p>
+            <h3 className="text-lg font-black text-white">Create New Project</h3>
+            <p className="text-xs text-zinc-400 mt-0.5">Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}</p>
           </div>
-          <button type="button" onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-200 hover:text-gray-700 transition-colors"><X size={18} /></button>
+          <button type="button" onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors"><X size={18} /></button>
         </div>
 
         {/* Progress bar */}
-        <div className="h-1 bg-gray-100">
+        <div className="h-1 bg-zinc-800">
           <div className="h-full bg-[#FF4D00] transition-all duration-300" style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
         </div>
 
         {/* Step pills */}
-        <div className="flex border-b border-gray-100 bg-white">
+        <div className="flex border-b border-zinc-800 bg-zinc-900">
           {STEP_LABELS.map((lbl, i) => (
-            <div key={lbl} className={`flex-1 py-2 text-center text-[10px] font-bold transition-colors ${i + 1 === step ? "text-[#FF4D00]" : i + 1 < step ? "text-emerald-600" : "text-gray-400"}`}>
+            <div key={lbl} className={`flex-1 py-2 text-center text-[10px] font-bold transition-colors ${i + 1 === step ? "text-[#FF4D00]" : i + 1 < step ? "text-emerald-400" : "text-zinc-500"}`}>
               {i + 1 < step && <CheckCircle2 size={10} className="inline mr-0.5 mb-0.5" />}{lbl}
             </div>
           ))}
@@ -128,7 +128,7 @@ export default function CreateProjectWizard({
 
         {/* Body */}
         <form id="create-project-form" onSubmit={submit} className="flex-1 overflow-y-auto p-5 sm:p-6">
-          {error && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</div>}
+          {error && <div className="mb-4 rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-2.5 text-sm text-red-400">{error}</div>}
 
           {step === 1 && (
             <div className="space-y-4">
@@ -162,18 +162,18 @@ export default function CreateProjectWizard({
 
           {step === 3 && (
             <div className="space-y-3">
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-zinc-400">
                 Search for an address, click anywhere on the map to drop a pin, or use the <strong>polygon tool</strong> to outline the site boundary.
               </p>
-              <div className="h-[360px] w-full rounded-xl border border-gray-200 overflow-hidden bg-gray-100">
+              <div className="h-[360px] w-full rounded-xl border border-zinc-700 overflow-hidden bg-zinc-800">
                 <WizardLocationPicker value={location} onChange={setLocation} />
               </div>
               {location.address && (
-                <p className="text-[11px] text-gray-500 flex items-center gap-1.5">
+                <p className="text-[11px] text-zinc-400 flex items-center gap-1.5">
                   <MapPin size={11} className="text-[#FF4D00] shrink-0" />
                   {location.address}
                   {location.lat !== null && location.lng !== null && (
-                    <span className="text-gray-400">
+                    <span className="text-zinc-500">
                       ({location.lat.toFixed(5)}, {location.lng.toFixed(5)})
                     </span>
                   )}
@@ -184,7 +184,7 @@ export default function CreateProjectWizard({
 
           {step === 4 && (
             <div className="space-y-3">
-              <p className="text-sm text-gray-500 mb-2">Review your project details before creating.</p>
+              <p className="text-sm text-zinc-400 mb-2">Review your project details before creating.</p>
               {[
                 { label: "Project Name", value: name },
                 { label: "Description", value: description || "—" },
@@ -193,9 +193,9 @@ export default function CreateProjectWizard({
                 { label: "Location", value: location.address || (location.lat !== null && location.lng !== null ? `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}` : "Not set") },
                 { label: "Boundary", value: location.boundary.length > 0 ? `${location.boundary.length} point polygon` : "Not drawn" },
               ].map(({ label: l, value }) => (
-                <div key={l} className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">{l}</p>
-                  <p className="text-sm font-semibold text-gray-900">{value}</p>
+                <div key={l} className="rounded-xl border border-zinc-800 bg-zinc-800/50 px-4 py-3">
+                  <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-0.5">{l}</p>
+                  <p className="text-sm font-semibold text-white">{value}</p>
                 </div>
               ))}
             </div>
@@ -203,13 +203,13 @@ export default function CreateProjectWizard({
         </form>
 
         {/* Footer */}
-        <div className="border-t border-gray-100 bg-gray-50 px-5 py-4 flex items-center justify-between">
+        <div className="border-t border-zinc-800 bg-zinc-800/50 px-5 py-4 flex items-center justify-between">
           {step > 1 ? (
-            <button type="button" onClick={() => setStep((s) => s - 1)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">
+            <button type="button" onClick={() => setStep((s) => s - 1)} className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 transition-all">
               <ChevronLeft size={14} /> Back
             </button>
           ) : (
-            <button type="button" onClick={onClose} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">
+            <button type="button" onClick={onClose} className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 transition-all">
               Cancel
             </button>
           )}

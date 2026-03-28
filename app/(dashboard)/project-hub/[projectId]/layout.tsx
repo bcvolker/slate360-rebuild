@@ -44,7 +44,7 @@ export default async function ProjectDetailLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#ECEEF2]">
+    <div className="min-h-screen bg-zinc-950">
       
       <DashboardHeader
         user={{
@@ -57,17 +57,17 @@ export default async function ProjectDetailLayout({
         internalAccess={{ ceo: canAccessCeo, market: canAccessMarket, athlete360: canAccessAthlete360 }}
         showBackLink
       />
-      <div className="sticky top-0 z-30 border-b border-gray-100 bg-white/95 backdrop-blur-md">
+      <div className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur-md">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-3 sm:py-4 md:px-10">
 
 
           {/* Project header */}
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Project Hub</p>
-              <h1 className="text-xl font-black text-gray-900 md:text-2xl">{project.name}</h1>
+              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Project Hub</p>
+              <h1 className="text-xl font-black text-white md:text-2xl">{project.name}</h1>
             </div>
-            <span className="inline-flex rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-600">
+            <span className="inline-flex rounded-full border border-zinc-700 bg-zinc-800 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-300">
               {project.status}
             </span>
           </div>
@@ -80,7 +80,7 @@ export default async function ProjectDetailLayout({
                   <li key={tab.label}>
                     <Link
                       href={href}
-                      className="inline-flex rounded-full border border-gray-100 bg-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-gray-700 transition-all hover:border-[#FF4D00]/30 hover:bg-[#FF4D00]/5 hover:text-[#FF4D00] hover:shadow-sm hover:-translate-y-px whitespace-nowrap"
+                      className="inline-flex rounded-full border border-zinc-800 bg-zinc-900 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-zinc-300 transition-all hover:border-[#FF4D00]/30 hover:bg-[#FF4D00]/10 hover:text-[#FF4D00] hover:shadow-sm hover:-translate-y-px whitespace-nowrap"
                     >
                       {tab.label}
                     </Link>

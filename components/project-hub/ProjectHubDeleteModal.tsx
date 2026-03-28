@@ -34,35 +34,35 @@ export default function ProjectHubDeleteModal({
       <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div className="fixed inset-0 z-[61] flex items-center justify-center p-4">
         <div
-          className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl overflow-hidden"
+          className="w-full max-w-md rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl overflow-hidden"
           onClick={(event) => event.stopPropagation()}
         >
-          <div className="bg-red-50 border-b border-red-100 px-6 py-4 flex items-center justify-between">
+          <div className="bg-red-950/50 border-b border-red-900/50 px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <AlertTriangle size={20} className="text-red-600" />
+              <div className="w-10 h-10 rounded-full bg-red-900/50 flex items-center justify-center">
+                <AlertTriangle size={20} className="text-red-400" />
               </div>
               <div>
-                <h3 className="text-base font-black text-gray-900">Delete Project</h3>
-                <p className="text-xs text-gray-500">This action cannot be undone</p>
+                <h3 className="text-base font-black text-white">Delete Project</h3>
+                <p className="text-xs text-zinc-400">This action cannot be undone</p>
               </div>
             </div>
-            <button onClick={onClose} className="p-1 rounded-lg hover:bg-red-100 transition-colors">
-              <X size={18} className="text-gray-500" />
+            <button onClick={onClose} className="p-1 rounded-lg hover:bg-zinc-800 transition-colors">
+              <X size={18} className="text-zinc-400" />
             </button>
           </div>
 
           <div className="px-6 py-5 space-y-4">
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Project to delete</p>
-              <p className="text-sm font-black text-gray-900">{target.name}</p>
+            <div className="rounded-xl border border-zinc-700 bg-zinc-800 p-4">
+              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Project to delete</p>
+              <p className="text-sm font-black text-white">{target.name}</p>
             </div>
 
-            <div className="text-sm text-gray-600 space-y-2">
+            <div className="text-sm text-zinc-300 space-y-2">
               <p>
-                Deleting this project will <span className="font-bold text-red-600">permanently</span> remove:
+                Deleting this project will <span className="font-bold text-red-400">permanently</span> remove:
               </p>
-              <ul className="text-xs text-gray-500 space-y-1 ml-4 list-disc">
+              <ul className="text-xs text-zinc-400 space-y-1 ml-4 list-disc">
                 <li>All project files, folders, and uploads</li>
                 <li>RFIs, submittals, daily logs, and punch list items</li>
                 <li>Budget data, schedule, and stakeholder records</li>
@@ -71,28 +71,28 @@ export default function ProjectHubDeleteModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                Type <span className="font-black text-red-600">{target.name}</span> to confirm
+              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                Type <span className="font-black text-red-400">{target.name}</span> to confirm
               </label>
               <input
                 type="text"
                 value={confirmName}
                 onChange={(event) => onConfirmNameChange(event.target.value)}
                 placeholder="Enter project name..."
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 outline-none transition-all"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-red-500 focus:ring-2 focus:ring-red-900/50 outline-none transition-all"
                 autoFocus
               />
             </div>
 
             {error && (
-              <p className="text-xs font-semibold text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+              <p className="text-xs font-semibold text-red-400 bg-red-950/50 rounded-lg px-3 py-2">{error}</p>
             )}
           </div>
 
-          <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-end gap-3 bg-gray-50/50">
+          <div className="border-t border-zinc-800 px-6 py-4 flex items-center justify-end gap-3 bg-zinc-800/50">
             <button
               onClick={onClose}
-              className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+              className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 transition-all"
               disabled={loading}
             >
               Cancel

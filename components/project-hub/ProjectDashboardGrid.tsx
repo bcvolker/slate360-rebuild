@@ -255,48 +255,48 @@ export default function ProjectDashboardGrid({
     /* PROJECT INFO */
     if (id === "project-info") {
       return (
-        <div className="rounded-xl bg-gradient-to-br from-slate-50 to-blue-50 border border-slate-100 p-4 flex-1 space-y-3">
+        <div className="rounded-xl bg-zinc-800/50 border border-zinc-700 p-4 flex-1 space-y-3">
           <div className="flex items-start gap-2.5">
             <Building2 size={18} className="text-[#FF4D00] mt-0.5 shrink-0" />
             <div className="min-w-0">
-              <p className="text-sm font-black text-gray-900 truncate">{project.name ?? "—"}</p>
+              <p className="text-sm font-black text-white truncate">{project.name ?? "—"}</p>
               {locationStr && (
-                <p className="text-[10px] text-gray-500 flex items-center gap-1 mt-0.5">
+                <p className="text-[10px] text-zinc-400 flex items-center gap-1 mt-0.5">
                   <MapPin size={9} />{locationStr}
                 </p>
               )}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-white/70 rounded-lg p-2">
-              <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Status</p>
-              <p className="text-xs font-bold text-gray-800 capitalize mt-0.5">{project.status ?? "Active"}</p>
+            <div className="bg-zinc-800 rounded-lg p-2">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Status</p>
+              <p className="text-xs font-bold text-zinc-200 capitalize mt-0.5">{project.status ?? "Active"}</p>
             </div>
-            <div className="bg-white/70 rounded-lg p-2">
-              <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Created</p>
-              <p className="text-xs font-bold text-gray-800 mt-0.5">
+            <div className="bg-zinc-800 rounded-lg p-2">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Created</p>
+              <p className="text-xs font-bold text-zinc-200 mt-0.5">
                 {project.created_at ? new Date(project.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
               </p>
             </div>
             {rfiCount !== null && (
-              <div className="bg-white/70 rounded-lg p-2">
-                <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Open RFIs</p>
-                <p className="text-xs font-bold text-[#FF4D00] mt-0.5">{rfiCount.open} <span className="text-gray-400 font-normal">/ {rfiCount.total}</span></p>
+              <div className="bg-zinc-800 rounded-lg p-2">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Open RFIs</p>
+                <p className="text-xs font-bold text-[#FF4D00] mt-0.5">{rfiCount.open} <span className="text-zinc-500 font-normal">/ {rfiCount.total}</span></p>
               </div>
             )}
             {subCount !== null && (
-              <div className="bg-white/70 rounded-lg p-2">
-                <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Pending Docs</p>
-                <p className="text-xs font-bold text-amber-600 mt-0.5">{subCount.pending} <span className="text-gray-400 font-normal">/ {subCount.total}</span></p>
+              <div className="bg-zinc-800 rounded-lg p-2">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Pending Docs</p>
+                <p className="text-xs font-bold text-amber-500 mt-0.5">{subCount.pending} <span className="text-zinc-500 font-normal">/ {subCount.total}</span></p>
               </div>
             )}
           </div>
           {isExpanded && project.description && (
-            <p className="text-xs text-gray-500 leading-relaxed border-t border-gray-100 pt-3">{project.description}</p>
+            <p className="text-xs text-zinc-400 leading-relaxed border-t border-zinc-700 pt-3">{project.description}</p>
           )}
           <button
             onClick={() => setProfileOpen(true)}
-            className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-gray-200 py-1.5 text-[10px] font-semibold text-gray-400 hover:text-[#FF4D00] hover:border-[#FF4D00]/30 transition"
+            className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-zinc-700 py-1.5 text-[10px] font-semibold text-zinc-500 hover:text-[#FF4D00] hover:border-[#FF4D00]/30 transition"
           >
             <Settings size={10} /> Edit Company Profile (Auto-fill)
           </button>
@@ -333,31 +333,31 @@ export default function ProjectDashboardGrid({
     if (id === "budget-snapshot") {
       if (!budgetTotals) {
         return (
-          <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 flex-1 flex flex-col items-center justify-center gap-2">
-            <BarChart2 size={24} className="text-gray-300" />
-            <p className="text-xs text-gray-400 font-semibold">No budget data yet</p>
+          <div className="rounded-xl border border-dashed border-zinc-700 bg-zinc-800/50 p-4 flex-1 flex flex-col items-center justify-center gap-2">
+            <BarChart2 size={24} className="text-zinc-600" />
+            <p className="text-xs text-zinc-500 font-semibold">No budget data yet</p>
             <Link href={`/project-hub/${projectId}/budget`} className="text-[10px] font-bold text-[#059669] hover:underline">Set up budget →</Link>
           </div>
         );
       }
       return (
-        <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 p-4 flex-1 space-y-3">
+        <div className="rounded-xl bg-zinc-800/50 border border-zinc-700 p-4 flex-1 space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-white/70 rounded-lg p-2">
-              <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Budget</p>
-              <p className="text-sm font-black text-gray-900">{fmtUsd(revisedBudget)}</p>
+            <div className="bg-zinc-800 rounded-lg p-2">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Budget</p>
+              <p className="text-sm font-black text-white">{fmtUsd(revisedBudget)}</p>
             </div>
-            <div className="bg-white/70 rounded-lg p-2">
-              <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Spent</p>
-              <p className="text-sm font-black text-gray-900">{fmtUsd(budgetTotals.spent)}</p>
+            <div className="bg-zinc-800 rounded-lg p-2">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Spent</p>
+              <p className="text-sm font-black text-white">{fmtUsd(budgetTotals.spent)}</p>
             </div>
           </div>
           <div>
             <div className="flex justify-between text-[10px] mb-1">
-              <span className="text-gray-500">Spend Progress</span>
-              <span className="font-bold text-gray-700">{pctSpent}%</span>
+              <span className="text-zinc-400">Spend Progress</span>
+              <span className="font-bold text-zinc-300">{pctSpent}%</span>
             </div>
-            <div className="w-full bg-white/60 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${pctSpent > 90 ? "bg-red-500" : pctSpent > 75 ? "bg-amber-400" : "bg-emerald-500"}`}
                 style={{ width: `${pctSpent}%` }}
@@ -367,9 +367,9 @@ export default function ProjectDashboardGrid({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               {variance >= 0
-                ? <TrendingUp size={12} className="text-emerald-600" />
+                ? <TrendingUp size={12} className="text-emerald-500" />
                 : <TrendingDown size={12} className="text-red-500" />}
-              <span className={`text-[10px] font-bold ${variance >= 0 ? "text-emerald-700" : "text-red-700"}`}>
+              <span className={`text-[10px] font-bold ${variance >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                 {variance >= 0 ? "Under " : "Over "}{fmtUsd(Math.abs(variance))}
               </span>
             </div>
@@ -383,33 +383,33 @@ export default function ProjectDashboardGrid({
     if (id === "schedule-snapshot") {
       if (tasks.length === 0) {
         return (
-          <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 flex-1 flex flex-col items-center justify-center gap-2">
-            <CalendarCheck2 size={24} className="text-gray-300" />
-            <p className="text-xs text-gray-400 font-semibold">No tasks scheduled</p>
+          <div className="rounded-xl border border-dashed border-zinc-700 bg-zinc-800/50 p-4 flex-1 flex flex-col items-center justify-center gap-2">
+            <CalendarCheck2 size={24} className="text-zinc-600" />
+            <p className="text-xs text-zinc-500 font-semibold">No tasks scheduled</p>
             <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#FF4D00] hover:underline">Add tasks →</Link>
           </div>
         );
       }
       return (
         <div className="flex flex-col gap-2 flex-1">
-          <div className="flex items-center gap-3 rounded-lg bg-orange-50 border border-orange-100 px-3 py-2">
+          <div className="flex items-center gap-3 rounded-lg bg-[#FF4D00]/10 border border-[#FF4D00]/20 px-3 py-2">
             <div className="flex-1">
               <div className="flex justify-between text-[10px] mb-1">
-                <span className="font-bold text-gray-600">{tasks.filter((t) => t.status === "Completed").length}/{tasks.length} completed</span>
+                <span className="font-bold text-zinc-300">{tasks.filter((t) => t.status === "Completed").length}/{tasks.length} completed</span>
                 <span className="font-black text-[#FF4D00]">{overallPct}%</span>
               </div>
-              <div className="w-full bg-orange-100 rounded-full h-1.5 overflow-hidden">
+              <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
                 <div className="h-full bg-[#FF4D00] rounded-full transition-all" style={{ width: `${overallPct}%` }} />
               </div>
             </div>
           </div>
           <div className="space-y-1.5 flex-1">
             {upcomingTasks.map((t) => (
-              <div key={t.id} className="flex items-center gap-2 rounded-lg border border-gray-100 bg-white px-2.5 py-2">
-                <div className={`w-2 h-2 rounded-full shrink-0 ${t.status === "In Progress" ? "bg-blue-500" : t.status === "Delayed" ? "bg-red-500" : "bg-gray-300"}`} />
-                <p className="text-[11px] font-semibold text-gray-800 flex-1 truncate">{t.name}</p>
+              <div key={t.id} className="flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800 px-2.5 py-2">
+                <div className={`w-2 h-2 rounded-full shrink-0 ${t.status === "In Progress" ? "bg-blue-500" : t.status === "Delayed" ? "bg-red-500" : "bg-zinc-600"}`} />
+                <p className="text-[11px] font-semibold text-zinc-200 flex-1 truncate">{t.name}</p>
                 {t.end_date && (
-                  <span className="text-[9px] text-gray-400 shrink-0">
+                  <span className="text-[9px] text-zinc-500 shrink-0">
                     {new Date(t.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                   </span>
                 )}
@@ -437,12 +437,12 @@ export default function ProjectDashboardGrid({
             <Link
               key={a.label}
               href={a.href}
-              className="flex items-center gap-2 rounded-xl border border-gray-100 bg-white px-3 py-2.5 hover:shadow-sm hover:border-gray-200 transition group"
+              className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2.5 hover:border-zinc-600 transition group"
             >
               <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${a.color}1A`, color: a.color }}>
                 <a.icon size={13} />
               </div>
-              <span className="text-[11px] font-semibold text-gray-700 group-hover:text-gray-900 leading-tight">{a.label}</span>
+              <span className="text-[11px] font-semibold text-zinc-300 group-hover:text-white leading-tight">{a.label}</span>
             </Link>
           ))}
         </div>
@@ -468,14 +468,14 @@ export default function ProjectDashboardGrid({
             <Link
               key={link.title}
               href={link.href}
-              className="flex items-center gap-2.5 rounded-xl border border-gray-100 bg-white px-3 py-2.5 hover:shadow-sm hover:border-[#FF4D00]/20 hover:bg-orange-50/20 transition group"
+              className="flex items-center gap-2.5 rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2.5 hover:border-[#FF4D00]/20 hover:bg-[#FF4D00]/5 transition group"
             >
-              <link.icon size={13} className="text-gray-400 group-hover:text-[#FF4D00] transition shrink-0" />
+              <link.icon size={13} className="text-zinc-500 group-hover:text-[#FF4D00] transition shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-semibold text-gray-800 truncate">{link.title}</p>
-                <p className="text-[9px] text-gray-400 truncate">{link.subtitle}</p>
+                <p className="text-[11px] font-semibold text-zinc-200 truncate">{link.title}</p>
+                <p className="text-[9px] text-zinc-500 truncate">{link.subtitle}</p>
               </div>
-              <CheckCircle2 size={10} className="text-gray-200 group-hover:text-emerald-400 transition shrink-0" />
+              <CheckCircle2 size={10} className="text-zinc-700 group-hover:text-emerald-400 transition shrink-0" />
             </Link>
           ))}
         </div>
@@ -489,19 +489,19 @@ export default function ProjectDashboardGrid({
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-black text-gray-900">Project Widgets</h2>
+        <h2 className="text-lg font-black text-white">Project Widgets</h2>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setProfileOpen(true)}
             title="Company auto-fill profile"
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-[#FF4D00] transition-colors"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-800 hover:text-[#FF4D00] transition-colors"
           >
             <Settings size={15} />
           </button>
           <button
             onClick={() => setCustomizeOpen(true)}
             title="Customize widgets"
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-[#FF4D00] transition-colors"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-[#FF4D00] transition-colors"
           >
             <SlidersHorizontal size={16} />
           </button>

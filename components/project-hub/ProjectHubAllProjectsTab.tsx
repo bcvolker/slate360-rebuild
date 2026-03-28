@@ -17,7 +17,7 @@ export default function ProjectHubAllProjectsTab({ loading, projects, onOpenDele
 
   if (loading) {
     return (
-      <div className="flex justify-center p-20 text-gray-400">
+      <div className="flex justify-center p-20 text-zinc-500">
         <Loader2 className="animate-spin" />
       </div>
     );
@@ -25,7 +25,7 @@ export default function ProjectHubAllProjectsTab({ loading, projects, onOpenDele
 
   if (projects.length === 0) {
     return (
-      <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white p-20 text-center text-gray-500">
+      <div className="rounded-2xl border-2 border-dashed border-zinc-700 bg-zinc-900 p-20 text-center text-zinc-400">
         No projects found. Click "New Project" to start building.
       </div>
     );
@@ -51,7 +51,7 @@ export default function ProjectHubAllProjectsTab({ loading, projects, onOpenDele
         return (
           <div
             key={project.id}
-            className="group relative flex w-[340px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-xl hover:border-gray-300 hover:-translate-y-1 transition-all"
+            className="group relative flex w-[340px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 hover:border-zinc-700 hover:-translate-y-1 transition-all"
           >
             <Link href={`/project-hub/${project.id}`} className="block">
               <div className="h-32 w-full relative overflow-hidden">
@@ -92,7 +92,7 @@ export default function ProjectHubAllProjectsTab({ loading, projects, onOpenDele
               {cardMenuOpen === project.id && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setCardMenuOpen(null)} />
-                  <div className="absolute left-0 top-9 z-50 w-48 rounded-xl border border-gray-200 bg-white shadow-2xl py-1 overflow-hidden">
+                  <div className="absolute left-0 top-9 z-50 w-48 rounded-xl border border-zinc-700 bg-zinc-800 shadow-2xl py-1 overflow-hidden">
                     <button
                       onClick={(event) => {
                         event.preventDefault();
@@ -100,7 +100,7 @@ export default function ProjectHubAllProjectsTab({ loading, projects, onOpenDele
                         onOpenDeleteProject({ id: project.id, name: project.name });
                         setCardMenuOpen(null);
                       }}
-                      className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors text-left"
+                      className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-950/50 transition-colors text-left"
                     >
                       <Trash2 size={14} /> Delete Project
                     </button>
@@ -110,8 +110,8 @@ export default function ProjectHubAllProjectsTab({ loading, projects, onOpenDele
             </div>
 
             <Link href={`/project-hub/${project.id}`} className="p-5 flex-1 flex flex-col justify-between">
-              <p className="text-sm text-gray-500 line-clamp-2">{project.description || "No description provided."}</p>
-              <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between text-xs font-semibold text-gray-400">
+              <p className="text-sm text-zinc-400 line-clamp-2">{project.description || "No description provided."}</p>
+              <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between text-xs font-semibold text-zinc-500">
                 <span>Created: {new Date(project.created_at).toLocaleDateString()}</span>
                 <span className="text-[#FF4D00] group-hover:underline">Open Hub →</span>
               </div>
