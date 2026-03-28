@@ -79,7 +79,7 @@ export default function DashboardProjectCard({
 
   return (
     <>
-      <div className="group snap-start shrink-0 w-[300px] h-[200px] rounded-2xl overflow-hidden relative border border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <div className="group snap-start shrink-0 w-[300px] h-[200px] rounded-2xl overflow-hidden relative border border-zinc-800 hover:border-zinc-700 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         {/* Background */}
         <Link href={`/project-hub/${p.id}`} className="absolute inset-0">
           {staticMapUrl ? (
@@ -135,7 +135,7 @@ export default function DashboardProjectCard({
           {menuOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-              <div className="absolute left-0 top-9 z-50 w-48 rounded-xl border border-gray-200 bg-white shadow-2xl py-1 overflow-hidden">
+              <div className="absolute left-0 top-9 z-50 w-48 rounded-xl border border-zinc-800 bg-zinc-900 shadow-2xl py-1 overflow-hidden">
                 <button
                   onClick={(e) => {
                     e.preventDefault();
@@ -143,7 +143,7 @@ export default function DashboardProjectCard({
                     setMenuOpen(false);
                     setDeleteModal(true);
                   }}
-                  className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors text-left"
+                  className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-950/30 transition-colors text-left"
                 >
                   <Trash2 size={14} /> Delete Project
                 </button>
@@ -183,37 +183,37 @@ export default function DashboardProjectCard({
           <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" onClick={() => setDeleteModal(false)} />
           <div className="fixed inset-0 z-[61] flex items-center justify-center p-4">
             <div
-              className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl overflow-hidden"
+              className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="bg-red-50 border-b border-red-100 px-6 py-4 flex items-center justify-between">
+              <div className="bg-red-950/30 border-b border-red-800/50 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                    <AlertTriangle size={20} className="text-red-600" />
+                  <div className="w-10 h-10 rounded-full bg-red-900/40 flex items-center justify-center">
+                    <AlertTriangle size={20} className="text-red-400" />
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-gray-900">Delete Project</h3>
-                    <p className="text-xs text-gray-500">This action cannot be undone</p>
+                    <h3 className="text-base font-black text-white">Delete Project</h3>
+                    <p className="text-xs text-zinc-400">This action cannot be undone</p>
                   </div>
                 </div>
-                <button onClick={() => setDeleteModal(false)} className="p-1 rounded-lg hover:bg-red-100 transition-colors">
-                  <X size={18} className="text-gray-500" />
+                <button onClick={() => setDeleteModal(false)} className="p-1 rounded-lg hover:bg-red-900/30 transition-colors">
+                  <X size={18} className="text-zinc-400" />
                 </button>
               </div>
 
               {/* Body */}
               <div className="px-6 py-5 space-y-4">
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Project to delete</p>
-                  <p className="text-sm font-black text-gray-900">{p.name}</p>
+                <div className="rounded-xl border border-zinc-700/50 bg-zinc-800/50 p-4">
+                  <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Project to delete</p>
+                  <p className="text-sm font-black text-white">{p.name}</p>
                 </div>
 
-                <div className="text-sm text-gray-600 space-y-2">
+                <div className="text-sm text-zinc-300 space-y-2">
                   <p>
-                    Deleting this project will <span className="font-bold text-red-600">permanently</span> remove:
+                    Deleting this project will <span className="font-bold text-red-400">permanently</span> remove:
                   </p>
-                  <ul className="text-xs text-gray-500 space-y-1 ml-4 list-disc">
+                  <ul className="text-xs text-zinc-400 space-y-1 ml-4 list-disc">
                     <li>All project files, folders, and uploads</li>
                     <li>RFIs, submittals, daily logs, and punch list items</li>
                     <li>Budget data, schedule, and stakeholder records</li>
@@ -222,8 +222,8 @@ export default function DashboardProjectCard({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                    Type <span className="font-black text-red-600">{p.name}</span> to confirm
+                  <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+                    Type <span className="font-black text-red-400">{p.name}</span> to confirm
                   </label>
                   <input
                     type="text"
@@ -233,21 +233,21 @@ export default function DashboardProjectCard({
                       setDeleteError(null);
                     }}
                     placeholder="Enter project name..."
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 outline-none transition-all"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
                     autoFocus
                   />
                 </div>
 
                 {deleteError && (
-                  <p className="text-xs font-semibold text-red-600 bg-red-50 rounded-lg px-3 py-2">{deleteError}</p>
+                  <p className="text-xs font-semibold text-red-400 bg-red-950/30 rounded-lg px-3 py-2">{deleteError}</p>
                 )}
               </div>
 
               {/* Footer */}
-              <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-end gap-3 bg-gray-50/50">
+              <div className="border-t border-zinc-800 px-6 py-4 flex items-center justify-end gap-3 bg-zinc-800/30">
                 <button
                   onClick={() => setDeleteModal(false)}
-                  className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+                  className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 transition-all"
                   disabled={deleting}
                 >
                   Cancel

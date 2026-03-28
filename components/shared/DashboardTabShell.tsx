@@ -34,7 +34,7 @@ export default function DashboardTabShell({
   const [customizeOpen, setCustomizeOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#ECEEF2] overflow-x-hidden">
+    <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
 
       {/* Shared header — identical to dashboard home */}
       <DashboardHeader
@@ -61,14 +61,14 @@ export default function DashboardTabShell({
             </div>
           )}
           <div className="flex items-center flex-wrap gap-2">
-            <h1 className="text-xl font-black text-gray-900 sm:text-2xl">{title}</h1>
+            <h1 className="text-xl font-bold text-white sm:text-2xl">{title}</h1>
             {status === "under-development" && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-900/30 text-amber-400 border border-amber-700/50">
                 Under Development
               </span>
             )}
             {status === "coming-soon" && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-zinc-800 text-zinc-400 border border-zinc-700">
                 Coming Soon
               </span>
             )}

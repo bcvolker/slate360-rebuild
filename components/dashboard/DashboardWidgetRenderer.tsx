@@ -58,8 +58,8 @@ import { DEMO_WEATHER } from "@/lib/dashboard/demo-data";
 const weatherIcon = (icon: string) => {
   switch (icon) {
     case "sun": return <Sun size={18} className="text-amber-400" />;
-    case "cloud-sun": return <CloudSun size={18} className="text-gray-400" />;
-    case "cloud": return <Cloud size={18} className="text-gray-400" />;
+    case "cloud-sun": return <CloudSun size={18} className="text-zinc-400" />;
+    case "cloud": return <Cloud size={18} className="text-zinc-400" />;
     case "rain": return <CloudRain size={18} className="text-blue-400" />;
     case "snow": return <Snowflake size={18} className="text-sky-300" />;
     default: return <Sun size={18} className="text-amber-400" />;
@@ -68,10 +68,10 @@ const weatherIcon = (icon: string) => {
 
 const statusColor = (s: Job["status"]) => {
   switch (s) {
-    case "completed": return "text-emerald-600 bg-emerald-50";
-    case "processing": return "text-amber-600 bg-amber-50";
-    case "queued": return "text-gray-500 bg-gray-100";
-    case "failed": return "text-red-600 bg-red-50";
+    case "completed": return "text-emerald-400 bg-emerald-950/40";
+    case "processing": return "text-amber-400 bg-amber-950/40";
+    case "queued": return "text-zinc-400 bg-zinc-800";
+    case "failed": return "text-red-400 bg-red-950/40";
   }
 };
 
@@ -209,25 +209,25 @@ export default function DashboardWidgetRenderer({
           <div className="space-y-5">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500 font-medium">Credits used</span>
-                <span className="text-xs font-bold text-gray-900">{ctx.creditsUsed.toLocaleString()} / {ctx.entitlements.maxCredits.toLocaleString()}</span>
+                <span className="text-xs text-zinc-400 font-medium">Credits used</span>
+                <span className="text-xs font-bold text-white">{ctx.creditsUsed.toLocaleString()} / {ctx.entitlements.maxCredits.toLocaleString()}</span>
               </div>
-              <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+              <div className="h-2.5 rounded-full bg-zinc-700 overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.min((ctx.creditsUsed / ctx.entitlements.maxCredits) * 100, 100)}%`, backgroundColor: "#FF4D00" }} />
               </div>
-              <p className="text-[11px] text-gray-400 mt-1.5">{(ctx.entitlements.maxCredits - ctx.creditsUsed).toLocaleString()} credits remaining this period</p>
+              <p className="text-[11px] text-zinc-500 mt-1.5">{(ctx.entitlements.maxCredits - ctx.creditsUsed).toLocaleString()} credits remaining this period</p>
             </div>
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500 font-medium">Storage</span>
-                <span className="text-xs font-bold text-gray-900">{ctx.storageUsed} GB / {ctx.entitlements.maxStorageGB} GB</span>
+                <span className="text-xs text-zinc-400 font-medium">Storage</span>
+                <span className="text-xs font-bold text-white">{ctx.storageUsed} GB / {ctx.entitlements.maxStorageGB} GB</span>
               </div>
-              <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+              <div className="h-2.5 rounded-full bg-zinc-700 overflow-hidden">
                 <div className="h-full rounded-full bg-[#FF4D00] transition-all duration-1000 ease-out" style={{ width: `${Math.min((ctx.storageUsed / ctx.entitlements.maxStorageGB) * 100, 100)}%` }} />
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
-              <button onClick={ctx.handleBuyCredits} disabled={ctx.billingBusy !== null} className="flex-1 text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-60">
+              <button onClick={ctx.handleBuyCredits} disabled={ctx.billingBusy !== null} className="flex-1 text-xs font-semibold py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:bg-zinc-800 transition-colors disabled:opacity-60">
                 {ctx.billingBusy === "credits" ? <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span> : "Buy credits"}
               </button>
               <button onClick={ctx.handleUpgradePlan} disabled={ctx.billingBusy !== null} className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-all hover:opacity-90 disabled:opacity-60" style={{ backgroundColor: "#FF4D00" }}>
@@ -242,29 +242,29 @@ export default function DashboardWidgetRenderer({
     case "processing":
       return (
         <WidgetCard key={id} icon={Cpu} title="Processing Jobs" span={span} delay={50} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}
-          action={<span className="text-[11px] text-gray-400 font-medium">{ctx.liveJobs.filter((j) => j.status === "processing").length} active</span>}
+          action={<span className="text-[11px] text-zinc-500 font-medium">{ctx.liveJobs.filter((j) => j.status === "processing").length} active</span>}
         >
           <div className="space-y-3">
             {ctx.liveJobs.map((job) => (
-              <div key={job.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/80 hover:bg-gray-100/80 transition-colors group">
+              <div key={job.id} className="flex items-center gap-3 p-3 rounded-xl bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors group">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${statusColor(job.status)}`}>{statusIcon(job.status)}</div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-gray-900 truncate">{job.name}</p>
-                  <p className="text-[10px] text-gray-400">{job.type}</p>
+                  <p className="text-xs font-semibold text-white truncate">{job.name}</p>
+                  <p className="text-[10px] text-zinc-500">{job.type}</p>
                 </div>
                 {job.status === "processing" && (
                   <div className="w-16">
-                    <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-zinc-700 overflow-hidden">
                       <div className="h-full rounded-full transition-all duration-500" style={{ width: `${job.progress}%`, backgroundColor: "#FF4D00" }} />
                     </div>
-                    <p className="text-[9px] text-gray-400 text-right mt-0.5">{job.progress}%</p>
+                    <p className="text-[9px] text-zinc-500 text-right mt-0.5">{job.progress}%</p>
                   </div>
                 )}
                 {job.status === "completed" && <span className="text-[10px] text-emerald-600 font-medium">Done</span>}
-                {job.status === "queued" && <span className="text-[10px] text-gray-400 font-medium">Queued</span>}
+                {job.status === "queued" && <span className="text-[10px] text-zinc-500 font-medium">Queued</span>}
               </div>
             ))}
-            {ctx.liveJobs.length === 0 && <div className="text-center py-4 text-xs text-gray-400">No processing jobs right now</div>}
+            {ctx.liveJobs.length === 0 && <div className="text-center py-4 text-xs text-zinc-500">No processing jobs right now</div>}
           </div>
         </WidgetCard>
       );
@@ -272,31 +272,31 @@ export default function DashboardWidgetRenderer({
     case "financial":
       return (
         <WidgetCard key={id} icon={TrendingUp} title="Financial Snapshot" span={span} delay={100} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}
-          action={<span className="text-[11px] text-gray-400 font-medium">Last 6 months</span>}
+          action={<span className="text-[11px] text-zinc-500 font-medium">Last 6 months</span>}
         >
           <div className="space-y-4">
             <div className="flex items-end gap-2 h-28">
               {ctx.liveFinancial.map((f, i) => (
                 <div key={f.month} className="flex-1 flex flex-col items-center gap-1.5">
-                  <span className="text-[9px] text-gray-400 font-medium">{f.credits > 0 ? `${(f.credits / 1000).toFixed(1)}k` : ""}</span>
+                  <span className="text-[9px] text-zinc-500 font-medium">{f.credits > 0 ? `${(f.credits / 1000).toFixed(1)}k` : ""}</span>
                   <div className="w-full relative flex items-end justify-center" style={{ height: "80px" }}>
                     <div className="w-full max-w-[32px] rounded-t-md transition-all duration-700 ease-out hover:opacity-80"
                       style={{ height: `${(f.credits / ctx.financialMax) * 100}%`, backgroundColor: i === ctx.liveFinancial.length - 1 ? "#FF4D00" : "#6366F1", opacity: i === ctx.liveFinancial.length - 1 ? 1 : 0.6 }}
                     />
                   </div>
-                  <span className="text-[10px] text-gray-400">{f.month}</span>
+                  <span className="text-[10px] text-zinc-500">{f.month}</span>
                 </div>
               ))}
-              {ctx.liveFinancial.length === 0 && <div className="w-full text-center text-xs text-gray-400">No financial activity yet</div>}
+              {ctx.liveFinancial.length === 0 && <div className="w-full text-center text-xs text-zinc-500">No financial activity yet</div>}
             </div>
-            <div className="flex gap-4 pt-2 border-t border-gray-100">
+            <div className="flex gap-4 pt-2 border-t border-zinc-800">
               <div>
-                <p className="text-[10px] text-gray-400 font-medium">This month</p>
-                <p className="text-sm font-bold text-gray-900">{(ctx.liveFinancial[ctx.liveFinancial.length - 1]?.credits ?? 0).toLocaleString()} credits</p>
+                <p className="text-[10px] text-zinc-500 font-medium">This month</p>
+                <p className="text-sm font-bold text-white">{(ctx.liveFinancial[ctx.liveFinancial.length - 1]?.credits ?? 0).toLocaleString()} credits</p>
               </div>
               <div>
-                <p className="text-[10px] text-gray-400 font-medium">Avg / month</p>
-                <p className="text-sm font-bold text-gray-900">{Math.round(ctx.liveFinancial.reduce((sum, p) => sum + p.credits, 0) / Math.max(ctx.liveFinancial.length, 1)).toLocaleString()} credits</p>
+                <p className="text-[10px] text-zinc-500 font-medium">Avg / month</p>
+                <p className="text-sm font-bold text-white">{Math.round(ctx.liveFinancial.reduce((sum, p) => sum + p.credits, 0) / Math.max(ctx.liveFinancial.length, 1)).toLocaleString()} credits</p>
               </div>
             </div>
           </div>
@@ -318,7 +318,7 @@ export default function DashboardWidgetRenderer({
     case "weather":
       return (
         <WidgetCard key={id} icon={Cloud} title="Weather" span={span} delay={200} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}
-          action={<span className="text-[10px] text-gray-400 font-medium flex items-center gap-1"><MapPin size={10} />{ctx.liveWeather?.location ?? "Location unavailable"}</span>}
+          action={<span className="text-[10px] text-zinc-500 font-medium flex items-center gap-1"><MapPin size={10} />{ctx.liveWeather?.location ?? "Location unavailable"}</span>}
         >
           <div className="space-y-4">
             <div className="flex items-center gap-4">
@@ -328,21 +328,21 @@ export default function DashboardWidgetRenderer({
                 </div>
               </div>
               <div>
-                <p className="text-3xl font-black text-gray-900">{ctx.liveWeather?.current.temp ?? "--"}°<span className="text-base font-normal text-gray-400">F</span></p>
-                <p className="text-xs text-gray-500">{ctx.liveWeather?.current.condition ?? "Unavailable"}</p>
+                <p className="text-3xl font-black text-white">{ctx.liveWeather?.current.temp ?? "--"}°<span className="text-base font-normal text-zinc-500">F</span></p>
+                <p className="text-xs text-zinc-400">{ctx.liveWeather?.current.condition ?? "Unavailable"}</p>
               </div>
               <div className="ml-auto text-right space-y-1">
-                <p className="text-[10px] text-gray-400 flex items-center gap-1 justify-end"><Droplets size={10} />{ctx.liveWeather?.current.humidity ?? "--"}%</p>
-                <p className="text-[10px] text-gray-400 flex items-center gap-1 justify-end"><Wind size={10} />{ctx.liveWeather?.current.wind ?? "--"} mph</p>
+                <p className="text-[10px] text-zinc-500 flex items-center gap-1 justify-end"><Droplets size={10} />{ctx.liveWeather?.current.humidity ?? "--"}%</p>
+                <p className="text-[10px] text-zinc-500 flex items-center gap-1 justify-end"><Wind size={10} />{ctx.liveWeather?.current.wind ?? "--"} mph</p>
               </div>
             </div>
             <div className="grid grid-cols-5 gap-1.5">
               {(ctx.liveWeather?.forecast ?? DEMO_WEATHER.forecast).map((f) => (
-                <div key={f.day} className="text-center p-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <p className="text-[10px] text-gray-500 font-semibold mb-1">{f.day}</p>
+                <div key={f.day} className="text-center p-2 rounded-xl bg-zinc-800/50 hover:bg-zinc-800 transition-colors">
+                  <p className="text-[10px] text-zinc-500 font-semibold mb-1">{f.day}</p>
                   {weatherIcon(f.icon)}
-                  <p className="text-[10px] font-bold text-gray-900 mt-1">{f.hi}°</p>
-                  <p className="text-[9px] text-gray-400">{f.lo}°</p>
+                  <p className="text-[10px] font-bold text-white mt-1">{f.hi}°</p>
+                  <p className="text-[9px] text-zinc-500">{f.lo}°</p>
                   {f.precip >= 40 && <p className="text-[9px] text-blue-500 font-medium mt-0.5">{f.precip}%</p>}
                 </div>
               ))}
@@ -354,7 +354,7 @@ export default function DashboardWidgetRenderer({
                 </div>
               ))}
             </div>
-            <button onClick={() => ctx.setWeatherLogged(true)} disabled={ctx.weatherLogged} className="w-full text-xs font-semibold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
+            <button onClick={() => ctx.setWeatherLogged(true)} disabled={ctx.weatherLogged} className="w-full text-xs font-semibold py-2.5 rounded-xl border border-zinc-700 text-zinc-400 hover:bg-zinc-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
               {ctx.weatherLogged ? <><CheckCircle2 size={13} className="text-emerald-500" /> Logged to daily report</> : <><Send size={12} /> Log to Daily Report</>}
             </button>
           </div>
@@ -370,17 +370,17 @@ export default function DashboardWidgetRenderer({
             {ctx.liveContinueWorking.map((item, i) => {
               const Icon = item.kind === "design" ? Palette : item.kind === "tour" ? Compass : item.kind === "rfi" ? MessageSquare : item.kind === "report" ? BarChart3 : FileText;
               return (
-                <Link key={i} href={item.href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group">
-                  <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 group-hover:text-[#FF4D00] transition-colors"><Icon size={16} /></div>
+                <Link key={i} href={item.href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition-colors group">
+                  <div className="w-9 h-9 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-[#FF4D00] transition-colors"><Icon size={16} /></div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-900 truncate group-hover:text-[#FF4D00] transition-colors">{item.title}</p>
-                    <p className="text-[10px] text-gray-400 truncate">{item.subtitle}</p>
+                    <p className="text-xs font-semibold text-white truncate group-hover:text-[#FF4D00] transition-colors">{item.title}</p>
+                    <p className="text-[10px] text-zinc-500 truncate">{item.subtitle}</p>
                   </div>
-                  <span className="text-[10px] text-gray-300 shrink-0">{item.time}</span>
+                  <span className="text-[10px] text-zinc-600 shrink-0">{item.time}</span>
                 </Link>
               );
             })}
-            {ctx.liveContinueWorking.length === 0 && <div className="text-center py-4 text-xs text-gray-400">No recent activity yet</div>}
+            {ctx.liveContinueWorking.length === 0 && <div className="text-center py-4 text-xs text-zinc-500">No recent activity yet</div>}
           </div>
         </WidgetCard>
       );
@@ -414,24 +414,24 @@ export default function DashboardWidgetRenderer({
           {ctx.suggestDone ? (
             <div className="text-center py-6">
               <CheckCircle2 size={32} className="mx-auto mb-3 text-emerald-500" />
-              <p className="text-sm font-semibold text-gray-900 mb-1">Thank you!</p>
-              <p className="text-xs text-gray-400">Your suggestion has been sent to our team.</p>
+              <p className="text-sm font-semibold text-white mb-1">Thank you!</p>
+              <p className="text-xs text-zinc-500">Your suggestion has been sent to our team.</p>
             </div>
           ) : (
             <div className="space-y-3">
               <div>
-                <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Title</label>
-                <input type="text" placeholder="What feature would you like?" value={ctx.suggestTitle} onChange={(e) => ctx.setSuggestTitle(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all" />
+                <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Title</label>
+                <input type="text" placeholder="What feature would you like?" value={ctx.suggestTitle} onChange={(e) => ctx.setSuggestTitle(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 transition-all" />
               </div>
               <div>
-                <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Description</label>
-                <textarea placeholder="Tell us more about what you need…" value={ctx.suggestDesc} onChange={(e) => ctx.setSuggestDesc(e.target.value)} rows={3} className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all resize-none" />
+                <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Description</label>
+                <textarea placeholder="Tell us more about what you need…" value={ctx.suggestDesc} onChange={(e) => ctx.setSuggestDesc(e.target.value)} rows={3} className="w-full px-3 py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 transition-all resize-none" />
               </div>
               <div>
-                <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Priority</label>
+                <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Priority</label>
                 <div className="flex gap-2">
                   {(["low", "medium", "high"] as const).map((p) => (
-                    <button key={p} onClick={() => ctx.setSuggestPriority(p)} className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-all capitalize ${ctx.suggestPriority === p ? "border-[#FF4D00] bg-[#FF4D00]/5 text-[#FF4D00]" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}>{p}</button>
+                    <button key={p} onClick={() => ctx.setSuggestPriority(p)} className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-all capitalize ${ctx.suggestPriority === p ? "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00]" : "border-zinc-700 text-zinc-400 hover:bg-zinc-800"}`}>{p}</button>
                   ))}
                 </div>
               </div>
@@ -451,41 +451,41 @@ export default function DashboardWidgetRenderer({
           <div>
             <div className="flex items-center gap-6 mb-5">
               <div>
-                <p className="text-2xl font-black text-gray-900">{ctx.liveSeatMembers.length}</p>
-                <p className="text-[10px] text-gray-400 font-medium">of {ctx.entitlements.maxSeats} seats used</p>
+                <p className="text-2xl font-black text-white">{ctx.liveSeatMembers.length}</p>
+                <p className="text-[10px] text-zinc-500 font-medium">of {ctx.entitlements.maxSeats} seats used</p>
               </div>
-              <div className="h-10 w-px bg-gray-100" />
+              <div className="h-10 w-px bg-zinc-800" />
               <div>
                 <p className="text-2xl font-black text-emerald-600">{ctx.liveSeatMembers.filter((m) => m.active).length}</p>
-                <p className="text-[10px] text-gray-400 font-medium">Active now</p>
+                <p className="text-[10px] text-zinc-500 font-medium">Active now</p>
               </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3 pr-4">Name</th>
-                    <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3 pr-4">Email</th>
-                    <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3 pr-4">Role</th>
-                    <th className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-3">Status</th>
+                  <tr className="border-b border-zinc-800">
+                    <th className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider pb-3 pr-4">Name</th>
+                    <th className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider pb-3 pr-4">Email</th>
+                    <th className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider pb-3 pr-4">Role</th>
+                    <th className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider pb-3">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {ctx.liveSeatMembers.map((m, i) => (
-                    <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                      <td className="py-3 pr-4 text-xs font-semibold text-gray-900">{m.name}</td>
-                      <td className="py-3 pr-4 text-xs text-gray-500">{m.email}</td>
+                    <tr key={i} className="border-b border-zinc-800/50 hover:bg-zinc-800/50 transition-colors">
+                      <td className="py-3 pr-4 text-xs font-semibold text-white">{m.name}</td>
+                      <td className="py-3 pr-4 text-xs text-zinc-400">{m.email}</td>
                       <td className="py-3 pr-4">
-                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${m.role === "Owner" ? "bg-[#FF4D00]/10 text-[#FF4D00]" : m.role === "Admin" ? "bg-[#6366F1]/10 text-[#6366F1]" : "bg-gray-100 text-gray-600"}`}>{m.role}</span>
+                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${m.role === "Owner" ? "bg-[#FF4D00]/10 text-[#FF4D00]" : m.role === "Admin" ? "bg-[#6366F1]/10 text-[#6366F1]" : "bg-zinc-800 text-zinc-400"}`}>{m.role}</span>
                       </td>
                       <td className="py-3">
-                        <span className={`flex items-center gap-1.5 text-[10px] font-medium ${m.active ? "text-emerald-600" : "text-gray-400"}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${m.active ? "bg-emerald-500" : "bg-gray-300"}`} />{m.active ? "Online" : "Offline"}
+                        <span className={`flex items-center gap-1.5 text-[10px] font-medium ${m.active ? "text-emerald-600" : "text-zinc-500"}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${m.active ? "bg-emerald-500" : "bg-zinc-600"}`} />{m.active ? "Online" : "Offline"}
                         </span>
                       </td>
                     </tr>
                   ))}
-                  {ctx.liveSeatMembers.length === 0 && <tr><td colSpan={4} className="py-4 text-center text-xs text-gray-400">No seat members found for this organization</td></tr>}
+                  {ctx.liveSeatMembers.length === 0 && <tr><td colSpan={4} className="py-4 text-center text-xs text-zinc-500">No seat members found for this organization</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -498,8 +498,8 @@ export default function DashboardWidgetRenderer({
         <WidgetCard key={id} icon={Zap} title="Unlock more power" span={span} delay={400} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}>
           <div className="text-center py-4">
             <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#FF4D001A" }}><Zap size={24} style={{ color: "#FF4D00" }} /></div>
-            <p className="text-sm font-bold text-gray-900 mb-2">Upgrade to Business</p>
-            <p className="text-xs text-gray-400 mb-4 leading-relaxed">Get seat management, Project Hub, advanced analytics, and 30,000 credits per month.</p>
+            <p className="text-sm font-bold text-white mb-2">Upgrade to Business</p>
+            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">Get seat management, Project Hub, advanced analytics, and 30,000 credits per month.</p>
             <Link href="/plans?plan=business&billing=monthly" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02]" style={{ backgroundColor: "#FF4D00" }}>
               View plans <ArrowRight size={13} />
             </Link>

@@ -3,7 +3,8 @@
 import WidgetCard from "@/components/widgets/WidgetCard";
 import type { DashboardAccountOverview } from "@/lib/types/dashboard";
 import type { Tier } from "@/lib/entitlements";
-import { User, CreditCard, Loader2 } from "lucide-react";
+import { User, CreditCard } from "lucide-react";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 /* ================================================================
    TYPES
@@ -60,52 +61,58 @@ export default function AccountOverviewRow({
         }
       >
         {accountLoading && !accountOverview ? (
-          <div className="py-6 flex items-center justify-center text-sm text-gray-400">
-            <Loader2 size={16} className="animate-spin mr-2" /> Loading account
-            details…
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+                  <Skeleton className="h-3 w-16 mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+              <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Name
                 </p>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-white">
                   {accountOverview?.profile.name ?? user.name}
                 </p>
               </div>
-              <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+              <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Email
                 </p>
-                <p className="text-sm font-semibold text-gray-900 truncate">
+                <p className="text-sm font-semibold text-white truncate">
                   {accountOverview?.profile.email ?? user.email}
                 </p>
               </div>
-              <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+              <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Organization
                 </p>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-white">
                   {accountOverview?.profile.orgName ?? "Slate360 Organization"}
                 </p>
               </div>
-              <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+              <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Role
                 </p>
-                <p className="text-sm font-semibold text-gray-900 capitalize">
+                <p className="text-sm font-semibold text-white capitalize">
                   {accountOverview?.profile.role ?? "member"}
                 </p>
               </div>
             </div>
-            <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between gap-2">
+            <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-between gap-2">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Storage Health
                 </p>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-white">
                   {(accountOverview?.usage.storageUsedGb ?? storageUsed).toFixed(1)}{" "}
                   /{" "}
                   {(
@@ -123,19 +130,19 @@ export default function AccountOverviewRow({
             <div className="flex flex-wrap gap-2 pt-1">
               <button
                 onClick={() => onApplyPreset("simple")}
-                className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                className="px-3 py-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-400 hover:bg-zinc-800 transition-colors"
               >
                 Simple View
               </button>
               <button
                 onClick={() => onApplyPreset("creator")}
-                className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                className="px-3 py-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-400 hover:bg-zinc-800 transition-colors"
               >
                 Creator View
               </button>
               <button
                 onClick={() => onApplyPreset("project")}
-                className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                className="px-3 py-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-400 hover:bg-zinc-800 transition-colors"
               >
                 Project View
               </button>
@@ -157,63 +164,63 @@ export default function AccountOverviewRow({
         }
       >
         <div className="space-y-3">
-          <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+          <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Current Plan
             </p>
-            <p className="text-sm font-semibold text-gray-900">
+            <p className="text-sm font-semibold text-white">
               {accountOverview?.billing.plan ?? ent.label}
             </p>
           </div>
-          <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+          <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Status
             </p>
-            <p className="text-sm font-semibold text-gray-900 capitalize">
+            <p className="text-sm font-semibold text-white capitalize">
               {accountOverview?.billing.status ?? "active"}
             </p>
           </div>
-          <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+          <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Renewal
             </p>
-            <p className="text-sm font-semibold text-gray-900">
+            <p className="text-sm font-semibold text-white">
               {accountOverview?.billing.renewsOn
                 ? new Date(accountOverview.billing.renewsOn).toLocaleDateString()
                 : "Not available"}
             </p>
           </div>
-          <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+          <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Seats
             </p>
-            <p className="text-sm font-semibold text-gray-900">
+            <p className="text-sm font-semibold text-white">
               {isAdmin
                 ? "4 used / 10 included"
                 : "Managed by your organization"}
             </p>
           </div>
           {isAdmin && (
-            <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">
+            <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">
                 Plan Preview
               </p>
-              <div className="space-y-1.5 text-xs text-gray-600">
+              <div className="space-y-1.5 text-xs text-zinc-400">
                 <div className="flex items-center justify-between">
                   <span>Starter</span>
-                  <span className="font-semibold text-gray-700">
+                  <span className="font-semibold text-zinc-300">
                     Basic access
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Pro</span>
-                  <span className="font-semibold text-gray-700">
+                  <span className="font-semibold text-zinc-300">
                     Advanced tools
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Enterprise</span>
-                  <span className="font-semibold text-gray-700">
+                  <span className="font-semibold text-zinc-300">
                     Full suite
                   </span>
                 </div>
@@ -224,7 +231,7 @@ export default function AccountOverviewRow({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <button
                 onClick={onBuyCredits}
-                className="text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                className="text-xs font-semibold py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:bg-zinc-800 transition-colors"
               >
                 Buy Credits
               </button>
@@ -237,13 +244,13 @@ export default function AccountOverviewRow({
               </button>
               <button
                 onClick={onBackToOverview}
-                className="text-xs font-semibold py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                className="text-xs font-semibold py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:bg-zinc-800 transition-colors"
               >
                 Manage Seats
               </button>
             </div>
           ) : (
-            <p className="text-[11px] text-gray-500">
+            <p className="text-[11px] text-zinc-500">
               Read-only plan details. Billing controls are available for
               owner/admin roles.
             </p>

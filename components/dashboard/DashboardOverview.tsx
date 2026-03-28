@@ -102,8 +102,8 @@ export default function DashboardOverview({
       <div className="mb-10">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-5">
           <div>
-            <h2 className="text-2xl font-black text-gray-900">Welcome back, {userName} 👋</h2>
-            <p className="text-sm text-gray-500 mt-1">Pick a module below or jump into a project to get started.</p>
+            <h2 className="text-2xl font-bold text-white">Welcome back, {userName} 👋</h2>
+            <p className="text-sm text-zinc-400 mt-1">Pick a module below or jump into a project to get started.</p>
           </div>
         </div>
         {showDashboardTiles && (() => {
@@ -141,7 +141,7 @@ export default function DashboardOverview({
                       onSetActiveTab(tab.id);
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    className={`group md:flex-1 md:min-w-0 flex flex-col items-center gap-1.5 sm:gap-2 ${pad} rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-center`}
+                    className={`group md:flex-1 md:min-w-0 flex flex-col items-center gap-1.5 sm:gap-2 ${pad} rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors duration-200 hover:-translate-y-0.5 text-center`}
                   >
                     <div
                       className={`${iconBox} ${iconRadius} flex items-center justify-center transition-all group-hover:scale-110`}
@@ -149,7 +149,7 @@ export default function DashboardOverview({
                     >
                       <TabIcon size={iconSize} style={{ color: tab.color }} />
                     </div>
-                    <span className={`${labelSize} font-semibold text-gray-700 group-hover:text-gray-900 leading-tight truncate max-w-full`}>{tab.label}</span>
+                    <span className={`${labelSize} font-semibold text-zinc-400 group-hover:text-white leading-tight truncate max-w-full`}>{tab.label}</span>
                   </button>
                 );
               })}
@@ -163,24 +163,24 @@ export default function DashboardOverview({
       {/* ════════ PROJECT CAROUSEL ════════ */}
       <div className="relative mb-10">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-900">Your Projects</h2>
+          <h2 className="text-lg font-semibold text-white">Your Projects</h2>
           <div className="flex items-center gap-2">
             <div className="relative">
               <button
                 onClick={onProjectDropdownToggle}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:border-gray-300 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-zinc-800 bg-zinc-900 text-xs font-medium text-zinc-300 hover:border-zinc-700 transition-colors"
               >
-                <FolderOpen size={13} className="text-gray-400" />
+                <FolderOpen size={13} className="text-zinc-500" />
                 {selectedProject === "all" ? "All projects" : projects.find((p) => p.id === selectedProject)?.name ?? "All projects"}
-                <ChevronDown size={12} className="text-gray-400" />
+                <ChevronDown size={12} className="text-zinc-500" />
               </button>
               {projectDropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={onProjectDropdownToggle} />
-                  <div className="absolute right-0 top-10 w-56 bg-white rounded-xl border border-gray-100 shadow-xl z-40 overflow-hidden">
-                    <button onClick={() => { onSelectProject("all"); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === "all" ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}>All projects</button>
+                  <div className="absolute right-0 top-10 w-56 bg-zinc-900 rounded-xl border border-zinc-800 shadow-xl z-40 overflow-hidden">
+                    <button onClick={() => { onSelectProject("all"); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === "all" ? "bg-[#FF4D00]/10 text-[#FF4D00] font-semibold" : "text-zinc-400 hover:bg-zinc-800"}`}>All projects</button>
                     {projects.map((p) => (
-                      <button key={p.id} onClick={() => { onSelectProject(p.id); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === p.id ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}>{p.name}</button>
+                      <button key={p.id} onClick={() => { onSelectProject(p.id); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === p.id ? "bg-[#FF4D00]/10 text-[#FF4D00] font-semibold" : "text-zinc-400 hover:bg-zinc-800"}`}>{p.name}</button>
                     ))}
                   </div>
                 </>
@@ -193,10 +193,10 @@ export default function DashboardOverview({
             >
               <Plus size={13} /> New Project
             </button>
-            <button onClick={() => onScrollCarousel(-1)} className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+            <button onClick={() => onScrollCarousel(-1)} className="w-8 h-8 rounded-lg border border-zinc-800 flex items-center justify-center text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300 transition-colors">
               <ChevronLeft size={16} />
             </button>
-            <button onClick={() => onScrollCarousel(1)} className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+            <button onClick={() => onScrollCarousel(1)} className="w-8 h-8 rounded-lg border border-zinc-800 flex items-center justify-center text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300 transition-colors">
               <ChevronRight size={16} />
             </button>
           </div>
@@ -217,7 +217,7 @@ export default function DashboardOverview({
           ))}
 
           {projects.length === 0 && (
-            <div className="snap-start shrink-0 w-full rounded-2xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+            <div className="snap-start shrink-0 w-full rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-center text-sm text-zinc-400">
               No projects yet. Create a project in Project Hub to populate this dashboard.
             </div>
           )}
@@ -226,7 +226,7 @@ export default function DashboardOverview({
           <button
             type="button"
             onClick={onCreateProject}
-            className="snap-start shrink-0 w-[300px] h-[200px] rounded-2xl border-2 border-dashed border-gray-200 hover:border-[#FF4D00] flex flex-col items-center justify-center gap-3 text-gray-400 hover:text-[#FF4D00] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-white/50"
+            className="snap-start shrink-0 w-[300px] h-[200px] rounded-xl border-2 border-dashed border-zinc-800 hover:border-[#FF4D00] flex flex-col items-center justify-center gap-3 text-zinc-500 hover:text-[#FF4D00] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-zinc-900/50"
           >
             <div className="w-14 h-14 rounded-2xl border-2 border-dashed border-current flex items-center justify-center">
               <Plus size={24} />

@@ -114,7 +114,7 @@ export default function DashboardWidgetPopout({
 
   return (
     <div
-      className={`fixed z-[10000] flex flex-col overflow-hidden shadow-[0_32px_80px_-12px_rgba(0,0,0,0.55)] ${isMobile ? "rounded-none border-0" : "rounded-2xl border border-gray-700/70"}`}
+      className={`fixed z-[10000] flex flex-col overflow-hidden shadow-[0_32px_80px_-12px_rgba(0,0,0,0.55)] ${isMobile ? "rounded-none border-0" : "rounded-2xl border border-zinc-700/70"}`}
       style={{
         left: isMobile ? 0 : pos.x,
         top: isMobile ? 0 : pos.y,
@@ -123,7 +123,7 @@ export default function DashboardWidgetPopout({
       }}
     >
       <div
-        className={`flex items-center gap-3 px-4 h-11 bg-gray-900 select-none shrink-0 ${isMobile ? "" : "cursor-grab active:cursor-grabbing"}`}
+        className={`flex items-center gap-3 px-4 h-11 bg-zinc-900 select-none shrink-0 ${isMobile ? "" : "cursor-grab active:cursor-grabbing"}`}
         onPointerDown={isMobile ? undefined : onTitleDown}
         onPointerMove={isMobile ? undefined : onPointerMove}
         onPointerUp={isMobile ? undefined : onPointerUp}
@@ -172,7 +172,7 @@ export default function DashboardWidgetPopout({
       </div>
 
       {!minimized && (
-        <div className="flex-1 overflow-auto bg-[#ECEEF2] p-4">
+        <div className="flex-1 overflow-auto bg-zinc-950 p-4">
           <DashboardWidgetRenderer
             id={widgetId}
             widgetSize="lg"

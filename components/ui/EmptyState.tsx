@@ -34,18 +34,18 @@ export default function EmptyState({
     >
       <div
         className={[
-          "rounded-2xl flex items-center justify-center bg-gray-100",
+          "rounded-2xl flex items-center justify-center bg-zinc-800",
           compact ? "w-10 h-10" : "w-14 h-14",
         ].join(" ")}
       >
-        <Icon size={compact ? 18 : 24} className="text-gray-400" />
+        <Icon size={compact ? 18 : 24} className="text-zinc-500" />
       </div>
       <div className="space-y-1">
-        <p className={compact ? "text-xs font-semibold text-gray-500" : "text-sm font-semibold text-gray-700"}>
+        <p className={compact ? "text-xs font-semibold text-zinc-400" : "text-sm font-semibold text-zinc-300"}>
           {title}
         </p>
         {description && (
-          <p className="text-[11px] text-gray-400 max-w-[220px] leading-relaxed">{description}</p>
+          <p className="text-[11px] text-zinc-500 max-w-[220px] leading-relaxed">{description}</p>
         )}
       </div>
       {action && <div>{action}</div>}

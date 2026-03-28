@@ -103,7 +103,7 @@ export default function DashboardHeader({
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
+    <header className="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
 
         {/* ── Left cluster: Logo + optional back link ── */}
@@ -114,7 +114,7 @@ export default function DashboardHeader({
           {showBackLink && (
             <Link
               href="/dashboard"
-              className="hidden sm:flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-[#FF4D00] transition-colors"
+              className="hidden sm:flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-[#FF4D00] transition-colors"
             >
               <ChevronLeft size={14} /> Dashboard
             </Link>
@@ -124,14 +124,14 @@ export default function DashboardHeader({
         {/* ── Center: Search bar ── */}
         <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
           <div className="relative w-full">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
             <input
               type="text"
               placeholder={searchPlaceholder}
               value={searchQuery}
               readOnly={!onSearchChange}
               onChange={(e) => onSearchChange?.(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50/50 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-zinc-700 bg-zinc-900/50 text-sm text-white placeholder:text-zinc-500 focus:bg-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 focus:border-transparent transition-all"
             />
           </div>
         </div>
@@ -150,7 +150,7 @@ export default function DashboardHeader({
                 setUserMenuOpen(false);
                 if (!notificationsOpen) onRefreshNotifications?.();
               }}
-              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 transition-colors"
             >
               <Bell size={18} />
               {notifications.length > 0 && (
@@ -161,9 +161,9 @@ export default function DashboardHeader({
             {notificationsOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setNotificationsOpen(false)} />
-                <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
-                  <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-                    <p className="text-sm font-bold text-gray-900">Notifications</p>
+                <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 shadow-xl">
+                  <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+                    <p className="text-sm font-bold text-white">Notifications</p>
                     {onRefreshNotifications && (
                       <button
                         onClick={onRefreshNotifications}
@@ -175,22 +175,22 @@ export default function DashboardHeader({
                   </div>
                   <div className="max-h-[360px] overflow-y-auto">
                     {notificationsLoading ? (
-                      <div className="px-4 py-6 text-sm text-gray-500">
+                      <div className="px-4 py-6 text-sm text-zinc-500">
                         <Loader2 size={14} className="mr-2 inline animate-spin" /> Loading…
                       </div>
                     ) : notifications.length === 0 ? (
-                      <div className="px-4 py-6 text-sm text-gray-500">No unread alerts.</div>
+                      <div className="px-4 py-6 text-sm text-zinc-500">No unread alerts.</div>
                     ) : (
                       notifications.map((n) => (
                         <Link
                           key={n.id}
                           href={n.link_path ?? `/project-hub/${n.project_id}`}
                           onClick={() => setNotificationsOpen(false)}
-                          className="block border-b border-gray-50 px-4 py-3 hover:bg-gray-50"
+                          className="block border-b border-zinc-800/50 px-4 py-3 hover:bg-zinc-800"
                         >
-                          <p className="text-sm font-semibold text-gray-800">{n.title}</p>
-                          <p className="mt-0.5 text-xs text-gray-600">{n.message}</p>
-                          <p className="mt-1 text-[11px] text-gray-400">
+                          <p className="text-sm font-semibold text-zinc-200">{n.title}</p>
+                          <p className="mt-0.5 text-xs text-zinc-400">{n.message}</p>
+                          <p className="mt-1 text-[11px] text-zinc-500">
                             {new Date(n.created_at).toLocaleString()}
                           </p>
                         </Link>
@@ -207,7 +207,7 @@ export default function DashboardHeader({
             <button
               onClick={onCustomizeOpen}
               title="Customize layout"
-              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-[#FF4D00] transition-colors"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-[#FF4D00] transition-colors"
             >
               <SlidersHorizontal size={18} />
               {prefsDirty && (
@@ -220,7 +220,7 @@ export default function DashboardHeader({
           <div className="relative">
             <button
               onClick={() => { setUserMenuOpen((v) => !v); setNotificationsOpen(false); }}
-              className="flex items-center gap-1.5 sm:gap-2.5 p-1 sm:pl-2 sm:pr-3 sm:py-1.5 rounded-xl hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-1.5 sm:gap-2.5 p-1 sm:pl-2 sm:pr-3 sm:py-1.5 rounded-xl hover:bg-zinc-800 transition-colors"
             >
               {user.avatar ? (
                 <img src={user.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -230,19 +230,19 @@ export default function DashboardHeader({
                 </div>
               )}
               <div className="hidden sm:block text-left">
-                <p className="text-xs font-semibold text-gray-900 leading-tight">{user.name}</p>
-                <p className="text-[10px] text-gray-400 leading-tight">{ent.label} plan</p>
+                <p className="text-xs font-semibold text-white leading-tight">{user.name}</p>
+                <p className="text-[10px] text-zinc-400 leading-tight">{ent.label} plan</p>
               </div>
-              <ChevronDown size={14} className="hidden sm:block text-gray-400" />
+              <ChevronDown size={14} className="hidden sm:block text-zinc-500" />
             </button>
 
             {userMenuOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                <div className="absolute right-0 top-12 w-56 bg-white rounded-xl border border-gray-100 shadow-xl z-50 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="text-sm font-semibold text-gray-900">{user.name}</p>
-                    <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                <div className="absolute right-0 top-12 w-56 bg-zinc-900 rounded-xl border border-zinc-800 shadow-xl z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-zinc-800">
+                    <p className="text-sm font-semibold text-white">{user.name}</p>
+                    <p className="text-xs text-zinc-400 truncate">{user.email}</p>
                     <span
                       className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white bg-[#FF4D00]"
                     >
@@ -253,13 +253,13 @@ export default function DashboardHeader({
                     <Link
                       href="/my-account"
                       onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
                     >
                       <Activity size={15} /> My Account
                     </Link>
                     <button
                       onClick={handleOpenBillingPortal}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
                     >
                       {billingBusy === "portal" ? (
                         <Loader2 size={15} className="animate-spin" />
@@ -270,7 +270,7 @@ export default function DashboardHeader({
                     </button>
                     <button
                       onClick={handleSignOut}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-400 hover:bg-red-950/30 transition-colors"
                     >
                       <LogOut size={15} /> Sign out
                     </button>

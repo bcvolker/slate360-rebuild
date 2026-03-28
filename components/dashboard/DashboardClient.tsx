@@ -103,7 +103,7 @@ export default function DashboardClient(props: DashboardProps) {
      ================================================================ */
 
   return (
-    <div className="min-h-screen bg-[#ECEEF2] overflow-x-hidden">
+    <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
       <DashboardHeader
         user={props.user}
         tier={props.tier}
@@ -124,7 +124,7 @@ export default function DashboardClient(props: DashboardProps) {
 
 
         {s.billingNotice && (
-          <div className={`mb-4 rounded-xl border px-4 py-3 text-sm ${s.billingNotice.ok ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
+          <div className={`mb-4 rounded-xl border px-4 py-3 text-sm ${s.billingNotice.ok ? "border-emerald-700/50 bg-emerald-950/30 text-emerald-400" : "border-amber-700/50 bg-amber-950/30 text-amber-400"}`}>
             {s.billingNotice.text}
           </div>
         )}
@@ -133,7 +133,7 @@ export default function DashboardClient(props: DashboardProps) {
           <div className="mb-6">
             <button
               onClick={() => s.setActiveTab("overview")}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200 shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-zinc-300 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:text-white transition-colors"
             >
               <ChevronLeft size={16} />
               Back to Dashboard

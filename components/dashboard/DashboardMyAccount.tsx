@@ -122,14 +122,14 @@ export default function DashboardMyAccount({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 px-1">
         <div>
-          <h2 className="text-2xl font-black text-gray-900">My Account</h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <h2 className="text-2xl font-bold text-white">My Account</h2>
+          <p className="text-sm text-zinc-400 mt-1">
             Profile, billing, and account controls.
           </p>
         </div>
         <button
           onClick={onRefresh}
-          className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+          className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-800 text-xs font-semibold text-zinc-400 hover:bg-zinc-800 transition-colors"
         >
           {accountLoading ? (
             <Loader2 size={13} className="animate-spin" />
@@ -141,18 +141,18 @@ export default function DashboardMyAccount({
       </div>
 
       {accountError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
+        <div className="rounded-xl border border-red-800/50 bg-red-950/30 text-red-400 px-4 py-3 text-sm">
           {accountError}
         </div>
       )}
 
       {apiKeyError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
+        <div className="rounded-xl border border-red-800/50 bg-red-950/30 text-red-400 px-4 py-3 text-sm">
           {apiKeyError}
         </div>
       )}
 
-      <div className="text-[11px] text-gray-500 px-1">
+      <div className="text-[11px] text-zinc-500 px-1">
         {isAdmin
           ? "Owner/Admin view: full account controls enabled."
           : "Member view: personal settings and read-only plan summary."}
@@ -197,27 +197,27 @@ export default function DashboardMyAccount({
           <div className="space-y-2">
             <Link
               href="/forgot-password"
-              className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center justify-between p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 transition-colors"
             >
-              <span className="text-xs font-semibold text-gray-700">
+              <span className="text-xs font-semibold text-zinc-300">
                 Reset password
               </span>
-              <ArrowRight size={12} className="text-gray-400" />
+              <ArrowRight size={12} className="text-zinc-500" />
             </Link>
-            <button className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors text-left">
-              <span className="text-xs font-semibold text-gray-700">
+            <button className="w-full flex items-center justify-between p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 transition-colors text-left">
+              <span className="text-xs font-semibold text-zinc-300">
                 2FA status
               </span>
-              <span className="text-[11px] font-semibold text-gray-500">
+              <span className="text-[11px] font-semibold text-zinc-500">
                 Coming soon
               </span>
             </button>
-            <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+            <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-gray-700">
+                <span className="text-xs font-semibold text-zinc-300">
                   Recent sessions
                 </span>
-                <span className="text-[11px] font-semibold text-gray-500">
+                <span className="text-[11px] font-semibold text-zinc-500">
                   Last 3
                 </span>
               </div>
@@ -228,12 +228,12 @@ export default function DashboardMyAccount({
                     className="flex items-center justify-between gap-2"
                   >
                     <div className="min-w-0">
-                      <p className="text-[11px] font-semibold text-gray-700 truncate">
+                      <p className="text-[11px] font-semibold text-zinc-300 truncate">
                         {session.device}
                       </p>
-                      <p className="text-[10px] text-gray-400">{session.ip}</p>
+                      <p className="text-[10px] text-zinc-500">{session.ip}</p>
                     </div>
-                    <p className="text-[10px] text-gray-400 shrink-0">
+                    <p className="text-[10px] text-zinc-500 shrink-0">
                       {isClient && session.lastActive
                         ? new Date(session.lastActive).toLocaleDateString()
                         : ""}

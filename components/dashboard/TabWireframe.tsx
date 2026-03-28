@@ -27,13 +27,13 @@ export default function TabWireframe({ tab, onBack, onOpenSlateDrop }: { tab: Da
       >
         <Icon size={36} />
       </div>
-      <h2 className="text-2xl font-black text-gray-900 mb-2">{tab.label}</h2>
+      <h2 className="text-2xl font-bold text-white mb-2">{tab.label}</h2>
       {tab.isCEOOnly && (
-        <span className="inline-block mb-3 text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+        <span className="inline-block mb-3 text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-900/30 border border-amber-700/50 px-3 py-1 rounded-full">
           CEO Access Only
         </span>
       )}
-      <p className="text-sm text-gray-400 mb-8 max-w-sm leading-relaxed">{desc}</p>
+      <p className="text-sm text-zinc-400 mb-8 max-w-sm leading-relaxed">{desc}</p>
       {tab.id === "slatedrop" && (
         <button
           onClick={onOpenSlateDrop}
@@ -45,7 +45,7 @@ export default function TabWireframe({ tab, onBack, onOpenSlateDrop }: { tab: Da
       )}
       <button
         onClick={onBack}
-        className="text-xs font-semibold text-gray-400 hover:text-gray-700 transition-colors flex items-center gap-1.5 mt-2"
+        className="text-xs font-semibold text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-1.5 mt-2"
       >
         <ChevronLeft size={13} /> Back to Dashboard
       </button>

@@ -85,8 +85,8 @@ export default function WidgetCard({
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
       className={[
-        "bg-white rounded-2xl border border-gray-100 shadow-sm p-6",
-        "hover:shadow-lg hover:border-gray-200 transition-all duration-300 flex flex-col",
+        "bg-zinc-900 rounded-xl border border-zinc-800 p-6",
+        "hover:border-zinc-700 transition-colors flex flex-col",
         getWidgetHeight(size),
         isDraggable && isSmall
           ? "cursor-grab active:cursor-grabbing"
@@ -107,7 +107,7 @@ export default function WidgetCard({
           >
             <Icon size={20} />
           </div>
-          <h3 className="text-sm font-bold text-gray-900">{title}</h3>
+          <h3 className="text-sm font-bold text-white">{title}</h3>
         </div>
 
         <div className="flex items-center gap-1">
@@ -115,7 +115,7 @@ export default function WidgetCard({
           {onSetSize && (
             <>
               {/* Size buttons – 1 line = small (default), 2 = medium, 3 = large */}
-              <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
+              <div className="flex items-center gap-0.5 bg-zinc-800 rounded-lg p-0.5">
               {SIZE_OPTIONS.map((opt) => {
                 const isActive = opt.value === "default"
                   ? isSmall
@@ -130,8 +130,8 @@ export default function WidgetCard({
                     className={[
                       "w-6 h-6 rounded-md flex items-center justify-center transition-all",
                       isActive
-                        ? "bg-white shadow-sm text-[#FF4D00]"
-                        : "text-gray-400 hover:text-gray-600",
+                        ? "bg-zinc-700 shadow-sm text-orange-500"
+                        : "text-zinc-500 hover:text-zinc-300",
                     ].join(" ")}
                     title={`${opt.label} size`}
                   >
@@ -147,7 +147,7 @@ export default function WidgetCard({
                     e.stopPropagation();
                     onSetSize("default");
                   }}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors ml-0.5"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300 transition-colors ml-0.5"
                   title="Reset to default size"
                 >
                   <Minimize2 size={13} />
