@@ -1,28 +1,33 @@
 # Slate360 — Design & UI Overhaul Execution Plan
 
 Created: 2026-03-24
-Updated: 2026-03-26
-Status: Phase 4 — DashboardClient decomposition (IN PROGRESS)
+Updated: 2026-03-28
+Status: Phases 0–5B COMPLETE. Next: Phase 6 (Homepage Decomposition)
 Branch: main
 
 ## Context
 
-The dashboard and platform UI has accumulated inconsistent styling — navy blue (`#1E3A8A`) scattered across 60+ files, no shared UI primitives (only 3 files in `components/ui/`), a 1,954-line monolith in `DashboardClient.tsx`, and a 780-line homepage. This plan fixes all of it in safe, reversible phases.
+The dashboard and platform UI had accumulated inconsistent styling — navy blue (`#1E3A8A`) scattered across 60+ files, no shared UI primitives (only 3 files in `components/ui/`), a 1,954-line monolith in `DashboardClient.tsx`, and a 780-line homepage. This plan fixes all of it in safe, reversible phases.
 
 ### Current State
 
-**As of 2026-03-26 — Phases 0-3.5 complete:**
+**As of 2026-03-28 — Phases 0–5B complete, all TS errors resolved:**
 
-- **Remote:** Healthy. Force-push fixed broken `8a3ab35`. Current HEAD is `5343dbf`.
-- **globals.css:** 230 lines, all `#1E3A8A` removed. Module tokens correct: hub/slatedrop/my-account orange, analytics/market indigo, design purple, content pink, tours cyan, geo green, virtual amber.
-- **DashboardClient.tsx:** ~1,961 lines. Navy purged. Still a monolith — Phase 4 decomposes it.
-- **components/ui/:** 13 files — 3 pre-existing (`EmptyState.tsx`, `StatusPill.tsx`, `tooltip.tsx`) + 10 from Phase 3 shadcn install (`button`, `card`, `input`, `badge`, `separator`, `avatar`, `select`, `dialog`, `dropdown-menu`, `tabs`).
-- **entitlements.ts:** 136 lines — still unmodified (Phase 5).
-- **app/page.tsx:** ~780 lines — still a monolith (Phase 6).
-- **Navy `#1E3A8A`:** Intentionally kept only in 3 files (user-selectable color swatches): `components/contacts/AddContactModal.tsx`, `app/api/contacts/route.ts`, `app/api/dashboard/widgets/route.ts`.
-- **9 orphaned widget files:** Still present, Phase 4.5 wires them in.
-- **Husky + lint-staged:** Installed. Pre-commit hook runs ESLint + CSS brace-balance check.
-- **GitHub Actions CI:** `release-gates.yml` already runs typecheck + build + architecture guards on every push/PR. No duplicate CI needed.
+- **Remote:** Healthy. HEAD is `01bbdf8`, pushed to `origin/main`.
+- **TypeScript:** 0 errors across entire codebase.
+- **globals.css:** 230 lines, all `#1E3A8A` removed. Module tokens correct.
+- **Navy `#1E3A8A`:** Fully purged. 0 files remaining (was 60+).
+- **DashboardClient.tsx:** 264 lines (was 1,961). 5 component extractions + 6 sub-hooks.
+- **useDashboardState.ts:** 244 lines (was 775). Thin orchestrator importing 6 sub-hooks.
+- **SlateDropClient.tsx:** 282 lines (was 451). 7 sub-hooks extracted.
+- **MarketClient.tsx:** 175 lines. All TS errors fixed (chainId, wallet props).
+- **DashboardHeader.tsx:** 286 lines. Logo now links to `/`. Debug banner removed.
+- **components/ui/:** 13 files — 3 pre-existing + 10 shadcn primitives.
+- **entitlements.ts:** 136 lines — creator tier has `canAccessHub: true`. ✅
+- **app/page.tsx:** 775 lines — still a monolith (Phase 6 target).
+- **Mobile quick-access:** Removed (redundant with header QuickNav).
+- **Husky + lint-staged:** Installed. Pre-commit hook active.
+- **GitHub Actions CI:** `release-gates.yml` runs on every push/PR.
 
 ### Design System Target
 
@@ -93,110 +98,37 @@ Added during 2026-03-26 session based on Gemini engineering analysis:
 
 ---
 
-## 🔜 Phase 4 — DashboardClient.tsx Decomposition (NEXT)
+## ✅ Phase 4 — DashboardClient.tsx Decomposition (COMPLETE)
 
-**Risk:** Medium | **This is the most complex phase** | **Rollback per extraction:** `git checkout -- components/dashboard/`
+**Result:** DashboardClient.tsx reduced from 1,961 → 264 lines. useDashboardState reduced from 775 → 244 lines.
 
-**New addition from Gemini analysis:** Use `nuqs` for `activeTab` URL state. Install: `npm install nuqs`. Replace the `activeTab` useState in DashboardClient with `useQueryState('tab', parseAsString.withDefault('project-hub'))`. This makes tab navigation bookmarkable and shareable.
+### Extractions completed:
+1. **DashboardMyAccount.tsx** — 267 lines (billing, profile, subscription UI)
+2. **DashboardOverview.tsx** — Project carousel, quick actions, widget grid
+3. **DashboardSidebar.tsx** — Tab list, navigation
+4. **DashboardSlateDropWindow.tsx** — Floating SlateDrop panel
+5. **DashboardWidgetGrid.tsx / DashboardWidgetRenderer.tsx** — Widget rendering + orphaned widgets wired
 
-### Current structure of DashboardClient.tsx (~1,961 lines):
+### Sub-hooks extracted from useDashboardState (Phase 5B):
+- `useBillingState` (81 lines) — billing portal, credits, plan upgrades
+- `useWidgetPrefsState` (155 lines) — widget prefs, drag-reorder, save/reset
+- `useAccountState` (154 lines) — account overview, API keys, preferences
+- `useWeatherState` (104 lines) — geolocation, weather fetch, logging
+- `useSuggestFeatureState` (40 lines) — suggest-feature form + submit
+- `useNotificationsState` (38 lines) — unread notifications fetch
 
-| Section | Lines | What |
-|---------|-------|------|
-| Imports | 1-50 | ~50 import statements |
-| State declarations | ~270-503 | 55 useState vars |
-| Callbacks/effects | ~504-1017 | Billing, navigation, data fetching |
-| JSX return | ~1018-1954 | Header, sidebar, tab content, floating windows |
-| My Account tab | ~1384-1790 | Inline billing/profile/subscription UI |
-| Overview tab | ~1100-1380 | Project carousel, quick actions, widgets |
-
-### Extraction order (one at a time, test between each):
-
-#### Extract 1: DashboardMyAccount.tsx
-- **Source:** ~L1384-1790 of DashboardClient.tsx
-- **New file:** `components/dashboard/DashboardMyAccount.tsx`
-- **Props needed:** user, profile, subscription, billing callbacks
-- **Steps:**
-  1. Read L1384-1790 in DashboardClient.tsx
-  2. Read the state vars these lines reference (grep for `set` calls)
-  3. Create DashboardMyAccount.tsx with those as props
-  4. Replace inline JSX with `<DashboardMyAccount {...props} />`
-  5. `npm run typecheck && npm run dev` → navigate to My Account tab
-  6. `git commit -m "refactor(dashboard): extract DashboardMyAccount"`
-
-#### Extract 2: DashboardOverview.tsx
-- **Source:** ~L1100-1380
-- **New file:** `components/dashboard/DashboardOverview.tsx`
-- **Contains:** Project carousel, quick actions, widget grid
-
-#### Extract 3: DashboardSidebar.tsx
-- **Source:** Tab array definition + sidebar nav JSX
-- **New file:** `components/dashboard/DashboardSidebar.tsx`
-- **Contains:** Tab list, navigation, active tab state
-
-#### Extract 4: DashboardSlateDropWindow.tsx
-- **Source:** Floating window state + JSX
-- **New file:** `components/dashboard/DashboardSlateDropWindow.tsx`
-- **Contains:** SlateDrop floating panel, minimize/maximize, position
-
-#### Extract 5: DashboardWidgetGrid.tsx
-- **Source:** Widget rendering from Overview
-- **New file:** `components/dashboard/DashboardWidgetGrid.tsx`
-- **Also:** Wire the 9 orphaned widget files here:
-  - `DashboardCalendarWidget.tsx`
-  - `DashboardContactsWidget.tsx`
-  - `DashboardContinueWidget.tsx`
-  - `DashboardDataUsageWidget.tsx`
-  - `DashboardFinancialWidget.tsx`
-  - `DashboardProcessingWidget.tsx`
-  - `DashboardSeatsWidget.tsx`
-  - `DashboardSuggestWidget.tsx`
-  - `DashboardWeatherWidget.tsx`
-
-#### Extract 6: useDashboardState.ts
-- **Source:** ~L270-503 (55 useState vars)
-- **New file:** `lib/hooks/useDashboardState.ts`
-- **Contains:** All dashboard state as a custom hook returning `{ state, actions }`
-
-### Target result
-- DashboardClient.tsx drops from 1,954 → ~400 lines (orchestrator + imports)
-- Each extracted component: 100-300 lines max
+### Also completed (not in original plan):
+- SlateDropClient.tsx: 451 → 282 lines (7 sub-hooks)
+- MarketLiveWalletTab props fixed (chainId, onSwitchToPolygon, isSwitchingChain)
+- MobileQuickAccess removed (redundant with QuickNav)
+- Debug runtime banner removed
+- DashboardHeader logo linked to homepage
 
 ---
 
-## Phase 5 — Entitlements Fix
+## ✅ Phase 5 — Entitlements Fix (COMPLETE)
 
-**Risk:** Low | **File:** `lib/entitlements.ts` | **Rollback:** `git checkout -- lib/entitlements.ts`
-
-### Fix 1: Creator gets Hub access
-```typescript
-// In TIER_MAP.creator, change:
-canAccessHub: false,
-// To:
-canAccessHub: true,
-```
-
-### Fix 2 (Recommended): Trial preview mode
-Instead of blocking tabs entirely, add a `canPreview` concept:
-- Trial users SEE all tabs (navigation is visible)
-- Clicking a tier-locked tab shows the tab content with an `<UpgradeGate>` overlay
-- This shows value and converts better than hiding features
-
-### Implementation:
-```typescript
-// Add to Entitlements interface:
-canPreviewAll: boolean;
-
-// In TIER_MAP.trial:
-canPreviewAll: true,  // show tabs with upgrade prompt overlay
-```
-
-Then create `components/shared/UpgradeGate.tsx`:
-```tsx
-// Wraps tier-locked tab content
-// Shows children + semi-transparent overlay with "Upgrade to {tier} to unlock"
-// Links to /plans
-```
+Creator tier now has `canAccessHub: true` in `lib/entitlements.ts`. All tiers have correct access flags.
 
 ---
 
@@ -301,15 +233,22 @@ Do NOT add Zod to every route at once — add per-route when touching that route
 ```
 Phase 0    Fix remote (force-push)           ✅ COMPLETE
 Phase 1    CSS tokens in globals.css          ✅ COMPLETE
-Phase 2    Navy blue purge (55 files)         ✅ COMPLETE (commit 5343dbf)
+Phase 2    Navy blue purge (60+ files)        ✅ COMPLETE (0 files remaining)
 Phase 3    Install shadcn primitives          ✅ COMPLETE (13 files in components/ui/)
 Phase 3.5  Guardrails (Husky, lint-staged)    ✅ COMPLETE
-Phase 4    DashboardClient decomposition      � IN PROGRESS — 1961→1188 lines (5 extractions done)
-Phase 5    Entitlements fix                   ⬜ After Phase 4
-Phase 5.5  Zod API validation                 ⬜ Add per-route as touched
-Phase 6    Homepage decomposition             ⬜ After dashboard stable
+Phase 4    DashboardClient decomposition      ✅ COMPLETE (1,961→264 lines, 5 extractions + 6 sub-hooks)
+Phase 5    Entitlements fix                   ✅ COMPLETE (creator canAccessHub: true)
+Phase 5B   useDashboardState decomposition    ✅ COMPLETE (775→244 lines, 6 sub-hooks)
+Phase 5.5  Zod API validation                 ⬜ Add per-route as touched (incremental)
+Phase 6    Homepage decomposition             ⬜ NEXT — app/page.tsx 775 lines
 Phase 7    Visual polish                      ⬜ Only after structure solid
 Phase 8    New feature readiness              ⬜ Final layer
+
+Also completed (not in original plan):
+- SlateDropClient decomposition: 451→282 lines (7 sub-hooks)
+- MarketClient TS fixes: wallet props + chainId
+- UI fixes: logo href, mobile quick-access removal, debug banner removal
+- TypeScript: 0 errors across entire codebase
 ```
 
 Each phase has its own rollback. No phase depends on a later phase. Phases 1-3 can run in a single session. Phase 4 should be its own focused session.
@@ -329,10 +268,11 @@ Each phase has its own rollback. No phase depends on a later phase. Phases 1-3 c
 | File | Lines | Role |
 |------|-------|------|
 | `app/globals.css` | ~230 | Design tokens (✅ complete) |
-| `components/dashboard/DashboardClient.tsx` | ~1,961 | Main monolith (Phase 4) |
-| `lib/entitlements.ts` | 136 | Tier gates (Phase 5) |
-| `app/page.tsx` | ~780 | Homepage (Phase 6) |
+| `components/dashboard/DashboardClient.tsx` | 264 | Dashboard orchestrator (✅ Phase 4 complete) |
+| `lib/hooks/useDashboardState.ts` | 244 | Dashboard state hook (✅ Phase 5B complete) |
+| `components/slatedrop/SlateDropClient.tsx` | 282 | SlateDrop orchestrator (✅ decomposed) |
+| `lib/entitlements.ts` | 136 | Tier gates (✅ Phase 5 complete) |
+| `app/page.tsx` | 775 | Homepage (⬜ Phase 6 next) |
 | `components/ui/*` | 13 files | UI primitives (✅ Phase 3 complete) |
-| `components/shared/DashboardHeader.tsx` | 286 | Shared header (referenced by Phase 4) |
+| `components/shared/DashboardHeader.tsx` | 286 | Shared header (✅ logo + banner fixed) |
 | `components/shared/DashboardTabShell.tsx` | 96 | Tab wrapper (Phase 8) |
-| `components/dashboard/DashboardWidgetRenderer.tsx` | 513 | Widget renderer (Phase 4.5) |

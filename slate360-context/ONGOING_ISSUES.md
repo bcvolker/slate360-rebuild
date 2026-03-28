@@ -1,6 +1,6 @@
 # Slate360 — Ongoing Issues & Known Tech Debt
 
-**Last Updated:** 2026-03-11 (Market diagnostics handoff — BUG-026 logged: market root-cause still unresolved after UX/runtime pass)  
+**Last Updated:** 2026-03-28 (All TS errors resolved, navy purge complete, monolith decomposition done)  
 **Maintained by:** Development team — update whenever a bug is discovered or fixed.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -40,14 +40,15 @@
 
 ### Structural Root Cause #1 — Monolith Files Exceed LLM Context Window
 
-The codebase contains several files so large no single AI session can see the whole file:
+**Status (2026-03-28): Largely resolved.** The four worst monoliths have been decomposed:
 
-| File | Lines | Problem |
-|---|---|---|
-| `DashboardClient.tsx` | 2,800+ | Can't see state declarations AND JSX usage in one pass → guards added without state variable, state vars added without checking all usages |
-| `SlateDropClient.tsx` | 2,030 | Decomposition planned but not done → fixes must be applied in a blind-spot area |
-| `ClientPage.tsx` (Project Hub) | 834 | Over-limit; mutation logic and display logic interleaved |
-| 9 of 14 Tier-3 pages | 300–934 | Each over limit; component dependencies entangled |
+| File | Before | After | Status |
+|---|---|---|---|
+| `DashboardClient.tsx` | 2,800+ | 264 | ✅ Fixed (Phase 4) |
+| `SlateDropClient.tsx` | 2,030 | 282 | ✅ Fixed (7 sub-hooks) |
+| `useDashboardState.ts` | 775 | 244 | ✅ Fixed (6 sub-hooks) |
+| `MarketClient.tsx` | — | 175 | ✅ Under limit |
+| 9 Project Hub tool pages | 300–934 | Unchanged | ⚠️ Still over limit |
 
 **Why this causes fixes to fail:** An AI session patches the part of the file it can see. The coupling effect (wrong state var, missing import, wrong guard scope) exists outside the visible window. The patch compiles but does the wrong thing at runtime.
 
@@ -156,8 +157,8 @@ Code audit Mar 4 2026 confirmed `loadWidgetPrefs()` IS inside `useEffect` at lin
 ### 🔴 Step 5 — Fix BUG-019 (SlateDrop widget extra click)
 In the dashboard widget shell and Project Hub widget shell: when `embedded={true}`, do NOT render the "Open SlateDrop" CTA button — render the `SlateDropClient` directly. Unify the two widget families into one shared `SlateDropWidget` component.
 
-### 🔴 Step 6 — Decompose the monoliths (blocker for all future fixes being reliable)
-Before building new features, extract the sub-components planned in `SLATEDROP.md §3` and enforce the 300-line file limit from `GUARDRAILS.md`. With smaller files, every future AI session will be able to see the full file, and session-boundary partial-fix bugs will stop happening.
+### ✅ Step 6 — Decompose the monoliths (DONE for Dashboard + SlateDrop)
+The main monoliths are now under limits: DashboardClient (264), SlateDropClient (282), useDashboardState (244). 9 Project Hub tool pages remain over 300 lines but are not critical path.
 
 ---
 
@@ -184,9 +185,9 @@ Before building new features, extract the sub-components planned in `SLATEDROP.m
 | Item | Description | Priority |
 |---|---|---|
 | `file_folders` → `project_folders` migration | Phase 2: Design Studio page, export-zip route, audit trail service, cross-tab upload service still reference `file_folders`. New code must use `project_folders` only. | High |
-| 300-line limit violations | Multiple tool pages exceed 300 lines: Submittals (565), Management (930+), Photos (594), Schedule (452). Each needs subcomponent extraction (form → `XxxForm.tsx`, row → `XxxRow.tsx`). | Medium |
+| 300-line limit violations | Project Hub tool pages exceed 300 lines: Submittals (565), Management (930+), Photos (594), Schedule (452). Each needs subcomponent extraction (form → `XxxForm.tsx`, row → `XxxRow.tsx`). Dashboard and SlateDrop monoliths are resolved. | Medium |
 | Google DrawingManager removed (May 2026) | Replaced with custom `google.maps.Polyline` + `google.maps.Polygon` click-based drawing in Geospatial. Verify on all map interactions. | Medium |
-| `SlateDropClient.tsx` size | Approaching 300-line limit — extract: `FolderTreeItem`, `ContextMenu`, `FileGrid`, `NotificationTray` | Medium |
+| Homepage over 300-line limit | `app/page.tsx` is 775 lines — Phase 6 of DESIGN_UI_OVERHAUL_PLAN.md targets extraction into Hero/Features/Pricing/CTA sections. | Medium |
 | **PWA infrastructure gap** | Marketing pages (`/features/ecosystem-apps`, `/plans`) claim PWA-ready and “Free standalone 360 Tour PWA” but ZERO PWA infra exists: no `manifest.webmanifest`, no service worker, no `next-pwa` package. Must be built in Phase 3. | Medium |
 | **Standalone app subscription system** | No `org_feature_flags` table, no per-app Stripe products, no standalone app routing. Required for app ecosystem model. See FUTURE_FEATURES.md Phase 3. | Medium |
 | **Missing planned DB tables** | 6 tables needed for Phases 1–3: `project_activity_log`, `slatedrop_audit_log`, `slatedrop_shares`, `slatedrop_packs`, `org_feature_flags`, `credits_ledger`. SQL in FUTURE_FEATURES.md §Phase 3E. | Medium |

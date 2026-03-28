@@ -1,6 +1,6 @@
 # Slate360 — Project Memory
 
-Last Updated: 2026-03-11
+Last Updated: 2026-03-28
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -145,119 +145,110 @@ Use those files only for deep history, roadmap, or recovery work.
 
 ## Known Monolith Files (read state + JSX together)
 
-| File | Lines | Risk |
+| File | Lines | Status |
 |---|---|---|
-| `lib/hooks/useDashboardState.ts` | 246 | ✅ Under limit — 6 sub-hooks extracted |
-| `components/slatedrop/SlateDropClient.tsx` | 451 | Decomposed but still large; multi-phase upload + preview logic |
-| `app/(dashboard)/project-hub/[projectId]/management/page.tsx` | 931 | Oversized — needs extraction |
-| `app/(dashboard)/project-hub/[projectId]/photos/page.tsx` | 599 | Oversized — needs extraction |
-| `app/(dashboard)/project-hub/[projectId]/submittals/page.tsx` | 579 | Oversized — needs extraction |
-| `app/(dashboard)/project-hub/[projectId]/schedule/page.tsx` | 465 | Oversized — needs extraction |
-| `app/(dashboard)/project-hub/[projectId]/drawings/page.tsx` | 448 | Oversized — needs extraction |
-| `app/(dashboard)/project-hub/[projectId]/budget/page.tsx` | 421 | Oversized — needs extraction |
-| `app/(dashboard)/project-hub/[projectId]/punch-list/page.tsx` | 403 | Oversized — needs extraction |
-| `app/(dashboard)/project-hub/[projectId]/daily-logs/page.tsx` | 358 | Oversized — needs extraction |
-| `app/(dashboard)/project-hub/[projectId]/rfis/page.tsx` | 339 | Oversized — needs extraction |
+| `components/dashboard/DashboardClient.tsx` | 264 | ✅ Under limit — 5 extractions + 6 sub-hooks |
+| `lib/hooks/useDashboardState.ts` | 244 | ✅ Under limit — thin orchestrator (6 sub-hooks) |
+| `components/slatedrop/SlateDropClient.tsx` | 282 | ✅ Under limit — 7 sub-hooks extracted |
+| `components/dashboard/market/MarketClient.tsx` | 175 | ✅ Under limit |
+| `components/shared/DashboardHeader.tsx` | 286 | ✅ Under limit |
+| `app/page.tsx` | 775 | ⚠️ Over limit — Phase 6 (homepage decomposition) |
+| `app/(dashboard)/project-hub/[projectId]/management/page.tsx` | 931 | ⚠️ Over limit — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/photos/page.tsx` | 599 | ⚠️ Over limit — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/submittals/page.tsx` | 579 | ⚠️ Over limit — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/schedule/page.tsx` | 465 | ⚠️ Over limit — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/drawings/page.tsx` | 448 | ⚠️ Over limit — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/budget/page.tsx` | 421 | ⚠️ Over limit — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/punch-list/page.tsx` | 403 | ⚠️ Over limit — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/daily-logs/page.tsx` | 358 | ⚠️ Over limit — needs extraction |
+| `app/(dashboard)/project-hub/[projectId]/rfis/page.tsx` | 339 | ⚠️ Over limit — needs extraction |
 
-When editing these, always read both the state declarations AND the JSX sections.
+When editing oversized files, always read both the state declarations AND the JSX sections.
 
 ## Latest Session Handoff
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-28 (Phase 5B: useDashboardState Sub-Hook Decomposition — Complete)
+### Session Handoff — 2026-03-28 (Catch-Up: All TS Errors Fixed, Navy Purge Complete, UI Fixes Pushed)
 
-#### What Changed
-- `lib/hooks/useBillingState.ts` (NEW, 81 lines): billing portal, buy credits, upgrade plan
-- `lib/hooks/useWidgetPrefsState.ts` (NEW, 155 lines): widget prefs, drag-reorder, save/reset
-- `lib/hooks/useAccountState.ts` (NEW, 154 lines): account overview, API keys, preferences
-- `lib/hooks/useWeatherState.ts` (NEW, 104 lines): geolocation, weather fetch, logging
-- `lib/hooks/useSuggestFeatureState.ts` (NEW, 40 lines): suggest-feature form + submit
-- `lib/hooks/useNotificationsState.ts` (NEW, 38 lines): unread notifications fetch
-- `lib/hooks/useDashboardState.ts`: 775 → 246 lines (under 300 limit). Now a thin orchestrator that imports 6 sub-hooks
-- Commit `469d906`, not yet pushed
-
-#### What's Broken / Partially Done
-- Nothing broken. `npx tsc --noEmit` passes with 0 errors.
-
-#### Next Steps (Ordered)
-
-1. **Phase 5.5 — Zod validation** (add per-route as touched, not a bulk pass).
-
-2. **SlateDropClient decomposition** — 451 lines, over 300-line limit.
-
-3. **Codebase-wide navy purge** — 60+ files still have `#1E3A8A`.
-
-#### Module Health Summary
-
-| Module | Status | Main File(s) | Lines | Action |
-|--------|--------|-------------|-------|--------|
-| **Dashboard** | ✅ Under limit | `DashboardClient.tsx` | 277 | Done |
-| **Dashboard State** | ✅ Under limit | `useDashboardState.ts` | 246 | Done (6 sub-hooks) |
-| **DashboardMyAccount** | ✅ Under limit | `DashboardMyAccount.tsx` | 267 | Done |
-| **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 164 | Fund wallet → test |
-| **SlateDrop** | ⚠️ Over limit | `SlateDropClient.tsx` | 451 | Decompose |
-
-#### Sub-Hook Registry (Dashboard)
-
-| Hook | Lines | Domain |
-|------|-------|--------|
-| `useBillingState` | 81 | Billing portal, credits, plan upgrades |
-| `useWidgetPrefsState` | 155 | Widget prefs, drag-reorder, save/reset |
-| `useAccountState` | 154 | Account overview, API keys, preferences |
-| `useWeatherState` | 104 | Geolocation, weather, logging |
-| `useSuggestFeatureState` | 40 | Suggest-feature form + submit |
-| `useNotificationsState` | 38 | Unread notifications fetch |
+#### What Changed (This Session)
+- **Logo fix:** DashboardHeader logo now links to `/` (homepage) instead of `/dashboard`
+- **Mobile Quick Access removed:** Removed orange `MobileQuickAccess` component from dashboard (redundant with header QuickNav)
+- **Debug banner removed:** Removed blue runtime/branch/org debug banner from DashboardClient
+- **SlateDropClient TS errors fixed:** `useSlateDropUiState` now imports `DbFile` from `@/lib/slatedrop/helpers` (was missing `type: "file"` discriminator)
+- **MarketClient TS error fixed:** Added `chainId`, `onSwitchToPolygon`, `isSwitchingChain` to `WalletSnapshot` interface and `MarketLiveWalletTab` props
+- **Navy purge complete:** Replaced `#1E3A8A` in last 3 files (contacts API, widgets API, AddContactModal) — zero remaining
+- **Cleaned up unused state:** Removed `mobileNavOpen`/`setMobileNavOpen` from `useDashboardState`
 
 #### Git State
-- HEAD: `469d906` (refactor: decompose useDashboardState into 6 domain sub-hooks — Phase 5B)
-- Not yet pushed to origin/main
-- Clean working tree
+- HEAD: `01bbdf8` — pushed to `origin/main`, clean working tree
+- Vercel auto-deploying from this commit
 
-#### Auth System Status — COMPLETE ✅
-All paths working: signup → confirmation email → `/dashboard`, existing email → sign-in prompt, forgot password, resend confirmation.
+#### TypeScript Status
+- **0 errors** across entire codebase (`npx tsc --noEmit` passes clean)
 
-#### What's Still Broken / Needs Work
-- **60+ files still have `#1E3A8A`** — only homepage/signup/login/globals.css were done in this session. Need a codebase-wide navy purge (dashboard, project-hub, slatedrop, features pages, email templates)
-- **`DashboardClient.tsx`** — 1,954 lines, needs decomposition (Phase 4 of `DESIGN_UI_OVERHAUL_PLAN.md`)
-- **`components/ui/`** — only 3 files, missing all shadcn basics (Phase 3)
-- **Creator tier** missing `canAccessHub: true` in `lib/entitlements.ts` — user saw limited tabs on trial login
-- **Mobile optimization** — not started
-- **SEO** — minimal, needs metadata/OG images
-- **Email templates** (`lib/email.ts`) — still use `#1E3A8A` navy header background
+#### What's NOT Broken
+- Auth system: fully working (signup, login, forgot password, email confirmation)
+- Dashboard: 264 lines, all extractions done, 6 sub-hooks working
+- SlateDrop: 282 lines, 7 sub-hooks wired
+- Market Robot: 175 lines, compiles clean (paused — needs wallet funding to test)
+- Navy purge: 0 files with `#1E3A8A` remaining
 
-#### Accesses Confirmed Working
-- **Supabase admin**: `createAdminClient()` via `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`
-- **Resend API**: `re_UmiW3RXd_...` — domain `slate360.ai` verified, sending works
-- **Vercel CLI**: `vercel whoami` → `slate360ceo-8370`, can list deploys + pull/push env vars
-- **Git**: push to `origin/main` triggers Vercel auto-deploy
-- **AWS S3**: bucket `slate360-storage`, region `us-east-2`, client in `lib/s3.ts`
+#### Design & UI Overhaul Phase Tracker (see `DESIGN_UI_OVERHAUL_PLAN.md`)
 
-#### Next Steps (Ordered)
-1. **Push the pending commit** (see commands above)
-2. **Codebase-wide navy purge** — `grep -r "#1E3A8A" --include="*.tsx" --include="*.ts" --include="*.css" -l` to find all remaining files, then batch-replace
-3. **Install shadcn/ui** — `npx shadcn@latest init` then add Button, Card, Dialog, Input, Badge, Tabs primitives
-4. **Fix entitlements** — add `canAccessHub: true` to creator tier in `lib/entitlements.ts`
-5. **Dashboard decomposition** — extract My Account, tab panels, header from `DashboardClient.tsx`
-6. **Mobile responsive pass** — viewport meta, responsive nav, touch targets
-7. **SEO** — metadata, OG images, structured data for construction industry keywords
+| Phase | Description | Status |
+|---|---|---|
+| 0 | Fix remote (force-push) | ✅ Complete |
+| 1 | CSS design tokens in globals.css | ✅ Complete |
+| 2 | Navy `#1E3A8A` purge | ✅ Complete — 0 files remaining |
+| 3 | Install shadcn UI primitives | ✅ Complete — 13 files in `components/ui/` |
+| 3.5 | Guardrails (Husky, lint-staged, CI) | ✅ Complete |
+| 4 | DashboardClient decomposition | ✅ Complete — 1,961 → 264 lines |
+| 5 | Entitlements fix (creator `canAccessHub`) | ✅ Complete |
+| 5B | useDashboardState sub-hook decomposition | ✅ Complete — 775 → 244 lines, 6 sub-hooks |
+| 5.5 | Zod API validation (per-route) | ⬜ Not started — add incrementally as routes are touched |
+| **6** | **Homepage decomposition (775 lines)** | **⬜ Next** |
+| 7 | Visual polish | ⬜ Not started |
+| 8 | New feature readiness | ⬜ Not started |
 
-#### What's Broken / Needs Attention
-- Remote `origin/main` had broken commit `8a3ab35` — force-push applied to fix
-- `DashboardClient.tsx` is still 1,954 lines (decomposition in Phase 4)
-- 60+ files still contain `#1E3A8A` navy blue (purge in Phase 2)
-- `components/ui/` only has 3 files — missing all shadcn basics (Phase 3)
-- Creator tier missing `canAccessHub: true` in `lib/entitlements.ts` (Phase 5)
-- 9 orphaned widget files not imported anywhere (Phase 4.5)
+Also completed outside plan:
+- SlateDropClient decomposition: 451 → 282 lines (7 sub-hooks)
+- Logo, mobile quick-access, debug banner UI fixes
+- All TS errors resolved (was 4, now 0)
 
 #### Module Health Summary
 
-| Module | Status | Main File(s) | Lines | Action Needed |
-|--------|--------|-------------|-------|---------------|
-| **Market Robot** | ⏸️ Paused (Prompts 11-16 remain) | `MarketClient.tsx` | 164 | Fund wallet → test $1 buy → continue prompts |
-| **Dashboard** | ⚠️ Live but monolithic | `DashboardClient.tsx` | 1,954 | Phase 4 of DESIGN_UI_OVERHAUL_PLAN.md |
-| **SlateDrop** | ✅ Good shape | `SlateDropClient.tsx` | 451 | BUG-001 phase 2 (folder migration) |
-| **Project Hub** | ⚠️ Live, 9 oversized files | `ClientPage.tsx` | 255 | 9 tool pages exceed 300 lines |
+| Module | Status | Main File | Lines | Notes |
+|--------|--------|-----------|-------|-------|
+| **Dashboard** | ✅ Done | `DashboardClient.tsx` | 264 | 5 extractions + 6 sub-hooks |
+| **Dashboard State** | ✅ Done | `useDashboardState.ts` | 244 | Thin orchestrator |
+| **DashboardMyAccount** | ✅ Done | `DashboardMyAccount.tsx` | 267 | Under limit |
+| **DashboardHeader** | ✅ Done | `DashboardHeader.tsx` | 286 | Shared across all pages |
+| **SlateDrop** | ✅ Done | `SlateDropClient.tsx` | 282 | 7 sub-hooks wired |
+| **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 175 | Needs wallet funding to test |
+| **Homepage** | ⚠️ Over limit | `app/page.tsx` | 775 | Phase 6 target |
+| **Project Hub pages** | ⚠️ 9 files over limit | Various | 339-931 | Future extraction needed |
+
+#### Sub-Hook Registry
+
+**Dashboard (6 hooks):**
+`useBillingState` (81), `useWidgetPrefsState` (155), `useAccountState` (154), `useWeatherState` (104), `useSuggestFeatureState` (40), `useNotificationsState` (38)
+
+**SlateDrop (7 hooks):**
+`useSlateDropUiState`, `useSlateDropFiles`, `useSlateDropPreviewUrl`, `useSlateDropUploadActions`, `useSlateDropInteractionHandlers`, `useSlateDropTransferActions`, `useSlateDropMutationActions`
+
+#### Next Steps (Ordered)
+1. **Phase 6 — Homepage decomposition** (`app/page.tsx` 775 → ~100 lines)
+2. **Phase 7 — Visual polish** (card patterns, spacing, loading states)
+3. **Phase 8 — New feature readiness** (DashboardTabShell wiring, UpgradeGate)
+4. **Project Hub page extractions** (9 files over 300-line limit)
+
+#### Accesses Confirmed Working
+- **Supabase admin**: `createAdminClient()` via `SUPABASE_SERVICE_ROLE_KEY`
+- **Resend API**: domain `slate360.ai` verified, sending works
+- **Vercel CLI**: `vercel whoami` → `slate360ceo-8370`
+- **Git**: push to `origin/main` triggers Vercel auto-deploy
+- **AWS S3**: bucket `slate360-storage`, region `us-east-2`
 | **Design Studio** | 🔲 Scaffolded only | `DesignStudioShell.tsx` | 37 | Full build needed |
 | **360 Tour Builder** | 🔲 Scaffolded only | `ToursShell.tsx` | 37 | Full build needed |
 

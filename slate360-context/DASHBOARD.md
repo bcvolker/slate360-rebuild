@@ -142,7 +142,7 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 |---|---|---|---|
 | DashboardHeader | `components/shared/DashboardHeader.tsx` | ~280 | ✅ NEW — unified top bar (dashboard home + all tabs) |
 | DashboardTabShell | `components/shared/DashboardTabShell.tsx` | ~94 | ✅ Shared scaffold (uses DashboardHeader, light theme, isCeo) |
-| DashboardClient | `components/dashboard/DashboardClient.tsx` | ~2,043 | ⚠️ Needs decomposition (header extracted; runtime data + floating window + widget prefs + multiple widget views moved to hooks/components) |
+| DashboardClient | `components/dashboard/DashboardClient.tsx` | 264 | ✅ Decomposed (Phase 4 complete — 5 extractions + 6 sub-hooks) |
 | DashboardWidgetGrid | `components/dashboard/DashboardWidgetGrid.tsx` | 41 | ✅ Extracted grid shell for draggable widget cards |
 | DashboardWidgetPopout | `components/dashboard/DashboardWidgetPopout.tsx` | 102 | ✅ Extracted widget popout frame/shell |
 | DashboardDataUsageWidget | `components/dashboard/DashboardDataUsageWidget.tsx` | 124 | ✅ Extracted data-usage widget view |
@@ -154,7 +154,7 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 | DashboardSuggestWidget | `components/dashboard/DashboardSuggestWidget.tsx` | 105 | ✅ Extracted suggest-feature widget view |
 | DashboardContactsWidget | `components/dashboard/DashboardContactsWidget.tsx` | 83 | ✅ Extracted contacts widget view |
 | DashboardSeatsWidget | `components/dashboard/DashboardSeatsWidget.tsx` | 109 | ✅ Extracted seat-management widget view |
-| MarketClient | `components/dashboard/MarketClient.tsx` | 3,006 | ⚠️ Needs decomposition |
+| MarketClient | `components/dashboard/market/MarketClient.tsx` | 175 | ✅ Under limit (0 TS errors) |
 | LocationMap | `components/dashboard/LocationMap.tsx` | 1,864 | ⚠️ Needs decomposition (BUG-018 drawing-library migration complete; all drawing tools now native) |
 | AnalyticsReportsClient | `components/dashboard/AnalyticsReportsClient.tsx` | ~245 | ✅ Report builder UI (saved reports + export actions) |
 | DashboardProjectCard | `components/dashboard/DashboardProjectCard.tsx` | 275 | ✅ OK |
@@ -163,40 +163,30 @@ Widgets appear on both Dashboard and Project Hub Tier 2, sharing identically fro
 
 ### Decomposition Targets
 
-**DashboardClient.tsx (2,852 → ~10 files):**
-```
-DashboardClient.tsx        → ~150 lines (layout shell)
-DashboardHeader.tsx        → ✅ DONE (~280 lines, shared by all pages)
-useDashboardRuntimeData.ts → ✅ STARTED (summary/widgets/deploy/weather/geolocation extraction)
-useDashboardFloatingWindows.ts → ✅ STARTED (SlateDrop + widget popout window drag/resize state/handlers extraction)
-useDashboardWidgetPrefs.ts → ✅ STARTED (widget visibility/size/order persistence, drag-reorder, drawer metadata)
-DashboardWidgetGrid.tsx   → ✅ STARTED (widget grid rendering shell)
-DashboardWidgetPopout.tsx → ✅ STARTED (widget popout shell)
-DashboardDataUsageWidget.tsx → ✅ STARTED (data usage widget view)
-DashboardProcessingWidget.tsx → ✅ STARTED (processing jobs widget view)
-DashboardFinancialWidget.tsx → ✅ STARTED (financial snapshot widget view)
-DashboardCalendarWidget.tsx → ✅ STARTED (calendar widget view)
-DashboardWeatherWidget.tsx → ✅ STARTED (weather widget view)
-DashboardContinueWidget.tsx → ✅ STARTED (continue-working widget view)
-DashboardSuggestWidget.tsx → ✅ STARTED (suggest-feature widget view)
-DashboardContactsWidget.tsx → ✅ STARTED (contacts widget view)
-DashboardSeatsWidget.tsx → ✅ STARTED (seat-management widget view)
-DashboardStatsGrid.tsx     → stat cards row
-DashboardProjectCards.tsx  → project carousel section
-DashboardActivityFeed.tsx  → activity section
-DashboardWidgetGrid.tsx    → widget grid container
-```
+**DashboardClient.tsx — ✅ COMPLETE (1,961 → 264 lines)**
 
-**MarketClient.tsx (3,006 → ~8 files):**
-```
-MarketClient.tsx          → ~150 lines (layout shell)
-MarketListingCard.tsx     → individual listing card
-MarketListingGrid.tsx     → grid/list view
-MarketCreateForm.tsx      → create/edit flow
-MarketFilterBar.tsx       → search/filter controls
-MarketBotPanel.tsx        → AI bot interface
-MarketDetailModal.tsx     → listing detail view
-```
+Extracted components:
+- `DashboardMyAccount.tsx` (267 lines) — billing, profile, subscription UI
+- `DashboardOverview.tsx` — project carousel, quick actions, widget grid
+- `DashboardSidebar.tsx` — tab list, navigation
+- `DashboardSlateDropWindow.tsx` — floating SlateDrop panel
+- `DashboardWidgetGrid.tsx` / `DashboardWidgetRenderer.tsx` — widget rendering
+
+Extracted hooks from `useDashboardState.ts` (775 → 244 lines):
+- `useBillingState` (81) — billing portal, credits, plan upgrades
+- `useWidgetPrefsState` (155) — widget prefs, drag-reorder, save/reset
+- `useAccountState` (154) — account overview, API keys, preferences
+- `useWeatherState` (104) — geolocation, weather fetch, logging
+- `useSuggestFeatureState` (40) — suggest-feature form + submit
+- `useNotificationsState` (38) — unread notifications fetch
+
+Widget components (all extracted):
+- `DashboardDataUsageWidget.tsx`, `DashboardProcessingWidget.tsx`, `DashboardFinancialWidget.tsx`
+- `DashboardCalendarWidget.tsx`, `DashboardWeatherWidget.tsx`, `DashboardContinueWidget.tsx`
+- `DashboardSuggestWidget.tsx`, `DashboardContactsWidget.tsx`, `DashboardSeatsWidget.tsx`
+
+**MarketClient.tsx — ✅ Under limit (175 lines)**
+Already decomposed into `components/dashboard/market/` directory (39 files). Orchestrator at 175 lines.
 
 **LocationMap.tsx (1,568 → ~5 files):**
 ```

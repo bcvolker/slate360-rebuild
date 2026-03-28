@@ -27,7 +27,7 @@ SlateDrop is Slate360's file management system. It provides a full file explorer
 
 | Component | File | Lines | Purpose |
 |---|---|---|---|
-| SlateDropClient | `components/slatedrop/SlateDropClient.tsx` | **577** | Main explorer orchestration shell (decomposition in progress; optional render-wiring polish applied) |
+| SlateDropClient | `components/slatedrop/SlateDropClient.tsx` | **282** | ✅ Main explorer orchestration shell (decomposition complete — 7 sub-hooks extracted) |
 | SlateDropContextMenu | `components/slatedrop/SlateDropContextMenu.tsx` | ~240 | Extracted context-menu render/actions surface from `SlateDropClient` |
 | SlateDropActionModals | `components/slatedrop/SlateDropActionModals.tsx` | ~300 | Extracted new-folder/rename/delete/move modal UI surface from `SlateDropClient` |
 | SlateDropSharePreviewModals | `components/slatedrop/SlateDropSharePreviewModals.tsx` | ~260 | Extracted secure-send and preview modal UI surface from `SlateDropClient` |
@@ -59,9 +59,10 @@ Used by:
 - Dashboard SlateDrop widget compact folder grid
 - Project Hub SlateDrop widget compact folder grid
 
-### SlateDropClient Decomposition Target
+### SlateDropClient Decomposition — ✅ COMPLETE
+Reduced from 451 → 282 lines. All state and logic extracted into 7 sub-hooks + 7 render components.
 ```
-SlateDropClient.tsx       → ~200 lines (layout shell)
+SlateDropClient.tsx       → 282 lines (layout shell + orchestrator)
 SlateDropSidebar.tsx      → folder tree sidebar
 SlateDropToolbar.tsx      → breadcrumb + controls
 SlateDropNotificationsOverlay.tsx → toast + upload-progress overlays
