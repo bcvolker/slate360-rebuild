@@ -54,9 +54,8 @@ Tier note:
 | If you are working on | Read |
 |---|---|
 | Market Robot | `slate360-context/dashboard-tabs/market-robot/START_HERE.md` |
-| Design Studio | `slate360-context/dashboard-tabs/design-studio/START_HERE.md`, then `BUILD_GUIDE.md` |
-| Content Studio | `slate360-context/dashboard-tabs/content-studio/START_HERE.md`, then `BUILD_GUIDE.md` |
-| 360 Tour Builder | `slate360-context/dashboard-tabs/tour-builder/START_HERE.md`, then `BUILD_GUIDE.md` |
+| Design Studio | `slate360-context/dashboard-tabs/design-studio/START_HERE.md` |
+| 360 Tour Builder | `slate360-context/dashboard-tabs/tour-builder/START_HERE.md` |
 | Backend/auth/billing/storage | `slate360-context/BACKEND.md` |
 | Shared dashboard/tab behavior | `slate360-context/DASHBOARD.md`, `slate360-context/dashboard-tabs/MODULE_REGISTRY.md`, `slate360-context/dashboard-tabs/CUSTOMIZATION_SYSTEM.md` |
 | Project Hub | `slate360-context/PROJECT_HUB.md` |
@@ -64,11 +63,6 @@ Tier note:
 | Widgets | `slate360-context/WIDGETS.md` |
 | Active bugs | `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json` |
 | Release readiness | `ops/module-manifest.json`, `ops/release-gates.json` |
-| Dashboard/Project Hub/SlateDrop refactoring | `slate360-context/refactor/DASHBOARD_REFACTOR_GUIDE.md`, `slate360-context/refactor/PROJECT_HUB_REFACTOR_GUIDE.md`, `slate360-context/refactor/SLATEDROP_REFACTOR_GUIDE.md` |
-| App ecosystem strategy / Stripe / PWA / app stores | `slate360-context/apps/APP_ECOSYSTEM_GUIDE.md` |
-| PunchWalk app | `slate360-context/apps/PUNCHWAIK_BUILD_GUIDE.md` |
-| **Full ordered build sequence (start here for any new work)** | `slate360-context/MASTER_BUILD_SEQUENCE.md` |
-| Revenue math, pricing, timeline, agent collaboration, app store strategy | `slate360-context/REVENUE_ROADMAP.md` |
 
 ## Backend Quick Access
 
@@ -153,7 +147,7 @@ Use those files only for deep history, roadmap, or recovery work.
 
 | File | Lines | Risk |
 |---|---|---|
-| `lib/hooks/useDashboardState.ts` | 775 | State hook — cohesive but large; split sub-hooks in future phase |
+| `lib/hooks/useDashboardState.ts` | 246 | ✅ Under limit — 6 sub-hooks extracted |
 | `components/slatedrop/SlateDropClient.tsx` | 451 | Decomposed but still large; multi-phase upload + preview logic |
 | `app/(dashboard)/project-hub/[projectId]/management/page.tsx` | 931 | Oversized — needs extraction |
 | `app/(dashboard)/project-hub/[projectId]/photos/page.tsx` | 599 | Oversized — needs extraction |
@@ -171,126 +165,125 @@ When editing these, always read both the state declarations AND the JSX sections
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-28 (PunchWalk Enterprise + bulk licensing + REVENUE_ROADMAP bundle pricing)
+### Session Handoff — 2026-03-28 (Phase 5B: useDashboardState Sub-Hook Decomposition — Complete)
 
 #### What Changed
-- `slate360-context/apps/PUNCHWAIK_BUILD_GUIDE.md`: NEW Enterprise Tier section added — PunchWalk pricing table (Standalone $39 → Team $99 → Enterprise $299), who buys it (GC companies, CM firms, capital programs, facility management), shared portal route (`/portal/punch-walk`), bulk seat licensing with same `org_invite_tokens` infra as Tour Builder, org-level PDF/CSV export for enterprise, 4-prompt enterprise sequence (PW-E1 through PW-E4), go-to-market plan (AGC/ABC outreach, Procore integration hook, bundle with Tour Builder).
-- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`: NEW "Bulk Licensing — Company Seat Purchase and Employee Download Flow" section — admin buys org plan → Stripe checkout → N seats in `org_feature_flags` → invites employees via magic link (`org_invite_tokens` table) → employees accept invite, create/link Slate360 account → granted portal role → download app from App Store with their own account → entitlement check on login grants access. Volume discount table. Schema for `org_invite_tokens` + seat limit columns. Security notes (single-use tokens, atomic seat increment, server-side validation).
-- `slate360-context/REVENUE_ROADMAP.md`: Added PunchWalk enterprise pricing table, bundle pricing (Tour Builder Team + PunchWalk Team = $199/mo; Enterprise Bundle = $699/mo), revised blended scenario (44 entities → $6,766/mo via larger average contract size).
+- `lib/hooks/useBillingState.ts` (NEW, 81 lines): billing portal, buy credits, upgrade plan
+- `lib/hooks/useWidgetPrefsState.ts` (NEW, 155 lines): widget prefs, drag-reorder, save/reset
+- `lib/hooks/useAccountState.ts` (NEW, 154 lines): account overview, API keys, preferences
+- `lib/hooks/useWeatherState.ts` (NEW, 104 lines): geolocation, weather fetch, logging
+- `lib/hooks/useSuggestFeatureState.ts` (NEW, 40 lines): suggest-feature form + submit
+- `lib/hooks/useNotificationsState.ts` (NEW, 38 lines): unread notifications fetch
+- `lib/hooks/useDashboardState.ts`: 775 → 246 lines (under 300 limit). Now a thin orchestrator that imports 6 sub-hooks
+- Commit `469d906`, not yet pushed
 
-#### Stripe CLI — How to Use in Every New Codespace
-1. Codespace opens → `post-create.sh` installs Stripe CLI automatically
-2. `stripe login` — once per Codespace (opens browser OAuth)
-3. Terminal 1: `npm run dev`
-4. Terminal 2: `npm run stripe:listen`
-5. Terminal 3: `npm run stripe:trigger:sub`
-6. Verify `org_tier` updated in Supabase → C1 done
+#### What's Broken / Partially Done
+- Nothing broken. `npx tsc --noEmit` passes with 0 errors.
 
-#### Owner Decisions Still Needed
-1. Confirm scope reduction: pause Geospatial/Virtual Studio? archive Athlete360?
-2. Enterprise pricing confirmed? (Tour Builder Team $149, Enterprise $499; PunchWalk Team $99, Enterprise $299)
-3. Bundle pricing confirmed? ($199 Team Bundle, $699 Enterprise Bundle)
-4. Start beta outreach? Create `BETA50` Stripe coupon?
-5. First enterprise prospect to approach: capital program dept / realtor office / GC company?
+#### Next Steps (Ordered)
 
-#### Next Execution Steps (Revenue-First Order)
-1. **C1** — Stripe smoke-test (test card + webhook + DB tier update)
-2. **C2** — Create Stripe products for Tour Builder + PunchWalk (Stripe Dashboard UI — no code)
-3. **C3–C5** — `org_feature_flags` table + entitlement update + webhook writes
-4. **D1** — Tour Builder schema (`project_tours`, `tour_scenes`, `org_storage_usage`, seat columns)
-5. **D2–D7** — Tour Builder builder: CRUD → upload + validation → viewer → branding → publish + embed
-6. **E1–E3** — Tour Builder standalone landing + Stripe checkout + gate
-7. Then: PunchWalk A1–A8 + C1–C2 (field app MVP)
-8. Then: Enterprise J1–J5 + PW-E1–E4 (meeting mode, portal, seat management)
+1. **Phase 5.5 — Zod validation** (add per-route as touched, not a bulk pass).
 
-#### Context Files Updated This Session
-- `slate360-context/apps/PUNCHWAIK_BUILD_GUIDE.md`: PunchWalk enterprise + bulk licensing
-- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`: Tour Builder bulk licensing spec
-- `slate360-context/REVENUE_ROADMAP.md`: PunchWalk enterprise pricing + bundle deals
-- `SLATE360_PROJECT_MEMORY.md`: this handoff
+2. **SlateDropClient decomposition** — 451 lines, over 300-line limit.
 
-#### Previous Session Summary (for reference)
-- `.devcontainer/devcontainer.json` + `post-create.sh`: Stripe CLI auto-installs in every Codespace
-- `.env.example`: Environment variable template for new Codespaces
-- `package.json`: `stripe:listen` and `stripe:trigger:sub` scripts added
-- Tour Builder BUILD_GUIDE: Enterprise Meeting Mode, desktop Portal, team seats, white-label, J1–J5 prompts
-- Tour Builder BUILD_GUIDE: Camera/drone compatibility, upload validation, storage quotas, embed code, mobile upload
-- REVENUE_ROADMAP: Startup pricing reality, beta pricing strategy, scope reduction table
-- MASTER_BUILD_SEQUENCE: Group J enterprise prompts, scope reduction table
+3. **Codebase-wide navy purge** — 60+ files still have `#1E3A8A`.
 
-### Session Handoff — 2026-03-28 (Enterprise tier + devcontainer + Stripe CLI + branding features)
+#### Module Health Summary
 
-#### What Changed
-- `.devcontainer/devcontainer.json` (NEW): Devcontainer config for GitHub Codespaces. Uses `mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm` + `ghcr.io/devcontainers-contrib/features/stripe-cli:1` feature. Forwards port 3000. Runs `post-create.sh` automatically.
-- `.devcontainer/post-create.sh` (NEW): Installs Stripe CLI if feature fails, initializes Husky hooks, warns if `.env.local` is missing.
-- `.env.example` (NEW): Template for all environment variables. Copy to `.env.local` for local dev.
-- `package.json`: Added `stripe:listen` and `stripe:trigger:sub` npm scripts for local webhook testing.
-- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`: Major additions — (1) "Logo/Branding Scope" expanded with Phase 2 branding features: nadir/tripod cover (sharp.js server-side compositing), text overlays (scene-level hotspots), default viewing angle (`initial_yaw/pitch/fov` columns), keyframe/intro animation (`intro_animation_json JSONB`), effects (Phase 3). (2) NEW "Enterprise Tier" section with full spec: Meeting Mode (Supabase Realtime sync for coordination meetings), desktop Portal layout, team seat management, white-label, Enterprise prompt sequence J1–J5, go-to-market plan for capital programs / realtor offices.
-- `slate360-context/REVENUE_ROADMAP.md`: Added Enterprise pricing tiers (Standalone $49 → Team $149 → Enterprise $499), revised blended scenario showing 51 contracts reaching $7k faster than 68 standalone subscribers, Enterprise math and sales strategy.
-- `slate360-context/MASTER_BUILD_SEQUENCE.md`: Added Group J (Enterprise) with J1–J5 prompts, updated total prompt count to ~67, added fastest paths table ("19 prompts to first revenue", "24 prompts to $7k path").
+| Module | Status | Main File(s) | Lines | Action |
+|--------|--------|-------------|-------|--------|
+| **Dashboard** | ✅ Under limit | `DashboardClient.tsx` | 277 | Done |
+| **Dashboard State** | ✅ Under limit | `useDashboardState.ts` | 246 | Done (6 sub-hooks) |
+| **DashboardMyAccount** | ✅ Under limit | `DashboardMyAccount.tsx` | 267 | Done |
+| **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 164 | Fund wallet → test |
+| **SlateDrop** | ⚠️ Over limit | `SlateDropClient.tsx` | 451 | Decompose |
 
-#### Stripe CLI — How to Use in New Codespace
-1. Open the Codespace — `post-create.sh` installs Stripe CLI automatically
-2. Run `stripe login` once (opens browser for OAuth — required per Codespace)
-3. Terminal 1: `npm run dev`
-4. Terminal 2: `npm run stripe:listen` (starts webhook forwarding to localhost:3000)
-5. Terminal 3: `npm run stripe:trigger:sub` (sends test subscription.created event)
-6. Verify in DB that `org_tier` updated correctly → C1 complete
+#### Sub-Hook Registry (Dashboard)
 
-#### Owner Decisions Still Needed
-- Confirm scope reduction: pause Geospatial & Robotics / Virtual Studio? archive Athlete360?
-- Start beta outreach? Create `BETA50` Stripe coupon (50% off for first 20 subscribers)?
-- Confirm Enterprise pricing tiers (Team $149/mo, Enterprise $499/mo recommended)?
-- Which enterprise prospect to approach first — capital program dept, realtor office, or GC company?
+| Hook | Lines | Domain |
+|------|-------|--------|
+| `useBillingState` | 81 | Billing portal, credits, plan upgrades |
+| `useWidgetPrefsState` | 155 | Widget prefs, drag-reorder, save/reset |
+| `useAccountState` | 154 | Account overview, API keys, preferences |
+| `useWeatherState` | 104 | Geolocation, weather, logging |
+| `useSuggestFeatureState` | 40 | Suggest-feature form + submit |
+| `useNotificationsState` | 38 | Unread notifications fetch |
 
-#### Next Execution Steps (Code — Revenue-First Order)
-1. **C1** — `stripe login` + `npm run stripe:listen` + test card `4242 4242 4242 4242` → verify DB tier update
-2. **C2** — Create Tour Builder + PunchWalk products in Stripe Dashboard (UI, no code)
-3. **C3, C4, C5** — `org_feature_flags` table + entitlement merge + webhook writes flag
-4. **Tour Builder D1** — Schema: `project_tours`, `tour_scenes`, `org_storage_usage`, entitlement columns
-5. **Tour Builder D2–D8** — CRUD API → upload + validation → builder UI → viewer → branding → publish + embed
-6. **Tour Builder E1–E3** — Standalone landing page + Stripe checkout + entitlement gate
-7. **Tour Builder J1–J5** — Enterprise: Meeting Mode + Portal + Team seats (run concurrent with outreach)
+#### Git State
+- HEAD: `469d906` (refactor: decompose useDashboardState into 6 domain sub-hooks — Phase 5B)
+- Not yet pushed to origin/main
+- Clean working tree
 
-#### Context Files Updated
-- `.devcontainer/devcontainer.json`: created
-- `.devcontainer/post-create.sh`: created
-- `.env.example`: created
-- `package.json`: stripe scripts added
-- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`: enterprise + branding
-- `slate360-context/REVENUE_ROADMAP.md`: enterprise pricing + blended scenario
-- `slate360-context/MASTER_BUILD_SEQUENCE.md`: Group J + updated totals
-- `SLATE360_PROJECT_MEMORY.md`: this handoff
+#### Auth System Status — COMPLETE ✅
+All paths working: signup → confirmation email → `/dashboard`, existing email → sign-in prompt, forgot password, resend confirmation.
 
-### Session Handoff — 2026-03-28 (Tour Builder BUILD_GUIDE expanded + REVENUE_ROADMAP startup pricing + scope reduction)
+#### What's Still Broken / Needs Work
+- **60+ files still have `#1E3A8A`** — only homepage/signup/login/globals.css were done in this session. Need a codebase-wide navy purge (dashboard, project-hub, slatedrop, features pages, email templates)
+- **`DashboardClient.tsx`** — 1,954 lines, needs decomposition (Phase 4 of `DESIGN_UI_OVERHAUL_PLAN.md`)
+- **`components/ui/`** — only 3 files, missing all shadcn basics (Phase 3)
+- **Creator tier** missing `canAccessHub: true` in `lib/entitlements.ts` — user saw limited tabs on trial login
+- **Mobile optimization** — not started
+- **SEO** — minimal, needs metadata/OG images
+- **Email templates** (`lib/email.ts`) — still use `#1E3A8A` navy header background
 
-#### What Changed
-- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`: Major expansion — camera/drone format compatibility table (Ricoh Theta, Insta360, GoPro MAX, DJI Osmo 360, DJI drone sphere mode; DJI .DNG rejected); upload validation logic (2:1 aspect ratio + XMP check); mobile upload flow; file size limits per tier (5 GB standalone, 20 GB business); Prompt 7 now includes embed code; embed iframe decisions filled in; "Explicit Non-Goals" recategorized (Google Street View + embed code builder moved from Never to Phase 2); Prompt 3 updated with format validation + quota check + mobile input; Research Intake Template fully filled with competitive landscape (Matterport vs Kuula vs Roundme vs CloudPano), camera format notes, storage tier decisions, UI/UX requirements, embed decisions, and Phase 2 Google Maps notes. Definition of Done and Build Readiness Criteria updated.
-- `slate360-context/REVENUE_ROADMAP.md`: Added "Startup Pricing Reality" section — beta pricing ($24/$19 with 50% coupon for first 20 subscribers), free marketing channel playbook (Facebook groups, Capterra, local outreach, Google Maps as growth hack), scope reduction table (Geospatial/Virtual Studio/Athlete360 = pause/archive), 12-month bridge-to-$7k timeline by month.
-- `slate360-context/MASTER_BUILD_SEQUENCE.md`: Added "Scope Reduction Consideration" table (Geospatial = pause, Virtual Studio = pause, Athlete360 = archive) with instructions for hiding tabs without deleting files. Owner decision required before acting.
+#### Accesses Confirmed Working
+- **Supabase admin**: `createAdminClient()` via `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`
+- **Resend API**: `re_UmiW3RXd_...` — domain `slate360.ai` verified, sending works
+- **Vercel CLI**: `vercel whoami` → `slate360ceo-8370`, can list deploys + pull/push env vars
+- **Git**: push to `origin/main` triggers Vercel auto-deploy
+- **AWS S3**: bucket `slate360-storage`, region `us-east-2`, client in `lib/s3.ts`
 
-#### Owner Decisions Still Needed
-- Confirm scope reduction: pause Geospatial & Robotics tab? pause Virtual Studio tab? archive Athlete360 route?
-- Confirm storage tier limits (5 GB standalone is recommended — see BUILD_GUIDE Research Intake)
-- Confirm embed code approach (same-origin `/v/[tourSlug]?embed=1` recommended)
-- Start beta outreach? Create `BETA50` Stripe coupon?
+#### Next Steps (Ordered)
+1. **Push the pending commit** (see commands above)
+2. **Codebase-wide navy purge** — `grep -r "#1E3A8A" --include="*.tsx" --include="*.ts" --include="*.css" -l` to find all remaining files, then batch-replace
+3. **Install shadcn/ui** — `npx shadcn@latest init` then add Button, Card, Dialog, Input, Badge, Tabs primitives
+4. **Fix entitlements** — add `canAccessHub: true` to creator tier in `lib/entitlements.ts`
+5. **Dashboard decomposition** — extract My Account, tab panels, header from `DashboardClient.tsx`
+6. **Mobile responsive pass** — viewport meta, responsive nav, touch targets
+7. **SEO** — metadata, OG images, structured data for construction industry keywords
 
-#### Next Execution Steps (Code — Revenue-First Order)
-1. **C1** — Stripe smoke test (test card `4242 4242 4242 4242`, verify webhook updates org tier in DB)
-2. **A1** — BUG-018 DrawingManager migration (May 2026 deadline, 3 prompts)
-3. **A2 + A3** — BUG-019 + BUG-001 quick fixes
-4. **C2–C7** — App foundation (entitlements, `org_feature_flags` table, app pages, checkout funnel)
-5. **Tour Builder Prompt 1** — DB schema (`project_tours`, `tour_scenes`, `org_storage_usage` tables)
-6. **Tour Builder Prompt 2** — Tour CRUD API
-7. **Tour Builder Prompt 3** — Upload pipeline with camera format validation + quota check
-8. **Tour Builder Prompts 4–7** — Scene reorder, Pannellum viewer, branding, publish + embed
-9. **Tour Builder standalone** — entitlement gating, landing page, Stripe checkout
+#### What's Broken / Needs Attention
+- Remote `origin/main` had broken commit `8a3ab35` — force-push applied to fix
+- `DashboardClient.tsx` is still 1,954 lines (decomposition in Phase 4)
+- 60+ files still contain `#1E3A8A` navy blue (purge in Phase 2)
+- `components/ui/` only has 3 files — missing all shadcn basics (Phase 3)
+- Creator tier missing `canAccessHub: true` in `lib/entitlements.ts` (Phase 5)
+- 9 orphaned widget files not imported anywhere (Phase 4.5)
 
-#### Context Files Updated
-- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`: camera formats, embeds, quotas, Research Intake
-- `slate360-context/REVENUE_ROADMAP.md`: startup pricing strategy + scope reduction
-- `slate360-context/MASTER_BUILD_SEQUENCE.md`: scope reduction table
-- `SLATE360_PROJECT_MEMORY.md`: this handoff
+#### Module Health Summary
 
-#### Commits
-- `e62c822` — docs: Tour Builder BUILD_GUIDE camera/drone formats, embed code, quota data model, Research Intake filled; REVENUE_ROADMAP startup pricing strategy + scope reduction; MASTER_BUILD_SEQUENCE scope reduction table
+| Module | Status | Main File(s) | Lines | Action Needed |
+|--------|--------|-------------|-------|---------------|
+| **Market Robot** | ⏸️ Paused (Prompts 11-16 remain) | `MarketClient.tsx` | 164 | Fund wallet → test $1 buy → continue prompts |
+| **Dashboard** | ⚠️ Live but monolithic | `DashboardClient.tsx` | 1,954 | Phase 4 of DESIGN_UI_OVERHAUL_PLAN.md |
+| **SlateDrop** | ✅ Good shape | `SlateDropClient.tsx` | 451 | BUG-001 phase 2 (folder migration) |
+| **Project Hub** | ⚠️ Live, 9 oversized files | `ClientPage.tsx` | 255 | 9 tool pages exceed 300 lines |
+| **Design Studio** | 🔲 Scaffolded only | `DesignStudioShell.tsx` | 37 | Full build needed |
+| **360 Tour Builder** | 🔲 Scaffolded only | `ToursShell.tsx` | 37 | Full build needed |
+
+#### Agent Coordination Lessons
+- **Grok 4.2**: Good at UX concepts/research. Invents fictional APIs for hooks (~20 type errors). Protocol: Copilot provides type contracts → Grok writes UI → Copilot verifies.
+- **Gemini 3.1**: Good for design consultation. **Do NOT let it execute code** — truncated globals.css, broke remote. Design mockups/specs only.
+- **Copilot (Claude Opus 4.6)**: Primary codebase owner. All code changes, decomposition, verification.
+
+#### Files to Delete (orphans from prior refactors)
+- `components/dashboard/MarketClient.tsx` (old orphaned copy, 75 lines)
+- `components/dashboard/market/MarketRobotWorkspace.tsx` (unused, 84 lines)
+- `MARKET_ROBOT_STATUS_HANDOFF.md.bak` (backup of old handoff)
+
+#### Priority Order for Next Work
+
+**Tier 0 — Design/UI Overhaul (active plan):**
+Execute `DESIGN_UI_OVERHAUL_PLAN.md` phases 1-8 in order.
+
+**Tier 1 — Revenue/Core:**
+1. Market Robot resume (when wallet funded) — Prompts 11-16
+2. Project Hub decomposition — 9 tool pages need extraction
+
+**Tier 2 — New Features:**
+3. Design Studio build — viewer stack decision first
+4. 360 Tour Builder build — Pannellum integration
+
+**Tier 3 — Polish:**
+5. SlateDrop BUG-001 phase 2
+6. Orphan file cleanup
