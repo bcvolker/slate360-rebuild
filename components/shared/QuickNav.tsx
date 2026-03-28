@@ -74,14 +74,14 @@ export default function QuickNav({ tier, isCeo = false, internalAccess }: QuickN
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all"
+        className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-800 hover:border-zinc-600 transition-all"
       >
         <LayoutDashboard size={14} /> Navigate <ChevronDown size={12} />
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-gray-200 bg-white shadow-2xl py-2 overflow-hidden max-h-[70vh] overflow-y-auto">
+          <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl py-2 overflow-hidden max-h-[70vh] overflow-y-auto">
             {visibleItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -89,7 +89,7 @@ export default function QuickNav({ tier, isCeo = false, internalAccess }: QuickN
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-[#FF4D00]/5 hover:text-[#FF4D00] transition-colors"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-[#FF4D00]/10 hover:text-[#FF4D00] transition-colors"
                 >
                   <Icon size={14} /> {item.label}
                 </Link>
