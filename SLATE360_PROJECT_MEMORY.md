@@ -169,26 +169,29 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-28 (Phase 6 Complete: Homepage Decomposition)
+### Session Handoff — 2026-03-28 (Phase 7 Complete: Visual Polish — Dark Mode)
 
 #### What Changed (This Session)
-- **Phase 6 complete:** `app/page.tsx` decomposed from 775 → 63 lines
-- **8 new files** created in `components/home/`:
-  - `home-data.ts` (166) — platform cards, moreTools, pricing tiers
-  - `ViewerHelpers.tsx` (75) — ViewerCard + ViewerModal shared components
-  - `HeroSection.tsx` (95) — Hero banner + 3D model + CTAs
-  - `PlatformSection.tsx` (172) — 8 platform cards with interactive viewers
-  - `MoreToolsSection.tsx` (51) — SlateDrop, GPU, Collaboration, Digital Twin cards
-  - `PricingSection.tsx` (122) — Pricing table with billing toggle
-  - `CTASection.tsx` (38) — Bottom call-to-action
-  - `HomeModals.tsx` (145) — Hero 3D modal + feature card modal with controls
+- **Phase 7 complete:** Full dark-mode conversion of dashboard shell + all children (17 files, 295 insertions, 276 deletions)
+- **New file created:** `components/ui/Skeleton.tsx` (12 lines) — shared loading skeleton with `animate-pulse bg-zinc-800`
+- **Skeleton integrated:** `AccountOverviewRow.tsx` — account details loading uses Skeleton grid instead of Loader2 spinner
+- **Dark palette applied to ALL dashboard components:**
+  - `bg-zinc-950` page backgrounds, `bg-zinc-900` cards, `border-zinc-800` borders
+  - `text-white` headings, `text-zinc-400` muted, `text-zinc-500` captions
+  - `hover:border-zinc-700 transition-colors` hover states
+  - `focus-visible:ring-2 focus-visible:ring-orange-500/50` focus states
+  - Red states: `bg-red-950/30 border-red-800/50 text-red-400` (errors, delete modals, sign out)
+- **Files updated:** EmptyState.tsx, WidgetCard.tsx, DashboardClient.tsx, DashboardHeader.tsx, DashboardTabShell.tsx, DashboardOverview.tsx, DashboardMyAccount.tsx, AccountOverviewRow.tsx, AccountPreferencesCard.tsx, AccountAdminCards.tsx, DashboardWidgetRenderer.tsx, DashboardWidgetPopout.tsx, DashboardProjectCard.tsx, TabWireframe.tsx, TabRedirectCard.tsx, DashboardSlateDropWindow.tsx
 
 #### Git State
-- HEAD: pending commit — homepage decomposition
+- HEAD: `2eddd44` — `style: Phase 7 — visual polish (card patterns, spacing, focus states, skeletons)`
+- Previous: `145c861`
 - Vercel auto-deploying from `origin/main`
 
 #### TypeScript Status
 - **0 errors** across entire codebase (`npx tsc --noEmit` passes clean)
+- **0 gray-* references** in any Phase 7 scoped file
+- **0 navy #1E3A8A references** codebase-wide
 
 #### What's NOT Broken
 - Auth system: fully working
@@ -212,8 +215,8 @@ When editing oversized files, always read both the state declarations AND the JS
 | 5B | useDashboardState sub-hook decomposition | ✅ Complete — 775 → 244 lines, 6 sub-hooks |
 | 5.5 | Zod API validation (per-route) | ⬜ Not started — add incrementally as routes are touched |
 | 6 | Homepage decomposition | ✅ Complete — 775 → 63 lines, 8 extracted files in `components/home/` |
-| **7** | **Visual polish** | **⬜ Next** |
-| 8 | New feature readiness | ⬜ Not started |
+| **7** | **Visual polish** | **✅ Complete** |
+| 8 | New feature readiness | ⬜ Next |
 
 Also completed outside plan:
 - SlateDropClient decomposition: 451 → 282 lines (7 sub-hooks)
@@ -242,10 +245,10 @@ Also completed outside plan:
 `useSlateDropUiState`, `useSlateDropFiles`, `useSlateDropPreviewUrl`, `useSlateDropUploadActions`, `useSlateDropInteractionHandlers`, `useSlateDropTransferActions`, `useSlateDropMutationActions`
 
 #### Next Steps (Ordered)
-1. **Phase 7 — Visual polish** (card patterns, spacing, loading states)
-2. **Phase 8 — New feature readiness** (DashboardTabShell wiring, UpgradeGate)
-3. **Project Hub page extractions** (9 files over 300-line limit)
-4. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
+1. **Phase 8 — New feature readiness** (DashboardTabShell wiring, UpgradeGate, shadcn Tabs)
+2. **Project Hub page extractions** (9 files over 300-line limit)
+3. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
+4. **DashboardWidgetRenderer extraction** (513 lines — lazy-load widgets with next/dynamic)
 
 #### Accesses Confirmed Working
 - **Supabase admin**: `createAdminClient()` via `SUPABASE_SERVICE_ROLE_KEY`
