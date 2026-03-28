@@ -71,7 +71,6 @@ export function useDashboardState({
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useQueryState("tab", parseAsString.withDefault("overview"));
   const [customizeOpen, setCustomizeOpen] = useState(false);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [createWizardOpen, setCreateWizardOpen] = useState(false);
   const [wizardCreating, setWizardCreating] = useState(false);
 
@@ -195,7 +194,6 @@ export function useDashboardState({
 
     // Tab state
     activeTab, setActiveTab,
-    mobileNavOpen, setMobileNavOpen,
     searchQuery, setSearchQuery,
 
     // Project state

@@ -108,7 +108,7 @@ export default function DashboardHeader({
 
         {/* ── Left cluster: Logo + optional back link ── */}
         <div className="flex items-center gap-3 shrink-0">
-          <Link href="/dashboard" className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2.5">
             <img src="/logo.svg" alt="Slate360" className="h-6 sm:h-7 w-auto" />
           </Link>
           {showBackLink && (

@@ -9,7 +9,6 @@ import {
   Plus,
   FolderOpen,
 } from "lucide-react";
-import MobileQuickAccess from "@/components/dashboard/MobileQuickAccess";
 import DashboardProjectCard from "@/components/dashboard/DashboardProjectCard";
 import DashboardWidgetRenderer, {
   type WidgetRendererContext,
@@ -36,10 +35,6 @@ interface DashboardOverviewProps {
   showDashboardTiles: boolean;
   onOpenSlateDrop: () => void;
   onSetActiveTab: (tabId: string) => void;
-
-  /* Mobile nav */
-  mobileNavOpen: boolean;
-  onMobileNavToggle: () => void;
 
   /* Project carousel */
   projects: Project[];
@@ -75,8 +70,6 @@ export default function DashboardOverview({
   showDashboardTiles,
   onOpenSlateDrop,
   onSetActiveTab,
-  mobileNavOpen,
-  onMobileNavToggle,
   projects,
   selectedProject,
   onSelectProject,
@@ -165,8 +158,7 @@ export default function DashboardOverview({
         })()}
       </div>
 
-      {/* ════════ MOBILE QUICK ACCESS ════════ */}
-      <MobileQuickAccess open={mobileNavOpen} onToggle={onMobileNavToggle} />
+      {/* Mobile quick-access removed — header QuickNav handles navigation */}
 
       {/* ════════ PROJECT CAROUSEL ════════ */}
       <div className="relative mb-10">

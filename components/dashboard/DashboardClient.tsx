@@ -121,18 +121,7 @@ export default function DashboardClient(props: DashboardProps) {
 
       {/* ════════ MAIN CONTENT ════════ */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden">
-        {(canAccessCeo || s.accountOverview?.isAdmin) && (
-          <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-[11px] text-blue-900">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-              <span><span className="font-semibold">Runtime:</span> {s.deployInfo?.url ?? "unknown"}</span>
-              <span><span className="font-semibold">Branch:</span> {s.deployInfo?.branch ?? "unknown"}</span>
-              <span><span className="font-semibold">Commit:</span> {(s.deployInfo?.commit ?? "unknown").slice(0, 7)}</span>
-              <span><span className="font-semibold">Tier:</span> {s.ent.tier}</span>
-              <span><span className="font-semibold">Org:</span> {s.accountOverview?.profile.orgName ?? "unresolved"}</span>
-              <span><span className="font-semibold">Role:</span> {s.accountOverview?.profile.role ?? "unresolved"}</span>
-            </div>
-          </div>
-        )}
+
 
         {s.billingNotice && (
           <div className={`mb-4 rounded-xl border px-4 py-3 text-sm ${s.billingNotice.ok ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
@@ -160,8 +149,6 @@ export default function DashboardClient(props: DashboardProps) {
             showDashboardTiles={s.prefShowDashboardTiles}
             onOpenSlateDrop={s.openSlateDrop}
             onSetActiveTab={s.setActiveTab}
-            mobileNavOpen={s.mobileNavOpen}
-            onMobileNavToggle={() => s.setMobileNavOpen((v) => !v)}
             projects={s.liveProjects}
             selectedProject={s.selectedProject}
             onSelectProject={(id) => { s.setSelectedProject(id); s.setProjectDropdownOpen(false); }}
