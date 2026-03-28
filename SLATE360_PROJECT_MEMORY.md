@@ -169,30 +169,35 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-28 (Phase 8 + Mobile Header Fix)
+### Session Handoff — 2026-03-28 (All 9 Project Hub Page Extractions Complete)
 
 #### What Changed (This Session)
-- **Phase 8 complete:** shadcn Tabs integration, UpgradeGate component, tier gating for all tabs (12 files, 204 insertions, 73 deletions)
-- **New file:** `components/shared/UpgradeGate.tsx` (66 lines) — lock overlay with feature name, required tier, upgrade CTA
-- **New file:** `components/shared/MobileModuleBar.tsx` (89 lines) — horizontal scrollable icon strip, mobile-only (`flex sm:hidden`), replaces QuickNav on small screens
-- **New utility:** `tierMeetsRequirement()` in `lib/entitlements.ts` — tier comparison helper
-- **DashTab type extended:** Added `locked?` and `requiredTier?` fields to `lib/types/dashboard.ts`
-- **useVisibleTabs rewritten:** Now shows ALL subscription tabs (not just entitled ones), marks locked ones with `locked: true` + `requiredTier`
-- **DashboardClient:** Manual conditionals replaced with shadcn `<Tabs>` / `<TabsContent>`, locked tabs show UpgradeGate inline
-- **DashboardOverview:** Module tiles show lock badge + dimmed opacity for locked tabs; clicking routes to in-dashboard UpgradeGate
-- **DashboardTabShell:** Added `requiredTier` prop; when tier < required, renders UpgradeGate instead of children
-- **6 shell components updated:** DesignStudioShell (requiredTier="model"), ToursShell ("creator"), ContentStudioShell ("creator"), GeospatialShell ("model"), VirtualStudioShell ("model"), AnalyticsReportsClient ("business") — all with correct tier + accent color + dark mode banners
-- **Mobile header fix:** QuickNav hidden on mobile (`hidden sm:block`), MobileModuleBar renders below header bar
-- **QuickNav dark-mode fix:** Button + dropdown converted to zinc palette (was still light-mode)
+- **All 9 over-limit Project Hub pages extracted + dark mode converted:**
+
+| Page | Before | After | Files | Commit |
+|---|---|---|---|---|
+| management | 931 | 111 | 6 | fcfd3c6 |
+| photos | 599 | 191 | 6 | d7358e3 |
+| submittals | 579 | 211 | 4 | 24b09b8 |
+| schedule | 465 | 240 | 5 | f9d662c |
+| drawings | 448 | 155 | 5 | 6c3e678 |
+| budget | 421 | 214 | 4 | cd979cd |
+| punch-list | 403 | 232 | 4 | 6437028 |
+| daily-logs | 358 | 176 | 4 | 6437028 |
+| rfis | 339 | 218 | 4 | 6437028 |
+
+- **Pattern for all extractions:** `_shared.ts` (types/constants/helpers) + item/form/viewer components + thin orchestrator `page.tsx`
+- **AnalyticsReportsClient dark-mode conversion** completed (3aefba1)
+- **Project Hub base dark-mode conversion** completed (07f1201, 10 files)
+- **Widget/background mismatch bug** fixed — Project Hub now matches Dashboard dark zinc palette
 
 #### Git State
-- HEAD: `d9ffc84` — `fix: mobile header — move nav to scrollable module bar below header`
-- Previous: `5310a7a` (Phase 8), `da1c069` (docs)
+- HEAD: `6437028` — all pushed to `origin/main`
 - Vercel auto-deploying from `origin/main`
 
 #### TypeScript Status
-- **0 errors** across entire codebase (`npx tsc --noEmit` passes clean)
-- All modified files under 300 lines
+- **0 errors** across all modified files (`get_errors` clean on every extraction)
+- All page files under 300-line limit
 
 #### What's NOT Broken
 - Auth system: fully working
@@ -200,7 +205,7 @@ When editing oversized files, always read both the state declarations AND the JS
 - SlateDrop: 282 lines, 7 sub-hooks
 - Market Robot: 175 lines, compiles clean (paused — needs wallet funding)
 - Homepage: 63 lines, 8 extracted sections all working
-- Navy purge: 0 files with `#1E3A8A`
+- All 9 Project Hub pages: extracted + dark mode + zero TS errors
 - Mobile header: clean with MobileModuleBar below main bar
 
 #### Design & UI Overhaul Phase Tracker (see `DESIGN_UI_OVERHAUL_PLAN.md`)
@@ -236,7 +241,7 @@ Also completed outside plan:
 | **SlateDrop** | ✅ Done | `SlateDropClient.tsx` | 282 | 7 sub-hooks wired |
 | **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 175 | Needs wallet funding to test |
 | **Homepage** | ✅ Done | `app/page.tsx` | 63 | 8 files in `components/home/` |
-| **Project Hub pages** | ⚠️ 9 files over limit | Various | 339-931 | Future extraction needed |
+| **Project Hub pages** | ✅ Done | 9 pages | 111-240 | All extracted + dark mode (42 files total) |
 
 #### Sub-Hook Registry
 
@@ -247,10 +252,10 @@ Also completed outside plan:
 `useSlateDropUiState`, `useSlateDropFiles`, `useSlateDropPreviewUrl`, `useSlateDropUploadActions`, `useSlateDropInteractionHandlers`, `useSlateDropTransferActions`, `useSlateDropMutationActions`
 
 #### Next Steps (Ordered)
-1. **AnalyticsReportsClient dark-mode conversion** (300 lines of light-mode styling, caught during Phase 8)
-2. **Project Hub page extractions** (9 files over 300-line limit)
-3. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
-4. **DashboardWidgetRenderer extraction** (513 lines — lazy-load widgets with next/dynamic)
+1. **Address autocomplete bug** — Location widget autocomplete not pulling addresses while typing (user-reported)
+2. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
+3. **DashboardWidgetRenderer extraction** (513 lines — lazy-load widgets with next/dynamic)
+4. **Orphan file cleanup** (MarketClient.tsx old copy, MarketRobotWorkspace.tsx, .bak files)
 
 #### Accesses Confirmed Working
 - **Supabase admin**: `createAdminClient()` via `SUPABASE_SERVICE_ROLE_KEY`
