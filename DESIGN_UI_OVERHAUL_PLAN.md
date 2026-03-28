@@ -2,7 +2,7 @@
 
 Created: 2026-03-24
 Updated: 2026-03-28
-Status: Phases 0–5B COMPLETE. Next: Phase 6 (Homepage Decomposition)
+Status: Phases 0–6 COMPLETE. Next: Phase 7 (Visual Polish)
 Branch: main
 
 ## Context
@@ -153,20 +153,22 @@ Do NOT add Zod to every route at once — add per-route when touching that route
 
 ---
 
-## Phase 6 — Homepage Decomposition
+## Phase 6 — Homepage Decomposition ✅ COMPLETE (2026-03-28)
 
-**Risk:** Medium | **File:** `app/page.tsx` (780 lines) | **Rollback:** `git checkout -- app/page.tsx components/home/`
+**Result:** `app/page.tsx` 775→63 lines (thin shell with imports)
 
-### Extract into:
+### Extracted files:
 
-| New File | What |
-|----------|------|
-| `components/home/HeroSection.tsx` | Hero banner + CTA |
-| `components/home/FeaturesGrid.tsx` | Feature card grid |
-| `components/home/PricingSection.tsx` | Pricing table |
-| `components/home/CTASection.tsx` | Bottom call-to-action |
-
-### Target: `app/page.tsx` drops to ~100 lines (layout shell + imports)
+| New File | Lines | What |
+|----------|-------|------|
+| `components/home/home-data.ts` | 166 | Platform cards, moreTools, pricing tiers |
+| `components/home/ViewerHelpers.tsx` | 75 | ViewerCard + ViewerModal shared components |
+| `components/home/HeroSection.tsx` | 95 | Hero banner + 3D model + CTAs |
+| `components/home/PlatformSection.tsx` | 172 | 8 platform cards with interactive viewers |
+| `components/home/MoreToolsSection.tsx` | 51 | SlateDrop, GPU, Collaboration, Digital Twin cards |
+| `components/home/PricingSection.tsx` | 122 | Pricing table with billing toggle |
+| `components/home/CTASection.tsx` | 38 | Bottom call-to-action |
+| `components/home/HomeModals.tsx` | 145 | Hero 3D modal + feature card modal with controls |
 
 ---
 
@@ -240,7 +242,7 @@ Phase 4    DashboardClient decomposition      ✅ COMPLETE (1,961→264 lines, 5
 Phase 5    Entitlements fix                   ✅ COMPLETE (creator canAccessHub: true)
 Phase 5B   useDashboardState decomposition    ✅ COMPLETE (775→244 lines, 6 sub-hooks)
 Phase 5.5  Zod API validation                 ⬜ Add per-route as touched (incremental)
-Phase 6    Homepage decomposition             ⬜ NEXT — app/page.tsx 775 lines
+Phase 6    Homepage decomposition             ✅ COMPLETE (775→63 lines, 8 extracted files)
 Phase 7    Visual polish                      ⬜ Only after structure solid
 Phase 8    New feature readiness              ⬜ Final layer
 
@@ -272,7 +274,8 @@ Each phase has its own rollback. No phase depends on a later phase. Phases 1-3 c
 | `lib/hooks/useDashboardState.ts` | 244 | Dashboard state hook (✅ Phase 5B complete) |
 | `components/slatedrop/SlateDropClient.tsx` | 282 | SlateDrop orchestrator (✅ decomposed) |
 | `lib/entitlements.ts` | 136 | Tier gates (✅ Phase 5 complete) |
-| `app/page.tsx` | 775 | Homepage (⬜ Phase 6 next) |
+| `app/page.tsx` | 63 | Homepage shell (✅ Phase 6 complete) |
+| `components/home/*` | 8 files | Homepage sections (✅ Phase 6 complete) |
 | `components/ui/*` | 13 files | UI primitives (✅ Phase 3 complete) |
 | `components/shared/DashboardHeader.tsx` | 286 | Shared header (✅ logo + banner fixed) |
 | `components/shared/DashboardTabShell.tsx` | 96 | Tab wrapper (Phase 8) |

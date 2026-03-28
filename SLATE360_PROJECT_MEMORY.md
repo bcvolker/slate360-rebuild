@@ -152,7 +152,7 @@ Use those files only for deep history, roadmap, or recovery work.
 | `components/slatedrop/SlateDropClient.tsx` | 282 | ✅ Under limit — 7 sub-hooks extracted |
 | `components/dashboard/market/MarketClient.tsx` | 175 | ✅ Under limit |
 | `components/shared/DashboardHeader.tsx` | 286 | ✅ Under limit |
-| `app/page.tsx` | 775 | ⚠️ Over limit — Phase 6 (homepage decomposition) |
+| `app/page.tsx` | 63 | ✅ Under limit — Phase 6 complete (8 files in `components/home/`) |
 | `app/(dashboard)/project-hub/[projectId]/management/page.tsx` | 931 | ⚠️ Over limit — needs extraction |
 | `app/(dashboard)/project-hub/[projectId]/photos/page.tsx` | 599 | ⚠️ Over limit — needs extraction |
 | `app/(dashboard)/project-hub/[projectId]/submittals/page.tsx` | 579 | ⚠️ Over limit — needs extraction |
@@ -169,30 +169,34 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-28 (Catch-Up: All TS Errors Fixed, Navy Purge Complete, UI Fixes Pushed)
+### Session Handoff — 2026-03-28 (Phase 6 Complete: Homepage Decomposition)
 
 #### What Changed (This Session)
-- **Logo fix:** DashboardHeader logo now links to `/` (homepage) instead of `/dashboard`
-- **Mobile Quick Access removed:** Removed orange `MobileQuickAccess` component from dashboard (redundant with header QuickNav)
-- **Debug banner removed:** Removed blue runtime/branch/org debug banner from DashboardClient
-- **SlateDropClient TS errors fixed:** `useSlateDropUiState` now imports `DbFile` from `@/lib/slatedrop/helpers` (was missing `type: "file"` discriminator)
-- **MarketClient TS error fixed:** Added `chainId`, `onSwitchToPolygon`, `isSwitchingChain` to `WalletSnapshot` interface and `MarketLiveWalletTab` props
-- **Navy purge complete:** Replaced `#1E3A8A` in last 3 files (contacts API, widgets API, AddContactModal) — zero remaining
-- **Cleaned up unused state:** Removed `mobileNavOpen`/`setMobileNavOpen` from `useDashboardState`
+- **Phase 6 complete:** `app/page.tsx` decomposed from 775 → 63 lines
+- **8 new files** created in `components/home/`:
+  - `home-data.ts` (166) — platform cards, moreTools, pricing tiers
+  - `ViewerHelpers.tsx` (75) — ViewerCard + ViewerModal shared components
+  - `HeroSection.tsx` (95) — Hero banner + 3D model + CTAs
+  - `PlatformSection.tsx` (172) — 8 platform cards with interactive viewers
+  - `MoreToolsSection.tsx` (51) — SlateDrop, GPU, Collaboration, Digital Twin cards
+  - `PricingSection.tsx` (122) — Pricing table with billing toggle
+  - `CTASection.tsx` (38) — Bottom call-to-action
+  - `HomeModals.tsx` (145) — Hero 3D modal + feature card modal with controls
 
 #### Git State
-- HEAD: `01bbdf8` — pushed to `origin/main`, clean working tree
-- Vercel auto-deploying from this commit
+- HEAD: pending commit — homepage decomposition
+- Vercel auto-deploying from `origin/main`
 
 #### TypeScript Status
 - **0 errors** across entire codebase (`npx tsc --noEmit` passes clean)
 
 #### What's NOT Broken
-- Auth system: fully working (signup, login, forgot password, email confirmation)
-- Dashboard: 264 lines, all extractions done, 6 sub-hooks working
-- SlateDrop: 282 lines, 7 sub-hooks wired
-- Market Robot: 175 lines, compiles clean (paused — needs wallet funding to test)
-- Navy purge: 0 files with `#1E3A8A` remaining
+- Auth system: fully working
+- Dashboard: 264 lines, all extractions done, 6 sub-hooks
+- SlateDrop: 282 lines, 7 sub-hooks
+- Market Robot: 175 lines, compiles clean (paused — needs wallet funding)
+- Homepage: 63 lines, 8 extracted sections all working
+- Navy purge: 0 files with `#1E3A8A`
 
 #### Design & UI Overhaul Phase Tracker (see `DESIGN_UI_OVERHAUL_PLAN.md`)
 
@@ -207,8 +211,8 @@ When editing oversized files, always read both the state declarations AND the JS
 | 5 | Entitlements fix (creator `canAccessHub`) | ✅ Complete |
 | 5B | useDashboardState sub-hook decomposition | ✅ Complete — 775 → 244 lines, 6 sub-hooks |
 | 5.5 | Zod API validation (per-route) | ⬜ Not started — add incrementally as routes are touched |
-| **6** | **Homepage decomposition (775 lines)** | **⬜ Next** |
-| 7 | Visual polish | ⬜ Not started |
+| 6 | Homepage decomposition | ✅ Complete — 775 → 63 lines, 8 extracted files in `components/home/` |
+| **7** | **Visual polish** | **⬜ Next** |
 | 8 | New feature readiness | ⬜ Not started |
 
 Also completed outside plan:
@@ -226,7 +230,7 @@ Also completed outside plan:
 | **DashboardHeader** | ✅ Done | `DashboardHeader.tsx` | 286 | Shared across all pages |
 | **SlateDrop** | ✅ Done | `SlateDropClient.tsx` | 282 | 7 sub-hooks wired |
 | **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 175 | Needs wallet funding to test |
-| **Homepage** | ⚠️ Over limit | `app/page.tsx` | 775 | Phase 6 target |
+| **Homepage** | ✅ Done | `app/page.tsx` | 63 | 8 files in `components/home/` |
 | **Project Hub pages** | ⚠️ 9 files over limit | Various | 339-931 | Future extraction needed |
 
 #### Sub-Hook Registry
@@ -238,10 +242,10 @@ Also completed outside plan:
 `useSlateDropUiState`, `useSlateDropFiles`, `useSlateDropPreviewUrl`, `useSlateDropUploadActions`, `useSlateDropInteractionHandlers`, `useSlateDropTransferActions`, `useSlateDropMutationActions`
 
 #### Next Steps (Ordered)
-1. **Phase 6 — Homepage decomposition** (`app/page.tsx` 775 → ~100 lines)
-2. **Phase 7 — Visual polish** (card patterns, spacing, loading states)
-3. **Phase 8 — New feature readiness** (DashboardTabShell wiring, UpgradeGate)
-4. **Project Hub page extractions** (9 files over 300-line limit)
+1. **Phase 7 — Visual polish** (card patterns, spacing, loading states)
+2. **Phase 8 — New feature readiness** (DashboardTabShell wiring, UpgradeGate)
+3. **Project Hub page extractions** (9 files over 300-line limit)
+4. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
 
 #### Accesses Confirmed Working
 - **Supabase admin**: `createAdminClient()` via `SUPABASE_SERVICE_ROLE_KEY`
