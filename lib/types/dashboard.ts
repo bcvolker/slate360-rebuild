@@ -137,4 +137,8 @@ export interface DashTab {
   icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>;
   color: string;
   isCEOOnly?: boolean;
+  /** true when the user's tier doesn't grant access to this tab */
+  locked?: boolean;
+  /** minimum tier needed to unlock this tab (shown in UpgradeGate) */
+  requiredTier?: import("@/lib/entitlements").Tier;
 }

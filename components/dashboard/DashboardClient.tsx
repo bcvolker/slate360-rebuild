@@ -10,6 +10,8 @@ import DashboardSlateDropWindow from "@/components/dashboard/DashboardSlateDropW
 import DashboardOverview from "@/components/dashboard/DashboardOverview";
 import TabWireframe from "@/components/dashboard/TabWireframe";
 import TabRedirectCard, { hasRedirectRoute } from "@/components/dashboard/TabRedirectCard";
+import UpgradeGate from "@/components/shared/UpgradeGate";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   ChevronLeft,
   TrendingUp,
@@ -50,38 +52,41 @@ function useVisibleTabs(
   canAccessMarket: boolean,
   canAccessAthlete360: boolean,
 ): DashTab[] {
-  return ([
-    { id: "project-hub",    label: "Project Hub",    icon: LayoutDashboard, color: "#FF4D00" },
-    { id: "design-studio",  label: "Design Studio",  icon: Palette,         color: "#7C3AED" },
-    { id: "content-studio", label: "Content Studio", icon: Layers,          color: "#EC4899" },
-    { id: "tours",          label: "360 Tours",      icon: Compass,         color: "#0891B2" },
-    { id: "geospatial",     label: "Geospatial",     icon: Globe,           color: "#059669" },
-    { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#D97706" },
-    { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#6366F1" },
-    { id: "slatedrop",      label: "SlateDrop",      icon: FolderOpen,      color: "#FF4D00" },
+  const ALL_TABS: (DashTab & { entKey?: keyof typeof ent; requiredTier?: import("@/lib/entitlements").Tier })[] = [
+    { id: "project-hub",    label: "Project Hub",    icon: LayoutDashboard, color: "#FF4D00", entKey: "canAccessHub" },
+    { id: "design-studio",  label: "Design Studio",  icon: Palette,         color: "#7C3AED", entKey: "canAccessDesignStudio", requiredTier: "model" },
+    { id: "content-studio", label: "Content Studio",  icon: Layers,          color: "#EC4899", entKey: "canAccessContent",      requiredTier: "creator" },
+    { id: "tours",          label: "360 Tours",      icon: Compass,         color: "#0891B2", entKey: "canAccessTourBuilder",  requiredTier: "creator" },
+    { id: "geospatial",     label: "Geospatial",     icon: Globe,           color: "#059669", entKey: "canAccessGeospatial",   requiredTier: "model" },
+    { id: "virtual-studio", label: "Virtual Studio",  icon: Film,            color: "#D97706", entKey: "canAccessVirtual",      requiredTier: "model" },
+    { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#6366F1", entKey: "canAccessAnalytics",    requiredTier: "business" },
+    { id: "slatedrop",      label: "SlateDrop",      icon: FolderOpen,      color: "#FF4D00", entKey: "canViewSlateDropWidget" },
     { id: "my-account",     label: "My Account",     icon: User,            color: "#FF4D00" },
-    ...((canAccessCeo || canAccessMarket || canAccessAthlete360) ? ([
-      { id: "ceo",        label: "CEO",          icon: Shield,      color: "#FF4D00", isCEOOnly: true },
-      { id: "market",     label: "Market Robot", icon: TrendingUp,  color: "#6366F1", isCEOOnly: true },
-      { id: "athlete360", label: "Athlete360",   icon: Zap,         color: "#FF4D00", isCEOOnly: true },
-    ] as DashTab[]) : []),
-  ] as DashTab[]).filter((tab) => {
-    switch (tab.id) {
-      case "project-hub":    return ent.canAccessHub;
-      case "design-studio":  return ent.canAccessDesignStudio;
-      case "content-studio": return ent.canAccessContent;
-      case "tours":          return ent.canAccessTourBuilder;
-      case "geospatial":     return ent.canAccessGeospatial;
-      case "virtual-studio": return ent.canAccessVirtual;
-      case "analytics":      return ent.canAccessAnalytics;
-      case "slatedrop":      return ent.canViewSlateDropWidget;
-      case "my-account":     return true;
-      case "ceo":            return canAccessCeo;
-      case "market":         return canAccessMarket;
-      case "athlete360":     return canAccessAthlete360;
-      default:               return false;
-    }
-  });
+  ];
+
+  const internalTabs: DashTab[] =
+    (canAccessCeo || canAccessMarket || canAccessAthlete360)
+      ? ([
+          ...(canAccessCeo       ? [{ id: "ceo",        label: "CEO",          icon: Shield,     color: "#FF4D00", isCEOOnly: true }] : []),
+          ...(canAccessMarket    ? [{ id: "market",     label: "Market Robot", icon: TrendingUp, color: "#6366F1", isCEOOnly: true }] : []),
+          ...(canAccessAthlete360 ? [{ id: "athlete360", label: "Athlete360",   icon: Zap,        color: "#FF4D00", isCEOOnly: true }] : []),
+        ] as DashTab[])
+      : [];
+
+  return [
+    ...ALL_TABS.map((tab) => {
+      const hasAccess = tab.entKey ? Boolean(ent[tab.entKey]) : true;
+      return {
+        id: tab.id,
+        label: tab.label,
+        icon: tab.icon,
+        color: tab.color,
+        locked: !hasAccess,
+        requiredTier: !hasAccess ? tab.requiredTier : undefined,
+      } as DashTab;
+    }),
+    ...internalTabs,
+  ];
 }
 
 /* ================================================================
@@ -141,9 +146,10 @@ export default function DashboardClient(props: DashboardProps) {
           </div>
         )}
 
-        {/* ════════ OVERVIEW TAB CONTENT ════════ */}
-        {s.activeTab === "overview" && (
-          <DashboardOverview
+        <Tabs value={s.activeTab} onValueChange={(v) => s.setActiveTab(v)} className="gap-0">
+          {/* ════════ OVERVIEW TAB CONTENT ════════ */}
+          <TabsContent value="overview">
+            <DashboardOverview
             userName={props.user.name.split(" ")[0]}
             visibleTabs={visibleTabs}
             showDashboardTiles={s.prefShowDashboardTiles}
@@ -173,14 +179,16 @@ export default function DashboardClient(props: DashboardProps) {
             availableWidgets={s.availableWidgets}
             widgetCtx={s.widgetCtx}
           />
-        )}
+          </TabsContent>
 
-        {/* ════════ SPECIFIC TAB WIREFRAME ════════ */}
-        {s.activeTab === "market" && (
-          <MarketClient />
-        )}
-        {s.activeTab === "my-account" && (
-          <DashboardMyAccount
+          {/* ════════ MARKET TAB ════════ */}
+          <TabsContent value="market">
+            <MarketClient />
+          </TabsContent>
+
+          {/* ════════ MY ACCOUNT TAB ════════ */}
+          <TabsContent value="my-account">
+            <DashboardMyAccount
             user={props.user}
             accountOverview={s.accountOverview}
             accountLoading={s.accountLoading}
@@ -215,15 +223,29 @@ export default function DashboardClient(props: DashboardProps) {
             prefShowDashboardTiles={s.prefShowDashboardTiles}
             onPrefShowDashboardTilesChange={s.setPrefShowDashboardTiles}
           />
-        )}
+          </TabsContent>
 
-        {/* ════════ TAB REDIRECT CARDS + WIREFRAMES ════════ */}
-        {s.activeTab !== "overview" && s.activeTab !== "market" && s.activeTab !== "my-account" && (() => {
-          const tab = visibleTabs.find((t) => t.id === s.activeTab);
-          if (!tab) return null;
-          if (hasRedirectRoute(tab.id)) return <TabRedirectCard tab={tab} />;
-          return <TabWireframe tab={tab} onBack={() => s.setActiveTab("overview")} onOpenSlateDrop={s.openSlateDrop} />;
-        })()}
+          {/* ════════ TAB REDIRECT CARDS / WIREFRAMES / UPGRADE GATES ════════ */}
+          {visibleTabs
+            .filter((t) => !["overview", "market", "my-account"].includes(t.id))
+            .map((tab) => (
+              <TabsContent key={tab.id} value={tab.id}>
+                {tab.locked && tab.requiredTier ? (
+                  <UpgradeGate
+                    feature={tab.label}
+                    requiredTier={tab.requiredTier}
+                    currentTier={s.ent.tier}
+                    accent={tab.color}
+                    icon={tab.icon}
+                  />
+                ) : hasRedirectRoute(tab.id) ? (
+                  <TabRedirectCard tab={tab} />
+                ) : (
+                  <TabWireframe tab={tab} onBack={() => s.setActiveTab("overview")} onOpenSlateDrop={s.openSlateDrop} />
+                )}
+              </TabsContent>
+            ))}
+        </Tabs>
       </main>
 
       {/* ════════ CUSTOMIZE PANEL (shared drawer) ════════ */}

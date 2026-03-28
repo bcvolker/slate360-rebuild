@@ -134,3 +134,10 @@ export function getEntitlements(rawTier?: string | null, options?: { isSlateCeo?
     rawTier && rawTier in TIER_MAP ? (rawTier as Tier) : "trial";
   return { tier, ...TIER_MAP[tier] };
 }
+
+const TIER_ORDER: Tier[] = ["trial", "creator", "model", "business", "enterprise"];
+
+/** Returns true when `current` tier is at or above `required` tier. */
+export function tierMeetsRequirement(current: Tier, required: Tier): boolean {
+  return TIER_ORDER.indexOf(current) >= TIER_ORDER.indexOf(required);
+}

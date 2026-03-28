@@ -20,12 +20,13 @@ export default function ToursShell({ user, tier, isCeo, internalAccess }: Props)
       internalAccess={internalAccess}
       title="360 Tours"
       icon={Compass}
-      accent="#FF4D00"
+      accent="#0891B2"
       status="coming-soon"
+      requiredTier="creator"
     >
-      <div className="rounded-2xl border border-gray-200 bg-white px-6 py-10 text-center">
-        <p className="text-sm font-semibold text-gray-700 mb-1">Coming Soon</p>
-        <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-6 py-10 text-center">
+        <p className="text-sm font-semibold text-white mb-1">Coming Soon</p>
+        <p className="text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
           360 Tour Builder — panoramic capture, floor plan hotspot mapping, and
           interactive virtual walkthroughs — is planned for a future development phase.
           You&apos;ll be notified when it launches.

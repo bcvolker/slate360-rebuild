@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Lock,
   Plus,
   FolderOpen,
 } from "lucide-react";
@@ -137,12 +138,22 @@ export default function DashboardOverview({
                         "athlete360": "/athlete360",
                       };
                       const route = routeMap[tab.id];
+                      if (tab.locked) {
+                        onSetActiveTab(tab.id);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                        return;
+                      }
                       if (route) { router.push(route); return; }
                       onSetActiveTab(tab.id);
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    className={`group md:flex-1 md:min-w-0 flex flex-col items-center gap-1.5 sm:gap-2 ${pad} rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors duration-200 hover:-translate-y-0.5 text-center`}
+                    className={`group relative md:flex-1 md:min-w-0 flex flex-col items-center gap-1.5 sm:gap-2 ${pad} rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors duration-200 hover:-translate-y-0.5 text-center ${tab.locked ? "opacity-60" : ""}`}
                   >
+                    {tab.locked && (
+                      <div className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-800 border border-zinc-700">
+                        <Lock size={10} className="text-zinc-400" />
+                      </div>
+                    )}
                     <div
                       className={`${iconBox} ${iconRadius} flex items-center justify-center transition-all group-hover:scale-110`}
                       style={{ backgroundColor: `${tab.color}15` }}

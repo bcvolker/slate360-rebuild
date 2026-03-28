@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { type LucideIcon } from "lucide-react";
 import DashboardHeader from "@/components/shared/DashboardHeader";
+import UpgradeGate from "@/components/shared/UpgradeGate";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
-import { type Tier } from "@/lib/entitlements";
+import { type Tier, tierMeetsRequirement } from "@/lib/entitlements";
 
 export type TabStatus = "coming-soon" | "under-development" | "live";
 
@@ -17,6 +18,8 @@ export interface DashboardTabShellProps {
   status?: TabStatus;
   isCeo?: boolean;
   internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
+  /** Minimum tier required to use this tab. When set, shows UpgradeGate for lower tiers. */
+  requiredTier?: Tier;
   children?: React.ReactNode;
 }
 
@@ -29,9 +32,11 @@ export default function DashboardTabShell({
   status = "coming-soon",
   isCeo = false,
   internalAccess,
+  requiredTier,
   children,
 }: DashboardTabShellProps) {
   const [customizeOpen, setCustomizeOpen] = useState(false);
+  const isLocked = requiredTier ? !tierMeetsRequirement(tier, requiredTier) : false;
 
   return (
     <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
@@ -75,7 +80,17 @@ export default function DashboardTabShell({
           </div>
         </div>
 
-        {children}
+        {isLocked && requiredTier ? (
+          <UpgradeGate
+            feature={title}
+            requiredTier={requiredTier}
+            currentTier={tier}
+            accent={accent}
+            icon={Icon}
+          />
+        ) : (
+          children
+        )}
       </main>
 
       {/* CUSTOMIZE DRAWER */}

@@ -112,9 +112,10 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
       status="live"
       isCeo={isCeo}
       internalAccess={internalAccess}
+      requiredTier="business"
     >
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+        <div className="rounded-xl border border-red-800/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">{error}</div>
       )}
 
       {/* ── Report Builder ─────────────────────────────────────── */}
