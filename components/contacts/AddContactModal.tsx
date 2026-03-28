@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { X, Loader2, ChevronDown } from "lucide-react";
 
-const COLORS = ["#FF4D00","#1E3A8A","#059669","#7C3AED","#D97706","#DB2777","#0891B2","#65A30D"];
+const COLORS = ["#FF4D00","#2563EB","#059669","#7C3AED","#D97706","#DB2777","#0891B2","#65A30D"];
 
 interface Project { id: string; name: string }
 
@@ -161,7 +161,7 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
                         onClick={() => toggleProject(p.id)}
                         className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all ${
                           selectedProjects.includes(p.id)
-                            ? "border-[#1E3A8A] bg-[#1E3A8A]/8 text-[#1E3A8A]"
+                            ? "border-[#FF4D00] bg-[#FF4D00]/8 text-[#FF4D00]"
                             : "border-gray-200 text-gray-500 hover:border-gray-300"
                         }`}
                       >

@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { withAuth } from "@/lib/server/api-auth";
 import { ok, created, badRequest, serverError } from "@/lib/server/api-response";
 
-const COLORS = ["#FF4D00","#1E3A8A","#059669","#7C3AED","#D97706","#DB2777","#0891B2","#65A30D"];
+const COLORS = ["#FF4D00","#2563EB","#059669","#7C3AED","#D97706","#DB2777","#0891B2","#65A30D"];
 
 export const GET = (req: NextRequest) =>
   withAuth(req, async ({ admin, orgId }) => {

@@ -8,6 +8,7 @@ import MarketSystemStatusCard from "@/components/dashboard/market/MarketSystemSt
 interface WalletSnapshot {
   address: string;
   isConnected: boolean;
+  chainId: number | null;
   usdcBalance: string;
   maticFormatted: string;
   walletVerified: boolean;
@@ -21,12 +22,14 @@ interface MarketLiveWalletTabProps {
   system: MarketSystemStatusViewModel | null;
   onOpenAutomation: () => void;
   onConnectWallet: () => void;
+  onSwitchToPolygon: () => void;
   onApproveUsdc: () => void;
   onDisconnect: () => void;
   walletChoice: "metamask" | "coinbase" | "trust";
   onWalletChoiceChange: (choice: "metamask" | "coinbase" | "trust") => void;
   walletError: string;
   isConnecting: boolean;
+  isSwitchingChain: boolean;
   isApproving: boolean;
 }
 
@@ -46,12 +49,14 @@ export default function MarketLiveWalletTab({
   system,
   onOpenAutomation,
   onConnectWallet,
+  onSwitchToPolygon,
   onApproveUsdc,
   onDisconnect,
   walletChoice,
   onWalletChoiceChange,
   walletError,
   isConnecting,
+  isSwitchingChain,
   isApproving,
 }: MarketLiveWalletTabProps) {
   const passedCount = CHECKLIST_ITEMS.filter(c => liveChecklist[c.key]).length;

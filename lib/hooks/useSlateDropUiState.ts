@@ -1,22 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-
-type SlateDropDbFile = {
-  id: string;
-  file_name: string;
-  s3_key: string;
-  file_type: string;
-  size: number;
-  modified: string;
-  folderId: string;
-  thumbnail?: string;
-  locked?: boolean;
-};
-
-type SlateDropItem =
-  | { type: "file"; id: string; file_name: string; s3_key: string; file_type: string; size: number; modified: string; folderId: string; thumbnail?: string; locked?: boolean }
-  | { type: "folder"; id: string; path: string; name: string; isSystem?: boolean };
+import type { DbFile as SlateDropDbFile, SlateDropItem } from "@/lib/slatedrop/helpers";
 
 type SlateDropContextMenu = {
   x: number;

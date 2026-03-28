@@ -54,7 +54,7 @@ type ContactItem = {
   email: string;
 };
 
-const CONTACT_COLORS = ["#FF4D00", "#1E3A8A", "#059669", "#7C3AED", "#D97706", "#0891B2", "#DC2626", "#EC4899"];
+const CONTACT_COLORS = ["#FF4D00", "#2563EB", "#059669", "#7C3AED", "#D97706", "#0891B2", "#DC2626", "#EC4899"];
 
 function toInitials(name: string): string {
   return name
