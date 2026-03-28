@@ -169,29 +169,27 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-28 (Phase 7 Complete: Visual Polish — Dark Mode)
+### Session Handoff — 2026-03-28 (Phase 8 Complete: New Feature Readiness)
 
 #### What Changed (This Session)
-- **Phase 7 complete:** Full dark-mode conversion of dashboard shell + all children (17 files, 295 insertions, 276 deletions)
-- **New file created:** `components/ui/Skeleton.tsx` (12 lines) — shared loading skeleton with `animate-pulse bg-zinc-800`
-- **Skeleton integrated:** `AccountOverviewRow.tsx` — account details loading uses Skeleton grid instead of Loader2 spinner
-- **Dark palette applied to ALL dashboard components:**
-  - `bg-zinc-950` page backgrounds, `bg-zinc-900` cards, `border-zinc-800` borders
-  - `text-white` headings, `text-zinc-400` muted, `text-zinc-500` captions
-  - `hover:border-zinc-700 transition-colors` hover states
-  - `focus-visible:ring-2 focus-visible:ring-orange-500/50` focus states
-  - Red states: `bg-red-950/30 border-red-800/50 text-red-400` (errors, delete modals, sign out)
-- **Files updated:** EmptyState.tsx, WidgetCard.tsx, DashboardClient.tsx, DashboardHeader.tsx, DashboardTabShell.tsx, DashboardOverview.tsx, DashboardMyAccount.tsx, AccountOverviewRow.tsx, AccountPreferencesCard.tsx, AccountAdminCards.tsx, DashboardWidgetRenderer.tsx, DashboardWidgetPopout.tsx, DashboardProjectCard.tsx, TabWireframe.tsx, TabRedirectCard.tsx, DashboardSlateDropWindow.tsx
+- **Phase 8 complete:** shadcn Tabs integration, UpgradeGate component, tier gating for all tabs (12 files, 204 insertions, 73 deletions)
+- **New file:** `components/shared/UpgradeGate.tsx` (66 lines) — lock overlay with feature name, required tier, upgrade CTA
+- **New utility:** `tierMeetsRequirement()` in `lib/entitlements.ts` — tier comparison helper
+- **DashTab type extended:** Added `locked?` and `requiredTier?` fields to `lib/types/dashboard.ts`
+- **useVisibleTabs rewritten:** Now shows ALL subscription tabs (not just entitled ones), marks locked ones with `locked: true` + `requiredTier`
+- **DashboardClient:** Manual conditionals replaced with shadcn `<Tabs>` / `<TabsContent>`, locked tabs show UpgradeGate inline
+- **DashboardOverview:** Module tiles show lock badge + dimmed opacity for locked tabs; clicking routes to in-dashboard UpgradeGate
+- **DashboardTabShell:** Added `requiredTier` prop; when tier < required, renders UpgradeGate instead of children
+- **6 shell components updated:** DesignStudioShell (requiredTier="model"), ToursShell ("creator"), ContentStudioShell ("creator"), GeospatialShell ("model"), VirtualStudioShell ("model"), AnalyticsReportsClient ("business") — all with correct tier + accent color + dark mode banners
 
 #### Git State
-- HEAD: `2eddd44` — `style: Phase 7 — visual polish (card patterns, spacing, focus states, skeletons)`
-- Previous: `145c861`
+- HEAD: `5310a7a` — `feat: Phase 8 — new feature readiness (shadcn Tabs, UpgradeGate, tier gating)`
+- Previous: `2835ee5`
 - Vercel auto-deploying from `origin/main`
 
 #### TypeScript Status
 - **0 errors** across entire codebase (`npx tsc --noEmit` passes clean)
-- **0 gray-* references** in any Phase 7 scoped file
-- **0 navy #1E3A8A references** codebase-wide
+- All modified files under 300 lines
 
 #### What's NOT Broken
 - Auth system: fully working
@@ -216,7 +214,7 @@ When editing oversized files, always read both the state declarations AND the JS
 | 5.5 | Zod API validation (per-route) | ⬜ Not started — add incrementally as routes are touched |
 | 6 | Homepage decomposition | ✅ Complete — 775 → 63 lines, 8 extracted files in `components/home/` |
 | **7** | **Visual polish** | **✅ Complete** |
-| 8 | New feature readiness | ⬜ Next |
+| **8** | **New feature readiness** | **✅ Complete** |
 
 Also completed outside plan:
 - SlateDropClient decomposition: 451 → 282 lines (7 sub-hooks)
@@ -245,7 +243,7 @@ Also completed outside plan:
 `useSlateDropUiState`, `useSlateDropFiles`, `useSlateDropPreviewUrl`, `useSlateDropUploadActions`, `useSlateDropInteractionHandlers`, `useSlateDropTransferActions`, `useSlateDropMutationActions`
 
 #### Next Steps (Ordered)
-1. **Phase 8 — New feature readiness** (DashboardTabShell wiring, UpgradeGate, shadcn Tabs)
+1. **AnalyticsReportsClient dark-mode conversion** (300 lines of light-mode styling, caught during Phase 8)
 2. **Project Hub page extractions** (9 files over 300-line limit)
 3. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
 4. **DashboardWidgetRenderer extraction** (513 lines — lazy-load widgets with next/dynamic)

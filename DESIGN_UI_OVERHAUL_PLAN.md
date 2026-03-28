@@ -2,7 +2,7 @@
 
 Created: 2026-03-24
 Updated: 2026-03-28
-Status: Phases 0–7 COMPLETE. Next: Phase 8 (New Feature Readiness)
+Status: Phases 0–8 COMPLETE. Design/UI overhaul plan fully executed.
 Branch: main
 
 ## Context
@@ -244,7 +244,7 @@ Phase 5B   useDashboardState decomposition    ✅ COMPLETE (775→244 lines, 6 s
 Phase 5.5  Zod API validation                 ⬜ Add per-route as touched (incremental)
 Phase 6    Homepage decomposition             ✅ COMPLETE (775→63 lines, 8 extracted files)
 Phase 7    Visual polish                      ✅ COMPLETE (17 files, dark zinc palette, Skeleton.tsx, focus states)
-Phase 8    New feature readiness              ⬜ Final layer
+Phase 8    New feature readiness              ✅ COMPLETE (shadcn Tabs, UpgradeGate, tier gating, shell dark mode)
 
 Also completed (not in original plan):
 - SlateDropClient decomposition: 451→282 lines (7 sub-hooks)
