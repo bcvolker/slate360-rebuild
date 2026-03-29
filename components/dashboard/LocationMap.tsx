@@ -233,11 +233,11 @@ function DrawController({
   useEffect(() => {
     const trimmed = originInput.trim();
     if (!trimmed || trimmed.length < 3 || !mapsApiKey) { setOriginSuggestions([]); return; }
-    const g = (window as any).google?.maps?.places;
-    if (!g?.AutocompleteSuggestion) { setOriginSuggestions([]); return; }
+    const Autocomplete = (placesLib as any)?.AutocompleteSuggestion;
+    if (!Autocomplete) { setOriginSuggestions([]); return; }
     const timeout = window.setTimeout(async () => {
       try {
-        const response = await g.AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: trimmed });
+        const response = await Autocomplete.fetchAutocompleteSuggestions({ input: trimmed });
         setOriginSuggestions(
           (response?.suggestions ?? []).slice(0, 5).map((s: any) => ({
             placeId: s.placePrediction?.placeId ?? "",
@@ -265,11 +265,11 @@ function DrawController({
   useEffect(() => {
     const trimmed = destInput.trim();
     if (!trimmed || trimmed.length < 3 || !mapsApiKey) { setDestSuggestions([]); return; }
-    const g = (window as any).google?.maps?.places;
-    if (!g?.AutocompleteSuggestion) { setDestSuggestions([]); return; }
+    const Autocomplete = (placesLib as any)?.AutocompleteSuggestion;
+    if (!Autocomplete) { setDestSuggestions([]); return; }
     const timeout = window.setTimeout(async () => {
       try {
-        const response = await g.AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: trimmed });
+        const response = await Autocomplete.fetchAutocompleteSuggestions({ input: trimmed });
         setDestSuggestions(
           (response?.suggestions ?? []).slice(0, 5).map((s: any) => ({
             placeId: s.placePrediction?.placeId ?? "",
@@ -846,11 +846,11 @@ function DrawController({
       setSuggestions([]);
       return;
     }
-    const g = (window as any).google?.maps?.places;
-    if (!g?.AutocompleteSuggestion) { setSuggestions([]); return; }
+    const Autocomplete = (placesLib as any)?.AutocompleteSuggestion;
+    if (!Autocomplete) { setSuggestions([]); return; }
     const timeout = window.setTimeout(async () => {
       try {
-        const response = await g.AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: trimmed });
+        const response = await Autocomplete.fetchAutocompleteSuggestions({ input: trimmed });
         setSuggestions(
           (response?.suggestions ?? []).slice(0, 6).map((s: any) => ({
             placeId: s.placePrediction?.placeId ?? "",

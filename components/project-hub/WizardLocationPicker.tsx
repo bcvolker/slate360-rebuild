@@ -104,11 +104,11 @@ function Controller({
   useEffect(() => {
     const trimmed = input.trim();
     if (!trimmed || trimmed.length < 3) { setSuggestions([]); return; }
-    const g = (window as any).google?.maps?.places;
-    if (!g?.AutocompleteSuggestion) { setSuggestions([]); return; }
+    const Autocomplete = (placesLib as any)?.AutocompleteSuggestion;
+    if (!Autocomplete) { setSuggestions([]); return; }
     const timer = window.setTimeout(async () => {
       try {
-        const response = await g.AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: trimmed });
+        const response = await Autocomplete.fetchAutocompleteSuggestions({ input: trimmed });
         setSuggestions(
           (response?.suggestions ?? []).slice(0, 6).map((s: any) => ({
             placeId: s.placePrediction?.placeId ?? "",
