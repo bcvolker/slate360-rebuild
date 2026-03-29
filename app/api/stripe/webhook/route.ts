@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getTierFromPriceId } from "@/lib/billing";
+import { getAppFromPriceId } from "@/lib/billing-apps";
 import { getStripeClient } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -76,8 +77,15 @@ export async function POST(req: NextRequest) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const orgId = session.metadata?.org_id ?? null;
+        const kind = session.metadata?.kind ?? null;
 
-        if (session.mode === "subscription" && orgId) {
+        if (session.mode === "subscription" && orgId && kind === "standalone_app") {
+          const appId = session.metadata?.app_id;
+          console.log(`[webhook] Standalone app subscription: app=${appId} org=${orgId}`);
+          // Phase 2: write to org_feature_flags table
+        }
+
+        if (session.mode === "subscription" && orgId && kind !== "standalone_app") {
           const targetTier = session.metadata?.target_tier;
           if (targetTier) {
             await updateOrganizationTier(orgId, targetTier);
@@ -98,12 +106,21 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
+        const kind = subscription.metadata?.kind ?? null;
 
         let orgId: string | null = subscription.metadata?.org_id || null;
         if (!orgId) {
           orgId = await resolveOrgIdFromCustomer(stripe, typeof subscription.customer === "string" ? subscription.customer : null);
         }
         if (!orgId) break;
+
+        // Standalone app subscription — Phase 2 will write to org_feature_flags
+        if (kind === "standalone_app") {
+          const appId = subscription.metadata?.app_id;
+          const isActive = event.type !== "customer.subscription.deleted";
+          console.log(`[webhook] App subscription ${event.type}: app=${appId} org=${orgId} active=${isActive}`);
+          break;
+        }
 
         if (event.type === "customer.subscription.deleted") {
           await updateOrganizationTier(orgId, "trial");
