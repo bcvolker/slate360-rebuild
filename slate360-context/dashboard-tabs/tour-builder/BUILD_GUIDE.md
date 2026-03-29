@@ -624,7 +624,7 @@ These steps are executed using `APP_ECOSYSTEM_GUIDE.md`, not this BUILD_GUIDE. T
 
 | Step | Ref | Status |
 |---|---|---|
-| 1A: Stripe smoke test (checkout + webhook + tier update) | APP_ECOSYSTEM_GUIDE.md §2 Phase 1A | ⬜ Unstarted |
+| 1A: Stripe smoke test (checkout + webhook + tier update) | APP_ECOSYSTEM_GUIDE.md §2 Phase 1A | 🟡 Automated tests pass; manual checkout + DB verify pending |
 | 1B: Create Tour Builder + PunchWalk Stripe products, set price ID env vars | APP_ECOSYSTEM_GUIDE.md §2 Phase 1B | ⬜ Unstarted |
 | 2A: Create `org_feature_flags` table migration | APP_ECOSYSTEM_GUIDE.md §3 Phase 2A | ⬜ Unstarted |
 | 2B: Update `getEntitlements()` to merge app flags | APP_ECOSYSTEM_GUIDE.md §3 Phase 2B | ⬜ Unstarted |

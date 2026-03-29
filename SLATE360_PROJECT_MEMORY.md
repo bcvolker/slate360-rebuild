@@ -169,35 +169,54 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-28 (Address Autocomplete Bug Fixed)
+### Session Handoff — 2026-03-29 (App Ecosystem Phase 1A Smoke Test)
 
 #### What Changed (This Session)
-- **BUG-010 autocomplete dependency bug fixed** — Root cause: `useMapsLibrary("places")` return value was discarded in both `WizardLocationPicker.tsx` and `LocationMap.tsx`. The autocomplete `useEffect` hooks checked `window.google.maps.places.AutocompleteSuggestion` but never listed the places library in their dependency arrays. If the Places library loaded after the initial effect evaluation, `AutocompleteSuggestion` was permanently `undefined` and suggestions never appeared.
-  - **Fix:** Captured return value as `placesLib` and added to all 4 autocomplete effect dependency arrays:
-    - `components/project-hub/WizardLocationPicker.tsx` — 1 autocomplete effect
-    - `components/dashboard/LocationMap.tsx` — 3 autocomplete effects (origin, destination, address bar)
-  - **BUG-010 status:** ✅ Fixed (was 🟡 Mostly Fixed)
-  - **FIX-022** added to `slate360-context/ONGOING_ISSUES.md`
-  - 0 TypeScript errors after fix (`tsc --noEmit` clean)
+- **App Ecosystem Phase 1A — Stripe smoke test executed:**
+  - Created `scripts/stripe-smoke-test.mjs` — automated 6-point test: API key, all 6 price IDs, webhook secret, webhook endpoint, checkout endpoint, billing portal endpoint
+  - **All 6 tests PASS** — Stripe baseline infrastructure is healthy
+  - Stripe account: "Slate360 sandbox" (test mode)
+  - All subscription products verified: Creator ($79/mo, $756/yr), Model ($199/mo, $1908/yr), Business ($499/mo, $4788/yr)
+- **Bug fixed: `.env.local` used `_YEARLY` suffix, code expects `_ANNUAL`**
+  - Renamed `STRIPE_PRICE_CREATOR_YEARLY` → `STRIPE_PRICE_CREATOR_ANNUAL` (and Model, Business)
+  - ⚠️ **Action needed:** Verify Vercel production env vars also use `_ANNUAL` suffix
+- **Tour Builder BUILD_GUIDE Phase 0 block added** — explicit foundation prerequisite table with 6 steps
+- **Capacitor hosted-URL strategy** documented in BUILD_GUIDE Research Intake
+- **IMPLEMENTATION_PLAN.md** — added foundation dependency
+- **APP_ECOSYSTEM_GUIDE.md** — Phase 1A status section added with results
 
 #### Git State
-- Working tree: modified (not yet committed)
-- Previous HEAD: `6437028` on `origin/main`
+- Working tree: modified (ready to commit)
+- Previous HEAD: `e90ff04` on `origin/main`
 
 #### What's NOT Broken
-- Auth, Dashboard, SlateDrop, Market Robot, Homepage, all 9 Project Hub pages — all unchanged
-- Both map components compile clean with 0 TS errors
+- All existing modules unchanged — this session was docs + env fix + new test script only
 
 #### Context Files Updated
-- `slate360-context/ONGOING_ISSUES.md` — BUG-010 marked ✅ Fixed, FIX-022 added
+- `slate360-context/apps/APP_ECOSYSTEM_GUIDE.md` — Phase 1A status section
+- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md` — Phase 0 block, Capacitor strategy, prerequisite expansion
+- `slate360-context/dashboard-tabs/tour-builder/IMPLEMENTATION_PLAN.md` — foundation dependency
+
+#### Stripe File Map (Reference)
+| File | Purpose |
+|---|---|
+| `lib/stripe.ts` | `getStripeClient()`, `getRequestOrigin()` |
+| `lib/billing.ts` | Plans, prices, tiers, `getTierFromPriceId()` |
+| `lib/billing-server.ts` | `getAuthenticatedOrgContext()`, `findOrCreateStripeCustomer()` |
+| `app/api/stripe/webhook/route.ts` | Webhook handler: `checkout.session.completed`, `customer.subscription.*` |
+| `app/api/billing/checkout/route.ts` | Creates Stripe checkout session |
+| `app/api/billing/portal/route.ts` | Creates Stripe billing portal session |
+| `app/api/billing/credits/checkout/route.ts` | Credit pack one-time checkout |
+| `app/plans/page.tsx` | Plans/pricing page with checkout flow |
+| `lib/hooks/useBillingState.ts` | Client-side billing state hook |
+| `scripts/stripe-smoke-test.mjs` | Automated Phase 1A smoke test |
 
 #### Next Steps (Ordered)
-1. **Commit + push** the autocomplete fix
-2. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
-3. **DashboardWidgetRenderer extraction** (513 lines — lazy-load widgets with next/dynamic)
-4. **Orphan file cleanup** (MarketClient.tsx old copy, MarketRobotWorkspace.tsx, .bak files)
-| 5 | Entitlements fix (creator `canAccessHub`) | ✅ Complete |
-| 5B | useDashboardState sub-hook decomposition | ✅ Complete — 775 → 244 lines, 6 sub-hooks |
+1. **Verify Vercel env vars** use `_ANNUAL` suffix (manual — in Vercel Dashboard)
+2. **Phase 1A manual test** — complete checkout with test card, verify webhook updates DB
+3. **Phase 1B** — Create Tour Builder + PunchWalk standalone Stripe products
+4. **Phase 2A-2D** — `org_feature_flags` table, entitlement merge, webhook writes, middleware
+5. **Unfreeze Tour Builder MVP** — begin 8-prompt sequence
 | 5.5 | Zod API validation (per-route) | ⬜ Not started — add incrementally as routes are touched |
 | 6 | Homepage decomposition | ✅ Complete — 775 → 63 lines, 8 extracted files in `components/home/` |
 | **7** | **Visual polish** | **✅ Complete** |

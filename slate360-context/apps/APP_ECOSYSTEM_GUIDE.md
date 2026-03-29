@@ -94,6 +94,24 @@ For local testing: use `stripe listen --forward-to localhost:3000/api/stripe/web
 - Billing portal opens from account settings.
 - Downgrade/cancellation updates tier on next period end.
 
+#### Phase 1A Status — Verified Mar 29 2026
+
+**Automated smoke test (`scripts/stripe-smoke-test.mjs`) — ALL PASSED:**
+- ✅ `STRIPE_SECRET_KEY` valid (test mode), connects to "Slate360 sandbox" account
+- ✅ All 6 subscription price IDs resolve to real Stripe prices (Creator/Model/Business × monthly/annual)
+- ✅ `STRIPE_WEBHOOK_SECRET` set (whsec_... format)
+- ✅ Webhook endpoint (`/api/stripe/webhook`) returns 400 on invalid signature (correct behavior)
+- ✅ Checkout endpoint (`/api/billing/checkout`) returns 401 for unauthenticated (correct auth guard)
+- ✅ Billing portal endpoint (`/api/billing/portal`) returns 401 for unauthenticated (correct)
+
+**Bug fixed:** `.env.local` had `STRIPE_PRICE_*_YEARLY` but `lib/billing.ts` reads `STRIPE_PRICE_*_ANNUAL`. Renamed env vars to `_ANNUAL`. **⚠️ Verify Vercel production env vars also use `_ANNUAL` suffix.**
+
+**Remaining Phase 1A items (manual verification needed):**
+- [ ] Complete a test checkout with Stripe test card `4242 4242 4242 4242` from `/plans`
+- [ ] Verify webhook updates `organizations.tier` in Supabase after checkout
+- [ ] Verify billing portal opens from dashboard account settings
+- [ ] Verify Vercel env vars use `_ANNUAL` suffix (not `_YEARLY`)
+
 ### Phase 1B — Add Standalone App Stripe Products
 
 After platform billing is confirmed working, add standalone app products.
