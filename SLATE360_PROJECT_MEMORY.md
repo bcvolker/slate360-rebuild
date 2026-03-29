@@ -172,32 +172,31 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-29 (Phase 2 Complete: org_feature_flags)
+### Session Handoff — 2026-03-29 (Phase 2 + Integrity Check + Migrations Applied)
 
 #### What Changed (This Session)
 
-**Phase 2A — Migration Executed (commit `299a589`):**
+**Phase 2 Complete — org_feature_flags (commit `299a589`):**
 - `supabase/migrations/20260329_org_feature_flags.sql` — table live in production
-- Columns: `org_id` (PK/FK), `standalone_tour_builder`, `standalone_punchwalk`, `tour_builder_seat_limit/seats_used`, timestamps
-- RLS enabled, SELECT policy for org members, service-role-only mutations
-- `trg_org_feature_flags_updated_at` trigger active
-- Executed via Supabase Management API (`SUPABASE_ACCESS_TOKEN` env var)
-
-**Phase 2B — Entitlement Merge (commit `299a589`):**
 - `lib/entitlements.ts` — `OrgFeatureFlags` type, `getEntitlements()` accepts optional `featureFlags` param
-- `lib/entitlements.ts` — `Entitlements` interface now includes `canAccessStandaloneTourBuilder`, `canAccessStandalonePunchwalk`, `tourBuilderSeatLimit`, `tourBuilderSeatsUsed`
-- `lib/server/org-feature-flags.ts` — NEW. `loadOrgFeatureFlags(orgId)` server loader (admin client)
+- `lib/server/org-feature-flags.ts` — `loadOrgFeatureFlags(orgId)` server loader
+- `app/api/stripe/webhook/route.ts` — `upsertAppFlag()` writes flags on standalone app sub create/update/delete
+- `lib/server/api-auth.ts` — `withAppAuth(appId, req, handler)` wrapper
+- `middleware.ts` — `/tour-builder`, `/punchwalk`, `/apps` in auth redirect + walled garden enforcer
 
-**Phase 2C — Webhook Writes (commit `299a589`):**
-- `app/api/stripe/webhook/route.ts` — `upsertAppFlag()` writes to `org_feature_flags` on standalone app sub create/update/delete
-- Replaces Phase 2 TODO comments with actual upsert logic
+**Integrity Check + Tour Builder Schema (commit `5b8ac5a`):**
+- Applied 3 migrations to production DB:
+  - `20260406000000_stripe_events_and_storage.sql` — `stripe_events` table + `increment_org_storage()` RPC
+  - `20260406000001_project_tours_schema.sql` — `project_tours` + `tour_scenes` tables with RLS
+  - `20260406000002_fix_tours_updated_at_trigger.sql` — generic `set_updated_at()` function, fixed triggers
+- `app/api/stripe/webhook/route.ts` — Stripe event idempotency via `stripe_events` table + `storage_limit_bytes` sync
+- `app/api/slatedrop/upload-url/route.ts` — storage quota check before presigned URL generation
+- `components/dashboard/DashboardClient.tsx` — tours tab uses `canAccessStandaloneTourBuilder`
+- `lib/types/tours.ts` — `ProjectTour` + `TourScene` types
+- `middleware.ts` — fixed TS error in walled garden Supabase join type narrowing
 
-**Phase 2D — Route Protection (commit `299a589`):**
-- `lib/server/api-auth.ts` — NEW `withAppAuth(appId, req, handler)` wrapper checks `org_feature_flags`
-- `middleware.ts` — `/tour-builder` and `/punchwalk` added to unauthenticated redirect list
-
-**Previous Session Work (still in this session):**
-- Phase 1B Stripe products, billing-apps.ts, app-checkout route, webhook standalone support (commit `bc14583`)
+**Earlier This Session:**
+- Phase 1B Stripe products + billing-apps.ts + app-checkout route (commit `bc14583`)
 - Plans page CTA fixes, trial access overhaul, email branding (commits `d4e8803`, `1f94a10`, `09e565a`)
 
 #### Stripe + App Ecosystem File Map
@@ -210,84 +209,61 @@ When editing oversized files, always read both the state declarations AND the JS
 | `lib/entitlements.ts` | `getEntitlements()` with `OrgFeatureFlags` merge |
 | `lib/server/org-feature-flags.ts` | `loadOrgFeatureFlags()` server loader |
 | `lib/server/api-auth.ts` | `withAuth()`, `withProjectAuth()`, `withMarketAuth()`, `withAppAuth()` |
-| `app/api/stripe/webhook/route.ts` | Webhook — tier updates + standalone app flag upserts |
+| `lib/types/tours.ts` | `ProjectTour`, `TourScene` types |
+| `app/api/stripe/webhook/route.ts` | Webhook — tier updates + app flag upserts + idempotency |
 | `app/api/billing/checkout/route.ts` | Tier subscription checkout |
 | `app/api/billing/app-checkout/route.ts` | Standalone app checkout |
-| `app/api/billing/portal/route.ts` | Stripe billing portal session |
-| `supabase/migrations/20260329_org_feature_flags.sql` | Migration (already applied) |
 
-#### DB Note
-- `SUPABASE_ACCESS_TOKEN` in Codespace secrets is valid (`sbp_4a52c0fd...`). Updated `.env.local` to match.
-- Old token (`sbp_bae1d29d...`) was expired. 
-- Supabase CLI binary at `/tmp/supabase` (v2.84.2) — works for `db query --linked`
-- `POSTGRES_PASSWORD` is still empty — use Management API or CLI for DDL, not psql
+#### Database Tables Created This Session
+| Table | Migration | Status |
+|---|---|---|
+| `org_feature_flags` | `20260329_org_feature_flags.sql` | ✅ Live — RLS, trigger, constraints |
+| `stripe_events` | `20260406000000` | ✅ Live — webhook idempotency |
+| `project_tours` | `20260406000001` | ✅ Live — RLS, indexes |
+| `tour_scenes` | `20260406000001` | ✅ Live — RLS, cascade delete |
+
+#### Codespace Tool Access
+| Tool | Status | How |
+|---|---|---|
+| Supabase Management API | ✅ Working | `SUPABASE_ACCESS_TOKEN` Codespace secret (`sbp_4a52c0fd...`) |
+| Supabase Data | ✅ Working | `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` |
+| Vercel CLI | ✅ Working | `VERCEL_TOKEN` Codespace secret |
+| Stripe API + CLI | ✅ Working | `STRIPE_SECRET_KEY` in `.env.local`, CLI at `/usr/local/bin/stripe` |
+| AWS CLI + S3 | ✅ Working | Keys in `.env.local`, CLI at `/usr/local/bin/aws`, bucket `slate360-storage` |
+| Resend Email | ✅ Working | `RESEND_API_KEY` in `.env.local`, domain `slate360.ai` verified |
+| Google Maps | ✅ Client-side only | Key has website referrer restrictions (correct security) |
+| GitHub | ✅ Working | Codespace default auth |
+| Postgres direct (psql) | ❌ No password | Use Management API for DDL instead |
+| Supabase CLI | ⚠️ /tmp only | Binary at `/tmp/supabase` — lost on Codespace rebuild |
+
+**Note:** Supabase CLI at `/tmp/supabase` v2.84.2 is ephemeral. For DDL, prefer Management API via curl (see `scripts/run-migration.mjs` pattern).
+
+#### Google Maps API Key
+- Key starts with `AIzaSyAHXWir...` — matches `.env.local` `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
+- Application restrictions: **Websites** — `http://localhost:3000/*`, `https://slate360.ai/*`, `https://www.slate360.ai/*`
+- API restrictions: **Restrict key** — Geocoding, Maps JS, Maps Static, Places, Street View Static
+- Server-side calls fail by design (no referrer) — this is correct
+- Address autocomplete (BUG-010) is NOT caused by API key restrictions — needs browser console debugging
 
 #### Git State
-- HEAD: `299a589` on `origin/main`
+- HEAD: `5b8ac5a` on `origin/main`
 - Working tree: clean
+- No stashes
 
 #### What Still Needs Work
-- **Per-feature trial restrictions** — TrialBanner is cosmetic; actual data limits, watermarks, deliverable caps need per-feature enforcement
-- **Address autocomplete** — still broken (BUG-010)
+- **Tour Builder MVP** — DB schema is live, types exist, need UI build (8-prompt sequence in `BUILD_GUIDE.md`)
 - **Manual checkout test** — test card purchase on live site not yet tested
+- **Per-feature trial restrictions** — TrialBanner is cosmetic; data limits/watermarks/caps need per-feature enforcement
+- **Address autocomplete** — BUG-010, not an API key issue, needs browser console test
+- **Walled garden for standalone-only users** — middleware logic added but `/apps` route doesn't exist yet
 
 #### Next Steps (Ordered)
-1. **Unfreeze Tour Builder MVP** — begin 8-prompt build sequence from `BUILD_GUIDE.md`
-2. **Manual checkout test** — test card purchase on live site, verify webhook → DB tier update + flag upsert
-3. **Per-feature trial restrictions** — enforce data limits, watermarks, deliverable caps
-4. **Address autocomplete debugging** — BUG-010, needs runtime browser console test
-- Logo, mobile quick-access, debug banner UI fixes
-- All TS errors resolved (was 4, now 0)
-
-#### Module Health Summary
-
-| Module | Status | Main File | Lines | Notes |
-|--------|--------|-----------|-------|-------|
-| **Dashboard** | ✅ Done | `DashboardClient.tsx` | 264 | 5 extractions + 6 sub-hooks |
-| **Dashboard State** | ✅ Done | `useDashboardState.ts` | 244 | Thin orchestrator |
-| **DashboardMyAccount** | ✅ Done | `DashboardMyAccount.tsx` | 267 | Under limit |
-| **DashboardHeader** | ✅ Done | `DashboardHeader.tsx` | 292 | Shared across all pages + MobileModuleBar |
-| **SlateDrop** | ✅ Done | `SlateDropClient.tsx` | 282 | 7 sub-hooks wired |
-| **Market Robot** | ⏸️ Paused | `MarketClient.tsx` | 175 | Needs wallet funding to test |
-| **Homepage** | ✅ Done | `app/page.tsx` | 63 | 8 files in `components/home/` |
-| **Project Hub pages** | ✅ Done | 9 pages | 111-240 | All extracted + dark mode (42 files total) |
-
-#### Sub-Hook Registry
-
-**Dashboard (6 hooks):**
-`useBillingState` (81), `useWidgetPrefsState` (155), `useAccountState` (154), `useWeatherState` (104), `useSuggestFeatureState` (40), `useNotificationsState` (38)
-
-**SlateDrop (7 hooks):**
-`useSlateDropUiState`, `useSlateDropFiles`, `useSlateDropPreviewUrl`, `useSlateDropUploadActions`, `useSlateDropInteractionHandlers`, `useSlateDropTransferActions`, `useSlateDropMutationActions`
-
-#### Next Steps (Ordered)
-1. **Phase 1A manual checkout test** — test card purchase on live site, verify webhook → DB tier update
-2. **Phase 2A** — Create `org_feature_flags` Supabase table + migration
-3. **Phase 2B** — Entitlement merge: `getEntitlements(tier, featureFlags)` reads flags
-4. **Phase 2C** — Webhook writes to `org_feature_flags`
-5. **Phase 2D** — Middleware route protection for standalone app routes
-6. **Unfreeze Tour Builder MVP** — begin 8-prompt build sequence
-7. **Per-feature trial restrictions** — enforce data limits, watermarks, deliverable caps
-8. **Address autocomplete debugging** — BUG-010, needs runtime browser console test
-9. **DashboardWidgetRenderer extraction** (513 lines)
-10. **Orphan file cleanup** (old MarketClient.tsx, MarketRobotWorkspace.tsx, .bak files)
-
-#### Accesses Confirmed Working
-- **Supabase admin**: `createAdminClient()` via `SUPABASE_SERVICE_ROLE_KEY`
-- **Resend API**: domain `slate360.ai` verified, sending works
-- **Vercel CLI**: `vercel link` connected, `VERCEL_TOKEN` Codespace secret working — can read/write env vars
-- **Git**: push to `origin/main` triggers Vercel auto-deploy
-- **AWS S3**: bucket `slate360-storage`, region `us-east-2`
-- **Stripe**: test mode (`sk_test_*`), all 6 tier price IDs + 2 app price IDs resolve, webhook endpoint responds
-
-#### Agent Coordination Lessons
-- **Grok 4.2**: Good at UX concepts/research. Invents fictional APIs for hooks (~20 type errors). Protocol: Copilot provides type contracts → Grok writes UI → Copilot verifies.
-- **Gemini 3.1**: Good for design consultation. **Do NOT let it execute code** — truncated globals.css, broke remote. Design mockups/specs only.
-- **Copilot (Claude Opus 4.6)**: Primary codebase owner. All code changes, decomposition, verification.
-
-#### Files to Delete (orphans from prior refactors)
-- `components/dashboard/MarketClient.tsx` (old orphaned copy, 75 lines)
-- `components/dashboard/market/MarketRobotWorkspace.tsx` (unused, 84 lines)
+1. **Tour Builder MVP** — begin 8-prompt build from `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`
+2. **Create `/apps` route** — standalone app launcher page for walled garden users
+3. **Manual checkout test** — test card purchase on live site
+4. **Per-feature trial restrictions** — enforce actual limits
+5. **Address autocomplete** — BUG-010, browser console debug
+6. **Orphan file cleanup** — delete old `MarketClient.tsx`, `MarketRobotWorkspace.tsx`, `.bak` files
 - `MARKET_ROBOT_STATUS_HANDOFF.md.bak` (backup of old handoff)
 
 #### Priority Order for Next Work
