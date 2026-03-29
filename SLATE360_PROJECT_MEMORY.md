@@ -1,6 +1,6 @@
 # Slate360 — Project Memory
 
-Last Updated: 2026-03-28
+Last Updated: 2026-03-29
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -34,6 +34,7 @@ Primary live modules:
 Tier note:
 - subscription tiers are `trial < creator < model < business < enterprise`
 - subscription gates use `getEntitlements()`
+- trial tier unlocks ALL tabs with tight limits (500 credits, 5GB, 1 seat) + TrialBanner
 - `/ceo`, `/market`, and `/athlete360` are internal access routes, not subscription features
 
 ## Critical Rules
@@ -87,6 +88,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 - Auto-deploy from `main`
 - Cron source: `vercel.json`
 - Stripe secrets live in Vercel envs
+- CLI access via `VERCEL_TOKEN` Codespace secret (linked to `slate360/slate360-rebuild`)
+- Env var dashboard: `https://vercel.com/slate360/slate360-rebuild/settings/environment-variables`
 
 ### Git
 - Default branch: `main`
@@ -169,33 +172,36 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-29 (App Ecosystem Phase 1A Smoke Test)
+### Session Handoff — 2026-03-29 (Trial Access + Billing Flow Fixes)
 
 #### What Changed (This Session)
-- **App Ecosystem Phase 1A — Stripe smoke test executed:**
-  - Created `scripts/stripe-smoke-test.mjs` — automated 6-point test: API key, all 6 price IDs, webhook secret, webhook endpoint, checkout endpoint, billing portal endpoint
-  - **All 6 tests PASS** — Stripe baseline infrastructure is healthy
-  - Stripe account: "Slate360 sandbox" (test mode)
-  - All subscription products verified: Creator ($79/mo, $756/yr), Model ($199/mo, $1908/yr), Business ($499/mo, $4788/yr)
-- **Bug fixed: `.env.local` used `_YEARLY` suffix, code expects `_ANNUAL`**
-  - Renamed `STRIPE_PRICE_CREATOR_YEARLY` → `STRIPE_PRICE_CREATOR_ANNUAL` (and Model, Business)
-  - ⚠️ **Action needed:** Verify Vercel production env vars also use `_ANNUAL` suffix
-- **Tour Builder BUILD_GUIDE Phase 0 block added** — explicit foundation prerequisite table with 6 steps
-- **Capacitor hosted-URL strategy** documented in BUILD_GUIDE Research Intake
-- **IMPLEMENTATION_PLAN.md** — added foundation dependency
-- **APP_ECOSYSTEM_GUIDE.md** — Phase 1A status section added with results
 
-#### Git State
-- Working tree: modified (ready to commit)
-- Previous HEAD: `e90ff04` on `origin/main`
+**Plans Page CTA Fix (commit `d4e8803`):**
+- `app/plans/page.tsx` — unauthenticated users now redirect to `/signup?plan=X&billing=Y` (was `/login`)
+- `app/signup/page.tsx` — OAuth signup redirects back to `/plans` with plan params after callback
+- `app/api/auth/signup/route.ts` — accepts `redirectAfter` param, email confirmation redirects to `/plans` when plan selected
 
-#### What's NOT Broken
-- All existing modules unchanged — this session was docs + env fix + new test script only
+**Trial Access Overhaul (commit `09e565a`):**
+- `lib/entitlements.ts` — trial tier unlocks ALL tabs. Limits: 500 credits, 5GB, 1 seat.
+- `components/shared/TrialBanner.tsx` — NEW. Non-blocking upgrade banner shown in every tab for trial users.
+- `components/shared/DashboardTabShell.tsx` — trial bypasses `requiredTier` lock, shows TrialBanner instead of UpgradeGate.
 
-#### Context Files Updated
-- `slate360-context/apps/APP_ECOSYSTEM_GUIDE.md` — Phase 1A status section
-- `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md` — Phase 0 block, Capacitor strategy, prerequisite expansion
-- `slate360-context/dashboard-tabs/tour-builder/IMPLEMENTATION_PLAN.md` — foundation dependency
+**Email Branding (commit `09e565a`):**
+- `lib/email.ts` — emails now use hosted `logo.svg` instead of text header
+
+**Vercel CLI Access (runtime):**
+- `VERCEL_TOKEN` Codespace secret is set and working
+- `vercel link` connected — can run `vercel env ls/add/pull`
+
+**Vercel Env Vars Verified:**
+- User renamed `_YEARLY` → `_ANNUAL` in Vercel Dashboard
+- User fixed trailing space on `NEXT_PUBLIC_APP_URL`
+- All Stripe vars confirmed present
+
+**Prior session (same day, earlier):**
+- `scripts/stripe-smoke-test.mjs` — 6-point test, ALL PASS (commit `31065d6`)
+- `.env.local` `_YEARLY` → `_ANNUAL` fix
+- Tour Builder BUILD_GUIDE Phase 0 block, Capacitor strategy
 
 #### Stripe File Map (Reference)
 | File | Purpose |
@@ -211,8 +217,17 @@ When editing oversized files, always read both the state declarations AND the JS
 | `lib/hooks/useBillingState.ts` | Client-side billing state hook |
 | `scripts/stripe-smoke-test.mjs` | Automated Phase 1A smoke test |
 
+#### Git State
+- HEAD: `09e565a` on `origin/main`
+- Working tree: clean
+
+#### What Still Needs Work
+- **Per-feature trial restrictions** — TrialBanner is cosmetic; actual data limits, watermarks, deliverable caps need per-feature enforcement
+- **Address autocomplete** — still broken at runtime despite 2 fix attempts. Possible API key HTTP referrer restriction.
+- **Manual Phase 1A checkout test** — user created trial account, but paid checkout with test card not yet tested
+
 #### Next Steps (Ordered)
-1. **Verify Vercel env vars** use `_ANNUAL` suffix (manual — in Vercel Dashboard)
+1. **Phase 1A manual checkout test** — test card purchase, verify webhook → DB tier update
 2. **Phase 1A manual test** — complete checkout with test card, verify webhook updates DB
 3. **Phase 1B** — Create Tour Builder + PunchWalk standalone Stripe products
 4. **Phase 2A-2D** — `org_feature_flags` table, entitlement merge, webhook writes, middleware
@@ -249,18 +264,22 @@ Also completed outside plan:
 `useSlateDropUiState`, `useSlateDropFiles`, `useSlateDropPreviewUrl`, `useSlateDropUploadActions`, `useSlateDropInteractionHandlers`, `useSlateDropTransferActions`, `useSlateDropMutationActions`
 
 #### Next Steps (Ordered)
-1. **App Ecosystem Foundation (Phases 1–2)** — Stripe smoke test, standalone app products, `org_feature_flags` migration, entitlement merge, webhook flag writes, middleware route protection. **Must complete before Tour Builder MVP prompts begin.** See `slate360-context/apps/APP_ECOSYSTEM_GUIDE.md`.
-2. **360 Tour Builder MVP** (8 prompts) — frozen until foundation is done. See `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`.
-3. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
-4. **DashboardWidgetRenderer extraction** (513 lines — lazy-load widgets with next/dynamic)
-5. **Orphan file cleanup** (MarketClient.tsx old copy, MarketRobotWorkspace.tsx, .bak files)
+1. **Phase 1A manual checkout test** — test card purchase on live site, verify webhook → DB tier update
+2. **App Ecosystem Foundation (Phases 1B–2)** — standalone app Stripe products, `org_feature_flags` migration, entitlement merge, webhook flag writes, middleware route protection. **Must complete before Tour Builder MVP.** See `slate360-context/apps/APP_ECOSYSTEM_GUIDE.md`.
+3. **360 Tour Builder MVP** (8 prompts) — frozen until foundation is done. See `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`.
+4. **Per-feature trial restrictions** — enforce data limits, watermarks, deliverable caps in each tab
+5. **Address autocomplete debugging** — BUG-010, needs runtime browser console test
+6. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
+7. **DashboardWidgetRenderer extraction** (513 lines — lazy-load widgets with next/dynamic)
+8. **Orphan file cleanup** (MarketClient.tsx old copy, MarketRobotWorkspace.tsx, .bak files)
 
 #### Accesses Confirmed Working
 - **Supabase admin**: `createAdminClient()` via `SUPABASE_SERVICE_ROLE_KEY`
 - **Resend API**: domain `slate360.ai` verified, sending works
-- **Vercel CLI**: `vercel whoami` → `slate360ceo-8370`
+- **Vercel CLI**: `vercel link` connected, `VERCEL_TOKEN` Codespace secret working — can read/write env vars
 - **Git**: push to `origin/main` triggers Vercel auto-deploy
 - **AWS S3**: bucket `slate360-storage`, region `us-east-2`
+- **Stripe**: test mode (`sk_test_*`), all 6 price IDs resolve, webhook endpoint responds
 | **Design Studio** | 🔲 Scaffolded only | `DesignStudioShell.tsx` | 37 | Full build needed |
 | **360 Tour Builder** | 🔲 Scaffolded only | `ToursShell.tsx` | 37 | Full build needed |
 
