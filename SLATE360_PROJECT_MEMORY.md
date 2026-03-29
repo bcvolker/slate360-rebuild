@@ -172,46 +172,50 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-29 (Trial Access + Billing Flow Fixes)
+### Session Handoff — 2026-03-29 (Trial Access + Billing + Phase 1B)
 
 #### What Changed (This Session)
 
 **Plans Page CTA Fix (commit `d4e8803`):**
-- `app/plans/page.tsx` — unauthenticated users now redirect to `/signup?plan=X&billing=Y` (was `/login`)
+- `app/plans/page.tsx` — unauthenticated users redirect to `/signup?plan=X&billing=Y` (was `/login`)
 - `app/signup/page.tsx` — OAuth signup redirects back to `/plans` with plan params after callback
-- `app/api/auth/signup/route.ts` — accepts `redirectAfter` param, email confirmation redirects to `/plans` when plan selected
+- `app/api/auth/signup/route.ts` — accepts `redirectAfter` param for post-confirm redirect
+
+**Plans CTA dynamic text (commit `1f94a10`):**
+- `app/plans/page.tsx` — logged-in users see "Subscribe", anonymous see "Start free trial"
 
 **Trial Access Overhaul (commit `09e565a`):**
 - `lib/entitlements.ts` — trial tier unlocks ALL tabs. Limits: 500 credits, 5GB, 1 seat.
-- `components/shared/TrialBanner.tsx` — NEW. Non-blocking upgrade banner shown in every tab for trial users.
-- `components/shared/DashboardTabShell.tsx` — trial bypasses `requiredTier` lock, shows TrialBanner instead of UpgradeGate.
+- `components/shared/TrialBanner.tsx` — NEW. Non-blocking upgrade banner in every tab for trial users.
+- `components/shared/DashboardTabShell.tsx` — trial bypasses `requiredTier` lock, shows TrialBanner.
 
 **Email Branding (commit `09e565a`):**
 - `lib/email.ts` — emails now use hosted `logo.svg` instead of text header
 
+**Phase 1B — Standalone App Stripe Products (commit `bc14583`):**
+- Created Stripe products: Tour Builder ($49/mo) + PunchWalk ($49/mo placeholder)
+- `scripts/seed-stripe-apps.mjs` — idempotent seed script for standalone app products
+- `lib/billing-apps.ts` — NEW. App plan definitions, `getAppPriceId()`, `getAppFromPriceId()`
+- `app/api/billing/app-checkout/route.ts` — NEW. Standalone app checkout route
+- `app/api/stripe/webhook/route.ts` — recognizes `kind=standalone_app` subscriptions (Phase 2: write to `org_feature_flags`)
+- Env vars set in `.env.local` + Vercel (all environments):
+  - `STRIPE_PRICE_APP_TOUR_BUILDER_MONTHLY=price_1TGFOIJCrjGbeotHN7GMuvlG`
+  - `STRIPE_PRICE_APP_PUNCHWALK_MONTHLY=price_1TGFOJJCrjGbeotHPWADqPGa`
+
 **Vercel CLI Access (runtime):**
-- `VERCEL_TOKEN` Codespace secret is set and working
-- `vercel link` connected — can run `vercel env ls/add/pull`
-
-**Vercel Env Vars Verified:**
-- User renamed `_YEARLY` → `_ANNUAL` in Vercel Dashboard
-- User fixed trailing space on `NEXT_PUBLIC_APP_URL`
-- All Stripe vars confirmed present
-
-**Prior session (same day, earlier):**
-- `scripts/stripe-smoke-test.mjs` — 6-point test, ALL PASS (commit `31065d6`)
-- `.env.local` `_YEARLY` → `_ANNUAL` fix
-- Tour Builder BUILD_GUIDE Phase 0 block, Capacitor strategy
+- `VERCEL_TOKEN` Codespace secret working — can run `vercel env ls/add/pull`
 
 #### Stripe File Map (Reference)
 | File | Purpose |
 |---|---|
 | `lib/stripe.ts` | `getStripeClient()`, `getRequestOrigin()` |
-| `lib/billing.ts` | Plans, prices, tiers, `getTierFromPriceId()` |
+| `lib/billing.ts` | Tier plans, prices, `getTierFromPriceId()` |
+| `lib/billing-apps.ts` | **NEW** — Standalone app plans, `getAppPriceId()`, `getAppFromPriceId()` |
 | `lib/billing-server.ts` | `getAuthenticatedOrgContext()`, `findOrCreateStripeCustomer()` |
-| `app/api/stripe/webhook/route.ts` | Webhook handler: `checkout.session.completed`, `customer.subscription.*` |
-| `app/api/billing/checkout/route.ts` | Creates Stripe checkout session |
-| `app/api/billing/portal/route.ts` | Creates Stripe billing portal session |
+| `app/api/stripe/webhook/route.ts` | Webhook handler — now recognizes tier + standalone app subscriptions |
+| `app/api/billing/checkout/route.ts` | Tier subscription checkout |
+| `app/api/billing/app-checkout/route.ts` | **NEW** — Standalone app checkout |
+| `app/api/billing/portal/route.ts` | Stripe billing portal session |
 | `app/api/billing/credits/checkout/route.ts` | Credit pack one-time checkout |
 | `app/plans/page.tsx` | Plans/pricing page with checkout flow |
 | `lib/hooks/useBillingState.ts` | Client-side billing state hook |
@@ -227,18 +231,14 @@ When editing oversized files, always read both the state declarations AND the JS
 - **Manual Phase 1A checkout test** — user created trial account, but paid checkout with test card not yet tested
 
 #### Next Steps (Ordered)
-1. **Phase 1A manual checkout test** — test card purchase, verify webhook → DB tier update
-2. **Phase 1A manual test** — complete checkout with test card, verify webhook updates DB
-3. **Phase 1B** — Create Tour Builder + PunchWalk standalone Stripe products
-4. **Phase 2A-2D** — `org_feature_flags` table, entitlement merge, webhook writes, middleware
-5. **Unfreeze Tour Builder MVP** — begin 8-prompt sequence
-| 5.5 | Zod API validation (per-route) | ⬜ Not started — add incrementally as routes are touched |
-| 6 | Homepage decomposition | ✅ Complete — 775 → 63 lines, 8 extracted files in `components/home/` |
-| **7** | **Visual polish** | **✅ Complete** |
-| **8** | **New feature readiness** | **✅ Complete** |
-
-Also completed outside plan:
-- SlateDropClient decomposition: 451 → 282 lines (7 sub-hooks)
+1. **Phase 1A manual checkout test** — test card purchase on live site, verify webhook → DB tier update
+2. **Phase 2A** — Create `org_feature_flags` Supabase table + migration
+3. **Phase 2B** — Entitlement merge: `getEntitlements(tier, featureFlags)` reads flags
+4. **Phase 2C** — Webhook writes: standalone app subscription events write to `org_feature_flags`
+5. **Phase 2D** — Middleware route protection for standalone app routes
+6. **Unfreeze Tour Builder MVP** — begin 8-prompt build sequence
+7. **Per-feature trial restrictions** — enforce data limits, watermarks, deliverable caps
+8. **Address autocomplete debugging** — BUG-010, needs runtime browser console test
 - Logo, mobile quick-access, debug banner UI fixes
 - All TS errors resolved (was 4, now 0)
 
@@ -265,13 +265,15 @@ Also completed outside plan:
 
 #### Next Steps (Ordered)
 1. **Phase 1A manual checkout test** — test card purchase on live site, verify webhook → DB tier update
-2. **App Ecosystem Foundation (Phases 1B–2)** — standalone app Stripe products, `org_feature_flags` migration, entitlement merge, webhook flag writes, middleware route protection. **Must complete before Tour Builder MVP.** See `slate360-context/apps/APP_ECOSYSTEM_GUIDE.md`.
-3. **360 Tour Builder MVP** (8 prompts) — frozen until foundation is done. See `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`.
-4. **Per-feature trial restrictions** — enforce data limits, watermarks, deliverable caps in each tab
-5. **Address autocomplete debugging** — BUG-010, needs runtime browser console test
-6. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
-7. **DashboardWidgetRenderer extraction** (513 lines — lazy-load widgets with next/dynamic)
-8. **Orphan file cleanup** (MarketClient.tsx old copy, MarketRobotWorkspace.tsx, .bak files)
+2. **Phase 2A** — Create `org_feature_flags` Supabase table + migration
+3. **Phase 2B** — Entitlement merge: `getEntitlements(tier, featureFlags)` reads flags
+4. **Phase 2C** — Webhook writes to `org_feature_flags`
+5. **Phase 2D** — Middleware route protection for standalone app routes
+6. **Unfreeze Tour Builder MVP** — begin 8-prompt build sequence
+7. **Per-feature trial restrictions** — enforce data limits, watermarks, deliverable caps
+8. **Address autocomplete debugging** — BUG-010, needs runtime browser console test
+9. **DashboardWidgetRenderer extraction** (513 lines)
+10. **Orphan file cleanup** (old MarketClient.tsx, MarketRobotWorkspace.tsx, .bak files)
 
 #### Accesses Confirmed Working
 - **Supabase admin**: `createAdminClient()` via `SUPABASE_SERVICE_ROLE_KEY`
@@ -279,9 +281,7 @@ Also completed outside plan:
 - **Vercel CLI**: `vercel link` connected, `VERCEL_TOKEN` Codespace secret working — can read/write env vars
 - **Git**: push to `origin/main` triggers Vercel auto-deploy
 - **AWS S3**: bucket `slate360-storage`, region `us-east-2`
-- **Stripe**: test mode (`sk_test_*`), all 6 price IDs resolve, webhook endpoint responds
-| **Design Studio** | 🔲 Scaffolded only | `DesignStudioShell.tsx` | 37 | Full build needed |
-| **360 Tour Builder** | 🔲 Scaffolded only | `ToursShell.tsx` | 37 | Full build needed |
+- **Stripe**: test mode (`sk_test_*`), all 6 tier price IDs + 2 app price IDs resolve, webhook endpoint responds
 
 #### Agent Coordination Lessons
 - **Grok 4.2**: Good at UX concepts/research. Invents fictional APIs for hooks (~20 type errors). Protocol: Copilot provides type contracts → Grok writes UI → Copilot verifies.
