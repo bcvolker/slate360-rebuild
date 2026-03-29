@@ -169,55 +169,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-28 (All 9 Project Hub Page Extractions Complete)
+### Session Handoff — 2026-03-28 (Address Autocomplete Bug Fixed)
 
 #### What Changed (This Session)
-- **All 9 over-limit Project Hub pages extracted + dark mode converted:**
-
-| Page | Before | After | Files | Commit |
-|---|---|---|---|---|
-| management | 931 | 111 | 6 | fcfd3c6 |
-| photos | 599 | 191 | 6 | d7358e3 |
-| submittals | 579 | 211 | 4 | 24b09b8 |
-| schedule | 465 | 240 | 5 | f9d662c |
-| drawings | 448 | 155 | 5 | 6c3e678 |
-| budget | 421 | 214 | 4 | cd979cd |
-| punch-list | 403 | 232 | 4 | 6437028 |
-| daily-logs | 358 | 176 | 4 | 6437028 |
-| rfis | 339 | 218 | 4 | 6437028 |
-
-- **Pattern for all extractions:** `_shared.ts` (types/constants/helpers) + item/form/viewer components + thin orchestrator `page.tsx`
-- **AnalyticsReportsClient dark-mode conversion** completed (3aefba1)
-- **Project Hub base dark-mode conversion** completed (07f1201, 10 files)
-- **Widget/background mismatch bug** fixed — Project Hub now matches Dashboard dark zinc palette
+- **BUG-010 autocomplete dependency bug fixed** — Root cause: `useMapsLibrary("places")` return value was discarded in both `WizardLocationPicker.tsx` and `LocationMap.tsx`. The autocomplete `useEffect` hooks checked `window.google.maps.places.AutocompleteSuggestion` but never listed the places library in their dependency arrays. If the Places library loaded after the initial effect evaluation, `AutocompleteSuggestion` was permanently `undefined` and suggestions never appeared.
+  - **Fix:** Captured return value as `placesLib` and added to all 4 autocomplete effect dependency arrays:
+    - `components/project-hub/WizardLocationPicker.tsx` — 1 autocomplete effect
+    - `components/dashboard/LocationMap.tsx` — 3 autocomplete effects (origin, destination, address bar)
+  - **BUG-010 status:** ✅ Fixed (was 🟡 Mostly Fixed)
+  - **FIX-022** added to `slate360-context/ONGOING_ISSUES.md`
+  - 0 TypeScript errors after fix (`tsc --noEmit` clean)
 
 #### Git State
-- HEAD: `6437028` — all pushed to `origin/main`
-- Vercel auto-deploying from `origin/main`
-
-#### TypeScript Status
-- **0 errors** across all modified files (`get_errors` clean on every extraction)
-- All page files under 300-line limit
+- Working tree: modified (not yet committed)
+- Previous HEAD: `6437028` on `origin/main`
 
 #### What's NOT Broken
-- Auth system: fully working
-- Dashboard: ~280 lines, all extractions done, 6 sub-hooks
-- SlateDrop: 282 lines, 7 sub-hooks
-- Market Robot: 175 lines, compiles clean (paused — needs wallet funding)
-- Homepage: 63 lines, 8 extracted sections all working
-- All 9 Project Hub pages: extracted + dark mode + zero TS errors
-- Mobile header: clean with MobileModuleBar below main bar
+- Auth, Dashboard, SlateDrop, Market Robot, Homepage, all 9 Project Hub pages — all unchanged
+- Both map components compile clean with 0 TS errors
 
-#### Design & UI Overhaul Phase Tracker (see `DESIGN_UI_OVERHAUL_PLAN.md`)
+#### Context Files Updated
+- `slate360-context/ONGOING_ISSUES.md` — BUG-010 marked ✅ Fixed, FIX-022 added
 
-| Phase | Description | Status |
-|---|---|---|
-| 0 | Fix remote (force-push) | ✅ Complete |
-| 1 | CSS design tokens in globals.css | ✅ Complete |
-| 2 | Navy `#1E3A8A` purge | ✅ Complete — 0 files remaining |
-| 3 | Install shadcn UI primitives | ✅ Complete — 13 files in `components/ui/` |
-| 3.5 | Guardrails (Husky, lint-staged, CI) | ✅ Complete |
-| 4 | DashboardClient decomposition | ✅ Complete — 1,961 → 264 lines |
+#### Next Steps (Ordered)
+1. **Commit + push** the autocomplete fix
+2. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
+3. **DashboardWidgetRenderer extraction** (513 lines — lazy-load widgets with next/dynamic)
+4. **Orphan file cleanup** (MarketClient.tsx old copy, MarketRobotWorkspace.tsx, .bak files)
 | 5 | Entitlements fix (creator `canAccessHub`) | ✅ Complete |
 | 5B | useDashboardState sub-hook decomposition | ✅ Complete — 775 → 244 lines, 6 sub-hooks |
 | 5.5 | Zod API validation (per-route) | ⬜ Not started — add incrementally as routes are touched |
@@ -252,10 +230,9 @@ Also completed outside plan:
 `useSlateDropUiState`, `useSlateDropFiles`, `useSlateDropPreviewUrl`, `useSlateDropUploadActions`, `useSlateDropInteractionHandlers`, `useSlateDropTransferActions`, `useSlateDropMutationActions`
 
 #### Next Steps (Ordered)
-1. **Address autocomplete bug** — Location widget autocomplete not pulling addresses while typing (user-reported)
-2. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
-3. **DashboardWidgetRenderer extraction** (513 lines — lazy-load widgets with next/dynamic)
-4. **Orphan file cleanup** (MarketClient.tsx old copy, MarketRobotWorkspace.tsx, .bak files)
+1. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
+2. **DashboardWidgetRenderer extraction** (513 lines — lazy-load widgets with next/dynamic)
+3. **Orphan file cleanup** (MarketClient.tsx old copy, MarketRobotWorkspace.tsx, .bak files)
 
 #### Accesses Confirmed Working
 - **Supabase admin**: `createAdminClient()` via `SUPABASE_SERVICE_ROLE_KEY`

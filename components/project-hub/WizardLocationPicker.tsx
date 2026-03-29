@@ -54,7 +54,7 @@ function Controller({
   const map = useMap("wiz-loc-map");
   const geocodingLib = useMapsLibrary("geocoding");
   // Load places library so AutocompleteSuggestion becomes available globally
-  useMapsLibrary("places");
+  const placesLib = useMapsLibrary("places");
 
   const geocoder = useMemo(
     () => (geocodingLib ? new geocodingLib.Geocoder() : null),
@@ -133,7 +133,7 @@ function Controller({
       }
     }, 250);
     return () => clearTimeout(timer);
-  }, [input, geocoder]);
+  }, [input, geocoder, placesLib]);
 
   // ── Map click handler (pin or polygon vertex) ───────────────────────────
   useEffect(() => {

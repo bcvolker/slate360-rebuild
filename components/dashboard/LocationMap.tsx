@@ -194,7 +194,7 @@ function DrawController({
   const mapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   const geocodingLib = useMapsLibrary("geocoding");
   // Load places lib so AutocompleteSuggestion is available globally
-  useMapsLibrary("places");
+  const placesLib = useMapsLibrary("places");
   const geocoder = useMemo(() => geocodingLib ? new geocodingLib.Geocoder() : null, [geocodingLib]);
   const [tool, setTool] = useState<DrawTool>("select");
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
@@ -260,7 +260,7 @@ function DrawController({
       }
     }, 250);
     return () => window.clearTimeout(timeout);
-  }, [originInput, mapsApiKey, geocoder]);
+  }, [originInput, mapsApiKey, geocoder, placesLib]);
   // destination autocomplete (AutocompleteSuggestion API)
   useEffect(() => {
     const trimmed = destInput.trim();
@@ -292,7 +292,7 @@ function DrawController({
       }
     }, 250);
     return () => window.clearTimeout(timeout);
-  }, [destInput, mapsApiKey, geocoder]);
+  }, [destInput, mapsApiKey, geocoder, placesLib]);
   // Cleanup route polyline + markers on unmount
   useEffect(() => {
     return () => {
@@ -873,7 +873,7 @@ function DrawController({
       }
     }, 250);
     return () => window.clearTimeout(timeout);
-  }, [addressInput, mapsApiKey, geocoder]);
+  }, [addressInput, mapsApiKey, geocoder, placesLib]);
   const goToCurrentLocation = () => {
     if (!navigator.geolocation) {
       setStatus({ ok: false, text: "Geolocation is not available on this browser." });
