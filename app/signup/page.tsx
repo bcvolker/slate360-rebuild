@@ -44,10 +44,13 @@ export default function SignupPage() {
 
     try {
       // Use our custom API route that sends emails via Resend
+      const redirectAfter = selectedPlan
+        ? `/plans?plan=${selectedPlan}&billing=${selectedBilling}`
+        : undefined;
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, name, redirectAfter }),
       });
 
       const data = await res.json();
@@ -102,10 +105,13 @@ export default function SignupPage() {
   async function handleOAuth(provider: "google" | "azure") {
     setOauthLoading(provider);
     setError(null);
+    const callbackUrl = selectedPlan
+      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/plans?plan=${selectedPlan}&billing=${selectedBilling}`)}`
+      : `${window.location.origin}/auth/callback`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl,
         scopes: provider === "azure" ? "openid profile email" : undefined,
       },
     });

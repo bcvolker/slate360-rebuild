@@ -96,8 +96,7 @@ export default function PlansPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        const redirectTo = `/plans?plan=${tierId}&billing=${billing}`;
-        window.location.href = `/login?redirectTo=${encodeURIComponent(redirectTo)}`;
+        window.location.href = `/signup?plan=${tierId}&billing=${billing}`;
         return;
       }
 

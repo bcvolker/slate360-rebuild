@@ -10,7 +10,7 @@ import { sendConfirmationEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
-    const { email, password, name } = await req.json();
+    const { email, password, name, redirectAfter } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -21,7 +21,10 @@ export async function POST(req: Request) {
 
     const supabase = createAdminClient();
     const origin = new URL(req.url).origin;
-    const redirectTo = `${origin}/auth/callback?next=/dashboard`;
+    const next = typeof redirectAfter === "string" && redirectAfter.startsWith("/")
+      ? redirectAfter
+      : "/dashboard";
+    const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
     // Use generateLink which creates user + generates confirmation link in one step
     // This does NOT send Supabase's email - we send via Resend instead
