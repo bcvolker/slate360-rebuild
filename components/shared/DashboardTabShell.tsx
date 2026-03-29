@@ -4,6 +4,7 @@ import { useState } from "react";
 import { type LucideIcon } from "lucide-react";
 import DashboardHeader from "@/components/shared/DashboardHeader";
 import UpgradeGate from "@/components/shared/UpgradeGate";
+import TrialBanner from "@/components/shared/TrialBanner";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import { type Tier, tierMeetsRequirement } from "@/lib/entitlements";
 
@@ -36,7 +37,8 @@ export default function DashboardTabShell({
   children,
 }: DashboardTabShellProps) {
   const [customizeOpen, setCustomizeOpen] = useState(false);
-  const isLocked = requiredTier ? !tierMeetsRequirement(tier, requiredTier) : false;
+  const isTrial = tier === "trial";
+  const isLocked = !isTrial && requiredTier ? !tierMeetsRequirement(tier, requiredTier) : false;
 
   return (
     <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
@@ -89,7 +91,10 @@ export default function DashboardTabShell({
             icon={Icon}
           />
         ) : (
-          children
+          <>
+            {tier === "trial" && <TrialBanner feature={title} accent={accent} />}
+            {children}
+          </>
         )}
       </main>
 

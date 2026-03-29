@@ -27,16 +27,15 @@ export interface Entitlements {
 const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
   trial: {
     label: "Trial",
-    // Trial: Project Hub + SlateDrop only (per tier table in copilot-instructions.md)
-    // Design Studio: model+  Content: creator+  Tour: creator+  Geo/Virtual: model+  Analytics: business+
+    // Trial: full access to all tabs with tight limits, restrictions, and watermarks
     canAccessHub: true,
-    canAccessDesignStudio: false,
-    canAccessContent: false,
-    canAccessTourBuilder: false,
-    canAccessGeospatial: false,
-    canAccessVirtual: false,
-    canAccessAnalytics: false,
-    canAccessReports: false,
+    canAccessDesignStudio: true,
+    canAccessContent: true,
+    canAccessTourBuilder: true,
+    canAccessGeospatial: true,
+    canAccessVirtual: true,
+    canAccessAnalytics: true,
+    canAccessReports: true,
     canManageSeats: false,
     canWhiteLabel: false,
     canViewSlateDropWidget: true,

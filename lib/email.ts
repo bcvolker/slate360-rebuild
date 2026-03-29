@@ -43,6 +43,7 @@ async function sendEmail({
 
 /* ── Branded HTML wrapper ── */
 function brandedHtml(title: string, body: string): string {
+  const logoUrl = `${APP_URL}/logo.svg`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -57,13 +58,8 @@ function brandedHtml(title: string, body: string): string {
         <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
           <!-- Header -->
           <tr>
-            <td style="background:#18181b;padding:28px 40px;">
-              <table cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="width:8px;height:28px;background:#FF4D00;border-radius:3px;"></td>
-                  <td style="padding-left:12px;color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;">Slate360</td>
-                </tr>
-              </table>
+            <td style="background:#18181b;padding:24px 40px;">
+              <img src="${logoUrl}" alt="Slate360" width="180" height="auto" style="display:block;max-width:180px;height:auto;" />
             </td>
           </tr>
           <!-- Body -->
