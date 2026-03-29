@@ -37,6 +37,7 @@ Derived from uploaded `raw-upload-1.txt` + `raw-upload-2.txt` and roadmap notes.
 - Expandable timeline and queue sections.
 
 ## Dependencies
+- **App Ecosystem Foundation (MUST be completed prior to Tour Builder DB schema creation):** Stripe product setup (Phase 1A/1B), `org_feature_flags` schema + migration (Phase 2A), entitlement merge in `getEntitlements()` (Phase 2B), Stripe webhook flag writes (Phase 2C), and middleware route protection (Phase 2D). See `slate360-context/apps/APP_ECOSYSTEM_GUIDE.md`.
 - Panorama stack + queue processing.
 - SlateDrop artifact IO and public link controls.
 

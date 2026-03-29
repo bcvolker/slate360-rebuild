@@ -14,8 +14,14 @@ This BUILD_GUIDE covers the core Tour Builder MVP (8 prompts). For the standalon
 The Tour Builder is the **first priority app** in the ecosystem revenue-first launch order. Build it first, validate it as a standalone subscription, then use the same pattern for PunchWalk.
 
 **Prerequisites before starting the 8-prompt sequence:**
-- App Phase 1 (Stripe smoke test + Tour Builder product created): see APP_ECOSYSTEM_GUIDE.md
-- App Phase 2 (`org_feature_flags` + entitlement merge): see APP_ECOSYSTEM_GUIDE.md
+- App Phase 1A (Stripe smoke test — verify checkout + webhook): see APP_ECOSYSTEM_GUIDE.md — **UNSTARTED**
+- App Phase 1B (Create Tour Builder + PunchWalk Stripe products + price IDs): see APP_ECOSYSTEM_GUIDE.md — **UNSTARTED**
+- App Phase 2A (`org_feature_flags` table migration): see APP_ECOSYSTEM_GUIDE.md — **UNSTARTED**
+- App Phase 2B (Update `getEntitlements()` to merge app flags): see APP_ECOSYSTEM_GUIDE.md — **UNSTARTED**
+- App Phase 2C (Stripe webhook writes `org_feature_flags` rows on subscription): see APP_ECOSYSTEM_GUIDE.md — **UNSTARTED**
+- App Phase 2D (Middleware protects standalone app routes via entitlements): see APP_ECOSYSTEM_GUIDE.md — **UNSTARTED**
+
+**⚠️ The 8-prompt Tour Builder MVP sequence is FROZEN until these foundation phases are complete.** The Tour Builder DB schema depends on `org_feature_flags` for subscription gating, and the standalone route requires entitlement middleware. Building the MVP before the foundation exists will create ungated routes and untestable billing flows.
 
 **After the 8-prompt MVP is complete:**
 - Add Tour Builder standalone route and subscription gating (~2 prompts)
@@ -612,6 +618,23 @@ A short animated camera move that plays when a scene loads. Creates a cinematic 
 
 This is the recommended prompt order for a safe MVP-lite build.
 
+### Phase 0 — App Ecosystem Foundation (MUST complete before Prompt 1)
+
+These steps are executed using `APP_ECOSYSTEM_GUIDE.md`, not this BUILD_GUIDE. They establish the billing and entitlement infrastructure that Tour Builder depends on.
+
+| Step | Ref | Status |
+|---|---|---|
+| 1A: Stripe smoke test (checkout + webhook + tier update) | APP_ECOSYSTEM_GUIDE.md §2 Phase 1A | ⬜ Unstarted |
+| 1B: Create Tour Builder + PunchWalk Stripe products, set price ID env vars | APP_ECOSYSTEM_GUIDE.md §2 Phase 1B | ⬜ Unstarted |
+| 2A: Create `org_feature_flags` table migration | APP_ECOSYSTEM_GUIDE.md §3 Phase 2A | ⬜ Unstarted |
+| 2B: Update `getEntitlements()` to merge app flags | APP_ECOSYSTEM_GUIDE.md §3 Phase 2B | ⬜ Unstarted |
+| 2C: Stripe webhook writes `org_feature_flags` on subscription | APP_ECOSYSTEM_GUIDE.md §3 Phase 2C | ⬜ Unstarted |
+| 2D: Middleware protects standalone app routes via entitlements | APP_ECOSYSTEM_GUIDE.md §3 Phase 2D | ⬜ Unstarted |
+
+**Exit criteria for Phase 0:** A test user can subscribe to a standalone app product via Stripe, the webhook persists the feature flag, `getEntitlements()` returns true for the app, and the middleware gates the route correctly.
+
+**Estimated prompts:** ~3–5 (see APP_ECOSYSTEM_GUIDE.md for details).
+
 ### Prompt 1 — Types + Schema + Migration Plan
 
 Deliver:
@@ -879,6 +902,15 @@ Use this section to add reference material and decisions before implementation.
 - Fullscreen: viewer has a native fullscreen button; `requestFullscreen()` on the viewer div
 - Popout: "Open in new window" button opens `/v/[tourSlug]?mode=present` (Phase 2)
 - Scene navigation: prev/next arrows in viewer when tour has multiple scenes; scene thumbnail strip below viewer
+
+### Mobile Delivery Strategy (Confirmed)
+
+- **Capacitor will use the hosted URL approach** — a full-screen WebView loading the live Next.js app from the Vercel deployment URL.
+- PWA layer uses `@ducanh2912/next-pwa` for service worker + install prompt.
+- Android target: API 34 (Android 14+).
+- iOS target: requires active Apple Developer Program enrollment ($99/yr).
+- Both iOS and Android Capacitor shells are thin wrappers; all logic lives in the web app.
+- This strategy is shared with PunchWalk — a single Capacitor project wraps all standalone apps.
 
 ### Branding Decisions
 

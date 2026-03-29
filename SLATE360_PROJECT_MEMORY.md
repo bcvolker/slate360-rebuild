@@ -230,9 +230,11 @@ Also completed outside plan:
 `useSlateDropUiState`, `useSlateDropFiles`, `useSlateDropPreviewUrl`, `useSlateDropUploadActions`, `useSlateDropInteractionHandlers`, `useSlateDropTransferActions`, `useSlateDropMutationActions`
 
 #### Next Steps (Ordered)
-1. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
-2. **DashboardWidgetRenderer extraction** (513 lines — lazy-load widgets with next/dynamic)
-3. **Orphan file cleanup** (MarketClient.tsx old copy, MarketRobotWorkspace.tsx, .bak files)
+1. **App Ecosystem Foundation (Phases 1–2)** — Stripe smoke test, standalone app products, `org_feature_flags` migration, entitlement merge, webhook flag writes, middleware route protection. **Must complete before Tour Builder MVP prompts begin.** See `slate360-context/apps/APP_ECOSYSTEM_GUIDE.md`.
+2. **360 Tour Builder MVP** (8 prompts) — frozen until foundation is done. See `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`.
+3. **Phase 5.5 — Zod validation** (add incrementally per route as touched)
+4. **DashboardWidgetRenderer extraction** (513 lines — lazy-load widgets with next/dynamic)
+5. **Orphan file cleanup** (MarketClient.tsx old copy, MarketRobotWorkspace.tsx, .bak files)
 
 #### Accesses Confirmed Working
 - **Supabase admin**: `createAdminClient()` via `SUPABASE_SERVICE_ROLE_KEY`
