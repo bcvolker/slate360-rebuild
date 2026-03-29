@@ -22,6 +22,8 @@ import {
   resolveProjectScope,
   getScopedProjectForUser,
 } from "@/lib/projects/access";
+import { loadOrgFeatureFlags } from "@/lib/server/org-feature-flags";
+import type { StandaloneAppId } from "@/lib/billing-apps";
 
 /* ─── Context types passed to handlers ──────────────────────── */
 
@@ -90,6 +92,32 @@ export async function withMarketAuth(
       return NextResponse.json({ error: "Market access required" }, { status: 403 });
     }
 
+    return handler(ctx);
+  });
+}
+
+/**
+ * Standalone-app auth wrapper — ensures the user is authenticated and their
+ * org has the specified standalone app enabled in org_feature_flags.
+ *
+ * Usage:
+ *   export const GET = (req: NextRequest) =>
+ *     withAppAuth("tour_builder", req, async (ctx) => { ... });
+ */
+export async function withAppAuth(
+  appId: StandaloneAppId,
+  req: NextRequest,
+  handler: (ctx: AuthedContext) => Promise<NextResponse>,
+): Promise<NextResponse> {
+  return withAuth(req, async (ctx) => {
+    const flags = await loadOrgFeatureFlags(ctx.orgId);
+    const col = appId === "tour_builder" ? "standalone_tour_builder" : "standalone_punchwalk";
+    if (!flags[col]) {
+      return NextResponse.json(
+        { error: `${appId} subscription required` },
+        { status: 403 },
+      );
+    }
     return handler(ctx);
   });
 }

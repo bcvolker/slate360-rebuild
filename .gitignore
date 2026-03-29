@@ -49,3 +49,4 @@ ts.log
 ts-errors.txt
 *.log
 .env*.local
+supabase/.temp/

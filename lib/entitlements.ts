@@ -1,5 +1,13 @@
 export type Tier = "trial" | "creator" | "model" | "business" | "enterprise";
 
+/** Row shape of the public.org_feature_flags table. */
+export interface OrgFeatureFlags {
+  standalone_tour_builder: boolean;
+  standalone_punchwalk: boolean;
+  tour_builder_seat_limit: number;
+  tour_builder_seats_used: number;
+}
+
 export interface Entitlements {
   tier: Tier;
   label: string;
@@ -22,9 +30,18 @@ export interface Entitlements {
   maxSeats: number;
   monthlyPrice: number;
   annualPrice: number;
+
+  // Standalone app entitlements (merged from org_feature_flags)
+  canAccessStandaloneTourBuilder: boolean;
+  canAccessStandalonePunchwalk: boolean;
+  tourBuilderSeatLimit: number;
+  tourBuilderSeatsUsed: number;
 }
 
-const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
+/** Standalone app fields are excluded — they come from org_feature_flags, not tiers. */
+type TierEntitlements = Omit<Entitlements, "tier" | "canAccessStandaloneTourBuilder" | "canAccessStandalonePunchwalk" | "tourBuilderSeatLimit" | "tourBuilderSeatsUsed">;
+
+const TIER_MAP: Record<Tier, TierEntitlements> = {
   trial: {
     label: "Trial",
     // Trial: full access to all tabs with tight limits, restrictions, and watermarks
@@ -123,15 +140,32 @@ const TIER_MAP: Record<Tier, Omit<Entitlements, "tier">> = {
   },
 };
 
-export function getEntitlements(rawTier?: string | null, options?: { isSlateCeo?: boolean }): Entitlements {
+export function getEntitlements(
+  rawTier?: string | null,
+  options?: { isSlateCeo?: boolean; featureFlags?: Partial<OrgFeatureFlags> },
+): Entitlements {
   const isCeo = options?.isSlateCeo ?? false;
-  // Slate360 owner account always gets enterprise-level access
-  if (isCeo) {
-    return { tier: "enterprise", ...TIER_MAP.enterprise };
-  }
-  const tier: Tier =
-    rawTier && rawTier in TIER_MAP ? (rawTier as Tier) : "trial";
-  return { tier, ...TIER_MAP[tier] };
+  const flags = options?.featureFlags;
+
+  const tier: Tier = isCeo
+    ? "enterprise"
+    : rawTier && rawTier in TIER_MAP
+      ? (rawTier as Tier)
+      : "trial";
+
+  const base = TIER_MAP[tier];
+
+  return {
+    tier,
+    ...base,
+    // Standalone app access: tier-based Tour Builder OR standalone flag
+    canAccessStandaloneTourBuilder:
+      base.canAccessTourBuilder || flags?.standalone_tour_builder === true,
+    canAccessStandalonePunchwalk:
+      flags?.standalone_punchwalk === true,
+    tourBuilderSeatLimit: flags?.tour_builder_seat_limit ?? 0,
+    tourBuilderSeatsUsed: flags?.tour_builder_seats_used ?? 0,
+  };
 }
 
 const TIER_ORDER: Tier[] = ["trial", "creator", "model", "business", "enterprise"];

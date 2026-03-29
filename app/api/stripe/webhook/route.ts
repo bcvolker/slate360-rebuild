@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getTierFromPriceId } from "@/lib/billing";
-import { getAppFromPriceId } from "@/lib/billing-apps";
+import { getAppFromPriceId, isStandaloneAppId } from "@/lib/billing-apps";
 import { getStripeClient } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -41,6 +41,23 @@ async function addPurchasedCredits(orgId: string, creditAmount: number) {
     .from("organizations")
     .update({ credits_balance: existingBalance + creditAmount })
     .eq("id", orgId);
+}
+
+async function upsertAppFlag(orgId: string, appId: "tour_builder" | "punchwalk", active: boolean) {
+  const admin = createAdminClient();
+  const col = appId === "tour_builder" ? "standalone_tour_builder" : "standalone_punchwalk";
+
+  // Upsert: insert a row with the flag, or update the existing flag column
+  const { error } = await admin
+    .from("org_feature_flags")
+    .upsert(
+      { org_id: orgId, [col]: active },
+      { onConflict: "org_id" },
+    );
+
+  if (error) {
+    console.error(`[webhook] Failed to upsert org_feature_flags for org=${orgId} app=${appId}:`, error.message);
+  }
 }
 
 async function resolveOrgIdFromCustomer(stripe: Stripe, customerId: string | null): Promise<string | null> {
@@ -82,7 +99,9 @@ export async function POST(req: NextRequest) {
         if (session.mode === "subscription" && orgId && kind === "standalone_app") {
           const appId = session.metadata?.app_id;
           console.log(`[webhook] Standalone app subscription: app=${appId} org=${orgId}`);
-          // Phase 2: write to org_feature_flags table
+          if (isStandaloneAppId(appId)) {
+            await upsertAppFlag(orgId, appId, true);
+          }
         }
 
         if (session.mode === "subscription" && orgId && kind !== "standalone_app") {
@@ -114,11 +133,13 @@ export async function POST(req: NextRequest) {
         }
         if (!orgId) break;
 
-        // Standalone app subscription — Phase 2 will write to org_feature_flags
         if (kind === "standalone_app") {
           const appId = subscription.metadata?.app_id;
           const isActive = event.type !== "customer.subscription.deleted";
           console.log(`[webhook] App subscription ${event.type}: app=${appId} org=${orgId} active=${isActive}`);
+          if (isStandaloneAppId(appId)) {
+            await upsertAppFlag(orgId, appId, isActive);
+          }
           break;
         }
 

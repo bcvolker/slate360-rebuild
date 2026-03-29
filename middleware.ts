@@ -35,7 +35,9 @@ export async function middleware(request: NextRequest) {
     !user &&
     (request.nextUrl.pathname.startsWith("/dashboard") ||
       request.nextUrl.pathname.startsWith("/slatedrop") ||
-      request.nextUrl.pathname.startsWith("/project-hub"))
+      request.nextUrl.pathname.startsWith("/project-hub") ||
+      request.nextUrl.pathname.startsWith("/tour-builder") ||
+      request.nextUrl.pathname.startsWith("/punchwalk"))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
