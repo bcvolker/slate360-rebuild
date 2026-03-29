@@ -10,15 +10,29 @@ export const runtime = "nodejs";
 async function updateOrganizationTier(orgId: string, tier: string) {
   const admin = createAdminClient();
 
+  // Define tier limits (in bytes)
+  const GB = 1073741824;
+  let storageLimitBytes = 5 * GB; // Default: Trial (5 GB)
+  if (tier === "creator") storageLimitBytes = 40 * GB;
+  else if (tier === "model") storageLimitBytes = 150 * GB;
+  else if (tier === "business") storageLimitBytes = 750 * GB;
+  else if (tier === "enterprise") storageLimitBytes = 5000 * GB;
+
   const updateTier = await admin
     .from("organizations")
-    .update({ tier })
+    .update({ 
+      tier,
+      storage_limit_bytes: storageLimitBytes 
+    })
     .eq("id", orgId);
 
   if (updateTier.error && /column .*tier.* does not exist/i.test(updateTier.error.message)) {
     await admin
       .from("organizations")
-      .update({ plan: tier })
+      .update({ 
+        plan: tier,
+        storage_limit_bytes: storageLimitBytes 
+      })
       .eq("id", orgId);
   }
 }
@@ -58,6 +72,19 @@ async function upsertAppFlag(orgId: string, appId: "tour_builder" | "punchwalk",
   if (error) {
     console.error(`[webhook] Failed to upsert org_feature_flags for org=${orgId} app=${appId}:`, error.message);
   }
+
+  // Update storage limit for standalone apps if they are active
+  // Assume: Standalone Tour Builder gets 5GB, Punchwalk gets 5GB.
+  // Wait, Content Studio might get 100GB later. For now we just ensure they have at least 5GB.
+  if (active) {
+    const GB = 1073741824;
+    await admin
+      .from("organizations")
+      .update({ storage_limit_bytes: 5 * GB }) // 5 GB limit for standalone
+      .eq("id", orgId)
+      // Only update if current limit is less than 5GB to prevent downgrading platform users
+      .lt("storage_limit_bytes", 5 * GB);
+  }
 }
 
 async function resolveOrgIdFromCustomer(stripe: Stripe, customerId: string | null): Promise<string | null> {
@@ -87,6 +114,18 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid Stripe signature";
     return NextResponse.json({ error: message }, { status: 400 });
+  }
+
+  const admin = createAdminClient();
+  const { data: existingEvent } = await admin
+    .from("stripe_events")
+    .select("id")
+    .eq("id", event.id)
+    .single();
+
+  if (existingEvent) {
+    console.log(`[webhook] Event ${event.id} already processed.`);
+    return NextResponse.json({ received: true });
   }
 
   try {
@@ -159,6 +198,9 @@ export async function POST(req: NextRequest) {
       default:
         break;
     }
+
+    // Record the event to prevent duplicate processing
+    await admin.from("stripe_events").insert({ id: event.id, type: event.type });
 
     return NextResponse.json({ received: true });
   } catch (error) {

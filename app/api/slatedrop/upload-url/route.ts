@@ -86,6 +86,46 @@ export async function POST(req: NextRequest) {
 
   const namespace = resolveNamespace(effectiveOrgId, effectiveUploadedBy);
 
+  // === STORAGE QUOTA CHECK ===
+  if (effectiveOrgId) {
+    // Determine the quota limit from the org's tier or standalone flag.
+    // Ideally this limit is managed in `organizations.storage_limit_bytes` but we check basic entitlements here
+    // based on maxStorageGB returned by getEntitlements. For simplicity, we query the org tier directly.
+    const { data: orgData } = await admin
+      .from("organizations")
+      .select("tier, org_storage_used_bytes")
+      .eq("id", effectiveOrgId)
+      .single();
+
+    if (orgData) {
+      const { data: flags } = await admin
+        .from("org_feature_flags")
+        .select("*")
+        .eq("org_id", effectiveOrgId)
+        .maybeSingle();
+
+      // We dynamically import getEntitlements to evaluate limit
+      const { getEntitlements } = await import("@/lib/entitlements");
+      const entitlements = getEntitlements(orgData.tier, { featureFlags: flags || {} });
+
+      // Convert maxStorageGB to bytes
+      const maxGB = entitlements?.maxStorageGB || 5; // Fallback to 5GB
+      const limitBytes = maxGB * 1024 * 1024 * 1024;
+      const currentUsageBytes = Number(orgData.org_storage_used_bytes) || 0;
+      const newTotalBytes = currentUsageBytes + size;
+
+      if (newTotalBytes > limitBytes) {
+        return NextResponse.json({
+          error: "Storage limit exceeded. Please upgrade your plan.",
+          currentUsageBytes,
+          limitBytes,
+          attemptedSizeBytes: size,
+        }, { status: 429 });
+      }
+    }
+  }
+  // === END QUOTA CHECK ===
+
   const s3Key = buildCanonicalS3Key(namespace, effectiveFolderId, filename);
 
   // Generate presigned URL (15 min expiry)

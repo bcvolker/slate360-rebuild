@@ -55,10 +55,10 @@ function useVisibleTabs(
   const ALL_TABS: (DashTab & { entKey?: keyof typeof ent; requiredTier?: import("@/lib/entitlements").Tier })[] = [
     { id: "project-hub",    label: "Project Hub",    icon: LayoutDashboard, color: "#FF4D00", entKey: "canAccessHub" },
     { id: "design-studio",  label: "Design Studio",  icon: Palette,         color: "#7C3AED", entKey: "canAccessDesignStudio", requiredTier: "model" },
-    { id: "content-studio", label: "Content Studio",  icon: Layers,          color: "#EC4899", entKey: "canAccessContent",      requiredTier: "creator" },
-    { id: "tours",          label: "360 Tours",      icon: Compass,         color: "#0891B2", entKey: "canAccessTourBuilder",  requiredTier: "creator" },
+    { id: "content-studio", label: "Content Studio", icon: Layers,          color: "#EC4899", entKey: "canAccessContent",      requiredTier: "creator" },
+    { id: "tours",          label: "360 Tours",      icon: Compass,         color: "#0891B2", entKey: "canAccessStandaloneTourBuilder",  requiredTier: "creator" },
     { id: "geospatial",     label: "Geospatial",     icon: Globe,           color: "#059669", entKey: "canAccessGeospatial",   requiredTier: "model" },
-    { id: "virtual-studio", label: "Virtual Studio",  icon: Film,            color: "#D97706", entKey: "canAccessVirtual",      requiredTier: "model" },
+    { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#D97706", entKey: "canAccessVirtual",      requiredTier: "model" },
     { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#6366F1", entKey: "canAccessAnalytics",    requiredTier: "business" },
     { id: "slatedrop",      label: "SlateDrop",      icon: FolderOpen,      color: "#FF4D00", entKey: "canViewSlateDropWidget" },
     { id: "my-account",     label: "My Account",     icon: User,            color: "#FF4D00" },

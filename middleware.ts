@@ -30,29 +30,72 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Fetch org & tier information to enforce the walled garden
+  let isStandaloneOnly = false;
+  if (user) {
+    try {
+      const { data: member } = await supabase
+        .from("organization_members")
+        .select("org_id, organizations!inner(tier)")
+        .eq("user_id", user.id)
+        .single();
+        
+      const orgTier = (member?.organizations as { tier?: string } | null)?.tier;
+      if (member && orgTier === "trial") {
+        const { data: flags } = await supabase
+          .from("org_feature_flags")
+          .select("standalone_tour_builder, standalone_punchwalk")
+          .eq("org_id", member.org_id)
+          .maybeSingle();
+          
+        const hasStandalone = flags?.standalone_tour_builder || flags?.standalone_punchwalk;
+        if (hasStandalone) {
+          isStandaloneOnly = true;
+        }
+      }
+    } catch (err) {
+      console.error("[Middleware] Walled garden check failed:", err);
+    }
+  }
+
+  const { pathname } = request.nextUrl;
+  
   // Protect /dashboard, /slatedrop & /project-hub — redirect to login if not authenticated
   if (
     !user &&
-    (request.nextUrl.pathname.startsWith("/dashboard") ||
-      request.nextUrl.pathname.startsWith("/slatedrop") ||
-      request.nextUrl.pathname.startsWith("/project-hub") ||
-      request.nextUrl.pathname.startsWith("/tour-builder") ||
-      request.nextUrl.pathname.startsWith("/punchwalk"))
+    (pathname.startsWith("/dashboard") ||
+      pathname.startsWith("/slatedrop") ||
+      pathname.startsWith("/project-hub") ||
+      pathname.startsWith("/tour-builder") ||
+      pathname.startsWith("/punchwalk") ||
+      pathname.startsWith("/apps"))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("redirectTo", request.nextUrl.pathname);
+    url.searchParams.set("redirectTo", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Walled Garden Enforcer: Standalone-only users cannot access main platform
+  if (
+    user &&
+    isStandaloneOnly &&
+    (pathname.startsWith("/dashboard") ||
+     pathname.startsWith("/slatedrop") ||
+     pathname.startsWith("/project-hub"))
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/apps";
     return NextResponse.redirect(url);
   }
 
   // Redirect logged-in users away from /login and /signup
   if (
     user &&
-    (request.nextUrl.pathname === "/login" ||
-      request.nextUrl.pathname === "/signup")
+    (pathname === "/login" || pathname === "/signup")
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = isStandaloneOnly ? "/apps" : "/dashboard";
     return NextResponse.redirect(url);
   }
 
