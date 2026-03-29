@@ -74,6 +74,7 @@ export default function PlansPage() {
   const [busyTierId, setBusyTierId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [preselectedPlan, setPreselectedPlan] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -85,6 +86,9 @@ export default function PlansPage() {
     if (cycle === "annual") {
       setBilling("annual");
     }
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) setIsLoggedIn(true);
+    });
   }, []);
 
   async function handleCheckout(tierId: string) {
@@ -182,7 +186,7 @@ export default function PlansPage() {
                   className={`flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-105 mt-2 disabled:opacity-60 disabled:hover:scale-100 ${t.highlight ? "text-white" : "border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
                   style={t.highlight ? { backgroundColor: "#FF4D00" } : {}}
                 >
-                  {busyTierId === t.id ? <Loader2 size={14} className="animate-spin" /> : <>{t.cta} <ChevronRight size={14} className="ml-1" /></>}
+                  {busyTierId === t.id ? <Loader2 size={14} className="animate-spin" /> : <>{isLoggedIn ? "Subscribe" : t.cta} <ChevronRight size={14} className="ml-1" /></>}
                 </button>
               )}
             </div>
