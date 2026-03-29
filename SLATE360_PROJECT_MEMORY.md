@@ -172,73 +172,70 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-29 (Trial Access + Billing + Phase 1B)
+### Session Handoff — 2026-03-29 (Phase 2 Complete: org_feature_flags)
 
 #### What Changed (This Session)
 
-**Plans Page CTA Fix (commit `d4e8803`):**
-- `app/plans/page.tsx` — unauthenticated users redirect to `/signup?plan=X&billing=Y` (was `/login`)
-- `app/signup/page.tsx` — OAuth signup redirects back to `/plans` with plan params after callback
-- `app/api/auth/signup/route.ts` — accepts `redirectAfter` param for post-confirm redirect
+**Phase 2A — Migration Executed (commit `299a589`):**
+- `supabase/migrations/20260329_org_feature_flags.sql` — table live in production
+- Columns: `org_id` (PK/FK), `standalone_tour_builder`, `standalone_punchwalk`, `tour_builder_seat_limit/seats_used`, timestamps
+- RLS enabled, SELECT policy for org members, service-role-only mutations
+- `trg_org_feature_flags_updated_at` trigger active
+- Executed via Supabase Management API (`SUPABASE_ACCESS_TOKEN` env var)
 
-**Plans CTA dynamic text (commit `1f94a10`):**
-- `app/plans/page.tsx` — logged-in users see "Subscribe", anonymous see "Start free trial"
+**Phase 2B — Entitlement Merge (commit `299a589`):**
+- `lib/entitlements.ts` — `OrgFeatureFlags` type, `getEntitlements()` accepts optional `featureFlags` param
+- `lib/entitlements.ts` — `Entitlements` interface now includes `canAccessStandaloneTourBuilder`, `canAccessStandalonePunchwalk`, `tourBuilderSeatLimit`, `tourBuilderSeatsUsed`
+- `lib/server/org-feature-flags.ts` — NEW. `loadOrgFeatureFlags(orgId)` server loader (admin client)
 
-**Trial Access Overhaul (commit `09e565a`):**
-- `lib/entitlements.ts` — trial tier unlocks ALL tabs. Limits: 500 credits, 5GB, 1 seat.
-- `components/shared/TrialBanner.tsx` — NEW. Non-blocking upgrade banner in every tab for trial users.
-- `components/shared/DashboardTabShell.tsx` — trial bypasses `requiredTier` lock, shows TrialBanner.
+**Phase 2C — Webhook Writes (commit `299a589`):**
+- `app/api/stripe/webhook/route.ts` — `upsertAppFlag()` writes to `org_feature_flags` on standalone app sub create/update/delete
+- Replaces Phase 2 TODO comments with actual upsert logic
 
-**Email Branding (commit `09e565a`):**
-- `lib/email.ts` — emails now use hosted `logo.svg` instead of text header
+**Phase 2D — Route Protection (commit `299a589`):**
+- `lib/server/api-auth.ts` — NEW `withAppAuth(appId, req, handler)` wrapper checks `org_feature_flags`
+- `middleware.ts` — `/tour-builder` and `/punchwalk` added to unauthenticated redirect list
 
-**Phase 1B — Standalone App Stripe Products (commit `bc14583`):**
-- Created Stripe products: Tour Builder ($49/mo) + PunchWalk ($49/mo placeholder)
-- `scripts/seed-stripe-apps.mjs` — idempotent seed script for standalone app products
-- `lib/billing-apps.ts` — NEW. App plan definitions, `getAppPriceId()`, `getAppFromPriceId()`
-- `app/api/billing/app-checkout/route.ts` — NEW. Standalone app checkout route
-- `app/api/stripe/webhook/route.ts` — recognizes `kind=standalone_app` subscriptions (Phase 2: write to `org_feature_flags`)
-- Env vars set in `.env.local` + Vercel (all environments):
-  - `STRIPE_PRICE_APP_TOUR_BUILDER_MONTHLY=price_1TGFOIJCrjGbeotHN7GMuvlG`
-  - `STRIPE_PRICE_APP_PUNCHWALK_MONTHLY=price_1TGFOJJCrjGbeotHPWADqPGa`
+**Previous Session Work (still in this session):**
+- Phase 1B Stripe products, billing-apps.ts, app-checkout route, webhook standalone support (commit `bc14583`)
+- Plans page CTA fixes, trial access overhaul, email branding (commits `d4e8803`, `1f94a10`, `09e565a`)
 
-**Vercel CLI Access (runtime):**
-- `VERCEL_TOKEN` Codespace secret working — can run `vercel env ls/add/pull`
-
-#### Stripe File Map (Reference)
+#### Stripe + App Ecosystem File Map
 | File | Purpose |
 |---|---|
 | `lib/stripe.ts` | `getStripeClient()`, `getRequestOrigin()` |
 | `lib/billing.ts` | Tier plans, prices, `getTierFromPriceId()` |
-| `lib/billing-apps.ts` | **NEW** — Standalone app plans, `getAppPriceId()`, `getAppFromPriceId()` |
+| `lib/billing-apps.ts` | Standalone app plans, `getAppPriceId()`, `getAppFromPriceId()` |
 | `lib/billing-server.ts` | `getAuthenticatedOrgContext()`, `findOrCreateStripeCustomer()` |
-| `app/api/stripe/webhook/route.ts` | Webhook handler — now recognizes tier + standalone app subscriptions |
+| `lib/entitlements.ts` | `getEntitlements()` with `OrgFeatureFlags` merge |
+| `lib/server/org-feature-flags.ts` | `loadOrgFeatureFlags()` server loader |
+| `lib/server/api-auth.ts` | `withAuth()`, `withProjectAuth()`, `withMarketAuth()`, `withAppAuth()` |
+| `app/api/stripe/webhook/route.ts` | Webhook — tier updates + standalone app flag upserts |
 | `app/api/billing/checkout/route.ts` | Tier subscription checkout |
-| `app/api/billing/app-checkout/route.ts` | **NEW** — Standalone app checkout |
+| `app/api/billing/app-checkout/route.ts` | Standalone app checkout |
 | `app/api/billing/portal/route.ts` | Stripe billing portal session |
-| `app/api/billing/credits/checkout/route.ts` | Credit pack one-time checkout |
-| `app/plans/page.tsx` | Plans/pricing page with checkout flow |
-| `lib/hooks/useBillingState.ts` | Client-side billing state hook |
-| `scripts/stripe-smoke-test.mjs` | Automated Phase 1A smoke test |
+| `supabase/migrations/20260329_org_feature_flags.sql` | Migration (already applied) |
+
+#### DB Note
+- `SUPABASE_ACCESS_TOKEN` in Codespace secrets is valid (`sbp_4a52c0fd...`). Updated `.env.local` to match.
+- Old token (`sbp_bae1d29d...`) was expired. 
+- Supabase CLI binary at `/tmp/supabase` (v2.84.2) — works for `db query --linked`
+- `POSTGRES_PASSWORD` is still empty — use Management API or CLI for DDL, not psql
 
 #### Git State
-- HEAD: `09e565a` on `origin/main`
+- HEAD: `299a589` on `origin/main`
 - Working tree: clean
 
 #### What Still Needs Work
 - **Per-feature trial restrictions** — TrialBanner is cosmetic; actual data limits, watermarks, deliverable caps need per-feature enforcement
-- **Address autocomplete** — still broken at runtime despite 2 fix attempts. Possible API key HTTP referrer restriction.
-- **Manual Phase 1A checkout test** — user created trial account, but paid checkout with test card not yet tested
+- **Address autocomplete** — still broken (BUG-010)
+- **Manual checkout test** — test card purchase on live site not yet tested
 
 #### Next Steps (Ordered)
-1. **Phase 1A manual checkout test** — test card purchase on live site, verify webhook → DB tier update
-2. **Phase 2A** — Create `org_feature_flags` Supabase table + migration
-3. **Phase 2B** — Entitlement merge: `getEntitlements(tier, featureFlags)` reads flags
-4. **Phase 2C** — Webhook writes: standalone app subscription events write to `org_feature_flags`
-5. **Phase 2D** — Middleware route protection for standalone app routes
-6. **Unfreeze Tour Builder MVP** — begin 8-prompt build sequence
-7. **Per-feature trial restrictions** — enforce data limits, watermarks, deliverable caps
-8. **Address autocomplete debugging** — BUG-010, needs runtime browser console test
+1. **Unfreeze Tour Builder MVP** — begin 8-prompt build sequence from `BUILD_GUIDE.md`
+2. **Manual checkout test** — test card purchase on live site, verify webhook → DB tier update + flag upsert
+3. **Per-feature trial restrictions** — enforce data limits, watermarks, deliverable caps
+4. **Address autocomplete debugging** — BUG-010, needs runtime browser console test
 - Logo, mobile quick-access, debug banner UI fixes
 - All TS errors resolved (was 4, now 0)
 
