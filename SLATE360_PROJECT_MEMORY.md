@@ -1,6 +1,6 @@
 # Slate360 — Project Memory
 
-Last Updated: 2026-03-29
+Last Updated: 2026-03-30
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -172,112 +172,109 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-29 (Phase 2 + Integrity Check + Migrations Applied)
+### Session Handoff — 2026-03-30 (Tour Builder WIP + All Accesses Verified)
 
-#### What Changed (This Session)
+#### What Changed (This Session — extends previous session)
 
-**Phase 2 Complete — org_feature_flags (commit `299a589`):**
-- `supabase/migrations/20260329_org_feature_flags.sql` — table live in production
-- `lib/entitlements.ts` — `OrgFeatureFlags` type, `getEntitlements()` accepts optional `featureFlags` param
-- `lib/server/org-feature-flags.ts` — `loadOrgFeatureFlags(orgId)` server loader
-- `app/api/stripe/webhook/route.ts` — `upsertAppFlag()` writes flags on standalone app sub create/update/delete
-- `lib/server/api-auth.ts` — `withAppAuth(appId, req, handler)` wrapper
-- `middleware.ts` — `/tour-builder`, `/punchwalk`, `/apps` in auth redirect + walled garden enforcer
+**Tour Builder API Routes — WIP (commit `fd6fe85`):**
+- 6 API routes created in `app/api/tours/` — CRUD tours, scenes, upload, complete
+- `components/dashboard/tours/SceneUploader.tsx` — scene upload UI component (132 lines)
+- `lib/tours/queries.ts` — server-side tour query helpers (182 lines)
+- `lib/s3-utils.ts` — S3 utility helpers (62 lines)
+- `lib/types/tours.ts` — added `fileSizeBytes` to `TourScene`
+- **25 TS ERRORS** — routes use incorrect `ServerOrgContext.supabase` / `.org` pattern. Must be rewritten to use `withAuth()` / `createAdminClient()` from `lib/server/api-auth.ts`
+- Webhook fix: standalone app sub checks `subscription.status` instead of event type
 
-**Integrity Check + Tour Builder Schema (commit `5b8ac5a`):**
-- Applied 3 migrations to production DB:
-  - `20260406000000_stripe_events_and_storage.sql` — `stripe_events` table + `increment_org_storage()` RPC
-  - `20260406000001_project_tours_schema.sql` — `project_tours` + `tour_scenes` tables with RLS
-  - `20260406000002_fix_tours_updated_at_trigger.sql` — generic `set_updated_at()` function, fixed triggers
-- `app/api/stripe/webhook/route.ts` — Stripe event idempotency via `stripe_events` table + `storage_limit_bytes` sync
-- `app/api/slatedrop/upload-url/route.ts` — storage quota check before presigned URL generation
-- `components/dashboard/DashboardClient.tsx` — tours tab uses `canAccessStandaloneTourBuilder`
-- `lib/types/tours.ts` — `ProjectTour` + `TourScene` types
-- `middleware.ts` — fixed TS error in walled garden Supabase join type narrowing
+**Migrations Applied to Production (commit `fd6fe85`):**
+- `20260406000003`: `org_role` enum + `role` column on `organization_members`
+- `20260406000004`: `file_size_bytes` column on `tour_scenes`
 
-**Earlier This Session:**
-- Phase 1B Stripe products + billing-apps.ts + app-checkout route (commit `bc14583`)
-- Plans page CTA fixes, trial access overhaul, email branding (commits `d4e8803`, `1f94a10`, `09e565a`)
+**All Prior Session Work (already committed):**
+- Phase 2 complete: `org_feature_flags` table, entitlement merge, webhook writes, route protection (commit `299a589`)
+- Integrity check: 3 migrations applied, middleware TS fix (commit `5b8ac5a`)
+- Phase 1B: Stripe products + billing-apps + checkout route (commit `bc14583`)
+- Plans CTA fixes, trial access overhaul, email branding (earlier commits)
 
-#### Stripe + App Ecosystem File Map
-| File | Purpose |
-|---|---|
-| `lib/stripe.ts` | `getStripeClient()`, `getRequestOrigin()` |
-| `lib/billing.ts` | Tier plans, prices, `getTierFromPriceId()` |
-| `lib/billing-apps.ts` | Standalone app plans, `getAppPriceId()`, `getAppFromPriceId()` |
-| `lib/billing-server.ts` | `getAuthenticatedOrgContext()`, `findOrCreateStripeCustomer()` |
-| `lib/entitlements.ts` | `getEntitlements()` with `OrgFeatureFlags` merge |
-| `lib/server/org-feature-flags.ts` | `loadOrgFeatureFlags()` server loader |
-| `lib/server/api-auth.ts` | `withAuth()`, `withProjectAuth()`, `withMarketAuth()`, `withAppAuth()` |
-| `lib/types/tours.ts` | `ProjectTour`, `TourScene` types |
-| `app/api/stripe/webhook/route.ts` | Webhook — tier updates + app flag upserts + idempotency |
-| `app/api/billing/checkout/route.ts` | Tier subscription checkout |
-| `app/api/billing/app-checkout/route.ts` | Standalone app checkout |
+#### CRITICAL: Tour Builder API Routes Need Rewrite
 
-#### Database Tables Created This Session
-| Table | Migration | Status |
+The 6 files in `app/api/tours/` have 25 TypeScript errors. They were written by another agent using an incorrect auth pattern. Every route must be rewritten to use:
+```typescript
+import { withAuth } from "@/lib/server/api-auth";
+import { createAdminClient } from "@/lib/supabase/admin";
+// NOT: resolveServerOrgContext().supabase or .org (these don't exist)
+```
+
+Files to fix:
+- `app/api/tours/route.ts` (list + create tours)
+- `app/api/tours/[tourId]/route.ts` (get + patch + delete tour)
+- `app/api/tours/[tourId]/scenes/route.ts` (list scenes)
+- `app/api/tours/[tourId]/scenes/upload/route.ts` (presigned URL for upload)
+- `app/api/tours/[tourId]/scenes/complete/route.ts` (confirm upload done)
+- `app/api/tours/[tourId]/scenes/[sceneId]/route.ts` (delete scene)
+
+Also: routes reference `TourScene.panorama_path` (snake_case) but the TS type uses `panoramaPath` (camelCase). The DB columns are snake_case — the Supabase response will be snake_case. Either use raw DB types or map in queries.
+
+#### Tour Builder File Map
+| File | Lines | Purpose | Status |
+|---|---|---|---|
+| `lib/types/tours.ts` | 33 | `ProjectTour`, `TourScene` types | ✅ Clean |
+| `lib/tours/queries.ts` | 182 | Server-side tour query helpers | ✅ Clean |
+| `lib/s3-utils.ts` | 62 | S3 presigned URL + delete helpers | ✅ Clean |
+| `components/dashboard/tours/SceneUploader.tsx` | 132 | Drag-drop scene upload UI | ✅ Clean |
+| `app/api/tours/route.ts` | 47 | List + create tours | ❌ 25 TS errors |
+| `app/api/tours/[tourId]/route.ts` | 85 | Get + patch + delete tour | ❌ across all routes |
+| `app/api/tours/[tourId]/scenes/*.ts` | 4 files | Scene CRUD + upload | ❌ across all routes |
+
+#### Database State (All Applied to Production)
+| Table/Column | Migration | Status |
 |---|---|---|
-| `org_feature_flags` | `20260329_org_feature_flags.sql` | ✅ Live — RLS, trigger, constraints |
-| `stripe_events` | `20260406000000` | ✅ Live — webhook idempotency |
-| `project_tours` | `20260406000001` | ✅ Live — RLS, indexes |
-| `tour_scenes` | `20260406000001` | ✅ Live — RLS, cascade delete |
+| `org_feature_flags` | `20260329` | ✅ Live |
+| `stripe_events` | `20260406000000` | ✅ Live |
+| `project_tours` | `20260406000001` | ✅ Live |
+| `tour_scenes` | `20260406000001` | ✅ Live |
+| `set_updated_at()` trigger fix | `20260406000002` | ✅ Live |
+| `organization_members.role` | `20260406000003` | ✅ Live |
+| `tour_scenes.file_size_bytes` | `20260406000004` | ✅ Live |
 
-#### Codespace Tool Access
-| Tool | Status | How |
+#### Codespace Tool Access (All Verified)
+| Tool | Status | Notes |
 |---|---|---|
-| Supabase Management API | ✅ Working | `SUPABASE_ACCESS_TOKEN` Codespace secret (`sbp_4a52c0fd...`) |
-| Supabase Data | ✅ Working | `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` |
-| Vercel CLI | ✅ Working | `VERCEL_TOKEN` Codespace secret |
-| Stripe API + CLI | ✅ Working | `STRIPE_SECRET_KEY` in `.env.local`, CLI at `/usr/local/bin/stripe` |
-| AWS CLI + S3 | ✅ Working | Keys in `.env.local`, CLI at `/usr/local/bin/aws`, bucket `slate360-storage` |
-| Resend Email | ✅ Working | `RESEND_API_KEY` in `.env.local`, domain `slate360.ai` verified |
-| Google Maps | ✅ Client-side only | Key has website referrer restrictions (correct security) |
-| GitHub | ✅ Working | Codespace default auth |
-| Postgres direct (psql) | ❌ No password | Use Management API for DDL instead |
-| Supabase CLI | ⚠️ /tmp only | Binary at `/tmp/supabase` — lost on Codespace rebuild |
+| Supabase Management API | ✅ | `SUPABASE_ACCESS_TOKEN` Codespace secret |
+| Supabase Data | ✅ | `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` |
+| Vercel CLI | ✅ | `VERCEL_TOKEN` Codespace secret |
+| Stripe API + CLI | ✅ | CLI at `/usr/local/bin/stripe` (v1.23.8) |
+| AWS CLI + S3 | ✅ | CLI at `/usr/local/bin/aws`, bucket `slate360-storage` verified |
+| Resend Email | ✅ | domain `slate360.ai` verified |
+| Google Maps | ✅ | Client-only; referrer restrictions set correctly |
+| GitHub | ✅ | Codespace default auth |
+| Postgres (psql) | ❌ | Password in `.env.local` but Codespace can't reach Supabase Postgres (IPv6 network issue). Use Management API for DDL. |
 
-**Note:** Supabase CLI at `/tmp/supabase` v2.84.2 is ephemeral. For DDL, prefer Management API via curl (see `scripts/run-migration.mjs` pattern).
+**DDL pattern:** `source .env.local && curl -s -X POST "https://api.supabase.com/v1/projects/hadnfcenpcfaeclczsmm/database/query" -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" -d "$(jq -Rs '{query: .}' < migration.sql)"`
 
 #### Google Maps API Key
-- Key starts with `AIzaSyAHXWir...` — matches `.env.local` `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
-- Application restrictions: **Websites** — `http://localhost:3000/*`, `https://slate360.ai/*`, `https://www.slate360.ai/*`
-- API restrictions: **Restrict key** — Geocoding, Maps JS, Maps Static, Places, Street View Static
-- Server-side calls fail by design (no referrer) — this is correct
-- Address autocomplete (BUG-010) is NOT caused by API key restrictions — needs browser console debugging
+- Starts with `AIzaSyAHXWir...`, matches `.env.local`
+- Referrer restrictions: `http://localhost:3000/*`, `https://slate360.ai/*`, `https://www.slate360.ai/*`
+- 5 APIs enabled: Geocoding, Maps JS, Maps Static, Places, Street View Static
+- Address autocomplete (BUG-010): NOT an API key issue — needs browser console debugging
+
+#### Two Open Investigation Items
+1. **Address autocomplete (BUG-010)** — Google API key is correctly configured. The bug is in the client-side integration. Need to check browser console on the live site for errors. May be a library version issue or missing Places New API migration.
+2. **Weather widget** — needs to auto-detect user location via browser geolocation API. Currently requires manual city entry. Check `useWeatherState.ts` for how location is resolved.
 
 #### Git State
-- HEAD: `5b8ac5a` on `origin/main`
+- HEAD: `fd6fe85` on `origin/main`
 - Working tree: clean
-- No stashes
-
-#### What Still Needs Work
-- **Tour Builder MVP** — DB schema is live, types exist, need UI build (8-prompt sequence in `BUILD_GUIDE.md`)
-- **Manual checkout test** — test card purchase on live site not yet tested
-- **Per-feature trial restrictions** — TrialBanner is cosmetic; data limits/watermarks/caps need per-feature enforcement
-- **Address autocomplete** — BUG-010, not an API key issue, needs browser console test
-- **Walled garden for standalone-only users** — middleware logic added but `/apps` route doesn't exist yet
+- All migrations applied to production
 
 #### Next Steps (Ordered)
-1. **Tour Builder MVP** — begin 8-prompt build from `slate360-context/dashboard-tabs/tour-builder/BUILD_GUIDE.md`
-2. **Create `/apps` route** — standalone app launcher page for walled garden users
-3. **Manual checkout test** — test card purchase on live site
-4. **Per-feature trial restrictions** — enforce actual limits
-5. **Address autocomplete** — BUG-010, browser console debug
-6. **Orphan file cleanup** — delete old `MarketClient.tsx`, `MarketRobotWorkspace.tsx`, `.bak` files
-- `MARKET_ROBOT_STATUS_HANDOFF.md.bak` (backup of old handoff)
-
-#### Priority Order for Next Work
-
-**Tier 0 — Design/UI Overhaul (active plan):**
-Execute `DESIGN_UI_OVERHAUL_PLAN.md` phases 1-8 in order.
-
-**Tier 1 — Revenue/Core:**
-1. Market Robot resume (when wallet funded) — Prompts 11-16
-2. Project Hub decomposition — 9 tool pages need extraction
-
-**Tier 2 — New Features:**
-3. Design Studio build — viewer stack decision first
-4. 360 Tour Builder build — Pannellum integration
+1. **Fix Tour Builder API routes** — rewrite 6 files to use `withAuth()` pattern (kills 25 TS errors)
+2. **Tour Builder UI** — continue BUILD_GUIDE.md prompts (tour list, editor, scene management)
+3. **Address autocomplete** — BUG-010, browser console debug on live site
+4. **Weather auto-location** — add geolocation to `useWeatherState.ts`
+5. **Create `/apps` route** — standalone app launcher for walled garden users
+6. **Manual checkout test** — test card purchase on live site
+7. **Per-feature trial restrictions** — enforce actual data limits/watermarks
+8. **Orphan file cleanup** — delete old `MarketClient.tsx`, `MarketRobotWorkspace.tsx`, `.bak` files
 
 **Tier 3 — Polish:**
 5. SlateDrop BUG-001 phase 2
