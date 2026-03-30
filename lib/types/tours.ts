@@ -25,6 +25,7 @@ export interface TourScene {
   title: string;
   panoramaPath: string;
   thumbnailPath: string | null;
+  fileSizeBytes: number;
   initialYaw: number | null;
   initialPitch: number | null;
   createdAt: string;

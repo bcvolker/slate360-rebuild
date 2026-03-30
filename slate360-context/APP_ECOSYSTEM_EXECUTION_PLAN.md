@@ -262,7 +262,7 @@ Tag/metadata/origin linkage:
 
 Answers:
 - What can become the shared project/entity backbone: `projects` plus `project_members`, `project_folders`, and `project_activity_log` are the strongest current backbone.
-- Can PunchWalk or Photo Log attach cleanly to current project structures: yes, more easily than Tour Builder. `project_punch_items`, `project_daily_logs`, `project_observations`, and `photo-report` flows already sit in the project model.
+- Can Site Walk or Photo Log attach cleanly to current project structures: yes, more easily than Tour Builder. `project_punch_items`, `project_daily_logs`, `project_observations`, and `photo-report` flows already sit in the project model.
 - Is there a generic linked-entity pattern already present: only partially. The nearest reusable pattern is `project_id` plus targeted entity tables; there is no universal polymorphic entity-link table.
 - Where would tour records connect to projects without causing duplication: create a dedicated `project_tours` or `tour_scenes` family keyed by `project_id`, with files stored in project folders such as `360 Tours`, instead of duplicating project or file records.
 
@@ -356,9 +356,9 @@ Mobile readiness observations:
 - Project Hub field modules such as punch, observations, photos, and daily logs are closer to PWA-first candidates than Tour Builder.
 
 Answers:
-- Which apps are realistic as PWA first: PunchWalk, Photo Log, and lightweight external-response/upload workflows.
+- Which apps are realistic as PWA first: Site Walk, Photo Log, and lightweight external-response/upload workflows.
 - Is there any current offline/upload queue foundation: no live foundation beyond the manifest.
-- What is missing for PunchWalk / Photo Log mobile-first behavior:
+- What is missing for Site Walk / Photo Log mobile-first behavior:
   - offline queue and retry persistence
   - camera-first capture and background upload resiliency
   - low-connectivity cache for project lists and recent work
@@ -533,7 +533,7 @@ Recommended controls:
   - per-org export size thresholds
 - Per-app controls:
   - Tour Builder storage and share-view quotas
-  - PunchWalk/Photo Log upload caps and retention windows
+  - Site Walk/Photo Log upload caps and retention windows
   - per-app overage/upgrade messaging
 
 # 15. FOUNDATION GAP LIST
@@ -619,7 +619,7 @@ Phase 2: 360 Tour Builder launch prep
 - Must NOT refactor yet:
   - whole dashboard module system
 
-Phase 3: PunchWalk / Photo Log shared capture backbone
+Phase 3: Site Walk / Photo Log shared capture backbone
 - Build:
   - mobile-first app shells
   - shared capture entity patterns

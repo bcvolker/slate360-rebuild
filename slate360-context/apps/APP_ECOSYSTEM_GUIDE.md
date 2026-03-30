@@ -25,7 +25,7 @@ Read this before starting ANY work that touches standalone app subscriptions, St
 | Gap | How Serious | Blocks What |
 |---|---|---|
 | Stripe not smoke-tested end-to-end | **Critical** | No app can take money until this is verified |
-| No standalone app Stripe products | **Critical** | Tour Builder and PunchWalk cannot charge |
+| No standalone app Stripe products | **Critical** | Tour Builder and Site Walk cannot charge |
 | No `org_feature_flags` table | **Critical** | Cannot persist per-app entitlements |
 | No `getEntitlements()` app flag merge | **Critical** | Cannot gate app routes by subscription |
 | No `/apps/` directory or app landing pages | High | No new subscriber can find or buy the apps |
@@ -34,7 +34,7 @@ Read this before starting ANY work that touches standalone app subscriptions, St
 | No Capacitor setup | Medium (optional, post-PWA) | Native iOS/Android app store listing |
 | Middleware doesn't protect standalone app routes | Medium | App routes accessible without entitlement |
 | Tour Builder has no backend | **Critical** | It must be built before it can be sold |
-| PunchWalk has no standalone route | **Critical** | It must be built before it can be sold |
+| Site Walk has no standalone route | **Critical** | It must be built before it can be sold |
 
 ### Revenue-First Build Order
 
@@ -42,7 +42,7 @@ Per `APP_ECOSYSTEM_EXECUTION_PLAN.md` and `FUTURE_FEATURES.md` Section 3D:
 
 1. **Stripe smoke test + foundation** (this file, Phase 1) — ~5 prompts
 2. **360 Tour Builder MVP** (`tour-builder/BUILD_GUIDE.md`, 8 prompts) + standalone subscription (~3 prompts) = **11 prompts to live and billable**
-3. **PunchWalk MVP** (`apps/PUNCHWAIK_BUILD_GUIDE.md`, ~10 prompts) + PWA + subscription (~5 prompts) = **15 prompts to live and billable**
+3. **Site Walk MVP** (`apps/SITE_WALK_BUILD_GUIDE.md`, ~10 prompts) + PWA + subscription (~5 prompts) = **15 prompts to live and billable**
 4. **Capacitor / App Store wrapping** (~6 prompts, works for both apps simultaneously)
 5. Further apps (Photo Log, SlateDrop Standalone, Plan Review) follow the same template
 
@@ -123,7 +123,7 @@ Create products for each app, each with monthly and annual price variants:
 | App | Monthly Price | Annual Price | Stripe Product Name |
 |---|---|---|---|
 | 360 Tour Builder | $25/mo | $250/yr | `Slate360 — 360 Tour Builder` |
-| PunchWalk | $19/mo | $190/yr | `Slate360 — PunchWalk` |
+| Site Walk | $19/mo | $190/yr | `Slate360 — Site Walk` |
 
 For each product → create a `Price` for monthly (recurring, monthly interval) and a `Price` for annual (recurring, yearly interval).
 
@@ -215,7 +215,7 @@ The function currently returns only tier-based entitlements. Update it to option
 export interface Entitlements {
   // ... existing fields ...
   canAccessStandaloneTourBuilder: boolean;
-  canAccessStandalonePunchWalk: boolean;
+  canAccessStandaloneSite Walk: boolean;
   canAccessStandalonePhotoLog: boolean;
 }
 
@@ -235,7 +235,7 @@ export function getEntitlements(
     // Standalone subscriptions grant standalone access.
     canAccessTours: base.canAccessTours || flags['standalone_tour_builder'] === true,
     canAccessStandaloneTourBuilder: flags['standalone_tour_builder'] === true,
-    canAccessStandalonePunchWalk: flags['standalone_punch_walk'] === true,
+    canAccessStandaloneSite Walk: flags['standalone_punch_walk'] === true,
     canAccessStandalonePhotoLog: flags['standalone_photo_log'] === true,
   };
 }
@@ -340,7 +340,7 @@ app/apps/
     subscribe/page.tsx              ← Triggers Stripe checkout
     onboarding/page.tsx             ← Post-checkout welcome + project setup
   punch-walk/
-    page.tsx                        ← PunchWalk landing + pricing
+    page.tsx                        ← Site Walk landing + pricing
     subscribe/page.tsx
     onboarding/page.tsx
 ```
@@ -363,7 +363,7 @@ This endpoint:
 
 - App directory page exists at `/apps`.
 - Tour Builder landing page exists with pricing.
-- PunchWalk landing page exists with pricing.
+- Site Walk landing page exists with pricing.
 - Checkout flow works for both apps (test cards only).
 - Post-checkout onboarding page loads correctly.
 - New user can sign up, pay, and access the app in one session.
@@ -409,7 +409,7 @@ Caching strategy:
 - Cache static assets and fonts aggressively.
 - Cache project list and recent projects for offline display.
 - Do NOT cache file upload or download routes — those must be online.
-- For PunchWalk: cache the current project's punch items list for offline viewing.
+- For Site Walk: cache the current project's punch items list for offline viewing.
 
 ### Install Prompt Component
 
@@ -420,7 +420,7 @@ components/pwa/
 
 Show the install prompt contextually:
 - After Tour Builder: show after the first tour is published ("Install to use as desktop app").
-- For PunchWalk: show on first load on mobile ("Install for site use").
+- For Site Walk: show on first load on mobile ("Install for site use").
 
 ### Manifest Updates
 
@@ -527,15 +527,15 @@ This table clarifies what must be done in what order, and where the refactor gui
 | **App Phase 3** | App landing pages + new user subscription funnel + /apps directory | ~3 prompts | Phase 2 complete |
 | **Tour Builder MVP** (8 prompts) | Core app implementation (see tour-builder/BUILD_GUIDE.md) | 8 prompts | Phase 2 complete (needs entitlement gating) |
 | **Tour Builder Standalone** | Standalone route, Tour Builder app landing page | ~2 prompts | Tour Builder MVP + Phase 3 |
-| **PunchWalk MVP** (Phase A) | Core web app — punch item walk, photo capture, assignments | ~6 prompts | Phase 2 complete |
-| **PunchWalk PWA** (Phase B) | Service worker, offline queue, install prompt | ~3 prompts | PunchWalk MVP + Phase 4 |
-| **App Phase 4** | PWA infrastructure (shared across both apps) | ~3 prompts | PunchWalk ready for PWA |
-| **PunchWalk Subscription** | Standalone route, landing page, subscription flow | ~2 prompts | Phase 3 + PunchWalk MVP |
+| **Site Walk MVP** (Phase A) | Core web app — punch item walk, photo capture, assignments | ~6 prompts | Phase 2 complete |
+| **Site Walk PWA** (Phase B) | Service worker, offline queue, install prompt | ~3 prompts | Site Walk MVP + Phase 4 |
+| **App Phase 4** | PWA infrastructure (shared across both apps) | ~3 prompts | Site Walk ready for PWA |
+| **Site Walk Subscription** | Standalone route, landing page, subscription flow | ~2 prompts | Phase 3 + Site Walk MVP |
 | **Capacitor / App Stores** | iOS + Android wrapping, submissions | ~6 prompts | PWA complete, both apps stable |
 
-**Estimated total prompts to have both Tour Builder and PunchWalk live in app stores: ~46 prompts**. This assumes no major rework. Each gap (Stripe issues, schema surprises, Capacitor weirdness) adds 2–5 prompts.
+**Estimated total prompts to have both Tour Builder and Site Walk live in app stores: ~46 prompts**. This assumes no major rework. Each gap (Stripe issues, schema surprises, Capacitor weirdness) adds 2–5 prompts.
 
-**Fastest path to first revenue:** Get Tour Builder live and billable first (~16 prompts total). That alone justifies the ecosystem work and generates early signal before investing in PunchWalk and Capacitor.
+**Fastest path to first revenue:** Get Tour Builder live and billable first (~16 prompts total). That alone justifies the ecosystem work and generates early signal before investing in Site Walk and Capacitor.
 
 ---
 
@@ -575,7 +575,7 @@ Update this table at the end of every session that touches ecosystem work.
 | Platform 0B | LocationMap BUG-018 (May 2026 deadline) | ⬜ Not started | CRITICAL deadline — do before Tour Builder |
 | Platform 0C | file_folders migration | ⬜ Not started | See SLATEDROP_REFACTOR_GUIDE.md Phase 1 |
 | App Phase 1A | Stripe platform billing smoke test | ⬜ Not started | Use test card |
-| App Phase 1B | Add Tour Builder + PunchWalk Stripe products | ⬜ Not started | Create products in Stripe Dashboard |
+| App Phase 1B | Add Tour Builder + Site Walk Stripe products | ⬜ Not started | Create products in Stripe Dashboard |
 | App Phase 2A | `org_feature_flags` migration | ⬜ Not started | — |
 | App Phase 2B | `getEntitlements()` merge logic | ⬜ Not started | — |
 | App Phase 2C | Webhook writes app entitlement flags | ⬜ Not started | — |
@@ -583,9 +583,9 @@ Update this table at the end of every session that touches ecosystem work.
 | App Phase 3 | App landing pages + /apps directory + new user funnel | ⬜ Not started | — |
 | Tour Builder MVP | 8-prompt sequence (see tour-builder/BUILD_GUIDE.md) | ⬜ Not started | — |
 | Tour Builder Standalone | Standalone route + app landing page wired to subscription | ⬜ Not started | — |
-| PunchWalk MVP | Core web app (see PUNCHWAIK_BUILD_GUIDE.md Phases 1–5) | ⬜ Not started | — |
+| Site Walk MVP | Core web app (see SITE_WALK_BUILD_GUIDE.md Phases 1–5) | ⬜ Not started | — |
 | App Phase 4 | PWA service worker + install prompt | ⬜ Not started | — |
-| PunchWalk PWA | Offline queue + camera + PWA shells (see PUNCHWAIK_BUILD_GUIDE.md Phase 6) | ⬜ Not started | — |
+| Site Walk PWA | Offline queue + camera + PWA shells (see SITE_WALK_BUILD_GUIDE.md Phase 6) | ⬜ Not started | — |
 | Capacitor iOS | Build + simulator test + App Store submission | ⬜ Not started | — |
 | Capacitor Android | Build + emulator test + Google Play submission | ⬜ Not started | — |
 

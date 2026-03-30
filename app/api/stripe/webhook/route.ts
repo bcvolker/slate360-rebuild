@@ -174,15 +174,18 @@ export async function POST(req: NextRequest) {
 
         if (kind === "standalone_app") {
           const appId = subscription.metadata?.app_id;
-          const isActive = event.type !== "customer.subscription.deleted";
-          console.log(`[webhook] App subscription ${event.type}: app=${appId} org=${orgId} active=${isActive}`);
+          // Sub is active only if status is 'active' or 'trialing'
+          // 'past_due', 'unpaid', 'canceled', etc mean no access
+          const isActive = subscription.status === "active" || subscription.status === "trialing";
+          console.log(`[webhook] App subscription ${event.type}: app=${appId} org=${orgId} status=${subscription.status} active=${isActive}`);
           if (isStandaloneAppId(appId)) {
             await upsertAppFlag(orgId, appId, isActive);
           }
           break;
         }
 
-        if (event.type === "customer.subscription.deleted") {
+        if (subscription.status !== "active" && subscription.status !== "trialing") {
+          // If a platform tier sub fails/cancels, drop them to trial
           await updateOrganizationTier(orgId, "trial");
           break;
         }
