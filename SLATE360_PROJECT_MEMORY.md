@@ -1,6 +1,6 @@
 # Slate360 — Project Memory
 
-Last Updated: 2026-03-30
+Last Updated: 2026-03-31
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -172,110 +172,26 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-30 (Tour Builder WIP + All Accesses Verified)
+### Session Handoff — 2026-03-31 (Stripe Billing E2E Test Setup)
 
-#### What Changed (This Session — extends previous session)
+### What Changed
+- `app/apps/page.tsx`: standalone apps launcher exists with working Stripe Checkout buttons for Tour Builder and PunchWalk; page now doubles as the local billing test entrypoint.
+- `app/api/billing/app-checkout/route.ts`: standalone app checkout now returns to `/apps` on success and cancel instead of `/dashboard` / `/plans`, which avoids the standalone-user redirect mismatch during test flows.
+- `.env.production`: removed stray literal `\n` suffixes from `STRIPE_PRICE_APP_PUNCHWALK_MONTHLY` and `STRIPE_PRICE_APP_TOUR_BUILDER_MONTHLY` so price ID matching is stable.
+- Verified local tooling for billing test: Stripe CLI present at `/usr/local/bin/stripe`, version `1.23.8`; `npm run dev` starts cleanly and serves on `http://localhost:3000`.
 
-**Tour Builder API Routes — WIP (commit `fd6fe85`):**
-- 6 API routes created in `app/api/tours/` — CRUD tours, scenes, upload, complete
-- `components/dashboard/tours/SceneUploader.tsx` — scene upload UI component (132 lines)
-- `lib/tours/queries.ts` — server-side tour query helpers (182 lines)
-- `lib/s3-utils.ts` — S3 utility helpers (62 lines)
-- `lib/types/tours.ts` — added `fileSizeBytes` to `TourScene`
-- **25 TS ERRORS** — routes use incorrect `ServerOrgContext.supabase` / `.org` pattern. Must be rewritten to use `withAuth()` / `createAdminClient()` from `lib/server/api-auth.ts`
-- Webhook fix: standalone app sub checks `subscription.status` instead of event type
+### What's Broken / Partially Done
+- Tour Builder API routes still fail typecheck in `app/api/tours/route.ts` and `app/api/tours/[tourId]/**` because they use the wrong auth/context shape (`ctx.supabase`, `ctx.org`) and outdated App Router route param types.
+- Full repo `npm run typecheck` still fails only because of those pre-existing Tour Builder route errors; billing files changed in this session have no diagnostics.
+- Repo-wide file size guard still reports older unrelated offenders; no new over-limit files were introduced by this session.
+- There is still no dedicated standalone app runtime route like `/tour-builder`; the current testable unlock surface is `/apps` plus the webhook-driven `org_feature_flags` update and login redirect behavior.
 
-**Migrations Applied to Production (commit `fd6fe85`):**
-- `20260406000003`: `org_role` enum + `role` column on `organization_members`
-- `20260406000004`: `file_size_bytes` column on `tour_scenes`
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: replaced stale handoff with current Stripe E2E setup and validator state.
 
-**All Prior Session Work (already committed):**
-- Phase 2 complete: `org_feature_flags` table, entitlement merge, webhook writes, route protection (commit `299a589`)
-- Integrity check: 3 migrations applied, middleware TS fix (commit `5b8ac5a`)
-- Phase 1B: Stripe products + billing-apps + checkout route (commit `bc14583`)
-- Plans CTA fixes, trial access overhaul, email branding (earlier commits)
-
-#### CRITICAL: Tour Builder API Routes Need Rewrite
-
-The 6 files in `app/api/tours/` have 25 TypeScript errors. They were written by another agent using an incorrect auth pattern. Every route must be rewritten to use:
-```typescript
-import { withAuth } from "@/lib/server/api-auth";
-import { createAdminClient } from "@/lib/supabase/admin";
-// NOT: resolveServerOrgContext().supabase or .org (these don't exist)
-```
-
-Files to fix:
-- `app/api/tours/route.ts` (list + create tours)
-- `app/api/tours/[tourId]/route.ts` (get + patch + delete tour)
-- `app/api/tours/[tourId]/scenes/route.ts` (list scenes)
-- `app/api/tours/[tourId]/scenes/upload/route.ts` (presigned URL for upload)
-- `app/api/tours/[tourId]/scenes/complete/route.ts` (confirm upload done)
-- `app/api/tours/[tourId]/scenes/[sceneId]/route.ts` (delete scene)
-
-Also: routes reference `TourScene.panorama_path` (snake_case) but the TS type uses `panoramaPath` (camelCase). The DB columns are snake_case — the Supabase response will be snake_case. Either use raw DB types or map in queries.
-
-#### Tour Builder File Map
-| File | Lines | Purpose | Status |
-|---|---|---|---|
-| `lib/types/tours.ts` | 33 | `ProjectTour`, `TourScene` types | ✅ Clean |
-| `lib/tours/queries.ts` | 182 | Server-side tour query helpers | ✅ Clean |
-| `lib/s3-utils.ts` | 62 | S3 presigned URL + delete helpers | ✅ Clean |
-| `components/dashboard/tours/SceneUploader.tsx` | 132 | Drag-drop scene upload UI | ✅ Clean |
-| `app/api/tours/route.ts` | 47 | List + create tours | ❌ 25 TS errors |
-| `app/api/tours/[tourId]/route.ts` | 85 | Get + patch + delete tour | ❌ across all routes |
-| `app/api/tours/[tourId]/scenes/*.ts` | 4 files | Scene CRUD + upload | ❌ across all routes |
-
-#### Database State (All Applied to Production)
-| Table/Column | Migration | Status |
-|---|---|---|
-| `org_feature_flags` | `20260329` | ✅ Live |
-| `stripe_events` | `20260406000000` | ✅ Live |
-| `project_tours` | `20260406000001` | ✅ Live |
-| `tour_scenes` | `20260406000001` | ✅ Live |
-| `set_updated_at()` trigger fix | `20260406000002` | ✅ Live |
-| `organization_members.role` | `20260406000003` | ✅ Live |
-| `tour_scenes.file_size_bytes` | `20260406000004` | ✅ Live |
-
-#### Codespace Tool Access (All Verified)
-| Tool | Status | Notes |
-|---|---|---|
-| Supabase Management API | ✅ | `SUPABASE_ACCESS_TOKEN` Codespace secret |
-| Supabase Data | ✅ | `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` |
-| Vercel CLI | ✅ | `VERCEL_TOKEN` Codespace secret |
-| Stripe API + CLI | ✅ | CLI at `/usr/local/bin/stripe` (v1.23.8) |
-| AWS CLI + S3 | ✅ | CLI at `/usr/local/bin/aws`, bucket `slate360-storage` verified |
-| Resend Email | ✅ | domain `slate360.ai` verified |
-| Google Maps | ✅ | Client-only; referrer restrictions set correctly |
-| GitHub | ✅ | Codespace default auth |
-| Postgres (psql) | ❌ | Password in `.env.local` but Codespace can't reach Supabase Postgres (IPv6 network issue). Use Management API for DDL. |
-
-**DDL pattern:** `source .env.local && curl -s -X POST "https://api.supabase.com/v1/projects/hadnfcenpcfaeclczsmm/database/query" -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" -d "$(jq -Rs '{query: .}' < migration.sql)"`
-
-#### Google Maps API Key
-- Starts with `AIzaSyAHXWir...`, matches `.env.local`
-- Referrer restrictions: `http://localhost:3000/*`, `https://slate360.ai/*`, `https://www.slate360.ai/*`
-- 5 APIs enabled: Geocoding, Maps JS, Maps Static, Places, Street View Static
-- Address autocomplete (BUG-010): NOT an API key issue — needs browser console debugging
-
-#### Two Open Investigation Items
-1. **Address autocomplete (BUG-010)** — Google API key is correctly configured. The bug is in the client-side integration. Need to check browser console on the live site for errors. May be a library version issue or missing Places New API migration.
-2. **Weather widget** — needs to auto-detect user location via browser geolocation API. Currently requires manual city entry. Check `useWeatherState.ts` for how location is resolved.
-
-#### Git State
-- HEAD: `fd6fe85` on `origin/main`
-- Working tree: clean
-- All migrations applied to production
-
-#### Next Steps (Ordered)
-1. **Fix Tour Builder API routes** — rewrite 6 files to use `withAuth()` pattern (kills 25 TS errors)
-2. **Tour Builder UI** — continue BUILD_GUIDE.md prompts (tour list, editor, scene management)
-3. **Address autocomplete** — BUG-010, browser console debug on live site
-4. **Weather auto-location** — add geolocation to `useWeatherState.ts`
-5. **Create `/apps` route** — standalone app launcher for walled garden users
-6. **Manual checkout test** — test card purchase on live site
-7. **Per-feature trial restrictions** — enforce actual data limits/watermarks
-8. **Orphan file cleanup** — delete old `MarketClient.tsx`, `MarketRobotWorkspace.tsx`, `.bak` files
-
-**Tier 3 — Polish:**
-5. SlateDrop BUG-001 phase 2
-6. Orphan file cleanup
+### Next Steps (ordered)
+1. Run Stripe local E2E: start `npm run dev`, run `stripe --api-key "$STRIPE_SECRET_KEY" listen --forward-to http://127.0.0.1:3000/api/stripe/webhook`, copy the emitted test `whsec_...` into `.env.local`, then restart dev server.
+2. Log in locally, open `/apps`, click the Tour Builder subscribe button, and complete checkout with test card `4242 4242 4242 4242`.
+3. Verify `stripe_events`, `org_feature_flags`, and `organizations` in Supabase plus `/apps?app_billing=success&app=tour_builder` in UI.
+4. Rewrite the six Tour Builder API routes to use `withAuth()` / `createAdminClient()` so repo typecheck becomes trustworthy again.
+5. Create an actual standalone app route (`/tour-builder`) if the product should unlock more than the `/apps` launcher after purchase.

@@ -44,8 +44,8 @@ export async function POST(req: NextRequest) {
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
-      success_url: `${origin}/dashboard?app_billing=success&app=${appId}`,
-      cancel_url: `${origin}/plans?app_billing=cancelled`,
+      success_url: `${origin}/apps?app_billing=success&app=${appId}`,
+      cancel_url: `${origin}/apps?app_billing=cancelled&app=${appId}`,
       metadata: {
         kind: "standalone_app",
         app_id: appId,
