@@ -1,18 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
-import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { NextRequest } from "next/server";
+import { withAuth } from "@/lib/server/api-auth";
+import { ok, serverError, unauthorized } from "@/lib/server/api-response";
 import { getTourScenes } from "@/lib/tours/queries";
 
 export const runtime = "nodejs";
 
-export async function GET(req: NextRequest, { params }: { params: { tourId: string } }) {
-  try {
-    const ctx = await resolveServerOrgContext();
-    if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const GET = async (req: NextRequest, { params }: { params: Promise<{ tourId: string }> }) => {
+  const { tourId } = await params;
+  return withAuth(req, async ({ admin, orgId }) => {
+    if (!orgId) return unauthorized("User has no organization");
 
-    const scenes = await getTourScenes(ctx.supabase, params.tourId);
-    return NextResponse.json(scenes);
-  } catch (err: any) {
-    console.error("[GET /api/tours/:id/scenes] Error:", err);
-    return NextResponse.json({ error: "Failed to fetch scenes" }, { status: 500 });
-  }
-}
+    try {
+      const scenes = await getTourScenes(admin, tourId);
+      return ok(scenes);
+    } catch (err: unknown) {
+      console.error("[GET /api/tours/:id/scenes] Error:", err);
+      return serverError("Failed to fetch scenes");
+    }
+  });
+};

@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findOrCreateStripeCustomer, getAuthenticatedOrgContext } from "@/lib/billing-server";
-import { isStandaloneAppId, getAppPriceId, type AppBillingCycle } from "@/lib/billing-apps";
+import { isStandaloneAppId, getAppPriceId, type AppBillingCycle, type StandaloneAppId } from "@/lib/billing-apps";
 import { getRequestOrigin, getStripeClient } from "@/lib/stripe";
+import { loadOrgFeatureFlags } from "@/lib/server/org-feature-flags";
 
 export const runtime = "nodejs";
+
+/** Map app ID → the feature flag column that indicates an active subscription */
+const APP_FLAG_KEY: Record<StandaloneAppId, "standalone_tour_builder" | "standalone_punchwalk"> = {
+  tour_builder: "standalone_tour_builder",
+  punchwalk: "standalone_punchwalk",
+};
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,6 +25,15 @@ export async function POST(req: NextRequest) {
 
     if (!isStandaloneAppId(appId)) {
       return NextResponse.json({ error: "Invalid app ID" }, { status: 400 });
+    }
+
+    // --- Double-billing guard: reject if org already owns this app ---
+    const flags = await loadOrgFeatureFlags(orgContext.orgId);
+    if (flags[APP_FLAG_KEY[appId]]) {
+      return NextResponse.json(
+        { error: "Your organization already has an active subscription to this app." },
+        { status: 400 },
+      );
     }
 
     const priceId = getAppPriceId(appId, cycle);
@@ -36,6 +52,7 @@ export async function POST(req: NextRequest) {
       orgId: orgContext.orgId,
       orgName: orgContext.orgName,
       userId: orgContext.user.id,
+      existingStripeCustomerId: orgContext.stripeCustomerId,
     });
 
     const origin = getRequestOrigin(req);

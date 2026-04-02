@@ -37,6 +37,13 @@
     "**/*.mts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next/cache",
+    ".next/server",
+    ".next/static",
+    "out",
+    "build",
+    "dist",
+    "coverage"
   ]
 }

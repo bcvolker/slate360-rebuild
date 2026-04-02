@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
       orgId: orgContext.orgId,
       orgName: orgContext.orgName,
       userId: orgContext.user.id,
+      existingStripeCustomerId: orgContext.stripeCustomerId,
     });
 
     const origin = getRequestOrigin(req);

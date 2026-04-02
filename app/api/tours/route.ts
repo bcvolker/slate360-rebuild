@@ -1,47 +1,48 @@
-import { NextRequest, NextResponse } from "next/server";
-import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { NextRequest } from "next/server";
+import { withAuth } from "@/lib/server/api-auth";
+import { ok, badRequest, serverError, unauthorized } from "@/lib/server/api-response";
 import { getTours, createTour } from "@/lib/tours/queries";
 
 export const runtime = "nodejs";
 
 // GET /api/tours - List tours for the current org
-export async function GET(req: NextRequest) {
-  try {
-    const ctx = await resolveServerOrgContext();
-    if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const GET = (req: NextRequest) =>
+  withAuth(req, async ({ admin, orgId }) => {
+    if (!orgId) return unauthorized("User has no organization");
 
-    const tours = await getTours(ctx.supabase, { orgId: ctx.org.id });
-    return NextResponse.json(tours);
-  } catch (err: any) {
-    console.error("[GET /api/tours] Error:", err);
-    return NextResponse.json({ error: "Failed to fetch tours" }, { status: 500 });
-  }
-}
+    try {
+      const tours = await getTours(admin, { orgId });
+      return ok(tours);
+    } catch (err: any) {
+      console.error("[GET /api/tours] Error:", err);
+      return serverError("Failed to fetch tours");
+    }
+  });
 
 // POST /api/tours - Create a new tour
-export async function POST(req: NextRequest) {
-  try {
-    const ctx = await resolveServerOrgContext();
-    if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = (req: NextRequest) =>
+  withAuth(req, async ({ admin, orgId, user }) => {
+    if (!orgId) return unauthorized("User has no organization");
 
-    const body = await req.json();
-    const { title, description, projectId } = body;
+    try {
+      const body = await req.json();
+      const { title, description, projectId } = body;
 
-    if (!title) {
-      return NextResponse.json({ error: "Title is required" }, { status: 400 });
+      if (!title) {
+        return badRequest("Title is required");
+      }
+
+      const newTour = await createTour(admin, {
+        orgId,
+        createdBy: user.id,
+        title,
+        description,
+        projectId,
+      });
+
+      return ok(newTour);
+    } catch (err: any) {
+      console.error("[POST /api/tours] Error:", err);
+      return serverError("Failed to create tour");
     }
-
-    const newTour = await createTour(ctx.supabase, {
-      orgId: ctx.org.id,
-      createdBy: ctx.user.id,
-      title,
-      description,
-      projectId,
-    });
-
-    return NextResponse.json(newTour, { status: 201 });
-  } catch (err: any) {
-    console.error("[POST /api/tours] Error:", err);
-    return NextResponse.json({ error: "Failed to create tour" }, { status: 500 });
-  }
-}
+  });

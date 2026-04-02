@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type AppId = "tour_builder" | "punchwalk";
@@ -21,6 +21,14 @@ const APPS: { id: AppId; name: string; price: string; description: string }[] = 
 ];
 
 export default function AppsPage() {
+  return (
+    <Suspense fallback={null}>
+      <AppsContent />
+    </Suspense>
+  );
+}
+
+function AppsContent() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState<AppId | null>(null);
   const [error, setError] = useState<string | null>(null);

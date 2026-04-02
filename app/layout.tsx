@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
-import { Suspense } from "react";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import BuildRuntimeBadge from "@/components/shared/BuildRuntimeBadge";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,14 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth" data-build="2026-02-26-v4-probe" suppressHydrationWarning>
       <body className={`${geistSans.variable} antialiased`} suppressHydrationWarning>
-        <NuqsAdapter>
-          <TooltipProvider>
-            {children}
-            <Suspense fallback={null}>
-              <BuildRuntimeBadge />
-            </Suspense>
-          </TooltipProvider>
-        </NuqsAdapter>
+        {children}
       </body>
     </html>
   );

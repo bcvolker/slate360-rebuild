@@ -1,10 +1,12 @@
 import type Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type OrgRecord = {
   id?: string;
   name?: string;
   tier?: string;
+  stripe_customer_id?: string | null;
 };
 
 type Membership = {
@@ -24,7 +26,7 @@ export async function getAuthenticatedOrgContext() {
 
   const { data, error } = await supabase
     .from("organization_members")
-    .select("org_id, organizations(id,name,tier)")
+    .select("org_id, organizations(id,name,tier,stripe_customer_id)")
     .eq("user_id", user.id)
     .limit(1);
 
@@ -42,6 +44,7 @@ export async function getAuthenticatedOrgContext() {
     orgId: member.org_id,
     orgName: org?.name ?? "Slate360 Organization",
     orgTier: org?.tier ?? "trial",
+    stripeCustomerId: org?.stripe_customer_id ?? null,
   };
 }
 
@@ -52,26 +55,37 @@ export async function findOrCreateStripeCustomer(params: {
   orgId: string;
   orgName: string;
   userId: string;
+  existingStripeCustomerId?: string | null;
 }): Promise<string> {
-  const { stripe, email, name, orgId, orgName, userId } = params;
+  const { stripe, email, name, orgId, orgName, userId, existingStripeCustomerId } = params;
 
+  // 1. Fast path: org already has a saved Stripe customer ID
+  if (existingStripeCustomerId) {
+    return existingStripeCustomerId;
+  }
+
+  // 2. Fallback: search Stripe by email + metadata (legacy orgs without saved ID)
   const customers = await stripe.customers.list({ email, limit: 20 });
   const existing = customers.data.find(
     (customer) => customer.metadata?.org_id === orgId
   );
 
-  if (existing?.id) {
-    return existing.id;
-  }
+  const customerId = existing?.id
+    ? existing.id
+    : (
+        await stripe.customers.create({
+          email,
+          name: name || orgName,
+          metadata: { org_id: orgId, user_id: userId },
+        })
+      ).id;
 
-  const customer = await stripe.customers.create({
-    email,
-    name: name || orgName,
-    metadata: {
-      org_id: orgId,
-      user_id: userId,
-    },
-  });
+  // 3. Persist the customer ID so future lookups skip the Stripe list call
+  const admin = createAdminClient();
+  await admin
+    .from("organizations")
+    .update({ stripe_customer_id: customerId })
+    .eq("id", orgId);
 
-  return customer.id;
+  return customerId;
 }

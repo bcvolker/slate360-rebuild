@@ -172,26 +172,23 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-03-31 (Stripe Billing E2E Test Setup)
+### Session Handoff — 2026-04-01 (Continue Auto-Approval And Model Corrections)
 
 ### What Changed
-- `app/apps/page.tsx`: standalone apps launcher exists with working Stripe Checkout buttons for Tour Builder and PunchWalk; page now doubles as the local billing test entrypoint.
-- `app/api/billing/app-checkout/route.ts`: standalone app checkout now returns to `/apps` on success and cancel instead of `/dashboard` / `/plans`, which avoids the standalone-user redirect mismatch during test flows.
-- `.env.production`: removed stray literal `\n` suffixes from `STRIPE_PRICE_APP_PUNCHWALK_MONTHLY` and `STRIPE_PRICE_APP_TOUR_BUILDER_MONTHLY` so price ID matching is stable.
-- Verified local tooling for billing test: Stripe CLI present at `/usr/local/bin/stripe`, version `1.23.8`; `npm run dev` starts cleanly and serves on `http://localhost:3000`.
+- `/home/node/.continue/permissions.yaml`: created a permissions file that auto-allows `Bash`, `Edit`, `MultiEdit`, and `Write` so Continue stops prompting for the common blue approval actions.
+- `/home/node/.continue/config.yaml`: limited `Claude Opus 4.6` to `chat` only and added lower `defaultCompletionOptions` for Anthropic models to reduce rate-limit pressure; kept `Claude Sonnet 4.6` as the primary `chat/edit/apply` model.
+- `/home/node/.continue/config.yaml`: replaced unavailable `grok-4.2` with supported `grok-4` after the user received a provider 404 for `grok-4.2`.
 
 ### What's Broken / Partially Done
-- Tour Builder API routes still fail typecheck in `app/api/tours/route.ts` and `app/api/tours/[tourId]/**` because they use the wrong auth/context shape (`ctx.supabase`, `ctx.org`) and outdated App Router route param types.
-- Full repo `npm run typecheck` still fails only because of those pre-existing Tour Builder route errors; billing files changed in this session have no diagnostics.
-- Repo-wide file size guard still reports older unrelated offenders; no new over-limit files were introduced by this session.
-- There is still no dedicated standalone app runtime route like `/tour-builder`; the current testable unlock surface is `/apps` plus the webhook-driven `org_feature_flags` update and login redirect behavior.
+- Anthropic rate limiting is provider-side; config tuning can reduce pressure but cannot override the org TPM cap.
+- The new permissions and config changes may require a VS Code window reload or Codespace reconnect before Continue picks them up.
+- GitHub Copilot cannot be configured to use arbitrary external API-key-backed models from Continue config; only Continue is affected by these files.
 
 ### Context Files Updated
-- `SLATE360_PROJECT_MEMORY.md`: replaced stale handoff with current Stripe E2E setup and validator state.
+- `SLATE360_PROJECT_MEMORY.md`: replaced the prior handoff with the Continue permissions and model-correction state.
 
 ### Next Steps (ordered)
-1. Run Stripe local E2E: start `npm run dev`, run `stripe --api-key "$STRIPE_SECRET_KEY" listen --forward-to http://127.0.0.1:3000/api/stripe/webhook`, copy the emitted test `whsec_...` into `.env.local`, then restart dev server.
-2. Log in locally, open `/apps`, click the Tour Builder subscribe button, and complete checkout with test card `4242 4242 4242 4242`.
-3. Verify `stripe_events`, `org_feature_flags`, and `organizations` in Supabase plus `/apps?app_billing=success&app=tour_builder` in UI.
-4. Rewrite the six Tour Builder API routes to use `withAuth()` / `createAdminClient()` so repo typecheck becomes trustworthy again.
-5. Create an actual standalone app route (`/tour-builder`) if the product should unlock more than the `/apps` launcher after purchase.
+1. Reload the VS Code window or reconnect the Codespace so Continue reloads `permissions.yaml` and the updated model config.
+2. Use `Claude Sonnet 4.6` for agent/edit/apply work; reserve `Claude Opus 4.6` for smaller chat-only prompts.
+3. Test `Grok 4` instead of `Grok 4.2`.
+4. Rotate any API keys that were previously exposed in plain text.

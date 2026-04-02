@@ -6,10 +6,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 
+/** Block open-redirect attacks: only allow relative paths that stay on our origin. */
+function isSafeRedirectPath(url: string): boolean {
+  return url.startsWith("/") && !url.startsWith("//") && !url.includes("://");
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") ?? "/dashboard";
+  const rawRedirect = searchParams.get("redirectTo") ?? "/dashboard";
+  const redirectTo = isSafeRedirectPath(rawRedirect) ? rawRedirect : "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
