@@ -2,12 +2,19 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { OrgFeatureFlags } from "@/lib/entitlements";
+import type { StandaloneAppId } from "@/lib/billing-apps";
 
 const EMPTY_FLAGS: OrgFeatureFlags = {
   standalone_tour_builder: false,
   standalone_punchwalk: false,
   tour_builder_seat_limit: 0,
   tour_builder_seats_used: 0,
+};
+
+/** Maps a StandaloneAppId to its boolean column on org_feature_flags. */
+const APP_FLAG_COLUMN: Record<StandaloneAppId, keyof OrgFeatureFlags> = {
+  tour_builder: "standalone_tour_builder",
+  punchwalk: "standalone_punchwalk",
 };
 
 /**
@@ -37,4 +44,25 @@ export async function loadOrgFeatureFlags(orgId: string | null): Promise<OrgFeat
   } catch {
     return EMPTY_FLAGS;
   }
+}
+
+/**
+ * Returns true only if the organization has active subscriptions
+ * to ALL of the specified standalone apps.
+ *
+ * Usage:
+ *   const canBundle = await hasBundleAccess(orgId, ["tour_builder", "punchwalk"]);
+ */
+export async function hasBundleAccess(
+  orgId: string | null,
+  requiredApps: StandaloneAppId[],
+): Promise<boolean> {
+  if (!orgId || requiredApps.length === 0) return false;
+
+  const flags = await loadOrgFeatureFlags(orgId);
+
+  return requiredApps.every((appId) => {
+    const col = APP_FLAG_COLUMN[appId];
+    return flags[col] === true;
+  });
 }
