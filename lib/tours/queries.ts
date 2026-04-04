@@ -86,14 +86,13 @@ export async function updateTour(
   return data as ProjectTour;
 }
 
-export async function deleteTour(supabase: SupabaseClient, tourId: string, { orgId }: TourParams) {
-  // Return scenes first so we can physically delete the files
+/** Collects S3 paths from a tour and its scenes without deleting anything. */
+export async function collectTourAssets(supabase: SupabaseClient, tourId: string, { orgId }: TourParams) {
   const { data: scenes } = await supabase
     .from("tour_scenes")
     .select("id, panorama_path, thumbnail_path, file_size_bytes")
     .eq("tour_id", tourId);
 
-  // Return the tour to delete its logo asset if it exists
   const { data: tour } = await supabase
     .from("project_tours")
     .select("logo_asset_path")
@@ -101,6 +100,10 @@ export async function deleteTour(supabase: SupabaseClient, tourId: string, { org
     .eq("org_id", orgId)
     .single();
 
+  return { scenes, tour };
+}
+
+export async function deleteTour(supabase: SupabaseClient, tourId: string, { orgId }: TourParams) {
   // Delete from database (triggers ON DELETE CASCADE for scenes)
   const { error } = await supabase
     .from("project_tours")
@@ -109,8 +112,6 @@ export async function deleteTour(supabase: SupabaseClient, tourId: string, { org
     .eq("org_id", orgId);
 
   if (error) throw error;
-
-  return { scenes, tour };
 }
 
 export async function getTourScenes(supabase: SupabaseClient, tourId: string) {
@@ -168,15 +169,25 @@ export async function createScene(
   return data as TourScene;
 }
 
-export async function deleteScene(supabase: SupabaseClient, sceneId: string, tourId: string) {
+/** Fetches a scene without deleting it. Used to collect S3 paths before deletion. */
+export async function getSceneForDeletion(supabase: SupabaseClient, sceneId: string, tourId: string) {
   const { data, error } = await supabase
     .from("tour_scenes")
-    .delete()
+    .select("*")
     .eq("id", sceneId)
     .eq("tour_id", tourId)
-    .select("*")
     .single();
 
   if (error) throw error;
   return data as TourScene;
+}
+
+export async function deleteScene(supabase: SupabaseClient, sceneId: string, tourId: string) {
+  const { error } = await supabase
+    .from("tour_scenes")
+    .delete()
+    .eq("id", sceneId)
+    .eq("tour_id", tourId);
+
+  if (error) throw error;
 }

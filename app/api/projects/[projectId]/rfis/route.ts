@@ -212,7 +212,12 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
       .single();
 
     if (upload?.s3_key) {
-      await deleteS3Objects([upload.s3_key]);
+      try {
+        await deleteS3Objects([upload.s3_key]);
+      } catch (err) {
+        console.error("[rfi-delete] S3 deletion failed, aborting:", err);
+        return NextResponse.json({ error: "Failed to delete attachment from storage. Please retry." }, { status: 500 });
+      }
       await admin.from("slatedrop_uploads").delete().eq("id", rfi.artifact_upload_id);
       if (upload.org_id && upload.file_size) {
         await recoverOrgStorage(upload.org_id, upload.file_size);

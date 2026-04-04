@@ -9,10 +9,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendConfirmationEmail } from "@/lib/email";
 import { createRateLimiter } from "@/lib/server/rate-limit";
 
-const checkRate = createRateLimiter(5, 15 * 60 * 1000); // 5 signups per IP per 15 min
+const checkRate = createRateLimiter("auth:signup", 5, 900); // 5 signups per IP per 15 min
 
 export async function POST(req: Request) {
-  const blocked = checkRate(req);
+  const blocked = await checkRate(req);
   if (blocked) return blocked;
 
   try {

@@ -96,12 +96,17 @@ export const DELETE = (req: NextRequest, ctx: Ctx) =>
 
     if (!file) return badRequest("File not found");
 
-    // Delete from S3 first
+    // Delete from S3 first — if this fails, abort to keep DB row for retry
     if (file.s3_key) {
-      await deleteS3Object(file.s3_key);
+      try {
+        await deleteS3Object(file.s3_key);
+      } catch (err) {
+        console.error("[contact-file-delete] S3 deletion failed, aborting:", err);
+        return serverError("Failed to delete file from storage. Please retry.");
+      }
     }
 
-    // Then delete the DB row
+    // S3 succeeded — safe to delete the DB row
     const { error } = await admin
       .from("contact_files")
       .delete()

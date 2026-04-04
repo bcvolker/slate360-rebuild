@@ -1,67 +1,61 @@
 /**
- * In-memory sliding-window rate limiter for public API routes.
+ * Serverless-safe rate limiter using Upstash Redis.
  *
- * Suitable for single-instance Vercel deployments.  Each serverless
- * cold-start resets the window, which is acceptable — the goal is to
- * block brute-force bursts, not to maintain global state.
+ * Requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars.
+ * Falls back to permissive (allow-all) when Upstash is not configured,
+ * so local dev is not blocked. Production MUST have Upstash configured.
  */
 
 import { NextResponse } from "next/server";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
-interface HitRecord {
-  timestamps: number[];
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+function resolveIp(req: Request): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  return forwarded?.split(",")[0]?.trim() || "unknown";
 }
 
-const store = new Map<string, HitRecord>();
+function buildLimiter(prefix: string, maxRequests: number, windowSec: number) {
+  if (!redisUrl || !redisToken) return null;
 
-// Evict stale entries every 10 minutes to prevent memory leaks
-const EVICT_INTERVAL_MS = 10 * 60 * 1000;
-let lastEvict = Date.now();
-
-function evictStale(windowMs: number) {
-  const now = Date.now();
-  if (now - lastEvict < EVICT_INTERVAL_MS) return;
-  lastEvict = now;
-  const cutoff = now - windowMs;
-  for (const [key, record] of store) {
-    record.timestamps = record.timestamps.filter((t) => t > cutoff);
-    if (record.timestamps.length === 0) store.delete(key);
-  }
+  return new Ratelimit({
+    redis: new Redis({ url: redisUrl, token: redisToken }),
+    limiter: Ratelimit.slidingWindow(maxRequests, `${windowSec} s`),
+    prefix: `ratelimit:${prefix}`,
+    analytics: false,
+  });
 }
 
 /**
- * Returns a rate-limiter function for a specific route.
+ * Returns an async rate-limiter function for a specific route.
  *
+ * @param prefix       Unique namespace for this route (e.g. "auth:signup")
  * @param maxRequests  Maximum allowed requests per window (default: 5)
- * @param windowMs     Window duration in ms (default: 15 minutes)
+ * @param windowSec    Window duration in seconds (default: 900 = 15 min)
  */
-export function createRateLimiter(maxRequests = 5, windowMs = 15 * 60 * 1000) {
-  /**
-   * Call at the top of your route handler.
-   * Returns `null` if the request is allowed, or a 429 NextResponse to return.
-   */
-  return function checkRateLimit(req: Request): NextResponse | null {
-    evictStale(windowMs);
+export function createRateLimiter(
+  prefix: string,
+  maxRequests = 5,
+  windowSec = 900
+) {
+  const limiter = buildLimiter(prefix, maxRequests, windowSec);
 
-    // Use forwarded IP (Vercel sets x-forwarded-for), fall back to generic key
-    const forwarded = req.headers.get("x-forwarded-for");
-    const ip = forwarded?.split(",")[0]?.trim() || "unknown";
-
-    const now = Date.now();
-    const cutoff = now - windowMs;
-
-    let record = store.get(ip);
-    if (!record) {
-      record = { timestamps: [] };
-      store.set(ip, record);
+  return async function checkRateLimit(req: Request): Promise<NextResponse | null> {
+    if (!limiter) {
+      if (process.env.NODE_ENV === "production") {
+        console.warn("[rate-limit] Upstash not configured — rate limiting disabled in production!");
+      }
+      return null;
     }
 
-    record.timestamps = record.timestamps.filter((t) => t > cutoff);
+    const ip = resolveIp(req);
+    const { success, reset } = await limiter.limit(ip);
 
-    if (record.timestamps.length >= maxRequests) {
-      const retryAfterSec = Math.ceil(
-        (record.timestamps[0]! + windowMs - now) / 1000
-      );
+    if (!success) {
+      const retryAfterSec = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
         {
@@ -71,7 +65,6 @@ export function createRateLimiter(maxRequests = 5, windowMs = 15 * 60 * 1000) {
       );
     }
 
-    record.timestamps.push(now);
     return null;
   };
 }

@@ -91,10 +91,15 @@ export const DELETE = (req: NextRequest, ctx: Ctx) =>
 
     const s3Keys = (files ?? []).map((f) => f.s3_key).filter(Boolean);
     if (s3Keys.length > 0) {
-      await deleteS3Objects(s3Keys);
+      try {
+        await deleteS3Objects(s3Keys);
+      } catch (err) {
+        console.error("[contact-delete] S3 deletion failed, aborting:", err);
+        return serverError("Failed to delete contact files from storage. Please retry.");
+      }
     }
 
-    // Delete file rows explicitly (in case no cascade FK)
+    // S3 succeeded — safe to delete DB rows
     await admin
       .from("contact_files")
       .delete()
