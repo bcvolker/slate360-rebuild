@@ -60,7 +60,7 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   
-  // Protect /dashboard, /slatedrop & /project-hub — redirect to login if not authenticated
+  // Protect authenticated routes — redirect to login if not authenticated
   if (
     !user &&
     (pathname.startsWith("/dashboard") ||
@@ -68,6 +68,7 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith("/project-hub") ||
       pathname.startsWith("/tour-builder") ||
       pathname.startsWith("/punchwalk") ||
+      pathname.startsWith("/site-walk") ||
       pathname.startsWith("/apps"))
   ) {
     const url = request.nextUrl.clone();

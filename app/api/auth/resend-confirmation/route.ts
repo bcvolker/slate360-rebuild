@@ -8,8 +8,14 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendConfirmationEmail } from "@/lib/email";
+import { createRateLimiter } from "@/lib/server/rate-limit";
+
+const checkRate = createRateLimiter(3, 15 * 60 * 1000); // 3 resends per IP per 15 min
 
 export async function POST(req: Request) {
+  const blocked = checkRate(req);
+  if (blocked) return blocked;
+
   try {
     const { email } = await req.json();
 
@@ -32,18 +38,12 @@ export async function POST(req: Request) {
 
     const existingUser = listData.users.find((u) => u.email === email);
 
-    if (!existingUser) {
-      return NextResponse.json(
-        { error: "No account found with this email. Please sign up." },
-        { status: 404 }
-      );
-    }
-
-    if (existingUser.email_confirmed_at) {
-      return NextResponse.json(
-        { error: "This account is already confirmed. Please sign in." },
-        { status: 400 }
-      );
+    if (!existingUser || existingUser.email_confirmed_at) {
+      // Generic response to prevent account enumeration
+      return NextResponse.json({
+        success: true,
+        message: "If an unconfirmed account exists, a confirmation email has been sent.",
+      });
     }
 
     // Generate a new confirmation link (does NOT re-create the user)

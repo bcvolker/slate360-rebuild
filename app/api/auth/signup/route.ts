@@ -7,8 +7,14 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendConfirmationEmail } from "@/lib/email";
+import { createRateLimiter } from "@/lib/server/rate-limit";
+
+const checkRate = createRateLimiter(5, 15 * 60 * 1000); // 5 signups per IP per 15 min
 
 export async function POST(req: Request) {
+  const blocked = checkRate(req);
+  if (blocked) return blocked;
+
   try {
     const { email, password, name, redirectAfter } = await req.json();
 

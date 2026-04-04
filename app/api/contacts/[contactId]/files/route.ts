@@ -3,6 +3,7 @@ import { withAuth } from "@/lib/server/api-auth";
 import { ok, created, badRequest, serverError } from "@/lib/server/api-response";
 import { s3, BUCKET } from "@/lib/s3";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { deleteS3Object } from "@/lib/s3-utils";
 
 type Ctx = { params: Promise<{ contactId: string }> };
 
@@ -84,6 +85,23 @@ export const DELETE = (req: NextRequest, ctx: Ctx) =>
     const fileId = url.searchParams.get("fileId");
     if (!fileId) return badRequest("fileId required");
 
+    // Fetch the file row first to get the S3 key before deleting
+    const { data: file } = await admin
+      .from("contact_files")
+      .select("id, s3_key, size_bytes")
+      .eq("id", fileId)
+      .eq("contact_id", contactId)
+      .eq("org_id", orgId)
+      .single();
+
+    if (!file) return badRequest("File not found");
+
+    // Delete from S3 first
+    if (file.s3_key) {
+      await deleteS3Object(file.s3_key);
+    }
+
+    // Then delete the DB row
     const { error } = await admin
       .from("contact_files")
       .delete()

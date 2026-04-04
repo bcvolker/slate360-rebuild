@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, serverError, unauthorized } from "@/lib/server/api-response";
 import { getTourScenes } from "@/lib/tours/queries";
 
@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 
 export const GET = async (req: NextRequest, { params }: { params: Promise<{ tourId: string }> }) => {
   const { tourId } = await params;
-  return withAuth(req, async ({ admin, orgId }) => {
+  return withAppAuth("tour_builder", req, async ({ admin, orgId }) => {
     if (!orgId) return unauthorized("User has no organization");
 
     try {

@@ -1,19 +1,14 @@
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError, unauthorized, notFound } from "@/lib/server/api-response";
 import { getTourById, updateTour, deleteTour } from "@/lib/tours/queries";
 import { deleteS3Objects, recoverOrgStorage } from "@/lib/s3-utils";
 
 export const runtime = "nodejs";
 
-// Helper to determine approx file size from an S3 key if we needed accurate recovery.
-// For now, MVP recovers a hardcoded conservative average or we skip it.
-// To truly recover storage accurately we would query slatedrop_uploads or HeadObject.
-// We will implement basic physical deletion first.
-
 export const GET = async (req: NextRequest, { params }: { params: Promise<{ tourId: string }> }) => {
   const { tourId } = await params;
-  return withAuth(req, async ({ admin, orgId }) => {
+  return withAppAuth("tour_builder", req, async ({ admin, orgId }) => {
     if (!orgId) return unauthorized("User has no organization");
 
     try {
@@ -30,7 +25,7 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ tour
 
 export const PATCH = async (req: NextRequest, { params }: { params: Promise<{ tourId: string }> }) => {
   const { tourId } = await params;
-  return withAuth(req, async ({ admin, orgId }) => {
+  return withAppAuth("tour_builder", req, async ({ admin, orgId }) => {
     if (!orgId) return unauthorized("User has no organization");
 
     try {
@@ -50,7 +45,7 @@ export const PATCH = async (req: NextRequest, { params }: { params: Promise<{ to
 
 export const DELETE = async (req: NextRequest, { params }: { params: Promise<{ tourId: string }> }) => {
   const { tourId } = await params;
-  return withAuth(req, async ({ admin, orgId }) => {
+  return withAppAuth("tour_builder", req, async ({ admin, orgId }) => {
     if (!orgId) return unauthorized("User has no organization");
 
     try {

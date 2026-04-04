@@ -172,23 +172,21 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-01 (Continue Auto-Approval And Model Corrections)
+### Session Handoff — 2026-04-01 (DJI 360 Live Streaming Feasibility Review)
 
 ### What Changed
-- `/home/node/.continue/permissions.yaml`: created a permissions file that auto-allows `Bash`, `Edit`, `MultiEdit`, and `Write` so Continue stops prompting for the common blue approval actions.
-- `/home/node/.continue/config.yaml`: limited `Claude Opus 4.6` to `chat` only and added lower `defaultCompletionOptions` for Anthropic models to reduce rate-limit pressure; kept `Claude Sonnet 4.6` as the primary `chat/edit/apply` model.
-- `/home/node/.continue/config.yaml`: replaced unavailable `grok-4.2` with supported `grok-4` after the user received a provider 404 for `grok-4.2`.
+- `SLATE360_PROJECT_MEMORY.md`: replaced the prior handoff with a feasibility review for live 360 drone streaming into Slate360.
 
 ### What's Broken / Partially Done
-- Anthropic rate limiting is provider-side; config tuning can reduce pressure but cannot override the org TPM cap.
-- The new permissions and config changes may require a VS Code window reload or Codespace reconnect before Continue picks them up.
-- GitHub Copilot cannot be configured to use arbitrary external API-key-backed models from Continue config; only Continue is affected by these files.
+- Slate360 has no native live 360 video ingest path yet; current media support is file upload, sharing, and planned 360 tour playback rather than low-latency streaming.
+- Multi-user independent look-around requires a true live equirectangular 360 feed from the drone/camera stack; if the DJI setup only exposes a pilot-view preview, Slate360 can only show that flat feed live and the full 360 as delayed upload/segment playback.
+- The 360 Tours area is scaffolded only and would need backend tables, APIs, and a real viewer/editor before it can become the permanent construction-site 360 playback surface.
 
 ### Context Files Updated
-- `SLATE360_PROJECT_MEMORY.md`: replaced the prior handoff with the Continue permissions and model-correction state.
+- `SLATE360_PROJECT_MEMORY.md`: documented the live 360 streaming assessment and implementation gap summary.
 
 ### Next Steps (ordered)
-1. Reload the VS Code window or reconnect the Codespace so Continue reloads `permissions.yaml` and the updated model config.
-2. Use `Claude Sonnet 4.6` for agent/edit/apply work; reserve `Claude Opus 4.6` for smaller chat-only prompts.
-3. Test `Grok 4` instead of `Grok 4.2`.
-4. Rotate any API keys that were previously exposed in plain text.
+1. Confirm the exact camera/output path for the DJI setup: true stitched live 360 output vs local-only 360 recording.
+2. Decide whether the first release should be low-latency live viewing, near-real-time segmented playback, or both.
+3. Build a minimal public/private 360 video viewer route on top of existing SlateDrop/share infrastructure.
+4. Add a streaming ingest service layer and project-scoped session model before integrating the feature into Project Hub or Tours.

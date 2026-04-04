@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { withAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
+import { deleteS3Objects } from "@/lib/s3-utils";
 
 type Ctx = { params: Promise<{ contactId: string }> };
 
@@ -81,6 +82,29 @@ export const DELETE = (req: NextRequest, ctx: Ctx) =>
     if (!orgId) return badRequest("No organization found");
     const { contactId } = await ctx.params;
 
+    // Collect S3 keys from all contact files before deleting
+    const { data: files } = await admin
+      .from("contact_files")
+      .select("s3_key")
+      .eq("contact_id", contactId)
+      .eq("org_id", orgId);
+
+    const s3Keys = (files ?? []).map((f) => f.s3_key).filter(Boolean);
+    if (s3Keys.length > 0) {
+      await deleteS3Objects(s3Keys);
+    }
+
+    // Delete file rows explicitly (in case no cascade FK)
+    await admin
+      .from("contact_files")
+      .delete()
+      .eq("contact_id", contactId)
+      .eq("org_id", orgId);
+
+    // Delete project associations
+    await admin.from("contact_projects").delete().eq("contact_id", contactId);
+
+    // Delete the contact
     const { error } = await admin
       .from("org_contacts")
       .delete()

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError, unauthorized } from "@/lib/server/api-response";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 // POST /api/tours/[tourId]/scenes/upload
 export const POST = async (req: NextRequest, { params }: { params: Promise<{ tourId: string }> }) => {
   const { tourId } = await params;
-  return withAuth(req, async ({ admin, orgId }) => {
+  return withAppAuth("tour_builder", req, async ({ admin, orgId }) => {
     if (!orgId) return unauthorized("User has no organization");
 
     try {

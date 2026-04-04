@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getScopedProjectForUser, resolveProjectScope } from "@/lib/projects/access";
 import { saveProjectArtifact } from "@/lib/slatedrop/projectArtifacts";
 import { logProjectActivity } from "@/lib/projects/activity-log";
+import { deleteS3Objects, recoverOrgStorage } from "@/lib/s3-utils";
 
 type RouteContext = {
   params: Promise<{ projectId: string }>;
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
   let artifact: unknown = null;
   if (upload instanceof File && upload.size > 0) {
     try {
-      artifact = await saveProjectArtifact(
+      const result = await saveProjectArtifact(
         project.id,
         project.name,
         "RFI",
@@ -87,6 +88,15 @@ export async function POST(req: NextRequest, context: RouteContext) {
         { id: user.id },
         orgId
       );
+      artifact = result;
+
+      // Link the upload to the RFI for later cleanup
+      if (result.upload?.id) {
+        await admin
+          .from("project_rfis")
+          .update({ artifact_upload_id: result.upload.id })
+          .eq("id", created.id);
+      }
     } catch (error) {
       return NextResponse.json(
         {
@@ -185,6 +195,30 @@ export async function DELETE(req: NextRequest, context: RouteContext) {
   const body = (await req.json().catch(() => ({}))) as { id?: string };
   const id = String(body.id ?? "").trim();
   if (!id) return NextResponse.json({ error: "RFI id is required" }, { status: 400 });
+
+  // Clean up linked S3 artifact before deleting the RFI row
+  const { data: rfi } = await admin
+    .from("project_rfis")
+    .select("artifact_upload_id")
+    .eq("id", id)
+    .eq("project_id", projectId)
+    .single();
+
+  if (rfi?.artifact_upload_id) {
+    const { data: upload } = await admin
+      .from("slatedrop_uploads")
+      .select("s3_key, file_size, org_id")
+      .eq("id", rfi.artifact_upload_id)
+      .single();
+
+    if (upload?.s3_key) {
+      await deleteS3Objects([upload.s3_key]);
+      await admin.from("slatedrop_uploads").delete().eq("id", rfi.artifact_upload_id);
+      if (upload.org_id && upload.file_size) {
+        await recoverOrgStorage(upload.org_id, upload.file_size);
+      }
+    }
+  }
 
   const { error } = await admin.from("project_rfis").delete().eq("id", id).eq("project_id", projectId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

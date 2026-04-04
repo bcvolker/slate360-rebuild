@@ -12,6 +12,14 @@ const APP_FLAG_KEY: Record<StandaloneAppId, "standalone_tour_builder" | "standal
   punchwalk: "standalone_punchwalk",
 };
 
+function getAppSuccessPath(appId: StandaloneAppId): string {
+  if (appId === "tour_builder") {
+    return "/tour-builder?welcome=true";
+  }
+
+  return "/site-walk?welcome=true";
+}
+
 export async function POST(req: NextRequest) {
   try {
     const orgContext = await getAuthenticatedOrgContext();
@@ -61,7 +69,7 @@ export async function POST(req: NextRequest) {
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
-      success_url: `${origin}/apps?app_billing=success&app=${appId}`,
+      success_url: `${origin}${getAppSuccessPath(appId)}`,
       cancel_url: `${origin}/apps?app_billing=cancelled&app=${appId}`,
       metadata: {
         kind: "standalone_app",

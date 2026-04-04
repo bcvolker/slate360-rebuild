@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, serverError, unauthorized } from "@/lib/server/api-response";
 import { deleteScene } from "@/lib/tours/queries";
 import { deleteS3Objects, recoverOrgStorage } from "@/lib/s3-utils";
@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 export const DELETE = async (req: NextRequest, { params }: { params: Promise<{ tourId: string; sceneId: string }> }) => {
   const { tourId, sceneId } = await params;
-  return withAuth(req, async ({ admin, orgId }) => {
+  return withAppAuth("tour_builder", req, async ({ admin, orgId }) => {
     if (!orgId) return unauthorized("User has no organization");
 
     try {
