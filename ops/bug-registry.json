@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-03-28",
+  "updatedAt": "2026-04-04",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -125,6 +125,20 @@
         "Confirm whether Market Robot has a single run record linking user action, applied config, scan result, activity row, and trade write",
         "Confirm whether requested product features still missing in code remain missing: recommendation-history store, moonshot history/bundles, posted-probability-vs-outcome tracking, hot-item/upset alert engine",
         "Set NEXT_PUBLIC_POLYMARKET_SPENDER and verify live wallet approval path stops reporting backend blocker status"
+      ]
+    },
+    {
+      "id": "BUG-027",
+      "title": "Platform Overlap: withAppAuth and hasBundleAccess bypass tier entitlements",
+      "module": "entitlements",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "withAppAuth() and hasBundleAccess() only checked org_feature_flags raw columns, ignoring subscription tier — enterprise/business users with canAccessTourBuilder=true via tier were 403'd if standalone_tour_builder flag was false",
+      "verification": [
+        "lib/server/api-auth.ts withAppAuth calls resolveOrgEntitlements, not loadOrgFeatureFlags directly",
+        "lib/server/org-feature-flags.ts hasBundleAccess calls resolveOrgEntitlements",
+        "lib/server/org-feature-flags.ts resolveOrgEntitlements fetches org tier + flags and delegates to getEntitlements()",
+        "app/tour-builder/page.tsx and app/site-walk/page.tsx use resolveOrgEntitlements"
       ]
     }
   ]

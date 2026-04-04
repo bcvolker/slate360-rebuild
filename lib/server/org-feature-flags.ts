@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { OrgFeatureFlags } from "@/lib/entitlements";
+import { getEntitlements, type OrgFeatureFlags, type Entitlements, type Tier } from "@/lib/entitlements";
 import type { StandaloneAppId } from "@/lib/billing-apps";
 
 const EMPTY_FLAGS: OrgFeatureFlags = {
@@ -11,10 +11,10 @@ const EMPTY_FLAGS: OrgFeatureFlags = {
   tour_builder_seats_used: 0,
 };
 
-/** Maps a StandaloneAppId to its boolean column on org_feature_flags. */
-const APP_FLAG_COLUMN: Record<StandaloneAppId, keyof OrgFeatureFlags> = {
-  tour_builder: "standalone_tour_builder",
-  punchwalk: "standalone_punchwalk",
+/** Maps a StandaloneAppId to its merged entitlement boolean in Entitlements. */
+const APP_ENTITLEMENT_KEY: Record<StandaloneAppId, keyof Entitlements> = {
+  tour_builder: "canAccessStandaloneTourBuilder",
+  punchwalk: "canAccessStandalonePunchwalk",
 };
 
 /**
@@ -47,8 +47,27 @@ export async function loadOrgFeatureFlags(orgId: string | null): Promise<OrgFeat
 }
 
 /**
- * Returns true only if the organization has active subscriptions
- * to ALL of the specified standalone apps.
+ * Resolve the full merged entitlements for an org by fetching both their
+ * subscription tier and their standalone app flags, then running them
+ * through the single source of truth: getEntitlements().
+ */
+export async function resolveOrgEntitlements(orgId: string | null): Promise<Entitlements> {
+  if (!orgId) return getEntitlements(null);
+
+  const admin = createAdminClient();
+
+  const [tierResult, flags] = await Promise.all([
+    admin.from("organizations").select("tier").eq("id", orgId).maybeSingle(),
+    loadOrgFeatureFlags(orgId),
+  ]);
+
+  const tier = (tierResult.data?.tier as Tier) ?? null;
+  return getEntitlements(tier, { featureFlags: flags });
+}
+
+/**
+ * Returns true only if the organization has access to ALL of the specified
+ * standalone apps (via tier-based access OR standalone subscription flags).
  *
  * Usage:
  *   const canBundle = await hasBundleAccess(orgId, ["tour_builder", "punchwalk"]);
@@ -59,10 +78,10 @@ export async function hasBundleAccess(
 ): Promise<boolean> {
   if (!orgId || requiredApps.length === 0) return false;
 
-  const flags = await loadOrgFeatureFlags(orgId);
+  const entitlements = await resolveOrgEntitlements(orgId);
 
   return requiredApps.every((appId) => {
-    const col = APP_FLAG_COLUMN[appId];
-    return flags[col] === true;
+    const key = APP_ENTITLEMENT_KEY[appId];
+    return entitlements[key] === true;
   });
 }

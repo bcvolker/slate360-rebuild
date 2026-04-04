@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { resolveProjectScope } from "@/lib/projects/access";
-import { loadOrgFeatureFlags } from "@/lib/server/org-feature-flags";
+import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 
 export default async function SiteWalkPage({
   searchParams,
@@ -16,9 +16,9 @@ export default async function SiteWalkPage({
   if (!user) redirect("/login?redirectTo=/site-walk");
 
   const { orgId } = await resolveProjectScope(user.id);
-  const flags = await loadOrgFeatureFlags(orgId);
+  const entitlements = await resolveOrgEntitlements(orgId);
 
-  if (!flags.standalone_punchwalk) {
+  if (!entitlements.canAccessStandalonePunchwalk) {
     redirect("/apps?error=no_punchwalk");
   }
 

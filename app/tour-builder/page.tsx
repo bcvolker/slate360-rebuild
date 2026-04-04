@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { resolveProjectScope } from "@/lib/projects/access";
-import { loadOrgFeatureFlags } from "@/lib/server/org-feature-flags";
+import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 
 export default async function TourBuilderPage({
   searchParams,
@@ -16,9 +16,9 @@ export default async function TourBuilderPage({
   if (!user) redirect("/login?redirectTo=/tour-builder");
 
   const { orgId } = await resolveProjectScope(user.id);
-  const flags = await loadOrgFeatureFlags(orgId);
+  const entitlements = await resolveOrgEntitlements(orgId);
 
-  if (!flags.standalone_tour_builder) {
+  if (!entitlements.canAccessStandaloneTourBuilder) {
     redirect("/apps?error=no_tour_builder");
   }
 

@@ -172,21 +172,34 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-01 (DJI 360 Live Streaming Feasibility Review)
+### Session Handoff — 2026-04-04 (Entitlement Fix + Great Quarantine)
 
 ### What Changed
-- `SLATE360_PROJECT_MEMORY.md`: replaced the prior handoff with a feasibility review for live 360 drone streaming into Slate360.
+- `lib/server/org-feature-flags.ts`: Added `resolveOrgEntitlements(orgId)` — single source of truth that fetches org tier + feature flags and delegates to `getEntitlements()`. Rewrote `hasBundleAccess()` to use it. (87 lines)
+- `lib/server/api-auth.ts`: Rewrote `withAppAuth()` to use `resolveOrgEntitlements()` instead of raw `loadOrgFeatureFlags()`. Enterprise/business tier users no longer 403'd on Tour Builder/Punchwalk APIs. (185 lines)
+- `app/tour-builder/page.tsx`: Fixed same bypass — uses `resolveOrgEntitlements().canAccessStandaloneTourBuilder`
+- `app/site-walk/page.tsx`: Fixed same bypass — uses `resolveOrgEntitlements().canAccessStandalonePunchwalk`
+- `app/_deprecated/features/`: Moved 13 marketing feature pages (1,433 lines) — Next.js routing disabled
+- `app/_deprecated/plans/`: Moved plans marketing page (212 lines) — routing disabled
+- `app/_deprecated/about/`: Moved about page (51 lines) — routing disabled
+- `app/(dashboard)/project-hub/`: Renamed all 13 `page.tsx` → `_page.tsx` and `layout.tsx` → `_layout.tsx` — UI routes disabled, files preserved for harvesting
+- `app/slatedrop/_page.tsx`: Renamed from `page.tsx` — UI route disabled
+- `ops/bug-registry.json`: Added BUG-027 (Platform Overlap) as fixed
 
 ### What's Broken / Partially Done
-- Slate360 has no native live 360 video ingest path yet; current media support is file upload, sharing, and planned 360 tour playback rather than low-latency streaming.
-- Multi-user independent look-around requires a true live equirectangular 360 feed from the drone/camera stack; if the DJI setup only exposes a pilot-view preview, Slate360 can only show that flat feed live and the full 360 as delayed upload/segment playback.
-- The 360 Tours area is scaffolded only and would need backend tables, APIs, and a real viewer/editor before it can become the permanent construction-site 360 playback surface.
+- Navbar still links to `/features/*`, `/plans`, `/about` — these routes now 404. Navbar links should be updated or removed.
+- `components/home/` (864 lines) still exists but is only used by `app/page.tsx` landing page — not quarantined per user instruction scope.
+- `components/project-hub/` (3,103 lines) and `components/slatedrop/` (2,147 lines) remain as component libraries — their page routes are disabled but the components exist for future harvesting.
+- `components/dashboard/DashboardClient.tsx` still references project-hub/slatedrop tab definitions — tab array entries should be removed or hidden.
+- `app/api/billing/app-checkout/route.ts` correctly uses raw `loadOrgFeatureFlags` for double-purchase guard (not a bug).
 
 ### Context Files Updated
-- `SLATE360_PROJECT_MEMORY.md`: documented the live 360 streaming assessment and implementation gap summary.
+- `ops/bug-registry.json`: BUG-027 added
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered)
-1. Confirm the exact camera/output path for the DJI setup: true stitched live 360 output vs local-only 360 recording.
-2. Decide whether the first release should be low-latency live viewing, near-real-time segmented playback, or both.
-3. Build a minimal public/private 360 video viewer route on top of existing SlateDrop/share infrastructure.
+1. Update Navbar to remove/hide links to quarantined routes (`/features/*`, `/plans`, `/about`)
+2. Update DashboardClient tab definitions to hide project-hub and slatedrop tabs
+3. Consider quarantining `components/home/` if landing page is also being retired
+4. Clean up any remaining references to quarantined routes in other UI components
 4. Add a streaming ingest service layer and project-scoped session model before integrating the feature into Project Hub or Tours.

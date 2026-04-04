@@ -22,7 +22,7 @@ import {
   resolveProjectScope,
   getScopedProjectForUser,
 } from "@/lib/projects/access";
-import { loadOrgFeatureFlags } from "@/lib/server/org-feature-flags";
+import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 import type { StandaloneAppId } from "@/lib/billing-apps";
 
 /* ─── Context types passed to handlers ──────────────────────── */
@@ -110,9 +110,11 @@ export async function withAppAuth(
   handler: (ctx: AuthedContext) => Promise<NextResponse>,
 ): Promise<NextResponse> {
   return withAuth(req, async (ctx) => {
-    const flags = await loadOrgFeatureFlags(ctx.orgId);
-    const col = appId === "tour_builder" ? "standalone_tour_builder" : "standalone_punchwalk";
-    if (!flags[col]) {
+    const entitlements = await resolveOrgEntitlements(ctx.orgId);
+    const canAccess = appId === "tour_builder"
+      ? entitlements.canAccessStandaloneTourBuilder
+      : entitlements.canAccessStandalonePunchwalk;
+    if (!canAccess) {
       return NextResponse.json(
         { error: `${appId} subscription required` },
         { status: 403 },
