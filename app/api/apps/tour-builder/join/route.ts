@@ -11,12 +11,18 @@
 import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError, unauthorized } from "@/lib/server/api-response";
+import { createRateLimiter } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
+
+const checkRateLimit = createRateLimiter("tour-builder:join", 5, 60); // 5 req / 1 min
 
 // POST — claim a seat
 export const POST = (req: NextRequest) =>
   withAppAuth("tour_builder", req, async ({ admin, orgId, user }) => {
+    const rateLimited = await checkRateLimit(req);
+    if (rateLimited) return rateLimited;
+
     if (!orgId) return unauthorized("User has no organization");
 
     const { data, error } = await admin.rpc("increment_app_seat", {

@@ -8,6 +8,7 @@
  * Folder is encoded in s3_key = "orgs/{namespace}/{folderId}/..." — no UUID folder_id needed.
  */
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
@@ -15,25 +16,32 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3, BUCKET } from "@/lib/s3";
 import { resolveNamespace, buildCanonicalS3Key } from "@/lib/slatedrop/storage";
 import { validateUploadPermissions } from "@/lib/uploads/validate-upload-permissions";
+import { parseBody } from "@/lib/server/validate";
+import { createRateLimiter } from "@/lib/server/rate-limit";
+
+const checkRateLimit = createRateLimiter("upload-url", 10, 60); // 10 req / 1 min
+
+const UploadUrlSchema = z.object({
+  filename: z.string().min(1).max(255),
+  contentType: z.string().min(1).max(127),
+  size: z.number().int().positive().max(10 * 1024 * 1024 * 1024), // max 10 GB
+  folderId: z.string().min(1),
+  folderPath: z.string().optional().default(""),
+  publicToken: z.string().optional(),
+  app_context: z.string().optional(),
+});
 
 export async function POST(req: NextRequest) {
+  const rateLimited = await checkRateLimit(req);
+  if (rateLimited) return rateLimited;
+
+  const parsed = await parseBody(req, UploadUrlSchema);
+  if (!parsed.success) return parsed.error;
+
+  const { filename, contentType, size, folderId, publicToken, app_context } = parsed.data;
+
   const supabase = await createClient();
   const admin = createAdminClient();
-
-  const body = await req.json();
-  const { filename, contentType, size, folderId, folderPath, publicToken, app_context } = body as {
-    filename: string;
-    contentType: string;
-    size: number;
-    folderId: string;
-    folderPath: string;
-    publicToken?: string;
-    app_context?: string;
-  };
-
-  if (!filename || !contentType || !folderId) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-  }
 
   // ═══ Multi-App Guard (shared validator) ═══
   const rejection = validateUploadPermissions({ filename, size, app_context });
