@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { getUpgradeUrl } from "@/lib/billing";
 
 export default function CTASection() {
   return (
@@ -26,7 +27,7 @@ export default function CTASection() {
             Start free trial <ChevronRight size={16} />
           </Link>
           <Link
-            href="/features/design-studio"
+            href={getUpgradeUrl()}
             className="inline-flex items-center justify-center gap-2 px-9 py-4 rounded-full font-semibold text-base text-white border border-white/30 hover:bg-white/10 transition-all"
           >
             Explore Design Studio

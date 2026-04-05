@@ -29,10 +29,19 @@ export default defineConfig({
       },
   projects: [
     {
+      name: "desktop-chromium",
+      use: {
+        browserName: "chromium",
+        viewport: { width: 1280, height: 720 },
+        launchOptions: {
+          args: ["--disable-gpu", "--disable-dev-shm-usage", "--no-sandbox"],
+        },
+      },
+    },
+    {
       name: "mobile-chromium",
       use: {
         browserName: "chromium",
-        channel: "chrome",
         viewport: { width: 390, height: 844 },
         isMobile: true,
         hasTouch: true,

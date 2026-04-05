@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
+import { readBrandingCookie } from "@/lib/server/branding";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -33,14 +34,24 @@ export const viewport: Viewport = {
   themeColor: "#ffffff",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const branding = await readBrandingCookie();
+
   return (
     <html lang="en" className="scroll-smooth" data-build="2026-02-26-v4-probe" suppressHydrationWarning>
-      <body className={`${geistSans.variable} antialiased`} suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} antialiased`}
+        suppressHydrationWarning
+        style={{
+          "--brand-primary": branding.primary_color,
+          "--brand-accent": branding.accent_color,
+          "--brand-font": branding.font_family,
+        } as React.CSSProperties}
+      >
         {children}
       </body>
     </html>

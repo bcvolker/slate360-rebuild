@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Check, ArrowRight } from "lucide-react";
 import { plans } from "./home-data";
+import { getUpgradeUrl } from "@/lib/billing";
 
 export default function PricingSection({
   billing,
@@ -110,7 +111,7 @@ export default function PricingSection({
         </div>
         <div className="text-center mt-8">
           <Link
-            href="/plans"
+            href={getUpgradeUrl()}
             className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[#FF4D00] transition-colors"
           >
             See full pricing & Enterprise <ArrowRight size={14} />

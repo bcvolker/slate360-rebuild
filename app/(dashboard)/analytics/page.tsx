@@ -2,6 +2,7 @@ import { Lock, TrendingUp } from "lucide-react";
 import { redirect } from "next/navigation";
 import { getEntitlements } from "@/lib/entitlements";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { getUpgradeUrl } from "@/lib/billing";
 import AnalyticsReportsClient from "@/components/dashboard/AnalyticsReportsClient";
 
 export const metadata = {
@@ -23,7 +24,7 @@ export default async function AnalyticsPage() {
           <h1 className="text-2xl font-black text-gray-900">Upgrade Required</h1>
           <p className="mt-2 text-sm text-gray-500">Your current plan does not include Analytics & Reports access.</p>
           <a
-            href="/plans"
+            href={getUpgradeUrl()}
             className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#FF4D00] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500]"
           >
             <TrendingUp size={16} /> View Upgrade Options

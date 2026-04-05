@@ -100,6 +100,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Clickjacking protection for public portal routes
+  if (pathname.startsWith("/portal")) {
+    supabaseResponse.headers.set("X-Frame-Options", "DENY");
+    supabaseResponse.headers.set(
+      "Content-Security-Policy",
+      "frame-ancestors 'none'"
+    );
+  }
+
   return supabaseResponse;
 }
 

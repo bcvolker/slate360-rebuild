@@ -106,3 +106,45 @@ export function recommendedUpgradeTier(currentTier: Tier): PaidTier {
       return "business";
   }
 }
+
+/* ────────────────────────────────────────────────────────
+   Centralized upgrade URL builder
+   
+   Returns a Stripe Payment Link when a STRIPE_UPGRADE_LINK env var
+   is configured (prefilled with orgId + appId metadata), otherwise
+   falls back to the in-app signup route.
+   
+   Usage:
+     getUpgradeUrl()                         → "/signup"
+     getUpgradeUrl({ appId: "tour_builder" })→ "/signup?app=tour_builder"
+     (with STRIPE_UPGRADE_LINK set)          → "https://buy.stripe.com/…?client_reference_id=org_123"
+   ──────────────────────────────────────────────────────── */
+
+export type AppId = "tour_builder" | "punchwalk";
+
+interface UpgradeUrlOptions {
+  orgId?: string;
+  appId?: AppId;
+}
+
+export function getUpgradeUrl(options?: UpgradeUrlOptions): string {
+  const { orgId, appId } = options ?? {};
+
+  // If a Stripe Payment Link is configured, use it with metadata query params
+  const stripeLink = typeof window === "undefined"
+    ? process.env.STRIPE_UPGRADE_LINK
+    : undefined; // Payment Links should only resolve server-side
+
+  if (stripeLink) {
+    const url = new URL(stripeLink);
+    if (orgId) url.searchParams.set("client_reference_id", orgId);
+    if (appId) url.searchParams.set("prefilled_promo_code", appId); // Stripe PL metadata
+    return url.toString();
+  }
+
+  // Fallback: in-app signup route
+  const params = new URLSearchParams();
+  if (appId) params.set("app", appId);
+  const qs = params.toString();
+  return qs ? `/signup?${qs}` : "/signup";
+}

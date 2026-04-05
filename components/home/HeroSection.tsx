@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ChevronRight, Maximize2 } from "lucide-react";
+import { getUpgradeUrl } from "@/lib/billing";
 
 const ModelViewer = dynamic(() => import("@/components/ModelViewerClient"), {
   ssr: false,
@@ -47,7 +48,7 @@ export default function HeroSection({
               Start free trial <ChevronRight size={16} />
             </Link>
             <Link
-              href="/plans"
+              href={getUpgradeUrl()}
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-semibold text-base text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all"
             >
               View pricing

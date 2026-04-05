@@ -4,7 +4,7 @@ import WidgetCard from "@/components/widgets/WidgetCard";
 import type { DashboardAccountOverview } from "@/lib/types/dashboard";
 import type { Tier } from "@/lib/entitlements";
 import { User, CreditCard } from "lucide-react";
-import { Skeleton } from "@/components/ui/Skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /* ================================================================
    TYPES

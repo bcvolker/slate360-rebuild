@@ -1,15 +1,11 @@
 "use client";
 import Link from "next/link";
+import { getUpgradeUrl } from "@/lib/billing";
 
-const features = [
-  { label: "Design Studio", href: "/features/design-studio" },
-  { label: "Project Hub", href: "/project-hub" },
-  { label: "Content Studio", href: "/features/content-studio" },
-  { label: "360 Tour Builder", href: "/features/360-tour-builder" },
-  { label: "Geospatial & Robotics", href: "/features/geospatial-robotics" },
-  { label: "Virtual Studio", href: "/features/virtual-studio" },
-  { label: "Analytics & Reports", href: "/features/analytics-reports" },
-  { label: "SlateDrop", href: "/features/slatedrop" },
+const platformLinks = [
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Sign in", href: "/login" },
+  { label: "Start free trial", href: "/signup" },
 ];
 
 export default function Footer() {
@@ -26,11 +22,11 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Features */}
+        {/* Platform */}
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Platform</p>
           <ul className="space-y-2.5">
-            {features.map((f) => (
+            {platformLinks.map((f) => (
               <li key={f.href}>
                 <Link href={f.href} className="text-sm text-gray-600 hover:text-[#FF4D00] transition-colors">
                   {f.label}
@@ -45,12 +41,10 @@ export default function Footer() {
           <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Company</p>
           <ul className="space-y-2.5">
             {[
-              { label: "About", href: "/about" },
-              { label: "Pricing", href: "/plans" },
-              { label: "Sign in", href: "/login" },
-              { label: "Start free trial", href: "/signup" },
+              { label: "Pricing", href: getUpgradeUrl() },
+              { label: "Contact", href: "/contact" },
             ].map((l) => (
-              <li key={l.href}>
+              <li key={l.label}>
                 <Link href={l.href} className="text-sm text-gray-600 hover:text-[#FF4D00] transition-colors">
                   {l.label}
                 </Link>

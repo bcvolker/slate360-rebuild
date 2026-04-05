@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { ensureUserOrganization } from "@/lib/server/org-bootstrap";
+import { syncBrandingCookie } from "@/lib/server/branding";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -19,7 +20,11 @@ export async function GET(request: Request) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          await ensureUserOrganization(user);
+          const orgId = await ensureUserOrganization(user);
+          // Sync branding cookie so Root Layout has it on first render (no FOUC)
+          if (orgId) {
+            await syncBrandingCookie(orgId).catch(() => {});
+          }
         }
 
         if (user?.email) {

@@ -3,65 +3,11 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, ChevronDown } from "lucide-react";
-
-/* ── feature list in exact dashboard sidebar order ─────── */
-const features = [
-  {
-    label: "Design Studio",
-    href: "/features/design-studio",
-    desc: "3D modeling, plan markup & fabrication prep",
-    icon: "✏️",
-  },
-  {
-    label: "Project Hub",
-    href: "/project-hub",
-    desc: "RFIs, submittals, budgets & scheduling",
-    icon: "📋",
-  },
-  {
-    label: "Content Studio",
-    href: "/features/content-studio",
-    desc: "Marketing materials & client deliverables",
-    icon: "🎨",
-  },
-  {
-    label: "360 Tour Builder",
-    href: "/features/360-tour-builder",
-    desc: "Immersive 360° walkthroughs of any space",
-    icon: "🔭",
-  },
-  {
-    label: "Geospatial & Robotics",
-    href: "/features/geospatial-robotics",
-    desc: "Drone mapping, LiDAR & photogrammetry",
-    icon: "🛰️",
-  },
-  {
-    label: "Virtual Studio",
-    href: "/features/virtual-studio",
-    desc: "Renderings, animations & presentations",
-    icon: "🎬",
-  },
-  {
-    label: "Analytics & Reports",
-    href: "/features/analytics-reports",
-    desc: "Dashboards, trends & exportable reports",
-    icon: "📊",
-  },
-  {
-    label: "Slate360 Apps",
-    href: "/features/ecosystem-apps",
-    desc: "Downloadable & subscribable platform apps",
-    icon: "🧩",
-  },
-];
+import { Menu, X } from "lucide-react";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const isHome = pathname === "/";
@@ -75,15 +21,6 @@ export default function Navbar() {
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  /* ── Desktop dropdown hover logic ──────────────────────── */
-  function openDropdown() {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    setDropdownOpen(true);
-  }
-  function scheduleClose() {
-    closeTimer.current = setTimeout(() => setDropdownOpen(false), 120);
-  }
 
   /* ── Click-outside to close mobile menu ────────────────── */
   const handleClickOutside = useCallback(
@@ -124,82 +61,6 @@ export default function Navbar() {
             style={{ height: isHome && !scrolled ? "2.75rem" : "2rem" }}
           />
         </Link>
-
-        {/* ── Desktop nav ──────────────────────────────── */}
-        <nav className="hidden md:flex items-center gap-1">
-          {/* Features dropdown */}
-          <div
-            className="relative"
-            onMouseEnter={openDropdown}
-            onMouseLeave={scheduleClose}
-          >
-            <button
-              className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                pathname?.startsWith("/features")
-                  ? "text-[#FF4D00]"
-                  : "text-gray-700 hover:text-[#FF4D00] hover:bg-gray-50"
-              }`}
-              onClick={() => setDropdownOpen((v) => !v)}
-              aria-expanded={dropdownOpen}
-            >
-              Features{" "}
-              <ChevronDown
-                size={14}
-                className={`transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
-              />
-            </button>
-
-            {dropdownOpen && (
-              <div
-                className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[540px] bg-white rounded-2xl shadow-xl border border-gray-100 p-4 grid grid-cols-2 gap-1"
-                onMouseEnter={openDropdown}
-                onMouseLeave={scheduleClose}
-              >
-                {features.map((f) => (
-                  <Link
-                    key={f.href}
-                    href={f.href}
-                    onClick={() => setDropdownOpen(false)}
-                    className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
-                  >
-                    <span className="text-xl mt-0.5 flex-shrink-0">
-                      {f.icon}
-                    </span>
-                    <div>
-                      <div className="text-sm font-semibold text-gray-900 group-hover:text-[#FF4D00] transition-colors">
-                        {f.label}
-                      </div>
-                      <div className="text-xs text-gray-500 leading-snug mt-0.5">
-                        {f.desc}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <Link
-            href="/plans"
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              pathname === "/plans"
-                ? "text-[#FF4D00]"
-                : "text-gray-700 hover:text-[#FF4D00] hover:bg-gray-50"
-            }`}
-          >
-            Pricing
-          </Link>
-          <Link
-            href="/about"
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              pathname === "/about"
-                ? "text-[#FF4D00]"
-                : "text-gray-700 hover:text-[#FF4D00] hover:bg-gray-50"
-            }`}
-          >
-            About
-          </Link>
-        </nav>
 
         {/* ── Desktop CTA ──────────────────────────────── */}
         <div className="hidden md:flex items-center gap-3">
@@ -252,48 +113,12 @@ export default function Navbar() {
                   Login
                 </Link>
                 <Link
-                  href="/plans"
-                  onClick={() => setMobileOpen(false)}
-                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors py-2"
-                >
-                  Pricing
-                </Link>
-                <Link
-                  href="/about"
-                  onClick={() => setMobileOpen(false)}
-                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors py-2"
-                >
-                  About
-                </Link>
-                <Link
                   href="/contact"
                   onClick={() => setMobileOpen(false)}
                   className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors py-2"
                 >
                   Contact
                 </Link>
-              </div>
-
-              <div className="h-px bg-gray-100 my-4" />
-
-              {/* Features Section */}
-              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
-                Features
-              </p>
-              <div className="grid grid-cols-1 gap-1">
-                {features.map((f) => (
-                  <Link
-                    key={f.href}
-                    href={f.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-3 py-2 group min-h-[44px]"
-                  >
-                    <span className="text-xl bg-gray-50 w-10 h-10 rounded-lg flex items-center justify-center group-hover:bg-[#FF4D00]/10 transition-colors shrink-0">{f.icon}</span>
-                    <span className="text-[15px] font-medium text-gray-700 group-hover:text-[#FF4D00] transition-colors">
-                      {f.label}
-                    </span>
-                  </Link>
-                ))}
               </div>
             </div>
 

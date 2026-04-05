@@ -172,34 +172,46 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-04 (Entitlement Fix + Great Quarantine)
+### Session Handoff — 2026-04-06 (Structural Fixes before UI Phase)
 
 ### What Changed
-- `lib/server/org-feature-flags.ts`: Added `resolveOrgEntitlements(orgId)` — single source of truth that fetches org tier + feature flags and delegates to `getEntitlements()`. Rewrote `hasBundleAccess()` to use it. (87 lines)
-- `lib/server/api-auth.ts`: Rewrote `withAppAuth()` to use `resolveOrgEntitlements()` instead of raw `loadOrgFeatureFlags()`. Enterprise/business tier users no longer 403'd on Tour Builder/Punchwalk APIs. (185 lines)
-- `app/tour-builder/page.tsx`: Fixed same bypass — uses `resolveOrgEntitlements().canAccessStandaloneTourBuilder`
-- `app/site-walk/page.tsx`: Fixed same bypass — uses `resolveOrgEntitlements().canAccessStandalonePunchwalk`
-- `app/_deprecated/features/`: Moved 13 marketing feature pages (1,433 lines) — Next.js routing disabled
-- `app/_deprecated/plans/`: Moved plans marketing page (212 lines) — routing disabled
-- `app/_deprecated/about/`: Moved about page (51 lines) — routing disabled
-- `app/(dashboard)/project-hub/`: Renamed all 13 `page.tsx` → `_page.tsx` and `layout.tsx` → `_layout.tsx` — UI routes disabled, files preserved for harvesting
-- `app/slatedrop/_page.tsx`: Renamed from `page.tsx` — UI route disabled
-- `ops/bug-registry.json`: Added BUG-027 (Platform Overlap) as fixed
+
+**1. Resolved `/share/[token]` route collision**
+- Moved `app/(public)/share/[token]/page.tsx` → `app/(public)/portal/[token]/page.tsx`.
+- Public deliverable viewer now lives at `/portal/[token]`, no conflict with SlateDrop's `/share/[token]`.
+- Updated doc comment in the file to reflect new path.
+
+**2. Renamed `punchwalk_*` DB columns to `site_walk_*`**
+- `supabase/migrations/20260408000008_rename_punchwalk_to_site_walk.sql`:
+  - `punchwalk_seat_limit` → `site_walk_seat_limit`
+  - `punchwalk_seats_used` → `site_walk_seats_used`
+  - Rebuilt `trg_enqueue_deliverable_cleanup()` to reference new column names.
+  - Rebuilt `increment_app_seat()` to support both `tour_builder` and `site_walk` app IDs (previously only `tour_builder` was handled). Uses dynamic column resolution.
+  - **Applied to live Supabase** — columns verified renamed.
+- Note: `standalone_punchwalk` boolean column is NOT renamed (separate concern, still used in TS code).
+
+**3. Playwright configuration + auth test placeholder**
+- Added `desktop-chromium` project to `playwright.config.ts` (1280×720).
+- Created `e2e/auth.spec.ts` with 4 smoke tests: login page renders, signup page renders, unauthenticated redirect from dashboard, forgot-password page renders.
+- Existing `mobile-chromium` project and `e2e/` test directory remain unchanged.
 
 ### What's Broken / Partially Done
-- Navbar still links to `/features/*`, `/plans`, `/about` — these routes now 404. Navbar links should be updated or removed.
-- `components/home/` (864 lines) still exists but is only used by `app/page.tsx` landing page — not quarantined per user instruction scope.
-- `components/project-hub/` (3,103 lines) and `components/slatedrop/` (2,147 lines) remain as component libraries — their page routes are disabled but the components exist for future harvesting.
-- `components/dashboard/DashboardClient.tsx` still references project-hub/slatedrop tab definitions — tab array entries should be removed or hidden.
-- `app/api/billing/app-checkout/route.ts` correctly uses raw `loadOrgFeatureFlags` for double-purchase guard (not a bug).
+- JWT hook must be **manually enabled** in Supabase Dashboard → Auth → Hooks.
+- `deliverable_cleanup_queue` has no worker yet — queue rows accumulate.
+- `(public)/portal/[token]` has no type-specific viewers (TourViewer, ReportViewer, etc.) — just the skeleton.
+- `AppTopBar` breadcrumb slot is empty.
+- No user menu in top bar yet.
+- `STRIPE_UPGRADE_LINK` env var not yet set in Vercel.
+- `standalone_punchwalk` boolean column + all TS-side `punchwalk` references still use old name (deferred — separate renaming scope).
 
 ### Context Files Updated
-- `ops/bug-registry.json`: BUG-027 added
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered)
-1. Update Navbar to remove/hide links to quarantined routes (`/features/*`, `/plans`, `/about`)
-2. Update DashboardClient tab definitions to hide project-hub and slatedrop tabs
-3. Consider quarantining `components/home/` if landing page is also being retired
-4. Clean up any remaining references to quarantined routes in other UI components
-4. Add a streaming ingest service layer and project-scoped session model before integrating the feature into Project Hub or Tours.
+1. **Enable JWT hook** in Supabase Dashboard → Auth → Hooks.
+2. Build cleanup queue worker (cron or edge function).
+3. Build type-specific deliverable viewers for the portal skeleton.
+4. Add breadcrumb context + user menu to `AppTopBar`.
+5. Build Tour Builder "Join/Leave" seat UI.
+6. Set `STRIPE_UPGRADE_LINK` in Vercel env.
+7. Rename `standalone_punchwalk` column + TS-side `punchwalk` references to `site_walk` (full rename pass).

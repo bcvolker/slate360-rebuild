@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Lock, ArrowUpRight } from "lucide-react";
 import type { Tier } from "@/lib/entitlements";
+import { getUpgradeUrl } from "@/lib/billing";
 
 const TIER_LABELS: Record<Tier, string> = {
   trial: "Trial",
@@ -55,7 +56,7 @@ export default function UpgradeGate({
 
       {/* CTA */}
       <Link
-        href="/plans"
+        href={getUpgradeUrl()}
         className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90"
         style={{ backgroundColor: accent }}
       >

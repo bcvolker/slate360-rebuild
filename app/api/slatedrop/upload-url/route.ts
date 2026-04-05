@@ -14,23 +14,31 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3, BUCKET } from "@/lib/s3";
 import { resolveNamespace, buildCanonicalS3Key } from "@/lib/slatedrop/storage";
+import { validateUploadPermissions } from "@/lib/uploads/validate-upload-permissions";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const admin = createAdminClient();
 
   const body = await req.json();
-  const { filename, contentType, size, folderId, folderPath, publicToken } = body as {
+  const { filename, contentType, size, folderId, folderPath, publicToken, app_context } = body as {
     filename: string;
     contentType: string;
     size: number;
     folderId: string;
     folderPath: string;
     publicToken?: string;
+    app_context?: string;
   };
 
   if (!filename || !contentType || !folderId) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  }
+
+  // ═══ Multi-App Guard (shared validator) ═══
+  const rejection = validateUploadPermissions({ filename, size, app_context });
+  if (rejection) {
+    return NextResponse.json(rejection, { status: 403 });
   }
 
   const {

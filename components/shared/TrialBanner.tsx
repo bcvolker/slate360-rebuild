@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
+import { getUpgradeUrl } from "@/lib/billing";
 
 interface TrialBannerProps {
   feature: string;
@@ -27,7 +28,7 @@ export default function TrialBanner({ feature, accent = "#FF4D00" }: TrialBanner
         You&apos;re on the <span className="font-semibold text-white">Trial</span> plan.{" "}
         {feature} is available with limited data, watermarked exports, and restricted deliverables.{" "}
         <Link
-          href="/plans"
+          href={getUpgradeUrl()}
           className="font-semibold underline underline-offset-2 transition-colors hover:opacity-80"
           style={{ color: accent }}
         >

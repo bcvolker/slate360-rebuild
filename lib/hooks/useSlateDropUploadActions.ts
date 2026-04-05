@@ -12,6 +12,8 @@ type UseSlateDropUploadActionsParams = {
   showToast: ShowToast;
   setUploadProgress: Dispatch<SetStateAction<Record<string, number>>>;
   setRealFiles: Dispatch<SetStateAction<Record<string, SlateDropFileItem[]>>>;
+  /** When set, the server applies app-specific upload restrictions. */
+  app_context?: string;
 };
 
 export function useSlateDropUploadActions({
@@ -21,6 +23,7 @@ export function useSlateDropUploadActions({
   showToast,
   setUploadProgress,
   setRealFiles,
+  app_context,
 }: UseSlateDropUploadActionsParams) {
   const uploadFiles = useCallback(async (fileList: FileList) => {
     const files = Array.from(fileList);
@@ -40,9 +43,13 @@ export function useSlateDropUploadActions({
             size: file.size,
             folderId: activeFolderId,
             folderPath,
+            ...(app_context ? { app_context } : {}),
           }),
         });
-        if (!urlResponse.ok) throw new Error("Failed to get upload URL");
+        if (!urlResponse.ok) {
+          const errBody = await urlResponse.json().catch(() => null);
+          throw new Error(errBody?.message ?? "Failed to get upload URL");
+        }
 
         const { uploadUrl, fileId, s3Key } = await urlResponse.json();
         if (!uploadUrl || !fileId) throw new Error("Upload reservation failed");
@@ -96,7 +103,7 @@ export function useSlateDropUploadActions({
 
     await refreshFolderFiles(activeFolderId);
     showToast(`${files.length} file${files.length > 1 ? "s" : ""} uploaded`);
-  }, [activeFolderId, breadcrumb, refreshFolderFiles, setRealFiles, setUploadProgress, showToast]);
+  }, [activeFolderId, app_context, breadcrumb, refreshFolderFiles, setRealFiles, setUploadProgress, showToast]);
 
   return {
     uploadFiles,
