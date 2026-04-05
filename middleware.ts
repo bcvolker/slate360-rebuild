@@ -39,17 +39,21 @@ export async function middleware(request: NextRequest) {
         .select("org_id, organizations!inner(tier)")
         .eq("user_id", user.id)
         .single();
-        
-      const orgTier = (member?.organizations as { tier?: string } | null)?.tier;
-      if (member && orgTier === "trial") {
+
+      if (member) {
         const { data: flags } = await supabase
           .from("org_feature_flags")
           .select("standalone_tour_builder, standalone_punchwalk")
           .eq("org_id", member.org_id)
           .maybeSingle();
-          
+
         const hasStandalone = flags?.standalone_tour_builder || flags?.standalone_punchwalk;
-        if (hasStandalone) {
+        const orgTier = (member.organizations as { tier?: string } | null)?.tier;
+
+        // Standalone-only: user has a standalone app flag but their org is on
+        // trial (no platform subscription). Check is tier-independent so that
+        // a DB-level tier change alone cannot escape the Walled Garden.
+        if (hasStandalone && (!orgTier || orgTier === "trial")) {
           isStandaloneOnly = true;
         }
       }
@@ -67,9 +71,9 @@ export async function middleware(request: NextRequest) {
     if (!user) {
       return new NextResponse(null, { status: 403 });
     }
-    const isSuperAdmin =
-      user.app_metadata?.is_super_admin === true ||
-      user.user_metadata?.is_super_admin === true;
+    // ONLY check app_metadata — user_metadata is user-writable and
+    // would allow any authenticated user to self-escalate.
+    const isSuperAdmin = user.app_metadata?.is_super_admin === true;
     if (!isSuperAdmin) {
       return new NextResponse(null, { status: 403 });
     }

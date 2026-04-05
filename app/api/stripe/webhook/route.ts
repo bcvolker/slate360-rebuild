@@ -40,21 +40,15 @@ async function updateOrganizationTier(orgId: string, tier: string) {
 async function addPurchasedCredits(orgId: string, creditAmount: number) {
   const admin = createAdminClient();
 
-  const current = await admin
-    .from("organizations")
-    .select("credits_balance")
-    .eq("id", orgId)
-    .single();
+  // Atomic increment — avoids read-add-write TOCTOU race.
+  const { error } = await admin.rpc("add_purchased_credits", {
+    p_org_id: orgId,
+    p_amount: creditAmount,
+  });
 
-  if (current.error) {
-    return;
+  if (error) {
+    console.error(`[webhook] Failed to add credits for org=${orgId}:`, error.message);
   }
-
-  const existingBalance = Number((current.data as { credits_balance?: number } | null)?.credits_balance ?? 0);
-  await admin
-    .from("organizations")
-    .update({ credits_balance: existingBalance + creditAmount })
-    .eq("id", orgId);
 }
 
 async function upsertAppFlag(orgId: string, appId: "tour_builder" | "punchwalk", active: boolean) {
@@ -117,15 +111,26 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = createAdminClient();
-  const { data: existingEvent } = await admin
-    .from("stripe_events")
-    .select("id")
-    .eq("id", event.id)
-    .single();
 
-  if (existingEvent) {
-    console.log(`[webhook] Event ${event.id} already processed.`);
-    return NextResponse.json({ received: true });
+  // ── Dedup: INSERT the event FIRST. If it already exists (PK conflict),
+  // another handler already claimed it — return early.
+  // This MUST happen BEFORE any mutations so that a crash mid-processing
+  // doesn't leave an unrecorded event that Stripe will retry (causing
+  // double mutations). The trade-off: if we crash after insert but before
+  // completing mutations, Stripe won't retry. For idempotent mutations
+  // (tier upserts, atomic credit adds) this is acceptable.
+  const { error: dedupError } = await admin
+    .from("stripe_events")
+    .insert({ id: event.id, type: event.type });
+
+  if (dedupError) {
+    // Unique violation = already processed; anything else = log and continue
+    if (dedupError.code === "23505") {
+      console.log(`[webhook] Event ${event.id} already processed.`);
+      return NextResponse.json({ received: true });
+    }
+    console.error(`[webhook] Failed to record event ${event.id}:`, dedupError.message);
+    // Non-PK error: still attempt processing (dedup is best-effort)
   }
 
   try {
@@ -201,9 +206,6 @@ export async function POST(req: NextRequest) {
       default:
         break;
     }
-
-    // Record the event to prevent duplicate processing
-    await admin.from("stripe_events").insert({ id: event.id, type: event.type });
 
     return NextResponse.json({ received: true });
   } catch (error) {

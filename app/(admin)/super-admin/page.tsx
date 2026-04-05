@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Super Admin panel — restricted to users with is_super_admin in user metadata.
+ * Super Admin panel — restricted to users with is_super_admin in app_metadata.
+ * user_metadata is user-writable and MUST NOT be trusted for privilege checks.
  * Middleware enforces the gate at the edge; this is the defence-in-depth check.
  */
 export default async function SuperAdminPage() {
@@ -13,9 +14,8 @@ export default async function SuperAdminPage() {
 
   if (!user) redirect("/login");
 
-  const isSuperAdmin =
-    user.app_metadata?.is_super_admin === true ||
-    user.user_metadata?.is_super_admin === true;
+  // ONLY check app_metadata — user_metadata is user-writable.
+  const isSuperAdmin = user.app_metadata?.is_super_admin === true;
 
   if (!isSuperAdmin) redirect("/dashboard");
 
