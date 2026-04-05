@@ -1,63 +1,29 @@
-"use client";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
-import { useState, useEffect } from "react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import HeroSection from "@/components/home/HeroSection";
-import PlatformSection from "@/components/home/PlatformSection";
-import MoreToolsSection from "@/components/home/MoreToolsSection";
-import PricingSection from "@/components/home/PricingSection";
-import CTASection from "@/components/home/CTASection";
-import HomeModals from "@/components/home/HomeModals";
+export default async function RootPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-export default function HomePage() {
-  const [modal3D, setModal3D] = useState(false);
-  const [heroInteractive, setHeroInteractive] = useState(false);
-  const [designInteractive, setDesignInteractive] = useState(false);
-  const [tourInteractive, setTourInteractive] = useState(false);
-  const [modalCard, setModalCard] = useState<string | null>(null);
-  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  if (user) {
+    redirect("/apps");
+  }
 
   return (
-    <div className="bg-white min-h-screen text-gray-900 antialiased overflow-x-hidden">
-      <Navbar />
-
-      <HeroSection
-        mounted={mounted}
-        heroInteractive={heroInteractive}
-        setHeroInteractive={setHeroInteractive}
-        onExpand3D={() => setModal3D(true)}
-      />
-
-      <PlatformSection
-        mounted={mounted}
-        designInteractive={designInteractive}
-        setDesignInteractive={setDesignInteractive}
-        tourInteractive={tourInteractive}
-        setTourInteractive={setTourInteractive}
-        onExpandCard={setModalCard}
-      />
-
-      <MoreToolsSection />
-
-      <PricingSection billing={billing} setBilling={setBilling} />
-
-      <CTASection />
-
-      <Footer />
-
-      <HomeModals
-        mounted={mounted}
-        modal3D={modal3D}
-        setModal3D={setModal3D}
-        modalCard={modalCard}
-        setModalCard={setModalCard}
-      />
+    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 text-white">
+      <div className="mx-auto max-w-md text-center space-y-6 px-4">
+        <h1 className="text-4xl font-bold tracking-tight">
+          Slate360 Ecosystem
+        </h1>
+        <p className="text-zinc-400 text-lg">Sales Page Under Construction</p>
+        <Button asChild size="lg" className="mt-4">
+          <Link href="/login">Login</Link>
+        </Button>
+      </div>
     </div>
   );
 }

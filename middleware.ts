@@ -101,11 +101,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // Clickjacking protection for public portal routes
+  // frame-ancestors 'none' — prevents embedding the portal page itself
+  // frame-src — allows OUR page to embed S3 PDFs in an iframe
   if (pathname.startsWith("/portal")) {
     supabaseResponse.headers.set("X-Frame-Options", "DENY");
     supabaseResponse.headers.set(
       "Content-Security-Policy",
-      "frame-ancestors 'none'"
+      "frame-ancestors 'none'; frame-src 'self' blob: https://*.s3.amazonaws.com;"
     );
   }
 

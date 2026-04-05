@@ -172,46 +172,54 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-06 (Structural Fixes before UI Phase)
+### Session Handoff — 2026-04-05 (UI Phase 1 Prep — Homepage, CSP, Sentry, PostHog)
 
 ### What Changed
 
-**1. Resolved `/share/[token]` route collision**
-- Moved `app/(public)/share/[token]/page.tsx` → `app/(public)/portal/[token]/page.tsx`.
-- Public deliverable viewer now lives at `/portal/[token]`, no conflict with SlateDrop's `/share/[token]`.
-- Updated doc comment in the file to reflect new path.
+**1. Nuked zombie homepage**
+- Moved `app/page.tsx` (old marketing site) → `app/_deprecated/marketing_homepage.tsx`.
+- New `app/page.tsx`: server component, checks auth — redirects logged-in users to `/apps`, shows Shadcn placeholder ("Slate360 Ecosystem — Sales Page Under Construction" + Login button) for unauthenticated visitors.
 
-**2. Renamed `punchwalk_*` DB columns to `site_walk_*`**
-- `supabase/migrations/20260408000008_rename_punchwalk_to_site_walk.sql`:
-  - `punchwalk_seat_limit` → `site_walk_seat_limit`
-  - `punchwalk_seats_used` → `site_walk_seats_used`
-  - Rebuilt `trg_enqueue_deliverable_cleanup()` to reference new column names.
-  - Rebuilt `increment_app_seat()` to support both `tour_builder` and `site_walk` app IDs (previously only `tour_builder` was handled). Uses dynamic column resolution.
-  - **Applied to live Supabase** — columns verified renamed.
-- Note: `standalone_punchwalk` boolean column is NOT renamed (separate concern, still used in TS code).
+**2. Fixed CSP iframe trap in middleware**
+- `/portal` routes now have `frame-src 'self' blob: https://*.s3.amazonaws.com;` in addition to `frame-ancestors 'none'`.
+- This allows the DeliverableViewer to embed S3 PDFs via iframe while still blocking external sites from embedding the portal page.
 
-**3. Playwright configuration + auth test placeholder**
-- Added `desktop-chromium` project to `playwright.config.ts` (1280×720).
-- Created `e2e/auth.spec.ts` with 4 smoke tests: login page renders, signup page renders, unauthenticated redirect from dashboard, forgot-password page renders.
-- Existing `mobile-chromium` project and `e2e/` test directory remain unchanged.
+**3. Sentry integration**
+- Installed `@sentry/nextjs@^10.47.0`.
+- Created `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`.
+- Created `instrumentation.ts` with `register()` + `onRequestError`.
+- Created `app/global-error.tsx` (Sentry error boundary).
+- Wrapped `next.config.ts` with `withSentryConfig`.
+- All gated behind `NEXT_PUBLIC_SENTRY_DSN` env var (no-op when unset).
+
+**4. PostHog integration**
+- Installed `posthog-js@^1.364.7`.
+- Created `components/providers/PostHogProvider.tsx` — client component.
+- **Privacy guard**: PostHog does NOT init or capture pageviews on `/portal/*` routes. External clients viewing deliverables are never tracked.
+- Manual `$pageview` capture on SPA route changes.
+- Wired into `app/layout.tsx` as `<PostHogProvider>` wrapping children.
+- Gated behind `NEXT_PUBLIC_POSTHOG_KEY` env var (no-op when unset).
+- Added Sentry + PostHog domains to CSP `connect-src` in `next.config.ts`.
 
 ### What's Broken / Partially Done
+- **Env vars needed in Vercel**: `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`.
 - JWT hook must be **manually enabled** in Supabase Dashboard → Auth → Hooks.
-- `deliverable_cleanup_queue` has no worker yet — queue rows accumulate.
-- `(public)/portal/[token]` has no type-specific viewers (TourViewer, ReportViewer, etc.) — just the skeleton.
+- `deliverable_cleanup_queue` has no worker yet.
+- `(public)/portal/[token]` has no type-specific viewers — just skeleton.
 - `AppTopBar` breadcrumb slot is empty.
 - No user menu in top bar yet.
-- `STRIPE_UPGRADE_LINK` env var not yet set in Vercel.
-- `standalone_punchwalk` boolean column + all TS-side `punchwalk` references still use old name (deferred — separate renaming scope).
+- `STRIPE_UPGRADE_LINK` env var not set in Vercel.
+- `standalone_punchwalk` boolean column + TS-side `punchwalk` references still use old name.
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered)
-1. **Enable JWT hook** in Supabase Dashboard → Auth → Hooks.
-2. Build cleanup queue worker (cron or edge function).
-3. Build type-specific deliverable viewers for the portal skeleton.
-4. Add breadcrumb context + user menu to `AppTopBar`.
-5. Build Tour Builder "Join/Leave" seat UI.
-6. Set `STRIPE_UPGRADE_LINK` in Vercel env.
-7. Rename `standalone_punchwalk` column + TS-side `punchwalk` references to `site_walk` (full rename pass).
+1. Set Sentry + PostHog env vars in Vercel.
+2. **Enable JWT hook** in Supabase Dashboard → Auth → Hooks.
+3. Build v0 UI components for the Walled Garden.
+4. Build type-specific deliverable viewers for the portal skeleton.
+5. Add breadcrumb context + user menu to `AppTopBar`.
+6. Build Tour Builder "Join/Leave" seat UI.
+7. Set `STRIPE_UPGRADE_LINK` in Vercel env.
+8. Rename `standalone_punchwalk` column + TS-side refs to `site_walk`.
