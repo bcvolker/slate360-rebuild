@@ -59,7 +59,22 @@ export async function middleware(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
-  
+
+  // ── Super Admin gate ────────────────────────────────────────────
+  // Violently reject anyone without is_super_admin from /super-admin.
+  // This runs BEFORE any other route check so there is no fallthrough.
+  if (pathname.startsWith("/super-admin")) {
+    if (!user) {
+      return new NextResponse(null, { status: 403 });
+    }
+    const isSuperAdmin =
+      user.app_metadata?.is_super_admin === true ||
+      user.user_metadata?.is_super_admin === true;
+    if (!isSuperAdmin) {
+      return new NextResponse(null, { status: 403 });
+    }
+  }
+
   // Protect authenticated routes — redirect to login if not authenticated
   if (
     !user &&

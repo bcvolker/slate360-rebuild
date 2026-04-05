@@ -172,54 +172,42 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-05 (UI Phase 1 Prep — Homepage, CSP, Sentry, PostHog)
+### Session Handoff — 2026-04-05 (Security Hardening — Super Admin, Sentry PII, Tech Review)
 
 ### What Changed
 
-**1. Nuked zombie homepage**
-- Moved `app/page.tsx` (old marketing site) → `app/_deprecated/marketing_homepage.tsx`.
-- New `app/page.tsx`: server component, checks auth — redirects logged-in users to `/apps`, shows Shadcn placeholder ("Slate360 Ecosystem — Sales Page Under Construction" + Login button) for unauthenticated visitors.
+**1. Super-admin route + middleware guard**
+- Created `app/(admin)/super-admin/page.tsx` — server component with defence-in-depth auth check.
+- Middleware now checks `user.app_metadata.is_super_admin === true` (or `user_metadata`) for any `/super-admin` path. Returns raw `403` (no redirect, no information leak) if flag is missing.
+- Guard runs BEFORE all other route checks in middleware — no fallthrough possible.
+- To grant access: set `is_super_admin: true` in user's `app_metadata` via Supabase Dashboard or admin API.
 
-**2. Fixed CSP iframe trap in middleware**
-- `/portal` routes now have `frame-src 'self' blob: https://*.s3.amazonaws.com;` in addition to `frame-ancestors 'none'`.
-- This allows the DeliverableViewer to embed S3 PDFs via iframe while still blocking external sites from embedding the portal page.
+**2. Sentry PII scrubbing**
+- Both `sentry.client.config.ts` and `sentry.server.config.ts` now have `beforeSend` hooks.
+- Scrubs: `Authorization` headers, `Cookie` headers, and recursively strips any JSON field named `token`, `secret`, `password`, or `authorization` from request data and breadcrumb data.
+- Uses a shared `scrubPII()` recursive function.
 
-**3. Sentry integration**
-- Installed `@sentry/nextjs@^10.47.0`.
-- Created `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`.
-- Created `instrumentation.ts` with `register()` + `onRequestError`.
-- Created `app/global-error.tsx` (Sentry error boundary).
-- Wrapped `next.config.ts` with `withSentryConfig`.
-- All gated behind `NEXT_PUBLIC_SENTRY_DSN` env var (no-op when unset).
-
-**4. PostHog integration**
-- Installed `posthog-js@^1.364.7`.
-- Created `components/providers/PostHogProvider.tsx` — client component.
-- **Privacy guard**: PostHog does NOT init or capture pageviews on `/portal/*` routes. External clients viewing deliverables are never tracked.
-- Manual `$pageview` capture on SPA route changes.
-- Wired into `app/layout.tsx` as `<PostHogProvider>` wrapping children.
-- Gated behind `NEXT_PUBLIC_POSTHOG_KEY` env var (no-op when unset).
-- Added Sentry + PostHog domains to CSP `connect-src` in `next.config.ts`.
+**3. Paranoid technical review completed** — 10 additional findings documented below (see review in chat).
 
 ### What's Broken / Partially Done
 - **Env vars needed in Vercel**: `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`.
+- **CRITICAL**: Portal `view_count` increment is not atomic — race condition allows max_views bypass.
+- **CRITICAL**: `market_scheduler_lock` table has no RLS — any authenticated user can manipulate it.
 - JWT hook must be **manually enabled** in Supabase Dashboard → Auth → Hooks.
 - `deliverable_cleanup_queue` has no worker yet.
-- `(public)/portal/[token]` has no type-specific viewers — just skeleton.
-- `AppTopBar` breadcrumb slot is empty.
-- No user menu in top bar yet.
-- `STRIPE_UPGRADE_LINK` env var not set in Vercel.
+- All project tables use hard deletes — no audit trail.
+- S3 upload has no server-side MIME type validation.
 - `standalone_punchwalk` boolean column + TS-side `punchwalk` references still use old name.
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered)
-1. Set Sentry + PostHog env vars in Vercel.
-2. **Enable JWT hook** in Supabase Dashboard → Auth → Hooks.
-3. Build v0 UI components for the Walled Garden.
-4. Build type-specific deliverable viewers for the portal skeleton.
-5. Add breadcrumb context + user menu to `AppTopBar`.
-6. Build Tour Builder "Join/Leave" seat UI.
-7. Set `STRIPE_UPGRADE_LINK` in Vercel env.
-8. Rename `standalone_punchwalk` column + TS-side refs to `site_walk`.
+1. **CRITICAL** — Fix portal view_count to use atomic SQL increment.
+2. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role).
+3. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel.
+4. **Enable JWT hook** in Supabase Dashboard → Auth → Hooks.
+5. Add server-side MIME type allowlist to upload route.
+6. Build v0 UI components for the Walled Garden.
+7. Build type-specific deliverable viewers for the portal skeleton.
+8. Add soft-delete pattern to project tables.
