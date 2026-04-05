@@ -172,42 +172,47 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-05 (Security Hardening — Super Admin, Sentry PII, Tech Review)
+### Session Handoff — 2026-04-05 (Critical Foundation Patch — 4 Security Fixes)
 
 ### What Changed
 
-**1. Super-admin route + middleware guard**
-- Created `app/(admin)/super-admin/page.tsx` — server component with defence-in-depth auth check.
-- Middleware now checks `user.app_metadata.is_super_admin === true` (or `user_metadata`) for any `/super-admin` path. Returns raw `403` (no redirect, no information leak) if flag is missing.
-- Guard runs BEFORE all other route checks in middleware — no fallthrough possible.
-- To grant access: set `is_super_admin: true` in user's `app_metadata` via Supabase Dashboard or admin API.
+**1. Privilege escalation patched** (`middleware.ts`, `super-admin/page.tsx`)
+- Removed ALL `user_metadata.is_super_admin` checks. Only `app_metadata` (admin-writable) is now trusted.
+- Updated doc comment on super-admin page to clarify the threat model.
 
-**2. Sentry PII scrubbing**
-- Both `sentry.client.config.ts` and `sentry.server.config.ts` now have `beforeSend` hooks.
-- Scrubs: `Authorization` headers, `Cookie` headers, and recursively strips any JSON field named `token`, `secret`, `password`, or `authorization` from request data and breadcrumb data.
-- Uses a shared `scrubPII()` recursive function.
+**2. TOCTOU races eliminated** (portal + credits)
+- Portal view_count: created `claim_deliverable_view()` Supabase RPC function — atomic UPDATE ... WHERE view_count < max_views RETURNING *. Portal page now calls this single RPC.  If claim denied, does a read-only lookup for the user-friendly error message.
+- Credits: created `add_purchased_credits()` Supabase RPC — atomic `SET credits_balance = COALESCE(credits_balance, 0) + p_amount`. Also added `credits_balance` column to organizations table (was missing).
+- Migration: `supabase/migrations/20250405_atomic_rpc_functions.sql` — deployed to live DB.
 
-**3. Paranoid technical review completed** — 10 additional findings documented below (see review in chat).
+**3. Stripe webhook event ordering fixed** (`webhook/route.ts`)
+- Event INSERT now happens BEFORE the switch block (was after). Uses PK conflict detection (`code === "23505"`) for atomic dedup. Crash-safe: if handler dies mid-processing, the event is already recorded and Stripe won't retry into double mutations.
+
+**4. Walled Garden tier independence** (`middleware.ts`)
+- Standalone flag query now runs for ALL authenticated users with an org membership, not just trial-tier orgs. `isStandaloneOnly` still requires `!orgTier || orgTier === "trial"` but the flag fetch is no longer gated by tier.
+
+**Branch**: `fix/critical-foundation-patch` — commit `009d60f`, pushed to origin.
 
 ### What's Broken / Partially Done
 - **Env vars needed in Vercel**: `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`.
-- **CRITICAL**: Portal `view_count` increment is not atomic — race condition allows max_views bypass.
 - **CRITICAL**: `market_scheduler_lock` table has no RLS — any authenticated user can manipulate it.
 - JWT hook must be **manually enabled** in Supabase Dashboard → Auth → Hooks.
 - `deliverable_cleanup_queue` has no worker yet.
 - All project tables use hard deletes — no audit trail.
 - S3 upload has no server-side MIME type validation.
 - `standalone_punchwalk` boolean column + TS-side `punchwalk` references still use old name.
+- Rate limiting only on 2 of 40+ API routes.
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered)
-1. **CRITICAL** — Fix portal view_count to use atomic SQL increment.
+1. **Merge `fix/critical-foundation-patch` to main** after review.
 2. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role).
 3. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel.
 4. **Enable JWT hook** in Supabase Dashboard → Auth → Hooks.
 5. Add server-side MIME type allowlist to upload route.
-6. Build v0 UI components for the Walled Garden.
-7. Build type-specific deliverable viewers for the portal skeleton.
-8. Add soft-delete pattern to project tables.
+6. Expand rate limiting to remaining API routes.
+7. Build v0 UI components for the Walled Garden.
+8. Build type-specific deliverable viewers for the portal skeleton.
+9. Add soft-delete pattern to project tables.
