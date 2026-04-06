@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { readBrandingCookie } from "@/lib/server/branding";
-import PostHogProvider from "@/components/providers/PostHogProvider";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { ClientProviders } from "@/components/providers/ClientProviders";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -54,9 +53,7 @@ export default async function RootLayout({
           "--brand-font": branding.font_family,
         } as React.CSSProperties}
       >
-        <PostHogProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-        </PostHogProvider>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

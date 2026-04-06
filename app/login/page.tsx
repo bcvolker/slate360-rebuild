@@ -14,7 +14,7 @@ function isSafeRedirectPath(url: string): boolean {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const rawRedirect = searchParams.get("redirectTo") ?? "/dashboard";
+  const rawRedirect = searchParams?.get("redirectTo") ?? "/dashboard";
   const redirectTo = isSafeRedirectPath(rawRedirect) ? rawRedirect : "/dashboard";
 
   const [email, setEmail] = useState("");

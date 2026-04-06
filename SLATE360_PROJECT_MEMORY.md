@@ -1,4 +1,4 @@
-# Slate360 — Project Memory
+"# Slate360 — Project Memory
 
 Last Updated: 2026-03-31
 Repo: bcvolker/slate360-rebuild
@@ -215,4 +215,4 @@ When editing oversized files, always read both the state declarations AND the JS
 4. **CRITICAL** — Fix portal view_count to use atomic SQL increment.
 5. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role).
 6. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel.
-7. Enable JWT hook in Supabase Dashboard → Auth → Hooks.
+7. Enable JWT hook in Supabase Dashboard → Auth → Hooks."

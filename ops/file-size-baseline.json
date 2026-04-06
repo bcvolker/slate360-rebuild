@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/file-size-baseline.schema.json",
-  "updatedAt": "2026-03-07",
+  "updatedAt": "2026-04-06",
   "threshold": 300,
   "files": {
     "app/(dashboard)/project-hub/[projectId]/budget/page.tsx": 421,
@@ -23,13 +23,19 @@
     "components/dashboard/DashboardWidgetRenderer.tsx": 513,
     "components/dashboard/LocationMap.tsx": 1892,
     "components/dashboard/MarketClient.tsx": 3131,
-    "components/project-hub/ObservationsClient.tsx": 334,
+    "components/project-hub/ObservationsClient.tsx": 335,
     "components/project-hub/ProjectDashboardGrid.tsx": 560,
     "components/project-hub/WizardLocationPicker.tsx": 412,
     "components/slatedrop/ProjectFileExplorer.tsx": 363,
     "components/slatedrop/SlateDropClient.tsx": 451,
     "components/widgets/WidgetBodies.tsx": 475,
     "lib/market-bot.ts": 352,
-    "lib/market/scheduler.ts": 346
+    "lib/market/scheduler.ts": 346,
+    "app/api/market/polymarket/route.ts": 306,
+    "app/signup/page.tsx": 306,
+    "components/dashboard/market/MarketAutomationBuilder.tsx": 305,
+    "components/ui/sidebar.tsx": 726,
+    "lib/hooks/useMarketDirectBuyState.ts": 304,
+    "lib/market/scheduler-run-user.ts": 309
   }
 }

@@ -21,8 +21,8 @@ function AppsContent() {
   const searchParams = useSearchParams();
   const [selectedApp, setSelectedApp] = useState<AppDefinition | null>(null);
 
-  const billingState = searchParams.get("app_billing");
-  const appParam = searchParams.get("app");
+  const billingState = searchParams?.get("app_billing") ?? null;
+  const appParam = searchParams?.get("app") ?? null;
 
   return (
     <main className="min-h-screen bg-background p-6 md:p-8">

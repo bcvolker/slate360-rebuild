@@ -16,14 +16,14 @@ function run(command) {
 
 async function main() {
   console.log("[build-gate] Attempting webpack build...");
-  const webpackCode = await run("npx next build --no-lint");
+  const webpackCode = await run("NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 npx next build --no-lint");
   if (webpackCode === 0) {
     console.log("[build-gate] PASS (webpack)");
     process.exit(0);
   }
 
   console.warn(`[build-gate] Webpack build failed with code ${webpackCode}. Trying Turbopack fallback...`);
-  const turboCode = await run("npx next build --no-lint --turbopack");
+  const turboCode = await run("NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 npx next build --no-lint --turbopack");
   if (turboCode === 0) {
     console.log("[build-gate] PASS (turbopack fallback)");
     process.exit(0);
