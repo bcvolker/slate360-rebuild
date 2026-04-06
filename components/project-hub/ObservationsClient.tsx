@@ -72,7 +72,8 @@ const SENTIMENT_COLOR = {
 } as const;
 
 export default function ObservationsClient() {
-  const { projectId } = useParams<{ projectId: string }>();
+  const params = useParams<{ projectId: string }>();
+  const projectId = params?.projectId;
   const [items, setItems] = useState<Observation[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

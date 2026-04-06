@@ -14,7 +14,7 @@ type DeployInfo = {
 export default function BuildRuntimeBadge() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const enabled = searchParams.get("buildDiag") === "1";
+  const enabled = searchParams?.get("buildDiag") === "1";
 
   const [info, setInfo] = useState<DeployInfo | null>(null);
   const [loadState, setLoadState] = useState<"idle" | "loading" | "ready" | "error">("idle");

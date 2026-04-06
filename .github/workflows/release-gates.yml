@@ -24,3 +24,6 @@ jobs:
 
       - name: Verify release gates
         run: npm run verify:release
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://hadnfcenpcfaeclczsmm.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhZG5mY2VucGNmYWVjbGN6c21tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1NzcwNzcsImV4cCI6MjA4MDE1MzA3N30.lUKufUuiGg-T-H3zX-oIIBiLwgKRYs_XLlBlK5hFhwo

@@ -1,4 +1,4 @@
-# Slate360 — Project Memory
+"# Slate360 — Project Memory
 
 Last Updated: 2026-03-31
 Repo: bcvolker/slate360-rebuild
@@ -172,42 +172,47 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-05 (Security Hardening — Super Admin, Sentry PII, Tech Review)
+### Session Handoff — 2026-04-05 (UI Phase 1 — App Launcher + Block Editor + Light/Dark Mode)
 
 ### What Changed
 
-**1. Super-admin route + middleware guard**
-- Created `app/(admin)/super-admin/page.tsx` — server component with defence-in-depth auth check.
-- Middleware now checks `user.app_metadata.is_super_admin === true` (or `user_metadata`) for any `/super-admin` path. Returns raw `403` (no redirect, no information leak) if flag is missing.
-- Guard runs BEFORE all other route checks in middleware — no fallthrough possible.
-- To grant access: set `is_super_admin: true` in user's `app_metadata` via Supabase Dashboard or admin API.
+**1. App Launcher rebuild (`/apps`)**
+- Rewrote `app/apps/page.tsx` with Shadcn Card/Sheet/Badge/Button
+- Created `components/apps/app-data.ts` (6 apps, 2 available + 4 coming soon)
+- Created `components/apps/AppCard.tsx` — interactive card with module accent colors
+- Created `components/apps/AppPreviewSheet.tsx` — slide-out drawer with features, pricing, Stripe checkout
+- All using CSS variable brand tokens, no hardcoded hex
 
-**2. Sentry PII scrubbing**
-- Both `sentry.client.config.ts` and `sentry.server.config.ts` now have `beforeSend` hooks.
-- Scrubs: `Authorization` headers, `Cookie` headers, and recursively strips any JSON field named `token`, `secret`, `password`, or `authorization` from request data and breadcrumb data.
-- Uses a shared `scrubPII()` recursive function.
+**2. Block Editor (`/site-walk/[projectId]/deliverables/new`)**
+- Created `app/site-walk/[projectId]/deliverables/new/page.tsx` (server component shell)
+- Created `components/site-walk/BlockEditor.tsx` — title + block list + toolbar + preview toggle
+- Created `components/site-walk/BlockRenderer.tsx` — heading (H1-H3), text, image, divider, callout blocks
+- Created `components/site-walk/BlockToolbar.tsx` — dropdown menu for adding blocks
+- Created `lib/types/blocks.ts` — EditorBlock discriminated union + createBlock factory
 
-**3. Paranoid technical review completed** — 10 additional findings documented below (see review in chat).
+**3. Light/Dark mode system**
+- Installed `next-themes`, added `ThemeProvider` to `app/layout.tsx`
+- Created `components/providers/ThemeProvider.tsx`
+- Created `components/shared/ThemeToggle.tsx` (sun/moon toggle)
+- Added dark mode Slate360 design tokens to `globals.css` (surfaces, status backgrounds)
+
+**4. Bug fix: lint-staged CSS check**
+- Removed broken `$0` from CSS brace-check command in `package.json` lint-staged config
 
 ### What's Broken / Partially Done
-- **Env vars needed in Vercel**: `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`.
-- **CRITICAL**: Portal `view_count` increment is not atomic — race condition allows max_views bypass.
-- **CRITICAL**: `market_scheduler_lock` table has no RLS — any authenticated user can manipulate it.
-- JWT hook must be **manually enabled** in Supabase Dashboard → Auth → Hooks.
-- `deliverable_cleanup_queue` has no worker yet.
-- All project tables use hard deletes — no audit trail.
-- S3 upload has no server-side MIME type validation.
-- `standalone_punchwalk` boolean column + TS-side `punchwalk` references still use old name.
+- Prior CRITICALs still open (portal view_count race, market_scheduler_lock RLS)
+- Branches `fix/critical-foundation-patch` and `fix/production-hardening` still pending merge to main
+- Block Editor is UI-only (no backend persistence yet)
+- App preview drawer shows placeholder where screenshots will go
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered)
-1. **CRITICAL** — Fix portal view_count to use atomic SQL increment.
-2. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role).
-3. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel.
-4. **Enable JWT hook** in Supabase Dashboard → Auth → Hooks.
-5. Add server-side MIME type allowlist to upload route.
-6. Build v0 UI components for the Walled Garden.
-7. Build type-specific deliverable viewers for the portal skeleton.
-8. Add soft-delete pattern to project tables.
+1. Merge `fix/critical-foundation-patch` and `fix/production-hardening` to main.
+2. Merge `feature/ui-phase-1` after review.
+3. Add Block Editor backend (save/load deliverables from Supabase).
+4. **CRITICAL** — Fix portal view_count to use atomic SQL increment.
+5. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role).
+6. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel.
+7. Enable JWT hook in Supabase Dashboard → Auth → Hooks."

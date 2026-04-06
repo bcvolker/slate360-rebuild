@@ -173,6 +173,25 @@
   --space-8: 32px;
 }
 
+/* Dark mode overrides for Slate360 design tokens */
+.dark {
+  --slate-orange-light: rgba(255, 77, 0, 0.12);
+  --slate-blue: #fafafa;
+  --slate-blue-hover: #e4e4e7;
+  --slate-blue-light: rgba(250, 250, 250, 0.08);
+
+  --status-open-bg: rgba(37, 99, 235, 0.15);
+  --status-review-bg: rgba(217, 119, 6, 0.15);
+  --status-approved-bg: rgba(5, 150, 105, 0.15);
+  --status-closed-bg: rgba(5, 150, 105, 0.15);
+  --status-overdue-bg: rgba(220, 38, 38, 0.15);
+  --status-draft-bg: rgba(107, 114, 128, 0.15);
+
+  --surface-page: #09090b;
+  --surface-card: #18181b;
+  --surface-card-hover: #27272a;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

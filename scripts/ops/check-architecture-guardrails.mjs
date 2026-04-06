@@ -49,6 +49,7 @@ function hasAuthPattern(source) {
     source.includes("withAuth(") ||
     source.includes("withMarketAuth(") ||
     source.includes("withProjectAuth(") ||
+    source.includes("withAppAuth(") ||
     source.includes("auth.getUser(") ||
     source.includes("resolveServerOrgContext(") ||
     source.includes("getAuthenticatedOrgContext(") ||
