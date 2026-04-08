@@ -1,11 +1,22 @@
 "# Slate360 — Project Memory
 
-Last Updated: 2026-03-31
+Last Updated: 2026-04-08
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
 
 This file is the default new-chat attachment. Keep it short. Read this first, then only pull the docs required for the task.
+
+## AI Agent Access
+
+**AI Agents (Copilot, Claude, etc.) have read/write/run/push access to:**
+- **Git**: commit, branch, merge, and push to `bcvolker/slate360-rebuild` on GitHub
+- **Vercel**: deploy + env var management via `VERCEL_TOKEN` Codespace secret
+- **AWS S3**: bucket `slate360-storage` (us-east-2) via stored credentials
+- **Stripe**: webhook and billing management via Vercel env secrets
+- **Supabase CLI**: migrations, RPC functions, schema changes to project `hadnfcenpcfaeclczsmm`
+
+This access is intentional. Agents are expected to push commits, run migrations, and deploy — not just suggest changes.
 
 ## Start Here
 
@@ -172,47 +183,54 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-05 (UI Phase 1 — App Launcher + Block Editor + Light/Dark Mode)
+### Session Handoff — 2026-04-08 (Foundation Locked — All 3 Branches Merged + Design System Applied)
 
 ### What Changed
 
-**1. App Launcher rebuild (`/apps`)**
-- Rewrote `app/apps/page.tsx` with Shadcn Card/Sheet/Badge/Button
-- Created `components/apps/app-data.ts` (6 apps, 2 available + 4 coming soon)
-- Created `components/apps/AppCard.tsx` — interactive card with module accent colors
-- Created `components/apps/AppPreviewSheet.tsx` — slide-out drawer with features, pricing, Stripe checkout
-- All using CSS variable brand tokens, no hardcoded hex
+**Foundation is locked. Build is passing. UI Phase 1 is merged.**
 
-**2. Block Editor (`/site-walk/[projectId]/deliverables/new`)**
-- Created `app/site-walk/[projectId]/deliverables/new/page.tsx` (server component shell)
-- Created `components/site-walk/BlockEditor.tsx` — title + block list + toolbar + preview toggle
-- Created `components/site-walk/BlockRenderer.tsx` — heading (H1-H3), text, image, divider, callout blocks
-- Created `components/site-walk/BlockToolbar.tsx` — dropdown menu for adding blocks
-- Created `lib/types/blocks.ts` — EditorBlock discriminated union + createBlock factory
+**1. All 3 branches merged to main and pushed**
+- `fix/critical-foundation-patch`: 4 security patches (privilege escalation, TOCTOU races, Stripe webhook ordering, walled garden tier independence)
+- `fix/production-hardening`: Zod validation + rate limiting + build-gag removal
+- `feature/ui-phase-1`: App Launcher, Block Editor, ThemeToggle (CI-fixed providers kept)
 
-**3. Light/Dark mode system**
-- Installed `next-themes`, added `ThemeProvider` to `app/layout.tsx`
-- Created `components/providers/ThemeProvider.tsx`
-- Created `components/shared/ThemeToggle.tsx` (sun/moon toggle)
-- Added dark mode Slate360 design tokens to `globals.css` (surfaces, status backgrounds)
+**2. SVG recoloring applied**
+- `public/logo.svg`, `public/uploads/SLATE 360-Color Reversed Lockup.svg`, `public/uploads/favicon.svg`
+- Navy Blue (`#3e4f6b`) → Charcoal (`#18181b`) default (light mode)
+- Added `@media (prefers-color-scheme: dark)` block: background → White (`#ffffff`), text paths → Charcoal
+- Orange accent (`#fc751c`) unchanged in all SVGs
 
-**4. Bug fix: lint-staged CSS check**
-- Removed broken `$0` from CSS brace-check command in `package.json` lint-staged config
+**3. Root directory cleansed**
+- `docs/archive/` created; moved: `AGENTS.md`, `CLAUDE.md`, `MARKET_ROBOT_STATUS_HANDOFF.md`, `PRODUCTION_READINESS_AUDIT.md`, `PROJECT_RUNTIME_ISSUE_LEDGER.md`, `SLATE360_ARCHITECTURE.md`
+- Root markdown files: **only** `README.md`, `SLATE360_PROJECT_MEMORY.md`, `DESIGN.md` remain
+
+**4. `app/globals.css` updated with Industrial Gold + Dark Glass**
+- `--primary` updated to `hsl(45 82% 55%)` (Industrial Gold `#D4AF37`) in both `:root` and `.dark` shadcn blocks
+- New variables added to Slate360 Design Tokens: `--text-primary/secondary/muted`, `--surface-glass`, `--surface-light/secondary`, `--border-glass`, `--glass-border`, `--backdrop-blur`, `--shadow-sm`, `--shadow-glass`, `--primary-hover`
+
+**5. SLATE360_PROJECT_MEMORY.md updated**
+- Added AI Agent Access section (Git/Vercel/S3/Stripe/Supabase read/write/run/push)
+- Date bumped to 2026-04-08
 
 ### What's Broken / Partially Done
-- Prior CRITICALs still open (portal view_count race, market_scheduler_lock RLS)
-- Branches `fix/critical-foundation-patch` and `fix/production-hardening` still pending merge to main
+- **CRITICAL**: `market_scheduler_lock` table still has no RLS
+- **CRITICAL**: Portal view_count race condition (atomic SQL not deployed yet)
 - Block Editor is UI-only (no backend persistence yet)
-- App preview drawer shows placeholder where screenshots will go
+- JWT hook must be manually enabled in Supabase Dashboard → Auth → Hooks
+- Rate limiting only on ~5 of 40+ API routes
+- Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars not yet set in Vercel
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
+- `DESIGN.md`: already existed (Dark Glass system)
+- `app/globals.css`: Industrial Gold primary + Dark Glass vars added
+- `docs/archive/`: 6 markdown files archived from root
 
 ### Next Steps (ordered)
-1. Merge `fix/critical-foundation-patch` and `fix/production-hardening` to main.
-2. Merge `feature/ui-phase-1` after review.
-3. Add Block Editor backend (save/load deliverables from Supabase).
-4. **CRITICAL** — Fix portal view_count to use atomic SQL increment.
-5. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role).
-6. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel.
-7. Enable JWT hook in Supabase Dashboard → Auth → Hooks."
+1. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role).
+2. **CRITICAL** — Deploy atomic `claim_deliverable_view()` RPC to fix portal view_count race.
+3. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel.
+4. Enable JWT hook in Supabase Dashboard → Auth → Hooks.
+5. Add Block Editor backend (save/load deliverables from Supabase).
+6. Expand rate limiting to remaining API routes.
+7. Add server-side MIME type allowlist to upload route.
