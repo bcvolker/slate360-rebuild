@@ -43,12 +43,6 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const admin = createAdminClient();
 
-  // ═══ Multi-App Guard (shared validator) ═══
-  const rejection = validateUploadPermissions({ filename, size, app_context });
-  if (rejection) {
-    return NextResponse.json(rejection, { status: 403 });
-  }
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -98,6 +92,20 @@ export async function POST(req: NextRequest) {
 
   if (!effectiveUploadedBy) {
     return NextResponse.json({ error: "Unable to resolve uploader" }, { status: 400 });
+  }
+
+  // ═══ Multi-App Guard ═══
+  // Runs AFTER token resolution so we know whether the caller is an
+  // unauthenticated external client (publicToken path) and can apply
+  // the tighter external size cap and global blocked-extension list.
+  const rejection = validateUploadPermissions({
+    filename,
+    size,
+    app_context,
+    isExternal: !!publicToken,
+  });
+  if (rejection) {
+    return NextResponse.json(rejection, { status: 400 });
   }
 
   const namespace = resolveNamespace(effectiveOrgId, effectiveUploadedBy);
