@@ -1,0 +1,129 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+interface LandingHeaderProps {
+  onLoginClick: () => void;
+  isScrolled: boolean;
+}
+
+export function LandingHeader({ onLoginClick, isScrolled }: LandingHeaderProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  return (
+    <header
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        isScrolled
+          ? "bg-glass border-b border-border/50 shadow-glass"
+          : "bg-transparent"
+      )}
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/uploads/SLATE 360-Color Reversed Lockup.svg"
+              className="h-8"
+              alt="Slate360"
+            />
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-8">
+            <a
+              href="#apps"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Products
+            </a>
+            <a
+              href="#pricing"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Pricing
+            </a>
+            <a
+              href="#testimonials"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Customers
+            </a>
+            <a
+              href="#"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Resources
+            </a>
+          </nav>
+
+          {/* Desktop CTA */}
+          <div className="hidden md:flex items-center gap-4">
+            <Button
+              variant="ghost"
+              onClick={onLoginClick}
+              className="text-foreground hover:bg-primary/10"
+            >
+              Log In
+            </Button>
+            <Button
+              onClick={onLoginClick}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-gold-glow"
+            >
+              Get Started
+            </Button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 text-foreground"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden py-4 border-t border-border/50">
+            <nav className="flex flex-col gap-4">
+              <a href="#apps" className="text-sm text-muted-foreground hover:text-foreground">
+                Products
+              </a>
+              <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground">
+                Pricing
+              </a>
+              <a
+                href="#testimonials"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Customers
+              </a>
+              <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
+                Resources
+              </a>
+              <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
+                <Button variant="ghost" onClick={onLoginClick} className="justify-start">
+                  Log In
+                </Button>
+                <Button
+                  onClick={onLoginClick}
+                  className="bg-primary text-primary-foreground"
+                >
+                  Get Started
+                </Button>
+              </div>
+            </nav>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}

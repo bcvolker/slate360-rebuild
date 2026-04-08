@@ -44,6 +44,8 @@
     "out",
     "build",
     "dist",
-    "coverage"
+    "coverage",
+    "v0-staging",
+    "app/_deprecated"
   ]
 }
