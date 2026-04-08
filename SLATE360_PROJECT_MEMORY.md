@@ -183,60 +183,64 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-09 (Landing Page Integration + SlateDrop Security Patch)
+### Session Handoff — 2026-04-08 (Routing Fix, Mobile Sheet Nav, Homepage Placeholder)
 
 ### What Changed
 
-**1. v0.dev Landing Page integrated → `feature/dashboard-integration` (pushed, NOT merged to main)**
-- `app/page.tsx`: now renders `<LandingPage />` for unauthenticated users (redirects auth users to `/apps` unchanged)
-- New landing page split into 10 files under `components/home/`:
-  - `landing-data.ts` — all APPS/STATS/TESTIMONIALS/PRICING_PLANS/FOOTER_LINKS constants + types
-  - `LandingHeader.tsx` — fixed header with nav, logo SVG, desktop/mobile menus
-  - `HeroSection.tsx` — hero with stats grid, CTA buttons (replaces old 3D model hero)
-  - `AppShowcaseSection.tsx` — iterates APPS with alternating layout
-  - `AppDemos.tsx` — VideoDemo, PanoramaDemo, ThreeDDemo interactive components
-  - `TestimonialsSection.tsx` — 3-column card grid
-  - `PricingSection.tsx` — 3-tier pricing with popular badge (replaces old 4-tier billing-linked pricing)
-  - `CTASection.tsx` — final CTA section (replaces old orange CTA)
-  - `LandingFooter.tsx` — footer with logo + link columns + bottom bar
-  - `LandingPage.tsx` — root assembler with useEffect scroll tracker
-  - `LoginModal.tsx` — dialog that routes to `/login` (no fake auth simulation)
-- All logo placeholders replaced with real SVG: `/uploads/SLATE 360-Color Reversed Lockup.svg`
-- Design system: Dark Glass, Industrial Gold `hsl(45 82% 55%)`, glass card aesthetics throughout
+**1. `/dashboard` route moved into `(dashboard)` route group — `feature/dashboard-integration`**
+- `app/dashboard/page.tsx` → `app/(dashboard)/dashboard/page.tsx`
+- URL unchanged (`/dashboard`). Now receives `NuqsAdapter` + `TooltipProvider` + `BuildRuntimeBadge` from `app/(dashboard)/layout.tsx` (previously absent — nuqs query state was broken)
+- Empty `app/apps/` directory deleted (was already missing `page.tsx`)
 
-**2. CSS Tailwind v4 utilities registered (`app/globals.css`)**
-- Added `@utility bg-glass`, `bg-surface`, `border-glass`, `shadow-glass`, `shadow-gold-glow`
-- Fixed missing closing `}` on `.animate-pan-360` (pre-existing bug)
+**2. Mobile hamburger Sheet nav (`components/shared/MobileNavSheet.tsx` — NEW)**
+- Replaces the bottom-scrolling `MobileModuleBar` in `DashboardHeader`
+- Hamburger button (`Menu` icon, `sm:hidden`) in header right cluster
+- Opens a `Sheet` from left with full entitlement-filtered navigation
+- `DashboardHeader.tsx`: removed `MobileModuleBar` import, added `MobileNavSheet` (294 lines, still under 300)
 
-**3. `tsconfig.json` exclude list updated**
-- Added `v0-staging` and `app/_deprecated` to exclude (prevents TS errors from staging/legacy files)
+**3. Stacked mobile grid for module tiles (`DashboardOverview.tsx`)**
+- Changed `hidden md:flex` → `grid grid-cols-2 sm:grid-cols-4 md:flex`
+- Module tiles are now visible on mobile in a 2-column stacked grid
 
-**4. SlateDrop external upload security patch → `fix/slatedrop-external-uploads` (committed, NOT merged to main)**
-- `lib/uploads/validate-upload-permissions.ts`: `GLOBALLY_BLOCKED_EXTENSIONS` (25 types) + `EXTERNAL_MAX_BYTES` 50MB cap
-- `app/api/slatedrop/upload-url/route.ts`: validation moved post-token-resolution; `isExternal: !!publicToken`
+**4. Single-App view (`DashboardClient.tsx`)**
+- On mount: if only 1 unlocked app tab exists, auto-navigate there (bypasses overview grid)
+- Implements the Single-App vs Multi-App entitlement logic
+
+**5. Marketing homepage placeholder (`app/page.tsx`)**
+- Replaced full v0 `LandingPage` with a minimal 79-line Dark Glass + Industrial Gold splash
+- Sticky header: SVG logo + Industrial Gold Login button → `/login`
+- Hero: gold accent line, black/gold headline, two CTA buttons, tagline copy
+- Footer: Privacy + Terms links
+- Auth redirect: `/dashboard` (unchanged)
+- `dark` class forced on root `<div>` (no FOUC)
+
+**6. `_v0_drop/` Air-Gap staging directory created**
+- `_v0_drop/README.md`: workflow instructions for CEO drop-and-integrate workflow
+- Added `_v0_drop` to `tsconfig.json` exclude list
+
+**Build:** ✅ 83/83 static pages, 0 TS errors. Warnings are pre-existing Sentry deprecations only.
+**Commit:** `4c0f2b4` pushed to `origin/feature/dashboard-integration`
 
 ### What's Broken / Partially Done
 - **CRITICAL**: `market_scheduler_lock` table still has no RLS
 - **CRITICAL**: Portal view_count race condition (atomic SQL not deployed yet)
-- `fix/slatedrop-external-uploads` — needs merge to main (awaiting review)
-- `feature/dashboard-integration` — needs merge to main (Vercel preview auto-deploys from branch)
-- Duplicate `STRIPE_WEBHOOK_SECRET` line in `.env` — line 75 missing `whsec_` prefix
-- Block Editor is UI-only (no backend persistence yet)
+- `fix/slatedrop-external-uploads` — needs merge to main
+- `feature/dashboard-integration` — needs merge to main
+- Duplicate `STRIPE_WEBHOOK_SECRET` in `.env` line 75 (missing `whsec_` prefix)
+- Block Editor is UI-only (no backend persistence)
 - Rate limiting only on ~5 of 40+ API routes
-- Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars not yet set in Vercel
+- Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars not set in Vercel
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
-- `app/globals.css`: @utility glass rules added + missing brace fixed
-- `tsconfig.json`: v0-staging + _deprecated excluded
+- `tsconfig.json`: added `_v0_drop` to excludes
 
 ### Next Steps (ordered)
-1. Merge `fix/slatedrop-external-uploads` → main
-2. Merge `feature/dashboard-integration` → main
+1. Merge `fix/slatedrop-external-uploads` → main (security patch, already reviewed)
+2. Merge `feature/dashboard-integration` → main (clean build, passes typecheck)
 3. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role)
-2. **CRITICAL** — Deploy atomic `claim_deliverable_view()` RPC to fix portal view_count race.
-3. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel.
-4. Enable JWT hook in Supabase Dashboard → Auth → Hooks.
-5. Add Block Editor backend (save/load deliverables from Supabase).
-6. Expand rate limiting to remaining API routes.
-7. Add server-side MIME type allowlist to upload route.
+4. **CRITICAL** — Deploy atomic `claim_deliverable_view()` RPC to fix portal view_count race
+5. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel
+6. Enable JWT hook in Supabase Dashboard → Auth → Hooks
+7. Add Block Editor backend persistence
+8. Expand rate limiting to remaining API routes
