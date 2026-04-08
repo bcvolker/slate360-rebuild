@@ -55,13 +55,17 @@ async function upsertAppFlag(orgId: string, appId: "tour_builder" | "punchwalk",
   const admin = createAdminClient();
   const col = appId === "tour_builder" ? "standalone_tour_builder" : "standalone_punchwalk";
 
+  const flagUpdate: Record<string, unknown> = { org_id: orgId, [col]: active };
+  if (!active) {
+    // Record the exact moment access was revoked so downstream logic can
+    // gate grace-period behaviour and audit trails.
+    flagUpdate.downgraded_at = new Date().toISOString();
+  }
+
   // Upsert: insert a row with the flag, or update the existing flag column
   const { error } = await admin
     .from("org_feature_flags")
-    .upsert(
-      { org_id: orgId, [col]: active },
-      { onConflict: "org_id" },
-    );
+    .upsert(flagUpdate, { onConflict: "org_id" });
 
   if (error) {
     console.error(`[webhook] Failed to upsert org_feature_flags for org=${orgId} app=${appId}:`, error.message);
@@ -190,8 +194,16 @@ export async function POST(req: NextRequest) {
         }
 
         if (subscription.status !== "active" && subscription.status !== "trialing") {
-          // If a platform tier sub fails/cancels, drop them to trial
-          await updateOrganizationTier(orgId, "trial");
+          // If a platform tier sub fails/cancels, drop them to trial and
+          // record the downgrade timestamp on the organizations row.
+          const admin2 = createAdminClient();
+          await Promise.all([
+            updateOrganizationTier(orgId, "trial"),
+            admin2
+              .from("organizations")
+              .update({ downgraded_at: new Date().toISOString() })
+              .eq("id", orgId),
+          ]);
           break;
         }
 

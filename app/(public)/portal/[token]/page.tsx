@@ -12,6 +12,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getOrgBranding } from "@/lib/server/branding";
 import type { OrgBranding } from "@/lib/types/branding";
 import { DEFAULT_BRANDING } from "@/lib/types/branding";
+import type { OrgFeatureFlags } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,27 @@ export default async function DeliverableSharePage({ params }: PageProps) {
     // View successfully claimed — continue to render
     const dat = access as DeliverableToken;
 
-    // ── 2. Fetch org branding for Walled Garden chrome ─────────
+    // ── 2. Check org feature flags for graceful degradation ────
+    // If the org has lost the flag required for this deliverable type
+    // (e.g. standalone_tour_builder cancelled), we still serve the content
+    // but mark it as downgraded so the viewer can apply a watermark.
+    let isDowngraded = false;
+    const { data: flags } = await admin
+      .from("org_feature_flags")
+      .select("standalone_tour_builder, standalone_punchwalk")
+      .eq("org_id", dat.org_id)
+      .maybeSingle();
+
+    const orgFlags = (flags ?? {}) as Partial<OrgFeatureFlags>;
+
+    if (dat.deliverable_type === "tour" && orgFlags.standalone_tour_builder === false) {
+      isDowngraded = true;
+    }
+    if (dat.deliverable_type === "punchwalk" && orgFlags.standalone_punchwalk === false) {
+      isDowngraded = true;
+    }
+
+    // ── 3. Fetch org branding for Walled Garden chrome ─────────
     let branding: OrgBranding;
     try {
       branding = await getOrgBranding(dat.org_id);
@@ -73,11 +94,36 @@ export default async function DeliverableSharePage({ params }: PageProps) {
           </span>
         </header>
 
-        <main className="mx-auto max-w-4xl p-8">
+        {isDowngraded && (
+          <div className="flex items-center justify-between bg-yellow-50 px-6 py-3 text-sm text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
+            <span>
+              This content was created with a paid plan that is no longer active.
+            </span>
+            <a
+              href="https://slate360.ai/pricing"
+              className="ml-4 font-semibold underline"
+            >
+              Upgrade to Remove Watermark
+            </a>
+          </div>
+        )}
+
+        <main className="relative mx-auto max-w-4xl p-8">
+          {isDowngraded && (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-10 select-none"
+            >
+              <span className="rotate-[-35deg] text-6xl font-black uppercase tracking-widest text-gray-800 dark:text-gray-200">
+                Watermark
+              </span>
+            </div>
+          )}
           <p className="text-sm text-muted-foreground">
             Deliverable: <strong>{dat.deliverable_type}</strong> &middot; Role: {dat.role}
           </p>
-          {/* TODO: Route to type-specific viewer (TourViewer, ReportViewer, etc.) */}
+          {/* TODO: Route to type-specific viewer (TourViewer, ReportViewer, etc.)
+              Pass isDowngraded={isDowngraded} to the viewer component when built. */}
         </main>
       </div>
     );
