@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { readBrandingCookie } from "@/lib/server/branding";
 import { ClientProviders } from "@/components/providers/ClientProviders";
+import { ThemeScript } from "@/components/providers/ThemeProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -44,6 +45,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className="scroll-smooth" data-build="2026-02-26-v4-probe" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body
         className={`${geistSans.variable} antialiased`}
         suppressHydrationWarning
