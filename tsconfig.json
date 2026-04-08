@@ -46,6 +46,7 @@
     "dist",
     "coverage",
     "v0-staging",
-    "app/_deprecated"
+    "app/_deprecated",
+    "_v0_drop"
   ]
 }

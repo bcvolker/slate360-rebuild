@@ -24,7 +24,7 @@ import {
   Activity,
 } from "lucide-react";
 import QuickNav from "@/components/shared/QuickNav";
-import MobileModuleBar from "@/components/shared/MobileModuleBar";
+import MobileNavSheet from "@/components/shared/MobileNavSheet";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 import { createClient } from "@/lib/supabase/client";
 
@@ -140,7 +140,10 @@ export default function DashboardHeader({
         {/* ── Right cluster: QuickNav + Bell + Customize + User ── */}
         <div className="flex items-center gap-1.5 sm:gap-3">
 
-          {/* QuickNav — same tier-gated list on every page (hidden on mobile — see MobileModuleBar below) */}
+          {/* Hamburger — mobile only (Sheet nav) */}
+          <MobileNavSheet tier={ent.tier} isCeo={isCeo} internalAccess={internalAccess} />
+
+          {/* QuickNav — desktop only */}
           <div className="hidden sm:block">
             <QuickNav tier={ent.tier} isCeo={isCeo} internalAccess={internalAccess} />
           </div>
@@ -285,8 +288,7 @@ export default function DashboardHeader({
         </div>
       </div>
 
-      {/* Mobile module bar — replaces QuickNav dropdown on small screens */}
-      <MobileModuleBar tier={ent.tier} isCeo={isCeo} internalAccess={internalAccess} />
+
     </header>
   );
 }

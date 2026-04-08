@@ -1,6 +1,7 @@
 "use client";
 
 import { useDashboardState, type DashboardProps } from "@/lib/hooks/useDashboardState";
+import { useEffect } from "react";
 import DashboardHeader from "@/components/shared/DashboardHeader";
 import CreateProjectWizard, { type CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
 import MarketClient from "@/components/dashboard/MarketClient";
@@ -98,6 +99,15 @@ export default function DashboardClient(props: DashboardProps) {
 
   const s = useDashboardState(props);
   const visibleTabs = useVisibleTabs(s.ent, canAccessCeo, canAccessMarket, canAccessAthlete360);
+
+  // Single-App view: if only one unlocked app tab, auto-navigate there on mount
+  const unlockedApps = visibleTabs.filter((t) => !t.locked && t.id !== "my-account");
+  useEffect(() => {
+    if (unlockedApps.length === 1 && s.activeTab === "overview") {
+      s.setActiveTab(unlockedApps[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* ================================================================
      RENDER
