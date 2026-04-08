@@ -183,51 +183,57 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-08 (Foundation Locked — All 3 Branches Merged + Design System Applied)
+### Session Handoff — 2026-04-09 (Landing Page Integration + SlateDrop Security Patch)
 
 ### What Changed
 
-**Foundation is locked. Build is passing. UI Phase 1 is merged.**
+**1. v0.dev Landing Page integrated → `feature/dashboard-integration` (pushed, NOT merged to main)**
+- `app/page.tsx`: now renders `<LandingPage />` for unauthenticated users (redirects auth users to `/apps` unchanged)
+- New landing page split into 10 files under `components/home/`:
+  - `landing-data.ts` — all APPS/STATS/TESTIMONIALS/PRICING_PLANS/FOOTER_LINKS constants + types
+  - `LandingHeader.tsx` — fixed header with nav, logo SVG, desktop/mobile menus
+  - `HeroSection.tsx` — hero with stats grid, CTA buttons (replaces old 3D model hero)
+  - `AppShowcaseSection.tsx` — iterates APPS with alternating layout
+  - `AppDemos.tsx` — VideoDemo, PanoramaDemo, ThreeDDemo interactive components
+  - `TestimonialsSection.tsx` — 3-column card grid
+  - `PricingSection.tsx` — 3-tier pricing with popular badge (replaces old 4-tier billing-linked pricing)
+  - `CTASection.tsx` — final CTA section (replaces old orange CTA)
+  - `LandingFooter.tsx` — footer with logo + link columns + bottom bar
+  - `LandingPage.tsx` — root assembler with useEffect scroll tracker
+  - `LoginModal.tsx` — dialog that routes to `/login` (no fake auth simulation)
+- All logo placeholders replaced with real SVG: `/uploads/SLATE 360-Color Reversed Lockup.svg`
+- Design system: Dark Glass, Industrial Gold `hsl(45 82% 55%)`, glass card aesthetics throughout
 
-**1. All 3 branches merged to main and pushed**
-- `fix/critical-foundation-patch`: 4 security patches (privilege escalation, TOCTOU races, Stripe webhook ordering, walled garden tier independence)
-- `fix/production-hardening`: Zod validation + rate limiting + build-gag removal
-- `feature/ui-phase-1`: App Launcher, Block Editor, ThemeToggle (CI-fixed providers kept)
+**2. CSS Tailwind v4 utilities registered (`app/globals.css`)**
+- Added `@utility bg-glass`, `bg-surface`, `border-glass`, `shadow-glass`, `shadow-gold-glow`
+- Fixed missing closing `}` on `.animate-pan-360` (pre-existing bug)
 
-**2. SVG recoloring applied**
-- `public/logo.svg`, `public/uploads/SLATE 360-Color Reversed Lockup.svg`, `public/uploads/favicon.svg`
-- Navy Blue (`#3e4f6b`) → Charcoal (`#18181b`) default (light mode)
-- Added `@media (prefers-color-scheme: dark)` block: background → White (`#ffffff`), text paths → Charcoal
-- Orange accent (`#fc751c`) unchanged in all SVGs
+**3. `tsconfig.json` exclude list updated**
+- Added `v0-staging` and `app/_deprecated` to exclude (prevents TS errors from staging/legacy files)
 
-**3. Root directory cleansed**
-- `docs/archive/` created; moved: `AGENTS.md`, `CLAUDE.md`, `MARKET_ROBOT_STATUS_HANDOFF.md`, `PRODUCTION_READINESS_AUDIT.md`, `PROJECT_RUNTIME_ISSUE_LEDGER.md`, `SLATE360_ARCHITECTURE.md`
-- Root markdown files: **only** `README.md`, `SLATE360_PROJECT_MEMORY.md`, `DESIGN.md` remain
-
-**4. `app/globals.css` updated with Industrial Gold + Dark Glass**
-- `--primary` updated to `hsl(45 82% 55%)` (Industrial Gold `#D4AF37`) in both `:root` and `.dark` shadcn blocks
-- New variables added to Slate360 Design Tokens: `--text-primary/secondary/muted`, `--surface-glass`, `--surface-light/secondary`, `--border-glass`, `--glass-border`, `--backdrop-blur`, `--shadow-sm`, `--shadow-glass`, `--primary-hover`
-
-**5. SLATE360_PROJECT_MEMORY.md updated**
-- Added AI Agent Access section (Git/Vercel/S3/Stripe/Supabase read/write/run/push)
-- Date bumped to 2026-04-08
+**4. SlateDrop external upload security patch → `fix/slatedrop-external-uploads` (committed, NOT merged to main)**
+- `lib/uploads/validate-upload-permissions.ts`: `GLOBALLY_BLOCKED_EXTENSIONS` (25 types) + `EXTERNAL_MAX_BYTES` 50MB cap
+- `app/api/slatedrop/upload-url/route.ts`: validation moved post-token-resolution; `isExternal: !!publicToken`
 
 ### What's Broken / Partially Done
 - **CRITICAL**: `market_scheduler_lock` table still has no RLS
 - **CRITICAL**: Portal view_count race condition (atomic SQL not deployed yet)
+- `fix/slatedrop-external-uploads` — needs merge to main (awaiting review)
+- `feature/dashboard-integration` — needs merge to main (Vercel preview auto-deploys from branch)
+- Duplicate `STRIPE_WEBHOOK_SECRET` line in `.env` — line 75 missing `whsec_` prefix
 - Block Editor is UI-only (no backend persistence yet)
-- JWT hook must be manually enabled in Supabase Dashboard → Auth → Hooks
 - Rate limiting only on ~5 of 40+ API routes
 - Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars not yet set in Vercel
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
-- `DESIGN.md`: already existed (Dark Glass system)
-- `app/globals.css`: Industrial Gold primary + Dark Glass vars added
-- `docs/archive/`: 6 markdown files archived from root
+- `app/globals.css`: @utility glass rules added + missing brace fixed
+- `tsconfig.json`: v0-staging + _deprecated excluded
 
 ### Next Steps (ordered)
-1. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role).
+1. Merge `fix/slatedrop-external-uploads` → main
+2. Merge `feature/dashboard-integration` → main
+3. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role)
 2. **CRITICAL** — Deploy atomic `claim_deliverable_view()` RPC to fix portal view_count race.
 3. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel.
 4. Enable JWT hook in Supabase Dashboard → Auth → Hooks.
