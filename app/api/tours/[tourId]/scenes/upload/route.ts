@@ -16,20 +16,43 @@ export const POST = async (req: NextRequest, { params }: { params: Promise<{ tou
 
     try {
       const body = await req.json();
-      const { filename, contentType, size } = body as {
+      const { filename, contentType, size, width, height } = body as {
         filename: string;
         contentType: string;
         size: number;
+        width?: number;
+        height?: number;
       };
 
       if (!filename || !contentType || !size) {
         return badRequest("Missing required fields");
       }
 
-      // Camera Format Rejection Guard (Prompt 3 validation logic)
+      // Raw camera file rejection — must happen before MIME check
       const lowerName = filename.toLowerCase();
       if (lowerName.endsWith(".insv") || lowerName.endsWith(".360") || lowerName.endsWith(".dng")) {
-        return badRequest("Raw camera files are not supported. Please export your panorama to a finished JPEG (equirectangular format) using your camera's desktop or mobile app first.");
+        return badRequest(
+          "Raw camera files are not supported. Please export your panorama to a finished JPEG (equirectangular format) using your camera's desktop or mobile app first."
+        );
+      }
+
+      // JPEG / PNG only
+      const allowedMimeTypes = ["image/jpeg", "image/png"] as const;
+      if (!(allowedMimeTypes as readonly string[]).includes(contentType)) {
+        return badRequest("Only JPEG and PNG files are accepted. Please export your panorama as a JPEG or PNG before uploading.");
+      }
+
+      // Approximate 2:1 aspect ratio check (equirectangular panoramas are 2:1 — e.g. 5760×2880)
+      // Allow ±15% tolerance around the ideal 2.0 ratio → valid range [1.70, 2.30]
+      if (width !== undefined && height !== undefined && height > 0) {
+        const ratio = width / height;
+        if (ratio < 1.7 || ratio > 2.3) {
+          return badRequest(
+            "This image does not appear to be an equirectangular 360° panorama. " +
+            "Please upload an image with an approximate 2:1 aspect ratio (e.g. 5760×2880). " +
+            `Received: ${width}×${height} (ratio ${ratio.toFixed(2)}:1).`
+          );
+        }
       }
 
       // Enforce storage limits
