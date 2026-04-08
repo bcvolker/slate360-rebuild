@@ -55,8 +55,9 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: hsl(45 82% 55%);         /* Industrial Gold #D4AF37 */
+  --primary-foreground: hsl(240 10% 10%);  /* near black */
+  --primary-hover: hsl(45 90% 48%);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -89,8 +90,9 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: hsl(45 82% 55%);         /* Industrial Gold #D4AF37 */
+  --primary-foreground: hsl(240 10% 10%);
+  --primary-hover: hsl(45 90% 62%);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -171,6 +173,18 @@
   --space-4: 16px;
   --space-6: 24px;
   --space-8: 32px;
+
+  /* Dark Glass Design System (DESIGN.md) */
+  --text-primary: hsl(240 10% 10%);
+  --text-secondary: hsl(240 5% 35%);
+  --text-muted: hsl(240 4% 55%);
+  --surface-glass: hsl(0 0% 100% / 0.85);
+  --surface-light: hsl(0 0% 98%);
+  --surface-light-secondary: hsl(0 0% 95%);
+  --border-glass: hsl(0 0% 0% / 0.08);
+  --glass-border: 1px solid hsl(0 0% 0% / 0.08);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  --shadow-glass: 0 8px 32px -4px rgb(0 0 0 / 0.12);
 }
 
 /* Dark mode overrides for Slate360 design tokens */
@@ -190,6 +204,19 @@
   --surface-page: #09090b;
   --surface-card: #18181b;
   --surface-card-hover: #27272a;
+
+  /* Dark Glass Design System (DESIGN.md) */
+  --text-primary: hsl(0 0% 98%);
+  --text-secondary: hsl(240 5% 65%);
+  --text-muted: hsl(240 5% 48%);
+  --surface-glass: hsl(240 10% 9% / 0.75);
+  --surface-light: hsl(240 10% 9%);
+  --surface-light-secondary: hsl(240 10% 12%);
+  --border-glass: hsl(0 0% 100% / 0.12);
+  --glass-border: 1px solid hsl(0 0% 100% / 0.12);
+  --backdrop-blur: blur(16px);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+  --shadow-glass: 0 8px 32px -4px rgb(0 0 0 / 0.4);
 }
 
 @layer base {
