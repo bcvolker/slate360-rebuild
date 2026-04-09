@@ -7,7 +7,7 @@ interface CTASectionProps {
   onGetStarted: () => void;
 }
 
-export function CTASection({ onGetStarted }: CTASectionProps) {
+export default function CTASection({ onGetStarted }: CTASectionProps) {
   return (
     <section className="py-24 bg-background">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
@@ -15,7 +15,8 @@ export function CTASection({ onGetStarted }: CTASectionProps) {
           Ready to transform your project documentation?
         </h2>
         <p className="text-lg text-muted-foreground mb-8">
-          Join 500+ construction teams already using Slate360. Start your free trial today.
+          Join 500+ construction teams already using Slate360. Start your free
+          trial today.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button

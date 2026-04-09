@@ -1,28 +1,31 @@
 "use client";
 
-import { Check, ChevronRight } from "lucide-react";
+import { ChevronRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { APPS, type AppItem } from "./landing-data";
-import { InteractiveDemo } from "./AppDemos";
+import { InteractiveDemo } from "@/components/home/AppDemos";
+import { APPS } from "@/components/home/landing-data";
+import type { AppItem } from "@/components/home/landing-data";
 
-// ==========================================================================
-// APP SHOWCASE SECTION
-// ==========================================================================
+// ──────────────────────────────────────────────────────────────────────────────
+// SECTION WRAPPER
+// ──────────────────────────────────────────────────────────────────────────────
 
-export function AppShowcaseSection() {
+export default function AppShowcaseSection() {
   return (
     <section id="apps" className="py-24 bg-surface">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">Our Products</Badge>
+          <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
+            Our Products
+          </Badge>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             Three powerful apps, one platform
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Everything you need to document, visualize, and present construction projects
-            professionally.
+            Everything you need to document, visualize, and present construction
+            projects professionally.
           </p>
         </div>
 
@@ -36,17 +39,15 @@ export function AppShowcaseSection() {
   );
 }
 
-// ==========================================================================
+// ──────────────────────────────────────────────────────────────────────────────
 // SINGLE APP SHOWCASE
-// ==========================================================================
+// ──────────────────────────────────────────────────────────────────────────────
 
 function AppShowcase({ app, reversed }: { app: AppItem; reversed: boolean }) {
   const Icon = app.icon;
 
   return (
-    <div
-      className={cn("grid lg:grid-cols-2 gap-12 items-center", reversed && "lg:grid-flow-dense")}
-    >
+    <div className={cn("grid lg:grid-cols-2 gap-12 items-center", reversed && "lg:grid-flow-dense")}>
       {/* Content */}
       <div className={cn(reversed && "lg:col-start-2")}>
         <div className="flex items-center gap-3 mb-4">

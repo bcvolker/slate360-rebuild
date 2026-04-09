@@ -2,27 +2,23 @@
 
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { PRICING_PLANS } from "./landing-data";
+import { PRICING_PLANS } from "@/components/home/landing-data";
 
 interface PricingSectionProps {
   onGetStarted: () => void;
 }
 
-export function PricingSection({ onGetStarted }: PricingSectionProps) {
+export default function PricingSection({ onGetStarted }: PricingSectionProps) {
   return (
     <section id="pricing" className="py-24 bg-surface">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">Pricing</Badge>
+          <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
+            Pricing
+          </Badge>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             Simple, transparent pricing
           </h2>

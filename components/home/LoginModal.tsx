@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Layers, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,23 +10,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface LoginModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function LoginModal({ open, onOpenChange }: LoginModalProps) {
+export default function LoginModal({ open, onOpenChange }: LoginModalProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
+  // Send user to the real login page immediately — no fake auth simulation
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     onOpenChange(false);
-    setIsLoading(false);
     router.push("/login");
   };
 
@@ -36,11 +35,10 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
       <DialogContent className="bg-card border-border sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/uploads/SLATE 360-Color Reversed Lockup.svg"
-              className="h-8"
               alt="Slate360"
+              className="h-7 w-auto"
             />
           </div>
           <DialogTitle className="text-foreground">Welcome back</DialogTitle>
@@ -48,37 +46,34 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             Sign in to your account to continue
           </DialogDescription>
         </DialogHeader>
+
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-foreground">
+            <label htmlFor="modal-email" className="text-sm font-medium text-foreground">
               Email
             </label>
             <Input
-              id="email"
+              id="modal-email"
               type="email"
               placeholder="you@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               className="bg-muted border-border text-foreground"
-              required
+              autoComplete="email"
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium text-foreground">
+            <label htmlFor="modal-password" className="text-sm font-medium text-foreground">
               Password
             </label>
             <Input
-              id="password"
+              id="modal-password"
               type="password"
               placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               className="bg-muted border-border text-foreground"
-              required
+              autoComplete="current-password"
             />
           </div>
           <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
               <input type="checkbox" className="rounded border-border" />
               Remember me
             </label>
@@ -91,7 +86,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
             disabled={isLoading}
           >
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign In"}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}

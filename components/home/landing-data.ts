@@ -1,5 +1,17 @@
-import { MapPin, Building2, Sparkles, Users, Camera, Clock, Shield } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import {
+  MapPin,
+  Building2,
+  Sparkles,
+  Users,
+  Camera,
+  Clock,
+  Shield,
+  type LucideIcon,
+} from "lucide-react";
+
+// ──────────────────────────────────────────────────────────────────────────────
+// TYPES
+// ──────────────────────────────────────────────────────────────────────────────
 
 export type DemoType = "video" | "360" | "3d";
 
@@ -39,6 +51,10 @@ export interface PricingPlan {
   popular: boolean;
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// DATA
+// ──────────────────────────────────────────────────────────────────────────────
+
 export const APPS: AppItem[] = [
   {
     id: "site-walk",
@@ -54,8 +70,10 @@ export const APPS: AppItem[] = [
       "Instant sharing with stakeholders",
     ],
     demoType: "video",
-    demoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    demoPoster: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+    demoUrl:
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    demoPoster:
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
   },
   {
     id: "360-tours",
@@ -71,7 +89,8 @@ export const APPS: AppItem[] = [
       "Embed anywhere",
     ],
     demoType: "360",
-    demoUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80",
+    demoUrl:
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80",
   },
   {
     id: "design-studio",
@@ -87,7 +106,8 @@ export const APPS: AppItem[] = [
       "Export in multiple formats",
     ],
     demoType: "3d",
-    demoUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80",
+    demoUrl:
+      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80",
   },
 ];
 
@@ -117,7 +137,7 @@ export const TESTIMONIALS: TestimonialItem[] = [
   },
   {
     quote:
-      "We've reduced site visits by 40% thanks to the 360 Tours. Our remote stakeholders feel like they're actually there.",
+      "We\u2019ve reduced site visits by 40% thanks to the 360 Tours. Our remote stakeholders feel like they\u2019re actually there.",
     author: "Elena Rodriguez",
     role: "Operations Director",
     company: "Metro Development",

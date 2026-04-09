@@ -25,7 +25,8 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: "/uploads/favicon.svg",
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: "/icon.svg",
   },
 };
 

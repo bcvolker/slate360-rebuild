@@ -1,26 +1,26 @@
 "use client";
 
-import { ArrowRight, Play, ChevronRight, Zap } from "lucide-react";
+import { ArrowRight, ChevronRight, Play, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { STATS } from "./landing-data";
+import { STATS } from "@/components/home/landing-data";
 
 interface HeroSectionProps {
   onGetStarted: () => void;
 }
 
-export function HeroSection({ onGetStarted }: HeroSectionProps) {
+export default function HeroSection({ onGetStarted }: HeroSectionProps) {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-surface" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-[var(--surface-light)]" />
 
-      {/* Subtle grid pattern */}
+      {/* Subtle grid */}
       <div
         className="absolute inset-0 opacity-5"
         style={{
-          backgroundImage: `linear-gradient(hsla(45, 82%, 55%, 0.1) 1px, transparent 1px),
-                            linear-gradient(90deg, hsla(45, 82%, 55%, 0.1) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(hsla(45,82%,55%,0.1) 1px, transparent 1px),
+                            linear-gradient(90deg, hsla(45,82%,55%,0.1) 1px, transparent 1px)`,
           backgroundSize: "60px 60px",
         }}
       />
@@ -33,17 +33,15 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
         </Badge>
 
         {/* Headline */}
-        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-foreground mb-6">
-          <span className="text-balance">
-            The complete platform for{" "}
-            <span className="text-primary">construction documentation</span>
-          </span>
+        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-foreground mb-6 text-balance">
+          The complete platform for{" "}
+          <span className="text-primary">construction documentation</span>
         </h1>
 
         {/* Subheadline */}
         <p className="mx-auto max-w-2xl text-lg sm:text-xl text-muted-foreground mb-10 text-pretty">
-          Capture, organize, and share project progress with GPS-tagged photos, immersive 360°
-          tours, and professional design tools. All in one platform.
+          Capture, organize, and share project progress with GPS-tagged photos,
+          immersive 360° tours, and professional design tools. All in one platform.
         </p>
 
         {/* CTA Buttons */}
@@ -66,11 +64,13 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
           </Button>
         </div>
 
-        {/* Stats Row */}
+        {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
           {STATS.map((stat) => (
             <div key={stat.label} className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">{stat.value}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">
+                {stat.value}
+              </div>
               <div className="text-sm text-muted-foreground">{stat.label}</div>
             </div>
           ))}
@@ -84,3 +84,4 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
     </section>
   );
 }
+
