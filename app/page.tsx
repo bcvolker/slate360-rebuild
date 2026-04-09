@@ -3,9 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { LandingPage } from "@/components/home/LandingPage";
 
 export const metadata = {
-  title: "Slate360 — The Complete Platform for Construction Documentation",
-  description:
-    "Capture, organize, and share project progress with GPS-tagged photos, immersive 360° tours, and professional design tools. All in one platform.",
+  title: 'Slate360 - The Nervous System for Construction Deliverables',
+  description: 'Slate360 Core + powerful add-ons. One place for tours, site walks, client portals, and secure file sharing. Client links never break.',
 };
 
 export default async function RootPage() {

@@ -29,19 +29,17 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
         {/* Badge */}
         <Badge className="mb-6 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
           <Zap className="mr-1 h-3 w-3" />
-          Now with AI-powered insights
+          The Nervous System
         </Badge>
 
         {/* Headline */}
         <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-foreground mb-6 text-balance">
-          The complete platform for{" "}
-          <span className="text-primary">construction documentation</span>
+          for Construction Deliverables
         </h1>
 
         {/* Subheadline */}
         <p className="mx-auto max-w-2xl text-lg sm:text-xl text-muted-foreground mb-10 text-pretty">
-          Capture, organize, and share project progress with GPS-tagged photos,
-          immersive 360° tours, and professional design tools. All in one platform.
+          Slate360 Core + powerful add-ons. One place for tours, site walks, client portals, and secure file sharing. Client links never break.
         </p>
 
         {/* CTA Buttons */}

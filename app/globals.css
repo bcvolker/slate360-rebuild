@@ -126,18 +126,18 @@
    ───────────────────────────────────────────────────────────────── */
 :root {
   /* Brand colors */
-  --slate-orange: #FF4D00;
-  --slate-orange-hover: #E04400;
-  --slate-orange-light: rgba(255, 77, 0, 0.08);
-  --slate-accent: #FF4D00;
-  --slate-accent-hover: #E04400;
-  --slate-accent-ring: rgba(255, 77, 0, 0.5);
+  --slate-gold: #D4AF37;
+  --slate-gold-hover: #B38F2E;
+  --slate-gold-light: rgba(212, 175, 55, 0.08);
+  --slate-accent: #D4AF37;
+  --slate-accent-hover: #B38F2E;
+  --slate-accent-ring: rgba(212, 175, 55, 0.5);
   --slate-blue: #18181b;
   --slate-blue-hover: #27272a;
   --slate-blue-light: rgba(24, 24, 27, 0.08);
 
   /* Module accent colors */
-  --module-hub: #FF4D00;
+  --module-hub: #D4AF37;
   --module-design: #7C3AED;
   --module-content: #EC4899;
   --module-tours: #0891B2;
@@ -145,7 +145,7 @@
   --module-virtual: #D97706;
   --module-analytics: #6366F1;
   --module-market: #6366F1;
-  --module-slatedrop: #FF4D00;
+  --module-slatedrop: #D4AF37;
 
   /* Status colors — used for RFIs, submittals, punch items */
   --status-open: #2563EB;
@@ -189,7 +189,7 @@
 
 /* Dark mode overrides for Slate360 design tokens */
 .dark {
-  --slate-orange-light: rgba(255, 77, 0, 0.12);
+  --slate-gold-light: rgba(212, 175, 55, 0.12);
   --slate-blue: #fafafa;
   --slate-blue-hover: #e4e4e7;
   --slate-blue-light: rgba(250, 250, 250, 0.08);

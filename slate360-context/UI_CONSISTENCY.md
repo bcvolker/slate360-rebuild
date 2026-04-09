@@ -24,7 +24,7 @@ These are the **single source of truth** for all visual values. All new code mus
 
 ```css
 /* Brand */
---brand:       #FF4D00;
+--brand:       #D4AF37;
 --brand-light: rgba(255, 77, 0, 0.08);
 --brand-ring:  rgba(255, 77, 0, 0.2);
 
@@ -57,7 +57,7 @@ These are the **single source of truth** for all visual values. All new code mus
 ```
 
 Until CSS tokens are wired up globally, use the Tailwind equivalents consistently:  
-`gray-50/100/200/400/500/900`, `[#FF4D00]`, `[#FF4D00]/5`, `[#FF4D00]/20`, etc.
+`gray-50/100/200/400/500/900`, `[#D4AF37]`, `[#D4AF37]/5`, `[#D4AF37]/20`, etc.
 
 ---
 
@@ -144,17 +144,17 @@ Every input, select, and textarea uses the **same exact class string**:
 ```tsx
 // Input
 className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm 
-           focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] 
+           focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] 
            transition-all disabled:opacity-50 disabled:cursor-not-allowed"
 
 // Textarea (add resize-none)
 className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm 
-           focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] 
+           focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] 
            transition-all resize-none"
 
 // Select (add bg-white)
 className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm 
-           focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] 
+           focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] 
            transition-all bg-white"
 ```
 
@@ -181,7 +181,7 @@ Use `py-2` instead of `py-2.5` and `text-xs` instead of `text-sm`.
 
 ### Primary (CTA / save / confirm)
 ```tsx
-<button className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#FF4D00] 
+<button className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#D4AF37] 
                    hover:bg-[#e64500] active:bg-[#cc3d00] 
                    disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
   Save
@@ -214,7 +214,7 @@ Use `py-2` instead of `py-2.5` and `text-xs` instead of `text-sm`.
 
 ### Link-style action (widget header actions, small CTAs)
 ```tsx
-<button className="text-[11px] font-semibold text-[#FF4D00] hover:underline 
+<button className="text-[11px] font-semibold text-[#D4AF37] hover:underline 
                    flex items-center gap-0.5">
   <Plus size={12} /> Add
 </button>
@@ -291,7 +291,7 @@ All empty states follow this pattern:
   <Icon size={32} className="text-gray-200 mb-3" />
   <p className="text-sm font-semibold text-gray-900 mb-1">Nothing here yet</p>
   <p className="text-xs text-gray-400 mb-4">Descriptive explanation of what this area shows</p>
-  <button className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#FF4D00]">
+  <button className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#D4AF37]">
     Primary Action
   </button>
 </div>
@@ -364,7 +364,7 @@ Use the `showToast(message: string, success: boolean)` pattern already establish
       onClick={() => setActiveTab(tab)}
       className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
         activeTab === tab
-          ? "border-[#FF4D00] text-[#FF4D00]"
+          ? "border-[#D4AF37] text-[#D4AF37]"
           : "border-transparent text-gray-500 hover:text-gray-700"
       }`}
     >
@@ -447,6 +447,6 @@ These should be extracted as shared primitives. Create them in `components/ui/`:
 - [ ] Empty state: ghosted icon + headline + sub
 - [ ] Loading state: `Loader2 animate-spin` or skeleton
 - [ ] Toolbar: `h-12 border-b border-gray-100 bg-white`
-- [ ] No hardcoded colors (use `text-gray-*` / `[#FF4D00]` tokens)
+- [ ] No hardcoded colors (use `text-gray-*` / `[#D4AF37]` tokens)
 - [ ] No `any` types
 - [ ] Component under 300 lines
