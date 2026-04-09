@@ -183,60 +183,66 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-09 (Production Merge: Marketing Homepage + Auth Dark Glass + Ghost Redirects)
+### Session Handoff — 2026-04-09 (Auth CSS Unification + 3D/360 Hero + App Demos + Mobile Menu Fix)
 
 ### What Changed
 
-**Merged `feature/marketing-homepage` → `main` (commit `3c1b004`)**
+**Commit `33d3eb0` → pushed to `main`**
 
-This merge includes everything from `feature/dashboard-integration` plus:
+**1. Auth CSS Unification**
+- `app/globals.css`: Added 14 auth utility classes (auth-page, auth-card, auth-input, auth-btn-primary, auth-btn-oauth, auth-label, auth-link, auth-divider-line, auth-divider-text, auth-error) that reference CSS variables
+- `app/login/page.tsx`: Migrated from hardcoded zinc/hex to auth utility classes (done in prior session, included in commit)
+- `app/signup/page.tsx`: Same migration — all zinc-*, [#D4AF37] replaced with CSS variable-based utilities
+- `app/forgot-password/page.tsx`: Same migration
+- `components/auth/SignupConfirmation.tsx`: Same migration
+- Result: Any future color/design change in globals.css propagates to ALL auth pages automatically
 
-**1. v0 Marketing Homepage (commit `27e6267`)**
-- Full v0-generated marketing homepage split into sub-300-line components under `components/home/`
-- Components: HeroSection, AppShowcaseSection, AppDemos, TestimonialsSection, PricingSection, CTASection, LandingHeader, LandingFooter, LoginModal, LandingPage, landing-data.ts
-- Deleted obsolete: HomeModals, MoreToolsSection, PlatformSection, ViewerHelpers, home-data.ts
-- `app/page.tsx`: renders `<LandingPage />` for guests, redirects auth to `/dashboard`
-- Favicon: deleted `app/favicon.ico` (stale navy blue); `app/icon.svg` is sole favicon
+**2. 3D/360 Interactive Hero + App Demos**
+- Installed `@photo-sphere-viewer/core@5.14.1`
+- `components/home/PanoramaViewer.tsx` (NEW, 44 lines): React wrapper for photo-sphere-viewer
+- `components/home/HeroDemo.tsx` (NEW, 68 lines): Tabbed 360° Tour / 3D Model switcher using PanoramaViewer + ModelViewerClient
+- `components/home/AppDemo.tsx` (NEW, 88 lines): Reusable expand/collapse demo viewer with consistent controls (Maximize2/Minimize2) for per-app demos
+- `components/marketing-homepage.tsx`: 
+  - Hero: Replaced dashed placeholder with `<HeroDemo />` (live 360 panorama + 3D model tabs)
+  - App Showcase: Added `demoType`/`demoSrc` to AppShowcase interface; each app card now shows a live interactive demo
+  - Added Design Studio as third app (3D model demo using csb-stadium-model.glb)
+  - Renamed "Tour Builder" → "360 Tour Builder" with panorama demo (pletchers.jpg)
+  - Site Walk shows "Demo coming soon" placeholder
+  - AppShowcase grid still lg:grid-cols-2 — 3 apps renders 2+1 layout
 
-**2. Auth UI Dark Glass Overhaul (commit `4ccd1c2`)**
-- `app/login/page.tsx` (165 lines): full Dark Glass + Industrial Gold restyling
-- `app/signup/page.tsx` (196 lines, down from 306): Dark Glass + extracted confirmation
-- `app/forgot-password/page.tsx` (101 lines): full Dark Glass restyling
-- `components/auth/SignupConfirmation.tsx` (116 lines, NEW): extracted from signup for 300-line compliance
-- All: bg-zinc-950, glass cards (bg-zinc-900/60 backdrop-blur), gold #D4AF37 CTAs, white Reversed Lockup logo
+**3. Mobile Hamburger Menu Fix**
+- Sheet portal was inheriting light/white bg-background since it renders outside any `dark` class context
+- Fixed: Forced explicit dark colors on SheetContent (!bg-[hsl(240,6%,6%)], text-[hsl(0,0%,95%)], border-[hsla(45,82%,55%,0.12)])
+- Added real SVG brand logo to mobile slide-out menu
+- Close button styled with [&>button]:text-white
 
-**3. /apps Ghost Redirect Elimination (commit `4ccd1c2`)**
-- `middleware.ts`: removed `/apps` from auth-required list, all redirects → `/dashboard`
-- `app/(apps)/site-walk/page.tsx`: redirect → `/dashboard`
-- `app/(apps)/tour-builder/page.tsx`: redirect → `/dashboard`
-- `components/apps/AppSidebar.tsx`: settings href → `/dashboard`
-- Zero remaining `/apps` route references in codebase
+**4. Real Logo in Header + Footer**
+- Replaced Sparkles icon + "Slate360" text with real `/uploads/SLATE 360-Color Reversed Lockup.svg` in both desktop header and footer
 
-**4. Prior work included in merge (from `feature/dashboard-integration`)**
-- Dashboard moved to `app/(dashboard)/dashboard/page.tsx` (route group)
-- Mobile Sheet nav (`components/shared/MobileNavSheet.tsx`)
-- Single-app entitlement auto-navigate
-- `_v0_drop/` air-gap staging directory
-
-**Build:** ✅ 82 pages, 0 TS errors. Pushed to `origin/main` → Vercel auto-deploys to slate360.ai.
+**5. CEO Login**
+- Confirmed: `slate360ceo@gmail.com` / `Arlopear$76` — password was reset via Supabase Admin API in prior session
+- Account UUID: `f73fd954-d8dd-425f-bb93-0ce92cb65088`, email confirmed, is_super_admin: true
+- isSlateCeo check at lib/server/org-context.ts:102 is hardcoded email match
 
 ### What's Broken / Partially Done
-- **CRITICAL**: `market_scheduler_lock` table still has no RLS
-- **CRITICAL**: Portal view_count race condition (atomic SQL not deployed yet)
+- **marketing-homepage.tsx is 1003 lines** — needs extraction into sub-components (pre-existing, not introduced this session)
+- **CRITICAL** (pre-existing): `market_scheduler_lock` table still has no RLS
+- **CRITICAL** (pre-existing): Portal view_count race condition (atomic SQL not deployed yet)
 - `fix/slatedrop-external-uploads` — still needs merge to main (security patch)
-- Duplicate `STRIPE_WEBHOOK_SECRET` in `.env` line 75 (missing `whsec_` prefix)
-- Block Editor is UI-only (no backend persistence)
-- Rate limiting only on ~5 of 40+ API routes
-- Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars not set in Vercel
+- Supabase email templates still use purple gradients (not yet updated to gold)
+- Stats row from old homepage not carried forward (500+ Teams, 2M+ Photos, etc.)
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered)
-1. Merge `fix/slatedrop-external-uploads` → main (security patch, already reviewed)
-2. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role)
-3. **CRITICAL** — Deploy atomic `claim_deliverable_view()` RPC to fix portal view_count race
-4. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel
-5. Enable JWT hook in Supabase Dashboard → Auth → Hooks
+1. Test live deploy: verify 360 panorama + 3D model load on homepage (desktop + mobile)
+2. Test hamburger menu on mobile — confirm dark glass styling
+3. Test login with `slate360ceo@gmail.com` / `Arlopear$76`
+4. Update Supabase email templates to gold branding (currently purple gradients)
+5. Extract marketing-homepage.tsx into sub-300-line components
+6. Merge `fix/slatedrop-external-uploads` → main (security patch)
+7. Add RLS to `market_scheduler_lock`
+8. Deploy atomic `claim_deliverable_view()` RPC
 6. Add Block Editor backend persistence
 8. Expand rate limiting to remaining API routes
