@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default async function DashboardPage() {
-  const {
+  let {
     user,
     tier,
     orgId,
@@ -23,6 +23,15 @@ export default async function DashboardPage() {
   if (!orgId) {
     try {
       await ensureUserOrganization(user);
+      // Re-resolve so the page renders with the freshly-created org context
+      const fresh = await resolveServerOrgContext();
+      tier = fresh.tier;
+      orgId = fresh.orgId;
+      isSlateCeo = fresh.isSlateCeo;
+      isSlateStaff = fresh.isSlateStaff;
+      canAccessCeo = fresh.canAccessCeo;
+      canAccessMarket = fresh.canAccessMarket;
+      canAccessAthlete360 = fresh.canAccessAthlete360;
     } catch (error) {
       console.error("[dashboard] org bootstrap fallback failed", error);
     }

@@ -95,5 +95,71 @@ export async function ensureUserOrganization(user: User): Promise<string> {
     throw new Error(membershipErrorMessage);
   }
 
+  // Provision org_feature_flags (standalone apps default to false, trial limits)
+  await provisionOrgFeatureFlags(admin, insertedOrg.id);
+
+  // Provision a root SlateDrop org folder so the file browser works on first load
+  await provisionRootSlateDropFolder(admin, insertedOrg.id, user.id);
+
   return insertedOrg.id;
+}
+
+/**
+ * Insert a default org_feature_flags row for a new org.
+ * All standalone apps default to false; the org inherits trial limits from its tier.
+ */
+async function provisionOrgFeatureFlags(
+  admin: ReturnType<typeof createAdminClient>,
+  orgId: string,
+): Promise<void> {
+  const { error } = await admin.from("org_feature_flags").upsert(
+    {
+      org_id: orgId,
+      standalone_tour_builder: false,
+      standalone_punchwalk: false,
+      tour_builder_seat_limit: 0,
+      tour_builder_seats_used: 0,
+    },
+    { onConflict: "org_id" },
+  );
+  if (error) {
+    console.error("[org-bootstrap] org_feature_flags provision failed:", error.message);
+  }
+}
+
+/**
+ * Insert a root "SlateDrop" folder in project_folders for the org.
+ * This ensures the SlateDrop file browser has an org-level root on first load.
+ */
+async function provisionRootSlateDropFolder(
+  admin: ReturnType<typeof createAdminClient>,
+  orgId: string,
+  userId: string,
+): Promise<void> {
+  // Check if an org-level root already exists
+  const { data: existing } = await admin
+    .from("project_folders")
+    .select("id")
+    .eq("org_id", orgId)
+    .eq("scope", "org")
+    .eq("is_system", true)
+    .eq("folder_type", "root")
+    .maybeSingle();
+
+  if (existing?.id) return;
+
+  const { error } = await admin.from("project_folders").insert({
+    org_id: orgId,
+    name: "SlateDrop",
+    folder_path: `orgs/${orgId}/SlateDrop`,
+    scope: "org",
+    is_system: true,
+    folder_type: "root",
+    icon: "📂",
+    sort_order: 0,
+    created_by: userId,
+  });
+  if (error) {
+    console.error("[org-bootstrap] SlateDrop root folder provision failed:", error.message);
+  }
 }
