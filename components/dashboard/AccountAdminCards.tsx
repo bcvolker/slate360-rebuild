@@ -62,7 +62,7 @@ export default function AccountAdminCards({
             </div>
             <div className="h-2 rounded-full bg-zinc-700 overflow-hidden">
               <div
-                className="h-full rounded-full bg-[#FF4D00]"
+                className="h-full rounded-full bg-[#D4AF37]"
                 style={{
                   width: `${Math.min(((accountOverview?.usage.storageUsedGb ?? storageUsed) / (accountOverview?.usage.storageLimitGb ?? ent.maxStorageGB)) * 100, 100)}%`,
                 }}
@@ -151,13 +151,13 @@ export default function AccountAdminCards({
               value={apiKeyLabel}
               onChange={(e) => onApiKeyLabelChange(e.target.value)}
               placeholder="Key label (e.g. CI Runner)"
-              className="flex-1 px-3 py-2 rounded-lg border border-zinc-700 bg-zinc-800 text-xs text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50"
+              className="flex-1 px-3 py-2 rounded-lg border border-zinc-700 bg-zinc-800 text-xs text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
             />
             <button
               onClick={onGenerateApiKey}
               disabled={apiKeyBusy === "create"}
               className="px-3 py-2 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-all disabled:opacity-60"
-              style={{ backgroundColor: "#FF4D00" }}
+              style={{ backgroundColor: "#D4AF37" }}
             >
               {apiKeyBusy === "create" ? "Generating…" : "Generate Key"}
             </button>

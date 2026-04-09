@@ -44,7 +44,7 @@ export default function MarketPrimaryNav({ tabs, activeTabId, onTabChange }: Mar
             onClick={() => onTabChange(tab.id)}
             className={`group flex items-center gap-3 px-8 py-5 text-sm font-medium border-b-2 transition-all ${
               isActive
-                ? "border-orange-500 text-white"
+                ? "border-amber-500 text-white"
                 : "border-transparent text-slate-400 hover:text-slate-200 hover:border-zinc-800"
             }`}
           >

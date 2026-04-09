@@ -12,7 +12,7 @@ export const FOCUS_AREAS = [
 ];
 
 export const RISK_COLORS = {
-  hot: "#FF4D00",
+  hot: "#D4AF37",
   "high-risk": "#ef4444",
   "high-potential": "#22c55e",
   construction: "#a855f7",

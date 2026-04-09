@@ -64,7 +64,7 @@ export default function CeoCommandCenterClient({ user, tier, isCeo = false, inte
       tier={tier}
       title="CEO Command Center"
       icon={Shield}
-      accent="#FF4D00"
+      accent="#D4AF37"
       status="live"
       isCeo={isCeo}
       internalAccess={internalAccess}
@@ -84,7 +84,7 @@ export default function CeoCommandCenterClient({ user, tier, isCeo = false, inte
             onClick={() => setActiveTab(id)}
             className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
               activeTab === id
-                ? "bg-[#FF4D00] text-white shadow-sm"
+                ? "bg-[#D4AF37] text-white shadow-sm"
                 : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
             }`}
           >

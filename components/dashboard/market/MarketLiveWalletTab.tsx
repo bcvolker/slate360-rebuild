@@ -114,7 +114,7 @@ export default function MarketLiveWalletTab({
                   <button
                     onClick={onApproveUsdc}
                     disabled={isApproving}
-                    className="w-full rounded-xl border border-[#FF4D00]/40 bg-[#FF4D00]/10 px-4 py-2.5 text-sm font-semibold text-[#FF4D00] transition hover:bg-[#FF4D00]/20 disabled:opacity-50"
+                    className="w-full rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-2.5 text-sm font-semibold text-[#D4AF37] transition hover:bg-[#D4AF37]/20 disabled:opacity-50"
                   >
                     {isApproving ? "Approving…" : "Approve USDC Spending"}
                   </button>
@@ -143,7 +143,7 @@ export default function MarketLiveWalletTab({
                       onClick={() => onWalletChoiceChange(w)}
                       className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
                         walletChoice === w
-                          ? "border-[#FF4D00]/50 bg-[#FF4D00]/15 text-[#FF4D00]"
+                          ? "border-[#D4AF37]/50 bg-[#D4AF37]/15 text-[#D4AF37]"
                           : "border-zinc-700 bg-zinc-800/50 text-slate-400 hover:border-zinc-600"
                       }`}
                     >
@@ -154,7 +154,7 @@ export default function MarketLiveWalletTab({
                 <button
                   onClick={onConnectWallet}
                   disabled={isConnecting}
-                  className="w-full rounded-xl border border-[#FF4D00]/40 bg-[#FF4D00]/10 px-4 py-2.5 text-sm font-semibold text-[#FF4D00] transition hover:bg-[#FF4D00]/20 disabled:opacity-50"
+                  className="w-full rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-2.5 text-sm font-semibold text-[#D4AF37] transition hover:bg-[#D4AF37]/20 disabled:opacity-50"
                 >
                   {isConnecting ? "Connecting…" : "Connect Wallet"}
                 </button>
@@ -204,7 +204,7 @@ export default function MarketLiveWalletTab({
             {/* Progress bar */}
             <div className="h-1.5 rounded-full bg-slate-800 mb-5 overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#FF4D00] to-orange-400 transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-[#D4AF37] to-orange-400 transition-all duration-500"
                 style={{ width: `${(passedCount / CHECKLIST_ITEMS.length) * 100}%` }}
               />
             </div>
@@ -248,7 +248,7 @@ export default function MarketLiveWalletTab({
             </button>
             <button
               onClick={() => onNavigate("direct-buy")}
-              className="flex-1 rounded-xl border border-[#FF4D00]/30 bg-[#FF4D00]/10 px-4 py-3 text-sm font-medium text-[#FF4D00] transition hover:bg-[#FF4D00]/20"
+              className="flex-1 rounded-xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-4 py-3 text-sm font-medium text-[#D4AF37] transition hover:bg-[#D4AF37]/20"
             >
               Browse Markets →
             </button>

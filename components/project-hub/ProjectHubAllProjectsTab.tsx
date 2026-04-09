@@ -113,7 +113,7 @@ export default function ProjectHubAllProjectsTab({ loading, projects, onOpenDele
               <p className="text-sm text-zinc-400 line-clamp-2">{project.description || "No description provided."}</p>
               <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between text-xs font-semibold text-zinc-500">
                 <span>Created: {new Date(project.created_at).toLocaleDateString()}</span>
-                <span className="text-[#FF4D00] group-hover:underline">Open Hub →</span>
+                <span className="text-[#D4AF37] group-hover:underline">Open Hub →</span>
               </div>
             </Link>
           </div>

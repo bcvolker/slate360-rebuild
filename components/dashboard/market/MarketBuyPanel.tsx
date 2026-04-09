@@ -138,7 +138,7 @@ export default function MarketBuyPanel({
               onClick={() => onAmountChange(v)}
               className={`flex-1 py-4 rounded-2xl text-sm font-semibold transition-all ${
                 amount === v 
-                  ? "bg-[#FF4D00] text-white shadow-lg shadow-orange-500/30" 
+                  ? "bg-[#D4AF37] text-white shadow-lg shadow-amber-500/30" 
                   : "bg-slate-800 hover:bg-zinc-800"
               }`}
             >
@@ -183,7 +183,7 @@ export default function MarketBuyPanel({
       <button
         onClick={onSubmit}
         disabled={submitting || !payloadReady}
-        className="w-full py-4 rounded-2xl bg-[#FF4D00] hover:bg-orange-600 disabled:opacity-50 font-bold text-lg transition-all active:scale-95"
+        className="w-full py-4 rounded-2xl bg-[#D4AF37] hover:bg-amber-600 disabled:opacity-50 font-bold text-lg transition-all active:scale-95"
       >
         {submitting 
           ? "SUBMITTING..." 

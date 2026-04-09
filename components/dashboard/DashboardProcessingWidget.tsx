@@ -66,7 +66,7 @@ export default function DashboardProcessingWidget({ span, widgetColor, widgetSiz
                 <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${job.progress}%`, backgroundColor: "#FF4D00" }}
+                    style={{ width: `${job.progress}%`, backgroundColor: "#D4AF37" }}
                   />
                 </div>
                 <p className="text-[9px] text-gray-400 text-right mt-0.5">{job.progress}%</p>

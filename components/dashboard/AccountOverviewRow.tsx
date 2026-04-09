@@ -157,7 +157,7 @@ export default function AccountOverviewRow({
         action={
           <button
             onClick={onOpenBillingPortal}
-            className="text-[11px] font-semibold text-[#FF4D00] hover:underline"
+            className="text-[11px] font-semibold text-[#D4AF37] hover:underline"
           >
             {isAdmin ? "Manage Billing" : "View Billing"}
           </button>
@@ -238,7 +238,7 @@ export default function AccountOverviewRow({
               <button
                 onClick={onUpgradePlan}
                 className="text-xs font-semibold py-2 rounded-lg text-white hover:opacity-90 transition-all"
-                style={{ backgroundColor: "#FF4D00" }}
+                style={{ backgroundColor: "#D4AF37" }}
               >
                 Upgrade
               </button>

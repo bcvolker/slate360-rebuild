@@ -88,9 +88,9 @@ export default function PrivacyPage() {
         </div>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Link href="/terms" className="text-sm font-semibold text-[#FF4D00] hover:underline">Terms of Service</Link>
+          <Link href="/terms" className="text-sm font-semibold text-[#D4AF37] hover:underline">Terms of Service</Link>
           <span className="text-gray-300">·</span>
-          <Link href="/signup" className="text-sm font-semibold text-[#FF4D00] hover:underline">Create Account</Link>
+          <Link href="/signup" className="text-sm font-semibold text-[#D4AF37] hover:underline">Create Account</Link>
           <span className="text-gray-300">·</span>
           <Link href="/" className="text-sm font-semibold text-gray-600 hover:underline">Back to Home</Link>
         </div>

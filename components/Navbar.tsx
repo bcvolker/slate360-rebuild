@@ -55,7 +55,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <img
-            src="/logo.svg"
+            src="/uploads/SLATE 360-Color Reversed Lockup.svg"
             alt="Slate360"
             className="w-auto transition-all duration-300 ease-in-out"
             style={{ height: isHome && !scrolled ? "2.75rem" : "2rem" }}
@@ -66,14 +66,14 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           <Link
             href="/login"
-            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-[#FF4D00] hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-[#D4AF37] hover:bg-gray-50 transition-colors"
           >
             Sign in
           </Link>
           <Link
             href="/signup"
             className="px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-all hover:opacity-90 hover:scale-105"
-            style={{ backgroundColor: "#FF4D00" }}
+            style={{ backgroundColor: "#D4AF37" }}
           >
             Start free trial
           </Link>
@@ -108,14 +108,14 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors py-2"
+                  className="text-lg font-semibold text-gray-900 hover:text-[#D4AF37] transition-colors py-2"
                 >
                   Login
                 </Link>
                 <Link
                   href="/contact"
                   onClick={() => setMobileOpen(false)}
-                  className="text-lg font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors py-2"
+                  className="text-lg font-semibold text-gray-900 hover:text-[#D4AF37] transition-colors py-2"
                 >
                   Contact
                 </Link>
@@ -128,7 +128,7 @@ export default function Navbar() {
                 href="/signup"
                 onClick={() => setMobileOpen(false)}
                 className="flex items-center justify-center w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 shadow-sm"
-                style={{ backgroundColor: "#FF4D00" }}
+                style={{ backgroundColor: "#D4AF37" }}
               >
                 Start free trial
               </Link>

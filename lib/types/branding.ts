@@ -15,11 +15,11 @@ export interface OrgBranding {
 /** Hard-coded Slate360 brand identity — used when org has no custom branding. */
 export const DEFAULT_BRANDING: OrgBranding = {
   is_default: true,
-  logo_url: "/logo.svg",
-  logo_dark_url: "/logo-dark.svg",
+  logo_url: "/uploads/SLATE 360-Color Reversed Lockup.svg",
+  logo_dark_url: "/uploads/SLATE 360-Color Reversed Lockup.svg",
   favicon_url: "/favicon.ico",
   brand_name: "Slate360",
-  primary_color: "#FF4D00",
+  primary_color: "#D4AF37",
   accent_color: "#6366F1",
   font_family: "Inter, system-ui, sans-serif",
 };

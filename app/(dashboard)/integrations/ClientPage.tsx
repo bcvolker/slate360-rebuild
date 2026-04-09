@@ -84,7 +84,7 @@ export default function IntegrationsHubPage({ user, tier, isCeo = false, interna
                 <div className="mt-4 flex items-center justify-between">
                   <button
                     onClick={() => setConnected((prev) => ({ ...prev, [integration.id]: !prev[integration.id] }))}
-                    className="inline-flex items-center gap-2 rounded-lg bg-[#FF4D00] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#E64500]"
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#D4AF37] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#E64500]"
                   >
                     <CheckCircle2 size={14} />
                     {isConnected ? "Connected" : "Connect (2-Way Sync)"}

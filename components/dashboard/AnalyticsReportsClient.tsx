@@ -129,7 +129,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
             <select
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm font-semibold text-zinc-200 focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm font-semibold text-zinc-200 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20"
             >
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -165,7 +165,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
                       <button
                         key={t.id}
                         onClick={() => { setSelectedType(t.id); setTypeOpen(false); }}
-                        className={`w-full px-4 py-3 text-left transition-colors hover:bg-zinc-700 ${selectedType === t.id ? "bg-[#FF4D00]/10" : ""}`}
+                        className={`w-full px-4 py-3 text-left transition-colors hover:bg-zinc-700 ${selectedType === t.id ? "bg-[#D4AF37]/10" : ""}`}
                       >
                         <p className="text-sm font-semibold text-white">{t.label}</p>
                         <p className="mt-0.5 text-xs text-zinc-400">{t.desc}</p>
@@ -183,7 +183,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm font-semibold text-zinc-200 focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm font-semibold text-zinc-200 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20"
             >
               {DATE_RANGES.map((r) => (
                 <option key={r.value} value={r.value}>{r.label}</option>
@@ -196,7 +196,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
             <button
               onClick={() => void handleBuild()}
               disabled={building || selectedSections.length === 0 || !selectedProjectId}
-              className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-[#FF4D00] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#E04400] disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-[#D4AF37] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#E04400] disabled:opacity-50 transition-colors"
             >
               {building ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
               Build Report
@@ -239,7 +239,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
       <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-sm font-black text-white">
-            <Layers size={15} className="text-[#FF4D00]" /> Saved Reports
+            <Layers size={15} className="text-[#D4AF37]" /> Saved Reports
           </h2>
           <button
             onClick={() => void requestExport("csv", "projects")}

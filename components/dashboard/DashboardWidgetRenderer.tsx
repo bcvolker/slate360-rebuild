@@ -154,7 +154,7 @@ export default function DashboardWidgetRenderer({
   ctx: WidgetRendererContext;
 }): ReactNode {
   const span = getWidgetSpan(id, widgetSize);
-  const widgetColor = WIDGET_META.find((m) => m.id === id)?.color ?? "#FF4D00";
+  const widgetColor = WIDGET_META.find((m) => m.id === id)?.color ?? "#D4AF37";
   const isExpanded = widgetSize !== "default" && widgetSize !== "sm";
   const handleSetSize = inPopout
     ? undefined
@@ -191,7 +191,7 @@ export default function DashboardWidgetRenderer({
     case "slatedrop":
       return (
         <WidgetCard key={id} icon={FolderOpen} title="SlateDrop" span={span} delay={0} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}
-          action={<Link href="/slatedrop" className="text-[11px] font-bold text-[#FF4D00] hover:underline">Open →</Link>}
+          action={<Link href="/slatedrop" className="text-[11px] font-bold text-[#D4AF37] hover:underline">Open →</Link>}
         >
           <SlateDropWidgetBody user={ctx.user} tier={ctx.tier} />
         </WidgetCard>
@@ -201,7 +201,7 @@ export default function DashboardWidgetRenderer({
       return (
         <WidgetCard key={id} icon={CreditCard} title="Data Usage & Credits" span={span} delay={0} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}
           action={
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style={{ backgroundColor: "#FF4D001A", color: "#FF4D00" }}>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style={{ backgroundColor: "#D4AF371A", color: "#D4AF37" }}>
               {ctx.entitlements.label}
             </span>
           }
@@ -213,7 +213,7 @@ export default function DashboardWidgetRenderer({
                 <span className="text-xs font-bold text-white">{ctx.creditsUsed.toLocaleString()} / {ctx.entitlements.maxCredits.toLocaleString()}</span>
               </div>
               <div className="h-2.5 rounded-full bg-zinc-700 overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.min((ctx.creditsUsed / ctx.entitlements.maxCredits) * 100, 100)}%`, backgroundColor: "#FF4D00" }} />
+                <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.min((ctx.creditsUsed / ctx.entitlements.maxCredits) * 100, 100)}%`, backgroundColor: "#D4AF37" }} />
               </div>
               <p className="text-[11px] text-zinc-500 mt-1.5">{(ctx.entitlements.maxCredits - ctx.creditsUsed).toLocaleString()} credits remaining this period</p>
             </div>
@@ -223,14 +223,14 @@ export default function DashboardWidgetRenderer({
                 <span className="text-xs font-bold text-white">{ctx.storageUsed} GB / {ctx.entitlements.maxStorageGB} GB</span>
               </div>
               <div className="h-2.5 rounded-full bg-zinc-700 overflow-hidden">
-                <div className="h-full rounded-full bg-[#FF4D00] transition-all duration-1000 ease-out" style={{ width: `${Math.min((ctx.storageUsed / ctx.entitlements.maxStorageGB) * 100, 100)}%` }} />
+                <div className="h-full rounded-full bg-[#D4AF37] transition-all duration-1000 ease-out" style={{ width: `${Math.min((ctx.storageUsed / ctx.entitlements.maxStorageGB) * 100, 100)}%` }} />
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
               <button onClick={ctx.handleBuyCredits} disabled={ctx.billingBusy !== null} className="flex-1 text-xs font-semibold py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:bg-zinc-800 transition-colors disabled:opacity-60">
                 {ctx.billingBusy === "credits" ? <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span> : "Buy credits"}
               </button>
-              <button onClick={ctx.handleUpgradePlan} disabled={ctx.billingBusy !== null} className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-all hover:opacity-90 disabled:opacity-60" style={{ backgroundColor: "#FF4D00" }}>
+              <button onClick={ctx.handleUpgradePlan} disabled={ctx.billingBusy !== null} className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-all hover:opacity-90 disabled:opacity-60" style={{ backgroundColor: "#D4AF37" }}>
                 {ctx.billingBusy === "upgrade" ? <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span> : "Upgrade plan"}
               </button>
             </div>
@@ -255,7 +255,7 @@ export default function DashboardWidgetRenderer({
                 {job.status === "processing" && (
                   <div className="w-16">
                     <div className="h-1.5 rounded-full bg-zinc-700 overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${job.progress}%`, backgroundColor: "#FF4D00" }} />
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${job.progress}%`, backgroundColor: "#D4AF37" }} />
                     </div>
                     <p className="text-[9px] text-zinc-500 text-right mt-0.5">{job.progress}%</p>
                   </div>
@@ -281,7 +281,7 @@ export default function DashboardWidgetRenderer({
                   <span className="text-[9px] text-zinc-500 font-medium">{f.credits > 0 ? `${(f.credits / 1000).toFixed(1)}k` : ""}</span>
                   <div className="w-full relative flex items-end justify-center" style={{ height: "80px" }}>
                     <div className="w-full max-w-[32px] rounded-t-md transition-all duration-700 ease-out hover:opacity-80"
-                      style={{ height: `${(f.credits / ctx.financialMax) * 100}%`, backgroundColor: i === ctx.liveFinancial.length - 1 ? "#FF4D00" : "#6366F1", opacity: i === ctx.liveFinancial.length - 1 ? 1 : 0.6 }}
+                      style={{ height: `${(f.credits / ctx.financialMax) * 100}%`, backgroundColor: i === ctx.liveFinancial.length - 1 ? "#D4AF37" : "#6366F1", opacity: i === ctx.liveFinancial.length - 1 ? 1 : 0.6 }}
                     />
                   </div>
                   <span className="text-[10px] text-zinc-500">{f.month}</span>
@@ -349,7 +349,7 @@ export default function DashboardWidgetRenderer({
             </div>
             <div className="space-y-1.5">
               {(ctx.liveWeather?.constructionAlerts ?? DEMO_WEATHER.constructionAlerts).map((a, i) => (
-                <div key={i} className={`flex items-start gap-2 p-2.5 rounded-xl text-xs ${a.severity === "warning" ? "bg-amber-50 text-amber-700" : a.severity === "caution" ? "bg-orange-50 text-orange-700" : "bg-blue-50 text-blue-700"}`}>
+                <div key={i} className={`flex items-start gap-2 p-2.5 rounded-xl text-xs ${a.severity === "warning" ? "bg-amber-50 text-amber-700" : a.severity === "caution" ? "bg-amber-50 text-orange-700" : "bg-blue-50 text-blue-700"}`}>
                   <AlertTriangle size={12} className="mt-0.5 shrink-0" /><span className="leading-relaxed">{a.message}</span>
                 </div>
               ))}
@@ -364,16 +364,16 @@ export default function DashboardWidgetRenderer({
     case "continue":
       return (
         <WidgetCard key={id} icon={Clock} title="Continue Working" span={span} delay={250} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}
-          action={<Link href="/dashboard" className="text-[11px] font-semibold text-[#FF4D00] hover:underline flex items-center gap-0.5">View all <ArrowRight size={11} /></Link>}
+          action={<Link href="/dashboard" className="text-[11px] font-semibold text-[#D4AF37] hover:underline flex items-center gap-0.5">View all <ArrowRight size={11} /></Link>}
         >
           <div className="space-y-2">
             {ctx.liveContinueWorking.map((item, i) => {
               const Icon = item.kind === "design" ? Palette : item.kind === "tour" ? Compass : item.kind === "rfi" ? MessageSquare : item.kind === "report" ? BarChart3 : FileText;
               return (
                 <Link key={i} href={item.href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition-colors group">
-                  <div className="w-9 h-9 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-[#FF4D00] transition-colors"><Icon size={16} /></div>
+                  <div className="w-9 h-9 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-[#D4AF37] transition-colors"><Icon size={16} /></div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-white truncate group-hover:text-[#FF4D00] transition-colors">{item.title}</p>
+                    <p className="text-xs font-semibold text-white truncate group-hover:text-[#D4AF37] transition-colors">{item.title}</p>
                     <p className="text-[10px] text-zinc-500 truncate">{item.subtitle}</p>
                   </div>
                   <span className="text-[10px] text-zinc-600 shrink-0">{item.time}</span>
@@ -421,21 +421,21 @@ export default function DashboardWidgetRenderer({
             <div className="space-y-3">
               <div>
                 <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Title</label>
-                <input type="text" placeholder="What feature would you like?" value={ctx.suggestTitle} onChange={(e) => ctx.setSuggestTitle(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 transition-all" />
+                <input type="text" placeholder="What feature would you like?" value={ctx.suggestTitle} onChange={(e) => ctx.setSuggestTitle(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 transition-all" />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Description</label>
-                <textarea placeholder="Tell us more about what you need…" value={ctx.suggestDesc} onChange={(e) => ctx.setSuggestDesc(e.target.value)} rows={3} className="w-full px-3 py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 transition-all resize-none" />
+                <textarea placeholder="Tell us more about what you need…" value={ctx.suggestDesc} onChange={(e) => ctx.setSuggestDesc(e.target.value)} rows={3} className="w-full px-3 py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 transition-all resize-none" />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Priority</label>
                 <div className="flex gap-2">
                   {(["low", "medium", "high"] as const).map((p) => (
-                    <button key={p} onClick={() => ctx.setSuggestPriority(p)} className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-all capitalize ${ctx.suggestPriority === p ? "border-[#FF4D00] bg-[#FF4D00]/10 text-[#FF4D00]" : "border-zinc-700 text-zinc-400 hover:bg-zinc-800"}`}>{p}</button>
+                    <button key={p} onClick={() => ctx.setSuggestPriority(p)} className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-all capitalize ${ctx.suggestPriority === p ? "border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]" : "border-zinc-700 text-zinc-400 hover:bg-zinc-800"}`}>{p}</button>
                   ))}
                 </div>
               </div>
-              <button onClick={ctx.handleSuggestFeature} disabled={ctx.suggestLoading || !ctx.suggestTitle.trim() || !ctx.suggestDesc.trim()} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50" style={{ backgroundColor: "#FF4D00" }}>
+              <button onClick={ctx.handleSuggestFeature} disabled={ctx.suggestLoading || !ctx.suggestTitle.trim() || !ctx.suggestDesc.trim()} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50" style={{ backgroundColor: "#D4AF37" }}>
                 {ctx.suggestLoading ? <Loader2 size={14} className="animate-spin" /> : <><Send size={14} /> Submit suggestion</>}
               </button>
             </div>
@@ -446,7 +446,7 @@ export default function DashboardWidgetRenderer({
     case "seats":
       return (
         <WidgetCard key={id} icon={Users} title="Seat Management" span={span} delay={400} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}
-          action={<button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: "#FF4D00" }}><UserPlus size={13} /> Invite member</button>}
+          action={<button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: "#D4AF37" }}><UserPlus size={13} /> Invite member</button>}
         >
           <div>
             <div className="flex items-center gap-6 mb-5">
@@ -476,7 +476,7 @@ export default function DashboardWidgetRenderer({
                       <td className="py-3 pr-4 text-xs font-semibold text-white">{m.name}</td>
                       <td className="py-3 pr-4 text-xs text-zinc-400">{m.email}</td>
                       <td className="py-3 pr-4">
-                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${m.role === "Owner" ? "bg-[#FF4D00]/10 text-[#FF4D00]" : m.role === "Admin" ? "bg-[#6366F1]/10 text-[#6366F1]" : "bg-zinc-800 text-zinc-400"}`}>{m.role}</span>
+                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${m.role === "Owner" ? "bg-[#D4AF37]/10 text-[#D4AF37]" : m.role === "Admin" ? "bg-[#6366F1]/10 text-[#6366F1]" : "bg-zinc-800 text-zinc-400"}`}>{m.role}</span>
                       </td>
                       <td className="py-3">
                         <span className={`flex items-center gap-1.5 text-[10px] font-medium ${m.active ? "text-emerald-600" : "text-zinc-500"}`}>
@@ -497,10 +497,10 @@ export default function DashboardWidgetRenderer({
       return (
         <WidgetCard key={id} icon={Zap} title="Unlock more power" span={span} delay={400} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}>
           <div className="text-center py-4">
-            <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#FF4D001A" }}><Zap size={24} style={{ color: "#FF4D00" }} /></div>
+            <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#D4AF371A" }}><Zap size={24} style={{ color: "#D4AF37" }} /></div>
             <p className="text-sm font-bold text-white mb-2">Upgrade to Business</p>
             <p className="text-xs text-zinc-400 mb-4 leading-relaxed">Get seat management, Project Hub, advanced analytics, and 30,000 credits per month.</p>
-            <Link href="/plans?plan=business&billing=monthly" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02]" style={{ backgroundColor: "#FF4D00" }}>
+            <Link href="/plans?plan=business&billing=monthly" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02]" style={{ backgroundColor: "#D4AF37" }}>
               View plans <ArrowRight size={13} />
             </Link>
           </div>

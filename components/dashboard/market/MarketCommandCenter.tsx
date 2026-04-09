@@ -151,7 +151,7 @@ export default function MarketCommandCenter({
                 {openTrades.length > 3 && (
                   <button
                     onClick={() => onNavigate("results")}
-                    className="text-[#FF4D00] text-sm mt-2 hover:underline"
+                    className="text-[#D4AF37] text-sm mt-2 hover:underline"
                   >
                     View all {openTrades.length} positions →
                   </button>
@@ -170,14 +170,14 @@ export default function MarketCommandCenter({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleSearchKeyPress}
-              className="w-full p-2 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-100 outline-none focus:ring-1 focus:ring-[#FF4D00] mb-3"
+              className="w-full p-2 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-100 outline-none focus:ring-1 focus:ring-[#D4AF37] mb-3"
             />
             <div className="quick-filters flex flex-wrap gap-2">
               {CATEGORY_FILTERS.map(cat => (
                 <button
                   key={cat}
                   onClick={() => handleCategorySelect(cat)}
-                  className={`text-sm px-3 py-1 ${category === (cat === "All" ? "" : cat) ? "text-[#FF4D00]" : "text-zinc-400"} hover:text-[#FF4D00] transition-colors`}
+                  className={`text-sm px-3 py-1 ${category === (cat === "All" ? "" : cat) ? "text-[#D4AF37]" : "text-zinc-400"} hover:text-[#D4AF37] transition-colors`}
                 >
                   {cat}
                 </button>
@@ -214,19 +214,19 @@ export default function MarketCommandCenter({
       <div className="quick-actions flex justify-center gap-6 p-4 border-t border-zinc-800">
         <button
           onClick={() => onNavigate("automation")}
-          className="text-[#FF4D00] text-sm hover:underline"
+          className="text-[#D4AF37] text-sm hover:underline"
         >
           Set Up Auto-Buy
         </button>
         <button
           onClick={() => onNavigate("results")}
-          className="text-[#FF4D00] text-sm hover:underline"
+          className="text-[#D4AF37] text-sm hover:underline"
         >
           View All Results
         </button>
         <button
           onClick={() => onNavigate("live-wallet")}
-          className="text-[#FF4D00] text-sm hover:underline"
+          className="text-[#D4AF37] text-sm hover:underline"
         >
           Manage Wallet
         </button>

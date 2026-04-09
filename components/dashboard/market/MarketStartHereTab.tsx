@@ -70,7 +70,7 @@ export default function MarketStartHereTab({
           onClick={() => onNavigate("direct-buy")} 
           className="action-card bg-zinc-900 rounded-2xl p-4 text-left hover:bg-zinc-800 transition-colors"
         >
-          <div className="icon mb-2 text-[#FF4D00]">🔍</div>
+          <div className="icon mb-2 text-[#D4AF37]">🔍</div>
           <h2 className="text-lg font-semibold text-slate-100">Browse Markets</h2>
           <p className="text-sm text-slate-400">Find and trade on current opportunities</p>
         </button>
@@ -78,7 +78,7 @@ export default function MarketStartHereTab({
           onClick={() => onNavigate("automation")} 
           className="action-card bg-zinc-900 rounded-2xl p-4 text-left hover:bg-zinc-800 transition-colors"
         >
-          <div className="icon mb-2 text-[#FF4D00]">⚙️</div>
+          <div className="icon mb-2 text-[#D4AF37]">⚙️</div>
           <h2 className="text-lg font-semibold text-slate-100">Set Up Automation</h2>
           <p className="text-sm text-slate-400">Let the system trade for you</p>
         </button>
@@ -86,7 +86,7 @@ export default function MarketStartHereTab({
           onClick={() => onNavigate("results")} 
           className="action-card bg-zinc-900 rounded-2xl p-4 text-left hover:bg-zinc-800 transition-colors"
         >
-          <div className="icon mb-2 text-[#FF4D00]">📊</div>
+          <div className="icon mb-2 text-[#D4AF37]">📊</div>
           <h2 className="text-lg font-semibold text-slate-100">View Results</h2>
           <p className="text-sm text-slate-400">Track your trades and performance</p>
         </button>

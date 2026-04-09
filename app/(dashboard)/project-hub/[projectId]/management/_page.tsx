@@ -56,7 +56,7 @@ export default function ProjectManagementPage() {
           </Link>
           <ViewCustomizer storageKey={`viewprefs-management-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
           <Link href={`/project-hub/${projectId}/submittals`}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF4D00] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition">
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition">
             <FileText size={14} /> AIA Documents
           </Link>
         </div>
@@ -65,10 +65,10 @@ export default function ProjectManagementPage() {
       {/* ── Quick stats ── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: "Total Stakeholders", value: sCounts.total, color: "text-[#FF4D00]", icon: Users },
+          { label: "Total Stakeholders", value: sCounts.total, color: "text-[#D4AF37]", icon: Users },
           { label: "Active Contracts", value: cCounts.executed, color: "text-emerald-600", icon: FileSignature },
           { label: "Contracts Drafted", value: cCounts.draft, color: "text-amber-600", icon: FileText },
-          { label: "Subcontractors", value: sCounts.subs, color: "text-orange-600", icon: Building2 },
+          { label: "Subcontractors", value: sCounts.subs, color: "text-amber-600", icon: Building2 },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm flex flex-col gap-2">
             <div className="flex items-center justify-between"><s.icon size={14} className={s.color} /></div>
@@ -82,11 +82,11 @@ export default function ProjectManagementPage() {
       <div className="flex items-center gap-2 border-b border-gray-100 pb-0">
         {TAB_DEF.map((t) => (
           <button key={t.id} onClick={() => setActiveTab(t.id)}
-            className={["inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors", activeTab === t.id ? "border-[#FF4D00] text-[#FF4D00]" : "border-transparent text-gray-500 hover:text-gray-700"].join(" ")}>
+            className={["inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors", activeTab === t.id ? "border-[#D4AF37] text-[#D4AF37]" : "border-transparent text-gray-500 hover:text-gray-700"].join(" ")}>
             <t.icon size={14} />
             {t.label}
             {t.count !== undefined && (
-              <span className={["rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none", activeTab === t.id ? "bg-[#FF4D00]/10 text-[#FF4D00]" : "bg-gray-100 text-gray-500"].join(" ")}>{t.count}</span>
+              <span className={["rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none", activeTab === t.id ? "bg-[#D4AF37]/10 text-[#D4AF37]" : "bg-gray-100 text-gray-500"].join(" ")}>{t.count}</span>
             )}
           </button>
         ))}

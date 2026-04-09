@@ -105,7 +105,7 @@ export default function MarketResultsTab({
             <p>No trades yet — browse markets to get started</p>
             <button 
               onClick={() => onNavigate("direct-buy")} 
-              className="mt-2 px-4 py-2 bg-[#FF4D00] rounded-2xl text-slate-100 hover:opacity-90 transition-opacity"
+              className="mt-2 px-4 py-2 bg-[#D4AF37] rounded-2xl text-slate-100 hover:opacity-90 transition-opacity"
             >
               Browse Markets
             </button>

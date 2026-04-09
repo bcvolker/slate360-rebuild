@@ -222,7 +222,7 @@ export default function CeoSubscriberDirectory({
                       <Bot size={10} className="mr-1 inline" />
                       Market
                     </span>
-                    <span className={`rounded-full px-2 py-1 ${athleteOn ? "bg-orange-100 text-orange-700" : "bg-gray-100 text-gray-400"}`}>
+                    <span className={`rounded-full px-2 py-1 ${athleteOn ? "bg-amber-100 text-orange-700" : "bg-gray-100 text-gray-400"}`}>
                       <Dumbbell size={10} className="mr-1 inline" />
                       A360
                     </span>
@@ -232,7 +232,7 @@ export default function CeoSubscriberDirectory({
                     <button
                       disabled={pending || entry.isOwnerAccount || marketOn}
                       onClick={() => void applyMarketAccess(entry)}
-                      className="rounded-lg bg-[#FF4D00] px-3 py-2 text-xs font-bold text-white hover:bg-[#E04400] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rounded-lg bg-[#D4AF37] px-3 py-2 text-xs font-bold text-white hover:bg-[#E04400] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {pending ? "Saving..." : marketOn ? "Market Enabled" : "Grant Market"}
                     </button>

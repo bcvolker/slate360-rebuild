@@ -40,7 +40,7 @@ export default function MarketOpenPositionsPanel({ trades, onOpenTrade }: { trad
               <div className="text-right shrink-0">
                 <PnlValue value={trade.pnl ?? 0} />
                 <p className="text-[10px] text-slate-500 mt-1">Opened {new Date(trade.createdAt).toLocaleString()}</p>
-                <p className="mt-2 text-[11px] font-semibold text-[#FF4D00]">Open details →</p>
+                <p className="mt-2 text-[11px] font-semibold text-[#D4AF37]">Open details →</p>
               </div>
             </button>
           ))}

@@ -32,7 +32,7 @@ export default function MarketConsoleHeaderStrip({
   return (
     <div className="mb-8 flex items-center justify-between rounded-3xl border border-zinc-800 bg-zinc-950 px-8 py-5">
       <div className="flex items-center gap-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 text-2xl">🤖</div>
+        <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-2xl">🤖</div>
         <div>
           <div className="text-xs font-mono tracking-[2px] text-slate-500">MARKET ROBOT</div>
           <div className="text-2xl font-semibold text-white -mt-1">{activeTabLabel}</div>

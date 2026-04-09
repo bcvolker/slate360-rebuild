@@ -16,7 +16,7 @@ interface Props {
   architectName: string;
 }
 
-const inp = "w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]/30 placeholder:text-zinc-500";
+const inp = "w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 placeholder:text-zinc-500";
 const lbl = "mb-1 block text-xs font-bold text-zinc-300";
 
 export default function ScheduleForm({ form, setForm, editingId, saving, onSubmit, onDelete, onClose, contractorName, ownerName, architectName }: Props) {
@@ -39,20 +39,20 @@ export default function ScheduleForm({ form, setForm, editingId, saving, onSubmi
             <div><label className={lbl}>Priority</label><select value={form.priority} onChange={(e) => u({ priority: e.target.value })} className={inp}>{PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}</select></div>
           </div>
           <div>
-            <label className={lbl}>% Complete — <span className="text-[#FF4D00]">{form.percentComplete}%</span></label>
-            <input type="range" min="0" max="100" step="5" value={form.percentComplete} onChange={(e) => u({ percentComplete: e.target.value })} className="w-full accent-[#FF4D00]" />
+            <label className={lbl}>% Complete — <span className="text-[#D4AF37]">{form.percentComplete}%</span></label>
+            <input type="range" min="0" max="100" step="5" value={form.percentComplete} onChange={(e) => u({ percentComplete: e.target.value })} className="w-full accent-[#D4AF37]" />
           </div>
           <div><label className={lbl}><User size={11} className="mr-1 inline" /> Assigned To</label>
             <input type="text" value={form.assignedTo} onChange={(e) => u({ assignedTo: e.target.value })} list="assignee-opts" placeholder={contractorName || "Name"} className={inp} />
             <datalist id="assignee-opts">{contractorName && <option value={contractorName} />}{ownerName && <option value={ownerName} />}{architectName && <option value={architectName} />}</datalist>
           </div>
-          <div className="flex items-center gap-3"><input type="checkbox" id="ms" checked={form.isMilestone} onChange={(e) => u({ isMilestone: e.target.checked })} className="rounded border-zinc-600 accent-[#FF4D00]" /><label htmlFor="ms" className="flex items-center gap-1.5 text-sm font-semibold text-zinc-300"><Flag size={13} className="text-purple-400" /> Mark as Milestone</label></div>
+          <div className="flex items-center gap-3"><input type="checkbox" id="ms" checked={form.isMilestone} onChange={(e) => u({ isMilestone: e.target.checked })} className="rounded border-zinc-600 accent-[#D4AF37]" /><label htmlFor="ms" className="flex items-center gap-1.5 text-sm font-semibold text-zinc-300"><Flag size={13} className="text-purple-400" /> Mark as Milestone</label></div>
           <div><label className={lbl}>Notes</label><textarea value={form.notes} onChange={(e) => u({ notes: e.target.value })} rows={3} placeholder="Dependencies, sub-tasks, notes..." className={`${inp} resize-none`} /></div>
           {editingId && (
             <div className="flex flex-wrap gap-2"><p className="w-full text-[10px] font-bold uppercase tracking-wider text-zinc-500">Quick-set status</p>{STATUSES.filter((s) => s !== form.status).map((s) => <button key={s} type="button" onClick={() => u({ status: s, percentComplete: s === "Completed" ? "100" : form.percentComplete })} className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase transition ${(STATUS_COLORS[s] ?? STATUS_COLORS["Not Started"]).badge}`}>{s}</button>)}</div>
           )}
           <div className="flex items-center gap-3 pt-2">
-            <button onClick={onSubmit} disabled={saving || !form.name.trim()} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#FF4D00] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E64500] disabled:opacity-50 transition">{saving && <Loader2 size={14} className="animate-spin" />}{editingId ? "Update Task" : "Add Task"}</button>
+            <button onClick={onSubmit} disabled={saving || !form.name.trim()} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E64500] disabled:opacity-50 transition">{saving && <Loader2 size={14} className="animate-spin" />}{editingId ? "Update Task" : "Add Task"}</button>
             <button onClick={onClose} className="rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700">Cancel</button>
             {editingId && <button onClick={() => onDelete(editingId)} className="rounded-lg border border-red-900/50 bg-zinc-800 px-3 py-2.5 text-sm text-red-400 hover:bg-red-950/30"><Trash2 size={14} /></button>}
           </div>

@@ -30,7 +30,7 @@ export const STATUS_COLORS: Record<string, string> = {
 export const PRIORITY_COLORS: Record<string, string> = {
   Low: "bg-zinc-700 text-zinc-400",
   Medium: "bg-blue-500/20 text-blue-400",
-  High: "bg-orange-500/20 text-orange-400",
+  High: "bg-amber-500/20 text-orange-400",
   Critical: "bg-red-500/20 text-red-400",
 };
 

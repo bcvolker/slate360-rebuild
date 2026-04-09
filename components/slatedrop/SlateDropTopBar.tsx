@@ -27,7 +27,7 @@ export default function SlateDropTopBar({
       <div className="flex items-center justify-between h-14 px-4">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
-            <img src="/logo.svg" alt="Slate360" className="h-6 w-auto" />
+            <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-6 w-auto" />
           </Link>
           <div className="hidden sm:flex items-center text-xs text-gray-400">
             <ChevronRight size={12} />

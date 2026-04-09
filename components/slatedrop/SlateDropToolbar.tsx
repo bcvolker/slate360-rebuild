@@ -42,7 +42,7 @@ export default function SlateDropToolbar({
         >
           {sidebarOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
         </button>
-        <FolderOpen size={15} className="text-[#FF4D00] shrink-0" />
+        <FolderOpen size={15} className="text-[#D4AF37] shrink-0" />
         <div className="flex items-center gap-1.5 text-sm flex-1 min-w-0 overflow-hidden">
           {breadcrumb.map((segment, index) => (
             <span key={index} className="flex items-center gap-1.5 min-w-0">
@@ -61,7 +61,7 @@ export default function SlateDropToolbar({
         <button
           onClick={onUploadClick}
           className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90 shrink-0"
-          style={{ backgroundColor: "#FF4D00" }}
+          style={{ backgroundColor: "#D4AF37" }}
         >
           <Upload size={13} /> <span className="hidden xs:inline">Upload</span>
         </button>
@@ -76,7 +76,7 @@ export default function SlateDropToolbar({
             placeholder="Search files…"
             value={searchQuery}
             onChange={(event) => onSearchChange(event.target.value)}
-            className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all"
+            className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all"
           />
         </div>
 
@@ -91,13 +91,13 @@ export default function SlateDropToolbar({
         <div className="flex rounded-lg border border-gray-200 overflow-hidden shrink-0">
           <button
             onClick={() => onSetViewMode("grid")}
-            className={`w-9 h-9 flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-[#FF4D00] text-white" : "text-gray-400 hover:bg-gray-100"}`}
+            className={`w-9 h-9 flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-[#D4AF37] text-white" : "text-gray-400 hover:bg-gray-100"}`}
           >
             <Grid3X3 size={14} />
           </button>
           <button
             onClick={() => onSetViewMode("list")}
-            className={`w-9 h-9 flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-[#FF4D00] text-white" : "text-gray-400 hover:bg-gray-100"}`}
+            className={`w-9 h-9 flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-[#D4AF37] text-white" : "text-gray-400 hover:bg-gray-100"}`}
           >
             <List size={14} />
           </button>

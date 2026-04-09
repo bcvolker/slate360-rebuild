@@ -326,7 +326,7 @@ function DrawController({
       const path = decodePolyline(data.encodedPolyline);
       const polyline = new google.maps.Polyline({
         path,
-        strokeColor: "#FF4D00",
+        strokeColor: "#D4AF37",
         strokeWeight: 4,
         strokeOpacity: 0.85,
         map,
@@ -974,7 +974,7 @@ function DrawController({
       {/* ── ROW 1: Search & Main Modes ── */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Search Input Group */}
-        <div className="relative flex-1 min-w-[200px] h-9 flex items-center rounded-lg border border-gray-200 bg-gray-50/50 hover:bg-white focus-within:bg-white focus-within:border-[#FF4D00] focus-within:ring-1 focus-within:ring-[#FF4D00]/20 transition-all px-2.5">
+        <div className="relative flex-1 min-w-[200px] h-9 flex items-center rounded-lg border border-gray-200 bg-gray-50/50 hover:bg-white focus-within:bg-white focus-within:border-[#D4AF37] focus-within:ring-1 focus-within:ring-[#D4AF37]/20 transition-all px-2.5">
           <Search size={14} className="text-gray-400 shrink-0" />
           <input
             type="text"
@@ -994,7 +994,7 @@ function DrawController({
           />
           <button
             onClick={goToCurrentLocation}
-            className="ml-1 flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 text-gray-400 hover:text-[#FF4D00] transition-colors"
+            className="ml-1 flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 text-gray-400 hover:text-[#D4AF37] transition-colors"
             title="Use current location"
             type="button"
           >
@@ -1007,10 +1007,10 @@ function DrawController({
                 <button
                   key={suggestion.placeId}
                   onClick={() => void selectAddress(suggestion)}
-                  className="w-full flex items-start gap-2 border-b border-gray-50 px-3 py-2.5 text-left hover:bg-[#FF4D00]/5 transition-colors last:border-b-0 group"
+                  className="w-full flex items-start gap-2 border-b border-gray-50 px-3 py-2.5 text-left hover:bg-[#D4AF37]/5 transition-colors last:border-b-0 group"
                   type="button"
                 >
-                  <MapPin size={14} className="mt-0.5 shrink-0 text-gray-400 group-hover:text-[#FF4D00]" />
+                  <MapPin size={14} className="mt-0.5 shrink-0 text-gray-400 group-hover:text-[#D4AF37]" />
                   <span className="text-xs text-gray-700 leading-snug group-hover:text-gray-900">{suggestion.description}</span>
                 </button>
               ))}
@@ -1067,7 +1067,7 @@ function DrawController({
                 key={toolButton.id}
                 type="button"
                 onClick={() => setDrawingTool(toolButton.id)}
-                className={`flex items-center justify-center w-8 h-8 rounded-md transition-all ${tool === toolButton.id ? "bg-white border border-gray-200 text-[#FF4D00] shadow-sm" : "text-gray-500 hover:bg-gray-200/50 hover:text-gray-800"}`}
+                className={`flex items-center justify-center w-8 h-8 rounded-md transition-all ${tool === toolButton.id ? "bg-white border border-gray-200 text-[#D4AF37] shadow-sm" : "text-gray-500 hover:bg-gray-200/50 hover:text-gray-800"}`}
                 title={toolButton.label}
               >
                 {toolButton.icon}
@@ -1133,7 +1133,7 @@ function DrawController({
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 pt-1">
           <div className="flex flex-1 sm:flex-none items-center gap-1">
             <div className="flex flex-col min-w-[200px] flex-1 gap-1">
-              <div className="relative flex items-center h-8 rounded-lg border border-gray-200 bg-gray-50/50 hover:bg-white focus-within:bg-white focus-within:border-[#FF4D00] transition-all px-2 overflow-hidden">
+              <div className="relative flex items-center h-8 rounded-lg border border-gray-200 bg-gray-50/50 hover:bg-white focus-within:bg-white focus-within:border-[#D4AF37] transition-all px-2 overflow-hidden">
                 <div className="w-2 h-2 rounded-full border-2 border-blue-500 shrink-0 mr-2" />
                 <input
                   type="text"
@@ -1143,8 +1143,8 @@ function DrawController({
                   className="w-full bg-transparent text-xs text-gray-800 outline-none"
                 />
               </div>
-              <div className="relative flex items-center h-8 rounded-lg border border-gray-200 bg-gray-50/50 hover:bg-white focus-within:bg-white focus-within:border-[#FF4D00] transition-all px-2 overflow-hidden">
-                <MapPin size={12} className="text-[#FF4D00] shrink-0 mr-2" />
+              <div className="relative flex items-center h-8 rounded-lg border border-gray-200 bg-gray-50/50 hover:bg-white focus-within:bg-white focus-within:border-[#D4AF37] transition-all px-2 overflow-hidden">
+                <MapPin size={12} className="text-[#D4AF37] shrink-0 mr-2" />
                 <input
                   type="text"
                   value={destInput}
@@ -1175,7 +1175,7 @@ function DrawController({
             <button
               onClick={() => void getDirections(originInput, destInput, travelMode)}
               disabled={isLoadingRoute || !originInput || !destInput}
-              className="h-9 px-4 flex items-center justify-center gap-1.5 rounded-lg bg-[#FF4D00] text-xs font-bold text-white hover:bg-[#E64500] disabled:opacity-50 transition-all shadow-sm"
+              className="h-9 px-4 flex items-center justify-center gap-1.5 rounded-lg bg-[#D4AF37] text-xs font-bold text-white hover:bg-[#E64500] disabled:opacity-50 transition-all shadow-sm"
               title="Calculate route between origin and destination"
             >
               {isLoadingRoute ? <Loader2 size={13} className="animate-spin" /> : "Calculate"}
@@ -1231,8 +1231,8 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
   const [isSaving, setIsSaving] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [isExportingAudit, setIsExportingAudit] = useState(false);
-  const [strokeColor, setStrokeColor] = useState("#FF4D00");
-  const [fillColor, setFillColor] = useState("#FF4D00");
+  const [strokeColor, setStrokeColor] = useState("#D4AF37");
+  const [fillColor, setFillColor] = useState("#D4AF37");
   const [strokeWeight, setStrokeWeight] = useState(3);
   const [projects, setProjects] = useState<ProjectOption[]>([]);
   const [folders, setFolders] = useState<FolderOption[]>([]);
@@ -1783,7 +1783,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                   <select
                     value={selectedProjectId}
                     onChange={(event) => setSelectedProjectId(event.target.value)}
-                    className="h-8 flex-1 sm:min-w-[130px] rounded-md border-0 bg-transparent px-2 text-xs font-medium text-gray-700 outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
+                    className="h-8 flex-1 sm:min-w-[130px] rounded-md border-0 bg-transparent px-2 text-xs font-medium text-gray-700 outline-none focus:ring-2 focus:ring-[#D4AF37]/20"
                   >
                     <option value="">Select project</option>
                     {projects.map((project) => (
@@ -1795,7 +1795,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                     value={selectedFolderId}
                     onChange={(event) => setSelectedFolderId(event.target.value)}
                     disabled={!selectedProjectId || folders.length === 0}
-                    className="h-8 flex-1 sm:min-w-[130px] rounded-md border-0 bg-transparent px-2 text-xs font-medium text-gray-700 outline-none focus:ring-2 focus:ring-[#FF4D00]/20 disabled:opacity-50"
+                    className="h-8 flex-1 sm:min-w-[130px] rounded-md border-0 bg-transparent px-2 text-xs font-medium text-gray-700 outline-none focus:ring-2 focus:ring-[#D4AF37]/20 disabled:opacity-50"
                   >
                     <option value="">Select folder</option>
                     {folders.map((folder) => (
@@ -1806,7 +1806,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                   <button
                     onClick={handleSaveToFolder}
                     disabled={isSaving || !selectedFolderId}
-                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-bold text-[#FF4D00] hover:bg-[#FF4D00]/10 disabled:opacity-50 transition-colors"
+                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-bold text-[#D4AF37] hover:bg-[#D4AF37]/10 disabled:opacity-50 transition-colors"
                   >
                     {isSaving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />} Save
                   </button>
@@ -1821,12 +1821,12 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                     value={recipientValue}
                     onChange={(e) => setRecipientValue(e.target.value)}
                     placeholder={recipientMode === "email" ? "client@example.com" : "+1 (555) 000-0000"}
-                    className="h-8 flex-1 sm:min-w-[150px] rounded-md border-0 bg-transparent px-2 text-xs font-medium text-gray-700 outline-none focus:ring-2 focus:ring-[#FF4D00]/20"
+                    className="h-8 flex-1 sm:min-w-[150px] rounded-md border-0 bg-transparent px-2 text-xs font-medium text-gray-700 outline-none focus:ring-2 focus:ring-[#D4AF37]/20"
                   />
                   <button
                     onClick={handleSendShareLink}
                     disabled={isSharing || (!lastFileId && !routeData) || !recipientValue}
-                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-[#FF4D00] px-3 py-1 text-[11px] font-bold text-white hover:bg-[#162D69] disabled:opacity-50 transition-colors shadow-sm"
+                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-[#D4AF37] px-3 py-1 text-[11px] font-bold text-white hover:bg-[#162D69] disabled:opacity-50 transition-colors shadow-sm"
                   >
                     {isSharing ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Send
                   </button>

@@ -189,9 +189,9 @@ export default function DashboardOverview({
                 <>
                   <div className="fixed inset-0 z-30" onClick={onProjectDropdownToggle} />
                   <div className="absolute right-0 top-10 w-56 bg-zinc-900 rounded-xl border border-zinc-800 shadow-xl z-40 overflow-hidden">
-                    <button onClick={() => { onSelectProject("all"); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === "all" ? "bg-[#FF4D00]/10 text-[#FF4D00] font-semibold" : "text-zinc-400 hover:bg-zinc-800"}`}>All projects</button>
+                    <button onClick={() => { onSelectProject("all"); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === "all" ? "bg-[#D4AF37]/10 text-[#D4AF37] font-semibold" : "text-zinc-400 hover:bg-zinc-800"}`}>All projects</button>
                     {projects.map((p) => (
-                      <button key={p.id} onClick={() => { onSelectProject(p.id); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === p.id ? "bg-[#FF4D00]/10 text-[#FF4D00] font-semibold" : "text-zinc-400 hover:bg-zinc-800"}`}>{p.name}</button>
+                      <button key={p.id} onClick={() => { onSelectProject(p.id); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === p.id ? "bg-[#D4AF37]/10 text-[#D4AF37] font-semibold" : "text-zinc-400 hover:bg-zinc-800"}`}>{p.name}</button>
                     ))}
                   </div>
                 </>
@@ -200,7 +200,7 @@ export default function DashboardOverview({
             <button
               onClick={onCreateProject}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
-              style={{ backgroundColor: "#FF4D00" }}
+              style={{ backgroundColor: "#D4AF37" }}
             >
               <Plus size={13} /> New Project
             </button>
@@ -237,7 +237,7 @@ export default function DashboardOverview({
           <button
             type="button"
             onClick={onCreateProject}
-            className="snap-start shrink-0 w-[300px] h-[200px] rounded-xl border-2 border-dashed border-zinc-800 hover:border-[#FF4D00] flex flex-col items-center justify-center gap-3 text-zinc-500 hover:text-[#FF4D00] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-zinc-900/50"
+            className="snap-start shrink-0 w-[300px] h-[200px] rounded-xl border-2 border-dashed border-zinc-800 hover:border-[#D4AF37] flex flex-col items-center justify-center gap-3 text-zinc-500 hover:text-[#D4AF37] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-zinc-900/50"
           >
             <div className="w-14 h-14 rounded-2xl border-2 border-dashed border-current flex items-center justify-center">
               <Plus size={24} />

@@ -58,7 +58,7 @@ export const POST = (req: NextRequest) =>
         date: body.date,
         start_time: body.start_time || null,
         end_time: body.end_time || null,
-        color: body.color || "#FF4D00",
+        color: body.color || "#D4AF37",
         description: body.description?.trim() || null,
         location: body.location?.trim() || null,
         project_id: body.project_id || null,

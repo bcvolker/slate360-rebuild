@@ -89,7 +89,7 @@ export default function QuickNav({ tier, isCeo = false, internalAccess }: QuickN
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-[#FF4D00]/10 hover:text-[#FF4D00] transition-colors"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] transition-colors"
                 >
                   <Icon size={14} /> {item.label}
                 </Link>

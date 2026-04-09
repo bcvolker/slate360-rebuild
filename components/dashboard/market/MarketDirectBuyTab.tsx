@@ -63,7 +63,7 @@ export default function MarketDirectBuyTab({
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-md">
         {CATEGORIES.map((cat) => (
           <button key={cat} onClick={() => handleCategoryPick(cat)}
-            className="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm font-medium text-slate-200 transition hover:border-[#FF4D00] hover:bg-[#FF4D00]/10">
+            className="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm font-medium text-slate-200 transition hover:border-[#D4AF37] hover:bg-[#D4AF37]/10">
             {cat}
           </button>
         ))}
@@ -92,9 +92,9 @@ export default function MarketDirectBuyTab({
         <div className="flex gap-2">
           <input type="text" value={s.query} onChange={e => s.setQuery(e.target.value)} onKeyDown={handleKeyDown}
             placeholder="Search markets (e.g. election, bitcoin, weather)"
-            className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900/90 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/40" />
+            className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900/90 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/40" />
           <button onClick={() => s.fetchMarkets()} disabled={s.loading}
-            className="rounded-lg bg-[#FF4D00] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#e04400] disabled:opacity-50">
+            className="rounded-lg bg-[#D4AF37] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#e04400] disabled:opacity-50">
             {s.loading ? "…" : s.loaded ? "Refresh" : "Search"}
           </button>
         </div>
@@ -104,14 +104,14 @@ export default function MarketDirectBuyTab({
           <label className="text-[11px] text-slate-400">
             Time
             <select value={s.timeframe} onChange={e => s.setTimeframe(e.target.value as MktTimeframe)}
-              className="mt-0.5 block w-28 rounded-md border border-zinc-800 bg-zinc-900/90 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30">
+              className="mt-0.5 block w-28 rounded-md border border-zinc-800 bg-zinc-900/90 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30">
               {QUICK_TIMEFRAMES.map(tf => <option key={tf.key} value={tf.key}>{tf.label}</option>)}
             </select>
           </label>
           <label className="text-[11px] text-slate-400">
             Topic
             <select value={s.category} onChange={e => s.setCategory(e.target.value)}
-              className="mt-0.5 block w-28 rounded-md border border-zinc-800 bg-zinc-900/90 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30">
+              className="mt-0.5 block w-28 rounded-md border border-zinc-800 bg-zinc-900/90 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30">
               <option value="all">All</option>
               {s.availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -119,7 +119,7 @@ export default function MarketDirectBuyTab({
           <label className="text-[11px] text-slate-400">
             Sort
             <select value={s.sortBy} onChange={e => s.setSortBy(e.target.value as typeof s.sortBy)}
-              className="mt-0.5 block w-32 rounded-md border border-zinc-800 bg-zinc-900/90 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30">
+              className="mt-0.5 block w-32 rounded-md border border-zinc-800 bg-zinc-900/90 px-2 py-1 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30">
               {Object.entries(SORT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </label>
@@ -170,7 +170,7 @@ export default function MarketDirectBuyTab({
           <div className={`space-y-3 ${hasBuy ? "col-span-12 lg:col-span-8" : "col-span-12"}`}>
             {s.loading && (
               <div className="flex items-center justify-center gap-2 py-6">
-                <div className="animate-spin w-4 h-4 border-2 border-[#FF4D00] border-t-transparent rounded-full" />
+                <div className="animate-spin w-4 h-4 border-2 border-[#D4AF37] border-t-transparent rounded-full" />
                 <span className="text-xs text-slate-400">Loading markets…</span>
               </div>
             )}

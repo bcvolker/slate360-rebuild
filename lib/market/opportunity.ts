@@ -25,7 +25,7 @@ export function getMarketOpportunitySignal(market: MarketListing): MarketOpportu
   if (market.edgePct >= 8 && market.volume24hUsd >= 40000 && spreadPct <= 8) {
     return {
       label: "Strong",
-      tone: "bg-orange-100 text-orange-700 border border-orange-200",
+      tone: "bg-amber-100 text-orange-700 border border-orange-200",
       detail: "Solid pricing advantage with healthy activity.",
       rank: 4,
     };

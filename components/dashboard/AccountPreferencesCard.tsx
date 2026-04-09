@@ -100,7 +100,7 @@ export default function AccountPreferencesCard({
             type="checkbox"
             checked={prefImportantAlerts}
             onChange={(e) => onPrefImportantAlertsChange(e.target.checked)}
-            className="h-4 w-4 accent-[#FF4D00]"
+            className="h-4 w-4 accent-[#D4AF37]"
           />
         </label>
         <label className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-between gap-2">
@@ -111,7 +111,7 @@ export default function AccountPreferencesCard({
             type="checkbox"
             checked={prefShowDashboardTiles}
             onChange={(e) => onPrefShowDashboardTilesChange(e.target.checked)}
-            className="h-4 w-4 accent-[#FF4D00]"
+            className="h-4 w-4 accent-[#D4AF37]"
           />
         </label>
         <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
@@ -125,7 +125,7 @@ export default function AccountPreferencesCard({
           </div>
           <div className="h-2 rounded-full bg-zinc-700 overflow-hidden">
             <div
-              className="h-full rounded-full bg-[#FF4D00]"
+              className="h-full rounded-full bg-[#D4AF37]"
               style={{ width: `${profileCompletion}%` }}
             />
           </div>

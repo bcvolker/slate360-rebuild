@@ -61,13 +61,13 @@ export default function ScheduleGantt({ rows, loading, ganttStart, totalDays, mo
               <div className="sticky top-8 z-10 bg-zinc-900 border-b border-zinc-800 flex" style={{ height: 32 }}>
                 {dayNumbers.map((d, i) => {
                   const dow = d.getDay(); const isWE = dow === 0 || dow === 6; const isToday = fmtYMD(d) === fmtYMD(new Date());
-                  return <div key={i} className={`flex items-center justify-center shrink-0 border-r border-zinc-800/50 text-[8px] font-semibold ${isToday ? "bg-[#FF4D00]/10 text-[#FF4D00] font-black" : isWE ? "bg-zinc-800/40 text-zinc-600" : "text-zinc-500"}`} style={{ width: dayW, minWidth: dayW }} title={d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}>{dayW >= 24 ? d.getDate() : ""}</div>;
+                  return <div key={i} className={`flex items-center justify-center shrink-0 border-r border-zinc-800/50 text-[8px] font-semibold ${isToday ? "bg-[#D4AF37]/10 text-[#D4AF37] font-black" : isWE ? "bg-zinc-800/40 text-zinc-600" : "text-zinc-500"}`} style={{ width: dayW, minWidth: dayW }} title={d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}>{dayW >= 24 ? d.getDate() : ""}</div>;
                 })}
               </div>
               <div className="relative">
                 {dayNumbers.map((d, i) => { const dow = d.getDay(); if (dow !== 0 && dow !== 6) return null; return <div key={`ws-${i}`} className="absolute top-0 bottom-0 bg-zinc-800/30 pointer-events-none" style={{ left: i * dayW, width: dayW }} />; })}
                 {todayOffsetPx >= 0 && todayOffsetPx <= totalDays * dayW && (
-                  <div className="absolute top-0 bottom-0 w-0.5 bg-[#FF4D00] z-20 pointer-events-none" style={{ left: todayOffsetPx }}><div className="absolute -top-0 -left-1.5 w-3 h-3 rounded-full bg-[#FF4D00]" /></div>
+                  <div className="absolute top-0 bottom-0 w-0.5 bg-[#D4AF37] z-20 pointer-events-none" style={{ left: todayOffsetPx }}><div className="absolute -top-0 -left-1.5 w-3 h-3 rounded-full bg-[#D4AF37]" /></div>
                 )}
                 {rows.length === 0 && <div style={{ height: 120 }} className="flex items-center justify-center"><p className="text-xs text-zinc-600">Add tasks to see them here</p></div>}
                 {rows.map((task) => {

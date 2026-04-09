@@ -75,7 +75,7 @@ export default function MarketAutomationBuilder({
                 onClick={() => applyPreset(preset)}
                 className={`rounded-lg border px-3 py-2 text-left transition ${
                   active
-                    ? "border-[#FF4D00] bg-orange-500/15 text-orange-200"
+                    ? "border-[#D4AF37] bg-amber-500/15 text-orange-200"
                     : "border-zinc-800 bg-zinc-950/80 text-slate-300 hover:border-zinc-700"
                 }`}
               >
@@ -117,7 +117,7 @@ export default function MarketAutomationBuilder({
               {(["basic", "intermediate", "advanced"] as const).map(lvl => (
                 <button key={lvl} onClick={() => onControlLevelChange(lvl)}
                   className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${
-                    controlLevel === lvl ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-zinc-800"
+                    controlLevel === lvl ? "bg-[#D4AF37] text-white" : "bg-slate-800 text-slate-400 hover:bg-zinc-800"
                   }`}>
                   {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
                 </button>
@@ -135,7 +135,7 @@ export default function MarketAutomationBuilder({
         <label className="text-xs text-slate-400 mb-1 block">Plan Name</label>
         <input type="text" placeholder="e.g. Conservative Scanner Q1" value={draft.name}
           onChange={e => onFieldChange("name", e.target.value)}
-          className="w-full bg-zinc-950/80 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-[#FF4D00]" />
+          className="w-full bg-zinc-950/80 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-[#D4AF37]" />
       </div>
 
       {/* Basic controls — always show */}
@@ -159,7 +159,7 @@ export default function MarketAutomationBuilder({
           {editingId ? "Save Draft Changes" : "Save Draft"}
         </button>
         <button onClick={onSaveAndApply} disabled={!draft.name.trim()}
-          className="flex-1 bg-[#FF4D00] hover:bg-orange-600 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40 text-white">
+          className="flex-1 bg-[#D4AF37] hover:bg-amber-600 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40 text-white">
           ▶ {editingId ? "Save + Start Auto-Buy" : "Save + Start Auto-Buy"}
         </button>
         {editingId && (
@@ -222,7 +222,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
           {(["conservative", "balanced", "aggressive"] as const).map(r => (
             <button key={r} onClick={() => onFieldChange("riskLevel", r as RiskLevel)}
               className={`flex-1 py-1.5 text-xs rounded-lg font-medium transition ${
-                draft.riskLevel === r ? "bg-[#FF4D00] text-white" : "bg-slate-800 text-slate-400 hover:bg-zinc-800"
+                draft.riskLevel === r ? "bg-[#D4AF37] text-white" : "bg-slate-800 text-slate-400 hover:bg-zinc-800"
               }`}>
               {r === "conservative" ? "Safe" : r === "balanced" ? "Balanced" : "Aggressive"}
             </button>
@@ -274,7 +274,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
             How often to scan <HelpTip content="Controls how often the system scans for new markets. Faster = more buys, but also more noise." />
           </label>
           <select value={draft.scanMode} onChange={e => onFieldChange("scanMode", e.target.value as ScanMode)}
-            className="w-full bg-zinc-950/80 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-slate-100 outline-none focus:border-[#FF4D00]">
+            className="w-full bg-zinc-950/80 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-slate-100 outline-none focus:border-[#D4AF37]">
             {(["slow", "balanced", "fast", "closing-soon"] as const).map(s => (
               <option key={s} value={s}>{s === "closing-soon" ? "Soon-ending only" : s.charAt(0).toUpperCase() + s.slice(1)}</option>
             ))}
@@ -290,7 +290,7 @@ function BasicControls({ draft, onFieldChange, toggleCategory }: {
           {FOCUS_AREAS.map(area => (
             <button key={area} onClick={() => toggleCategory(area)}
               className={`px-2 py-0.5 text-xs rounded-lg transition ${
-                draft.categories.includes(area) ? "bg-[#FF4D00] text-blue-200" : "bg-slate-800 text-slate-500 hover:bg-zinc-800"
+                draft.categories.includes(area) ? "bg-[#D4AF37] text-blue-200" : "bg-slate-800 text-slate-500 hover:bg-zinc-800"
               }`}>
               {area}
             </button>

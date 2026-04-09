@@ -31,7 +31,7 @@ export const SECTIONS_OPTIONS = [
 export const ROLE_COLORS: Record<string, string> = {
   "Owner":              "bg-blue-100 text-blue-700 border-blue-200",
   "Architect":          "bg-purple-100 text-purple-700 border-purple-200",
-  "General Contractor": "bg-orange-100 text-orange-700 border-orange-200",
+  "General Contractor": "bg-amber-100 text-orange-700 border-orange-200",
   "Subcontractor":      "bg-amber-100 text-amber-700 border-amber-200",
   "Engineer":           "bg-teal-100 text-teal-700 border-teal-200",
   "Inspector":          "bg-red-100 text-red-700 border-red-200",

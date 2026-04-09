@@ -16,7 +16,7 @@ const connectors = [
           name: "Slate360",
           description: "Slate360 Market Robot",
           url: "https://www.slate360.ai",
-          icons: ["https://www.slate360.ai/logo.svg"],
+          icons: ["https://www.slate360.ai/uploads/SLATE 360-Color Reversed Lockup.svg"],
         },
       })]
     : []),

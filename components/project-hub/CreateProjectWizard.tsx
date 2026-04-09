@@ -95,7 +95,7 @@ export default function CreateProjectWizard({
     });
   };
 
-  const field = "w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-[#FF4D00] focus:ring-2 focus:ring-[#FF4D00]/20 focus:outline-none transition-all";
+  const field = "w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-[#D4AF37] focus:ring-2 focus:ring-[#D4AF37]/20 focus:outline-none transition-all";
   const label = "mb-1.5 block text-xs font-semibold text-zinc-300";
 
   return (
@@ -114,13 +114,13 @@ export default function CreateProjectWizard({
 
         {/* Progress bar */}
         <div className="h-1 bg-zinc-800">
-          <div className="h-full bg-[#FF4D00] transition-all duration-300" style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
+          <div className="h-full bg-[#D4AF37] transition-all duration-300" style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
         </div>
 
         {/* Step pills */}
         <div className="flex border-b border-zinc-800 bg-zinc-900">
           {STEP_LABELS.map((lbl, i) => (
-            <div key={lbl} className={`flex-1 py-2 text-center text-[10px] font-bold transition-colors ${i + 1 === step ? "text-[#FF4D00]" : i + 1 < step ? "text-emerald-400" : "text-zinc-500"}`}>
+            <div key={lbl} className={`flex-1 py-2 text-center text-[10px] font-bold transition-colors ${i + 1 === step ? "text-[#D4AF37]" : i + 1 < step ? "text-emerald-400" : "text-zinc-500"}`}>
               {i + 1 < step && <CheckCircle2 size={10} className="inline mr-0.5 mb-0.5" />}{lbl}
             </div>
           ))}
@@ -170,7 +170,7 @@ export default function CreateProjectWizard({
               </div>
               {location.address && (
                 <p className="text-[11px] text-zinc-400 flex items-center gap-1.5">
-                  <MapPin size={11} className="text-[#FF4D00] shrink-0" />
+                  <MapPin size={11} className="text-[#D4AF37] shrink-0" />
                   {location.address}
                   {location.lat !== null && location.lng !== null && (
                     <span className="text-zinc-500">
@@ -214,11 +214,11 @@ export default function CreateProjectWizard({
             </button>
           )}
           {step < TOTAL_STEPS ? (
-            <button type="button" onClick={() => setStep((s) => s + 1)} disabled={!canAdvance} className="inline-flex items-center gap-1.5 rounded-xl bg-[#FF4D00] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#E64500] disabled:opacity-50 transition-all">
+            <button type="button" onClick={() => setStep((s) => s + 1)} disabled={!canAdvance} className="inline-flex items-center gap-1.5 rounded-xl bg-[#D4AF37] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#E64500] disabled:opacity-50 transition-all">
               Next <ChevronRight size={14} />
             </button>
           ) : (
-            <button type="submit" form="create-project-form" disabled={creating || !name.trim()} className="inline-flex items-center gap-2 rounded-xl bg-[#FF4D00] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#E64500] disabled:opacity-50 transition-all">
+            <button type="submit" form="create-project-form" disabled={creating || !name.trim()} className="inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#E64500] disabled:opacity-50 transition-all">
               {creating && <Loader2 size={14} className="animate-spin" />}
               {creating ? "Provisioning…" : "Create Project"}
             </button>

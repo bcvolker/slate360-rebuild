@@ -25,7 +25,7 @@ export default function MarketActivityFeed({ logs, title = "Auto-buy activity", 
       </div>
 
       {latest ? (
-        <div className="mt-4 rounded-2xl border border-orange-400/25 bg-orange-500/10 p-4">
+        <div className="mt-4 rounded-2xl border border-orange-400/25 bg-amber-500/10 p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-orange-400">Latest event</p>
           <p className="mt-2 text-sm font-semibold leading-6 text-slate-100">{latest.message}</p>
           <p className="mt-2 text-xs text-slate-400">{new Date(latest.created_at).toLocaleString()}</p>

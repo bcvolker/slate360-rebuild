@@ -27,7 +27,7 @@ export default function UpgradeGate({
   feature,
   requiredTier,
   currentTier,
-  accent = "#FF4D00",
+  accent = "#D4AF37",
   icon: Icon,
 }: UpgradeGateProps) {
   return (

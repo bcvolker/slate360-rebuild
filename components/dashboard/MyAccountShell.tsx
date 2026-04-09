@@ -37,7 +37,7 @@ export default function MyAccountShell({ user, tier, isCeo, internalAccess }: Pr
       internalAccess={internalAccess}
       title="My Account"
       icon={User}
-      accent="#FF4D00"
+      accent="#D4AF37"
       status="coming-soon"
     >
       {/* Identity card */}
@@ -87,7 +87,7 @@ export default function MyAccountShell({ user, tier, isCeo, internalAccess }: Pr
               if (data.url) window.location.href = data.url;
             } catch { /* handled */ }
           }}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#FF4D00] px-4 py-2 text-xs font-semibold text-white hover:bg-[#E04400] transition-colors"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2 text-xs font-semibold text-white hover:bg-[#E04400] transition-colors"
         >
           Open Portal <ArrowRight size={14} />
         </button>
@@ -112,7 +112,7 @@ export default function MyAccountShell({ user, tier, isCeo, internalAccess }: Pr
                 <div className="mt-3 flex items-center justify-between">
                   <button
                     onClick={() => setConnected((prev) => ({ ...prev, [integration.id]: !prev[integration.id] }))}
-                    className="inline-flex items-center gap-2 rounded-lg bg-[#FF4D00] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#E64500]"
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#D4AF37] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#E64500]"
                   >
                     <CheckCircle2 size={14} />
                     {isConnected ? "Connected" : "Connect"}

@@ -99,7 +99,7 @@ function ToggleRow({ label, checked, onToggle }: { label: string; checked: boole
   return (
     <div className="flex items-center justify-between">
       <span className="text-sm text-slate-300">{label}</span>
-      <button onClick={onToggle} className={`relative w-10 h-5 rounded-full transition ${checked ? "bg-[#FF4D00]" : "bg-slate-600"}`}>
+      <button onClick={onToggle} className={`relative w-10 h-5 rounded-full transition ${checked ? "bg-[#D4AF37]" : "bg-slate-600"}`}>
         <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-slate-200 shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"}`} />
       </button>
     </div>

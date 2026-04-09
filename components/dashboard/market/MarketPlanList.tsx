@@ -104,7 +104,7 @@ function PlanCard({ plan, archived, renamingId, renameValue, onRenameValueChange
               <input type="text" value={renameValue}
                 onChange={e => onRenameValueChange(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && onCommitRename()}
-                className="flex-1 bg-zinc-950/80 border border-zinc-700 rounded-lg px-2 py-1 text-sm text-slate-100 outline-none focus:border-[#FF4D00]"
+                className="flex-1 bg-zinc-950/80 border border-zinc-700 rounded-lg px-2 py-1 text-sm text-slate-100 outline-none focus:border-[#D4AF37]"
                 autoFocus />
               <button onClick={onCommitRename} className="text-xs text-green-400 hover:text-green-300 px-1">✓</button>
             </div>
@@ -126,7 +126,7 @@ function PlanCard({ plan, archived, renamingId, renameValue, onRenameValueChange
             <span className="text-[10px] bg-purple-500/15 text-purple-200 border border-purple-400/25 px-1.5 py-0.5 rounded-full">Practice</span>
           )}
           {plan.isDefault && (
-            <span className="text-[10px] bg-orange-500/15 text-orange-200 border border-orange-400/25 px-1.5 py-0.5 rounded-full">Default</span>
+            <span className="text-[10px] bg-amber-500/15 text-orange-200 border border-orange-400/25 px-1.5 py-0.5 rounded-full">Default</span>
           )}
           <StatusBadge status={plan.riskLevel} />
         </div>
@@ -136,7 +136,7 @@ function PlanCard({ plan, archived, renamingId, renameValue, onRenameValueChange
         <Tooltip>
           <TooltipTrigger asChild>
             <button onClick={() => onApply(plan)}
-              className="bg-[#FF4D00] hover:bg-orange-600 text-white text-xs py-1.5 px-3 rounded-lg font-medium transition">
+              className="bg-[#D4AF37] hover:bg-amber-600 text-white text-xs py-1.5 px-3 rounded-lg font-medium transition">
               ▶ Save + Start Robot
             </button>
           </TooltipTrigger>

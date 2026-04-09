@@ -97,12 +97,12 @@ export function SceneUploader({
         <div className={`
           flex items-center justify-center gap-3 w-full h-16 rounded-xl border-2 border-dashed
           transition-all duration-200
-          ${isUploading ? 'bg-zinc-900 border-zinc-800' : 'bg-orange-500/10 border-orange-500/30 hover:bg-orange-500/20 hover:border-orange-500/50'}
+          ${isUploading ? 'bg-zinc-900 border-zinc-800' : 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-500/50'}
         `}>
           {isUploading ? (
-            <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />
+            <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
           ) : (
-            <Camera className="w-5 h-5 text-orange-500" />
+            <Camera className="w-5 h-5 text-amber-500" />
           )}
           <span className="font-semibold text-white">
             {isUploading ? "Uploading..." : "Add Scene"}
@@ -114,7 +114,7 @@ export function SceneUploader({
       {isUploading && (
         <div className="w-full max-w-sm mt-4 bg-zinc-900 rounded-full h-2 overflow-hidden border border-zinc-800">
           <div 
-            className="bg-orange-500 h-full transition-all duration-300 ease-out"
+            className="bg-amber-500 h-full transition-all duration-300 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>

@@ -100,11 +100,11 @@ export default function UploadPortalClient({
               if (!uploading) void uploadFiles(event.dataTransfer.files);
             }}
             className={`mt-6 rounded-2xl border-2 border-dashed p-8 text-center transition ${
-              dragOver ? "border-[#FF4D00] bg-[#FF4D00]/5" : "border-gray-300 bg-gray-50"
+              dragOver ? "border-[#D4AF37] bg-[#D4AF37]/5" : "border-gray-300 bg-gray-50"
             }`}
           >
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm">
-              {uploading ? <Loader2 size={24} className="animate-spin text-[#FF4D00]" /> : <UploadCloud size={24} className="text-[#FF4D00]" />}
+              {uploading ? <Loader2 size={24} className="animate-spin text-[#D4AF37]" /> : <UploadCloud size={24} className="text-[#D4AF37]" />}
             </div>
 
             <p className="text-sm font-semibold text-gray-800">
@@ -117,7 +117,7 @@ export default function UploadPortalClient({
               onClick={() => inputRef.current?.click()}
               disabled={uploading}
               className="mt-3 rounded-xl px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-              style={{ backgroundColor: "#FF4D00" }}
+              style={{ backgroundColor: "#D4AF37" }}
             >
               Select Files
             </button>

@@ -119,7 +119,7 @@ export default function ViewCustomizer({ cols, prefs, onPrefsChange }: Props) {
                   onClick={() => setDensity(d.value)}
                   className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
                     prefs.density === d.value
-                      ? "bg-orange-50 text-orange-600 ring-1 ring-orange-200"
+                      ? "bg-amber-50 text-amber-600 ring-1 ring-orange-200"
                       : "text-gray-500 hover:bg-gray-50"
                   }`}
                 >
@@ -147,7 +147,7 @@ export default function ViewCustomizer({ cols, prefs, onPrefsChange }: Props) {
                       <span
                         className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
                           visible
-                            ? "border-orange-500 bg-orange-500 text-white"
+                            ? "border-amber-500 bg-amber-500 text-white"
                             : "border-gray-300 bg-white"
                         }`}
                       >

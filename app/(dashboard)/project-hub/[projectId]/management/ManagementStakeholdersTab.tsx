@@ -95,17 +95,17 @@ export default function ManagementStakeholdersTab({ projectId, company, showToas
       <div className="xl:col-span-2 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => setRoleFilter("all")} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${roleFilter === "all" ? "bg-[#FF4D00] text-white border-[#FF4D00]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+            <button onClick={() => setRoleFilter("all")} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${roleFilter === "all" ? "bg-[#D4AF37] text-white border-[#D4AF37]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
               All ({stakeholders.length})
             </button>
             {Object.entries(roleGroups).map(([role, count]) => (
-              <button key={role} onClick={() => setRoleFilter(role)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${roleFilter === role ? "bg-[#FF4D00] text-white border-[#FF4D00]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+              <button key={role} onClick={() => setRoleFilter(role)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${roleFilter === role ? "bg-[#D4AF37] text-white border-[#D4AF37]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
                 {role} ({count})
               </button>
             ))}
           </div>
           <button onClick={() => { setSForm({ ...EMPTY_S_FORM }); setEditingSId(null); setShowSForm(true); }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF4D00] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition">
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition">
             <Plus size={15} /> Add Stakeholder
           </button>
         </div>
@@ -125,8 +125,8 @@ export default function ManagementStakeholdersTab({ projectId, company, showToas
               return (
                 <div key={s.id} className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <button onClick={() => setExpandedSId(isExp ? null : s.id)} className="flex w-full items-center gap-3 p-4 text-left hover:bg-gray-50/50 transition">
-                    <div className="w-10 h-10 rounded-xl bg-[#FF4D00]/10 flex items-center justify-center shrink-0">
-                      <User size={16} className="text-[#FF4D00]" />
+                    <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
+                      <User size={16} className="text-[#D4AF37]" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-gray-900 truncate">{s.name}</p>
@@ -171,10 +171,10 @@ export default function ManagementStakeholdersTab({ projectId, company, showToas
           </div>
           {!showSForm ? (
             <div className="p-5 flex flex-col items-center gap-3 text-center">
-              <div className="w-12 h-12 rounded-xl bg-[#FF4D00]/10 flex items-center justify-center"><Users size={20} className="text-[#FF4D00]" /></div>
+              <div className="w-12 h-12 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center"><Users size={20} className="text-[#D4AF37]" /></div>
               <p className="text-xs text-gray-500">Add owners, architects, GCs, subs, engineers, or any project stakeholder.</p>
               <button onClick={() => { setSForm({ ...EMPTY_S_FORM }); setEditingSId(null); setShowSForm(true); }}
-                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#FF4D00] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E04400] transition">
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#D4AF37] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E04400] transition">
                 <Plus size={14} /> Add Stakeholder
               </button>
             </div>
@@ -182,50 +182,50 @@ export default function ManagementStakeholdersTab({ projectId, company, showToas
             <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
               <div>
                 <label className="mb-1 block text-xs font-bold text-gray-700">Name *</label>
-                <input value={sForm.name} onChange={(e) => setSForm({ ...sForm, name: e.target.value })} placeholder="Full name" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]/20" />
+                <input value={sForm.name} onChange={(e) => setSForm({ ...sForm, name: e.target.value })} placeholder="Full name" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/20" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1 block text-xs font-bold text-gray-700">Role *</label>
-                  <select value={sForm.role} onChange={(e) => setSForm({ ...sForm, role: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]">
+                  <select value={sForm.role} onChange={(e) => setSForm({ ...sForm, role: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]">
                     {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-gray-700">Status</label>
-                  <select value={sForm.status} onChange={(e) => setSForm({ ...sForm, status: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]">
+                  <select value={sForm.status} onChange={(e) => setSForm({ ...sForm, status: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]">
                     <option>Active</option><option>Inactive</option>
                   </select>
                 </div>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-bold text-gray-700">Company</label>
-                <input value={sForm.company} onChange={(e) => setSForm({ ...sForm, company: e.target.value })} placeholder="Company name" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]" />
+                <input value={sForm.company} onChange={(e) => setSForm({ ...sForm, company: e.target.value })} placeholder="Company name" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1 block text-xs font-bold text-gray-700"><Mail size={10} className="inline mr-1" />Email</label>
-                  <input type="email" value={sForm.email} onChange={(e) => setSForm({ ...sForm, email: e.target.value })} placeholder="email@co.com" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]" />
+                  <input type="email" value={sForm.email} onChange={(e) => setSForm({ ...sForm, email: e.target.value })} placeholder="email@co.com" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-gray-700"><Phone size={10} className="inline mr-1" />Phone</label>
-                  <input type="tel" value={sForm.phone} onChange={(e) => setSForm({ ...sForm, phone: e.target.value })} placeholder="(555) 000-0000" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]" />
+                  <input type="tel" value={sForm.phone} onChange={(e) => setSForm({ ...sForm, phone: e.target.value })} placeholder="(555) 000-0000" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
                 </div>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-bold text-gray-700"><MapPin size={10} className="inline mr-1" />Address</label>
-                <input value={sForm.address} onChange={(e) => setSForm({ ...sForm, address: e.target.value })} placeholder="123 Main St, City, ST" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]" />
+                <input value={sForm.address} onChange={(e) => setSForm({ ...sForm, address: e.target.value })} placeholder="123 Main St, City, ST" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-bold text-gray-700"><Hash size={10} className="inline mr-1" />License / Cert #</label>
-                <input value={sForm.license_no} onChange={(e) => setSForm({ ...sForm, license_no: e.target.value })} placeholder="GC-12345" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00]" />
+                <input value={sForm.license_no} onChange={(e) => setSForm({ ...sForm, license_no: e.target.value })} placeholder="GC-12345" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-bold text-gray-700">Notes</label>
-                <textarea value={sForm.notes} onChange={(e) => setSForm({ ...sForm, notes: e.target.value })} rows={2} placeholder="Scope, specialty, payment terms…" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#FF4D00] resize-none" />
+                <textarea value={sForm.notes} onChange={(e) => setSForm({ ...sForm, notes: e.target.value })} rows={2} placeholder="Scope, specialty, payment terms…" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37] resize-none" />
               </div>
               <button onClick={handleSSubmit} disabled={sSaving || !sForm.name.trim()}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#FF4D00] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E04400] disabled:opacity-50 transition">
+                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E04400] disabled:opacity-50 transition">
                 {sSaving && <Loader2 size={14} className="animate-spin" />}
                 {editingSId ? "Update" : "Add Stakeholder"}
               </button>

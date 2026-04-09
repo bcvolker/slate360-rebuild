@@ -149,7 +149,7 @@ export default function WidgetCustomizeDrawer({
                       className={[
                         "w-6 h-6 rounded text-[9px] font-bold flex items-center justify-center transition-colors",
                         pref.size === s
-                          ? "bg-[#FF4D00]/10 text-[#FF4D00]"
+                          ? "bg-[#D4AF37]/10 text-[#D4AF37]"
                           : "text-gray-300 hover:text-gray-500 hover:bg-gray-100",
                       ].join(" ")}
                       title={getWidgetSizeLabel(s)}
@@ -165,7 +165,7 @@ export default function WidgetCustomizeDrawer({
                   title={pref.visible ? "Hide widget" : "Show widget"}
                   className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
                     pref.visible
-                      ? "bg-[#FF4D00]/10 text-[#FF4D00]"
+                      ? "bg-[#D4AF37]/10 text-[#D4AF37]"
                       : "text-gray-300 hover:text-gray-500"
                   }`}
                 >
@@ -195,7 +195,7 @@ export default function WidgetCustomizeDrawer({
                 onClick={onSave}
                 disabled={saving || !dirty}
                 className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl text-white transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor: "#FF4D00" }}
+                style={{ backgroundColor: "#D4AF37" }}
               >
                 {saving ? (
                   <Loader2 size={13} className="animate-spin" />

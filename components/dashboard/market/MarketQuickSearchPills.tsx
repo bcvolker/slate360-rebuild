@@ -19,7 +19,7 @@ export default function MarketQuickSearchPills({ onApplyPreset }: { onApplyPrese
           <TooltipTrigger asChild>
             <button
               onClick={() => onApplyPreset(preset.id)}
-              className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] font-medium text-slate-300 transition hover:border-[#FF4D00]/40 hover:text-orange-200"
+              className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-[11px] font-medium text-slate-300 transition hover:border-[#D4AF37]/40 hover:text-orange-200"
             >
               {preset.label}
             </button>

@@ -22,7 +22,7 @@ export function StatusBadge({ status }: { status: string }) {
     paper: "bg-purple-100 text-purple-700 border border-purple-200",
     connected: "bg-green-100 text-green-700 border border-green-200",
     disconnected: "bg-gray-200 text-gray-500",
-    running: "bg-orange-100 text-orange-700 border border-orange-200",
+    running: "bg-amber-100 text-orange-700 border border-orange-200",
     paused: "bg-amber-100 text-amber-700 border border-amber-200",
     stopped: "bg-gray-200 text-gray-500 border border-gray-300",
     conservative: "bg-blue-100 text-blue-700 border border-blue-200",

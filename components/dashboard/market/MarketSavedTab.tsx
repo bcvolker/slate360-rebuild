@@ -33,7 +33,7 @@ export default function MarketSavedTab({ onNavigate }: MarketSavedTabProps) {
       {/* Loading state */}
       {loading && items.length === 0 && (
         <div className="flex items-center justify-center py-16">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-[#FF4D00]" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-800 border-t-[#D4AF37]" />
         </div>
       )}
 
@@ -46,7 +46,7 @@ export default function MarketSavedTab({ onNavigate }: MarketSavedTabProps) {
           </p>
           <button
             onClick={() => onNavigate("direct-buy")}
-            className="rounded-xl bg-[#FF4D00] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#e04400]"
+            className="rounded-xl bg-[#D4AF37] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#e04400]"
           >
             Browse Markets
           </button>

@@ -110,12 +110,12 @@ export default function DashboardHeader({
         {/* ── Left cluster: Logo + optional back link ── */}
         <div className="flex items-center gap-3 shrink-0">
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/logo.svg" alt="Slate360" className="h-6 sm:h-7 w-auto" />
+            <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-6 sm:h-7 w-auto" />
           </Link>
           {showBackLink && (
             <Link
               href="/dashboard"
-              className="hidden sm:flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-[#FF4D00] transition-colors"
+              className="hidden sm:flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-[#D4AF37] transition-colors"
             >
               <ChevronLeft size={14} /> Dashboard
             </Link>
@@ -132,7 +132,7 @@ export default function DashboardHeader({
               value={searchQuery}
               readOnly={!onSearchChange}
               onChange={(e) => onSearchChange?.(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-zinc-700 bg-zinc-900/50 text-sm text-white placeholder:text-zinc-500 focus:bg-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 focus:border-transparent transition-all"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-zinc-700 bg-zinc-900/50 text-sm text-white placeholder:text-zinc-500 focus:bg-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus:border-transparent transition-all"
             />
           </div>
         </div>
@@ -160,7 +160,7 @@ export default function DashboardHeader({
             >
               <Bell size={18} />
               {notifications.length > 0 && (
-                <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-[#FF4D00]" />
+                <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-[#D4AF37]" />
               )}
             </button>
 
@@ -173,7 +173,7 @@ export default function DashboardHeader({
                     {onRefreshNotifications && (
                       <button
                         onClick={onRefreshNotifications}
-                        className="text-xs font-semibold text-[#FF4D00] hover:opacity-80"
+                        className="text-xs font-semibold text-[#D4AF37] hover:opacity-80"
                       >
                         Refresh
                       </button>
@@ -213,7 +213,7 @@ export default function DashboardHeader({
             <button
               onClick={onCustomizeOpen}
               title="Customize layout"
-              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-[#FF4D00] transition-colors"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-[#D4AF37] transition-colors"
             >
               <SlidersHorizontal size={18} />
               {prefsDirty && (
@@ -250,7 +250,7 @@ export default function DashboardHeader({
                     <p className="text-sm font-semibold text-white">{user.name}</p>
                     <p className="text-xs text-zinc-400 truncate">{user.email}</p>
                     <span
-                      className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white bg-[#FF4D00]"
+                      className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white bg-[#D4AF37]"
                     >
                       {ent.label}
                     </span>

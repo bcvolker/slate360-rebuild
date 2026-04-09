@@ -58,15 +58,15 @@ function useVisibleTabs(
     { id: "geospatial",     label: "Geospatial",     icon: Globe,           color: "#059669", entKey: "canAccessGeospatial",   requiredTier: "model" },
     { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#D97706", entKey: "canAccessVirtual",      requiredTier: "model" },
     { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#6366F1", entKey: "canAccessAnalytics",    requiredTier: "business" },
-    { id: "my-account",     label: "My Account",     icon: User,            color: "#FF4D00" },
+    { id: "my-account",     label: "My Account",     icon: User,            color: "#D4AF37" },
   ];
 
   const internalTabs: DashTab[] =
     (canAccessCeo || canAccessMarket || canAccessAthlete360)
       ? ([
-          ...(canAccessCeo       ? [{ id: "ceo",        label: "CEO",          icon: Shield,     color: "#FF4D00", isCEOOnly: true }] : []),
+          ...(canAccessCeo       ? [{ id: "ceo",        label: "CEO",          icon: Shield,     color: "#D4AF37", isCEOOnly: true }] : []),
           ...(canAccessMarket    ? [{ id: "market",     label: "Market Robot", icon: TrendingUp, color: "#6366F1", isCEOOnly: true }] : []),
-          ...(canAccessAthlete360 ? [{ id: "athlete360", label: "Athlete360",   icon: Zap,        color: "#FF4D00", isCEOOnly: true }] : []),
+          ...(canAccessAthlete360 ? [{ id: "athlete360", label: "Athlete360",   icon: Zap,        color: "#D4AF37", isCEOOnly: true }] : []),
         ] as DashTab[])
       : [];
 

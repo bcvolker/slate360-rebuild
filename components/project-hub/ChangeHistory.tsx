@@ -55,7 +55,7 @@ export default function ChangeHistory({ open, onClose, title, entries, subfolder
         <div className="flex items-start justify-between border-b border-gray-100 px-5 py-4">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-              <History className="h-4 w-4 shrink-0 text-orange-500" />
+              <History className="h-4 w-4 shrink-0 text-amber-500" />
               Change History
             </div>
             <p className="mt-0.5 truncate text-xs text-gray-500">{title}</p>
@@ -70,7 +70,7 @@ export default function ChangeHistory({ open, onClose, title, entries, subfolder
 
         {/* SlateDrop indicator */}
         {subfolder && (
-          <div className="border-b border-gray-100 bg-orange-50 px-5 py-2.5">
+          <div className="border-b border-gray-100 bg-amber-50 px-5 py-2.5">
             <p className="text-[11px] text-orange-700">
               <span className="font-semibold">Saved to:</span>{" "}
               <span className="font-mono">/Projects/…/{subfolder}/</span>

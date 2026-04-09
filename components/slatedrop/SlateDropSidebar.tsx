@@ -63,7 +63,7 @@ export default function SlateDropSidebar({
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${Math.min((storageUsed / maxStorageGB) * 100, 100)}%`,
-                  backgroundColor: (storageUsed / maxStorageGB) > 0.85 ? "#EF4444" : "#FF4D00",
+                  backgroundColor: (storageUsed / maxStorageGB) > 0.85 ? "#EF4444" : "#D4AF37",
                 }}
               />
             </div>
@@ -75,7 +75,7 @@ export default function SlateDropSidebar({
           <button
             onClick={onRequestNewFolder}
             className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold text-white mb-3 transition-all hover:opacity-90"
-            style={{ backgroundColor: "#FF4D00" }}
+            style={{ backgroundColor: "#D4AF37" }}
           >
             <FolderPlus size={13} /> New Folder
           </button>
@@ -132,7 +132,7 @@ function FolderTreeItem({
           }}
           className={`w-full flex items-center gap-2 py-2.5 rounded-lg text-left transition-all text-sm group ${
             isActive
-              ? "bg-[#FF4D00]/10 text-[#FF4D00] font-semibold"
+              ? "bg-[#D4AF37]/10 text-[#D4AF37] font-semibold"
               : "text-gray-600 hover:bg-gray-100"
           }`}
           style={{ paddingLeft: `${12 + depth * 16}px`, paddingRight: isProjectNode ? "28px" : "12px" }}

@@ -146,7 +146,7 @@ export default function DashboardWeatherWidget({
                 alert.severity === "warning"
                   ? "bg-amber-50 text-amber-700"
                   : alert.severity === "caution"
-                    ? "bg-orange-50 text-orange-700"
+                    ? "bg-amber-50 text-orange-700"
                     : "bg-blue-50 text-blue-700"
               }`}
             >

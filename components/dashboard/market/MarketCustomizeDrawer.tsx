@@ -94,7 +94,7 @@ export default function MarketCustomizeDrawer({
               onClick={() => onModeChange(m)}
               className={`flex-1 px-4 py-2 text-xs rounded-[10px] font-medium transition-all ${
                 mode === m
-                  ? "bg-[#FF4D00] text-white shadow-inner"
+                  ? "bg-[#D4AF37] text-white shadow-inner"
                   : "text-slate-400 hover:bg-zinc-800"
               }`}
             >
@@ -118,7 +118,7 @@ export default function MarketCustomizeDrawer({
             className={`
               group flex items-center gap-3 px-4 py-3 rounded-xl text-sm cursor-grab active:cursor-grabbing border
               ${dragOver === tab.id && dragging !== tab.id 
-                ? "bg-orange-500/10 border-orange-500/30" 
+                ? "bg-amber-500/10 border-amber-500/30" 
                 : "border-transparent hover:bg-zinc-900"
               }
               ${!tab.visible ? "opacity-60" : ""}

@@ -42,42 +42,42 @@ export default function MarketAdvancedFilters(props: MarketAdvancedFiltersProps)
           Min value opportunity (%)
           <input type="number" min={0} max={50} step={1} value={props.minEdge}
             onChange={(e) => props.onMinEdgeChange(toNumber(e.target.value, 0))}
-            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30" />
+            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30" />
         </label>
         <label className="text-[11px] text-slate-400">
           Chance from (%)
           <input type="number" min={0} max={100} step={1} value={props.probMin}
             onChange={(e) => props.onProbMinChange(toNumber(e.target.value, 0))}
-            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30" />
+            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30" />
         </label>
         <label className="text-[11px] text-slate-400">
           Chance to (%)
           <input type="number" min={0} max={100} step={1} value={props.probMax}
             onChange={(e) => props.onProbMaxChange(toNumber(e.target.value, 100))}
-            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30" />
+            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30" />
         </label>
         <label className="text-[11px] text-slate-400">
           Min trading activity ($)
           <input type="number" min={0} step={100} value={props.minVolume}
             onChange={(e) => props.onMinVolumeChange(toNumber(e.target.value, 0))}
-            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30" />
+            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30" />
         </label>
         <label className="text-[11px] text-slate-400">
           Min market depth ($)
           <input type="number" min={0} step={100} value={props.minLiquidity}
             onChange={(e) => props.onMinLiquidityChange(toNumber(e.target.value, 0))}
-            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30" />
+            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30" />
         </label>
         <label className="text-[11px] text-slate-400">
           Max price gap (%)
           <input type="number" min={0} max={100} step={1} value={props.maxSpread}
             onChange={(e) => props.onMaxSpreadChange(toNumber(e.target.value, 100))}
-            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30" />
+            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30" />
         </label>
         <label className="text-[11px] text-slate-400">
           Style
           <select value={props.riskTag} onChange={(e) => props.onRiskTagChange(e.target.value as MktRiskTag)}
-            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30">
+            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30">
             <option value="all">Any</option>
             <option value="hot">Trending</option>
             <option value="high-potential">Potential value</option>
@@ -89,7 +89,7 @@ export default function MarketAdvancedFilters(props: MarketAdvancedFiltersProps)
         <label className="text-[11px] text-slate-400">
           Topic
           <select value={props.category} onChange={(e) => props.onCategoryChange(e.target.value)}
-            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30">
+            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30">
             <option value="all">All topics</option>
             {props.availableCategories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -97,7 +97,7 @@ export default function MarketAdvancedFilters(props: MarketAdvancedFiltersProps)
         <label className="text-[11px] text-slate-400">
           Sort
           <select value={props.sortBy} onChange={(e) => props.onSortByChange(e.target.value as MarketSortKey)}
-            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#FF4D00]/30">
+            className="mt-0.5 w-full border border-zinc-800 bg-zinc-900/90 rounded-md px-2 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30">
             <option value="edge">Best value</option>
             <option value="volume">Most active</option>
             <option value="probability">Most likely</option>

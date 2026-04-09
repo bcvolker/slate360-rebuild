@@ -67,7 +67,7 @@ export default function WidgetCard({
   span,
   children,
   delay = 0,
-  color = "#FF4D00",
+  color = "#D4AF37",
   size = "default",
   onSetSize,
   draggable: isDraggable = false,
@@ -130,7 +130,7 @@ export default function WidgetCard({
                     className={[
                       "w-6 h-6 rounded-md flex items-center justify-center transition-all",
                       isActive
-                        ? "bg-zinc-700 shadow-sm text-orange-500"
+                        ? "bg-zinc-700 shadow-sm text-amber-500"
                         : "text-zinc-500 hover:text-zinc-300",
                     ].join(" ")}
                     title={`${opt.label} size`}

@@ -121,7 +121,7 @@ export default function ContactsWidget({
         action={
           <button
             onClick={() => { setAddOpen(true); void loadOwnContacts(); }}
-            className="flex items-center gap-1 text-[11px] font-semibold text-[#FF4D00] hover:underline"
+            className="flex items-center gap-1 text-[11px] font-semibold text-[#D4AF37] hover:underline"
           >
             <UserPlus size={12} /> Add
           </button>
@@ -137,7 +137,7 @@ export default function ContactsWidget({
                 placeholder="Search contacts…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#FF4D00]/20 focus:border-[#FF4D00] transition-all"
+                className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all"
               />
               {search && (
                 <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
@@ -151,7 +151,7 @@ export default function ContactsWidget({
                   onClick={() => setFilterOpen((v) => !v)}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors ${
                     projectFilter !== "all"
-                      ? "border-[#FF4D00] bg-[#FF4D00]/5 text-[#FF4D00]"
+                      ? "border-[#D4AF37] bg-[#D4AF37]/5 text-[#D4AF37]"
                       : "border-gray-200 text-gray-500 hover:border-gray-300"
                   }`}
                 >
@@ -164,7 +164,7 @@ export default function ContactsWidget({
                     <div className="absolute right-0 top-9 w-48 bg-white rounded-xl border border-gray-100 shadow-xl z-40 overflow-hidden">
                       <button
                         onClick={() => { setProjectFilter("all"); setFilterOpen(false); }}
-                        className={`w-full text-left px-4 py-2.5 text-xs transition-colors ${projectFilter === "all" ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}
+                        className={`w-full text-left px-4 py-2.5 text-xs transition-colors ${projectFilter === "all" ? "bg-[#D4AF37]/5 text-[#D4AF37] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}
                       >
                         All projects
                       </button>
@@ -172,7 +172,7 @@ export default function ContactsWidget({
                         <button
                           key={p.id}
                           onClick={() => { setProjectFilter(p.id); setFilterOpen(false); }}
-                          className={`w-full text-left px-4 py-2.5 text-xs transition-colors ${projectFilter === p.id ? "bg-[#FF4D00]/5 text-[#FF4D00] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}
+                          className={`w-full text-left px-4 py-2.5 text-xs transition-colors ${projectFilter === p.id ? "bg-[#D4AF37]/5 text-[#D4AF37] font-semibold" : "text-gray-600 hover:bg-gray-50"}`}
                         >
                           {p.name}
                         </button>
@@ -208,7 +208,7 @@ export default function ContactsWidget({
                   {c.initials}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-gray-900 truncate group-hover:text-[#FF4D00] transition-colors">
+                  <p className="text-xs font-semibold text-gray-900 truncate group-hover:text-[#D4AF37] transition-colors">
                     {c.name}
                   </p>
                   <p className="text-[10px] text-gray-400 truncate">{c.title || c.company || ""}</p>
@@ -233,7 +233,7 @@ export default function ContactsWidget({
                 {!search && (
                   <button
                     onClick={() => setAddOpen(true)}
-                    className="mt-2 text-xs font-semibold text-[#FF4D00] hover:underline flex items-center gap-1 mx-auto"
+                    className="mt-2 text-xs font-semibold text-[#D4AF37] hover:underline flex items-center gap-1 mx-auto"
                   >
                     <UserPlus size={11} /> Add your first contact
                   </button>
@@ -243,7 +243,7 @@ export default function ContactsWidget({
 
             {ownLoading && (
               <div className="text-center py-4">
-                <div className="w-4 h-4 border-2 border-[#FF4D00]/30 border-t-[#FF4D00] rounded-full animate-spin mx-auto" />
+                <div className="w-4 h-4 border-2 border-[#D4AF37]/30 border-t-[#D4AF37] rounded-full animate-spin mx-auto" />
               </div>
             )}
           </div>

@@ -151,12 +151,12 @@ function Controller({
           previewPolylineRef.current.setPath(newVerts);
         } else {
           previewPolylineRef.current = new google.maps.Polyline({
-            path: newVerts, strokeColor: "#FF4D00", strokeWeight: 2, map,
+            path: newVerts, strokeColor: "#D4AF37", strokeWeight: 2, map,
           });
         }
         previewMarkersRef.current.push(new google.maps.Marker({
           position: { lat: la, lng: lo }, map,
-          icon: { path: google.maps.SymbolPath.CIRCLE, scale: 5, fillColor: "#FF4D00", fillOpacity: 1, strokeColor: "#fff", strokeWeight: 1.5 },
+          icon: { path: google.maps.SymbolPath.CIRCLE, scale: 5, fillColor: "#D4AF37", fillOpacity: 1, strokeColor: "#fff", strokeWeight: 1.5 },
         }));
         return;
       }
@@ -199,8 +199,8 @@ function Controller({
     clearPreview();
     boundaryPolygonRef.current?.setMap(null);
     boundaryPolygonRef.current = new google.maps.Polygon({
-      paths: verts, strokeColor: "#FF4D00", strokeWeight: 2,
-      fillColor: "#FF4D00", fillOpacity: 0.15, editable: true, draggable: true, map,
+      paths: verts, strokeColor: "#D4AF37", strokeWeight: 2,
+      fillColor: "#D4AF37", fillOpacity: 0.15, editable: true, draggable: true, map,
     });
     const centLat = verts.reduce((s, p) => s + p.lat, 0) / verts.length;
     const centLng = verts.reduce((s, p) => s + p.lng, 0) / verts.length;
@@ -271,7 +271,7 @@ function Controller({
 
   const btn = (active: boolean) =>
     `px-2 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 ${
-      active ? "bg-[#FF4D00] text-white" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
+      active ? "bg-[#D4AF37] text-white" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
     }`;
 
   return (
@@ -288,22 +288,22 @@ function Controller({
                 if (e.key === "Escape") setSuggestions([]);
               }}
               placeholder="Search address or coordinates…"
-              className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 focus:border-[#FF4D00] focus:ring-1 focus:ring-[#FF4D00]/20 focus:outline-none"
+              className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/20 focus:outline-none"
             />
             {resolving && <Loader2 size={12} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-gray-400" />}
             {suggestions.length > 0 && (
               <ul className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-gray-200 shadow-xl z-20 max-h-52 overflow-y-auto">
                 {suggestions.map((s) => (
                   <li key={s.placeId} onMouseDown={(e) => { e.preventDefault(); void selectSuggestion(s); }}
-                    className="px-3 py-2 text-xs hover:bg-orange-50 cursor-pointer flex items-start gap-2">
-                    <MapPin size={11} className="text-[#FF4D00] mt-0.5 shrink-0" />
+                    className="px-3 py-2 text-xs hover:bg-amber-50 cursor-pointer flex items-start gap-2">
+                    <MapPin size={11} className="text-[#D4AF37] mt-0.5 shrink-0" />
                     {s.description}
                   </li>
                 ))}
               </ul>
             )}
           </div>
-          <button type="button" onClick={() => void searchAddress()} className="px-2.5 py-1.5 bg-[#FF4D00] hover:bg-[#E64500] rounded-lg text-white transition-colors"><Search size={14} /></button>
+          <button type="button" onClick={() => void searchAddress()} className="px-2.5 py-1.5 bg-[#D4AF37] hover:bg-[#E64500] rounded-lg text-white transition-colors"><Search size={14} /></button>
         </div>
       </div>
 
@@ -354,7 +354,7 @@ function Controller({
       {value.lat !== null && value.lng !== null && (
         <div className="absolute bottom-2 right-2 z-10 pointer-events-none">
           <div className="bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 text-[10px] text-gray-600 border border-gray-200 shadow flex items-center gap-1">
-            <MapPin size={9} className="text-[#FF4D00]" />
+            <MapPin size={9} className="text-[#D4AF37]" />
             {value.lat.toFixed(5)}, {value.lng.toFixed(5)}
           </div>
         </div>
@@ -363,7 +363,7 @@ function Controller({
       {/* Boundary badge */}
       {!isDrawingPolygon && value.boundary.length > 0 && (
         <div className="absolute top-14 right-2 z-10 pointer-events-none">
-          <div className="bg-[#FF4D00]/10 border border-[#FF4D00]/30 rounded-lg px-2 py-1 text-[10px] text-[#FF4D00] font-semibold">Boundary: {value.boundary.length} pts</div>
+          <div className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-lg px-2 py-1 text-[10px] text-[#D4AF37] font-semibold">Boundary: {value.boundary.length} pts</div>
         </div>
       )}
     </div>

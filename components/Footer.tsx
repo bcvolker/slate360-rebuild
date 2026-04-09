@@ -15,7 +15,7 @@ export default function Footer() {
         {/* Brand */}
         <div className="col-span-1">
           <Link href="/" className="inline-block mb-4">
-            <img src="/logo.svg" alt="Slate360" className="h-8 w-auto" />
+            <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-8 w-auto" />
           </Link>
           <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
             The all-in-one construction platform for teams who build.
@@ -28,7 +28,7 @@ export default function Footer() {
           <ul className="space-y-2.5">
             {platformLinks.map((f) => (
               <li key={f.href}>
-                <Link href={f.href} className="text-sm text-gray-600 hover:text-[#FF4D00] transition-colors">
+                <Link href={f.href} className="text-sm text-gray-600 hover:text-[#D4AF37] transition-colors">
                   {f.label}
                 </Link>
               </li>
@@ -45,7 +45,7 @@ export default function Footer() {
               { label: "Contact", href: "/contact" },
             ].map((l) => (
               <li key={l.label}>
-                <Link href={l.href} className="text-sm text-gray-600 hover:text-[#FF4D00] transition-colors">
+                <Link href={l.href} className="text-sm text-gray-600 hover:text-[#D4AF37] transition-colors">
                   {l.label}
                 </Link>
               </li>
@@ -63,7 +63,7 @@ export default function Footer() {
               { label: "Security", href: "#" },
             ].map((l) => (
               <li key={l.label}>
-                <Link href={l.href} className="text-sm text-gray-600 hover:text-[#FF4D00] transition-colors">
+                <Link href={l.href} className="text-sm text-gray-600 hover:text-[#D4AF37] transition-colors">
                   {l.label}
                 </Link>
               </li>

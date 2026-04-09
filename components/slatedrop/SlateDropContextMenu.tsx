@@ -203,7 +203,7 @@ function CtxItem({
         danger
           ? "text-red-500 hover:bg-red-50"
           : accent
-          ? "text-[#FF4D00] hover:bg-[#FF4D00]/5 font-semibold"
+          ? "text-[#D4AF37] hover:bg-[#D4AF37]/5 font-semibold"
           : "text-gray-600 hover:bg-gray-50"
       }`}
     >
