@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { LandingPage } from "@/components/home/LandingPage";
+import MarketingHomepage from "@/components/marketing-homepage";
 
 export const metadata = {
   title: 'Slate360 - The Nervous System for Construction Deliverables',
@@ -15,5 +15,5 @@ export default async function RootPage() {
 
   if (user) redirect("/dashboard");
 
-  return <LandingPage />;
+  return <MarketingHomepage />;
 }
