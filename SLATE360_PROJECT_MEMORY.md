@@ -183,66 +183,60 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-09 (Auth CSS Unification + 3D/360 Hero + App Demos + Mobile Menu Fix)
+### Session Handoff — 2026-04-10 (Global Brand Color Migration + Build Fix + v0 Workflow)
 
 ### What Changed
 
-**Commit `33d3eb0` → pushed to `main`**
+**Commit `047c366` — Tailwind v4 build fix**
+- `app/globals.css`: Removed invalid `@apply dark` from `auth-page` utility (Tailwind v4 treats `dark` as a variant, not a utility). Replaced with `color-scheme: dark` CSS property.
 
-**1. Auth CSS Unification**
-- `app/globals.css`: Added 14 auth utility classes (auth-page, auth-card, auth-input, auth-btn-primary, auth-btn-oauth, auth-label, auth-link, auth-divider-line, auth-divider-text, auth-error) that reference CSS variables
-- `app/login/page.tsx`: Migrated from hardcoded zinc/hex to auth utility classes (done in prior session, included in commit)
-- `app/signup/page.tsx`: Same migration — all zinc-*, [#D4AF37] replaced with CSS variable-based utilities
-- `app/forgot-password/page.tsx`: Same migration
-- `components/auth/SignupConfirmation.tsx`: Same migration
-- Result: Any future color/design change in globals.css propagates to ALL auth pages automatically
+**Commit `56292b1` — v0 workflow docs**
+- `slate360-context/V0_WORKFLOW.md` (NEW): Streamlined v0→production workflow guide with design system translation table
+- `.github/copilot-instructions.md`: Added v0 workflow to Task Map
 
-**2. 3D/360 Interactive Hero + App Demos**
-- Installed `@photo-sphere-viewer/core@5.14.1`
-- `components/home/PanoramaViewer.tsx` (NEW, 44 lines): React wrapper for photo-sphere-viewer
-- `components/home/HeroDemo.tsx` (NEW, 68 lines): Tabbed 360° Tour / 3D Model switcher using PanoramaViewer + ModelViewerClient
-- `components/home/AppDemo.tsx` (NEW, 88 lines): Reusable expand/collapse demo viewer with consistent controls (Maximize2/Minimize2) for per-app demos
-- `components/marketing-homepage.tsx`: 
-  - Hero: Replaced dashed placeholder with `<HeroDemo />` (live 360 panorama + 3D model tabs)
-  - App Showcase: Added `demoType`/`demoSrc` to AppShowcase interface; each app card now shows a live interactive demo
-  - Added Design Studio as third app (3D model demo using csb-stadium-model.glb)
-  - Renamed "Tour Builder" → "360 Tour Builder" with panorama demo (pletchers.jpg)
-  - Site Walk shows "Demo coming soon" placeholder
-  - AppShowcase grid still lg:grid-cols-2 — 3 apps renders 2+1 layout
+**Commit `7d832bc` — Global brand color migration (150 files changed)**
 
-**3. Mobile Hamburger Menu Fix**
-- Sheet portal was inheriting light/white bg-background since it renders outside any `dark` class context
-- Fixed: Forced explicit dark colors on SheetContent (!bg-[hsl(240,6%,6%)], text-[hsl(0,0%,95%)], border-[hsla(45,82%,55%,0.12)])
-- Added real SVG brand logo to mobile slide-out menu
-- Close button styled with [&>button]:text-white
+**1. SVG Logo Color Fix (ROOT CAUSE of orange logos on live site)**
+- ALL 5 SVGs in `/public/uploads/SLATE*.svg`: `#fc751c` (orange) → `#D4AF37` (gold), `#3e4f6b` (navy) → `#18181b` (dark)
+- `app/icon.svg` and `public/uploads/favicon.svg`: same orange→gold fix
+- This was the actual root cause — SVG file CONTENT was wrong, not the code
 
-**4. Real Logo in Header + Footer**
-- Replaced Sparkles icon + "Slate360" text with real `/uploads/SLATE 360-Color Reversed Lockup.svg` in both desktop header and footer
+**2. Global Accent Color Migration (128+ source files)**
+- All `.tsx/.ts/.css` files: `#FF4D00` → `#D4AF37` (old orange accent → gold)
+- All Tailwind classes: `orange-50/100/500/600` → `amber-50/100/500/600`
 
-**5. CEO Login**
-- Confirmed: `slate360ceo@gmail.com` / `Arlopear$76` — password was reset via Supabase Admin API in prior session
-- Account UUID: `f73fd954-d8dd-425f-bb93-0ce92cb65088`, email confirmed, is_super_admin: true
-- isSlateCeo check at lib/server/org-context.ts:102 is hardcoded email match
+**3. Logo Path Unification**
+- All `src="/logo.svg"` refs → `src="/uploads/SLATE 360-Color Reversed Lockup.svg"` across entire codebase
+- Affected: DashboardHeader, Footer, Navbar, SlateDropTopBar, external pages, email.ts, branding.ts, wagmi-config.ts
+
+**4. Centralized Logo Component**
+- `components/shared/SlateLogo.tsx` (NEW, ~35 lines): exports `SlateLogo` component + `LOGO_SRC` constant
+- Note: Created but NOT yet wired into existing pages (pages still use direct `<img>` tags)
+
+**5. Mobile Hamburger Menu Auto-Sizing**
+- `components/marketing-homepage.tsx`: `!h-auto !inset-y-auto !top-0 !right-0 !rounded-bl-2xl` — menu sizes to content instead of full viewport
+- Nav items: gap `4→3`, font `text-lg→text-base`
 
 ### What's Broken / Partially Done
-- **marketing-homepage.tsx is 1003 lines** — needs extraction into sub-components (pre-existing, not introduced this session)
+- **SlateLogo component not wired in** — pages still use direct `<img>` tags; should replace with `<SlateLogo />` imports
+- **marketing-homepage.tsx is 1003 lines** — needs extraction into sub-components
 - **CRITICAL** (pre-existing): `market_scheduler_lock` table still has no RLS
 - **CRITICAL** (pre-existing): Portal view_count race condition (atomic SQL not deployed yet)
 - `fix/slatedrop-external-uploads` — still needs merge to main (security patch)
 - Supabase email templates still use purple gradients (not yet updated to gold)
-- Stats row from old homepage not carried forward (500+ Teams, 2M+ Photos, etc.)
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
+- `slate360-context/V0_WORKFLOW.md`: created
+- `.github/copilot-instructions.md`: v0 workflow added to Task Map
 
 ### Next Steps (ordered)
-1. Test live deploy: verify 360 panorama + 3D model load on homepage (desktop + mobile)
-2. Test hamburger menu on mobile — confirm dark glass styling
-3. Test login with `slate360ceo@gmail.com` / `Arlopear$76`
-4. Update Supabase email templates to gold branding (currently purple gradients)
-5. Extract marketing-homepage.tsx into sub-300-line components
-6. Merge `fix/slatedrop-external-uploads` → main (security patch)
-7. Add RLS to `market_scheduler_lock`
-8. Deploy atomic `claim_deliverable_view()` RPC
-6. Add Block Editor backend persistence
-8. Expand rate limiting to remaining API routes
+1. Test live deploy: verify GOLD logos on homepage, login, mobile menu, footer, dashboard
+2. Wire `<SlateLogo />` component into all pages that currently use direct `<img>` logo tags
+3. Update Supabase email templates to gold branding (currently purple gradients)
+4. Extract marketing-homepage.tsx into sub-300-line components
+5. Merge `fix/slatedrop-external-uploads` → main (security patch)
+6. Add RLS to `market_scheduler_lock`
+7. Deploy atomic `claim_deliverable_view()` RPC
+8. Add Block Editor backend persistence
+9. Expand rate limiting to remaining API routes
