@@ -309,7 +309,8 @@
    confirmation pages. Change these once → every auth page updates.
    ───────────────────────────────────────────────────────────────── */
 @utility auth-page {
-  @apply dark min-h-screen bg-background flex flex-col;
+  @apply min-h-screen bg-background flex flex-col;
+  color-scheme: dark;
 }
 
 @utility auth-topbar {
