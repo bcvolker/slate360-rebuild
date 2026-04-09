@@ -1,0 +1,68 @@
+"use client";
+
+import { useState } from "react";
+import dynamic from "next/dynamic";
+import { Box, Image } from "lucide-react";
+
+const ModelViewerClient = dynamic(
+  () => import("@/components/ModelViewerClient"),
+  { ssr: false }
+);
+const PanoramaViewer = dynamic(
+  () => import("@/components/home/PanoramaViewer"),
+  { ssr: false }
+);
+
+type Tab = "model" | "panorama";
+
+export default function HeroDemo() {
+  const [active, setActive] = useState<Tab>("panorama");
+
+  return (
+    <div className="w-full">
+      {/* Tab switcher */}
+      <div className="flex items-center justify-center gap-2 mb-4">
+        <button
+          onClick={() => setActive("panorama")}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            active === "panorama"
+              ? "bg-primary text-primary-foreground shadow-[0_0_20px_hsla(45,82%,55%,0.3)]"
+              : "bg-muted/50 text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Image className="h-3.5 w-3.5" />
+          360° Tour
+        </button>
+        <button
+          onClick={() => setActive("model")}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            active === "model"
+              ? "bg-primary text-primary-foreground shadow-[0_0_20px_hsla(45,82%,55%,0.3)]"
+              : "bg-muted/50 text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Box className="h-3.5 w-3.5" />
+          3D Model
+        </button>
+      </div>
+
+      {/* Viewer */}
+      <div className="aspect-video rounded-lg overflow-hidden bg-background/50">
+        {active === "model" ? (
+          <ModelViewerClient
+            src="/uploads/csb-stadium-model.glb"
+            alt="Stadium 3D model"
+            cameraOrbit="45deg 60deg 105%"
+            shadowIntensity={1}
+            shadowSoftness={1}
+          />
+        ) : (
+          <PanoramaViewer
+            src="/uploads/pletchers.jpg"
+            caption="Drag to look around — 360° panorama"
+          />
+        )}
+      </div>
+    </div>
+  );
+}

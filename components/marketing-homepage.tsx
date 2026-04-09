@@ -26,6 +26,7 @@ import {
   Play,
   Building2,
   MapPin,
+  Palette,
   Check,
   ChevronRight,
   Sparkles,
@@ -50,6 +51,10 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import dynamic from "next/dynamic";
+
+const HeroDemo = dynamic(() => import("@/components/home/HeroDemo"), { ssr: false });
+const AppDemo = dynamic(() => import("@/components/home/AppDemo"), { ssr: false });
 
 /* ==========================================================================
    TYPES
@@ -79,6 +84,9 @@ interface AppShowcase {
   description: string;
   icon: typeof Building2;
   features: string[];
+  demoType: "panorama" | "model" | "placeholder";
+  demoSrc?: string;
+  demoLabel?: string;
 }
 
 /* ==========================================================================
@@ -102,9 +110,12 @@ const TRUST_LOGOS = [
 
 const APP_SHOWCASE: AppShowcase[] = [
   {
-    name: "Tour Builder",
+    name: "360 Tour Builder",
     description: "Create stunning 360° virtual tours with interactive hotspots, floor plans, and seamless client sharing.",
     icon: Building2,
+    demoType: "panorama",
+    demoSrc: "/uploads/pletchers.jpg",
+    demoLabel: "Drag to explore — 360° panorama",
     features: [
       "Drag-and-drop tour creation",
       "Interactive hotspots & annotations",
@@ -114,9 +125,26 @@ const APP_SHOWCASE: AppShowcase[] = [
     ],
   },
   {
+    name: "Design Studio",
+    description: "Visualize projects with interactive 3D models. Upload, annotate, and share models with clients in one click.",
+    icon: Palette,
+    demoType: "model",
+    demoSrc: "/uploads/csb-stadium-model.glb",
+    demoLabel: "Rotate & zoom — 3D model",
+    features: [
+      "GLB / glTF model support",
+      "Interactive rotate, zoom & pan",
+      "Client-shareable model links",
+      "Annotation & markup tools",
+      "Before / after comparisons",
+    ],
+  },
+  {
     name: "Site Walk",
     description: "Document construction progress with GPS-tagged photos, automated timelines, and instant client reports.",
     icon: MapPin,
+    demoType: "placeholder",
+    demoLabel: "Live demo coming soon",
     features: [
       "GPS-tagged photo capture",
       "Automated progress timelines",
@@ -211,11 +239,8 @@ function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-glass border-b border-[hsla(45,82%,55%,0.12)] backdrop-blur-lg">
       <div className="container mx-auto h-full px-4 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
-            <Sparkles className="h-5 w-5 text-primary" />
-          </div>
-          <span className="text-xl font-bold text-primary">Slate360</span>
+        <Link href="/" className="flex items-center">
+          <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-7 w-auto" />
         </Link>
 
         {/* Desktop Navigation */}
@@ -249,25 +274,27 @@ function Header() {
               <span className="sr-only">Open menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-72 bg-glass border-l border-[hsla(45,82%,55%,0.12)] backdrop-blur-xl">
+          <SheetContent side="right" className="w-72 !bg-[hsl(240,6%,6%)] border-l border-[hsla(45,82%,55%,0.12)] backdrop-blur-xl [&>button]:text-white">
             <div className="flex flex-col gap-6 mt-8">
+              {/* Logo */}
+              <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-7 w-auto self-start" />
               <nav className="flex flex-col gap-4">
                 {NAV_LINKS.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="text-lg font-medium text-foreground hover:text-primary transition-colors"
+                    className="text-lg font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] transition-colors"
                   >
                     {link.label}
                   </Link>
                 ))}
               </nav>
-              <div className="flex flex-col gap-3 pt-4 border-t border-border">
-                <Button variant="outline" asChild className="border-border hover:border-primary hover:text-primary">
+              <div className="flex flex-col gap-3 pt-4 border-t border-[hsla(45,82%,55%,0.12)]">
+                <Button variant="outline" asChild className="border-[hsla(0,0%,100%,0.15)] text-[hsl(0,0%,95%)] hover:border-[hsl(45,82%,55%)] hover:text-[hsl(45,82%,55%)]">
                   <Link href="/login">Login</Link>
                 </Button>
-                <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button asChild className="bg-[hsl(45,82%,55%)] text-[hsl(240,6%,6%)] hover:bg-[hsl(45,82%,55%,0.9)]">
                   <Link href="/signup">Get Started Free</Link>
                 </Button>
               </div>
@@ -318,20 +345,10 @@ function HeroSection() {
           and secure file sharing. <span className="text-primary font-medium">Client links never break.</span>
         </p>
 
-        {/* Interactive Demo Placeholder */}
+        {/* Interactive Demo */}
         <Card className="max-w-4xl mx-auto bg-glass border-[hsla(45,82%,55%,0.2)] shadow-[0_8px_32px_hsla(0,0%,0%,0.4),0_0_0_1px_hsla(45,82%,55%,0.1)]">
-          <CardContent className="p-8 sm:p-12">
-            <div className="aspect-video rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center">
-                <Play className="h-8 w-8 text-primary ml-1" />
-              </div>
-              <div className="text-center">
-                <p className="font-medium text-foreground">Interactive 3D Model / 360 Tour Demo</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Replace with React Three Fiber or Pannellum
-                </p>
-              </div>
-            </div>
+          <CardContent className="p-4 sm:p-6">
+            <HeroDemo />
           </CardContent>
         </Card>
 
@@ -439,10 +456,13 @@ function AppShowcaseSection() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Screenshot Placeholder */}
-                  <div className="aspect-video rounded-lg border border-border bg-muted/20 flex items-center justify-center">
-                    <p className="text-sm text-muted-foreground">App Screenshot Placeholder</p>
-                  </div>
+                  {/* Interactive Demo */}
+                  <AppDemo
+                    type={app.demoType}
+                    modelSrc={app.demoType === "model" ? app.demoSrc : undefined}
+                    panoramaSrc={app.demoType === "panorama" ? app.demoSrc : undefined}
+                    label={app.demoLabel}
+                  />
 
                   {/* Features */}
                   <ul className="space-y-2">
@@ -872,11 +892,8 @@ function Footer() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-primary" />
-              </div>
-              <span className="text-xl font-bold text-primary">Slate360</span>
+            <Link href="/" className="flex items-center mb-4">
+              <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-7 w-auto" />
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
               The nervous system for construction deliverables.
