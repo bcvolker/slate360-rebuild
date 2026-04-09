@@ -19,7 +19,7 @@ export default async function TourBuilderPage({
   const entitlements = await resolveOrgEntitlements(orgId);
 
   if (!entitlements.canAccessStandaloneTourBuilder) {
-    redirect("/apps?error=no_tour_builder");
+    redirect("/dashboard?error=no_tour_builder");
   }
 
   const params = await searchParams;
