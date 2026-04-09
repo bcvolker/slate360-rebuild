@@ -90,7 +90,7 @@ export default function MobileNavSheet({
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
           side="left"
-          className="w-72 bg-zinc-950 border-zinc-800 p-0"
+          className="w-64 sm:w-72 bg-zinc-950 border-zinc-800 p-0 [&>button]:text-white [&>button]:opacity-100 [&>button]:top-3.5 [&>button]:right-3 [&>button]:size-6"
         >
           <SheetHeader className="px-5 py-4 border-b border-zinc-800">
             <SheetTitle className="text-sm font-bold text-white">

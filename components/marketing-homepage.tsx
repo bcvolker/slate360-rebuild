@@ -232,7 +232,7 @@ const TESTIMONIALS: Testimonial[] = [
    Sticky header with glass background, logo, navigation, and CTAs
    ========================================================================== */
 
-function Header() {
+function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -258,12 +258,20 @@ function Header() {
 
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary hover:bg-primary/10">
-            <Link href="/login">Login</Link>
-          </Button>
-          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)]">
-            <Link href="/signup">Get Started Free</Link>
-          </Button>
+          {isLoggedIn ? (
+            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)]">
+              <Link href="/dashboard">Go to Dashboard</Link>
+            </Button>
+          ) : (
+            <>
+              <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary hover:bg-primary/10">
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)]">
+                <Link href="/signup">Get Started Free</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Trigger */}
@@ -291,12 +299,20 @@ function Header() {
                 ))}
               </nav>
               <div className="flex flex-col gap-3 pt-4 border-t border-[hsla(45,82%,55%,0.12)]">
-                <Button variant="outline" asChild className="border-[hsla(0,0%,100%,0.15)] text-[hsl(0,0%,95%)] hover:border-[hsl(45,82%,55%)] hover:text-[hsl(45,82%,55%)]">
-                  <Link href="/login">Login</Link>
-                </Button>
-                <Button asChild className="bg-[hsl(45,82%,55%)] text-[hsl(240,6%,6%)] hover:bg-[hsl(45,82%,55%,0.9)]">
-                  <Link href="/signup">Get Started Free</Link>
-                </Button>
+                {isLoggedIn ? (
+                  <Button asChild className="bg-[hsl(45,82%,55%)] text-[hsl(240,6%,6%)] hover:bg-[hsl(45,82%,55%,0.9)]">
+                    <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Go to Dashboard</Link>
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="outline" asChild className="border-[hsla(0,0%,100%,0.15)] text-[hsl(0,0%,95%)] hover:border-[hsl(45,82%,55%)] hover:text-[hsl(45,82%,55%)]">
+                      <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
+                    </Button>
+                    <Button asChild className="bg-[hsl(45,82%,55%)] text-[hsl(240,6%,6%)] hover:bg-[hsl(45,82%,55%,0.9)]">
+                      <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>Get Started Free</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </SheetContent>
@@ -1008,10 +1024,10 @@ function Footer() {
    Assembles all sections in the specified vertical order
    ========================================================================== */
 
-export default function MarketingHomepage() {
+export default function MarketingHomepage({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   return (
     <div className="dark min-h-screen bg-background text-foreground">
-      <Header />
+      <Header isLoggedIn={isLoggedIn} />
       <main>
         <HeroSection />
         <TrustBar />

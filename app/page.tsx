@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import MarketingHomepage from "@/components/marketing-homepage";
 
@@ -13,7 +12,5 @@ export default async function RootPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (user) redirect("/dashboard");
-
-  return <MarketingHomepage />;
+  return <MarketingHomepage isLoggedIn={!!user} />;
 }
