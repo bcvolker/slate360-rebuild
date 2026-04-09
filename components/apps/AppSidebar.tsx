@@ -33,7 +33,7 @@ const NAV_ITEMS = [
 const FOOTER_ITEMS = [
   {
     label: "Settings",
-    href: "/apps/settings",
+    href: "/dashboard",
     icon: Settings,
   },
 ] as const;

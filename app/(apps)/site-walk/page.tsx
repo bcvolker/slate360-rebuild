@@ -19,7 +19,7 @@ export default async function SiteWalkPage({
   const entitlements = await resolveOrgEntitlements(orgId);
 
   if (!entitlements.canAccessStandalonePunchwalk) {
-    redirect("/apps?error=no_punchwalk");
+    redirect("/dashboard?error=no_punchwalk");
   }
 
   const params = await searchParams;

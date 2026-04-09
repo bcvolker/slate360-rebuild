@@ -50,3 +50,6 @@ ts-errors.txt
 *.log
 .env*.local
 supabase/.temp/
+
+# v0.dev staging drop zone — never committed
+/v0-staging/

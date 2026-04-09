@@ -276,3 +276,29 @@
 .animate-pan-360 {
   animation: pan360 20s linear infinite;
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   Dark Glass Utility Classes (registered for Tailwind v4)
+   ───────────────────────────────────────────────────────────────── */
+
+@utility bg-glass {
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+@utility bg-surface {
+  background-color: var(--surface-light);
+}
+
+@utility border-glass {
+  border-color: var(--border-glass);
+}
+
+@utility shadow-glass {
+  box-shadow: var(--shadow-glass);
+}
+
+@utility shadow-gold-glow {
+  box-shadow: 0 0 20px 0 hsl(45 82% 55% / 0.4), 0 4px 12px 0 hsl(45 82% 55% / 0.25);
+}

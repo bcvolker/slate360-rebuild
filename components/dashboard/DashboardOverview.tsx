@@ -116,7 +116,7 @@ export default function DashboardOverview({
           const labelSize = count <= 4 ? "text-sm" : count <= 6 ? "text-xs" : "text-[11px]";
           const pad = count <= 4 ? "p-5" : count <= 6 ? "p-4" : count <= 10 ? "p-3" : "p-2.5";
           return (
-            <div className="hidden md:flex gap-3 pb-1">
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:flex gap-3 pb-1">
               {allTiles.map((tab) => {
                 const TabIcon = tab.icon;
                 return (
@@ -147,7 +147,7 @@ export default function DashboardOverview({
                       onSetActiveTab(tab.id);
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    className={`group relative md:flex-1 md:min-w-0 flex flex-col items-center gap-1.5 sm:gap-2 ${pad} rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors duration-200 hover:-translate-y-0.5 text-center ${tab.locked ? "opacity-60" : ""}`}
+                    className={`group relative flex flex-col items-center gap-1.5 sm:gap-2 ${pad} rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors duration-200 hover:-translate-y-0.5 text-center md:flex-1 md:min-w-0 ${tab.locked ? "opacity-60" : ""}`}
                   >
                     {tab.locked && (
                       <div className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-800 border border-zinc-700">

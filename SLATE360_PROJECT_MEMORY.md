@@ -183,54 +183,64 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-08 (Foundation Locked — All 3 Branches Merged + Design System Applied)
+### Session Handoff — 2026-04-08 (Routing Fix, Mobile Sheet Nav, Homepage Placeholder)
 
 ### What Changed
 
-**Foundation is locked. Build is passing. UI Phase 1 is merged.**
+**1. `/dashboard` route moved into `(dashboard)` route group — `feature/dashboard-integration`**
+- `app/dashboard/page.tsx` → `app/(dashboard)/dashboard/page.tsx`
+- URL unchanged (`/dashboard`). Now receives `NuqsAdapter` + `TooltipProvider` + `BuildRuntimeBadge` from `app/(dashboard)/layout.tsx` (previously absent — nuqs query state was broken)
+- Empty `app/apps/` directory deleted (was already missing `page.tsx`)
 
-**1. All 3 branches merged to main and pushed**
-- `fix/critical-foundation-patch`: 4 security patches (privilege escalation, TOCTOU races, Stripe webhook ordering, walled garden tier independence)
-- `fix/production-hardening`: Zod validation + rate limiting + build-gag removal
-- `feature/ui-phase-1`: App Launcher, Block Editor, ThemeToggle (CI-fixed providers kept)
+**2. Mobile hamburger Sheet nav (`components/shared/MobileNavSheet.tsx` — NEW)**
+- Replaces the bottom-scrolling `MobileModuleBar` in `DashboardHeader`
+- Hamburger button (`Menu` icon, `sm:hidden`) in header right cluster
+- Opens a `Sheet` from left with full entitlement-filtered navigation
+- `DashboardHeader.tsx`: removed `MobileModuleBar` import, added `MobileNavSheet` (294 lines, still under 300)
 
-**2. SVG recoloring applied**
-- `public/logo.svg`, `public/uploads/SLATE 360-Color Reversed Lockup.svg`, `public/uploads/favicon.svg`
-- Navy Blue (`#3e4f6b`) → Charcoal (`#18181b`) default (light mode)
-- Added `@media (prefers-color-scheme: dark)` block: background → White (`#ffffff`), text paths → Charcoal
-- Orange accent (`#fc751c`) unchanged in all SVGs
+**3. Stacked mobile grid for module tiles (`DashboardOverview.tsx`)**
+- Changed `hidden md:flex` → `grid grid-cols-2 sm:grid-cols-4 md:flex`
+- Module tiles are now visible on mobile in a 2-column stacked grid
 
-**3. Root directory cleansed**
-- `docs/archive/` created; moved: `AGENTS.md`, `CLAUDE.md`, `MARKET_ROBOT_STATUS_HANDOFF.md`, `PRODUCTION_READINESS_AUDIT.md`, `PROJECT_RUNTIME_ISSUE_LEDGER.md`, `SLATE360_ARCHITECTURE.md`
-- Root markdown files: **only** `README.md`, `SLATE360_PROJECT_MEMORY.md`, `DESIGN.md` remain
+**4. Single-App view (`DashboardClient.tsx`)**
+- On mount: if only 1 unlocked app tab exists, auto-navigate there (bypasses overview grid)
+- Implements the Single-App vs Multi-App entitlement logic
 
-**4. `app/globals.css` updated with Industrial Gold + Dark Glass**
-- `--primary` updated to `hsl(45 82% 55%)` (Industrial Gold `#D4AF37`) in both `:root` and `.dark` shadcn blocks
-- New variables added to Slate360 Design Tokens: `--text-primary/secondary/muted`, `--surface-glass`, `--surface-light/secondary`, `--border-glass`, `--glass-border`, `--backdrop-blur`, `--shadow-sm`, `--shadow-glass`, `--primary-hover`
+**5. Marketing homepage placeholder (`app/page.tsx`)**
+- Replaced full v0 `LandingPage` with a minimal 79-line Dark Glass + Industrial Gold splash
+- Sticky header: SVG logo + Industrial Gold Login button → `/login`
+- Hero: gold accent line, black/gold headline, two CTA buttons, tagline copy
+- Footer: Privacy + Terms links
+- Auth redirect: `/dashboard` (unchanged)
+- `dark` class forced on root `<div>` (no FOUC)
 
-**5. SLATE360_PROJECT_MEMORY.md updated**
-- Added AI Agent Access section (Git/Vercel/S3/Stripe/Supabase read/write/run/push)
-- Date bumped to 2026-04-08
+**6. `_v0_drop/` Air-Gap staging directory created**
+- `_v0_drop/README.md`: workflow instructions for CEO drop-and-integrate workflow
+- Added `_v0_drop` to `tsconfig.json` exclude list
+
+**Build:** ✅ 83/83 static pages, 0 TS errors. Warnings are pre-existing Sentry deprecations only.
+**Commit:** `4c0f2b4` pushed to `origin/feature/dashboard-integration`
 
 ### What's Broken / Partially Done
 - **CRITICAL**: `market_scheduler_lock` table still has no RLS
 - **CRITICAL**: Portal view_count race condition (atomic SQL not deployed yet)
-- Block Editor is UI-only (no backend persistence yet)
-- JWT hook must be manually enabled in Supabase Dashboard → Auth → Hooks
+- `fix/slatedrop-external-uploads` — needs merge to main
+- `feature/dashboard-integration` — needs merge to main
+- Duplicate `STRIPE_WEBHOOK_SECRET` in `.env` line 75 (missing `whsec_` prefix)
+- Block Editor is UI-only (no backend persistence)
 - Rate limiting only on ~5 of 40+ API routes
-- Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars not yet set in Vercel
+- Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars not set in Vercel
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
-- `DESIGN.md`: already existed (Dark Glass system)
-- `app/globals.css`: Industrial Gold primary + Dark Glass vars added
-- `docs/archive/`: 6 markdown files archived from root
+- `tsconfig.json`: added `_v0_drop` to excludes
 
 ### Next Steps (ordered)
-1. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role).
-2. **CRITICAL** — Deploy atomic `claim_deliverable_view()` RPC to fix portal view_count race.
-3. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel.
-4. Enable JWT hook in Supabase Dashboard → Auth → Hooks.
-5. Add Block Editor backend (save/load deliverables from Supabase).
-6. Expand rate limiting to remaining API routes.
-7. Add server-side MIME type allowlist to upload route.
+1. Merge `fix/slatedrop-external-uploads` → main (security patch, already reviewed)
+2. Merge `feature/dashboard-integration` → main (clean build, passes typecheck)
+3. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role)
+4. **CRITICAL** — Deploy atomic `claim_deliverable_view()` RPC to fix portal view_count race
+5. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel
+6. Enable JWT hook in Supabase Dashboard → Auth → Hooks
+7. Add Block Editor backend persistence
+8. Expand rate limiting to remaining API routes

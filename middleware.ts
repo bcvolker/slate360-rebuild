@@ -87,8 +87,7 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith("/project-hub") ||
       pathname.startsWith("/tour-builder") ||
       pathname.startsWith("/punchwalk") ||
-      pathname.startsWith("/site-walk") ||
-      pathname.startsWith("/apps"))
+      pathname.startsWith("/site-walk"))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
@@ -105,7 +104,7 @@ export async function middleware(request: NextRequest) {
      pathname.startsWith("/project-hub"))
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = "/apps";
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 
@@ -115,7 +114,7 @@ export async function middleware(request: NextRequest) {
     (pathname === "/login" || pathname === "/signup")
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = isStandaloneOnly ? "/apps" : "/dashboard";
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 

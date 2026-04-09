@@ -1,37 +1,39 @@
 "use client";
 
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
-import { getUpgradeUrl } from "@/lib/billing";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export default function CTASection() {
+interface CTASectionProps {
+  onGetStarted: () => void;
+}
+
+export default function CTASection({ onGetStarted }: CTASectionProps) {
   return (
-    <section
-      className="py-24 px-4 sm:px-6 text-white"
-      style={{ backgroundColor: "#18181b" }}
-    >
-      <div className="max-w-3xl mx-auto text-center">
-        <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight mb-4">
-          Your next project, fully managed.
+    <section className="py-24 bg-background">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+        <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+          Ready to transform your project documentation?
         </h2>
-        <p className="text-zinc-400 text-lg mb-10 leading-relaxed">
-          Join professionals who manage, visualize, and deliver projects with
-          Slate360. No credit card required.
+        <p className="text-lg text-muted-foreground mb-8">
+          Join 500+ construction teams already using Slate360. Start your free
+          trial today.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="/signup?plan=creator&billing=monthly"
-            className="inline-flex items-center justify-center gap-2 px-9 py-4 rounded-full font-semibold text-base text-white transition-all hover:opacity-90 hover:scale-105"
-            style={{ backgroundColor: "#FF4D00" }}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Button
+            size="lg"
+            onClick={onGetStarted}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-gold-glow text-base px-8"
           >
-            Start free trial <ChevronRight size={16} />
-          </Link>
-          <Link
-            href={getUpgradeUrl()}
-            className="inline-flex items-center justify-center gap-2 px-9 py-4 rounded-full font-semibold text-base text-white border border-white/30 hover:bg-white/10 transition-all"
+            Start Free Trial
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="border-border text-foreground hover:bg-muted/50 text-base px-8"
           >
-            Explore Design Studio
-          </Link>
+            Schedule Demo
+          </Button>
         </div>
       </div>
     </section>
