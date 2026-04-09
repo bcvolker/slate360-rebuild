@@ -183,49 +183,47 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-08 (Routing Fix, Mobile Sheet Nav, Homepage Placeholder)
+### Session Handoff — 2026-04-09 (Production Merge: Marketing Homepage + Auth Dark Glass + Ghost Redirects)
 
 ### What Changed
 
-**1. `/dashboard` route moved into `(dashboard)` route group — `feature/dashboard-integration`**
-- `app/dashboard/page.tsx` → `app/(dashboard)/dashboard/page.tsx`
-- URL unchanged (`/dashboard`). Now receives `NuqsAdapter` + `TooltipProvider` + `BuildRuntimeBadge` from `app/(dashboard)/layout.tsx` (previously absent — nuqs query state was broken)
-- Empty `app/apps/` directory deleted (was already missing `page.tsx`)
+**Merged `feature/marketing-homepage` → `main` (commit `3c1b004`)**
 
-**2. Mobile hamburger Sheet nav (`components/shared/MobileNavSheet.tsx` — NEW)**
-- Replaces the bottom-scrolling `MobileModuleBar` in `DashboardHeader`
-- Hamburger button (`Menu` icon, `sm:hidden`) in header right cluster
-- Opens a `Sheet` from left with full entitlement-filtered navigation
-- `DashboardHeader.tsx`: removed `MobileModuleBar` import, added `MobileNavSheet` (294 lines, still under 300)
+This merge includes everything from `feature/dashboard-integration` plus:
 
-**3. Stacked mobile grid for module tiles (`DashboardOverview.tsx`)**
-- Changed `hidden md:flex` → `grid grid-cols-2 sm:grid-cols-4 md:flex`
-- Module tiles are now visible on mobile in a 2-column stacked grid
+**1. v0 Marketing Homepage (commit `27e6267`)**
+- Full v0-generated marketing homepage split into sub-300-line components under `components/home/`
+- Components: HeroSection, AppShowcaseSection, AppDemos, TestimonialsSection, PricingSection, CTASection, LandingHeader, LandingFooter, LoginModal, LandingPage, landing-data.ts
+- Deleted obsolete: HomeModals, MoreToolsSection, PlatformSection, ViewerHelpers, home-data.ts
+- `app/page.tsx`: renders `<LandingPage />` for guests, redirects auth to `/dashboard`
+- Favicon: deleted `app/favicon.ico` (stale navy blue); `app/icon.svg` is sole favicon
 
-**4. Single-App view (`DashboardClient.tsx`)**
-- On mount: if only 1 unlocked app tab exists, auto-navigate there (bypasses overview grid)
-- Implements the Single-App vs Multi-App entitlement logic
+**2. Auth UI Dark Glass Overhaul (commit `4ccd1c2`)**
+- `app/login/page.tsx` (165 lines): full Dark Glass + Industrial Gold restyling
+- `app/signup/page.tsx` (196 lines, down from 306): Dark Glass + extracted confirmation
+- `app/forgot-password/page.tsx` (101 lines): full Dark Glass restyling
+- `components/auth/SignupConfirmation.tsx` (116 lines, NEW): extracted from signup for 300-line compliance
+- All: bg-zinc-950, glass cards (bg-zinc-900/60 backdrop-blur), gold #D4AF37 CTAs, white Reversed Lockup logo
 
-**5. Marketing homepage placeholder (`app/page.tsx`)**
-- Replaced full v0 `LandingPage` with a minimal 79-line Dark Glass + Industrial Gold splash
-- Sticky header: SVG logo + Industrial Gold Login button → `/login`
-- Hero: gold accent line, black/gold headline, two CTA buttons, tagline copy
-- Footer: Privacy + Terms links
-- Auth redirect: `/dashboard` (unchanged)
-- `dark` class forced on root `<div>` (no FOUC)
+**3. /apps Ghost Redirect Elimination (commit `4ccd1c2`)**
+- `middleware.ts`: removed `/apps` from auth-required list, all redirects → `/dashboard`
+- `app/(apps)/site-walk/page.tsx`: redirect → `/dashboard`
+- `app/(apps)/tour-builder/page.tsx`: redirect → `/dashboard`
+- `components/apps/AppSidebar.tsx`: settings href → `/dashboard`
+- Zero remaining `/apps` route references in codebase
 
-**6. `_v0_drop/` Air-Gap staging directory created**
-- `_v0_drop/README.md`: workflow instructions for CEO drop-and-integrate workflow
-- Added `_v0_drop` to `tsconfig.json` exclude list
+**4. Prior work included in merge (from `feature/dashboard-integration`)**
+- Dashboard moved to `app/(dashboard)/dashboard/page.tsx` (route group)
+- Mobile Sheet nav (`components/shared/MobileNavSheet.tsx`)
+- Single-app entitlement auto-navigate
+- `_v0_drop/` air-gap staging directory
 
-**Build:** ✅ 83/83 static pages, 0 TS errors. Warnings are pre-existing Sentry deprecations only.
-**Commit:** `4c0f2b4` pushed to `origin/feature/dashboard-integration`
+**Build:** ✅ 82 pages, 0 TS errors. Pushed to `origin/main` → Vercel auto-deploys to slate360.ai.
 
 ### What's Broken / Partially Done
 - **CRITICAL**: `market_scheduler_lock` table still has no RLS
 - **CRITICAL**: Portal view_count race condition (atomic SQL not deployed yet)
-- `fix/slatedrop-external-uploads` — needs merge to main
-- `feature/dashboard-integration` — needs merge to main
+- `fix/slatedrop-external-uploads` — still needs merge to main (security patch)
 - Duplicate `STRIPE_WEBHOOK_SECRET` in `.env` line 75 (missing `whsec_` prefix)
 - Block Editor is UI-only (no backend persistence)
 - Rate limiting only on ~5 of 40+ API routes
@@ -233,14 +231,12 @@ When editing oversized files, always read both the state declarations AND the JS
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
-- `tsconfig.json`: added `_v0_drop` to excludes
 
 ### Next Steps (ordered)
 1. Merge `fix/slatedrop-external-uploads` → main (security patch, already reviewed)
-2. Merge `feature/dashboard-integration` → main (clean build, passes typecheck)
-3. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role)
-4. **CRITICAL** — Deploy atomic `claim_deliverable_view()` RPC to fix portal view_count race
-5. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel
-6. Enable JWT hook in Supabase Dashboard → Auth → Hooks
-7. Add Block Editor backend persistence
+2. **CRITICAL** — Add RLS to `market_scheduler_lock` (deny all except service_role)
+3. **CRITICAL** — Deploy atomic `claim_deliverable_view()` RPC to fix portal view_count race
+4. Set Sentry + PostHog + `STRIPE_UPGRADE_LINK` env vars in Vercel
+5. Enable JWT hook in Supabase Dashboard → Auth → Hooks
+6. Add Block Editor backend persistence
 8. Expand rate limiting to remaining API routes
