@@ -403,9 +403,29 @@ The PWA needs several device permissions to function properly. These must be req
 
 **Key principle:** The app works in a degraded mode if permissions are denied, but the user understands exactly what they're missing. No silent failures.
 
-### Real-Time Updates
-- Supabase Realtime for push notifications (field user uploads → office sees it)
-- Priority for beta: **TBD** (may defer to post-beta)
+### Real-Time Updates (Decision #9 — CONFIRMED: Real-time from beta)
+Real-time sync is a **beta requirement**. When a contributor submits work in the field, the subscriber should see it instantly — this is a central feature to test.
+
+**How it works:**
+- Supabase Realtime subscriptions on project-level channels
+- When a contributor uploads photos / submits a walk / adds notes:
+  - Subscriber gets an **instant push notification** (toast + badge)
+  - Example: "John submitted 4 photos to Building A — 2:47 PM"
+  - Project data view **auto-refreshes** with the new data (no manual reload)
+- When a subscriber updates a project (assigns tasks, adds drawings, changes scope):
+  - Contributors on that project see updates on their next app open (or live if app is open)
+- Supabase Realtime channels scoped per project to avoid noise
+- Browser Push Notifications for when the app is closed/backgrounded (requires Notification permission)
+
+**Real-time events (planned):**
+| Event | Who sees it | How |
+|---|---|---|
+| Contributor submits work | Subscriber + admins/managers | Toast + badge + auto-refresh |
+| New file uploaded to project | All project members online | Auto-refresh file list |
+| Task assigned / updated | Assignee | Push notification |
+| Deliverable sent to client | Subscriber (confirmation) | Toast |
+| Client views deliverable | Subscriber | Badge on deliverable |
+| New contributor joins project | Subscriber | Toast + notification |
 
 ---
 
@@ -482,7 +502,7 @@ Subscribing to additional apps unlocks richer capabilities within each app. This
 | 6 | History folder — can owner/admin delete? | **Confirmed** | YES — owner/admin can delete with 2-step confirmation. Deletion is logged. It's their data. Download always available. |
 | 7 | Deliverable system / auto-PDF | **Confirmed** | Subscriber deliverables: NO auto-PDF, flexible formats (PDF, interactive email, viewer link). Contributor submissions: YES auto-PDF + editable UI version. Dashboard sidebar Deliverables button is the control center. |
 | 8 | Offline mode priority for beta? | **Confirmed** | Full offline from beta. Auto-save to IndexedDB, auto-sync when online. Upfront permissions onboarding with clear explanations. Degraded mode if permissions denied. |
-| 9 | Real-time sync priority for beta? | **TBD** | — |
+| 9 | Real-time sync priority for beta? | **Confirmed** | YES — real-time from beta. Supabase Realtime for instant notifications + auto-refresh. Central feature to test. |
 | 10 | External collaborators on drawings: full set or assigned sheets? | **TBD** | — |
 | 11 | Shared With Me: cross-org, intra-org, or both? | **TBD** | — |
 | 12 | Enterprise domain approach (custom domain vs. subdomain vs. branding-only)? | **Deferred to Phase 2** | Schema designed now to avoid rework |
