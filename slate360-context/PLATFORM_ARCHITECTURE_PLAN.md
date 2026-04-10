@@ -349,11 +349,59 @@ All existing and working: upload (S3 presigned URL), download, move, rename, del
 ### Same App, Different Screen Sizes
 PWA means mobile and desktop are the same codebase hitting the same database. No separate sync layer needed for connected users.
 
-### Offline Mode (Critical for Field Work)
-- Photos/notes save to IndexedDB first, then sync to server
-- Sync indicator shows queued items
-- Conflict resolution: timestamp-based merge (latest wins for text; photos never conflict since each is unique)
-- Priority for beta: **TBD** (may defer full offline to post-beta)
+### Offline Mode (Decision #8 — CONFIRMED: Full offline from beta)
+Offline support is a **beta requirement**, not a post-launch feature. Field users work in dead zones — losing data is unacceptable.
+
+**How it works:**
+- ALL data (photos, notes, voice-to-text, form selections, metadata) saves to **IndexedDB first**, then syncs to server
+- Auto-sync runs whenever connectivity is detected — no manual trigger needed
+- Sync indicator always visible: "All saved" / "3 items waiting to upload" / "Syncing..."
+- If user takes 50 photos with no signal, all 50 queue locally and upload automatically when back online
+- Conflict resolution: timestamp-based (latest wins for text fields; photos/files never conflict since each is unique)
+- Geolocation and timestamp are captured at the moment of action (not at sync time) — so offline submissions still have accurate location/time data
+
+**Sync architecture (planned):**
+```
+User action → Save to IndexedDB (instant) → Show "Saved locally" ✓
+                     ↓
+          Background sync worker watches connectivity
+                     ↓
+          Online detected → Upload queue processes sequentially
+                     ↓
+          Each item: IndexedDB → S3 (files) + Supabase (records)
+                     ↓
+          Success → Remove from local queue → Update sync indicator
+          Failure → Retry with exponential backoff → Keep in queue
+```
+
+**Service worker responsibilities:**
+- Cache app shell (HTML, CSS, JS) for instant load even offline
+- Intercept network requests — serve cached responses when offline
+- Manage background sync queue
+- Handle push notifications (when online)
+
+### Required Permissions & Onboarding (Decision #8 — CONFIRMED)
+The PWA needs several device permissions to function properly. These must be requested **upfront during first launch** with clear explanations of why each is needed.
+
+**Permission onboarding flow:**
+1. User installs PWA / first launches the app
+2. App shows a **permissions onboarding screen** (before entering the main dashboard)
+3. Each permission is explained with a clear reason:
+
+| Permission | Why it's needed | What happens if denied |
+|---|---|---|
+| **Camera** | Take photos during site walks, inspections | Cannot capture photos in-app (must upload from gallery) |
+| **Location (GPS)** | Auto-tag submissions with job site coordinates | Location field shows "Not available" — reduces value of records |
+| **Storage / Files** | Save data offline, access photo gallery | Cannot work offline, cannot select existing photos |
+| **Notifications** | Receive alerts when contributors submit work, project updates | Will miss real-time updates |
+| **Microphone** | Voice-to-text for notes in the field | Must type all notes manually |
+
+4. User grants/denies each permission individually
+5. App clearly states: **"To unlock all features, please grant these permissions. You can change them anytime in your device settings."**
+6. If a critical permission is denied (e.g., camera for Site Walk), the app shows a contextual prompt when the user tries to use that feature: "Camera access is required to take photos. Tap here to enable in settings."
+7. Permissions can be re-requested later — never block the user entirely, but clearly explain what's limited
+
+**Key principle:** The app works in a degraded mode if permissions are denied, but the user understands exactly what they're missing. No silent failures.
 
 ### Real-Time Updates
 - Supabase Realtime for push notifications (field user uploads → office sees it)
@@ -433,7 +481,7 @@ Subscribing to additional apps unlocks richer capabilities within each app. This
 | 5 | App build order | **Confirmed** | Site Walk → 360 Tours → Design Studio → Content Creation → more |
 | 6 | History folder — can owner/admin delete? | **Confirmed** | YES — owner/admin can delete with 2-step confirmation. Deletion is logged. It's their data. Download always available. |
 | 7 | Deliverable system / auto-PDF | **Confirmed** | Subscriber deliverables: NO auto-PDF, flexible formats (PDF, interactive email, viewer link). Contributor submissions: YES auto-PDF + editable UI version. Dashboard sidebar Deliverables button is the control center. |
-| 8 | Offline mode priority for beta? | **TBD** | — |
+| 8 | Offline mode priority for beta? | **Confirmed** | Full offline from beta. Auto-save to IndexedDB, auto-sync when online. Upfront permissions onboarding with clear explanations. Degraded mode if permissions denied. |
 | 9 | Real-time sync priority for beta? | **TBD** | — |
 | 10 | External collaborators on drawings: full set or assigned sheets? | **TBD** | — |
 | 11 | Shared With Me: cross-org, intra-org, or both? | **TBD** | — |
