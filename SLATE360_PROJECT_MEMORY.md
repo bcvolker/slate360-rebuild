@@ -75,6 +75,8 @@ Tier note:
 | Widgets | `slate360-context/WIDGETS.md` |
 | Active bugs | `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json` |
 | Release readiness | `ops/module-manifest.json`, `ops/release-gates.json` |
+| Platform architecture / pipeline | `slate360-context/PLATFORM_ARCHITECTURE_PLAN.md` |
+| Site Walk build plan | `slate360-context/SITE_WALK_BUILD_PLAN.md` |
 
 ## Backend Quick Access
 
