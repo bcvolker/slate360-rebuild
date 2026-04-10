@@ -179,6 +179,43 @@ For people who really can't/won't create an account:
 
 ## 5. Project System
 
+### Project Hub as Central Command (Decision #10 context)
+The **Project Hub** (`/project-hub`) is the subscriber's control center for each project. This is where they manage everything: info, drawings, contributors, permissions, metrics, budgets, schedules, deliverables, and more.
+
+**Already built (from previous development):**
+| Feature | Status | Route/Component |
+|---|---|---|
+| All projects grid + portfolio metrics | ✅ Built | `/project-hub` |
+| Project home/dashboard | ✅ Built | `/project-hub/[projectId]` |
+| RFIs | ✅ Built | `/project-hub/[projectId]/rfis` |
+| Submittals | ✅ Built | `/project-hub/[projectId]/submittals` |
+| SlateDrop (project files) | ✅ Built | `/project-hub/[projectId]/slatedrop` |
+| Schedule (Gantt + table) | ✅ Built | `/project-hub/[projectId]/schedule` |
+| Budget (table + form) | ✅ Built | `/project-hub/[projectId]/budget` |
+| Photos (photo log) | ✅ Built | `/project-hub/[projectId]/photos` |
+| Drawings (viewer + grid) | ✅ Built | `/project-hub/[projectId]/drawings` |
+| Punch List | ✅ Built | `/project-hub/[projectId]/punch-list` |
+| Daily Logs | ✅ Built | `/project-hub/[projectId]/daily-logs` |
+| Observations | ✅ Built | `/project-hub/[projectId]/observations` |
+| Management (stakeholders, contracts, reports) | ✅ Built | `/project-hub/[projectId]/management` |
+| Create Project Wizard (with location picker) | ✅ Built | `CreateProjectWizard.tsx` |
+| Change History / Activity Log | ✅ Built | `ChangeHistory.tsx` |
+| Access control logic | ✅ Built | `lib/projects/access.ts` |
+
+**Needs to be added/extended for the new architecture:**
+| Feature | Status | Where it goes |
+|---|---|---|
+| Contributor invitation + link management | 🔲 New | Project settings or management tab |
+| Contributor permission scoping (what they can see/do) | 🔲 New | Project settings |
+| Drawing sheet assignment (which sheets each contributor sees) | 🔲 New | Drawings section |
+| Deliverable builder + send flow | 🔲 New | Project deliverables section |
+| App-specific tool tabs (Site Walk sessions, 360 Tours, etc.) | 🔲 New | Auto-provisioned per app subscription |
+| Real-time activity feed | 🔲 New | Project home |
+
+**Key insight:** Most of the project management infrastructure is already built. The new work is primarily (1) contributor management, (2) permission scoping, (3) wiring apps into the project context, and (4) the deliverable builder.
+
+**Note:** 9 of 14 existing tool pages exceed the 300-line limit and need component extraction before adding new features.
+
 ### Project Lifecycle
 ```
 Create Project → Enter Details → Work in Apps → Generate Deliverables → Share/Export
@@ -503,7 +540,7 @@ Subscribing to additional apps unlocks richer capabilities within each app. This
 | 7 | Deliverable system / auto-PDF | **Confirmed** | Subscriber deliverables: NO auto-PDF, flexible formats (PDF, interactive email, viewer link). Contributor submissions: YES auto-PDF + editable UI version. Dashboard sidebar Deliverables button is the control center. |
 | 8 | Offline mode priority for beta? | **Confirmed** | Full offline from beta. Auto-save to IndexedDB, auto-sync when online. Upfront permissions onboarding with clear explanations. Degraded mode if permissions denied. |
 | 9 | Real-time sync priority for beta? | **Confirmed** | YES — real-time from beta. Supabase Realtime for instant notifications + auto-refresh. Central feature to test. |
-| 10 | External collaborators on drawings: full set or assigned sheets? | **TBD** | — |
+| 10 | External collaborators on drawings: full set or assigned sheets? | **Confirmed** | Subscriber controls this. They choose which sheets/drawings each contributor or external collaborator can see. Project Hub is the central place for all project management, contributor invites, and permission scoping. Much of Project Hub already built — needs contributor + deliverable extensions. |
 | 11 | Shared With Me: cross-org, intra-org, or both? | **TBD** | — |
 | 12 | Enterprise domain approach (custom domain vs. subdomain vs. branding-only)? | **Deferred to Phase 2** | Schema designed now to avoid rework |
 | 13 | App-specific sub-folders within projects? | **Deferred to after app build** | Provisioning system supports dynamic folders |
