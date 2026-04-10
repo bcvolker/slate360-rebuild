@@ -81,6 +81,7 @@ interface Testimonial {
 
 interface AppShowcase {
   name: string;
+  slug: string;
   description: string;
   icon: typeof Building2;
   features: string[];
@@ -111,6 +112,7 @@ const TRUST_LOGOS = [
 const APP_SHOWCASE: AppShowcase[] = [
   {
     name: "Site Walk",
+    slug: "site-walk",
     description: "Document construction progress with GPS-tagged photos, automated timelines, and instant client reports.",
     icon: MapPin,
     demoType: "placeholder",
@@ -128,6 +130,7 @@ const APP_SHOWCASE: AppShowcase[] = [
   },
   {
     name: "360 Tour Builder",
+    slug: "360-tour-builder",
     description: "Create stunning 360° virtual tours with interactive hotspots, floor plans, and seamless client sharing.",
     icon: Building2,
     demoType: "panorama",
@@ -146,6 +149,7 @@ const APP_SHOWCASE: AppShowcase[] = [
   },
   {
     name: "Design Studio",
+    slug: "design-studio",
     description: "Visualize projects with interactive 3D models. Upload, annotate, and share models with clients in one click.",
     icon: Palette,
     demoType: "model",
@@ -291,23 +295,57 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
               <span className="sr-only">Open menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-72 !h-auto !inset-y-auto !top-0 !right-0 !rounded-bl-2xl !bg-[hsl(240,6%,6%)] border-l border-b border-[hsla(45,82%,55%,0.12)] backdrop-blur-xl [&>button]:text-white">
-            <div className="flex flex-col gap-5 py-2 px-1">
+          <SheetContent side="right" className="w-[280px] !h-auto !inset-y-auto !top-0 !right-0 !rounded-bl-2xl !bg-[hsl(240,6%,6%)] border-l border-b border-[hsla(45,82%,55%,0.12)] backdrop-blur-xl [&>button]:text-white">
+            <div className="flex flex-col gap-4 py-4 px-5">
               {/* Logo */}
               <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-6 w-auto self-start" />
-              <nav className="flex flex-col gap-3">
-                {NAV_LINKS.map((link) => (
+              <nav className="flex flex-col gap-1">
+                <Link
+                  href="#product"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2.5 rounded-lg text-[15px] font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                >
+                  Product
+                </Link>
+                {/* Apps — with sub-links */}
+                <div>
                   <Link
-                    key={link.href}
-                    href={link.href}
+                    href="#apps"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="text-base font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] transition-colors"
+                    className="px-3 py-2.5 rounded-lg text-[15px] font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors block"
                   >
-                    {link.label}
+                    Apps
                   </Link>
-                ))}
+                  <div className="ml-4 mt-1 flex flex-col gap-0.5 border-l border-[hsla(45,82%,55%,0.15)] pl-3">
+                    {APP_SHOWCASE.map((app) => (
+                      <Link
+                        key={app.slug}
+                        href={`/apps/${app.slug}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded text-sm text-zinc-400 hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                      >
+                        <app.icon className="h-3.5 w-3.5 flex-shrink-0" />
+                        {app.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                <Link
+                  href="#slatedrop"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2.5 rounded-lg text-[15px] font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                >
+                  Solutions
+                </Link>
+                <Link
+                  href="#pricing"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-2.5 rounded-lg text-[15px] font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                >
+                  Pricing
+                </Link>
               </nav>
-              <div className="flex flex-col gap-3 pt-4 border-t border-[hsla(45,82%,55%,0.12)]">
+              <div className="flex flex-col gap-3 pt-3 border-t border-[hsla(45,82%,55%,0.12)]">
                 {isLoggedIn ? (
                   <Button asChild className="bg-[hsl(45,82%,55%)] text-[hsl(240,6%,6%)] hover:bg-[hsl(45,82%,55%,0.9)]">
                     <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Go to Dashboard</Link>
@@ -318,7 +356,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                       <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
                     </Button>
                     <Button asChild className="bg-[hsl(45,82%,55%)] text-[hsl(240,6%,6%)] hover:bg-[hsl(45,82%,55%,0.9)]">
-                      <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>Get Started Free</Link>
+                      <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>Subscribe Now</Link>
                     </Button>
                   </>
                 )}
@@ -495,11 +533,21 @@ function AppShowcaseSection() {
                     ))}
                   </ul>
 
-                  {/* CTA */}
-                  <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                    Try Live Demo
-                    <ChevronRight className="ml-1 h-4 w-4" />
-                  </Button>
+                  {/* CTAs */}
+                  <div className="flex gap-3">
+                    <Button asChild className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
+                      <Link href="/signup">
+                        Subscribe
+                        <ArrowRight className="ml-1 h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="flex-1 border-[hsla(45,82%,55%,0.3)] text-muted-foreground hover:text-primary hover:border-primary/50">
+                      <Link href={`/apps/${app.slug}`}>
+                        Learn More
+                        <ChevronRight className="ml-1 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );

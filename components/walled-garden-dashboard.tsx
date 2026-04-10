@@ -363,49 +363,46 @@ function Sidebar({
   isMobile?: boolean;
 }) {
   const sidebarContent = (
-    <div className="flex h-full flex-col bg-glass border-r border-glass">
-      {/* Logo Section - Placeholder for SVG injection */}
-      <div className="flex h-16 items-center justify-between px-4 border-b border-glass">
-        <div className="flex items-center gap-2">
-          {/* [SLATE360_SVG_LOGO_HERE] - Replace this div with your SVG logo component */}
-          <div className="h-10 px-3 rounded-lg border-2 border-dashed border-primary/50 bg-primary/10 flex items-center justify-center">
-            <span className="text-xs font-mono text-primary whitespace-nowrap">[SLATE360_SVG_LOGO_HERE]</span>
-          </div>
-        </div>
+    <div className="flex h-full flex-col bg-zinc-950 border-r border-zinc-800">
+      {/* Logo Section */}
+      <div className="flex h-16 items-center justify-between px-4 border-b border-zinc-800">
+        <a href="/" className="flex items-center">
+          <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-7 w-auto" />
+        </a>
         {isMobile && onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="lg:hidden">
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-zinc-400 hover:text-white hover:bg-zinc-800">
             <X className="h-5 w-5" />
           </Button>
         )}
       </div>
 
-      {/* Navigation Links - Gold active states */}
-      <nav className="flex-1 space-y-1 p-4">
+      {/* Navigation Links */}
+      <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
         {NAV_ITEMS.map((item) => (
           <a
             key={item.label}
             href={item.href}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-              "hover:bg-primary/10 hover:text-primary",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+              "hover:bg-[#D4AF37]/10 hover:text-[#D4AF37]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]",
               item.isActive
-                ? "bg-primary/15 text-primary border-glass-active"
-                : "text-muted-foreground"
+                ? "bg-[#D4AF37]/15 text-[#D4AF37]"
+                : "text-zinc-400"
             )}
           >
             <item.icon className="h-5 w-5" />
             {item.label}
             {item.isActive && (
-              <ChevronRight className="ml-auto h-4 w-4 text-primary" />
+              <ChevronRight className="ml-auto h-4 w-4 text-[#D4AF37]" />
             )}
           </a>
         ))}
       </nav>
 
-      {/* App Launcher Mini-Grid - Gold glow on active */}
-      <div className="border-t border-glass p-4">
-        <p className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+      {/* App Launcher Mini-Grid */}
+      <div className="border-t border-zinc-800 p-4">
+        <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
           Quick Launch
         </p>
         <div className="grid grid-cols-4 gap-2">
@@ -415,16 +412,16 @@ function Sidebar({
                 <button
                   className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200",
-                    "hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                    "hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]",
                     app.isActive
-                      ? "bg-primary/20 text-primary shadow-gold-glow"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                      ? "bg-[#D4AF37]/20 text-[#D4AF37]"
+                      : "bg-zinc-800 text-zinc-500 hover:bg-zinc-700"
                   )}
                 >
                   <app.icon className="h-5 w-5" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="bg-glass border-glass">
+              <TooltipContent side="top" className="bg-zinc-800 border-zinc-700 text-white">
                 <p>{app.name}</p>
               </TooltipContent>
             </Tooltip>
@@ -441,7 +438,7 @@ function Sidebar({
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen w-64 transition-transform duration-300",
+        "fixed left-0 top-0 z-40 h-screen w-64 bg-zinc-950 transition-transform duration-300",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}
     >
@@ -1416,7 +1413,8 @@ export default function WalledGardenDashboard() {
         <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
           <SheetContent
             side="left"
-            className="w-64 p-0 bg-zinc-950 border-zinc-800 lg:hidden [&>button]:text-white [&>button]:opacity-100"
+            showCloseButton={false}
+            className="w-64 p-0 !bg-zinc-950 !border-zinc-800 lg:hidden"
           >
             <Sidebar isOpen isMobile onClose={() => setMobileSidebarOpen(false)} />
           </SheetContent>
