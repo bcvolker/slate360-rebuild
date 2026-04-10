@@ -472,16 +472,21 @@ function Header({
       )}
     >
       <div className="flex h-full items-center justify-between px-4 gap-4">
-        {/* Left: Menu Toggle - visible on all screen sizes with clear styling */}
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onMenuClick}
-          className="border-border bg-muted/50 hover:bg-primary/10 hover:text-primary hover:border-primary/50"
-        >
-          {isSidebarOpen ? <PanelLeftClose className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          <span className="sr-only">Toggle sidebar</span>
-        </Button>
+        {/* Left: Home + Menu Toggle */}
+        <div className="flex items-center gap-2">
+          <a href="/" aria-label="Home" className="shrink-0">
+            <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-6 w-auto" />
+          </a>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onMenuClick}
+            className="border-border bg-muted/50 hover:bg-primary/10 hover:text-primary hover:border-primary/50"
+          >
+            {isSidebarOpen ? <PanelLeftClose className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            <span className="sr-only">Toggle sidebar</span>
+          </Button>
+        </div>
 
         {/* Center: Global Search - Glass input style */}
         <div className="flex-1 max-w-xl mx-auto">
@@ -1352,19 +1357,39 @@ function DashboardContent() {
    ========================================================================== */
 
 export default function WalledGardenDashboard() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
     <TooltipProvider>
       {/* Force dark mode class on the root */}
       <div className="dark min-h-screen bg-background">
-        {/* Desktop Sidebar - always rendered, visibility controlled by transform */}
-        <Sidebar isOpen={sidebarOpen} />
+        {/* Desktop Sidebar — hidden below lg */}
+        <div className="hidden lg:block">
+          <Sidebar isOpen={sidebarOpen} />
+        </div>
+
+        {/* Mobile Sidebar — Sheet drawer, only below lg */}
+        <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+          <SheetContent
+            side="left"
+            className="w-64 p-0 bg-zinc-950 border-zinc-800 lg:hidden [&>button]:text-white [&>button]:opacity-100"
+          >
+            <Sidebar isOpen isMobile onClose={() => setMobileSidebarOpen(false)} />
+          </SheetContent>
+        </Sheet>
 
         {/* Header */}
         <Header
           isSidebarOpen={sidebarOpen}
-          onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+          onMenuClick={() => {
+            /* Desktop toggles the persistent sidebar; mobile opens the Sheet */
+            if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+              setSidebarOpen(!sidebarOpen);
+            } else {
+              setMobileSidebarOpen(true);
+            }
+          }}
         />
 
         {/* Main Content Area - shifts right when sidebar is open */}

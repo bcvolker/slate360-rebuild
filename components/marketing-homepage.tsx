@@ -110,6 +110,20 @@ const TRUST_LOGOS = [
 
 const APP_SHOWCASE: AppShowcase[] = [
   {
+    name: "Site Walk",
+    description: "Document construction progress with GPS-tagged photos, automated timelines, and instant client reports.",
+    icon: MapPin,
+    demoType: "placeholder",
+    demoLabel: "Live demo coming soon",
+    features: [
+      "GPS-tagged photo capture",
+      "Automated progress timelines",
+      "Weather & date stamping",
+      "One-click client sharing",
+      "Compare views over time",
+    ],
+  },
+  {
     name: "360 Tour Builder",
     description: "Create stunning 360° virtual tours with interactive hotspots, floor plans, and seamless client sharing.",
     icon: Building2,
@@ -139,20 +153,6 @@ const APP_SHOWCASE: AppShowcase[] = [
       "Before / after comparisons",
     ],
   },
-  {
-    name: "Site Walk",
-    description: "Document construction progress with GPS-tagged photos, automated timelines, and instant client reports.",
-    icon: MapPin,
-    demoType: "placeholder",
-    demoLabel: "Live demo coming soon",
-    features: [
-      "GPS-tagged photo capture",
-      "Automated progress timelines",
-      "Weather & date stamping",
-      "One-click client sharing",
-      "Compare views over time",
-    ],
-  },
 ];
 
 const PRICING_TIERS: PricingTier[] = [
@@ -179,7 +179,7 @@ const PRICING_TIERS: PricingTier[] = [
     storage: "40 GB pooled",
     features: [
       "All Core features",
-      "Tour Builder + Site Walk",
+      "Site Walk + Tour Builder",
       "40 GB pooled storage",
       "Priority support",
       "Custom branding",
@@ -329,7 +329,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
 
 function HeroSection() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center pt-16 pb-12 px-4 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 sm:pt-28 pb-12 px-4 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-[hsl(240,6%,8%)]" />
       
@@ -376,7 +376,7 @@ function HeroSection() {
             className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_30px_hsla(45,82%,55%,0.4)] hover:shadow-[0_0_40px_hsla(45,82%,55%,0.5)] transition-all px-8"
           >
             <Link href="/signup">
-              Start Building Free
+              Subscribe Now
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>

@@ -6,9 +6,10 @@ import {
   Menu,
   LayoutDashboard,
   FolderKanban,
+  MapPin,
+  Compass,
   Palette,
   Layers,
-  Compass,
   Globe,
   Film,
   BarChart3,
@@ -38,9 +39,10 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard",     href: "/dashboard",      icon: LayoutDashboard },
   { label: "Project Hub",   href: "/project-hub",    icon: FolderKanban,  gate: "canAccessHub" },
+  { label: "Site Walk",     href: "/site-walk",      icon: MapPin },
+  { label: "360 Tours",     href: "/tours",          icon: Compass,       gate: "canAccessTourBuilder" },
   { label: "Design Studio", href: "/design-studio",  icon: Palette,       gate: "canAccessDesignStudio" },
   { label: "Content Studio",href: "/content-studio", icon: Layers,        gate: "canAccessContent" },
-  { label: "360 Tours",     href: "/tours",          icon: Compass,       gate: "canAccessTourBuilder" },
   { label: "Geospatial",    href: "/geospatial",     icon: Globe,         gate: "canAccessGeospatial" },
   { label: "Virtual Studio",href: "/virtual-studio", icon: Film,          gate: "canAccessVirtual" },
   { label: "Analytics",     href: "/analytics",      icon: BarChart3,     gate: "canAccessAnalytics" },
@@ -97,7 +99,17 @@ export default function MobileNavSheet({
               Navigation
             </SheetTitle>
           </SheetHeader>
-          <nav className="flex flex-col gap-0.5 px-3 py-3 overflow-y-auto">
+          <nav className="flex flex-col gap-1 px-4 py-4 overflow-y-auto max-h-[calc(100dvh-5rem)]">
+            {/* Home link */}
+            <Link
+              href="/"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors"
+            >
+              <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Home" className="h-4 w-auto flex-shrink-0" />
+              Home
+            </Link>
+            <div className="h-px bg-zinc-800 my-1" />
             {visibleItems.map((item) => {
               const Icon = item.icon;
               return (
