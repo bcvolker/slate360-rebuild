@@ -33,6 +33,7 @@ import {
   Users,
   CreditCard,
   ChevronRight,
+  ChevronDown,
   Upload,
   Folder,
   Eye,
@@ -179,12 +180,12 @@ interface EnterpriseUser {
    ========================================================================== */
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard", isActive: true },
   { label: "Apps", icon: Grid3X3, href: "/apps" },
   { label: "SlateDrop", icon: Inbox, href: "/slatedrop" },
   { label: "Deliverables", icon: FileCheck, href: "/deliverables" },
   { label: "Clients", icon: Users, href: "/clients" },
   { label: "Billing", icon: CreditCard, href: "/billing" },
+  { label: "Enterprise Settings", icon: Settings, href: "#enterprise" },
 ];
 
 const APPS: AppItem[] = [
@@ -362,71 +363,97 @@ function Sidebar({
   onClose?: () => void;
   isMobile?: boolean;
 }) {
+  const [appsExpanded, setAppsExpanded] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const sidebarContent = (
-    <div className="flex h-full flex-col bg-zinc-950 border-r border-zinc-800">
-      {/* Logo Section */}
-      <div className="flex h-16 items-center justify-between px-4 border-b border-zinc-800">
+    <div className="flex flex-col bg-zinc-950 border-r border-zinc-800">
+      {/* Logo + Close */}
+      <div className="flex h-14 items-center justify-between px-4 border-b border-zinc-800">
         <a href="/" className="flex items-center">
-          <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-7 w-auto" />
+          <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-6 w-auto" />
         </a>
-        {isMobile && onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-zinc-400 hover:text-white hover:bg-zinc-800">
-            <X className="h-5 w-5" />
+        {onClose && (
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-zinc-400 hover:text-white hover:bg-zinc-800 h-8 w-8">
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>
 
-      {/* Navigation Links */}
-      <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-        {NAV_ITEMS.map((item) => (
-          <a
-            key={item.label}
-            href={item.href}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-              "hover:bg-[#D4AF37]/10 hover:text-[#D4AF37]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]",
-              item.isActive
-                ? "bg-[#D4AF37]/15 text-[#D4AF37]"
-                : "text-zinc-400"
-            )}
-          >
-            <item.icon className="h-5 w-5" />
-            {item.label}
-            {item.isActive && (
-              <ChevronRight className="ml-auto h-4 w-4 text-[#D4AF37]" />
-            )}
-          </a>
-        ))}
+      {/* Navigation */}
+      <nav className="space-y-0.5 px-3 py-3 overflow-y-auto">
+        {/* Search — expandable */}
+        <button
+          onClick={() => setSearchExpanded(!searchExpanded)}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] transition-all"
+        >
+          <Search className="h-4 w-4" />
+          Search
+          <ChevronDown className={cn("ml-auto h-3.5 w-3.5 transition-transform", searchExpanded && "rotate-180")} />
+        </button>
+        {searchExpanded && (
+          <div className="px-3 pb-2">
+            <Input
+              type="search"
+              placeholder="Search projects, clients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-8 text-sm bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-[#D4AF37]"
+              autoFocus
+            />
+          </div>
+        )}
+
+        {NAV_ITEMS.map((item) => {
+          /* Apps — expandable with sub-items */
+          if (item.label === "Apps") {
+            return (
+              <div key={item.label}>
+                <button
+                  onClick={() => setAppsExpanded(!appsExpanded)}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] transition-all"
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                  <ChevronDown className={cn("ml-auto h-3.5 w-3.5 transition-transform", appsExpanded && "rotate-180")} />
+                </button>
+                {appsExpanded && (
+                  <div className="ml-4 mt-0.5 flex flex-col gap-0.5 border-l border-zinc-800 pl-3">
+                    {APPS.map((app) => (
+                      <a
+                        key={app.id}
+                        href={`/apps/${app.id}`}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded text-xs text-zinc-500 hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 transition-colors"
+                      >
+                        <app.icon className="h-3.5 w-3.5 flex-shrink-0" />
+                        {app.name}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          return (
+            <a
+              key={item.label}
+              href={item.href}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] transition-all"
+            >
+              <item.icon className="h-4 w-4" />
+              {item.label}
+            </a>
+          );
+        })}
       </nav>
 
-      {/* App Launcher Mini-Grid */}
-      <div className="border-t border-zinc-800 p-4">
-        <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
-          Quick Launch
-        </p>
-        <div className="grid grid-cols-4 gap-2">
-          {MINI_APPS.map((app) => (
-            <Tooltip key={app.id}>
-              <TooltipTrigger asChild>
-                <button
-                  className={cn(
-                    "flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200",
-                    "hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]",
-                    app.isActive
-                      ? "bg-[#D4AF37]/20 text-[#D4AF37]"
-                      : "bg-zinc-800 text-zinc-500 hover:bg-zinc-700"
-                  )}
-                >
-                  <app.icon className="h-5 w-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="top" className="bg-zinc-800 border-zinc-700 text-white">
-                <p>{app.name}</p>
-              </TooltipContent>
-            </Tooltip>
-          ))}
-        </div>
+      {/* Upgrade CTA */}
+      <div className="px-3 pb-3">
+        <Button className="w-full bg-[#D4AF37] text-zinc-950 hover:bg-[#D4AF37]/90 text-sm h-9">
+          <Sparkles className="mr-2 h-4 w-4" />
+          Upgrade
+        </Button>
       </div>
     </div>
   );
@@ -438,7 +465,7 @@ function Sidebar({
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen w-64 bg-zinc-950 transition-transform duration-300",
+        "fixed left-0 top-0 z-40 w-64 bg-zinc-950 transition-transform duration-300",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}
     >
@@ -486,17 +513,8 @@ function Header({
           </button>
         </div>
 
-        {/* Center: Global Search - Glass input style */}
-        <div className="flex-1 max-w-xl mx-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search projects, deliverables, clients..."
-              className="w-full pl-10 bg-muted/50 border-glass focus-visible:ring-primary focus-visible:border-primary/50"
-            />
-          </div>
-        </div>
+        {/* Spacer */}
+        <div className="flex-1" />
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
@@ -519,12 +537,6 @@ function Header({
               <p>3 new notifications</p>
             </TooltipContent>
           </Tooltip>
-
-          {/* Upgrade Button - Industrial Gold */}
-          <Button className="hidden sm:flex bg-primary text-primary-foreground hover:bg-primary/90 shadow-gold-glow">
-            <Sparkles className="mr-2 h-4 w-4" />
-            Upgrade
-          </Button>
 
           {/* User Avatar Dropdown */}
           <DropdownMenu>
@@ -1406,7 +1418,7 @@ export default function WalledGardenDashboard() {
       <div className="dark min-h-screen bg-background">
         {/* Desktop Sidebar — hidden below lg */}
         <div className="hidden lg:block">
-          <Sidebar isOpen={sidebarOpen} />
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         </div>
 
         {/* Mobile Sidebar — Sheet drawer, only below lg */}
@@ -1441,44 +1453,7 @@ export default function WalledGardenDashboard() {
           )}
         >
           <div className="p-4 lg:p-6">
-            {/* Tabbed Interface for Walled Garden sections */}
-            <Tabs defaultValue="dashboard" className="space-y-6">
-              <TabsList className="bg-glass border border-glass h-auto p-1 flex-wrap">
-                <TabsTrigger
-                  value="dashboard"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2"
-                >
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Dashboard
-                </TabsTrigger>
-                <TabsTrigger
-                  value="slatedrop"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2"
-                >
-                  <Inbox className="mr-2 h-4 w-4" />
-                  SlateDrop
-                </TabsTrigger>
-                <TabsTrigger
-                  value="enterprise"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Enterprise Settings
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="dashboard" className="mt-6">
-                <DashboardContent />
-              </TabsContent>
-
-              <TabsContent value="slatedrop" className="mt-6">
-                <SlateDropFileManager />
-              </TabsContent>
-
-              <TabsContent value="enterprise" className="mt-6">
-                <EnterpriseSettings />
-              </TabsContent>
-            </Tabs>
+            <DashboardContent />
           </div>
         </main>
       </div>

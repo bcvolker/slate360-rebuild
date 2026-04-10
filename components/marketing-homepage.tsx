@@ -29,6 +29,7 @@ import {
   Palette,
   Check,
   ChevronRight,
+  ChevronDown,
   Sparkles,
   FolderSync,
   Shield,
@@ -247,6 +248,7 @@ const TESTIMONIALS: Testimonial[] = [
 
 function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [appsOpen, setAppsOpen] = useState(false);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-glass border-b border-[hsla(45,82%,55%,0.12)] backdrop-blur-lg">
@@ -258,15 +260,45 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {NAV_LINKS.map((link) =>
+            link.label === "Apps" ? (
+              <div key={link.href} className="relative">
+                <button
+                  onClick={() => setAppsOpen(!appsOpen)}
+                  className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Apps
+                  <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", appsOpen && "rotate-180")} />
+                </button>
+                {appsOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setAppsOpen(false)} />
+                    <div className="absolute left-1/2 -translate-x-1/2 top-8 z-50 w-52 rounded-xl border border-[hsla(45,82%,55%,0.12)] bg-[hsl(240,6%,6%)] shadow-xl py-2">
+                      {APP_SHOWCASE.map((app) => (
+                        <Link
+                          key={app.slug}
+                          href={`/apps/${app.slug}`}
+                          onClick={() => setAppsOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-zinc-300 hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                        >
+                          <app.icon className="h-4 w-4 flex-shrink-0" />
+                          {app.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              >
+                {link.label}
+              </Link>
+            )
+          )}
         </nav>
 
         {/* Desktop CTAs */}
