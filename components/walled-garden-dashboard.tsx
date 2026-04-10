@@ -1007,6 +1007,7 @@ function SlateDropFileManager() {
       <section className="space-y-3">
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Files</h3>
         <Card className="bg-glass border-glass overflow-hidden">
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="border-border hover:bg-transparent">
@@ -1116,6 +1117,7 @@ function SlateDropFileManager() {
               })}
             </TableBody>
           </Table>
+          </div>
         </Card>
       </section>
     </div>
