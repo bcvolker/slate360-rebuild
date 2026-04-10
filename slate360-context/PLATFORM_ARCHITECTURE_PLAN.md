@@ -246,7 +246,42 @@ Status: 16 system folders currently auto-provisioned (`lib/slatedrop/provisionin
 - If app closes, user resumes where they left off
 - Voice-to-text notes can be edited/corrected before or after saving
 - AI assistant can format notes for deliverables (punch list format, proposal format, etc.)
-- Auto-generate PDF on submit: **TBD**
+
+### Deliverable System (Decision #7 — CONFIRMED)
+
+**Core principle: Maximum flexibility.** Subscribers choose how deliverables are created and sent. PDF is just ONE option.
+
+**Subscriber deliverables (outbound to clients):**
+- NO auto-PDF generation on submit
+- Subscriber decides delivery format and method via the **Deliverables** button on the dashboard sidebar
+- Available delivery formats (planned):
+  - **PDF** — traditional document, downloadable and printable
+  - **Interactive email** — rich HTML email with expandable images, embedded 360° tours, clickable plans, video playback — no attachment, everything inline
+  - **Digital viewer link** — shareable URL where client can browse photos, 360° tours, 3D models, plans interactively
+  - **Custom combinations** — subscriber picks what to include and how to send it
+- The Deliverables section is where subscribers:
+  - Select which project data to include
+  - Choose format (PDF, email, viewer link, etc.)
+  - Preview before sending
+  - Send to clients (email, text, copy link)
+  - Track delivery status (opened, viewed, downloaded)
+- Specific delivery options and UI will be refined during app builds (especially Site Walk)
+
+**Contributor submissions (inbound from subs/collaborators):**
+- When a contributor submits work (e.g., subcontractor completes a walk with photos + notes), TWO versions are saved:
+  1. **Editable UI version** — the subscriber can review, edit, annotate, or modify before using in their own deliverables
+  2. **PDF snapshot** — auto-generated at submission time, saved to BOTH:
+     - The project's `/History/` folder (permanent record)
+     - The appropriate content folder (e.g., `/Site Walk/Inspections/` or `/Photos/`)
+- The PDF snapshot captures the submission exactly as submitted (immutable record of what the contributor sent)
+- The editable version is what the subscriber works with going forward
+- All submissions include full metadata (time, geolocation, weather — see Contributor Submission Metadata below)
+
+**Where submissions are filed:**
+- Auto-routed to the appropriate project folder based on submission type
+- E.g., a subcontractor's site walk completion → `/Projects/{Name}/Site Walk/{session}/`
+- Filing rules will be defined per-app when each app is built
+- Subscriber can always move/reorganize files in SlateDrop after the fact
 
 ### Contributor Submission Metadata (auto-captured)
 When a contributor submits work (photos, notes, confirmations, punch list items, etc.), the system **automatically records** the following metadata alongside their submission:
@@ -397,7 +432,7 @@ Subscribing to additional apps unlocks richer capabilities within each app. This
 | 4 | Cross-app integration (apps enhance each other) | **Confirmed** | Having 360 Tours adds 360 photos to Site Walk. Design Studio adds 3D models. Bundles encouraged. |
 | 5 | App build order | **Confirmed** | Site Walk → 360 Tours → Design Studio → Content Creation → more |
 | 6 | History folder — can owner/admin delete? | **Confirmed** | YES — owner/admin can delete with 2-step confirmation. Deletion is logged. It's their data. Download always available. |
-| 7 | Auto-generate PDF on deliverable submit? | **TBD** | — |
+| 7 | Deliverable system / auto-PDF | **Confirmed** | Subscriber deliverables: NO auto-PDF, flexible formats (PDF, interactive email, viewer link). Contributor submissions: YES auto-PDF + editable UI version. Dashboard sidebar Deliverables button is the control center. |
 | 8 | Offline mode priority for beta? | **TBD** | — |
 | 9 | Real-time sync priority for beta? | **TBD** | — |
 | 10 | External collaborators on drawings: full set or assigned sheets? | **TBD** | — |
