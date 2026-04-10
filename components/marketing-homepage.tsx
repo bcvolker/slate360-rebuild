@@ -121,6 +121,9 @@ const APP_SHOWCASE: AppShowcase[] = [
       "Weather & date stamping",
       "One-click client sharing",
       "Compare views over time",
+      "AI issue detection",
+      "Offline mode support",
+      "PDF report export",
     ],
   },
   {
@@ -136,6 +139,9 @@ const APP_SHOWCASE: AppShowcase[] = [
       "Embed anywhere with one link",
       "Client portal auto-generation",
       "Analytics & view tracking",
+      "Floor plan integration",
+      "Before / after comparisons",
+      "White-label branding",
     ],
   },
   {
@@ -151,6 +157,9 @@ const APP_SHOWCASE: AppShowcase[] = [
       "Client-shareable model links",
       "Annotation & markup tools",
       "Before / after comparisons",
+      "Material & texture editing",
+      "Measurement overlays",
+      "Version history tracking",
     ],
   },
 ];
@@ -383,18 +392,14 @@ function HeroSection() {
           <Button 
             size="lg" 
             variant="outline" 
+            asChild
             className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary px-8"
           >
-            <Play className="mr-2 h-4 w-4" />
-            Watch Demo
+            <Link href="#apps">
+              Explore Apps
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Link>
           </Button>
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <div className="h-8 w-5 rounded-full border-2 border-muted-foreground/30 flex items-start justify-center p-1">
-          <div className="h-2 w-1 rounded-full bg-primary animate-pulse" />
         </div>
       </div>
     </section>
@@ -480,8 +485,8 @@ function AppShowcaseSection() {
                     label={app.demoLabel}
                   />
 
-                  {/* Features */}
-                  <ul className="space-y-2">
+                  {/* Features - 2 columns */}
+                  <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
                     {app.features.map((feature) => (
                       <li key={feature} className="flex items-center gap-2 text-sm text-foreground">
                         <Check className="h-4 w-4 text-primary flex-shrink-0" />
@@ -816,33 +821,28 @@ function TestimonialsSection() {
             Customer Stories
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Loved by construction teams everywhere
+            What our customers will say
           </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            We&apos;re just getting started. As teams adopt Slate360, their stories will appear here.
+          </p>
         </div>
 
-        {/* Testimonial Cards */}
+        {/* Placeholder cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {TESTIMONIALS.map((testimonial, index) => (
+          {[1, 2, 3].map((i) => (
             <Card
-              key={index}
+              key={i}
               className="bg-glass border-[hsla(45,82%,55%,0.12)] shadow-[0_8px_32px_hsla(0,0%,0%,0.4)]"
             >
-              <CardContent className="pt-6">
-                <Quote className="h-8 w-8 text-primary/30 mb-4" />
-                <p className="text-foreground mb-6 leading-relaxed">&ldquo;{testimonial.quote}&rdquo;</p>
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary/20 text-primary text-sm">
-                      {testimonial.author.split(" ").map((n) => n[0]).join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium text-foreground">{testimonial.author}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {testimonial.role}, {testimonial.company}
-                    </p>
-                  </div>
-                </div>
+              <CardContent className="pt-6 flex flex-col items-center justify-center min-h-[200px]">
+                <Quote className="h-8 w-8 text-primary/20 mb-4" />
+                <p className="text-muted-foreground text-center text-sm">
+                  Your story could be here.
+                </p>
+                <Button variant="link" asChild className="mt-3 text-primary text-sm">
+                  <Link href="/signup">Be an early adopter →</Link>
+                </Button>
               </CardContent>
             </Card>
           ))}

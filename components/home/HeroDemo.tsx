@@ -13,15 +13,26 @@ const PanoramaViewer = dynamic(
   { ssr: false }
 );
 
-type Tab = "model" | "panorama";
+type Tab = "model" | "panorama" | "video";
 
 export default function HeroDemo() {
-  const [active, setActive] = useState<Tab>("panorama");
+  const [active, setActive] = useState<Tab>("model");
 
   return (
     <div className="w-full">
       {/* Tab switcher */}
       <div className="flex items-center justify-center gap-2 mb-4">
+        <button
+          onClick={() => setActive("model")}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            active === "model"
+              ? "bg-primary text-primary-foreground shadow-[0_0_20px_hsla(45,82%,55%,0.3)]"
+              : "bg-muted/50 text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Box className="h-3.5 w-3.5" />
+          3D Model
+        </button>
         <button
           onClick={() => setActive("panorama")}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all ${
@@ -34,15 +45,15 @@ export default function HeroDemo() {
           360° Tour
         </button>
         <button
-          onClick={() => setActive("model")}
+          onClick={() => setActive("video")}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-            active === "model"
+            active === "video"
               ? "bg-primary text-primary-foreground shadow-[0_0_20px_hsla(45,82%,55%,0.3)]"
               : "bg-muted/50 text-muted-foreground hover:text-foreground"
           }`}
         >
           <Box className="h-3.5 w-3.5" />
-          3D Model
+          Video
         </button>
       </div>
 
@@ -56,11 +67,15 @@ export default function HeroDemo() {
             shadowIntensity={1}
             shadowSoftness={1}
           />
-        ) : (
+        ) : active === "panorama" ? (
           <PanoramaViewer
             src="/uploads/pletchers.jpg"
             caption="Drag to look around — 360° panorama"
           />
+        ) : (
+          <div className="flex items-center justify-center h-full text-muted-foreground">
+            <p className="text-sm">Video demo coming soon</p>
+          </div>
         )}
       </div>
     </div>

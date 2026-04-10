@@ -44,6 +44,8 @@ import {
   ExternalLink,
   PanelLeftClose,
   FolderOpen,
+  Maximize2,
+  Minimize2,
   File,
   FileText,
   FileImage,
@@ -473,19 +475,18 @@ function Header({
     >
       <div className="flex h-full items-center justify-between px-4 gap-4">
         {/* Left: Home + Menu Toggle */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <a href="/" aria-label="Home" className="shrink-0">
             <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-6 w-auto" />
           </a>
-          <Button
-            variant="outline"
-            size="icon"
+          <button
             onClick={onMenuClick}
-            className="border-border bg-muted/50 hover:bg-primary/10 hover:text-primary hover:border-primary/50"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-800/80 hover:bg-primary/20 border border-zinc-700 hover:border-primary/50 text-zinc-300 hover:text-primary transition-all"
+            aria-label="Menu"
           >
-            {isSidebarOpen ? <PanelLeftClose className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            <span className="sr-only">Toggle sidebar</span>
-          </Button>
+            <Menu className="h-5 w-5" />
+            <span className="text-sm font-medium hidden sm:inline">Menu</span>
+          </button>
         </div>
 
         {/* Center: Global Search - Glass input style */}
@@ -572,7 +573,7 @@ function Header({
 
 function AppCard({ app }: { app: AppItem }) {
   return (
-    <Card className="group relative overflow-hidden bg-glass border-glass shadow-glass transition-all duration-300 hover:scale-[1.02] hover:shadow-glass-hover hover:border-primary/30">
+    <Card className="group relative overflow-hidden bg-glass border-glass shadow-glass transition-all duration-300 hover:scale-[1.02] hover:shadow-glass-hover hover:border-primary/30 flex flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           {/* App Icon with gold glow when active */}
@@ -603,26 +604,17 @@ function AppCard({ app }: { app: AppItem }) {
           {app.description}
         </CardDescription>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 mt-auto">
         <Button
           className={cn(
-            "w-full transition-all duration-200",
+            "w-full justify-center transition-all duration-200",
             app.status === "active"
               ? "bg-primary text-primary-foreground hover:bg-primary/90 group-hover:shadow-gold-glow"
               : "bg-muted text-muted-foreground hover:bg-muted/80"
           )}
         >
-          {app.status === "active" ? (
-            <>
-              Launch
-              <ExternalLink className="ml-2 h-4 w-4" />
-            </>
-          ) : (
-            <>
-              <Lock className="mr-2 h-4 w-4" />
-              Unlock
-            </>
-          )}
+          {app.status === "active" ? "Launch" : "Unlock"}
+          <ExternalLink className="ml-2 h-4 w-4" />
         </Button>
       </CardContent>
     </Card>
@@ -755,49 +747,112 @@ function DeliverableCard({ deliverable }: { deliverable: Deliverable }) {
    ========================================================================== */
 
 function SlateDropPanel() {
+  const [expanded, setExpanded] = useState(false);
+  const [dragOver, setDragOver] = useState<string | null>(null);
+
+  const handleDragOver = (e: React.DragEvent, folderId?: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(folderId ?? "root");
+  };
+
+  const handleDragLeave = () => {
+    setDragOver(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, folderId?: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(null);
+    // Files from the user's device
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      const target = folderId
+        ? SLATEDROP_FOLDERS.find((f) => f.id === folderId)?.name ?? "SlateDrop"
+        : "SlateDrop";
+      // In production this would call the upload API
+      alert(`${files.length} file(s) would upload to "${target}" (upload API wiring pending)`);
+    }
+  };
+
   return (
-    <Card className="bg-glass border-glass shadow-glass h-fit">
+    <Card
+      className={cn(
+        "bg-glass border-glass shadow-glass transition-all",
+        dragOver === "root" && "border-primary/50 bg-primary/5"
+      )}
+      onDragOver={(e) => handleDragOver(e)}
+      onDragLeave={handleDragLeave}
+      onDrop={(e) => handleDrop(e)}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg text-foreground">SlateDrop</CardTitle>
-          <Badge variant="outline" className="border-primary/30 text-primary">
-            Quick Access
-          </Badge>
+          <div className="flex items-center gap-2">
+            <FolderOpen className="h-5 w-5 text-primary" />
+            <CardTitle className="text-lg text-foreground">SlateDrop</CardTitle>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="border-primary/30 text-primary text-xs">
+              Drag &amp; drop files here
+            </Badge>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-zinc-400 hover:text-primary hover:bg-primary/10"
+              onClick={() => setExpanded(!expanded)}
+              aria-label={expanded ? "Collapse" : "Expand"}
+            >
+              {expanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-2">
-        {SLATEDROP_FOLDERS.map((folder) => (
-          <div
-            key={folder.id}
-            className="group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-primary/10 border border-transparent hover:border-primary/20"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 group-hover:bg-primary/20 transition-colors">
-                <Folder className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+        <div className={cn(
+          "grid gap-2 transition-all",
+          expanded ? "sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
+        )}>
+          {SLATEDROP_FOLDERS.map((folder) => (
+            <div
+              key={folder.id}
+              className={cn(
+                "group flex items-center justify-between rounded-lg p-2.5 transition-all duration-200 hover:bg-primary/10 border",
+                dragOver === folder.id
+                  ? "border-primary/50 bg-primary/10"
+                  : "border-transparent hover:border-primary/20"
+              )}
+              onDragOver={(e) => { e.stopPropagation(); handleDragOver(e, folder.id); }}
+              onDragLeave={(e) => { e.stopPropagation(); handleDragLeave(); }}
+              onDrop={(e) => handleDrop(e, folder.id)}
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 group-hover:bg-primary/20 transition-colors">
+                  <Folder className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground line-clamp-1">
+                    {folder.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{folder.fileCount} files</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-foreground line-clamp-1">
-                  {folder.name}
-                </p>
-                <p className="text-xs text-muted-foreground">{folder.fileCount} files</p>
-              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/20 hover:text-primary"
+                  >
+                    <Upload className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-glass border-glass">
+                  <p>Upload to folder</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/20 hover:text-primary"
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-glass border-glass">
-                <p>Upload to folder</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        ))}
+          ))}
+        </div>
         
         {/* New Folder Button */}
         <Button
@@ -1309,38 +1364,26 @@ function DashboardContent() {
         </div>
       </section>
 
-      {/* Two Column Layout: Deliverables + SlateDrop */}
-      <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
-        <div className="space-y-6">
-          {/* Recent Deliverables - Horizontal scroll */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-foreground">
-                Recent Deliverables
-              </h2>
-              <Button variant="ghost" className="text-primary hover:bg-primary/10">
-                View All
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 lg:mx-0 lg:px-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted">
-              {DELIVERABLES.map((deliverable) => (
-                <DeliverableCard key={deliverable.id} deliverable={deliverable} />
-              ))}
-            </div>
-          </section>
+      {/* SlateDrop — full width below apps */}
+      <SlateDropPanel />
+
+      {/* Recent Deliverables - Horizontal scroll */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-foreground">
+            Recent Deliverables
+          </h2>
+          <Button variant="ghost" className="text-primary hover:bg-primary/10">
+            View All
+            <ChevronRight className="ml-1 h-4 w-4" />
+          </Button>
         </div>
-
-        {/* SlateDrop Quick Access Panel */}
-        <aside className="hidden lg:block">
-          <SlateDropPanel />
-        </aside>
-      </div>
-
-      {/* Mobile SlateDrop Panel */}
-      <div className="lg:hidden">
-        <SlateDropPanel />
-      </div>
+        <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 lg:mx-0 lg:px-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted">
+          {DELIVERABLES.map((deliverable) => (
+            <DeliverableCard key={deliverable.id} deliverable={deliverable} />
+          ))}
+        </div>
+      </section>
 
       {/* Storage Meter - Low priority, at bottom */}
       <StorageMeter />
