@@ -43,11 +43,12 @@ Primary live modules:
 - `/market`
 
 Tier note:
-- OLD tiers (`trial < creator < model < business < enterprise`) are OBSOLETE
-- NEW app-centric tiers: `trial < standard < business < enterprise` (per-app, not platform-wide)
+- OLD tiers (`trial < creator < model < business < enterprise`) are OBSOLETE — removed in commit `b5d6224`
+- NEW tiers: `trial < standard < business < enterprise` (per-app, not platform-wide)
+- Backward-compat: legacy DB rows with "creator" or "model" auto-map to "standard"
 - Users subscribe per-app with optional bundle discounts
 - Enterprise gets ALL apps + admin + white-label
-- `lib/entitlements.ts` still has old 5-tier model — needs update to new 4-tier per-app model
+- `lib/entitlements.ts` rewritten to 4-tier model (standard: $149/mo, 10K credits, 100GB, 3 seats)
 - subscription gates use `getEntitlements()`
 - trial tier unlocks ALL tabs with tight limits (500 credits, 5GB, 1 seat) + TrialBanner
 - `/ceo`, `/market`, and `/athlete360` are internal access routes, not subscription features
@@ -167,6 +168,7 @@ Use those files only for deep history, roadmap, or recovery work.
 
 | File | Lines | Status |
 |---|---|---|
+| `components/walled-garden-dashboard.tsx` | 82 | ✅ Extracted — was 1472 lines, now thin orchestrator |
 | `components/dashboard/DashboardClient.tsx` | 264 | ✅ Under limit — 5 extractions + 6 sub-hooks |
 | `lib/hooks/useDashboardState.ts` | 244 | ✅ Under limit — thin orchestrator (6 sub-hooks) |
 | `components/slatedrop/SlateDropClient.tsx` | 282 | ✅ Under limit — 7 sub-hooks extracted |
@@ -189,66 +191,62 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-10 (My Account + Dark Theme + Codebase Review)
+### Session Handoff — 2026-04-11 (Command Center Dashboard + 4-Tier Entitlements)
 
 ### What Changed
 
-**Commit `e7748f4` — My Account (5 tabs), dark theme, dashboard toolbar, real storage data**
+**Commit `b5d6224` — Dashboard Command Center extraction, mock data removal, entitlements rewrite**
 
-**1. My Account Page (BUILT)**
-- `components/dashboard/MyAccountShell.tsx` (134 lines): tabbed UI with 5 tabs, URL param support (?tab=billing), data from `/api/account/overview`
-- `components/dashboard/my-account/AccountProfileTab.tsx` (115 lines): name edit, avatar, email, org, role, theme pref
-- `components/dashboard/my-account/AccountBillingTab.tsx` (196 lines): plan status, payment methods (Stripe portal), credit packs (Starter/Growth/Pro → Stripe checkout), invoices, admin-only
-- `components/dashboard/my-account/AccountDataTrackerTab.tsx` (157 lines): credits + storage bars, color-coded warnings, asset counts, buy-more CTA
-- `components/dashboard/my-account/AccountSecurityTab.tsx` (121 lines): password reset, 2FA placeholder, sessions, data export/deletion
-- `components/dashboard/my-account/AccountNotificationsTab.tsx` (71 lines): email + push notification toggles
-- `app/(dashboard)/my-account/page.tsx`: passes orgName, role, isAdmin, entitlements
+**1. Dashboard Monolith Extraction (1472 → 82 lines)**
+- `components/walled-garden-dashboard.tsx` (82 lines): thin orchestrator with sidebar + topbar + content
+- `components/dashboard/command-center/CommandCenterContent.tsx` (62 lines): layout with real data from APIs
+- `components/dashboard/command-center/DashboardSidebar.tsx` (158 lines): extracted sidebar with nav + app links
+- `components/dashboard/command-center/DashboardTopBar.tsx` (112 lines): header with real user avatar, no hardcoded notification count
+- `components/dashboard/command-center/ProjectOverviewCard.tsx` (90 lines): active/completed/on-hold counts, recent projects list
+- `components/dashboard/command-center/PendingItemsCard.tsx` (94 lines): open RFIs, pending submittals, budget utilization
+- `components/dashboard/command-center/QuickActionsCard.tsx` (62 lines): New Project, Upload, Site Walk, 360 Tour
+- `components/dashboard/command-center/RecentFilesCard.tsx` (98 lines): real SlateDrop uploads from `/api/dashboard/summary`
+- `components/dashboard/command-center/StorageCreditsCard.tsx` (71 lines): real bytes from API, tier-aware limit
+- `lib/hooks/useCommandCenterData.ts` (59 lines): parallel fetch from `/api/dashboard/summary` + `/api/projects/summary`
+- `lib/types/command-center.ts` (45 lines): shared types
 
-**2. Dashboard Toolbar Fix (walled-garden-dashboard.tsx)**
-- Removed `/api/placeholder/36/36` avatar, "JD" fallback → real user initial from `userName` prop
-- Dropdown: "My Account" → `/my-account`, "Billing" → `/my-account?tab=billing`, "Sign Out" → `supabase.auth.signOut()`
-- Welcome message uses `userName.split(" ")[0]` with fallback to `orgName`
+**2. ALL Mock Data Removed from Dashboard**
+- ❌ DELIVERABLES array with `/api/placeholder/` URLs — GONE
+- ❌ SLATEDROP_FILES/FOLDERS mock data — GONE
+- ❌ APPS array with hardcoded storage ("4.1 GB", "9.2 GB") — GONE
+- ❌ STORAGE_BREAKDOWN with fake data — GONE
+- ❌ ENTERPRISE_USERS empty array — GONE
+- ❌ Notification bell hardcoded "3" count — GONE (now links to /my-account?tab=notifications)
 
-**3. Dark Theme Default**
-- `components/providers/ThemeProvider.tsx`: changed default from 'system' to 'dark' in 6 places
-- 15+ files fixed from white/light backgrounds to `bg-zinc-950`: not-found, deploy-check, loading, integrations, analytics, athlete360, project error, SlateDropClient, ProjectToolLayout, privacy, terms, share pages
+**3. Entitlements 4-Tier Rewrite**
+- `lib/entitlements.ts`: removed `creator`/`model`, added `standard` ($149/mo, 10K credits, 100GB, 3 seats)
+- New `LEGACY_TIER_MAP`: auto-maps DB rows with "creator"/"model" → "standard"
+- `TIER_ORDER`: `["trial", "standard", "business", "enterprise"]`
+- Updated 13 consumer files: 5 shell components, DashboardClient, billing.ts, UpgradeGate, SlateDropClient, useBillingState, useDashboardState, org-context.ts
+- `lib/billing.ts`: SUBSCRIPTION_PLANS now has `standard` + `business` (needs STRIPE_PRICE_STANDARD_* env vars in Vercel)
 
-**4. Real Storage Data**
-- `app/api/account/overview/route.ts`: replaced hardcoded storage values with real `org_storage_used_bytes` from organizations table
-
-**5. Enterprise Privacy Controls**
-- Billing tab hidden from non-admin enterprise members
-- Non-admins see "managed by administrator" notice
-
-**6. Docs + Ops Updates (this session)**
-- `ops/module-manifest.json`: added my-account + site-walk modules, updated date
-- `slate360-context/SITE_WALK_BUILD_PLAN.md`: rewritten from 240 → 500+ lines with comprehensive design spec for external AI assistant (features, flows, API routes, schema, UX requirements, competitive landscape, design questions)
+**4. Dashboard Page Updated**
+- `app/(dashboard)/dashboard/page.tsx`: now passes `storageLimitGb` from `getEntitlements(tier)`
 
 ### Codebase Health Report
 - TypeScript: **0 errors** (`npx tsc --noEmit` clean)
-- Oversized files: **17 files** over 300-line limit (known tech debt, see file-size report)
-- Biggest offenders: `LocationMap.tsx` (1892), `walled-garden-dashboard.tsx` (1472), `marketing-homepage.tsx` (1123)
+- Oversized files: **16 files** (down from 17 — removed walled-garden-dashboard from list)
+- Biggest remaining: `LocationMap.tsx` (1892), `marketing-homepage.tsx` (1123)
 
-### Placeholder Data Audit (CRITICAL — Must Remove Before Beta)
+### Placeholder Data Audit (Updated)
 | Category | Location | What |
 |---|---|---|
-| CRITICAL | `walled-garden-dashboard.tsx` L231-254 | DELIVERABLES array with `/api/placeholder/320/180` URLs |
-| CRITICAL | `walled-garden-dashboard.tsx` L259-280 | SLATEDROP_FILES/FOLDERS mock data |
-| CRITICAL | `walled-garden-dashboard.tsx` L191-228 | APPS array with fake storage ("4.1 GB", "9.2 GB") |
+| ~~CRITICAL~~ | ~~`walled-garden-dashboard.tsx`~~ | ~~ALL mock data~~ **RESOLVED** |
 | CRITICAL | `marketing-homepage.tsx` L223-243 | Testimonials with fake names (Sarah Chen, Marcus Johnson) |
 | CRITICAL | `home/landing-data.ts` L121-147 | Duplicate testimonials with different fake names |
 | CRITICAL | `CeoCommandCenterClient.tsx` L38-43 | MOCK_METRICS (MRR, churn, margin — hardcoded) |
 | CRITICAL | `lib/dashboard/demo-data.ts` L18-87 | DEMO_PROJECTS, DEMO_EVENTS, DEMO_JOBS, DEMO_WEATHER |
-| HIGH | `walled-garden-dashboard.tsx` L282 | ENTERPRISE_USERS empty array placeholder |
-| HIGH | `walled-garden-dashboard.tsx` | Notification bell hardcoded "3" count |
 | MEDIUM | 6 shell components | `status="coming-soon"` or `status="under-development"` |
 | MEDIUM | PunchListForm, ObservationForm | "Photo upload coming soon" text |
 | MEDIUM | MarketClient, MarketRobotWorkspace | "Placeholder for {tab} (under construction)" |
 
 ### What's Broken / Partially Done
-- `lib/entitlements.ts` still uses old 5-tier model (creator/model) — needs rewrite to 4-tier (trial/standard/business/enterprise)
-- `walled-garden-dashboard.tsx` is 1472 lines — CRITICAL monolith, needs extraction BEFORE adding features
-- Dashboard is App Launcher, not Command Center — needs redesign with project overview, activity feed, quick actions, real-time notifications
+- `billing.ts` uses env vars `STRIPE_PRICE_STANDARD_MONTHLY`/`STRIPE_PRICE_STANDARD_ANNUAL` — need to create these Stripe prices and add to Vercel env
 - `SlateLogo` component created but NOT wired into consuming pages
 - `marketing-homepage.tsx` is 1123 lines — needs extraction
 - `market_scheduler_lock` table still has no RLS (pre-existing)
@@ -257,18 +255,15 @@ When editing oversized files, always read both the state declarations AND the JS
 - Supabase email templates still use purple gradients (pre-existing)
 
 ### Context Files Updated
-- `SLATE360_PROJECT_MEMORY.md`: this handoff
-- `slate360-context/SITE_WALK_BUILD_PLAN.md`: comprehensive rewrite with full design spec
-- `ops/module-manifest.json`: added my-account + site-walk modules
+- `SLATE360_PROJECT_MEMORY.md`: this handoff + tier note updated + monolith table updated
 
 ### Next Steps (ordered by priority)
-1. **Remove walled-garden-dashboard mock data** — replace DELIVERABLES, SLATEDROP, APPS arrays with real data or empty states
-2. **Extract walled-garden-dashboard.tsx** — split 1472-line monolith into sub-components before adding features
-3. **Redesign dashboard as Command Center** — project overview, activity feed, pending items, team activity, quick actions, smart notifications
-4. **Update `lib/entitlements.ts`** — rewrite from 5-tier to 4-tier per-app model
-5. **Wire `<SlateLogo />` into all pages** still using direct `<img>` logo tags
-6. **Extract `marketing-homepage.tsx`** into sub-300-line components
-7. **Begin Site Walk Phase 1** — create `site_walk_items` + `site_walk_deliverables` migrations, session CRUD APIs
-8. **Merge `fix/slatedrop-external-uploads`** → main (security patch)
-9. **Add RLS to `market_scheduler_lock`**
-10. **Deploy atomic `claim_deliverable_view()` RPC**
+1. **Create Stripe "Standard" price IDs** — add `STRIPE_PRICE_STANDARD_MONTHLY` and `STRIPE_PRICE_STANDARD_ANNUAL` to Vercel env vars
+2. **Wire `<SlateLogo />` into all pages** still using direct `<img>` logo tags
+3. **Extract `marketing-homepage.tsx`** into sub-300-line components
+4. **Begin Site Walk Phase 1** — create `site_walk_items` + `site_walk_deliverables` migrations, session CRUD APIs
+5. **Merge `fix/slatedrop-external-uploads`** → main (security patch)
+6. **Add RLS to `market_scheduler_lock`**
+7. **Deploy atomic `claim_deliverable_view()` RPC**
+8. **Add real notifications system** — API route + DB table + real bell count
+9. **Replace CEO mock metrics** with real Stripe MRR / org analytics
