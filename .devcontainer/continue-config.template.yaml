@@ -6,78 +6,55 @@ models:
   - name: GPT-5.4
     provider: openai
     model: gpt-5.4
+    apiKey: ${OPENAI_API_KEY}
     roles:
       - chat
+      - edit
+      - apply
     defaultCompletionOptions:
       contextLength: 32000
       maxTokens: 4096
-    contextManagement:
-      edits:
-        - type: clear_tool_uses_20250919
-          trigger:
-            type: tool_uses
-            value: 1
-          keep:
-            type: tool_uses
-            value: 0
 
   - name: Claude Opus 4.6
     provider: anthropic
     model: claude-opus-4-6
+    apiKey: ${ANTHROPIC_API_KEY}
     roles:
       - chat
+      - edit
+      - apply
     defaultCompletionOptions:
       contextLength: 24000
       maxTokens: 2048
-    contextManagement:
-      edits:
-        - type: clear_tool_uses_20250919
-          trigger:
-            type: tool_uses
-            value: 1
-          keep:
-            type: tool_uses
-            value: 0
 
   - name: Claude Sonnet 4.6
     provider: anthropic
     model: claude-sonnet-4-6
+    apiKey: ${ANTHROPIC_API_KEY}
     roles:
       - chat
+      - edit
+      - apply
     defaultCompletionOptions:
       contextLength: 32000
       maxTokens: 2048
-    contextManagement:
-      edits:
-        - type: clear_tool_uses_20250919
-          trigger:
-            type: tool_uses
-            value: 1
-          keep:
-            type: tool_uses
-            value: 0
 
   - name: Gemini 3.1 Pro
     provider: gemini
     model: gemini-3.1-pro-preview
+    apiKey: ${GEMINI_API_KEY}
     roles:
       - chat
+      - edit
+      - apply
     defaultCompletionOptions:
       contextLength: 32000
       maxTokens: 4096
-    contextManagement:
-      edits:
-        - type: clear_tool_uses_20250919
-          trigger:
-            type: tool_uses
-            value: 1
-          keep:
-            type: tool_uses
-            value: 0
 
   - name: Grok 4
     provider: xAI
     model: grok-4-0709
+    apiKey: ${XAI_API_KEY}
     roles:
       - chat
       - edit
@@ -89,6 +66,7 @@ models:
   - name: Grok 4.20 Reasoning
     provider: xAI
     model: grok-4.20-0309-reasoning
+    apiKey: ${XAI_API_KEY}
     roles:
       - chat
       - edit
@@ -100,6 +78,7 @@ models:
   - name: Grok 4.20 Non-Reasoning
     provider: xAI
     model: grok-4.20-0309-non-reasoning
+    apiKey: ${XAI_API_KEY}
     roles:
       - chat
       - edit
@@ -111,6 +90,7 @@ models:
   - name: Grok 4.20 Multi-Agent
     provider: xAI
     model: grok-4.20-multi-agent-0309
+    apiKey: ${XAI_API_KEY}
     roles:
       - chat
       - edit
