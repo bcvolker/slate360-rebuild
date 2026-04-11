@@ -48,7 +48,7 @@ Tier note:
 - Backward-compat: legacy DB rows with "creator" or "model" auto-map to "standard"
 - Users subscribe per-app with optional bundle discounts
 - Enterprise gets ALL apps + admin + white-label
-- `lib/entitlements.ts` rewritten to 4-tier model (standard: $149/mo, 10K credits, 100GB, 3 seats)
+- `lib/entitlements.ts` rewritten to 4-tier model (standard: $149/mo, 5K credits, 25GB, 3 seats)
 - subscription gates use `getEntitlements()`
 - trial tier unlocks ALL tabs with tight limits (500 credits, 5GB, 1 seat) + TrialBanner
 - `/ceo`, `/market`, and `/athlete360` are internal access routes, not subscription features
@@ -191,23 +191,77 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-11 (Command Center Dashboard + 4-Tier Entitlements)
+### Session Handoff — 2026-04-11 (Billing Sync + Cost-Optimized Tier Limits)
 
 ### What Changed
 
-**Commit `b5d6224` — Dashboard Command Center extraction, mock data removal, entitlements rewrite**
+**Commit `dc60f2c` — 4-tier billing sync: Standard Stripe product, cost-optimized limits, webhook fix**
 
-**1. Dashboard Monolith Extraction (1472 → 82 lines)**
-- `components/walled-garden-dashboard.tsx` (82 lines): thin orchestrator with sidebar + topbar + content
-- `components/dashboard/command-center/CommandCenterContent.tsx` (62 lines): layout with real data from APIs
-- `components/dashboard/command-center/DashboardSidebar.tsx` (158 lines): extracted sidebar with nav + app links
-- `components/dashboard/command-center/DashboardTopBar.tsx` (112 lines): header with real user avatar, no hardcoded notification count
-- `components/dashboard/command-center/ProjectOverviewCard.tsx` (90 lines): active/completed/on-hold counts, recent projects list
-- `components/dashboard/command-center/PendingItemsCard.tsx` (94 lines): open RFIs, pending submittals, budget utilization
-- `components/dashboard/command-center/QuickActionsCard.tsx` (62 lines): New Project, Upload, Site Walk, 360 Tour
-- `components/dashboard/command-center/RecentFilesCard.tsx` (98 lines): real SlateDrop uploads from `/api/dashboard/summary`
-- `components/dashboard/command-center/StorageCreditsCard.tsx` (71 lines): real bytes from API, tier-aware limit
-- `lib/hooks/useCommandCenterData.ts` (59 lines): parallel fetch from `/api/dashboard/summary` + `/api/projects/summary`
+**1. Stripe Product/Price Changes**
+- Created product `Slate360 Standard` (prod_UJZSXPauJW6Qmh) — $149/mo, $1,490/yr
+- Monthly price: `price_1TKwK4JCrjGbeotHIM4i3QUH`
+- Annual price: `price_1TKwK4JCrjGbeotHwlMNaHmM`
+- Archived: `Slate360 Creator` (prod_TYfm7ee4iEJ9W5), `Slate360 Model` (prod_TYfpYsfCPrGT23)
+- Active products now: Standard, Business, PunchWalk ($49/mo), Tour Builder ($49/mo)
+
+**2. Vercel Env Vars Updated**
+- Added: `STRIPE_PRICE_STANDARD_MONTHLY`, `STRIPE_PRICE_STANDARD_ANNUAL`
+- Removed: `STRIPE_PRICE_CREATOR_MONTHLY`, `STRIPE_PRICE_CREATOR_ANNUAL`, `STRIPE_PRICE_MODEL_MONTHLY`, `STRIPE_PRICE_MODEL_ANNUAL`
+
+**3. Critical Webhook Bug Fixed**
+- `app/api/stripe/webhook/route.ts`: `updateOrganizationTier()` was checking for `"creator"`/`"model"` tier names
+- The pipeline sends `"standard"` but the function had no match — fell through to 5GB trial default
+- Fixed: now checks `"standard"` (25GB), `"business"` (100GB), `"enterprise"` (500GB)
+
+**4. Cost-Optimized Tier Limits (approved for 93%+ margin at 2000 users)**
+- `lib/entitlements.ts`: Trial: 2GB/250cr/1 seat, Standard: 25GB/5Kcr/3 seats, Business: 100GB/25Kcr/15 seats, Enterprise: 500GB/100Kcr/999 seats
+- `lib/server/org-bootstrap.ts`: new orgs get `storage_limit_bytes = 2GB` on creation
+- `components/dashboard/ceo/CeoSubscriberDirectory.tsx`: TIER_ORDER updated to 4-tier
+
+**5. .env Updated**
+- Replaced `STRIPE_PRICE_CREATOR_*` and `STRIPE_PRICE_MODEL_*` with `STRIPE_PRICE_STANDARD_MONTHLY` and `STRIPE_PRICE_STANDARD_ANNUAL`
+
+### Infrastructure Status (verified this session)
+- **Git**: ✅ push works (commit dc60f2c pushed)
+- **Vercel**: ✅ 76 env vars, Stripe vars synced to 4-tier model
+- **AWS S3**: ✅ bucket `slate360-storage`, 107 objects, 0.289 GB
+- **Stripe**: ✅ Standard product created, Creator/Model archived, 3 active platform products
+- **Supabase**: ✅ API access works, Free plan (recommend upgrade to Pro at scale)
+
+### Cost Model Summary
+- At 2,000 users (50% trial, 30% standard, 15% business, 3% enterprise): ~$301K/mo revenue
+- Infrastructure cost: ~$19K/mo (S3 dominant at ~$10K, Stripe fees ~$9K)
+- **Projected margin: 93.6%**
+
+### Subscription Pipeline Audit Findings
+- ✅ Full signup → email confirmation → org creation → Stripe checkout → webhook → tier update pipeline is wired
+- ✅ Deduplication on webhook events, atomic credit adds, legacy tier mapping
+- ⚠️ No dedicated `/plans` page (old one deprecated) — users upgrade from signup page or billing portal
+- ⚠️ No seat enforcement — Trial org with maxSeats:1 can still have multiple members join
+- ⚠️ No `past_due` handling — Stripe subscription goes through past_due → unpaid → canceled; org stays at paid tier until `deleted` event
+- ⚠️ Enterprise is CEO-only or manual DB insert — no self-serve enterprise checkout
+
+### What's Broken / Partially Done
+- `SlateLogo` component created but NOT wired into consuming pages
+- `marketing-homepage.tsx` is 1123 lines — needs extraction
+- `market_scheduler_lock` table still has no RLS (pre-existing)
+- Portal view_count race condition (atomic SQL not deployed, pre-existing)
+- `fix/slatedrop-external-uploads` branch still needs merge (security patch, pre-existing)
+- Supabase email templates still use purple gradients (pre-existing)
+- No dedicated `/plans` pricing page for post-signup upgrade flow
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+
+### Next Steps (ordered by priority)
+1. **Create `/plans` pricing page** — users need a way to upgrade post-signup
+2. **Add seat enforcement** — block org member invites when at maxSeats
+3. **Handle `past_due` subscription status** in webhook (grace period or immediate downgrade)
+4. **Wire `<SlateLogo />` into all pages** still using direct `<img>` logo tags
+5. **Extract `marketing-homepage.tsx`** into sub-300-line components
+6. **Begin Site Walk Phase 1** — create migrations, session CRUD APIs
+7. **Merge `fix/slatedrop-external-uploads`** → main (security patch)
+8. **Upgrade Supabase to Pro plan** before user growth (Free: 500MB DB, 1GB file storage)
 - `lib/types/command-center.ts` (45 lines): shared types
 
 **2. ALL Mock Data Removed from Dashboard**
