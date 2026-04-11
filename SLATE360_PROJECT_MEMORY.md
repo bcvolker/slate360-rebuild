@@ -1,6 +1,6 @@
 "# Slate360 — Project Memory
 
-Last Updated: 2026-04-08
+Last Updated: 2026-04-11
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -22,8 +22,8 @@ This access is intentional. Agents are expected to push commits, run migrations,
 
 Recommended read order:
 1. This file
-2. `slate360-context/NEW_CHAT_HANDOFF_PROTOCOL.md`
-3. Only task-relevant docs
+2. `SLATE360_MASTER_BUILD_PLAN.md` (single source of truth for product direction)
+3. Only task-relevant docs from the read map below
 
 Do not read all context files by default.
 
@@ -70,18 +70,16 @@ Tier note:
 
 | If you are working on | Read |
 |---|---|
+| Product direction / architecture | `SLATE360_MASTER_BUILD_PLAN.md` |
+| Site Walk (any phase) | `SLATE360_MASTER_BUILD_PLAN.md` §3–§8 |
 | Market Robot | `slate360-context/dashboard-tabs/market-robot/START_HERE.md` |
-| Design Studio | `slate360-context/dashboard-tabs/design-studio/START_HERE.md` |
-| 360 Tour Builder | `slate360-context/dashboard-tabs/tour-builder/START_HERE.md` |
 | Backend/auth/billing/storage | `slate360-context/BACKEND.md` |
-| Shared dashboard/tab behavior | `slate360-context/DASHBOARD.md`, `slate360-context/dashboard-tabs/MODULE_REGISTRY.md`, `slate360-context/dashboard-tabs/CUSTOMIZATION_SYSTEM.md` |
-| Project Hub | `slate360-context/PROJECT_HUB.md` |
+| Dashboard UI/tabs | `slate360-context/DASHBOARD.md`, `slate360-context/dashboard-tabs/MODULE_REGISTRY.md` |
 | SlateDrop | `slate360-context/SLATEDROP.md` |
 | Widgets | `slate360-context/WIDGETS.md` |
 | Active bugs | `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json` |
 | Release readiness | `ops/module-manifest.json`, `ops/release-gates.json` |
-| Platform architecture / pipeline | `slate360-context/PLATFORM_ARCHITECTURE_PLAN.md` |
-| Site Walk build plan | `slate360-context/SITE_WALK_BUILD_PLAN.md` |
+| Codebase facts (DB, routes, deps) | `CODEBASE_AUDIT_2025.md` |
 
 ## Backend Quick Access
 
@@ -155,14 +153,12 @@ Files to delete:
 
 ## Archive And Token Policy
 
-Do not pull large history docs unless the task needs them. Default reference-only files:
+Most planning docs have been deleted (2026-04-11 cleanup). Only reference-only files remaining:
 - `slate360-context/dashboard-tabs/market-robot/CURRENT_STATE_HANDOFF.md`
 - `slate360-context/dashboard-tabs/market-robot/ONGOING_BUILD_TRACKER.md`
-- `slate360-context/FUTURE_FEATURES.md`
-- `slate360-context/APP_ECOSYSTEM_EXECUTION_PLAN.md`
 - `slate360-context/SUPABASE_EMAIL_TEMPLATES.md`
 
-Use those files only for deep history, roadmap, or recovery work.
+Use those files only for deep history or recovery work.
 
 ## Known Monolith Files (read state + JSX together)
 
@@ -191,119 +187,57 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-11 (Pipeline Features + Audit Fixes)
+### Session Handoff — 2026-04-11 (Master Build Plan + Doc Cleanup)
 
 ### What Changed
 
-**Commit `ecf63ac` — /plans pricing page, seat enforcement, past_due handling, fix dead links/placeholders**
+**1. SLATE360_MASTER_BUILD_PLAN.md — NEW (705 lines)**
+- Condensed from 4848-line raw ChatGPT paste into a clean actionable plan
+- 17 sections covering: product architecture, app ownership, Site Walk (definition + data model + MVP + phases + mobile UX + deliverables), bundle logic, field↔office coordination, margin controls, 13-phase build sequence, distribution/app store strategy, v0 workflow rules, code guardrails (all 16 preserved), verification gates, disruptor pack
+- This is now the SINGLE SOURCE OF TRUTH for all build direction
 
-**1. /plans Pricing Page (NEW)**
-- `app/(dashboard)/plans/page.tsx` — server component, resolves org context
-- `components/dashboard/plans/PlansClient.tsx` (289 lines) — 4-tier pricing cards, monthly/annual toggle (17% annual discount), Stripe checkout integration via `/api/billing/checkout`, FAQ section, dark theme (bg-zinc-950 + orange accents)
+**2. CODEBASE_AUDIT_2025.md — NEW (784 lines)**
+- Comprehensive 17-section factual audit: repo structure, 48 migrations, 99 API routes, dependency inventory, module status map, auth/billing/storage audit, Site Walk gap analysis, PWA status (missing service worker + permissions), env vars (112+), tech debt (34 files over 300 lines)
 
-**2. Seat Enforcement API (NEW)**
-- `app/api/org/members/invite/route.ts` (73 lines) — POST endpoint
-- Flow: validate admin → check maxSeats via getEntitlements → count current members → verify target user exists → check duplicates → insert member
-- Returns friendly error messages for all failure cases
+**3. Major doc cleanup — 75+ files deleted**
+- `_archived_docs/` entire directory (15 files)
+- `docs/archive/` entire directory (6 files)
+- `slate360-context/_archived/` entire directory (24 files)
+- `slate360-context/refactor/` entire directory (3 files)
+- `slate360-context/apps/` entire directory (2 files)
+- 12 superseded slate360-context/*.md files (APP_ECOSYSTEM_*, FUTURE_*, MASTER_BUILD_SEQUENCE, PLATFORM_ARCHITECTURE_PLAN, PROJECT_HUB, REVENUE_ROADMAP, SITE_WALK_BUILD_PLAN, GPU_WORKER_DEPLOYMENT, NEW_CHAT_HANDOFF_PROTOCOL)
+- 18 dashboard-tabs implementation/build/start-here plans (keeping only market-robot docs)
 
-**3. Webhook past_due Handling (MODIFIED)**
-- `app/api/stripe/webhook/route.ts` — 3-state handling:
-  - `past_due` → marks `subscription_status: "past_due"` but keeps current tier (grace period)
-  - `unpaid`/`canceled`/`incomplete_expired` → hard downgrade to trial + record `downgraded_at`
-  - `active` → clears `subscription_status` to "active" and nulls `downgraded_at`
-- NOTE: requires `subscription_status` column on organizations table (may need migration)
-
-**4. Dead Links & Placeholders Fixed**
-- `components/home/LandingFooter.tsx` — all `href="#"` replaced with real routes, removed dead "Security" link, removed unused Layers import
-- `components/home/LandingHeader.tsx` — "Resources" dead link → "Contact" mailto:hello@slate360.ai
-- `components/home/landing-data.ts` — FOOTER_LINKS restructured from `Record<string, string[]>` to `Record<string, { label: string; href: string }[]>`
-- `app/api/analytics/export/route.ts` — mock download URL replaced with 501 "not yet available"
-
-**5. Market Robot Placeholders Fixed**
-- `components/dashboard/market/MarketClient.tsx` — default tab "under construction" div → proper empty state with "Go to Command Center" button; console.log stub → no-op
-- `components/dashboard/market/MarketRobotWorkspace.tsx` — placeholder div replaced with actual `<MarketMarketsSection>` component properly wired
-
-**6. Integrations Page Overhauled**
-- `app/(dashboard)/integrations/ClientPage.tsx` — fake connect toggle buttons → "Coming Soon" badges, enforced dark theme, removed unused state/imports/QUICK_NAV
+**4. SLATE360_PROJECT_MEMORY.md updated**
+- Task-Based Read Map now points to master build plan
+- Archive policy updated for deleted files
+- Start Here updated (no longer references deleted NEW_CHAT_HANDOFF_PROTOCOL.md)
 
 ### What's Broken / Partially Done
-- `subscription_status` column on organizations table may not exist — webhook writes it but no migration created
+- `subscription_status` column on organizations table may not exist — webhook writes it but no migration
 - `SlateLogo` component created but NOT wired into consuming pages
 - `marketing-homepage.tsx` is 1123 lines — needs extraction
-- `market_scheduler_lock` table still has no RLS (pre-existing)
-- Portal `view_count` race condition (atomic SQL not deployed, pre-existing)
-- `fix/slatedrop-external-uploads` branch still needs merge (security patch, pre-existing)
-- No self-serve enterprise checkout flow (CEO-only or manual DB insert)
+- `market_scheduler_lock` table still has no RLS
+- Portal `view_count` race condition (atomic SQL not deployed)
+- `fix/slatedrop-external-uploads` branch still needs merge
+- BUG-018: DrawingManager deprecation in LocationMap.tsx (May 2026 deadline)
+- All UI prices show "TBD" — need real Stripe prices before checkout works
+- PWA missing: service worker, Permissions-Policy camera header, offline support
 
 ### Context Files Updated
-- `SLATE360_PROJECT_MEMORY.md`: this handoff
+- `SLATE360_MASTER_BUILD_PLAN.md`: created (new source of truth)
+- `CODEBASE_AUDIT_2025.md`: created (factual reference)
+- `SLATE360_PROJECT_MEMORY.md`: this handoff + read map + archive policy
+- 75+ deleted files (see §3 above)
 
-### Next Steps (ordered by priority)
-1. **Supabase migration**: Add `subscription_status` and `downgraded_at` columns to organizations table
-2. **Wire `<SlateLogo />`** into all pages still using direct `<img>` logo tags
-3. **Extract `marketing-homepage.tsx`** — 1123 lines, well over 300 limit
-4. **Enterprise self-serve flow** — contact form or Stripe custom pricing link
-5. **Smoke test full pipeline**: signup → checkout → webhook → /plans shows correct tier
-5. **Extract `marketing-homepage.tsx`** into sub-300-line components
-6. **Begin Site Walk Phase 1** — create migrations, session CRUD APIs
-7. **Merge `fix/slatedrop-external-uploads`** → main (security patch)
-8. **Upgrade Supabase to Pro plan** before user growth (Free: 500MB DB, 1GB file storage)
-- `lib/types/command-center.ts` (45 lines): shared types
-
-**2. ALL Mock Data Removed from Dashboard**
-- ❌ DELIVERABLES array with `/api/placeholder/` URLs — GONE
-- ❌ SLATEDROP_FILES/FOLDERS mock data — GONE
-- ❌ APPS array with hardcoded storage ("4.1 GB", "9.2 GB") — GONE
-- ❌ STORAGE_BREAKDOWN with fake data — GONE
-- ❌ ENTERPRISE_USERS empty array — GONE
-- ❌ Notification bell hardcoded "3" count — GONE (now links to /my-account?tab=notifications)
-
-**3. Entitlements 4-Tier Rewrite**
-- `lib/entitlements.ts`: removed `creator`/`model`, added `standard` ($149/mo, 10K credits, 100GB, 3 seats)
-- New `LEGACY_TIER_MAP`: auto-maps DB rows with "creator"/"model" → "standard"
-- `TIER_ORDER`: `["trial", "standard", "business", "enterprise"]`
-- Updated 13 consumer files: 5 shell components, DashboardClient, billing.ts, UpgradeGate, SlateDropClient, useBillingState, useDashboardState, org-context.ts
-- `lib/billing.ts`: SUBSCRIPTION_PLANS now has `standard` + `business` (needs STRIPE_PRICE_STANDARD_* env vars in Vercel)
-
-**4. Dashboard Page Updated**
-- `app/(dashboard)/dashboard/page.tsx`: now passes `storageLimitGb` from `getEntitlements(tier)`
-
-### Codebase Health Report
-- TypeScript: **0 errors** (`npx tsc --noEmit` clean)
-- Oversized files: **16 files** (down from 17 — removed walled-garden-dashboard from list)
-- Biggest remaining: `LocationMap.tsx` (1892), `marketing-homepage.tsx` (1123)
-
-### Placeholder Data Audit (Updated)
-| Category | Location | What |
-|---|---|---|
-| ~~CRITICAL~~ | ~~`walled-garden-dashboard.tsx`~~ | ~~ALL mock data~~ **RESOLVED** |
-| CRITICAL | `marketing-homepage.tsx` L223-243 | Testimonials with fake names (Sarah Chen, Marcus Johnson) |
-| CRITICAL | `home/landing-data.ts` L121-147 | Duplicate testimonials with different fake names |
-| CRITICAL | `CeoCommandCenterClient.tsx` L38-43 | MOCK_METRICS (MRR, churn, margin — hardcoded) |
-| CRITICAL | `lib/dashboard/demo-data.ts` L18-87 | DEMO_PROJECTS, DEMO_EVENTS, DEMO_JOBS, DEMO_WEATHER |
-| MEDIUM | 6 shell components | `status="coming-soon"` or `status="under-development"` |
-| MEDIUM | PunchListForm, ObservationForm | "Photo upload coming soon" text |
-| MEDIUM | MarketClient, MarketRobotWorkspace | "Placeholder for {tab} (under construction)" |
-
-### What's Broken / Partially Done
-- `billing.ts` uses env vars `STRIPE_PRICE_STANDARD_MONTHLY`/`STRIPE_PRICE_STANDARD_ANNUAL` — need to create these Stripe prices and add to Vercel env
-- `SlateLogo` component created but NOT wired into consuming pages
-- `marketing-homepage.tsx` is 1123 lines — needs extraction
-- `market_scheduler_lock` table still has no RLS (pre-existing)
-- Portal view_count race condition (atomic SQL not deployed, pre-existing)
-- `fix/slatedrop-external-uploads` branch still needs merge (security patch, pre-existing)
-- Supabase email templates still use purple gradients (pre-existing)
-
-### Context Files Updated
-- `SLATE360_PROJECT_MEMORY.md`: this handoff + tier note updated + monolith table updated
-
-### Next Steps (ordered by priority)
-1. **Create Stripe "Standard" price IDs** — add `STRIPE_PRICE_STANDARD_MONTHLY` and `STRIPE_PRICE_STANDARD_ANNUAL` to Vercel env vars
-2. **Wire `<SlateLogo />` into all pages** still using direct `<img>` logo tags
-3. **Extract `marketing-homepage.tsx`** into sub-300-line components
-4. **Begin Site Walk Phase 1** — create `site_walk_items` + `site_walk_deliverables` migrations, session CRUD APIs
-5. **Merge `fix/slatedrop-external-uploads`** → main (security patch)
-6. **Add RLS to `market_scheduler_lock`**
-7. **Deploy atomic `claim_deliverable_view()` RPC**
-8. **Add real notifications system** — API route + DB table + real bell count
+### Next Steps (ordered by priority — follows Phase 0 in master plan)
+1. **Phase 0 cleanup**: Clean/stub dead nav (Design Studio, Content Studio, Virtual Studio, Geospatial links)
+2. **Phase 0 cleanup**: Backfill `slatedrop_uploads` and `slate_drop_links` tracked migrations
+3. **Phase 0 cleanup**: Set real Stripe prices and re-enable checkout
+4. **Phase 0 cleanup**: Freeze app naming/order in code (remove Project Hub from primary nav)
+5. **Phase 1 start**: Verify auth + orgs + projects + entitlements + billing end-to-end
+6. **Phase 1**: Build shared notification center and activity feed
+7. **Phase 1**: Redesign dashboard → actionable command center
+8. **Phase 2**: SlateDrop hardening (migration coverage, quota enforcement, file validation)
+9. **Phase 3**: Site Walk backend foundation (migrations, CRUD APIs, assignment model)
 9. **Replace CEO mock metrics** with real Stripe MRR / org analytics
