@@ -1,6 +1,6 @@
 export default function DashboardLoading() {
   return (
-    <div className="min-h-screen bg-[#ECEEF2] flex items-center justify-center">
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-10 h-10 rounded-2xl bg-[#D4AF37] flex items-center justify-center animate-pulse">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white">

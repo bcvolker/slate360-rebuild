@@ -14,11 +14,11 @@ export default async function Athlete360Page() {
   }
 
   return (
-    <div className="min-h-screen bg-[#ECEEF2]">
+    <div className="min-h-screen bg-zinc-950">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="rounded-2xl border border-gray-200 bg-white p-8">
-          <h1 className="text-2xl font-black text-gray-900">Athlete360</h1>
-          <p className="mt-2 text-sm text-gray-600">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8">
+          <h1 className="text-2xl font-black text-zinc-100">Athlete360</h1>
+          <p className="mt-2 text-sm text-zinc-400">
             Athlete360 is enabled for this account. The full module surface is available from this route.
           </p>
         </div>

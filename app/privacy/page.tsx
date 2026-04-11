@@ -64,7 +64,7 @@ const SECTIONS = [
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-zinc-950">
       {/* Hero */}
       <div className="bg-zinc-900 py-16 text-center">
         <div className="mx-auto max-w-3xl px-4">
@@ -78,21 +78,21 @@ export default function PrivacyPage() {
 
       {/* Content */}
       <div className="mx-auto max-w-3xl px-4 py-12">
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm divide-y divide-gray-100">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 shadow-sm divide-y divide-zinc-800">
           {SECTIONS.map((s) => (
             <div key={s.heading} className="px-8 py-6">
-              <h2 className="text-sm font-black text-gray-900 mb-2">{s.heading}</h2>
-              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{s.body}</p>
+              <h2 className="text-sm font-black text-zinc-100 mb-2">{s.heading}</h2>
+              <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-line">{s.body}</p>
             </div>
           ))}
         </div>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
           <Link href="/terms" className="text-sm font-semibold text-[#D4AF37] hover:underline">Terms of Service</Link>
-          <span className="text-gray-300">·</span>
+          <span className="text-zinc-600">·</span>
           <Link href="/signup" className="text-sm font-semibold text-[#D4AF37] hover:underline">Create Account</Link>
-          <span className="text-gray-300">·</span>
-          <Link href="/" className="text-sm font-semibold text-gray-600 hover:underline">Back to Home</Link>
+          <span className="text-zinc-600">·</span>
+          <Link href="/" className="text-sm font-semibold text-zinc-400 hover:underline">Back to Home</Link>
         </div>
       </div>
     </main>

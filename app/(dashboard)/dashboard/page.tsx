@@ -11,6 +11,7 @@ export default async function DashboardPage() {
   const {
     user,
     orgId,
+    orgName,
   } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
@@ -22,5 +23,5 @@ export default async function DashboardPage() {
     }
   }
 
-  return <WalledGardenDashboard />;
+  return <WalledGardenDashboard userName={user.user_metadata?.name ?? user.email ?? ""} orgName={orgName ?? ""} />;
 }

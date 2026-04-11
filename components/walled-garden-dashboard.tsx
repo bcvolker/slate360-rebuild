@@ -263,7 +263,7 @@ const SLATEDROP_FOLDERS: SlateDropFolder[] = [
   { id: "4", name: "Floor Plans v2", fileCount: 12 },
 ];
 
-const ORG_NAME = "Meridian Construction";
+const ORG_NAME_FALLBACK = "Your Organization";
 
 /** Mock data for SlateDrop file manager */
 const SLATEDROP_FILES: SlateDropFile[] = [
@@ -278,14 +278,8 @@ const SLATEDROP_FILES: SlateDropFile[] = [
   { id: "i3", name: "Lobby_Concept_v3.jpg", type: "image", size: "5.7 MB", modified: "1 week ago" },
 ];
 
-/** Mock data for enterprise seat management */
-const ENTERPRISE_USERS: EnterpriseUser[] = [
-  { id: "u1", name: "Sarah Chen", email: "sarah.chen@meridian.com", role: "Admin", assignedApps: ["Site Walk", "360 Tours", "Design Studio"] },
-  { id: "u2", name: "Marcus Johnson", email: "m.johnson@meridian.com", role: "Builder", assignedApps: ["Site Walk", "360 Tours"] },
-  { id: "u3", name: "Emily Rodriguez", email: "e.rodriguez@meridian.com", role: "Builder", assignedApps: ["360 Tours", "Design Studio"] },
-  { id: "u4", name: "David Kim", email: "d.kim@meridian.com", role: "Viewer", assignedApps: ["Site Walk"] },
-  { id: "u5", name: "Lisa Thompson", email: "l.thompson@meridian.com", role: "Viewer", assignedApps: ["360 Tours"] },
-];
+/** Placeholder enterprise seat data — will be replaced with real org members */
+const ENTERPRISE_USERS: EnterpriseUser[] = [];
 
 /* ==========================================================================
    CIRCULAR PROGRESS COMPONENT
@@ -486,9 +480,11 @@ function Sidebar({
 function Header({
   onMenuClick,
   isSidebarOpen,
+  userName,
 }: {
   onMenuClick: () => void;
   isSidebarOpen: boolean;
+  userName: string;
 }) {
   return (
     <header
@@ -543,25 +539,31 @@ function Header({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                 <Avatar className="h-9 w-9 border-2 border-primary/30">
-                  <AvatarImage src="/api/placeholder/36/36" alt="User" />
-                  <AvatarFallback className="bg-primary/20 text-primary">JD</AvatarFallback>
+                  <AvatarFallback className="bg-primary/20 text-primary">{userName ? userName.charAt(0).toUpperCase() : "U"}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-glass border-glass">
-              <DropdownMenuLabel className="text-foreground">My Account</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-foreground">{userName || "My Account"}</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border/50" />
-              <DropdownMenuItem className="hover:bg-primary/10 hover:text-primary cursor-pointer">
-                Profile Settings
+              <DropdownMenuItem asChild className="hover:bg-primary/10 hover:text-primary cursor-pointer">
+                <a href="/my-account">My Account</a>
               </DropdownMenuItem>
-              <DropdownMenuItem className="hover:bg-primary/10 hover:text-primary cursor-pointer">
-                Organization
-              </DropdownMenuItem>
-              <DropdownMenuItem className="hover:bg-primary/10 hover:text-primary cursor-pointer">
-                Billing
+              <DropdownMenuItem asChild className="hover:bg-primary/10 hover:text-primary cursor-pointer">
+                <a href="/my-account?tab=billing">Billing &amp; Payments</a>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border/50" />
-              <DropdownMenuItem className="hover:bg-destructive/10 hover:text-destructive cursor-pointer">
+              <DropdownMenuItem
+                className="hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+                onClick={() => {
+                  import("@/lib/supabase/client").then(({ createClient }) => {
+                    const supabase = createClient();
+                    supabase.auth.signOut().then(() => {
+                      window.location.href = "/login";
+                    });
+                  });
+                }}
+              >
                 Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -1345,14 +1347,14 @@ function EnterpriseSettings() {
    The original dashboard content (apps, deliverables, etc.)
    ========================================================================== */
 
-function DashboardContent() {
+function DashboardContent({ userName, orgName }: { userName: string; orgName: string }) {
   return (
     <div className="space-y-6">
       {/* Hero Welcome Header - Industrial Gold accent */}
       <section className="space-y-2">
         <h1 className="text-3xl lg:text-4xl font-bold text-foreground">
           Good morning,{" "}
-          <span className="text-primary">{ORG_NAME}</span>
+          <span className="text-primary">{userName.split(" ")[0] || orgName || ORG_NAME_FALLBACK}</span>
         </h1>
         <p className="text-muted-foreground text-lg">
           Here&apos;s what&apos;s happening across your projects today.
@@ -1410,7 +1412,12 @@ function DashboardContent() {
    - Proper spacing and glass card styling throughout
    ========================================================================== */
 
-export default function WalledGardenDashboard() {
+interface WalledGardenDashboardProps {
+  userName: string;
+  orgName: string;
+}
+
+export default function WalledGardenDashboard({ userName, orgName }: WalledGardenDashboardProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -1437,6 +1444,7 @@ export default function WalledGardenDashboard() {
         {/* Header */}
         <Header
           isSidebarOpen={sidebarOpen}
+          userName={userName}
           onMenuClick={() => {
             /* Desktop toggles the persistent sidebar; mobile opens the Sheet */
             if (typeof window !== "undefined" && window.innerWidth >= 1024) {
@@ -1455,7 +1463,7 @@ export default function WalledGardenDashboard() {
           )}
         >
           <div className="p-4 lg:p-6">
-            <DashboardContent />
+            <DashboardContent userName={userName} orgName={orgName} />
           </div>
         </main>
       </div>

@@ -5,13 +5,13 @@ const DEPLOY_MARKER = "deploy-check-2026-02-26-01";
 
 export default function DeployCheckPage() {
   return (
-    <main className="min-h-screen bg-white px-6 py-10 text-gray-900">
-      <div className="mx-auto max-w-2xl rounded-xl border border-gray-200 p-6 shadow-sm">
+    <main className="min-h-screen bg-zinc-950 px-6 py-10 text-zinc-100">
+      <div className="mx-auto max-w-2xl rounded-xl border border-zinc-800 p-6 shadow-sm">
         <h1 className="text-xl font-bold">Deployment Check</h1>
-        <p className="mt-3 text-sm text-gray-600">
+        <p className="mt-3 text-sm text-zinc-400">
           This page is forced dynamic with no-store headers. If this marker is visible, your browser is hitting the latest deployment.
         </p>
-        <div className="mt-6 rounded-lg bg-gray-50 p-4 text-sm">
+        <div className="mt-6 rounded-lg bg-zinc-900 p-4 text-sm">
           <div>
             <span className="font-semibold">Marker:</span> {DEPLOY_MARKER}
           </div>

@@ -45,13 +45,13 @@ export default function ProjectToolLayout({
   const resolvedBackHref = backHref ?? `/project-hub/${projectId}`;
 
   return (
-    <div className="min-h-screen bg-[#ECEEF2]">
+    <div className="min-h-screen bg-zinc-950">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Breadcrumb / back nav */}
         <div className="mb-5">
           <Link
             href={resolvedBackHref}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-zinc-100 transition-colors"
           >
             <ChevronLeft size={14} />
             {backLabel}
@@ -61,7 +61,7 @@ export default function ProjectToolLayout({
         {/* Page header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-black text-gray-900">{title}</h1>
+            <h1 className="text-xl font-black text-zinc-100">{title}</h1>
             {subtitle && <span>{subtitle}</span>}
           </div>
           {actions && <div className="flex items-center gap-2 flex-wrap">{actions}</div>}

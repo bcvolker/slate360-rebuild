@@ -54,7 +54,7 @@ export default function IntegrationsHubPage({ user, tier, isCeo = false, interna
   const [quickNavOpen, setQuickNavOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#ECEEF2]">
+    <div className="min-h-screen bg-zinc-950">
             <DashboardHeader
         user={user}
         tier={tier}

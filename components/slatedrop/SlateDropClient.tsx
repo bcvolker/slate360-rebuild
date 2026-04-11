@@ -188,7 +188,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
      ================================================================ */
 
   return (
-    <div className={embedded ? "h-full flex flex-col bg-[#ECEEF2] overflow-hidden" : "h-screen flex flex-col bg-[#ECEEF2] overflow-hidden"}>
+    <div className={embedded ? "h-full flex flex-col bg-zinc-950 overflow-hidden" : "h-screen flex flex-col bg-zinc-950 overflow-hidden"}>
       <SlateDropNotificationsOverlay toastMsg={toastMsg} uploadProgress={uploadProgress} />
 
       <SlateDropTopBar

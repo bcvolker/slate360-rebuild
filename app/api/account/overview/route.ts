@@ -229,6 +229,22 @@ export async function GET() {
       }
     }
 
+    let storageUsedGb = 0;
+
+    if (orgId) {
+      try {
+        const storageRes = await supabase
+          .from("organizations")
+          .select("org_storage_used_bytes")
+          .eq("id", orgId)
+          .single();
+        const bytes = Number((storageRes.data as { org_storage_used_bytes?: number } | null)?.org_storage_used_bytes ?? 0);
+        storageUsedGb = Math.round((bytes / (1024 * 1024 * 1024)) * 100) / 100;
+      } catch {
+        // column may not exist yet
+      }
+    }
+
     return NextResponse.json({
       profile: {
         name: (user.user_metadata?.full_name as string | undefined) ?? user.email?.split("@")[0] ?? "User",
@@ -245,7 +261,7 @@ export async function GET() {
         totalCreditsBalance,
       },
       usage: {
-        storageUsedGb: tier === "trial" ? 1.2 : tier === "creator" ? 12 : 45,
+        storageUsedGb,
         storageLimitGb: ent.maxStorageGB,
         monthlyCredits: ent.maxCredits,
         projectsCount,

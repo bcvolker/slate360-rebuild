@@ -35,16 +35,16 @@ export default function ShareViewer({
   const isVideo = fileType.startsWith("video/") || /\.(mp4|webm|mov|avi)$/i.test(fileName);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-zinc-950 flex flex-col">
       {/* Header bar */}
-      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm shrink-0">
+      <header className="bg-zinc-900 border-b border-zinc-800 px-4 py-3 flex items-center justify-between shadow-sm shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-9 h-9 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
             <FileText size={18} className="text-[#D4AF37]" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-sm font-bold text-gray-900 truncate">{fileName}</h1>
-            <p className="text-[10px] text-gray-400">{formatBytes(fileSize)} · Shared via Slate360</p>
+            <h1 className="text-sm font-bold text-zinc-100 truncate">{fileName}</h1>
+            <p className="text-[10px] text-zinc-500">{formatBytes(fileSize)} · Shared via Slate360</p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
