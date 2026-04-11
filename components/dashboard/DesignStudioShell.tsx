@@ -22,7 +22,7 @@ export default function DesignStudioShell({ user, tier, isCeo, internalAccess }:
       icon={Palette}
       accent="#7C3AED"
       status="under-development"
-      requiredTier="model"
+      requiredTier="standard"
     >
       <div className="rounded-2xl border border-amber-700/50 bg-amber-950/30 px-6 py-5">
         <p className="text-sm font-semibold text-amber-400 mb-1">Currently Under Development</p>

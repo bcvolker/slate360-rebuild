@@ -24,9 +24,11 @@ type StaffAccessRow = {
 };
 
 function toTier(value?: string | null): Tier {
-  if (value === "trial" || value === "creator" || value === "model" || value === "business" || value === "enterprise") {
+  if (value === "trial" || value === "standard" || value === "business" || value === "enterprise") {
     return value;
   }
+  // Backward-compat: map legacy tier names
+  if (value === "creator" || value === "model") return "standard";
   return "trial";
 }
 

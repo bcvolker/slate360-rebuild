@@ -22,7 +22,7 @@ export default function ContentStudioShell({ user, tier, isCeo, internalAccess }
       icon={Layers}
       accent="#EC4899"
       status="coming-soon"
-      requiredTier="creator"
+      requiredTier="standard"
     >
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-6 py-10 text-center">
         <p className="text-sm font-semibold text-white mb-1">Coming Soon</p>

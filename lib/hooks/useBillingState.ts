@@ -61,7 +61,7 @@ export function useBillingState(ent: Entitlements) {
     setBillingError(null);
     setBillingBusy("upgrade");
     try {
-      const nextTier = ent.tier === "trial" ? "creator" : ent.tier === "creator" ? "model" : "business";
+      const nextTier = ent.tier === "trial" ? "standard" : ent.tier === "standard" ? "business" : "business";
       await launchBillingFlow("/api/billing/checkout", { tier: nextTier, billingCycle: "monthly" });
     } catch (error) {
       setBillingError(error instanceof Error ? error.message : "Unable to start upgrade checkout");

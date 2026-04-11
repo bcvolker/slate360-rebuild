@@ -18,20 +18,12 @@ type CreditPack = {
 };
 
 export const SUBSCRIPTION_PLANS: Record<PaidTier, SubscriptionPlan> = {
-  creator: {
-    tier: "creator",
-    label: "Creator",
+  standard: {
+    tier: "standard",
+    label: "Standard",
     priceIds: {
-      monthly: process.env.STRIPE_PRICE_CREATOR_MONTHLY,
-      annual: process.env.STRIPE_PRICE_CREATOR_ANNUAL,
-    },
-  },
-  model: {
-    tier: "model",
-    label: "Model",
-    priceIds: {
-      monthly: process.env.STRIPE_PRICE_MODEL_MONTHLY,
-      annual: process.env.STRIPE_PRICE_MODEL_ANNUAL,
+      monthly: process.env.STRIPE_PRICE_STANDARD_MONTHLY,
+      annual: process.env.STRIPE_PRICE_STANDARD_ANNUAL,
     },
   },
   business: {
@@ -66,7 +58,7 @@ export const CREDIT_PACKS: Record<CreditPackId, CreditPack> = {
 };
 
 export function isPaidTier(value: string | null | undefined): value is PaidTier {
-  return value === "creator" || value === "model" || value === "business";
+  return value === "standard" || value === "business";
 }
 
 export function getSubscriptionPriceId(tier: PaidTier, cycle: BillingCycle): string | null {
@@ -96,10 +88,9 @@ export function getCreditPack(packId: string | null | undefined): CreditPack | n
 export function recommendedUpgradeTier(currentTier: Tier): PaidTier {
   switch (currentTier) {
     case "trial":
-      return "creator";
-    case "creator":
-      return "model";
-    case "model":
+      return "standard";
+    case "standard":
+      return "business";
     case "business":
     case "enterprise":
     default:

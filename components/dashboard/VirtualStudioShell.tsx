@@ -22,7 +22,7 @@ export default function VirtualStudioShell({ user, tier, isCeo, internalAccess }
       icon={Film}
       accent="#D97706"
       status="coming-soon"
-      requiredTier="model"
+      requiredTier="standard"
     >
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-6 py-10 text-center">
         <p className="text-sm font-semibold text-white mb-1">Coming Soon</p>

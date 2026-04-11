@@ -22,7 +22,7 @@ export default function ToursShell({ user, tier, isCeo, internalAccess }: Props)
       icon={Compass}
       accent="#0891B2"
       status="coming-soon"
-      requiredTier="creator"
+      requiredTier="standard"
     >
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-6 py-10 text-center">
         <p className="text-sm font-semibold text-white mb-1">Coming Soon</p>

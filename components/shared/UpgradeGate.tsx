@@ -7,8 +7,7 @@ import { getUpgradeUrl } from "@/lib/billing";
 
 const TIER_LABELS: Record<Tier, string> = {
   trial: "Trial",
-  creator: "Creator",
-  model: "Model",
+  standard: "Standard",
   business: "Business",
   enterprise: "Enterprise",
 };

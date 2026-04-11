@@ -111,7 +111,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
   const activeFolder = useMemo(() => findFolder(folderTree, activeFolderId), [folderTree, activeFolderId]);
   const breadcrumb = useMemo(() => findFolderPath(folderTree, activeFolderId) ?? ["SlateDrop"], [folderTree, activeFolderId]);
   const subFolders = activeFolder?.children ?? [];
-  const storageUsed = tier === "trial" ? 1.2 : tier === "creator" ? 12 : tier === "model" ? 42 : 185;
+  const storageUsed = tier === "trial" ? 1.2 : tier === "standard" ? 42 : 185;
 
   const getProjectIdForFolder = useCallback(
     (folderId: string): string | null => {

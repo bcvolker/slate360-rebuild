@@ -2,6 +2,7 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { redirect } from "next/navigation";
 import WalledGardenDashboard from "@/components/walled-garden-dashboard";
 import { ensureUserOrganization } from "@/lib/server/org-bootstrap";
+import { getEntitlements } from "@/lib/entitlements";
 
 export const metadata = {
   title: "Dashboard — Slate360",
@@ -12,6 +13,7 @@ export default async function DashboardPage() {
     user,
     orgId,
     orgName,
+    tier,
   } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
@@ -23,5 +25,13 @@ export default async function DashboardPage() {
     }
   }
 
-  return <WalledGardenDashboard userName={user.user_metadata?.name ?? user.email ?? ""} orgName={orgName ?? ""} />;
+  const entitlements = getEntitlements(tier);
+
+  return (
+    <WalledGardenDashboard
+      userName={user.user_metadata?.name ?? user.email ?? ""}
+      orgName={orgName ?? ""}
+      storageLimitGb={entitlements.maxStorageGB}
+    />
+  );
 }

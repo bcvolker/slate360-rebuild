@@ -161,7 +161,7 @@ export function useDashboardState({
   const creditsUsed = account.accountOverview?.billing?.purchasedCredits ?? 0;
   const storageUsed = dashboardSummary
     ? Number((dashboardSummary.storageUsed / (1024 * 1024 * 1024)).toFixed(2))
-    : (ent.tier === "trial" ? 1.2 : ent.tier === "creator" ? 12 : 45);
+    : (ent.tier === "trial" ? 1.2 : ent.tier === "standard" ? 12 : 45);
 
   const financialMax = Math.max(1, ...liveFinancial.map((f) => f.credits));
 

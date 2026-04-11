@@ -1,4 +1,10 @@
-export type Tier = "trial" | "creator" | "model" | "business" | "enterprise";
+export type Tier = "trial" | "standard" | "business" | "enterprise";
+
+/** Legacy tier names still stored in some org rows. Mapped to current tiers at runtime. */
+const LEGACY_TIER_MAP: Record<string, Tier> = {
+  creator: "standard",
+  model: "standard",
+};
 
 /** Row shape of the public.org_feature_flags table. */
 export interface OrgFeatureFlags {
@@ -44,7 +50,6 @@ type TierEntitlements = Omit<Entitlements, "tier" | "canAccessStandaloneTourBuil
 const TIER_MAP: Record<Tier, TierEntitlements> = {
   trial: {
     label: "Trial",
-    // Trial: full access to all tabs with tight limits, restrictions, and watermarks
     canAccessHub: true,
     canAccessDesignStudio: true,
     canAccessContent: true,
@@ -62,27 +67,8 @@ const TIER_MAP: Record<Tier, TierEntitlements> = {
     monthlyPrice: 0,
     annualPrice: 0,
   },
-  creator: {
-    label: "Creator",
-    canAccessHub: true,
-    canAccessDesignStudio: false,
-    canAccessContent: true,
-    canAccessTourBuilder: true,
-    canAccessGeospatial: false,
-    canAccessVirtual: false,
-    canAccessAnalytics: false,
-    canAccessReports: false,
-    canManageSeats: false,
-    canWhiteLabel: false,
-    canViewSlateDropWidget: true,
-    maxCredits: 6000,
-    maxStorageGB: 40,
-    maxSeats: 1,
-    monthlyPrice: 79,
-    annualPrice: 790,
-  },
-  model: {
-    label: "Model",
+  standard: {
+    label: "Standard",
     canAccessHub: true,
     canAccessDesignStudio: true,
     canAccessContent: true,
@@ -94,11 +80,11 @@ const TIER_MAP: Record<Tier, TierEntitlements> = {
     canManageSeats: false,
     canWhiteLabel: false,
     canViewSlateDropWidget: true,
-    maxCredits: 15000,
-    maxStorageGB: 150,
-    maxSeats: 1,
-    monthlyPrice: 199,
-    annualPrice: 1990,
+    maxCredits: 10000,
+    maxStorageGB: 100,
+    maxSeats: 3,
+    monthlyPrice: 149,
+    annualPrice: 1490,
   },
   business: {
     label: "Business",
@@ -129,8 +115,8 @@ const TIER_MAP: Record<Tier, TierEntitlements> = {
     canAccessVirtual: true,
     canAccessAnalytics: true,
     canAccessReports: true,
-    canManageSeats: true,   // seat management for org admins
-    canWhiteLabel: true,    // white-label branding on deliverables
+    canManageSeats: true,
+    canWhiteLabel: true,
     canViewSlateDropWidget: true,
     maxCredits: 100000,
     maxStorageGB: 5000,
@@ -147,10 +133,12 @@ export function getEntitlements(
   const isCeo = options?.isSlateCeo ?? false;
   const flags = options?.featureFlags;
 
+  // Map legacy tier names (creator, model) to current tiers
+  const resolved = rawTier ? (LEGACY_TIER_MAP[rawTier] ?? rawTier) : null;
   const tier: Tier = isCeo
     ? "enterprise"
-    : rawTier && rawTier in TIER_MAP
-      ? (rawTier as Tier)
+    : resolved && resolved in TIER_MAP
+      ? (resolved as Tier)
       : "trial";
 
   const base = TIER_MAP[tier];
@@ -168,7 +156,7 @@ export function getEntitlements(
   };
 }
 
-const TIER_ORDER: Tier[] = ["trial", "creator", "model", "business", "enterprise"];
+const TIER_ORDER: Tier[] = ["trial", "standard", "business", "enterprise"];
 
 /** Returns true when `current` tier is at or above `required` tier. */
 export function tierMeetsRequirement(current: Tier, required: Tier): boolean {
