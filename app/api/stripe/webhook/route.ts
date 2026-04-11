@@ -191,16 +191,32 @@ export async function POST(req: NextRequest) {
         }
 
         if (subscription.status !== "active" && subscription.status !== "trialing") {
-          // If a platform tier sub fails/cancels, drop them to trial and
-          // record the downgrade timestamp on the organizations row.
           const admin2 = createAdminClient();
-          await Promise.all([
-            updateOrganizationTier(orgId, "trial"),
-            admin2
+
+          if (subscription.status === "past_due") {
+            // Grace period: mark payment issue but keep access for now.
+            // Stripe will retry payment per dunning settings. If it fails,
+            // status will progress to "unpaid" or "canceled" and hit the
+            // else branch below which actually downgrades.
+            console.log(`[webhook] Subscription past_due for org=${orgId} — marking, keeping tier`);
+            await admin2
               .from("organizations")
-              .update({ downgraded_at: new Date().toISOString() })
-              .eq("id", orgId),
-          ]);
+              .update({ subscription_status: "past_due" })
+              .eq("id", orgId);
+          } else {
+            // unpaid, canceled, incomplete_expired — hard downgrade to trial
+            console.log(`[webhook] Subscription ${subscription.status} for org=${orgId} — downgrading to trial`);
+            await Promise.all([
+              updateOrganizationTier(orgId, "trial"),
+              admin2
+                .from("organizations")
+                .update({
+                  downgraded_at: new Date().toISOString(),
+                  subscription_status: subscription.status,
+                })
+                .eq("id", orgId),
+            ]);
+          }
           break;
         }
 
@@ -208,6 +224,12 @@ export async function POST(req: NextRequest) {
         const mappedTier = getTierFromPriceId(firstPriceId);
         if (mappedTier) {
           await updateOrganizationTier(orgId, mappedTier);
+          // Clear any past_due / downgraded status since sub is now active
+          const admin3 = createAdminClient();
+          await admin3
+            .from("organizations")
+            .update({ subscription_status: "active", downgraded_at: null })
+            .eq("id", orgId);
         }
         break;
       }

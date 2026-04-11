@@ -63,9 +63,13 @@ export default function MarketRobotWorkspace({
             </div>
           </div>
 
-          // Temporary placeholder to resolve type error until MarketMarketsSection is updated for new props
-          // Uses shared design tokens for easy global aesthetic unification
-          <div className="text-slate-200 p-6">Placeholder for Market Markets Section (under construction)</div>
+          <MarketMarketsSection
+            onNavigate={onNavigate}
+            paperMode={bot.config.paperMode}
+            liveChecklist={wallet.liveChecklist}
+            onTradePlaced={onTradePlaced}
+            onOpenAutomation={onOpenAutomation}
+          />
         </div>
 
         {/* STRENGTHENED OPERATOR RAIL — hidden on mobile, sidebar on md+ */}

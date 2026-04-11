@@ -108,7 +108,7 @@ export default function MarketClient({
             onStopBot={() => bot.handleStopBot()}
             activePlan={null} 
             onApplyPlan={() => bot.handleStartBot()} 
-            onDeletePlan={() => console.log("Delete plan functionality to be implemented")} 
+            onDeletePlan={() => {}} 
           />
         );
       case "saved-markets":
@@ -156,7 +156,13 @@ export default function MarketClient({
           />
         );
       default:
-        return <div className="text-slate-200 p-6">Placeholder for {activeTab} tab (under construction)</div>;
+        return (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <p className="text-lg font-semibold text-slate-200">This tab is not available yet</p>
+            <p className="mt-1 text-sm text-slate-400">Check back soon or switch to another tab.</p>
+            <button onClick={() => handleTabChange("command-center")} className="mt-4 rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-500 transition">Go to Command Center</button>
+          </div>
+        );
     }
   };
 

@@ -45,8 +45,8 @@ export default function LandingHeader({ onLoginClick, isScrolled }: LandingHeade
             <a href="#testimonials" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Customers
             </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Resources
+            <a href="mailto:hello@slate360.ai" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Contact
             </a>
           </nav>
 
@@ -83,8 +83,8 @@ export default function LandingHeader({ onLoginClick, isScrolled }: LandingHeade
               <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">
                 Customers
               </a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
-                Resources
+              <a href="mailto:hello@slate360.ai" className="text-sm text-muted-foreground hover:text-foreground">
+                Contact
               </a>
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
                 <Button variant="ghost" onClick={() => { setMobileMenuOpen(false); onLoginClick(); }} className="justify-start">

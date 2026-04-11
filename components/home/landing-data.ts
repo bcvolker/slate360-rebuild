@@ -195,9 +195,18 @@ export const PRICING_PLANS: PricingPlan[] = [
   },
 ];
 
-export const FOOTER_LINKS: Record<string, string[]> = {
-  Product: ["Site Walk", "360 Tours", "Design Studio", "Pricing", "Integrations"],
-  Resources: ["Documentation", "API Reference", "Tutorials", "Blog", "Case Studies"],
-  Company: ["About Us", "Careers", "Press", "Contact", "Partners"],
-  Legal: ["Privacy Policy", "Terms of Service", "Security", "GDPR"],
+export const FOOTER_LINKS: Record<string, { label: string; href: string }[]> = {
+  Product: [
+    { label: "Site Walk", href: "/site-walk" },
+    { label: "SlateDrop", href: "/slatedrop" },
+    { label: "Pricing", href: "/plans" },
+  ],
+  Resources: [
+    { label: "Documentation", href: "mailto:hello@slate360.ai?subject=Documentation" },
+    { label: "Contact", href: "mailto:hello@slate360.ai" },
+  ],
+  Legal: [
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms of Service", href: "/terms" },
+  ],
 };

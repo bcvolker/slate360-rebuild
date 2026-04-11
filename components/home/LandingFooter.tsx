@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Layers } from "lucide-react";
 import { FOOTER_LINKS } from "@/components/home/landing-data";
 
 export default function LandingFooter() {
@@ -29,13 +28,13 @@ export default function LandingFooter() {
               <h4 className="font-semibold text-foreground mb-4">{category}</h4>
               <ul className="space-y-2">
                 {links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {link}
-                    </a>
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -55,9 +54,6 @@ export default function LandingFooter() {
             <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Terms
             </Link>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Security
-            </a>
           </div>
         </div>
       </div>

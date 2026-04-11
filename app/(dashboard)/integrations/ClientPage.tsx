@@ -1,17 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import DashboardHeader from "@/components/shared/DashboardHeader";
-import Link from "next/link";
-import { CheckCircle2, Link2, ChevronLeft, ChevronDown, LayoutDashboard, FolderKanban, BarChart3, FolderOpen, Plug } from "lucide-react";
-
-const QUICK_NAV = [
-  { label: "Dashboard",    href: "/dashboard",    icon: LayoutDashboard },
-  { label: "Project Hub",  href: "/project-hub",  icon: FolderKanban },
-  { label: "Analytics",    href: "/analytics",    icon: BarChart3 },
-  { label: "SlateDrop",    href: "/slatedrop",    icon: FolderOpen },
-  { label: "Integrations", href: "/integrations", icon: Plug },
-];
+import { Link2 } from "lucide-react";
 
 type IntegrationCard = {
   id: string;
@@ -50,9 +40,6 @@ interface Props {
 }
 
 export default function IntegrationsHubPage({ user, tier, isCeo = false, internalAccess }: Props) {
-  const [connected, setConnected] = useState<Record<string, boolean>>({});
-  const [quickNavOpen, setQuickNavOpen] = useState(false);
-
   return (
     <div className="min-h-screen bg-zinc-950">
             <DashboardHeader
@@ -65,32 +52,28 @@ export default function IntegrationsHubPage({ user, tier, isCeo = false, interna
 
       <main className="mx-auto w-full max-w-6xl space-y-5 px-4 py-5 sm:px-6 lg:px-8">
         <header>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">System Connections</p>
-          <h1 className="text-2xl font-black text-gray-900">Integrations Hub</h1>
-          <p className="mt-1 text-sm text-gray-600">Connect third-party tools using placeholder 2-way sync actions.</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">System Connections</p>
+          <h1 className="text-2xl font-black text-zinc-100">Integrations Hub</h1>
+          <p className="mt-1 text-sm text-zinc-400">Connect third-party tools to streamline your workflows.</p>
         </header>
 
         <section className="grid gap-4 sm:grid-cols-2">
           {INTEGRATIONS.map((integration) => {
-            const isConnected = Boolean(connected[integration.id]);
             return (
-              <article key={integration.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-                <div className="mb-3 inline-flex rounded-lg border border-gray-200 bg-gray-50 p-2 text-gray-600">
+              <article key={integration.id} className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
+                <div className="mb-3 inline-flex rounded-lg border border-zinc-700 bg-zinc-800 p-2 text-zinc-400">
                   <Link2 size={16} />
                 </div>
-                <h2 className="text-base font-black text-gray-900">{integration.name}</h2>
-                <p className="mt-1 text-sm text-gray-600">{integration.description}</p>
+                <h2 className="text-base font-black text-zinc-100">{integration.name}</h2>
+                <p className="mt-1 text-sm text-zinc-400">{integration.description}</p>
 
                 <div className="mt-4 flex items-center justify-between">
-                  <button
-                    onClick={() => setConnected((prev) => ({ ...prev, [integration.id]: !prev[integration.id] }))}
-                    className="inline-flex items-center gap-2 rounded-lg bg-[#D4AF37] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#E64500]"
-                  >
-                    <CheckCircle2 size={14} />
-                    {isConnected ? "Connected" : "Connect (2-Way Sync)"}
-                  </button>
-                  <span className={`text-xs font-semibold ${isConnected ? "text-emerald-700" : "text-gray-500"}`}>
-                    {isConnected ? "Ready" : "Not connected"}
+                  <span className="inline-flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-2 text-xs font-semibold text-zinc-400 cursor-not-allowed">
+                    <Link2 size={14} />
+                    Coming Soon
+                  </span>
+                  <span className="text-xs font-semibold text-zinc-500">
+                    Not yet available
                   </span>
                 </div>
               </article>
