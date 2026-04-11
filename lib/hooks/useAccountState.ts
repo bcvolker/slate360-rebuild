@@ -63,8 +63,8 @@ export function useAccountState({ supabase, activeTab, setBillingNotice }: UseAc
     }
   }, [setBillingNotice]);
 
-  const applyLayoutPreset = useCallback(async (preset: "simple" | "creator" | "project") => {
-    const mappedTab = preset === "creator" ? "content-studio" : preset === "project" ? "project-hub" : "overview";
+  const applyLayoutPreset = useCallback(async (preset: "simple" | "creative" | "fieldwork") => {
+    const mappedTab = preset === "creative" ? "content-studio" : preset === "fieldwork" ? "project-hub" : "overview";
     try {
       await supabase.auth.updateUser({ data: { dashboardPreset: preset, defaultTab: mappedTab } });
       setBillingNotice({ ok: true, text: `${preset.charAt(0).toUpperCase() + preset.slice(1)} view saved.` });

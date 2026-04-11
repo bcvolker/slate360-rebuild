@@ -28,7 +28,7 @@ interface DashboardMyAccountProps {
   onOpenBillingPortal: () => void;
   onBuyCredits: () => void;
   onUpgradePlan: () => void;
-  onApplyPreset: (preset: "simple" | "creator" | "project") => void;
+  onApplyPreset: (preset: "simple" | "creative" | "fieldwork") => void;
   onCopyText: (value: string, label: string) => void;
   onGenerateApiKey: () => void;
   onRevokeApiKey: (id: string) => void;

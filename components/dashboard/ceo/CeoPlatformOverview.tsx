@@ -18,8 +18,7 @@ type PlatformOverview = {
 
 const TIER_COLORS: Record<string, string> = {
   trial: "#9CA3AF",
-  creator: "#60A5FA",
-  model: "#8B5CF6",
+  standard: "#60A5FA",
   business: "#F97316",
   enterprise: "#6366F1",
 };
@@ -130,7 +129,7 @@ export default function CeoPlatformOverview() {
               <div className="flex items-end gap-1 h-16">
                 {Object.entries(data.tierBreakdown)
                   .sort(([a], [b]) => {
-                    const order = ["trial", "creator", "model", "business", "enterprise"];
+                    const order = ["trial", "standard", "business", "enterprise"];
                     return order.indexOf(a) - order.indexOf(b);
                   })
                   .map(([tier, count]) => {

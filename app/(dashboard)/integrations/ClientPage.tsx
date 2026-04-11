@@ -18,7 +18,7 @@ const INTEGRATIONS: IntegrationCard[] = [
   {
     id: "foundation-software",
     name: "Foundation Software",
-    description: "Connect job-cost data and accounting records with bidirectional sync placeholders.",
+    description: "Connect job-cost data and accounting records with bidirectional sync.",
   },
   {
     id: "procore",

@@ -35,11 +35,11 @@ const PLANS = [
 ];
 
 const MOCK_METRICS = [
-  { label: "MRR", value: "$128,400", icon: TrendingUp, accent: "#FF6B35" },
-  { label: "Churn", value: "2.8%", icon: Percent, accent: "#3B82F6" },
-  { label: "Margin", value: "67%", icon: Gauge, accent: "#6366F1" },
-  { label: "Runway", value: "22 months", icon: WalletCards, accent: "#F97316" },
-  { label: "Active Subs", value: "1,942", icon: Users2, accent: "#60A5FA" },
+  { label: "MRR", value: "—", icon: TrendingUp, accent: "#FF6B35" },
+  { label: "Churn", value: "—", icon: Percent, accent: "#3B82F6" },
+  { label: "Margin", value: "—", icon: Gauge, accent: "#6366F1" },
+  { label: "Runway", value: "—", icon: WalletCards, accent: "#F97316" },
+  { label: "Active Subs", value: "—", icon: Users2, accent: "#60A5FA" },
 ];
 
 interface CeoProps {
@@ -98,7 +98,7 @@ export default function CeoCommandCenterClient({ user, tier, isCeo = false, inte
         <>
           <CeoPlatformOverview />
 
-          {/* Business Health (mock until Stripe integration) */}
+          {/* Business Health (live metrics pending Stripe integration) */}
           <section>
             <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-gray-500">Business Health</h2>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">

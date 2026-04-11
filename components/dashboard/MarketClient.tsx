@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import MarketPrimaryNav from "@/components/dashboard/market/MarketPrimaryNav";
 import MarketStartHereTab from "@/components/dashboard/market/MarketStartHereTab";
 import { useMarketLayoutPrefs } from "@/lib/hooks/useMarketLayoutPrefs";
+import type { SchedulerHealthViewModel } from "@/lib/market/contracts";
 
 /**
  * MarketClient - Thin orchestrator for Market Robot.
@@ -16,12 +17,12 @@ export default function MarketClient({
   initialTab = "start-here",
   paperMode = true,
   serverStatus = { status: "unknown", isConfirmed: false, health: null },
-  onQuickStart = () => console.log("Quick start triggered"),
-  onStopBot = () => console.log("Stop bot triggered"),
+  onQuickStart = () => {},
+  onStopBot = () => {},
 }: {
   initialTab?: string;
   paperMode?: boolean;
-  serverStatus?: { status: string; isConfirmed: boolean; health: any };
+  serverStatus?: { status: string; isConfirmed: boolean; health: SchedulerHealthViewModel | null };
   onQuickStart?: () => void;
   onStopBot?: () => void;
 }) {
@@ -56,7 +57,12 @@ export default function MarketClient({
           />
         );
       default:
-        return <div className="text-slate-200 p-6">Placeholder for {activeTab} tab (under construction)</div>;
+        return (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <p className="text-lg font-semibold text-slate-200">This tab is not available yet</p>
+            <p className="mt-1 text-sm text-slate-400">Switch to another tab to continue.</p>
+          </div>
+        );
     }
   };
 

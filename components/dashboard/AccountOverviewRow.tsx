@@ -20,7 +20,7 @@ export interface AccountOverviewRowProps {
   usageHealth: string;
   usageHealthClass: string;
   profileCompletion: number;
-  onApplyPreset: (preset: "simple" | "creator" | "project") => void;
+  onApplyPreset: (preset: "simple" | "creative" | "fieldwork") => void;
   onOpenBillingPortal: () => void;
   onBuyCredits: () => void;
   onUpgradePlan: () => void;
@@ -135,16 +135,16 @@ export default function AccountOverviewRow({
                 Simple View
               </button>
               <button
-                onClick={() => onApplyPreset("creator")}
+                onClick={() => onApplyPreset("creative")}
                 className="px-3 py-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-400 hover:bg-zinc-800 transition-colors"
               >
-                Creator View
+                Creative View
               </button>
               <button
-                onClick={() => onApplyPreset("project")}
+                onClick={() => onApplyPreset("fieldwork")}
                 className="px-3 py-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-400 hover:bg-zinc-800 transition-colors"
               >
-                Project View
+                Fieldwork View
               </button>
             </div>
           </div>
