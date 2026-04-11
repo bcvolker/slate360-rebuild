@@ -395,8 +395,8 @@ Site Walk should mostly be: structured data + optimized photos + lightweight PDF
 ### Phase 0 — Truth Alignment & Cleanup
 
 - [x] Codebase audit completed (CODEBASE_AUDIT_2025.md)
-- [ ] Clean/stub dead navigation (Design Studio, Content Studio, Virtual Studio, Geospatial)
-- [ ] Backfill tracked migrations for `slatedrop_uploads` and `slate_drop_links`
+- [x] Clean/stub dead navigation (Design Studio, Content Studio, Virtual Studio, Geospatial) — stub pages in `app/(apps)/`
+- [x] Backfill tracked migrations for `slatedrop_uploads` and `slate_drop_links` — `20260411000001` + `20260411000002`
 - [ ] Set real Stripe prices and re-enable checkout
 - [ ] Freeze app naming and order in code
 - [ ] Remove Project Hub from forward-looking product surface

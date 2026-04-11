@@ -187,31 +187,27 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-11 (Master Build Plan + Doc Cleanup)
+### Session Handoff — 2026-04-11 (Phase 0 Cleanup — Items 1+2)
 
 ### What Changed
 
-**1. SLATE360_MASTER_BUILD_PLAN.md — NEW (705 lines)**
-- Condensed from 4848-line raw ChatGPT paste into a clean actionable plan
-- 17 sections covering: product architecture, app ownership, Site Walk (definition + data model + MVP + phases + mobile UX + deliverables), bundle logic, field↔office coordination, margin controls, 13-phase build sequence, distribution/app store strategy, v0 workflow rules, code guardrails (all 16 preserved), verification gates, disruptor pack
-- This is now the SINGLE SOURCE OF TRUTH for all build direction
+**1. Dead nav links fixed (Phase 0, Item 1)**
+- Created 4 stub "Coming Soon" pages in `app/(apps)/`: design-studio, content-studio, virtual-studio, geospatial
+- Each is a server component with auth + entitlement gating via `resolveOrgEntitlements()`
+- Nav arrays in MobileModuleBar, MobileNavSheet, QuickNav, DashboardOverview untouched (links now resolve)
 
-**2. CODEBASE_AUDIT_2025.md — NEW (784 lines)**
-- Comprehensive 17-section factual audit: repo structure, 48 migrations, 99 API routes, dependency inventory, module status map, auth/billing/storage audit, Site Walk gap analysis, PWA status (missing service worker + permissions), env vars (112+), tech debt (34 files over 300 lines)
+**2. SlateDrop migration backfill (Phase 0, Item 2)**
+- `supabase/migrations/20260411000001_create_slatedrop_uploads.sql` — CREATE TABLE + 4 indexes + RLS (4 policies)
+- `supabase/migrations/20260411000002_create_slate_drop_links.sql` — CREATE TABLE + 3 indexes + RLS (3 policies)
+- Both use IF NOT EXISTS / idempotent patterns (safe for production where tables already exist)
+- Schema derived from comprehensive audit of 20+ code locations that read/write these tables
 
-**3. Major doc cleanup — 75+ files deleted**
-- `_archived_docs/` entire directory (15 files)
-- `docs/archive/` entire directory (6 files)
-- `slate360-context/_archived/` entire directory (24 files)
-- `slate360-context/refactor/` entire directory (3 files)
-- `slate360-context/apps/` entire directory (2 files)
-- 12 superseded slate360-context/*.md files (APP_ECOSYSTEM_*, FUTURE_*, MASTER_BUILD_SEQUENCE, PLATFORM_ARCHITECTURE_PLAN, PROJECT_HUB, REVENUE_ROADMAP, SITE_WALK_BUILD_PLAN, GPU_WORKER_DEPLOYMENT, NEW_CHAT_HANDOFF_PROTOCOL)
-- 18 dashboard-tabs implementation/build/start-here plans (keeping only market-robot docs)
+**3. Bug fix: share page column mismatch**
+- `app/share/[token]/page.tsx` was querying `size` instead of `file_size` from `slatedrop_uploads`
+- Fixed both the SELECT and the prop pass to `ShareViewer`
 
-**4. SLATE360_PROJECT_MEMORY.md updated**
-- Task-Based Read Map now points to master build plan
-- Archive policy updated for deleted files
-- Start Here updated (no longer references deleted NEW_CHAT_HANDOFF_PROTOCOL.md)
+**4. Master Build Plan updated**
+- Phase 0 items 1 and 2 marked complete with implementation notes
 
 ### What's Broken / Partially Done
 - `subscription_status` column on organizations table may not exist — webhook writes it but no migration
@@ -225,19 +221,15 @@ When editing oversized files, always read both the state declarations AND the JS
 - PWA missing: service worker, Permissions-Policy camera header, offline support
 
 ### Context Files Updated
-- `SLATE360_MASTER_BUILD_PLAN.md`: created (new source of truth)
-- `CODEBASE_AUDIT_2025.md`: created (factual reference)
-- `SLATE360_PROJECT_MEMORY.md`: this handoff + read map + archive policy
-- 75+ deleted files (see §3 above)
+- `SLATE360_MASTER_BUILD_PLAN.md`: Phase 0 items 1+2 checked off
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority — follows Phase 0 in master plan)
-1. **Phase 0 cleanup**: Clean/stub dead nav (Design Studio, Content Studio, Virtual Studio, Geospatial links)
-2. **Phase 0 cleanup**: Backfill `slatedrop_uploads` and `slate_drop_links` tracked migrations
-3. **Phase 0 cleanup**: Set real Stripe prices and re-enable checkout
-4. **Phase 0 cleanup**: Freeze app naming/order in code (remove Project Hub from primary nav)
-5. **Phase 1 start**: Verify auth + orgs + projects + entitlements + billing end-to-end
-6. **Phase 1**: Build shared notification center and activity feed
-7. **Phase 1**: Redesign dashboard → actionable command center
-8. **Phase 2**: SlateDrop hardening (migration coverage, quota enforcement, file validation)
-9. **Phase 3**: Site Walk backend foundation (migrations, CRUD APIs, assignment model)
-9. **Replace CEO mock metrics** with real Stripe MRR / org analytics
+1. **Phase 0 cleanup**: Set real Stripe prices and re-enable checkout
+2. **Phase 0 cleanup**: Freeze app naming/order in code (remove Project Hub from primary nav)
+3. **Phase 1 start**: Verify auth + orgs + projects + entitlements + billing end-to-end
+4. **Phase 1**: Build shared notification center and activity feed
+5. **Phase 1**: Redesign dashboard → actionable command center
+6. **Phase 2**: SlateDrop hardening (migration coverage, quota enforcement, file validation)
+7. **Phase 3**: Site Walk backend foundation (migrations, CRUD APIs, assignment model)
+8. **Replace CEO mock metrics** with real Stripe MRR / org analytics

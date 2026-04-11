@@ -44,7 +44,7 @@ export default async function SharePage({ params }: PageProps) {
   // Fetch file metadata
   const { data: file, error: fileErr } = await admin
     .from("slatedrop_uploads")
-    .select("id, file_name, file_type, size, s3_key")
+    .select("id, file_name, file_type, file_size, s3_key")
     .eq("id", link.file_id)
     .neq("status", "deleted")
     .single();
@@ -71,7 +71,7 @@ export default async function SharePage({ params }: PageProps) {
     <ShareViewer
       fileName={file.file_name}
       fileType={fileType}
-      fileSize={file.size}
+      fileSize={file.file_size}
       presignedUrl={presignedUrl}
       canDownload={canDownload}
     />
