@@ -1,0 +1,120 @@
+name: Local Config
+version: 1.0.0
+schema: v1
+
+models:
+  - name: GPT-5.4
+    provider: openai
+    model: gpt-5.4
+    roles:
+      - chat
+    defaultCompletionOptions:
+      contextLength: 32000
+      maxTokens: 4096
+    contextManagement:
+      edits:
+        - type: clear_tool_uses_20250919
+          trigger:
+            type: tool_uses
+            value: 1
+          keep:
+            type: tool_uses
+            value: 0
+
+  - name: Claude Opus 4.6
+    provider: anthropic
+    model: claude-opus-4-6
+    roles:
+      - chat
+    defaultCompletionOptions:
+      contextLength: 24000
+      maxTokens: 2048
+    contextManagement:
+      edits:
+        - type: clear_tool_uses_20250919
+          trigger:
+            type: tool_uses
+            value: 1
+          keep:
+            type: tool_uses
+            value: 0
+
+  - name: Claude Sonnet 4.6
+    provider: anthropic
+    model: claude-sonnet-4-6
+    roles:
+      - chat
+    defaultCompletionOptions:
+      contextLength: 32000
+      maxTokens: 2048
+    contextManagement:
+      edits:
+        - type: clear_tool_uses_20250919
+          trigger:
+            type: tool_uses
+            value: 1
+          keep:
+            type: tool_uses
+            value: 0
+
+  - name: Gemini 3.1 Pro
+    provider: gemini
+    model: gemini-3.1-pro-preview
+    roles:
+      - chat
+    defaultCompletionOptions:
+      contextLength: 32000
+      maxTokens: 4096
+    contextManagement:
+      edits:
+        - type: clear_tool_uses_20250919
+          trigger:
+            type: tool_uses
+            value: 1
+          keep:
+            type: tool_uses
+            value: 0
+
+  - name: Grok 4
+    provider: xAI
+    model: grok-4-0709
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      contextLength: 32000
+      maxTokens: 4096
+
+  - name: Grok 4.20 Reasoning
+    provider: xAI
+    model: grok-4.20-0309-reasoning
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      contextLength: 32000
+      maxTokens: 4096
+
+  - name: Grok 4.20 Non-Reasoning
+    provider: xAI
+    model: grok-4.20-0309-non-reasoning
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      contextLength: 32000
+      maxTokens: 4096
+
+  - name: Grok 4.20 Multi-Agent
+    provider: xAI
+    model: grok-4.20-multi-agent-0309
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      contextLength: 32000
+      maxTokens: 4096

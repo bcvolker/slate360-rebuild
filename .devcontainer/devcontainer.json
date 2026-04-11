@@ -11,6 +11,7 @@
   "remoteEnv": {
     "NODE_ENV": "development"
   },
+  "postStartCommand": "bash .devcontainer/init-continue.sh",
   "forwardPorts": [3000],
   "portsAttributes": {
     "3000": {
