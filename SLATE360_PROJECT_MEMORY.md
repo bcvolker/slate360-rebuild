@@ -189,60 +189,86 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-10 (Global Brand Color Migration + Build Fix + v0 Workflow)
+### Session Handoff — 2026-04-10 (My Account + Dark Theme + Codebase Review)
 
 ### What Changed
 
-**Commit `047c366` — Tailwind v4 build fix**
-- `app/globals.css`: Removed invalid `@apply dark` from `auth-page` utility (Tailwind v4 treats `dark` as a variant, not a utility). Replaced with `color-scheme: dark` CSS property.
+**Commit `e7748f4` — My Account (5 tabs), dark theme, dashboard toolbar, real storage data**
 
-**Commit `56292b1` — v0 workflow docs**
-- `slate360-context/V0_WORKFLOW.md` (NEW): Streamlined v0→production workflow guide with design system translation table
-- `.github/copilot-instructions.md`: Added v0 workflow to Task Map
+**1. My Account Page (BUILT)**
+- `components/dashboard/MyAccountShell.tsx` (134 lines): tabbed UI with 5 tabs, URL param support (?tab=billing), data from `/api/account/overview`
+- `components/dashboard/my-account/AccountProfileTab.tsx` (115 lines): name edit, avatar, email, org, role, theme pref
+- `components/dashboard/my-account/AccountBillingTab.tsx` (196 lines): plan status, payment methods (Stripe portal), credit packs (Starter/Growth/Pro → Stripe checkout), invoices, admin-only
+- `components/dashboard/my-account/AccountDataTrackerTab.tsx` (157 lines): credits + storage bars, color-coded warnings, asset counts, buy-more CTA
+- `components/dashboard/my-account/AccountSecurityTab.tsx` (121 lines): password reset, 2FA placeholder, sessions, data export/deletion
+- `components/dashboard/my-account/AccountNotificationsTab.tsx` (71 lines): email + push notification toggles
+- `app/(dashboard)/my-account/page.tsx`: passes orgName, role, isAdmin, entitlements
 
-**Commit `7d832bc` — Global brand color migration (150 files changed)**
+**2. Dashboard Toolbar Fix (walled-garden-dashboard.tsx)**
+- Removed `/api/placeholder/36/36` avatar, "JD" fallback → real user initial from `userName` prop
+- Dropdown: "My Account" → `/my-account`, "Billing" → `/my-account?tab=billing`, "Sign Out" → `supabase.auth.signOut()`
+- Welcome message uses `userName.split(" ")[0]` with fallback to `orgName`
 
-**1. SVG Logo Color Fix (ROOT CAUSE of orange logos on live site)**
-- ALL 5 SVGs in `/public/uploads/SLATE*.svg`: `#fc751c` (orange) → `#D4AF37` (gold), `#3e4f6b` (navy) → `#18181b` (dark)
-- `app/icon.svg` and `public/uploads/favicon.svg`: same orange→gold fix
-- This was the actual root cause — SVG file CONTENT was wrong, not the code
+**3. Dark Theme Default**
+- `components/providers/ThemeProvider.tsx`: changed default from 'system' to 'dark' in 6 places
+- 15+ files fixed from white/light backgrounds to `bg-zinc-950`: not-found, deploy-check, loading, integrations, analytics, athlete360, project error, SlateDropClient, ProjectToolLayout, privacy, terms, share pages
 
-**2. Global Accent Color Migration (128+ source files)**
-- All `.tsx/.ts/.css` files: `#FF4D00` → `#D4AF37` (old orange accent → gold)
-- All Tailwind classes: `orange-50/100/500/600` → `amber-50/100/500/600`
+**4. Real Storage Data**
+- `app/api/account/overview/route.ts`: replaced hardcoded storage values with real `org_storage_used_bytes` from organizations table
 
-**3. Logo Path Unification**
-- All `src="/logo.svg"` refs → `src="/uploads/SLATE 360-Color Reversed Lockup.svg"` across entire codebase
-- Affected: DashboardHeader, Footer, Navbar, SlateDropTopBar, external pages, email.ts, branding.ts, wagmi-config.ts
+**5. Enterprise Privacy Controls**
+- Billing tab hidden from non-admin enterprise members
+- Non-admins see "managed by administrator" notice
 
-**4. Centralized Logo Component**
-- `components/shared/SlateLogo.tsx` (NEW, ~35 lines): exports `SlateLogo` component + `LOGO_SRC` constant
-- Note: Created but NOT yet wired into existing pages (pages still use direct `<img>` tags)
+**6. Docs + Ops Updates (this session)**
+- `ops/module-manifest.json`: added my-account + site-walk modules, updated date
+- `slate360-context/SITE_WALK_BUILD_PLAN.md`: rewritten from 240 → 500+ lines with comprehensive design spec for external AI assistant (features, flows, API routes, schema, UX requirements, competitive landscape, design questions)
 
-**5. Mobile Hamburger Menu Auto-Sizing**
-- `components/marketing-homepage.tsx`: `!h-auto !inset-y-auto !top-0 !right-0 !rounded-bl-2xl` — menu sizes to content instead of full viewport
-- Nav items: gap `4→3`, font `text-lg→text-base`
+### Codebase Health Report
+- TypeScript: **0 errors** (`npx tsc --noEmit` clean)
+- Oversized files: **17 files** over 300-line limit (known tech debt, see file-size report)
+- Biggest offenders: `LocationMap.tsx` (1892), `walled-garden-dashboard.tsx` (1472), `marketing-homepage.tsx` (1123)
+
+### Placeholder Data Audit (CRITICAL — Must Remove Before Beta)
+| Category | Location | What |
+|---|---|---|
+| CRITICAL | `walled-garden-dashboard.tsx` L231-254 | DELIVERABLES array with `/api/placeholder/320/180` URLs |
+| CRITICAL | `walled-garden-dashboard.tsx` L259-280 | SLATEDROP_FILES/FOLDERS mock data |
+| CRITICAL | `walled-garden-dashboard.tsx` L191-228 | APPS array with fake storage ("4.1 GB", "9.2 GB") |
+| CRITICAL | `marketing-homepage.tsx` L223-243 | Testimonials with fake names (Sarah Chen, Marcus Johnson) |
+| CRITICAL | `home/landing-data.ts` L121-147 | Duplicate testimonials with different fake names |
+| CRITICAL | `CeoCommandCenterClient.tsx` L38-43 | MOCK_METRICS (MRR, churn, margin — hardcoded) |
+| CRITICAL | `lib/dashboard/demo-data.ts` L18-87 | DEMO_PROJECTS, DEMO_EVENTS, DEMO_JOBS, DEMO_WEATHER |
+| HIGH | `walled-garden-dashboard.tsx` L282 | ENTERPRISE_USERS empty array placeholder |
+| HIGH | `walled-garden-dashboard.tsx` | Notification bell hardcoded "3" count |
+| MEDIUM | 6 shell components | `status="coming-soon"` or `status="under-development"` |
+| MEDIUM | PunchListForm, ObservationForm | "Photo upload coming soon" text |
+| MEDIUM | MarketClient, MarketRobotWorkspace | "Placeholder for {tab} (under construction)" |
 
 ### What's Broken / Partially Done
-- **SlateLogo component not wired in** — pages still use direct `<img>` tags; should replace with `<SlateLogo />` imports
-- **marketing-homepage.tsx is 1003 lines** — needs extraction into sub-components
-- **CRITICAL** (pre-existing): `market_scheduler_lock` table still has no RLS
-- **CRITICAL** (pre-existing): Portal view_count race condition (atomic SQL not deployed yet)
-- `fix/slatedrop-external-uploads` — still needs merge to main (security patch)
-- Supabase email templates still use purple gradients (not yet updated to gold)
+- `lib/entitlements.ts` still uses old 5-tier model (creator/model) — needs rewrite to 4-tier (trial/standard/business/enterprise)
+- `walled-garden-dashboard.tsx` is 1472 lines — CRITICAL monolith, needs extraction BEFORE adding features
+- Dashboard is App Launcher, not Command Center — needs redesign with project overview, activity feed, quick actions, real-time notifications
+- `SlateLogo` component created but NOT wired into consuming pages
+- `marketing-homepage.tsx` is 1123 lines — needs extraction
+- `market_scheduler_lock` table still has no RLS (pre-existing)
+- Portal view_count race condition (atomic SQL not deployed, pre-existing)
+- `fix/slatedrop-external-uploads` branch still needs merge (security patch, pre-existing)
+- Supabase email templates still use purple gradients (pre-existing)
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
-- `slate360-context/V0_WORKFLOW.md`: created
-- `.github/copilot-instructions.md`: v0 workflow added to Task Map
+- `slate360-context/SITE_WALK_BUILD_PLAN.md`: comprehensive rewrite with full design spec
+- `ops/module-manifest.json`: added my-account + site-walk modules
 
-### Next Steps (ordered)
-1. Test live deploy: verify GOLD logos on homepage, login, mobile menu, footer, dashboard
-2. Wire `<SlateLogo />` component into all pages that currently use direct `<img>` logo tags
-3. Update Supabase email templates to gold branding (currently purple gradients)
-4. Extract marketing-homepage.tsx into sub-300-line components
-5. Merge `fix/slatedrop-external-uploads` → main (security patch)
-6. Add RLS to `market_scheduler_lock`
-7. Deploy atomic `claim_deliverable_view()` RPC
-8. Add Block Editor backend persistence
-9. Expand rate limiting to remaining API routes
+### Next Steps (ordered by priority)
+1. **Remove walled-garden-dashboard mock data** — replace DELIVERABLES, SLATEDROP, APPS arrays with real data or empty states
+2. **Extract walled-garden-dashboard.tsx** — split 1472-line monolith into sub-components before adding features
+3. **Redesign dashboard as Command Center** — project overview, activity feed, pending items, team activity, quick actions, smart notifications
+4. **Update `lib/entitlements.ts`** — rewrite from 5-tier to 4-tier per-app model
+5. **Wire `<SlateLogo />` into all pages** still using direct `<img>` logo tags
+6. **Extract `marketing-homepage.tsx`** into sub-300-line components
+7. **Begin Site Walk Phase 1** — create `site_walk_items` + `site_walk_deliverables` migrations, session CRUD APIs
+8. **Merge `fix/slatedrop-external-uploads`** → main (security patch)
+9. **Add RLS to `market_scheduler_lock`**
+10. **Deploy atomic `claim_deliverable_view()` RPC**

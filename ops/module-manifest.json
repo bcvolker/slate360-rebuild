@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/module-manifest.schema.json",
-  "updatedAt": "2026-03-04",
+  "updatedAt": "2026-04-10",
   "owner": "engineering",
   "modules": [
     {
@@ -128,6 +128,40 @@
       "apis": [
         "/api/market/*"
       ]
+    },
+    {
+      "id": "my-account",
+      "route": "/my-account",
+      "gate": "authenticated",
+      "canonicalSpec": null,
+      "status": "live",
+      "primaryComponents": [
+        "components/dashboard/MyAccountShell.tsx",
+        "components/dashboard/my-account/AccountProfileTab.tsx",
+        "components/dashboard/my-account/AccountBillingTab.tsx",
+        "components/dashboard/my-account/AccountDataTrackerTab.tsx",
+        "components/dashboard/my-account/AccountSecurityTab.tsx",
+        "components/dashboard/my-account/AccountNotificationsTab.tsx"
+      ],
+      "apis": [
+        "/api/account/overview",
+        "/api/billing/portal",
+        "/api/billing/credits/checkout"
+      ]
+    },
+    {
+      "id": "site-walk",
+      "route": "/site-walk",
+      "gate": "getEntitlements(tier).canAccessStandalonePunchwalk",
+      "canonicalSpec": "slate360-context/SITE_WALK_BUILD_PLAN.md",
+      "status": "scaffolded",
+      "primaryComponents": [
+        "app/(apps)/site-walk/page.tsx",
+        "components/site-walk/BlockEditor.tsx",
+        "components/site-walk/BlockRenderer.tsx",
+        "components/site-walk/BlockToolbar.tsx"
+      ],
+      "apis": []
     },
     {
       "id": "athlete360",
