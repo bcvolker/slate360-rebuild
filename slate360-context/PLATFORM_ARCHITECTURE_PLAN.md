@@ -14,16 +14,35 @@ Slate360 is an **app-centric ecosystem** for construction professionals. One acc
 ### Revenue Streams
 | Type | How it works |
 |---|---|
-| **Individual app licenses** | User subscribes to Site Walk ($49/mo TBD). Gets full single-user access. |
-| **Bundles** | Subscribe to multiple apps at a discount (pricing TBD). |
-| **Enterprise packages** | Bulk seats + admin panel + white-label branding. Slate360 is invisible — looks like the client's own system. |
-| **Credit packs** | Additional processing credits (AI, storage, exports). |
+| **Individual app subscriptions** | User subscribes to one app (e.g., Site Walk). Pricing per-app, per-tier. |
+| **Bundles** | Subscribe to multiple apps at a discount (e.g., Site Walk + 360 Tours). Any combination. |
+| **Enterprise packages** | ALL apps bundled + admin panel + white-label branding + unlimited seats. Slate360 is invisible — looks like the client's own system. |
+| **Credit packs** | Additional processing credits (AI, storage, exports) — TBD. |
 
-### Tier System (current, subject to change)
+### Tier System (NEW — App-Centric Model)
+
+**IMPORTANT: The old website-platform tiers (`trial → creator → model → business → enterprise`) are OBSOLETE.** The platform has pivoted to an app-centric model. Tiers now apply **per-app**, not platform-wide.
+
 ```
-trial → creator → model → business → enterprise
+trial → standard → business → enterprise
 ```
-Pricing, tier names, and what each tier includes are **TBD** after beta testing validates the product. The entitlement system (`lib/entitlements.ts`) already supports all 5 tiers.
+
+| Tier | Description |
+|---|---|
+| **Trial** | Free trial of an app. Limited features/usage to test before buying. |
+| **Standard** | Full single-user access to the app. Individual professionals. |
+| **Business** | Multi-seat, teams. More storage, more contributors, priority support. |
+| **Enterprise** | ALL apps bundled. Admin panel. Seat/permission management. White-label branding (the entire Slate360 ecosystem looks like the company's own system). |
+
+**How tiers work with apps:**
+- A user could be `Standard` on Site Walk and not subscribed to anything else
+- A user could be `Business` on Site Walk + `Standard` on 360 Tours (mix and match)
+- Enterprise always gets everything — it's a company-wide deal
+- Bundle discounts encourage subscribing to multiple apps (pricing TBD)
+
+**Pricing:** Completely TBD. Will be determined after beta testing validates the product. The entitlement system (`lib/entitlements.ts`) needs to be updated from the old 5-tier model to this new 4-tier per-app model.
+
+**Contributor seats per tier:** TBD — deferred until pricing is figured out. The system will support per-tier seat limits, but the specific numbers are not decided yet.
 
 ---
 
@@ -52,6 +71,44 @@ Slate360 is NOT a native iOS/Android app. It is a **Progressive Web App** that u
 6. Launches in standalone mode (no browser chrome)
 7. User sees their dashboard → launches subscribed apps
 ```
+
+### Desktop vs. Web vs. Field Usage (IMPORTANT)
+
+**The question:** If office users install the PWA on their desktop, do they also need to log in via the web? How do field updates show up on desktop?
+
+**The answer: It's all the same app.** PWA makes this simple:
+
+| User | How they access Slate360 | What they see |
+|---|---|---|
+| **Field user (phone/tablet)** | PWA installed on home screen → taps icon → opens in standalone mode | Dashboard → their apps → camera, GPS, voice notes, all field features |
+| **Office user (desktop)** | PWA installed on desktop → clicks icon → opens in standalone window (no browser chrome) | Dashboard → their apps → project data, reports, real-time updates from field |
+| **Any user (web browser)** | Visits slate360.ai → logs in → same dashboard | Identical experience to installed PWA, just in a browser tab |
+
+**Key points:**
+- Desktop PWA and web browser version are the **exact same app, same URL, same data**
+- Installing the PWA on desktop just removes the browser chrome (address bar, tabs) — it looks like a native app
+- There is NO separate "web version" vs. "app version" — it's one codebase everywhere
+- Real-time updates (Supabase Realtime) work identically whether you're on desktop PWA, web browser, or mobile
+- When a field user submits photos, the office user's desktop app shows a notification + auto-refreshes immediately
+- Users do NOT need to "launch apps from the dashboard" if they don't want to — they can bookmark specific app routes directly
+
+**The dashboard is the central hub, not a gatekeeper:**
+- Dashboard shows: project overview, recent activity, notifications, quick actions
+- Users CAN launch apps from the dashboard sidebar
+- Users CAN also go directly to an app URL (e.g., `/site-walk/project/123`)
+- Desktop users will likely live in the dashboard and navigate to tools from there
+- Field users will likely go straight into their active app (Site Walk) from the home screen
+
+**Live updates flow (field → office):**
+```
+Field user takes photos on site
+    → Auto-saves to IndexedDB → syncs to S3 + Supabase when online
+        → Supabase Realtime fires event
+            → Office user's desktop app receives push
+                → Toast: "John submitted 4 photos — Building A"
+                → Project view auto-refreshes with new data
+```
+This works whether the office user is on an installed desktop PWA or a web browser tab. Same technology, same experience.
 
 ### What Must Be Built for PWA
 | Component | Status | What's needed |
@@ -578,7 +635,7 @@ Subscribing to additional apps unlocks richer capabilities within each app. This
 | 11 | Shared With Me: cross-org, intra-org, or both? | **Confirmed** | Both — unified view with sorting/filtering. Users can sort by source, date, project, type. Group by org or person. Clear labeling of where each shared item came from. |
 | 12 | Enterprise domain approach (custom domain vs. subdomain vs. branding-only)? | **Deferred to Phase 2** | Schema designed now to avoid rework |
 | 13 | App-specific sub-folders within projects? | **Deferred to after app build** | Provisioning system supports dynamic folders |
-| 14 | Contributor seat counts per tier? | **TBD** | Suggested: 0 / 3 / 10 / 25 / unlimited per tier |
+| 14 | Contributor seat counts per tier? | **Deferred** | Old tier model is obsolete. New tiers: trial/standard/business/enterprise (per-app). Seat counts TBD after pricing is figured out. |
 | 15 | Bug reporting system for beta testers? | **Confirmed** | In-app reports → CEO Command Center |
 
 ---

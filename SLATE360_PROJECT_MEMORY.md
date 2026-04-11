@@ -43,7 +43,11 @@ Primary live modules:
 - `/market`
 
 Tier note:
-- subscription tiers are `trial < creator < model < business < enterprise`
+- OLD tiers (`trial < creator < model < business < enterprise`) are OBSOLETE
+- NEW app-centric tiers: `trial < standard < business < enterprise` (per-app, not platform-wide)
+- Users subscribe per-app with optional bundle discounts
+- Enterprise gets ALL apps + admin + white-label
+- `lib/entitlements.ts` still has old 5-tier model — needs update to new 4-tier per-app model
 - subscription gates use `getEntitlements()`
 - trial tier unlocks ALL tabs with tight limits (500 credits, 5GB, 1 seat) + TrialBanner
 - `/ceo`, `/market`, and `/athlete360` are internal access routes, not subscription features
