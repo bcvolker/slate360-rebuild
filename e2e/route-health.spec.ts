@@ -75,13 +75,13 @@ test.describe("Landing page — no placeholder text", () => {
     expect(deadLinks, "Found href='#' dead links").toBe(0);
   });
 
-  test("pricing section shows TBD, not dollar amounts", async ({ page }) => {
+  test("pricing section shows real prices", async ({ page }) => {
     await page.goto("/", { waitUntil: "networkidle" });
     const pricingSection = page.locator("#pricing");
     if (await pricingSection.count()) {
       const text = await pricingSection.innerText();
-      expect(text).toContain("TBD");
-      expect(text).not.toMatch(/\$\d+/); // no dollar amounts except "Custom"
+      expect(text).toMatch(/\$\d+/); // should contain dollar amounts
+      expect(text).not.toContain("TBD");
     }
   });
 });

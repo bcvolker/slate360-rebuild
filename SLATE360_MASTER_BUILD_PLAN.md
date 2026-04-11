@@ -397,10 +397,10 @@ Site Walk should mostly be: structured data + optimized photos + lightweight PDF
 - [x] Codebase audit completed (CODEBASE_AUDIT_2025.md)
 - [x] Clean/stub dead navigation (Design Studio, Content Studio, Virtual Studio, Geospatial) — stub pages in `app/(apps)/`
 - [x] Backfill tracked migrations for `slatedrop_uploads` and `slate_drop_links` — `20260411000001` + `20260411000002`
-- [ ] Set real Stripe prices and re-enable checkout
-- [ ] Freeze app naming and order in code
-- [ ] Remove Project Hub from forward-looking product surface
-- [ ] Define canonical planning docs (this file only)
+- [x] Set real Stripe prices and re-enable checkout — $149/$499 monthly, annual ~17% discount, all "TBD" replaced
+- [x] Freeze app naming and order in code — Dashboard → Site Walk → SlateDrop → 360 Tours → future apps
+- [x] Remove Project Hub from forward-looking product surface — removed from all 3 nav components
+- [x] Define canonical planning docs (this file only)
 
 ### Phase 1 — Slate360 Core Stabilization
 

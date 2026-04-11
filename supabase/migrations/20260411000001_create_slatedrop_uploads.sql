@@ -58,24 +58,38 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- Policy: uploaders can insert their own rows
+-- Policy: uploaders can insert their own rows (org_id must be their own org or NULL)
 DO $$ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies WHERE tablename = 'slatedrop_uploads' AND policyname = 'uploader_insert'
   ) THEN
     CREATE POLICY uploader_insert ON slatedrop_uploads
       FOR INSERT
-      WITH CHECK (uploaded_by = auth.uid());
+      WITH CHECK (
+        uploaded_by = auth.uid()
+        AND (
+          org_id IS NULL
+          OR org_id IN (SELECT om.org_id FROM organization_members om WHERE om.user_id = auth.uid())
+        )
+      );
   END IF;
 END $$;
 
 -- Policy: uploaders can update their own rows (rename, move, soft-delete)
+-- USING checks they own the row; WITH CHECK prevents reassigning org_id to a foreign org
 DO $$ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies WHERE tablename = 'slatedrop_uploads' AND policyname = 'uploader_update_own'
   ) THEN
     CREATE POLICY uploader_update_own ON slatedrop_uploads
       FOR UPDATE
-      USING (uploaded_by = auth.uid());
+      USING (uploaded_by = auth.uid())
+      WITH CHECK (
+        uploaded_by = auth.uid()
+        AND (
+          org_id IS NULL
+          OR org_id IN (SELECT om.org_id FROM organization_members om WHERE om.user_id = auth.uid())
+        )
+      );
   END IF;
 END $$;

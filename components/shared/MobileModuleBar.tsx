@@ -3,7 +3,7 @@
 import Link from "next/link";
 import {
   LayoutDashboard,
-  FolderKanban,
+  MapPin,
   Palette,
   Layers,
   Compass,
@@ -29,14 +29,14 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard",   href: "/dashboard",      icon: LayoutDashboard },
-  { label: "Hub",         href: "/project-hub",    icon: FolderKanban, gate: "canAccessHub" },
+  { label: "Site Walk",   href: "/site-walk",      icon: MapPin },
+  { label: "SlateDrop",   href: "/slatedrop",      icon: FolderOpen,   gate: "canViewSlateDropWidget" },
+  { label: "Tours",       href: "/tours",          icon: Compass,      gate: "canAccessTourBuilder" },
   { label: "Design",      href: "/design-studio",  icon: Palette,      gate: "canAccessDesignStudio" },
   { label: "Content",     href: "/content-studio", icon: Layers,       gate: "canAccessContent" },
-  { label: "Tours",       href: "/tours",          icon: Compass,      gate: "canAccessTourBuilder" },
   { label: "Geo",         href: "/geospatial",     icon: Globe,        gate: "canAccessGeospatial" },
   { label: "Virtual",     href: "/virtual-studio", icon: Film,         gate: "canAccessVirtual" },
   { label: "Analytics",   href: "/analytics",      icon: BarChart3,    gate: "canAccessAnalytics" },
-  { label: "SlateDrop",   href: "/slatedrop",      icon: FolderOpen,   gate: "canViewSlateDropWidget" },
   { label: "Account",     href: "/my-account",     icon: User },
   { label: "CEO",         href: "/ceo",            icon: Shield,       internalKey: "ceo" },
   { label: "Market",      href: "/market",         icon: TrendingUp,   internalKey: "market" },

@@ -40,14 +40,41 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- Policy: org members can read links belonging to their org
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'slate_drop_links' AND policyname = 'org_members_read'
+  ) THEN
+    CREATE POLICY org_members_read ON slate_drop_links
+      FOR SELECT
+      USING (
+        org_id IN (
+          SELECT om.org_id FROM organization_members om WHERE om.user_id = auth.uid()
+        )
+      );
+  END IF;
+END $$;
+
 -- Policy: link creators can insert new links
+-- Verifies: (1) creator is the authenticated user, (2) org membership if org_id set,
+-- (3) user has read access to the file (leverages RLS on slatedrop_uploads)
 DO $$ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies WHERE tablename = 'slate_drop_links' AND policyname = 'creator_insert'
   ) THEN
     CREATE POLICY creator_insert ON slate_drop_links
       FOR INSERT
-      WITH CHECK (created_by = auth.uid());
+      WITH CHECK (
+        created_by = auth.uid()
+        AND (
+          org_id IS NULL
+          OR org_id IN (SELECT om.org_id FROM organization_members om WHERE om.user_id = auth.uid())
+        )
+        AND EXISTS (
+          SELECT 1 FROM slatedrop_uploads su WHERE su.id = file_id
+          -- RLS on slatedrop_uploads enforces the user can actually see this file
+        )
+      );
   END IF;
 END $$;
 

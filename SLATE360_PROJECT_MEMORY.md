@@ -187,27 +187,32 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-11 (Phase 0 Cleanup — Items 1+2)
+### Session Handoff — 2026-04-11 (Phase 0 COMPLETE)
 
 ### What Changed
 
 **1. Dead nav links fixed (Phase 0, Item 1)**
 - Created 4 stub "Coming Soon" pages in `app/(apps)/`: design-studio, content-studio, virtual-studio, geospatial
 - Each is a server component with auth + entitlement gating via `resolveOrgEntitlements()`
-- Nav arrays in MobileModuleBar, MobileNavSheet, QuickNav, DashboardOverview untouched (links now resolve)
 
 **2. SlateDrop migration backfill (Phase 0, Item 2)**
 - `supabase/migrations/20260411000001_create_slatedrop_uploads.sql` — CREATE TABLE + 4 indexes + RLS (4 policies)
-- `supabase/migrations/20260411000002_create_slate_drop_links.sql` — CREATE TABLE + 3 indexes + RLS (3 policies)
-- Both use IF NOT EXISTS / idempotent patterns (safe for production where tables already exist)
-- Schema derived from comprehensive audit of 20+ code locations that read/write these tables
+- `supabase/migrations/20260411000002_create_slate_drop_links.sql` — CREATE TABLE + 3 indexes + RLS (4 policies)
+- RLS hardened: INSERT/UPDATE policies check org membership; slate_drop_links INSERT verifies file access
+- Bug fix: `app/share/[token]/page.tsx` queried `size` instead of `file_size`
 
-**3. Bug fix: share page column mismatch**
-- `app/share/[token]/page.tsx` was querying `size` instead of `file_size` from `slatedrop_uploads`
-- Fixed both the SELECT and the prop pass to `ShareViewer`
+**3. Stripe prices + checkout enabled (Phase 0, Item 3)**
+- Replaced ALL "TBD" with real prices: Standard $149/mo ($124 annual), Business $499/mo ($416 annual)
+- Updated: `PlansClient.tsx`, `landing-data.ts`, `CeoCommandCenterClient.tsx`
+- Removed "Coming Soon" disabled buttons — checkout now triggers `handleCheckout()`
+- Updated e2e test from "expect TBD" to "expect dollar amounts"
+- Checkout flow was already wired; needs `STRIPE_PRICE_*` env vars in Vercel to go live
 
-**4. Master Build Plan updated**
-- Phase 0 items 1 and 2 marked complete with implementation notes
+**4. App naming frozen + Project Hub de-emphasized (Phase 0, Item 4)**
+- Canonical nav order: Dashboard → Site Walk → SlateDrop → 360 Tours → future apps → Account → Internal
+- Removed Project Hub from all 3 nav surfaces (MobileModuleBar, MobileNavSheet, QuickNav)
+- `/project-hub` route still exists and works — just not in primary navigation
+- Removed unused `FolderKanban` imports, added `MapPin` for Site Walk
 
 ### What's Broken / Partially Done
 - `subscription_status` column on organizations table may not exist — webhook writes it but no migration
@@ -217,19 +222,19 @@ When editing oversized files, always read both the state declarations AND the JS
 - Portal `view_count` race condition (atomic SQL not deployed)
 - `fix/slatedrop-external-uploads` branch still needs merge
 - BUG-018: DrawingManager deprecation in LocationMap.tsx (May 2026 deadline)
-- All UI prices show "TBD" — need real Stripe prices before checkout works
 - PWA missing: service worker, Permissions-Policy camera header, offline support
+- Stripe checkout needs `STRIPE_PRICE_*` env vars set in Vercel to actually work
 
 ### Context Files Updated
-- `SLATE360_MASTER_BUILD_PLAN.md`: Phase 0 items 1+2 checked off
+- `SLATE360_MASTER_BUILD_PLAN.md`: All Phase 0 items checked off
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
-### Next Steps (ordered by priority — follows Phase 0 in master plan)
-1. **Phase 0 cleanup**: Set real Stripe prices and re-enable checkout
-2. **Phase 0 cleanup**: Freeze app naming/order in code (remove Project Hub from primary nav)
-3. **Phase 1 start**: Verify auth + orgs + projects + entitlements + billing end-to-end
-4. **Phase 1**: Build shared notification center and activity feed
+### Next Steps (ordered by priority — Phase 1 starts)
+1. **Phase 1**: Verify auth + orgs + projects + entitlements + billing end-to-end
+2. **Phase 1**: Verify app gating via `org_feature_flags`
+3. **Phase 1**: Build shared notification center
+4. **Phase 1**: Build shared activity feed
 5. **Phase 1**: Redesign dashboard → actionable command center
-6. **Phase 2**: SlateDrop hardening (migration coverage, quota enforcement, file validation)
+6. **Phase 2**: SlateDrop hardening (quota enforcement, file validation, drag-drop, mobile UX)
 7. **Phase 3**: Site Walk backend foundation (migrations, CRUD APIs, assignment model)
 8. **Replace CEO mock metrics** with real Stripe MRR / org analytics

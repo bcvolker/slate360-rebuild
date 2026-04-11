@@ -29,8 +29,8 @@ const CEO_TABS: { id: CeoTab; label: string; icon: typeof Shield }[] = [
 ];
 
 const PLANS = [
-  { name: "Standard", price: "TBD", seats: "Multi-seat" },
-  { name: "Business", price: "TBD", seats: "Team" },
+  { name: "Standard", price: "$149/mo", seats: "3 seats" },
+  { name: "Business", price: "$499/mo", seats: "15 seats" },
   { name: "Enterprise", price: "Custom", seats: "Unlimited" },
 ];
 

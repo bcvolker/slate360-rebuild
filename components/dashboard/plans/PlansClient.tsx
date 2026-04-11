@@ -25,34 +25,34 @@ const PLANS = [
   {
     id: "standard" as const,
     name: "Standard",
-    price: "TBD",
-    annualPrice: "TBD",
+    price: "$149",
+    annualPrice: "$124",
     desc: "For professionals who need reliable tools and storage.",
     features: [
       "Site Walk + 360 Tour + cloud storage",
-      "Expanded processing credits/mo",
-      "Multiple seats",
+      "5,000 processing credits/mo",
+      "3 seats",
       "Clean exports (no watermark)",
       "Share links for clients",
     ],
-    cta: "Coming Soon",
+    cta: "Upgrade",
     highlight: true,
   },
   {
     id: "business" as const,
     name: "Business",
-    price: "TBD",
-    annualPrice: "TBD",
+    price: "$499",
+    annualPrice: "$416",
     desc: "Full platform for teams and contractors.",
     features: [
       "Everything in Standard",
-      "Larger cloud storage",
-      "Higher processing credits/mo",
-      "Team seat management",
+      "100 GB cloud storage",
+      "25,000 processing credits/mo",
+      "15 seats + team management",
       "Analytics and reporting",
       "PDF and CSV exports",
     ],
-    cta: "Coming Soon",
+    cta: "Upgrade",
   },
   {
     id: "enterprise" as const,
@@ -139,9 +139,6 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
           <p className="text-zinc-400 text-sm mb-1">
             Currently on <span className="text-white font-semibold">{currentLabel}</span>
           </p>
-          <p className="text-zinc-500 text-xs">
-            Pricing is being finalized. All plans will be available soon.
-          </p>
         </div>
 
         {/* Billing toggle */}
@@ -157,7 +154,7 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
                     : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                {b === "monthly" ? "Monthly" : "Annual — save 17%"}
+                {b === "monthly" ? "Monthly" : "Annual — save ~17%"}
               </button>
             ))}
           </div>
@@ -201,8 +198,7 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
                   <div className="flex items-baseline gap-1 mb-4">
                     {plan.price === "Free" || plan.price === "Custom" ? (
                       <span className="text-2xl font-black text-orange-400">{plan.price}</span>
-                    ) : plan.price === "TBD" ? (
-                      <span className="text-2xl font-black text-orange-400">Pricing TBD</span>
+
                     ) : (
                       <>
                         <span className="text-3xl font-black text-orange-400">
@@ -235,13 +231,6 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
                     className="flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold bg-zinc-800 text-zinc-500 cursor-default"
                   >
                     Current Plan
-                  </button>
-                ) : plan.price === "TBD" ? (
-                  <button
-                    disabled
-                    className="flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                  >
-                    Coming Soon
                   </button>
                 ) : isDowngrade ? (
                   <Link

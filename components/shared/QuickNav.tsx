@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   ChevronDown,
   LayoutDashboard,
-  FolderKanban,
   MapPin,
   Compass,
   Palette,
@@ -34,15 +33,14 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard",      href: "/dashboard",       icon: LayoutDashboard },
-  { label: "Project Hub",    href: "/project-hub",     icon: FolderKanban, gate: "canAccessHub" },
   { label: "Site Walk",      href: "/site-walk",       icon: MapPin },
+  { label: "SlateDrop",      href: "/slatedrop",       icon: FolderOpen,   gate: "canViewSlateDropWidget" },
   { label: "360 Tours",      href: "/tours",           icon: Compass,      gate: "canAccessTourBuilder" },
   { label: "Design Studio",  href: "/design-studio",   icon: Palette,      gate: "canAccessDesignStudio" },
   { label: "Content Studio", href: "/content-studio",  icon: Layers,       gate: "canAccessContent" },
   { label: "Geospatial",     href: "/geospatial",      icon: Globe,        gate: "canAccessGeospatial" },
   { label: "Virtual Studio", href: "/virtual-studio",  icon: Film,         gate: "canAccessVirtual" },
   { label: "Analytics",      href: "/analytics",       icon: BarChart3,    gate: "canAccessAnalytics" },
-  { label: "SlateDrop",      href: "/slatedrop",       icon: FolderOpen,   gate: "canViewSlateDropWidget" },
   { label: "My Account",     href: "/my-account",      icon: User },
   { label: "CEO",            href: "/ceo",             icon: Shield,       internalKey: "ceo" },
   { label: "Market Robot",   href: "/market",          icon: TrendingUp,   internalKey: "market" },
