@@ -26,7 +26,7 @@ type Props = {
 
 type AccessFilter = "all" | "market" | "athlete360" | "none";
 
-const TIER_ORDER = ["trial", "creator", "model", "business", "enterprise"];
+const TIER_ORDER = ["trial", "standard", "business", "enterprise"];
 
 function formatTier(value: string): string {
   return value.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());

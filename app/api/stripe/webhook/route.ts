@@ -10,13 +10,12 @@ export const runtime = "nodejs";
 async function updateOrganizationTier(orgId: string, tier: string) {
   const admin = createAdminClient();
 
-  // Define tier limits (in bytes)
+  // Define tier limits (in bytes) — must match lib/entitlements.ts
   const GB = 1073741824;
-  let storageLimitBytes = 5 * GB; // Default: Trial (5 GB)
-  if (tier === "creator") storageLimitBytes = 40 * GB;
-  else if (tier === "model") storageLimitBytes = 150 * GB;
-  else if (tier === "business") storageLimitBytes = 750 * GB;
-  else if (tier === "enterprise") storageLimitBytes = 5000 * GB;
+  let storageLimitBytes = 2 * GB; // Default: Trial (2 GB)
+  if (tier === "standard") storageLimitBytes = 25 * GB;
+  else if (tier === "business") storageLimitBytes = 100 * GB;
+  else if (tier === "enterprise") storageLimitBytes = 500 * GB;
 
   const updateTier = await admin
     .from("organizations")
@@ -71,17 +70,15 @@ async function upsertAppFlag(orgId: string, appId: "tour_builder" | "punchwalk",
     console.error(`[webhook] Failed to upsert org_feature_flags for org=${orgId} app=${appId}:`, error.message);
   }
 
-  // Update storage limit for standalone apps if they are active
-  // Assume: Standalone Tour Builder gets 5GB, Punchwalk gets 5GB.
-  // Wait, Content Studio might get 100GB later. For now we just ensure they have at least 5GB.
+  // Standalone apps get minimum 2 GB (trial baseline) — don't downgrade platform users
   if (active) {
     const GB = 1073741824;
     await admin
       .from("organizations")
-      .update({ storage_limit_bytes: 5 * GB }) // 5 GB limit for standalone
+      .update({ storage_limit_bytes: 2 * GB }) // 2 GB baseline for standalone
       .eq("id", orgId)
-      // Only update if current limit is less than 5GB to prevent downgrading platform users
-      .lt("storage_limit_bytes", 5 * GB);
+      // Only update if current limit is less than 2GB to prevent downgrading platform users
+      .lt("storage_limit_bytes", 2 * GB);
   }
 }
 

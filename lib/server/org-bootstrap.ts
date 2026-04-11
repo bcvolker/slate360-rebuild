@@ -26,11 +26,13 @@ function deriveOrgName(user: User): string {
 async function insertOrganization(user: User, orgName: string): Promise<OrgInsertResult> {
   const admin = createAdminClient();
 
+  const TRIAL_STORAGE_BYTES = 2 * 1073741824; // 2 GB — must match lib/entitlements.ts and webhook
+
   const attempts: Array<Record<string, unknown>> = [
-    { name: orgName, tier: "trial", owner_user_id: user.id },
-    { name: orgName, tier: "trial" },
-    { name: orgName, plan: "trial", owner_user_id: user.id },
-    { name: orgName, plan: "trial" },
+    { name: orgName, tier: "trial", owner_user_id: user.id, storage_limit_bytes: TRIAL_STORAGE_BYTES },
+    { name: orgName, tier: "trial", storage_limit_bytes: TRIAL_STORAGE_BYTES },
+    { name: orgName, plan: "trial", owner_user_id: user.id, storage_limit_bytes: TRIAL_STORAGE_BYTES },
+    { name: orgName, plan: "trial", storage_limit_bytes: TRIAL_STORAGE_BYTES },
     { name: orgName },
   ];
 
