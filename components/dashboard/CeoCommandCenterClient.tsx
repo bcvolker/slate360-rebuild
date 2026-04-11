@@ -29,9 +29,9 @@ const CEO_TABS: { id: CeoTab; label: string; icon: typeof Shield }[] = [
 ];
 
 const PLANS = [
-  { name: "Standard", price: "$149/mo", seats: "3 seats" },
-  { name: "Business", price: "$499/mo", seats: "15 seats" },
-  { name: "Enterprise", price: "Custom", seats: "Unlimited" },
+  { name: "Site Walk Basic", price: "$79/mo", seats: "2 seats" },
+  { name: "Field Pro Bundle", price: "$149/mo", seats: "5 seats" },
+  { name: "All Access", price: "$249/mo", seats: "10 seats" },
 ];
 
 const MOCK_METRICS = [

@@ -187,54 +187,59 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-11 (Phase 0 COMPLETE)
+### Session Handoff — 2026-04-12 (Phase 1: Modular Pricing)
 
 ### What Changed
 
-**1. Dead nav links fixed (Phase 0, Item 1)**
-- Created 4 stub "Coming Soon" pages in `app/(apps)/`: design-studio, content-studio, virtual-studio, geospatial
-- Each is a server component with auth + entitlement gating via `resolveOrgEntitlements()`
+**1. Per-app modular entitlements system** (`lib/entitlements-modular.ts` — NEW 264 lines)
+- Types: `AppId`, `AppTier`, `BundleId`, `AppLimits`, `ModularEntitlements`, `OrgAppSubscriptions`
+- `resolveModularEntitlements()` — resolves per-app subscriptions + bundles → unified entitlements
+- Bundle definitions: Field Pro ($149/mo), All Access ($249/mo)
+- Storage add-ons: +10GB/$9, +50GB/$29
+- Synergy flags: tours360InSiteWalk, designInSiteWalk, contentInSiteWalk
+- Re-exported from `lib/entitlements.ts` (182 lines) — zero breaking changes to 42 consumers
 
-**2. SlateDrop migration backfill (Phase 0, Item 2)**
-- `supabase/migrations/20260411000001_create_slatedrop_uploads.sql` — CREATE TABLE + 4 indexes + RLS (4 policies)
-- `supabase/migrations/20260411000002_create_slate_drop_links.sql` — CREATE TABLE + 3 indexes + RLS (4 policies)
-- RLS hardened: INSERT/UPDATE policies check org membership; slate_drop_links INSERT verifies file access
-- Bug fix: `app/share/[token]/page.tsx` queried `size` instead of `file_size`
+**2. Per-app Stripe billing plans** (`lib/billing-apps.ts` — 186 lines)
+- `MODULAR_APP_PLANS`: Site Walk Basic $79/Pro $129, Tours Basic $49/Pro $99, SlateDrop Pro $39, Design Studio $49/$99, Content Studio $49/$99
+- `BUNDLE_PLANS`: Field Pro $149, All Access $249
+- `STORAGE_ADDON_PLANS`: +10GB $9/mo, +50GB $29/mo
+- `CREDIT_ADDON_PACKS`: 500/$19, 2000/$49, 5000/$99
+- Helper functions: `getModularPriceId()`, `getModularPlanFromPriceId()`, `getBundleFromPriceId()`
+- All plans use `STRIPE_PRICE_*` env vars (need to be created in Stripe + set in Vercel)
 
-**3. Stripe prices + checkout enabled (Phase 0, Item 3)**
-- Replaced ALL "TBD" with real prices: Standard $149/mo ($124 annual), Business $499/mo ($416 annual)
-- Updated: `PlansClient.tsx`, `landing-data.ts`, `CeoCommandCenterClient.tsx`
-- Removed "Coming Soon" disabled buttons — checkout now triggers `handleCheckout()`
-- Updated e2e test from "expect TBD" to "expect dollar amounts"
-- Checkout flow was already wired; needs `STRIPE_PRICE_*` env vars in Vercel to go live
+**3. Credit idempotency utility** (`lib/credits/idempotency.ts` — NEW)
+- `deductCredits()` — atomic deduction with optimistic concurrency + idempotency key
+- `addCredits()` — atomic credit addition with idempotency key
+- Both prevent double-click / retry double-charges
+- Requires `credit_transactions` table (migration needed)
 
-**4. App naming frozen + Project Hub de-emphasized (Phase 0, Item 4)**
-- Canonical nav order: Dashboard → Site Walk → SlateDrop → 360 Tours → future apps → Account → Internal
-- Removed Project Hub from all 3 nav surfaces (MobileModuleBar, MobileNavSheet, QuickNav)
-- `/project-hub` route still exists and works — just not in primary navigation
-- Removed unused `FolderKanban` imports, added `MapPin` for Site Walk
+**4. Pricing UI pivot to per-app tabs** (`components/dashboard/plans/`)
+- `PlansClient.tsx` (255 lines) — tabbed UI: Site Walk | 360 Tours | Bundles | Add-ons
+- `plan-data.ts` (159 lines) — display data for all plan cards
+- Landing page pricing updated: Site Walk Basic $79, Field Pro Bundle $149, All Access $249
+- CEO Command Center updated with new plan names/prices
+
+**5. Credit packs realigned** (`lib/billing.ts`)
+- Changed from 5K/15K/50K to 500/2K/5K credits at $19/$49/$99
 
 ### What's Broken / Partially Done
+- `STRIPE_PRICE_*` env vars for modular plans need to be created in Stripe Dashboard + set in Vercel
+- `credit_transactions` table needs migration (for idempotency utility)
+- `org_app_subscriptions` DB table needs migration (for storing per-app subscriptions)
+- `app-checkout` API route needs update to handle `planKey` parameter from new UI
 - `subscription_status` column on organizations table may not exist — webhook writes it but no migration
-- `SlateLogo` component created but NOT wired into consuming pages
 - `marketing-homepage.tsx` is 1123 lines — needs extraction
 - `market_scheduler_lock` table still has no RLS
-- Portal `view_count` race condition (atomic SQL not deployed)
-- `fix/slatedrop-external-uploads` branch still needs merge
-- BUG-018: DrawingManager deprecation in LocationMap.tsx (May 2026 deadline)
 - PWA missing: service worker, Permissions-Policy camera header, offline support
-- Stripe checkout needs `STRIPE_PRICE_*` env vars set in Vercel to actually work
+- BUG-018: DrawingManager deprecation in LocationMap.tsx (May 2026 deadline)
 
 ### Context Files Updated
-- `SLATE360_MASTER_BUILD_PLAN.md`: All Phase 0 items checked off
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
-### Next Steps (ordered by priority — Phase 1 starts)
-1. **Phase 1**: Verify auth + orgs + projects + entitlements + billing end-to-end
-2. **Phase 1**: Verify app gating via `org_feature_flags`
-3. **Phase 1**: Build shared notification center
-4. **Phase 1**: Build shared activity feed
-5. **Phase 1**: Redesign dashboard → actionable command center
-6. **Phase 2**: SlateDrop hardening (quota enforcement, file validation, drag-drop, mobile UX)
-7. **Phase 3**: Site Walk backend foundation (migrations, CRUD APIs, assignment model)
-8. **Replace CEO mock metrics** with real Stripe MRR / org analytics
+### Next Steps (ordered by priority)
+1. Create Stripe products/prices for all modular plans + set env vars in Vercel
+2. Create `org_app_subscriptions` + `credit_transactions` DB migrations
+3. Update `app-checkout` route to handle modular plan keys
+4. Update Stripe webhook handler to provision per-app subscriptions
+5. Phase 2: SlateDrop hardening (quota enforcement, file validation, drag-drop, mobile UX)
+6. Phase 3: Site Walk backend foundation (migrations, CRUD APIs, assignment model)

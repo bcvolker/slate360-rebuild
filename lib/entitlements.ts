@@ -162,3 +162,21 @@ const TIER_ORDER: Tier[] = ["trial", "standard", "business", "enterprise"];
 export function tierMeetsRequirement(current: Tier, required: Tier): boolean {
   return TIER_ORDER.indexOf(current) >= TIER_ORDER.indexOf(required);
 }
+
+// ---------------------------------------------------------------------------
+// Per-App Modular Subscription Model — re-exported from dedicated module
+// ---------------------------------------------------------------------------
+export {
+  type AppId,
+  type AppTier,
+  type BundleId,
+  type AppLimits,
+  type ModularEntitlements,
+  type OrgAppSubscriptions,
+  type StorageAddonId,
+  BUNDLE_DEFINITIONS,
+  STORAGE_ADDONS,
+  ALL_APP_IDS,
+  resolveModularEntitlements,
+} from "./entitlements-modular";
+

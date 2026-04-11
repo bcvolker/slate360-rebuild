@@ -39,20 +39,20 @@ export const SUBSCRIPTION_PLANS: Record<PaidTier, SubscriptionPlan> = {
 export const CREDIT_PACKS: Record<CreditPackId, CreditPack> = {
   starter: {
     id: "starter",
-    label: "Starter Pack",
-    credits: 5000,
+    label: "500 Credits",
+    credits: 500,
     priceId: process.env.STRIPE_PRICE_CREDITS_STARTER,
   },
   growth: {
     id: "growth",
-    label: "Growth Pack",
-    credits: 15000,
+    label: "2,000 Credits",
+    credits: 2000,
     priceId: process.env.STRIPE_PRICE_CREDITS_GROWTH,
   },
   pro: {
     id: "pro",
-    label: "Pro Pack",
-    credits: 50000,
+    label: "5,000 Credits",
+    credits: 5000,
     priceId: process.env.STRIPE_PRICE_CREDITS_PRO,
   },
 };

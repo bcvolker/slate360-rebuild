@@ -2,85 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, ChevronLeft, ChevronRight, Loader2, Sparkles } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Loader2, Sparkles, Package, Plus, Zap } from "lucide-react";
 import type { Tier } from "@/lib/entitlements";
-
-const PLANS = [
-  {
-    id: "trial" as const,
-    name: "Free Trial",
-    price: "Free",
-    annualPrice: "Free",
-    desc: "Explore the full platform with starter limits.",
-    features: [
-      "Access to all apps with restrictions",
-      "Limited cloud storage",
-      "Starter processing credits",
-      "1 seat",
-      "Watermarked exports",
-    ],
-    cta: "Current Plan",
-    disabled: true,
-  },
-  {
-    id: "standard" as const,
-    name: "Standard",
-    price: "$149",
-    annualPrice: "$124",
-    desc: "For professionals who need reliable tools and storage.",
-    features: [
-      "Site Walk + 360 Tour + cloud storage",
-      "5,000 processing credits/mo",
-      "3 seats",
-      "Clean exports (no watermark)",
-      "Share links for clients",
-    ],
-    cta: "Upgrade",
-    highlight: true,
-  },
-  {
-    id: "business" as const,
-    name: "Business",
-    price: "$499",
-    annualPrice: "$416",
-    desc: "Full platform for teams and contractors.",
-    features: [
-      "Everything in Standard",
-      "100 GB cloud storage",
-      "25,000 processing credits/mo",
-      "15 seats + team management",
-      "Analytics and reporting",
-      "PDF and CSV exports",
-    ],
-    cta: "Upgrade",
-  },
-  {
-    id: "enterprise" as const,
-    name: "Enterprise",
-    price: "Custom",
-    annualPrice: "Custom",
-    desc: "For large firms, multi-team orgs, and government.",
-    features: [
-      "Everything in Business",
-      "Unlimited storage",
-      "Unlimited credits",
-      "Unlimited seats",
-      "White-label branding",
-      "SSO and enterprise security",
-      "Dedicated support SLA",
-    ],
-    cta: "Contact Us",
-    enterprise: true,
-  },
-];
-
-const FAQS = [
-  { q: "Can I switch plans anytime?", a: "Yes — upgrade or downgrade at any time. Prorated billing is handled automatically by Stripe." },
-  { q: "What are processing credits?", a: "Credits are consumed for GPU-intensive tasks like 360° stitching, photogrammetry, and rendering. Credits refresh monthly." },
-  { q: "Is the trial really free?", a: "Yes — no credit card required. Trial gives full access to all tabs with starter limits so you can explore before committing." },
-  { q: "What happens if I downgrade?", a: "Your data is never deleted. You lose access to features above your tier until you upgrade again." },
-  { q: "Do you offer nonprofit or education pricing?", a: "Yes. Contact hello@slate360.ai for nonprofit, academic, and government pricing." },
-];
+import {
+  PLAN_TABS,
+  SITE_WALK_PLANS,
+  TOURS_PLANS,
+  BUNDLE_PLANS_DISPLAY,
+  ADDONS_DISPLAY,
+  PLAN_FAQS,
+  type PlanTab,
+  type AppPlanDisplay,
+  type BundlePlanDisplay,
+} from "./plan-data";
 
 interface Props {
   currentTier: Tier;
@@ -89,22 +23,22 @@ interface Props {
 }
 
 export default function PlansClient({ currentTier, currentLabel, isAdmin }: Props) {
-  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
-  const [busyTierId, setBusyTierId] = useState<string | null>(null);
+  const [tab, setTab] = useState<PlanTab>("site_walk");
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleCheckout(tierId: string) {
+  async function handleCheckout(planKey: string) {
     if (!isAdmin) {
       setError("Only organization admins can change the subscription.");
       return;
     }
     setError(null);
-    setBusyTierId(tierId);
+    setBusyId(planKey);
     try {
-      const res = await fetch("/api/billing/checkout", {
+      const res = await fetch("/api/billing/app-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier: tierId, billingCycle: billing }),
+        body: JSON.stringify({ planKey }),
       });
       const data = await res.json();
       if (!res.ok || !data?.url) {
@@ -115,12 +49,11 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
     } catch {
       setError("Unable to start checkout. Please try again.");
     } finally {
-      setBusyTierId(null);
+      setBusyId(null);
     }
   }
 
-  const tierOrder: Tier[] = ["trial", "standard", "business", "enterprise"];
-  const currentIndex = tierOrder.indexOf(currentTier);
+  const appPlans = tab === "site_walk" ? SITE_WALK_PLANS : tab === "tours" ? TOURS_PLANS : [];
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -134,133 +67,54 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
             Pricing
           </span>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">
-            Choose your plan
+            Build your toolkit
           </h1>
-          <p className="text-zinc-400 text-sm mb-1">
-            Currently on <span className="text-white font-semibold">{currentLabel}</span>
+          <p className="text-zinc-400 text-sm">
+            Subscribe per app, or save with a bundle. Currently on{" "}
+            <span className="text-white font-semibold">{currentLabel}</span>
           </p>
         </div>
 
-        {/* Billing toggle */}
+        {/* Tab bar */}
         <div className="flex justify-center mb-8">
-          <div className="inline-flex items-center rounded-full border border-zinc-700 bg-zinc-900 p-1">
-            {(["monthly", "annual"] as const).map((b) => (
+          <div className="inline-flex items-center rounded-full border border-zinc-700 bg-zinc-900 p-1 gap-0.5 overflow-x-auto">
+            {PLAN_TABS.map((t) => (
               <button
-                key={b}
-                onClick={() => setBilling(b)}
-                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                  billing === b
-                    ? "bg-zinc-800 text-white shadow"
-                    : "text-zinc-500 hover:text-zinc-300"
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${
+                  tab === t.id ? "bg-zinc-800 text-white shadow" : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                {b === "monthly" ? "Monthly" : "Annual — save ~17%"}
+                {t.label}
               </button>
             ))}
           </div>
         </div>
 
-        {error && (
-          <p className="text-sm text-red-400 text-center mb-4">{error}</p>
-        )}
+        {error && <p className="text-sm text-red-400 text-center mb-4">{error}</p>}
       </div>
 
       {/* Plan cards */}
       <section className="px-4 sm:px-6 pb-12">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {PLANS.map((plan) => {
-            const planIndex = tierOrder.indexOf(plan.id);
-            const isCurrent = plan.id === currentTier;
-            const isDowngrade = planIndex < currentIndex && planIndex >= 0;
+        <div className="max-w-4xl mx-auto">
+          {(tab === "site_walk" || tab === "tours") && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {appPlans.map((plan) => (
+                <AppCard key={`${plan.appId}_${plan.tier}`} plan={plan} busyId={busyId} onCheckout={handleCheckout} />
+              ))}
+            </div>
+          )}
 
-            return (
-              <div
-                key={plan.id}
-                className={`rounded-2xl p-6 relative flex flex-col ${
-                  plan.highlight
-                    ? "border-2 border-orange-500 bg-zinc-900 shadow-xl shadow-orange-500/5"
-                    : "border border-zinc-800 bg-zinc-900"
-                } ${isCurrent ? "ring-2 ring-orange-500/30" : ""}`}
-              >
-                {plan.highlight && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-white bg-orange-500 flex items-center gap-1">
-                    <Sparkles size={10} /> Most popular
-                  </span>
-                )}
-                {isCurrent && (
-                  <span className="absolute -top-3 right-4 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-zinc-700 text-zinc-300">
-                    Current
-                  </span>
-                )}
-                <div className="mb-auto">
-                  <h2 className="text-lg font-black mb-1">{plan.name}</h2>
-                  <p className="text-xs text-zinc-500 mb-3">{plan.desc}</p>
-                  <div className="flex items-baseline gap-1 mb-4">
-                    {plan.price === "Free" || plan.price === "Custom" ? (
-                      <span className="text-2xl font-black text-orange-400">{plan.price}</span>
+          {tab === "bundles" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {BUNDLE_PLANS_DISPLAY.map((b) => (
+                <BundleCard key={b.bundleId} bundle={b} busyId={busyId} onCheckout={handleCheckout} />
+              ))}
+            </div>
+          )}
 
-                    ) : (
-                      <>
-                        <span className="text-3xl font-black text-orange-400">
-                          {billing === "annual" ? plan.annualPrice : plan.price}
-                        </span>
-                        <span className="text-zinc-500 text-xs">/mo</span>
-                      </>
-                    )}
-                  </div>
-                  <ul className="space-y-2 mb-5">
-                    {plan.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2 text-xs text-zinc-400">
-                        <Check size={12} className="text-orange-400 flex-shrink-0 mt-0.5" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {plan.enterprise ? (
-                  <Link
-                    href="mailto:hello@slate360.ai"
-                    className="flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:bg-zinc-800 border border-zinc-700 text-zinc-300"
-                  >
-                    Contact Us
-                  </Link>
-                ) : isCurrent ? (
-                  <button
-                    disabled
-                    className="flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold bg-zinc-800 text-zinc-500 cursor-default"
-                  >
-                    Current Plan
-                  </button>
-                ) : isDowngrade ? (
-                  <Link
-                    href="/my-account?tab=billing"
-                    className="flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:bg-zinc-800 border border-zinc-700 text-zinc-400"
-                  >
-                    Manage in Billing Portal
-                  </Link>
-                ) : (
-                  <button
-                    onClick={() => handleCheckout(plan.id)}
-                    disabled={busyTierId !== null}
-                    className={`flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100 ${
-                      plan.highlight
-                        ? "bg-orange-500 text-white"
-                        : "border border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-                    }`}
-                  >
-                    {busyTierId === plan.id ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <>
-                        {plan.cta} <ChevronRight size={14} className="ml-1" />
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            );
-          })}
+          {tab === "addons" && <AddonsSection busyId={busyId} onCheckout={handleCheckout} />}
         </div>
       </section>
 
@@ -269,7 +123,7 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl font-black mb-8 text-center">Frequently asked questions</h2>
           <div className="space-y-4">
-            {FAQS.map((faq) => (
+            {PLAN_FAQS.map((faq) => (
               <details key={faq.q} className="group border border-zinc-800 rounded-xl">
                 <summary className="flex items-center justify-between px-5 py-4 cursor-pointer text-sm font-semibold text-zinc-200 hover:text-white">
                   {faq.q}
@@ -281,6 +135,121 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+// --- Sub-components ---
+
+function AppCard({ plan, busyId, onCheckout }: { plan: AppPlanDisplay; busyId: string | null; onCheckout: (k: string) => void }) {
+  const key = `${plan.appId}_${plan.tier}`;
+  return (
+    <div className={`rounded-2xl p-6 relative flex flex-col ${plan.highlight ? "border-2 border-orange-500 bg-zinc-900 shadow-xl shadow-orange-500/5" : "border border-zinc-800 bg-zinc-900"}`}>
+      {plan.highlight && (
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-white bg-orange-500 flex items-center gap-1">
+          <Sparkles size={10} /> Recommended
+        </span>
+      )}
+      <div className="mb-auto">
+        <h2 className="text-lg font-black mb-1">{plan.name}</h2>
+        <p className="text-xs text-zinc-500 mb-3">{plan.desc}</p>
+        <div className="flex items-baseline gap-1 mb-4">
+          <span className="text-3xl font-black text-orange-400">{plan.price}</span>
+          <span className="text-zinc-500 text-xs">/mo</span>
+        </div>
+        <ul className="space-y-2 mb-5">
+          {plan.features.map((f) => (
+            <li key={f} className="flex items-start gap-2 text-xs text-zinc-400">
+              <Check size={12} className="text-orange-400 flex-shrink-0 mt-0.5" />{f}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <button onClick={() => onCheckout(key)} disabled={busyId !== null} className={`flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-[1.02] disabled:opacity-60 ${plan.highlight ? "bg-orange-500 text-white" : "border border-zinc-700 text-zinc-300 hover:bg-zinc-800"}`}>
+        {busyId === key ? <Loader2 size={14} className="animate-spin" /> : <>Subscribe <ChevronRight size={14} className="ml-1" /></>}
+      </button>
+    </div>
+  );
+}
+
+function BundleCard({ bundle, busyId, onCheckout }: { bundle: BundlePlanDisplay; busyId: string | null; onCheckout: (k: string) => void }) {
+  const key = `bundle_${bundle.bundleId}`;
+  return (
+    <div className={`rounded-2xl p-6 relative flex flex-col ${bundle.highlight ? "border-2 border-orange-500 bg-zinc-900 shadow-xl shadow-orange-500/5" : "border border-zinc-800 bg-zinc-900"}`}>
+      {bundle.highlight && (
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-white bg-orange-500 flex items-center gap-1">
+          <Package size={10} /> Best value
+        </span>
+      )}
+      <div className="mb-auto">
+        <h2 className="text-lg font-black mb-1">{bundle.name}</h2>
+        <p className="text-xs text-zinc-500 mb-3">{bundle.desc}</p>
+        <div className="flex items-baseline gap-1 mb-1">
+          <span className="text-3xl font-black text-orange-400">{bundle.price}</span>
+          <span className="text-zinc-500 text-xs">/mo</span>
+        </div>
+        <p className="text-xs text-emerald-400 font-semibold mb-4">{bundle.savings}</p>
+        <ul className="space-y-2 mb-5">
+          {bundle.features.map((f) => (
+            <li key={f} className="flex items-start gap-2 text-xs text-zinc-400">
+              <Check size={12} className="text-orange-400 flex-shrink-0 mt-0.5" />{f}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <button onClick={() => onCheckout(key)} disabled={busyId !== null} className="flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all bg-orange-500 text-white hover:opacity-90 hover:scale-[1.02] disabled:opacity-60">
+        {busyId === key ? <Loader2 size={14} className="animate-spin" /> : <>Get Bundle <ChevronRight size={14} className="ml-1" /></>}
+      </button>
+    </div>
+  );
+}
+
+function AddonsSection({ busyId, onCheckout }: { busyId: string | null; onCheckout: (k: string) => void }) {
+  return (
+    <div className="space-y-6">
+      {/* SlateDrop Pro */}
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Zap size={16} className="text-orange-400" />
+          <h3 className="text-base font-black">{ADDONS_DISPLAY.slatedropPro.name}</h3>
+          <span className="text-orange-400 font-black text-sm ml-auto">{ADDONS_DISPLAY.slatedropPro.price}/mo</span>
+        </div>
+        <p className="text-xs text-zinc-500 mb-3">{ADDONS_DISPLAY.slatedropPro.desc}</p>
+        <ul className="grid grid-cols-2 gap-2 mb-4">
+          {ADDONS_DISPLAY.slatedropPro.features.map((f) => (
+            <li key={f} className="flex items-start gap-2 text-xs text-zinc-400"><Check size={12} className="text-orange-400 flex-shrink-0 mt-0.5" />{f}</li>
+          ))}
+        </ul>
+        <button onClick={() => onCheckout("slatedrop_pro")} disabled={busyId !== null} className="px-6 py-2 rounded-full text-sm font-semibold border border-zinc-700 text-zinc-300 hover:bg-zinc-800 transition-all disabled:opacity-60">
+          {busyId === "slatedrop_pro" ? <Loader2 size={14} className="animate-spin" /> : <>Add <Plus size={12} className="ml-1" /></>}
+        </button>
+      </div>
+
+      {/* Storage add-ons */}
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+        <h3 className="text-base font-black mb-3">Extra Storage</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {ADDONS_DISPLAY.storage.map((s) => (
+            <div key={s.label} className="flex items-center justify-between border border-zinc-800 rounded-xl px-4 py-3">
+              <span className="text-sm text-zinc-300">{s.label}</span>
+              <span className="text-sm font-bold text-orange-400">{s.price}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Credit packs */}
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+        <h3 className="text-base font-black mb-3">Credit Packs</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {ADDONS_DISPLAY.credits.map((c) => (
+            <div key={c.label} className="flex items-center justify-between border border-zinc-800 rounded-xl px-4 py-3">
+              <span className="text-sm text-zinc-300">{c.label}</span>
+              <span className="text-sm font-bold text-orange-400">{c.price}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
