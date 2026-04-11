@@ -42,14 +42,18 @@ export function buildSlateDropBaseFolderTree(tier: Tier): SlateDropFolderNode[] 
     node("history", "History", { icon: "🕒", isSystem: true }),
   ];
 
+  // App-specific folders (visible when user has access to that app)
+  // Site Walk is always visible (core app, available to all tiers)
+  folders.push(node("site-walk", "Site Walk", { icon: "🚶", isSystem: true }));
+
+  if (ent.canAccessTourBuilder) {
+    folders.push(node("360-tour-builder", "360 Tour Builder", { icon: "🔭", isSystem: true }));
+  }
   if (ent.canAccessDesignStudio) {
     folders.push(node("design-studio", "Design Studio", { icon: "🎨", isSystem: true }));
   }
   if (ent.canAccessContent) {
     folders.push(node("content-studio", "Content Studio", { icon: "📝", isSystem: true }));
-  }
-  if (ent.canAccessTourBuilder) {
-    folders.push(node("360-tour-builder", "360 Tour Builder", { icon: "🔭", isSystem: true }));
   }
   if (ent.canAccessGeospatial) {
     folders.push(node("geospatial", "Geospatial & Robotics", { icon: "🛰️", isSystem: true }));

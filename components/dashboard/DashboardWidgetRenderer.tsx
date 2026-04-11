@@ -37,6 +37,7 @@ import WidgetCard from "@/components/widgets/WidgetCard";
 import SlateDropWidgetBody from "@/components/widgets/SlateDropWidgetBody";
 import CalendarWidget from "@/components/calendar/CalendarWidget";
 import ContactsWidget from "@/components/contacts/ContactsWidget";
+import { listSlateDropRootFolders } from "@/lib/slatedrop/folderTree";
 import {
   WIDGET_META,
   type WidgetSize,
@@ -52,6 +53,35 @@ import type {
   LiveWeatherState,
 } from "@/lib/types/dashboard";
 import { DEMO_WEATHER } from "@/lib/dashboard/demo-data";
+
+/* ── SlateDrop Compact Grid (shown at default/sm widget size) ── */
+
+function SlateDropCompactGrid({ tier }: { tier: Tier }) {
+  const folders = listSlateDropRootFolders(tier);
+  return (
+    <div className="h-full flex flex-col">
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 flex-1 content-start">
+        {folders.map((f) => (
+          <Link
+            key={f.id}
+            href="/slatedrop"
+            className="group flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-zinc-800/60 transition-colors"
+          >
+            <span className="text-2xl">{f.icon ?? "📁"}</span>
+            <span className="text-[10px] font-medium text-zinc-400 group-hover:text-white text-center leading-tight line-clamp-2">
+              {f.name}
+            </span>
+          </Link>
+        ))}
+      </div>
+      <div className="pt-2 border-t border-zinc-800 mt-auto">
+        <p className="text-[10px] text-zinc-500 text-center">
+          Expand widget or click &ldquo;Open Full View&rdquo; for file management
+        </p>
+      </div>
+    </div>
+  );
+}
 
 /* ── Helpers ─────────────────────────────────────────────────── */
 
@@ -191,9 +221,13 @@ export default function DashboardWidgetRenderer({
     case "slatedrop":
       return (
         <WidgetCard key={id} icon={FolderOpen} title="SlateDrop" span={span} delay={0} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}
-          action={<Link href="/slatedrop" className="text-[11px] font-bold text-[#D4AF37] hover:underline">Open →</Link>}
+          action={<Link href="/slatedrop" className="text-[11px] font-bold text-[#D4AF37] hover:underline">Open Full View →</Link>}
         >
-          <SlateDropWidgetBody user={ctx.user} tier={ctx.tier} />
+          {isExpanded ? (
+            <SlateDropWidgetBody user={ctx.user} tier={ctx.tier} />
+          ) : (
+            <SlateDropCompactGrid tier={ctx.tier} />
+          )}
         </WidgetCard>
       );
 
