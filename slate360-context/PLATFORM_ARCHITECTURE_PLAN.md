@@ -216,6 +216,30 @@ The **Project Hub** (`/project-hub`) is the subscriber's control center for each
 
 **Note:** 9 of 14 existing tool pages exceed the 300-line limit and need component extraction before adding new features.
 
+### Project Tools Quality Standard (CRITICAL)
+**The existing project tools (budgets, schedules, RFIs, punch lists, drawings, etc.) were built in an earlier phase and are NOT production-ready.** They need to be significantly reimagined, improved, and refined before launch.
+
+**Quality bar:** These tools must compete with industry leaders like **Procore**. That means:
+- Research industry best practices for each tool before rebuilding
+- Simple and easy to use — no unnecessary complexity
+- Tremendously valuable — users should prefer Slate360 over spreadsheets/paper
+- Mobile-first — every tool must work perfectly on a phone in the field
+- Fast — no loading spinners for basic operations
+
+**Import/Export flexibility across the entire ecosystem:**
+| Capability | Examples |
+|---|---|
+| **Import** | Upload existing budgets (CSV, Excel), import schedules (CSV, MS Project export), upload drawing sets (PDF, DWG), import contact lists |
+| **Export** | Download budgets as CSV/Excel/PDF, export schedules, export reports, bulk export project data |
+| **Interoperability** | Users who already have their own budgets/schedules/documents should be able to bring them in — Slate360 doesn't force its own format |
+| **Flexibility** | Some users will build budgets in Slate360; others will upload their own. Both workflows must be first-class. |
+
+**Rebuild approach:**
+- Each tool gets a fresh design pass when it becomes relevant to the current app build
+- Site Walk build will trigger improvements to: punch lists, photos, daily logs, observations
+- Budget and schedule tools get their pass when project management features are prioritized
+- All tools share consistent UI patterns (table views, form inputs, filters, sorting, search)
+
 ### Project Lifecycle
 ```
 Create Project → Enter Details → Work in Apps → Generate Deliverables → Share/Export
@@ -360,6 +384,16 @@ SlateDrop/
 ├── Shared With Me/              ← files/folders shared with this user
 └── Uploads/                     ← quick-dump area for field uploads
 ```
+
+### Shared With Me (Decision #11 — CONFIRMED: Both cross-org + intra-org)
+Shows ALL files/folders shared with the user, regardless of source — both from within their own organization and from external organizations.
+
+**Sorting and filtering options:**
+- Sort by: date shared, source (who shared it), project, file type
+- Filter by: intra-org vs. cross-org, project, file type, date range
+- Group by: source organization / person
+- Each item clearly labeled with source: "From ABC Construction (Project: Building A)" or "From John (your team)"
+- Search within shared items
 
 ### Multiple Access Points (same underlying data)
 | Where | What they see |
@@ -541,7 +575,7 @@ Subscribing to additional apps unlocks richer capabilities within each app. This
 | 8 | Offline mode priority for beta? | **Confirmed** | Full offline from beta. Auto-save to IndexedDB, auto-sync when online. Upfront permissions onboarding with clear explanations. Degraded mode if permissions denied. |
 | 9 | Real-time sync priority for beta? | **Confirmed** | YES — real-time from beta. Supabase Realtime for instant notifications + auto-refresh. Central feature to test. |
 | 10 | External collaborators on drawings: full set or assigned sheets? | **Confirmed** | Subscriber controls this. They choose which sheets/drawings each contributor or external collaborator can see. Project Hub is the central place for all project management, contributor invites, and permission scoping. Much of Project Hub already built — needs contributor + deliverable extensions. |
-| 11 | Shared With Me: cross-org, intra-org, or both? | **TBD** | — |
+| 11 | Shared With Me: cross-org, intra-org, or both? | **Confirmed** | Both — unified view with sorting/filtering. Users can sort by source, date, project, type. Group by org or person. Clear labeling of where each shared item came from. |
 | 12 | Enterprise domain approach (custom domain vs. subdomain vs. branding-only)? | **Deferred to Phase 2** | Schema designed now to avoid rework |
 | 13 | App-specific sub-folders within projects? | **Deferred to after app build** | Provisioning system supports dynamic folders |
 | 14 | Contributor seat counts per tier? | **TBD** | Suggested: 0 / 3 / 10 / 25 / unlimited per tier |
