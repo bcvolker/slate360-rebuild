@@ -8,14 +8,14 @@ import type { Tier } from "@/lib/entitlements";
 const PLANS = [
   {
     id: "trial" as const,
-    name: "Trial",
+    name: "Free Trial",
     price: "Free",
     annualPrice: "Free",
     desc: "Explore the full platform with starter limits.",
     features: [
-      "All tabs unlocked with restrictions",
-      "2 GB SlateDrop storage",
-      "250 processing credits",
+      "Access to all apps with restrictions",
+      "Limited cloud storage",
+      "Starter processing credits",
       "1 seat",
       "Watermarked exports",
     ],
@@ -25,35 +25,34 @@ const PLANS = [
   {
     id: "standard" as const,
     name: "Standard",
-    price: "$149",
-    annualPrice: "$124",
-    desc: "For professionals who need reliable storage and tools.",
+    price: "TBD",
+    annualPrice: "TBD",
+    desc: "For professionals who need reliable tools and storage.",
     features: [
-      "Project Hub + SlateDrop + Tour Builder",
-      "25 GB SlateDrop storage",
-      "5,000 processing credits/mo",
-      "3 seats",
+      "Site Walk + 360 Tour + cloud storage",
+      "Expanded processing credits/mo",
+      "Multiple seats",
       "Clean exports (no watermark)",
       "Share links for clients",
     ],
-    cta: "Subscribe",
+    cta: "Coming Soon",
     highlight: true,
   },
   {
     id: "business" as const,
     name: "Business",
-    price: "$499",
-    annualPrice: "$416",
+    price: "TBD",
+    annualPrice: "TBD",
     desc: "Full platform for teams and contractors.",
     features: [
       "Everything in Standard",
-      "100 GB SlateDrop storage",
-      "25,000 processing credits/mo",
-      "15 seats with seat management",
+      "Larger cloud storage",
+      "Higher processing credits/mo",
+      "Team seat management",
       "Analytics and reporting",
       "PDF and CSV exports",
     ],
-    cta: "Subscribe",
+    cta: "Coming Soon",
   },
   {
     id: "enterprise" as const,
@@ -63,8 +62,8 @@ const PLANS = [
     desc: "For large firms, multi-team orgs, and government.",
     features: [
       "Everything in Business",
-      "500 GB+ storage",
-      "100,000+ credits",
+      "Unlimited storage",
+      "Unlimited credits",
       "Unlimited seats",
       "White-label branding",
       "SSO and enterprise security",
@@ -141,7 +140,7 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
             Currently on <span className="text-white font-semibold">{currentLabel}</span>
           </p>
           <p className="text-zinc-500 text-xs">
-            Credits are generous. Storage is real. No surprise bills.
+            Pricing is being finalized. All plans will be available soon.
           </p>
         </div>
 
@@ -202,6 +201,8 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
                   <div className="flex items-baseline gap-1 mb-4">
                     {plan.price === "Free" || plan.price === "Custom" ? (
                       <span className="text-2xl font-black text-orange-400">{plan.price}</span>
+                    ) : plan.price === "TBD" ? (
+                      <span className="text-2xl font-black text-orange-400">Pricing TBD</span>
                     ) : (
                       <>
                         <span className="text-3xl font-black text-orange-400">
@@ -234,6 +235,13 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
                     className="flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold bg-zinc-800 text-zinc-500 cursor-default"
                   >
                     Current Plan
+                  </button>
+                ) : plan.price === "TBD" ? (
+                  <button
+                    disabled
+                    className="flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                  >
+                    Coming Soon
                   </button>
                 ) : isDowngrade ? (
                   <Link

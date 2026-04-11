@@ -191,73 +191,59 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-11 (Billing Sync + Cost-Optimized Tier Limits)
+### Session Handoff — 2026-04-11 (Pipeline Features + Audit Fixes)
 
 ### What Changed
 
-**Commit `dc60f2c` — 4-tier billing sync: Standard Stripe product, cost-optimized limits, webhook fix**
+**Commit `ecf63ac` — /plans pricing page, seat enforcement, past_due handling, fix dead links/placeholders**
 
-**1. Stripe Product/Price Changes**
-- Created product `Slate360 Standard` (prod_UJZSXPauJW6Qmh) — $149/mo, $1,490/yr
-- Monthly price: `price_1TKwK4JCrjGbeotHIM4i3QUH`
-- Annual price: `price_1TKwK4JCrjGbeotHwlMNaHmM`
-- Archived: `Slate360 Creator` (prod_TYfm7ee4iEJ9W5), `Slate360 Model` (prod_TYfpYsfCPrGT23)
-- Active products now: Standard, Business, PunchWalk ($49/mo), Tour Builder ($49/mo)
+**1. /plans Pricing Page (NEW)**
+- `app/(dashboard)/plans/page.tsx` — server component, resolves org context
+- `components/dashboard/plans/PlansClient.tsx` (289 lines) — 4-tier pricing cards, monthly/annual toggle (17% annual discount), Stripe checkout integration via `/api/billing/checkout`, FAQ section, dark theme (bg-zinc-950 + orange accents)
 
-**2. Vercel Env Vars Updated**
-- Added: `STRIPE_PRICE_STANDARD_MONTHLY`, `STRIPE_PRICE_STANDARD_ANNUAL`
-- Removed: `STRIPE_PRICE_CREATOR_MONTHLY`, `STRIPE_PRICE_CREATOR_ANNUAL`, `STRIPE_PRICE_MODEL_MONTHLY`, `STRIPE_PRICE_MODEL_ANNUAL`
+**2. Seat Enforcement API (NEW)**
+- `app/api/org/members/invite/route.ts` (73 lines) — POST endpoint
+- Flow: validate admin → check maxSeats via getEntitlements → count current members → verify target user exists → check duplicates → insert member
+- Returns friendly error messages for all failure cases
 
-**3. Critical Webhook Bug Fixed**
-- `app/api/stripe/webhook/route.ts`: `updateOrganizationTier()` was checking for `"creator"`/`"model"` tier names
-- The pipeline sends `"standard"` but the function had no match — fell through to 5GB trial default
-- Fixed: now checks `"standard"` (25GB), `"business"` (100GB), `"enterprise"` (500GB)
+**3. Webhook past_due Handling (MODIFIED)**
+- `app/api/stripe/webhook/route.ts` — 3-state handling:
+  - `past_due` → marks `subscription_status: "past_due"` but keeps current tier (grace period)
+  - `unpaid`/`canceled`/`incomplete_expired` → hard downgrade to trial + record `downgraded_at`
+  - `active` → clears `subscription_status` to "active" and nulls `downgraded_at`
+- NOTE: requires `subscription_status` column on organizations table (may need migration)
 
-**4. Cost-Optimized Tier Limits (approved for 93%+ margin at 2000 users)**
-- `lib/entitlements.ts`: Trial: 2GB/250cr/1 seat, Standard: 25GB/5Kcr/3 seats, Business: 100GB/25Kcr/15 seats, Enterprise: 500GB/100Kcr/999 seats
-- `lib/server/org-bootstrap.ts`: new orgs get `storage_limit_bytes = 2GB` on creation
-- `components/dashboard/ceo/CeoSubscriberDirectory.tsx`: TIER_ORDER updated to 4-tier
+**4. Dead Links & Placeholders Fixed**
+- `components/home/LandingFooter.tsx` — all `href="#"` replaced with real routes, removed dead "Security" link, removed unused Layers import
+- `components/home/LandingHeader.tsx` — "Resources" dead link → "Contact" mailto:hello@slate360.ai
+- `components/home/landing-data.ts` — FOOTER_LINKS restructured from `Record<string, string[]>` to `Record<string, { label: string; href: string }[]>`
+- `app/api/analytics/export/route.ts` — mock download URL replaced with 501 "not yet available"
 
-**5. .env Updated**
-- Replaced `STRIPE_PRICE_CREATOR_*` and `STRIPE_PRICE_MODEL_*` with `STRIPE_PRICE_STANDARD_MONTHLY` and `STRIPE_PRICE_STANDARD_ANNUAL`
+**5. Market Robot Placeholders Fixed**
+- `components/dashboard/market/MarketClient.tsx` — default tab "under construction" div → proper empty state with "Go to Command Center" button; console.log stub → no-op
+- `components/dashboard/market/MarketRobotWorkspace.tsx` — placeholder div replaced with actual `<MarketMarketsSection>` component properly wired
 
-### Infrastructure Status (verified this session)
-- **Git**: ✅ push works (commit dc60f2c pushed)
-- **Vercel**: ✅ 76 env vars, Stripe vars synced to 4-tier model
-- **AWS S3**: ✅ bucket `slate360-storage`, 107 objects, 0.289 GB
-- **Stripe**: ✅ Standard product created, Creator/Model archived, 3 active platform products
-- **Supabase**: ✅ API access works, Free plan (recommend upgrade to Pro at scale)
-
-### Cost Model Summary
-- At 2,000 users (50% trial, 30% standard, 15% business, 3% enterprise): ~$301K/mo revenue
-- Infrastructure cost: ~$19K/mo (S3 dominant at ~$10K, Stripe fees ~$9K)
-- **Projected margin: 93.6%**
-
-### Subscription Pipeline Audit Findings
-- ✅ Full signup → email confirmation → org creation → Stripe checkout → webhook → tier update pipeline is wired
-- ✅ Deduplication on webhook events, atomic credit adds, legacy tier mapping
-- ⚠️ No dedicated `/plans` page (old one deprecated) — users upgrade from signup page or billing portal
-- ⚠️ No seat enforcement — Trial org with maxSeats:1 can still have multiple members join
-- ⚠️ No `past_due` handling — Stripe subscription goes through past_due → unpaid → canceled; org stays at paid tier until `deleted` event
-- ⚠️ Enterprise is CEO-only or manual DB insert — no self-serve enterprise checkout
+**6. Integrations Page Overhauled**
+- `app/(dashboard)/integrations/ClientPage.tsx` — fake connect toggle buttons → "Coming Soon" badges, enforced dark theme, removed unused state/imports/QUICK_NAV
 
 ### What's Broken / Partially Done
+- `subscription_status` column on organizations table may not exist — webhook writes it but no migration created
 - `SlateLogo` component created but NOT wired into consuming pages
 - `marketing-homepage.tsx` is 1123 lines — needs extraction
 - `market_scheduler_lock` table still has no RLS (pre-existing)
-- Portal view_count race condition (atomic SQL not deployed, pre-existing)
+- Portal `view_count` race condition (atomic SQL not deployed, pre-existing)
 - `fix/slatedrop-external-uploads` branch still needs merge (security patch, pre-existing)
-- Supabase email templates still use purple gradients (pre-existing)
-- No dedicated `/plans` pricing page for post-signup upgrade flow
+- No self-serve enterprise checkout flow (CEO-only or manual DB insert)
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority)
-1. **Create `/plans` pricing page** — users need a way to upgrade post-signup
-2. **Add seat enforcement** — block org member invites when at maxSeats
-3. **Handle `past_due` subscription status** in webhook (grace period or immediate downgrade)
-4. **Wire `<SlateLogo />` into all pages** still using direct `<img>` logo tags
+1. **Supabase migration**: Add `subscription_status` and `downgraded_at` columns to organizations table
+2. **Wire `<SlateLogo />`** into all pages still using direct `<img>` logo tags
+3. **Extract `marketing-homepage.tsx`** — 1123 lines, well over 300 limit
+4. **Enterprise self-serve flow** — contact form or Stripe custom pricing link
+5. **Smoke test full pipeline**: signup → checkout → webhook → /plans shows correct tier
 5. **Extract `marketing-homepage.tsx`** into sub-300-line components
 6. **Begin Site Walk Phase 1** — create migrations, session CRUD APIs
 7. **Merge `fix/slatedrop-external-uploads`** → main (security patch)
