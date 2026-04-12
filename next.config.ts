@@ -1,5 +1,12 @@
 import { withSentryConfig } from "@sentry/nextjs";
+import withSerwistInit from "@serwist/next";
 import type { NextConfig } from "next";
+
+const withSerwist = withSerwistInit({
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  disable: process.env.NODE_ENV === "development",
+});
 
 const nextConfig: NextConfig = {
   eslint: { ignoreDuringBuilds: false },
@@ -73,7 +80,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withSerwist(nextConfig), {
   // Only upload source maps when SENTRY_AUTH_TOKEN is set (CI/deploy)
   silent: !process.env.SENTRY_AUTH_TOKEN,
   disableLogger: true,

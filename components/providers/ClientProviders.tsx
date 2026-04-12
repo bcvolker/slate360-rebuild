@@ -28,11 +28,35 @@ const PostHogInit = dynamic(
   { ssr: false, loading: () => null }
 );
 
+const SWRegistrar = dynamic(
+  () => import("@/components/providers/SWRegistrar").then((m) => ({
+    default: m.SWRegistrar,
+  })),
+  { ssr: false, loading: () => null }
+);
+
+const OfflineBanner = dynamic(
+  () => import("@/components/shared/OfflineBanner").then((m) => ({
+    default: m.OfflineBanner,
+  })),
+  { ssr: false, loading: () => null }
+);
+
+const InstallBanner = dynamic(
+  () => import("@/components/shared/InstallBanner").then((m) => ({
+    default: m.InstallBanner,
+  })),
+  { ssr: false, loading: () => null }
+);
+
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <>
       <ThemeApplier />
       <PostHogInit />
+      <SWRegistrar />
+      <OfflineBanner />
+      <InstallBanner />
       {children}
     </>
   );

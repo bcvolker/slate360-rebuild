@@ -5,6 +5,7 @@ import { Camera, RotateCcw, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCamera } from "@/lib/hooks/useCamera";
 import { useGeolocation } from "@/lib/hooks/useGeolocation";
+import { useWakeLock } from "@/lib/hooks/useWakeLock";
 import type { SiteWalkItem } from "@/lib/types/site-walk";
 
 type Props = {
@@ -16,6 +17,7 @@ export function CaptureCamera({ sessionId, onItemCaptured }: Props) {
   const { videoRef, isStreaming, error, startCamera, stopCamera, capturePhoto } =
     useCamera();
   const { position } = useGeolocation();
+  const { request: requestWakeLock, release: releaseWakeLock } = useWakeLock();
   const [saving, setSaving] = useState(false);
   const [lastCapture, setLastCapture] = useState<string | null>(null);
   const mountedRef = useRef(true);
@@ -23,11 +25,13 @@ export function CaptureCamera({ sessionId, onItemCaptured }: Props) {
   useEffect(() => {
     mountedRef.current = true;
     startCamera();
+    requestWakeLock();
     return () => {
       mountedRef.current = false;
       stopCamera();
+      releaseWakeLock();
     };
-  }, [startCamera, stopCamera]);
+  }, [startCamera, stopCamera, requestWakeLock, releaseWakeLock]);
 
   async function handleCapture() {
     const result = capturePhoto();
@@ -36,6 +40,30 @@ export function CaptureCamera({ sessionId, onItemCaptured }: Props) {
     setSaving(true);
 
     try {
+      // 1. Get presigned upload URL
+      const uploadRes = await fetch("/api/site-walk/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: `photo-${Date.now()}.jpg`,
+          contentType: "image/jpeg",
+          sessionId,
+        }),
+      });
+
+      let s3Key: string | undefined;
+      if (uploadRes.ok) {
+        const { uploadUrl, s3Key: key } = await uploadRes.json();
+        // 2. Upload blob directly to S3
+        const putRes = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": "image/jpeg" },
+          body: result.blob,
+        });
+        if (putRes.ok) s3Key = key;
+      }
+
+      // 3. Create item with S3 reference
       const res = await fetch("/api/site-walk/items", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -48,6 +76,7 @@ export function CaptureCamera({ sessionId, onItemCaptured }: Props) {
           location_label: position
             ? `${position.latitude.toFixed(5)}, ${position.longitude.toFixed(5)}`
             : undefined,
+          photo_s3_key: s3Key,
           metadata: {
             width: result.width,
             height: result.height,
