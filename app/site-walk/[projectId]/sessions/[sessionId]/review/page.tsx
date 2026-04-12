@@ -40,6 +40,11 @@ export default async function SessionReviewPage({ params }: Props) {
     .eq("session_id", sessionId)
     .order("created_at", { ascending: false });
 
+  const { data: profiles } = await admin
+    .from("profiles")
+    .select("id, display_name")
+    .eq("org_id", orgId);
+
   return (
     <SessionReviewClient
       projectId={projectId}
@@ -47,6 +52,8 @@ export default async function SessionReviewPage({ params }: Props) {
       session={session}
       items={items ?? []}
       deliverables={deliverables ?? []}
+      userId={user.id}
+      orgMembers={(profiles ?? []).map((p) => ({ id: p.id, display_name: p.display_name ?? "Unknown" }))}
     />
   );
 }

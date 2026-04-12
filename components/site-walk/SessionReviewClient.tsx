@@ -15,6 +15,8 @@ import {
 import { SiteWalkHeader } from "@/components/site-walk/SiteWalkNav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CommentThread } from "@/components/site-walk/CommentThread";
+import { AssignmentPanel } from "@/components/site-walk/AssignmentPanel";
 import type {
   SiteWalkSession,
   SiteWalkItem,
@@ -36,6 +38,8 @@ type Props = {
   session: SiteWalkSession;
   items: SiteWalkItem[];
   deliverables: { id: string; title: string; deliverable_type: string; status: string; created_at: string }[];
+  userId: string;
+  orgMembers: { id: string; display_name: string }[];
 };
 
 export function SessionReviewClient({
@@ -44,9 +48,12 @@ export function SessionReviewClient({
   session,
   items,
   deliverables,
+  userId,
+  orgMembers,
 }: Props) {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
+  const [coordTab, setCoordTab] = useState<"comments" | "assignments">("comments");
 
   const photoCount = items.filter((i) => i.item_type === "photo" || i.item_type === "video").length;
   const noteCount = items.filter((i) => i.item_type === "text_note" || i.item_type === "voice_note").length;
@@ -169,6 +176,39 @@ export function SessionReviewClient({
                 </Link>
               ))}
             </div>
+          )}
+        </div>
+
+        {/* Field ↔ Office Coordination */}
+        <div>
+          <div className="mb-3 flex gap-2">
+            <Button
+              size="sm"
+              variant={coordTab === "comments" ? "default" : "outline"}
+              onClick={() => setCoordTab("comments")}
+            >
+              Comments
+            </Button>
+            <Button
+              size="sm"
+              variant={coordTab === "assignments" ? "default" : "outline"}
+              onClick={() => setCoordTab("assignments")}
+            >
+              Assignments
+            </Button>
+          </div>
+          {coordTab === "comments" ? (
+            <CommentThread
+              sessionId={session.id}
+              isField={false}
+              currentUserId={userId}
+            />
+          ) : (
+            <AssignmentPanel
+              sessionId={session.id}
+              currentUserId={userId}
+              orgMembers={orgMembers}
+            />
           )}
         </div>
 
