@@ -187,11 +187,34 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-12 (Phase 5: Field ↔ Office Coordination)
+### Session Handoff — 2026-04-12 (Phase 6: Site Walk Operations Completeness)
 
 ### What Changed
 
-**Phase 5 — Field ↔ Office Coordination** (commit 0c9d8e5, pushed)
+**Gemini feedback (4th round):** Same pattern — all commits verified on disk (0c9d8e5, aa4b64b in git log), migration 000007 exists (4827 bytes), zero `any` in app-checkout (exit code 1). Gemini's claimed "corrective" files (20240325000000, 20240326000000) do not exist on disk. Gemini is reading a stale snapshot.
+
+**Phase 6 — Site Walk Operations Completeness** (commit a6c556d, pushed)
+
+Migrations (both applied to Supabase):
+- `20260412000008_item_workflows_signatures.sql`: Added to site_walk_items: workflow_type (general/punch/inspection/proposal), item_status (open/in_progress/resolved/verified/closed/na), priority, assigned_to, due_date, resolved_by/at, verified_by/at, cost_estimate, manpower_hours, before_item_id. Added to site_walk_sessions: client_signature_s3_key, inspector_signature_s3_key, signed_at, signed_by.
+- `20260412000009_plans_pins_templates.sql`: Created site_walk_plans (floor plan images), site_walk_pins (x/y% positioned pins on plans), site_walk_templates (reusable checklists with typed entries). All with RLS.
+
+New API routes (12):
+- `items/[id]` PATCH extended with all workflow fields
+- `items/[id]/resolve/route.ts`, `items/[id]/verify/route.ts` — status lifecycle
+- `items/bulk/route.ts` — bulk update up to 100 items
+- `sessions/[id]/sign/route.ts` — capture signatures
+- `plans/route.ts` (GET/POST), `plans/[id]/route.ts` (DELETE)
+- `pins/route.ts` (GET/POST), `pins/[id]/route.ts` (DELETE)
+- `templates/route.ts` (GET/POST), `templates/[id]/route.ts` (PATCH/DELETE)
+- `templates/[id]/apply/route.ts` — apply template to session (creates items)
+
+New UI components (3):
+- `WorkflowItemCard.tsx` (190 lines) — status/priority dropdowns, resolve/verify buttons, cost/assignee/due-date metadata
+- `PlanViewer.tsx` (159 lines) — image overlay with status-colored pins, click-to-place, pin tooltips
+- `TemplateManager.tsx` (196 lines) — create/list/apply/delete templates with checklist builder
+
+Types extracted: `lib/types/site-walk-ops.ts` (97 lines) for Plan/Pin/Template types, re-exported from `site-walk.ts` (250 lines)
 
 Migration `20260412000007_site_walk_comments_assignments.sql` — applied to Supabase:
 - `site_walk_comments` table: threaded (parent_id), session/item-level, `is_field` flag, `read_by uuid[]` for read receipts, `is_escalation`, org RLS
@@ -234,10 +257,10 @@ New route: `/site-walk/board` — board page for leadership overview
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority)
-1. Phase 4b: wire CaptureCamera → SlateDrop upload (so photos are persisted to S3, not just metadata)
-2. Phase 4b: voice note capture + browser speech-to-text
-3. Generate PWA icons (192x192 + 512x512 PNG) and place in public/uploads/
-4. Phase 6: per master build plan (deliverable generation / PDF export)
+1. Phase 7: Deliverable generation — report templates, PDF export, branding, sharing
+2. Phase 4b: wire CaptureCamera → SlateDrop upload (photos to S3)
+3. Phase 4b: voice note capture + browser speech-to-text
+4. Generate PWA icons (192x192 + 512x512 PNG) and place in public/uploads/
 5. Create Stripe products/prices for all modular plans
 6. Verify `subscription_status` column on organizations table
 4. Verify `subscription_status` column exists on organizations table (add migration if not)
