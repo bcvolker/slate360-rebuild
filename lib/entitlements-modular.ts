@@ -54,12 +54,12 @@ export interface ModularEntitlements {
 /** Per-app tier definitions: [basic, pro] limits. Trial is separate. */
 const APP_TIER_LIMITS: Record<AppId, Record<Exclude<AppTier, "none">, Omit<AppLimits, "active" | "tier">>> = {
   site_walk: {
-    basic: { storageGB: 5, creditsPerMonth: 200, seats: 2, monthlyPrice: 79 },
-    pro:   { storageGB: 25, creditsPerMonth: 750, seats: 5, monthlyPrice: 129 },
+    basic: { storageGB: 5, creditsPerMonth: 200, seats: 1, monthlyPrice: 79 },
+    pro:   { storageGB: 25, creditsPerMonth: 750, seats: 1, monthlyPrice: 129 },
   },
   tours: {
     basic: { storageGB: 3, creditsPerMonth: 100, seats: 1, monthlyPrice: 49 },
-    pro:   { storageGB: 15, creditsPerMonth: 400, seats: 3, monthlyPrice: 99 },
+    pro:   { storageGB: 15, creditsPerMonth: 400, seats: 1, monthlyPrice: 99 },
   },
   slatedrop: {
     basic: { storageGB: 10, creditsPerMonth: 0, seats: 1, monthlyPrice: 0 },
@@ -67,11 +67,11 @@ const APP_TIER_LIMITS: Record<AppId, Record<Exclude<AppTier, "none">, Omit<AppLi
   },
   design_studio: {
     basic: { storageGB: 5, creditsPerMonth: 100, seats: 1, monthlyPrice: 49 },
-    pro:   { storageGB: 25, creditsPerMonth: 400, seats: 3, monthlyPrice: 99 },
+    pro:   { storageGB: 25, creditsPerMonth: 400, seats: 1, monthlyPrice: 99 },
   },
   content_studio: {
     basic: { storageGB: 5, creditsPerMonth: 150, seats: 1, monthlyPrice: 49 },
-    pro:   { storageGB: 25, creditsPerMonth: 500, seats: 3, monthlyPrice: 99 },
+    pro:   { storageGB: 25, creditsPerMonth: 500, seats: 1, monthlyPrice: 99 },
   },
 };
 
@@ -100,7 +100,7 @@ export const BUNDLE_DEFINITIONS: Record<BundleId, {
     apps: { site_walk: "pro", tours: "pro" },
     storageGB: 30,
     creditsPerMonth: 1000,
-    seats: 5,
+    seats: 1,
     monthlyPrice: 149,
     savings: "Save $79/mo vs separate",
   },
@@ -110,7 +110,7 @@ export const BUNDLE_DEFINITIONS: Record<BundleId, {
     apps: { site_walk: "pro", tours: "pro", design_studio: "pro", content_studio: "pro" },
     storageGB: 75,
     creditsPerMonth: 2500,
-    seats: 10,
+    seats: 1,
     monthlyPrice: 249,
     savings: "Save $177/mo vs separate",
   },

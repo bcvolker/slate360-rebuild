@@ -39,7 +39,7 @@ export const SITE_WALK_PLANS: AppPlanDisplay[] = [
     features: [
       "5 GB cloud storage",
       "200 processing credits/mo",
-      "2 seats",
+      "Single license",
       "Clean exports (no watermark)",
       "SlateDrop file management",
       "Share links for clients",
@@ -54,7 +54,7 @@ export const SITE_WALK_PLANS: AppPlanDisplay[] = [
     features: [
       "25 GB cloud storage",
       "750 processing credits/mo",
-      "5 seats + team management",
+      "Single license",
       "Everything in Basic",
       "Advanced reporting",
       "Priority processing",
@@ -88,7 +88,7 @@ export const TOURS_PLANS: AppPlanDisplay[] = [
     features: [
       "15 GB cloud storage",
       "400 processing credits/mo",
-      "3 seats",
+      "Single license",
       "Everything in Basic",
       "Custom branding on tours",
       "Analytics dashboard",
@@ -107,7 +107,7 @@ export const BUNDLE_PLANS_DISPLAY: BundlePlanDisplay[] = [
     features: [
       "30 GB cloud storage",
       "1,000 processing credits/mo",
-      "5 seats + team management",
+      "Single license",
       "360° content in Site Walk deliverables",
       "All Site Walk Pro features",
       "All 360 Tours Pro features",
@@ -123,7 +123,7 @@ export const BUNDLE_PLANS_DISPLAY: BundlePlanDisplay[] = [
     features: [
       "75 GB cloud storage",
       "2,500 processing credits/mo",
-      "10 seats + team management",
+      "Single license",
       "Full cross-app synergy",
       "All current and future Pro features",
       "Priority support",
