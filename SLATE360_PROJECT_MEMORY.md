@@ -187,42 +187,41 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-12 (Phase 11: Content Studio Foundation)
+### Session Handoff — 2026-04-12 (Phase 12: App Store Packaging)
 
 ### What Changed
 
 **Phase 11 — Content Studio Foundation** (commit 2410a48, pushed)
+- Billing/auth: `content_studio` added to StandaloneAppId, entitlements, withAppAuth
+- Migration 20260412000012 APPLIED: `media_collections` + `media_assets` tables, RLS, triggers
+- Types: `lib/types/content-studio.ts`, Queries: `lib/content-studio/queries.ts`
+- 4 API routes: collections CRUD, assets CRUD (all `withAppAuth("content_studio")`)
+- 4 UI components: ContentStudioShell, AssetListClient, AssetEditorClient, AssetSettingsPanel
+- Wired `app/(apps)/content-studio/page.tsx` — replaced "Coming Soon" with real shell
 
-Billing/auth wiring:
-- `lib/billing-apps.ts` — Added `content_studio` to `StandaloneAppId`, $49/mo plan
-- `lib/entitlements.ts` — Added `canAccessStandaloneContentStudio`, `standalone_content_studio` flag
-- `lib/server/org-feature-flags.ts` — Added `standalone_content_studio` to flags + entitlement key map
-- `lib/server/api-auth.ts` — Added `content_studio` to `withAppAuth` map
+**Phase 12 — App Store Packaging** (commit 2820fa6, pushed)
 
-Migration (APPLIED):
-- `20260412000012_content_studio_foundation.sql` — `media_collections` table (id, org_id, project_id, created_by, title, description, cover_path), `media_assets` table (id, org_id, collection_id, uploaded_by, title, s3_key, content_type, file_size_bytes, media_type, width, height, duration_secs, thumbnail_path, tags, metadata), `standalone_content_studio` column on org_feature_flags, RLS policies for both tables, updated_at triggers
+Account deletion (Apple requirement):
+- `app/api/account/delete/route.ts` — POST with "DELETE MY ACCOUNT" confirmation, cancels Stripe subs, cleans S3 if sole org member, deletes org or removes membership, deletes Supabase auth user
+- `components/settings/AccountSettingsClient.tsx` — Account info display + danger zone deletion flow with confirmation
+- `app/(dashboard)/settings/page.tsx` — Server component settings page using `resolveServerOrgContext`
 
-Types + queries:
-- `lib/types/content-studio.ts` — MediaAsset, MediaCollection, MediaType
-- `lib/content-studio/queries.ts` — getCollections, getCollectionById, createCollection, updateCollection, deleteCollection, getAssets, getAssetById, createAsset, updateAsset, deleteAsset, collectCollectionAssets
+Well-known routes (TWA + Universal Links):
+- `app/.well-known/assetlinks.json/route.ts` — Android Digital Asset Links (reads `ANDROID_PACKAGE_NAME` + `ANDROID_SHA256_FINGERPRINT` env vars, defaults to placeholder)
+- `app/.well-known/apple-app-site-association/route.ts` — Apple AASA for Universal Links (reads `APPLE_APP_ID` env var)
 
-API routes (4 endpoints, all `withAppAuth("content_studio")`):
-- `app/api/content-studio/collections/route.ts` — GET (list by projectId) + POST (create)
-- `app/api/content-studio/collections/[collectionId]/route.ts` — GET + PATCH + DELETE (with S3 cleanup + quota recovery)
-- `app/api/content-studio/assets/route.ts` — GET (list, filter by collectionId/mediaType) + POST (create + quota increment)
-- `app/api/content-studio/assets/[assetId]/route.ts` — GET + PATCH + DELETE (S3 cleanup + quota recovery)
+Manifest improvements:
+- `app/manifest.ts` — Added `id` field, maskable icon, screenshots (wide + narrow), Dashboard shortcut
+- `app/layout.tsx` — Added `apple` icon entry to metadata
 
-UI (4 new components):
-- `components/content-studio/ContentStudioShell.tsx` — Project selector + list/editor view switcher
-- `components/content-studio/AssetListClient.tsx` — Asset grid with upload, type filter, media-type icons, delete
-- `components/content-studio/AssetEditorClient.tsx` — Image/video/audio preview, download link, settings panel
-- `components/content-studio/AssetSettingsPanel.tsx` — Title editor + tag management
-
-Wired into app:
-- `app/(apps)/content-studio/page.tsx` — Replaced "Coming Soon" placeholder with real ContentStudioShell, passes projects from server
+PWA icon generation:
+- `public/uploads/icon-192.png` — Generated from favicon.svg (192x192)
+- `public/uploads/icon-512.png` — Generated from favicon.svg (512x512)
+- `public/uploads/icon-512-maskable.png` — Maskable variant with #18181b background + padding
+- `public/uploads/screenshot-wide.png` — Placeholder (1280x720)
+- `public/uploads/screenshot-narrow.png` — Placeholder (750x1334)
 
 ### What's Broken / Partially Done
-- PWA icons: manifest references `/uploads/icon-192.png` and `/uploads/icon-512.png` — not generated
 - Speech-to-text / voice notes: NOT implemented yet
 - `STRIPE_PRICE_*` env vars need Stripe Dashboard + Vercel setup
 - `subscription_status` column on organizations table may not exist
@@ -234,15 +233,19 @@ Wired into app:
 - `photo_s3_key` column may not exist on `site_walk_items` table
 - Tour Builder: No drag-and-drop reorder, no Site Walk ↔ 360 scene linkage, no immersive context button, no viewer_slug auto-generation
 - Design Studio: ModelViewerClient `src` needs S3 URL resolution (currently passes s3_key, may need CloudFront/presigned URL)
+- Screenshots in manifest are placeholders — need real app screenshots
+- TWA assetlinks.json and AASA use placeholder values — need real signing certs + app IDs before store submission
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority)
-1. Phase 12: App Store Packaging (TWA/native shells)
-2. Fix pre-existing TS errors (ok() 2-arg calls, textarea module, .name access)
-3. Add `photo_s3_key` column to `site_walk_items` (migration)
-4. Generate PWA icons
-5. Create Stripe products/prices in Dashboard + Vercel env
-6. Tour Builder: viewer_slug generation, Site Walk linkage, immersive context
-7. Content Studio: thumbnail generation, batch upload, collection management UI polish
+1. Fix pre-existing TS errors (ok() 2-arg calls, textarea module, .name access)
+2. Add `photo_s3_key` column to `site_walk_items` (migration)
+3. Create Stripe products/prices in Dashboard + Vercel env
+4. Tour Builder: viewer_slug generation, Site Walk linkage, immersive context
+5. Content Studio: thumbnail generation, batch upload, collection management polish
+6. Extract `marketing-homepage.tsx` (1123 lines → components)
+7. Real screenshots for manifest
+8. TWA Bubblewrap config + Play Store signing cert → assetlinks.json
+9. iOS native shell + Apple Team ID → AASA
