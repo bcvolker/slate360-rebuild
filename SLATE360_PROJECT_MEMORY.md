@@ -187,58 +187,66 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-12 (Phase 7: Site Walk Deliverables & Sharing)
+### Session Handoff — 2026-04-12 (Phase 8: PWA Hardening & Beta Readiness)
 
 ### What Changed
 
-**Gemini feedback (5th round):** Same stale-repo pattern. All commits verified (5d7301e is HEAD). Migrations 000005–000009 all exist on disk. Gemini's claimed `20240326000000*` file does not exist. Proceeded to Phase 7.
+**Gemini feedback (6th round):** Same stale-repo pattern. Commits 3fa3fd2 and cc02bf0 verified in git log (HEAD = cc02bf0 = origin/main). Migration 000010 exists on disk (3122 bytes, 67 lines). Gemini's claimed `20240327000000*` file does not exist. Proceeded to Phase 8.
 
-**Phase 7 — Site Walk Deliverables & Sharing** (commit 3fa3fd2, pushed)
+**Phase 8 — PWA Hardening & Beta Readiness** (commit bfb676d, pushed)
 
-Migration applied to Supabase:
-- `20260412000010_deliverable_sharing_snapshots.sql`: ALTERs site_walk_deliverables (share_expires_at, share_max_views, share_view_count, share_password_hash, share_revoked). Creates site_walk_deliverable_views (analytics). Creates site_walk_deliverable_snapshots (immutable history, RLS). Adds deliverable_logo_s3_key to organizations.
+New dependencies: `@serwist/next@^9`, `serwist@^9`, `idb-keyval@^6`
 
-New API routes (7):
-- `deliverables/[id]/export/route.ts` — PDF generation via jsPDF, uploads to S3
-- `deliverables/[id]/revoke/route.ts` — revoke sharing (sets share_revoked=true)
-- `deliverables/[id]/snapshot/route.ts` — POST creates immutable copy, GET lists snapshots
-- `deliverables/[id]/views/route.ts` — GET view analytics (total + recent 100)
-- `deliverables/send/route.ts` — email shared deliverable link via Resend
-- `branding/route.ts` — upload org logo for deliverables (2MB limit, image only)
+Service worker infrastructure:
+- `app/sw.ts` — Serwist service worker with precaching, runtime caching (defaultCache), navigation preload, offline fallback
+- `app/~offline/page.tsx` — Offline fallback page (branded, retry button)
+- `components/providers/SWRegistrar.tsx` — Registers SW in production
+- `next.config.ts` — Integrated `withSerwist()` wrapper (disabled in dev)
 
-Modified API routes (1):
-- `deliverables/[id]/share/route.ts` — extended with expires_at, max_views, re-share after revoke, view count reset
+Offline queue:
+- `lib/offline-queue.ts` — IndexedDB-backed mutation queue (enqueue/flush/listPending/remove/pendingCount) via idb-keyval
+- `lib/hooks/useOfflineSync.ts` — React hook: tracks online/offline, auto-flushes on reconnect
+- `components/shared/OfflineBanner.tsx` — Shows offline status + pending count + manual sync button
 
-New files (3):
-- `app/share/deliverable/[token]/page.tsx` (65 lines) — public viewer page: validates token, checks expiry/max_views/revoked, logs view, renders blocks
-- `components/site-walk/DeliverableViewer.tsx` (159 lines) — client component: renders blocks read-only (heading/text/image/divider/callout), Slate360 branding
-- `lib/email-site-walk.ts` (52 lines) — sendDeliverableShareEmail extracted from email.ts to keep under 300 lines
+Install prompt:
+- `lib/hooks/useInstallPrompt.ts` — Captures `beforeinstallprompt`, exposes controlled `promptInstall()`
+- `components/shared/InstallBanner.tsx` — Install CTA banner with dismiss
 
-Modified files (2):
-- `lib/email.ts` — exported sendEmail, brandedHtml, ctaButton for reuse by email-site-walk.ts
-- `lib/s3-utils.ts` — added uploadBuffer(key, body, contentType) using PutObjectCommand
+Wake lock:
+- `lib/hooks/useWakeLock.ts` — Keeps screen on during capture, re-acquires on visibility change
+
+Camera → S3 wiring:
+- `app/api/site-walk/upload/route.ts` — Returns presigned S3 PUT URL for photos (15min TTL, JPEG/PNG/WebP/HEIC/PDF)
+- `components/site-walk/CaptureCamera.tsx` — Now gets presigned URL, uploads blob to S3, passes `photo_s3_key` to items API. Also integrates wake lock.
+
+Quota enforcement:
+- `lib/server/quota-check.ts` — `checkSessionQuota()` and `checkStorageQuota()` helpers for API routes
+
+All wired into `ClientProviders.tsx` via dynamic imports: SWRegistrar, OfflineBanner, InstallBanner
+
+Sentry: Already fully wired from prior work (client/server/edge/global-error + instrumentation + PII scrubbing)
+Permissions-Policy: Already set in next.config.ts (camera, microphone, geolocation)
+CSP worker-src: Already set to `'self' blob:` — ready for SW
 
 ### What's Broken / Partially Done
 - PWA icons: manifest references `/uploads/icon-192.png` and `/uploads/icon-512.png` — not generated
-- Service worker: NOT implemented (Phase 8)
-- IndexedDB offline queue: NOT implemented (Phase 8)
-- Speech-to-text / voice notes: NOT implemented (Phase 4b)
-- Photo blobs from CaptureCamera NOT uploaded to S3 — only metadata saved
+- Speech-to-text / voice notes: NOT implemented yet
 - `STRIPE_PRICE_*` env vars need Stripe Dashboard + Vercel setup
 - `subscription_status` column on organizations table may not exist
 - `marketing-homepage.tsx` is 1123 lines — needs extraction
 - `market_scheduler_lock` table has no RLS
 - BUG-018: DrawingManager deprecation in LocationMap.tsx (May 2026)
 - Legacy `project_punch_items` table not migrated
-- Pre-existing TS errors (not from Phase 7): pins/plans/templates routes pass 2 args to ok(), textarea module missing, site-walk page .name access
+- Pre-existing TS errors (not from Phase 8): pins/plans/templates routes pass 2 args to ok(), textarea module missing, site-walk page .name access
+- `photo_s3_key` column may not exist on `site_walk_items` table — CaptureCamera sends it but no migration added it
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority)
-1. Phase 8: Offline & sync — service worker, IndexedDB queue, background sync
-2. Phase 4b: wire CaptureCamera → SlateDrop upload (photos to S3)
-3. Phase 4b: voice note capture + browser speech-to-text
+1. Phase 9: 360 Tours Polish — scene reordering, mobile viewing, sharing, Site Walk linkage
+2. Add `photo_s3_key` column to `site_walk_items` (migration needed for camera upload to persist)
+3. Voice note capture + browser speech-to-text
 4. Generate PWA icons (192x192 + 512x512 PNG)
 5. Create Stripe products/prices for all modular plans
 6. Fix pre-existing TS errors (ok() 2-arg calls, textarea module, .name access)
