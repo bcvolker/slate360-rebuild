@@ -187,46 +187,28 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-12 (Phase 8: PWA Hardening & Beta Readiness)
+### Session Handoff — 2026-04-12 (Phase 9: 360 Tours Polish)
 
 ### What Changed
 
-**Gemini feedback (6th round):** Same stale-repo pattern. Commits 3fa3fd2 and cc02bf0 verified in git log (HEAD = cc02bf0 = origin/main). Migration 000010 exists on disk (3122 bytes, 67 lines). Gemini's claimed `20240327000000*` file does not exist. Proceeded to Phase 8.
+**Phase 9 — 360 Tour Builder UI** (commit fabf59d, pushed)
 
-**Phase 8 — PWA Hardening & Beta Readiness** (commit bfb676d, pushed)
+Tour Builder frontend (6 new components):
+- `components/tours/TourBuilderShell.tsx` — Client shell: list ↔ editor view switcher
+- `components/tours/TourListClient.tsx` — Tour card grid with create/delete, draft/published badges
+- `components/tours/TourEditorClient.tsx` — Main editor: scene upload (presigned S3 URL → PUT → complete), reorder (up/down), panorama preview, publish/unpublish, settings panel
+- `components/tours/TourPanoViewer.tsx` — @photo-sphere-viewer/core wrapper with yaw/pitch position tracking, navbar (zoom/move/fullscreen)
+- `components/tours/TourSettingsPanel.tsx` — Extracted tour title/description editor (keeps TourEditorClient under 300 lines)
+- `components/tours/PublicTourViewer.tsx` — Public viewer with scene dots navigation, prev/next arrows, branding logo overlay
 
-New dependencies: `@serwist/next@^9`, `serwist@^9`, `idb-keyval@^6`
+Public tour viewer route:
+- `app/tours/view/[slug]/page.tsx` — Server component: fetches published tour by viewer_slug, loads scenes ordered by sort_order
 
-Service worker infrastructure:
-- `app/sw.ts` — Serwist service worker with precaching, runtime caching (defaultCache), navigation preload, offline fallback
-- `app/~offline/page.tsx` — Offline fallback page (branded, retry button)
-- `components/providers/SWRegistrar.tsx` — Registers SW in production
-- `next.config.ts` — Integrated `withSerwist()` wrapper (disabled in dev)
+Scene reorder API:
+- `app/api/tours/[tourId]/scenes/reorder/route.ts` — PATCH: bulk update sort_order from ordered sceneIds array
 
-Offline queue:
-- `lib/offline-queue.ts` — IndexedDB-backed mutation queue (enqueue/flush/listPending/remove/pendingCount) via idb-keyval
-- `lib/hooks/useOfflineSync.ts` — React hook: tracks online/offline, auto-flushes on reconnect
-- `components/shared/OfflineBanner.tsx` — Shows offline status + pending count + manual sync button
-
-Install prompt:
-- `lib/hooks/useInstallPrompt.ts` — Captures `beforeinstallprompt`, exposes controlled `promptInstall()`
-- `components/shared/InstallBanner.tsx` — Install CTA banner with dismiss
-
-Wake lock:
-- `lib/hooks/useWakeLock.ts` — Keeps screen on during capture, re-acquires on visibility change
-
-Camera → S3 wiring:
-- `app/api/site-walk/upload/route.ts` — Returns presigned S3 PUT URL for photos (15min TTL, JPEG/PNG/WebP/HEIC/PDF)
-- `components/site-walk/CaptureCamera.tsx` — Now gets presigned URL, uploads blob to S3, passes `photo_s3_key` to items API. Also integrates wake lock.
-
-Quota enforcement:
-- `lib/server/quota-check.ts` — `checkSessionQuota()` and `checkStorageQuota()` helpers for API routes
-
-All wired into `ClientProviders.tsx` via dynamic imports: SWRegistrar, OfflineBanner, InstallBanner
-
-Sentry: Already fully wired from prior work (client/server/edge/global-error + instrumentation + PII scrubbing)
-Permissions-Policy: Already set in next.config.ts (camera, microphone, geolocation)
-CSP worker-src: Already set to `'self' blob:` — ready for SW
+Wired into app:
+- `app/(apps)/tour-builder/page.tsx` — Replaced placeholder with real TourBuilderShell
 
 ### What's Broken / Partially Done
 - PWA icons: manifest references `/uploads/icon-192.png` and `/uploads/icon-512.png` — not generated
@@ -237,14 +219,15 @@ CSP worker-src: Already set to `'self' blob:` — ready for SW
 - `market_scheduler_lock` table has no RLS
 - BUG-018: DrawingManager deprecation in LocationMap.tsx (May 2026)
 - Legacy `project_punch_items` table not migrated
-- Pre-existing TS errors (not from Phase 8): pins/plans/templates routes pass 2 args to ok(), textarea module missing, site-walk page .name access
+- Pre-existing TS errors (not from Phase 9): pins/plans/templates routes pass 2 args to ok(), textarea module missing, site-walk page .name access
 - `photo_s3_key` column may not exist on `site_walk_items` table — CaptureCamera sends it but no migration added it
+- Tour Builder: No drag-and-drop scene reorder (uses up/down arrows), no Site Walk → 360 scene linkage yet, no immersive context button, no viewer_slug auto-generation on publish
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority)
-1. Phase 9: 360 Tours Polish — scene reordering, mobile viewing, sharing, Site Walk linkage
+1. Phase 9 remaining: Site Walk ↔ 360 scene linkage, immersive context button, viewer_slug generation on publish
 2. Add `photo_s3_key` column to `site_walk_items` (migration needed for camera upload to persist)
 3. Voice note capture + browser speech-to-text
 4. Generate PWA icons (192x192 + 512x512 PNG)
