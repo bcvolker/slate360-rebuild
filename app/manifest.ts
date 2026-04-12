@@ -6,6 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Slate360",
     description:
       "Slate360 gives construction teams, architects, and project managers a complete platform to manage, visualize, and deliver building projects.",
+    id: "/",
     start_url: "/",
     scope: "/",
     display: "standalone",
@@ -29,6 +30,28 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "512x512",
         type: "image/png",
       },
+      {
+        src: "/uploads/icon-512-maskable.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+    ],
+    screenshots: [
+      {
+        src: "/uploads/screenshot-wide.png",
+        sizes: "1280x720",
+        type: "image/png",
+        // @ts-expect-error -- form_factor is valid per W3C spec but not in Next.js types yet
+        form_factor: "wide",
+      },
+      {
+        src: "/uploads/screenshot-narrow.png",
+        sizes: "750x1334",
+        type: "image/png",
+        // @ts-expect-error -- form_factor is valid per W3C spec but not in Next.js types yet
+        form_factor: "narrow",
+      },
     ],
     shortcuts: [
       {
@@ -36,6 +59,12 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "Site Walk",
         url: "/site-walk",
         description: "Start a field session",
+      },
+      {
+        name: "Dashboard",
+        short_name: "Dashboard",
+        url: "/dashboard",
+        description: "View your projects",
       },
     ],
   };
