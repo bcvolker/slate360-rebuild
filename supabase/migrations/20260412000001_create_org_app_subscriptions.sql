@@ -35,7 +35,7 @@ CREATE POLICY "Org members can read own subscriptions"
   ON public.org_app_subscriptions FOR SELECT
   USING (
     org_id IN (
-      SELECT org_id FROM public.org_members WHERE user_id = auth.uid()
+      SELECT om.org_id FROM public.organization_members om WHERE om.user_id = auth.uid()
     )
   );
 
