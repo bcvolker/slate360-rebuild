@@ -187,40 +187,51 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-12 (Phase 3: Site Walk Backend Foundation)
+### Session Handoff — 2026-04-12 (Phase 4: Site Walk Field Capture Engine)
 
 ### What Changed
 
-**1. Fixed last `as any` casts in app-checkout** (commit 378f1e3)
-- `app/api/billing/app-checkout/route.ts`: `match[1] as any` → `match[1] as AppId`, `match[2] as any` → `match[2] as Exclude<AppTier, "none">`
-- Added `import type { AppId, AppTier } from "@/lib/entitlements-modular"`
-- Zero `any` remaining in that file
+**1. Gemini false claims verified AGAIN** — commits 378f1e3, 22d3fa2, 2c99824 all exist in git log. Migrations 000005/000006 both on disk. `grep -n "any" app-checkout` returns exit code 1 (zero matches). Gemini reading stale repo snapshot.
 
-**2. Site Walk DB migrations** (commit 22d3fa2, both applied to Supabase)
-- `supabase/migrations/20260412000005_create_site_walk_items.sql` — items captured during sessions (photo/video/text_note/voice_note/annotation), with session FK, org RLS, auto-update trigger, sort_order, GPS coords, weather jsonb
-- `supabase/migrations/20260412000006_create_site_walk_deliverables.sql` — compiled deliverables (report/punchlist/photo_log/custom), block-editor content jsonb, share_token with public-read RLS for shared deliverables
+**2. Phase 4 — Site Walk Field Capture Engine** (commit c01938f, pushed)
 
-**3. Site Walk CRUD APIs** (8 route files, all under 100 lines)
-- `app/api/site-walk/sessions/route.ts` — GET (list by project_id), POST
-- `app/api/site-walk/sessions/[id]/route.ts` — GET, PATCH (title/status/metadata), DELETE (soft archive)
-- `app/api/site-walk/items/route.ts` — GET (list by session_id), POST (auto-sort, session ownership check)
-- `app/api/site-walk/items/[id]/route.ts` — GET, PATCH, DELETE (permanent)
-- `app/api/site-walk/deliverables/route.ts` — GET (list by session_id), POST
-- `app/api/site-walk/deliverables/[id]/route.ts` — GET, PATCH (title/status/content), DELETE (archive)
-- `app/api/site-walk/deliverables/[id]/share/route.ts` — POST (generate base64url share_token)
-- All use `withAuth` + `ok()`/`badRequest()`/`serverError()` helpers
+PWA fixes:
+- `app/manifest.ts`: theme_color → #18181b, added 192/512 PNG icon entries, Site Walk shortcut
+- `next.config.ts`: Permissions-Policy now `camera=(self), microphone=(self), geolocation=(self)` (was blocking camera/mic)
 
-**4. Site Walk types** (136 lines)
-- `lib/types/site-walk.ts` — SiteWalkSession, Item, Deliverable types + Create/Update API payloads
+New routes (5):
+- `/site-walk` → project selector with search
+- `/site-walk/[projectId]/sessions` → session list + create dialog
+- `/site-walk/[projectId]/sessions/[sessionId]` → capture screen (3-tab: Photo/Note/Timeline)
+- `/site-walk/[projectId]/sessions/[sessionId]/review` → session review + stats + deliverable creation
+- `/site-walk/[projectId]/deliverables/new` → (existing) block editor
 
-**5. SlateDrop folder convention** — already handled: `lib/slatedrop/folderTree.ts` has `site-walk` system folder (always visible, 🚶 icon). Items reference files via `file_id` FK to `slatedrop_uploads`.
+New components (8):
+- `SiteWalkNav.tsx` (59 lines) — sticky header + bottom nav
+- `ProjectSelectorClient.tsx` (64) — project cards with search
+- `SessionListClient.tsx` (129) — session list + create dialog, wired to POST /api/site-walk/sessions
+- `SessionCaptureClient.tsx` (122) — tab-based capture controller, auto-status draft→in_progress
+- `CaptureCamera.tsx` (122) — getUserMedia viewfinder, JPEG capture, GPS overlay badge
+- `CaptureTextNote.tsx` (97) — text note with title/description/location, GPS auto-attach
+- `ItemTimeline.tsx` (114) — numbered item list with type icons, delete via API
+- `SessionReviewClient.tsx` (186) — stats grid, item summary, deliverable list + create button
+
+New hooks (2):
+- `useCamera.ts` (81) — getUserMedia, environment-facing, JPEG capture from canvas
+- `useGeolocation.ts` (52) — high-accuracy GPS with auto-start
+
+All UI wired to Phase 3 CRUD APIs. Zero any types. All files under 200 lines.
 
 ### What's Broken / Partially Done
+- PWA icons: manifest references `/uploads/icon-192.png` and `/uploads/icon-512.png` — files need to be generated and placed in `public/uploads/`
+- Service worker: NOT implemented yet (Phase 8 per build plan)
+- IndexedDB offline queue: NOT implemented yet (Phase 8)
+- Speech-to-text / voice notes: NOT implemented yet (Phase 4b)
+- Photo blobs created in CaptureCamera are NOT uploaded to S3 — only metadata is saved to items table. Need SlateDrop upload integration to persist actual image files.
 - `STRIPE_PRICE_*` env vars for modular plans need to be created in Stripe Dashboard + set in Vercel
 - `subscription_status` column on organizations table may not exist — webhook writes it but no migration
 - `marketing-homepage.tsx` is 1123 lines — needs extraction
 - `market_scheduler_lock` table still has no RLS
-- PWA missing: service worker, Permissions-Policy camera header, offline support
 - BUG-018: DrawingManager deprecation in LocationMap.tsx (May 2026 deadline)
 - Legacy `project_punch_items` table exists with old PunchWalk naming — not migrated yet
 
@@ -228,6 +239,12 @@ When editing oversized files, always read both the state declarations AND the JS
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority)
+1. Phase 4b: wire CaptureCamera → SlateDrop upload (so photos are persisted to S3, not just metadata)
+2. Phase 4b: voice note capture + browser speech-to-text
+3. Generate PWA icons (192x192 + 512x512 PNG) and place in public/uploads/
+4. Phase 5: Field ↔ Office coordination (assignments, comments, notifications)
+5. Create Stripe products/prices for all modular plans
+6. Verify `subscription_status` column on organizations table
 1. Phase 4 (per master build plan) — next major phase
 2. Wire Site Walk UI to new CRUD APIs (components/site-walk/ already has BlockEditor, BlockRenderer, BlockToolbar)
 3. Create Stripe products/prices for all modular plans + set `STRIPE_PRICE_*` env vars in Vercel
