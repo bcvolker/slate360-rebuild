@@ -187,28 +187,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-12 (Phase 1 Backend: Migrations + Webhook Refactor)
+### Session Handoff — 2026-04-12 (Phase 3: Site Walk Backend Foundation)
 
 ### What Changed
 
-**1. DB Migrations created** (3 new files)
-- `supabase/migrations/20260412000001_create_org_app_subscriptions.sql` — per-app subscription state table with RLS
-- `supabase/migrations/20260412000002_create_credit_transactions.sql` — credit ledger with idempotency keys + RLS
-- `supabase/migrations/20260412000003_add_purchased_credits_rpc.sql` — atomic credit increment RPC
+**1. Fixed last `as any` casts in app-checkout** (commit 378f1e3)
+- `app/api/billing/app-checkout/route.ts`: `match[1] as any` → `match[1] as AppId`, `match[2] as any` → `match[2] as Exclude<AppTier, "none">`
+- Added `import type { AppId, AppTier } from "@/lib/entitlements-modular"`
+- Zero `any` remaining in that file
 
-**2. Webhook refactored** (309→178 lines)
-- Extracted 5 helpers to `lib/server/webhook-helpers.ts` (132 lines): `updateOrganizationTier`, `handleModularSubscription`, `addPurchasedCredits`, `upsertAppFlag`, `resolveOrgIdFromCustomer`, `processCreditsAddon`
-- Removed shadowed `admin2`/`admin3` variables — uses outer-scope `admin`
-- Removed inline `CREDIT_ADDON_PACKS` import (moved to helper)
+**2. Site Walk DB migrations** (commit 22d3fa2, both applied to Supabase)
+- `supabase/migrations/20260412000005_create_site_walk_items.sql` — items captured during sessions (photo/video/text_note/voice_note/annotation), with session FK, org RLS, auto-update trigger, sort_order, GPS coords, weather jsonb
+- `supabase/migrations/20260412000006_create_site_walk_deliverables.sql` — compiled deliverables (report/punchlist/photo_log/custom), block-editor content jsonb, share_token with public-read RLS for shared deliverables
 
-**3. App-checkout route fixed** (180→171 lines)
-- Replaced `sessionConfig: any` with proper `Stripe.Checkout.SessionCreateParams`
-- Supports `planKey` for bundles, storage addons, credit addons, modular apps
-- Preserves legacy `appId` path for standalone apps
+**3. Site Walk CRUD APIs** (8 route files, all under 100 lines)
+- `app/api/site-walk/sessions/route.ts` — GET (list by project_id), POST
+- `app/api/site-walk/sessions/[id]/route.ts` — GET, PATCH (title/status/metadata), DELETE (soft archive)
+- `app/api/site-walk/items/route.ts` — GET (list by session_id), POST (auto-sort, session ownership check)
+- `app/api/site-walk/items/[id]/route.ts` — GET, PATCH, DELETE (permanent)
+- `app/api/site-walk/deliverables/route.ts` — GET (list by session_id), POST
+- `app/api/site-walk/deliverables/[id]/route.ts` — GET, PATCH (title/status/content), DELETE (archive)
+- `app/api/site-walk/deliverables/[id]/share/route.ts` — POST (generate base64url share_token)
+- All use `withAuth` + `ok()`/`badRequest()`/`serverError()` helpers
 
-**4. Single-license model enforced**
-- `lib/entitlements-modular.ts`: all seats = 1 (non-enterprise)
-- `components/dashboard/plans/plan-data.ts`: "2 seats", "3 seats", "5 seats + team management", "10 seats + team management" → "Single license"
+**4. Site Walk types** (136 lines)
+- `lib/types/site-walk.ts` — SiteWalkSession, Item, Deliverable types + Create/Update API payloads
+
+**5. SlateDrop folder convention** — already handled: `lib/slatedrop/folderTree.ts` has `site-walk` system folder (always visible, 🚶 icon). Items reference files via `file_id` FK to `slatedrop_uploads`.
 
 ### What's Broken / Partially Done
 - `STRIPE_PRICE_*` env vars for modular plans need to be created in Stripe Dashboard + set in Vercel
@@ -217,14 +222,14 @@ When editing oversized files, always read both the state declarations AND the JS
 - `market_scheduler_lock` table still has no RLS
 - PWA missing: service worker, Permissions-Policy camera header, offline support
 - BUG-018: DrawingManager deprecation in LocationMap.tsx (May 2026 deadline)
-- Migrations NOT yet applied to Supabase (need `supabase db push` or manual run)
+- Legacy `project_punch_items` table exists with old PunchWalk naming — not migrated yet
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority)
-1. Apply migrations to Supabase (`supabase db push` or run SQL manually)
-2. Create Stripe products/prices for all modular plans + set `STRIPE_PRICE_*` env vars in Vercel
-3. Verify `subscription_status` column exists on organizations table (add migration if not)
-4. Phase 2: SlateDrop hardening (quota enforcement, file validation, drag-drop, mobile UX)
-5. Phase 3: Site Walk backend foundation (migrations, CRUD APIs, assignment model)
+1. Phase 4 (per master build plan) — next major phase
+2. Wire Site Walk UI to new CRUD APIs (components/site-walk/ already has BlockEditor, BlockRenderer, BlockToolbar)
+3. Create Stripe products/prices for all modular plans + set `STRIPE_PRICE_*` env vars in Vercel
+4. Verify `subscription_status` column exists on organizations table (add migration if not)
+5. Migrate legacy `project_punch_items` → `site_walk_items` (data migration)
