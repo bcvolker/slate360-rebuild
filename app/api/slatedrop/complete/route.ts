@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveNamespace } from "@/lib/slatedrop/storage";
+import { trackStorageUsed } from "@/lib/slatedrop/track-storage";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -51,6 +52,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Increment org storage quota for the completed upload
+    if (project?.org_id) {
+      await trackStorageUsed(admin, project.org_id, fileId);
+    }
+
     return NextResponse.json({ ok: true });
   }
 
@@ -80,6 +86,11 @@ export async function POST(req: NextRequest) {
   const { error } = await query;
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Increment org storage quota for the completed upload
+  if (orgId) {
+    await trackStorageUsed(admin, orgId, fileId);
   }
 
   return NextResponse.json({ ok: true });

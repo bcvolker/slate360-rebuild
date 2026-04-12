@@ -21,6 +21,14 @@ export interface UploadRejection {
 const FIFTY_MB = 50 * 1024 * 1024;
 const BLOCKED_EXTENSIONS_SITE_WALK = new Set(["glb", "obj"]);
 
+/** Dangerous executable/script extensions blocked globally. */
+const BLOCKED_EXTENSIONS_GLOBAL = new Set([
+  "exe", "bat", "cmd", "com", "msi", "scr", "pif", "vbs", "vbe",
+  "js", "jse", "ws", "wsf", "wsc", "wsh", "ps1", "ps2", "psc1",
+  "psc2", "reg", "inf", "lnk", "sct", "shb", "shs", "cpl", "hta",
+  "jar", "apk", "ipa", "deb", "rpm",
+]);
+
 /**
  * Validates whether the upload is permitted for the given app context.
  *
@@ -30,11 +38,20 @@ const BLOCKED_EXTENSIONS_SITE_WALK = new Set(["glb", "obj"]);
 export function validateUploadPermissions(
   req: UploadRequest,
 ): UploadRejection | null {
-  if (req.app_context !== "site_walk") {
-    return null; // no restrictions for other contexts
+  const ext = req.filename.split(".").pop()?.toLowerCase() ?? "";
+
+  // Global blocklist — dangerous executable/script types
+  if (BLOCKED_EXTENSIONS_GLOBAL.has(ext)) {
+    return {
+      error: "BLOCKED_FILE_TYPE",
+      target_app: "slatedrop",
+      message: `File type .${ext} is not allowed for security reasons.`,
+    };
   }
 
-  const ext = req.filename.split(".").pop()?.toLowerCase() ?? "";
+  if (req.app_context !== "site_walk") {
+    return null; // no further restrictions for other contexts
+  }
 
   if (BLOCKED_EXTENSIONS_SITE_WALK.has(ext)) {
     return {
