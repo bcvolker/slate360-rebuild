@@ -1,6 +1,6 @@
 "# Slate360 — Project Memory
 
-Last Updated: 2026-04-11
+Last Updated: 2026-04-12
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -187,40 +187,35 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-12 (Phase 4: Site Walk Field Capture Engine)
+### Session Handoff — 2026-04-12 (Phase 5: Field ↔ Office Coordination)
 
 ### What Changed
 
-**1. Gemini false claims verified AGAIN** — commits 378f1e3, 22d3fa2, 2c99824 all exist in git log. Migrations 000005/000006 both on disk. `grep -n "any" app-checkout` returns exit code 1 (zero matches). Gemini reading stale repo snapshot.
+**Phase 5 — Field ↔ Office Coordination** (commit 0c9d8e5, pushed)
 
-**2. Phase 4 — Site Walk Field Capture Engine** (commit c01938f, pushed)
+Migration `20260412000007_site_walk_comments_assignments.sql` — applied to Supabase:
+- `site_walk_comments` table: threaded (parent_id), session/item-level, `is_field` flag, `read_by uuid[]` for read receipts, `is_escalation`, org RLS
+- `site_walk_assignments` table: assigned_by/to, priority (low/medium/high/critical), status workflow (pending→acknowledged→in_progress→done|rejected), auto-timestamps, org RLS
 
-PWA fixes:
-- `app/manifest.ts`: theme_color → #18181b, added 192/512 PNG icon entries, Site Walk shortcut
-- `next.config.ts`: Permissions-Policy now `camera=(self), microphone=(self), geolocation=(self)` (was blocking camera/mic)
+New API routes (6):
+- `app/api/site-walk/comments/route.ts` — GET (filter by session_id + item_id), POST
+- `app/api/site-walk/comments/[id]/route.ts` — DELETE (author only)
+- `app/api/site-walk/comments/[id]/read/route.ts` — POST (mark as read, appends to read_by array)
+- `app/api/site-walk/assignments/route.ts` — GET (filter by session_id + assigned_to), POST
+- `app/api/site-walk/assignments/[id]/route.ts` — GET, PATCH (auto-timestamps on acknowledge/done), DELETE (assigner only)
+- `app/api/site-walk/board/route.ts` — GET enriched sessions (item_count, open_assignments, escalation_count)
 
-New routes (5):
-- `/site-walk` → project selector with search
-- `/site-walk/[projectId]/sessions` → session list + create dialog
-- `/site-walk/[projectId]/sessions/[sessionId]` → capture screen (3-tab: Photo/Note/Timeline)
-- `/site-walk/[projectId]/sessions/[sessionId]/review` → session review + stats + deliverable creation
-- `/site-walk/[projectId]/deliverables/new` → (existing) block editor
+New components (3):
+- `CommentThread.tsx` (148 lines) — threaded comments with field/office badges, escalation highlight, read receipts, send/escalate buttons
+- `AssignmentPanel.tsx` (221 lines) — assignment list with create form, priority badges, status pills, action buttons (Ack/Start/Done), split by "Assigned to You" vs others
+- `SessionBoardClient.tsx` (96 lines) — leadership board showing active sessions with item counts, open assignments, escalation badges
 
-New components (8):
-- `SiteWalkNav.tsx` (59 lines) — sticky header + bottom nav
-- `ProjectSelectorClient.tsx` (64) — project cards with search
-- `SessionListClient.tsx` (129) — session list + create dialog, wired to POST /api/site-walk/sessions
-- `SessionCaptureClient.tsx` (122) — tab-based capture controller, auto-status draft→in_progress
-- `CaptureCamera.tsx` (122) — getUserMedia viewfinder, JPEG capture, GPS overlay badge
-- `CaptureTextNote.tsx` (97) — text note with title/description/location, GPS auto-attach
-- `ItemTimeline.tsx` (114) — numbered item list with type icons, delete via API
-- `SessionReviewClient.tsx` (186) — stats grid, item summary, deliverable list + create button
+Modified files (3):
+- `SessionReviewClient.tsx` — added tabbed coordination section (Comments | Assignments) integrated with CommentThread + AssignmentPanel
+- `review/page.tsx` — now passes userId + orgMembers (fetched from profiles table) to SessionReviewClient
+- `lib/types/site-walk.ts` — added SiteWalkComment, SiteWalkAssignment, CreateCommentPayload, CreateAssignmentPayload, UpdateAssignmentPayload, AssignmentPriority, AssignmentStatus
 
-New hooks (2):
-- `useCamera.ts` (81) — getUserMedia, environment-facing, JPEG capture from canvas
-- `useGeolocation.ts` (52) — high-accuracy GPS with auto-start
-
-All UI wired to Phase 3 CRUD APIs. Zero any types. All files under 200 lines.
+New route: `/site-walk/board` — board page for leadership overview
 
 ### What's Broken / Partially Done
 - PWA icons: manifest references `/uploads/icon-192.png` and `/uploads/icon-512.png` — files need to be generated and placed in `public/uploads/`
@@ -242,11 +237,8 @@ All UI wired to Phase 3 CRUD APIs. Zero any types. All files under 200 lines.
 1. Phase 4b: wire CaptureCamera → SlateDrop upload (so photos are persisted to S3, not just metadata)
 2. Phase 4b: voice note capture + browser speech-to-text
 3. Generate PWA icons (192x192 + 512x512 PNG) and place in public/uploads/
-4. Phase 5: Field ↔ Office coordination (assignments, comments, notifications)
+4. Phase 6: per master build plan (deliverable generation / PDF export)
 5. Create Stripe products/prices for all modular plans
 6. Verify `subscription_status` column on organizations table
-1. Phase 4 (per master build plan) — next major phase
-2. Wire Site Walk UI to new CRUD APIs (components/site-walk/ already has BlockEditor, BlockRenderer, BlockToolbar)
-3. Create Stripe products/prices for all modular plans + set `STRIPE_PRICE_*` env vars in Vercel
 4. Verify `subscription_status` column exists on organizations table (add migration if not)
 5. Migrate legacy `project_punch_items` → `site_walk_items` (data migration)
