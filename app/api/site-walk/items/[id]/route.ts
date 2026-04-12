@@ -38,6 +38,14 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
     if (body.sort_order !== undefined) updates.sort_order = body.sort_order;
     if (body.location_label !== undefined) updates.location_label = body.location_label;
     if (body.metadata !== undefined) updates.metadata = body.metadata;
+    if (body.workflow_type !== undefined) updates.workflow_type = body.workflow_type;
+    if (body.item_status !== undefined) updates.item_status = body.item_status;
+    if (body.priority !== undefined) updates.priority = body.priority;
+    if (body.assigned_to !== undefined) updates.assigned_to = body.assigned_to;
+    if (body.due_date !== undefined) updates.due_date = body.due_date;
+    if (body.cost_estimate !== undefined) updates.cost_estimate = body.cost_estimate;
+    if (body.manpower_hours !== undefined) updates.manpower_hours = body.manpower_hours;
+    if (body.before_item_id !== undefined) updates.before_item_id = body.before_item_id;
 
     if (Object.keys(updates).length === 0) {
       return badRequest("No valid fields to update");

@@ -22,6 +22,10 @@ export type SiteWalkSession = {
   started_at: string | null;
   completed_at: string | null;
   metadata: Record<string, unknown>;
+  client_signature_s3_key: string | null;
+  inspector_signature_s3_key: string | null;
+  signed_at: string | null;
+  signed_by: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -34,6 +38,10 @@ export type SiteWalkItemType =
   | "text_note"
   | "voice_note"
   | "annotation";
+
+export type WorkflowType = "general" | "punch" | "inspection" | "proposal";
+export type ItemStatus = "open" | "in_progress" | "resolved" | "verified" | "closed" | "na";
+export type ItemPriority = "low" | "medium" | "high" | "critical";
 
 export type SiteWalkItem = {
   id: string;
@@ -52,6 +60,18 @@ export type SiteWalkItem = {
   weather: Record<string, unknown> | null;
   metadata: Record<string, unknown>;
   sort_order: number;
+  workflow_type: WorkflowType;
+  item_status: ItemStatus;
+  priority: ItemPriority;
+  assigned_to: string | null;
+  due_date: string | null;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  verified_by: string | null;
+  verified_at: string | null;
+  cost_estimate: number | null;
+  manpower_hours: number | null;
+  before_item_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -120,6 +140,14 @@ export type UpdateItemPayload = {
   sort_order?: number;
   location_label?: string;
   metadata?: Record<string, unknown>;
+  workflow_type?: WorkflowType;
+  item_status?: ItemStatus;
+  priority?: ItemPriority;
+  assigned_to?: string | null;
+  due_date?: string | null;
+  cost_estimate?: number | null;
+  manpower_hours?: number | null;
+  before_item_id?: string | null;
 };
 
 export type CreateDeliverablePayload = {
@@ -206,3 +234,17 @@ export type UpdateAssignmentPayload = {
   status?: AssignmentStatus;
   due_date?: string;
 };
+
+/* ─── Plans, Pins, Templates (extracted to site-walk-ops.ts) ── */
+export type {
+  SiteWalkPlan,
+  CreatePlanPayload,
+  PinColor,
+  SiteWalkPin,
+  CreatePinPayload,
+  TemplateType,
+  ChecklistEntry,
+  SiteWalkTemplate,
+  CreateTemplatePayload,
+  UpdateTemplatePayload,
+} from "./site-walk-ops";
