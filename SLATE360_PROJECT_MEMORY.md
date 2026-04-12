@@ -187,81 +187,59 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-12 (Phase 6: Site Walk Operations Completeness)
+### Session Handoff — 2026-04-12 (Phase 7: Site Walk Deliverables & Sharing)
 
 ### What Changed
 
-**Gemini feedback (4th round):** Same pattern — all commits verified on disk (0c9d8e5, aa4b64b in git log), migration 000007 exists (4827 bytes), zero `any` in app-checkout (exit code 1). Gemini's claimed "corrective" files (20240325000000, 20240326000000) do not exist on disk. Gemini is reading a stale snapshot.
+**Gemini feedback (5th round):** Same stale-repo pattern. All commits verified (5d7301e is HEAD). Migrations 000005–000009 all exist on disk. Gemini's claimed `20240326000000*` file does not exist. Proceeded to Phase 7.
 
-**Phase 6 — Site Walk Operations Completeness** (commit a6c556d, pushed)
+**Phase 7 — Site Walk Deliverables & Sharing** (commit 3fa3fd2, pushed)
 
-Migrations (both applied to Supabase):
-- `20260412000008_item_workflows_signatures.sql`: Added to site_walk_items: workflow_type (general/punch/inspection/proposal), item_status (open/in_progress/resolved/verified/closed/na), priority, assigned_to, due_date, resolved_by/at, verified_by/at, cost_estimate, manpower_hours, before_item_id. Added to site_walk_sessions: client_signature_s3_key, inspector_signature_s3_key, signed_at, signed_by.
-- `20260412000009_plans_pins_templates.sql`: Created site_walk_plans (floor plan images), site_walk_pins (x/y% positioned pins on plans), site_walk_templates (reusable checklists with typed entries). All with RLS.
+Migration applied to Supabase:
+- `20260412000010_deliverable_sharing_snapshots.sql`: ALTERs site_walk_deliverables (share_expires_at, share_max_views, share_view_count, share_password_hash, share_revoked). Creates site_walk_deliverable_views (analytics). Creates site_walk_deliverable_snapshots (immutable history, RLS). Adds deliverable_logo_s3_key to organizations.
 
-New API routes (12):
-- `items/[id]` PATCH extended with all workflow fields
-- `items/[id]/resolve/route.ts`, `items/[id]/verify/route.ts` — status lifecycle
-- `items/bulk/route.ts` — bulk update up to 100 items
-- `sessions/[id]/sign/route.ts` — capture signatures
-- `plans/route.ts` (GET/POST), `plans/[id]/route.ts` (DELETE)
-- `pins/route.ts` (GET/POST), `pins/[id]/route.ts` (DELETE)
-- `templates/route.ts` (GET/POST), `templates/[id]/route.ts` (PATCH/DELETE)
-- `templates/[id]/apply/route.ts` — apply template to session (creates items)
+New API routes (7):
+- `deliverables/[id]/export/route.ts` — PDF generation via jsPDF, uploads to S3
+- `deliverables/[id]/revoke/route.ts` — revoke sharing (sets share_revoked=true)
+- `deliverables/[id]/snapshot/route.ts` — POST creates immutable copy, GET lists snapshots
+- `deliverables/[id]/views/route.ts` — GET view analytics (total + recent 100)
+- `deliverables/send/route.ts` — email shared deliverable link via Resend
+- `branding/route.ts` — upload org logo for deliverables (2MB limit, image only)
 
-New UI components (3):
-- `WorkflowItemCard.tsx` (190 lines) — status/priority dropdowns, resolve/verify buttons, cost/assignee/due-date metadata
-- `PlanViewer.tsx` (159 lines) — image overlay with status-colored pins, click-to-place, pin tooltips
-- `TemplateManager.tsx` (196 lines) — create/list/apply/delete templates with checklist builder
+Modified API routes (1):
+- `deliverables/[id]/share/route.ts` — extended with expires_at, max_views, re-share after revoke, view count reset
 
-Types extracted: `lib/types/site-walk-ops.ts` (97 lines) for Plan/Pin/Template types, re-exported from `site-walk.ts` (250 lines)
+New files (3):
+- `app/share/deliverable/[token]/page.tsx` (65 lines) — public viewer page: validates token, checks expiry/max_views/revoked, logs view, renders blocks
+- `components/site-walk/DeliverableViewer.tsx` (159 lines) — client component: renders blocks read-only (heading/text/image/divider/callout), Slate360 branding
+- `lib/email-site-walk.ts` (52 lines) — sendDeliverableShareEmail extracted from email.ts to keep under 300 lines
 
-Migration `20260412000007_site_walk_comments_assignments.sql` — applied to Supabase:
-- `site_walk_comments` table: threaded (parent_id), session/item-level, `is_field` flag, `read_by uuid[]` for read receipts, `is_escalation`, org RLS
-- `site_walk_assignments` table: assigned_by/to, priority (low/medium/high/critical), status workflow (pending→acknowledged→in_progress→done|rejected), auto-timestamps, org RLS
-
-New API routes (6):
-- `app/api/site-walk/comments/route.ts` — GET (filter by session_id + item_id), POST
-- `app/api/site-walk/comments/[id]/route.ts` — DELETE (author only)
-- `app/api/site-walk/comments/[id]/read/route.ts` — POST (mark as read, appends to read_by array)
-- `app/api/site-walk/assignments/route.ts` — GET (filter by session_id + assigned_to), POST
-- `app/api/site-walk/assignments/[id]/route.ts` — GET, PATCH (auto-timestamps on acknowledge/done), DELETE (assigner only)
-- `app/api/site-walk/board/route.ts` — GET enriched sessions (item_count, open_assignments, escalation_count)
-
-New components (3):
-- `CommentThread.tsx` (148 lines) — threaded comments with field/office badges, escalation highlight, read receipts, send/escalate buttons
-- `AssignmentPanel.tsx` (221 lines) — assignment list with create form, priority badges, status pills, action buttons (Ack/Start/Done), split by "Assigned to You" vs others
-- `SessionBoardClient.tsx` (96 lines) — leadership board showing active sessions with item counts, open assignments, escalation badges
-
-Modified files (3):
-- `SessionReviewClient.tsx` — added tabbed coordination section (Comments | Assignments) integrated with CommentThread + AssignmentPanel
-- `review/page.tsx` — now passes userId + orgMembers (fetched from profiles table) to SessionReviewClient
-- `lib/types/site-walk.ts` — added SiteWalkComment, SiteWalkAssignment, CreateCommentPayload, CreateAssignmentPayload, UpdateAssignmentPayload, AssignmentPriority, AssignmentStatus
-
-New route: `/site-walk/board` — board page for leadership overview
+Modified files (2):
+- `lib/email.ts` — exported sendEmail, brandedHtml, ctaButton for reuse by email-site-walk.ts
+- `lib/s3-utils.ts` — added uploadBuffer(key, body, contentType) using PutObjectCommand
 
 ### What's Broken / Partially Done
-- PWA icons: manifest references `/uploads/icon-192.png` and `/uploads/icon-512.png` — files need to be generated and placed in `public/uploads/`
-- Service worker: NOT implemented yet (Phase 8 per build plan)
-- IndexedDB offline queue: NOT implemented yet (Phase 8)
-- Speech-to-text / voice notes: NOT implemented yet (Phase 4b)
-- Photo blobs created in CaptureCamera are NOT uploaded to S3 — only metadata is saved to items table. Need SlateDrop upload integration to persist actual image files.
-- `STRIPE_PRICE_*` env vars for modular plans need to be created in Stripe Dashboard + set in Vercel
-- `subscription_status` column on organizations table may not exist — webhook writes it but no migration
+- PWA icons: manifest references `/uploads/icon-192.png` and `/uploads/icon-512.png` — not generated
+- Service worker: NOT implemented (Phase 8)
+- IndexedDB offline queue: NOT implemented (Phase 8)
+- Speech-to-text / voice notes: NOT implemented (Phase 4b)
+- Photo blobs from CaptureCamera NOT uploaded to S3 — only metadata saved
+- `STRIPE_PRICE_*` env vars need Stripe Dashboard + Vercel setup
+- `subscription_status` column on organizations table may not exist
 - `marketing-homepage.tsx` is 1123 lines — needs extraction
-- `market_scheduler_lock` table still has no RLS
-- BUG-018: DrawingManager deprecation in LocationMap.tsx (May 2026 deadline)
-- Legacy `project_punch_items` table exists with old PunchWalk naming — not migrated yet
+- `market_scheduler_lock` table has no RLS
+- BUG-018: DrawingManager deprecation in LocationMap.tsx (May 2026)
+- Legacy `project_punch_items` table not migrated
+- Pre-existing TS errors (not from Phase 7): pins/plans/templates routes pass 2 args to ok(), textarea module missing, site-walk page .name access
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority)
-1. Phase 7: Deliverable generation — report templates, PDF export, branding, sharing
+1. Phase 8: Offline & sync — service worker, IndexedDB queue, background sync
 2. Phase 4b: wire CaptureCamera → SlateDrop upload (photos to S3)
 3. Phase 4b: voice note capture + browser speech-to-text
-4. Generate PWA icons (192x192 + 512x512 PNG) and place in public/uploads/
+4. Generate PWA icons (192x192 + 512x512 PNG)
 5. Create Stripe products/prices for all modular plans
-6. Verify `subscription_status` column on organizations table
-4. Verify `subscription_status` column exists on organizations table (add migration if not)
-5. Migrate legacy `project_punch_items` → `site_walk_items` (data migration)
+6. Fix pre-existing TS errors (ok() 2-arg calls, textarea module, .name access)
+7. Verify `subscription_status` column on organizations table
