@@ -13,6 +13,7 @@ import {
   type AppBillingCycle, 
   type StandaloneAppId 
 } from "@/lib/billing-apps";
+import type { AppId, AppTier } from "@/lib/entitlements-modular";
 import { getRequestOrigin, getStripeClient } from "@/lib/stripe";
 import { loadOrgFeatureFlags } from "@/lib/server/org-feature-flags";
 
@@ -89,8 +90,8 @@ export async function POST(req: NextRequest) {
         if (!match) {
           return NextResponse.json({ error: "Invalid planKey format" }, { status: 400 });
         }
-        const parsedAppId = match[1] as any;
-        const tier = match[2] as any;
+        const parsedAppId = match[1] as AppId;
+        const tier = match[2] as Exclude<AppTier, "none">;
         priceId = getModularPriceId(parsedAppId, tier);
         
         if (!priceId) {
