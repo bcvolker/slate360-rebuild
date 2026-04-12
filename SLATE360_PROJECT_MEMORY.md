@@ -187,28 +187,46 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-12 (Phase 9: 360 Tours Polish)
+### Session Handoff — 2026-04-12 (Phase 10: Design Studio Foundation)
 
 ### What Changed
 
 **Phase 9 — 360 Tour Builder UI** (commit fabf59d, pushed)
+- 6 UI components: TourBuilderShell, TourListClient, TourEditorClient, TourPanoViewer, TourSettingsPanel, PublicTourViewer
+- Public viewer route: `app/tours/view/[slug]/page.tsx`
+- Scene reorder API: `app/api/tours/[tourId]/scenes/reorder/route.ts`
+- Wired tour-builder page.tsx
 
-Tour Builder frontend (6 new components):
-- `components/tours/TourBuilderShell.tsx` — Client shell: list ↔ editor view switcher
-- `components/tours/TourListClient.tsx` — Tour card grid with create/delete, draft/published badges
-- `components/tours/TourEditorClient.tsx` — Main editor: scene upload (presigned S3 URL → PUT → complete), reorder (up/down), panorama preview, publish/unpublish, settings panel
-- `components/tours/TourPanoViewer.tsx` — @photo-sphere-viewer/core wrapper with yaw/pitch position tracking, navbar (zoom/move/fullscreen)
-- `components/tours/TourSettingsPanel.tsx` — Extracted tour title/description editor (keeps TourEditorClient under 300 lines)
-- `components/tours/PublicTourViewer.tsx` — Public viewer with scene dots navigation, prev/next arrows, branding logo overlay
+**Phase 10 — Design Studio Foundation** (commit eeeb807, pushed)
 
-Public tour viewer route:
-- `app/tours/view/[slug]/page.tsx` — Server component: fetches published tour by viewer_slug, loads scenes ordered by sort_order
+Billing/auth wiring:
+- `lib/billing-apps.ts` — Added `design_studio` to `StandaloneAppId`, $49/mo plan
+- `lib/entitlements.ts` — Added `canAccessStandaloneDesignStudio`, `standalone_design_studio` flag
+- `lib/server/org-feature-flags.ts` — Added `standalone_design_studio` to flags + entitlement key map
+- `lib/server/api-auth.ts` — Replaced hardcoded if/else in `withAppAuth` with data-driven map supporting all 3 apps
 
-Scene reorder API:
-- `app/api/tours/[tourId]/scenes/reorder/route.ts` — PATCH: bulk update sort_order from ordered sceneIds array
+Migration (APPLIED):
+- `20260412000011_design_studio_foundation.sql` — `project_models` table (id, org_id, project_id, title, description, status, model_type, thumbnail_path), `model_files` table (id, model_id, filename, s3_key, content_type, file_size_bytes, file_role, sort_order), `standalone_design_studio` column on org_feature_flags, RLS policies, updated_at trigger
+
+Types + queries:
+- `lib/types/design-studio.ts` — ProjectModel, ModelFile, ModelStatus, ModelType, FileRole
+- `lib/design-studio/queries.ts` — getModels, getModelById, createModel, updateModel, deleteModel, getModelFiles, createModelFile, deleteModelFile, collectModelAssets
+
+API routes (5 endpoints, all `withAppAuth("design_studio")`):
+- `app/api/design-studio/models/route.ts` — GET (list by projectId) + POST (create)
+- `app/api/design-studio/models/[modelId]/route.ts` — GET + PATCH + DELETE (with S3 cleanup + quota recovery)
+- `app/api/design-studio/models/[modelId]/files/route.ts` — GET (list) + POST (presigned S3 URL, 500MB limit, storage quota check)
+- `app/api/design-studio/models/[modelId]/files/complete/route.ts` — POST (finalize upload + increment quota)
+- `app/api/design-studio/models/[modelId]/files/[fileId]/route.ts` — DELETE (S3 cleanup + quota recovery)
+
+UI (4 new components):
+- `components/design-studio/DesignStudioShell.tsx` — Project selector + list/editor view switcher
+- `components/design-studio/ModelListClient.tsx` — Model card grid with create/delete, type/status badges
+- `components/design-studio/ModelEditorClient.tsx` — File upload (presigned S3), file list, Google model-viewer for GLB/GLTF preview, settings panel
+- `components/design-studio/ModelSettingsPanel.tsx` — Title, description, status editor
 
 Wired into app:
-- `app/(apps)/tour-builder/page.tsx` — Replaced placeholder with real TourBuilderShell
+- `app/(apps)/design-studio/page.tsx` — Replaced placeholder with real DesignStudioShell, passes projects from server
 
 ### What's Broken / Partially Done
 - PWA icons: manifest references `/uploads/icon-192.png` and `/uploads/icon-512.png` — not generated
@@ -219,18 +237,19 @@ Wired into app:
 - `market_scheduler_lock` table has no RLS
 - BUG-018: DrawingManager deprecation in LocationMap.tsx (May 2026)
 - Legacy `project_punch_items` table not migrated
-- Pre-existing TS errors (not from Phase 9): pins/plans/templates routes pass 2 args to ok(), textarea module missing, site-walk page .name access
-- `photo_s3_key` column may not exist on `site_walk_items` table — CaptureCamera sends it but no migration added it
-- Tour Builder: No drag-and-drop scene reorder (uses up/down arrows), no Site Walk → 360 scene linkage yet, no immersive context button, no viewer_slug auto-generation on publish
+- Pre-existing TS errors: pins/plans/templates routes pass 2 args to ok(), textarea module missing, site-walk page .name access
+- `photo_s3_key` column may not exist on `site_walk_items` table
+- Tour Builder: No drag-and-drop reorder, no Site Walk ↔ 360 scene linkage, no immersive context button, no viewer_slug auto-generation
+- Design Studio: ModelViewerClient `src` needs S3 URL resolution (currently passes s3_key, may need CloudFront/presigned URL)
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority)
-1. Phase 9 remaining: Site Walk ↔ 360 scene linkage, immersive context button, viewer_slug generation on publish
-2. Add `photo_s3_key` column to `site_walk_items` (migration needed for camera upload to persist)
-3. Voice note capture + browser speech-to-text
-4. Generate PWA icons (192x192 + 512x512 PNG)
-5. Create Stripe products/prices for all modular plans
-6. Fix pre-existing TS errors (ok() 2-arg calls, textarea module, .name access)
-7. Verify `subscription_status` column on organizations table
+1. Phase 11: Content Studio Foundation (media upload + basic editing)
+2. Phase 12: App Store Packaging (TWA/native shells)
+3. Fix pre-existing TS errors (ok() 2-arg calls, textarea module, .name access)
+4. Add `photo_s3_key` column to `site_walk_items` (migration)
+5. Generate PWA icons
+6. Create Stripe products/prices in Dashboard + Vercel env
+7. Tour Builder: viewer_slug generation, Site Walk linkage, immersive context
