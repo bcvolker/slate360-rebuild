@@ -111,9 +111,12 @@ export async function withAppAuth(
 ): Promise<NextResponse> {
   return withAuth(req, async (ctx) => {
     const entitlements = await resolveOrgEntitlements(ctx.orgId);
-    const canAccess = appId === "tour_builder"
-      ? entitlements.canAccessStandaloneTourBuilder
-      : entitlements.canAccessStandalonePunchwalk;
+    const key = ({
+      tour_builder: "canAccessStandaloneTourBuilder",
+      punchwalk: "canAccessStandalonePunchwalk",
+      design_studio: "canAccessStandaloneDesignStudio",
+    } as const)[appId];
+    const canAccess = entitlements[key];
     if (!canAccess) {
       return NextResponse.json(
         { error: `${appId} subscription required` },

@@ -7,6 +7,7 @@ import type { StandaloneAppId } from "@/lib/billing-apps";
 const EMPTY_FLAGS: OrgFeatureFlags = {
   standalone_tour_builder: false,
   standalone_punchwalk: false,
+  standalone_design_studio: false,
   tour_builder_seat_limit: 0,
   tour_builder_seats_used: 0,
 };
@@ -15,6 +16,7 @@ const EMPTY_FLAGS: OrgFeatureFlags = {
 const APP_ENTITLEMENT_KEY: Record<StandaloneAppId, keyof Entitlements> = {
   tour_builder: "canAccessStandaloneTourBuilder",
   punchwalk: "canAccessStandalonePunchwalk",
+  design_studio: "canAccessStandaloneDesignStudio",
 };
 
 /**
@@ -29,7 +31,7 @@ export async function loadOrgFeatureFlags(orgId: string | null): Promise<OrgFeat
     const admin = createAdminClient();
     const { data, error } = await admin
       .from("org_feature_flags")
-      .select("standalone_tour_builder, standalone_punchwalk, tour_builder_seat_limit, tour_builder_seats_used")
+      .select("standalone_tour_builder, standalone_punchwalk, standalone_design_studio, tour_builder_seat_limit, tour_builder_seats_used")
       .eq("org_id", orgId)
       .maybeSingle();
 
@@ -38,6 +40,7 @@ export async function loadOrgFeatureFlags(orgId: string | null): Promise<OrgFeat
     return {
       standalone_tour_builder: data.standalone_tour_builder === true,
       standalone_punchwalk: data.standalone_punchwalk === true,
+      standalone_design_studio: data.standalone_design_studio === true,
       tour_builder_seat_limit: Number(data.tour_builder_seat_limit) || 0,
       tour_builder_seats_used: Number(data.tour_builder_seats_used) || 0,
     };
