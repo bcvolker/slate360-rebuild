@@ -187,46 +187,39 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-12 (Phase 10: Design Studio Foundation)
+### Session Handoff — 2026-04-12 (Phase 11: Content Studio Foundation)
 
 ### What Changed
 
-**Phase 9 — 360 Tour Builder UI** (commit fabf59d, pushed)
-- 6 UI components: TourBuilderShell, TourListClient, TourEditorClient, TourPanoViewer, TourSettingsPanel, PublicTourViewer
-- Public viewer route: `app/tours/view/[slug]/page.tsx`
-- Scene reorder API: `app/api/tours/[tourId]/scenes/reorder/route.ts`
-- Wired tour-builder page.tsx
-
-**Phase 10 — Design Studio Foundation** (commit eeeb807, pushed)
+**Phase 11 — Content Studio Foundation** (commit 2410a48, pushed)
 
 Billing/auth wiring:
-- `lib/billing-apps.ts` — Added `design_studio` to `StandaloneAppId`, $49/mo plan
-- `lib/entitlements.ts` — Added `canAccessStandaloneDesignStudio`, `standalone_design_studio` flag
-- `lib/server/org-feature-flags.ts` — Added `standalone_design_studio` to flags + entitlement key map
-- `lib/server/api-auth.ts` — Replaced hardcoded if/else in `withAppAuth` with data-driven map supporting all 3 apps
+- `lib/billing-apps.ts` — Added `content_studio` to `StandaloneAppId`, $49/mo plan
+- `lib/entitlements.ts` — Added `canAccessStandaloneContentStudio`, `standalone_content_studio` flag
+- `lib/server/org-feature-flags.ts` — Added `standalone_content_studio` to flags + entitlement key map
+- `lib/server/api-auth.ts` — Added `content_studio` to `withAppAuth` map
 
 Migration (APPLIED):
-- `20260412000011_design_studio_foundation.sql` — `project_models` table (id, org_id, project_id, title, description, status, model_type, thumbnail_path), `model_files` table (id, model_id, filename, s3_key, content_type, file_size_bytes, file_role, sort_order), `standalone_design_studio` column on org_feature_flags, RLS policies, updated_at trigger
+- `20260412000012_content_studio_foundation.sql` — `media_collections` table (id, org_id, project_id, created_by, title, description, cover_path), `media_assets` table (id, org_id, collection_id, uploaded_by, title, s3_key, content_type, file_size_bytes, media_type, width, height, duration_secs, thumbnail_path, tags, metadata), `standalone_content_studio` column on org_feature_flags, RLS policies for both tables, updated_at triggers
 
 Types + queries:
-- `lib/types/design-studio.ts` — ProjectModel, ModelFile, ModelStatus, ModelType, FileRole
-- `lib/design-studio/queries.ts` — getModels, getModelById, createModel, updateModel, deleteModel, getModelFiles, createModelFile, deleteModelFile, collectModelAssets
+- `lib/types/content-studio.ts` — MediaAsset, MediaCollection, MediaType
+- `lib/content-studio/queries.ts` — getCollections, getCollectionById, createCollection, updateCollection, deleteCollection, getAssets, getAssetById, createAsset, updateAsset, deleteAsset, collectCollectionAssets
 
-API routes (5 endpoints, all `withAppAuth("design_studio")`):
-- `app/api/design-studio/models/route.ts` — GET (list by projectId) + POST (create)
-- `app/api/design-studio/models/[modelId]/route.ts` — GET + PATCH + DELETE (with S3 cleanup + quota recovery)
-- `app/api/design-studio/models/[modelId]/files/route.ts` — GET (list) + POST (presigned S3 URL, 500MB limit, storage quota check)
-- `app/api/design-studio/models/[modelId]/files/complete/route.ts` — POST (finalize upload + increment quota)
-- `app/api/design-studio/models/[modelId]/files/[fileId]/route.ts` — DELETE (S3 cleanup + quota recovery)
+API routes (4 endpoints, all `withAppAuth("content_studio")`):
+- `app/api/content-studio/collections/route.ts` — GET (list by projectId) + POST (create)
+- `app/api/content-studio/collections/[collectionId]/route.ts` — GET + PATCH + DELETE (with S3 cleanup + quota recovery)
+- `app/api/content-studio/assets/route.ts` — GET (list, filter by collectionId/mediaType) + POST (create + quota increment)
+- `app/api/content-studio/assets/[assetId]/route.ts` — GET + PATCH + DELETE (S3 cleanup + quota recovery)
 
 UI (4 new components):
-- `components/design-studio/DesignStudioShell.tsx` — Project selector + list/editor view switcher
-- `components/design-studio/ModelListClient.tsx` — Model card grid with create/delete, type/status badges
-- `components/design-studio/ModelEditorClient.tsx` — File upload (presigned S3), file list, Google model-viewer for GLB/GLTF preview, settings panel
-- `components/design-studio/ModelSettingsPanel.tsx` — Title, description, status editor
+- `components/content-studio/ContentStudioShell.tsx` — Project selector + list/editor view switcher
+- `components/content-studio/AssetListClient.tsx` — Asset grid with upload, type filter, media-type icons, delete
+- `components/content-studio/AssetEditorClient.tsx` — Image/video/audio preview, download link, settings panel
+- `components/content-studio/AssetSettingsPanel.tsx` — Title editor + tag management
 
 Wired into app:
-- `app/(apps)/design-studio/page.tsx` — Replaced placeholder with real DesignStudioShell, passes projects from server
+- `app/(apps)/content-studio/page.tsx` — Replaced "Coming Soon" placeholder with real ContentStudioShell, passes projects from server
 
 ### What's Broken / Partially Done
 - PWA icons: manifest references `/uploads/icon-192.png` and `/uploads/icon-512.png` — not generated
@@ -246,10 +239,10 @@ Wired into app:
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority)
-1. Phase 11: Content Studio Foundation (media upload + basic editing)
-2. Phase 12: App Store Packaging (TWA/native shells)
-3. Fix pre-existing TS errors (ok() 2-arg calls, textarea module, .name access)
-4. Add `photo_s3_key` column to `site_walk_items` (migration)
-5. Generate PWA icons
-6. Create Stripe products/prices in Dashboard + Vercel env
-7. Tour Builder: viewer_slug generation, Site Walk linkage, immersive context
+1. Phase 12: App Store Packaging (TWA/native shells)
+2. Fix pre-existing TS errors (ok() 2-arg calls, textarea module, .name access)
+3. Add `photo_s3_key` column to `site_walk_items` (migration)
+4. Generate PWA icons
+5. Create Stripe products/prices in Dashboard + Vercel env
+6. Tour Builder: viewer_slug generation, Site Walk linkage, immersive context
+7. Content Studio: thumbnail generation, batch upload, collection management UI polish
