@@ -8,6 +8,7 @@ const EMPTY_FLAGS: OrgFeatureFlags = {
   standalone_tour_builder: false,
   standalone_punchwalk: false,
   standalone_design_studio: false,
+  standalone_content_studio: false,
   tour_builder_seat_limit: 0,
   tour_builder_seats_used: 0,
 };
@@ -17,6 +18,7 @@ const APP_ENTITLEMENT_KEY: Record<StandaloneAppId, keyof Entitlements> = {
   tour_builder: "canAccessStandaloneTourBuilder",
   punchwalk: "canAccessStandalonePunchwalk",
   design_studio: "canAccessStandaloneDesignStudio",
+  content_studio: "canAccessStandaloneContentStudio",
 };
 
 /**
@@ -31,7 +33,7 @@ export async function loadOrgFeatureFlags(orgId: string | null): Promise<OrgFeat
     const admin = createAdminClient();
     const { data, error } = await admin
       .from("org_feature_flags")
-      .select("standalone_tour_builder, standalone_punchwalk, standalone_design_studio, tour_builder_seat_limit, tour_builder_seats_used")
+      .select("standalone_tour_builder, standalone_punchwalk, standalone_design_studio, standalone_content_studio, tour_builder_seat_limit, tour_builder_seats_used")
       .eq("org_id", orgId)
       .maybeSingle();
 
@@ -41,6 +43,7 @@ export async function loadOrgFeatureFlags(orgId: string | null): Promise<OrgFeat
       standalone_tour_builder: data.standalone_tour_builder === true,
       standalone_punchwalk: data.standalone_punchwalk === true,
       standalone_design_studio: data.standalone_design_studio === true,
+      standalone_content_studio: data.standalone_content_studio === true,
       tour_builder_seat_limit: Number(data.tour_builder_seat_limit) || 0,
       tour_builder_seats_used: Number(data.tour_builder_seats_used) || 0,
     };

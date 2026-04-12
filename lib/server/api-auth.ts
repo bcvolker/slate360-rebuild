@@ -115,6 +115,7 @@ export async function withAppAuth(
       tour_builder: "canAccessStandaloneTourBuilder",
       punchwalk: "canAccessStandalonePunchwalk",
       design_studio: "canAccessStandaloneDesignStudio",
+      content_studio: "canAccessStandaloneContentStudio",
     } as const)[appId];
     const canAccess = entitlements[key];
     if (!canAccess) {

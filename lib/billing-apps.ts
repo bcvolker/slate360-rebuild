@@ -8,7 +8,7 @@
 
 import type { AppId, AppTier, BundleId, StorageAddonId } from "@/lib/entitlements-modular";
 
-export type StandaloneAppId = "tour_builder" | "punchwalk" | "design_studio";
+export type StandaloneAppId = "tour_builder" | "punchwalk" | "design_studio" | "content_studio";
 
 export type AppBillingCycle = "monthly"; // annual can be added later
 
@@ -48,10 +48,19 @@ export const STANDALONE_APP_PLANS: Record<StandaloneAppId, StandaloneAppPlan> = 
       monthly: process.env.STRIPE_PRICE_APP_DESIGN_STUDIO_MONTHLY,
     },
   },
+  content_studio: {
+    appId: "content_studio",
+    label: "Content Studio",
+    description: "Media upload, editing, and content management",
+    monthlyPriceUsd: 49,
+    priceIds: {
+      monthly: process.env.STRIPE_PRICE_APP_CONTENT_STUDIO_MONTHLY,
+    },
+  },
 };
 
 export function isStandaloneAppId(value: string | null | undefined): value is StandaloneAppId {
-  return value === "tour_builder" || value === "punchwalk" || value === "design_studio";
+  return value === "tour_builder" || value === "punchwalk" || value === "design_studio" || value === "content_studio";
 }
 
 export function getAppPriceId(appId: StandaloneAppId, cycle: AppBillingCycle = "monthly"): string | null {

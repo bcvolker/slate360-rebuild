@@ -11,6 +11,7 @@ export interface OrgFeatureFlags {
   standalone_tour_builder: boolean;
   standalone_punchwalk: boolean;
   standalone_design_studio: boolean;
+  standalone_content_studio: boolean;
   tour_builder_seat_limit: number;
   tour_builder_seats_used: number;
 }
@@ -42,12 +43,13 @@ export interface Entitlements {
   canAccessStandaloneTourBuilder: boolean;
   canAccessStandalonePunchwalk: boolean;
   canAccessStandaloneDesignStudio: boolean;
+  canAccessStandaloneContentStudio: boolean;
   tourBuilderSeatLimit: number;
   tourBuilderSeatsUsed: number;
 }
 
 /** Standalone app fields are excluded — they come from org_feature_flags, not tiers. */
-type TierEntitlements = Omit<Entitlements, "tier" | "canAccessStandaloneTourBuilder" | "canAccessStandalonePunchwalk" | "canAccessStandaloneDesignStudio" | "tourBuilderSeatLimit" | "tourBuilderSeatsUsed">;
+type TierEntitlements = Omit<Entitlements, "tier" | "canAccessStandaloneTourBuilder" | "canAccessStandalonePunchwalk" | "canAccessStandaloneDesignStudio" | "canAccessStandaloneContentStudio" | "tourBuilderSeatLimit" | "tourBuilderSeatsUsed">;
 
 const TIER_MAP: Record<Tier, TierEntitlements> = {
   trial: {
@@ -155,6 +157,8 @@ export function getEntitlements(
       flags?.standalone_punchwalk === true,
     canAccessStandaloneDesignStudio:
       base.canAccessDesignStudio || flags?.standalone_design_studio === true,
+    canAccessStandaloneContentStudio:
+      base.canAccessContent || flags?.standalone_content_studio === true,
     tourBuilderSeatLimit: flags?.tour_builder_seat_limit ?? 0,
     tourBuilderSeatsUsed: flags?.tour_builder_seats_used ?? 0,
   };
