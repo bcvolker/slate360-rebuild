@@ -19,7 +19,7 @@ function getResend(): Resend {
 }
 
 /** Wrapper that sends via Resend and throws on failure */
-async function sendEmail({
+export async function sendEmail({
   to,
   subject,
   html,
@@ -42,7 +42,7 @@ async function sendEmail({
 }
 
 /* ── Branded HTML wrapper ── */
-function brandedHtml(title: string, body: string): string {
+export function brandedHtml(title: string, body: string): string {
   const logoUrl = `${APP_URL}/uploads/SLATE 360-Color Reversed Lockup.svg`;
   return `<!DOCTYPE html>
 <html lang="en">
@@ -87,7 +87,7 @@ function brandedHtml(title: string, body: string): string {
 }
 
 /* ── Button helper ── */
-function ctaButton(label: string, href: string) {
+export function ctaButton(label: string, href: string) {
   return `<table cellpadding="0" cellspacing="0" style="margin:28px 0 8px;">
     <tr>
       <td style="background:#D4AF37;border-radius:10px;">

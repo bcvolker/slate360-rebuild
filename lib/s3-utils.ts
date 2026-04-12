@@ -1,6 +1,25 @@
-import { DeleteObjectCommand, DeleteObjectsCommand } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, DeleteObjectsCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3, BUCKET } from "./s3";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+/**
+ * Uploads a Buffer to S3 with the given key and content type.
+ */
+export async function uploadBuffer(
+  key: string,
+  body: Buffer,
+  contentType: string,
+): Promise<void> {
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+    }),
+  );
+  console.log(`[S3] Uploaded ${key} (${body.byteLength} bytes)`);
+}
 
 /**
  * Physically deletes a single object from S3.
