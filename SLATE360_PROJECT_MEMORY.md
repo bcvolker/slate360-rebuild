@@ -187,59 +187,44 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-12 (Phase 1: Modular Pricing)
+### Session Handoff — 2026-04-12 (Phase 1 Backend: Migrations + Webhook Refactor)
 
 ### What Changed
 
-**1. Per-app modular entitlements system** (`lib/entitlements-modular.ts` — NEW 264 lines)
-- Types: `AppId`, `AppTier`, `BundleId`, `AppLimits`, `ModularEntitlements`, `OrgAppSubscriptions`
-- `resolveModularEntitlements()` — resolves per-app subscriptions + bundles → unified entitlements
-- Bundle definitions: Field Pro ($149/mo), All Access ($249/mo)
-- Storage add-ons: +10GB/$9, +50GB/$29
-- Synergy flags: tours360InSiteWalk, designInSiteWalk, contentInSiteWalk
-- Re-exported from `lib/entitlements.ts` (182 lines) — zero breaking changes to 42 consumers
+**1. DB Migrations created** (3 new files)
+- `supabase/migrations/20260412000001_create_org_app_subscriptions.sql` — per-app subscription state table with RLS
+- `supabase/migrations/20260412000002_create_credit_transactions.sql` — credit ledger with idempotency keys + RLS
+- `supabase/migrations/20260412000003_add_purchased_credits_rpc.sql` — atomic credit increment RPC
 
-**2. Per-app Stripe billing plans** (`lib/billing-apps.ts` — 186 lines)
-- `MODULAR_APP_PLANS`: Site Walk Basic $79/Pro $129, Tours Basic $49/Pro $99, SlateDrop Pro $39, Design Studio $49/$99, Content Studio $49/$99
-- `BUNDLE_PLANS`: Field Pro $149, All Access $249
-- `STORAGE_ADDON_PLANS`: +10GB $9/mo, +50GB $29/mo
-- `CREDIT_ADDON_PACKS`: 500/$19, 2000/$49, 5000/$99
-- Helper functions: `getModularPriceId()`, `getModularPlanFromPriceId()`, `getBundleFromPriceId()`
-- All plans use `STRIPE_PRICE_*` env vars (need to be created in Stripe + set in Vercel)
+**2. Webhook refactored** (309→178 lines)
+- Extracted 5 helpers to `lib/server/webhook-helpers.ts` (132 lines): `updateOrganizationTier`, `handleModularSubscription`, `addPurchasedCredits`, `upsertAppFlag`, `resolveOrgIdFromCustomer`, `processCreditsAddon`
+- Removed shadowed `admin2`/`admin3` variables — uses outer-scope `admin`
+- Removed inline `CREDIT_ADDON_PACKS` import (moved to helper)
 
-**3. Credit idempotency utility** (`lib/credits/idempotency.ts` — NEW)
-- `deductCredits()` — atomic deduction with optimistic concurrency + idempotency key
-- `addCredits()` — atomic credit addition with idempotency key
-- Both prevent double-click / retry double-charges
-- Requires `credit_transactions` table (migration needed)
+**3. App-checkout route fixed** (180→171 lines)
+- Replaced `sessionConfig: any` with proper `Stripe.Checkout.SessionCreateParams`
+- Supports `planKey` for bundles, storage addons, credit addons, modular apps
+- Preserves legacy `appId` path for standalone apps
 
-**4. Pricing UI pivot to per-app tabs** (`components/dashboard/plans/`)
-- `PlansClient.tsx` (255 lines) — tabbed UI: Site Walk | 360 Tours | Bundles | Add-ons
-- `plan-data.ts` (159 lines) — display data for all plan cards
-- Landing page pricing updated: Site Walk Basic $79, Field Pro Bundle $149, All Access $249
-- CEO Command Center updated with new plan names/prices
-
-**5. Credit packs realigned** (`lib/billing.ts`)
-- Changed from 5K/15K/50K to 500/2K/5K credits at $19/$49/$99
+**4. Single-license model enforced**
+- `lib/entitlements-modular.ts`: all seats = 1 (non-enterprise)
+- `components/dashboard/plans/plan-data.ts`: "2 seats", "3 seats", "5 seats + team management", "10 seats + team management" → "Single license"
 
 ### What's Broken / Partially Done
 - `STRIPE_PRICE_*` env vars for modular plans need to be created in Stripe Dashboard + set in Vercel
-- `credit_transactions` table needs migration (for idempotency utility)
-- `org_app_subscriptions` DB table needs migration (for storing per-app subscriptions)
-- `app-checkout` API route needs update to handle `planKey` parameter from new UI
 - `subscription_status` column on organizations table may not exist — webhook writes it but no migration
 - `marketing-homepage.tsx` is 1123 lines — needs extraction
 - `market_scheduler_lock` table still has no RLS
 - PWA missing: service worker, Permissions-Policy camera header, offline support
 - BUG-018: DrawingManager deprecation in LocationMap.tsx (May 2026 deadline)
+- Migrations NOT yet applied to Supabase (need `supabase db push` or manual run)
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority)
-1. Create Stripe products/prices for all modular plans + set env vars in Vercel
-2. Create `org_app_subscriptions` + `credit_transactions` DB migrations
-3. Update `app-checkout` route to handle modular plan keys
-4. Update Stripe webhook handler to provision per-app subscriptions
-5. Phase 2: SlateDrop hardening (quota enforcement, file validation, drag-drop, mobile UX)
-6. Phase 3: Site Walk backend foundation (migrations, CRUD APIs, assignment model)
+1. Apply migrations to Supabase (`supabase db push` or run SQL manually)
+2. Create Stripe products/prices for all modular plans + set `STRIPE_PRICE_*` env vars in Vercel
+3. Verify `subscription_status` column exists on organizations table (add migration if not)
+4. Phase 2: SlateDrop hardening (quota enforcement, file validation, drag-drop, mobile UX)
+5. Phase 3: Site Walk backend foundation (migrations, CRUD APIs, assignment model)
