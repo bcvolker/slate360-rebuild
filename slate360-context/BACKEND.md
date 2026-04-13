@@ -63,25 +63,52 @@ Rules:
 
 ## Tier And Entitlements Snapshot
 
-Tier order:
-`trial < creator < model < business < enterprise`
+Current tier order:
+`trial < standard < business < enterprise`
+
+Legacy tier names (`creator`, `model`) are mapped to `standard` at runtime via `LEGACY_TIER_MAP`.
 
 Subscription features must use `getEntitlements()` from `lib/entitlements.ts`.
 
 Internal routes are separate from subscription tiers:
-- `/ceo` -> `canAccessCeo`
-- `/market` -> `canAccessMarket`
-- `/athlete360` -> `canAccessAthlete360`
+- `/ceo` -> `canAccessCeo` (platform-admin, not entitlements)
+- `/market` -> `canAccessMarket` (internal)
+- `/athlete360` -> `canAccessAthlete360` (internal)
 
-Brief limits snapshot:
+### Platform Limits (tier-based)
 
-| Tier | Credits/mo | Storage | Hub |
-|---|---:|---:|---|
-| trial | 500 | 5 GB | yes |
-| creator | 6,000 | 40 GB | no |
-| model | 15,000 | 150 GB | no |
-| business | 30,000 | 750 GB | yes |
-| enterprise | 100,000 | 5 TB | yes |
+| Tier | Credits/mo | Storage | Seats | Hub | Analytics | Reports | White-label |
+|---|---:|---:|---:|---|---|---|---|
+| trial | 250 | 2 GB | 1 | yes | no | no | no |
+| standard | 5,000 | 25 GB | 3 | yes | no | no | no |
+| business | 25,000 | 100 GB | 15 | yes | yes | yes | no |
+| enterprise | 100,000 | 500 GB | 999 | yes | yes | yes | yes |
+
+### App Access Model (purchase-based)
+
+Apps are **not** included in platform tiers. Access requires:
+1. **Standalone purchase** — `org_feature_flags.standalone_{app}` set by Stripe webhook
+2. **Modular subscription** — `org_app_subscriptions.{app}` with basic/pro tier
+3. **Bundle subscription** — `org_app_subscriptions.bundle` widens access to bundled apps
+
+Subscribing to any app unlocks the Slate360 platform (project creation, command center).
+
+| App | Flag Column | Stripe Product | Price |
+|---|---|---|---|
+| Site Walk | `standalone_punchwalk` | Slate360 PunchWalk | $49/mo |
+| Tour Builder | `standalone_tour_builder` | Slate360 Tour Builder | $49/mo |
+| Design Studio | `standalone_design_studio` | Slate360 Design Studio | $49/mo |
+| Content Studio | `standalone_content_studio` | Slate360 Content Studio | $49/mo |
+
+Tier-based fields (`canAccessDesignStudio`, `canAccessTourBuilder`, etc.) control **dashboard visibility** — what apps a user can discover. Standalone fields (`canAccessStandalone*`) control **activation** — whether the user can enter the app.
+
+The full entitlement resolution chain:
+```
+organizations.tier → TIER_MAP (platform limits + visibility)
+org_feature_flags → standalone flags (app activation)
+org_app_subscriptions → modular subscriptions (widen standalone access)
+→ getEntitlements() merges all three
+```
 
 ## Billing And Credits
 

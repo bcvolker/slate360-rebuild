@@ -150,15 +150,17 @@ export function getEntitlements(
   return {
     tier,
     ...base,
-    // Standalone app access: tier-based Tour Builder OR standalone flag
+    // Standalone app access: purchase-only (org_feature_flags or modular subscription).
+    // Tier-based fields (canAccessTourBuilder, etc.) control dashboard visibility;
+    // standalone fields control actual app activation after purchase.
     canAccessStandaloneTourBuilder:
-      base.canAccessTourBuilder || flags?.standalone_tour_builder === true,
+      flags?.standalone_tour_builder === true,
     canAccessStandalonePunchwalk:
       flags?.standalone_punchwalk === true,
     canAccessStandaloneDesignStudio:
-      base.canAccessDesignStudio || flags?.standalone_design_studio === true,
+      flags?.standalone_design_studio === true,
     canAccessStandaloneContentStudio:
-      base.canAccessContent || flags?.standalone_content_studio === true,
+      flags?.standalone_content_studio === true,
     tourBuilderSeatLimit: flags?.tour_builder_seat_limit ?? 0,
     tourBuilderSeatsUsed: flags?.tour_builder_seats_used ?? 0,
   };
