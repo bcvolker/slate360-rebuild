@@ -29,9 +29,9 @@ const CEO_TABS: { id: CeoTab; label: string; icon: typeof Shield }[] = [
 ];
 
 const PLANS = [
-  { name: "Site Walk Basic", price: "$79/mo", seats: "2 seats" },
-  { name: "Field Pro Bundle", price: "$149/mo", seats: "5 seats" },
-  { name: "All Access", price: "$249/mo", seats: "10 seats" },
+  { name: "Site Walk Basic", price: "TBD", seats: "TBD" },
+  { name: "Field Pro Bundle", price: "TBD", seats: "TBD" },
+  { name: "All Access", price: "TBD", seats: "TBD" },
 ];
 
 const MOCK_METRICS = [
@@ -173,8 +173,8 @@ export default function CeoCommandCenterClient({ user, tier, isCeo = false, inte
               />
               <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
                 <span>$0 increase</span>
-                <span>${priceLift} selected</span>
-                <span>$100 increase</span>
+                <span>+${priceLift}</span>
+                <span>+$100</span>
               </div>
             </div>
           </article>

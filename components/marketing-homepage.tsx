@@ -898,20 +898,20 @@ function PricingSection() {
                   <tr className="border-b border-border/50">
                     <td className="py-3 text-foreground">Tour Builder Standalone</td>
                     <td className="py-3 text-muted-foreground">Tour Builder only</td>
-                    <td className="py-3 text-muted-foreground">15 GB isolated</td>
-                    <td className="py-3 text-right text-foreground">$39</td>
+                    <td className="py-3 text-muted-foreground">TBD</td>
+                    <td className="py-3 text-right text-foreground">TBD</td>
                   </tr>
                   <tr className="border-b border-border/50">
                     <td className="py-3 text-foreground">Site Walk Standalone</td>
                     <td className="py-3 text-muted-foreground">Site Walk only</td>
-                    <td className="py-3 text-muted-foreground">15 GB isolated</td>
-                    <td className="py-3 text-right text-foreground">$39</td>
+                    <td className="py-3 text-muted-foreground">TBD</td>
+                    <td className="py-3 text-right text-foreground">TBD</td>
                   </tr>
                   <tr className="bg-primary/5">
                     <td className="py-3 text-primary font-medium">Professional Bundle</td>
                     <td className="py-3 text-foreground">Both apps</td>
-                    <td className="py-3 text-foreground">40 GB pooled</td>
-                    <td className="py-3 text-right text-primary font-bold">$79</td>
+                    <td className="py-3 text-foreground">TBD</td>
+                    <td className="py-3 text-right text-primary font-bold">TBD</td>
                   </tr>
                 </tbody>
               </table>

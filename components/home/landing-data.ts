@@ -148,8 +148,8 @@ export const TESTIMONIALS: TestimonialItem[] = [
 export const PRICING_PLANS: PricingPlan[] = [
   {
     name: "Site Walk Basic",
-    price: "$79",
-    period: "/mo",
+    price: "TBD",
+    period: "",
     description: "Field documentation essentials",
     features: [
       "5 GB cloud storage",
@@ -163,8 +163,8 @@ export const PRICING_PLANS: PricingPlan[] = [
   },
   {
     name: "Field Pro Bundle",
-    price: "$149",
-    period: "/mo",
+    price: "TBD",
+    period: "",
     description: "Site Walk Pro + 360 Tours Pro",
     features: [
       "30 GB cloud storage",
@@ -178,8 +178,8 @@ export const PRICING_PLANS: PricingPlan[] = [
   },
   {
     name: "All Access",
-    price: "$249",
-    period: "/mo",
+    price: "TBD",
+    period: "",
     description: "Every app at Pro tier",
     features: [
       "75 GB storage",

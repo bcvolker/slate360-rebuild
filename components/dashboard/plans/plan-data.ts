@@ -34,7 +34,7 @@ export const SITE_WALK_PLANS: AppPlanDisplay[] = [
     appId: "site_walk",
     tier: "basic",
     name: "Site Walk Basic",
-    price: "$79",
+    price: "TBD",
     desc: "Field documentation essentials for solo professionals.",
     features: [
       "5 GB cloud storage",
@@ -49,7 +49,7 @@ export const SITE_WALK_PLANS: AppPlanDisplay[] = [
     appId: "site_walk",
     tier: "pro",
     name: "Site Walk Pro",
-    price: "$129",
+    price: "TBD",
     desc: "Full photo and field documentation for teams.",
     features: [
       "25 GB cloud storage",
@@ -68,7 +68,7 @@ export const TOURS_PLANS: AppPlanDisplay[] = [
     appId: "tours",
     tier: "basic",
     name: "360 Tours Basic",
-    price: "$49",
+    price: "TBD",
     desc: "Create and host immersive virtual tours.",
     features: [
       "3 GB cloud storage",
@@ -83,7 +83,7 @@ export const TOURS_PLANS: AppPlanDisplay[] = [
     appId: "tours",
     tier: "pro",
     name: "360 Tours Pro",
-    price: "$99",
+    price: "TBD",
     desc: "360° tour powerhouse for teams and agencies.",
     features: [
       "15 GB cloud storage",
@@ -101,8 +101,8 @@ export const BUNDLE_PLANS_DISPLAY: BundlePlanDisplay[] = [
   {
     bundleId: "field_pro",
     name: "Field Pro Bundle",
-    price: "$149",
-    savings: "Save $79/mo",
+    price: "TBD",
+    savings: "TBD",
     desc: "Site Walk Pro + 360 Tours Pro — the field documentation powerhouse.",
     features: [
       "30 GB cloud storage",
@@ -117,8 +117,8 @@ export const BUNDLE_PLANS_DISPLAY: BundlePlanDisplay[] = [
   {
     bundleId: "all_access",
     name: "All Access Bundle",
-    price: "$249",
-    savings: "Save $177/mo",
+    price: "TBD",
+    savings: "TBD",
     desc: "Every current app at Pro tier — full platform access.",
     features: [
       "75 GB cloud storage",
@@ -134,18 +134,18 @@ export const BUNDLE_PLANS_DISPLAY: BundlePlanDisplay[] = [
 export const ADDONS_DISPLAY = {
   slatedropPro: {
     name: "SlateDrop Pro",
-    price: "$39",
+    price: "TBD",
     desc: "50 GB dedicated file storage with advanced sharing and audit log.",
     features: ["50 GB storage", "Unlimited share links", "Full audit log", "Folder management"],
   },
   storage: [
-    { label: "+10 GB Storage", price: "$9/mo" },
-    { label: "+50 GB Storage", price: "$29/mo" },
+    { label: "+10 GB Storage", price: "TBD" },
+    { label: "+50 GB Storage", price: "TBD" },
   ],
   credits: [
-    { label: "500 Credits", price: "$19" },
-    { label: "2,000 Credits", price: "$49" },
-    { label: "5,000 Credits", price: "$99" },
+    { label: "500 Credits", price: "TBD" },
+    { label: "2,000 Credits", price: "TBD" },
+    { label: "5,000 Credits", price: "TBD" },
   ],
 };
 

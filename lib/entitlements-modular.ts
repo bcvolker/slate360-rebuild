@@ -102,7 +102,7 @@ export const BUNDLE_DEFINITIONS: Record<BundleId, {
     creditsPerMonth: 1000,
     seats: 1,
     monthlyPrice: 149,
-    savings: "Save $79/mo vs separate",
+    savings: "TBD",
   },
   all_access: {
     label: "All Access Bundle",
@@ -112,7 +112,7 @@ export const BUNDLE_DEFINITIONS: Record<BundleId, {
     creditsPerMonth: 2500,
     seats: 1,
     monthlyPrice: 249,
-    savings: "Save $177/mo vs separate",
+    savings: "TBD",
   },
 };
 

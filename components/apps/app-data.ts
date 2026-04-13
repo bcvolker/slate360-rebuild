@@ -29,7 +29,7 @@ export const APPS: AppDefinition[] = [
     tagline: "Immersive 360° virtual tours",
     description:
       "Create and host interactive 360° virtual tours for your construction projects. Embed hotspots, annotations, and navigation markers. Share via link or embed on your website.",
-    price: "$49/mo",
+    price: "TBD",
     icon: Compass,
     color: "var(--module-tours)",
     features: [
@@ -47,7 +47,7 @@ export const APPS: AppDefinition[] = [
     tagline: "Field punch lists, simplified",
     description:
       "Digitize your punch list and field walkthrough process. Mark up floor plans with items, assign to trades, and track resolution in real time.",
-    price: "$49/mo",
+    price: "TBD",
     icon: ClipboardCheck,
     color: "var(--module-hub)",
     features: [
@@ -65,7 +65,7 @@ export const APPS: AppDefinition[] = [
     tagline: "Geospatial context for every project",
     description:
       "Overlay project data onto satellite imagery. Visualize progress, mark up areas of concern, and share annotated maps with stakeholders.",
-    price: "$39/mo",
+    price: "TBD",
     icon: Map,
     color: "var(--module-geo)",
     features: [
@@ -83,7 +83,7 @@ export const APPS: AppDefinition[] = [
     tagline: "Project intelligence dashboard",
     description:
       "Unified analytics across all your Slate360 modules. Track progress, budget, schedule performance, and team velocity in one view.",
-    price: "$29/mo",
+    price: "TBD",
     icon: BarChart3,
     color: "var(--module-analytics)",
     features: [
@@ -101,7 +101,7 @@ export const APPS: AppDefinition[] = [
     tagline: "Structured photo documentation",
     description:
       "Capture, organize, and annotate construction photos with automatic metadata tagging. Link photos to specific project milestones.",
-    price: "$29/mo",
+    price: "TBD",
     icon: Camera,
     color: "var(--module-content)",
     features: [
@@ -119,7 +119,7 @@ export const APPS: AppDefinition[] = [
     tagline: "3D model hosting & collaboration",
     description:
       "Upload and share 3D models directly in the browser. Supports IFC, glTF, OBJ, and FBX formats with measurement and annotation tools.",
-    price: "$59/mo",
+    price: "TBD",
     icon: Layers,
     color: "var(--module-virtual)",
     features: [
