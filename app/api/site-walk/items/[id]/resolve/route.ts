@@ -2,12 +2,12 @@
  * POST /api/site-walk/items/[id]/resolve — mark item as resolved
  */
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
 
 export const POST = (req: NextRequest, ctx: IdRouteContext) =>
-  withAuth(req, async ({ user, admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ user, admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 

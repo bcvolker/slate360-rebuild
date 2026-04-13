@@ -4,7 +4,7 @@
  * DELETE /api/site-walk/deliverables/[id]  — archive a deliverable
  */
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import {
   ok,
   badRequest,
@@ -25,7 +25,7 @@ const VALID_STATUSES: SiteWalkDeliverableStatus[] = [
 ];
 
 export const GET = (req: NextRequest, ctx: IdRouteContext) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 
@@ -41,7 +41,7 @@ export const GET = (req: NextRequest, ctx: IdRouteContext) =>
   });
 
 export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 
@@ -81,7 +81,7 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
   });
 
 export const DELETE = (req: NextRequest, ctx: IdRouteContext) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 

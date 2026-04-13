@@ -3,12 +3,12 @@
  * POST /api/site-walk/templates — create a template
  */
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import type { CreateTemplatePayload } from "@/lib/types/site-walk";
 
 export const GET = (req: NextRequest) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const ttype = req.nextUrl.searchParams.get("template_type");
 
@@ -26,7 +26,7 @@ export const GET = (req: NextRequest) =>
   });
 
 export const POST = (req: NextRequest) =>
-  withAuth(req, async ({ user, admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ user, admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
 
     const body = (await req.json()) as CreateTemplatePayload;

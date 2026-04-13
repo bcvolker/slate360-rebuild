@@ -3,14 +3,14 @@
  * POST /api/site-walk/assignments                 — create an assignment
  */
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import type { CreateAssignmentPayload, AssignmentPriority } from "@/lib/types/site-walk";
 
 const VALID_PRIORITIES: AssignmentPriority[] = ["low", "medium", "high", "critical"];
 
 export const GET = (req: NextRequest) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     const sessionId = req.nextUrl.searchParams.get("session_id");
     if (!sessionId) return badRequest("session_id is required");
     if (!orgId) return badRequest("Organization context required");
@@ -31,7 +31,7 @@ export const GET = (req: NextRequest) =>
   });
 
 export const POST = (req: NextRequest) =>
-  withAuth(req, async ({ admin, user, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, user, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
 
     const body = (await req.json()) as CreateAssignmentPayload;

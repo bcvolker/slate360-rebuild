@@ -5,11 +5,11 @@
  * with item counts and open assignment counts.
  */
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 
 export const GET = (req: NextRequest) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
 
     // Fetch active sessions with project name

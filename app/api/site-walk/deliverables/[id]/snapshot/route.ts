@@ -3,12 +3,12 @@
  * GET  /api/site-walk/deliverables/[id]/snapshot — list snapshots
  */
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
 
 export const POST = (req: NextRequest, ctx: IdRouteContext) =>
-  withAuth(req, async ({ user, admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ user, admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 
@@ -40,7 +40,7 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
   });
 
 export const GET = (req: NextRequest, ctx: IdRouteContext) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 

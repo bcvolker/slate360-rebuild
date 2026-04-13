@@ -16,7 +16,7 @@ export default async function DesignStudioPage() {
   const { orgId } = await resolveProjectScope(user.id);
   const entitlements = await resolveOrgEntitlements(orgId);
 
-  if (!entitlements.canAccessDesignStudio) {
+  if (!entitlements.canAccessStandaloneDesignStudio) {
     redirect("/dashboard?error=no_design_studio");
   }
 

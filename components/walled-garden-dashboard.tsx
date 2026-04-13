@@ -14,17 +14,20 @@ import { cn } from "@/lib/utils";
 import { DashboardSidebar } from "@/components/dashboard/command-center/DashboardSidebar";
 import { DashboardTopBar } from "@/components/dashboard/command-center/DashboardTopBar";
 import { CommandCenterContent } from "@/components/dashboard/command-center/CommandCenterContent";
+import type { Entitlements } from "@/lib/entitlements";
 
 interface WalledGardenDashboardProps {
   userName: string;
   orgName: string;
   storageLimitGb?: number;
+  entitlements?: Entitlements | null;
 }
 
 export default function WalledGardenDashboard({
   userName,
   orgName,
   storageLimitGb = 5,
+  entitlements = null,
 }: WalledGardenDashboardProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -34,7 +37,7 @@ export default function WalledGardenDashboard({
       <div className="dark min-h-screen bg-background">
         {/* Desktop Sidebar */}
         <div className="hidden lg:block">
-          <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} entitlements={entitlements} />
         </div>
 
         {/* Mobile Sidebar */}
@@ -44,7 +47,7 @@ export default function WalledGardenDashboard({
             showCloseButton={false}
             className="w-64 p-0 !bg-zinc-950 !border-zinc-800 lg:hidden"
           >
-            <DashboardSidebar isOpen isMobile onClose={() => setMobileSidebarOpen(false)} />
+            <DashboardSidebar isOpen isMobile onClose={() => setMobileSidebarOpen(false)} entitlements={entitlements} />
           </SheetContent>
         </Sheet>
 

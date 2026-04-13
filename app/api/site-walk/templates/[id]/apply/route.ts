@@ -3,7 +3,7 @@
  * Creates items from checklist_items in the template.
  */
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
 import type { ChecklistEntry } from "@/lib/types/site-walk";
@@ -11,7 +11,7 @@ import type { ChecklistEntry } from "@/lib/types/site-walk";
 type ApplyPayload = { session_id: string };
 
 export const POST = (req: NextRequest, ctx: IdRouteContext) =>
-  withAuth(req, async ({ user, admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ user, admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
     const body = (await req.json()) as ApplyPayload;

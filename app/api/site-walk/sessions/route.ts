@@ -3,12 +3,12 @@
  * POST /api/site-walk/sessions                 — create a new session
  */
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import type { CreateSessionPayload } from "@/lib/types/site-walk";
 
 export const GET = (req: NextRequest) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     const projectId = req.nextUrl.searchParams.get("project_id");
     if (!projectId) return badRequest("project_id is required");
     if (!orgId) return badRequest("Organization context required");
@@ -25,7 +25,7 @@ export const GET = (req: NextRequest) =>
   });
 
 export const POST = (req: NextRequest) =>
-  withAuth(req, async ({ admin, user, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, user, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
 
     const body = (await req.json()) as CreateSessionPayload;

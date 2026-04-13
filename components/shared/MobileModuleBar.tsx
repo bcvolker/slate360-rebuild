@@ -29,11 +29,11 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard",   href: "/dashboard",      icon: LayoutDashboard },
-  { label: "Site Walk",   href: "/site-walk",      icon: MapPin },
+  { label: "Site Walk",   href: "/site-walk",      icon: MapPin,          gate: "canAccessStandalonePunchwalk" },
   { label: "SlateDrop",   href: "/slatedrop",      icon: FolderOpen,   gate: "canViewSlateDropWidget" },
-  { label: "Tours",       href: "/tours",          icon: Compass,      gate: "canAccessTourBuilder" },
-  { label: "Design",      href: "/design-studio",  icon: Palette,      gate: "canAccessDesignStudio" },
-  { label: "Content",     href: "/content-studio", icon: Layers,       gate: "canAccessContent" },
+  { label: "Tours",       href: "/tours",          icon: Compass,      gate: "canAccessStandaloneTourBuilder" },
+  { label: "Design",      href: "/design-studio",  icon: Palette,      gate: "canAccessStandaloneDesignStudio" },
+  { label: "Content",     href: "/content-studio", icon: Layers,       gate: "canAccessStandaloneContentStudio" },
   { label: "Geo",         href: "/geospatial",     icon: Globe,        gate: "canAccessGeospatial" },
   { label: "Virtual",     href: "/virtual-studio", icon: Film,         gate: "canAccessVirtual" },
   { label: "Analytics",   href: "/analytics",      icon: BarChart3,    gate: "canAccessAnalytics" },

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError, notFound } from "@/lib/server/api-response";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendDeliverableShareEmail } from "@/lib/email-site-walk";
@@ -8,7 +8,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.ai";
 
 /** POST /api/site-walk/deliverables/send — email a shared deliverable link */
 export const POST = (req: NextRequest) =>
-  withAuth(req, async ({ user, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ user, orgId }) => {
     if (!orgId) return badRequest("Organization required");
 
     const body = await req.json();

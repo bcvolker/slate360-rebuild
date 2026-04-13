@@ -2,12 +2,12 @@ import { NextRequest } from "next/server";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3, BUCKET } from "@/lib/s3";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 
 /** POST /api/site-walk/upload — returns a presigned PUT URL for photo/file upload */
 export const POST = (req: NextRequest) =>
-  withAuth(req, async ({ user, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ user, orgId }) => {
     if (!orgId) return badRequest("Organization required");
 
     const body = await req.json();

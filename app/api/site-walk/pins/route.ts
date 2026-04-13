@@ -3,12 +3,12 @@
  * POST /api/site-walk/pins — place a pin on a plan for an item
  */
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import type { CreatePinPayload } from "@/lib/types/site-walk";
 
 export const GET = (req: NextRequest) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const planId = req.nextUrl.searchParams.get("plan_id");
     if (!planId) return badRequest("plan_id is required");
@@ -25,7 +25,7 @@ export const GET = (req: NextRequest) =>
   });
 
 export const POST = (req: NextRequest) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
 
     const body = (await req.json()) as CreatePinPayload;

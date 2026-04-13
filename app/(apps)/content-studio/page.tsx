@@ -16,7 +16,7 @@ export default async function ContentStudioPage() {
   const { orgId } = await resolveProjectScope(user.id);
   const entitlements = await resolveOrgEntitlements(orgId);
 
-  if (!entitlements.canAccessContent) {
+  if (!entitlements.canAccessStandaloneContentStudio) {
     redirect("/dashboard?error=no_content_studio");
   }
 

@@ -5,14 +5,14 @@
  * and stores the key in export_s3_key.
  */
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
 import type { EditorBlock } from "@/lib/types/blocks";
 import { uploadBuffer } from "@/lib/s3-utils";
 
 export const POST = (req: NextRequest, ctx: IdRouteContext) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 

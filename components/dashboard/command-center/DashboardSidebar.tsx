@@ -18,6 +18,7 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { Entitlements } from "@/lib/entitlements";
 
 interface NavItem {
   label: string;
@@ -34,19 +35,28 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Enterprise Settings", icon: Settings, href: "#enterprise" },
 ];
 
-const APP_LINKS = [
-  { id: "site-walk", name: "Site Walk", icon: MapPin, href: "/site-walk" },
-  { id: "360-tours", name: "360 Tours", icon: Building2, href: "/tours" },
-  { id: "design-studio", name: "Design Studio", icon: Sparkles, href: "/design-studio" },
+interface AppLink {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+  href: string;
+  gate: keyof Entitlements;
+}
+
+const APP_LINKS: AppLink[] = [
+  { id: "site-walk", name: "Site Walk", icon: MapPin, href: "/site-walk", gate: "canAccessStandalonePunchwalk" },
+  { id: "360-tours", name: "360 Tours", icon: Building2, href: "/tours", gate: "canAccessStandaloneTourBuilder" },
+  { id: "design-studio", name: "Design Studio", icon: Sparkles, href: "/design-studio", gate: "canAccessStandaloneDesignStudio" },
 ];
 
 interface DashboardSidebarProps {
   isOpen: boolean;
   onClose?: () => void;
   isMobile?: boolean;
+  entitlements?: Entitlements | null;
 }
 
-export function DashboardSidebar({ isOpen, onClose, isMobile = false }: DashboardSidebarProps) {
+export function DashboardSidebar({ isOpen, onClose, isMobile = false, entitlements }: DashboardSidebarProps) {
   const [appsExpanded, setAppsExpanded] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -103,7 +113,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false }: Dashboar
                 </button>
                 {appsExpanded && (
                   <div className="ml-4 mt-0.5 flex flex-col gap-0.5 border-l border-zinc-800 pl-3">
-                    {APP_LINKS.map((app) => (
+                    {APP_LINKS.filter((app) => !entitlements || entitlements[app.gate]).map((app) => (
                       <a
                         key={app.id}
                         href={app.href}

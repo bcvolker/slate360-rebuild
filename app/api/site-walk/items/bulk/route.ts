@@ -2,7 +2,7 @@
  * PATCH /api/site-walk/items/bulk — bulk update items (status, priority, assignee, workflow)
  */
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import type { ItemStatus, ItemPriority, WorkflowType } from "@/lib/types/site-walk";
 
@@ -16,7 +16,7 @@ type BulkPayload = {
 };
 
 export const PATCH = (req: NextRequest) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
 
     const body = (await req.json()) as BulkPayload;

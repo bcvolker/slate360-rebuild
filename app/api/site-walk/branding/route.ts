@@ -1,12 +1,12 @@
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { uploadBuffer } from "@/lib/s3-utils";
 
 /** POST /api/site-walk/branding — upload org logo for deliverables */
 export const POST = (req: NextRequest) =>
-  withAuth(req, async ({ orgId }) => {
+  withAppAuth("punchwalk", req, async ({ orgId }) => {
     if (!orgId) return badRequest("Organization required");
 
     const formData = await req.formData();

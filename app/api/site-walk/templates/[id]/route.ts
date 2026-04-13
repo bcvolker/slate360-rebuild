@@ -3,13 +3,13 @@
  * DELETE /api/site-walk/templates/[id] — delete template
  */
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
 import type { UpdateTemplatePayload } from "@/lib/types/site-walk";
 
 export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 
@@ -40,7 +40,7 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
   });
 
 export const DELETE = (req: NextRequest, ctx: IdRouteContext) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 

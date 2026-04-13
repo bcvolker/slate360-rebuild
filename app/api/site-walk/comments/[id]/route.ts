@@ -2,12 +2,12 @@
  * DELETE /api/site-walk/comments/[id]  — delete a comment (author only)
  */
 import { NextRequest } from "next/server";
-import { withAuth } from "@/lib/server/api-auth";
+import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
 
 export const DELETE = (req: NextRequest, ctx: IdRouteContext) =>
-  withAuth(req, async ({ admin, user, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, user, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 
