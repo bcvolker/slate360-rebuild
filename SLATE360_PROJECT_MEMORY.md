@@ -187,44 +187,58 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-13 (Billing Unification + Homepage Fixes)
+### Session Handoff — 2026-04-13 (Targeted Proof Audit + Documentation Slice)
 
 ### What Changed
 
-**Billing / Entitlement Unification**
-- `lib/server/org-feature-flags.ts`: `resolveOrgEntitlements()` now fetches `org_app_subscriptions` alongside legacy tier + flags, runs `resolveModularEntitlements()`, and widens `canAccessStandalone*` flags. Modular purchases now grant real page + API access.
-- `lib/billing.ts`: Renamed conflicting `AppId` type to `LegacyAppId` (was `"tour_builder" | "punchwalk"`, collided with modular `AppId`). No import changes needed — no external consumers.
-- `lib/entitlements-modular.ts` `AppId` is now the canonical app identifier type across the codebase.
+**Proof Audit of Billing Unification (commit 2383dee)**
+- Verified all 8 audit sections with exact file evidence
+- Billing bridge: REAL — `resolveOrgEntitlements()` correctly merges 3 tables
+- E2E flow: REAL — checkout → webhook → DB → resolver → access chain complete
+- Marketing/legal: REAL — company names removed, pricing fixed, Coming Soon badges in place
 
-**Homepage Legal + Content Fixes**
-- `components/marketing-homepage.tsx`: Removed 5 real company names (Turner, Skanska, PCL, DPR, Mortenson) — replaced TrustBar with industry categories (General Contractors, Architecture Firms, etc.)
-- Added `comingSoon` field to `AppShowcase` interface; marked 360 Tour Builder and Design Studio as "Coming Soon" with amber badges
-- Updated CTA buttons: coming-soon apps show "Join Waitlist" instead of "Subscribe"
-- Fixed pricing tiers: was $0/$79/Custom, now $0/$149/Custom matching real Field Pro Bundle pricing ($149/mo, 30 GB, Site Walk + Tours Pro)
+**Documentation Slice (21 new files)**
+Created canonical repo-local build/handoff docs for all modules:
+- `docs/site-walk/` — BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG
+- `docs/360-tours/` — TOURS_BUILD_FILE + TOURS_ENV_AND_TOOL_MATRIX + TOURS_PROMPT_BACKLOG
+- `docs/design-studio/` — BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG
+- `docs/content-studio/` — BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG
+- `docs/platform/` — PLATFORM_BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG
+- `docs/billing/` — BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG
+- `docs/slatedrop/` — BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG
 
-### What's Broken / Partially Done
-- `marketing-homepage.tsx` is 1132 lines — still needs extraction (pre-existing, was 1123 before)
-- Content Studio has no learn-more page (would 404 at /apps/content-studio)
-- `basic` tier naming needs rename to `standard` in modular entitlements code
-- Dashboard after login is a basic command center shell — not the full PM tool envisioned
-- Project Hub `_page.tsx` is disabled (underscore prefix), functional code exists but unreachable
-- `STRIPE_PRICE_*` env vars need Stripe Dashboard + Vercel setup before real billing works
-- `photo_s3_key` column may not exist on `site_walk_items`
-- Screenshots in manifest are placeholders
-- Route architecture: `/site-walk` exists in both `(apps)` and standalone — needs canonical resolution
-- The three billing DB tables (`organizations.tier`, `org_feature_flags`, `org_app_subscriptions`) still lack reconciliation triggers
+Legacy build files preserved as `*_LEGACY.md` (4 files).
+
+**Platform Access Verification**
+- Git/GitHub: Full access (gh v2.89.0, authenticated as bcvolker)
+- Vercel: API access via VERCEL_TOKEN (3 projects found), no CLI
+- Supabase: API access via SUPABASE_ACCESS_TOKEN (project hadnfcenpcfaeclczsmm), no CLI
+- Stripe: API access via STRIPE_SECRET_KEY (verified), no CLI
+- AWS: Credentials in .env, no CLI (S3 bucket reachable)
+
+### What's Broken / Partially Done (P0/P1)
+- **P0: DS/CS page gates use tier-level booleans** (always true) — any trial user can access
+- **P0: Site Walk API routes use `withAuth()` not `withAppAuth()`** — any auth user can hit SW APIs
+- **P1: `TIER_MAP` all-true for every tier** — nav gating is decorative
+- **P1: Sidebars hard-coded** — no entitlements-aware rendering
+- **P1: 9 Project Hub monolith files** exceed 300-line limit (931, 599, 579, 465, 448, 421, 403, 358, 339)
+- **P1: `ProjectFileExplorer.tsx`** at 363 lines — exceeds limit
+- Content Studio missing from marketing homepage
+- `app/site-walk/_page.tsx.bak` — dead file
+- `STRIPE_WEBHOOK_SECRET` appears twice in `.env`
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
+- 21 new doc files in `docs/` (see list above)
 
 ### Next Steps (ordered by priority)
-1. Extract `marketing-homepage.tsx` (1132 lines → components)
-2. Rename `basic` → `standard` throughout modular entitlements
-3. Create Stripe products/prices in Dashboard + set `STRIPE_PRICE_*` env vars in Vercel
-4. Resolve `/site-walk` route duplication (`(apps)` vs standalone)
-5. Verify end-to-end purchase flow with real Stripe products
-6. Unify route/layout architecture (dashboard vs apps shell)
-7. Re-enable Project Hub under (apps) layout
-8. Rebuild dashboard into actual command center
-9. Add Content Studio learn-more page at `/apps/content-studio`
-10. Add reconciliation trigger or unified resolver for billing DB tables
+1. **Gating Hardening** — fix DS/CS page gates, SW API routes, TIER_MAP trial (security P0)
+2. Extract `ProjectFileExplorer.tsx` (363 lines → under 300)
+3. Extract Project Hub monoliths (batch of 3, then batch of 6)
+4. Add Content Studio to marketing homepage with Coming Soon badge
+5. Delete `app/site-walk/_page.tsx.bak`
+6. Deduplicate `STRIPE_WEBHOOK_SECRET` in `.env`
+7. Wire entitlements through WalledGardenDashboard and sidebars
+8. Stripe product/price audit (cross-reference 22+ env vars with dashboard)
+9. E2E checkout flow test for Site Walk
+10. Rename `basic` → `standard` in modular entitlements

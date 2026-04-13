@@ -27,6 +27,7 @@ import {
   Building2,
   MapPin,
   Palette,
+  FileText,
   Check,
   ChevronRight,
   ChevronDown,
@@ -90,6 +91,7 @@ interface AppShowcase {
   demoSrc?: string;
   demoLabel?: string;
   comingSoon?: boolean;
+  statusLabel?: string;
 }
 
 /* ==========================================================================
@@ -117,6 +119,8 @@ const APP_SHOWCASE: AppShowcase[] = [
     slug: "site-walk",
     description: "Document construction progress with GPS-tagged photos, automated timelines, and instant client reports.",
     icon: MapPin,
+    comingSoon: true,
+    statusLabel: "On the Way — Coming Soon",
     demoType: "placeholder",
     demoLabel: "Live demo coming soon",
     features: [
@@ -136,6 +140,7 @@ const APP_SHOWCASE: AppShowcase[] = [
     description: "Create stunning 360° virtual tours with interactive hotspots, floor plans, and seamless client sharing.",
     icon: Building2,
     comingSoon: true,
+    statusLabel: "Under Development — Coming Soon",
     demoType: "panorama",
     demoSrc: "/uploads/pletchers.jpg",
     demoLabel: "Drag to explore — 360° panorama",
@@ -156,6 +161,7 @@ const APP_SHOWCASE: AppShowcase[] = [
     description: "Visualize projects with interactive 3D models. Upload, annotate, and share models with clients in one click.",
     icon: Palette,
     comingSoon: true,
+    statusLabel: "Under Development — Coming Soon",
     demoType: "model",
     demoSrc: "/uploads/csb-stadium-model.glb",
     demoLabel: "Rotate & zoom — 3D model",
@@ -168,6 +174,26 @@ const APP_SHOWCASE: AppShowcase[] = [
       "Material & texture editing",
       "Measurement overlays",
       "Version history tracking",
+    ],
+  },
+  {
+    name: "Content Studio",
+    slug: "content-studio",
+    description: "Organize, manage, and share digital assets across your projects. A central hub for photos, videos, documents, and media.",
+    icon: FileText,
+    comingSoon: true,
+    statusLabel: "Under Development — Coming Soon",
+    demoType: "placeholder",
+    demoLabel: "Asset management preview coming soon",
+    features: [
+      "Photo, video & document library",
+      "Collection-based organization",
+      "Client-shareable galleries",
+      "Bulk upload & tagging",
+      "Smart search & filters",
+      "Version history tracking",
+      "Download permissions",
+      "CDN-powered delivery",
     ],
   },
 ];
@@ -183,7 +209,7 @@ const PRICING_TIERS: PricingTier[] = [
       "Access all apps (limited)",
       "2 GB storage",
       "250 credits / month",
-      "1 seat",
+      "1 user / 1 license",
       "Basic client portals",
       "SlateDrop file sharing",
     ],
@@ -192,14 +218,15 @@ const PRICING_TIERS: PricingTier[] = [
   {
     name: "Field Pro Bundle",
     description: "Site Walk Pro + 360 Tours Pro — everything for field teams",
-    monthlyPrice: 149,
-    annualPrice: 1490,
-    storage: "30 GB pooled",
+    monthlyPrice: "Custom",
+    annualPrice: "Custom",
+    storage: "TBD",
     features: [
       "Site Walk Pro",
       "360 Tour Builder Pro",
-      "30 GB pooled storage",
-      "1,000 credits / month",
+      "Pooled storage (TBD)",
+      "Credits / month (TBD)",
+      "1 user / 1 license",
       "Priority support",
       "Full SlateDrop access",
     ],
@@ -208,13 +235,14 @@ const PRICING_TIERS: PricingTier[] = [
   },
   {
     name: "Enterprise",
-    description: "Unlimited scale with dedicated support",
+    description: "Custom plans for teams — seats, storage, and features negotiated directly",
     monthlyPrice: "Custom",
     annualPrice: "Custom",
-    storage: "Unlimited",
+    storage: "Negotiated",
     features: [
       "All apps at Pro tier",
-      "Unlimited storage",
+      "Custom seat count",
+      "Custom storage allocation",
       "SSO & advanced security",
       "Dedicated success manager",
       "White-label branding",
@@ -547,7 +575,7 @@ function AppShowcaseSection() {
                     <CardTitle className="text-2xl text-foreground">{app.name}</CardTitle>
                     {app.comingSoon && (
                       <span className="ml-auto rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
-                        Coming Soon
+                        {app.statusLabel || "Coming Soon"}
                       </span>
                     )}
                   </div>

@@ -4,6 +4,7 @@ import {
   MapPin,
   Building2,
   Palette,
+  FileText,
   Check,
   ArrowRight,
   ArrowLeft,
@@ -20,6 +21,8 @@ interface AppInfo {
   tagline: string;
   description: string;
   icon: LucideIcon;
+  comingSoon?: boolean;
+  statusLabel?: string;
   features: { title: string; detail: string }[];
   highlights: string[];
 }
@@ -31,6 +34,8 @@ const APP_DATA: Record<string, AppInfo> = {
     description:
       "Capture GPS-tagged photos, generate automated timelines, and share instant progress reports with clients. Site Walk turns every site visit into a structured, searchable record.",
     icon: MapPin,
+    comingSoon: true,
+    statusLabel: "On the Way — Coming Soon",
     features: [
       { title: "GPS-Tagged Capture", detail: "Every photo is automatically tagged with GPS coordinates, date, weather, and orientation." },
       { title: "Automated Timelines", detail: "Progress timelines build themselves as you capture — no manual logging required." },
@@ -53,6 +58,8 @@ const APP_DATA: Record<string, AppInfo> = {
     description:
       "Upload 360° photos, add interactive hotspots, and share embeddable tours with clients. No coding required. Tours auto-generate client portals with analytics.",
     icon: Building2,
+    comingSoon: true,
+    statusLabel: "Under Development — Coming Soon",
     features: [
       { title: "Drag-and-Drop Creation", detail: "Upload your 360° photos and arrange scenes visually. Connect them with hotspot links." },
       { title: "Interactive Hotspots", detail: "Add info points, links, images, and video overlays to any position in a 360° scene." },
@@ -75,6 +82,8 @@ const APP_DATA: Record<string, AppInfo> = {
     description:
       "Upload GLB/glTF models, annotate them with markups, and share interactive 3D viewers with clients. No plugins, no downloads — just a link.",
     icon: Palette,
+    comingSoon: true,
+    statusLabel: "Under Development — Coming Soon",
     features: [
       { title: "GLB / glTF Support", detail: "Upload industry-standard 3D model formats directly. No conversion needed." },
       { title: "Interactive Viewer", detail: "Clients can rotate, zoom, and pan your models in their browser — no software required." },
@@ -89,6 +98,30 @@ const APP_DATA: Record<string, AppInfo> = {
       "Works with Revit, SketchUp, Blender exports",
       "No plugins or downloads needed",
       "Integrates with Project Hub deliverables",
+    ],
+  },
+  "content-studio": {
+    name: "Content Studio",
+    tagline: "Your central hub for digital asset management",
+    description:
+      "Organize photos, videos, documents, and media in one secure library. Create collections, control access, and share polished galleries with clients.",
+    icon: FileText,
+    comingSoon: true,
+    statusLabel: "Under Development — Coming Soon",
+    features: [
+      { title: "Asset Library", detail: "Upload and organize photos, videos, PDFs, and documents in a searchable central library." },
+      { title: "Collections", detail: "Group assets into themed collections for projects, clients, or milestones." },
+      { title: "Client Galleries", detail: "Generate shareable galleries with optional download permissions and password protection." },
+      { title: "Bulk Upload", detail: "Drag and drop hundreds of files at once. Auto-tagging keeps everything organized." },
+      { title: "Smart Search", detail: "Find any asset instantly with full-text search, tag filters, and date ranges." },
+      { title: "Version History", detail: "Track changes to assets over time. Restore previous versions with one click." },
+      { title: "Download Controls", detail: "Set per-asset or per-collection download permissions — view-only, download, or full access." },
+      { title: "Fast Delivery", detail: "CDN-powered delivery ensures assets load fast for clients anywhere in the world." },
+    ],
+    highlights: [
+      "Works with all common file formats",
+      "Integrates with SlateDrop",
+      "Pairs with Design Studio in the Studio Bundle",
     ],
   },
 };
@@ -130,7 +163,7 @@ export default async function AppDetailPage({ params }: { params: Promise<{ slug
             </Link>
           </div>
           <Button asChild className="bg-[#D4AF37] text-zinc-950 hover:bg-[#D4AF37]/90">
-            <Link href="/signup">Subscribe Now</Link>
+            <Link href={app.comingSoon ? "/signup" : "/signup"}>{app.comingSoon ? "Join Waitlist" : "Subscribe Now"}</Link>
           </Button>
         </div>
       </header>
@@ -142,6 +175,11 @@ export default async function AppDetailPage({ params }: { params: Promise<{ slug
             <Icon className="h-8 w-8 text-[#D4AF37]" />
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold mb-4">{app.name}</h1>
+          {app.statusLabel && (
+            <span className="inline-block mb-4 rounded-full bg-amber-500/20 px-4 py-1 text-sm font-medium text-amber-400 border border-amber-500/30">
+              {app.statusLabel}
+            </span>
+          )}
           <p className="text-xl text-[#D4AF37] font-medium mb-4">{app.tagline}</p>
           <p className="text-lg text-zinc-400 max-w-2xl mx-auto">{app.description}</p>
           <div className="flex flex-wrap justify-center gap-3 mt-6">
@@ -174,14 +212,20 @@ export default async function AppDetailPage({ params }: { params: Promise<{ slug
 
         {/* CTA */}
         <div className="text-center py-12 border-t border-zinc-800">
-          <h2 className="text-2xl font-bold mb-3">Ready to get started with {app.name}?</h2>
+          <h2 className="text-2xl font-bold mb-3">
+            {app.comingSoon
+              ? `${app.name} is coming soon`
+              : `Ready to get started with ${app.name}?`}
+          </h2>
           <p className="text-zinc-400 mb-6">
-            Subscribe to Slate360 and start using {app.name} today.
+            {app.comingSoon
+              ? `Sign up to be notified when ${app.name} launches.`
+              : `Subscribe to Slate360 and start using ${app.name} today.`}
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button asChild size="lg" className="bg-[#D4AF37] text-zinc-950 hover:bg-[#D4AF37]/90 px-8">
               <Link href="/signup">
-                Subscribe Now
+                {app.comingSoon ? "Join Waitlist" : "Subscribe Now"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
