@@ -2,6 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getEntitlements, type OrgFeatureFlags, type Entitlements, type Tier } from "@/lib/entitlements";
+import { resolveModularEntitlements, type OrgAppSubscriptions } from "@/lib/entitlements-modular";
 import type { StandaloneAppId } from "@/lib/billing-apps";
 
 const EMPTY_FLAGS: OrgFeatureFlags = {
@@ -53,22 +54,64 @@ export async function loadOrgFeatureFlags(orgId: string | null): Promise<OrgFeat
 }
 
 /**
- * Resolve the full merged entitlements for an org by fetching both their
- * subscription tier and their standalone app flags, then running them
- * through the single source of truth: getEntitlements().
+ * Resolve the full merged entitlements for an org by fetching:
+ * 1. Their subscription tier (organizations.tier)
+ * 2. Their standalone app flags (org_feature_flags)
+ * 3. Their modular per-app subscriptions (org_app_subscriptions)
+ *
+ * Modular subscriptions widen access — if a modular purchase makes an app
+ * active, the corresponding canAccessStandalone* flag is set to true.
+ * This ensures modular purchases grant real page/API access.
  */
 export async function resolveOrgEntitlements(orgId: string | null): Promise<Entitlements> {
   if (!orgId) return getEntitlements(null);
 
   const admin = createAdminClient();
 
-  const [tierResult, flags] = await Promise.all([
+  const [tierResult, flags, modularResult] = await Promise.all([
     admin.from("organizations").select("tier").eq("id", orgId).maybeSingle(),
     loadOrgFeatureFlags(orgId),
+    admin
+      .from("org_app_subscriptions")
+      .select("site_walk, tours, slatedrop, design_studio, content_studio, bundle, storage_addon_gb, credit_addon_balance")
+      .eq("org_id", orgId)
+      .maybeSingle(),
   ]);
 
   const tier = (tierResult.data?.tier as Tier) ?? null;
-  return getEntitlements(tier, { featureFlags: flags });
+  const base = getEntitlements(tier, { featureFlags: flags });
+
+  // Merge modular subscriptions: if any modular app is active, widen access
+  if (modularResult.data) {
+    const subs: Partial<OrgAppSubscriptions> = {
+      site_walk: modularResult.data.site_walk ?? "none",
+      tours: modularResult.data.tours ?? "none",
+      slatedrop: modularResult.data.slatedrop ?? "none",
+      design_studio: modularResult.data.design_studio ?? "none",
+      content_studio: modularResult.data.content_studio ?? "none",
+      bundle: modularResult.data.bundle ?? null,
+      storageAddonGB: modularResult.data.storage_addon_gb ?? 0,
+      creditAddonBalance: modularResult.data.credit_addon_balance ?? 0,
+    };
+    const modular = resolveModularEntitlements(subs);
+
+    // Widen standalone access flags based on modular subscriptions.
+    // This is additive-only — never narrows existing tier/flag access.
+    if (modular.apps.site_walk.active && !modular.isTrial) {
+      base.canAccessStandalonePunchwalk = true;
+    }
+    if (modular.apps.tours.active && !modular.isTrial) {
+      base.canAccessStandaloneTourBuilder = true;
+    }
+    if (modular.apps.design_studio.active && !modular.isTrial) {
+      base.canAccessStandaloneDesignStudio = true;
+    }
+    if (modular.apps.content_studio.active && !modular.isTrial) {
+      base.canAccessStandaloneContentStudio = true;
+    }
+  }
+
+  return base;
 }
 
 /**

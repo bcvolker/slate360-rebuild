@@ -89,6 +89,7 @@ interface AppShowcase {
   demoType: "panorama" | "model" | "placeholder";
   demoSrc?: string;
   demoLabel?: string;
+  comingSoon?: boolean;
 }
 
 /* ==========================================================================
@@ -102,12 +103,12 @@ const NAV_LINKS = [
   { label: "Pricing", href: "#pricing" },
 ];
 
-const TRUST_LOGOS = [
-  "Turner Construction",
-  "Skanska",
-  "PCL Construction",
-  "DPR Construction",
-  "Mortenson",
+const TRUST_CATEGORIES = [
+  "General Contractors",
+  "Architecture Firms",
+  "Real Estate Developers",
+  "Property Managers",
+  "Construction Tech Teams",
 ];
 
 const APP_SHOWCASE: AppShowcase[] = [
@@ -134,6 +135,7 @@ const APP_SHOWCASE: AppShowcase[] = [
     slug: "360-tour-builder",
     description: "Create stunning 360° virtual tours with interactive hotspots, floor plans, and seamless client sharing.",
     icon: Building2,
+    comingSoon: true,
     demoType: "panorama",
     demoSrc: "/uploads/pletchers.jpg",
     demoLabel: "Drag to explore — 360° panorama",
@@ -153,6 +155,7 @@ const APP_SHOWCASE: AppShowcase[] = [
     slug: "design-studio",
     description: "Visualize projects with interactive 3D models. Upload, annotate, and share models with clients in one click.",
     icon: Palette,
+    comingSoon: true,
     demoType: "model",
     demoSrc: "/uploads/csb-stadium-model.glb",
     demoLabel: "Rotate & zoom — 3D model",
@@ -171,33 +174,34 @@ const APP_SHOWCASE: AppShowcase[] = [
 
 const PRICING_TIERS: PricingTier[] = [
   {
-    name: "Core – Free Starter",
-    description: "Perfect for small projects and getting started",
+    name: "Free Trial",
+    description: "Explore every app with limited storage and credits",
     monthlyPrice: 0,
     annualPrice: 0,
-    storage: "5 GB",
+    storage: "2 GB",
     features: [
-      "Slate360 Core access",
-      "5 GB SlateDrop storage",
+      "Access all apps (limited)",
+      "2 GB storage",
+      "250 credits / month",
+      "1 seat",
       "Basic client portals",
-      "Email support",
-      "Downgrade Law protection",
+      "SlateDrop file sharing",
     ],
     cta: "Start Free",
   },
   {
-    name: "Professional Bundle",
-    description: "For growing teams with multiple active projects",
-    monthlyPrice: 79,
-    annualPrice: 790,
-    storage: "40 GB pooled",
+    name: "Field Pro Bundle",
+    description: "Site Walk Pro + 360 Tours Pro — everything for field teams",
+    monthlyPrice: 149,
+    annualPrice: 1490,
+    storage: "30 GB pooled",
     features: [
-      "All Core features",
-      "Site Walk + Tour Builder",
-      "40 GB pooled storage",
+      "Site Walk Pro",
+      "360 Tour Builder Pro",
+      "30 GB pooled storage",
+      "1,000 credits / month",
       "Priority support",
-      "Custom branding",
-      "Advanced analytics",
+      "Full SlateDrop access",
     ],
     popular: true,
     cta: "Start 14-Day Trial",
@@ -209,11 +213,11 @@ const PRICING_TIERS: PricingTier[] = [
     annualPrice: "Custom",
     storage: "Unlimited",
     features: [
-      "All Professional features",
+      "All apps at Pro tier",
       "Unlimited storage",
       "SSO & advanced security",
       "Dedicated success manager",
-      "Custom integrations",
+      "White-label branding",
       "SLA guarantee",
     ],
     cta: "Contact Sales",
@@ -486,15 +490,15 @@ function TrustBar() {
     <section className="py-12 px-4 border-y border-border bg-muted/20">
       <div className="container mx-auto">
         <p className="text-center text-sm font-medium text-muted-foreground uppercase tracking-wider mb-8">
-          Trusted by the best in construction
+          Built for teams across the AEC industry
         </p>
         <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-16">
-          {TRUST_LOGOS.map((company) => (
+          {TRUST_CATEGORIES.map((category) => (
             <div
-              key={company}
+              key={category}
               className="px-4 py-2 rounded-lg bg-muted/30 border border-border text-muted-foreground font-medium text-sm"
             >
-              {company}
+              {category}
             </div>
           ))}
         </div>
@@ -541,6 +545,11 @@ function AppShowcaseSection() {
                       <Icon className="h-6 w-6 text-primary" />
                     </div>
                     <CardTitle className="text-2xl text-foreground">{app.name}</CardTitle>
+                    {app.comingSoon && (
+                      <span className="ml-auto rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
+                        Coming Soon
+                      </span>
+                    )}
                   </div>
                   <CardDescription className="text-muted-foreground text-base">
                     {app.description}
@@ -569,7 +578,7 @@ function AppShowcaseSection() {
                   <div className="flex gap-3">
                     <Button asChild className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
                       <Link href="/signup">
-                        Subscribe
+                        {app.comingSoon ? "Join Waitlist" : "Subscribe"}
                         <ArrowRight className="ml-1 h-4 w-4" />
                       </Link>
                     </Button>

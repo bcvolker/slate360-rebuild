@@ -111,11 +111,11 @@ export function recommendedUpgradeTier(currentTier: Tier): PaidTier {
      (with STRIPE_UPGRADE_LINK set)          → "https://buy.stripe.com/…?client_reference_id=org_123"
    ──────────────────────────────────────────────────────── */
 
-export type AppId = "tour_builder" | "punchwalk";
+export type LegacyAppId = "tour_builder" | "punchwalk";
 
 interface UpgradeUrlOptions {
   orgId?: string;
-  appId?: AppId;
+  appId?: LegacyAppId;
 }
 
 export function getUpgradeUrl(options?: UpgradeUrlOptions): string {

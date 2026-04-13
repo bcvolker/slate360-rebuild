@@ -187,63 +187,44 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-13 (Deployment Unblock + Business Model Alignment)
+### Session Handoff — 2026-04-13 (Billing Unification + Homepage Fixes)
 
 ### What Changed
 
-**Deployment Unblock** (commit 75ae436, pushed, DEPLOYED SUCCESSFULLY)
-- Deleted 5 duplicate route pages that caused every Vercel build since Phase 0 to fail:
-  - `app/(dashboard)/content-studio/page.tsx` (conflict with `(apps)/`)
-  - `app/(dashboard)/design-studio/page.tsx` (conflict with `(apps)/`)
-  - `app/(dashboard)/geospatial/page.tsx` (conflict with `(apps)/`)
-  - `app/(dashboard)/virtual-studio/page.tsx` (conflict with `(apps)/`)
-  - `app/site-walk/page.tsx` (conflict with `(apps)/site-walk/`)
-- Fixed 10+ type errors blocking build:
-  - `webhook-helpers.ts`: expanded `upsertAppFlag` to handle all 4 StandaloneAppIds
-  - `app-checkout/route.ts`: added design_studio + content_studio to APP_FLAG_KEY
-  - `api-response.ts`: `ok()` now accepts optional status param
-  - `manifest.ts`: removed stale `@ts-expect-error` directives
-  - `sw.ts`: added `/// <reference lib="webworker" />`, removed invalid `revision` on FallbackEntry
-  - 3x `site-walk/**/page.tsx`: fixed `getScopedProjectForUser` destructuring + `.name` access
-  - `SiteWalkNav.tsx`: null-safe pathname
-  - `quota-check.ts`: used `storageGB` instead of nonexistent `maxStorageGB`/`maxSessions`
-  - `~offline/page.tsx`: added `"use client"` for onClick handler
-  - Added missing `components/ui/textarea.tsx` (shadcn)
-- **First successful Vercel deployment since April 11** — all Phase 0-12 work is now live
-- Vercel deployment state: `READY` at commit `75ae436`
+**Billing / Entitlement Unification**
+- `lib/server/org-feature-flags.ts`: `resolveOrgEntitlements()` now fetches `org_app_subscriptions` alongside legacy tier + flags, runs `resolveModularEntitlements()`, and widens `canAccessStandalone*` flags. Modular purchases now grant real page + API access.
+- `lib/billing.ts`: Renamed conflicting `AppId` type to `LegacyAppId` (was `"tour_builder" | "punchwalk"`, collided with modular `AppId`). No import changes needed — no external consumers.
+- `lib/entitlements-modular.ts` `AppId` is now the canonical app identifier type across the codebase.
 
-**Business Model Alignment**
-- Created canonical `docs/SLATE360_MASTER_BUILD_PLAN.md` with Gemini-aligned platform model
-- Added Gemini build files: `docs/site-walk/`, `docs/billing/`, `docs/360-tours/`, `docs/content-studio/`, `docs/design-studio/`
-- Core model: Slate360 = platform shell, 4 modules (site_walk, tours, design_studio, content_studio), standard/pro tiers, org-level billing
+**Homepage Legal + Content Fixes**
+- `components/marketing-homepage.tsx`: Removed 5 real company names (Turner, Skanska, PCL, DPR, Mortenson) — replaced TrustBar with industry categories (General Contractors, Architecture Firms, etc.)
+- Added `comingSoon` field to `AppShowcase` interface; marked 360 Tour Builder and Design Studio as "Coming Soon" with amber badges
+- Updated CTA buttons: coming-soon apps show "Join Waitlist" instead of "Subscribe"
+- Fixed pricing tiers: was $0/$79/Custom, now $0/$149/Custom matching real Field Pro Bundle pricing ($149/mo, 30 GB, Site Walk + Tours Pro)
 
 ### What's Broken / Partially Done
-- **CRITICAL: Homepage has 5 real company names** — Turner Construction, Skanska, PCL, DPR, Mortenson — implies false endorsement (legal risk)
-- **CRITICAL: Homepage pricing is wrong** — shows $0/$79/Custom but business model is $79/$149/$399/Custom
-- **CRITICAL: No "coming soon" badges on homepage** for Tours, Design Studio, Content Studio — they show as available
-- `marketing-homepage.tsx` is 1123 lines — needs extraction before pricing/content fixes
+- `marketing-homepage.tsx` is 1132 lines — still needs extraction (pre-existing, was 1123 before)
 - Content Studio has no learn-more page (would 404 at /apps/content-studio)
-- Two entitlement systems coexist: `entitlements.ts` (legacy tiers) + `entitlements-modular.ts` (per-app)
-- `basic` tier naming needs rename to `standard` throughout codebase
+- `basic` tier naming needs rename to `standard` in modular entitlements code
 - Dashboard after login is a basic command center shell — not the full PM tool envisioned
 - Project Hub `_page.tsx` is disabled (underscore prefix), functional code exists but unreachable
-- `STRIPE_PRICE_*` env vars need Stripe Dashboard + Vercel setup
+- `STRIPE_PRICE_*` env vars need Stripe Dashboard + Vercel setup before real billing works
 - `photo_s3_key` column may not exist on `site_walk_items`
-- Tour Builder, Design Studio, Content Studio are shells only
 - Screenshots in manifest are placeholders
+- Route architecture: `/site-walk` exists in both `(apps)` and standalone — needs canonical resolution
+- The three billing DB tables (`organizations.tier`, `org_feature_flags`, `org_app_subscriptions`) still lack reconciliation triggers
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
-- `docs/SLATE360_MASTER_BUILD_PLAN.md`: canonical business model doc
 
 ### Next Steps (ordered by priority)
-1. Remove fake company names from homepage TrustBar (legal)
-2. Fix homepage pricing to match business model ($79/$149/$399/Custom)
-3. Add "coming soon" badges for Tours, Design Studio, Content Studio on homepage
-4. Extract `marketing-homepage.tsx` (1123 lines → components)
-5. Rename `basic` → `standard` throughout modular entitlements
-6. Make modular entitlements canonical, deprecate legacy tier system
-7. Rebuild dashboard into actual command center with PM tools
-8. Re-enable Project Hub under (apps) layout
-9. Build Site Walk end-to-end purchase → entitlement → access flow
-10. Create Stripe products/prices in Dashboard + Vercel env
+1. Extract `marketing-homepage.tsx` (1132 lines → components)
+2. Rename `basic` → `standard` throughout modular entitlements
+3. Create Stripe products/prices in Dashboard + set `STRIPE_PRICE_*` env vars in Vercel
+4. Resolve `/site-walk` route duplication (`(apps)` vs standalone)
+5. Verify end-to-end purchase flow with real Stripe products
+6. Unify route/layout architecture (dashboard vs apps shell)
+7. Re-enable Project Hub under (apps) layout
+8. Rebuild dashboard into actual command center
+9. Add Content Studio learn-more page at `/apps/content-studio`
+10. Add reconciliation trigger or unified resolver for billing DB tables
