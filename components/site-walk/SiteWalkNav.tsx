@@ -38,7 +38,7 @@ export function SiteWalkBottomNav({ items }: { items: NavItem[] }) {
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-safe backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 max-w-lg items-center justify-around">
         {items.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + "/");
+          const active = pathname === item.href || (pathname?.startsWith(item.href + "/") ?? false);
           return (
             <Link
               key={item.href}

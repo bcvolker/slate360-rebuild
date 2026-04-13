@@ -42,14 +42,12 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/uploads/screenshot-wide.png",
         sizes: "1280x720",
         type: "image/png",
-        // @ts-expect-error -- form_factor is valid per W3C spec but not in Next.js types yet
         form_factor: "wide",
       },
       {
         src: "/uploads/screenshot-narrow.png",
         sizes: "750x1334",
         type: "image/png",
-        // @ts-expect-error -- form_factor is valid per W3C spec but not in Next.js types yet
         form_factor: "narrow",
       },
     ],

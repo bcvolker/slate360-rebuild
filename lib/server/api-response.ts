@@ -7,8 +7,8 @@
 import { NextResponse } from "next/server";
 
 /** 200 — success with JSON payload */
-export function ok<T>(data: T) {
-  return NextResponse.json(data);
+export function ok<T>(data: T, status = 200) {
+  return NextResponse.json(data, { status });
 }
 
 /** 201 — resource created */

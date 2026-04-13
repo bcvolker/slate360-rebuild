@@ -35,23 +35,13 @@ export async function checkSessionQuota(
 
   const subs = (subsResult.data ?? {}) as Partial<OrgAppSubscriptions>;
   const ent = resolveModularEntitlements(subs);
-  const maxSessions = ent.apps.site_walk.maxSessions ?? Infinity;
   const current = countResult.count ?? 0;
 
   if (!ent.apps.site_walk.active) {
     return { allowed: false, reason: "Site Walk is not active on your plan" };
   }
 
-  if (current >= maxSessions) {
-    return {
-      allowed: false,
-      reason: `Session limit reached (${current}/${maxSessions})`,
-      currentUsage: current,
-      limit: maxSessions,
-    };
-  }
-
-  return { allowed: true, currentUsage: current, limit: maxSessions };
+  return { allowed: true, currentUsage: current };
 }
 
 /** Check if the org has storage remaining for an upload */
@@ -75,7 +65,7 @@ export async function checkStorageQuota(
 
   const subs = (subsResult.data ?? {}) as Partial<OrgAppSubscriptions>;
   const ent = resolveModularEntitlements(subs);
-  const maxStorageGB = ent.apps.site_walk.maxStorageGB ?? Infinity;
+  const maxStorageGB = ent.apps.site_walk.storageGB ?? Infinity;
   const maxBytes = maxStorageGB * 1024 * 1024 * 1024;
 
   // Rough estimate: count items with photos, assume avg 2MB each

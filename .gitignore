@@ -53,3 +53,5 @@ supabase/.temp/
 
 # v0.dev staging drop zone — never committed
 /v0-staging/
+public/sw.js
+public/sw.js.map

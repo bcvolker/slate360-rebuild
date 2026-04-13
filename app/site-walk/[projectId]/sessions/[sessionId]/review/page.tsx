@@ -16,8 +16,9 @@ export default async function SessionReviewPage({ params }: Props) {
   const { admin, orgId } = await resolveProjectScope(user.id);
   if (!orgId) redirect("/dashboard");
 
-  const project = await getScopedProjectForUser(user.id, projectId, "id, name");
+  const { project } = await getScopedProjectForUser(user.id, projectId, "id, name");
   if (!project) redirect("/site-walk");
+  const projectRecord = project as unknown as { id: string; name: string };
 
   const { data: session } = await admin
     .from("site_walk_sessions")
@@ -48,7 +49,7 @@ export default async function SessionReviewPage({ params }: Props) {
   return (
     <SessionReviewClient
       projectId={projectId}
-      projectName={project.name}
+      projectName={projectRecord.name}
       session={session}
       items={items ?? []}
       deliverables={deliverables ?? []}

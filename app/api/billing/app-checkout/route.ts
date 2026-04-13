@@ -20,9 +20,11 @@ import { loadOrgFeatureFlags } from "@/lib/server/org-feature-flags";
 export const runtime = "nodejs";
 
 /** Map app ID → the feature flag column that indicates an active subscription */
-const APP_FLAG_KEY: Record<StandaloneAppId, "standalone_tour_builder" | "standalone_punchwalk"> = {
+const APP_FLAG_KEY: Record<StandaloneAppId, "standalone_tour_builder" | "standalone_punchwalk" | "standalone_design_studio" | "standalone_content_studio"> = {
   tour_builder: "standalone_tour_builder",
   punchwalk: "standalone_punchwalk",
+  design_studio: "standalone_design_studio",
+  content_studio: "standalone_content_studio",
 };
 
 function getAppSuccessPath(appId: StandaloneAppId | string): string {
