@@ -167,7 +167,7 @@ Use those files only for deep history or recovery work.
 | `components/walled-garden-dashboard.tsx` | 82 | ✅ Extracted — was 1472 lines, now thin orchestrator |
 | `components/dashboard/DashboardClient.tsx` | 264 | ✅ Under limit — 5 extractions + 6 sub-hooks |
 | `lib/hooks/useDashboardState.ts` | 244 | ✅ Under limit — thin orchestrator (6 sub-hooks) |
-| `components/slatedrop/SlateDropClient.tsx` | 282 | ✅ Under limit — 7 sub-hooks extracted |
+| `components/slatedrop/ProjectFileExplorer.tsx` | 178 | ✅ Under limit — hook extracted to `useProjectFileExplorer.ts` (236 lines) |
 | `components/dashboard/market/MarketClient.tsx` | 175 | ✅ Under limit |
 | `components/shared/DashboardHeader.tsx` | 286 | ✅ Under limit |
 | `app/page.tsx` | 63 | ✅ Under limit — Phase 6 complete (8 files in `components/home/`) |
@@ -187,47 +187,44 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-14 (Marketing Homepage + Learn-More Pages Update)
+### Session Handoff — 2026-04-13 (Security Hardening + Entitlements Foundation)
 
-### What Changed (commit e0bea1b)
+### What Changed (commit 8f9c3e9)
 
-**Marketing Homepage (`components/marketing-homepage.tsx`)**
-- Added Content Studio card to APP_SHOWCASE (FileText icon, 8 features, comingSoon: true)
-- All 4 apps have status labels: Site Walk = "On the Way — Coming Soon", others = "Under Development — Coming Soon"
-- Pricing tiers updated to TBD/Custom (Free Trial $0, Field Pro Bundle "Custom", Enterprise "Custom")
-- CTAs show "Join Waitlist" for coming-soon apps
+**P0 Security Fixes**
+- `lib/entitlements.ts`: Trial TIER_MAP — set canAccessDesignStudio, canAccessContent, canAccessTourBuilder, canAccessGeospatial, canAccessVirtual, canAccessAnalytics, canAccessReports to `false`
+- `app/(apps)/design-studio/page.tsx`: gate changed from `canAccessDesignStudio` → `canAccessStandaloneDesignStudio`
+- `app/(apps)/content-studio/page.tsx`: gate changed from `canAccessContent` → `canAccessStandaloneContentStudio`
+- All 31 Site Walk API routes (49 handlers): `withAuth()` → `withAppAuth("punchwalk")`
+- `components/shared/QuickNav.tsx`: all app gate fields now use `canAccessStandalone*` keys
+- `components/shared/MobileModuleBar.tsx`: same standalone gate fix
 
-**Learn-More Page (`app/(public)/apps/[slug]/page.tsx`)**
-- Added Content Studio entry to APP_DATA (8 features, 3 highlights)
-- All 4 app entries now have `comingSoon: true` + `statusLabel`
-- Hero section shows amber status badge when `statusLabel` is set
-- CTA section: coming-soon apps show "Join Waitlist" + "Sign up to be notified" messaging
-- Header CTA also conditional (Join Waitlist vs Subscribe Now)
+**Entitlements Threading**
+- `DashboardSidebar.tsx`: accepts `entitlements` prop, filters APP_LINKS by `canAccessStandalone*`
+- `walled-garden-dashboard.tsx`: accepts + forwards `entitlements` prop
+- `app/(dashboard)/dashboard/page.tsx`: uses `resolveOrgEntitlements(orgId)` (loads tier + feature flags + modular subs)
 
-**Documentation (from previous session, included in same commit)**
-- 21 module doc files (BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG × 7 modules)
-- 4 legacy files preserved as `*_LEGACY.md`
+**Extraction & Cleanup**
+- `ProjectFileExplorer.tsx`: 363 → 178 lines (hook → `useProjectFileExplorer.ts` at 236 lines)
+- Deleted `app/site-walk/_page.tsx.bak`
+- Removed duplicate `STRIPE_WEBHOOK_SECRET` from `.env` (kept correct `whsec_` value on line 58)
 
-### What's Broken / Partially Done (P0/P1)
-- **P0: DS/CS page gates use tier-level booleans** (always true) — any trial user can access
-- **P0: Site Walk API routes use `withAuth()` not `withAppAuth()`** — any auth user can hit SW APIs
-- **P1: `TIER_MAP` all-true for every tier** — nav gating is decorative
-- **P1: Sidebars hard-coded** — no entitlements-aware rendering
+### What's Broken / Partially Done
 - **P1: 9 Project Hub monolith files** exceed 300-line limit (931, 599, 579, 465, 448, 421, 403, 358, 339)
-- **P1: `ProjectFileExplorer.tsx`** at 363 lines — exceeds limit
-- `app/site-walk/_page.tsx.bak` — dead file (should delete)
-- `STRIPE_WEBHOOK_SECRET` appears twice in `.env`
+- **P1: standard tier TIER_MAP** still grants canAccessDesignStudio/Content/TourBuilder = true — works for now (standard includes those apps) but needs alignment with per-app subscription model when tier policy is finalized
+- **P1: Standalone entitlement OR logic** in `getEntitlements()` — `canAccessStandaloneDesignStudio: base.canAccessDesignStudio || flags?.standalone_design_studio` means paid tiers bypass per-app subscription. Acceptable until tier policy is finalized.
+- **P2: 14 files over 300 lines** per file-size checker (pre-existing monoliths, no regressions)
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority)
-1. **Gating Hardening** — fix DS/CS page gates, SW API routes, TIER_MAP trial (security P0)
-2. Extract `ProjectFileExplorer.tsx` (363 lines → under 300)
-3. Extract Project Hub monoliths (batch of 3, then batch of 6)
-4. Delete `app/site-walk/_page.tsx.bak`
-5. Deduplicate `STRIPE_WEBHOOK_SECRET` in `.env`
-6. Wire entitlements through WalledGardenDashboard and sidebars
-7. Stripe product/price audit (cross-reference 22+ env vars with dashboard)
-8. E2E checkout flow test for Site Walk
-9. Rename `basic` → `standard` in modular entitlements
+1. Design Slate360 app layout (tier-gating UX, what activates on subscription)
+2. Design Site Walk app layout + features
+3. Extract Project Hub monoliths (9 files, batch of 3 then batch of 6)
+4. Finalize tier policy: what exactly does trial/standard/business/enterprise include?
+5. Align `TIER_MAP` + standalone OR logic with finalized tier policy
+6. Stripe product/price audit (cross-reference env vars with Stripe dashboard)
+7. E2E checkout flow test for Site Walk
+8. Rename `basic` → `standard` in modular entitlements
+9. Address remaining file-size violations (14 files)
