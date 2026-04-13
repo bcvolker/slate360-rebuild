@@ -187,34 +187,26 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-13 (Targeted Proof Audit + Documentation Slice)
+### Session Handoff — 2026-04-14 (Marketing Homepage + Learn-More Pages Update)
 
-### What Changed
+### What Changed (commit e0bea1b)
 
-**Proof Audit of Billing Unification (commit 2383dee)**
-- Verified all 8 audit sections with exact file evidence
-- Billing bridge: REAL — `resolveOrgEntitlements()` correctly merges 3 tables
-- E2E flow: REAL — checkout → webhook → DB → resolver → access chain complete
-- Marketing/legal: REAL — company names removed, pricing fixed, Coming Soon badges in place
+**Marketing Homepage (`components/marketing-homepage.tsx`)**
+- Added Content Studio card to APP_SHOWCASE (FileText icon, 8 features, comingSoon: true)
+- All 4 apps have status labels: Site Walk = "On the Way — Coming Soon", others = "Under Development — Coming Soon"
+- Pricing tiers updated to TBD/Custom (Free Trial $0, Field Pro Bundle "Custom", Enterprise "Custom")
+- CTAs show "Join Waitlist" for coming-soon apps
 
-**Documentation Slice (21 new files)**
-Created canonical repo-local build/handoff docs for all modules:
-- `docs/site-walk/` — BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG
-- `docs/360-tours/` — TOURS_BUILD_FILE + TOURS_ENV_AND_TOOL_MATRIX + TOURS_PROMPT_BACKLOG
-- `docs/design-studio/` — BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG
-- `docs/content-studio/` — BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG
-- `docs/platform/` — PLATFORM_BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG
-- `docs/billing/` — BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG
-- `docs/slatedrop/` — BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG
+**Learn-More Page (`app/(public)/apps/[slug]/page.tsx`)**
+- Added Content Studio entry to APP_DATA (8 features, 3 highlights)
+- All 4 app entries now have `comingSoon: true` + `statusLabel`
+- Hero section shows amber status badge when `statusLabel` is set
+- CTA section: coming-soon apps show "Join Waitlist" + "Sign up to be notified" messaging
+- Header CTA also conditional (Join Waitlist vs Subscribe Now)
 
-Legacy build files preserved as `*_LEGACY.md` (4 files).
-
-**Platform Access Verification**
-- Git/GitHub: Full access (gh v2.89.0, authenticated as bcvolker)
-- Vercel: API access via VERCEL_TOKEN (3 projects found), no CLI
-- Supabase: API access via SUPABASE_ACCESS_TOKEN (project hadnfcenpcfaeclczsmm), no CLI
-- Stripe: API access via STRIPE_SECRET_KEY (verified), no CLI
-- AWS: Credentials in .env, no CLI (S3 bucket reachable)
+**Documentation (from previous session, included in same commit)**
+- 21 module doc files (BUILD_FILE + ENV_AND_TOOL_MATRIX + PROMPT_BACKLOG × 7 modules)
+- 4 legacy files preserved as `*_LEGACY.md`
 
 ### What's Broken / Partially Done (P0/P1)
 - **P0: DS/CS page gates use tier-level booleans** (always true) — any trial user can access
@@ -223,22 +215,19 @@ Legacy build files preserved as `*_LEGACY.md` (4 files).
 - **P1: Sidebars hard-coded** — no entitlements-aware rendering
 - **P1: 9 Project Hub monolith files** exceed 300-line limit (931, 599, 579, 465, 448, 421, 403, 358, 339)
 - **P1: `ProjectFileExplorer.tsx`** at 363 lines — exceeds limit
-- Content Studio missing from marketing homepage
-- `app/site-walk/_page.tsx.bak` — dead file
+- `app/site-walk/_page.tsx.bak` — dead file (should delete)
 - `STRIPE_WEBHOOK_SECRET` appears twice in `.env`
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
-- 21 new doc files in `docs/` (see list above)
 
 ### Next Steps (ordered by priority)
 1. **Gating Hardening** — fix DS/CS page gates, SW API routes, TIER_MAP trial (security P0)
 2. Extract `ProjectFileExplorer.tsx` (363 lines → under 300)
 3. Extract Project Hub monoliths (batch of 3, then batch of 6)
-4. Add Content Studio to marketing homepage with Coming Soon badge
-5. Delete `app/site-walk/_page.tsx.bak`
-6. Deduplicate `STRIPE_WEBHOOK_SECRET` in `.env`
-7. Wire entitlements through WalledGardenDashboard and sidebars
-8. Stripe product/price audit (cross-reference 22+ env vars with dashboard)
-9. E2E checkout flow test for Site Walk
-10. Rename `basic` → `standard` in modular entitlements
+4. Delete `app/site-walk/_page.tsx.bak`
+5. Deduplicate `STRIPE_WEBHOOK_SECRET` in `.env`
+6. Wire entitlements through WalledGardenDashboard and sidebars
+7. Stripe product/price audit (cross-reference 22+ env vars with dashboard)
+8. E2E checkout flow test for Site Walk
+9. Rename `basic` → `standard` in modular entitlements
