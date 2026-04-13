@@ -187,65 +187,63 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-12 (Phase 12: App Store Packaging)
+### Session Handoff — 2026-04-13 (Deployment Unblock + Business Model Alignment)
 
 ### What Changed
 
-**Phase 11 — Content Studio Foundation** (commit 2410a48, pushed)
-- Billing/auth: `content_studio` added to StandaloneAppId, entitlements, withAppAuth
-- Migration 20260412000012 APPLIED: `media_collections` + `media_assets` tables, RLS, triggers
-- Types: `lib/types/content-studio.ts`, Queries: `lib/content-studio/queries.ts`
-- 4 API routes: collections CRUD, assets CRUD (all `withAppAuth("content_studio")`)
-- 4 UI components: ContentStudioShell, AssetListClient, AssetEditorClient, AssetSettingsPanel
-- Wired `app/(apps)/content-studio/page.tsx` — replaced "Coming Soon" with real shell
+**Deployment Unblock** (commit 75ae436, pushed, DEPLOYED SUCCESSFULLY)
+- Deleted 5 duplicate route pages that caused every Vercel build since Phase 0 to fail:
+  - `app/(dashboard)/content-studio/page.tsx` (conflict with `(apps)/`)
+  - `app/(dashboard)/design-studio/page.tsx` (conflict with `(apps)/`)
+  - `app/(dashboard)/geospatial/page.tsx` (conflict with `(apps)/`)
+  - `app/(dashboard)/virtual-studio/page.tsx` (conflict with `(apps)/`)
+  - `app/site-walk/page.tsx` (conflict with `(apps)/site-walk/`)
+- Fixed 10+ type errors blocking build:
+  - `webhook-helpers.ts`: expanded `upsertAppFlag` to handle all 4 StandaloneAppIds
+  - `app-checkout/route.ts`: added design_studio + content_studio to APP_FLAG_KEY
+  - `api-response.ts`: `ok()` now accepts optional status param
+  - `manifest.ts`: removed stale `@ts-expect-error` directives
+  - `sw.ts`: added `/// <reference lib="webworker" />`, removed invalid `revision` on FallbackEntry
+  - 3x `site-walk/**/page.tsx`: fixed `getScopedProjectForUser` destructuring + `.name` access
+  - `SiteWalkNav.tsx`: null-safe pathname
+  - `quota-check.ts`: used `storageGB` instead of nonexistent `maxStorageGB`/`maxSessions`
+  - `~offline/page.tsx`: added `"use client"` for onClick handler
+  - Added missing `components/ui/textarea.tsx` (shadcn)
+- **First successful Vercel deployment since April 11** — all Phase 0-12 work is now live
+- Vercel deployment state: `READY` at commit `75ae436`
 
-**Phase 12 — App Store Packaging** (commit 2820fa6, pushed)
-
-Account deletion (Apple requirement):
-- `app/api/account/delete/route.ts` — POST with "DELETE MY ACCOUNT" confirmation, cancels Stripe subs, cleans S3 if sole org member, deletes org or removes membership, deletes Supabase auth user
-- `components/settings/AccountSettingsClient.tsx` — Account info display + danger zone deletion flow with confirmation
-- `app/(dashboard)/settings/page.tsx` — Server component settings page using `resolveServerOrgContext`
-
-Well-known routes (TWA + Universal Links):
-- `app/.well-known/assetlinks.json/route.ts` — Android Digital Asset Links (reads `ANDROID_PACKAGE_NAME` + `ANDROID_SHA256_FINGERPRINT` env vars, defaults to placeholder)
-- `app/.well-known/apple-app-site-association/route.ts` — Apple AASA for Universal Links (reads `APPLE_APP_ID` env var)
-
-Manifest improvements:
-- `app/manifest.ts` — Added `id` field, maskable icon, screenshots (wide + narrow), Dashboard shortcut
-- `app/layout.tsx` — Added `apple` icon entry to metadata
-
-PWA icon generation:
-- `public/uploads/icon-192.png` — Generated from favicon.svg (192x192)
-- `public/uploads/icon-512.png` — Generated from favicon.svg (512x512)
-- `public/uploads/icon-512-maskable.png` — Maskable variant with #18181b background + padding
-- `public/uploads/screenshot-wide.png` — Placeholder (1280x720)
-- `public/uploads/screenshot-narrow.png` — Placeholder (750x1334)
+**Business Model Alignment**
+- Created canonical `docs/SLATE360_MASTER_BUILD_PLAN.md` with Gemini-aligned platform model
+- Added Gemini build files: `docs/site-walk/`, `docs/billing/`, `docs/360-tours/`, `docs/content-studio/`, `docs/design-studio/`
+- Core model: Slate360 = platform shell, 4 modules (site_walk, tours, design_studio, content_studio), standard/pro tiers, org-level billing
 
 ### What's Broken / Partially Done
-- Speech-to-text / voice notes: NOT implemented yet
+- **CRITICAL: Homepage has 5 real company names** — Turner Construction, Skanska, PCL, DPR, Mortenson — implies false endorsement (legal risk)
+- **CRITICAL: Homepage pricing is wrong** — shows $0/$79/Custom but business model is $79/$149/$399/Custom
+- **CRITICAL: No "coming soon" badges on homepage** for Tours, Design Studio, Content Studio — they show as available
+- `marketing-homepage.tsx` is 1123 lines — needs extraction before pricing/content fixes
+- Content Studio has no learn-more page (would 404 at /apps/content-studio)
+- Two entitlement systems coexist: `entitlements.ts` (legacy tiers) + `entitlements-modular.ts` (per-app)
+- `basic` tier naming needs rename to `standard` throughout codebase
+- Dashboard after login is a basic command center shell — not the full PM tool envisioned
+- Project Hub `_page.tsx` is disabled (underscore prefix), functional code exists but unreachable
 - `STRIPE_PRICE_*` env vars need Stripe Dashboard + Vercel setup
-- `subscription_status` column on organizations table may not exist
-- `marketing-homepage.tsx` is 1123 lines — needs extraction
-- `market_scheduler_lock` table has no RLS
-- BUG-018: DrawingManager deprecation in LocationMap.tsx (May 2026)
-- Legacy `project_punch_items` table not migrated
-- Pre-existing TS errors: pins/plans/templates routes pass 2 args to ok(), textarea module missing, site-walk page .name access
-- `photo_s3_key` column may not exist on `site_walk_items` table
-- Tour Builder: No drag-and-drop reorder, no Site Walk ↔ 360 scene linkage, no immersive context button, no viewer_slug auto-generation
-- Design Studio: ModelViewerClient `src` needs S3 URL resolution (currently passes s3_key, may need CloudFront/presigned URL)
-- Screenshots in manifest are placeholders — need real app screenshots
-- TWA assetlinks.json and AASA use placeholder values — need real signing certs + app IDs before store submission
+- `photo_s3_key` column may not exist on `site_walk_items`
+- Tour Builder, Design Studio, Content Studio are shells only
+- Screenshots in manifest are placeholders
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
+- `docs/SLATE360_MASTER_BUILD_PLAN.md`: canonical business model doc
 
 ### Next Steps (ordered by priority)
-1. Fix pre-existing TS errors (ok() 2-arg calls, textarea module, .name access)
-2. Add `photo_s3_key` column to `site_walk_items` (migration)
-3. Create Stripe products/prices in Dashboard + Vercel env
-4. Tour Builder: viewer_slug generation, Site Walk linkage, immersive context
-5. Content Studio: thumbnail generation, batch upload, collection management polish
-6. Extract `marketing-homepage.tsx` (1123 lines → components)
-7. Real screenshots for manifest
-8. TWA Bubblewrap config + Play Store signing cert → assetlinks.json
-9. iOS native shell + Apple Team ID → AASA
+1. Remove fake company names from homepage TrustBar (legal)
+2. Fix homepage pricing to match business model ($79/$149/$399/Custom)
+3. Add "coming soon" badges for Tours, Design Studio, Content Studio on homepage
+4. Extract `marketing-homepage.tsx` (1123 lines → components)
+5. Rename `basic` → `standard` throughout modular entitlements
+6. Make modular entitlements canonical, deprecate legacy tier system
+7. Rebuild dashboard into actual command center with PM tools
+8. Re-enable Project Hub under (apps) layout
+9. Build Site Walk end-to-end purchase → entitlement → access flow
+10. Create Stripe products/prices in Dashboard + Vercel env
