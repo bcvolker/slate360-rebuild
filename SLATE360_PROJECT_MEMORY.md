@@ -187,44 +187,45 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-13 (Security Hardening + Entitlements Foundation)
+### Session Handoff — 2026-04-13 (Purchase-Based App Model + Stripe Completion)
 
-### What Changed (commit 8f9c3e9)
+### What Changed
 
-**P0 Security Fixes**
-- `lib/entitlements.ts`: Trial TIER_MAP — set canAccessDesignStudio, canAccessContent, canAccessTourBuilder, canAccessGeospatial, canAccessVirtual, canAccessAnalytics, canAccessReports to `false`
-- `app/(apps)/design-studio/page.tsx`: gate changed from `canAccessDesignStudio` → `canAccessStandaloneDesignStudio`
-- `app/(apps)/content-studio/page.tsx`: gate changed from `canAccessContent` → `canAccessStandaloneContentStudio`
-- All 31 Site Walk API routes (49 handlers): `withAuth()` → `withAppAuth("punchwalk")`
-- `components/shared/QuickNav.tsx`: all app gate fields now use `canAccessStandalone*` keys
-- `components/shared/MobileModuleBar.tsx`: same standalone gate fix
+**Commit 8f9c3e9 — Security Hardening (prior session)**
+- Trial TIER_MAP fields set to `false`; all page/API/nav gates use `canAccessStandalone*`
+- All 31 Site Walk API routes: `withAuth()` → `withAppAuth("punchwalk")`
+- DashboardSidebar threaded with entitlements prop
+- ProjectFileExplorer extracted (363→178 lines)
 
-**Entitlements Threading**
-- `DashboardSidebar.tsx`: accepts `entitlements` prop, filters APP_LINKS by `canAccessStandalone*`
-- `walled-garden-dashboard.tsx`: accepts + forwards `entitlements` prop
-- `app/(dashboard)/dashboard/page.tsx`: uses `resolveOrgEntitlements(orgId)` (loads tier + feature flags + modular subs)
+**Commit 2976bef — Purchase-Based App Model**
+- `lib/entitlements.ts`: Removed tier fallbacks from `canAccessStandaloneTourBuilder`, `canAccessStandaloneDesignStudio`, `canAccessStandaloneContentStudio`. All 4 apps now consistently require standalone flag OR modular subscription — no tier auto-grant.
+- Created Stripe products: Design Studio (`prod_UKR4p1NZfdXtkg`), Content Studio (`prod_UKR4RK9EixZlf0`)
+- Created Stripe prices: DS monthly `price_1TLmCSJCrjGbeotHDwqs7bqn`, CS monthly `price_1TLmCaJCrjGbeotHe74bwSye` ($49/mo each)
+- Updated local `.env` + all 4 Vercel env vars (DS + CS, prod + dev) with new price IDs
+- Inserted `org_feature_flags` row for Slate360 org (`c5538bfd...`): all 4 standalone flags = `true`, 999 TB seat limit
+- `slate360-context/BACKEND.md`: Rewrote "Tier And Entitlements Snapshot" section with current limits table + new App Access Model documentation
 
-**Extraction & Cleanup**
-- `ProjectFileExplorer.tsx`: 363 → 178 lines (hook → `useProjectFileExplorer.ts` at 236 lines)
-- Deleted `app/site-walk/_page.tsx.bak`
-- Removed duplicate `STRIPE_WEBHOOK_SECRET` from `.env` (kept correct `whsec_` value on line 58)
+**Verified E2E Chains**
+- All 6 gating traces pass (page gates, API gates, nav visibility, entitlement resolution, webhook→DB, checkout flow)
+- SW purchase→entitlement→access chain fully traced and verified
+- Stripe products/prices/envs audited — all 4 standalone apps have valid price IDs
 
 ### What's Broken / Partially Done
 - **P1: 9 Project Hub monolith files** exceed 300-line limit (931, 599, 579, 465, 448, 421, 403, 358, 339)
-- **P1: standard tier TIER_MAP** still grants canAccessDesignStudio/Content/TourBuilder = true — works for now (standard includes those apps) but needs alignment with per-app subscription model when tier policy is finalized
-- **P1: Standalone entitlement OR logic** in `getEntitlements()` — `canAccessStandaloneDesignStudio: base.canAccessDesignStudio || flags?.standalone_design_studio` means paid tiers bypass per-app subscription. Acceptable until tier policy is finalized.
-- **P2: 14 files over 300 lines** per file-size checker (pre-existing monoliths, no regressions)
+- **P1: Tier-based visibility fields** (`canAccessDesignStudio`, `canAccessContent`, `canAccessTourBuilder`) still `true` for standard+ in TIER_MAP — these control dashboard card/nav visibility (MobileNavSheet, DashboardClient, folderTree). They no longer grant app page access. Review whether trial users should see locked app cards.
+- **P1: 12 modular plan env vars** in `billing-apps.ts` have no Stripe products (basic/pro tiers for each app, bundles, storage/credit addons). Standalone purchase works; modular checkout will 400 until these are created.
+- **P2: 14 files over 300 lines** per file-size checker (pre-existing, no regressions)
+- **P2: MobileNavSheet.tsx** uses tier-based fields (`canAccessTourBuilder` etc.) for nav visibility, while MobileModuleBar/QuickNav/DashboardSidebar use standalone fields. Inconsistent — MobileNavSheet shows apps to users who can't access them.
 
 ### Context Files Updated
+- `slate360-context/BACKEND.md`: Tier/entitlements section rewritten with current model
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered by priority)
-1. Design Slate360 app layout (tier-gating UX, what activates on subscription)
+1. Design Slate360 app layout (command center, what activates on subscription)
 2. Design Site Walk app layout + features
-3. Extract Project Hub monoliths (9 files, batch of 3 then batch of 6)
-4. Finalize tier policy: what exactly does trial/standard/business/enterprise include?
-5. Align `TIER_MAP` + standalone OR logic with finalized tier policy
-6. Stripe product/price audit (cross-reference env vars with Stripe dashboard)
-7. E2E checkout flow test for Site Walk
-8. Rename `basic` → `standard` in modular entitlements
-9. Address remaining file-size violations (14 files)
+3. Create Stripe products/prices for modular plans (basic/pro per app, bundles, addons)
+4. Align MobileNavSheet.tsx with standalone gate model (or add "locked" state for unpurchased apps)
+5. Extract Project Hub monoliths (9 files)
+6. Rename `basic` → `standard` in modular entitlements if aligning terminology
+7. Address remaining file-size violations (14 files)
