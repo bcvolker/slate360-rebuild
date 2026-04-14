@@ -4,7 +4,6 @@ import { useDashboardState, type DashboardProps } from "@/lib/hooks/useDashboard
 import { useEffect } from "react";
 import DashboardHeader from "@/components/shared/DashboardHeader";
 import CreateProjectWizard, { type CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
-import MarketClient from "@/components/dashboard/MarketClient";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import DashboardMyAccount from "@/components/dashboard/DashboardMyAccount";
 import DashboardSlateDropWindow from "@/components/dashboard/DashboardSlateDropWindow";
@@ -15,9 +14,7 @@ import UpgradeGate from "@/components/shared/UpgradeGate";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   ChevronLeft,
-  TrendingUp,
   BarChart3,
-  Zap,
   Palette,
   Globe,
   Film,
@@ -47,9 +44,7 @@ const projectTypeEmoji = (t: Project["type"]) => {
 
 function useVisibleTabs(
   ent: ReturnType<typeof import("@/lib/entitlements").getEntitlements>,
-  canAccessCeo: boolean,
-  canAccessMarket: boolean,
-  canAccessAthlete360: boolean,
+  canAccessOperationsConsole: boolean,
 ): DashTab[] {
   const ALL_TABS: (DashTab & { entKey?: keyof typeof ent; requiredTier?: import("@/lib/entitlements").Tier })[] = [
     { id: "design-studio",  label: "Design Studio",  icon: Palette,         color: "#7C3AED", entKey: "canAccessDesignStudio", requiredTier: "standard" },
@@ -61,14 +56,9 @@ function useVisibleTabs(
     { id: "my-account",     label: "My Account",     icon: User,            color: "#D4AF37" },
   ];
 
-  const internalTabs: DashTab[] =
-    (canAccessCeo || canAccessMarket || canAccessAthlete360)
-      ? ([
-          ...(canAccessCeo       ? [{ id: "ceo",        label: "CEO",          icon: Shield,     color: "#D4AF37", isCEOOnly: true }] : []),
-          ...(canAccessMarket    ? [{ id: "market",     label: "Market Robot", icon: TrendingUp, color: "#6366F1", isCEOOnly: true }] : []),
-          ...(canAccessAthlete360 ? [{ id: "athlete360", label: "Athlete360",   icon: Zap,        color: "#D4AF37", isCEOOnly: true }] : []),
-        ] as DashTab[])
-      : [];
+  const internalTabs: DashTab[] = canAccessOperationsConsole
+    ? [{ id: "operations-console", label: "Operations Console", icon: Shield, color: "#D4AF37", isCEOOnly: true }]
+    : [];
 
   return [
     ...ALL_TABS.map((tab) => {
@@ -92,13 +82,11 @@ function useVisibleTabs(
 
 export default function DashboardClient(props: DashboardProps) {
   const {
-    canAccessCeo = false,
-    canAccessMarket = false,
-    canAccessAthlete360 = false,
+    canAccessOperationsConsole = false,
   } = props;
 
   const s = useDashboardState(props);
-  const visibleTabs = useVisibleTabs(s.ent, canAccessCeo, canAccessMarket, canAccessAthlete360);
+  const visibleTabs = useVisibleTabs(s.ent, canAccessOperationsConsole);
 
   // Single-App view: if only one unlocked app tab, auto-navigate there on mount
   const unlockedApps = visibleTabs.filter((t) => !t.locked && t.id !== "my-account");
@@ -187,11 +175,6 @@ export default function DashboardClient(props: DashboardProps) {
           />
           </TabsContent>
 
-          {/* ════════ MARKET TAB ════════ */}
-          <TabsContent value="market">
-            <MarketClient />
-          </TabsContent>
-
           {/* ════════ MY ACCOUNT TAB ════════ */}
           <TabsContent value="my-account">
             <DashboardMyAccount
@@ -233,7 +216,7 @@ export default function DashboardClient(props: DashboardProps) {
 
           {/* ════════ TAB REDIRECT CARDS / WIREFRAMES / UPGRADE GATES ════════ */}
           {visibleTabs
-            .filter((t) => !["overview", "market", "my-account"].includes(t.id))
+            .filter((t) => !["overview", "my-account"].includes(t.id))
             .map((tab) => (
               <TabsContent key={tab.id} value={tab.id}>
                 {tab.locked && tab.requiredTier ? (

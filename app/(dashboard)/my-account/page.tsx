@@ -31,7 +31,7 @@ export default async function MyAccountPage() {
         maxSeats: ent.maxSeats,
         canManageSeats: ent.canManageSeats,
       }}
-      internalAccess={{ ceo: ctx.canAccessCeo, market: ctx.canAccessMarket, athlete360: ctx.canAccessAthlete360 }}
+      internalAccess={{ operationsConsole: ctx.canAccessOperationsConsole }}
     />
   );
 }

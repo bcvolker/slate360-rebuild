@@ -1,84 +1,71 @@
 # Billing — Prompt Backlog
 
-Last Updated: 2026-04-13
+Last Updated: 2026-04-14
+Doctrine Source: docs/SLATE360_MASTER_BUILD_PLAN.md
 
-## Do Now (Safe, No Dependencies)
+## Phase A — Pre-Design (Before Beta)
 
-### B-P1: Fix Page Gates for DS/CS
-- Design Studio: change `canAccessDesignStudio` → `canAccessStandaloneDesignStudio`
-- Content Studio: change `canAccessContent` → `canAccessStandaloneContent`
-- Add these keys to `resolveOrgEntitlements()` / `resolveModularEntitlements()` if missing
-- **Why now:** P0 — any trial user can access DS/CS pages
+### B-A1: Verify Site Walk Checkout E2E
+- Test: pricing page → select Site Walk → Stripe checkout → webhook fires → org_app_subscriptions updated → page access granted
+- Must work for at least one plan (standard or pro)
+- **Why now:** CRITICAL for beta — users need to be able to subscribe to Site Walk
 
-### B-P2: Fix Site Walk API Gating
-- Migrate all 31 `/api/site-walk/` routes from `withAuth()` to `withAppAuth("punchwalk")`
-- **Why now:** P0 — any authenticated user can call SW APIs without subscription
+### B-A2: Add Beta Access Flag
+- Add beta_access boolean to org_feature_flags (or new column)
+- CEO can toggle via /ceo page
+- Middleware checks flag before granting workspace access
+- **Why now:** CRITICAL — no gate exists
 
-### B-P3: Fix TIER_MAP Trial Differentiation
-- Update `TIER_MAP` in `lib/entitlements.ts` so trial tier has app booleans `false`
-- This makes client-side nav gating functional
-- **Why now:** P1 — nav gating currently decorative
+### B-A3: Verify Account Billing Tab
+- My Account billing tab must show: current plan, status, next billing date
+- If no subscription: show prompt to subscribe
+- **Why now:** MODERATE — testers need to see their status
 
-### B-P4: Deduplicate STRIPE_WEBHOOK_SECRET
-- Check if the duplicate in `.env` causes issues
-- Remove the duplicate if values are identical
-- **Why now:** Potential webhook signature failure
+### B-A4: Add Collaborator Seat Limit to Entitlements
+- Entitlement resolver must return maxCollaborators based on subscriber tier
+- Add maxCollaborators field to resolveOrgEntitlements() output
+- Enforce limit when subscriber tries to invite beyond their tier
+- **Why now:** MODERATE — needed before collaborator invite flow can be built
 
-## After Gating Hardening
+## Phase B — After Beta Stable
 
-### B-P5: Stripe Product/Price Audit
-- Use Stripe API to list all products and prices
-- Cross-reference with the 22+ `STRIPE_PRICE_*` env vars
-- Identify any missing or mismatched products
-- **Requires:** Stripe API access (available via secret key)
+### B-B1: Fix TIER_MAP Trial Differentiation
+- Update TIER_MAP so trial tier has app booleans false
+- Trial users should see the platform shell but not access modules until they subscribe
+- **After P-A1:** once placeholder modules are hidden, trial gating matters less
 
-### B-P6: Checkout Flow E2E Test
-- Test: select plan → Stripe checkout → webhook → subscription active → page accessible
-- Test for Site Walk (the only fully sellable app)
-- Document the exact flow and any failures
+### B-B2: Stripe Product Audit
+- List all Stripe products/prices via API
+- Cross-reference with env vars
+- Identify mismatches
+- **Not Phase 1 blocking** — only Site Walk checkout matters for beta
 
-### B-P7: Verify withAppAuth for All App Modules
-- Audit all API routes across all 4 app modules
-- Ensure each uses `withAppAuth(app_id)` not just `withAuth()`
-- Create a matrix: route → auth wrapper → expected behavior
-
-## After Billing Fully Unified
-
-### B-P8: Subscription Management UI
-- Add upgrade/downgrade/cancel actions to Account Billing Tab
-- Show current plan, next billing date, usage
-- Stripe Customer Portal integration (simplest approach)
-
-### B-P9: Bundle Checkout Testing
+### B-B3: Bundle Checkout Testing
 - Test Field Pro Bundle purchase
 - Test All Access Bundle purchase
-- Verify webhook correctly activates multiple apps
+- **Not Phase 1** — bundles are future
 
-### B-P10: Credit System E2E
-- Test credit pack purchase
-- Verify idempotent writes
-- Test credit consumption and balance display
+### B-B4: Collaborator Downgrade Policy
+- Define behavior when subscriber downgrades to tier with fewer collaborator seats
+- Options: freeze excess collaborators, notify and remove after grace period, or block downgrade
+- **Not Phase 1 blocking** — needed before tier changes are live
 
-## After Dashboard Rewrite
+## Deprioritized (Not Phase 1)
 
-### B-P11: Usage Dashboard
-- Display current credit usage, storage usage, seat count
-- Per-app usage breakdown
-- Upgrade prompts when approaching limits
+### B-X1: Subscription Management UI
+- Upgrade/downgrade/cancel — after beta
 
-### B-P12: Invoice History
-- Display past invoices from Stripe
-- Download invoice PDFs
-- Payment method management
+### B-X2: Invoice History
+- Past invoices from Stripe — after beta
 
-## Future / Roadmap
+### B-X3: Credit System E2E
+- Credit pack purchase and consumption — after beta
 
-### B-P13: Annual vs Monthly Toggle
-- Pricing page shows both options
-- Smooth switch between annual/monthly
-- Pro-rate calculations
+### B-X4: Storage Addon Checkout
+- Storage tier purchase — after beta
 
-### B-P14: Team/Seat Billing
-- Per-seat pricing for business/enterprise
-- Seat management UI
-- Invitation flow with seat allocation
+### B-X5: Annual vs Monthly Toggle
+- Pricing page toggle — after beta
+
+### B-X6: Team/Seat Billing
+- Per-seat pricing for enterprise — future

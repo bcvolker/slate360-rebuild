@@ -21,6 +21,7 @@ interface WalledGardenDashboardProps {
   orgName: string;
   storageLimitGb?: number;
   entitlements?: Entitlements | null;
+  hasOperationsConsoleAccess?: boolean;
 }
 
 export default function WalledGardenDashboard({
@@ -28,6 +29,7 @@ export default function WalledGardenDashboard({
   orgName,
   storageLimitGb = 5,
   entitlements = null,
+  hasOperationsConsoleAccess = false,
 }: WalledGardenDashboardProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -37,7 +39,7 @@ export default function WalledGardenDashboard({
       <div className="dark min-h-screen bg-background">
         {/* Desktop Sidebar */}
         <div className="hidden lg:block">
-          <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} entitlements={entitlements} />
+          <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} entitlements={entitlements} hasOperationsConsoleAccess={hasOperationsConsoleAccess} />
         </div>
 
         {/* Mobile Sidebar */}
@@ -47,7 +49,7 @@ export default function WalledGardenDashboard({
             showCloseButton={false}
             className="w-64 p-0 !bg-zinc-950 !border-zinc-800 lg:hidden"
           >
-            <DashboardSidebar isOpen isMobile onClose={() => setMobileSidebarOpen(false)} entitlements={entitlements} />
+            <DashboardSidebar isOpen isMobile onClose={() => setMobileSidebarOpen(false)} entitlements={entitlements} hasOperationsConsoleAccess={hasOperationsConsoleAccess} />
           </SheetContent>
         </Sheet>
 

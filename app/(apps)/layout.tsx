@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requireBetaAccess } from "@/lib/server/beta-access";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/apps/AppSidebar";
 import { AppTopBar } from "@/components/apps/AppTopBar";
@@ -24,6 +25,8 @@ export default async function AppsLayout({
   if (!user) {
     redirect("/login");
   }
+
+  await requireBetaAccess(user);
 
   return (
     <SidebarProvider>

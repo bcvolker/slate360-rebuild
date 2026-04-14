@@ -1,9 +1,11 @@
 import "server-only";
 
+import { cache } from "react";
 import type { User } from "@supabase/supabase-js";
 import type { Tier } from "@/lib/entitlements";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isOwnerEmail, checkBetaApproved } from "@/lib/server/beta-access";
 
 type MembershipRow = {
   org_id?: string | null;
@@ -12,15 +14,6 @@ type MembershipRow = {
     | { id?: string | null; name?: string | null; tier?: string | null }
     | Array<{ id?: string | null; name?: string | null; tier?: string | null }>
     | null;
-};
-
-const INTERNAL_TABS = ["ceo", "market", "athlete360"] as const;
-
-type InternalTabId = (typeof INTERNAL_TABS)[number];
-
-type StaffAccessRow = {
-  id?: string | null;
-  access_scope?: string[] | null;
 };
 
 function toTier(value?: string | null): Tier {
@@ -39,17 +32,10 @@ function roleRank(role?: string | null): number {
   return 2;
 }
 
-function resolveInternalAccess(isSlateCeo: boolean, scopes: string[]) {
-  const normalizedScopes = isSlateCeo
-    ? (["market", "athlete360"] as InternalTabId[])
-    : (["market", "athlete360"] as const).filter((scope) => scopes.includes(scope));
-
+function resolveInternalAccess(isSlateCeo: boolean) {
   return {
-    internalAccessScopes: normalizedScopes,
-    canAccessCeo: isSlateCeo,
-    canAccessMarket: normalizedScopes.includes("market"),
-    canAccessAthlete360: normalizedScopes.includes("athlete360"),
-    hasInternalAccess: isSlateCeo || normalizedScopes.length > 0,
+    canAccessOperationsConsole: isSlateCeo,
+    hasInternalAccess: isSlateCeo,
   };
 }
 
@@ -63,20 +49,20 @@ export type ServerOrgContext = {
   isSlateCeo: boolean;
   /** True when the user's email is in the slate360_staff table (granted by CEO). */
   isSlateStaff: boolean;
-  internalAccessScopes: InternalTabId[];
-  canAccessCeo: boolean;
-  canAccessMarket: boolean;
-  canAccessAthlete360: boolean;
-  /**
-    * Combined flag: isSlateCeo || isSlateStaff.
-    * Use this for Market Robot and Athlete360 visibility.
-    * CEO Command Center remains owner-only via canAccessCeo.
-   * Do NOT use this for entitlements overrides — only isSlateCeo gets enterprise override.
-   */
+  canAccessOperationsConsole: boolean;
   hasInternalAccess: boolean;
+  /** Derived from profiles.is_beta_approved (or owner email bypass). */
+  isBetaApproved: boolean;
+  /** Convenience alias — currently equals canAccessOperationsConsole. */
+  hasOperationsConsoleAccess: boolean;
 };
 
-export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
+/**
+ * React `cache()`-wrapped so the full context resolution runs at most
+ * once per server request, even when both a layout and a nested page
+ * call it.
+ */
+export const resolveServerOrgContext = cache(async (): Promise<ServerOrgContext> => {
   const supabase = await createClient();
   const admin = createAdminClient();
   const {
@@ -93,43 +79,37 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
       isAdmin: false,
       isSlateCeo: false,
       isSlateStaff: false,
-      internalAccessScopes: [],
-      canAccessCeo: false,
-      canAccessMarket: false,
-      canAccessAthlete360: false,
+      canAccessOperationsConsole: false,
       hasInternalAccess: false,
+      isBetaApproved: false,
+      hasOperationsConsoleAccess: false,
     };
   }
 
-  const isSlateCeo = user.email === "slate360ceo@gmail.com";
+  const isSlateCeo = isOwnerEmail(user.email);
 
   // Check slate360_staff table for internal access grants
   let isSlateStaffResolved = false;
-  let internalStaffScopes: string[] = [];
   if (!isSlateCeo && user.email) {
     try {
       const { data: staffRow } = await admin
         .from("slate360_staff")
-        .select("id, access_scope")
+        .select("id")
         .eq("email", user.email.toLowerCase())
         .is("revoked_at", null)
         .maybeSingle();
 
-      const resolvedRow = staffRow as StaffAccessRow | null;
-      isSlateStaffResolved = !!resolvedRow;
-      internalStaffScopes = Array.isArray(resolvedRow?.access_scope) && resolvedRow.access_scope.length > 0
-        ? resolvedRow.access_scope.filter((scope) => scope === "market" || scope === "athlete360")
-        : isSlateStaffResolved
-          ? ["market"]
-          : [];
+      isSlateStaffResolved = !!staffRow;
     } catch {
       // Table may not exist yet — fail gracefully
       isSlateStaffResolved = false;
-      internalStaffScopes = [];
     }
   }
 
-  const internalAccess = resolveInternalAccess(isSlateCeo, internalStaffScopes);
+  const internalAccess = resolveInternalAccess(isSlateCeo);
+
+  // Resolve beta approval (owner auto-approved, others checked from profiles)
+  const isBetaApproved = isSlateCeo || (await checkBetaApproved(user.id));
 
   try {
     const { data } = await admin
@@ -151,6 +131,8 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
         isSlateCeo,
         isSlateStaff: isSlateStaffResolved,
         ...internalAccess,
+        isBetaApproved,
+        hasOperationsConsoleAccess: internalAccess.canAccessOperationsConsole,
       };
     }
 
@@ -185,6 +167,8 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
       isSlateCeo,
       isSlateStaff: isSlateStaffResolved,
       ...internalAccess,
+      isBetaApproved,
+      hasOperationsConsoleAccess: internalAccess.canAccessOperationsConsole,
     };
   } catch {
     return {
@@ -197,6 +181,8 @@ export async function resolveServerOrgContext(): Promise<ServerOrgContext> {
       isSlateCeo,
       isSlateStaff: isSlateStaffResolved,
       ...internalAccess,
+      isBetaApproved,
+      hasOperationsConsoleAccess: internalAccess.canAccessOperationsConsole,
     };
   }
-}
+});

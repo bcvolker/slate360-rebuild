@@ -23,9 +23,7 @@ export interface DashboardProps {
   tier: Tier;
   isSlateCeo?: boolean;
   isSlateStaff?: boolean;
-  canAccessCeo?: boolean;
-  canAccessMarket?: boolean;
-  canAccessAthlete360?: boolean;
+  canAccessOperationsConsole?: boolean;
 }
 
 function parseWidgetsPayload(data: Record<string, unknown>): DashboardWidgetsPayload {
@@ -43,9 +41,7 @@ export function useDashboardState({
   user,
   tier,
   isSlateCeo = false,
-  canAccessCeo = false,
-  canAccessMarket = false,
-  canAccessAthlete360 = false,
+  canAccessOperationsConsole = false,
 }: DashboardProps) {
   const ent = getEntitlements(tier, { isSlateCeo });
   const supabase = createClient();
@@ -53,9 +49,7 @@ export function useDashboardState({
   const [isClient, setIsClient] = useState(false);
 
   const internalAccess = {
-    ceo: canAccessCeo,
-    market: canAccessMarket,
-    athlete360: canAccessAthlete360,
+    operationsConsole: canAccessOperationsConsole,
   };
 
   /* ── Sub-hooks ── */

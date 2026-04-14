@@ -13,9 +13,10 @@ import {
   CreditCard,
   ChevronDown,
   Sparkles,
-  Building2,
   MapPin,
+  FolderKanban,
   Settings,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Entitlements } from "@/lib/entitlements";
@@ -28,6 +29,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Apps", icon: Grid3X3, href: "/apps" },
+  { label: "Projects", icon: FolderKanban, href: "/project-hub" },
   { label: "SlateDrop", icon: Inbox, href: "/slatedrop" },
   { label: "Deliverables", icon: FileCheck, href: "/deliverables" },
   { label: "Clients", icon: Users, href: "/clients" },
@@ -45,8 +47,7 @@ interface AppLink {
 
 const APP_LINKS: AppLink[] = [
   { id: "site-walk", name: "Site Walk", icon: MapPin, href: "/site-walk", gate: "canAccessStandalonePunchwalk" },
-  { id: "360-tours", name: "360 Tours", icon: Building2, href: "/tours", gate: "canAccessStandaloneTourBuilder" },
-  { id: "design-studio", name: "Design Studio", icon: Sparkles, href: "/design-studio", gate: "canAccessStandaloneDesignStudio" },
+  // Phase 1: 360 Tours, Design Studio hidden from beta testers (see PHASE_1_FUNCTIONAL_SPEC §5)
 ];
 
 interface DashboardSidebarProps {
@@ -54,9 +55,11 @@ interface DashboardSidebarProps {
   onClose?: () => void;
   isMobile?: boolean;
   entitlements?: Entitlements | null;
+  /** When true, show the Operations Console link. Gated by owner access. */
+  hasOperationsConsoleAccess?: boolean;
 }
 
-export function DashboardSidebar({ isOpen, onClose, isMobile = false, entitlements }: DashboardSidebarProps) {
+export function DashboardSidebar({ isOpen, onClose, isMobile = false, entitlements, hasOperationsConsoleAccess = false }: DashboardSidebarProps) {
   const [appsExpanded, setAppsExpanded] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -139,6 +142,17 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, entitlemen
             </a>
           );
         })}
+
+        {/* Operations Console — owner only */}
+        {hasOperationsConsoleAccess && (
+          <a
+            href="/operations-console"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] transition-all"
+          >
+            <Shield className="h-4 w-4" />
+            Operations Console
+          </a>
+        )}
       </nav>
 
       {/* Upgrade CTA */}

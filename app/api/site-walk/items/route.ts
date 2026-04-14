@@ -5,6 +5,7 @@
 import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
+import { bridgePhotoToSlateDrop } from "@/lib/site-walk/slatedrop-bridge";
 import type { CreateItemPayload, SiteWalkItemType } from "@/lib/types/site-walk";
 
 const VALID_ITEM_TYPES: SiteWalkItemType[] = [
@@ -46,7 +47,7 @@ export const POST = (req: NextRequest) =>
     // Verify the session exists and belongs to this org
     const { data: session } = await admin
       .from("site_walk_sessions")
-      .select("id")
+      .select("id, project_id")
       .eq("id", body.session_id)
       .eq("org_id", orgId)
       .single();
@@ -86,5 +87,30 @@ export const POST = (req: NextRequest) =>
       .single();
 
     if (error) return serverError(error.message);
+
+    // ── SlateDrop bridge ───────────────────────────────────────────
+    // For file-backed items (photo/video), create a corresponding
+    // slatedrop_uploads record so captures appear in the project's
+    // SlateDrop folder. Non-blocking — failures are logged only.
+    if (data && data.s3_key && session.project_id && ["photo", "video"].includes(data.item_type)) {
+      const ext = data.s3_key.split(".").pop()?.toLowerCase() ?? "jpg";
+      const fileName =
+        body.title?.trim() ||
+        `${data.item_type}-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.${ext}`;
+
+      bridgePhotoToSlateDrop(admin, {
+        itemId: data.id,
+        s3Key: data.s3_key,
+        fileName: fileName.endsWith(`.${ext}`) ? fileName : `${fileName}.${ext}`,
+        fileType: ext,
+        fileSize: (body.metadata as Record<string, unknown>)?.file_size
+          ? Number((body.metadata as Record<string, unknown>).file_size)
+          : 0,
+        projectId: session.project_id,
+        orgId,
+        userId: user.id,
+      }).catch((err) => console.error("[site-walk-items] bridge error:", err));
+    }
+
     return ok({ item: data });
   });

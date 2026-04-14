@@ -36,7 +36,7 @@ interface Props {
   user: {name: string, email: string, avatar?: string};
   tier: import("@/lib/entitlements").Tier;
   isCeo?: boolean;
-  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
+  internalAccess?: { operationsConsole?: boolean };
 }
 
 export default function IntegrationsHubPage({ user, tier, isCeo = false, internalAccess }: Props) {

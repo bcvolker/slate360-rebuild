@@ -13,10 +13,9 @@ import {
   Film,
   BarChart3,
   FolderOpen,
+  FolderKanban,
   User,
   Shield,
-  TrendingUp,
-  Zap,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -32,29 +31,29 @@ interface NavItem {
   href: string;
   icon: LucideIcon;
   gate?: keyof ReturnType<typeof getEntitlements>;
-  internalKey?: "ceo" | "market" | "athlete360";
+  internalKey?: "operationsConsole";
+  phase1Hidden?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard",     href: "/dashboard",      icon: LayoutDashboard },
+  { label: "Projects",      href: "/project-hub",    icon: FolderKanban },
   { label: "Site Walk",     href: "/site-walk",      icon: MapPin },
   { label: "SlateDrop",     href: "/slatedrop",      icon: FolderOpen,    gate: "canViewSlateDropWidget" },
-  { label: "360 Tours",     href: "/tours",          icon: Compass,       gate: "canAccessTourBuilder" },
-  { label: "Design Studio", href: "/design-studio",  icon: Palette,       gate: "canAccessDesignStudio" },
-  { label: "Content Studio",href: "/content-studio", icon: Layers,        gate: "canAccessContent" },
-  { label: "Geospatial",    href: "/geospatial",     icon: Globe,         gate: "canAccessGeospatial" },
-  { label: "Virtual Studio",href: "/virtual-studio", icon: Film,          gate: "canAccessVirtual" },
-  { label: "Analytics",     href: "/analytics",      icon: BarChart3,     gate: "canAccessAnalytics" },
+  { label: "360 Tours",     href: "/tours",          icon: Compass,       gate: "canAccessTourBuilder", phase1Hidden: true },
+  { label: "Design Studio", href: "/design-studio",  icon: Palette,       gate: "canAccessDesignStudio", phase1Hidden: true },
+  { label: "Content Studio",href: "/content-studio", icon: Layers,        gate: "canAccessContent", phase1Hidden: true },
+  { label: "Geospatial",    href: "/geospatial",     icon: Globe,         gate: "canAccessGeospatial", phase1Hidden: true },
+  { label: "Virtual Studio",href: "/virtual-studio", icon: Film,          gate: "canAccessVirtual", phase1Hidden: true },
+  { label: "Analytics",     href: "/analytics",      icon: BarChart3,     gate: "canAccessAnalytics", phase1Hidden: true },
   { label: "My Account",    href: "/my-account",     icon: User },
-  { label: "CEO",           href: "/ceo",            icon: Shield,        internalKey: "ceo" },
-  { label: "Market Robot",  href: "/market",         icon: TrendingUp,    internalKey: "market" },
-  { label: "Athlete360",    href: "/athlete360",     icon: Zap,           internalKey: "athlete360" },
+  { label: "Operations Console", href: "/operations-console",        icon: Shield,        internalKey: "operationsConsole" },
 ];
 
 interface MobileNavSheetProps {
   tier?: Tier;
   isCeo?: boolean;
-  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
+  internalAccess?: { operationsConsole?: boolean };
 }
 
 export default function MobileNavSheet({
@@ -66,6 +65,8 @@ export default function MobileNavSheet({
   const ent = tier ? getEntitlements(tier, { isSlateCeo: isCeo }) : null;
 
   const visibleItems = NAV_ITEMS.filter((item) => {
+    // Phase 1 beta: hide placeholder modules from tester navigation
+    if (item.phase1Hidden) return false;
     if (item.internalKey) {
       return internalAccess ? Boolean(internalAccess[item.internalKey]) : isCeo;
     }

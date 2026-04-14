@@ -7,8 +7,9 @@ export const metadata = {
 };
 
 export default async function SlateDropPage() {
-  const { user, tier } = await resolveServerOrgContext();
+  const { user, tier, isBetaApproved } = await resolveServerOrgContext();
   if (!user) redirect("/login?redirectTo=/slatedrop");
+  if (!isBetaApproved) redirect("/beta-pending");
 
   return (
     <SlateDropClient

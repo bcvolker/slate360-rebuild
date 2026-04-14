@@ -1,13 +1,18 @@
-import { redirect } from "next/navigation";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
-import ToursShell from "@/components/dashboard/ToursShell";
+import { redirect } from "next/navigation";
+import ClientPage from "./ClientPage";
 
-export default async function ToursPage() {
+export const metadata = {
+  title: "Project Hub — Slate360",
+};
+
+export default async function ProjectHubServerPage() {
   const { user, tier, isSlateCeo, canAccessOperationsConsole } = await resolveServerOrgContext();
-  if (!user) redirect("/login?redirectTo=/tours");
+
+  if (!user) redirect("/login");
 
   return (
-    <ToursShell
+    <ClientPage
       user={{
         name: user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "User",
         email: user.email ?? "",

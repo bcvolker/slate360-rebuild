@@ -60,7 +60,7 @@ export async function checkStorageQuota(
       .from("site_walk_items")
       .select("metadata")
       .eq("org_id", orgId)
-      .not("photo_s3_key", "is", null),
+      .not("s3_key", "is", null),
   ]);
 
   const subs = (subsResult.data ?? {}) as Partial<OrgAppSubscriptions>;

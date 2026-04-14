@@ -18,7 +18,7 @@ export interface DashboardTabShellProps {
   accent?: string;
   status?: TabStatus;
   isCeo?: boolean;
-  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
+  internalAccess?: { operationsConsole?: boolean };
   /** Minimum tier required to use this tab. When set, shows UpgradeGate for lower tiers. */
   requiredTier?: Tier;
   children?: React.ReactNode;

@@ -79,24 +79,6 @@ export async function withAuth(
 }
 
 /**
- * Market-scoped auth wrapper — ensures the user is authenticated and has
- * explicit Market Robot access from resolveServerOrgContext().
- */
-export async function withMarketAuth(
-  req: NextRequest,
-  handler: (ctx: AuthedContext) => Promise<NextResponse>,
-): Promise<NextResponse> {
-  return withAuth(req, async (ctx) => {
-    const access = await resolveServerOrgContext();
-    if (!access.canAccessMarket) {
-      return NextResponse.json({ error: "Market access required" }, { status: 403 });
-    }
-
-    return handler(ctx);
-  });
-}
-
-/**
  * Standalone-app auth wrapper — ensures the user is authenticated and their
  * org has the specified standalone app enabled in org_feature_flags.
  *

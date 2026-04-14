@@ -27,9 +27,10 @@ export interface Entitlements {
   canAccessVirtual: boolean;
   canAccessAnalytics: boolean;
   canAccessReports: boolean;
-  // NOTE: canAccessCeo is intentionally absent — CEO Command Center is a platform-admin tab,
-  // NOT a subscription tier feature. Access is controlled by isSlateCeo (resolveServerOrgContext)
-  // and future slate360_staff grants from the CEO tab. Never gate CEO tab via entitlements.
+  // NOTE: canAccessOperationsConsole is intentionally absent — Operations Console is a
+  // platform-admin tab, NOT a subscription tier feature. Access is controlled by
+  // isSlateCeo (resolveServerOrgContext) and future slate360_staff grants. Never gate
+  // Operations Console via entitlements.
   canManageSeats: boolean;
   canWhiteLabel: boolean; // enterprise only — white-label branding on deliverables
   canViewSlateDropWidget: boolean;

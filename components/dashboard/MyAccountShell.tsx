@@ -36,7 +36,7 @@ interface Props {
     maxSeats: number;
     canManageSeats: boolean;
   };
-  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
+  internalAccess?: { operationsConsole?: boolean };
 }
 
 export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isCeo, entitlements, internalAccess }: Props) {

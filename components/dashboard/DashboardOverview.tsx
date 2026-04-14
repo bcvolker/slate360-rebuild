@@ -133,7 +133,7 @@ export default function DashboardOverview({
                         "virtual-studio": "/virtual-studio",
                         "analytics": "/analytics",
                         "my-account": "/my-account",
-                        "ceo": "/ceo",
+                        "operations-console": "/operations-console",
                         "market": "/market",
                         "athlete360": "/athlete360",
                       };

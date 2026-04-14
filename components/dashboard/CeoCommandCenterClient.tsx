@@ -46,7 +46,7 @@ interface CeoProps {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
   isCeo?: boolean;
-  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
+  internalAccess?: { operationsConsole?: boolean };
 }
 
 export default function CeoCommandCenterClient({ user, tier, isCeo = false, internalAccess }: CeoProps) {

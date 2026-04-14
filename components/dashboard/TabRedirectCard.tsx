@@ -5,7 +5,7 @@ const REDIRECT_ROUTES: Record<string, { href: string; hoverColor?: string }> = {
   "project-hub":    { href: "/project-hub",    hoverColor: "#E64500" },
   "integrations":   { href: "/integrations",   hoverColor: "#E04400" },
   "analytics":      { href: "/analytics",      hoverColor: "#E04400" },
-  "ceo":            { href: "/ceo",           hoverColor: "#E64500" },
+  "operations-console": { href: "/operations-console", hoverColor: "#E64500" },
   "design-studio":  { href: "/design-studio" },
   "content-studio": { href: "/content-studio" },
   "tours":          { href: "/tours" },

@@ -64,6 +64,13 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // ── Legacy route redirects ──────────────────────────────────────
+  if (pathname === "/ceo" || pathname.startsWith("/ceo/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.replace(/^\/ceo/, "/operations-console");
+    return NextResponse.redirect(url);
+  }
+
   // ── Super Admin gate ────────────────────────────────────────────
   // Violently reject anyone without is_super_admin from /super-admin.
   // This runs BEFORE any other route check so there is no fallthrough.
@@ -80,18 +87,64 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect authenticated routes — redirect to login if not authenticated
+  const isBetaProtectedRoute =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/slatedrop") ||
+    pathname.startsWith("/project-hub") ||
+    pathname.startsWith("/site-walk");
+
   if (
     !user &&
-    (pathname.startsWith("/dashboard") ||
-      pathname.startsWith("/slatedrop") ||
-      pathname.startsWith("/project-hub") ||
+    (isBetaProtectedRoute ||
       pathname.startsWith("/tour-builder") ||
-      pathname.startsWith("/punchwalk") ||
-      pathname.startsWith("/site-walk"))
+      pathname.startsWith("/punchwalk"))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirectTo", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // ── Phase 1: Block hidden placeholder module routes ──────────────
+  // These modules are hidden from nav but must also be unreachable by
+  // direct URL during Phase 1 beta. Pathname-only check — no DB query.
+  const PHASE_1_BLOCKED_PATHS = [
+    "/tours",
+    "/design-studio",
+    "/content-studio",
+    "/geospatial",
+    "/virtual-studio",
+    "/analytics",
+    "/tour-builder",
+  ];
+  if (user && PHASE_1_BLOCKED_PATHS.some((p) => pathname.startsWith(p))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  // ── Phase 1: Block hidden project sub-routes ──────────────────────
+  // Tabs were trimmed but page files still compile. Block direct URL
+  // access so beta users cannot manually navigate to placeholder pages.
+  const PHASE_1_HIDDEN_PROJECT_SEGMENTS = [
+    "budget",
+    "schedule",
+    "daily-logs",
+    "observations",
+    "drawings",
+    "rfis",
+    "submittals",
+    "management",
+  ];
+  const projectSubMatch = pathname.match(/^\/project-hub\/[^/]+\/(.+)/);
+  if (
+    user &&
+    projectSubMatch &&
+    PHASE_1_HIDDEN_PROJECT_SEGMENTS.includes(projectSubMatch[1])
+  ) {
+    const projectId = pathname.split("/")[2];
+    const url = request.nextUrl.clone();
+    url.pathname = `/project-hub/${projectId}`;
     return NextResponse.redirect(url);
   }
 

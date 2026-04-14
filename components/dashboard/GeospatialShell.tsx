@@ -8,7 +8,7 @@ interface Props {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
   isCeo?: boolean;
-  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
+  internalAccess?: { operationsConsole?: boolean };
 }
 
 export default function GeospatialShell({ user, tier, isCeo, internalAccess }: Props) {

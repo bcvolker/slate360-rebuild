@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function AnalyticsPage() {
-  const { user, tier, isSlateCeo, canAccessCeo, canAccessMarket, canAccessAthlete360 } = await resolveServerOrgContext();
+  const { user, tier, isSlateCeo, canAccessOperationsConsole } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
   const entitlements = getEntitlements(tier, { isSlateCeo });
@@ -43,7 +43,7 @@ export default async function AnalyticsPage() {
       }}
       tier={tier}
       isCeo={isSlateCeo}
-      internalAccess={{ ceo: canAccessCeo, market: canAccessMarket, athlete360: canAccessAthlete360 }}
+      internalAccess={{ operationsConsole: canAccessOperationsConsole }}
     />
   );
 }

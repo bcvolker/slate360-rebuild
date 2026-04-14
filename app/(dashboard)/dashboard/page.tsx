@@ -14,6 +14,7 @@ export default async function DashboardPage() {
     orgId,
     orgName,
     tier,
+    hasOperationsConsoleAccess,
   } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
@@ -33,6 +34,7 @@ export default async function DashboardPage() {
       orgName={orgName ?? ""}
       storageLimitGb={entitlements.maxStorageGB}
       entitlements={entitlements}
+      hasOperationsConsoleAccess={hasOperationsConsoleAccess}
     />
   );
 }

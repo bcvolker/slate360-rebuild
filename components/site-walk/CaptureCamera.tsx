@@ -76,11 +76,12 @@ export function CaptureCamera({ sessionId, onItemCaptured }: Props) {
           location_label: position
             ? `${position.latitude.toFixed(5)}, ${position.longitude.toFixed(5)}`
             : undefined,
-          photo_s3_key: s3Key,
+          s3_key: s3Key,
           metadata: {
             width: result.width,
             height: result.height,
             captured_at: new Date().toISOString(),
+            file_size: result.blob.size,
           },
         }),
       });

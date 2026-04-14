@@ -41,7 +41,7 @@ export interface DashboardHeaderProps {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
   isCeo?: boolean;
-  internalAccess?: { ceo?: boolean; market?: boolean; athlete360?: boolean };
+  internalAccess?: { operationsConsole?: boolean };
   /**
    * When true, renders a "← Dashboard" back link in the left cluster.
    * Set this on all tab pages; leave false (default) on the dashboard home itself.
