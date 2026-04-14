@@ -36,10 +36,10 @@ export default function WalledGardenDashboard({
 
   return (
     <TooltipProvider>
-      <div className="dark min-h-screen bg-background">
+      <div className="dark min-h-screen bg-background overflow-x-hidden">
         {/* Desktop Sidebar */}
         <div className="hidden lg:block">
-          <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} entitlements={entitlements} hasOperationsConsoleAccess={hasOperationsConsoleAccess} />
+          <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} hasOperationsConsoleAccess={hasOperationsConsoleAccess} />
         </div>
 
         {/* Mobile Sidebar */}
@@ -49,7 +49,7 @@ export default function WalledGardenDashboard({
             showCloseButton={false}
             className="w-64 p-0 !bg-zinc-950 !border-zinc-800 lg:hidden"
           >
-            <DashboardSidebar isOpen isMobile onClose={() => setMobileSidebarOpen(false)} entitlements={entitlements} hasOperationsConsoleAccess={hasOperationsConsoleAccess} />
+            <DashboardSidebar isOpen isMobile onClose={() => setMobileSidebarOpen(false)} hasOperationsConsoleAccess={hasOperationsConsoleAccess} />
           </SheetContent>
         </Sheet>
 

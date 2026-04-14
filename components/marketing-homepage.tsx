@@ -1143,7 +1143,7 @@ function Footer() {
 
 export default function MarketingHomepage({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
+    <div className="dark min-h-screen bg-background text-foreground overflow-x-hidden">
       <Header isLoggedIn={isLoggedIn} />
       <main>
         <HeroSection />

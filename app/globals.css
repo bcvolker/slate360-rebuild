@@ -239,12 +239,8 @@
   *::-webkit-scrollbar-thumb:hover {
     background: rgba(100, 116, 139, 0.55);
   }
-  html {
-    overflow-x: hidden;
-  }
   body {
     @apply bg-background text-foreground;
-    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
 }

@@ -38,7 +38,7 @@ export default async function ProjectDetailLayout({
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
       
       <DashboardHeader
         user={{
