@@ -136,7 +136,7 @@ export async function middleware(request: NextRequest) {
     "submittals",
     "management",
   ];
-  const projectSubMatch = pathname.match(/^\/project-hub\/[^/]+\/(.+)/);
+  const projectSubMatch = pathname.match(/^\/project-hub\/[^/]+\/([^/]+)/);
   if (
     user &&
     projectSubMatch &&

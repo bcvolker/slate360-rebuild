@@ -187,6 +187,122 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-15 (PDF Bridge Retarget + Toast Warning + Operations Console)
+
+### What Changed
+
+**A. PDF bridge retargeted from Reports → Deliverables**
+- `lib/slatedrop/provisioning.ts`: Added "Deliverables" to `PROJECT_SYSTEM_FOLDERS` (now 17 folders, between "Closeout" and "Misc").
+- `lib/site-walk/slatedrop-bridge.ts`: `bridgePdfToSlateDrop()` now resolves "Deliverables" folder instead of "Reports". JSDoc updated.
+- `app/api/site-walk/deliverables/[id]/export/route.ts`: Warning messages updated from "Reports" to "Deliverables".
+- `scripts/smoke-test-backbone.mjs`: Updated all references from "Reports" to "Deliverables" for PDF bridge verification. Added "Deliverables" to provisioned system folders. Added `deliverablesFolder` verification.
+
+**B. CaptureCamera warning replaced with FloatingToast**
+- `components/shared/FloatingToast.tsx` (NEW, 78 lines): Lightweight fixed-position toast component. Props: `message`, `variant` (warning/success/error), `onDismiss`, `durationMs` (default 6000). Position: fixed top-4 right-4 z-50. Auto-dismiss timer + manual X button.
+- `components/site-walk/CaptureCamera.tsx` (167 lines): Replaced inline amber banner with `FloatingToast`. Bridge warning state resets to `null` at start of `handleCapture()` so stale warnings clear on new capture.
+
+**C. Operations Console with real beta management**
+- `app/api/admin/beta/route.ts` (NEW, 54 lines): GET lists profiles (id, email, display_name, company, is_beta_approved, created_at). PATCH toggles `is_beta_approved`. Owner-only via `isOwnerEmail()` — returns 403 for non-owners.
+- `lib/hooks/useBetaUsers.ts` (NEW, 61 lines): Client hook `useBetaUsers()` → `{ users, loading, error, reload, toggleApproval }`.
+- `components/dashboard/OperationsConsoleClient.tsx` (NEW, 218 lines): User list table with email/name/company, beta status badges (✅ Approved / ⏳ Pending), Approve/Revoke buttons, search/filter, loading states, refresh.
+- `app/(dashboard)/operations-console/page.tsx`: Now imports `OperationsConsoleClient` instead of legacy `CeoCommandCenterClient`.
+- `CeoCommandCenterClient.tsx` is now dead code — no longer imported. Can be deleted in cleanup pass.
+
+**D. Migration: is_beta_approved**
+- `supabase/migrations/20260414000001_add_beta_approved_to_profiles.sql`: Executed this session — `profiles.is_beta_approved BOOLEAN NOT NULL DEFAULT false` confirmed live.
+
+### What's Broken / Partially Done
+1. Pre-existing build failure: `/_not-found` SSG prerender `useContext` error — same with/without our changes
+2. `lib/wagmi-config.ts` + `components/Web3Providers.tsx` are dead code
+3. Offline capture queue not wired to Site Walk components
+4. Site Walk layout unification pending
+5. Stale context docs: DASHBOARD.md, BACKEND.md, SLATEDROP.md
+6. `CeoCommandCenterClient.tsx` is dead code (replaced by OperationsConsoleClient)
+7. ESLint config doesn't cover site-walk/ or api/ dirs (pre-existing)
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff
+
+### Next Steps (ordered)
+1. Investigate and fix pre-existing `/_not-found` build failure
+2. Delete dead code: `CeoCommandCenterClient.tsx`, `wagmi-config.ts`, `Web3Providers.tsx`
+3. Update stale context docs (SLATEDROP.md, BACKEND.md)
+4. Wire offline capture queue to Site Walk components
+5. Unify Site Walk layout with Slate360 shell
+
+### Session Handoff — 2026-04-15 (Bridge-Adjacent Hardening Slice)
+
+### What Changed
+
+**A. Verified: System folder protection already in place**
+- `app/api/slatedrop/folders/route.ts`: PATCH handler already checks `folder.is_system` and returns 400 "System folders cannot be renamed". DELETE handler already checks `folder.is_system` and returns 400 "System folders cannot be deleted". No additional changes needed.
+
+**B. Implemented: Bridge failure signaling**
+- `app/api/site-walk/items/route.ts` (128 lines): Bridge return value is now captured. If `bridgePhotoToSlateDrop()` returns `null` or throws, a `warnings` array is included in the response: `{ item: data, warnings: ["SlateDrop bridge failed — photo saved but not linked to project files."] }`. Clean bridge operations return `{ item: data }` with no warnings field.
+
+**C. Verified: Capture UX loading state**
+- `components/site-walk/CaptureCamera.tsx` (151 lines): Already has proper duplicate-submit prevention via `saving` state + `disabled={!isStreaming || saving}` + Loader2 spinner during save. No changes needed.
+
+### What's Broken / Partially Done
+1. Market DB migration created but NOT executed — needs manual `supabase db push` or review
+2. Deliverable PDFs not yet bridged to SlateDrop "Reports" folder
+3. `lib/wagmi-config.ts` + `components/Web3Providers.tsx` are dead code
+4. Offline capture queue not wired to Site Walk components
+5. Site Walk layout unification pending
+6. Stale context docs: DASHBOARD.md, BACKEND.md, SLATEDROP.md, SITE_WALK_BUILD_FILE.md
+7. Client-side does not yet consume `warnings` from items API response (needs toast or inline alert)
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff
+
+### Next Steps (ordered)
+1. Wire client-side handling for `warnings` array in items API response (toast on bridge failure)
+2. Review and execute Market DB cleanup migration (`supabase db push`)
+3. Bridge deliverable PDF exports to SlateDrop "Reports" folder
+4. Verify end-to-end: create project → provision folders → Site Walk capture → confirm photo in SlateDrop → attempt delete → confirm blocked
+5. Update stale context docs
+6. Wire offline capture queue
+7. Unify Site Walk layout with Slate360 shell
+
+### Session Handoff — 2026-04-14 (Bridge Hardening + Storage Integrity + Market DB Cleanup)
+
+### What Changed
+
+**A. Hardened: Bridge execution is now awaited**
+- `app/api/site-walk/items/route.ts` (122 lines): The `bridgePhotoToSlateDrop()` call was a floating un-awaited promise that could be killed by the serverless runtime before completing. Now wrapped in `try { await bridgePhotoToSlateDrop(...) } catch`. Bridge failures still return null and log errors — they don't block the item response — but the DB writes are guaranteed to complete before the function exits.
+- `lib/site-walk/slatedrop-bridge.ts`: Updated docstring to document the "MUST be awaited" contract.
+
+**B. Implemented: Phase 1 file ownership / deletion safety**
+- `app/api/slatedrop/delete/route.ts` (88 lines): Before soft-deleting a file, now checks `site_walk_items.file_id` for linked captures. If any Site Walk item references the file, returns `409 Conflict` with message "This file is attached to a Site Walk capture and cannot be deleted from SlateDrop." This prevents dangling references where a Site Walk item's `file_id` points to a deleted SlateDrop record.
+- Rule: **Site Walk owns the S3 object lifecycle for bridged files. SlateDrop cannot independently delete them.**
+
+**C. Created: Market DB cleanup migration**
+- `supabase/migrations/20260414000002_drop_market_robot_tables.sql`: Drops 11 orphaned Market Robot tables + 1 trigger + 1 function. Uses plain `DROP TABLE IF EXISTS` — NO CASCADE. Will fail cleanly if an unexpected FK exists. Also resets `slate360_staff.access_scope` default from `'{market}'` to `'{}'`.
+- Tables dropped: `market_activity_log`, `market_scheduler_lock`, `market_watchlist`, `market_tab_prefs`, `market_bot_runtime_state`, `market_bot_runtime`, `market_plans`, `market_directives`, `market_trades`, `market_bot_settings__legacy_backup`, `market_bot_state__legacy_backup`.
+- **NOT YET EXECUTED** — migration file is ready for review and manual execution via `supabase db push` or migration CLI.
+
+**D. Fixed: Sub-route blocking regex**
+- `middleware.ts` (192 lines): Changed regex from `/^\/project-hub\/[^/]+\/(.+)/` to `/^\/project-hub\/[^/]+\/([^/]+)/`. The old `(.+)` would capture trailing slashes and sub-paths (e.g., `budget/` or `budget/extra`), causing the segment match to fail and bypass the block. The new `([^/]+)` captures only the first segment, making the block robust against trailing slashes.
+
+### What's Broken / Partially Done
+1. Market DB migration created but NOT executed — needs manual `supabase db push` or review
+2. Deliverable PDFs not yet bridged to SlateDrop "Reports" folder
+3. `lib/wagmi-config.ts` + `components/Web3Providers.tsx` are dead code
+4. Offline capture queue not wired to Site Walk components
+5. Site Walk layout unification pending
+6. Stale context docs: DASHBOARD.md, BACKEND.md, SLATEDROP.md, SITE_WALK_BUILD_FILE.md
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff
+
+### Next Steps (ordered)
+1. Review and execute Market DB cleanup migration (`supabase db push`)
+2. Bridge deliverable PDF exports to SlateDrop "Reports" folder
+3. Verify end-to-end: create project → provision folders → Site Walk capture → confirm photo in SlateDrop → attempt delete → confirm blocked
+4. Update stale context docs
+5. Wire offline capture queue
+6. Unify Site Walk layout with Slate360 shell
+
 ### Session Handoff — 2026-04-14 (Site Walk → SlateDrop Bridge + Phase 2 Route Blocking)
 
 ### What Changed

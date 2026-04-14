@@ -10,16 +10,17 @@ import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response
 import type { IdRouteContext } from "@/lib/types/api";
 import type { EditorBlock } from "@/lib/types/blocks";
 import { uploadBuffer } from "@/lib/s3-utils";
+import { bridgePdfToSlateDrop } from "@/lib/site-walk/slatedrop-bridge";
 
 export const POST = (req: NextRequest, ctx: IdRouteContext) =>
-  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, user, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 
-    // Fetch deliverable + org logo
+    // Fetch deliverable + session project_id
     const { data: del, error } = await admin
       .from("site_walk_deliverables")
-      .select("id, title, deliverable_type, content, org_id")
+      .select("id, title, deliverable_type, content, org_id, session_id")
       .eq("id", id)
       .eq("org_id", orgId)
       .single();
@@ -119,7 +120,40 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
         .update({ export_s3_key: s3Key })
         .eq("id", id);
 
-      return ok({ export_s3_key: s3Key, size: pdfBuffer.byteLength });
+      // ── SlateDrop bridge ─────────────────────────────────────────
+      // Bridge the exported PDF into the project's Reports folder.
+      // Only for snapshot/export artifacts (not drafts, per doctrine).
+      const warnings: string[] = [];
+      if (del.session_id) {
+        const { data: session } = await admin
+          .from("site_walk_sessions")
+          .select("project_id")
+          .eq("id", del.session_id)
+          .single();
+
+        if (session?.project_id) {
+          const safeName = (del.title || "Report").replace(/[^a-zA-Z0-9 _-]/g, "").slice(0, 80);
+          const dateStamp = new Date().toISOString().slice(0, 10);
+          try {
+            const bridgeId = await bridgePdfToSlateDrop(admin, {
+              deliverableId: id,
+              s3Key,
+              fileName: `${safeName} ${dateStamp}.pdf`,
+              fileSize: pdfBuffer.byteLength,
+              projectId: session.project_id,
+              orgId,
+              userId: user.id,
+            });
+            if (!bridgeId) {
+              warnings.push("PDF exported but not linked to project Deliverables folder.");
+            }
+          } catch {
+            warnings.push("PDF exported but not linked to project Deliverables folder.");
+          }
+        }
+      }
+
+      return ok({ export_s3_key: s3Key, size: pdfBuffer.byteLength, ...(warnings.length > 0 ? { warnings } : {}) });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "PDF generation failed";
       return serverError(msg);

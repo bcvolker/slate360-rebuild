@@ -53,6 +53,22 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  // ── Phase 1 bridge safety ──────────────────────────────────────
+  // If a Site Walk item references this file via file_id, block
+  // deletion to prevent a dangling reference. The user must remove
+  // the Site Walk item first (or we unlink in a future flow).
+  const { count: linkedItems } = await admin
+    .from("site_walk_items")
+    .select("id", { count: "exact", head: true })
+    .eq("file_id", fileId);
+
+  if (linkedItems && linkedItems > 0) {
+    return NextResponse.json(
+      { error: "This file is attached to a Site Walk capture and cannot be deleted from SlateDrop." },
+      { status: 409 },
+    );
+  }
+
   // Soft-delete only — S3 object retained for recovery window
   const { error: updateError } = await admin
     .from("slatedrop_uploads")

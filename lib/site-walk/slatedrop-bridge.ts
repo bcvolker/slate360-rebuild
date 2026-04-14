@@ -4,7 +4,10 @@
  * Creates slatedrop_uploads records for Site Walk captures so they
  * appear in the project's SlateDrop folder structure.
  *
- * Non-blocking — failures are logged but never prevent item creation.
+ * MUST be awaited — callers should `await bridgePhotoToSlateDrop()`
+ * to guarantee DB writes complete before the serverless function
+ * exits. Bridge failures return null and are logged; they do not
+ * throw and should never prevent the item response.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveProjectFolderIdByName } from "@/lib/slatedrop/projectArtifacts";
@@ -95,6 +98,81 @@ export async function bridgePhotoToSlateDrop(
     return upload.id;
   } catch (err) {
     console.error("[slatedrop-bridge] unexpected error:", err);
+    return null;
+  }
+}
+
+// ── PDF Export Bridge ────────────────────────────────────────────
+
+type BridgePdfExportParams = {
+  /** The deliverable id that generated the PDF */
+  deliverableId: string;
+  /** S3 key where the PDF was uploaded */
+  s3Key: string;
+  /** Display filename, e.g. "Site Report 2026-04-14.pdf" */
+  fileName: string;
+  /** Byte size of the PDF buffer */
+  fileSize: number;
+  /** Project that owns the session/deliverable */
+  projectId: string;
+  orgId: string;
+  userId: string;
+};
+
+/**
+ * Bridge a Site Walk deliverable PDF export to SlateDrop.
+ *
+ * 1. Resolves the project's "Deliverables" folder in project_folders.
+ * 2. Inserts a `slatedrop_uploads` record (status: active).
+ * 3. Tracks storage usage against the org quota.
+ *
+ * Returns the slatedrop_uploads id, or null on failure.
+ */
+export async function bridgePdfToSlateDrop(
+  admin: SupabaseClient,
+  params: BridgePdfExportParams,
+): Promise<string | null> {
+  try {
+    const folderId = await resolveProjectFolderIdByName(
+      params.projectId,
+      "Deliverables",
+      params.orgId,
+      params.userId,
+    );
+
+    if (!folderId) {
+      console.warn(
+        `[slatedrop-bridge] No "Deliverables" folder for project ${params.projectId}. ` +
+          "PDF SlateDrop record skipped — run /api/slatedrop/provision first.",
+      );
+      return null;
+    }
+
+    const { data: upload, error: insertErr } = await admin
+      .from("slatedrop_uploads")
+      .insert({
+        file_name: params.fileName,
+        file_size: params.fileSize,
+        file_type: "pdf",
+        s3_key: params.s3Key,
+        folder_id: folderId,
+        org_id: params.orgId,
+        uploaded_by: params.userId,
+        status: "active",
+      })
+      .select("id")
+      .single();
+
+    if (insertErr || !upload) {
+      console.error("[slatedrop-bridge] PDF insert failed:", insertErr?.message);
+      return null;
+    }
+
+    await trackStorageUsed(admin, params.orgId, upload.id);
+
+    return upload.id;
+  } catch (err) {
+    console.error("[slatedrop-bridge] PDF bridge unexpected error:", err);
     return null;
   }
 }

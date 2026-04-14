@@ -91,26 +91,38 @@ export const POST = (req: NextRequest) =>
     // ── SlateDrop bridge ───────────────────────────────────────────
     // For file-backed items (photo/video), create a corresponding
     // slatedrop_uploads record so captures appear in the project's
-    // SlateDrop folder. Non-blocking — failures are logged only.
+    // SlateDrop folder. Awaited to guarantee completion before the
+    // serverless function exits. Bridge failures surface as warnings
+    // so the client can inform the user without blocking the save.
+    const warnings: string[] = [];
+
     if (data && data.s3_key && session.project_id && ["photo", "video"].includes(data.item_type)) {
       const ext = data.s3_key.split(".").pop()?.toLowerCase() ?? "jpg";
       const fileName =
         body.title?.trim() ||
         `${data.item_type}-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.${ext}`;
 
-      bridgePhotoToSlateDrop(admin, {
-        itemId: data.id,
-        s3Key: data.s3_key,
-        fileName: fileName.endsWith(`.${ext}`) ? fileName : `${fileName}.${ext}`,
-        fileType: ext,
-        fileSize: (body.metadata as Record<string, unknown>)?.file_size
-          ? Number((body.metadata as Record<string, unknown>).file_size)
-          : 0,
-        projectId: session.project_id,
-        orgId,
-        userId: user.id,
-      }).catch((err) => console.error("[site-walk-items] bridge error:", err));
+      try {
+        const bridgeId = await bridgePhotoToSlateDrop(admin, {
+          itemId: data.id,
+          s3Key: data.s3_key,
+          fileName: fileName.endsWith(`.${ext}`) ? fileName : `${fileName}.${ext}`,
+          fileType: ext,
+          fileSize: (body.metadata as Record<string, unknown>)?.file_size
+            ? Number((body.metadata as Record<string, unknown>).file_size)
+            : 0,
+          projectId: session.project_id,
+          orgId,
+          userId: user.id,
+        });
+        if (!bridgeId) {
+          warnings.push("SlateDrop bridge failed — photo saved but not linked to project files.");
+        }
+      } catch (err) {
+        console.error("[site-walk-items] bridge error:", err);
+        warnings.push("SlateDrop bridge failed — photo saved but not linked to project files.");
+      }
     }
 
-    return ok({ item: data });
+    return ok({ item: data, ...(warnings.length > 0 ? { warnings } : {}) });
   });

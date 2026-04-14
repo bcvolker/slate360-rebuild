@@ -16,6 +16,7 @@ export const PROJECT_SYSTEM_FOLDERS = [
   "Safety",
   "Correspondence",
   "Closeout",
+  "Deliverables",
   "Misc",
 ] as const;
 

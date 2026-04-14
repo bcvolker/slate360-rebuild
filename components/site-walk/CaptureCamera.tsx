@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, RotateCcw, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FloatingToast } from "@/components/shared/FloatingToast";
 import { useCamera } from "@/lib/hooks/useCamera";
 import { useGeolocation } from "@/lib/hooks/useGeolocation";
 import { useWakeLock } from "@/lib/hooks/useWakeLock";
@@ -20,6 +21,7 @@ export function CaptureCamera({ sessionId, onItemCaptured }: Props) {
   const { request: requestWakeLock, release: releaseWakeLock } = useWakeLock();
   const [saving, setSaving] = useState(false);
   const [lastCapture, setLastCapture] = useState<string | null>(null);
+  const [bridgeWarning, setBridgeWarning] = useState<string | null>(null);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export function CaptureCamera({ sessionId, onItemCaptured }: Props) {
   async function handleCapture() {
     const result = capturePhoto();
     if (!result) return;
+    setBridgeWarning(null);
     setLastCapture(result.url);
     setSaving(true);
 
@@ -86,8 +89,11 @@ export function CaptureCamera({ sessionId, onItemCaptured }: Props) {
         }),
       });
       if (res.ok && mountedRef.current) {
-        const { item } = await res.json();
-        onItemCaptured(item);
+        const body = await res.json();
+        onItemCaptured(body.item);
+        if (body.warnings?.length) {
+          setBridgeWarning(body.warnings[0]);
+        }
       }
     } finally {
       if (mountedRef.current) {
@@ -111,6 +117,15 @@ export function CaptureCamera({ sessionId, onItemCaptured }: Props) {
 
   return (
     <div className="relative flex h-full flex-col">
+      {/* Bridge warning — floating toast, does not alter camera layout */}
+      {bridgeWarning && (
+        <FloatingToast
+          message="Photo saved, but project-file link failed. Review in SlateDrop or retry."
+          variant="warning"
+          duration={8000}
+          onDismiss={() => setBridgeWarning(null)}
+        />
+      )}
       {/* Viewfinder */}
       <div className="relative flex-1 bg-black">
         <video
