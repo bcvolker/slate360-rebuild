@@ -100,10 +100,10 @@ export default function DashboardMyAccount({
   const usageHealth = usagePct < 0.7 ? "Healthy" : usagePct < 0.9 ? "Watch" : "Critical";
   const usageHealthClass =
     usagePct < 0.7
-      ? "text-emerald-600 bg-emerald-50 border-emerald-200"
+      ? "text-emerald-400 bg-emerald-950/40 border-emerald-800"
       : usagePct < 0.9
-        ? "text-amber-600 bg-amber-50 border-amber-200"
-        : "text-red-600 bg-red-50 border-red-200";
+        ? "text-amber-400 bg-amber-950/40 border-amber-800"
+        : "text-red-400 bg-red-950/40 border-red-800";
   const isAdmin = accountOverview?.isAdmin ?? false;
   const completionChecks = [
     Boolean(accountOverview?.profile.name),

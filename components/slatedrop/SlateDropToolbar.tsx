@@ -32,12 +32,12 @@ export default function SlateDropToolbar({
   onDownloadZip,
 }: SlateDropToolbarProps) {
   return (
-    <div className="shrink-0 bg-white border-b border-gray-100 px-3 sm:px-4 py-3">
+    <div className="shrink-0 bg-zinc-950 border-b border-zinc-800 px-3 sm:px-4 py-3">
       {/* Row 1: Breadcrumb + upload button */}
       <div className="flex items-center gap-2 min-w-0">
         <button
           onClick={onToggleSidebar}
-          className="hidden md:flex w-7 h-7 rounded-lg items-center justify-center text-gray-400 hover:bg-gray-100 shrink-0"
+          className="hidden md:flex w-7 h-7 rounded-lg items-center justify-center text-zinc-500 hover:bg-zinc-800 shrink-0"
           title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
         >
           {sidebarOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
@@ -46,10 +46,10 @@ export default function SlateDropToolbar({
         <div className="flex items-center gap-1.5 text-sm flex-1 min-w-0 overflow-hidden">
           {breadcrumb.map((segment, index) => (
             <span key={index} className="flex items-center gap-1.5 min-w-0">
-              {index > 0 && <ChevronRight size={11} className="text-gray-300 shrink-0" />}
+              {index > 0 && <ChevronRight size={11} className="text-zinc-600 shrink-0" />}
               <span
                 className={`truncate ${
-                  index === breadcrumb.length - 1 ? "font-semibold text-gray-900" : "text-gray-400 hover:text-gray-600 cursor-pointer"
+                  index === breadcrumb.length - 1 ? "font-semibold text-zinc-100" : "text-zinc-500 hover:text-zinc-300 cursor-pointer"
                 }`}
               >
                 {segment}
@@ -60,7 +60,7 @@ export default function SlateDropToolbar({
 
         <button
           onClick={onUploadClick}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90 shrink-0"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-zinc-950 transition-all hover:opacity-90 shrink-0"
           style={{ backgroundColor: "#D4AF37" }}
         >
           <Upload size={13} /> <span className="hidden xs:inline">Upload</span>
@@ -70,34 +70,34 @@ export default function SlateDropToolbar({
       {/* Row 2: Search + controls */}
       <div className="flex items-center gap-2 mt-2">
         <div className="relative flex-1 min-w-0">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" />
           <input
             type="text"
             placeholder="Search files…"
             value={searchQuery}
             onChange={(event) => onSearchChange(event.target.value)}
-            className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all"
+            className="w-full pl-8 pr-3 py-2 rounded-lg border border-zinc-700 bg-zinc-900 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all"
           />
         </div>
 
         <button
           onClick={onCycleSort}
-          className="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors shrink-0"
+          className="w-9 h-9 rounded-lg border border-zinc-700 flex items-center justify-center text-zinc-400 hover:bg-zinc-800 transition-colors shrink-0"
           title={`Sort by ${sortKey} (${sortDir})`}
         >
           {sortDir === "asc" ? <SortAsc size={14} /> : <SortDesc size={14} />}
         </button>
 
-        <div className="flex rounded-lg border border-gray-200 overflow-hidden shrink-0">
+        <div className="flex rounded-lg border border-zinc-700 overflow-hidden shrink-0">
           <button
             onClick={() => onSetViewMode("grid")}
-            className={`w-9 h-9 flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-[#D4AF37] text-white" : "text-gray-400 hover:bg-gray-100"}`}
+            className={`w-9 h-9 flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-[#D4AF37] text-zinc-950" : "text-zinc-400 hover:bg-zinc-800"}`}
           >
             <Grid3X3 size={14} />
           </button>
           <button
             onClick={() => onSetViewMode("list")}
-            className={`w-9 h-9 flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-[#D4AF37] text-white" : "text-gray-400 hover:bg-gray-100"}`}
+            className={`w-9 h-9 flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-[#D4AF37] text-zinc-950" : "text-zinc-400 hover:bg-zinc-800"}`}
           >
             <List size={14} />
           </button>
@@ -106,7 +106,7 @@ export default function SlateDropToolbar({
         {showZipButton && (
           <button
             onClick={onDownloadZip}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors shrink-0"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border border-zinc-700 text-zinc-400 hover:bg-zinc-800 transition-colors shrink-0"
             title="Download project as ZIP"
           >
             <FileArchive size={13} /> ZIP

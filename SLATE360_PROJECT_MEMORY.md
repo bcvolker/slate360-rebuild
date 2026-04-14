@@ -187,6 +187,48 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-14 (Runtime Shell Usability + Placeholder Purge Pass)
+
+### What Changed
+
+**A. Homepage tagline updated**
+- `app/page.tsx` metadata title: "The Interactive and Visual Central Nervous System for All of Your Construction Projects"
+- `components/marketing-homepage.tsx` hero headline + footer tagline updated to match
+
+**B. SlateDrop dark-mode conversion complete (all 4 files)**
+- `components/slatedrop/SlateDropClient.tsx` — already converted (previous session)
+- `components/slatedrop/SlateDropToolbar.tsx` — already converted (previous session)
+- `components/slatedrop/SlateDropSidebar.tsx` — already converted (previous session)
+- `components/slatedrop/SlateDropFileArea.tsx` — fully converted: bg-white→bg-zinc-900, border-gray→border-zinc-800, text-gray→text-zinc-100/300/500, hover states updated, drag overlay, folder cards, file grid cards, file list table, empty state all dark
+
+**C. My Account: removed non-functional Theme selector**
+- `components/dashboard/AccountPreferencesCard.tsx` — removed the light/dark/system dropdown (app is dark-only; selector had no backend effect)
+
+### What Was Already Good (verified, not changed)
+- Command Center: already modular (8 files), real data, real links, proper empty states
+- Quick Actions: already has 4 real links (New Project, Upload Files, Site Walk, 360 Tour)
+- Pending Items: already shows real RFIs, submittals, budget from ProjectSummary type
+- Recent Files: already shows real files with icons, size, time
+- Project deletion: already has two-step safety (name-match confirmation + server validation)
+- Customization drawer: already functional (reorder/resize/show-hide widgets via WidgetCustomizeDrawer)
+- Mobile overflow: already fixed (html + body overflow-x: hidden in globals.css)
+- DashboardClient: already has overflow-x-hidden on root + main
+
+### What's Broken / Partially Done
+- Nothing broken. All changes pass typecheck cleanly.
+- Pre-existing oversized files remain (LocationMap 1892L, marketing-homepage 1160L, etc.) — not touched this session.
+
+### Context Files Updated
+- SLATE360_PROJECT_MEMORY.md: this handoff
+
+### Next Steps (ordered)
+1. Run full build (`npm run build`) before deploy to confirm clean
+2. Consider extracting marketing-homepage.tsx (1160 lines) if that page needs edits
+3. Consider adding file preview/download links to Recent Files cards (currently display-only)
+4. Wire notification frequency preference to actual email backend when ready
+
+---
+
 ### Session Handoff — 2026-04-14 (Build Stabilization + Security Verification + Legacy Cleanup)
 
 ### What Changed

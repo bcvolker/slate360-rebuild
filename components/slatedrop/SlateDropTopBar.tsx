@@ -23,20 +23,20 @@ export default function SlateDropTopBar({
   if (embedded) return null;
 
   return (
-    <header className="shrink-0 bg-white border-b border-gray-100 z-30">
+    <header className="shrink-0 bg-zinc-950 border-b border-zinc-800 z-30">
       <div className="flex items-center justify-between h-14 px-4">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
             <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-6 w-auto" />
           </Link>
-          <div className="hidden sm:flex items-center text-xs text-gray-400">
+          <div className="hidden sm:flex items-center text-xs text-zinc-500">
             <ChevronRight size={12} />
-            <span className="ml-1 font-semibold text-gray-700">SlateDrop</span>
+            <span className="ml-1 font-semibold text-zinc-300">SlateDrop</span>
           </div>
 
           <button
             onClick={onToggleMobileSidebar}
-            className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100"
+            className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-800"
           >
             <FolderOpen size={18} />
           </button>
@@ -45,14 +45,13 @@ export default function SlateDropTopBar({
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:bg-zinc-800 transition-colors"
           >
             <Home size={13} /> <span className="hidden sm:inline">Dashboard</span>
           </Link>
 
-          <button className="relative w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100">
+          <button className="relative w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-800">
             <Bell size={16} />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[hsl(45,82%,55%)]" />
           </button>
 
           <div className="relative">
@@ -66,14 +65,14 @@ export default function SlateDropTopBar({
             {userMenuOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={onCloseUserMenu} />
-                <div className="absolute right-0 top-10 w-52 bg-white rounded-xl border border-gray-100 shadow-xl z-50 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="text-sm font-semibold text-gray-900">{user.name}</p>
-                    <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                <div className="absolute right-0 top-10 w-52 bg-zinc-900 rounded-xl border border-zinc-800 shadow-xl z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-zinc-800">
+                    <p className="text-sm font-semibold text-zinc-100">{user.name}</p>
+                    <p className="text-xs text-zinc-500 truncate">{user.email}</p>
                   </div>
                   <button
                     onClick={onSignOut}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50"
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:bg-red-950/30"
                   >
                     <LogOut size={14} /> Sign out
                   </button>

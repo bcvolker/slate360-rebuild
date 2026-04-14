@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import MarketingHomepage from "@/components/marketing-homepage";
 
 export const metadata = {
-  title: 'Slate360 - The Nervous System for Construction Deliverables',
+  title: 'Slate360 - The Interactive and Visual Central Nervous System for All of Your Construction Projects',
   description: 'Slate360 Core + powerful add-ons. One place for tours, site walks, client portals, and secure file sharing. Client links never break.',
 };
 

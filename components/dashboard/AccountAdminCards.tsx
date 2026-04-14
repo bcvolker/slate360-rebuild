@@ -163,17 +163,17 @@ export default function AccountAdminCards({
             </button>
           </div>
           {generatedApiKey && (
-            <div className="p-3 rounded-xl border border-amber-200 bg-amber-50">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 mb-1">
+            <div className="p-3 rounded-xl border border-amber-800 bg-amber-950/40">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-400 mb-1">
                 Copy now — shown once
               </p>
               <div className="flex items-center gap-2">
-                <p className="text-xs font-mono text-amber-800 truncate flex-1">
+                <p className="text-xs font-mono text-amber-300 truncate flex-1">
                   {generatedApiKey}
                 </p>
                 <button
                   onClick={() => onCopyText(generatedApiKey, "API key")}
-                  className="text-[11px] font-semibold text-amber-700 hover:underline"
+                  className="text-[11px] font-semibold text-amber-400 hover:underline"
                 >
                   Copy
                 </button>

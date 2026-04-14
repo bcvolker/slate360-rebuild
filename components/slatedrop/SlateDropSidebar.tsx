@@ -41,7 +41,7 @@ export default function SlateDropSidebar({
       )}
 
       <aside
-        className={`shrink-0 bg-white border-r border-gray-100 overflow-y-auto overscroll-contain transition-all duration-200 z-50
+        className={`shrink-0 bg-zinc-950 border-r border-zinc-800 overflow-y-auto overscroll-contain transition-all duration-200 z-50
           ${mobileSidebarOpen ? `fixed ${embedded ? "top-0" : "top-14"} bottom-0 left-0 w-72 shadow-2xl` : "hidden"}
           md:relative md:flex md:flex-col
           md:h-full
@@ -49,16 +49,16 @@ export default function SlateDropSidebar({
         `}
       >
         <div className="p-3 pb-10">
-          <div className="mb-4 p-3 rounded-xl bg-gray-50">
+          <div className="mb-4 p-3 rounded-xl bg-zinc-900 border border-zinc-800">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+              <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1">
                 <HardDrive size={10} /> Storage
               </span>
-              <span className="text-[10px] font-bold text-gray-700">
+              <span className="text-[10px] font-bold text-zinc-300">
                 {storageUsed} GB / {maxStorageGB} GB
               </span>
             </div>
-            <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
+            <div className="h-1.5 rounded-full bg-zinc-700 overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -67,7 +67,7 @@ export default function SlateDropSidebar({
                 }}
               />
             </div>
-            <p className="text-[10px] text-gray-400 mt-1">
+            <p className="text-[10px] text-zinc-500 mt-1">
               {(maxStorageGB - storageUsed).toFixed(1)} GB available
             </p>
           </div>
@@ -133,7 +133,7 @@ function FolderTreeItem({
           className={`w-full flex items-center gap-2 py-2.5 rounded-lg text-left transition-all text-sm group ${
             isActive
               ? "bg-[#D4AF37]/10 text-[#D4AF37] font-semibold"
-              : "text-gray-600 hover:bg-gray-100"
+              : "text-zinc-400 hover:bg-zinc-800"
           }`}
           style={{ paddingLeft: `${12 + depth * 16}px`, paddingRight: isProjectNode ? "28px" : "12px" }}
         >
@@ -143,7 +143,7 @@ function FolderTreeItem({
                 event.stopPropagation();
                 onToggle(node.id);
               }}
-              className="w-4 h-4 flex items-center justify-center shrink-0 text-gray-400 hover:text-gray-600"
+              className="w-4 h-4 flex items-center justify-center shrink-0 text-zinc-500 hover:text-zinc-300"
             >
               <ChevronRight
                 size={12}
@@ -159,13 +159,13 @@ function FolderTreeItem({
           ) : node.isSystem ? (
             <Folder size={14} className="shrink-0 text-zinc-600" />
           ) : (
-            <FolderOpen size={14} className="shrink-0 text-gray-400" />
+            <FolderOpen size={14} className="shrink-0 text-zinc-500" />
           )}
 
           <span className="truncate flex-1">{node.name}</span>
 
           {node.isSystem && (
-            <Lock size={9} className="shrink-0 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Lock size={9} className="shrink-0 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
           )}
         </button>
 
@@ -175,7 +175,7 @@ function FolderTreeItem({
               event.stopPropagation();
               onMenuClick(node, event);
             }}
-            className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover/tree-row:opacity-100 transition-opacity text-gray-400 hover:text-gray-700 hover:bg-gray-200"
+            className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover/tree-row:opacity-100 transition-opacity text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
             title="Project options"
           >
             <MoreHorizontal size={11} />

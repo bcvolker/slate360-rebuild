@@ -97,10 +97,10 @@ export default function SlateDropFileArea({
     >
       {dragOver && (
         <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-dashed border-[#D4AF37] px-10 py-8 text-center shadow-xl">
+          <div className="bg-zinc-900/90 backdrop-blur-sm rounded-2xl border-2 border-dashed border-[#D4AF37] px-10 py-8 text-center shadow-xl">
             <Upload size={32} className="mx-auto mb-3 text-[#D4AF37]" />
-            <p className="text-sm font-semibold text-gray-900">Drop files here to upload</p>
-            <p className="text-xs text-gray-400 mt-1">Files will be saved to {activeFolderName ?? "this folder"}</p>
+            <p className="text-sm font-semibold text-zinc-100">Drop files here to upload</p>
+            <p className="text-xs text-zinc-500 mt-1">Files will be saved to {activeFolderName ?? "this folder"}</p>
           </div>
         </div>
       )}
@@ -108,9 +108,9 @@ export default function SlateDropFileArea({
       {projectBanner && (
         <div className="mb-5 rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-r from-[#D4AF37]/5 to-[#D4AF37]/3 p-4 flex items-center justify-between gap-4">
           <div>
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Project Sandbox</p>
-            <h3 className="text-base font-black text-gray-900">{projectBanner.name}</h3>
-            <p className="text-xs text-gray-500 mt-0.5">{projectBanner.folderCount} folder{projectBanner.folderCount !== 1 ? "s" : ""} · Upload files or open in Project Hub to manage</p>
+            <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-0.5">Project Sandbox</p>
+            <h3 className="text-base font-black text-zinc-100">{projectBanner.name}</h3>
+            <p className="text-xs text-zinc-400 mt-0.5">{projectBanner.folderCount} folder{projectBanner.folderCount !== 1 ? "s" : ""} · Upload files or open in Project Hub to manage</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Link
@@ -121,7 +121,7 @@ export default function SlateDropFileArea({
             </Link>
             <button
               onClick={() => onDeleteProject(projectBanner.id, projectBanner.name)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-800 text-red-400 text-xs font-bold hover:bg-red-950 transition-colors"
             >
               <Trash2 size={13} /> Delete
             </button>
@@ -131,18 +131,18 @@ export default function SlateDropFileArea({
 
       {subFolders.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Folders</h3>
+          <h3 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-3">Folders</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
             {subFolders.map((folder) => (
               <button
                 key={folder.id}
                 onClick={() => onOpenSubFolder(folder.id)}
                 onContextMenu={(event) => onSubFolderContextMenu(event, folder)}
-                className="flex items-center gap-2.5 p-3 rounded-xl border border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm transition-all text-left group"
+                className="flex items-center gap-2.5 p-3 rounded-xl border border-zinc-800 bg-zinc-900 hover:border-zinc-700 hover:shadow-sm transition-all text-left group"
               >
                 <Folder size={18} className="text-zinc-400 shrink-0" />
-                <span className="text-xs font-medium text-gray-700 truncate group-hover:text-[#D4AF37] transition-colors">{folder.name}</span>
-                {folder.isSystem && <Lock size={8} className="text-gray-300 shrink-0" />}
+                <span className="text-xs font-medium text-zinc-300 truncate group-hover:text-[#D4AF37] transition-colors">{folder.name}</span>
+                {folder.isSystem && <Lock size={8} className="text-zinc-600 shrink-0" />}
               </button>
             ))}
           </div>
@@ -150,7 +150,7 @@ export default function SlateDropFileArea({
       )}
 
       {currentFiles.length > 0 && (
-        <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
+        <h3 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-3">
           Files · {currentFiles.length}
         </h3>
       )}
@@ -168,10 +168,10 @@ export default function SlateDropFileArea({
                 onDoubleClick={() => onPreviewFile(file)}
                 onContextMenu={(event) => onFileContextMenu(event, file)}
                 className={`group relative rounded-xl border overflow-hidden cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${
-                  isSelected ? "border-[#D4AF37] ring-2 ring-[#D4AF37]/20 bg-[#D4AF37]/5" : "border-gray-100 bg-white hover:border-gray-200"
+                  isSelected ? "border-[#D4AF37] ring-2 ring-[#D4AF37]/20 bg-[#D4AF37]/5" : "border-zinc-800 bg-zinc-900 hover:border-zinc-700"
                 }`}
               >
-                <div className="aspect-square flex items-center justify-center bg-gray-50 relative overflow-hidden">
+                <div className="aspect-square flex items-center justify-center bg-zinc-800/50 relative overflow-hidden">
                   {file.thumbnail ? (
                     <div
                       className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-300"
@@ -195,7 +195,7 @@ export default function SlateDropFileArea({
                         event.stopPropagation();
                         onPreviewFile(file);
                       }}
-                      className="w-6 h-6 rounded-md bg-white/90 shadow-sm flex items-center justify-center text-gray-500 hover:text-[#D4AF37] transition-colors"
+                      className="w-6 h-6 rounded-md bg-zinc-800/90 shadow-sm flex items-center justify-center text-zinc-400 hover:text-[#D4AF37] transition-colors"
                     >
                       <Eye size={11} />
                     </button>
@@ -204,15 +204,15 @@ export default function SlateDropFileArea({
                         event.stopPropagation();
                         onFileContextMenu(event, file);
                       }}
-                      className="w-6 h-6 rounded-md bg-white/90 shadow-sm flex items-center justify-center text-gray-500 hover:text-[#D4AF37] transition-colors"
+                      className="w-6 h-6 rounded-md bg-zinc-800/90 shadow-sm flex items-center justify-center text-zinc-400 hover:text-[#D4AF37] transition-colors"
                     >
                       <MoreHorizontal size={11} />
                     </button>
                   </div>
                 </div>
                 <div className="p-2.5">
-                  <p className="text-[11px] font-semibold text-gray-900 truncate leading-tight">{file.name}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{formatBytes(file.size)}</p>
+                  <p className="text-[11px] font-semibold text-zinc-100 truncate leading-tight">{file.name}</p>
+                  <p className="text-[10px] text-zinc-500 mt-0.5">{formatBytes(file.size)}</p>
                 </div>
               </div>
             );
@@ -221,18 +221,18 @@ export default function SlateDropFileArea({
       )}
 
       {viewMode === "list" && currentFiles.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-          <div className="grid grid-cols-[1fr_100px_120px_80px] gap-4 px-4 py-2.5 border-b border-gray-100 bg-gray-50/50">
-            <button onClick={() => onToggleSort("name")} className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-left flex items-center gap-1 hover:text-gray-600">
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+          <div className="grid grid-cols-[1fr_100px_120px_80px] gap-4 px-4 py-2.5 border-b border-zinc-800 bg-zinc-800/50">
+            <button onClick={() => onToggleSort("name")} className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider text-left flex items-center gap-1 hover:text-zinc-300">
               Name {sortKey === "name" && (sortDir === "asc" ? <SortAsc size={10} /> : <SortDesc size={10} />)}
             </button>
-            <button onClick={() => onToggleSort("size")} className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-left flex items-center gap-1 hover:text-gray-600 hidden sm:flex">
+            <button onClick={() => onToggleSort("size")} className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider text-left flex items-center gap-1 hover:text-zinc-300 hidden sm:flex">
               Size {sortKey === "size" && (sortDir === "asc" ? <SortAsc size={10} /> : <SortDesc size={10} />)}
             </button>
-            <button onClick={() => onToggleSort("modified")} className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider text-left flex items-center gap-1 hover:text-gray-600 hidden sm:flex">
+            <button onClick={() => onToggleSort("modified")} className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider text-left flex items-center gap-1 hover:text-zinc-300 hidden sm:flex">
               Modified {sortKey === "modified" && (sortDir === "asc" ? <SortAsc size={10} /> : <SortDesc size={10} />)}
             </button>
-            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider hidden sm:block">Type</span>
+            <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider hidden sm:block">Type</span>
           </div>
 
           {currentFiles.map((file) => {
@@ -245,16 +245,16 @@ export default function SlateDropFileArea({
                 onClick={() => onToggleFileSelect(file.id)}
                 onDoubleClick={() => onPreviewFile(file)}
                 onContextMenu={(event) => onFileContextMenu(event, file)}
-                className={`grid grid-cols-[1fr_100px_120px_80px] gap-4 px-4 py-3 border-b border-gray-50 cursor-pointer transition-colors group ${
-                  isSelected ? "bg-[#D4AF37]/5" : "hover:bg-gray-50"
+                className={`grid grid-cols-[1fr_100px_120px_80px] gap-4 px-4 py-3 border-b border-zinc-800 cursor-pointer transition-colors group ${
+                  isSelected ? "bg-[#D4AF37]/5" : "hover:bg-zinc-800"
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <Icon size={16} style={{ color }} className="shrink-0" />
-                  <span className="text-xs font-medium text-gray-900 truncate group-hover:text-[#D4AF37] transition-colors">{file.name}</span>
+                  <span className="text-xs font-medium text-zinc-100 truncate group-hover:text-[#D4AF37] transition-colors">{file.name}</span>
                 </div>
-                <span className="text-xs text-gray-400 hidden sm:block">{formatBytes(file.size)}</span>
-                <span className="text-xs text-gray-400 hidden sm:block">{formatDate(file.modified)}</span>
+                <span className="text-xs text-zinc-500 hidden sm:block">{formatBytes(file.size)}</span>
+                <span className="text-xs text-zinc-500 hidden sm:block">{formatDate(file.modified)}</span>
                 <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:block" style={{ color }}>
                   {file.type}
                 </span>
@@ -266,11 +266,11 @@ export default function SlateDropFileArea({
 
       {currentFiles.length === 0 && subFolders.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-            <FolderOpen size={28} className="text-gray-300" />
+          <div className="w-16 h-16 rounded-2xl bg-zinc-800 flex items-center justify-center mb-4">
+            <FolderOpen size={28} className="text-zinc-600" />
           </div>
-          <p className="text-sm font-semibold text-gray-900 mb-1">This folder is empty</p>
-          <p className="text-xs text-gray-400 mb-4 max-w-xs">
+          <p className="text-sm font-semibold text-zinc-100 mb-1">This folder is empty</p>
+          <p className="text-xs text-zinc-500 mb-4 max-w-xs">
             Drag and drop files here, or click the Upload button to add files.
           </p>
           <button

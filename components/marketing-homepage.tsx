@@ -462,8 +462,8 @@ function HeroSection() {
 
         {/* Headline */}
         <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight text-balance">
-          The Nervous System for{" "}
-          <span className="text-primary">Construction Deliverables</span>
+          The Interactive and Visual Central Nervous System for{" "}
+          <span className="text-primary">All of Your Construction Projects</span>
         </h1>
 
         {/* Subheadline */}
@@ -1029,7 +1029,7 @@ function Footer() {
               <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-7 w-auto" />
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
-              The nervous system for construction deliverables.
+              The interactive and visual central nervous system for all of your construction projects.
             </p>
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary">

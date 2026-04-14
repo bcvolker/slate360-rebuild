@@ -45,22 +45,6 @@ export default function AccountPreferencesCard({
       <div className="space-y-3">
         <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
-            Theme
-          </p>
-          <select
-            value={prefTheme}
-            onChange={(e) =>
-              onPrefThemeChange(e.target.value as "light" | "dark" | "system")
-            }
-            className="w-full text-xs border border-zinc-700 rounded-lg px-2.5 py-2 bg-zinc-800 text-zinc-200"
-          >
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-            <option value="system">System</option>
-          </select>
-        </div>
-        <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
             Default Start Tab
           </p>
           <select
