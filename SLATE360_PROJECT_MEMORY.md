@@ -187,45 +187,105 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-14 (Runtime Shell Usability + Placeholder Purge Pass)
+### Session Handoff — 2026-04-15 (Command Center Phase 1 Rebuild)
 
 ### What Changed
 
-**A. Homepage tagline updated**
-- `app/page.tsx` metadata title: "The Interactive and Visual Central Nervous System for All of Your Construction Projects"
-- `components/marketing-homepage.tsx` hero headline + footer tagline updated to match
+**A. QuickActionsCard — full rewrite**
+- `components/dashboard/command-center/QuickActionsCard.tsx`: replaced with 4 Phase 1 actions: New Project → /project-hub, Open Projects → /project-hub, Open SlateDrop → /slatedrop, Start Site Walk → /site-walk
+- Removed: orphaned Upload Files action, 360 Tour (Phase 2)
 
-**B. SlateDrop dark-mode conversion complete (all 4 files)**
-- `components/slatedrop/SlateDropClient.tsx` — already converted (previous session)
-- `components/slatedrop/SlateDropToolbar.tsx` — already converted (previous session)
-- `components/slatedrop/SlateDropSidebar.tsx` — already converted (previous session)
-- `components/slatedrop/SlateDropFileArea.tsx` — fully converted: bg-white→bg-zinc-900, border-gray→border-zinc-800, text-gray→text-zinc-100/300/500, hover states updated, drag overlay, folder cards, file grid cards, file list table, empty state all dark
+**B. PendingItemsCard — full rewrite → "Active Projects"**
+- `components/dashboard/command-center/PendingItemsCard.tsx`: now shows clickable active project links with creation dates
+- Removed: Open RFIs counter, Pending Submittals counter, Budget utilization bar (all Phase 2)
 
-**C. My Account: removed non-functional Theme selector**
-- `components/dashboard/AccountPreferencesCard.tsx` — removed the light/dark/system dropdown (app is dark-only; selector had no backend effect)
+**C. RecentFilesCard — made clickable**
+- `components/dashboard/command-center/RecentFilesCard.tsx`: file items are now `<a>` tags linking to project SlateDrop view (if project_id) or global SlateDrop
 
-### What Was Already Good (verified, not changed)
-- Command Center: already modular (8 files), real data, real links, proper empty states
-- Quick Actions: already has 4 real links (New Project, Upload Files, Site Walk, 360 Tour)
-- Pending Items: already shows real RFIs, submittals, budget from ProjectSummary type
-- Recent Files: already shows real files with icons, size, time
-- Project deletion: already has two-step safety (name-match confirmation + server validation)
-- Customization drawer: already functional (reorder/resize/show-hide widgets via WidgetCustomizeDrawer)
-- Mobile overflow: already fixed (html + body overflow-x: hidden in globals.css)
-- DashboardClient: already has overflow-x-hidden on root + main
+**D. ProjectOverviewCard — links fixed + header updated**
+- `components/dashboard/command-center/ProjectOverviewCard.tsx`: links changed from `/project-hub/{id}/management` to `/project-hub/{id}`, header renamed from "Projects" → "Your Projects", added "View all" link
+
+**E. Dashboard summary API — added project_id to recent files**
+- `app/api/dashboard/summary/route.ts`: added `project_id` to Supabase select query and response mapping
+- `lib/types/command-center.ts`: added `project_id: string | null` to RecentFile interface
+
+**F. DashboardSidebar — dead links + code removed**
+- `components/dashboard/command-center/DashboardSidebar.tsx`: NAV_ITEMS reduced to 4 (Projects, SlateDrop, Site Walk, My Account); removed Deliverables, Clients, Enterprise Settings, Apps expandable section, APP_LINKS array, appsExpanded state, Upgrade CTA; removed Entitlements import
+- `components/walled-garden-dashboard.tsx`: removed `entitlements` prop from both DashboardSidebar usages
+
+**G. CommandCenterContent — layout reordered**
+- `components/dashboard/command-center/CommandCenterContent.tsx`: Quick Actions now first (left), Your Projects second (right 2/3), then Active Projects + Recent Files row, then Storage
+
+**H. StorageCreditsCard — simplified**
+- `components/dashboard/command-center/StorageCreditsCard.tsx`: removed "Buy Credits" button, replaced with "Manage" link to /my-account
 
 ### What's Broken / Partially Done
-- Nothing broken. All changes pass typecheck cleanly.
-- Pre-existing oversized files remain (LocationMap 1892L, marketing-homepage 1160L, etc.) — not touched this session.
+- `entitlements` prop still accepted by WalledGardenDashboard and passed from dashboard/page.tsx but no longer used in sidebar — harmless but could be cleaned up
+- DashboardSidebar search UI is still placeholder (no actual search implementation)
+- Legacy dead files remain: DashboardClient.tsx, DashboardOverview.tsx (not imported by any route)
 
 ### Context Files Updated
 - SLATE360_PROJECT_MEMORY.md: this handoff
 
 ### Next Steps (ordered)
-1. Run full build (`npm run build`) before deploy to confirm clean
-2. Consider extracting marketing-homepage.tsx (1160 lines) if that page needs edits
-3. Consider adding file preview/download links to Recent Files cards (currently display-only)
-4. Wire notification frequency preference to actual email backend when ready
+1. Rebuild Project Detail page (project-hub/[projectId]/page.tsx) — Phase 1 only
+2. Clean up remaining legacy dead files (DashboardClient.tsx, DashboardOverview.tsx)
+3. Migrate hardcoded zinc classes to semantic vars in SlateDrop components
+4. Implement sidebar search functionality or remove placeholder
+
+### Session Handoff — 2026-04-14 (Page Reset Prep Pass)
+
+### What Changed
+
+**A. Overflow strategy fixed — removed global duct-tape**
+- `app/globals.css`: removed `overflow-x: hidden` from `html` and `body` 
+- `components/walled-garden-dashboard.tsx`: added `overflow-x-hidden` to root div
+- `app/(dashboard)/project-hub/[projectId]/layout.tsx`: added `overflow-x-hidden` to root div
+- `components/marketing-homepage.tsx`: added `overflow-x-hidden` to root div
+- Already had overflow guard: DashboardClient, DashboardTabShell, ClientPage, SlateDropClient
+
+**B. Full structural inventory completed (no code changes)**
+- Command Center (walled-garden-dashboard → CommandCenterContent): 5 cards mapped
+- Project Detail page (project-hub/[projectId]/page.tsx): stats grid + widget grid + sidebar mapped
+- All 11 project sub-pages inventoried
+- Theming approach audited: semantic CSS vars + glass utilities (correct), with hardcoded zinc fallback in some components
+
+### Dependencies Confirmed
+- `@tanstack/react-query`: **inactive / safe to remain removed** — zero active imports
+- `next-themes`: **inactive / safe to remain removed** — custom ThemeProvider replaces it
+
+### Theming Assessment
+- Design system uses CSS variables (--background, --foreground, --primary, etc.) + Tailwind semantic classes (bg-background, text-foreground, text-muted-foreground)
+- Glass design system (bg-glass, border-glass, shadow-glass) properly uses CSS vars with dark-mode overrides
+- Command Center cards (command-center/*.tsx): correct — use semantic `bg-glass`, `text-foreground`, `text-muted-foreground`, `text-primary`
+- SlateDrop files (previous session): use hardcoded `bg-zinc-900`, `border-zinc-800`, `text-zinc-*` — functionally correct but not semantic. These should be migrated to semantic vars during the rebuild.
+- DashboardOverview.tsx: uses hardcoded zinc classes throughout — legacy web-era code
+- ProjectDashboardGrid.tsx (560L): uses hardcoded zinc classes — legacy, over-limit
+
+### Overflow Strategy
+- Global html/body overflow-x: hidden REMOVED (was duct-tape)
+- Each page shell now has its own overflow-x-hidden:
+  - WalledGardenDashboard (Command Center)
+  - DashboardClient (old tabbed dashboard)  
+  - DashboardTabShell (my-account, analytics, etc.)
+  - ClientPage (project-hub listing)
+  - Project Detail layout
+  - MarketingHomepage
+  - SlateDropClient (uses overflow-hidden)
+
+### What's Broken / Partially Done
+- Nothing broken. Typecheck clean.
+- Pre-existing oversized files: ProjectDashboardGrid 560L, LocationMap 1892L, marketing-homepage 1160L, WizardLocationPicker 412L, ObservationsClient 335L
+
+### Context Files Updated
+- SLATE360_PROJECT_MEMORY.md: this handoff
+
+### Next Steps (ordered)
+1. Owner reviews Command Center + Project Detail inventories below, approves clean-slate hierarchy
+2. Implement approved Command Center rebuild (likely: strip DashboardOverview/widget grid, keep WalledGardenDashboard shell)
+3. Implement approved Project Detail rebuild (likely: simplify stats, reduce widget count, add drillable links)
+4. Migrate SlateDrop hardcoded zinc classes to semantic CSS vars
+5. Extract ProjectDashboardGrid.tsx (560L) into smaller modules before any edits
 
 ---
 

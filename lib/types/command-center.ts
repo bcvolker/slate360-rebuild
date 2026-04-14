@@ -33,6 +33,7 @@ export interface RecentFile {
   file_size: number | null;
   file_type: string | null;
   s3_key: string | null;
+  project_id: string | null;
   created_at: string;
 }
 

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Zap, Upload, FolderPlus, Camera, MapPin } from "lucide-react";
+import { Zap, FolderPlus, FolderOpen, Inbox, MapPin } from "lucide-react";
 
 export function QuickActionsCard() {
   return (
@@ -30,9 +30,19 @@ export function QuickActionsCard() {
             className="h-auto py-3 flex-col gap-1.5 border-zinc-700 hover:border-primary hover:text-primary hover:bg-primary/5"
             asChild
           >
+            <a href="/project-hub">
+              <FolderOpen className="h-5 w-5" />
+              <span className="text-xs">Open Projects</span>
+            </a>
+          </Button>
+          <Button
+            variant="outline"
+            className="h-auto py-3 flex-col gap-1.5 border-zinc-700 hover:border-primary hover:text-primary hover:bg-primary/5"
+            asChild
+          >
             <a href="/slatedrop">
-              <Upload className="h-5 w-5" />
-              <span className="text-xs">Upload Files</span>
+              <Inbox className="h-5 w-5" />
+              <span className="text-xs">Open SlateDrop</span>
             </a>
           </Button>
           <Button
@@ -42,17 +52,7 @@ export function QuickActionsCard() {
           >
             <a href="/site-walk">
               <MapPin className="h-5 w-5" />
-              <span className="text-xs">Site Walk</span>
-            </a>
-          </Button>
-          <Button
-            variant="outline"
-            className="h-auto py-3 flex-col gap-1.5 border-zinc-700 hover:border-primary hover:text-primary hover:bg-primary/5"
-            asChild
-          >
-            <a href="/tours">
-              <Camera className="h-5 w-5" />
-              <span className="text-xs">360 Tour</span>
+              <span className="text-xs">Start Site Walk</span>
             </a>
           </Button>
         </div>

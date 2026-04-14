@@ -26,10 +26,15 @@ export function ProjectOverviewCard({ data, isLoading }: ProjectOverviewCardProp
   return (
     <Card className="bg-glass border-glass shadow-glass">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base text-foreground flex items-center gap-2">
-          <FolderOpen className="h-5 w-5 text-primary" />
-          Projects
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base text-foreground flex items-center gap-2">
+            <FolderOpen className="h-5 w-5 text-primary" />
+            Your Projects
+          </CardTitle>
+          <a href="/project-hub" className="text-xs text-primary hover:underline">
+            View all
+          </a>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Stats row */}
@@ -55,7 +60,7 @@ export function ProjectOverviewCard({ data, isLoading }: ProjectOverviewCardProp
             {recentProjects.slice(0, 4).map((p) => (
               <a
                 key={p.id}
-                href={`/project-hub/${p.id}/management`}
+                href={`/project-hub/${p.id}`}
                 className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-primary/10 transition-colors group"
               >
                 <span className="text-sm text-foreground group-hover:text-primary truncate">{p.name}</span>

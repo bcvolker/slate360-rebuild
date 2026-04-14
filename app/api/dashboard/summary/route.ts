@@ -28,7 +28,7 @@ export async function GET() {
 
   let recentFilesQuery = admin
     .from("slatedrop_uploads")
-    .select("id, file_name, file_size, file_type, created_at, s3_key")
+    .select("id, file_name, file_size, file_type, created_at, s3_key, project_id")
     .neq("status", "deleted")
     .order("created_at", { ascending: false })
     .limit(5);
@@ -69,6 +69,7 @@ export async function GET() {
     file_size: row.file_size,
     file_type: row.file_type,
     s3_key: row.s3_key,
+    project_id: row.project_id ?? null,
     created_at: row.created_at,
   }));
 

@@ -37,15 +37,15 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb }: Comm
         </div>
       )}
 
-      {/* Row 1: Projects + Quick Actions */}
+      {/* Row 1: Quick Actions + Your Projects */}
       <div className="grid gap-4 lg:grid-cols-3">
+        <QuickActionsCard />
         <div className="lg:col-span-2">
           <ProjectOverviewCard data={projects} isLoading={isLoading} />
         </div>
-        <QuickActionsCard />
       </div>
 
-      {/* Row 2: Pending Items + Recent Files */}
+      {/* Row 2: Active Projects + Recent Files */}
       <div className="grid gap-4 lg:grid-cols-2">
         <PendingItemsCard data={projects} isLoading={isLoading} />
         <RecentFilesCard files={recentFiles} isLoading={isLoading} />

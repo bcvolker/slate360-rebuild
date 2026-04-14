@@ -2,8 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { CreditCard, HardDrive, Loader2 } from "lucide-react";
+import { HardDrive, Loader2 } from "lucide-react";
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 B";
@@ -45,16 +44,12 @@ export function StorageCreditsCard({ storageUsedBytes, storageLimitGb, isLoading
             <HardDrive className="h-5 w-5 text-primary" />
             Storage
           </CardTitle>
-          <Button
-            size="sm"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 h-7 text-xs"
-            asChild
+          <a
+            href="/my-account"
+            className="text-xs text-muted-foreground hover:text-primary transition-colors"
           >
-            <a href="/my-account?tab=billing">
-              <CreditCard className="mr-1.5 h-3 w-3" />
-              Buy Credits
-            </a>
-          </Button>
+            Manage
+          </a>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
