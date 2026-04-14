@@ -15,20 +15,6 @@ const nextConfig: NextConfig = {
     // Limits the number of workers to reduce memory consumption
     memoryBasedWorkersCount: true,
   },
-  webpack: (config) => {
-    // Wagmi connectors import optional peer deps we don't use at runtime.
-    // Alias them to false so webpack resolves them to empty modules.
-    const stub: Record<string, boolean> = {
-      "@react-native-async-storage/async-storage": false,
-      "porto": false,
-      "porto/internal": false,
-      "@walletconnect/ethereum-provider": false,
-      "@safe-global/safe-apps-sdk": false,
-      "@safe-global/safe-apps-provider": false,
-    };
-    config.resolve.alias = { ...config.resolve.alias, ...stub };
-    return config;
-  },
   images: {
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
@@ -54,7 +40,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https: http:",
-              "connect-src 'self' data: https://*.supabase.co wss://*.supabase.co https://api.resend.com https://*.googleapis.com https://maps.gstatic.com https://www.gstatic.com https://api.openweathermap.org https://api.open-meteo.com https://wttr.in https://nominatim.openstreetmap.org https://*.amazonaws.com https://polygon.drpc.org https://*.drpc.org https://*.ingest.sentry.io https://us.i.posthog.com https://us-assets.i.posthog.com",
+              "connect-src 'self' data: https://*.supabase.co wss://*.supabase.co https://api.resend.com https://*.googleapis.com https://maps.gstatic.com https://www.gstatic.com https://api.openweathermap.org https://api.open-meteo.com https://wttr.in https://nominatim.openstreetmap.org https://*.amazonaws.com https://*.ingest.sentry.io https://us.i.posthog.com https://us-assets.i.posthog.com",
               "frame-src 'self' blob: https://cdn.pannellum.org/ https://*.amazonaws.com https://slate360-storage.s3.us-east-2.amazonaws.com",
               "worker-src 'self' blob:",
               "object-src 'none'",
@@ -83,5 +69,4 @@ const nextConfig: NextConfig = {
 export default withSentryConfig(withSerwist(nextConfig), {
   // Only upload source maps when SENTRY_AUTH_TOKEN is set (CI/deploy)
   silent: !process.env.SENTRY_AUTH_TOKEN,
-  disableLogger: true,
 });

@@ -187,48 +187,50 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-15 (PDF Bridge Retarget + Toast Warning + Operations Console)
+### Session Handoff — 2026-04-14 (Build Stabilization + Security Verification + Legacy Cleanup)
 
 ### What Changed
 
-**A. PDF bridge retargeted from Reports → Deliverables**
-- `lib/slatedrop/provisioning.ts`: Added "Deliverables" to `PROJECT_SYSTEM_FOLDERS` (now 17 folders, between "Closeout" and "Misc").
-- `lib/site-walk/slatedrop-bridge.ts`: `bridgePdfToSlateDrop()` now resolves "Deliverables" folder instead of "Reports". JSDoc updated.
-- `app/api/site-walk/deliverables/[id]/export/route.ts`: Warning messages updated from "Reports" to "Deliverables".
-- `scripts/smoke-test-backbone.mjs`: Updated all references from "Reports" to "Deliverables" for PDF bridge verification. Added "Deliverables" to provisioned system folders. Added `deliverablesFolder` verification.
+**A. Fixed: /_not-found SSG build failure**
+- **Root cause**: Sentry's `withSentryConfig` webpack plugin injects debug-id preamble code into server chunks. During SSG prerendering, this causes a non-deterministic race where React's internal `LayoutRouterContext` is null when the bundled `InnerLayoutRouter` calls `useContext()`. The error manifests on random pages each build — /login, /_not-found, /forgot-password, /super-admin.
+- **Isolation**: Tested minimal next.config.ts (no Sentry, no Serwist, no webpack aliases, no experimental config), stripped root layout, minimal pages — same error. Tested React 19.0.0, 19.1.0, 19.2.4 — same error. Tested Next.js 15.3.2 — same error (different trace). Problem is in the SSG prerender worker itself.
+- **Fix**: Added `export const dynamic = "force-dynamic"` to `app/layout.tsx`. Slate360 is a fully authenticated SaaS — zero pages benefit from static generation. All routes now render server-side on demand.
+- **Result**: `npm run build` succeeds cleanly. `✓ Generating static pages (72/72)`. All routes are `ƒ` (dynamic).
 
-**B. CaptureCamera warning replaced with FloatingToast**
-- `components/shared/FloatingToast.tsx` (NEW, 78 lines): Lightweight fixed-position toast component. Props: `message`, `variant` (warning/success/error), `onDismiss`, `durationMs` (default 6000). Position: fixed top-4 right-4 z-50. Auto-dismiss timer + manual X button.
-- `components/site-walk/CaptureCamera.tsx` (167 lines): Replaced inline amber banner with `FloatingToast`. Bridge warning state resets to `null` at start of `handleCapture()` so stale warnings clear on new capture.
+**B. Verified and confirmed: /api/admin/beta is server-side protected**
+- `app/api/admin/beta/route.ts`: Both GET and PATCH handlers wrapped in `withAuth()` (server-side session validation). Inside handler, `isOwnerEmail(user.email)` checks against `CEO_EMAIL` env var. Returns 403 for non-owners. Fail-closed: returns false if CEO_EMAIL is unset.
+- `app/(dashboard)/operations-console/page.tsx`: Server component checks `canAccessOperationsConsole` from `resolveServerOrgContext()`, returns `notFound()` for non-owners.
+- No changes needed — security was already correct.
 
-**C. Operations Console with real beta management**
-- `app/api/admin/beta/route.ts` (NEW, 54 lines): GET lists profiles (id, email, display_name, company, is_beta_approved, created_at). PATCH toggles `is_beta_approved`. Owner-only via `isOwnerEmail()` — returns 403 for non-owners.
-- `lib/hooks/useBetaUsers.ts` (NEW, 61 lines): Client hook `useBetaUsers()` → `{ users, loading, error, reload, toggleApproval }`.
-- `components/dashboard/OperationsConsoleClient.tsx` (NEW, 218 lines): User list table with email/name/company, beta status badges (✅ Approved / ⏳ Pending), Approve/Revoke buttons, search/filter, loading states, refresh.
-- `app/(dashboard)/operations-console/page.tsx`: Now imports `OperationsConsoleClient` instead of legacy `CeoCommandCenterClient`.
-- `CeoCommandCenterClient.tsx` is now dead code — no longer imported. Can be deleted in cleanup pass.
+**C. Purged all Web3/crypto legacy code**
+- Deleted files: `components/Web3Providers.tsx`, `lib/wagmi-config.ts`, `components/dashboard/CeoCommandCenterClient.tsx`
+- Removed npm packages: `wagmi`, `viem`, `@coinbase/wallet-sdk`, `@polymarket/clob-client`, `@tanstack/react-query`, `@safe-global/safe-apps-sdk`, `@safe-global/safe-apps-provider`, `@metamask/sdk`, `@base-org/account`, `next-themes`
+- Removed from `next.config.ts`: webpack alias stubs (wagmi connector peer deps), `disableLogger` deprecated option, polygon/drpc CSP connect-src entries
+- Rationale: Market Robot route `/market` was fully deleted in a prior session. All Web3 code was orphaned with zero importers.
 
-**D. Migration: is_beta_approved**
-- `supabase/migrations/20260414000001_add_beta_approved_to_profiles.sql`: Executed this session — `profiles.is_beta_approved BOOLEAN NOT NULL DEFAULT false` confirmed live.
+**D. Behavior preservation verified**
+- ✅ Beta gate: middleware PHASE_1_BLOCKED_PATHS still blocks 7 routes
+- ✅ Operations Console: page checks `canAccessOperationsConsole`, API checks `isOwnerEmail()`
+- ✅ PDF → Deliverables bridge: `bridgePdfToSlateDrop` resolves "Deliverables" folder
+- ✅ Photo → SlateDrop bridge: `bridgePhotoToSlateDrop` resolves "Photos" folder
+- ✅ Hidden module route blocking: /tours, /design-studio, /content-studio, /geospatial, /virtual-studio, /analytics, /tour-builder
 
 ### What's Broken / Partially Done
-1. Pre-existing build failure: `/_not-found` SSG prerender `useContext` error — same with/without our changes
-2. `lib/wagmi-config.ts` + `components/Web3Providers.tsx` are dead code
-3. Offline capture queue not wired to Site Walk components
-4. Site Walk layout unification pending
-5. Stale context docs: DASHBOARD.md, BACKEND.md, SLATEDROP.md
-6. `CeoCommandCenterClient.tsx` is dead code (replaced by OperationsConsoleClient)
-7. ESLint config doesn't cover site-walk/ or api/ dirs (pre-existing)
+1. Offline capture queue not wired to Site Walk components
+2. Site Walk layout unification pending
+3. Stale context docs: DASHBOARD.md, BACKEND.md, SLATEDROP.md
+4. ESLint config doesn't cover site-walk/ or api/ dirs (pre-existing)
+5. 10 pre-existing oversized files (DashboardWidgetRenderer, LocationMap, marketing-homepage, etc.)
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: This handoff
 
 ### Next Steps (ordered)
-1. Investigate and fix pre-existing `/_not-found` build failure
-2. Delete dead code: `CeoCommandCenterClient.tsx`, `wagmi-config.ts`, `Web3Providers.tsx`
-3. Update stale context docs (SLATEDROP.md, BACKEND.md)
-4. Wire offline capture queue to Site Walk components
-5. Unify Site Walk layout with Slate360 shell
+1. Update stale context docs (SLATEDROP.md, BACKEND.md, DASHBOARD.md)
+2. Wire offline capture queue to Site Walk components
+3. Unify Site Walk layout with Slate360 shell
+4. Address oversized file extractions
+5. Consider Sentry v10→v11 migration to resolve debug-id SSG interaction long-term
 
 ### Session Handoff — 2026-04-15 (Bridge-Adjacent Hardening Slice)
 

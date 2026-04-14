@@ -5,6 +5,12 @@ import { ClientProviders } from "@/components/providers/ClientProviders";
 import { ThemeScript } from "@/components/providers/ThemeProvider";
 import "./globals.css";
 
+// Force dynamic rendering for all routes. Slate360 is a fully authenticated
+// SaaS — there is no benefit to static generation, and the Sentry debug-id
+// webpack chunk causes a non-deterministic "Cannot read properties of null
+// (reading 'useContext')" crash during SSG prerendering.
+export const dynamic = "force-dynamic";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
