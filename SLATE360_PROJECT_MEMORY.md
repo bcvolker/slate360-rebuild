@@ -1,6 +1,6 @@
 "# Slate360 — Project Memory
 
-Last Updated: 2026-04-12
+Last Updated: 2026-04-15
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -38,7 +38,7 @@ Slate360 is a Next.js 15 + React 19 + TypeScript SaaS platform with:
 
 Primary live modules:
 - `/dashboard`
-- `/project-hub`
+- `/projects`
 - `/slatedrop`
 - `/market`
 
@@ -187,6 +187,75 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-15
+
+### What Changed
+- Active Phase 1 `/projects` click-path cleanup completed in `components/projects/ProjectsPortfolioOverview.tsx`
+- Removed Phase 1-visible navigation from the portfolio snapshot cards that were sending users into hidden Phase 2 routes: `rfis`, `submittals`, and `budget` are now informational only on `/projects`
+- Repointed the broken "Total Projects" card away from the non-existent `/projects/[projectId]/documents` path to the live `/projects` workspace route
+- Validation completed for this integrity slice: `npm run typecheck` passed and `npm run build` completed successfully; local smoke checks confirmed `/projects*` still redirect through login and `/project-hub/*` still redirect to `/projects/*`
+- No database actions were performed in this slice
+
+### What's Broken / Partially Done
+- Hidden / deeper Phase 2 tool pages still physically live in `app/(dashboard)/project-hub/[projectId]` and are re-exported by thin `/projects/[projectId]/*` wrappers; those wrappers remain the main old-backbone dependency after this slice
+- Active `/projects` no longer links into the hidden Phase 2 `rfis`, `submittals`, or `budget` routes from the portfolio overview, but the wrapper routes themselves still exist and remain out of scope for this cleanup stop-point
+- ESLint validation is still low-signal here because the current config ignores many route/component files and warns `File ignored because no matching configuration was supplied`; this is repo configuration debt, not a slice-specific failure
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: refreshed latest session handoff for the active `/projects` integrity-fix slice
+
+### Next Steps (ordered)
+1. Start owner-directed design work on the active Phase 1 `/projects` surfaces now that the known dead click paths have been removed
+2. When cleanup resumes later, decide whether the hidden Phase 2 `/projects/[projectId]/*` wrapper-backed routes should be fully migrated or explicitly gated out of active surfaces
+3. Keep future Phase 1 click-path audits limited to live user-visible routes only; do not reopen broad `project-hub` cleanup in design slices
+
+### Session Handoff — 2026-04-14 (Command Center Cleanup Follow-Up)
+
+### What Changed
+
+**A. Dead legacy files deleted**
+- `components/dashboard/DashboardClient.tsx`: DELETED — confirmed no route imports it
+- `components/dashboard/DashboardOverview.tsx`: DELETED — only imported by DashboardClient
+
+**B. Internal `<a>` tags replaced with `next/link` `Link`**
+- `QuickActionsCard.tsx`: all 4 action `<a>` → `Link`
+- `ProjectOverviewCard.tsx`: "View all" link, project links, empty-state link → `Link`
+- `RecentFilesCard.tsx`: "View all" link, file links, empty-state link → `Link`
+- `StorageCreditsCard.tsx`: "Manage" link → `Link`
+- `DashboardSidebar.tsx`: logo link, all NAV_ITEMS links, Operations Console link → `Link`
+
+**C. Global SlateDrop loophole closed**
+- QuickActionsCard: "Open SlateDrop" action REMOVED, replaced with "Install App" → /install
+- RecentFilesCard: files without project_id now link to `/project-hub` instead of `/slatedrop`; "View all" → `/project-hub`; empty-state "Upload your first file" → `/project-hub`
+- DashboardSidebar: "SlateDrop" nav item REMOVED from NAV_ITEMS (3 items now: Projects, Site Walk, My Account)
+- Command Center no longer routes users to the global `/slatedrop` file bucket from any entry point
+- The `/slatedrop` route still exists (accessible directly) but is not promoted from the Command Center
+
+**D. Duplicate project-list widget removed**
+- `PendingItemsCard.tsx`: REMOVED from CommandCenterContent layout (was duplicating ProjectOverviewCard)
+- `CommandCenterContent.tsx`: Row 2 is now just RecentFilesCard (full-width), no grid
+- `PendingItemsCard.tsx` file still exists but is not imported — safe to delete in a future cleanup
+
+**E. App install/download entry point added**
+- `app/install/page.tsx`: server component with auth gate, renders InstallClient
+- `app/install/InstallClient.tsx`: PWA install page with 4 states: already installed, browser install prompt available, iOS instructions, generic browser instructions
+- `QuickActionsCard.tsx`: "Install App" button added as 4th quick action (replaced "Open SlateDrop")
+
+### What's Broken / Partially Done
+- `PendingItemsCard.tsx` file still exists but is unused — can be deleted
+- `/slatedrop` route still exists as a standalone page (not blocked, just not promoted)
+- DashboardSidebar search UI is still placeholder (no actual search implementation)
+- `entitlements` prop still unnecessarily passed through WalledGardenDashboard
+
+### Context Files Updated
+- SLATE360_PROJECT_MEMORY.md: this handoff
+
+### Next Steps (ordered)
+1. Rebuild Project Detail page (project-hub/\[projectId\]/page.tsx) — Phase 1 only
+2. Delete orphaned PendingItemsCard.tsx
+3. Decide on /slatedrop standalone route: redirect to /project-hub or keep as global bucket
+4. Implement sidebar search or remove placeholder
+
 ### Session Handoff — 2026-04-15 (Command Center Phase 1 Rebuild)
 
 ### What Changed
@@ -228,7 +297,7 @@ When editing oversized files, always read both the state declarations AND the JS
 - SLATE360_PROJECT_MEMORY.md: this handoff
 
 ### Next Steps (ordered)
-1. Rebuild Project Detail page (project-hub/[projectId]/page.tsx) — Phase 1 only
+1. Rebuild Project Detail page (project-hub/\[projectId\]/page.tsx) — Phase 1 only
 2. Clean up remaining legacy dead files (DashboardClient.tsx, DashboardOverview.tsx)
 3. Migrate hardcoded zinc classes to semantic vars in SlateDrop components
 4. Implement sidebar search functionality or remove placeholder
@@ -246,7 +315,7 @@ When editing oversized files, always read both the state declarations AND the JS
 
 **B. Full structural inventory completed (no code changes)**
 - Command Center (walled-garden-dashboard → CommandCenterContent): 5 cards mapped
-- Project Detail page (project-hub/[projectId]/page.tsx): stats grid + widget grid + sidebar mapped
+- Project Detail page (project-hub/\[projectId\]/page.tsx): stats grid + widget grid + sidebar mapped
 - All 11 project sub-pages inventoried
 - Theming approach audited: semantic CSS vars + glass utilities (correct), with hardcoded zinc fallback in some components
 
