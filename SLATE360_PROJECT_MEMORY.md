@@ -193,12 +193,14 @@ When editing oversized files, always read both the state declarations AND the JS
 - Active Phase 1 `/projects` click-path cleanup completed in `components/projects/ProjectsPortfolioOverview.tsx`
 - Removed Phase 1-visible navigation from the portfolio snapshot cards that were sending users into hidden Phase 2 routes: `rfis`, `submittals`, and `budget` are now informational only on `/projects`
 - Repointed the broken "Total Projects" card away from the non-existent `/projects/[projectId]/documents` path to the live `/projects` workspace route
+- Production follow-up: committed the previously omitted shared type file `lib/types/projects.ts` after Vercel failed on commit `47ae01a` with `Cannot find module '@/lib/types/projects'`
 - Validation completed for this integrity slice: `npm run typecheck` passed and `npm run build` completed successfully; local smoke checks confirmed `/projects*` still redirect through login and `/project-hub/*` still redirect to `/projects/*`
 - No database actions were performed in this slice
 
 ### What's Broken / Partially Done
 - Hidden / deeper Phase 2 tool pages still physically live in `app/(dashboard)/project-hub/[projectId]` and are re-exported by thin `/projects/[projectId]/*` wrappers; those wrappers remain the main old-backbone dependency after this slice
 - Active `/projects` no longer links into the hidden Phase 2 `rfis`, `submittals`, or `budget` routes from the portfolio overview, but the wrapper routes themselves still exist and remain out of scope for this cleanup stop-point
+- Local `next build` runs in this dev container still terminate with exit code `143` after compilation/type-checking, so container build verification remains lower-confidence than the earlier successful pass and the Vercel-specific missing-file error
 - ESLint validation is still low-signal here because the current config ignores many route/component files and warns `File ignored because no matching configuration was supplied`; this is repo configuration debt, not a slice-specific failure
 
 ### Context Files Updated
