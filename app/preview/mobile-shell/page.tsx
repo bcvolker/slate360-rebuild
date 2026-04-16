@@ -56,7 +56,7 @@ export default function MobileShellPreview() {
             <div>
               <h3 className="text-xs font-bold text-amber-300 uppercase tracking-wider mb-2 px-1">Apps</h3>
               <div className="flex justify-center">
-                <div className="grid gap-2.5 w-full max-w-xs" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
+                <div className="grid gap-2 w-full max-w-[224px]" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
                   {[
                     { label: "Site Walk", icon: MapPin, status: "live" },
                     { label: "360 Tours", icon: Camera, status: "coming" },
@@ -67,11 +67,11 @@ export default function MobileShellPreview() {
                       key={idx}
                       className="relative group"
                     >
-                      <div className="aspect-square bg-slate-800/40 border border-slate-700 hover:border-amber-500/60 rounded-lg flex flex-col items-center justify-center gap-1 transition-all hover:bg-slate-800/80 hover:shadow-md hover:shadow-amber-500/20">
-                        <div className="p-2 bg-slate-700/50 group-hover:bg-slate-700 rounded-lg transition-colors">
-                          <app.icon size={16} className="text-slate-300 group-hover:text-amber-300" />
+                      <div className="aspect-square bg-slate-800/40 border border-slate-700 hover:border-amber-500/60 rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all hover:bg-slate-800/80 hover:shadow-md hover:shadow-amber-500/20">
+                        <div className="p-1.5 bg-slate-700/50 group-hover:bg-slate-700 rounded-md transition-colors">
+                          <app.icon size={12} className="text-slate-300 group-hover:text-amber-300" />
                         </div>
-                        <span className="text-xs font-medium text-slate-100 text-center px-0.5">{app.label}</span>
+                        <span className="text-xs font-medium text-slate-100 text-center px-0.5 leading-tight">{app.label}</span>
                         {app.status === "coming" && (
                           <span className="text-xs font-medium text-slate-500 opacity-75 text-center leading-none">Coming</span>
                         )}
