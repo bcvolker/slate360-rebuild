@@ -1,4 +1,4 @@
-import { Home, FolderOpen, Files, CheckSquare, User, Search, Bell, Plus, Star, ChevronRight, Zap, MessageSquare, AlertCircle } from "lucide-react";
+import { Home, FolderOpen, Files, CheckSquare, User, Search, Bell, Plus, Star, ChevronRight, Zap, MessageSquare, AlertCircle, MapPin, Camera, Palette, BookOpen } from "lucide-react";
 
 export default function MobileShellPreview() {
   return (
@@ -16,19 +16,27 @@ export default function MobileShellPreview() {
             <p className="text-xs text-amber-400 mt-1">Home screen proof</p>
           </div>
 
-          {/* Top Bar */}
-          <div className="flex items-center justify-between px-4 py-3 bg-slate-950 border-b border-slate-900/50">
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L20 6V10L12 14L4 10V6L12 2Z" fill="#D4AF37" opacity="0.8" />
-                <path d="M12 10L20 14V18L12 22L4 18V14L12 10Z" fill="#D4AF37" />
-              </svg>
-              <span className="text-xs font-bold text-slate-300 tracking-widest hidden sm:inline">SLATE360</span>
+          {/* Top Bar - Enhanced Branding */}
+          <div className="flex items-center justify-between px-4 py-3 bg-slate-950 border-b border-amber-500/20">
+            {/* Logo - Stronger Slate360 Branding */}
+            <div className="flex items-center gap-3">
+              <div className="relative w-8 h-8">
+                <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="slate360gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#D4AF37" stopOpacity="1" />
+                      <stop offset="100%" stopColor="#C4A027" stopOpacity="0.8" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M12 2L20 6V10L12 14L4 10V6L12 2Z" fill="url(#slate360gradient)" />
+                  <path d="M12 10L20 14V18L12 22L4 18V14L12 10Z" fill="#D4AF37" />
+                </svg>
+              </div>
+              <span className="text-xs font-bold text-amber-300 tracking-widest hidden sm:inline">SLATE360</span>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <button className="p-2 hover:bg-slate-900 rounded-lg transition-colors">
                 <Search size={18} className="text-slate-400" />
               </button>
@@ -36,78 +44,90 @@ export default function MobileShellPreview() {
                 <Bell size={18} className="text-slate-400" />
                 <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-500 rounded-full" />
               </button>
-              <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center border border-slate-700">
+              <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center border border-amber-500/50">
                 <span className="text-xs font-bold text-amber-500">JD</span>
               </div>
             </div>
           </div>
 
           {/* Content - Home Screen Only */}
-          <div className="flex-1 overflow-y-auto px-3 py-4 pb-24 space-y-5">
-            {/* PRIORITY 1: Subscribed Apps / App Launcher */}
+          <div className="flex-1 overflow-y-auto px-3 py-4 pb-24 space-y-6">
+            {/* PRIORITY 1: Subscribed Apps - Horizontal Scrollable Launcher */}
             <div>
-              <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 px-1">Subscribed Apps</h3>
-              <div className="grid grid-cols-3 gap-2">
+              <h3 className="text-xs font-bold text-amber-300 uppercase tracking-wider mb-3 px-1">Apps</h3>
+              <div className="flex gap-3 overflow-x-auto pb-2 -mx-3 px-3 snap-x snap-mandatory">
                 {[
-                  { label: "360 Tours", icon: "360" },
-                  { label: "Design Studio", icon: "DSN" },
-                  { label: "Content Studio", icon: "CNT" },
+                  { label: "Site Walk", icon: MapPin, accent: "from-orange-600 to-orange-700" },
+                  { label: "360 Tours", icon: Camera, accent: "from-cyan-600 to-cyan-700" },
+                  { label: "Design Studio", icon: Palette, accent: "from-purple-600 to-purple-700" },
+                  { label: "Content Studio", icon: BookOpen, accent: "from-emerald-600 to-emerald-700" },
                 ].map((app, idx) => (
                   <button
                     key={idx}
-                    className="aspect-square bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 hover:border-amber-500/50 rounded-xl flex flex-col items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-amber-500/20"
+                    className="flex-shrink-0 w-28 aspect-square snap-center"
                   >
-                    <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center">
-                      <span className="text-xs font-bold text-amber-500">{app.icon}</span>
+                    <div className={`h-full w-full bg-gradient-to-br ${app.accent} border border-yellow-600/30 hover:border-amber-500 rounded-xl flex flex-col items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-amber-500/30 group`}>
+                      <div className="p-2 bg-white/10 group-hover:bg-white/20 rounded-lg transition-colors">
+                        <app.icon size={18} className="text-white" />
+                      </div>
+                      <span className="text-xs font-semibold text-white text-center px-1 line-clamp-2">{app.label}</span>
                     </div>
-                    <span className="text-xs font-medium text-slate-200 text-center px-1">{app.label}</span>
                   </button>
                 ))}
               </div>
+              <p className="text-xs text-slate-500 mt-2 px-1">Swipe to see more</p>
             </div>
 
-            {/* PRIORITY 2: Notifications & Active Work Feed */}
+            {/* PRIORITY 2: Communications & Workflow Feed */}
             <div>
               <div className="flex items-center justify-between mb-3 px-1">
-                <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Active Items</h3>
-                <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-amber-500/30 text-amber-300 rounded">2</span>
+                <h3 className="text-xs font-bold text-amber-300 uppercase tracking-wider">Notifications</h3>
+                <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-amber-500 text-slate-950 rounded-sm">3</span>
               </div>
               <div className="space-y-2">
                 {[
-                  { label: "Review pending", type: "review" },
-                  { label: "Field update awaiting response", type: "update" },
+                  { label: "Design review requested", source: "Sarah Chen", type: "review", time: "2h ago" },
+                  { label: "Contractor uploaded files", source: "Field Team", type: "upload", time: "4h ago" },
+                  { label: "Specification update pending", source: "System", type: "submission", time: "1d ago" },
                 ].map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-3 p-3 bg-slate-900/80 border border-amber-500/30 rounded-lg hover:bg-slate-800/80 transition-colors cursor-pointer"
+                    className="flex items-start gap-3 p-3 bg-slate-900/60 border border-slate-800 hover:bg-slate-800/80 hover:border-amber-500/40 transition-all cursor-pointer"
                   >
-                    <AlertCircle size={14} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                    <div className="pt-1 flex-shrink-0">
+                      {item.type === "review" && <AlertCircle size={14} className="text-amber-500" />}
+                      {item.type === "upload" && <MessageSquare size={14} className="text-cyan-400" />}
+                      {item.type === "submission" && <CheckSquare size={14} className="text-emerald-400" />}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-slate-200">{item.label}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">Action required</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-xs text-slate-500">{item.source}</p>
+                        <p className="text-xs text-slate-600">{item.time}</p>
+                      </div>
                     </div>
-                    <ChevronRight size={14} className="text-slate-600" />
+                    <ChevronRight size={14} className="text-slate-600 flex-shrink-0 mt-1" />
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* PRIORITY 3: Quick Actions (Workflow-Driven) */}
+            {/* PRIORITY 3: Quick Actions - Entitlement Aware */}
             <div>
-              <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 px-1">Quick Actions</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Quick Actions</h3>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { icon: Plus, label: "New Project", color: "bg-emerald-500/20 hover:bg-emerald-500/30" },
-                  { icon: Zap, label: "Continue Work", color: "bg-blue-500/20 hover:bg-blue-500/30" },
-                  { icon: Files, label: "Open Files", color: "bg-purple-500/20 hover:bg-purple-500/30" },
-                  { icon: MessageSquare, label: "Report / Suggest", color: "bg-slate-700/50 hover:bg-slate-700/70" },
+                  { icon: Plus, label: "New Project" },
+                  { icon: Zap, label: "Continue Work" },
+                  { icon: Files, label: "Open Files" },
+                  { icon: MessageSquare, label: "Report & Suggest" },
                 ].map((action, idx) => (
                   <button
                     key={idx}
-                    className={`p-3 bg-slate-900/60 border border-slate-800 rounded-lg transition-all flex flex-col items-center gap-2 hover:shadow-md`}
+                    className="p-3 bg-slate-900/60 border border-slate-800 hover:border-amber-500/50 rounded-lg transition-all flex flex-col items-center gap-2 hover:bg-slate-800/80 hover:shadow-md"
                   >
-                    <div className={`p-2 rounded-lg transition-colors ${action.color}`}>
-                      <action.icon size={16} className="text-slate-100" />
+                    <div className="p-2 bg-amber-500/20 rounded-lg">
+                      <action.icon size={16} className="text-amber-300" />
                     </div>
                     <span className="text-xs font-medium text-slate-300 text-center">{action.label}</span>
                   </button>
@@ -115,41 +135,37 @@ export default function MobileShellPreview() {
               </div>
             </div>
 
-            {/* PRIORITY 4: Pinned Projects (Lower Priority) */}
-            <div>
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Pinned Projects</h3>
-              <div className="space-y-2">
-                {[1, 2].map((idx) => (
-                  <div key={idx} className="p-3 bg-slate-900/60 border border-slate-800 rounded-lg hover:bg-slate-800/80 transition-colors cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <Star size={14} className="text-slate-600 flex-shrink-0" fill="currentColor" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-300">Project</p>
-                        <p className="text-xs text-slate-500">Multiple files</p>
-                      </div>
-                      <ChevronRight size={14} className="text-slate-600" />
+            {/* PRIORITY 4: Pinned Projects - Lower Prominence */}
+            <div className="pt-2">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Pinned</h3>
+              <div className="space-y-1">
+                {[1, 2, 3].map((idx) => (
+                  <div key={idx} className="flex items-center gap-2 p-2 bg-slate-900/40 border border-slate-800/50 hover:bg-slate-800/60 transition-colors cursor-pointer rounded">
+                    <Star size={12} className="text-slate-600 flex-shrink-0" fill="currentColor" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-slate-400">Project</p>
                     </div>
+                    <ChevronRight size={12} className="text-slate-700" />
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* PRIORITY 5: Quick Search / Browse */}
-            <div>
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Find & Browse</h3>
+            {/* PRIORITY 5: Quick Search */}
+            <div className="pt-2">
               <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
                 <input
                   type="text"
-                  placeholder="Search projects, files..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  placeholder="Search..."
+                  className="w-full pl-10 pr-4 py-2 bg-slate-900/40 border border-slate-800/50 rounded-lg text-xs text-slate-300 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-transparent"
                 />
               </div>
             </div>
           </div>
 
           {/* Bottom Navigation - Static */}
-          <div className="absolute bottom-0 left-0 right-0 flex justify-around items-center h-20 bg-slate-950/95 border-t border-slate-900/50 backdrop-blur-sm px-2">
+          <div className="absolute bottom-0 left-0 right-0 flex justify-around items-center h-20 bg-slate-950/95 border-t border-amber-500/10 backdrop-blur-sm px-2">
             {[
               { icon: Home, label: "Home", active: true },
               { icon: FolderOpen, label: "Projects" },
