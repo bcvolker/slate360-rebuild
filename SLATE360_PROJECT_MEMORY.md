@@ -194,14 +194,14 @@ When editing oversized files, always read both the state declarations AND the JS
 - `app/(dashboard)/projects/ClientPage.tsx`: active `/projects` landing surface simplified away from the old portfolio/workspace composition so the owner path now reads as a direct project directory instead of legacy Project Hub chrome
 - `app/(dashboard)/projects/[projectId]/photos/page.tsx`, `app/(dashboard)/projects/[projectId]/photos/PhotosToolbar.tsx`, `app/(dashboard)/projects/[projectId]/punch-list/page.tsx`: active visible customize affordances removed from the owner verification path
 - `app/(dashboard)/projects/[projectId]/slatedrop/page.tsx`, `components/slatedrop/SlateDropClient.tsx`, `components/slatedrop/SlateDropToolbar.tsx`, `components/slatedrop/SlateDropFileArea.tsx`: project-scoped SlateDrop packaging corrected for Phase 1 verification; embedded route now defaults to list mode, uses clearer project-file labeling, wraps toolbar controls, and collapses folder/file grids to one column on mobile
+- `components/projects/WizardLocationPicker.tsx`, `components/projects/WizardLocationPickerController.tsx`, `components/projects/useWizardLocationPickerController.ts`: extracted the project-create map picker into sub-300-line files so this shipped slice complies with the repo file-size rule without changing behavior
 - `ONGOING_ISSUES.md` and `ops/bug-registry.json`: updated to reflect the visible-surface reconciliation slice and remaining wrapper debt
 - No database actions were performed in this slice
 
 ### What's Broken / Partially Done
 - Hidden / deeper Phase 2 tool pages still physically live in `app/(dashboard)/project-hub/[projectId]` and are still re-exported by thin `/projects/[projectId]/*` wrappers; this remains the main source of old-backbone contamination after the owner-path surface cleanup
 - The active `/projects` landing page is corrected, but the deeper wrapper-backed routes still need a later migrate-vs-gate decision
-- `npm run build` reached compilation, lint, and type validation in this dev container, but final completion could not be cleanly confirmed within the terminal timeout; previous container behavior suggests the known page-data/exit-143 boundary may still apply
-- `bash scripts/check-file-size.sh` still reports pre-existing oversized files outside this slice: `app/api/dashboard/widgets/route.ts`, `components/calendar/CalendarWidget.tsx`, `components/marketing-homepage.tsx`, `components/project-hub/ObservationsClient.tsx`, `components/projects/WizardLocationPicker.tsx`, `components/ui/sidebar.tsx`, `components/widgets/WidgetBodies.tsx`
+- `bash scripts/check-file-size.sh` still reports pre-existing oversized files outside this slice: `app/api/dashboard/widgets/route.ts`, `components/calendar/CalendarWidget.tsx`, `components/marketing-homepage.tsx`, `components/project-hub/ObservationsClient.tsx`, `components/ui/sidebar.tsx`, `components/widgets/WidgetBodies.tsx`
 - ESLint on the changed-file set produced no blocking output, but repo-level lint signal remains limited by existing configuration behavior
 
 ### Context Files Updated
