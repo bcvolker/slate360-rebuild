@@ -190,29 +190,30 @@ When editing oversized files, always read both the state declarations AND the JS
 ### Session Handoff — 2026-04-16
 
 ### What Changed
-- `app/(dashboard)/dashboard/page.tsx`, `components/dashboard/command-center/DashboardTopBar.tsx`, `components/shared/QuickNav.tsx`, `components/shared/MobileNavSheet.tsx`, `components/shared/MobileModuleBar.tsx`, `components/dashboard/MobileQuickAccess.tsx`, `components/shared/DashboardHeader.tsx`, `components/dashboard/AccountPreferencesCard.tsx`, `components/slatedrop/SlateDropTopBar.tsx`, `app/install/InstallClient.tsx`: active owner-path `Dashboard` wording corrected to `Command Center`
-- `app/(dashboard)/projects/ClientPage.tsx`: active `/projects` landing surface simplified away from the old portfolio/workspace composition so the owner path now reads as a direct project directory instead of legacy Project Hub chrome
-- `app/(dashboard)/projects/[projectId]/photos/page.tsx`, `app/(dashboard)/projects/[projectId]/photos/PhotosToolbar.tsx`, `app/(dashboard)/projects/[projectId]/punch-list/page.tsx`: active visible customize affordances removed from the owner verification path
-- `app/(dashboard)/projects/[projectId]/slatedrop/page.tsx`, `components/slatedrop/SlateDropClient.tsx`, `components/slatedrop/SlateDropToolbar.tsx`, `components/slatedrop/SlateDropFileArea.tsx`: project-scoped SlateDrop packaging corrected for Phase 1 verification; embedded route now defaults to list mode, uses clearer project-file labeling, wraps toolbar controls, and collapses folder/file grids to one column on mobile
-- `components/projects/WizardLocationPicker.tsx`, `components/projects/WizardLocationPickerController.tsx`, `components/projects/useWizardLocationPickerController.ts`: extracted the project-create map picker into sub-300-line files so this shipped slice complies with the repo file-size rule without changing behavior
-- `ONGOING_ISSUES.md` and `ops/bug-registry.json`: updated to reflect the visible-surface reconciliation slice and remaining wrapper debt
+- No product UI was rebuilt in this slice; this was a controlled replacement-boundary audit for the owner-facing Phase 1 surfaces the owner wants to rethink from scratch
+- Audited the active visible trees for: `/dashboard`, `/projects`, `/projects/[projectId]`, and `/projects/[projectId]/slatedrop`
+- Verified backend/data contracts worth preserving across those surfaces: `resolveServerOrgContext`, `getScopedProjectForUser`, `listScopedProjectsForUser`, `resolveUsageTruth`, `/api/dashboard/summary`, `/api/projects/summary`, project create/delete routes, `project_folders` provisioning, and the SlateDrop upload/download/share/mutation flow
+- Marked the following visible composition as blank-canvas rebuild candidates instead of further patch targets: `components/dashboard/command-center/QuickActionsCard.tsx`, `ProjectOverviewCard.tsx`, `RecentFilesCard.tsx`, `StorageCreditsCard.tsx`, `app/(dashboard)/projects/ClientPage.tsx`, `components/projects/ProjectsAllProjectsTab.tsx`, `components/projects/CreateProjectWizard.tsx`, `components/projects/ProjectDetailOverview.tsx`, and the current project-scoped SlateDrop shell centered on `components/slatedrop/SlateDropClient.tsx`
+- Confirmed that `/projects/[projectId]/*` is still passively contaminated by deeper wrapper-backed `project-hub` routes and re-exported Phase 2 tool pages beneath `app/(dashboard)/projects/[projectId]/`
+- `slate360-context/ONGOING_ISSUES.md` updated to record the strategy change: these visible surfaces now move to blank-canvas replacement planning instead of more cosmetic cleanup
 - No database actions were performed in this slice
 
 ### What's Broken / Partially Done
-- Hidden / deeper Phase 2 tool pages still physically live in `app/(dashboard)/project-hub/[projectId]` and are still re-exported by thin `/projects/[projectId]/*` wrappers; this remains the main source of old-backbone contamination after the owner-path surface cleanup
-- The active `/projects` landing page is corrected, but the deeper wrapper-backed routes still need a later migrate-vs-gate decision
-- `bash scripts/check-file-size.sh` still reports pre-existing oversized files outside this slice: `app/api/dashboard/widgets/route.ts`, `components/calendar/CalendarWidget.tsx`, `components/marketing-homepage.tsx`, `components/project-hub/ObservationsClient.tsx`, `components/ui/sidebar.tsx`, `components/widgets/WidgetBodies.tsx`
-- ESLint on the changed-file set produced no blocking output, but repo-level lint signal remains limited by existing configuration behavior
+- Blank-canvas rebuilds are not implemented yet for the 4 target surfaces; only the replacement boundaries and reuse contracts are now defined
+- `app/(dashboard)/project-hub/[projectId]` plus the thin `/projects/[projectId]/*` re-export wrappers remain the main legacy contamination source under the project detail tree
+- `components/slatedrop/ProjectFileExplorer.tsx` and `components/slatedrop/useProjectFileExplorer.ts` are isolated legacy explorer code and strong delete candidates once the replacement pass begins
+- `components/slatedrop/SlateDropClient.tsx` should be treated as a visible-surface rebuild candidate at the shell/composition level even though its backend hooks and file APIs remain reusable
+- `bash scripts/check-file-size.sh` still reports pre-existing oversized files outside this planning slice: `app/api/dashboard/widgets/route.ts`, `components/calendar/CalendarWidget.tsx`, `components/marketing-homepage.tsx`, `components/project-hub/ObservationsClient.tsx`, `components/ui/sidebar.tsx`, `components/widgets/WidgetBodies.tsx`
 
 ### Context Files Updated
-- `ONGOING_ISSUES.md`: advanced visible-surface issues to `testing`/`done` where appropriate and recorded remaining wrapper debt
-- `ops/bug-registry.json`: logged the active visible-surface reconciliation bug as fixed with owner-path verification targets
-- `SLATE360_PROJECT_MEMORY.md`: refreshed latest handoff for this visible-surface correction slice
+- `slate360-context/ONGOING_ISSUES.md`: recorded the strategy shift to blank-canvas replacement planning for the 4 visible Phase 1 surfaces
+- `SLATE360_PROJECT_MEMORY.md`: refreshed the handoff with the replacement-boundary audit and next implementation order
 
 ### Next Steps (ordered)
-1. Manually verify the owner path on desktop and mobile: login -> Command Center -> Projects -> open project -> SlateDrop -> My Account
-2. Decide whether the deeper `/projects/[projectId]/*` wrapper-backed Phase 2 routes should be migrated forward or explicitly gated out of active Phase 1 surfaces
-3. If owner verification passes, continue with the next design-directed Phase 1 rebuild prompt rather than reopening broad legacy cleanup
+1. Rebuild the Web Command Center visible composition behind the existing `/dashboard` route while preserving `resolveUsageTruth`, `/api/dashboard/summary`, `/api/projects/summary`, and auth/navigation guards
+2. Rebuild the `/projects` surface with a new list/directory composition and a new project-creation flow while preserving project create/delete APIs and folder provisioning
+3. Rebuild the `/projects/[projectId]` home composition behind the existing server data loader, then decide whether deeper wrapper-backed `/projects/[projectId]/*` Phase 2 routes should be migrated or gated
+4. Rebuild the project-scoped SlateDrop visible shell around the existing file APIs, upload/finalize flow, and project folder model; delete `ProjectFileExplorer` only when the new shell is wired
 
 ### Session Handoff — 2026-04-14 (Command Center Cleanup Follow-Up)
 
@@ -999,33 +1000,23 @@ Build now shows `/project-hub` + all 11 sub-routes in route list (previously abs
 
 ### Session Handoff — 2026-04-16
 ### What Changed
-- `lib/server/usage-truth.ts`: added shared upload-based usage resolver for storage bytes, storage GB, file count, model count, and image count
-- `app/api/dashboard/summary/route.ts`: aligned command-center storage/file truth to the shared usage resolver
-- `app/api/account/overview/route.ts`: aligned My Account usage truth to the same upload-based source and removed the misleading purchased-credits fallback
-- `lib/hooks/useCommandCenterData.ts`: switched dashboard hook to the new summary shape (`storageUsedBytes`, `fileCount`)
-- `components/dashboard/command-center/StorageCreditsCard.tsx`: now shows upload-based storage plus active file count
-- `components/dashboard/my-account/AccountDataTrackerTab.tsx`: removed fake credit-used math, shows file count, and keeps credit balances informationally correct
-- `components/slatedrop/SlateDropClient.tsx`: removed active sandbox project hydration, added real project-folder hydration for project-scoped SlateDrop, and replaced the non-project root experience with an actionable project chooser
-- `lib/hooks/useSlateDropProjectScope.ts`: extracted SlateDrop project-scope loading to keep the client under the 300-line file limit
-- `lib/hooks/useSlateDropMutationActions.ts`, `lib/hooks/useSlateDropFiles.ts`, `lib/slatedrop/folderTree.ts`, `components/slatedrop/SlateDropSidebar.tsx`, `components/slatedrop/SlateDropContextMenu.tsx`: updated SlateDrop internals to use real project-folder trees instead of sandbox-driven assumptions
-- `components/shared/QuickNav.tsx`, `components/shared/MobileNavSheet.tsx`, `components/shared/MobileModuleBar.tsx`, `components/dashboard/MobileQuickAccess.tsx`: removed active app-shell exposure of the non-canonical global SlateDrop route and tightened mobile nav to safer Phase 1 destinations
-- `components/shared/DashboardTabShell.tsx`, `components/dashboard/MyAccountShell.tsx`: removed the blank customize affordance from My Account without replacing the route
-- `ONGOING_ISSUES.md`: moved the relevant usage/nav/My Account issues to `testing` and narrowed the remaining open SlateDrop/owner issues
-- `SLATE360_PROJECT_MEMORY.md`: updated latest handoff for Fix Phase 1A
+- `components/dashboard/command-center/CommandCenterContent.tsx`: removed the old visible command-center body composition and replaced it with a minimal proof-of-control shell for `/dashboard`
+- `components/dashboard/command-center/CommandCenterContent.tsx`: detached the live route from `QuickActionsCard`, `ProjectOverviewCard`, `RecentFilesCard`, and `StorageCreditsCard` without changing auth, routing, sidebar, or top bar behavior; the live proof shell now renders only the title/subtitle, search shell, quick actions row, pinned/recent empty state, and files empty state
+- `slate360-context/ONGOING_ISSUES.md`: updated BUG-027 and tech-debt notes to reflect that the `/dashboard` proof shell is active while the other Phase 1 blank-canvas targets remain pending
+- `SLATE360_PROJECT_MEMORY.md`: updated latest handoff for the dashboard proof-of-control swap
 
 ### What's Broken / Partially Done
-- The active storage/file-count truth is now shared, but broader platform usage visibility is still incomplete and credits still lack a richer ledger/reporting layer
-- Active app-shell nav no longer advertises `/slatedrop`, but non-shell references still exist in marketing/home data and other later-slice surfaces
-- Project-scoped SlateDrop no longer hydrates sandbox projects, but the broader long-term SlateDrop IA decision is still open
-- My Account customize is removed from the active route, but the shared customize drawer still exists for other shell consumers
-- Owner-specific account truth is improved, but Operations Console and wider owner/staff behaviors still need audit
+- `/dashboard` is now under direct visible-surface control, but it is only a proof shell with intentionally empty project/file blocks and not the final design replacement
+- `/projects`, `/projects/[projectId]`, and `/projects/[projectId]/slatedrop` remain blank-canvas replacement targets and have not been rebuilt in this slice
+- Old command-center card components still exist in the repo, but they are no longer rendered by the live dashboard body
+- Wrapper-backed `/project-hub/[projectId]/*` routes remain legacy contamination beneath the broader project surface area
 
 ### Context Files Updated
-- `ONGOING_ISSUES.md`: issue statuses updated after Fix Phase 1A implementation
+- `ONGOING_ISSUES.md`: recorded the active `/dashboard` proof shell status under BUG-027
 - `SLATE360_PROJECT_MEMORY.md`: session handoff
 
 ### Next Steps (ordered)
-1. Verify Fix Phase 1A manually across dashboard, My Account, and project-scoped SlateDrop, then move the related issues from `testing` to `done` only if the UI matches the new truth contract
-2. Clean remaining non-shell `/slatedrop` references outside the active app chrome if they still create user confusion
-3. Decide the next trust-focused slice: either credits/usage depth beyond the current shared source, or the first concrete Site Walk Phase 1 gap
-4. Leave onboarding, auth visual work, and Site Walk route completion for later slices as planned
+1. Manually verify that `/dashboard` now shows only the proof shell and that the old card layout is gone
+2. Start the blank-canvas rebuild for `/projects` while preserving project APIs and creation plumbing
+3. Rebuild `/projects/[projectId]` overview after the new projects directory surface is stable
+4. Rebuild project-scoped SlateDrop after the new project hierarchy is locked
