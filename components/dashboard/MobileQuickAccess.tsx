@@ -38,7 +38,7 @@ export default function MobileQuickAccess({ open, onToggle }: MobileQuickAccessP
             <div className="fixed inset-0 z-30" onClick={onToggle} />
             <div className="relative z-40 mt-2 rounded-2xl border border-gray-100 bg-white shadow-2xl overflow-hidden">
               {([
-                { label: "Dashboard",   icon: Home,         href: "/dashboard",   color: "#D4AF37", desc: "Overview, widgets & projects" },
+                { label: "Command Center", icon: Home,      href: "/dashboard",   color: "#D4AF37", desc: "Overview, recent files, and projects" },
                 { label: "Projects",    icon: FolderKanban,  href: "/projects",    color: "#D4AF37", desc: "Project details, photos & punch list" },
                 { label: "My Account",  icon: User,         href: "/my-account",  color: "#D4AF37", desc: "Billing, usage, security & profile" },
               ]).map((item) => {

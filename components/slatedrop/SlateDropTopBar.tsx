@@ -47,7 +47,7 @@ export default function SlateDropTopBar({
             href="/dashboard"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:bg-zinc-800 transition-colors"
           >
-            <Home size={13} /> <span className="hidden sm:inline">Dashboard</span>
+            <Home size={13} /> <span className="hidden sm:inline">Command Center</span>
           </Link>
 
           <button className="relative w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-800">

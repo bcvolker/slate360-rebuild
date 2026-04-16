@@ -5,7 +5,7 @@ import { ensureUserOrganization } from "@/lib/server/org-bootstrap";
 import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 
 export const metadata = {
-  title: "Dashboard — Slate360",
+  title: "Command Center — Slate360",
 };
 
 export default async function DashboardPage() {

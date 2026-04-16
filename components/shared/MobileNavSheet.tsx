@@ -35,7 +35,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard",     href: "/dashboard",      icon: LayoutDashboard },
+  { label: "Command Center",href: "/dashboard",      icon: LayoutDashboard },
   { label: "Projects",      href: "/projects",       icon: FolderKanban },
   { label: "Site Walk",     href: "/site-walk",      icon: MapPin,        gate: "canAccessStandalonePunchwalk" },
   { label: "360 Tours",     href: "/tours",          icon: Compass,       gate: "canAccessTourBuilder", phase1Hidden: true },

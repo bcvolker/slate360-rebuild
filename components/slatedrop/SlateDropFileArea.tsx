@@ -132,7 +132,7 @@ export default function SlateDropFileArea({
       {subFolders.length > 0 && (
         <div className="mb-6">
           <h3 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-3">Folders</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {subFolders.map((folder) => (
               <button
                 key={folder.id}
@@ -156,7 +156,7 @@ export default function SlateDropFileArea({
       )}
 
       {viewMode === "grid" && currentFiles.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {currentFiles.map((file) => {
             const Icon = getFileIcon(file.type);
             const color = getFileColor(file.type);

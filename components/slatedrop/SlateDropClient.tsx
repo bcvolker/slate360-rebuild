@@ -36,6 +36,7 @@ interface SlateDropProps {
   user: { name: string; email: string };
   tier: Tier;
   initialProjectId?: string;
+  projectName?: string;
   embedded?: boolean;
 }
 
@@ -45,13 +46,13 @@ type SortKey = "name" | "modified" | "size" | "type";
    MAIN COMPONENT
    ================================================================ */
 
-export default function SlateDropClient({ user, tier, initialProjectId, embedded = false }: SlateDropProps) {
+export default function SlateDropClient({ user, tier, initialProjectId, projectName, embedded = false }: SlateDropProps) {
   const ent = getEntitlements(tier);
   const supabase = createClient();
   const isProjectScoped = Boolean(initialProjectId);
 
   /* ── Navigation / UI state ── */
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">(embedded ? "list" : "grid");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [searchQuery, setSearchQuery] = useState("");
@@ -92,7 +93,14 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
 
   /* ── Derived ── */
   const activeFolder = useMemo(() => findFolder(folderTree, activeFolderId), [folderTree, activeFolderId]);
-  const breadcrumb = useMemo(() => findFolderPath(folderTree, activeFolderId) ?? ["SlateDrop"], [folderTree, activeFolderId]);
+  const breadcrumb = useMemo(() => {
+    const folderPath = findFolderPath(folderTree, activeFolderId) ?? [];
+    if (isProjectScoped) {
+      const rootLabel = projectName ? `${projectName} Files` : "Project Files";
+      return folderPath.length > 0 ? [rootLabel, ...folderPath] : [rootLabel];
+    }
+    return folderPath.length > 0 ? ["SlateDrop", ...folderPath] : ["SlateDrop"];
+  }, [activeFolderId, folderTree, isProjectScoped, projectName]);
   const subFolders = activeFolder?.children ?? [];
   const storageUsedGb = usageSummary.storageUsedBytes / (1024 * 1024 * 1024);
 

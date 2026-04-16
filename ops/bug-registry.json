@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-04-04",
+  "updatedAt": "2026-04-16",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -139,6 +139,20 @@
         "lib/server/org-feature-flags.ts hasBundleAccess calls resolveOrgEntitlements",
         "lib/server/org-feature-flags.ts resolveOrgEntitlements fetches org tier + flags and delegates to getEntitlements()",
         "app/tour-builder/page.tsx and app/site-walk/page.tsx use resolveOrgEntitlements"
+      ]
+    },
+    {
+      "id": "BUG-028",
+      "title": "Visible Phase 1 owner path still showed legacy dashboard/projects/slatedrop surfaces after logic fixes",
+      "module": "dashboard/projects/slatedrop",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "The earlier Phase 1A logic and truth fixes did not fully reconcile the active owner-visible surfaces: logged-in shells still exposed `Dashboard` wording, `/projects` still presented legacy workspace composition, active Photos/Punch List surfaces still exposed customize affordances, and project-scoped SlateDrop still felt like a desktop widget shell on mobile.",
+      "verification": [
+        "Active logged-in owner path labels say `Command Center` instead of `Dashboard` on dashboard/nav/account/install/slatedrop surfaces",
+        "`/projects` opens a simplified project-directory surface instead of the old portfolio/workspace composition",
+        "`/projects/[projectId]/photos` and `/projects/[projectId]/punch-list` no longer render visible customize controls",
+        "`/projects/[projectId]/slatedrop` renders a project-file shell with project-aware breadcrumb labeling, embedded list-default behavior, wrapped toolbar controls, and one-column mobile folder/file grids"
       ]
     }
   ]

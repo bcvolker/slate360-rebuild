@@ -52,8 +52,8 @@ export default function AccountPreferencesCard({
             onChange={(e) => onPrefStartTabChange(e.target.value)}
             className="w-full text-xs border border-zinc-700 rounded-lg px-2.5 py-2 bg-zinc-800 text-zinc-200"
           >
-            <option value="overview">Dashboard</option>
-            <option value="project-hub">Project Hub</option>
+            <option value="overview">Command Center</option>
+            <option value="projects">Projects</option>
             <option value="tours">360 Tours</option>
             <option value="content-studio">Content Studio</option>
           </select>
@@ -89,7 +89,7 @@ export default function AccountPreferencesCard({
         </label>
         <label className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-between gap-2">
           <span className="text-xs font-semibold text-zinc-300">
-            Show Dashboard Tiles
+            Show Command Center Tiles
           </span>
           <input
             type="checkbox"

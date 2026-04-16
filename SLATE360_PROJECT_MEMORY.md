@@ -187,29 +187,32 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-15
+### Session Handoff — 2026-04-16
 
 ### What Changed
-- Active Phase 1 `/projects` click-path cleanup completed in `components/projects/ProjectsPortfolioOverview.tsx`
-- Removed Phase 1-visible navigation from the portfolio snapshot cards that were sending users into hidden Phase 2 routes: `rfis`, `submittals`, and `budget` are now informational only on `/projects`
-- Repointed the broken "Total Projects" card away from the non-existent `/projects/[projectId]/documents` path to the live `/projects` workspace route
-- Production follow-up: committed the previously omitted shared type file `lib/types/projects.ts` after Vercel failed on commit `47ae01a` with `Cannot find module '@/lib/types/projects'`
-- Validation completed for this integrity slice: `npm run typecheck` passed and `npm run build` completed successfully; local smoke checks confirmed `/projects*` still redirect through login and `/project-hub/*` still redirect to `/projects/*`
+- `app/(dashboard)/dashboard/page.tsx`, `components/dashboard/command-center/DashboardTopBar.tsx`, `components/shared/QuickNav.tsx`, `components/shared/MobileNavSheet.tsx`, `components/shared/MobileModuleBar.tsx`, `components/dashboard/MobileQuickAccess.tsx`, `components/shared/DashboardHeader.tsx`, `components/dashboard/AccountPreferencesCard.tsx`, `components/slatedrop/SlateDropTopBar.tsx`, `app/install/InstallClient.tsx`: active owner-path `Dashboard` wording corrected to `Command Center`
+- `app/(dashboard)/projects/ClientPage.tsx`: active `/projects` landing surface simplified away from the old portfolio/workspace composition so the owner path now reads as a direct project directory instead of legacy Project Hub chrome
+- `app/(dashboard)/projects/[projectId]/photos/page.tsx`, `app/(dashboard)/projects/[projectId]/photos/PhotosToolbar.tsx`, `app/(dashboard)/projects/[projectId]/punch-list/page.tsx`: active visible customize affordances removed from the owner verification path
+- `app/(dashboard)/projects/[projectId]/slatedrop/page.tsx`, `components/slatedrop/SlateDropClient.tsx`, `components/slatedrop/SlateDropToolbar.tsx`, `components/slatedrop/SlateDropFileArea.tsx`: project-scoped SlateDrop packaging corrected for Phase 1 verification; embedded route now defaults to list mode, uses clearer project-file labeling, wraps toolbar controls, and collapses folder/file grids to one column on mobile
+- `ONGOING_ISSUES.md` and `ops/bug-registry.json`: updated to reflect the visible-surface reconciliation slice and remaining wrapper debt
 - No database actions were performed in this slice
 
 ### What's Broken / Partially Done
-- Hidden / deeper Phase 2 tool pages still physically live in `app/(dashboard)/project-hub/[projectId]` and are re-exported by thin `/projects/[projectId]/*` wrappers; those wrappers remain the main old-backbone dependency after this slice
-- Active `/projects` no longer links into the hidden Phase 2 `rfis`, `submittals`, or `budget` routes from the portfolio overview, but the wrapper routes themselves still exist and remain out of scope for this cleanup stop-point
-- Local `next build` runs in this dev container still terminate with exit code `143` after compilation/type-checking, so container build verification remains lower-confidence than the earlier successful pass and the Vercel-specific missing-file error
-- ESLint validation is still low-signal here because the current config ignores many route/component files and warns `File ignored because no matching configuration was supplied`; this is repo configuration debt, not a slice-specific failure
+- Hidden / deeper Phase 2 tool pages still physically live in `app/(dashboard)/project-hub/[projectId]` and are still re-exported by thin `/projects/[projectId]/*` wrappers; this remains the main source of old-backbone contamination after the owner-path surface cleanup
+- The active `/projects` landing page is corrected, but the deeper wrapper-backed routes still need a later migrate-vs-gate decision
+- `npm run build` reached compilation, lint, and type validation in this dev container, but final completion could not be cleanly confirmed within the terminal timeout; previous container behavior suggests the known page-data/exit-143 boundary may still apply
+- `bash scripts/check-file-size.sh` still reports pre-existing oversized files outside this slice: `app/api/dashboard/widgets/route.ts`, `components/calendar/CalendarWidget.tsx`, `components/marketing-homepage.tsx`, `components/project-hub/ObservationsClient.tsx`, `components/projects/WizardLocationPicker.tsx`, `components/ui/sidebar.tsx`, `components/widgets/WidgetBodies.tsx`
+- ESLint on the changed-file set produced no blocking output, but repo-level lint signal remains limited by existing configuration behavior
 
 ### Context Files Updated
-- `SLATE360_PROJECT_MEMORY.md`: refreshed latest session handoff for the active `/projects` integrity-fix slice
+- `ONGOING_ISSUES.md`: advanced visible-surface issues to `testing`/`done` where appropriate and recorded remaining wrapper debt
+- `ops/bug-registry.json`: logged the active visible-surface reconciliation bug as fixed with owner-path verification targets
+- `SLATE360_PROJECT_MEMORY.md`: refreshed latest handoff for this visible-surface correction slice
 
 ### Next Steps (ordered)
-1. Start owner-directed design work on the active Phase 1 `/projects` surfaces now that the known dead click paths have been removed
-2. When cleanup resumes later, decide whether the hidden Phase 2 `/projects/[projectId]/*` wrapper-backed routes should be fully migrated or explicitly gated out of active surfaces
-3. Keep future Phase 1 click-path audits limited to live user-visible routes only; do not reopen broad `project-hub` cleanup in design slices
+1. Manually verify the owner path on desktop and mobile: login -> Command Center -> Projects -> open project -> SlateDrop -> My Account
+2. Decide whether the deeper `/projects/[projectId]/*` wrapper-backed Phase 2 routes should be migrated forward or explicitly gated out of active Phase 1 surfaces
+3. If owner verification passes, continue with the next design-directed Phase 1 rebuild prompt rather than reopening broad legacy cleanup
 
 ### Session Handoff — 2026-04-14 (Command Center Cleanup Follow-Up)
 

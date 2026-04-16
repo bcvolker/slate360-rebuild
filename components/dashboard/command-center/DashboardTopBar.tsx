@@ -35,6 +35,10 @@ export function DashboardTopBar({ onMenuClick, isSidebarOpen, userName }: Dashbo
           <a href="/" aria-label="Home" className="shrink-0">
             <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-6 w-auto" />
           </a>
+          <div className="hidden md:block">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Slate360</p>
+            <p className="text-sm font-bold text-white">Command Center</p>
+          </div>
           <button
             onClick={onMenuClick}
             className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-800/80 hover:bg-primary/20 border border-zinc-700 hover:border-primary/50 text-zinc-300 hover:text-primary transition-all"

@@ -68,8 +68,8 @@ export default function SlateDropToolbar({
       </div>
 
       {/* Row 2: Search + controls */}
-      <div className="flex items-center gap-2 mt-2">
-        <div className="relative flex-1 min-w-0">
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="relative w-full sm:min-w-0 sm:flex-1">
           <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" />
           <input
             type="text"

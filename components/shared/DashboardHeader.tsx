@@ -117,7 +117,7 @@ export default function DashboardHeader({
               href="/dashboard"
               className="hidden sm:flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-[#D4AF37] transition-colors"
             >
-              <ChevronLeft size={14} /> Dashboard
+              <ChevronLeft size={14} /> Command Center
             </Link>
           )}
         </div>
@@ -188,9 +188,12 @@ export default function DashboardHeader({
                       <div className="px-4 py-6 text-sm text-zinc-500">No unread alerts.</div>
                     ) : (
                       notifications.map((n) => (
+                        (() => {
+                          const href = (n.link_path ?? `/projects/${n.project_id}`).replace(/^\/project-hub(?=\/|$)/, "/projects");
+                          return (
                         <Link
                           key={n.id}
-                          href={n.link_path ?? `/project-hub/${n.project_id}`}
+                          href={href}
                           onClick={() => setNotificationsOpen(false)}
                           className="block border-b border-zinc-800/50 px-4 py-3 hover:bg-zinc-800"
                         >
@@ -200,6 +203,8 @@ export default function DashboardHeader({
                             {new Date(n.created_at).toLocaleString()}
                           </p>
                         </Link>
+                          );
+                        })()
                       ))
                     )}
                   </div>
