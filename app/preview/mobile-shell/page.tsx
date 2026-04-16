@@ -52,30 +52,32 @@ export default function MobileShellPreview() {
 
           {/* Content - Home Screen Only */}
           <div className="flex-1 overflow-y-auto px-3 py-4 pb-24 space-y-6">
-            {/* PRIORITY 1: Subscribed Apps - Horizontal Scrollable Launcher */}
+            {/* PRIORITY 1: Subscribed Apps - Premium Grid Layout */}
             <div>
               <h3 className="text-xs font-bold text-amber-300 uppercase tracking-wider mb-3 px-1">Apps</h3>
-              <div className="flex gap-3 overflow-x-auto pb-2 -mx-3 px-3 snap-x snap-mandatory">
-                {[
-                  { label: "Site Walk", icon: MapPin, accent: "from-orange-600 to-orange-700" },
-                  { label: "360 Tours", icon: Camera, accent: "from-cyan-600 to-cyan-700" },
-                  { label: "Design Studio", icon: Palette, accent: "from-purple-600 to-purple-700" },
-                  { label: "Content Studio", icon: BookOpen, accent: "from-emerald-600 to-emerald-700" },
-                ].map((app, idx) => (
-                  <button
-                    key={idx}
-                    className="flex-shrink-0 w-28 aspect-square snap-center"
-                  >
-                    <div className={`h-full w-full bg-gradient-to-br ${app.accent} border border-yellow-600/30 hover:border-amber-500 rounded-xl flex flex-col items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-amber-500/30 group`}>
-                      <div className="p-2 bg-white/10 group-hover:bg-white/20 rounded-lg transition-colors">
-                        <app.icon size={18} className="text-white" />
+              <div className="flex justify-center">
+                <div className="w-full grid gap-2" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))", maxWidth: "280px" }}>
+                  {[
+                    { label: "Site Walk", icon: MapPin },
+                    { label: "360 Tours", icon: Camera },
+                    { label: "Design Studio", icon: Palette },
+                    { label: "Content Studio", icon: BookOpen },
+                  ].map((app, idx) => (
+                    <button
+                      key={idx}
+                      className="aspect-square bg-slate-800/50 border border-slate-700 hover:border-amber-500/40 rounded-lg flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-slate-800 hover:shadow-lg hover:shadow-amber-500/20 group"
+                    >
+                      <div className="p-2 bg-slate-700/60 group-hover:bg-slate-700 rounded-lg transition-colors">
+                        <app.icon size={18} className="text-slate-300 group-hover:text-amber-400" />
                       </div>
-                      <span className="text-xs font-semibold text-white text-center px-1 line-clamp-2">{app.label}</span>
-                    </div>
-                  </button>
-                ))}
+                      <span className="text-xs font-medium text-slate-200 text-center px-1 line-clamp-1">{app.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <p className="text-xs text-slate-500 mt-2 px-1">Swipe to see more</p>
+              <button className="w-full mt-2 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-400 transition-colors border border-dashed border-slate-700 hover:border-slate-600 rounded">
+                More apps
+              </button>
             </div>
 
             {/* PRIORITY 2: Communications & Workflow Feed */}
