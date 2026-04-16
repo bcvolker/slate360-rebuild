@@ -52,32 +52,34 @@ export default function MobileShellPreview() {
 
           {/* Content - Home Screen Only */}
           <div className="flex-1 overflow-y-auto px-3 py-4 pb-24 space-y-6">
-            {/* PRIORITY 1: Subscribed Apps - Premium Grid Layout */}
+            {/* PRIORITY 1: Subscribed Apps - Premium Adaptive Grid */}
             <div>
-              <h3 className="text-xs font-bold text-amber-300 uppercase tracking-wider mb-3 px-1">Apps</h3>
+              <h3 className="text-xs font-bold text-amber-300 uppercase tracking-wider mb-2 px-1">Apps</h3>
               <div className="flex justify-center">
-                <div className="w-full grid gap-2" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))", maxWidth: "280px" }}>
+                <div className="grid gap-2.5 w-full max-w-xs" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
                   {[
-                    { label: "Site Walk", icon: MapPin },
-                    { label: "360 Tours", icon: Camera },
-                    { label: "Design Studio", icon: Palette },
-                    { label: "Content Studio", icon: BookOpen },
+                    { label: "Site Walk", icon: MapPin, status: "live" },
+                    { label: "360 Tours", icon: Camera, status: "coming" },
+                    { label: "Design Studio", icon: Palette, status: "coming" },
+                    { label: "Content Studio", icon: BookOpen, status: "coming" },
                   ].map((app, idx) => (
                     <button
                       key={idx}
-                      className="aspect-square bg-slate-800/50 border border-slate-700 hover:border-amber-500/40 rounded-lg flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-slate-800 hover:shadow-lg hover:shadow-amber-500/20 group"
+                      className="relative group"
                     >
-                      <div className="p-2 bg-slate-700/60 group-hover:bg-slate-700 rounded-lg transition-colors">
-                        <app.icon size={18} className="text-slate-300 group-hover:text-amber-400" />
+                      <div className="aspect-square bg-slate-800/40 border border-slate-700 hover:border-amber-500/60 rounded-lg flex flex-col items-center justify-center gap-1 transition-all hover:bg-slate-800/80 hover:shadow-md hover:shadow-amber-500/20">
+                        <div className="p-2 bg-slate-700/50 group-hover:bg-slate-700 rounded-lg transition-colors">
+                          <app.icon size={16} className="text-slate-300 group-hover:text-amber-300" />
+                        </div>
+                        <span className="text-xs font-medium text-slate-100 text-center px-0.5">{app.label}</span>
+                        {app.status === "coming" && (
+                          <span className="text-xs font-medium text-slate-500 opacity-75 text-center leading-none">Coming</span>
+                        )}
                       </div>
-                      <span className="text-xs font-medium text-slate-200 text-center px-1 line-clamp-1">{app.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
-              <button className="w-full mt-2 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-400 transition-colors border border-dashed border-slate-700 hover:border-slate-600 rounded">
-                More apps
-              </button>
             </div>
 
             {/* PRIORITY 2: Communications & Workflow Feed */}
