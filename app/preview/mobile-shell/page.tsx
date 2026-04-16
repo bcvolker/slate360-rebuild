@@ -67,7 +67,7 @@ export default function MobileShellPreview() {
                       key={idx}
                       className="relative group"
                     >
-                      <div className="aspect-square bg-slate-800/40 border border-slate-700 hover:border-amber-500/60 rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all hover:bg-slate-800/80 hover:shadow-md hover:shadow-amber-500/20">
+                      <div className="aspect-square bg-slate-800/40 border border-amber-400/30 hover:border-amber-400 rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all hover:bg-slate-800/80 hover:shadow-md hover:shadow-amber-400/20">
                         <div className="p-1.5 bg-slate-700/50 group-hover:bg-slate-700 rounded-md transition-colors">
                           <app.icon size={11} className="text-slate-300 group-hover:text-amber-300" />
                         </div>
