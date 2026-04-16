@@ -96,7 +96,7 @@ export default function MobileShellPreview() {
                 ].map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-3 p-3 bg-slate-900/60 border border-slate-800 hover:bg-slate-800/80 hover:border-amber-500/40 transition-all cursor-pointer"
+                    className="flex items-start gap-3 p-3 bg-slate-900/60 border border-amber-400/30 hover:bg-slate-800/80 hover:border-amber-400 transition-all cursor-pointer"
                   >
                     <div className="pt-1 flex-shrink-0">
                       {item.type === "review" && <AlertCircle size={14} className="text-amber-500" />}
@@ -128,7 +128,7 @@ export default function MobileShellPreview() {
                 ].map((action, idx) => (
                   <button
                     key={idx}
-                    className="p-3 bg-slate-900/60 border border-slate-800 hover:border-amber-500/50 rounded-lg transition-all flex flex-col items-center gap-2 hover:bg-slate-800/80 hover:shadow-md"
+                    className="p-3 bg-slate-900/60 border border-amber-400/30 hover:border-amber-400 rounded-lg transition-all flex flex-col items-center gap-2 hover:bg-slate-800/80 hover:shadow-md"
                   >
                     <div className="p-2 bg-amber-500/20 rounded-lg">
                       <action.icon size={16} className="text-amber-300" />
@@ -144,7 +144,7 @@ export default function MobileShellPreview() {
               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Pinned</h3>
               <div className="space-y-1">
                 {[1, 2, 3].map((idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-2 bg-slate-900/40 border border-slate-800/50 hover:bg-slate-800/60 transition-colors cursor-pointer rounded">
+                  <div key={idx} className="flex items-center gap-2 p-2 bg-slate-900/40 border border-amber-400/30 hover:border-amber-400 hover:bg-slate-800/60 transition-colors cursor-pointer rounded">
                     <Star size={12} className="text-slate-600 flex-shrink-0" fill="currentColor" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-slate-400">Project</p>
