@@ -42,10 +42,10 @@ export default function MobileShellPreview() {
               </button>
               <button className="p-2 hover:bg-slate-900 rounded-lg transition-colors relative">
                 <Bell size={18} className="text-slate-400" />
-                <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-500 rounded-full" />
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-400 rounded-full" />
               </button>
-              <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center border border-amber-500/50">
-                <span className="text-xs font-bold text-amber-500">JD</span>
+              <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center border border-amber-400/50">
+                <span className="text-xs font-bold text-amber-400">JD</span>
               </div>
             </div>
           </div>
@@ -86,7 +86,7 @@ export default function MobileShellPreview() {
             <div>
               <div className="flex items-center justify-between mb-3 px-1">
                 <h3 className="text-xs font-bold text-amber-300 uppercase tracking-wider">Notifications</h3>
-                <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-amber-500 text-slate-950 rounded-sm">3</span>
+                <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-amber-400 text-slate-950 rounded-sm">3</span>
               </div>
               <div className="space-y-2">
                 {[
@@ -99,9 +99,9 @@ export default function MobileShellPreview() {
                     className="flex items-start gap-3 p-3 bg-slate-900/60 border border-amber-400/30 hover:bg-slate-800/80 hover:border-amber-400 transition-all cursor-pointer"
                   >
                     <div className="pt-1 flex-shrink-0">
-                      {item.type === "review" && <AlertCircle size={14} className="text-amber-500" />}
-                      {item.type === "upload" && <MessageSquare size={14} className="text-cyan-400" />}
-                      {item.type === "submission" && <CheckSquare size={14} className="text-emerald-400" />}
+                      {item.type === "review" && <AlertCircle size={14} className="text-amber-400" />}
+                      {item.type === "upload" && <MessageSquare size={14} className="text-amber-400" />}
+                      {item.type === "submission" && <CheckSquare size={14} className="text-amber-400" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-slate-200">{item.label}</p>
