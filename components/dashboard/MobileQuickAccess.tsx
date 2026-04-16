@@ -4,10 +4,9 @@ import Link from "next/link";
 import {
   ChevronDown,
   FolderKanban,
-  BarChart3,
-  Layers,
   LayoutDashboard,
   Home,
+  User,
 } from "lucide-react";
 
 interface MobileQuickAccessProps {
@@ -40,9 +39,8 @@ export default function MobileQuickAccess({ open, onToggle }: MobileQuickAccessP
             <div className="relative z-40 mt-2 rounded-2xl border border-gray-100 bg-white shadow-2xl overflow-hidden">
               {([
                 { label: "Dashboard",   icon: Home,         href: "/dashboard",   color: "#D4AF37", desc: "Overview, widgets & projects" },
-                { label: "Project Hub", icon: FolderKanban,  href: "/project-hub", color: "#D4AF37", desc: "RFIs, schedules & budgets" },
-                { label: "Analytics",   icon: BarChart3,    href: "/analytics",   color: "#6366F1", desc: "Reports & performance insights" },
-                { label: "SlateDrop",   icon: Layers,      href: "/slatedrop",    color: "#D4AF37", desc: "Files, folders & secure sharing" },
+                { label: "Projects",    icon: FolderKanban,  href: "/projects",    color: "#D4AF37", desc: "Project details, photos & punch list" },
+                { label: "My Account",  icon: User,         href: "/my-account",  color: "#D4AF37", desc: "Billing, usage, security & profile" },
               ]).map((item) => {
                 const NavIcon = item.icon;
                 return (

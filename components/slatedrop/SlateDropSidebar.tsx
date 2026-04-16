@@ -5,7 +5,8 @@ type SlateDropSidebarProps = {
   embedded: boolean;
   mobileSidebarOpen: boolean;
   sidebarOpen: boolean;
-  storageUsed: number;
+  storageUsedGb: number;
+  fileCount: number;
   maxStorageGB: number;
   folderTree: FolderNode[];
   activeFolderId: string;
@@ -21,7 +22,8 @@ export default function SlateDropSidebar({
   embedded,
   mobileSidebarOpen,
   sidebarOpen,
-  storageUsed,
+  storageUsedGb,
+  fileCount,
   maxStorageGB,
   folderTree,
   activeFolderId,
@@ -55,20 +57,20 @@ export default function SlateDropSidebar({
                 <HardDrive size={10} /> Storage
               </span>
               <span className="text-[10px] font-bold text-zinc-300">
-                {storageUsed} GB / {maxStorageGB} GB
+                {storageUsedGb.toFixed(1)} GB / {maxStorageGB} GB
               </span>
             </div>
             <div className="h-1.5 rounded-full bg-zinc-700 overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
-                  width: `${Math.min((storageUsed / maxStorageGB) * 100, 100)}%`,
-                  backgroundColor: (storageUsed / maxStorageGB) > 0.85 ? "#EF4444" : "#D4AF37",
+                  width: `${Math.min((storageUsedGb / maxStorageGB) * 100, 100)}%`,
+                  backgroundColor: (storageUsedGb / maxStorageGB) > 0.85 ? "#EF4444" : "#D4AF37",
                 }}
               />
             </div>
             <p className="text-[10px] text-zinc-500 mt-1">
-              {(maxStorageGB - storageUsed).toFixed(1)} GB available
+              {(maxStorageGB - storageUsedGb).toFixed(1)} GB available · {fileCount.toLocaleString()} files
             </p>
           </div>
 

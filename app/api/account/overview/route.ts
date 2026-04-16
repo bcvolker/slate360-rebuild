@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 import { getStripeClient } from "@/lib/stripe";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { resolveUsageTruth } from "@/lib/server/usage-truth";
 
 type ApiKeyRow = {
   id: string;
@@ -37,7 +38,7 @@ export async function GET() {
     }
 
     const tier: Tier = ctx.tier;
-    const ent = getEntitlements(tier);
+    const ent = getEntitlements(tier, { isSlateCeo: ctx.isSlateCeo });
     const role = ctx.role ?? "member";
     const isAdmin = ctx.isAdmin;
     const orgId = ctx.orgId;
@@ -45,9 +46,6 @@ export async function GET() {
     let purchasedCredits = 0;
     let totalCreditsBalance = 0;
     let projectsCount = 0;
-    let modelsCount = 0;
-    let toursCount = 0;
-    let docsCount = 0;
 
     const sessions: Array<{ id: string; device: string; ip: string; lastActive: string }> = [];
     const auditLog: Array<{ id: string; action: string; actor: string; createdAt: string }> = [];
@@ -72,9 +70,6 @@ export async function GET() {
           .eq("id", orgId)
           .single();
         totalCreditsBalance = Number((orgCreditsRes.data as { credits_balance?: number } | null)?.credits_balance ?? 0);
-        if (!purchasedCredits && totalCreditsBalance > 0) {
-          purchasedCredits = totalCreditsBalance;
-        }
       } catch {
         // optional column; ignore
       }
@@ -92,24 +87,7 @@ export async function GET() {
       }
     }
 
-    if (orgId) {
-      try {
-        const filesRes = await supabase
-          .from("slatedrop_files")
-          .select("id,file_type", { count: "exact" })
-          .eq("org_id", orgId)
-          .limit(1000);
-
-        const files = filesRes.data as Array<{ file_type?: string | null }> | null;
-        docsCount = filesRes.count ?? 0;
-        if (files && files.length > 0) {
-          modelsCount = files.filter((f) => ["glb", "obj", "stl", "fbx", "dwg"].includes(String(f.file_type ?? "").toLowerCase())).length;
-          toursCount = files.filter((f) => ["jpg", "jpeg", "png"].includes(String(f.file_type ?? "").toLowerCase())).length;
-        }
-      } catch {
-        // optional table
-      }
-    }
+    const usageTruth = await resolveUsageTruth({ userId: user.id, orgId });
 
     try {
       const sessionRes = await supabase
@@ -229,22 +207,6 @@ export async function GET() {
       }
     }
 
-    let storageUsedGb = 0;
-
-    if (orgId) {
-      try {
-        const storageRes = await supabase
-          .from("organizations")
-          .select("org_storage_used_bytes")
-          .eq("id", orgId)
-          .single();
-        const bytes = Number((storageRes.data as { org_storage_used_bytes?: number } | null)?.org_storage_used_bytes ?? 0);
-        storageUsedGb = Math.round((bytes / (1024 * 1024 * 1024)) * 100) / 100;
-      } catch {
-        // column may not exist yet
-      }
-    }
-
     return NextResponse.json({
       profile: {
         name: (user.user_metadata?.full_name as string | undefined) ?? user.email?.split("@")[0] ?? "User",
@@ -261,18 +223,21 @@ export async function GET() {
         totalCreditsBalance,
       },
       usage: {
-        storageUsedGb,
+        storageUsedBytes: usageTruth.storageUsedBytes,
+        storageUsedGb: usageTruth.storageUsedGb,
         storageLimitGb: ent.maxStorageGB,
         monthlyCredits: ent.maxCredits,
         projectsCount,
-        modelsCount,
-        toursCount,
-        docsCount,
+        fileCount: usageTruth.fileCount,
+        modelsCount: usageTruth.modelsCount,
+        toursCount: usageTruth.imageCount,
+        docsCount: usageTruth.fileCount,
       },
       sessions,
       auditLog,
       apiKeys,
       isAdmin,
+      isSlateCeo: ctx.isSlateCeo,
     });
   } catch (error) {
     console.error("[api/account/overview]", error);

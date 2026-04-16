@@ -1,6 +1,6 @@
 "# Slate360 — Project Memory
 
-Last Updated: 2026-04-15
+Last Updated: 2026-04-16
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -911,3 +911,118 @@ Build now shows `/project-hub` + all 11 sub-routes in route list (previously abs
 6. P-A5: Bug reporting form
 7. P-A6: Rename org language
 8. Then: Phase B owner design decisions → Phase C implementation → Phase D hardening
+
+### Session Handoff — 2026-04-16
+### What Changed
+- `docs/audits/critical-platform-repair-report-2026-04-16.md`: added a grounded repair audit covering auth, shell separation, command center, SlateDrop, projects, Site Walk, operations, mobile nav, data visibility, beta readiness, and recommended work slices
+- `SLATE360_PROJECT_MEMORY.md`: updated latest handoff and date
+
+### What's Broken / Partially Done
+- Missing `/beta-pending` route even though `app/(dashboard)/layout.tsx` and `app/install/page.tsx` redirect there
+- Missing password reset destination: `app/forgot-password/page.tsx` redirects to `/account/reset-password`, but no matching app route exists
+- Broken global SlateDrop entrypoints: multiple nav components link to `/slatedrop`, but the active route is only `/projects/[projectId]/slatedrop`
+- Site Walk deliverable gap: `components/site-walk/SessionReviewClient.tsx` links to `/site-walk/[projectId]/deliverables/new`, but no matching route exists
+- Installed shell contract unresolved: `app/manifest.ts` still starts the app at `/dashboard`
+
+### Context Files Updated
+- `docs/audits/critical-platform-repair-report-2026-04-16.md`: factual repair report for next implementation slices
+- `SLATE360_PROJECT_MEMORY.md`: session handoff
+
+### Next Steps (ordered)
+1. Fix the auth continuation blockers: add `/beta-pending` and a real password reset destination, then verify redirects
+2. Enforce one shell contract: decide installed app start route, remove dead `/slatedrop` entrypoints, align middleware and nav
+3. Re-scope SlateDrop to project-scoped Phase 1 behavior while preserving existing storage APIs
+4. Complete the Site Walk review-to-deliverable route chain
+5. Unify desktop/mobile navigation around the Phase 1 surface set before any broader command-center redesign
+
+### Session Handoff — 2026-04-16
+### What Changed
+- `docs/audits/follow-up-platform-blind-spot-report-2026-04-16.md`: added second-pass blind-spot report covering auth visuals, confirm-email/first-run guidance, install/update-center reality, dashboard reality, operations-console scope, SlateDrop route/folder model, Site Walk capability matrix, usage truth map, navigation mismatch, top 12 blind spots, beta blockers, implementation order, and blast-radius warnings
+- `SLATE360_PROJECT_MEMORY.md`: updated latest handoff with corrected findings from the follow-up investigation
+
+### What's Broken / Partially Done
+- Auth visual defect is confirmed at the asset layer: `public/uploads/SLATE 360-Color Reversed Lockup.svg` flips the rounded logo background to white in dark mode
+- Auth mobile readability remains weak: `app/globals.css` sets `.auth-input` to `text-sm` and `.auth-label` to `text-xs`
+- No dedicated first-run onboarding route was found; `app/auth/confirm/route.ts` and `app/auth/callback/route.ts` still default to `/dashboard`
+- `/install` is only a gated PWA instructions page, not a real install/update/permissions center (`app/install/page.tsx`, `app/install/InstallClient.tsx`)
+- `Operations Console` is an owner-only beta approval UI, not a true operations console (`app/(dashboard)/operations-console/page.tsx`, `components/dashboard/OperationsConsoleClient.tsx`)
+- Suspicious debug/test account creation remains unresolved; no direct generator path was found in repo code, only diagnostic and cleanup scripts
+- `/slatedrop` now exists and redirects to `/projects`, so the remaining problem is nav/model inconsistency, not a missing route (`app/slatedrop/page.tsx`)
+- SlateDrop root structure still mixes project records with app buckets (`lib/slatedrop/folderTree.ts`)
+- Site Walk plan display is partial: `components/site-walk/PlanViewer.tsx` calls `/api/site-walk/plans/[id]/image`, but no matching route exists
+- Site Walk deliverable editor persistence is still incomplete/unclear: `components/site-walk/BlockEditor.tsx` exposes save UI without a verified save path in this pass
+- Usage truth is inconsistent across active surfaces: dashboard summary uses `slatedrop_uploads`, account overview mixes `organizations.org_storage_used_bytes`, `slatedrop_files`, and credit balances
+- Shared/mobile nav still advertises non-canonical or gated surfaces like `/slatedrop` and `/analytics`; My Account still opens an effectively empty customize drawer
+
+### Context Files Updated
+- `docs/audits/follow-up-platform-blind-spot-report-2026-04-16.md`: detailed follow-up investigation report for remaining blind spots
+- `SLATE360_PROJECT_MEMORY.md`: session handoff
+
+### Next Steps (ordered)
+1. Define one canonical usage contract for storage, file counts, and credits before changing more UI copy
+2. Close Site Walk Phase 1 gaps: add the missing plan image route and verify/finish deliverable save persistence
+3. Remove misleading shell affordances: hide My Account customize, clean `/slatedrop` and other non-canonical nav entries, and rename or narrow Operations Console framing
+4. Add a dedicated first-run onboarding flow that clearly connects signup confirmation, first login, and install guidance
+5. Decide the final Phase 1 SlateDrop information architecture, then align folder tree generation and navigation to that model
+
+### Session Handoff — 2026-04-16
+### What Changed
+- `ONGOING_ISSUES.md`: created root durable issue tracker and seeded it with current known Phase 1 issues across auth, onboarding, install, product surfaces, command center, SlateDrop, projects, Site Walk, Operations Console, navigation/mobile, and data/usage/credits
+- `docs/audits/business-logic-alignment-report-2026-04-16.md`: added concise business-logic/build-plan alignment report with aligned/partially aligned/misaligned classifications across the major product areas
+- `SLATE360_PROJECT_MEMORY.md`: updated latest handoff for the alignment-and-issue-tracker pass
+
+### What's Broken / Partially Done
+- Public homepage, installed app shell, and web command center are only partially aligned: shell contract is documented but installed-app and web-command-center behavior are still blurred
+- `/projects` is the active anchor surface, but command-center emphasis and older project assumptions still create drift risk
+- Project-scoped SlateDrop is the canonical Phase 1 file surface, but folder generation and nav still preserve non-canonical global SlateDrop assumptions
+- Site Walk is the main real Phase 1 module, but missing plan image routing, uncertain deliverable persistence, and viewer/collaboration gaps remain open
+- `Operations Console` remains a misnamed owner-only beta approval tool rather than a real operations surface
+- Owner-specific bypass and account overrides still distort the normal subscriber truth model
+- `/install` remains a narrow PWA instructions page rather than a real install/update/permissions center
+- No dedicated first-run onboarding route exists after successful auth confirmation/callback
+- Shared/mobile navigation still exposes non-canonical or gated surfaces that do not match the Phase 1 shell contract
+- Storage, file-count, and credit truth remain inconsistent across dashboard and account surfaces
+
+### Context Files Updated
+- `ONGOING_ISSUES.md`: root durable issue tracker for the active repair program
+- `docs/audits/business-logic-alignment-report-2026-04-16.md`: alignment confirmation report
+- `SLATE360_PROJECT_MEMORY.md`: session handoff
+
+### Next Steps (ordered)
+1. Use `ONGOING_ISSUES.md` as the canonical issue ledger for future repair prompts and keep it in sync with any fix slice
+2. Start a trust-and-contract stabilization implementation slice: unify usage truth, close Site Walk plan/deliverable gaps, and clean misleading nav/shell affordances
+3. Add a dedicated first-run onboarding route after the trust-critical gaps are stabilized
+4. Rework the command center and installed-shell entry only after the Phase 1 contract and canonical metrics are locked
+
+### Session Handoff — 2026-04-16
+### What Changed
+- `lib/server/usage-truth.ts`: added shared upload-based usage resolver for storage bytes, storage GB, file count, model count, and image count
+- `app/api/dashboard/summary/route.ts`: aligned command-center storage/file truth to the shared usage resolver
+- `app/api/account/overview/route.ts`: aligned My Account usage truth to the same upload-based source and removed the misleading purchased-credits fallback
+- `lib/hooks/useCommandCenterData.ts`: switched dashboard hook to the new summary shape (`storageUsedBytes`, `fileCount`)
+- `components/dashboard/command-center/StorageCreditsCard.tsx`: now shows upload-based storage plus active file count
+- `components/dashboard/my-account/AccountDataTrackerTab.tsx`: removed fake credit-used math, shows file count, and keeps credit balances informationally correct
+- `components/slatedrop/SlateDropClient.tsx`: removed active sandbox project hydration, added real project-folder hydration for project-scoped SlateDrop, and replaced the non-project root experience with an actionable project chooser
+- `lib/hooks/useSlateDropProjectScope.ts`: extracted SlateDrop project-scope loading to keep the client under the 300-line file limit
+- `lib/hooks/useSlateDropMutationActions.ts`, `lib/hooks/useSlateDropFiles.ts`, `lib/slatedrop/folderTree.ts`, `components/slatedrop/SlateDropSidebar.tsx`, `components/slatedrop/SlateDropContextMenu.tsx`: updated SlateDrop internals to use real project-folder trees instead of sandbox-driven assumptions
+- `components/shared/QuickNav.tsx`, `components/shared/MobileNavSheet.tsx`, `components/shared/MobileModuleBar.tsx`, `components/dashboard/MobileQuickAccess.tsx`: removed active app-shell exposure of the non-canonical global SlateDrop route and tightened mobile nav to safer Phase 1 destinations
+- `components/shared/DashboardTabShell.tsx`, `components/dashboard/MyAccountShell.tsx`: removed the blank customize affordance from My Account without replacing the route
+- `ONGOING_ISSUES.md`: moved the relevant usage/nav/My Account issues to `testing` and narrowed the remaining open SlateDrop/owner issues
+- `SLATE360_PROJECT_MEMORY.md`: updated latest handoff for Fix Phase 1A
+
+### What's Broken / Partially Done
+- The active storage/file-count truth is now shared, but broader platform usage visibility is still incomplete and credits still lack a richer ledger/reporting layer
+- Active app-shell nav no longer advertises `/slatedrop`, but non-shell references still exist in marketing/home data and other later-slice surfaces
+- Project-scoped SlateDrop no longer hydrates sandbox projects, but the broader long-term SlateDrop IA decision is still open
+- My Account customize is removed from the active route, but the shared customize drawer still exists for other shell consumers
+- Owner-specific account truth is improved, but Operations Console and wider owner/staff behaviors still need audit
+
+### Context Files Updated
+- `ONGOING_ISSUES.md`: issue statuses updated after Fix Phase 1A implementation
+- `SLATE360_PROJECT_MEMORY.md`: session handoff
+
+### Next Steps (ordered)
+1. Verify Fix Phase 1A manually across dashboard, My Account, and project-scoped SlateDrop, then move the related issues from `testing` to `done` only if the UI matches the new truth contract
+2. Clean remaining non-shell `/slatedrop` references outside the active app chrome if they still create user confusion
+3. Decide the next trust-focused slice: either credits/usage depth beyond the current shared source, or the first concrete Site Walk Phase 1 gap
+4. Leave onboarding, auth visual work, and Site Walk route completion for later slices as planned

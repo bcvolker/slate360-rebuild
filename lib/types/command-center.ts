@@ -41,6 +41,7 @@ export interface CommandCenterData {
   projects: ProjectSummary;
   recentFiles: RecentFile[];
   storageUsedBytes: number;
+  fileCount: number;
   isLoading: boolean;
   error: string | null;
 }

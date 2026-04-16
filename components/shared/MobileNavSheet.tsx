@@ -12,7 +12,6 @@ import {
   Globe,
   Film,
   BarChart3,
-  FolderOpen,
   FolderKanban,
   User,
   Shield,
@@ -37,9 +36,8 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard",     href: "/dashboard",      icon: LayoutDashboard },
-  { label: "Projects",      href: "/project-hub",    icon: FolderKanban },
-  { label: "Site Walk",     href: "/site-walk",      icon: MapPin },
-  { label: "SlateDrop",     href: "/slatedrop",      icon: FolderOpen,    gate: "canViewSlateDropWidget" },
+  { label: "Projects",      href: "/projects",       icon: FolderKanban },
+  { label: "Site Walk",     href: "/site-walk",      icon: MapPin,        gate: "canAccessStandalonePunchwalk" },
   { label: "360 Tours",     href: "/tours",          icon: Compass,       gate: "canAccessTourBuilder", phase1Hidden: true },
   { label: "Design Studio", href: "/design-studio",  icon: Palette,       gate: "canAccessDesignStudio", phase1Hidden: true },
   { label: "Content Studio",href: "/content-studio", icon: Layers,        gate: "canAccessContent", phase1Hidden: true },

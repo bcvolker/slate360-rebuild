@@ -14,6 +14,7 @@ export function useCommandCenterData(): CommandCenterData {
   const [projects, setProjects] = useState<ProjectSummary>(EMPTY_SUMMARY);
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>([]);
   const [storageUsedBytes, setStorageUsedBytes] = useState(0);
+  const [fileCount, setFileCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,7 +41,8 @@ export function useCommandCenterData(): CommandCenterData {
         if (cancelled) return;
 
         setRecentFiles(summaryData.recentFiles ?? []);
-        setStorageUsedBytes(summaryData.storageUsed ?? 0);
+        setStorageUsedBytes(summaryData.storageUsedBytes ?? 0);
+        setFileCount(summaryData.fileCount ?? 0);
         setProjects(projectsData ?? EMPTY_SUMMARY);
       } catch (err) {
         if (!cancelled) {
@@ -55,5 +57,5 @@ export function useCommandCenterData(): CommandCenterData {
     return () => { cancelled = true; };
   }, []);
 
-  return { projects, recentFiles, storageUsedBytes, isLoading, error };
+  return { projects, recentFiles, storageUsedBytes, fileCount, isLoading, error };
 }

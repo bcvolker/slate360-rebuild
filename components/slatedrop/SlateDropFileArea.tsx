@@ -110,14 +110,14 @@ export default function SlateDropFileArea({
           <div>
             <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-0.5">Project Sandbox</p>
             <h3 className="text-base font-black text-zinc-100">{projectBanner.name}</h3>
-            <p className="text-xs text-zinc-400 mt-0.5">{projectBanner.folderCount} folder{projectBanner.folderCount !== 1 ? "s" : ""} · Upload files or open in Project Hub to manage</p>
+            <p className="text-xs text-zinc-400 mt-0.5">{projectBanner.folderCount} folder{projectBanner.folderCount !== 1 ? "s" : ""} · Upload files or open project details to manage</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Link
-              href={`/project-hub/${projectBanner.id}`}
+              href={`/projects/${projectBanner.id}`}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#D4AF37] text-white text-xs font-bold hover:bg-[#E64500] transition-colors"
             >
-              Project Hub
+              Open Project
             </Link>
             <button
               onClick={() => onDeleteProject(projectBanner.id, projectBanner.name)}

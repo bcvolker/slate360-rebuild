@@ -15,11 +15,10 @@ type MoveModalState = { id: string; name: string; type: "file" } | null;
 type UseSlateDropMutationActionsParams = {
   activeFolderId: string;
   folderTree: FolderNode[];
-  sandboxProjects: Array<{ id: string }>;
   moveModal: MoveModalState;
   getProjectIdForFolder: (folderId: string) => string | null;
   refreshFolderFiles: (folderId: string) => Promise<void>;
-  refreshSandboxProjects: () => Promise<void>;
+  refreshFolderTree: () => Promise<void>;
   showToast: ShowToast;
   setExpandedIds: Dispatch<SetStateAction<Set<string>>>;
   setActiveFolderId: Dispatch<SetStateAction<string>>;
@@ -33,11 +32,10 @@ type UseSlateDropMutationActionsParams = {
 export function useSlateDropMutationActions({
   activeFolderId,
   folderTree,
-  sandboxProjects,
   moveModal,
   getProjectIdForFolder,
   refreshFolderFiles,
-  refreshSandboxProjects,
+  refreshFolderTree,
   showToast,
   setExpandedIds,
   setActiveFolderId,
@@ -70,7 +68,7 @@ export function useSlateDropMutationActions({
       }
 
       const data = await response.json().catch(() => ({}));
-      await refreshSandboxProjects();
+      await refreshFolderTree();
       const createdFolderId = typeof data?.folder?.id === "string" ? data.folder.id : null;
       if (createdFolderId) {
         setExpandedIds((prev) => {
@@ -86,7 +84,7 @@ export function useSlateDropMutationActions({
     } catch (error) {
       showToast(error instanceof Error ? error.message : "Create folder failed", false);
     }
-  }, [getProjectIdForFolder, refreshSandboxProjects, setActiveFolderId, setExpandedIds, setNewFolderModal, showToast]);
+  }, [getProjectIdForFolder, refreshFolderTree, setActiveFolderId, setExpandedIds, setNewFolderModal, showToast]);
 
   const handleRename = useCallback(async (
     renameTarget: { id: string; name: string; type: "file" | "folder" },
@@ -129,7 +127,7 @@ export function useSlateDropMutationActions({
           const payload = await response.json().catch(() => ({ error: "Rename failed" }));
           throw new Error(payload.error ?? "Rename failed");
         }
-        await refreshSandboxProjects();
+        await refreshFolderTree();
         showToast(`Renamed to "${nextName}"`);
       } catch (error) {
         showToast(error instanceof Error ? error.message : "Rename failed", false);
@@ -138,7 +136,7 @@ export function useSlateDropMutationActions({
     }
 
     setRenameModal(null);
-  }, [activeFolderId, refreshFolderFiles, refreshSandboxProjects, setRealFiles, setRenameModal, showToast]);
+  }, [activeFolderId, refreshFolderFiles, refreshFolderTree, setRealFiles, setRenameModal, showToast]);
 
   const handleDeleteConfirmAction = useCallback(async (
     target: { id: string; name: string; type: "file" | "folder" | "project" },
@@ -174,13 +172,6 @@ export function useSlateDropMutationActions({
         return;
       }
 
-      const sandboxProjectExists = sandboxProjects.some((project) => project.id === target.id);
-      if (!sandboxProjectExists) {
-        showToast("Project not found.", false);
-        setDeleteConfirm(null);
-        return;
-      }
-
       try {
         const response = await fetch(`/api/projects/${target.id}`, {
           method: "DELETE",
@@ -197,9 +188,9 @@ export function useSlateDropMutationActions({
         }
 
         const activeProjectId = getProjectIdForFolder(activeFolderId);
-        await refreshSandboxProjects();
+        await refreshFolderTree();
         if (activeProjectId === target.id) {
-          setActiveFolderId("projects");
+          setActiveFolderId("");
         }
         showToast(`Project "${target.name}" deleted`);
         setDeleteConfirm(null);
@@ -226,7 +217,7 @@ export function useSlateDropMutationActions({
         delete next[target.id];
         return next;
       });
-      await refreshSandboxProjects();
+      await refreshFolderTree();
       if (activeFolderId === target.id) {
         setActiveFolderId(parentFolderId);
       }
@@ -235,7 +226,7 @@ export function useSlateDropMutationActions({
     } catch (error) {
       showToast(error instanceof Error ? error.message : "Delete failed", false);
     }
-  }, [activeFolderId, folderTree, getProjectIdForFolder, refreshFolderFiles, refreshSandboxProjects, sandboxProjects, setActiveFolderId, setDeleteConfirm, setRealFiles, showToast]);
+  }, [activeFolderId, folderTree, getProjectIdForFolder, refreshFolderFiles, refreshFolderTree, setActiveFolderId, setDeleteConfirm, setRealFiles, showToast]);
 
   const handleMoveFile = useCallback(async (fileId: string, targetFolderId: string) => {
     if (!moveModal) {

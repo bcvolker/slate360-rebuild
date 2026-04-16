@@ -42,10 +42,8 @@ type SlateDropContextMenuProps = {
   contextMenu: SlateDropContextMenuState | null;
   activeFolderId: string;
   currentFiles: Array<{ id: string; name: string }>;
-  sandboxProjects: Array<{ id: string }>;
   onClose: () => void;
   onOpenFolder: (folderId: string) => void;
-  onOpenProjectHub: (projectId: string) => void;
   onDownloadFile: (fileId: string, fileName: string) => void;
   onDownloadFolderZip: (folderId: string, folderName: string) => void;
   onRenameFile: (target: ContextMenuFileTarget) => void;
@@ -63,10 +61,8 @@ export default function SlateDropContextMenu({
   contextMenu,
   activeFolderId,
   currentFiles,
-  sandboxProjects,
   onClose,
   onOpenFolder,
-  onOpenProjectHub,
   onDownloadFile,
   onDownloadFolderZip,
   onRenameFile,
@@ -134,24 +130,13 @@ export default function SlateDropContextMenu({
 
       {contextMenu.target.type === "folder" && (() => {
         const target = contextMenu.target;
-        const isProjectNode = sandboxProjects.some((project) => project.id === target.id);
+        const isProjectNode = false;
         return (
           <>
             <CtxItem icon={FolderOpen} label="Open" onClick={() => {
               onOpenFolder(target.id);
               onClose();
             }} />
-            {isProjectNode && (
-              <CtxItem
-                icon={ArrowUpRight}
-                label="Open in Project Hub"
-                accent
-                onClick={() => {
-                  onClose();
-                  onOpenProjectHub(target.id);
-                }}
-              />
-            )}
             <CtxItem icon={Download} label="Download as ZIP" onClick={() => {
               onClose();
               onDownloadFolderZip(target.id, target.name);

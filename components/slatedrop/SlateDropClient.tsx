@@ -3,11 +3,11 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
-import { buildSlateDropBaseFolderTree, type SlateDropFolderNode as FolderNode } from "@/lib/slatedrop/folderTree";
+import { type SlateDropFolderNode as FolderNode } from "@/lib/slatedrop/folderTree";
 import {
   formatBytes, formatDate, getFileIcon, getFileColor,
-  findFolder, findFolderPath, withSandboxProjects,
-  type SandboxProject, type DbFile, type SlateDropItem,
+  findFolder, findFolderPath,
+  type DbFile, type SlateDropItem,
 } from "@/lib/slatedrop/helpers";
 
 import { useSlateDropUiState } from "@/lib/hooks/useSlateDropUiState";
@@ -17,6 +17,7 @@ import { useSlateDropUploadActions } from "@/lib/hooks/useSlateDropUploadActions
 import { useSlateDropInteractionHandlers } from "@/lib/hooks/useSlateDropInteractionHandlers";
 import { useSlateDropTransferActions } from "@/lib/hooks/useSlateDropTransferActions";
 import { useSlateDropMutationActions } from "@/lib/hooks/useSlateDropMutationActions";
+import { useSlateDropProjectScope } from "@/lib/hooks/useSlateDropProjectScope";
 
 import SlateDropTopBar from "./SlateDropTopBar";
 import SlateDropSidebar from "./SlateDropSidebar";
@@ -47,36 +48,9 @@ type SortKey = "name" | "modified" | "size" | "type";
 export default function SlateDropClient({ user, tier, initialProjectId, embedded = false }: SlateDropProps) {
   const ent = getEntitlements(tier);
   const supabase = createClient();
-
-  /* ── Folder tree ── */
-  const [folderTree, setFolderTree] = useState<FolderNode[]>(() => buildSlateDropBaseFolderTree(tier));
-  const [sandboxProjects, setSandboxProjects] = useState<SandboxProject[]>([]);
-
-  useEffect(() => { setFolderTree(buildSlateDropBaseFolderTree(tier)); }, [tier]);
-
-  const refreshSandboxProjects = useCallback(async () => {
-    try {
-      const response = await fetch("/api/projects/sandbox", { cache: "no-store" });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) return;
-      const projects = Array.isArray(payload?.projects) ? (payload.projects as SandboxProject[]) : [];
-      setSandboxProjects(projects);
-      setFolderTree(withSandboxProjects(buildSlateDropBaseFolderTree(tier), projects));
-      if (initialProjectId) {
-        const match = projects.find((p) => p.id === initialProjectId);
-        if (match) {
-          setActiveFolderId(match.id);
-          setExpandedIds((prev) => new Set([...prev, "projects", match.id]));
-        }
-      }
-    } catch { /* non-blocking */ }
-  }, [tier, initialProjectId]);
-
-  useEffect(() => { void refreshSandboxProjects(); }, [refreshSandboxProjects]);
+  const isProjectScoped = Boolean(initialProjectId);
 
   /* ── Navigation / UI state ── */
-  const [activeFolderId, setActiveFolderId] = useState("general");
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -89,6 +63,15 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const [toastMsg, setToastMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const {
+    folderTree,
+    activeFolderId,
+    setActiveFolderId,
+    expandedIds,
+    setExpandedIds,
+    usageSummary,
+    refreshFolderTree,
+  } = useSlateDropProjectScope(initialProjectId);
 
   /* ── Toast helper ── */
   const showToast = useCallback((text: string, ok = true) => {
@@ -111,23 +94,11 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
   const activeFolder = useMemo(() => findFolder(folderTree, activeFolderId), [folderTree, activeFolderId]);
   const breadcrumb = useMemo(() => findFolderPath(folderTree, activeFolderId) ?? ["SlateDrop"], [folderTree, activeFolderId]);
   const subFolders = activeFolder?.children ?? [];
-  const storageUsed = tier === "trial" ? 1.2 : tier === "standard" ? 42 : 185;
+  const storageUsedGb = usageSummary.storageUsedBytes / (1024 * 1024 * 1024);
 
   const getProjectIdForFolder = useCallback(
-    (folderId: string): string | null => {
-      const projectIds = new Set(sandboxProjects.map((p) => p.id));
-      let cursor: string | null = folderId;
-      const seen = new Set<string>();
-      while (cursor && !seen.has(cursor)) {
-        if (projectIds.has(cursor)) return cursor;
-        seen.add(cursor);
-        const node = findFolder(folderTree, cursor);
-        if (!node) break;
-        cursor = node.parentId;
-      }
-      return null;
-    },
-    [folderTree, sandboxProjects],
+    (_folderId: string): string | null => initialProjectId ?? null,
+    [initialProjectId],
   );
 
   const toDbFile = useCallback((file: SlateDropFileItem): DbFile => ({
@@ -156,9 +127,9 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
   });
 
   const mutations = useSlateDropMutationActions({
-    activeFolderId, folderTree, sandboxProjects,
+    activeFolderId, folderTree,
     moveModal: ui.moveModal, getProjectIdForFolder,
-    refreshFolderFiles: files.refreshFolderFiles, refreshSandboxProjects,
+    refreshFolderFiles: files.refreshFolderFiles, refreshFolderTree,
     showToast, setExpandedIds, setActiveFolderId,
     setRealFiles: files.setRealFiles, setNewFolderModal: ui.setNewFolderModal,
     setRenameModal: ui.setRenameModal, setDeleteConfirm: ui.setDeleteConfirm,
@@ -175,17 +146,44 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
   const handleFileAreaContextMenu = useCallback((e: React.MouseEvent, file: SlateDropFileItem) => { interactions.handleContextMenu(e, toDbFile(file)); }, [interactions.handleContextMenu, toDbFile]);
   const handleFileAreaPreview = useCallback((file: SlateDropFileItem) => { ui.setPreviewFile(toDbFile(file)); }, [toDbFile, ui.setPreviewFile]);
   const handleSubFolderContextMenu = useCallback((e: React.MouseEvent, folder: { id: string; name: string; isSystem?: boolean }) => { interactions.handleContextMenu(e, { type: "folder", id: folder.id, path: folder.id, name: folder.name, isSystem: folder.isSystem }); }, [interactions.handleContextMenu]);
-  const handleDeleteProject = useCallback((projectId: string, projectName: string) => { ui.setDeleteConfirm({ id: projectId, name: projectName, type: "project" }); }, [ui.setDeleteConfirm]);
   const handleOpenSubFolder = useCallback((folderId: string) => { setActiveFolderId(folderId); setSelectedFiles(new Set()); if (!expandedIds.has(activeFolderId)) interactions.toggleExpand(activeFolderId); }, [activeFolderId, expandedIds, interactions.toggleExpand]);
 
-  const projectBanner = useMemo(() => {
-    const p = sandboxProjects.find((x) => x.id === activeFolderId);
-    return p ? { id: p.id, name: p.name, folderCount: p.folders.length } : null;
-  }, [activeFolderId, sandboxProjects]);
+  const projectBanner = null;
 
   /* ================================================================
      RENDER — compose sub-components
      ================================================================ */
+
+  if (!isProjectScoped) {
+    return (
+      <div className={embedded ? "h-full flex flex-col bg-zinc-950 overflow-hidden" : "h-screen flex flex-col bg-zinc-950 overflow-hidden"}>
+        <SlateDropNotificationsOverlay toastMsg={toastMsg} uploadProgress={uploadProgress} />
+
+        <SlateDropTopBar
+          embedded={embedded} user={user} userMenuOpen={userMenuOpen}
+          onToggleMobileSidebar={() => setMobileSidebarOpen((v) => !v)}
+          onToggleUserMenu={() => setUserMenuOpen((v) => !v)}
+          onCloseUserMenu={() => setUserMenuOpen(false)}
+          onSignOut={interactions.handleSignOut}
+        />
+
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-center space-y-3">
+            <h2 className="text-lg font-bold text-white">Open files from a project</h2>
+            <p className="text-sm text-zinc-400">
+              Phase 1 SlateDrop is project-scoped. Open a project first to browse and manage files.
+            </p>
+            <a
+              href="/projects"
+              className="inline-flex items-center justify-center rounded-xl bg-[#D4AF37] px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-[#D4AF37]/85 transition-colors"
+            >
+              Open Projects
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={embedded ? "h-full flex flex-col bg-zinc-950 overflow-hidden" : "h-screen flex flex-col bg-zinc-950 overflow-hidden"}>
@@ -202,7 +200,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
       <div className="flex-1 flex overflow-hidden relative">
         <SlateDropSidebar
           embedded={embedded} mobileSidebarOpen={mobileSidebarOpen} sidebarOpen={sidebarOpen}
-          storageUsed={storageUsed} maxStorageGB={ent.maxStorageGB}
+          storageUsedGb={storageUsedGb} fileCount={usageSummary.fileCount} maxStorageGB={ent.maxStorageGB}
           folderTree={folderTree} activeFolderId={activeFolderId} expandedIds={expandedIds}
           onCloseMobileSidebar={() => setMobileSidebarOpen(false)}
           onRequestNewFolder={handleRequestNewFolder}
@@ -214,7 +212,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
           <SlateDropToolbar
             sidebarOpen={sidebarOpen} breadcrumb={breadcrumb} searchQuery={searchQuery}
             sortKey={sortKey} sortDir={sortDir} viewMode={viewMode}
-            showZipButton={activeFolderId.startsWith("proj-") || activeFolderId === "projects"}
+            showZipButton={Boolean(activeFolderId)}
             onToggleSidebar={() => setSidebarOpen((v) => !v)}
             onSearchChange={setSearchQuery} onCycleSort={handleCycleSort}
             onSetViewMode={setViewMode} onUploadClick={handleUploadClick}
@@ -223,7 +221,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
 
           <SlateDropFileArea
             dragOver={dragOver} activeFolderName={activeFolder?.name}
-            projectBanner={projectBanner} onDeleteProject={handleDeleteProject}
+            projectBanner={projectBanner} onDeleteProject={() => {}}
             onDrop={interactions.handleDrop} onDragOver={interactions.handleDragOver} onDragLeave={interactions.handleDragLeave}
             subFolders={subFolders} onOpenSubFolder={handleOpenSubFolder}
             onSubFolderContextMenu={handleSubFolderContextMenu}
@@ -242,10 +240,9 @@ export default function SlateDropClient({ user, tier, initialProjectId, embedded
 
       <SlateDropContextMenu
         contextMenu={ui.contextMenu as SlateDropContextMenuState | null} activeFolderId={activeFolderId}
-        currentFiles={files.currentFiles} sandboxProjects={sandboxProjects}
+        currentFiles={files.currentFiles}
         onClose={() => ui.setContextMenu(null)}
         onOpenFolder={(id) => setActiveFolderId(id)}
-        onOpenProjectHub={(id) => { window.location.href = `/project-hub/${id}`; }}
         onDownloadFile={transfers.handleDownloadFile}
         onDownloadFolderZip={transfers.handleDownloadFolderZip}
         onRenameFile={(t) => { ui.setRenameModal({ id: t.id, name: t.file_name, type: "file" }); ui.setRenameValue(t.file_name); }}

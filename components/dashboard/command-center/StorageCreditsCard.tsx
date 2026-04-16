@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { HardDrive, Loader2 } from "lucide-react";
@@ -13,11 +14,12 @@ function formatBytes(bytes: number): string {
 
 interface StorageCreditsCardProps {
   storageUsedBytes: number;
+  fileCount: number;
   storageLimitGb: number;
   isLoading: boolean;
 }
 
-export function StorageCreditsCard({ storageUsedBytes, storageLimitGb, isLoading }: StorageCreditsCardProps) {
+export function StorageCreditsCard({ storageUsedBytes, fileCount, storageLimitGb, isLoading }: StorageCreditsCardProps) {
   if (isLoading) {
     return (
       <Card className="bg-glass border-glass shadow-glass">
@@ -44,12 +46,12 @@ export function StorageCreditsCard({ storageUsedBytes, storageLimitGb, isLoading
             <HardDrive className="h-5 w-5 text-primary" />
             Storage
           </CardTitle>
-          <a
+          <Link
             href="/my-account"
             className="text-xs text-muted-foreground hover:text-primary transition-colors"
           >
             Manage
-          </a>
+          </Link>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -60,6 +62,9 @@ export function StorageCreditsCard({ storageUsedBytes, storageLimitGb, isLoading
             <span>{remainingLabel} available</span>
           </div>
         </div>
+        <p className="text-xs text-muted-foreground">
+          {fileCount.toLocaleString()} active files tracked across your workspace
+        </p>
       </CardContent>
     </Card>
   );

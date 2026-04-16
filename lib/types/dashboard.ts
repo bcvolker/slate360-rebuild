@@ -98,10 +98,12 @@ export interface DashboardAccountOverview {
     totalCreditsBalance: number;
   };
   usage: {
+    storageUsedBytes: number;
     storageUsedGb: number;
     storageLimitGb: number;
     monthlyCredits: number;
     projectsCount: number;
+    fileCount: number;
     modelsCount: number;
     toursCount: number;
     docsCount: number;

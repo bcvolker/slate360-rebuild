@@ -2,7 +2,6 @@
 
 import { useCommandCenterData } from "@/lib/hooks/useCommandCenterData";
 import { ProjectOverviewCard } from "./ProjectOverviewCard";
-import { PendingItemsCard } from "./PendingItemsCard";
 import { QuickActionsCard } from "./QuickActionsCard";
 import { RecentFilesCard } from "./RecentFilesCard";
 import { StorageCreditsCard } from "./StorageCreditsCard";
@@ -14,7 +13,7 @@ interface CommandCenterContentProps {
 }
 
 export function CommandCenterContent({ userName, orgName, storageLimitGb }: CommandCenterContentProps) {
-  const { projects, recentFiles, storageUsedBytes, isLoading, error } = useCommandCenterData();
+  const { projects, recentFiles, storageUsedBytes, fileCount, isLoading, error } = useCommandCenterData();
 
   const firstName = userName.split(" ")[0] || orgName || "there";
 
@@ -45,15 +44,13 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb }: Comm
         </div>
       </div>
 
-      {/* Row 2: Active Projects + Recent Files */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <PendingItemsCard data={projects} isLoading={isLoading} />
-        <RecentFilesCard files={recentFiles} isLoading={isLoading} />
-      </div>
+      {/* Row 2: Recent Files */}
+      <RecentFilesCard files={recentFiles} isLoading={isLoading} />
 
       {/* Row 3: Storage */}
       <StorageCreditsCard
         storageUsedBytes={storageUsedBytes}
+        fileCount={fileCount}
         storageLimitGb={storageLimitGb}
         isLoading={isLoading}
       />

@@ -75,6 +75,7 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
       icon={User}
       accent="#D4AF37"
       status="live"
+      showCustomize={false}
     >
       {/* Tab Bar */}
       <div className="flex gap-1 overflow-x-auto border-b border-zinc-800 -mx-1 px-1">
@@ -107,6 +108,7 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
           <AccountBillingTab
             overview={overview}
             isAdmin={isAdmin}
+            isCeo={Boolean(isCeo)}
             tierLabel={entitlements.label}
             loading={loading}
           />
@@ -115,6 +117,7 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
           <AccountDataTrackerTab
             overview={overview}
             isAdmin={isAdmin}
+            isCeo={Boolean(isCeo)}
             maxCredits={entitlements.maxCredits}
             maxStorageGB={entitlements.maxStorageGB}
             tierLabel={entitlements.label}

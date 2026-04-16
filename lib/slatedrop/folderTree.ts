@@ -16,6 +16,13 @@ export type SlateDropRootFolderSummary = {
   icon?: string;
 };
 
+export type ProjectFolderSummary = {
+  id: string;
+  name: string;
+  path: string;
+  projectId: string;
+};
+
 function node(id: string, name: string, opts?: { icon?: string; isSystem?: boolean }): SlateDropFolderNode {
   return {
     id,
@@ -75,4 +82,40 @@ export function buildSlateDropBaseFolderTree(tier: Tier): SlateDropFolderNode[] 
 
 export function listSlateDropRootFolders(tier: Tier): SlateDropRootFolderSummary[] {
   return buildSlateDropBaseFolderTree(tier).map(({ id, name, icon }) => ({ id, name, icon }));
+}
+
+export function buildProjectSlateDropFolderTree(folders: ProjectFolderSummary[]): SlateDropFolderNode[] {
+  const nodesByPath = new Map<string, SlateDropFolderNode>();
+  const roots: SlateDropFolderNode[] = [];
+
+  const sorted = [...folders].sort((a, b) => a.path.localeCompare(b.path));
+
+  for (const folder of sorted) {
+    const path = folder.path || folder.name;
+    const parentPath = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : null;
+    const nodeValue: SlateDropFolderNode = {
+      id: folder.id,
+      name: folder.name,
+      isSystem: parentPath === null,
+      children: [],
+      parentId: null,
+    };
+
+    nodesByPath.set(path, nodeValue);
+
+    if (!parentPath) {
+      roots.push(nodeValue);
+      continue;
+    }
+
+    const parentNode = nodesByPath.get(parentPath);
+    if (parentNode) {
+      nodeValue.parentId = parentNode.id;
+      parentNode.children.push(nodeValue);
+    } else {
+      roots.push(nodeValue);
+    }
+  }
+
+  return roots;
 }

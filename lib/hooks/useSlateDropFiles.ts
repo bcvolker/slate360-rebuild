@@ -30,6 +30,10 @@ export function useSlateDropFiles({ activeFolderId, searchQuery, sortKey, sortDi
   const [filesLoadErrorByFolder, setFilesLoadErrorByFolder] = useState<Record<string, boolean>>({});
 
   const refreshFolderFiles = useCallback(async (folderId: string) => {
+    if (!folderId) {
+      setRealFiles((prev) => ({ ...prev, [folderId]: [] }));
+      return;
+    }
     setLoadingFiles(true);
     try {
       const res = await fetch(`/api/slatedrop/files?folderId=${encodeURIComponent(folderId)}`);
@@ -49,6 +53,9 @@ export function useSlateDropFiles({ activeFolderId, searchQuery, sortKey, sortDi
   }, []);
 
   useEffect(() => {
+    if (!activeFolderId) {
+      return;
+    }
     void refreshFolderFiles(activeFolderId);
   }, [activeFolderId, refreshFolderFiles]);
 

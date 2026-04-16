@@ -21,6 +21,7 @@ export interface DashboardTabShellProps {
   internalAccess?: { operationsConsole?: boolean };
   /** Minimum tier required to use this tab. When set, shows UpgradeGate for lower tiers. */
   requiredTier?: Tier;
+  showCustomize?: boolean;
   children?: React.ReactNode;
 }
 
@@ -34,6 +35,7 @@ export default function DashboardTabShell({
   isCeo = false,
   internalAccess,
   requiredTier,
+  showCustomize = true,
   children,
 }: DashboardTabShellProps) {
   const [customizeOpen, setCustomizeOpen] = useState(false);
@@ -51,7 +53,7 @@ export default function DashboardTabShell({
         internalAccess={internalAccess}
         showBackLink
         searchPlaceholder={`Search ${title}\u2026`}
-        onCustomizeOpen={() => setCustomizeOpen(true)}
+        onCustomizeOpen={showCustomize ? () => setCustomizeOpen(true) : undefined}
       />
 
       {/* MAIN */}
@@ -99,18 +101,20 @@ export default function DashboardTabShell({
       </main>
 
       {/* CUSTOMIZE DRAWER */}
-      <WidgetCustomizeDrawer
-        open={customizeOpen}
-        onClose={() => setCustomizeOpen(false)}
-        title={`Customize ${title}`}
-        subtitle="Widget customization will be available when this module launches"
-        widgetPrefs={[]}
-        widgetMeta={[]}
-        onToggleVisible={() => {}}
-        onSetSize={() => {}}
-        onMoveOrder={() => {}}
-        onReset={() => {}}
-      />
+      {showCustomize && (
+        <WidgetCustomizeDrawer
+          open={customizeOpen}
+          onClose={() => setCustomizeOpen(false)}
+          title={`Customize ${title}`}
+          subtitle="Widget customization will be available when this module launches"
+          widgetPrefs={[]}
+          widgetMeta={[]}
+          onToggleVisible={() => {}}
+          onSetSize={() => {}}
+          onMoveOrder={() => {}}
+          onReset={() => {}}
+        />
+      )}
     </div>
   );
 }

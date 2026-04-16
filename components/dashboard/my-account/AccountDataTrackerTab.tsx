@@ -6,6 +6,7 @@ import type { DashboardAccountOverview } from "@/lib/types/dashboard";
 interface Props {
   overview: DashboardAccountOverview | null;
   isAdmin: boolean;
+  isCeo: boolean;
   maxCredits: number;
   maxStorageGB: number;
   tierLabel: string;
@@ -19,6 +20,7 @@ function UsageBar({ used, max, label, icon: Icon, unit, warning }: {
   const pct = max > 0 ? Math.min((used / max) * 100, 100) : 0;
   const isHigh = pct >= 80;
   const isCritical = pct >= 95;
+  const showWarning = warning ?? isHigh;
 
   return (
     <div className="space-y-2">
@@ -38,7 +40,7 @@ function UsageBar({ used, max, label, icon: Icon, unit, warning }: {
           style={{ width: `${pct}%` }}
         />
       </div>
-      {(isHigh || warning) && (
+      {showWarning && (
         <p className={`text-[10px] flex items-center gap-1 ${isCritical ? "text-red-400" : "text-amber-400"}`}>
           <AlertTriangle size={10} />
           {isCritical ? "Critical: You're almost at your limit. Purchase more to continue." : "Running low — consider purchasing more."}
@@ -48,7 +50,7 @@ function UsageBar({ used, max, label, icon: Icon, unit, warning }: {
   );
 }
 
-export default function AccountDataTrackerTab({ overview, isAdmin, maxCredits, maxStorageGB, tierLabel, loading, onBuyCredits }: Props) {
+export default function AccountDataTrackerTab({ overview, isAdmin, isCeo, maxCredits, maxStorageGB, tierLabel, loading, onBuyCredits }: Props) {
   const usage = overview?.usage;
   const billing = overview?.billing;
 
@@ -60,7 +62,6 @@ export default function AccountDataTrackerTab({ overview, isAdmin, maxCredits, m
     );
   }
 
-  const creditsUsed = (billing?.totalCreditsBalance != null ? maxCredits - billing.totalCreditsBalance : 0);
   const storageUsed = usage?.storageUsedGb ?? 0;
 
   return (
@@ -75,21 +76,22 @@ export default function AccountDataTrackerTab({ overview, isAdmin, maxCredits, m
         </h3>
 
         <UsageBar
-          used={Math.max(0, creditsUsed)}
-          max={maxCredits}
-          label="Credits"
-          icon={Zap}
-          unit="credits"
-        />
-
-        <UsageBar
           used={storageUsed}
           max={maxStorageGB}
           label="Storage"
           icon={HardDrive}
           unit="GB"
+          warning={isCeo ? false : undefined}
         />
       </div>
+
+      {isCeo && (
+        <div className="rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-4 text-center">
+          <p className="text-xs text-zinc-400">
+            Internal owner usage is shown for visibility only. Phase 1 testing flows should not be blocked by normal storage or credit purchase prompts.
+          </p>
+        </div>
+      )}
 
       {/* Asset Breakdown */}
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
@@ -97,9 +99,9 @@ export default function AccountDataTrackerTab({ overview, isAdmin, maxCredits, m
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { label: "Projects", value: usage?.projectsCount ?? 0, icon: FolderOpen },
+            { label: "Files", value: usage?.fileCount ?? 0, icon: FileText },
             { label: "3D Models", value: usage?.modelsCount ?? 0, icon: Box },
-            { label: "Tours", value: usage?.toursCount ?? 0, icon: Compass },
-            { label: "Documents", value: usage?.docsCount ?? 0, icon: FileText },
+            { label: "Images", value: usage?.toursCount ?? 0, icon: Compass },
           ].map((item) => (
             <div key={item.label} className="rounded-xl bg-zinc-800 p-3 text-center">
               <item.icon size={18} className="text-[#D4AF37] mx-auto mb-1.5" />
@@ -127,13 +129,13 @@ export default function AccountDataTrackerTab({ overview, isAdmin, maxCredits, m
             <p className="text-lg font-bold text-[#D4AF37]">{(billing?.totalCreditsBalance ?? 0).toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Credits Used</p>
-            <p className="text-lg font-bold text-zinc-100">{Math.max(0, creditsUsed).toLocaleString()}</p>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Included Monthly Credits</p>
+            <p className="text-lg font-bold text-zinc-100">{maxCredits.toLocaleString()}</p>
           </div>
         </div>
 
         {/* Buy More Credits CTA */}
-        {isAdmin && (
+        {isAdmin && !isCeo && (
           <button
             onClick={onBuyCredits}
             className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-[#D4AF37]/80 transition-colors"

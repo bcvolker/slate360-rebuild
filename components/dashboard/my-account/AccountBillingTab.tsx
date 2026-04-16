@@ -7,6 +7,7 @@ import type { DashboardAccountOverview } from "@/lib/types/dashboard";
 interface Props {
   overview: DashboardAccountOverview | null;
   isAdmin: boolean;
+  isCeo: boolean;
   tierLabel: string;
   loading: boolean;
 }
@@ -17,7 +18,7 @@ const CREDIT_PACKS = [
   { id: "pro", name: "Pro Pack", credits: 50000, desc: "High-volume workflows" },
 ] as const;
 
-export default function AccountBillingTab({ overview, isAdmin, tierLabel, loading }: Props) {
+export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel, loading }: Props) {
   const [portalBusy, setPortalBusy] = useState(false);
   const [creditBusy, setCreditBusy] = useState<string | null>(null);
 
@@ -59,6 +60,18 @@ export default function AccountBillingTab({ overview, isAdmin, tierLabel, loadin
 
   return (
     <div className="space-y-6">
+      {isCeo && (
+        <div className="rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-6">
+          <h3 className="text-sm font-bold text-zinc-100 mb-2 flex items-center gap-2">
+            <Crown size={16} className="text-[#D4AF37]" /> Internal Owner Account
+          </h3>
+          <p className="text-xs text-zinc-400">
+            This account is treated as an internal Slate360 operator account for Phase 1 testing.
+            Subscriber purchase flows, storage upsells, and credit pack prompts are intentionally hidden here.
+          </p>
+        </div>
+      )}
+
       {/* Current Plan */}
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
@@ -83,7 +96,7 @@ export default function AccountBillingTab({ overview, isAdmin, tierLabel, loadin
               </p>
             )}
           </div>
-          {isAdmin && (
+          {isAdmin && !isCeo && (
             <button
               onClick={openBillingPortal}
               disabled={portalBusy}
@@ -97,7 +110,7 @@ export default function AccountBillingTab({ overview, isAdmin, tierLabel, loadin
       </div>
 
       {/* Payment Methods — admin only */}
-      {isAdmin && (
+      {isAdmin && !isCeo && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
           <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
             <CreditCard size={16} className="text-[#D4AF37]" /> Payment Methods
@@ -117,7 +130,7 @@ export default function AccountBillingTab({ overview, isAdmin, tierLabel, loadin
       )}
 
       {/* Buy Credits — admin only */}
-      {isAdmin && (
+      {isAdmin && !isCeo && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
           <h3 className="text-sm font-bold text-zinc-100 mb-1 flex items-center gap-2">
             <Zap size={16} className="text-[#D4AF37]" /> Purchase Credits
@@ -144,7 +157,7 @@ export default function AccountBillingTab({ overview, isAdmin, tierLabel, loadin
       )}
 
       {/* Invoices — admin only */}
-      {isAdmin && (
+      {isAdmin && !isCeo && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
           <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
             <Download size={16} className="text-[#D4AF37]" /> Invoices & Receipts
@@ -164,7 +177,7 @@ export default function AccountBillingTab({ overview, isAdmin, tierLabel, loadin
       )}
 
       {/* Upgrade CTA (non-enterprise) */}
-      {tierLabel !== "Enterprise" && (
+      {tierLabel !== "Enterprise" && !isCeo && (
         <div className="rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -188,6 +201,14 @@ export default function AccountBillingTab({ overview, isAdmin, tierLabel, loadin
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 text-center">
           <p className="text-xs text-zinc-500">
             Billing and payment information is managed by your organization&apos;s administrator.
+          </p>
+        </div>
+      )}
+
+      {isCeo && (
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 text-center">
+          <p className="text-xs text-zinc-500">
+            Internal owner billing is managed outside the standard subscriber self-service flow.
           </p>
         </div>
       )}

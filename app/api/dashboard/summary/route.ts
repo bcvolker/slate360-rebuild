@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveUsageTruth } from "@/lib/server/usage-truth";
 
 export async function GET() {
   const supabase = await createClient();
@@ -43,25 +44,7 @@ export async function GET() {
     return NextResponse.json({ error: recentFilesError.message }, { status: 500 });
   }
 
-  let storageQuery = admin
-    .from("slatedrop_uploads")
-    .select("file_size")
-    .neq("status", "deleted");
-
-  storageQuery = orgId
-    ? storageQuery.eq("org_id", orgId)
-    : storageQuery.eq("uploaded_by", user.id);
-
-  const { data: storageRows, error: storageError } = await storageQuery;
-
-  if (storageError) {
-    return NextResponse.json({ error: storageError.message }, { status: 500 });
-  }
-
-  const storageUsed = (storageRows ?? []).reduce((sum, row) => {
-    const value = Number(row.file_size ?? 0);
-    return sum + (Number.isFinite(value) ? value : 0);
-  }, 0);
+  const usage = await resolveUsageTruth({ userId: user.id, orgId });
 
   const recentFiles = (recentFilesData ?? []).map((row) => ({
     id: row.id,
@@ -73,5 +56,10 @@ export async function GET() {
     created_at: row.created_at,
   }));
 
-  return NextResponse.json({ recentFiles, storageUsed });
+  return NextResponse.json({
+    recentFiles,
+    storageUsedBytes: usage.storageUsedBytes,
+    storageUsedGb: usage.storageUsedGb,
+    fileCount: usage.fileCount,
+  });
 }
