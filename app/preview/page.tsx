@@ -1,28 +1,29 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 
 export default function PreviewHub() {
   return (
-    <div className="min-h-screen bg-background dark flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-950 dark flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="mb-12">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Slate360 Preview Hub</h1>
-          <p className="text-sm text-muted-foreground">Design previews and component demonstrations</p>
+          <h1 className="text-3xl font-bold text-slate-100 mb-2">Slate360 Preview Hub</h1>
+          <p className="text-sm text-slate-400">Design previews and component demonstrations</p>
         </div>
 
         {/* Preview Cards */}
         <div className="grid grid-cols-1 gap-4">
           {/* Mobile Shell Preview */}
           <Link href="/preview/mobile-shell">
-            <div className="p-6 bg-card/60 border border-border rounded-2xl hover:bg-card hover:border-primary/30 transition-all cursor-pointer group">
+            <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-lg hover:bg-slate-800/80 hover:border-slate-700 transition-all cursor-pointer group">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h2 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors mb-1">Mobile Shell</h2>
-                  <p className="text-sm text-muted-foreground">Slate360 mobile app interface preview</p>
+                  <h2 className="text-lg font-semibold text-slate-200 group-hover:text-slate-100 transition-colors mb-1">Mobile Shell</h2>
+                  <p className="text-sm text-slate-500">Slate360 mobile app interface preview</p>
                 </div>
-                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <ChevronRight className="w-4 h-4 text-primary" />
+                <div className="w-8 h-8 bg-amber-500/10 rounded flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
+                  <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </div>
               </div>
             </div>
@@ -30,8 +31,8 @@ export default function PreviewHub() {
         </div>
 
         {/* Footer Info */}
-        <div className="mt-12 p-4 bg-card/30 border border-border/50 rounded-2xl">
-          <p className="text-xs text-muted-foreground">Preview-only routes. No production data or analytics.</p>
+        <div className="mt-12 p-4 bg-slate-900/30 border border-slate-800/50 rounded-lg">
+          <p className="text-xs text-slate-500">Preview-only routes. No production data or analytics.</p>
         </div>
       </div>
     </div>
