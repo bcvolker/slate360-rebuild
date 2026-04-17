@@ -30,13 +30,13 @@ export default function MobileShellPreview() {
         {/* Main Container */}
         <div className="h-full w-full flex flex-col bg-slate-950 relative">
           {/* Proof Header */}
-          <div className="bg-yellow-500/10 border-b border-yellow-500/30 px-4 py-3 text-center">
-            <p className="text-xs font-bold text-yellow-500 uppercase tracking-wider">Slate360 Mobile Shell Preview</p>
-            <p className="text-xs text-yellow-400 mt-1">Home screen proof</p>
+          <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-3 text-center">
+            <p className="text-xs font-bold text-amber-500 uppercase tracking-wider">Slate360 Mobile Shell Preview</p>
+            <p className="text-xs text-amber-400 mt-1">Home screen proof</p>
           </div>
 
           {/* Top Bar - Enhanced Branding */}
-          <div className="flex items-center justify-between px-4 py-3 bg-slate-950 border-b border-yellow-500/20">
+          <div className="flex items-center justify-between px-4 py-3 bg-slate-950 border-b border-amber-500/20">
             {/* Logo */}
             <div className="flex items-center gap-3">
               <div className="relative w-8 h-8">
@@ -51,7 +51,7 @@ export default function MobileShellPreview() {
                   <path d="M12 10L20 14V18L12 22L4 18V14L12 10Z" fill="#FBBF24" />
                 </svg>
               </div>
-              <span className="text-xs font-bold text-yellow-300 tracking-widest hidden sm:inline">SLATE360</span>
+              <span className="text-xs font-bold text-amber-300 tracking-widest hidden sm:inline">SLATE360</span>
             </div>
 
             {/* Actions */}
@@ -61,10 +61,10 @@ export default function MobileShellPreview() {
               </button>
               <button className="p-2 hover:bg-slate-900 rounded-lg transition-colors relative">
                 <Bell size={18} className="text-slate-400" />
-                <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-yellow-400 rounded-full" />
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-400 rounded-full" />
               </button>
-              <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center border border-yellow-400/50">
-                <span className="text-xs font-bold text-yellow-400">JD</span>
+              <div className="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center border border-amber-400/50">
+                <span className="text-xs font-bold text-amber-400">JD</span>
               </div>
             </div>
           </div>
@@ -73,7 +73,7 @@ export default function MobileShellPreview() {
           <div className="flex-1 overflow-y-auto px-3 py-4 pb-24 space-y-6">
             {/* PRIORITY 1: Subscribed Apps - Premium Adaptive Grid */}
             <div>
-              <h3 className="text-xs font-bold text-yellow-300 uppercase tracking-wider mb-2 px-1">Apps</h3>
+              <h3 className="text-xs font-bold text-amber-300 uppercase tracking-wider mb-2 px-1">Apps</h3>
               <div className="flex justify-center w-full">
                 <div className={`grid gap-x-3 gap-y-2 w-full ${gridLayout.cols} ${gridLayout.maxW}`}>
                   {apps.map((app, idx) => (
@@ -81,13 +81,13 @@ export default function MobileShellPreview() {
                       key={idx}
                       className="relative group"
                     >
-                      <div className="h-20 bg-slate-800/50 border border-slate-700 hover:border-yellow-400 rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:bg-slate-800">
-                        <div className="p-1.5 bg-slate-700/50 rounded-lg">
-                          <app.icon size={14} className="text-yellow-400" />
+                      <div className="h-16 bg-slate-800/50 border border-slate-700 hover:border-amber-500 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all hover:bg-slate-800">
+                        <div className="p-1 bg-slate-700/50 rounded-md">
+                          <app.icon size={12} className="text-amber-500" />
                         </div>
-                        <span className="text-xs font-medium text-slate-300 text-center px-0.5">{app.label}</span>
+                        <span className="text-xs font-medium text-slate-300 text-center px-0.5 line-clamp-2">{app.label}</span>
                         {app.status === "coming" && (
-                          <span className="text-xs font-medium text-slate-500 opacity-70 text-center leading-none">Coming<br />Soon</span>
+                          <span className="text-xs font-medium text-slate-500 opacity-60 text-center leading-tight" style={{fontSize: "9px"}}>Coming Soon</span>
                         )}
                       </div>
                     </button>
@@ -100,7 +100,7 @@ export default function MobileShellPreview() {
             <div>
               <div className="flex items-center justify-between mb-2 px-1">
                 <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Notifications</h3>
-                <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-yellow-500/90 text-slate-950 rounded-sm">3</span>
+                <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-amber-500/90 text-slate-950 rounded-sm">3</span>
               </div>
               <div className="space-y-2">
                 {[
@@ -110,12 +110,12 @@ export default function MobileShellPreview() {
                 ].map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-3 p-3 bg-slate-800/50 border border-slate-700 hover:border-yellow-400 rounded-lg transition-all cursor-pointer hover:bg-slate-800"
+                    className="flex items-start gap-3 p-3 bg-slate-800/50 border border-slate-700 hover:border-amber-500 rounded-lg transition-all cursor-pointer hover:bg-slate-800"
                   >
                     <div className="pt-1 flex-shrink-0">
-                      {item.type === "review" && <AlertCircle size={14} className="text-yellow-400" />}
-                      {item.type === "upload" && <MessageSquare size={14} className="text-yellow-400" />}
-                      {item.type === "submission" && <CheckSquare size={14} className="text-yellow-400" />}
+                      {item.type === "review" && <AlertCircle size={14} className="text-amber-500" />}
+                      {item.type === "upload" && <MessageSquare size={14} className="text-amber-500" />}
+                      {item.type === "submission" && <CheckSquare size={14} className="text-amber-500" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-slate-200">{item.label}</p>
@@ -142,10 +142,10 @@ export default function MobileShellPreview() {
                 ].map((action, idx) => (
                   <button
                     key={idx}
-                    className="h-20 bg-slate-800/50 border border-slate-700 hover:border-yellow-400 rounded-xl transition-all flex flex-col items-center justify-center gap-1 hover:bg-slate-800"
+                    className="h-20 bg-slate-800/50 border border-slate-700 hover:border-amber-500 rounded-xl transition-all flex flex-col items-center justify-center gap-1 hover:bg-slate-800"
                   >
                     <div className="p-1.5 bg-slate-700/50 rounded-lg">
-                      <action.icon size={14} className="text-yellow-400" />
+                      <action.icon size={14} className="text-amber-500" />
                     </div>
                     <span className="text-xs font-medium text-slate-300 text-center px-0.5">{action.label}</span>
                   </button>
@@ -158,7 +158,7 @@ export default function MobileShellPreview() {
               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Pinned</h3>
               <div className="space-y-1">
                 {[1, 2, 3].map((idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-2 bg-slate-800/40 border border-slate-700 hover:border-yellow-400 rounded transition-colors cursor-pointer">
+                  <div key={idx} className="flex items-center gap-2 p-2 bg-slate-800/40 border border-slate-700 hover:border-amber-500 rounded transition-colors cursor-pointer">
                     <Star size={12} className="text-slate-600 flex-shrink-0" fill="currentColor" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-slate-400">Project</p>
@@ -176,7 +176,7 @@ export default function MobileShellPreview() {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 bg-slate-800/40 border border-slate-700 rounded-lg text-xs text-slate-300 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-800/40 border border-slate-700 rounded-lg text-xs text-slate-300 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-transparent"
                 />
               </div>
             </div>
@@ -194,7 +194,7 @@ export default function MobileShellPreview() {
               <button
                 key={idx}
                 className={`flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg transition-all text-xs font-medium ${
-                  nav.active ? "text-yellow-400 bg-slate-800/40" : "text-slate-500 hover:text-slate-400"
+                  nav.active ? "text-amber-500 bg-slate-800/40" : "text-slate-500 hover:text-slate-400"
                 }`}
               >
                 <nav.icon size={18} />
