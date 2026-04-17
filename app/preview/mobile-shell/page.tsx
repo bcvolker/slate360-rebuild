@@ -81,11 +81,11 @@ export default function MobileShellPreview() {
                       key={idx}
                       className="relative group"
                     >
-                      <div className="h-20 bg-slate-800/50 border border-yellow-500/40 hover:border-yellow-400 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all hover:bg-slate-800 hover:shadow-md hover:shadow-yellow-400/15">
-                        <div className="p-1.5 bg-slate-700/50 group-hover:bg-slate-600 rounded-lg transition-colors">
-                          <app.icon size={14} className="text-slate-300 group-hover:text-yellow-300" />
+                      <div className="h-20 bg-slate-800/50 border border-slate-700 hover:border-yellow-400 rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:bg-slate-800">
+                        <div className="p-1.5 bg-slate-700/50 rounded-lg">
+                          <app.icon size={14} className="text-yellow-400" />
                         </div>
-                        <span className="text-xs font-medium text-slate-100 text-center px-0.5 leading-tight">{app.label}</span>
+                        <span className="text-xs font-medium text-slate-300 text-center px-0.5">{app.label}</span>
                         {app.status === "coming" && (
                           <span className="text-xs font-medium text-slate-500 opacity-70 text-center leading-none">Coming<br />Soon</span>
                         )}
@@ -110,7 +110,7 @@ export default function MobileShellPreview() {
                 ].map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-3 p-3 bg-slate-800/50 border border-slate-700 hover:border-cyan-700/60 rounded-lg transition-all cursor-pointer hover:bg-slate-800"
+                    className="flex items-start gap-3 p-3 bg-slate-800/50 border border-slate-700 hover:border-yellow-400 rounded-lg transition-all cursor-pointer hover:bg-slate-800"
                   >
                     <div className="pt-1 flex-shrink-0">
                       {item.type === "review" && <AlertCircle size={14} className="text-yellow-400" />}
@@ -142,7 +142,7 @@ export default function MobileShellPreview() {
                 ].map((action, idx) => (
                   <button
                     key={idx}
-                    className="h-20 bg-slate-800/50 border border-slate-700 hover:border-cyan-700/60 rounded-xl transition-all flex flex-col items-center justify-center gap-1 hover:bg-slate-800"
+                    className="h-20 bg-slate-800/50 border border-slate-700 hover:border-yellow-400 rounded-xl transition-all flex flex-col items-center justify-center gap-1 hover:bg-slate-800"
                   >
                     <div className="p-1.5 bg-slate-700/50 rounded-lg">
                       <action.icon size={14} className="text-yellow-400" />
@@ -158,7 +158,7 @@ export default function MobileShellPreview() {
               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Pinned</h3>
               <div className="space-y-1">
                 {[1, 2, 3].map((idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-2 bg-slate-800/40 border border-slate-700 hover:border-cyan-700/60 rounded transition-colors cursor-pointer">
+                  <div key={idx} className="flex items-center gap-2 p-2 bg-slate-800/40 border border-slate-700 hover:border-yellow-400 rounded transition-colors cursor-pointer">
                     <Star size={12} className="text-slate-600 flex-shrink-0" fill="currentColor" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-slate-400">Project</p>
@@ -194,7 +194,7 @@ export default function MobileShellPreview() {
               <button
                 key={idx}
                 className={`flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg transition-all text-xs font-medium ${
-                  nav.active ? "text-cyan-300 bg-cyan-950/40" : "text-slate-500 hover:text-slate-400"
+                  nav.active ? "text-yellow-400 bg-slate-800/40" : "text-slate-500 hover:text-slate-400"
                 }`}
               >
                 <nav.icon size={18} />
