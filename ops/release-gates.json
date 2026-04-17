@@ -24,8 +24,9 @@
     },
     {
       "id": "clob-contract",
-      "required": true,
-      "command": "node scripts/ops/check-clob-contract.mjs"
+      "required": false,
+      "command": "node scripts/ops/check-clob-contract.mjs",
+      "disabledReason": "app/api/market/buy/route.ts and lib/market/clob-api.ts were deleted; re-enable when CLOB routes are rebuilt"
     },
     {
       "id": "lint",

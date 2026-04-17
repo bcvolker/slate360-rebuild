@@ -13,7 +13,6 @@
     "app/(dashboard)/project-hub/[projectId]/schedule/page.tsx": 465,
     "app/(dashboard)/project-hub/[projectId]/submittals/page.tsx": 580,
     "app/api/dashboard/widgets/route.ts": 345,
-    "app/api/market/buy/route.ts": 309,
     "app/api/market/scan/route.ts": 396,
     "app/api/slatedrop/folders/route.ts": 334,
     "app/page.tsx": 780,
