@@ -55,3 +55,6 @@ supabase/.temp/
 /v0-staging/
 public/sw.js
 public/sw.js.map
+
+# Brand audit screenshots (generated)
+/.brand-audit/

@@ -1,0 +1,537 @@
+{
+  "$schema": "./schemas/surface-inventory.schema.json",
+  "updatedAt": "2026-04-17",
+  "description": "All user-visible Slate360 surfaces for design-system rollout tracking",
+  "surfaces": [
+    {
+      "id": "homepage",
+      "route": "/",
+      "classification": "live-primary",
+      "category": "marketing",
+      "files": ["app/page.tsx", "components/marketing-homepage.tsx", "components/home/LandingPage.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "login",
+      "route": "/login",
+      "classification": "live-primary",
+      "category": "auth",
+      "files": ["app/login/page.tsx"],
+      "brandMigrated": true
+    },
+    {
+      "id": "signup",
+      "route": "/signup",
+      "classification": "live-primary",
+      "category": "auth",
+      "files": ["app/signup/page.tsx", "components/auth/SignupConfirmation.tsx"],
+      "brandMigrated": true
+    },
+    {
+      "id": "forgot-password",
+      "route": "/forgot-password",
+      "classification": "live-primary",
+      "category": "auth",
+      "files": ["app/forgot-password/page.tsx"],
+      "brandMigrated": true
+    },
+    {
+      "id": "reset-password",
+      "route": "/reset-password",
+      "classification": "live-primary",
+      "category": "auth",
+      "files": ["app/reset-password/page.tsx"],
+      "brandMigrated": true
+    },
+    {
+      "id": "beta-pending",
+      "route": "/beta-pending",
+      "classification": "live-secondary",
+      "category": "auth",
+      "files": ["app/beta-pending/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "dashboard",
+      "route": "/dashboard",
+      "classification": "live-primary",
+      "category": "dashboard",
+      "files": ["app/(dashboard)/dashboard/page.tsx", "components/walled-garden-dashboard.tsx", "components/dashboard/DashboardClient.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "command-center",
+      "route": "/dashboard",
+      "classification": "live-primary",
+      "category": "dashboard",
+      "files": ["components/dashboard/command-center/CommandCenterContent.tsx", "components/dashboard/command-center/QuickActionsCard.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "projects",
+      "route": "/projects",
+      "classification": "live-primary",
+      "category": "project",
+      "files": ["app/(dashboard)/projects/page.tsx", "app/(dashboard)/projects/ClientPage.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "project-hub",
+      "route": "/project-hub",
+      "classification": "live-primary",
+      "category": "project-hub",
+      "files": ["app/(dashboard)/project-hub/page.tsx", "app/(dashboard)/project-hub/ClientPage.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "slatedrop-global",
+      "route": "/slatedrop",
+      "classification": "live-primary",
+      "category": "slatedrop",
+      "files": ["app/slatedrop/page.tsx", "components/slatedrop/SlateDropClient.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "site-walk",
+      "route": "/site-walk",
+      "classification": "live-primary",
+      "category": "site-walk",
+      "files": ["app/site-walk/layout.tsx", "components/site-walk/SessionListClient.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "share-file",
+      "route": "/share/[token]",
+      "classification": "live-primary",
+      "category": "external",
+      "files": ["app/share/[token]/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "share-deliverable",
+      "route": "/share/deliverable/[token]",
+      "classification": "live-primary",
+      "category": "external",
+      "files": ["app/share/deliverable/[token]/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "upload-portal",
+      "route": "/upload/[token]",
+      "classification": "live-primary",
+      "category": "external",
+      "files": ["app/upload/[token]/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "external-respond",
+      "route": "/external/respond/[token]",
+      "classification": "live-primary",
+      "category": "external",
+      "files": ["app/external/respond/[token]/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "public-portal",
+      "route": "/portal/[token]",
+      "classification": "live-primary",
+      "category": "external",
+      "files": ["app/(public)/portal/[token]/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "public-apps",
+      "route": "/apps/[slug]",
+      "classification": "live-primary",
+      "category": "marketing",
+      "files": ["app/(public)/apps/[slug]/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "my-account",
+      "route": "/my-account",
+      "classification": "live-primary",
+      "category": "account",
+      "files": ["app/(dashboard)/my-account/page.tsx", "components/dashboard/DashboardMyAccount.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "settings",
+      "route": "/settings",
+      "classification": "live-primary",
+      "category": "settings",
+      "files": ["app/(dashboard)/settings/page.tsx", "components/settings/AccountSettingsClient.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "plans",
+      "route": "/plans",
+      "classification": "live-primary",
+      "category": "billing",
+      "files": ["app/(dashboard)/plans/page.tsx", "components/dashboard/plans/PlansClient.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "tours-list",
+      "route": "/tours",
+      "classification": "live-primary",
+      "category": "tours",
+      "files": ["app/(dashboard)/tours/page.tsx", "components/tours/TourListClient.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "tour-builder",
+      "route": "/tour-builder",
+      "classification": "live-primary",
+      "category": "tours",
+      "files": ["app/(apps)/tour-builder/page.tsx", "components/tours/TourBuilderShell.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "tours-public-viewer",
+      "route": "/tours/view/[slug]",
+      "classification": "live-primary",
+      "category": "tours",
+      "files": ["app/tours/view/[slug]/page.tsx", "components/tours/PublicTourViewer.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "virtual-studio",
+      "route": "/virtual-studio",
+      "classification": "live-primary",
+      "category": "virtual-studio",
+      "files": ["app/(apps)/virtual-studio/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "content-studio",
+      "route": "/content-studio",
+      "classification": "live-primary",
+      "category": "content-studio",
+      "files": ["app/(apps)/content-studio/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "design-studio",
+      "route": "/design-studio",
+      "classification": "live-primary",
+      "category": "design-studio",
+      "files": ["app/(apps)/design-studio/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "geospatial",
+      "route": "/geospatial",
+      "classification": "live-primary",
+      "category": "geospatial",
+      "files": ["app/(apps)/geospatial/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "market",
+      "route": "/market",
+      "classification": "live-primary",
+      "category": "market",
+      "files": ["app/(dashboard)/market/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "operations-console",
+      "route": "/operations-console",
+      "classification": "live-primary",
+      "category": "admin",
+      "files": ["app/(dashboard)/operations-console/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "analytics",
+      "route": "/analytics",
+      "classification": "live-primary",
+      "category": "admin",
+      "files": ["app/(dashboard)/analytics/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "super-admin",
+      "route": "/super-admin",
+      "classification": "live-primary",
+      "category": "admin",
+      "files": ["app/(admin)/super-admin/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "install",
+      "route": "/install",
+      "classification": "live-primary",
+      "category": "onboarding",
+      "files": ["app/install/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "terms",
+      "route": "/terms",
+      "classification": "live-primary",
+      "category": "legal",
+      "files": ["app/terms/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "privacy",
+      "route": "/privacy",
+      "classification": "live-primary",
+      "category": "legal",
+      "files": ["app/privacy/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "not-found",
+      "route": "/*",
+      "classification": "live-primary",
+      "category": "error",
+      "files": ["app/not-found.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "global-error",
+      "route": "/*",
+      "classification": "live-primary",
+      "category": "error",
+      "files": ["app/global-error.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "offline",
+      "route": "/~offline",
+      "classification": "live-primary",
+      "category": "error",
+      "files": ["app/~offline/page.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "deploy-check",
+      "route": "/deploy-check",
+      "classification": "live-secondary",
+      "category": "diagnostic",
+      "files": ["app/deploy-check/page.tsx"],
+      "brandMigrated": false
+    }
+  ],
+  "sharedShells": [
+    {
+      "id": "navbar",
+      "files": ["components/Navbar.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "footer",
+      "files": ["components/Footer.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "dashboard-sidebar",
+      "files": ["components/dashboard/command-center/DashboardSidebar.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "dashboard-topbar",
+      "files": ["components/dashboard/command-center/DashboardTopBar.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "dashboard-header",
+      "files": ["components/shared/DashboardHeader.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "dashboard-tab-shell",
+      "files": ["components/shared/DashboardTabShell.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "mobile-nav-sheet",
+      "files": ["components/shared/MobileNavSheet.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "mobile-module-bar",
+      "files": ["components/shared/MobileModuleBar.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "mobile-quick-access",
+      "files": ["components/dashboard/MobileQuickAccess.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "quick-nav",
+      "files": ["components/shared/QuickNav.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "landing-header",
+      "files": ["components/home/LandingHeader.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "landing-footer",
+      "files": ["components/home/LandingFooter.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "site-walk-nav",
+      "files": ["components/site-walk/SiteWalkNav.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "app-sidebar",
+      "files": ["components/apps/AppSidebar.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "app-topbar",
+      "files": ["components/apps/AppTopBar.tsx"],
+      "brandMigrated": false
+    },
+    {
+      "id": "slate-logo",
+      "files": ["components/shared/SlateLogo.tsx"],
+      "brandMigrated": true
+    },
+    {
+      "id": "trial-banner",
+      "files": ["components/shared/TrialBanner.tsx"],
+      "brandMigrated": false
+    }
+  ],
+  "emailSurfaces": [
+    {
+      "id": "welcome-email",
+      "type": "repo-managed",
+      "file": "lib/email.ts",
+      "function": "sendWelcomeEmail",
+      "brandMigrated": true
+    },
+    {
+      "id": "secure-send-email",
+      "type": "repo-managed",
+      "file": "lib/email.ts",
+      "function": "sendSecureSendEmail",
+      "brandMigrated": true
+    },
+    {
+      "id": "password-reset-email",
+      "type": "repo-managed",
+      "file": "lib/email.ts",
+      "function": "sendPasswordResetEmail",
+      "brandMigrated": true
+    },
+    {
+      "id": "external-response-email",
+      "type": "repo-managed",
+      "file": "lib/email.ts",
+      "function": "sendExternalResponseRequestEmail",
+      "brandMigrated": true
+    },
+    {
+      "id": "confirmation-email",
+      "type": "repo-managed",
+      "file": "lib/email.ts",
+      "function": "sendConfirmationEmail",
+      "brandMigrated": true
+    },
+    {
+      "id": "deliverable-share-email",
+      "type": "repo-managed",
+      "file": "lib/email-site-walk.ts",
+      "function": "sendDeliverableShareEmail",
+      "brandMigrated": true
+    },
+    {
+      "id": "supabase-confirmation",
+      "type": "external-managed",
+      "provider": "supabase",
+      "templateKey": "mailer_templates_confirmation_content",
+      "brandMigrated": true
+    },
+    {
+      "id": "supabase-recovery",
+      "type": "external-managed",
+      "provider": "supabase",
+      "templateKey": "mailer_templates_recovery_content",
+      "brandMigrated": true
+    },
+    {
+      "id": "supabase-magic-link",
+      "type": "external-managed",
+      "provider": "supabase",
+      "templateKey": "mailer_templates_magic_link_content",
+      "brandMigrated": true
+    },
+    {
+      "id": "supabase-email-change",
+      "type": "external-managed",
+      "provider": "supabase",
+      "templateKey": "mailer_templates_email_change_content",
+      "brandMigrated": true
+    },
+    {
+      "id": "supabase-invite",
+      "type": "external-managed",
+      "provider": "supabase",
+      "templateKey": "mailer_templates_invite_content",
+      "brandMigrated": true
+    }
+  ],
+  "assetSurfaces": [
+    {
+      "id": "logo-reversed-v2",
+      "file": "public/uploads/slate360-logo-reversed-v2.svg",
+      "status": "current"
+    },
+    {
+      "id": "favicon-v2",
+      "file": "public/icon-v2.svg",
+      "status": "current"
+    },
+    {
+      "id": "favicon-upload-v2",
+      "file": "public/uploads/slate360-favicon-v2.svg",
+      "status": "current"
+    },
+    {
+      "id": "icon-192",
+      "file": "public/uploads/icon-192.png",
+      "status": "current"
+    },
+    {
+      "id": "icon-512",
+      "file": "public/uploads/icon-512.png",
+      "status": "current"
+    },
+    {
+      "id": "icon-512-maskable",
+      "file": "public/uploads/icon-512-maskable.png",
+      "status": "current"
+    },
+    {
+      "id": "old-logo-reversed",
+      "file": "public/uploads/SLATE 360-Color Reversed Lockup.svg",
+      "status": "legacy"
+    },
+    {
+      "id": "old-logo-color",
+      "file": "public/uploads/SLATE 360-Color Lockup (1).svg",
+      "status": "legacy"
+    },
+    {
+      "id": "old-favicon",
+      "file": "public/uploads/favicon.svg",
+      "status": "legacy"
+    },
+    {
+      "id": "old-logo-root",
+      "file": "public/logo.svg",
+      "status": "legacy"
+    }
+  ]
+}

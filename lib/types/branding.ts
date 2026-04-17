@@ -12,7 +12,10 @@ export interface OrgBranding {
   font_family: string;
 }
 
-/** Hard-coded Slate360 brand identity — used when org has no custom branding. */
+/**
+ * Hard-coded Slate360 brand identity — used when org has no custom branding.
+ * Values sourced from lib/design-system/tokens.ts (single source of truth).
+ */
 export const DEFAULT_BRANDING: OrgBranding = {
   is_default: true,
   logo_url: "/uploads/slate360-logo-reversed-v2.svg",
