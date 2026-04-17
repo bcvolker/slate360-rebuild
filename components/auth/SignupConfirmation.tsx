@@ -49,7 +49,7 @@ export default function SignupConfirmation({
   return (
     <div className="auth-page">
       <div className="auth-topbar">
-        <Link href="/"><img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-7 w-auto" /></Link>
+        <Link href="/"><img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto" /></Link>
       </div>
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="auth-card text-center">

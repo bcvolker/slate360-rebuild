@@ -10,7 +10,7 @@
  * To change the logo sitewide, update the `src` constant below.
  */
 
-const LOGO_SRC = "/uploads/SLATE 360-Color Reversed Lockup.svg";
+const LOGO_SRC = "/uploads/slate360-logo-reversed-v2.svg";
 
 const SIZE_MAP = {
   sm: "h-5 w-auto",

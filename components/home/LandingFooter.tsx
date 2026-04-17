@@ -12,7 +12,7 @@ export default function LandingFooter() {
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <img
-                src="/uploads/SLATE 360-Color Reversed Lockup.svg"
+                src="/uploads/slate360-logo-reversed-v2.svg"
                 alt="Slate360"
                 className="h-7 w-auto"
               />

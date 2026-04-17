@@ -152,7 +152,7 @@ export default async function AppDetailPage({ params }: { params: Promise<{ slug
         <div className="container mx-auto h-full px-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center">
-              <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-7 w-auto" />
+              <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto" />
             </Link>
             <Link
               href="/#apps"

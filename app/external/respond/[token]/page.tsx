@@ -93,7 +93,7 @@ export default function ExternalRespondPage() {
     return (
       <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-4 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-7 w-auto opacity-70" />
+          <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto opacity-70" />
           <div className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm text-slate-600 flex items-center gap-2 shadow-sm">
             <Loader2 size={16} className="animate-spin text-[#D4AF37]" /> Loading response form…
           </div>
@@ -107,7 +107,7 @@ export default function ExternalRespondPage() {
       <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-4 flex items-center justify-center">
         <div className="max-w-md w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="bg-[#D4AF37] px-6 py-4">
-            <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-6 w-auto brightness-0 invert mb-2 opacity-90" />
+            <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-6 w-auto brightness-0 invert mb-2 opacity-90" />
             <p className="text-sm text-blue-100">Slate360 Secure Portal</p>
           </div>
           <div className="p-5 text-center">
@@ -126,7 +126,7 @@ export default function ExternalRespondPage() {
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-4 sm:p-6">
       {/* Branded page header */}
       <div className="mx-auto max-w-2xl mb-4 flex items-center gap-3">
-        <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-6 w-auto" />
+        <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-6 w-auto" />
         <div className="h-4 w-px bg-slate-300" />
         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Secure Response Portal</p>
       </div>
