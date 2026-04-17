@@ -8,19 +8,17 @@ export default function MobileShellPreview() {
     { label: "Content Studio", icon: BookOpen, status: "coming" },
   ];
 
-  // Calculate grid columns based on app count
-  const getGridCols = () => {
-    if (apps.length === 1) return "grid-cols-1";
-    if (apps.length === 3) return "grid-cols-2";
-    return "grid-cols-2";
+  // Calculate grid layout based on app count
+  const getAppGridLayout = () => {
+    const count = apps.length;
+    if (count === 1) return { cols: "grid-cols-1", maxW: "max-w-[140px]" };
+    if (count === 2) return { cols: "grid-cols-2", maxW: "max-w-[240px]" };
+    if (count === 3) return { cols: "grid-cols-2", maxW: "max-w-[240px]" };
+    // 4+ returns 2x2 grid
+    return { cols: "grid-cols-2", maxW: "max-w-[240px]" };
   };
 
-  // Calculate max-width based on app count
-  const getMaxWidth = () => {
-    if (apps.length === 1) return "max-w-[110px]";
-    if (apps.length === 3) return "max-w-[202px]";
-    return "max-w-[202px]";
-  };
+  const gridLayout = getAppGridLayout();
 
   return (
     <div className="min-h-screen bg-slate-950 dark flex items-center justify-center p-4">
@@ -77,7 +75,7 @@ export default function MobileShellPreview() {
             <div>
               <h3 className="text-xs font-bold text-yellow-300 uppercase tracking-wider mb-2 px-1">Apps</h3>
               <div className="flex justify-center w-full">
-                <div className={`grid gap-x-3 gap-y-2 w-full ${getGridCols()} ${getMaxWidth()}`}>
+                <div className={`grid gap-x-3 gap-y-2 w-full ${gridLayout.cols} ${gridLayout.maxW}`}>
                   {apps.map((app, idx) => (
                     <button
                       key={idx}
@@ -112,7 +110,7 @@ export default function MobileShellPreview() {
                 ].map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-3 p-3 bg-slate-800/50 border border-slate-700 hover:border-blue-500/40 rounded-lg transition-all cursor-pointer hover:bg-slate-800"
+                    className="flex items-start gap-3 p-3 bg-slate-800/50 border border-slate-700 hover:border-cyan-700/60 rounded-lg transition-all cursor-pointer hover:bg-slate-800"
                   >
                     <div className="pt-1 flex-shrink-0">
                       {item.type === "review" && <AlertCircle size={14} className="text-yellow-400" />}
@@ -144,7 +142,7 @@ export default function MobileShellPreview() {
                 ].map((action, idx) => (
                   <button
                     key={idx}
-                    className="h-20 bg-slate-800/50 border border-slate-700 hover:border-blue-500/40 rounded-xl transition-all flex flex-col items-center justify-center gap-1 hover:bg-slate-800"
+                    className="h-20 bg-slate-800/50 border border-slate-700 hover:border-cyan-700/60 rounded-xl transition-all flex flex-col items-center justify-center gap-1 hover:bg-slate-800"
                   >
                     <div className="p-1.5 bg-slate-700/50 rounded-lg">
                       <action.icon size={14} className="text-yellow-400" />
@@ -160,7 +158,7 @@ export default function MobileShellPreview() {
               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Pinned</h3>
               <div className="space-y-1">
                 {[1, 2, 3].map((idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-2 bg-slate-800/40 border border-slate-700 hover:border-blue-500/40 rounded transition-colors cursor-pointer">
+                  <div key={idx} className="flex items-center gap-2 p-2 bg-slate-800/40 border border-slate-700 hover:border-cyan-700/60 rounded transition-colors cursor-pointer">
                     <Star size={12} className="text-slate-600 flex-shrink-0" fill="currentColor" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-slate-400">Project</p>
@@ -196,7 +194,7 @@ export default function MobileShellPreview() {
               <button
                 key={idx}
                 className={`flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-lg transition-all text-xs font-medium ${
-                  nav.active ? "text-blue-400 bg-blue-500/10" : "text-slate-500 hover:text-slate-400"
+                  nav.active ? "text-cyan-300 bg-cyan-950/40" : "text-slate-500 hover:text-slate-400"
                 }`}
               >
                 <nav.icon size={18} />
