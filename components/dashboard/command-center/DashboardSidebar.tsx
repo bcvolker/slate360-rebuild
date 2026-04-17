@@ -59,7 +59,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
         {/* Search */}
         <button
           onClick={() => setSearchExpanded(!searchExpanded)}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] transition-all"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-primary/10 hover:text-primary transition-all"
         >
           <Search className="h-4 w-4" />
           Search
@@ -72,7 +72,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
               placeholder="Search projects, clients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 text-sm bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-[#D4AF37]"
+              className="h-8 text-sm bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-primary/50"
               autoFocus
             />
           </div>
@@ -82,7 +82,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
           <a
             key={item.label}
             href={item.href}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] transition-all"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-primary/10 hover:text-primary transition-all"
           >
             <item.icon className="h-4 w-4" />
             {item.label}
@@ -93,7 +93,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
         {hasOperationsConsoleAccess && (
           <a
             href="/operations-console"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] transition-all"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-primary/10 hover:text-primary transition-all"
           >
             <Shield className="h-4 w-4" />
             Operations Console

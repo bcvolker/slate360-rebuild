@@ -28,7 +28,7 @@ export default function Footer() {
           <ul className="space-y-2.5">
             {platformLinks.map((f) => (
               <li key={f.href}>
-                <Link href={f.href} className="text-sm text-gray-600 hover:text-[#D4AF37] transition-colors">
+                <Link href={f.href} className="text-sm text-gray-600 hover:text-primary transition-colors">
                   {f.label}
                 </Link>
               </li>
@@ -45,7 +45,7 @@ export default function Footer() {
               { label: "Contact", href: "/contact" },
             ].map((l) => (
               <li key={l.label}>
-                <Link href={l.href} className="text-sm text-gray-600 hover:text-[#D4AF37] transition-colors">
+                <Link href={l.href} className="text-sm text-gray-600 hover:text-primary transition-colors">
                   {l.label}
                 </Link>
               </li>
@@ -63,7 +63,7 @@ export default function Footer() {
               { label: "Security", href: "#" },
             ].map((l) => (
               <li key={l.label}>
-                <Link href={l.href} className="text-sm text-gray-600 hover:text-[#D4AF37] transition-colors">
+                <Link href={l.href} className="text-sm text-gray-600 hover:text-primary transition-colors">
                   {l.label}
                 </Link>
               </li>

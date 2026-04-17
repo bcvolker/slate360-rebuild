@@ -115,7 +115,7 @@ export default function DashboardHeader({
           {showBackLink && (
             <Link
               href="/dashboard"
-              className="hidden sm:flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-[#D4AF37] transition-colors"
+              className="hidden sm:flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-primary transition-colors"
             >
               <ChevronLeft size={14} /> Command Center
             </Link>
@@ -160,7 +160,7 @@ export default function DashboardHeader({
             >
               <Bell size={18} />
               {notifications.length > 0 && (
-                <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-[#D4AF37]" />
+                <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-primary" />
               )}
             </button>
 
@@ -173,7 +173,7 @@ export default function DashboardHeader({
                     {onRefreshNotifications && (
                       <button
                         onClick={onRefreshNotifications}
-                        className="text-xs font-semibold text-[#D4AF37] hover:opacity-80"
+                        className="text-xs font-semibold text-primary hover:opacity-80"
                       >
                         Refresh
                       </button>
@@ -218,7 +218,7 @@ export default function DashboardHeader({
             <button
               onClick={onCustomizeOpen}
               title="Customize layout"
-              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-[#D4AF37] transition-colors"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-primary transition-colors"
             >
               <SlidersHorizontal size={18} />
               {prefsDirty && (
@@ -255,7 +255,7 @@ export default function DashboardHeader({
                     <p className="text-sm font-semibold text-white">{user.name}</p>
                     <p className="text-xs text-zinc-400 truncate">{user.email}</p>
                     <span
-                      className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white bg-[#D4AF37]"
+                      className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-primary-foreground bg-primary"
                     >
                       {ent.label}
                     </span>

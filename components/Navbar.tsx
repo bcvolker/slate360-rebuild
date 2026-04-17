@@ -66,14 +66,13 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           <Link
             href="/login"
-            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-[#D4AF37] hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary hover:bg-gray-50 transition-colors"
           >
             Sign in
           </Link>
           <Link
             href="/signup"
-            className="px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-all hover:opacity-90 hover:scale-105"
-            style={{ backgroundColor: "#D4AF37" }}
+            className="px-5 py-2.5 rounded-full text-sm font-semibold text-primary-foreground bg-primary transition-all hover:opacity-90 hover:scale-105"
           >
             Start free trial
           </Link>
@@ -108,14 +107,14 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="text-lg font-semibold text-gray-900 hover:text-[#D4AF37] transition-colors py-2"
+                  className="text-lg font-semibold text-gray-900 hover:text-primary transition-colors py-2"
                 >
                   Login
                 </Link>
                 <Link
                   href="/contact"
                   onClick={() => setMobileOpen(false)}
-                  className="text-lg font-semibold text-gray-900 hover:text-[#D4AF37] transition-colors py-2"
+                  className="text-lg font-semibold text-gray-900 hover:text-primary transition-colors py-2"
                 >
                   Contact
                 </Link>
@@ -127,8 +126,7 @@ export default function Navbar() {
               <Link
                 href="/signup"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 shadow-sm"
-                style={{ backgroundColor: "#D4AF37" }}
+                className="flex items-center justify-center w-full py-3.5 rounded-xl text-sm font-semibold text-primary-foreground bg-primary transition-all hover:opacity-90 shadow-sm"
               >
                 Start free trial
               </Link>
