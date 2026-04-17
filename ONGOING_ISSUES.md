@@ -1,6 +1,6 @@
 # Slate360 Ongoing Issues
 
-Last updated: 2026-04-16
+Last updated: 2026-04-17
 
 This is the durable root issue tracker for the active Phase 1 repair program. It is intended to preserve the current business-logic, routing, and product-surface concerns while implementation proceeds in smaller slices.
 
@@ -22,7 +22,7 @@ Fix timing values:
 
 | Issue ID | Title | Severity | Beta blocker? | Area | Current factual evidence | Exact files/routes/components involved | Proposed fix direction | Fix timing | Blast radius | Status | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| S360-001 | Auth logo dark-mode background defect | Medium | No | Auth / onboarding / install | The auth logo asset flips its rounded background to white in dark mode because the SVG contains a `prefers-color-scheme: dark` rule. | `public/uploads/SLATE 360-Color Reversed Lockup.svg`; `app/login/page.tsx`; `app/signup/page.tsx`; `app/forgot-password/page.tsx` | Replace or edit the asset so auth pages do not inherit an unintended white pill background. | before design | Low | open | Visual defect with real readability impact on dark auth pages. |
+| S360-001 | Auth logo dark-mode background defect | Medium | No | Auth / onboarding / install | Fixed: new SVG assets without `prefers-color-scheme: dark` rule, all 26 logo paths updated repo-wide. | `public/uploads/slate360-logo-reversed-v2.svg`; all auth pages | Fixed in PR #3 (branding-assets hotfix), merged 2026-04-17. | before design | Low | done | Fixed — new dark-mode-safe SVGs deployed to production. |
 | S360-002 | Auth input and label text are undersized on mobile | High | Yes | Auth / onboarding / install | Shared auth classes use `text-sm` for inputs and `text-xs` for labels/help text, which is too small for comfortable mobile auth and can trigger iOS zoom. | `app/globals.css`; `app/login/page.tsx`; `app/signup/page.tsx`; `app/forgot-password/page.tsx` | Increase auth input/label/help text tokens and verify keyboard-safe mobile auth behavior. | before design | Low | open | Pre-beta usability issue, not just visual polish. |
 | S360-003 | Confirm-email guidance is incomplete | Medium | No | Auth / onboarding / install | Signup confirmation exists, but the post-signup messaging does not clearly explain that login remains incomplete until email confirmation. | `components/auth/SignupConfirmation.tsx`; `app/api/auth/signup/route.ts`; `app/signup/page.tsx` | Clarify confirmation-state messaging and next-step language. | before design | Low | open | Can be fixed without redesigning auth. |
 | S360-004 | First-run onboarding route is missing | Critical | Yes | Auth / onboarding / install | After successful confirm/callback, users default to `/dashboard`; no dedicated onboarding route or first-run sequence was found. | `app/auth/confirm/route.ts`; `app/auth/callback/route.ts`; `/dashboard` | Add a dedicated first-run path that connects auth completion, install guidance, and initial product orientation. | before design | Medium | open | Business-logic gap, not just UX copy. |

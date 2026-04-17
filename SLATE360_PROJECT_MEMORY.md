@@ -187,16 +187,37 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-16
+### Session Handoff — 2026-04-17
 
 ### What Changed
-- No product UI was rebuilt in this slice; this was a controlled replacement-boundary audit for the owner-facing Phase 1 surfaces the owner wants to rethink from scratch
-- Audited the active visible trees for: `/dashboard`, `/projects`, `/projects/[projectId]`, and `/projects/[projectId]/slatedrop`
-- Verified backend/data contracts worth preserving across those surfaces: `resolveServerOrgContext`, `getScopedProjectForUser`, `listScopedProjectsForUser`, `resolveUsageTruth`, `/api/dashboard/summary`, `/api/projects/summary`, project create/delete routes, `project_folders` provisioning, and the SlateDrop upload/download/share/mutation flow
-- Marked the following visible composition as blank-canvas rebuild candidates instead of further patch targets: `components/dashboard/command-center/QuickActionsCard.tsx`, `ProjectOverviewCard.tsx`, `RecentFilesCard.tsx`, `StorageCreditsCard.tsx`, `app/(dashboard)/projects/ClientPage.tsx`, `components/projects/ProjectsAllProjectsTab.tsx`, `components/projects/CreateProjectWizard.tsx`, `components/projects/ProjectDetailOverview.tsx`, and the current project-scoped SlateDrop shell centered on `components/slatedrop/SlateDropClient.tsx`
-- Confirmed that `/projects/[projectId]/*` is still passively contaminated by deeper wrapper-backed `project-hub` routes and re-exported Phase 2 tool pages beneath `app/(dashboard)/projects/[projectId]/`
-- `slate360-context/ONGOING_ISSUES.md` updated to record the strategy change: these visible surfaces now move to blank-canvas replacement planning instead of more cosmetic cleanup
-- No database actions were performed in this slice
+- **Password reset flow completed** — PR #4 (`fix/auth-reset-password`) merged to main (commit `623a03e`)
+  - `app/auth/reset-password/route.ts`: server route verifies `token_hash` via `verifyOtp`, redirects to form
+  - `app/reset-password/page.tsx`: client page with password+confirm form, calls `updateUser`
+  - `app/forgot-password/page.tsx`: fixed `redirectTo` from `/account/reset-password` (404) to `/reset-password`
+- **Supabase auth email templates updated** — all 5 via Management API (PATCH to `/v1/projects/.../config/auth`)
+  - Templates: confirmation, recovery, magic_link, email_change, invite
+  - All use: v2 logo (`https://www.slate360.ai/uploads/slate360-logo-reversed-v2.svg`), `#D4AF37` gold CTA buttons, `#18181b` zinc header, branded subjects
+  - API key format: lowercase keys (`mailer_templates_*_content`, `mailer_subjects_*`)
+- **CI false-red fixed** — PR #5 (`fix/ci-false-red`) merged to main (commit `4aa13a5`)
+  - `ops/release-gates.json`: `clob-contract` gate set to `required: false` with `disabledReason` (both source files deleted)
+  - `ops/file-size-baseline.json`: removed stale `app/api/market/buy/route.ts` entry
+  - `npm run verify:release` now passes all required gates
+- **S360-001 marked done** in `ONGOING_ISSUES.md` (dark-mode logo bug, fixed in PR #3)
+
+### What's Broken / Partially Done
+- Supabase email templates: applied via API only — not persisted in repo code, no migration file. Templates would revert if someone resets auth config in Supabase dashboard.
+- `mobile-smoke` optional CI gate still fails (`Homepage hero copy missing`) — pre-existing, not related to this work
+- Forgot-password page does not show a message when redirected with `?error=reset-link-expired` — minor UX gap, not a blocker
+
+### Context Files Updated
+- `ONGOING_ISSUES.md`: S360-001 marked done, timestamp updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+
+### Next Steps (ordered)
+1. Test the full password reset flow end-to-end (forgot-password → email → reset → new password → login)
+2. Consider adding Supabase email template HTML to repo for version control (optional)
+3. Continue auth continuity: S360-002 (mobile auth text sizing), S360-003 (confirm-email guidance), S360-004 (first-run onboarding)
+4. Do NOT start global color-token refactor yet
 
 ### What's Broken / Partially Done
 - Blank-canvas rebuilds are not implemented yet for the 4 target surfaces; only the replacement boundaries and reuse contracts are now defined
