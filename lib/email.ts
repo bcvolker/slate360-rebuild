@@ -43,7 +43,7 @@ export async function sendEmail({
 
 /* ── Branded HTML wrapper ── */
 export function brandedHtml(title: string, body: string): string {
-  const logoUrl = `${APP_URL}/uploads/SLATE 360-Color Reversed Lockup.svg`;
+  const logoUrl = "https://www.slate360.ai/uploads/slate360-logo-reversed-v2.svg";
   return `<!DOCTYPE html>
 <html lang="en">
 <head>

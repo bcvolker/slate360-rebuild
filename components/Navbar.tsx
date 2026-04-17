@@ -55,7 +55,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <img
-            src="/uploads/SLATE 360-Color Reversed Lockup.svg"
+            src="/uploads/slate360-logo-reversed-v2.svg"
             alt="Slate360"
             className="w-auto transition-all duration-300 ease-in-out"
             style={{ height: isHome && !scrolled ? "2.75rem" : "2rem" }}

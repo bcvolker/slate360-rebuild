@@ -61,7 +61,7 @@ function LoginForm() {
       {/* Top bar */}
       <div className="auth-topbar">
         <Link href="/" className="flex items-center gap-2">
-          <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-7 w-auto" />
+          <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto" />
         </Link>
         <Link href="/signup" className="text-sm text-muted-foreground auth-link">
           No account? <span className="font-semibold text-primary">Sign up free</span>

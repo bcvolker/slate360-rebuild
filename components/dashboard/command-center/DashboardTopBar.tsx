@@ -33,7 +33,7 @@ export function DashboardTopBar({ onMenuClick, isSidebarOpen, userName }: Dashbo
         {/* Left: Home + Menu Toggle */}
         <div className="flex items-center gap-3">
           <a href="/" aria-label="Home" className="shrink-0">
-            <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-6 w-auto" />
+            <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-6 w-auto" />
           </a>
           <div className="hidden md:block">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Slate360</p>

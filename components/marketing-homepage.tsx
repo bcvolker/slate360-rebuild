@@ -287,7 +287,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
       <div className="container mx-auto h-full px-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-7 w-auto" />
+          <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto" />
         </Link>
 
         {/* Desktop Navigation */}
@@ -362,7 +362,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
           <SheetContent side="right" className="w-[280px] !h-auto !inset-y-auto !top-0 !right-0 !rounded-bl-2xl !bg-[hsl(240,6%,6%)] border-l border-b border-[hsla(45,82%,55%,0.12)] backdrop-blur-xl [&>button]:text-white">
             <div className="flex flex-col gap-4 py-4 px-5">
               {/* Logo */}
-              <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-6 w-auto self-start" />
+              <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-6 w-auto self-start" />
               <nav className="flex flex-col gap-1">
                 <Link
                   href="#product"
@@ -1026,7 +1026,7 @@ function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center mb-4">
-              <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-7 w-auto" />
+              <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto" />
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
               The interactive and visual central nervous system for all of your construction projects.

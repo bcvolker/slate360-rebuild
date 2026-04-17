@@ -15,7 +15,7 @@ export default function Footer() {
         {/* Brand */}
         <div className="col-span-1">
           <Link href="/" className="inline-block mb-4">
-            <img src="/uploads/SLATE 360-Color Reversed Lockup.svg" alt="Slate360" className="h-8 w-auto" />
+            <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-8 w-auto" />
           </Link>
           <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
             The all-in-one construction platform for teams who build.

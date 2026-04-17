@@ -16,7 +16,7 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["business", "productivity"],
     icons: [
       {
-        src: "/uploads/favicon.svg",
+        src: "/uploads/slate360-favicon-v2.svg",
         sizes: "any",
         type: "image/svg+xml",
       },
