@@ -23,6 +23,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 
 interface NavItem {
@@ -103,7 +104,7 @@ export default function MobileNavSheet({
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors"
             >
-              <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Home" className="h-4 w-auto flex-shrink-0" />
+              <SlateLogo className="h-4 w-auto flex-shrink-0" />
               Home
             </Link>
             <div className="h-px bg-zinc-800 my-1" />

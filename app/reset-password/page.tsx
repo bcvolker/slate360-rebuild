@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -50,11 +51,7 @@ export default function ResetPasswordPage() {
     <div className="auth-page">
       <div className="auth-topbar">
         <Link href="/">
-          <img
-            src="/uploads/slate360-logo-reversed-v2.svg"
-            alt="Slate360"
-            className="h-7 w-auto"
-          />
+          <SlateLogo />
         </Link>
         <Link
           href="/login"

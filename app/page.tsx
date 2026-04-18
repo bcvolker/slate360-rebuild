@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import MarketingHomepage from "@/components/marketing-homepage";
+import { LandingPage } from "@/components/home/LandingPage";
 
 export const metadata = {
   title: 'Slate360 - The real-time interactive bridge between the field and the office',
@@ -18,5 +18,5 @@ export default async function RootPage() {
     redirect("/dashboard");
   }
 
-  return <MarketingHomepage isLoggedIn={!!user} />;
+  return <LandingPage />;
 }

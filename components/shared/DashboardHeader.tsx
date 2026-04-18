@@ -27,6 +27,7 @@ import QuickNav from "@/components/shared/QuickNav";
 import MobileNavSheet from "@/components/shared/MobileNavSheet";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 import { createClient } from "@/lib/supabase/client";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 export type HeaderNotification = {
   id: string;
@@ -110,7 +111,7 @@ export default function DashboardHeader({
         {/* ── Left cluster: Logo + optional back link ── */}
         <div className="flex items-center gap-3 shrink-0">
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-6 sm:h-7 w-auto" />
+            <SlateLogo className="h-6 sm:h-7 w-auto" />
           </Link>
           {showBackLink && (
             <Link

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { ArrowRight, Smartphone, Compass, PenTool, Video, CheckCircle2 } from "lucide-react";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 export default async function MarketingHomepageV2() {
   const supabase = await createClient();
@@ -15,8 +16,7 @@ export default async function MarketingHomepageV2() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0B0F15]/80 backdrop-blur-md border-b border-white/5">
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
-              {/* Marketing Nav Header uses the full Wordmark Logo */}
-              <img src="/logo.svg" alt="Slate360 Logo" className="h-8 w-auto object-contain" />
+              <SlateLogo className="h-8 w-auto object-contain" />
             </Link>
             
             <div className="flex items-center gap-4">

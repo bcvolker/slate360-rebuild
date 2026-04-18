@@ -14,6 +14,7 @@ import {
   Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 interface NavItem {
   label: string;
@@ -45,7 +46,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
       {/* Logo + Close */}
       <div className="flex h-14 items-center justify-between px-4 border-b border-zinc-800">
         <a href="/" className="flex items-center">
-          <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-6 w-auto" />
+          <SlateLogo className="h-6 w-auto" />
         </a>
         {onClose && (
           <Button variant="ghost" size="icon" onClick={onClose} className="text-zinc-400 hover:text-white hover:bg-zinc-800 h-8 w-8">

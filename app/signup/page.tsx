@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import SignupConfirmation from "@/components/auth/SignupConfirmation";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -98,7 +99,7 @@ export default function SignupPage() {
   return (
     <div className="auth-page">
       <div className="auth-topbar">
-        <Link href="/"><img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto" /></Link>
+        <Link href="/"><SlateLogo /></Link>
         <Link href="/login" className="text-sm text-muted-foreground auth-link">
           Have an account? <span className="font-semibold text-primary">Sign in</span>
         </Link>
