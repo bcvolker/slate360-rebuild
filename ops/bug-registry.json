@@ -219,6 +219,20 @@
         "`app/share/[token]/page.tsx` resolves shared files from `unified_files` first and still supports a legacy `slatedrop_uploads` fallback",
         "`npm run smoke:slatedrop-public-flow` completes the public upload + share flow end-to-end"
       ]
+    },
+    {
+      "id": "BUG-034",
+      "title": "Public shell drifted away from the app brand token system",
+      "module": "homepage/public-shell",
+      "severity": "high",
+      "status": "testing",
+      "rootCause": "The live homepage header/mobile sheet, shared public navbar/footer, app-detail pages, and branded portal still used hardcoded white, gray, zinc, and yellow classes plus repeated raw logo tags, so the public-facing product looked visually disconnected from the app despite the shared token system already existing.",
+      "verification": [
+        "`components/marketing-homepage.tsx`, `components/Navbar.tsx`, `components/Footer.tsx`, `app/(public)/apps/[slug]/page.tsx`, and `app/(public)/portal/[token]/page.tsx` use semantic token classes instead of hardcoded white/gray/zinc/yellow shells",
+        "Shared public shells import `components/shared/SlateLogo.tsx` instead of repeating raw logo `<img>` tags",
+        "`npm run typecheck` passes after the token migration",
+        "Production `main` deployment shows the same public shell styling as the branch build"
+      ]
     }
   ]
 }

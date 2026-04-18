@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { getUpgradeUrl } from "@/lib/billing";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 const platformLinks = [
   { label: "Dashboard", href: "/dashboard" },
@@ -10,25 +11,25 @@ const platformLinks = [
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-50 border-t border-gray-200">
+    <footer className="border-t border-border bg-background">
       <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
         {/* Brand */}
         <div className="col-span-1">
           <Link href="/" className="inline-block mb-4">
-            <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-8 w-auto" />
+            <SlateLogo className="h-8 w-auto" />
           </Link>
-          <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
+          <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
             The all-in-one construction platform for teams who build.
           </p>
         </div>
 
         {/* Platform */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Platform</p>
+          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Platform</p>
           <ul className="space-y-2.5">
             {platformLinks.map((f) => (
               <li key={f.href}>
-                <Link href={f.href} className="text-sm text-gray-600 hover:text-primary transition-colors">
+                <Link href={f.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   {f.label}
                 </Link>
               </li>
@@ -38,14 +39,14 @@ export default function Footer() {
 
         {/* Company */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Company</p>
+          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Company</p>
           <ul className="space-y-2.5">
             {[
               { label: "Pricing", href: getUpgradeUrl() },
               { label: "Contact", href: "/contact" },
             ].map((l) => (
               <li key={l.label}>
-                <Link href={l.href} className="text-sm text-gray-600 hover:text-primary transition-colors">
+                <Link href={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   {l.label}
                 </Link>
               </li>
@@ -55,7 +56,7 @@ export default function Footer() {
 
         {/* Legal */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Legal</p>
+          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Legal</p>
           <ul className="space-y-2.5">
             {[
               { label: "Privacy Policy", href: "#" },
@@ -63,7 +64,7 @@ export default function Footer() {
               { label: "Security", href: "#" },
             ].map((l) => (
               <li key={l.label}>
-                <Link href={l.href} className="text-sm text-gray-600 hover:text-primary transition-colors">
+                <Link href={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   {l.label}
                 </Link>
               </li>
@@ -72,10 +73,10 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-gray-200">
+      <div className="border-t border-border">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Slate360. All rights reserved.</p>
-          <p className="text-xs text-gray-400">Built for construction professionals.</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Slate360. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">Built for construction professionals.</p>
         </div>
       </div>
     </footer>

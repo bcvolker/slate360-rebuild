@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 /* ── App data ─────────────────────────────────────────────────── */
 
@@ -148,21 +149,21 @@ export default async function AppDetailPage({ params }: { params: Promise<{ slug
   return (
     <div className="dark min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="sticky top-0 z-50 h-16 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800">
+      <header className="sticky top-0 z-50 h-16 border-b border-border bg-background/90 backdrop-blur-xl">
         <div className="container mx-auto h-full px-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center">
-              <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto" />
+              <SlateLogo />
             </Link>
             <Link
               href="/#apps"
-              className="flex items-center gap-1 text-sm text-zinc-400 hover:text-[#D4AF37] transition-colors"
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
               All Apps
             </Link>
           </div>
-          <Button asChild className="bg-[#D4AF37] text-zinc-950 hover:bg-[#D4AF37]/90">
+          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
             <Link href={app.comingSoon ? "/signup" : "/signup"}>{app.comingSoon ? "Join Waitlist" : "Subscribe Now"}</Link>
           </Button>
         </div>
@@ -171,8 +172,8 @@ export default async function AppDetailPage({ params }: { params: Promise<{ slug
       <main className="container mx-auto max-w-5xl px-4 py-16">
         {/* Hero */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-[#D4AF37]/20 mb-6">
-            <Icon className="h-8 w-8 text-[#D4AF37]" />
+          <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15">
+            <Icon className="h-8 w-8 text-primary" />
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold mb-4">{app.name}</h1>
           {app.statusLabel && (
@@ -180,11 +181,11 @@ export default async function AppDetailPage({ params }: { params: Promise<{ slug
               {app.statusLabel}
             </span>
           )}
-          <p className="text-xl text-[#D4AF37] font-medium mb-4">{app.tagline}</p>
-          <p className="text-lg text-zinc-400 max-w-2xl mx-auto">{app.description}</p>
+          <p className="mb-4 text-xl font-medium text-primary">{app.tagline}</p>
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">{app.description}</p>
           <div className="flex flex-wrap justify-center gap-3 mt-6">
             {app.highlights.map((h) => (
-              <Badge key={h} variant="outline" className="border-[#D4AF37]/30 text-[#D4AF37]">
+              <Badge key={h} variant="outline" className="border-primary/30 bg-primary/5 text-primary">
                 {h}
               </Badge>
             ))}
@@ -194,15 +195,15 @@ export default async function AppDetailPage({ params }: { params: Promise<{ slug
         {/* Features Grid */}
         <div className="grid gap-4 sm:grid-cols-2 mb-16">
           {app.features.map((f) => (
-            <Card key={f.title} className="bg-zinc-900/50 border-zinc-800 hover:border-[#D4AF37]/30 transition-colors">
+            <Card key={f.title} className="border-border bg-card/70 transition-colors hover:border-primary/30">
               <CardContent className="p-5">
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5 h-5 w-5 rounded-full bg-[#D4AF37]/20 flex items-center justify-center flex-shrink-0">
-                    <Check className="h-3 w-3 text-[#D4AF37]" />
+                  <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/15">
+                    <Check className="h-3 w-3 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-white mb-1">{f.title}</h3>
-                    <p className="text-sm text-zinc-400">{f.detail}</p>
+                    <h3 className="mb-1 font-semibold text-foreground">{f.title}</h3>
+                    <p className="text-sm text-muted-foreground">{f.detail}</p>
                   </div>
                 </div>
               </CardContent>
@@ -211,25 +212,25 @@ export default async function AppDetailPage({ params }: { params: Promise<{ slug
         </div>
 
         {/* CTA */}
-        <div className="text-center py-12 border-t border-zinc-800">
+        <div className="border-t border-border py-12 text-center">
           <h2 className="text-2xl font-bold mb-3">
             {app.comingSoon
               ? `${app.name} is coming soon`
               : `Ready to get started with ${app.name}?`}
           </h2>
-          <p className="text-zinc-400 mb-6">
+          <p className="mb-6 text-muted-foreground">
             {app.comingSoon
               ? `Sign up to be notified when ${app.name} launches.`
               : `Subscribe to Slate360 and start using ${app.name} today.`}
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button asChild size="lg" className="bg-[#D4AF37] text-zinc-950 hover:bg-[#D4AF37]/90 px-8">
+            <Button asChild size="lg" className="bg-primary px-8 text-primary-foreground hover:bg-primary/90">
               <Link href="/signup">
                 {app.comingSoon ? "Join Waitlist" : "Subscribe Now"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-zinc-700 text-zinc-300 hover:border-[#D4AF37] hover:text-[#D4AF37]">
+            <Button asChild variant="outline" size="lg" className="border-border text-muted-foreground hover:border-primary hover:text-primary">
               <Link href="/#apps">View All Apps</Link>
             </Button>
           </div>
@@ -237,7 +238,7 @@ export default async function AppDetailPage({ params }: { params: Promise<{ slug
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-800 py-8 text-center text-sm text-zinc-500">
+      <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
         <p>&copy; {new Date().getFullYear()} Slate360. All rights reserved.</p>
       </footer>
     </div>

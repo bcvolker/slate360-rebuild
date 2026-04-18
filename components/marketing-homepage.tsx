@@ -54,6 +54,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 const HeroDemo = dynamic(() => import("@/components/home/HeroDemo"), { ssr: false });
 const AppDemo = dynamic(() => import("@/components/home/AppDemo"), { ssr: false });
@@ -283,11 +284,11 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const [appsOpen, setAppsOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-glass border-b border-[hsla(45,82%,55%,0.12)] backdrop-blur-lg">
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-primary/15 bg-glass backdrop-blur-lg">
       <div className="container mx-auto h-full px-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto" />
+          <SlateLogo />
         </Link>
 
         {/* Desktop Navigation */}
@@ -305,13 +306,13 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                 {appsOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setAppsOpen(false)} />
-                    <div className="absolute left-1/2 -translate-x-1/2 top-8 z-50 w-52 rounded-xl border border-[hsla(45,82%,55%,0.12)] bg-[hsl(240,6%,6%)] shadow-xl py-2">
+                    <div className="absolute left-1/2 top-8 z-50 w-52 -translate-x-1/2 rounded-xl border border-primary/15 bg-card/95 py-2 shadow-xl backdrop-blur-xl">
                       {APP_SHOWCASE.map((app) => (
                         <Link
                           key={app.slug}
                           href={`/apps/${app.slug}`}
                           onClick={() => setAppsOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-zinc-300 hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                         >
                           <app.icon className="h-4 w-4 flex-shrink-0" />
                           {app.name}
@@ -359,15 +360,15 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
               <span className="sr-only">Open menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[280px] !h-auto !inset-y-auto !top-0 !right-0 !rounded-bl-2xl !bg-[hsl(240,6%,6%)] border-l border-b border-[hsla(45,82%,55%,0.12)] backdrop-blur-xl [&>button]:text-white">
+          <SheetContent side="right" className="w-[280px] !h-auto !inset-y-auto !top-0 !right-0 !rounded-bl-2xl border-b border-l border-primary/15 !bg-card/95 backdrop-blur-xl [&>button]:text-foreground">
             <div className="flex flex-col gap-4 py-4 px-5">
               {/* Logo */}
-              <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-6 w-auto self-start" />
+              <SlateLogo className="h-6 w-auto self-start" />
               <nav className="flex flex-col gap-1">
                 <Link
                   href="#product"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2.5 rounded-lg text-[15px] font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                 >
                   Product
                 </Link>
@@ -376,17 +377,17 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                   <Link
                     href="#apps"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-3 py-2.5 rounded-lg text-[15px] font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors block"
+                    className="block rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                   >
                     Apps
                   </Link>
-                  <div className="ml-4 mt-1 flex flex-col gap-0.5 border-l border-[hsla(45,82%,55%,0.15)] pl-3">
+                  <div className="ml-4 mt-1 flex flex-col gap-0.5 border-l border-border pl-3">
                     {APP_SHOWCASE.map((app) => (
                       <Link
                         key={app.slug}
                         href={`/apps/${app.slug}`}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded text-sm text-zinc-400 hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                        className="flex items-center gap-2 rounded px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                       >
                         <app.icon className="h-3.5 w-3.5 flex-shrink-0" />
                         {app.name}
@@ -397,29 +398,29 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                 <Link
                   href="#slatedrop"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2.5 rounded-lg text-[15px] font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                 >
                   Solutions
                 </Link>
                 <Link
                   href="#pricing"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2.5 rounded-lg text-[15px] font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                 >
                   Pricing
                 </Link>
               </nav>
-              <div className="flex flex-col gap-3 pt-3 border-t border-[hsla(45,82%,55%,0.12)]">
+              <div className="flex flex-col gap-3 border-t border-border pt-3">
                 {isLoggedIn ? (
-                  <Button asChild className="bg-[hsl(45,82%,55%)] text-[hsl(240,6%,6%)] hover:bg-[hsl(45,82%,55%,0.9)]">
+                  <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
                     <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Go to Dashboard</Link>
                   </Button>
                 ) : (
                   <>
-                    <Button variant="outline" asChild className="border-[hsla(0,0%,100%,0.15)] text-[hsl(0,0%,95%)] hover:border-[hsl(45,82%,55%)] hover:text-[hsl(45,82%,55%)]">
+                    <Button variant="outline" asChild className="border-border text-foreground hover:border-primary hover:text-primary">
                       <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
                     </Button>
-                    <Button asChild className="bg-[hsl(45,82%,55%)] text-[hsl(240,6%,6%)] hover:bg-[hsl(45,82%,55%,0.9)]">
+                    <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
                       <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>Subscribe Now</Link>
                     </Button>
                   </>
@@ -971,13 +972,13 @@ function FinalCTASection() {
 
 function Footer() {
   return (
-    <footer className="bg-glass border-t border-[hsla(45,82%,55%,0.12)] backdrop-blur-lg">
+    <footer className="border-t border-primary/15 bg-glass backdrop-blur-lg">
       <div className="container mx-auto px-4 py-12">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center mb-4">
-              <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto" />
+              <SlateLogo />
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
               The real-time interactive bridge between the field and the office.
