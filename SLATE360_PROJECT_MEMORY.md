@@ -200,29 +200,27 @@ When editing oversized files, always read both the state declarations AND the JS
 ### Session Handoff — 2026-04-18
 
 ### What Changed
-- `components/Navbar.tsx`, `components/Footer.tsx`, `components/marketing-homepage.tsx`, `app/(public)/apps/[slug]/page.tsx`, and `app/(public)/portal/[token]/page.tsx`: migrated the remaining public-shell white/gray/zinc/yellow styling to shared brand-token classes so the homepage header/mobile shell, public app-detail pages, and branded portal now match the Slate360 app palette.
-- `components/shared/SlateLogo.tsx`: widened the shared logo component to accept standard image props so public shells can reuse one source-of-truth logo while still animating size or passing image attributes.
-- `ONGOING_ISSUES.md`, `slate360-context/ONGOING_ISSUES.md`, and `ops/bug-registry.json`: logged the public-shell drift bug (`S360-037` / `BUG-034`) and recorded that the code fix is now on the promoted branch and awaiting deployed verification.
-- Git / deploy promotion: committed `3e73d6c` (`Align public shell with app brand tokens`), pushed `refactor/brand-token-migration-core-surfaces`, and fast-forwarded `main` directly to `3e73d6c` so production picked up both this visual-shell fix and the earlier R2 + `unified_files` bridge work.
-- Production verification: Vercel production deployment `dpl_3vuYockpfB75uBYiRA2b9WLDjkYi` for commit `3e73d6c` reached `READY` and aliased to `www.slate360.ai`.
-- Runtime validation: `SMOKE_BASE_URL=https://www.slate360.ai npm run smoke:slatedrop-public-flow` now passes end-to-end on production; the live response CSP now includes `https://*.r2.cloudflarestorage.com` in `connect-src` and `frame-src`, confirming the promoted build is serving the newer storage/runtime config.
+- `app/page.tsx`: the live homepage route no longer renders `components/marketing-homepage.tsx`; it now serves `components/home/LandingPage.tsx`, making the extracted home stack the active homepage source of truth.
+- `components/home/LandingHeader.tsx`, `HeroSection.tsx`, `AppShowcaseSection.tsx`, `PricingSection.tsx`, `CTASection.tsx`, `LandingFooter.tsx`, and `LoginModal.tsx`: the live homepage stack now uses shared design-system primitives (`SlateCTA`, `SlateCard`, `SlateSectionHeader`) in the highest-visibility sections instead of the old ad hoc shadcn-only treatment.
+- `components/shared/SlateLogo.tsx`: shared logo usage now covers the active homepage, auth pages, dashboard top bar/sidebar/header, mobile nav sheet, Site Walk header, SlateDrop top bar, external response portal, and the preview marketing page. Repo searches now show no remaining raw app/component logo-path references outside `SlateLogo.tsx` itself.
+- Git / deploy promotion: committed `7cce7b9` (`Cut homepage to extracted landing shell`), pushed `refactor/brand-token-migration-core-surfaces`, and fast-forwarded `main` to `7cce7b9`. The Vercel production deployment for `7cce7b9` (`dpl_HDVXFzWGum1Zqw8JjgsCCBNiwCAS`) is currently building.
+- Validation: `npm run typecheck` passed; local runtime spot-checks against `http://127.0.0.1:3000/` returned the extracted landing-page copy and the shared logo asset.
 
 ### What's Broken / Partially Done
-- Preview deployments for the branch still return `401` because Vercel preview protection is enabled, so unattended preview smoke runs are still blocked without a bypass path.
+- Production deployment for `7cce7b9` is still building, so live browser verification of the new homepage cutover is still pending.
+- `components/marketing-homepage.tsx` remains in the repo as a pre-existing 1112-line monolith, but it is no longer the live homepage route.
 - `mobile-smoke` CI gate still fails (pre-existing, not touched in this slice).
-- File-size guard still reports unrelated monoliths over 300 lines, including `components/marketing-homepage.tsx` (now 1112 lines), `components/dashboard/LocationMap.tsx`, and several widget/project files.
+- Site Walk backend plumbing is mostly present, but three blockers remain before a confident UI build sprint: deliverable editor persistence is still uncertain (`S360-020`), core Phase 1 workflow gaps remain (`S360-019`), and offline capture queue wiring is still not connected to Site Walk components.
 - The repo still contains unrelated local scratch/untracked asset files and deletions (`find_shell.mjs`, `get_git*.mjs`, extra SVGs, deleted screenshots/icons). They were intentionally left untouched.
-- `BUG-034` / `S360-037` is code-fixed and production-promoted, but broader brand-audit debt remains outside the public-shell slice.
 
 ### Context Files Updated
-- `ONGOING_ISSUES.md`: added `S360-037` for public-shell brand drift and marked it as testing on the promoted branch.
-- `slate360-context/ONGOING_ISSUES.md`: added `BUG-034` for homepage/public-shell drift with branch-fix status.
-- `ops/bug-registry.json`: added `BUG-034` with verification targets for tokenized public shells and production deployment.
+- `ONGOING_ISSUES.md`: updated `S360-037` to reflect that `/` now renders the extracted `components/home/*` stack and that commit `7cce7b9` was promoted to `main`.
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
 
 ### Next Steps (ordered)
-1. Verify the live homepage visually on desktop and mobile to confirm the promoted tokenized shell reads correctly in-browser, not just in HTML/CSP and smoke output.
-2. Tackle the next highest-value public beta trust issue: `S360-002` auth mobile text sizing or the remaining homepage monolith extraction from `components/marketing-homepage.tsx`.
-3. Clean up PR hygiene: either retarget or close PR #7 now that `main` already contains commit `3e73d6c`.
+1. Wait for the Vercel production deployment for `7cce7b9` to reach `READY`, then visually verify the live homepage and auth/shell logo continuity on desktop and mobile.
+2. If homepage direction is accepted, continue the same extracted-home migration by either deleting or freezing `components/marketing-homepage.tsx` so it cannot drift back into use.
+3. Start the Site Walk UI sprint only after defining the first slice around already-real backend paths: session board/list/detail/review, while explicitly deferring offline capture and unresolved deliverable-persistence work unless those are part of the first milestone.
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: future-chat startup context now lists Cloudflare R2 access and verification commands.
