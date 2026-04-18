@@ -190,51 +190,38 @@ When editing oversized files, always read both the state declarations AND the JS
 ### Session Handoff — 2026-04-17
 
 ### What Changed
-- **Password reset flow completed** — PR #4 (`fix/auth-reset-password`) merged to main (commit `623a03e`)
-  - `app/auth/reset-password/route.ts`: server route verifies `token_hash` via `verifyOtp`, redirects to form
-  - `app/reset-password/page.tsx`: client page with password+confirm form, calls `updateUser`
-  - `app/forgot-password/page.tsx`: fixed `redirectTo` from `/account/reset-password` (404) to `/reset-password`
-- **Supabase auth email templates updated** — all 5 via Management API (PATCH to `/v1/projects/.../config/auth`)
-  - Templates: confirmation, recovery, magic_link, email_change, invite
-  - All use: v2 logo (`https://www.slate360.ai/uploads/slate360-logo-reversed-v2.svg`), `#D4AF37` gold CTA buttons, `#18181b` zinc header, branded subjects
-  - API key format: lowercase keys (`mailer_templates_*_content`, `mailer_subjects_*`)
-- **CI false-red fixed** — PR #5 (`fix/ci-false-red`) merged to main (commit `4aa13a5`)
-  - `ops/release-gates.json`: `clob-contract` gate set to `required: false` with `disabledReason` (both source files deleted)
-  - `ops/file-size-baseline.json`: removed stale `app/api/market/buy/route.ts` entry
-  - `npm run verify:release` now passes all required gates
-- **S360-001 marked done** in `ONGOING_ISSUES.md` (dark-mode logo bug, fixed in PR #3)
+- **Backend beta-launch audit + invite foundation implemented**
+  - Audited all 31 `app/api/site-walk/*` route files; most are Supabase-backed, but the main launch storage gap was the Site Walk upload presign path bypassing SlateDrop reservation.
+  - `app/api/site-walk/upload/route.ts`: now reserves a pending `slatedrop_uploads` row in the owning project's `Photos` folder and issues a canonical `orgs/{namespace}/{folderId}/...` S3 key.
+  - `app/api/site-walk/items/route.ts`: now activates reserved Site Walk uploads on item save and uses the legacy bridge only as a fallback.
+  - `lib/projects/access.ts` + `lib/server/api-auth.ts`: project access now includes `project_members`, which is required for collaborator-style scoped access.
+  - Added invitation backend foundation:
+    - `supabase/migrations/20260418080828_create_invitation_tokens.sql`
+    - `app/api/invites/generate/route.ts`
+    - `app/api/invites/redeem/route.ts`
+    - `lib/server/invites.ts`
+  - `middleware.ts` now preserves invite tokens through signup/login via an httpOnly cookie.
+  - `app/auth/callback/route.ts` now redeems pending invite tokens after auth completes and redirects collaborator invitees into their project.
+  - `ONGOING_ISSUES.md` + `ops/bug-registry.json` updated with the Site Walk/SlateDrop upload fix.
+  - Validation: `npm run typecheck` passed, `npx next build --no-lint` passed.
 
 ### What's Broken / Partially Done
-- Supabase email templates: applied via API only — not persisted in repo code, no migration file. Templates would revert if someone resets auth config in Supabase dashboard.
-- `mobile-smoke` optional CI gate still fails (`Homepage hero copy missing`) — pre-existing, not related to this work
-- Forgot-password page does not show a message when redirected with `?error=reset-link-expired` — minor UX gap, not a blocker
+- PR #6 (design system foundation) still open — PR #7 depends on it
+- 128 brand violations remain (mostly in deep module pages not yet in scope)
+- `mobile-smoke` CI gate still fails (pre-existing)
+- Site Walk plan image route gap (`S360-021`) still remains open; this pass did not add `/api/site-walk/plans/[id]/image`.
+- Collaborator invites now grant `project_members` access, but some deeper project APIs still assume org-wide membership and may need follow-up if collaborator usage expands beyond the current scoped routes.
 
 ### Context Files Updated
-- `ONGOING_ISSUES.md`: S360-001 marked done, timestamp updated
+- `ONGOING_ISSUES.md`: recorded the Site Walk upload-to-SlateDrop doctrine fix
+- `ops/bug-registry.json`: added BUG-029 for the fixed Site Walk upload presign gap
 - `SLATE360_PROJECT_MEMORY.md`: this handoff
 
 ### Next Steps (ordered)
-1. Test the full password reset flow end-to-end (forgot-password → email → reset → new password → login)
-2. Consider adding Supabase email template HTML to repo for version control (optional)
-3. Continue auth continuity: S360-002 (mobile auth text sizing), S360-003 (confirm-email guidance), S360-004 (first-run onboarding)
-4. Do NOT start global color-token refactor yet
-
-### What's Broken / Partially Done
-- Blank-canvas rebuilds are not implemented yet for the 4 target surfaces; only the replacement boundaries and reuse contracts are now defined
-- `app/(dashboard)/project-hub/[projectId]` plus the thin `/projects/[projectId]/*` re-export wrappers remain the main legacy contamination source under the project detail tree
-- `components/slatedrop/ProjectFileExplorer.tsx` and `components/slatedrop/useProjectFileExplorer.ts` are isolated legacy explorer code and strong delete candidates once the replacement pass begins
-- `components/slatedrop/SlateDropClient.tsx` should be treated as a visible-surface rebuild candidate at the shell/composition level even though its backend hooks and file APIs remain reusable
-- `bash scripts/check-file-size.sh` still reports pre-existing oversized files outside this planning slice: `app/api/dashboard/widgets/route.ts`, `components/calendar/CalendarWidget.tsx`, `components/marketing-homepage.tsx`, `components/project-hub/ObservationsClient.tsx`, `components/ui/sidebar.tsx`, `components/widgets/WidgetBodies.tsx`
-
-### Context Files Updated
-- `slate360-context/ONGOING_ISSUES.md`: recorded the strategy shift to blank-canvas replacement planning for the 4 visible Phase 1 surfaces
-- `SLATE360_PROJECT_MEMORY.md`: refreshed the handoff with the replacement-boundary audit and next implementation order
-
-### Next Steps (ordered)
-1. Rebuild the Web Command Center visible composition behind the existing `/dashboard` route while preserving `resolveUsageTruth`, `/api/dashboard/summary`, `/api/projects/summary`, and auth/navigation guards
-2. Rebuild the `/projects` surface with a new list/directory composition and a new project-creation flow while preserving project create/delete APIs and folder provisioning
-3. Rebuild the `/projects/[projectId]` home composition behind the existing server data loader, then decide whether deeper wrapper-backed `/projects/[projectId]/*` Phase 2 routes should be migrated or gated
-4. Rebuild the project-scoped SlateDrop visible shell around the existing file APIs, upload/finalize flow, and project folder model; delete `ProjectFileExplorer` only when the new shell is wired
+1. Commit and push the backend audit/invite work on `refactor/brand-token-migration-core-surfaces`
+2. Manually test one full Site Walk capture: `/api/site-walk/upload` → S3 PUT → `/api/site-walk/items` and confirm the file appears in the project's `Photos` folder
+3. Add the missing Site Walk plan image route (`S360-021`) before beta launch
+4. If collaborator invites are a launch requirement, audit project-scoped APIs that still assume org membership and widen them intentionally instead of ad hoc
 
 ### Session Handoff — 2026-04-14 (Command Center Cleanup Follow-Up)
 

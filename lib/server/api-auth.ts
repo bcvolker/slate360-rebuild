@@ -140,10 +140,11 @@ export async function withProjectAuth(
     }
 
     const { admin, orgId } = await resolveProjectScope(user.id);
+    const effectiveSelect = selectClause.includes("org_id") ? selectClause : `${selectClause}, org_id`;
     const { project } = await getScopedProjectForUser(
       user.id,
       projectId,
-      selectClause,
+      effectiveSelect,
     );
 
     if (!project) {
@@ -157,7 +158,7 @@ export async function withProjectAuth(
       req,
       user,
       admin,
-      orgId,
+      orgId: (project as { org_id?: string | null }).org_id ?? orgId,
       projectId,
       project,
     });

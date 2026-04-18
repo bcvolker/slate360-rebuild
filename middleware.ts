@@ -1,8 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const INVITE_COOKIE_NAME = "slate360_invite_token";
+const INVITE_TOKEN_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
+  const inviteToken = request.nextUrl.searchParams.get("invite")?.trim();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -180,6 +184,16 @@ export async function middleware(request: NextRequest) {
       "Content-Security-Policy",
       "frame-ancestors 'none'; frame-src 'self' blob: https://*.s3.amazonaws.com;"
     );
+  }
+
+  if (inviteToken && INVITE_TOKEN_PATTERN.test(inviteToken)) {
+    supabaseResponse.cookies.set(INVITE_COOKIE_NAME, inviteToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: request.nextUrl.protocol === "https:",
+      path: "/",
+      maxAge: 60 * 60 * 24,
+    });
   }
 
   return supabaseResponse;

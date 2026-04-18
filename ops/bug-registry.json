@@ -154,6 +154,19 @@
         "`/projects/[projectId]/photos` and `/projects/[projectId]/punch-list` no longer render visible customize controls",
         "`/projects/[projectId]/slatedrop` renders a project-file shell with project-aware breadcrumb labeling, embedded list-default behavior, wrapped toolbar controls, and one-column mobile folder/file grids"
       ]
+    },
+    {
+      "id": "BUG-029",
+      "title": "Site Walk upload presign path bypassed SlateDrop reservation",
+      "module": "site-walk/slatedrop",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "`/api/site-walk/upload` generated S3 keys in `site-walk/photos/...` without reserving a canonical `slatedrop_uploads` row in the project's `Photos` folder, so new captures could land outside the project file system until a later best-effort bridge ran.",
+      "verification": [
+        "POST /api/site-walk/upload returns an S3 key under `orgs/{namespace}/{photosFolderId}/...` and a reserved `fileId`",
+        "POST /api/site-walk/items activates the reserved `slatedrop_uploads` row when the capture is saved",
+        "New Site Walk photos appear in the owning project's `Photos` folder via `slatedrop_uploads` instead of only under `site-walk/photos/...`"
+      ]
     }
   ]
 }
