@@ -198,12 +198,26 @@
       "title": "R2 browser uploads blocked by missing bucket CORS policy",
       "module": "slatedrop/storage",
       "severity": "high",
-      "status": "open",
-      "rootCause": "After switching the shared storage client to Cloudflare R2, browser upload flows that PUT directly to presigned R2 URLs fail preflight because the bucket does not return `Access-Control-Allow-Origin` for the app origin. The app CSP has been updated, but the bucket itself still needs a CORS rule.",
+      "status": "fixed",
+      "rootCause": "After switching the shared storage client to Cloudflare R2, browser upload flows that PUT directly to presigned R2 URLs failed preflight because the bucket did not return `Access-Control-Allow-Origin` for the app origin. The app CSP was already updated; the missing piece was the Cloudflare bucket CORS rule.",
       "verification": [
         "`npm run smoke:slatedrop-public-flow` completes the public upload portal flow without `No 'Access-Control-Allow-Origin' header` errors",
         "Browser upload flows reach `/api/slatedrop/complete` after the presigned PUT instead of failing with `Failed to fetch`",
         "Shared image/file flows still load correctly after the bucket CORS rule is added"
+      ]
+    },
+    {
+      "id": "BUG-033",
+      "title": "SlateDrop share links drifted from live unified_files foreign key",
+      "module": "slatedrop/sharing",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The repo still created and read share links through `slatedrop_uploads`, but the live database already enforced `slate_drop_links.file_id -> unified_files(id)`. Uploads succeeded, then share-link inserts failed because the uploaded file ID did not exist in `unified_files`.",
+      "verification": [
+        "`app/api/slatedrop/complete/route.ts` creates or links a `unified_files` row for each activated SlateDrop upload",
+        "`app/api/slatedrop/secure-send/route.ts` inserts `slate_drop_links` rows with the bridged `unified_files.id`",
+        "`app/share/[token]/page.tsx` resolves shared files from `unified_files` first and still supports a legacy `slatedrop_uploads` fallback",
+        "`npm run smoke:slatedrop-public-flow` completes the public upload + share flow end-to-end"
       ]
     }
   ]

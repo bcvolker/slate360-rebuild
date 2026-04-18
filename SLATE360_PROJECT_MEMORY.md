@@ -200,23 +200,19 @@ When editing oversized files, always read both the state declarations AND the JS
 ### Session Handoff — 2026-04-18
 
 ### What Changed
-- `lib/s3.ts`: storage client now auto-selects Cloudflare R2 when `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, and `R2_BUCKET` are present, deriving the endpoint from either `R2_ENDPOINT` or `CLOUDFLARE_ACCOUNT_ID`; existing SlateDrop/Site Walk/project file routes keep using the same shared client.
-- `scripts/ops/check-storage-runtime.mjs`: added a storage diagnostic that loads local env files, reports the active provider, checks bucket reachability, and optionally performs a temporary write/delete probe.
-- `scripts/ops/check-storage-runtime.mjs`: now also supports a presigned URL round-trip probe, validating the same PUT/GET URL pattern used by upload/download flows before cleaning up the temp object.
-- `package.json`: added `npm run diag:storage-runtime`, `npm run diag:storage-runtime:write`, and `npm run diag:storage-runtime:presign`.
-- `SLATE360_PROJECT_MEMORY.md`, `.github/copilot-instructions.md`, and `docs/ENV_AND_TOOL_MATRIX.md`: future chats/Codespaces now explicitly document Cloudflare R2 as a first-class service alongside Git, Vercel, AWS S3, Stripe, and Supabase, including the env contract and validation commands.
-- `scripts/ops/smoke-slatedrop-public-flow.mjs`: added a repeatable app-level smoke test that provisions a temporary project/folder/link, uploads a real file through the public SlateDrop upload portal, then verifies the public share page/download path against the local app runtime.
-- `package.json`: added `npm run smoke:slatedrop-public-flow`.
-- `next.config.ts` and `middleware.ts`: browser CSP now allows `*.r2.cloudflarestorage.com` for direct upload/preview paths.
-- `docs/reference/R2_CUTOVER_CHECKLIST.md`: added the production cutover checklist and documented the required bucket-side CORS behavior.
-- `ops/bug-registry.json`, `ONGOING_ISSUES.md`, and `slate360-context/ONGOING_ISSUES.md`: logged the remaining blocker as the new R2 browser upload CORS bug (`BUG-032` / `S360-035`).
-- `slate360-context/BACKEND.md`: documented the R2-compatible env contract and the new diagnostic commands.
-- `.env`: fixed malformed local R2 entries so the Codespace runtime can construct a valid Cloudflare R2 endpoint and bucket name.
-- Validation: `get_errors` clean on edited files, `npm run typecheck` passed, `npm run diag:storage-runtime` passed against R2, `npm run diag:storage-runtime:write` completed a temporary `PutObject` + `DeleteObject` probe successfully, `npm run diag:storage-runtime:presign` completed a presigned PUT/GET round-trip successfully, and the new app-level smoke test isolated the remaining failure to missing bucket-side R2 CORS after the browser reaches the presigned PUT.
+- `supabase/migrations/20260418101500_track_unified_files_and_slatedrop_bridge.sql`: source control now tracks the live `unified_files` table contract and adds `slatedrop_uploads.unified_file_id` so SlateDrop upload records can bridge cleanly into the live share-link model.
+- `lib/slatedrop/unified-files.ts`: added the shared bridge helper that creates or reuses a `unified_files` row for a SlateDrop upload and records the mapping back on `slatedrop_uploads`.
+- `app/api/slatedrop/complete/route.ts`: after marking uploads active, the route now ensures each upload has a bridged `unified_files` row in both authenticated and public-token flows.
+- `app/api/slatedrop/secure-send/route.ts`: share-link creation now inserts `slate_drop_links.file_id` using the bridged `unified_files.id` instead of the raw `slatedrop_uploads.id`.
+- `app/share/[token]/page.tsx`: public share pages now resolve shared files from `unified_files` first and fall back to `slatedrop_uploads` for legacy compatibility.
+- `scripts/ops/smoke-slatedrop-public-flow.mjs`: the end-to-end public upload/share smoke test now asserts that upload completion populated `unified_file_id` before creating the share token.
+- `ops/bug-registry.json`, `ONGOING_ISSUES.md`, and `slate360-context/ONGOING_ISSUES.md`: marked the Cloudflare bucket CORS blocker fixed (`BUG-032` / `S360-035`) and logged/fixed the share-link FK drift (`BUG-033` / `S360-036`).
+- `slate360-context/BACKEND.md`: documented the tracked `unified_files` bridge so future backend work does not recreate the schema drift.
+- Validation: `npm run typecheck` passed, the live Supabase migration was applied successfully, and `npm run smoke:slatedrop-public-flow` completed end-to-end with a real R2-backed public upload and share flow.
 
 ### What's Broken / Partially Done
-- Current runtime can talk to R2 and the app CSP now allows the R2 host, but direct browser uploads still fail until the R2 bucket itself has a CORS rule that allows the Slate360 app origin(s).
-- Current database and file metadata still refer to the same bucket name and S3-style semantics; no data migration, bucket split, or cleanup strategy has been applied yet.
+- Production/Vercel runtime still needs the same validated R2 env contract and a deployed smoke pass; the successful test so far is against the local app with live Supabase + R2.
+- Current database and file metadata still refer to the same bucket name and S3-style semantics; no object migration, bucket split, or cleanup strategy has been applied yet.
 - PR #6 (design system foundation) still open — PR #7 depends on it.
 - 128 brand violations remain (mostly in deep module pages not yet in scope).
 - `mobile-smoke` CI gate still fails (pre-existing).
@@ -227,15 +223,15 @@ When editing oversized files, always read both the state declarations AND the JS
 - `.github/copilot-instructions.md`: startup instructions now include Cloudflare R2 in services and environment sources.
 - `docs/ENV_AND_TOOL_MATRIX.md`: added the external service/env/tool matrix, including the Cloudflare R2 contract and verification commands.
 - `docs/reference/R2_CUTOVER_CHECKLIST.md`: added the R2 production cutover and bucket CORS checklist.
-- `ONGOING_ISSUES.md`, `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json`: logged the remaining R2 browser-upload CORS blocker.
-- `slate360-context/BACKEND.md`: documented the shared storage client R2 env contract and the new runtime diagnostics.
+- `ONGOING_ISSUES.md`, `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json`: recorded the resolved R2 CORS blocker and the resolved unified_files/share-link bridge mismatch.
+- `slate360-context/BACKEND.md`: documented the shared storage client R2 env contract plus the tracked `unified_files` bridge.
 - `SLATE360_PROJECT_MEMORY.md`: this handoff.
 
 ### Next Steps (ordered)
-1. Add a Cloudflare R2 bucket CORS rule that allows the Slate360 app origin(s) for `GET`, `HEAD`, and `PUT`, then rerun `npm run smoke:slatedrop-public-flow`.
-2. Once the browser upload smoke test passes, mirror the validated R2 env contract into Vercel runtime envs and run the storage diagnostics in the deploy environment.
-3. Decide whether `slate360-storage` should remain the canonical bucket name on R2 or whether the project should move to a distinct R2 bucket before production cutover.
-4. If AWS decommissioning is desired, plan the object migration and rollback path before removing the old AWS credentials.
+1. Mirror the validated `R2_*` env contract into Vercel runtime envs and run the storage diagnostics plus a deployed smoke pass there.
+2. Decide whether `slate360-storage` should remain the canonical bucket name on R2 or whether the project should move to a distinct R2 bucket before production cutover.
+3. If AWS decommissioning is desired, plan the object migration and rollback path before removing the old AWS credentials.
+4. Continue the homepage/web shell visual migration now that the public SlateDrop upload/share backend path is green again.
 
 ### Session Handoff — 2026-04-14 (Command Center Cleanup Follow-Up)
 

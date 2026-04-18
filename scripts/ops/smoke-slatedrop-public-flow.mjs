@@ -54,7 +54,7 @@ async function waitForUpload(admin, fileName, orgId) {
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const query = admin
       .from("slatedrop_uploads")
-      .select("id, file_name, s3_key, status, file_size")
+      .select("id, file_name, s3_key, status, file_size, unified_file_id")
       .eq("org_id", orgId)
       .eq("file_name", fileName)
       .order("created_at", { ascending: false })
@@ -213,7 +213,7 @@ async function main() {
 
         const { data: refreshedUpload, error: refreshedUploadError } = await admin
           .from("slatedrop_uploads")
-          .select("id, file_name, s3_key, status, file_size")
+          .select("id, file_name, s3_key, status, file_size, unified_file_id")
           .eq("id", uploadedFile.id)
           .maybeSingle();
         if (refreshedUploadError || !refreshedUpload) {
@@ -226,6 +226,11 @@ async function main() {
 
         uploadedFile.status = refreshedUpload.status;
         uploadedFile.file_size = refreshedUpload.file_size;
+        uploadedFile.unified_file_id = refreshedUpload.unified_file_id;
+      }
+
+      if (!uploadedFile.unified_file_id) {
+        throw new Error("Uploaded file did not receive a unified_files bridge row");
       }
 
       cleanup.push(() => admin.from("slatedrop_uploads").delete().eq("id", uploadedFile.id));
@@ -233,7 +238,7 @@ async function main() {
 
       const shareToken = makeToken();
       const { error: shareError } = await admin.from("slate_drop_links").insert({
-        file_id: uploadedFile.id,
+        file_id: uploadedFile.unified_file_id,
         token: shareToken,
         created_by: member.user_id,
         role: "download",

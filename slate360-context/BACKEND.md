@@ -138,6 +138,7 @@ Storage rules:
 - use `npm run diag:storage-runtime` to confirm which provider the runtime selected and whether the configured bucket is reachable
 - use `npm run diag:storage-runtime:write` for a temporary put/delete probe when validating upload permissions on a new R2 or S3 credential set
 - use `npm run diag:storage-runtime:presign` to validate the presigned URL path used by upload/download flows
+- `supabase/migrations/20260418101500_track_unified_files_and_slatedrop_bridge.sql` now tracks the live `unified_files` table in source control and adds `slatedrop_uploads.unified_file_id` so SlateDrop sharing can satisfy the live `slate_drop_links.file_id -> unified_files(id)` foreign key without breaking the current upload model
 - SlateDrop upload/download logic lives under `app/api/slatedrop/`
 - folder/file behavior should respect org and project scope
 
