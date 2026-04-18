@@ -200,24 +200,29 @@ When editing oversized files, always read both the state declarations AND the JS
 ### Session Handoff — 2026-04-18
 
 ### What Changed
-- `app/page.tsx`: homepage metadata now reflects the current field-to-office positioning instead of the older “central nervous system” copy.
-- `components/marketing-homepage.tsx`: updated the four homepage app-card description sentences so Site Walk, 360 Tours, Design Studio, and Content Studio better match the workflow copy provided by the user, while leaving the viewer and feature-list structure intact.
-- `components/home/landing-data.ts` and `app/(public)/apps/[slug]/page.tsx`: aligned the extracted/public app descriptions and taglines with the newer workflow language so the non-homepage marketing pages do not drift from the live homepage copy.
-- `app/globals.css`: auth utilities (`auth-page`, `auth-topbar`, `auth-card`, `auth-input`, `auth-btn-oauth`, etc.) now use the Slate360 app’s darker graphite-and-gold visual language instead of the flatter generic auth styling.
-- `components/auth/SignupConfirmation.tsx`: updated the confirmation-page CTA styling to match the app-style gold primary actions.
-- `slate360-context/SUPABASE_EMAIL_TEMPLATES.md`: updated the documented confirm-signup email template to the Slate360 graphite-and-gold palette and recorded the shared app-matched email colors for dashboard-side template updates.
-- Vercel environment audit: confirmed via the Vercel API that `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_ENDPOINT`, `CLOUDFLARE_ACCOUNT_ID`, and `CLOUDFLARE_R2_API_TOKEN` already exist for development, preview, and production on `slate360/slate360-rebuild`; no missing required `R2_*` runtime key was found.
-- Deployed smoke verification: the latest branch preview deployment (`868ab78`) exists and is ready on Vercel, but it returns `401` because preview protection blocks unattended browser smoke runs; the public production domain is reachable, and `SMOKE_BASE_URL=https://www.slate360.ai npm run smoke:slatedrop-public-flow` currently fails with `Uploaded file did not receive a unified_files bridge row`, confirming production is still on the older main build rather than this branch.
-- Validation: `npm run typecheck` passed after the public/auth copy and styling changes.
+- `components/Navbar.tsx`, `components/Footer.tsx`, `components/marketing-homepage.tsx`, `app/(public)/apps/[slug]/page.tsx`, and `app/(public)/portal/[token]/page.tsx`: migrated the remaining public-shell white/gray/zinc/yellow styling to shared brand-token classes so the homepage header/mobile shell, public app-detail pages, and branded portal now match the Slate360 app palette.
+- `components/shared/SlateLogo.tsx`: widened the shared logo component to accept standard image props so public shells can reuse one source-of-truth logo while still animating size or passing image attributes.
+- `ONGOING_ISSUES.md`, `slate360-context/ONGOING_ISSUES.md`, and `ops/bug-registry.json`: logged the public-shell drift bug (`S360-037` / `BUG-034`) and recorded that the code fix is now on the promoted branch and awaiting deployed verification.
+- Git / deploy promotion: committed `3e73d6c` (`Align public shell with app brand tokens`), pushed `refactor/brand-token-migration-core-surfaces`, and fast-forwarded `main` directly to `3e73d6c` so production picked up both this visual-shell fix and the earlier R2 + `unified_files` bridge work.
+- Production verification: Vercel production deployment `dpl_3vuYockpfB75uBYiRA2b9WLDjkYi` for commit `3e73d6c` reached `READY` and aliased to `www.slate360.ai`.
+- Runtime validation: `SMOKE_BASE_URL=https://www.slate360.ai npm run smoke:slatedrop-public-flow` now passes end-to-end on production; the live response CSP now includes `https://*.r2.cloudflarestorage.com` in `connect-src` and `frame-src`, confirming the promoted build is serving the newer storage/runtime config.
 
 ### What's Broken / Partially Done
-- The latest branch preview deployment is Vercel-protected, so an unattended browser smoke pass cannot run there until preview protection is relaxed or a bypass secret is provided.
-- Production still does not include the `unified_files` share bridge or the newer R2/CSP changes from this branch, so the hosted smoke run against `https://www.slate360.ai` fails even though the same flow passes locally.
-- Current database and file metadata still refer to the same bucket name and S3-style semantics; no object migration, bucket split, or cleanup strategy has been applied yet.
-- PR #6 (design system foundation) still open — PR #7 depends on it.
-- 128 brand violations remain (mostly in deep module pages not yet in scope).
-- `mobile-smoke` CI gate still fails (pre-existing).
-- File-size guard still reports unrelated monoliths (`LocationMap.tsx`, `marketing-homepage.tsx`, several widget/project files) over 300 lines.
+- Preview deployments for the branch still return `401` because Vercel preview protection is enabled, so unattended preview smoke runs are still blocked without a bypass path.
+- `mobile-smoke` CI gate still fails (pre-existing, not touched in this slice).
+- File-size guard still reports unrelated monoliths over 300 lines, including `components/marketing-homepage.tsx` (now 1112 lines), `components/dashboard/LocationMap.tsx`, and several widget/project files.
+- The repo still contains unrelated local scratch/untracked asset files and deletions (`find_shell.mjs`, `get_git*.mjs`, extra SVGs, deleted screenshots/icons). They were intentionally left untouched.
+- `BUG-034` / `S360-037` is code-fixed and production-promoted, but broader brand-audit debt remains outside the public-shell slice.
+
+### Context Files Updated
+- `ONGOING_ISSUES.md`: added `S360-037` for public-shell brand drift and marked it as testing on the promoted branch.
+- `slate360-context/ONGOING_ISSUES.md`: added `BUG-034` for homepage/public-shell drift with branch-fix status.
+- `ops/bug-registry.json`: added `BUG-034` with verification targets for tokenized public shells and production deployment.
+
+### Next Steps (ordered)
+1. Verify the live homepage visually on desktop and mobile to confirm the promoted tokenized shell reads correctly in-browser, not just in HTML/CSP and smoke output.
+2. Tackle the next highest-value public beta trust issue: `S360-002` auth mobile text sizing or the remaining homepage monolith extraction from `components/marketing-homepage.tsx`.
+3. Clean up PR hygiene: either retarget or close PR #7 now that `main` already contains commit `3e73d6c`.
 
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: future-chat startup context now lists Cloudflare R2 access and verification commands.
