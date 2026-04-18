@@ -200,18 +200,19 @@ When editing oversized files, always read both the state declarations AND the JS
 ### Session Handoff — 2026-04-18
 
 ### What Changed
-- `supabase/migrations/20260418101500_track_unified_files_and_slatedrop_bridge.sql`: source control now tracks the live `unified_files` table contract and adds `slatedrop_uploads.unified_file_id` so SlateDrop upload records can bridge cleanly into the live share-link model.
-- `lib/slatedrop/unified-files.ts`: added the shared bridge helper that creates or reuses a `unified_files` row for a SlateDrop upload and records the mapping back on `slatedrop_uploads`.
-- `app/api/slatedrop/complete/route.ts`: after marking uploads active, the route now ensures each upload has a bridged `unified_files` row in both authenticated and public-token flows.
-- `app/api/slatedrop/secure-send/route.ts`: share-link creation now inserts `slate_drop_links.file_id` using the bridged `unified_files.id` instead of the raw `slatedrop_uploads.id`.
-- `app/share/[token]/page.tsx`: public share pages now resolve shared files from `unified_files` first and fall back to `slatedrop_uploads` for legacy compatibility.
-- `scripts/ops/smoke-slatedrop-public-flow.mjs`: the end-to-end public upload/share smoke test now asserts that upload completion populated `unified_file_id` before creating the share token.
-- `ops/bug-registry.json`, `ONGOING_ISSUES.md`, and `slate360-context/ONGOING_ISSUES.md`: marked the Cloudflare bucket CORS blocker fixed (`BUG-032` / `S360-035`) and logged/fixed the share-link FK drift (`BUG-033` / `S360-036`).
-- `slate360-context/BACKEND.md`: documented the tracked `unified_files` bridge so future backend work does not recreate the schema drift.
-- Validation: `npm run typecheck` passed, the live Supabase migration was applied successfully, and `npm run smoke:slatedrop-public-flow` completed end-to-end with a real R2-backed public upload and share flow.
+- `app/page.tsx`: homepage metadata now reflects the current field-to-office positioning instead of the older “central nervous system” copy.
+- `components/marketing-homepage.tsx`: updated the four homepage app-card description sentences so Site Walk, 360 Tours, Design Studio, and Content Studio better match the workflow copy provided by the user, while leaving the viewer and feature-list structure intact.
+- `components/home/landing-data.ts` and `app/(public)/apps/[slug]/page.tsx`: aligned the extracted/public app descriptions and taglines with the newer workflow language so the non-homepage marketing pages do not drift from the live homepage copy.
+- `app/globals.css`: auth utilities (`auth-page`, `auth-topbar`, `auth-card`, `auth-input`, `auth-btn-oauth`, etc.) now use the Slate360 app’s darker graphite-and-gold visual language instead of the flatter generic auth styling.
+- `components/auth/SignupConfirmation.tsx`: updated the confirmation-page CTA styling to match the app-style gold primary actions.
+- `slate360-context/SUPABASE_EMAIL_TEMPLATES.md`: updated the documented confirm-signup email template to the Slate360 graphite-and-gold palette and recorded the shared app-matched email colors for dashboard-side template updates.
+- Vercel environment audit: confirmed via the Vercel API that `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_ENDPOINT`, `CLOUDFLARE_ACCOUNT_ID`, and `CLOUDFLARE_R2_API_TOKEN` already exist for development, preview, and production on `slate360/slate360-rebuild`; no missing required `R2_*` runtime key was found.
+- Deployed smoke verification: the latest branch preview deployment (`868ab78`) exists and is ready on Vercel, but it returns `401` because preview protection blocks unattended browser smoke runs; the public production domain is reachable, and `SMOKE_BASE_URL=https://www.slate360.ai npm run smoke:slatedrop-public-flow` currently fails with `Uploaded file did not receive a unified_files bridge row`, confirming production is still on the older main build rather than this branch.
+- Validation: `npm run typecheck` passed after the public/auth copy and styling changes.
 
 ### What's Broken / Partially Done
-- Production/Vercel runtime still needs the same validated R2 env contract and a deployed smoke pass; the successful test so far is against the local app with live Supabase + R2.
+- The latest branch preview deployment is Vercel-protected, so an unattended browser smoke pass cannot run there until preview protection is relaxed or a bypass secret is provided.
+- Production still does not include the `unified_files` share bridge or the newer R2/CSP changes from this branch, so the hosted smoke run against `https://www.slate360.ai` fails even though the same flow passes locally.
 - Current database and file metadata still refer to the same bucket name and S3-style semantics; no object migration, bucket split, or cleanup strategy has been applied yet.
 - PR #6 (design system foundation) still open — PR #7 depends on it.
 - 128 brand violations remain (mostly in deep module pages not yet in scope).
@@ -225,13 +226,14 @@ When editing oversized files, always read both the state declarations AND the JS
 - `docs/reference/R2_CUTOVER_CHECKLIST.md`: added the R2 production cutover and bucket CORS checklist.
 - `ONGOING_ISSUES.md`, `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json`: recorded the resolved R2 CORS blocker and the resolved unified_files/share-link bridge mismatch.
 - `slate360-context/BACKEND.md`: documented the shared storage client R2 env contract plus the tracked `unified_files` bridge.
+- `slate360-context/SUPABASE_EMAIL_TEMPLATES.md`: updated the documented confirm-signup template to match the Slate360 app palette.
 - `SLATE360_PROJECT_MEMORY.md`: this handoff.
 
 ### Next Steps (ordered)
-1. Mirror the validated `R2_*` env contract into Vercel runtime envs and run the storage diagnostics plus a deployed smoke pass there.
-2. Decide whether `slate360-storage` should remain the canonical bucket name on R2 or whether the project should move to a distinct R2 bucket before production cutover.
-3. If AWS decommissioning is desired, plan the object migration and rollback path before removing the old AWS credentials.
-4. Continue the homepage/web shell visual migration now that the public SlateDrop upload/share backend path is green again.
+1. Merge or deploy this branch so the production domain picks up the `unified_files` share bridge and the updated R2/CSP changes, then rerun the hosted smoke pass.
+2. If preview smoke automation is required before merge, provide a Vercel preview-protection bypass or temporarily relax preview protection for the branch deployment.
+3. Continue the homepage/web-shell visual migration by extracting the remaining live `components/marketing-homepage.tsx` sections into the already-existing `components/home/*` structure instead of extending the 1,100-line monolith.
+4. Decide whether `slate360-storage` should remain the canonical bucket name on R2 or whether the project should move to a distinct R2 bucket before production cutover.
 
 ### Session Handoff — 2026-04-14 (Command Center Cleanup Follow-Up)
 

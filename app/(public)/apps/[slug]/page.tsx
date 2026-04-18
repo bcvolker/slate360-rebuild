@@ -30,9 +30,9 @@ interface AppInfo {
 const APP_DATA: Record<string, AppInfo> = {
   "site-walk": {
     name: "Site Walk",
-    tagline: "Document construction progress like never before",
+    tagline: "Capture context. Create deliverables.",
     description:
-      "Capture GPS-tagged photos, generate automated timelines, and share instant progress reports with clients. Site Walk turns every site visit into a structured, searchable record.",
+      "Capture site conditions in context, document observations as you walk, and turn field documentation into punch lists, branded reports, proposals, and searchable project records.",
     icon: MapPin,
     comingSoon: true,
     statusLabel: "On the Way — Coming Soon",
@@ -54,9 +54,9 @@ const APP_DATA: Record<string, AppInfo> = {
   },
   "360-tour-builder": {
     name: "360 Tour Builder",
-    tagline: "Create immersive virtual tours in minutes",
+    tagline: "Immersive walkthroughs with project context",
     description:
-      "Upload 360° photos, add interactive hotspots, and share embeddable tours with clients. No coding required. Tours auto-generate client portals with analytics.",
+      "Build immersive 360 walkthroughs with hotspots, floor plans, branded sharing, and client-friendly remote exploration that keeps project context intact.",
     icon: Building2,
     comingSoon: true,
     statusLabel: "Under Development — Coming Soon",
@@ -78,9 +78,9 @@ const APP_DATA: Record<string, AppInfo> = {
   },
   "design-studio": {
     name: "Design Studio",
-    tagline: "Bring 3D models to life, share them instantly",
+    tagline: "Connected 2D and 3D design review",
     description:
-      "Upload GLB/glTF models, annotate them with markups, and share interactive 3D viewers with clients. No plugins, no downloads — just a link.",
+      "Review plans, generate and present 3D models, annotate decisions, and move between 2D and 3D design workflows without breaking the client-ready presentation flow.",
     icon: Palette,
     comingSoon: true,
     statusLabel: "Under Development — Coming Soon",
@@ -102,9 +102,9 @@ const APP_DATA: Record<string, AppInfo> = {
   },
   "content-studio": {
     name: "Content Studio",
-    tagline: "Your central hub for digital asset management",
+    tagline: "Branded media and content delivery",
     description:
-      "Organize photos, videos, documents, and media in one secure library. Create collections, control access, and share polished galleries with clients.",
+      "Edit standard and 360 video, organize project media, and produce branded client and marketing deliverables from one connected content workspace.",
     icon: FileText,
     comingSoon: true,
     statusLabel: "Under Development — Coming Soon",

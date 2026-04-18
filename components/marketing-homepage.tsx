@@ -117,7 +117,7 @@ const APP_SHOWCASE: AppShowcase[] = [
   {
     name: "Site Walk",
     slug: "site-walk",
-    description: "Collect imagery, document your observations, and quickly create deliverables.",
+    description: "Capture site conditions in context, document observations as you walk, and turn field documentation into punch lists, branded reports, and proposals.",
     icon: MapPin,
     comingSoon: true,
     statusLabel: "On the Way — Coming Soon",
@@ -137,7 +137,7 @@ const APP_SHOWCASE: AppShowcase[] = [
   {
     name: "360 Tours",
     slug: "360-tour-builder",
-    description: "Create immersive 360 experiences for your clients and project stakeholders.",
+    description: "Create immersive 360 walkthroughs with hotspots, floor plans, and branded share links so clients and stakeholders can explore remotely with context.",
     icon: Building2,
     comingSoon: true,
     statusLabel: "Under Development — Coming Soon",
@@ -158,7 +158,7 @@ const APP_SHOWCASE: AppShowcase[] = [
   {
     name: "Design Studio",
     slug: "design-studio",
-    description: "Conduct plan reviews, generate 3D models, and design in 2D and 3D workspaces.",
+    description: "Review plans, generate and present 3D models, and work through design decisions in connected 2D and 3D workspaces.",
     icon: Palette,
     comingSoon: true,
     statusLabel: "Under Development — Coming Soon",
@@ -179,7 +179,7 @@ const APP_SHOWCASE: AppShowcase[] = [
   {
     name: "Content Studio",
     slug: "content-studio",
-    description: "Edit standard and 360 video and create high-quality branded videos for your clients and marketing needs.",
+    description: "Edit standard and 360 video, organize project media, and produce branded client and marketing deliverables from one content workspace.",
     icon: FileText,
     comingSoon: true,
     statusLabel: "Under Development — Coming Soon",
@@ -1001,7 +1001,7 @@ function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link href="#apps" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Tour Builder
+                  360 Tours
                 </Link>
               </li>
               <li>

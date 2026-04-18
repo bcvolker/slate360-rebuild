@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import MarketingHomepage from "@/components/marketing-homepage";
 
 export const metadata = {
-  title: 'Slate360 - The Interactive and Visual Central Nervous System for All of Your Construction Projects',
-  description: 'Slate360 Core + powerful add-ons. One place for tours, site walks, client portals, and secure file sharing. Client links never break.',
+  title: 'Slate360 - The real-time interactive bridge between the field and the office',
+  description: 'Capture site conditions, organize project context, and turn field documentation into branded deliverables, immersive tours, and client-ready media from one connected platform.',
 };
 
 export default async function RootPage() {
