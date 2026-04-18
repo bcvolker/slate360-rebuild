@@ -12,7 +12,7 @@ async function authorize(projectId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { user: null, project: null, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  const { project } = await getScopedProjectForUser(user.id, projectId, "id,name,description,metadata,created_at,status");
+  const { project } = await getScopedProjectForUser(user.id, projectId, "id,name,description,metadata,created_at,status,org_id");
   if (!project) return { user: null, project: null, error: NextResponse.json({ error: "Not found" }, { status: 404 }) };
   return { user, project: project as unknown as Record<string,unknown>, error: null };
 }
@@ -109,17 +109,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<Param
     },
   };
 
-  let orgId: string | null = null;
-  try {
-    const { data } = await admin
-      .from("organization_members")
-      .select("org_id")
-      .eq("user_id", user.id)
-      .single();
-    orgId = data?.org_id ?? null;
-  } catch {
-    orgId = null;
-  }
+  const orgId = (project as { org_id?: string | null }).org_id ?? null;
 
   // Save JSON report to S3
   const safeTitle = reportType.replace(/[^a-zA-Z0-9]/g,"_");

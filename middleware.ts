@@ -182,7 +182,7 @@ export async function middleware(request: NextRequest) {
     supabaseResponse.headers.set("X-Frame-Options", "DENY");
     supabaseResponse.headers.set(
       "Content-Security-Policy",
-      "frame-ancestors 'none'; frame-src 'self' blob: https://*.s3.amazonaws.com;"
+      "frame-ancestors 'none'; frame-src 'self' blob: https://*.s3.amazonaws.com https://*.r2.cloudflarestorage.com;"
     );
   }
 

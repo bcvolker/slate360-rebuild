@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-04-16",
+  "updatedAt": "2026-04-18",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -166,6 +166,44 @@
         "POST /api/site-walk/upload returns an S3 key under `orgs/{namespace}/{photosFolderId}/...` and a reserved `fileId`",
         "POST /api/site-walk/items activates the reserved `slatedrop_uploads` row when the capture is saved",
         "New Site Walk photos appear in the owning project's `Photos` folder via `slatedrop_uploads` instead of only under `site-walk/photos/...`"
+      ]
+    },
+    {
+      "id": "BUG-030",
+      "title": "Site Walk plan image route missing",
+      "module": "site-walk",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "`PlanViewer.tsx` rendered `/api/site-walk/plans/{id}/image`, but no server route existed to translate the stored `site_walk_plans.s3_key` into a browser-loadable image response.",
+      "verification": [
+        "GET /api/site-walk/plans/{planId}/image returns a redirect to a signed S3 URL for a plan owned by the current org",
+        "Existing Site Walk plans render in `components/site-walk/PlanViewer.tsx` without changing the frontend src contract"
+      ]
+    },
+    {
+      "id": "BUG-031",
+      "title": "Project helper APIs assumed org membership instead of project scope",
+      "module": "projects/collaborators",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "Recent files, records, photo reports, and management helper routes derived scope from `organization_members` lookups, so collaborator access could fail on secondary operations even when `project_members` access was valid.",
+      "verification": [
+        "`app/api/projects/[projectId]/recent-files/route.ts` uses `withProjectAuth` and no longer fetches `organization_members` directly",
+        "`app/api/projects/[projectId]/records/route.ts` and `photo-report/route.ts` derive org scope from `withProjectAuth` instead of a separate org-membership query",
+        "`app/api/projects/[projectId]/management/contracts/route.ts` and `management/reports/route.ts` use the resolved project's `org_id` for storage/logging paths"
+      ]
+    },
+    {
+      "id": "BUG-032",
+      "title": "R2 browser uploads blocked by missing bucket CORS policy",
+      "module": "slatedrop/storage",
+      "severity": "high",
+      "status": "open",
+      "rootCause": "After switching the shared storage client to Cloudflare R2, browser upload flows that PUT directly to presigned R2 URLs fail preflight because the bucket does not return `Access-Control-Allow-Origin` for the app origin. The app CSP has been updated, but the bucket itself still needs a CORS rule.",
+      "verification": [
+        "`npm run smoke:slatedrop-public-flow` completes the public upload portal flow without `No 'Access-Control-Allow-Origin' header` errors",
+        "Browser upload flows reach `/api/slatedrop/complete` after the presigned PUT instead of failing with `Failed to fetch`",
+        "Shared image/file flows still load correctly after the bucket CORS rule is added"
       ]
     }
   ]

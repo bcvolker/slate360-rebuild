@@ -117,27 +117,27 @@ const APP_SHOWCASE: AppShowcase[] = [
   {
     name: "Site Walk",
     slug: "site-walk",
-    description: "Document construction progress with GPS-tagged photos, automated timelines, and instant client reports.",
+    description: "Collect imagery, document your observations, and quickly create deliverables.",
     icon: MapPin,
     comingSoon: true,
     statusLabel: "On the Way — Coming Soon",
     demoType: "placeholder",
     demoLabel: "Live demo coming soon",
     features: [
-      "GPS-tagged photo capture",
-      "Automated progress timelines",
-      "Weather & date stamping",
-      "One-click client sharing",
-      "Compare views over time",
-      "AI issue detection",
-      "Offline mode support",
-      "PDF report export",
+      "Capture project context in real time",
+      "Document observations as you walk",
+      "Preserve geolocated, time-stamped records",
+      "Create client-ready deliverables fast",
+      "Keep project files tied to the right context",
+      "Share outputs within minutes",
+      "Reduce photo clutter on mobile devices",
+      "Turn field capture into usable reports",
     ],
   },
   {
-    name: "360 Tour Builder",
+    name: "360 Tours",
     slug: "360-tour-builder",
-    description: "Create stunning 360° virtual tours with interactive hotspots, floor plans, and seamless client sharing.",
+    description: "Create immersive 360 experiences for your clients and project stakeholders.",
     icon: Building2,
     comingSoon: true,
     statusLabel: "Under Development — Coming Soon",
@@ -158,7 +158,7 @@ const APP_SHOWCASE: AppShowcase[] = [
   {
     name: "Design Studio",
     slug: "design-studio",
-    description: "Visualize projects with interactive 3D models. Upload, annotate, and share models with clients in one click.",
+    description: "Conduct plan reviews, generate 3D models, and design in 2D and 3D workspaces.",
     icon: Palette,
     comingSoon: true,
     statusLabel: "Under Development — Coming Soon",
@@ -179,7 +179,7 @@ const APP_SHOWCASE: AppShowcase[] = [
   {
     name: "Content Studio",
     slug: "content-studio",
-    description: "Organize, manage, and share digital assets across your projects. A central hub for photos, videos, documents, and media.",
+    description: "Edit standard and 360 video and create high-quality branded videos for your clients and marketing needs.",
     icon: FileText,
     comingSoon: true,
     statusLabel: "Under Development — Coming Soon",
@@ -457,19 +457,18 @@ function HeroSection() {
         {/* Badge */}
         <Badge variant="outline" className="border-primary/30 text-primary px-4 py-1.5">
           <Zap className="mr-1.5 h-3.5 w-3.5" />
-          Now with AI-powered tour generation
+          Site Walk + connected workflows
         </Badge>
 
         {/* Headline */}
         <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight text-balance">
-          The Interactive and Visual Central Nervous System for{" "}
-          <span className="text-primary">All of Your Construction Projects</span>
+          The real-time interactive bridge between{" "}
+          <span className="text-primary">the field and the office</span>
         </h1>
 
         {/* Subheadline */}
         <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
-          Slate360 Core + powerful add-ons. One place for tours, site walks, client portals, 
-          and secure file sharing. <span className="text-primary font-medium">Client links never break.</span>
+          Use your phone or 360 camera to capture site conditions while you walk your project, add comments as you go, and automatically preserve a time-stamped, geolocated record. Site Walk turns that into punch lists, reports, or even proposals with your branding. Then share your deliverables with clients and project stakeholders within minutes. Free your phone from thousands of project photos that lose meaning over time.
         </p>
 
         {/* Interactive Demo */}
@@ -547,14 +546,13 @@ function AppShowcaseSection() {
         {/* Section Header */}
         <div className="text-center mb-12">
           <Badge variant="outline" className="border-primary/30 text-primary mb-4">
-            Powerful Add-ons
+            Connected Ecosystem
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Apps that work together seamlessly
+            One platform. Multiple interactive workflows.
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Each app is powerful on its own, but when bundled together they share storage 
-            and create a unified client experience.
+            Slate360 is built as an ecosystem of connected apps that share projects, files, permissions, and deliverables. Start with Site Walk, then expand into other capabilities as your workflows grow without losing continuity or context.
           </p>
         </div>
 
@@ -627,8 +625,7 @@ function AppShowcaseSection() {
         <Card className="mt-8 bg-primary/5 border-primary/20">
           <CardContent className="py-4 px-6">
             <p className="text-sm text-center text-foreground">
-              <span className="text-primary font-medium">Bundle & Save:</span> Apps purchased 
-              together share pooled storage. Standalone apps have isolated storage allocations.
+              Connected apps share projects, files, permissions, and deliverables so your workflow can expand without losing context.
             </p>
           </CardContent>
         </Card>
@@ -650,14 +647,13 @@ function SlateDropSection() {
         <div className="text-center mb-12">
           <Badge variant="outline" className="border-primary/30 text-primary mb-4">
             <FolderSync className="mr-1.5 h-3.5 w-3.5" />
-            SlateDrop Technology
+            Workflow Impact
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            One Nervous System for All Deliverables
+            Why Slate360 changes the workflow
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            SlateDrop auto-provisions folders for every project. Set permissions once, 
-            and every deliverable inherits client email access automatically.
+            Slate360 keeps the field capture, project context, and office outputs connected so teams can work from the same current information instead of reconstructing it later.
           </p>
         </div>
 
@@ -680,87 +676,42 @@ function SlateDropSection() {
                 <line x1="50%" y1="20%" x2="50%" y2="80%" stroke="url(#gold-gradient)" strokeWidth="2" />
               </svg>
 
-              {/* Grid of connected nodes */}
-              <div className="relative grid grid-cols-3 gap-4 md:gap-8">
-                {/* Top row */}
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <Building2 className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Tours</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-primary/10 border-primary/30 shadow-[0_0_20px_hsla(45,82%,55%,0.2)]">
-                    <CardContent className="p-4 text-center">
-                      <Sparkles className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-primary">SlateDrop</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <MapPin className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Site Walks</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Middle row */}
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <Users className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Client Portal</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="flex justify-center items-center">
-                  <div className="h-3 w-3 rounded-full bg-primary animate-pulse" />
-                </div>
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <Shield className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Permissions</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Bottom row */}
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <Globe className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Share Links</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <FolderSync className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Auto-Folders</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <Zap className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Instant Sync</p>
-                    </CardContent>
-                  </Card>
-                </div>
+              {/* Grid of workflow outcomes */}
+              <div className="relative grid gap-4 md:grid-cols-3 md:gap-8">
+                <Card className="bg-muted/30 border-border shadow-[0_8px_24px_hsla(0,0%,0%,0.2)]">
+                  <CardContent className="p-6 text-center">
+                    <FolderSync className="h-7 w-7 text-primary mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-foreground mb-2">Stop losing project meaning</p>
+                    <p className="text-sm text-muted-foreground">
+                      Photos, notes, and documents are only valuable if they stay tied to the project context that explains them.
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-primary/10 border-primary/30 shadow-[0_0_20px_hsla(45,82%,55%,0.15)]">
+                  <CardContent className="p-6 text-center">
+                    <Sparkles className="h-7 w-7 text-primary mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-foreground mb-2">Create polished outputs faster</p>
+                    <p className="text-sm text-muted-foreground">
+                      Slate360 helps teams turn site documentation into professional, branded deliverables in minutes instead of spending hours rebuilding the story later.
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-muted/30 border-border shadow-[0_8px_24px_hsla(0,0%,0%,0.2)]">
+                  <CardContent className="p-6 text-center">
+                    <Users className="h-7 w-7 text-primary mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-foreground mb-2">Keep the field and office aligned</p>
+                    <p className="text-sm text-muted-foreground">
+                      Make it easier for the people walking the project and the people reviewing it in real-time to work from the same current, contextualized information.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             </div>
 
             {/* CTA */}
             <div className="text-center mt-8">
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                See Folder Permissions in Action
+                See the workflow in action
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </div>
@@ -1029,7 +980,7 @@ function Footer() {
               <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto" />
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
-              The interactive and visual central nervous system for all of your construction projects.
+              The real-time interactive bridge between the field and the office.
             </p>
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary">

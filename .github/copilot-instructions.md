@@ -106,12 +106,14 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 - Supabase: project ref `hadnfcenpcfaeclczsmm`
 - S3: bucket `slate360-storage`, region `us-east-2`
+- Cloudflare R2: bucket `slate360-storage`, account `96019f75871542598e1c34e4b4fe2626`, S3-compatible endpoint derived from `CLOUDFLARE_ACCOUNT_ID` unless `R2_ENDPOINT` is set
 - Vercel: auto-deploys from `main`
 - Market cron: `/api/market/scheduler/tick` every 5 minutes via `vercel.json`
 
 ### Environment sources
 
 - Local/dev secrets: `.env.local`
+- R2 local/dev runtime: `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, optional `R2_REGION`, optional `R2_ENDPOINT` or `CLOUDFLARE_ACCOUNT_ID`
 - Stripe secrets: Vercel env only
 - Market live trading requires Polymarket envs plus `NEXT_PUBLIC_POLYMARKET_SPENDER`
 
@@ -122,6 +124,7 @@ npm run dev
 npm run typecheck
 npm run build
 npm run diag:market-runtime
+npm run diag:storage-runtime
 npm run verify:release
 bash scripts/check-file-size.sh
 ```
