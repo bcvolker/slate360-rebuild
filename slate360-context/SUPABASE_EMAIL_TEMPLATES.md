@@ -3,6 +3,14 @@
 ## Overview
 Supabase handles authentication emails (signup confirmation, password reset, etc.) using its own email templates. These templates are configured in the Supabase Dashboard, not in application code.
 
+Use the same Slate360 app palette in those templates:
+- Background: `#0b0f15`
+- Card surface: `#121821`
+- Border: `rgba(212, 175, 55, 0.18)`
+- Primary accent: `#D4AF37`
+- Primary text: `#F5F7FA`
+- Secondary text: `#A6B0BF`
+
 ## How to Update Email Templates
 
 1. Go to your [Supabase Dashboard](https://supabase.com/dashboard)
@@ -16,7 +24,7 @@ Supabase handles authentication emails (signup confirmation, password reset, etc
 
 ### Subject Line
 ```
-Welcome to Slate360 - Verify Your Email
+Welcome to Slate360 - Confirm your email
 ```
 
 ### HTML Body
@@ -27,44 +35,44 @@ Welcome to Slate360 - Verify Your Email
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; background-color: #0b0f15; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #0b0f15; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); overflow: hidden;">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background: linear-gradient(180deg, rgba(18,24,33,0.96) 0%, rgba(12,17,25,0.98) 100%); border: 1px solid rgba(212, 175, 55, 0.18); border-radius: 18px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35); overflow: hidden;">
           <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Welcome to Slate360</h1>
-              <p style="color: #e0e7ff; margin: 12px 0 0 0; font-size: 16px; font-weight: 400;">Your journey to advanced 3D visualization starts here</p>
+            <td style="background: linear-gradient(135deg, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.04) 100%); padding: 40px 30px; text-align: center; border-bottom: 1px solid rgba(212, 175, 55, 0.14);">
+              <h1 style="color: #f5f7fa; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Welcome to Slate360</h1>
+              <p style="color: #d4af37; margin: 12px 0 0 0; font-size: 16px; font-weight: 500;">The real-time interactive bridge between the field and the office</p>
             </td>
           </tr>
           
           <!-- Content -->
           <tr>
             <td style="padding: 40px 30px;">
-              <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">Verify Your Email Address</h2>
-              <p style="color: #6b7280; margin: 0 0 24px 0; line-height: 1.7; font-size: 16px;">
-                Thank you for joining Slate360! To complete your registration and start exploring our powerful 3D visualization and project management tools, please verify your email address.
+              <h2 style="color: #f5f7fa; margin: 0 0 20px 0; font-size: 22px; font-weight: 600;">Confirm your email address</h2>
+              <p style="color: #a6b0bf; margin: 0 0 24px 0; line-height: 1.7; font-size: 16px;">
+                Thank you for joining Slate360. Confirm your email to activate your account and continue into the connected workflows for Site Walk, tours, project deliverables, and client-ready content.
               </p>
               
               <!-- CTA Button -->
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                 <tr>
                   <td align="center" style="padding: 16px 0 24px 0;">
-                    <a href="{{ .ConfirmationURL }}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);">
-                      Verify Email Address
+                    <a href="{{ .ConfirmationURL }}" style="display: inline-block; background: #D4AF37; color: #0b0f15; padding: 16px 40px; text-decoration: none; border-radius: 999px; font-weight: 700; font-size: 16px; box-shadow: 0 0 24px rgba(212, 175, 55, 0.28);">
+                      Confirm Email
                     </a>
                   </td>
                 </tr>
               </table>
               
-              <p style="color: #9ca3af; margin: 0; font-size: 14px; line-height: 1.6;">
+              <p style="color: #8d98a8; margin: 0; font-size: 14px; line-height: 1.6;">
                 If the button doesn't work, copy and paste this link into your browser:<br>
-                <a href="{{ .ConfirmationURL }}" style="color: #667eea; word-break: break-all;">{{ .ConfirmationURL }}</a>
+                <a href="{{ .ConfirmationURL }}" style="color: #d4af37; word-break: break-all;">{{ .ConfirmationURL }}</a>
               </p>
               
-              <p style="color: #9ca3af; margin: 24px 0 0 0; font-size: 13px;">
+              <p style="color: #8d98a8; margin: 24px 0 0 0; font-size: 13px;">
                 This verification link will expire in 24 hours. If you didn't create an account with Slate360, please ignore this email.
               </p>
             </td>
@@ -72,11 +80,11 @@ Welcome to Slate360 - Verify Your Email
           
           <!-- Footer -->
           <tr>
-            <td style="background-color: #f9fafb; padding: 24px 30px; border-top: 1px solid #e5e7eb; text-align: center;">
-              <p style="color: #6b7280; margin: 0; font-size: 14px;">
-                Questions? <a href="mailto:support@slate360.com" style="color: #667eea; text-decoration: none;">Contact our support team</a>
+            <td style="background-color: rgba(255,255,255,0.02); padding: 24px 30px; border-top: 1px solid rgba(212, 175, 55, 0.12); text-align: center;">
+              <p style="color: #a6b0bf; margin: 0; font-size: 14px;">
+                Questions? <a href="mailto:support@slate360.com" style="color: #d4af37; text-decoration: none;">Contact our support team</a>
               </p>
-              <p style="color: #9ca3af; margin: 12px 0 0 0; font-size: 12px;">
+              <p style="color: #7f8896; margin: 12px 0 0 0; font-size: 12px;">
                 © 2024 Slate360. All rights reserved.
               </p>
             </td>

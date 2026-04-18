@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import crypto from "node:crypto";
 import { sendSecureSendEmail } from "@/lib/email";
+import { ensureUnifiedFileForUpload } from "@/lib/slatedrop/unified-files";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
   // Verify the file belongs to this org or user (slatedrop_uploads)
   let fileQuery = admin
     .from("slatedrop_uploads")
-    .select("id, file_name, s3_key")
+    .select("id, file_name, s3_key, file_type, file_size, org_id, uploaded_by, status, folder_id, created_at, unified_file_id")
     .eq("id", fileId)
     .neq("status", "deleted");
 
@@ -60,11 +61,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
 
+  let unifiedFileId: string;
+
+  try {
+    const unifiedFile = await ensureUnifiedFileForUpload(admin, file);
+    unifiedFileId = unifiedFile.id;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to bridge shared file metadata";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+
   const token = crypto.randomBytes(24).toString("hex");
   const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString();
 
   const { error: insertErr } = await admin.from("slate_drop_links").insert({
-    file_id: fileId,
+    file_id: unifiedFileId,
     token,
     created_by: user.id,
     role: permission,      // slate_drop_links uses 'role' instead of 'permission'

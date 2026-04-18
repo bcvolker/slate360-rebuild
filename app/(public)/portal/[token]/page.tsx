@@ -95,13 +95,13 @@ export default async function DeliverableSharePage({ params }: PageProps) {
         </header>
 
         {isDowngraded && (
-          <div className="flex items-center justify-between bg-yellow-50 px-6 py-3 text-sm text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
+          <div className="flex items-center justify-between border-y border-primary/20 bg-primary/10 px-6 py-3 text-sm text-foreground">
             <span>
               This content was created with a paid plan that is no longer active.
             </span>
             <a
               href="https://slate360.ai/pricing"
-              className="ml-4 font-semibold underline"
+              className="ml-4 font-semibold text-primary underline underline-offset-4"
             >
               Upgrade to Remove Watermark
             </a>
@@ -114,7 +114,7 @@ export default async function DeliverableSharePage({ params }: PageProps) {
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-10 select-none"
             >
-              <span className="rotate-[-35deg] text-6xl font-black uppercase tracking-widest text-gray-800 dark:text-gray-200">
+              <span className="rotate-[-35deg] text-6xl font-black uppercase tracking-widest text-foreground">
                 Watermark
               </span>
             </div>

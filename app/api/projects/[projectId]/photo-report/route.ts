@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import jsPDF from "jspdf";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { withProjectAuth } from "@/lib/server/api-auth";
+import { badRequest, notFound, ok } from "@/lib/server/api-response";
 import { resolveNamespace } from "@/lib/slatedrop/storage";
 import { saveProjectArtifact, resolveProjectFolderIdByName } from "@/lib/slatedrop/projectArtifacts";
 
@@ -32,117 +32,83 @@ function addWrappedLine(pdf: jsPDF, text: string, yRef: { y: number }, pageHeigh
 }
 
 export async function POST(_req: NextRequest, context: RouteContext) {
-  const { projectId } = await context.params;
+  return withProjectAuth(_req, context, async ({ admin, orgId, project, projectId, user }) => {
+    const projectRecord = project as { id: string; name: string };
+    const photosFolderId = await resolveProjectFolderIdByName(projectId, "Photos", orgId, user.id);
+    if (!photosFolderId) {
+      return notFound("Photos folder not found");
+    }
 
-  const supabase = await createClient();
-  const admin = createAdminClient();
+    const namespace = resolveNamespace(orgId, user.id);
+    const folderPrefix = `orgs/${namespace}/${photosFolderId}/`;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    let filesQuery = admin
+      .from("slatedrop_uploads")
+      .select("id, file_name, file_type, file_size, created_at")
+      .eq("status", "active")
+      .like("s3_key", `${folderPrefix}%`)
+      .order("created_at", { ascending: false });
+    filesQuery = orgId ? filesQuery.eq("org_id", orgId) : filesQuery.eq("uploaded_by", user.id);
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+    const { data: uploads } = await filesQuery;
 
-  let orgId: string | null = null;
-  try {
-    const { data } = await admin
-      .from("organization_members")
-      .select("org_id")
-      .eq("user_id", user.id)
-      .single();
-    orgId = data?.org_id ?? null;
-  } catch {
-    orgId = null;
-  }
+    const photos = (uploads ?? []).filter((file) => IMAGE_TYPES.has((file.file_type ?? "").toLowerCase()));
+    if (photos.length === 0) {
+      return badRequest("No photos found to include in report");
+    }
 
-  let projectQuery = admin
-    .from("projects")
-    .select("id, name")
-    .eq("id", projectId)
-    .limit(1);
-  projectQuery = orgId ? projectQuery.eq("org_id", orgId) : projectQuery.eq("created_by", user.id);
+    const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 46;
+    const yRef = { y: 56 };
 
-  const { data: project } = await projectQuery.single();
-  if (!project) {
-    return NextResponse.json({ error: "Project not found" }, { status: 404 });
-  }
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(18);
+    pdf.text("Photo Report", margin, yRef.y);
+    yRef.y += 24;
 
-  const photosFolderId = await resolveProjectFolderIdByName(projectId, "Photos", orgId, user.id);
-  if (!photosFolderId) {
-    return NextResponse.json({ error: "Photos folder not found" }, { status: 404 });
-  }
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(11);
+    pdf.text(`Project: ${projectRecord.name}`, margin, yRef.y);
+    yRef.y += 14;
+    pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, yRef.y);
+    yRef.y += 20;
 
-  const namespace = resolveNamespace(orgId, user.id);
-  const folderPrefix = `orgs/${namespace}/${photosFolderId}/`;
+    pdf.setFont("helvetica", "bold");
+    pdf.text(`Total Photos: ${photos.length}`, margin, yRef.y);
+    yRef.y += 18;
 
-  let filesQuery = admin
-    .from("slatedrop_uploads")
-    .select("id, file_name, file_type, file_size, created_at")
-    .eq("status", "active")
-    .like("s3_key", `${folderPrefix}%`)
-    .order("created_at", { ascending: false });
-  filesQuery = orgId ? filesQuery.eq("org_id", orgId) : filesQuery.eq("uploaded_by", user.id);
+    pdf.setFont("helvetica", "normal");
+    photos.forEach((photo, index) => {
+      const created = photo.created_at ? new Date(photo.created_at).toLocaleString() : "Unknown";
+      const sizeLabel = `${Math.max(0, Math.round(Number(photo.file_size ?? 0) / 1024))} KB`;
+      addWrappedLine(pdf, `${index + 1}. ${photo.file_name} — ${created} — ${sizeLabel}`, yRef, pageHeight, margin);
+    });
 
-  const { data: uploads } = await filesQuery;
+    const stamp = new Date().toISOString().slice(0, 10);
+    const filename = `${safeToken(projectRecord.name) || "project"}-photo-report-${stamp}.pdf`;
+    const pdfBuffer = pdf.output("arraybuffer") as ArrayBuffer;
 
-  const photos = (uploads ?? []).filter((file) => IMAGE_TYPES.has((file.file_type ?? "").toLowerCase()));
-  if (photos.length === 0) {
-    return NextResponse.json({ error: "No photos found to include in report" }, { status: 400 });
-  }
+    const artifact = await saveProjectArtifact(
+      projectRecord.id,
+      projectRecord.name,
+      "PhotoReport",
+      {
+        name: filename,
+        type: "application/pdf",
+        size: pdfBuffer.byteLength,
+        arrayBuffer: async () => pdfBuffer,
+      },
+      { id: user.id },
+      orgId
+    );
 
-  const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 46;
-  const yRef = { y: 56 };
-
-  pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(18);
-  pdf.text("Photo Report", margin, yRef.y);
-  yRef.y += 24;
-
-  pdf.setFont("helvetica", "normal");
-  pdf.setFontSize(11);
-  pdf.text(`Project: ${project.name}`, margin, yRef.y);
-  yRef.y += 14;
-  pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, yRef.y);
-  yRef.y += 20;
-
-  pdf.setFont("helvetica", "bold");
-  pdf.text(`Total Photos: ${photos.length}`, margin, yRef.y);
-  yRef.y += 18;
-
-  pdf.setFont("helvetica", "normal");
-  photos.forEach((photo, index) => {
-    const created = photo.created_at ? new Date(photo.created_at).toLocaleString() : "Unknown";
-    const sizeLabel = `${Math.max(0, Math.round(Number(photo.file_size ?? 0) / 1024))} KB`;
-    addWrappedLine(pdf, `${index + 1}. ${photo.file_name} — ${created} — ${sizeLabel}`, yRef, pageHeight, margin);
-  });
-
-  const stamp = new Date().toISOString().slice(0, 10);
-  const filename = `${safeToken(project.name) || "project"}-photo-report-${stamp}.pdf`;
-  const pdfBuffer = pdf.output("arraybuffer") as ArrayBuffer;
-
-  const artifact = await saveProjectArtifact(
-    project.id,
-    project.name,
-    "PhotoReport",
-    {
-      name: filename,
-      type: "application/pdf",
-      size: pdfBuffer.byteLength,
-      arrayBuffer: async () => pdfBuffer,
-    },
-    { id: user.id },
-    orgId
-  );
-
-  return NextResponse.json({
-    ok: true,
-    fileName: filename,
-    photoCount: photos.length,
-    fileId: artifact.upload.id,
-    artifact,
-  });
+    return ok({
+      ok: true,
+      fileName: filename,
+      photoCount: photos.length,
+      fileId: artifact.upload.id,
+      artifact,
+    });
+  }, "id, name");
 }

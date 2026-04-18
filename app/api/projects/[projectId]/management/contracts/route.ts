@@ -9,25 +9,11 @@ import { logProjectActivity } from "@/lib/projects/activity-log";
 
 type Params = { projectId: string };
 
-async function resolveOrgId(userId: string): Promise<string | null> {
-  const admin = createAdminClient();
-  try {
-    const { data } = await admin
-      .from("organization_members")
-      .select("org_id")
-      .eq("user_id", userId)
-      .single();
-    return data?.org_id ?? null;
-  } catch {
-    return null;
-  }
-}
-
 async function authorize(projectId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { user: null, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  const { project } = await getScopedProjectForUser(user.id, projectId, "id,name");
+  const { project } = await getScopedProjectForUser(user.id, projectId, "id,name,org_id");
   if (!project) return { user: null, error: NextResponse.json({ error: "Not found" }, { status: 404 }) };
   return { user, project, error: null };
 }
@@ -48,8 +34,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<Param
 
 export async function POST(req: NextRequest, { params }: { params: Promise<Params> }) {
   const { projectId } = await params;
-  const { user, error } = await authorize(projectId);
-  if (error || !user) return error ?? NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { user, project, error } = await authorize(projectId);
+  if (error || !user || !project) return error ?? NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const formData = await req.formData();
   const title         = String(formData.get("title") ?? "");
   const contractType  = String(formData.get("contract_type") ?? "");
@@ -63,7 +49,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<Param
   let fileUploadId: string | null = null;
 
   const admin = createAdminClient();
-  const orgId = await resolveOrgId(user.id);
+  const orgId = (project as { org_id?: string | null }).org_id ?? null;
 
   if (file && file.size > 0) {
     const MAX_FILE_SIZE = 25 * 1024 * 1024;
@@ -165,12 +151,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<Param
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<Params> }) {
   const { projectId } = await params;
-  const { user, error } = await authorize(projectId);
-  if (error || !user) return error ?? NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { user, project, error } = await authorize(projectId);
+  if (error || !user || !project) return error ?? NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await req.json() as Record<string, unknown>;
   const { id, ...fields } = body;
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
-  const orgId = await resolveOrgId(user.id);
+  const orgId = (project as { org_id?: string | null }).org_id ?? null;
   const admin = createAdminClient();
   const { data, error: dbErr } = await admin
     .from("project_contracts")
@@ -198,12 +184,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<Para
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<Params> }) {
   const { projectId } = await params;
-  const { user, error } = await authorize(projectId);
-  if (error || !user) return error ?? NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { user, project, error } = await authorize(projectId);
+  if (error || !user || !project) return error ?? NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
-  const orgId = await resolveOrgId(user.id);
+  const orgId = (project as { org_id?: string | null }).org_id ?? null;
   const admin = createAdminClient();
   const { error: dbErr } = await admin
     .from("project_contracts")

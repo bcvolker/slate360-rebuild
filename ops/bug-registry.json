@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-04-16",
+  "updatedAt": "2026-04-18",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -153,6 +153,85 @@
         "`/projects` opens a simplified project-directory surface instead of the old portfolio/workspace composition",
         "`/projects/[projectId]/photos` and `/projects/[projectId]/punch-list` no longer render visible customize controls",
         "`/projects/[projectId]/slatedrop` renders a project-file shell with project-aware breadcrumb labeling, embedded list-default behavior, wrapped toolbar controls, and one-column mobile folder/file grids"
+      ]
+    },
+    {
+      "id": "BUG-029",
+      "title": "Site Walk upload presign path bypassed SlateDrop reservation",
+      "module": "site-walk/slatedrop",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "`/api/site-walk/upload` generated S3 keys in `site-walk/photos/...` without reserving a canonical `slatedrop_uploads` row in the project's `Photos` folder, so new captures could land outside the project file system until a later best-effort bridge ran.",
+      "verification": [
+        "POST /api/site-walk/upload returns an S3 key under `orgs/{namespace}/{photosFolderId}/...` and a reserved `fileId`",
+        "POST /api/site-walk/items activates the reserved `slatedrop_uploads` row when the capture is saved",
+        "New Site Walk photos appear in the owning project's `Photos` folder via `slatedrop_uploads` instead of only under `site-walk/photos/...`"
+      ]
+    },
+    {
+      "id": "BUG-030",
+      "title": "Site Walk plan image route missing",
+      "module": "site-walk",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "`PlanViewer.tsx` rendered `/api/site-walk/plans/{id}/image`, but no server route existed to translate the stored `site_walk_plans.s3_key` into a browser-loadable image response.",
+      "verification": [
+        "GET /api/site-walk/plans/{planId}/image returns a redirect to a signed S3 URL for a plan owned by the current org",
+        "Existing Site Walk plans render in `components/site-walk/PlanViewer.tsx` without changing the frontend src contract"
+      ]
+    },
+    {
+      "id": "BUG-031",
+      "title": "Project helper APIs assumed org membership instead of project scope",
+      "module": "projects/collaborators",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "Recent files, records, photo reports, and management helper routes derived scope from `organization_members` lookups, so collaborator access could fail on secondary operations even when `project_members` access was valid.",
+      "verification": [
+        "`app/api/projects/[projectId]/recent-files/route.ts` uses `withProjectAuth` and no longer fetches `organization_members` directly",
+        "`app/api/projects/[projectId]/records/route.ts` and `photo-report/route.ts` derive org scope from `withProjectAuth` instead of a separate org-membership query",
+        "`app/api/projects/[projectId]/management/contracts/route.ts` and `management/reports/route.ts` use the resolved project's `org_id` for storage/logging paths"
+      ]
+    },
+    {
+      "id": "BUG-032",
+      "title": "R2 browser uploads blocked by missing bucket CORS policy",
+      "module": "slatedrop/storage",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "After switching the shared storage client to Cloudflare R2, browser upload flows that PUT directly to presigned R2 URLs failed preflight because the bucket did not return `Access-Control-Allow-Origin` for the app origin. The app CSP was already updated; the missing piece was the Cloudflare bucket CORS rule.",
+      "verification": [
+        "`npm run smoke:slatedrop-public-flow` completes the public upload portal flow without `No 'Access-Control-Allow-Origin' header` errors",
+        "Browser upload flows reach `/api/slatedrop/complete` after the presigned PUT instead of failing with `Failed to fetch`",
+        "Shared image/file flows still load correctly after the bucket CORS rule is added"
+      ]
+    },
+    {
+      "id": "BUG-033",
+      "title": "SlateDrop share links drifted from live unified_files foreign key",
+      "module": "slatedrop/sharing",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The repo still created and read share links through `slatedrop_uploads`, but the live database already enforced `slate_drop_links.file_id -> unified_files(id)`. Uploads succeeded, then share-link inserts failed because the uploaded file ID did not exist in `unified_files`.",
+      "verification": [
+        "`app/api/slatedrop/complete/route.ts` creates or links a `unified_files` row for each activated SlateDrop upload",
+        "`app/api/slatedrop/secure-send/route.ts` inserts `slate_drop_links` rows with the bridged `unified_files.id`",
+        "`app/share/[token]/page.tsx` resolves shared files from `unified_files` first and still supports a legacy `slatedrop_uploads` fallback",
+        "`npm run smoke:slatedrop-public-flow` completes the public upload + share flow end-to-end"
+      ]
+    },
+    {
+      "id": "BUG-034",
+      "title": "Public shell drifted away from the app brand token system",
+      "module": "homepage/public-shell",
+      "severity": "high",
+      "status": "testing",
+      "rootCause": "The live homepage header/mobile sheet, shared public navbar/footer, app-detail pages, and branded portal still used hardcoded white, gray, zinc, and yellow classes plus repeated raw logo tags, so the public-facing product looked visually disconnected from the app despite the shared token system already existing.",
+      "verification": [
+        "`components/marketing-homepage.tsx`, `components/Navbar.tsx`, `components/Footer.tsx`, `app/(public)/apps/[slug]/page.tsx`, and `app/(public)/portal/[token]/page.tsx` use semantic token classes instead of hardcoded white/gray/zinc/yellow shells",
+        "Shared public shells import `components/shared/SlateLogo.tsx` instead of repeating raw logo `<img>` tags",
+        "`npm run typecheck` passes after the token migration",
+        "Production `main` deployment shows the same public shell styling as the branch build"
       ]
     }
   ]

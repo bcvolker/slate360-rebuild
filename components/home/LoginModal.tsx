@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 interface LoginModalProps {
   open: boolean;
@@ -35,11 +36,7 @@ export default function LoginModal({ open, onOpenChange }: LoginModalProps) {
       <DialogContent className="bg-card border-border sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">
-            <img
-              src="/uploads/slate360-logo-reversed-v2.svg"
-              alt="Slate360"
-              className="h-7 w-auto"
-            />
+            <SlateLogo />
           </div>
           <DialogTitle className="text-foreground">Welcome back</DialogTitle>
           <DialogDescription className="text-muted-foreground">

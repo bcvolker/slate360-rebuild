@@ -13,6 +13,7 @@ This file is the default new-chat attachment. Keep it short. Read this first, th
 - **Git**: commit, branch, merge, and push to `bcvolker/slate360-rebuild` on GitHub
 - **Vercel**: deploy + env var management via `VERCEL_TOKEN` Codespace secret
 - **AWS S3**: bucket `slate360-storage` (us-east-2) via stored credentials
+- **Cloudflare R2**: bucket `slate360-storage` via stored S3-compatible credentials and account-scoped R2 access
 - **Stripe**: webhook and billing management via Vercel env secrets
 - **Supabase CLI**: migrations, RPC functions, schema changes to project `hadnfcenpcfaeclczsmm`
 
@@ -31,7 +32,7 @@ Do not read all context files by default.
 
 Slate360 is a Next.js 15 + React 19 + TypeScript SaaS platform with:
 - Supabase for auth and primary data
-- AWS S3 for file storage
+- AWS S3 and Cloudflare R2 through the shared S3-compatible storage layer in `lib/s3.ts`
 - Stripe for billing
 - Vercel for hosting and cron
 - Market Robot as an internal route at `/market`
@@ -100,6 +101,14 @@ import { createAdminClient } from "@/lib/supabase/admin";
 - Region: `us-east-2`
 - Client: `lib/s3.ts`
 
+### Cloudflare R2
+- Bucket: `slate360-storage`
+- Account ID: `96019f75871542598e1c34e4b4fe2626`
+- Endpoint: derived from `CLOUDFLARE_ACCOUNT_ID` as `https://<account>.r2.cloudflarestorage.com` unless `R2_ENDPOINT` is set explicitly
+- Required runtime env: `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`
+- Optional runtime env: `R2_REGION` (`auto` default), `R2_ENDPOINT`, `CLOUDFLARE_R2_API_TOKEN`
+- Validation commands: `npm run diag:storage-runtime`, `npm run diag:storage-runtime:write`, `npm run diag:storage-runtime:presign`
+
 ### Vercel
 - Auto-deploy from `main`
 - Cron source: `vercel.json`
@@ -119,6 +128,7 @@ npm run dev
 npm run typecheck
 npm run build
 npm run diag:market-runtime
+npm run diag:storage-runtime
 npm run verify:release
 bash scripts/check-file-size.sh
 ```
@@ -187,54 +197,46 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-17
+### Session Handoff — 2026-04-18
 
 ### What Changed
-- **Password reset flow completed** — PR #4 (`fix/auth-reset-password`) merged to main (commit `623a03e`)
-  - `app/auth/reset-password/route.ts`: server route verifies `token_hash` via `verifyOtp`, redirects to form
-  - `app/reset-password/page.tsx`: client page with password+confirm form, calls `updateUser`
-  - `app/forgot-password/page.tsx`: fixed `redirectTo` from `/account/reset-password` (404) to `/reset-password`
-- **Supabase auth email templates updated** — all 5 via Management API (PATCH to `/v1/projects/.../config/auth`)
-  - Templates: confirmation, recovery, magic_link, email_change, invite
-  - All use: v2 logo (`https://www.slate360.ai/uploads/slate360-logo-reversed-v2.svg`), `#D4AF37` gold CTA buttons, `#18181b` zinc header, branded subjects
-  - API key format: lowercase keys (`mailer_templates_*_content`, `mailer_subjects_*`)
-- **CI false-red fixed** — PR #5 (`fix/ci-false-red`) merged to main (commit `4aa13a5`)
-  - `ops/release-gates.json`: `clob-contract` gate set to `required: false` with `disabledReason` (both source files deleted)
-  - `ops/file-size-baseline.json`: removed stale `app/api/market/buy/route.ts` entry
-  - `npm run verify:release` now passes all required gates
-- **S360-001 marked done** in `ONGOING_ISSUES.md` (dark-mode logo bug, fixed in PR #3)
+- `app/page.tsx`: the live homepage route no longer renders `components/marketing-homepage.tsx`; it now serves `components/home/LandingPage.tsx`, making the extracted home stack the active homepage source of truth.
+- `components/home/LandingHeader.tsx`, `HeroSection.tsx`, `AppShowcaseSection.tsx`, `PricingSection.tsx`, `CTASection.tsx`, `LandingFooter.tsx`, and `LoginModal.tsx`: the live homepage stack now uses shared design-system primitives (`SlateCTA`, `SlateCard`, `SlateSectionHeader`) in the highest-visibility sections instead of the old ad hoc shadcn-only treatment.
+- `components/shared/SlateLogo.tsx`: shared logo usage now covers the active homepage, auth pages, dashboard top bar/sidebar/header, mobile nav sheet, Site Walk header, SlateDrop top bar, external response portal, and the preview marketing page. Repo searches now show no remaining raw app/component logo-path references outside `SlateLogo.tsx` itself.
+- Git / deploy promotion: committed `7cce7b9` (`Cut homepage to extracted landing shell`), pushed `refactor/brand-token-migration-core-surfaces`, and fast-forwarded `main` to `7cce7b9`. The Vercel production deployment for `7cce7b9` (`dpl_HDVXFzWGum1Zqw8JjgsCCBNiwCAS`) is currently building.
+- Validation: `npm run typecheck` passed; local runtime spot-checks against `http://127.0.0.1:3000/` returned the extracted landing-page copy and the shared logo asset.
 
 ### What's Broken / Partially Done
-- Supabase email templates: applied via API only — not persisted in repo code, no migration file. Templates would revert if someone resets auth config in Supabase dashboard.
-- `mobile-smoke` optional CI gate still fails (`Homepage hero copy missing`) — pre-existing, not related to this work
-- Forgot-password page does not show a message when redirected with `?error=reset-link-expired` — minor UX gap, not a blocker
+- Production deployment for `7cce7b9` is still building, so live browser verification of the new homepage cutover is still pending.
+- `components/marketing-homepage.tsx` remains in the repo as a pre-existing 1112-line monolith, but it is no longer the live homepage route.
+- `mobile-smoke` CI gate still fails (pre-existing, not touched in this slice).
+- Site Walk backend plumbing is mostly present, but three blockers remain before a confident UI build sprint: deliverable editor persistence is still uncertain (`S360-020`), core Phase 1 workflow gaps remain (`S360-019`), and offline capture queue wiring is still not connected to Site Walk components.
+- The repo still contains unrelated local scratch/untracked asset files and deletions (`find_shell.mjs`, `get_git*.mjs`, extra SVGs, deleted screenshots/icons). They were intentionally left untouched.
 
 ### Context Files Updated
-- `ONGOING_ISSUES.md`: S360-001 marked done, timestamp updated
-- `SLATE360_PROJECT_MEMORY.md`: this handoff
+- `ONGOING_ISSUES.md`: updated `S360-037` to reflect that `/` now renders the extracted `components/home/*` stack and that commit `7cce7b9` was promoted to `main`.
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
 
 ### Next Steps (ordered)
-1. Test the full password reset flow end-to-end (forgot-password → email → reset → new password → login)
-2. Consider adding Supabase email template HTML to repo for version control (optional)
-3. Continue auth continuity: S360-002 (mobile auth text sizing), S360-003 (confirm-email guidance), S360-004 (first-run onboarding)
-4. Do NOT start global color-token refactor yet
-
-### What's Broken / Partially Done
-- Blank-canvas rebuilds are not implemented yet for the 4 target surfaces; only the replacement boundaries and reuse contracts are now defined
-- `app/(dashboard)/project-hub/[projectId]` plus the thin `/projects/[projectId]/*` re-export wrappers remain the main legacy contamination source under the project detail tree
-- `components/slatedrop/ProjectFileExplorer.tsx` and `components/slatedrop/useProjectFileExplorer.ts` are isolated legacy explorer code and strong delete candidates once the replacement pass begins
-- `components/slatedrop/SlateDropClient.tsx` should be treated as a visible-surface rebuild candidate at the shell/composition level even though its backend hooks and file APIs remain reusable
-- `bash scripts/check-file-size.sh` still reports pre-existing oversized files outside this planning slice: `app/api/dashboard/widgets/route.ts`, `components/calendar/CalendarWidget.tsx`, `components/marketing-homepage.tsx`, `components/project-hub/ObservationsClient.tsx`, `components/ui/sidebar.tsx`, `components/widgets/WidgetBodies.tsx`
+1. Wait for the Vercel production deployment for `7cce7b9` to reach `READY`, then visually verify the live homepage and auth/shell logo continuity on desktop and mobile.
+2. If homepage direction is accepted, continue the same extracted-home migration by either deleting or freezing `components/marketing-homepage.tsx` so it cannot drift back into use.
+3. Start the Site Walk UI sprint only after defining the first slice around already-real backend paths: session board/list/detail/review, while explicitly deferring offline capture and unresolved deliverable-persistence work unless those are part of the first milestone.
 
 ### Context Files Updated
-- `slate360-context/ONGOING_ISSUES.md`: recorded the strategy shift to blank-canvas replacement planning for the 4 visible Phase 1 surfaces
-- `SLATE360_PROJECT_MEMORY.md`: refreshed the handoff with the replacement-boundary audit and next implementation order
+- `SLATE360_PROJECT_MEMORY.md`: future-chat startup context now lists Cloudflare R2 access and verification commands.
+- `.github/copilot-instructions.md`: startup instructions now include Cloudflare R2 in services and environment sources.
+- `docs/ENV_AND_TOOL_MATRIX.md`: added the external service/env/tool matrix, including the Cloudflare R2 contract and verification commands.
+- `docs/reference/R2_CUTOVER_CHECKLIST.md`: added the R2 production cutover and bucket CORS checklist.
+- `ONGOING_ISSUES.md`, `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json`: recorded the resolved R2 CORS blocker and the resolved unified_files/share-link bridge mismatch.
+- `slate360-context/BACKEND.md`: documented the shared storage client R2 env contract plus the tracked `unified_files` bridge.
+- `slate360-context/SUPABASE_EMAIL_TEMPLATES.md`: updated the documented confirm-signup template to match the Slate360 app palette.
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
 
 ### Next Steps (ordered)
-1. Rebuild the Web Command Center visible composition behind the existing `/dashboard` route while preserving `resolveUsageTruth`, `/api/dashboard/summary`, `/api/projects/summary`, and auth/navigation guards
-2. Rebuild the `/projects` surface with a new list/directory composition and a new project-creation flow while preserving project create/delete APIs and folder provisioning
-3. Rebuild the `/projects/[projectId]` home composition behind the existing server data loader, then decide whether deeper wrapper-backed `/projects/[projectId]/*` Phase 2 routes should be migrated or gated
-4. Rebuild the project-scoped SlateDrop visible shell around the existing file APIs, upload/finalize flow, and project folder model; delete `ProjectFileExplorer` only when the new shell is wired
+1. Merge or deploy this branch so the production domain picks up the `unified_files` share bridge and the updated R2/CSP changes, then rerun the hosted smoke pass.
+2. If preview smoke automation is required before merge, provide a Vercel preview-protection bypass or temporarily relax preview protection for the branch deployment.
+3. Continue the homepage/web-shell visual migration by extracting the remaining live `components/marketing-homepage.tsx` sections into the already-existing `components/home/*` structure instead of extending the 1,100-line monolith.
+4. Decide whether `slate360-storage` should remain the canonical bucket name on R2 or whether the project should move to a distinct R2 bucket before production cutover.
 
 ### Session Handoff — 2026-04-14 (Command Center Cleanup Follow-Up)
 

@@ -39,7 +39,7 @@ interface RecentFilesCardProps {
 export function RecentFilesCard({ files, isLoading }: RecentFilesCardProps) {
   if (isLoading) {
     return (
-      <Card className="bg-glass border-glass shadow-glass">
+      <Card className="rounded-2xl bg-glass border-glass shadow-glass">
         <CardContent className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </CardContent>
@@ -48,7 +48,7 @@ export function RecentFilesCard({ files, isLoading }: RecentFilesCardProps) {
   }
 
   return (
-    <Card className="bg-glass border-glass shadow-glass">
+    <Card className="rounded-2xl bg-glass border-glass shadow-glass">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base text-foreground flex items-center gap-2">

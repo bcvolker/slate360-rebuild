@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveNamespace } from "@/lib/slatedrop/storage";
 import { trackStorageUsed } from "@/lib/slatedrop/track-storage";
+import { ensureUnifiedFileForUpload } from "@/lib/slatedrop/unified-files";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -52,6 +53,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    const { data: upload, error: uploadError } = await admin
+      .from("slatedrop_uploads")
+      .select("id, file_name, file_size, file_type, s3_key, org_id, uploaded_by, status, folder_id, created_at, unified_file_id")
+      .eq("id", fileId)
+      .like("s3_key", `${prefix}%`)
+      .maybeSingle();
+
+    if (uploadError) {
+      return NextResponse.json({ error: uploadError.message }, { status: 500 });
+    }
+
+    if (upload) {
+      await ensureUnifiedFileForUpload(admin, upload);
+    }
+
     // Increment org storage quota for the completed upload
     if (project?.org_id) {
       await trackStorageUsed(admin, project.org_id, fileId);
@@ -77,15 +93,32 @@ export async function POST(req: NextRequest) {
     // solo user fallback
   }
 
-  let query = admin
+  let activationQuery = admin
     .from("slatedrop_uploads")
     .update({ status: "active" })
     .eq("id", fileId);
 
-  query = orgId ? query.eq("org_id", orgId) : query.eq("uploaded_by", user.id);
-  const { error } = await query;
+  activationQuery = orgId ? activationQuery.eq("org_id", orgId) : activationQuery.eq("uploaded_by", user.id);
+  const { error } = await activationQuery;
+
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  let uploadQuery = admin
+    .from("slatedrop_uploads")
+    .select("id, file_name, file_size, file_type, s3_key, org_id, uploaded_by, status, folder_id, created_at, unified_file_id")
+    .eq("id", fileId);
+
+  uploadQuery = orgId ? uploadQuery.eq("org_id", orgId) : uploadQuery.eq("uploaded_by", user.id);
+  const { data: upload, error: uploadError } = await uploadQuery.maybeSingle();
+
+  if (uploadError) {
+    return NextResponse.json({ error: uploadError.message }, { status: 500 });
+  }
+
+  if (upload) {
+    await ensureUnifiedFileForUpload(admin, upload);
   }
 
   // Increment org storage quota for the completed upload

@@ -4,6 +4,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -50,13 +51,12 @@ export default function Navbar() {
   }, [mobileOpen]);
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+    <header className="fixed top-0 inset-x-0 z-50 border-b border-border bg-background/85 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-          <img
-            src="/uploads/slate360-logo-reversed-v2.svg"
-            alt="Slate360"
+          <SlateLogo
+            size="lg"
             className="w-auto transition-all duration-300 ease-in-out"
             style={{ height: isHome && !scrolled ? "2.75rem" : "2rem" }}
           />
@@ -66,14 +66,13 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           <Link
             href="/login"
-            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-[#D4AF37] hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
           >
             Sign in
           </Link>
           <Link
             href="/signup"
-            className="px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-all hover:opacity-90 hover:scale-105"
-            style={{ backgroundColor: "#D4AF37" }}
+            className="px-5 py-2.5 rounded-full text-sm font-semibold text-primary-foreground bg-primary transition-all hover:opacity-90 hover:scale-105"
           >
             Start free trial
           </Link>
@@ -81,7 +80,7 @@ export default function Navbar() {
 
         {/* ── Hamburger button ─────────────────────────── */}
         <button
-          className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+          className="md:hidden p-2 rounded-lg text-muted-foreground hover:bg-primary/10 transition-colors"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -95,11 +94,11 @@ export default function Navbar() {
       {mobileOpen && (
         <>
           {/* backdrop */}
-          <div className="fixed inset-0 top-16 bg-black/20 z-40 md:hidden" onClick={() => setMobileOpen(false)} />
+          <div className="fixed inset-0 top-16 bg-background/50 z-40 md:hidden" onClick={() => setMobileOpen(false)} />
 
           <div
             ref={mobileMenuRef}
-            className="absolute top-16 left-0 right-0 bg-white z-50 shadow-2xl flex flex-col md:hidden border-t border-gray-100 max-h-[calc(100dvh-4rem)] overflow-hidden rounded-b-3xl"
+            className="absolute top-16 left-0 right-0 z-50 flex max-h-[calc(100dvh-4rem)] flex-col overflow-hidden rounded-b-3xl border-t border-border bg-card/95 shadow-2xl backdrop-blur-xl md:hidden"
           >
             {/* Scrollable content */}
             <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-6">
@@ -108,14 +107,14 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="text-lg font-semibold text-gray-900 hover:text-[#D4AF37] transition-colors py-2"
+                  className="py-2 text-lg font-semibold text-foreground hover:text-primary transition-colors"
                 >
                   Login
                 </Link>
                 <Link
                   href="/contact"
                   onClick={() => setMobileOpen(false)}
-                  className="text-lg font-semibold text-gray-900 hover:text-[#D4AF37] transition-colors py-2"
+                  className="py-2 text-lg font-semibold text-foreground hover:text-primary transition-colors"
                 >
                   Contact
                 </Link>
@@ -123,12 +122,11 @@ export default function Navbar() {
             </div>
 
             {/* Sticky CTA */}
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
+            <div className="border-t border-border bg-muted/30 px-6 py-4">
               <Link
                 href="/signup"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 shadow-sm"
-                style={{ backgroundColor: "#D4AF37" }}
+                className="flex items-center justify-center w-full py-3.5 rounded-xl text-sm font-semibold text-primary-foreground bg-primary transition-all hover:opacity-90 shadow-sm"
               >
                 Start free trial
               </Link>

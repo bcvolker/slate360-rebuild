@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SlateCTA } from "@/lib/design-system";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 interface LandingHeaderProps {
   onLoginClick: () => void;
@@ -27,11 +28,7 @@ export default function LandingHeader({ onLoginClick, isScrolled }: LandingHeade
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <img
-              src="/uploads/slate360-logo-reversed-v2.svg"
-              alt="Slate360"
-              className="h-7 sm:h-8 w-auto"
-            />
+            <SlateLogo className="h-7 sm:h-8 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -52,12 +49,12 @@ export default function LandingHeader({ onLoginClick, isScrolled }: LandingHeade
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" onClick={onLoginClick} className="text-foreground hover:bg-primary/10">
+            <SlateCTA variant="ghost" onClick={onLoginClick}>
               Log In
-            </Button>
-            <Button onClick={onLoginClick} className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-gold-glow">
+            </SlateCTA>
+            <SlateCTA onClick={onLoginClick}>
               Get Started
-            </Button>
+            </SlateCTA>
           </div>
 
           {/* Mobile Menu Button */}
@@ -87,12 +84,12 @@ export default function LandingHeader({ onLoginClick, isScrolled }: LandingHeade
                 Contact
               </a>
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
-                <Button variant="ghost" onClick={() => { setMobileMenuOpen(false); onLoginClick(); }} className="justify-start">
+                <SlateCTA variant="ghost" onClick={() => { setMobileMenuOpen(false); onLoginClick(); }} className="justify-start">
                   Log In
-                </Button>
-                <Button onClick={() => { setMobileMenuOpen(false); onLoginClick(); }} className="bg-primary text-primary-foreground">
+                </SlateCTA>
+                <SlateCTA onClick={() => { setMobileMenuOpen(false); onLoginClick(); }}>
                   Get Started
-                </Button>
+                </SlateCTA>
               </div>
             </nav>
           </div>

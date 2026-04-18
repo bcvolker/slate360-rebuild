@@ -6,6 +6,7 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import { bridgePhotoToSlateDrop } from "@/lib/site-walk/slatedrop-bridge";
+import { trackStorageUsed } from "@/lib/slatedrop/track-storage";
 import type { CreateItemPayload, SiteWalkItemType } from "@/lib/types/site-walk";
 
 const VALID_ITEM_TYPES: SiteWalkItemType[] = [
@@ -64,6 +65,25 @@ export const POST = (req: NextRequest) =>
       .single();
 
     const nextOrder = (lastItem?.sort_order ?? -1) + 1;
+    const fileBackedItem = ["photo", "video"].includes(body.item_type);
+    const metadata = body.metadata && typeof body.metadata === "object"
+      ? (body.metadata as Record<string, unknown>)
+      : {};
+
+    let reservedUploadId = body.file_id ?? null;
+
+    if (!reservedUploadId && body.s3_key && fileBackedItem) {
+      const { data: reservedUpload } = await admin
+        .from("slatedrop_uploads")
+        .select("id")
+        .eq("s3_key", body.s3_key)
+        .eq("org_id", orgId)
+        .eq("uploaded_by", user.id)
+        .in("status", ["pending", "active"])
+        .maybeSingle();
+
+      reservedUploadId = reservedUpload?.id ?? null;
+    }
 
     const { data, error } = await admin
       .from("site_walk_items")
@@ -74,13 +94,13 @@ export const POST = (req: NextRequest) =>
         item_type: body.item_type,
         title: body.title?.trim() ?? "",
         description: body.description ?? null,
-        file_id: body.file_id ?? null,
+        file_id: reservedUploadId,
         s3_key: body.s3_key ?? null,
         latitude: body.latitude ?? null,
         longitude: body.longitude ?? null,
         location_label: body.location_label ?? null,
         weather: body.weather ?? null,
-        metadata: body.metadata ?? {},
+        metadata,
         sort_order: nextOrder,
       })
       .select()
@@ -88,15 +108,37 @@ export const POST = (req: NextRequest) =>
 
     if (error) return serverError(error.message);
 
+    const warnings: string[] = [];
+
+    if (data && reservedUploadId && fileBackedItem) {
+      const fileSize = metadata.file_size ? Number(metadata.file_size) : 0;
+      const uploadUpdates: { status: "active"; file_size?: number } = { status: "active" };
+      if (Number.isFinite(fileSize) && fileSize > 0) {
+        uploadUpdates.file_size = fileSize;
+      }
+
+      const { error: activateError } = await admin
+        .from("slatedrop_uploads")
+        .update(uploadUpdates)
+        .eq("id", reservedUploadId)
+        .eq("org_id", orgId)
+        .eq("uploaded_by", user.id);
+
+      if (activateError) {
+        console.error("[site-walk-items] activate reserved upload error:", activateError);
+        warnings.push("Photo saved, but project-file activation failed.");
+      } else if (uploadUpdates.file_size) {
+        await trackStorageUsed(admin, orgId, reservedUploadId);
+      }
+    }
+
     // ── SlateDrop bridge ───────────────────────────────────────────
     // For file-backed items (photo/video), create a corresponding
     // slatedrop_uploads record so captures appear in the project's
     // SlateDrop folder. Awaited to guarantee completion before the
     // serverless function exits. Bridge failures surface as warnings
     // so the client can inform the user without blocking the save.
-    const warnings: string[] = [];
-
-    if (data && data.s3_key && session.project_id && ["photo", "video"].includes(data.item_type)) {
+    if (data && !reservedUploadId && data.s3_key && session.project_id && fileBackedItem) {
       const ext = data.s3_key.split(".").pop()?.toLowerCase() ?? "jpg";
       const fileName =
         body.title?.trim() ||
@@ -108,8 +150,8 @@ export const POST = (req: NextRequest) =>
           s3Key: data.s3_key,
           fileName: fileName.endsWith(`.${ext}`) ? fileName : `${fileName}.${ext}`,
           fileType: ext,
-          fileSize: (body.metadata as Record<string, unknown>)?.file_size
-            ? Number((body.metadata as Record<string, unknown>).file_size)
+          fileSize: metadata.file_size
+            ? Number(metadata.file_size)
             : 0,
           projectId: session.project_id,
           orgId,

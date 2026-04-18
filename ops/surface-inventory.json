@@ -8,7 +8,11 @@
       "route": "/",
       "classification": "live-primary",
       "category": "marketing",
-      "files": ["app/page.tsx", "components/marketing-homepage.tsx", "components/home/LandingPage.tsx"],
+      "files": [
+        "app/page.tsx",
+        "components/marketing-homepage.tsx",
+        "components/home/LandingPage.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -16,7 +20,9 @@
       "route": "/login",
       "classification": "live-primary",
       "category": "auth",
-      "files": ["app/login/page.tsx"],
+      "files": [
+        "app/login/page.tsx"
+      ],
       "brandMigrated": true
     },
     {
@@ -24,7 +30,10 @@
       "route": "/signup",
       "classification": "live-primary",
       "category": "auth",
-      "files": ["app/signup/page.tsx", "components/auth/SignupConfirmation.tsx"],
+      "files": [
+        "app/signup/page.tsx",
+        "components/auth/SignupConfirmation.tsx"
+      ],
       "brandMigrated": true
     },
     {
@@ -32,7 +41,9 @@
       "route": "/forgot-password",
       "classification": "live-primary",
       "category": "auth",
-      "files": ["app/forgot-password/page.tsx"],
+      "files": [
+        "app/forgot-password/page.tsx"
+      ],
       "brandMigrated": true
     },
     {
@@ -40,7 +51,9 @@
       "route": "/reset-password",
       "classification": "live-primary",
       "category": "auth",
-      "files": ["app/reset-password/page.tsx"],
+      "files": [
+        "app/reset-password/page.tsx"
+      ],
       "brandMigrated": true
     },
     {
@@ -48,15 +61,21 @@
       "route": "/beta-pending",
       "classification": "live-secondary",
       "category": "auth",
-      "files": ["app/beta-pending/page.tsx"],
-      "brandMigrated": false
+      "files": [
+        "app/beta-pending/page.tsx"
+      ],
+      "brandMigrated": true
     },
     {
       "id": "dashboard",
       "route": "/dashboard",
       "classification": "live-primary",
       "category": "dashboard",
-      "files": ["app/(dashboard)/dashboard/page.tsx", "components/walled-garden-dashboard.tsx", "components/dashboard/DashboardClient.tsx"],
+      "files": [
+        "app/(dashboard)/dashboard/page.tsx",
+        "components/walled-garden-dashboard.tsx",
+        "components/dashboard/DashboardClient.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -64,15 +83,21 @@
       "route": "/dashboard",
       "classification": "live-primary",
       "category": "dashboard",
-      "files": ["components/dashboard/command-center/CommandCenterContent.tsx", "components/dashboard/command-center/QuickActionsCard.tsx"],
-      "brandMigrated": false
+      "files": [
+        "components/dashboard/command-center/CommandCenterContent.tsx",
+        "components/dashboard/command-center/QuickActionsCard.tsx"
+      ],
+      "brandMigrated": true
     },
     {
       "id": "projects",
       "route": "/projects",
       "classification": "live-primary",
       "category": "project",
-      "files": ["app/(dashboard)/projects/page.tsx", "app/(dashboard)/projects/ClientPage.tsx"],
+      "files": [
+        "app/(dashboard)/projects/page.tsx",
+        "app/(dashboard)/projects/ClientPage.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -80,7 +105,10 @@
       "route": "/project-hub",
       "classification": "live-primary",
       "category": "project-hub",
-      "files": ["app/(dashboard)/project-hub/page.tsx", "app/(dashboard)/project-hub/ClientPage.tsx"],
+      "files": [
+        "app/(dashboard)/project-hub/page.tsx",
+        "app/(dashboard)/project-hub/ClientPage.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -88,7 +116,10 @@
       "route": "/slatedrop",
       "classification": "live-primary",
       "category": "slatedrop",
-      "files": ["app/slatedrop/page.tsx", "components/slatedrop/SlateDropClient.tsx"],
+      "files": [
+        "app/slatedrop/page.tsx",
+        "components/slatedrop/SlateDropClient.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -96,7 +127,10 @@
       "route": "/site-walk",
       "classification": "live-primary",
       "category": "site-walk",
-      "files": ["app/site-walk/layout.tsx", "components/site-walk/SessionListClient.tsx"],
+      "files": [
+        "app/site-walk/layout.tsx",
+        "components/site-walk/SessionListClient.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -104,7 +138,9 @@
       "route": "/share/[token]",
       "classification": "live-primary",
       "category": "external",
-      "files": ["app/share/[token]/page.tsx"],
+      "files": [
+        "app/share/[token]/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -112,7 +148,9 @@
       "route": "/share/deliverable/[token]",
       "classification": "live-primary",
       "category": "external",
-      "files": ["app/share/deliverable/[token]/page.tsx"],
+      "files": [
+        "app/share/deliverable/[token]/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -120,7 +158,9 @@
       "route": "/upload/[token]",
       "classification": "live-primary",
       "category": "external",
-      "files": ["app/upload/[token]/page.tsx"],
+      "files": [
+        "app/upload/[token]/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -128,7 +168,9 @@
       "route": "/external/respond/[token]",
       "classification": "live-primary",
       "category": "external",
-      "files": ["app/external/respond/[token]/page.tsx"],
+      "files": [
+        "app/external/respond/[token]/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -136,7 +178,9 @@
       "route": "/portal/[token]",
       "classification": "live-primary",
       "category": "external",
-      "files": ["app/(public)/portal/[token]/page.tsx"],
+      "files": [
+        "app/(public)/portal/[token]/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -144,7 +188,9 @@
       "route": "/apps/[slug]",
       "classification": "live-primary",
       "category": "marketing",
-      "files": ["app/(public)/apps/[slug]/page.tsx"],
+      "files": [
+        "app/(public)/apps/[slug]/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -152,7 +198,10 @@
       "route": "/my-account",
       "classification": "live-primary",
       "category": "account",
-      "files": ["app/(dashboard)/my-account/page.tsx", "components/dashboard/DashboardMyAccount.tsx"],
+      "files": [
+        "app/(dashboard)/my-account/page.tsx",
+        "components/dashboard/DashboardMyAccount.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -160,7 +209,10 @@
       "route": "/settings",
       "classification": "live-primary",
       "category": "settings",
-      "files": ["app/(dashboard)/settings/page.tsx", "components/settings/AccountSettingsClient.tsx"],
+      "files": [
+        "app/(dashboard)/settings/page.tsx",
+        "components/settings/AccountSettingsClient.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -168,7 +220,10 @@
       "route": "/plans",
       "classification": "live-primary",
       "category": "billing",
-      "files": ["app/(dashboard)/plans/page.tsx", "components/dashboard/plans/PlansClient.tsx"],
+      "files": [
+        "app/(dashboard)/plans/page.tsx",
+        "components/dashboard/plans/PlansClient.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -176,7 +231,10 @@
       "route": "/tours",
       "classification": "live-primary",
       "category": "tours",
-      "files": ["app/(dashboard)/tours/page.tsx", "components/tours/TourListClient.tsx"],
+      "files": [
+        "app/(dashboard)/tours/page.tsx",
+        "components/tours/TourListClient.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -184,7 +242,10 @@
       "route": "/tour-builder",
       "classification": "live-primary",
       "category": "tours",
-      "files": ["app/(apps)/tour-builder/page.tsx", "components/tours/TourBuilderShell.tsx"],
+      "files": [
+        "app/(apps)/tour-builder/page.tsx",
+        "components/tours/TourBuilderShell.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -192,7 +253,10 @@
       "route": "/tours/view/[slug]",
       "classification": "live-primary",
       "category": "tours",
-      "files": ["app/tours/view/[slug]/page.tsx", "components/tours/PublicTourViewer.tsx"],
+      "files": [
+        "app/tours/view/[slug]/page.tsx",
+        "components/tours/PublicTourViewer.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -200,7 +264,9 @@
       "route": "/virtual-studio",
       "classification": "live-primary",
       "category": "virtual-studio",
-      "files": ["app/(apps)/virtual-studio/page.tsx"],
+      "files": [
+        "app/(apps)/virtual-studio/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -208,7 +274,9 @@
       "route": "/content-studio",
       "classification": "live-primary",
       "category": "content-studio",
-      "files": ["app/(apps)/content-studio/page.tsx"],
+      "files": [
+        "app/(apps)/content-studio/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -216,7 +284,9 @@
       "route": "/design-studio",
       "classification": "live-primary",
       "category": "design-studio",
-      "files": ["app/(apps)/design-studio/page.tsx"],
+      "files": [
+        "app/(apps)/design-studio/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -224,7 +294,9 @@
       "route": "/geospatial",
       "classification": "live-primary",
       "category": "geospatial",
-      "files": ["app/(apps)/geospatial/page.tsx"],
+      "files": [
+        "app/(apps)/geospatial/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -232,7 +304,9 @@
       "route": "/market",
       "classification": "live-primary",
       "category": "market",
-      "files": ["app/(dashboard)/market/page.tsx"],
+      "files": [
+        "app/(dashboard)/market/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -240,7 +314,9 @@
       "route": "/operations-console",
       "classification": "live-primary",
       "category": "admin",
-      "files": ["app/(dashboard)/operations-console/page.tsx"],
+      "files": [
+        "app/(dashboard)/operations-console/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -248,7 +324,9 @@
       "route": "/analytics",
       "classification": "live-primary",
       "category": "admin",
-      "files": ["app/(dashboard)/analytics/page.tsx"],
+      "files": [
+        "app/(dashboard)/analytics/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -256,7 +334,9 @@
       "route": "/super-admin",
       "classification": "live-primary",
       "category": "admin",
-      "files": ["app/(admin)/super-admin/page.tsx"],
+      "files": [
+        "app/(admin)/super-admin/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -264,7 +344,9 @@
       "route": "/install",
       "classification": "live-primary",
       "category": "onboarding",
-      "files": ["app/install/page.tsx"],
+      "files": [
+        "app/install/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -272,7 +354,9 @@
       "route": "/terms",
       "classification": "live-primary",
       "category": "legal",
-      "files": ["app/terms/page.tsx"],
+      "files": [
+        "app/terms/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -280,7 +364,9 @@
       "route": "/privacy",
       "classification": "live-primary",
       "category": "legal",
-      "files": ["app/privacy/page.tsx"],
+      "files": [
+        "app/privacy/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -288,7 +374,9 @@
       "route": "/*",
       "classification": "live-primary",
       "category": "error",
-      "files": ["app/not-found.tsx"],
+      "files": [
+        "app/not-found.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -296,7 +384,9 @@
       "route": "/*",
       "classification": "live-primary",
       "category": "error",
-      "files": ["app/global-error.tsx"],
+      "files": [
+        "app/global-error.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -304,7 +394,9 @@
       "route": "/~offline",
       "classification": "live-primary",
       "category": "error",
-      "files": ["app/~offline/page.tsx"],
+      "files": [
+        "app/~offline/page.tsx"
+      ],
       "brandMigrated": false
     },
     {
@@ -312,94 +404,130 @@
       "route": "/deploy-check",
       "classification": "live-secondary",
       "category": "diagnostic",
-      "files": ["app/deploy-check/page.tsx"],
+      "files": [
+        "app/deploy-check/page.tsx"
+      ],
       "brandMigrated": false
     }
   ],
   "sharedShells": [
     {
       "id": "navbar",
-      "files": ["components/Navbar.tsx"],
-      "brandMigrated": false
+      "files": [
+        "components/Navbar.tsx"
+      ],
+      "brandMigrated": true
     },
     {
       "id": "footer",
-      "files": ["components/Footer.tsx"],
-      "brandMigrated": false
+      "files": [
+        "components/Footer.tsx"
+      ],
+      "brandMigrated": true
     },
     {
       "id": "dashboard-sidebar",
-      "files": ["components/dashboard/command-center/DashboardSidebar.tsx"],
-      "brandMigrated": false
+      "files": [
+        "components/dashboard/command-center/DashboardSidebar.tsx"
+      ],
+      "brandMigrated": true
     },
     {
       "id": "dashboard-topbar",
-      "files": ["components/dashboard/command-center/DashboardTopBar.tsx"],
-      "brandMigrated": false
+      "files": [
+        "components/dashboard/command-center/DashboardTopBar.tsx"
+      ],
+      "brandMigrated": true
     },
     {
       "id": "dashboard-header",
-      "files": ["components/shared/DashboardHeader.tsx"],
-      "brandMigrated": false
+      "files": [
+        "components/shared/DashboardHeader.tsx"
+      ],
+      "brandMigrated": true
     },
     {
       "id": "dashboard-tab-shell",
-      "files": ["components/shared/DashboardTabShell.tsx"],
+      "files": [
+        "components/shared/DashboardTabShell.tsx"
+      ],
       "brandMigrated": false
     },
     {
       "id": "mobile-nav-sheet",
-      "files": ["components/shared/MobileNavSheet.tsx"],
-      "brandMigrated": false
+      "files": [
+        "components/shared/MobileNavSheet.tsx"
+      ],
+      "brandMigrated": true
     },
     {
       "id": "mobile-module-bar",
-      "files": ["components/shared/MobileModuleBar.tsx"],
+      "files": [
+        "components/shared/MobileModuleBar.tsx"
+      ],
       "brandMigrated": false
     },
     {
       "id": "mobile-quick-access",
-      "files": ["components/dashboard/MobileQuickAccess.tsx"],
-      "brandMigrated": false
+      "files": [
+        "components/dashboard/MobileQuickAccess.tsx"
+      ],
+      "brandMigrated": true
     },
     {
       "id": "quick-nav",
-      "files": ["components/shared/QuickNav.tsx"],
+      "files": [
+        "components/shared/QuickNav.tsx"
+      ],
       "brandMigrated": false
     },
     {
       "id": "landing-header",
-      "files": ["components/home/LandingHeader.tsx"],
+      "files": [
+        "components/home/LandingHeader.tsx"
+      ],
       "brandMigrated": false
     },
     {
       "id": "landing-footer",
-      "files": ["components/home/LandingFooter.tsx"],
+      "files": [
+        "components/home/LandingFooter.tsx"
+      ],
       "brandMigrated": false
     },
     {
       "id": "site-walk-nav",
-      "files": ["components/site-walk/SiteWalkNav.tsx"],
+      "files": [
+        "components/site-walk/SiteWalkNav.tsx"
+      ],
       "brandMigrated": false
     },
     {
       "id": "app-sidebar",
-      "files": ["components/apps/AppSidebar.tsx"],
+      "files": [
+        "components/apps/AppSidebar.tsx"
+      ],
       "brandMigrated": false
     },
     {
       "id": "app-topbar",
-      "files": ["components/apps/AppTopBar.tsx"],
+      "files": [
+        "components/apps/AppTopBar.tsx"
+      ],
       "brandMigrated": false
     },
     {
       "id": "slate-logo",
-      "files": ["components/shared/SlateLogo.tsx"],
+      "files": [
+        "components/shared/SlateLogo.tsx"
+      ],
       "brandMigrated": true
     },
     {
       "id": "trial-banner",
-      "files": ["components/shared/TrialBanner.tsx"],
+      "files": [
+        "components/shared/TrialBanner.tsx"
+      ],
       "brandMigrated": false
     }
   ],

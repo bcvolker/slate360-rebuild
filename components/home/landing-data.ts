@@ -59,9 +59,9 @@ export const APPS: AppItem[] = [
   {
     id: "site-walk",
     name: "Site Walk",
-    tagline: "Document Progress with Precision",
+    tagline: "Capture context. Create deliverables.",
     description:
-      "Capture GPS-tagged photos and videos during site walks. Automatically organize by location and timestamp for seamless progress tracking and client updates.",
+      "Capture site conditions, document observations in context, and turn field documentation into punch lists, branded reports, and proposal-ready deliverables.",
     icon: MapPin,
     features: [
       "GPS-tagged photo capture",
@@ -78,9 +78,9 @@ export const APPS: AppItem[] = [
   {
     id: "360-tours",
     name: "360 Tours",
-    tagline: "Immersive Virtual Experiences",
+    tagline: "Immersive walkthroughs with project context",
     description:
-      "Create stunning 360° virtual tours with interactive hotspots. Let clients explore projects remotely with the same detail as an in-person walkthrough.",
+      "Create immersive 360 walkthroughs with hotspots, floor plans, and branded sharing so clients and stakeholders can explore remotely with context.",
     icon: Building2,
     features: [
       "360° panoramic capture",
@@ -95,9 +95,9 @@ export const APPS: AppItem[] = [
   {
     id: "design-studio",
     name: "Design Studio",
-    tagline: "Professional Visual Editing",
+    tagline: "Connected 2D and 3D design review",
     description:
-      "Transform raw captures into polished deliverables. Add annotations, measurements, comparisons, and branded overlays for professional presentations.",
+      "Review plans, generate and present 3D models, and move through design decisions in connected 2D and 3D workspaces.",
     icon: Sparkles,
     features: [
       "Before/after comparisons",

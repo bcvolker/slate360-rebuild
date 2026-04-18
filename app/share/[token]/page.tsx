@@ -42,14 +42,40 @@ export default async function SharePage({ params }: PageProps) {
   }
 
   // Fetch file metadata
-  const { data: file, error: fileErr } = await admin
-    .from("slatedrop_uploads")
-    .select("id, file_name, file_type, file_size, s3_key")
+  const { data: unifiedFile, error: unifiedFileError } = await admin
+    .from("unified_files")
+    .select("id, name, mime_type, size_bytes, storage_key, status")
     .eq("id", link.file_id)
-    .neq("status", "deleted")
-    .single();
+    .maybeSingle();
 
-  if (fileErr || !file || !file.s3_key) {
+  const { data: legacyFile, error: legacyFileError } = unifiedFile
+    ? { data: null, error: null }
+    : await admin
+        .from("slatedrop_uploads")
+        .select("id, file_name, file_type, file_size, s3_key")
+        .eq("id", link.file_id)
+        .neq("status", "deleted")
+        .maybeSingle();
+
+  const file = unifiedFile
+    ? {
+        fileName: unifiedFile.name,
+        fileType: unifiedFile.mime_type ?? "",
+        fileSize: unifiedFile.size_bytes,
+        storageKey: unifiedFile.storage_key,
+        status: unifiedFile.status ?? "ready",
+      }
+    : legacyFile
+      ? {
+          fileName: legacyFile.file_name,
+          fileType: legacyFile.file_type ?? "",
+          fileSize: legacyFile.file_size,
+          storageKey: legacyFile.s3_key,
+          status: "ready",
+        }
+      : null;
+
+  if (unifiedFileError || legacyFileError || !file || !file.storageKey || file.status === "archived") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950">
         <div className="text-center space-y-3 p-8">
@@ -61,17 +87,17 @@ export default async function SharePage({ params }: PageProps) {
   }
 
   // Generate a presigned URL (1 hour)
-  const command = new GetObjectCommand({ Bucket: BUCKET, Key: file.s3_key });
+  const command = new GetObjectCommand({ Bucket: BUCKET, Key: file.storageKey });
   const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
 
   const canDownload = link.role === "download";
-  const fileType = (file.file_type ?? "").toLowerCase();
+  const fileType = file.fileType.toLowerCase();
 
   return (
     <ShareViewer
-      fileName={file.file_name}
+      fileName={file.fileName}
       fileType={fileType}
-      fileSize={file.file_size}
+      fileSize={file.fileSize}
       presignedUrl={presignedUrl}
       canDownload={canDownload}
     />

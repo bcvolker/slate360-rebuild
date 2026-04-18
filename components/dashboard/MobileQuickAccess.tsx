@@ -20,7 +20,7 @@ export default function MobileQuickAccess({ open, onToggle }: MobileQuickAccessP
       <div className="relative">
         <button
           onClick={onToggle}
-          className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[#D4AF37] to-[#E04400] text-white shadow-lg hover:shadow-xl transition-all active:scale-[0.99]"
+          className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-primary text-primary-foreground shadow-gold-glow hover:shadow-xl transition-all active:scale-[0.99]"
         >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
@@ -28,7 +28,7 @@ export default function MobileQuickAccess({ open, onToggle }: MobileQuickAccessP
             </div>
             <div className="text-left">
               <p className="text-sm font-black tracking-wide">Quick Access</p>
-              <p className="text-[11px] text-blue-200/80">Navigate modules &amp; tools</p>
+              <p className="text-[11px] text-primary-foreground/60">Navigate modules &amp; tools</p>
             </div>
           </div>
           <ChevronDown size={16} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
@@ -36,11 +36,11 @@ export default function MobileQuickAccess({ open, onToggle }: MobileQuickAccessP
         {open && (
           <>
             <div className="fixed inset-0 z-30" onClick={onToggle} />
-            <div className="relative z-40 mt-2 rounded-2xl border border-gray-100 bg-white shadow-2xl overflow-hidden">
+            <div className="relative z-40 mt-2 rounded-2xl border border-border bg-card shadow-2xl overflow-hidden">
               {([
-                { label: "Command Center", icon: Home,      href: "/dashboard",   color: "#D4AF37", desc: "Overview, recent files, and projects" },
-                { label: "Projects",    icon: FolderKanban,  href: "/projects",    color: "#D4AF37", desc: "Project details, photos & punch list" },
-                { label: "My Account",  icon: User,         href: "/my-account",  color: "#D4AF37", desc: "Billing, usage, security & profile" },
+                { label: "Command Center", icon: Home,      href: "/dashboard",   desc: "Overview, recent files, and projects" },
+                { label: "Projects",    icon: FolderKanban,  href: "/projects",    desc: "Project details, photos & punch list" },
+                { label: "My Account",  icon: User,         href: "/my-account",  desc: "Billing, usage, security & profile" },
               ]).map((item) => {
                 const NavIcon = item.icon;
                 return (
@@ -48,23 +48,22 @@ export default function MobileQuickAccess({ open, onToggle }: MobileQuickAccessP
                     key={item.href}
                     href={item.href}
                     onClick={onToggle}
-                    className="flex items-center gap-3.5 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50 last:border-0"
+                    className="flex items-center gap-3.5 px-4 py-3.5 hover:bg-accent active:bg-accent/80 transition-colors border-b border-border last:border-0"
                   >
                     <div
-                      className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${item.color}18` }}
+                      className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-primary/10"
                     >
-                      <NavIcon size={16} style={{ color: item.color }} />
+                      <NavIcon size={16} className="text-primary" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-gray-900 leading-tight">{item.label}</p>
-                      <p className="text-xs text-gray-500 leading-snug truncate">{item.desc}</p>
+                      <p className="text-sm font-bold text-foreground leading-tight">{item.label}</p>
+                      <p className="text-xs text-muted-foreground leading-snug truncate">{item.desc}</p>
                     </div>
                   </Link>
                 );
               })}
-              <div className="px-4 py-3 bg-gradient-to-r from-[#D4AF37]/5 to-zinc-900/5 border-t border-gray-100">
-                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest text-center">Powered by Slate360</p>
+              <div className="px-4 py-3 bg-primary/5 border-t border-border">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest text-center">Powered by Slate360</p>
               </div>
             </div>
           </>
