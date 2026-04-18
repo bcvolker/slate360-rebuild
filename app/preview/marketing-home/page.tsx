@@ -1,7 +1,14 @@
+import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { ArrowRight, Smartphone, Compass, PenTool, Video, CheckCircle2 } from "lucide-react";
 
-export default function MarketingHomepageV2({ isLoggedIn }: { isLoggedIn: boolean }) {
+export default async function MarketingHomepageV2() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isLoggedIn = !!user;
+
   return (
     <div className="min-h-screen bg-[#0B0F15] text-slate-200 selection:bg-amber-500/30 font-sans overflow-x-hidden">
       {/* Dynamic Nav using the correct brand logo */}
