@@ -13,6 +13,38 @@ export default function PreviewHub() {
         {/* Preview Cards */}
         <div className="grid grid-cols-1 gap-4">
           {/* Mobile Shell Preview */}
+          <Link href="/preview/mobile-shell-v2">
+            <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-lg hover:bg-slate-800/80 hover:border-slate-700 transition-all cursor-pointer group mb-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h2 className="text-lg font-semibold text-slate-200 group-hover:text-amber-500 transition-colors mb-1">Mobile Shell V2 (Current Beta)</h2>
+                  <p className="text-sm text-slate-500">Updated design aligning with Monday-beta goals</p>
+                </div>
+                <div className="w-8 h-8 bg-amber-500/10 rounded flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
+                  <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/preview/site-walk">
+            <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-lg hover:bg-slate-800/80 hover:border-slate-700 transition-all cursor-pointer group mb-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h2 className="text-lg font-semibold text-slate-200 group-hover:text-amber-500 transition-colors mb-1">Site Walk Phase 1</h2>
+                  <p className="text-sm text-slate-500">Core beta workflow</p>
+                </div>
+                <div className="w-8 h-8 bg-amber-500/10 rounded flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
+                  <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
+
           <Link href="/preview/mobile-shell">
             <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-lg hover:bg-slate-800/80 hover:border-slate-700 transition-all cursor-pointer group">
               <div className="flex items-start justify-between">

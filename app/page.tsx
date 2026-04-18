@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import MarketingHomepage from "@/components/marketing-homepage";
 
 export const metadata = {
@@ -11,6 +12,11 @@ export default async function RootPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // If user is logged in, redirect them directly to the dashboard
+  if (user) {
+    redirect("/dashboard");
+  }
 
   return <MarketingHomepage isLoggedIn={!!user} />;
 }
