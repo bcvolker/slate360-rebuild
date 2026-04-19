@@ -478,15 +478,10 @@ function HeroSection() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" className="btn-teal-outline h-11 px-6 text-sm">
-              <Link href="/signup">
-                Create Account
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="ghost" asChild className="h-11 px-4 text-sm text-muted-foreground hover:text-foreground">
+            <Button variant="outline" asChild className="btn-teal-outline h-11 px-6 text-sm">
               <Link href="#apps">
                 Explore Apps
+                <ChevronRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </div>

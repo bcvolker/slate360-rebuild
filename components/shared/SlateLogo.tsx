@@ -1,18 +1,18 @@
 /**
  * SlateLogo — single source of truth for the Slate360 brand logo.
  *
- * Usage:
- *   import { SlateLogo } from "@/components/shared/SlateLogo";
- *   <SlateLogo />              // default h-7
- *   <SlateLogo size="sm" />    // h-5
- *   <SlateLogo size="lg" />    // h-9
- *
- * To change the logo sitewide, update the `src` constant below.
+ * Variants:
+ *   - "light" (default): white SLATE text + cobalt 360. Use on DARK surfaces.
+ *   - "dark": graphite SLATE text + cobalt 360. Use on LIGHT surfaces.
+ * Both have transparent backgrounds.
  */
 
 import type { ImgHTMLAttributes } from "react";
 
-const LOGO_SRC = "/uploads/slate360-logo-cobalt-v3.svg?v=cobalt-2026-04-19c";
+const LOGO_SOURCES = {
+  light: "/uploads/slate360-logo-light-v3.svg?v=cobalt-2026-04-19d",
+  dark: "/uploads/slate360-logo-cobalt-v3.svg?v=cobalt-2026-04-19d",
+} as const;
 
 const SIZE_MAP = {
   sm: "h-5 w-auto",
@@ -22,15 +22,16 @@ const SIZE_MAP = {
 
 interface SlateLogoProps {
   size?: keyof typeof SIZE_MAP;
+  variant?: keyof typeof LOGO_SOURCES;
   className?: string;
 }
 
 type SlateLogoImageProps = SlateLogoProps & Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt">;
 
-export function SlateLogo({ size = "md", className, ...imgProps }: SlateLogoImageProps) {
+export function SlateLogo({ size = "md", variant = "light", className, ...imgProps }: SlateLogoImageProps) {
   return (
     <img
-      src={LOGO_SRC}
+      src={LOGO_SOURCES[variant]}
       alt="Slate360"
       className={className ?? SIZE_MAP[size]}
       {...imgProps}

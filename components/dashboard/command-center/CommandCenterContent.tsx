@@ -7,13 +7,9 @@ import { Input } from "@/components/ui/input";
 import {
   Bell,
   ChevronRight,
-  Download,
   FileText,
-  FolderOpen,
   Pin,
-  Plus,
   Search,
-  Settings,
 } from "lucide-react";
 import {
   SlateContainedSection,
@@ -60,36 +56,6 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
             placeholder="Search projects"
             className="h-11 rounded-2xl border-border bg-muted/50 pl-10 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/50"
           />
-        </div>
-      </section>
-
-      {/* Quick Actions */}
-      <section className="rounded-2xl border border-border bg-card/60 p-4 sm:p-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button asChild variant="outline" className="rounded-xl border-border hover:border-teal hover:text-teal transition-all">
-            <Link href="/projects">
-              <FolderOpen className="mr-2 h-4 w-4" />
-              Open Projects
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="rounded-xl border-border hover:border-teal hover:text-teal transition-all">
-            <Link href="/projects">
-              <Plus className="mr-2 h-4 w-4" />
-              New Project
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="rounded-xl border-border hover:border-teal hover:text-teal transition-all">
-            <Link href="/install">
-              <Download className="mr-2 h-4 w-4" />
-              Install App
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="rounded-xl border-border hover:border-teal hover:text-teal transition-all">
-            <Link href="/my-account">
-              <Settings className="mr-2 h-4 w-4" />
-              My Account
-            </Link>
-          </Button>
         </div>
       </section>
 

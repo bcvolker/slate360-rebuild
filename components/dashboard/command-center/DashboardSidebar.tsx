@@ -12,6 +12,9 @@ import {
   MapPin,
   FolderKanban,
   Shield,
+  Compass,
+  Palette,
+  Film,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SlateLogo } from "@/components/shared/SlateLogo";
@@ -20,12 +23,16 @@ interface NavItem {
   label: string;
   icon: React.ElementType;
   href: string;
+  comingSoon?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Projects", icon: FolderKanban, href: "/project-hub" },
+  { label: "Projects", icon: FolderKanban, href: "/projects" },
   { label: "SlateDrop", icon: Inbox, href: "/slatedrop" },
   { label: "Site Walk", icon: MapPin, href: "/site-walk" },
+  { label: "360 Tours", icon: Compass, href: "/tours", comingSoon: true },
+  { label: "Design Studio", icon: Palette, href: "/design-studio", comingSoon: true },
+  { label: "Content Studio", icon: Film, href: "/content-studio", comingSoon: true },
   { label: "My Account", icon: CreditCard, href: "/my-account" },
 ];
 
@@ -82,11 +89,20 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
         {NAV_ITEMS.map((item) => (
           <a
             key={item.label}
-            href={item.href}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-teal-soft hover:text-teal transition-all"
+            href={item.comingSoon ? "#" : item.href}
+            onClick={(e) => { if (item.comingSoon) e.preventDefault(); }}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+              item.comingSoon
+                ? "text-zinc-600 cursor-not-allowed"
+                : "text-zinc-400 hover:bg-teal-soft hover:text-teal"
+            )}
           >
             <item.icon className="h-4 w-4" />
-            {item.label}
+            <span className="flex-1">{item.label}</span>
+            {item.comingSoon && (
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-cobalt/70">Soon</span>
+            )}
           </a>
         ))}
 
