@@ -48,74 +48,96 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: hsl(45 82% 55%);         /* Industrial Gold #D4AF37 */
-  --primary-foreground: hsl(240 10% 10%);  /* near black */
-  --primary-hover: hsl(45 90% 48%);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: hsl(45 82% 55%);         /* Industrial Gold #D4AF37 */
-  --primary-foreground: hsl(240 10% 10%);
-  --primary-hover: hsl(45 90% 62%);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* ── Slate360 unified app skin — matches /preview/mobile-shell-v2 ──
+     :root === .dark for Phase 1. The brand IS dark.
+     A dedicated light theme can be reintroduced later if needed. */
+  --radius: 1rem;
+  --background: #0B0F15;
+  --foreground: #e2e8f0;
+  --card: #151A23;
+  --card-foreground: #e2e8f0;
+  --popover: #151A23;
+  --popover-foreground: #e2e8f0;
+  --primary: #F59E0B;                  /* Amber-500 — sparing accent only */
+  --primary-foreground: #451a03;
+  --primary-hover: #d97706;
+  --secondary: #1e2533;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e2533;
+  --muted-foreground: #94a3b8;
+  --accent: #1e2533;
+  --accent-foreground: #e2e8f0;
+  /* Smoked Teal — secondary accent (link hover, secondary icons, nav active) */
+  --accent-teal: #5E8E8E;
+  --accent-teal-soft: rgba(94, 142, 142, 0.20);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.10);
+  --ring: #F59E0B;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: #0B0F15;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-primary: #F59E0B;
+  --sidebar-primary-foreground: #451a03;
+  --sidebar-accent: #1e2533;
+  --sidebar-accent-foreground: #e2e8f0;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-ring: #F59E0B;
+  /* App-shell skin tokens (mirror lib/design-system/tokens.ts appShell) */
+  --app-page: #0B0F15;
+  --app-card: #151A23;
+  --app-card-hover: rgba(255, 255, 255, 0.04);
+  --app-border: rgba(255, 255, 255, 0.05);
+  --app-glass: rgba(11, 15, 21, 0.80);
+  --app-glow-amber: 0 0 15px rgba(245, 158, 11, 0.15);
+  --app-glow-amber-strong: 0 0 20px 0 rgba(245, 158, 11, 0.35), 0 4px 12px 0 rgba(245, 158, 11, 0.2);
+  --app-shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  --app-shadow-elevated: 0 8px 32px -4px rgba(0, 0, 0, 0.4);
+  --color-scheme: dark;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+.dark {
+  /* ── New Slate360 palette (deep-navy + amber) matching mobile-shell-v2 ── */
+  --background: #0B0F15;
+  --foreground: #e2e8f0;
+  --card: #151A23;
+  --card-foreground: #e2e8f0;
+  --popover: #151A23;
+  --popover-foreground: #e2e8f0;
+  --primary: #F59E0B;                  /* Amber-500 */
+  --primary-foreground: #451a03;       /* Amber-950 */
+  --primary-hover: #d97706;            /* Amber-600 */
+  --secondary: #1e2533;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e2533;
+  --muted-foreground: #94a3b8;         /* Slate-400 */
+  --accent: #1e2533;
+  --accent-foreground: #e2e8f0;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.10);
+  --ring: #F59E0B;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: #0B0F15;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-primary: #F59E0B;
+  --sidebar-primary-foreground: #451a03;
+  --sidebar-accent: #1e2533;
+  --sidebar-accent-foreground: #e2e8f0;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-ring: #F59E0B;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -125,19 +147,21 @@
    Enterprise white-label: override --slate-orange and --slate-blue.
    ───────────────────────────────────────────────────────────────── */
 :root {
-  /* Brand colors */
-  --slate-gold: #D4AF37;
-  --slate-gold-hover: #B38F2E;
-  --slate-gold-light: rgba(212, 175, 55, 0.08);
-  --slate-accent: #D4AF37;
-  --slate-accent-hover: #B38F2E;
-  --slate-accent-ring: rgba(212, 175, 55, 0.5);
-  --slate-blue: #18181b;
-  --slate-blue-hover: #27272a;
-  --slate-blue-light: rgba(24, 24, 27, 0.08);
+  /* Brand colors — aligned with mobile-shell-v2 dark skin */
+  --slate-gold: #F59E0B;
+  --slate-gold-hover: #d97706;
+  --slate-gold-light: rgba(245, 158, 11, 0.12);
+  --slate-accent: #F59E0B;
+  --slate-accent-hover: #d97706;
+  --slate-accent-ring: rgba(245, 158, 11, 0.5);
+  --slate-teal: #5E8E8E;
+  --slate-teal-soft: rgba(94, 142, 142, 0.20);
+  --slate-blue: #0B0F15;
+  --slate-blue-hover: #151A23;
+  --slate-blue-light: rgba(11, 15, 21, 0.50);
 
   /* Module accent colors */
-  --module-hub: #D4AF37;
+  --module-hub: #F59E0B;
   --module-design: #7C3AED;
   --module-content: #EC4899;
   --module-tours: #0891B2;
@@ -145,7 +169,7 @@
   --module-virtual: #D97706;
   --module-analytics: #6366F1;
   --module-market: #6366F1;
-  --module-slatedrop: #D4AF37;
+  --module-slatedrop: #F59E0B;
 
   /* Status colors — used for RFIs, submittals, punch items */
   --status-open: #2563EB;
@@ -161,10 +185,10 @@
   --status-draft: #6B7280;
   --status-draft-bg: #F9FAFB;
 
-  /* Surface */
-  --surface-page: #ECEEF2;
-  --surface-card: #FFFFFF;
-  --surface-card-hover: #F9FAFB;
+  /* Surface — deep navy app skin (matches mobile-shell-v2) */
+  --surface-page: #0B0F15;
+  --surface-card: #151A23;
+  --surface-card-hover: #1e2533;
 
   /* Spacing (8px grid) */
   --space-1: 4px;
@@ -174,25 +198,31 @@
   --space-6: 24px;
   --space-8: 32px;
 
-  /* Dark Glass Design System (DESIGN.md) */
-  --text-primary: hsl(240 10% 10%);
-  --text-secondary: hsl(240 5% 35%);
-  --text-muted: hsl(240 4% 55%);
-  --surface-glass: hsl(0 0% 100% / 0.85);
-  --surface-light: hsl(0 0% 98%);
-  --surface-light-secondary: hsl(0 0% 95%);
-  --border-glass: hsl(0 0% 0% / 0.08);
-  --glass-border: 1px solid hsl(0 0% 0% / 0.08);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-  --shadow-glass: 0 8px 32px -4px rgb(0 0 0 / 0.12);
+  /* Dark Glass Design System — deep navy (single source of truth) */
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --surface-glass: rgba(11, 15, 21, 0.80);
+  --surface-light: #0B0F15;
+  --surface-light-secondary: #151A23;
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --backdrop-blur: blur(16px);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+  --shadow-glass: 0 8px 32px -4px rgb(0 0 0 / 0.4);
 }
 
 /* Dark mode overrides for Slate360 design tokens */
 .dark {
-  --slate-gold-light: rgba(212, 175, 55, 0.12);
-  --slate-blue: #fafafa;
-  --slate-blue-hover: #e4e4e7;
-  --slate-blue-light: rgba(250, 250, 250, 0.08);
+  --slate-gold: #F59E0B;
+  --slate-gold-hover: #d97706;
+  --slate-gold-light: rgba(245, 158, 11, 0.12);
+  --slate-accent: #F59E0B;
+  --slate-accent-hover: #d97706;
+  --slate-accent-ring: rgba(245, 158, 11, 0.5);
+  --slate-blue: #e2e8f0;
+  --slate-blue-hover: #cbd5e1;
+  --slate-blue-light: rgba(226, 232, 240, 0.08);
 
   --status-open-bg: rgba(37, 99, 235, 0.15);
   --status-review-bg: rgba(217, 119, 6, 0.15);
@@ -201,19 +231,19 @@
   --status-overdue-bg: rgba(220, 38, 38, 0.15);
   --status-draft-bg: rgba(107, 114, 128, 0.15);
 
-  --surface-page: #09090b;
-  --surface-card: #18181b;
-  --surface-card-hover: #27272a;
+  --surface-page: #0B0F15;
+  --surface-card: #151A23;
+  --surface-card-hover: #1e2533;
 
-  /* Dark Glass Design System (DESIGN.md) */
-  --text-primary: hsl(0 0% 98%);
-  --text-secondary: hsl(240 5% 65%);
-  --text-muted: hsl(240 5% 48%);
-  --surface-glass: hsl(240 10% 9% / 0.75);
-  --surface-light: hsl(240 10% 9%);
-  --surface-light-secondary: hsl(240 10% 12%);
-  --border-glass: hsl(0 0% 100% / 0.12);
-  --glass-border: 1px solid hsl(0 0% 100% / 0.12);
+  /* Dark Glass Design System — deep navy */
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --surface-glass: rgba(11, 15, 21, 0.80);
+  --surface-light: #0B0F15;
+  --surface-light-secondary: #151A23;
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
   --backdrop-blur: blur(16px);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
   --shadow-glass: 0 8px 32px -4px rgb(0 0 0 / 0.4);
@@ -296,7 +326,37 @@
 }
 
 @utility shadow-gold-glow {
-  box-shadow: 0 0 20px 0 hsl(45 82% 55% / 0.4), 0 4px 12px 0 hsl(45 82% 55% / 0.25);
+  box-shadow: 0 0 20px 0 rgba(245, 158, 11, 0.35), 0 4px 12px 0 rgba(245, 158, 11, 0.2);
+}
+
+@utility shadow-app-glow {
+  box-shadow: var(--app-glow-amber);
+}
+
+@utility bg-app-page {
+  background-color: var(--app-page);
+}
+
+@utility bg-app-card {
+  background-color: var(--app-card);
+}
+
+@utility border-app {
+  border-color: var(--app-border);
+}
+
+@utility text-teal {
+  color: var(--accent-teal);
+}
+
+@utility bg-teal-soft {
+  background-color: var(--accent-teal-soft);
+}
+
+@utility hover-teal {
+  &:hover {
+    color: var(--accent-teal);
+  }
 }
 
 @utility scrollbar-none {

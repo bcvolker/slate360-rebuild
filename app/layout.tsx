@@ -41,7 +41,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#18181b",
+  themeColor: "#0B0F15",
 };
 
 export default async function RootLayout({
@@ -52,7 +52,7 @@ export default async function RootLayout({
   const branding = await readBrandingCookie();
 
   return (
-    <html lang="en" className="scroll-smooth" data-build="2026-02-26-v4-probe" suppressHydrationWarning>
+    <html lang="en" className="dark scroll-smooth" data-build="2026-04-19-app-skin-v1" suppressHydrationWarning>
       <head>
         <ThemeScript />
       </head>
