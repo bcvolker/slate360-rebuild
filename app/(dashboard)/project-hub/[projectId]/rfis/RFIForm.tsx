@@ -14,7 +14,7 @@ interface Props {
   onClose: () => void;
 }
 
-const field = "w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+const field = "w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all disabled:opacity-50 disabled:cursor-not-allowed";
 const label = "block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1.5";
 
 export default function RFIForm({ form, setForm, editingId, saving, attachment, setAttachment, onSubmit, onClose }: Props) {
@@ -53,7 +53,7 @@ export default function RFIForm({ form, setForm, editingId, saving, attachment, 
           )}
         </div>
         <div className="sticky bottom-0 border-t border-zinc-800 bg-zinc-900/95 backdrop-blur px-6 py-4 flex items-center gap-3">
-          <button disabled={saving || !form.subject.trim() || !form.question.trim()} onClick={onSubmit} className="flex-1 rounded-xl bg-[#D4AF37] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#e64500] transition disabled:opacity-40">{saving ? "Saving…" : editingId ? "Update RFI" : "Create RFI"}</button>
+          <button disabled={saving || !form.subject.trim() || !form.question.trim()} onClick={onSubmit} className="flex-1 rounded-xl bg-[#3B82F6] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8] transition disabled:opacity-40">{saving ? "Saving…" : editingId ? "Update RFI" : "Create RFI"}</button>
           <button onClick={onClose} className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 transition">Cancel</button>
         </div>
       </div>

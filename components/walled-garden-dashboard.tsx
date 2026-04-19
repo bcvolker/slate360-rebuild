@@ -7,7 +7,7 @@
  * `components/dashboard/command-center/`.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,8 @@ interface WalledGardenDashboardProps {
   hasOperationsConsoleAccess?: boolean;
 }
 
+const SIDEBAR_PIN_KEY = "slate360.sidebar.pinned";
+
 export default function WalledGardenDashboard({
   userName,
   orgName,
@@ -31,8 +33,36 @@ export default function WalledGardenDashboard({
   entitlements = null,
   hasOperationsConsoleAccess = false,
 }: WalledGardenDashboardProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Default OPEN on desktop. Only collapse if user explicitly pinned closed.
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Restore explicit collapsed state on mount (desktop only).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+      return;
+    }
+    try {
+      const pinned = window.localStorage.getItem(SIDEBAR_PIN_KEY);
+      if (pinned === "0") setSidebarOpen(false);
+    } catch {
+      /* ignore localStorage failures (private mode, etc.) */
+    }
+  }, []);
+
+  const toggleSidebar = () => {
+    setSidebarOpen((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem(SIDEBAR_PIN_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
 
   return (
     <TooltipProvider>
@@ -59,7 +89,7 @@ export default function WalledGardenDashboard({
           userName={userName}
           onMenuClick={() => {
             if (typeof window !== "undefined" && window.innerWidth >= 1024) {
-              setSidebarOpen(!sidebarOpen);
+              toggleSidebar();
             } else {
               setMobileSidebarOpen(true);
             }
@@ -78,6 +108,7 @@ export default function WalledGardenDashboard({
               userName={userName}
               orgName={orgName}
               storageLimitGb={storageLimitGb}
+              entitlements={entitlements}
             />
           </div>
         </main>

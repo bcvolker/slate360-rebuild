@@ -3,9 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { SlateCTA } from "@/lib/design-system";
-import { SlateLogo } from "@/components/shared/SlateLogo";
 
 interface LandingHeaderProps {
   onLoginClick: () => void;
@@ -28,33 +27,37 @@ export default function LandingHeader({ onLoginClick, isScrolled }: LandingHeade
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <SlateLogo className="h-7 sm:h-8 w-auto" />
+            <img
+              src="/uploads/slate360-logo-cobalt-v3.svg?v=cobalt-2026-04-19b"
+              alt="Slate360"
+              className="h-7 sm:h-8 w-auto"
+            />
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#apps" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#apps" className="text-sm text-muted-foreground hover:text-teal transition-colors">
               Products
             </a>
-            <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#pricing" className="text-sm text-muted-foreground hover:text-teal transition-colors">
               Pricing
             </a>
-            <a href="#testimonials" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#testimonials" className="text-sm text-muted-foreground hover:text-teal transition-colors">
               Customers
             </a>
-            <a href="mailto:hello@slate360.ai" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="mailto:hello@slate360.ai" className="text-sm text-muted-foreground hover:text-teal transition-colors">
               Contact
             </a>
           </nav>
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <SlateCTA variant="ghost" onClick={onLoginClick}>
+            <Button variant="ghost" onClick={onLoginClick} className="text-foreground hover:bg-primary/10">
               Log In
-            </SlateCTA>
-            <SlateCTA onClick={onLoginClick}>
+            </Button>
+            <Button onClick={onLoginClick} className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-gold-glow">
               Get Started
-            </SlateCTA>
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -71,25 +74,25 @@ export default function LandingHeader({ onLoginClick, isScrolled }: LandingHeade
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-border/50">
             <nav className="flex flex-col gap-4">
-              <a href="#apps" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">
+              <a href="#apps" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground hover:text-teal">
                 Products
               </a>
-              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">
+              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground hover:text-teal">
                 Pricing
               </a>
-              <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">
+              <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground hover:text-teal">
                 Customers
               </a>
-              <a href="mailto:hello@slate360.ai" className="text-sm text-muted-foreground hover:text-foreground">
+              <a href="mailto:hello@slate360.ai" className="text-sm text-muted-foreground hover:text-teal">
                 Contact
               </a>
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
-                <SlateCTA variant="ghost" onClick={() => { setMobileMenuOpen(false); onLoginClick(); }} className="justify-start">
+                <Button variant="ghost" onClick={() => { setMobileMenuOpen(false); onLoginClick(); }} className="justify-start">
                   Log In
-                </SlateCTA>
-                <SlateCTA onClick={() => { setMobileMenuOpen(false); onLoginClick(); }}>
+                </Button>
+                <Button onClick={() => { setMobileMenuOpen(false); onLoginClick(); }} className="bg-primary text-primary-foreground">
                   Get Started
-                </SlateCTA>
+                </Button>
               </div>
             </nav>
           </div>

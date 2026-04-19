@@ -137,7 +137,7 @@ export function PlanViewer({ plan, items, onPinCreate, onPinDelete, placingItemI
           const item = items.find((i) => i.id === pin.item_id);
           return (
             <div
-              className="absolute z-10 -translate-x-1/2 rounded border bg-white p-2 shadow-md dark:bg-zinc-900"
+              className="absolute z-10 -translate-x-1/2 rounded border bg-white p-2 shadow-md dark:bg-app-card"
               style={{ left: `${pin.x_pct}%`, top: `${Math.max(0, pin.y_pct - 3)}%` }}
             >
               <p className="text-xs font-medium">{item?.title ?? "Unknown item"}</p>

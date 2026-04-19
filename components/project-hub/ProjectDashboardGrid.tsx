@@ -106,14 +106,14 @@ function resolveProjectLocation(metadata: unknown, profileAddress: string | null
 
 /* ─── Widget metadata ─────────────────────────────────────────── */
 const PROJECT_WIDGET_META: WidgetMeta[] = [
-  { id: "project-info",      label: "Project Info",       icon: Info,           color: "#D4AF37" },
-  { id: "location",          label: "Site Location",      icon: MapPin,         color: "#D4AF37" },
+  { id: "project-info",      label: "Project Info",       icon: Info,           color: "#3B82F6" },
+  { id: "location",          label: "Site Location",      icon: MapPin,         color: "#3B82F6" },
   { id: "weather",           label: "Weather",            icon: Sun,            color: "#0891B2" },
   { id: "budget-snapshot",   label: "Budget Snapshot",    icon: BarChart2,      color: "#059669" },
-  { id: "schedule-snapshot", label: "Schedule Snapshot",  icon: CalendarCheck2, color: "#D4AF37" },
+  { id: "schedule-snapshot", label: "Schedule Snapshot",  icon: CalendarCheck2, color: "#3B82F6" },
   { id: "quick-actions",     label: "Quick Actions",      icon: Zap,            color: "#7C3AED" },
-  { id: "slatedrop",         label: "SlateDrop",          icon: FolderOpen,     color: "#D4AF37" },
-  { id: "continue",          label: "Continue Working",   icon: Clock,          color: "#D4AF37" },
+  { id: "slatedrop",         label: "SlateDrop",          icon: FolderOpen,     color: "#3B82F6" },
+  { id: "continue",          label: "Continue Working",   icon: Clock,          color: "#3B82F6" },
 ];
 
 function fmtUsd(v: number) {
@@ -255,9 +255,9 @@ export default function ProjectDashboardGrid({
     /* PROJECT INFO */
     if (id === "project-info") {
       return (
-        <div className="rounded-xl bg-zinc-800/50 border border-zinc-700 p-4 flex-1 space-y-3">
+        <div className="rounded-xl bg-white/[0.04]/50 border border-app p-4 flex-1 space-y-3">
           <div className="flex items-start gap-2.5">
-            <Building2 size={18} className="text-[#D4AF37] mt-0.5 shrink-0" />
+            <Building2 size={18} className="text-[#3B82F6] mt-0.5 shrink-0" />
             <div className="min-w-0">
               <p className="text-sm font-black text-white truncate">{project.name ?? "—"}</p>
               {locationStr && (
@@ -268,35 +268,35 @@ export default function ProjectDashboardGrid({
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-zinc-800 rounded-lg p-2">
+            <div className="bg-white/[0.04] rounded-lg p-2">
               <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Status</p>
               <p className="text-xs font-bold text-zinc-200 capitalize mt-0.5">{project.status ?? "Active"}</p>
             </div>
-            <div className="bg-zinc-800 rounded-lg p-2">
+            <div className="bg-white/[0.04] rounded-lg p-2">
               <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Created</p>
               <p className="text-xs font-bold text-zinc-200 mt-0.5">
                 {project.created_at ? new Date(project.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
               </p>
             </div>
             {rfiCount !== null && (
-              <div className="bg-zinc-800 rounded-lg p-2">
+              <div className="bg-white/[0.04] rounded-lg p-2">
                 <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Open RFIs</p>
-                <p className="text-xs font-bold text-[#D4AF37] mt-0.5">{rfiCount.open} <span className="text-zinc-500 font-normal">/ {rfiCount.total}</span></p>
+                <p className="text-xs font-bold text-[#3B82F6] mt-0.5">{rfiCount.open} <span className="text-zinc-500 font-normal">/ {rfiCount.total}</span></p>
               </div>
             )}
             {subCount !== null && (
-              <div className="bg-zinc-800 rounded-lg p-2">
+              <div className="bg-white/[0.04] rounded-lg p-2">
                 <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Pending Docs</p>
                 <p className="text-xs font-bold text-amber-500 mt-0.5">{subCount.pending} <span className="text-zinc-500 font-normal">/ {subCount.total}</span></p>
               </div>
             )}
           </div>
           {isExpanded && project.description && (
-            <p className="text-xs text-zinc-400 leading-relaxed border-t border-zinc-700 pt-3">{project.description}</p>
+            <p className="text-xs text-zinc-400 leading-relaxed border-t border-app pt-3">{project.description}</p>
           )}
           <button
             onClick={() => setProfileOpen(true)}
-            className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-zinc-700 py-1.5 text-[10px] font-semibold text-zinc-500 hover:text-[#D4AF37] hover:border-[#D4AF37]/30 transition"
+            className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-app py-1.5 text-[10px] font-semibold text-zinc-500 hover:text-[#3B82F6] hover:border-[#3B82F6]/30 transition"
           >
             <Settings size={10} /> Edit Company Profile (Auto-fill)
           </button>
@@ -333,7 +333,7 @@ export default function ProjectDashboardGrid({
     if (id === "budget-snapshot") {
       if (!budgetTotals) {
         return (
-          <div className="rounded-xl border border-dashed border-zinc-700 bg-zinc-800/50 p-4 flex-1 flex flex-col items-center justify-center gap-2">
+          <div className="rounded-xl border border-dashed border-app bg-white/[0.04]/50 p-4 flex-1 flex flex-col items-center justify-center gap-2">
             <BarChart2 size={24} className="text-zinc-600" />
             <p className="text-xs text-zinc-500 font-semibold">No budget data yet</p>
             <Link href={`/project-hub/${projectId}/budget`} className="text-[10px] font-bold text-[#059669] hover:underline">Set up budget →</Link>
@@ -341,13 +341,13 @@ export default function ProjectDashboardGrid({
         );
       }
       return (
-        <div className="rounded-xl bg-zinc-800/50 border border-zinc-700 p-4 flex-1 space-y-3">
+        <div className="rounded-xl bg-white/[0.04]/50 border border-app p-4 flex-1 space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-zinc-800 rounded-lg p-2">
+            <div className="bg-white/[0.04] rounded-lg p-2">
               <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Budget</p>
               <p className="text-sm font-black text-white">{fmtUsd(revisedBudget)}</p>
             </div>
-            <div className="bg-zinc-800 rounded-lg p-2">
+            <div className="bg-white/[0.04] rounded-lg p-2">
               <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Spent</p>
               <p className="text-sm font-black text-white">{fmtUsd(budgetTotals.spent)}</p>
             </div>
@@ -357,7 +357,7 @@ export default function ProjectDashboardGrid({
               <span className="text-zinc-400">Spend Progress</span>
               <span className="font-bold text-zinc-300">{pctSpent}%</span>
             </div>
-            <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-white/[0.04] rounded-full h-2 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${pctSpent > 90 ? "bg-red-500" : pctSpent > 75 ? "bg-amber-400" : "bg-emerald-500"}`}
                 style={{ width: `${pctSpent}%` }}
@@ -383,29 +383,29 @@ export default function ProjectDashboardGrid({
     if (id === "schedule-snapshot") {
       if (tasks.length === 0) {
         return (
-          <div className="rounded-xl border border-dashed border-zinc-700 bg-zinc-800/50 p-4 flex-1 flex flex-col items-center justify-center gap-2">
+          <div className="rounded-xl border border-dashed border-app bg-white/[0.04]/50 p-4 flex-1 flex flex-col items-center justify-center gap-2">
             <CalendarCheck2 size={24} className="text-zinc-600" />
             <p className="text-xs text-zinc-500 font-semibold">No tasks scheduled</p>
-            <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#D4AF37] hover:underline">Add tasks →</Link>
+            <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#3B82F6] hover:underline">Add tasks →</Link>
           </div>
         );
       }
       return (
         <div className="flex flex-col gap-2 flex-1">
-          <div className="flex items-center gap-3 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-3 py-2">
+          <div className="flex items-center gap-3 rounded-lg bg-[#3B82F6]/10 border border-[#3B82F6]/20 px-3 py-2">
             <div className="flex-1">
               <div className="flex justify-between text-[10px] mb-1">
                 <span className="font-bold text-zinc-300">{tasks.filter((t) => t.status === "Completed").length}/{tasks.length} completed</span>
-                <span className="font-black text-[#D4AF37]">{overallPct}%</span>
+                <span className="font-black text-[#3B82F6]">{overallPct}%</span>
               </div>
-              <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
-                <div className="h-full bg-[#D4AF37] rounded-full transition-all" style={{ width: `${overallPct}%` }} />
+              <div className="w-full bg-white/[0.04] rounded-full h-1.5 overflow-hidden">
+                <div className="h-full bg-[#3B82F6] rounded-full transition-all" style={{ width: `${overallPct}%` }} />
               </div>
             </div>
           </div>
           <div className="space-y-1.5 flex-1">
             {upcomingTasks.map((t) => (
-              <div key={t.id} className="flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800 px-2.5 py-2">
+              <div key={t.id} className="flex items-center gap-2 rounded-lg border border-app bg-white/[0.04] px-2.5 py-2">
                 <div className={`w-2 h-2 rounded-full shrink-0 ${t.status === "In Progress" ? "bg-blue-500" : t.status === "Delayed" ? "bg-red-500" : "bg-zinc-600"}`} />
                 <p className="text-[11px] font-semibold text-zinc-200 flex-1 truncate">{t.name}</p>
                 {t.end_date && (
@@ -416,7 +416,7 @@ export default function ProjectDashboardGrid({
               </div>
             ))}
           </div>
-          <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#D4AF37] hover:underline text-right block">Open Gantt →</Link>
+          <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#3B82F6] hover:underline text-right block">Open Gantt →</Link>
         </div>
       );
     }
@@ -424,11 +424,11 @@ export default function ProjectDashboardGrid({
     /* QUICK ACTIONS */
     if (id === "quick-actions") {
       const actions = [
-        { label: "New RFI",       href: `/project-hub/${projectId}/rfis`,       icon: ClipboardList, color: "#D4AF37" },
+        { label: "New RFI",       href: `/project-hub/${projectId}/rfis`,       icon: ClipboardList, color: "#3B82F6" },
         { label: "Add Submittal", href: `/project-hub/${projectId}/submittals`,  icon: FileCheck2,    color: "#7C3AED" },
-        { label: "Daily Log",     href: `/project-hub/${projectId}/daily-logs`,  icon: Layers,        color: "#D4AF37" },
+        { label: "Daily Log",     href: `/project-hub/${projectId}/daily-logs`,  icon: Layers,        color: "#3B82F6" },
         { label: "Punch List",    href: `/project-hub/${projectId}/punch-list`,  icon: ShieldAlert,   color: "#DC2626" },
-        { label: "Upload File",   href: `/project-hub/${projectId}/slatedrop`,   icon: FolderOpen,    color: "#D4AF37" },
+        { label: "Upload File",   href: `/project-hub/${projectId}/slatedrop`,   icon: FolderOpen,    color: "#3B82F6" },
         { label: "Add Task",      href: `/project-hub/${projectId}/schedule`,    icon: CalendarCheck2, color: "#059669" },
       ];
       return (
@@ -437,7 +437,7 @@ export default function ProjectDashboardGrid({
             <Link
               key={a.label}
               href={a.href}
-              className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2.5 hover:border-zinc-600 transition group"
+              className="flex items-center gap-2 rounded-xl border border-app bg-white/[0.04] px-3 py-2.5 hover:border-zinc-600 transition group"
             >
               <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${a.color}1A`, color: a.color }}>
                 <a.icon size={13} />
@@ -468,9 +468,9 @@ export default function ProjectDashboardGrid({
             <Link
               key={link.title}
               href={link.href}
-              className="flex items-center gap-2.5 rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2.5 hover:border-[#D4AF37]/20 hover:bg-[#D4AF37]/5 transition group"
+              className="flex items-center gap-2.5 rounded-xl border border-app bg-white/[0.04] px-3 py-2.5 hover:border-[#3B82F6]/20 hover:bg-[#3B82F6]/5 transition group"
             >
-              <link.icon size={13} className="text-zinc-500 group-hover:text-[#D4AF37] transition shrink-0" />
+              <link.icon size={13} className="text-zinc-500 group-hover:text-[#3B82F6] transition shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-semibold text-zinc-200 truncate">{link.title}</p>
                 <p className="text-[9px] text-zinc-500 truncate">{link.subtitle}</p>
@@ -494,14 +494,14 @@ export default function ProjectDashboardGrid({
           <button
             onClick={() => setProfileOpen(true)}
             title="Company auto-fill profile"
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-zinc-800 hover:text-[#D4AF37] transition-colors"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-white/[0.04] hover:text-[#3B82F6] transition-colors"
           >
             <Settings size={15} />
           </button>
           <button
             onClick={() => setCustomizeOpen(true)}
             title="Customize widgets"
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-[#D4AF37] transition-colors"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-white/[0.04] hover:text-[#3B82F6] transition-colors"
           >
             <SlidersHorizontal size={16} />
           </button>

@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   if (blocked) return blocked;
 
   try {
-    const { email, password, name, redirectAfter } = await req.json();
+    const { email, password, name, redirectAfter, demographics } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -24,6 +24,17 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    // Demographics are optional. We persist whatever is provided into
+    // user_metadata so the operations console can later segment users
+    // by industry, role, company size, and referral source.
+    const demo = demographics && typeof demographics === "object" ? demographics : {};
+    const metadata: Record<string, unknown> = { full_name: name };
+    for (const key of ["company", "jobTitle", "industry", "companySize", "referralSource"] as const) {
+      const v = (demo as Record<string, unknown>)[key];
+      if (typeof v === "string" && v.length > 0) metadata[key] = v;
+    }
+    metadata.signupAt = new Date().toISOString();
 
     const supabase = createAdminClient();
     const origin = new URL(req.url).origin;
@@ -40,7 +51,7 @@ export async function POST(req: Request) {
       password,
       options: {
         redirectTo,
-        data: { full_name: name },
+        data: metadata,
       },
     });
 

@@ -39,8 +39,8 @@ export default function ShareViewer({
       {/* Header bar */}
       <header className="bg-zinc-900 border-b border-zinc-800 px-4 py-3 flex items-center justify-between shadow-sm shrink-0">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
-            <FileText size={18} className="text-[#D4AF37]" />
+          <div className="w-9 h-9 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center shrink-0">
+            <FileText size={18} className="text-[#3B82F6]" />
           </div>
           <div className="min-w-0">
             <h1 className="text-sm font-bold text-zinc-100 truncate">{fileName}</h1>
@@ -53,7 +53,7 @@ export default function ShareViewer({
               href={presignedUrl}
               download={fileName}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90"
-              style={{ backgroundColor: "#D4AF37" }}
+              style={{ backgroundColor: "#3B82F6" }}
             >
               <Download size={13} /> Download
             </a>
@@ -118,7 +118,7 @@ export default function ShareViewer({
                 href={presignedUrl}
                 download={fileName}
                 className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
-                style={{ backgroundColor: "#D4AF37" }}
+                style={{ backgroundColor: "#3B82F6" }}
               >
                 <Download size={15} /> Download File
               </a>

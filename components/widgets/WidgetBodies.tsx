@@ -157,10 +157,10 @@ export function CalendarWidgetBody({
         const isToday = d.toDateString() === today.toDateString();
         const isPast = d < today && !isToday;
         return (
-          <div key={i} className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${isToday ? "bg-[#D4AF37]/10 border border-[#D4AF37]/20" : isPast ? "opacity-50" : "bg-white border border-gray-100"}`}>
-            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ev.color ?? (isToday ? "#D4AF37" : "#6366F1") }} />
+          <div key={i} className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${isToday ? "bg-[#3B82F6]/10 border border-[#3B82F6]/20" : isPast ? "opacity-50" : "bg-white border border-gray-100"}`}>
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ev.color ?? (isToday ? "#3B82F6" : "#6366F1") }} />
             <span className="text-xs text-gray-700 truncate flex-1">{ev.title}</span>
-            <span className={`text-[9px] font-bold shrink-0 ${isToday ? "text-[#D4AF37]" : "text-gray-400"}`}>{isToday ? "Today" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+            <span className={`text-[9px] font-bold shrink-0 ${isToday ? "text-[#3B82F6]" : "text-gray-400"}`}>{isToday ? "Today" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
           </div>
         );
       })}
@@ -205,12 +205,12 @@ export function ContinueWidgetBody({
     <div className="rounded-xl bg-gray-50 border border-gray-100 p-2 flex-1 space-y-1.5">
       {items.slice(0, 4).map((it, i) => (
         it.href ? (
-          <a key={i} href={it.href} className="flex items-center gap-2 rounded-lg border border-gray-100 bg-white px-3 py-2 hover:border-[#D4AF37]/30 hover:bg-amber-50/30 transition group">
+          <a key={i} href={it.href} className="flex items-center gap-2 rounded-lg border border-gray-100 bg-white px-3 py-2 hover:border-[#3B82F6]/30 hover:bg-amber-50/30 transition group">
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-gray-800 truncate">{it.title}</p>
               <p className="text-[9px] text-gray-400 truncate">{it.subtitle}</p>
             </div>
-            <ChevronRight size={12} className="shrink-0 text-gray-300 group-hover:text-[#D4AF37] transition" />
+            <ChevronRight size={12} className="shrink-0 text-gray-300 group-hover:text-[#3B82F6] transition" />
           </a>
         ) : (
           <div key={i} className="flex items-center gap-2 rounded-lg border border-gray-100 bg-white px-3 py-2">
@@ -325,7 +325,7 @@ export function ProcessingWidgetBody({
           </div>
           {job.status === "processing" && (
             <div className={bar}>
-              <div className={fill} style={{ width: `${job.progress}%`, backgroundColor: "#D4AF37" }} />
+              <div className={fill} style={{ width: `${job.progress}%`, backgroundColor: "#3B82F6" }} />
             </div>
           )}
         </div>
@@ -390,14 +390,14 @@ export function SuggestWidgetBody({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Feature title…"
-            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none"
+            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] outline-none"
           />
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Describe your idea…"
             rows={3}
-            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none resize-none"
+            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] outline-none resize-none"
           />
         </>
       )}
@@ -449,7 +449,7 @@ export function DataUsageWidgetBody({
         <div className={bar}>
           <div
             className={fill}
-            style={{ width: `${creditPct}%`, backgroundColor: creditDanger ? "#EF4444" : "#D4AF37" }}
+            style={{ width: `${creditPct}%`, backgroundColor: creditDanger ? "#EF4444" : "#3B82F6" }}
           />
         </div>
         {planLabel && (
@@ -464,7 +464,7 @@ export function DataUsageWidgetBody({
           </span>
         </div>
         <div className={bar}>
-          <div className={fill} style={{ width: `${storagePct}%`, backgroundColor: "#D4AF37" }} />
+          <div className={fill} style={{ width: `${storagePct}%`, backgroundColor: "#3B82F6" }} />
         </div>
         <p className="text-[10px] text-gray-400 mt-1">
           {(storageLimitGb - storageUsedGb).toFixed(1)} GB available

@@ -23,50 +23,89 @@
 /* ── Brand Identity ─────────────────────────────────────────── */
 
 export const brand = {
-  /** Primary brand accent — gold/amber family */
-  gold: "#D4AF37",
-  goldHover: "#B38F2E",
-  goldLight: "rgba(212, 175, 55, 0.08)",
-  goldLightDark: "rgba(212, 175, 55, 0.12)",
-  goldRing: "rgba(212, 175, 55, 0.5)",
+  /** Primary brand accent — cobalt family (legacy key name `gold` retained for compatibility) */
+  gold: "#3B82F6",
+  goldHover: "#2563EB",
+  goldLight: "rgba(59, 130, 246, 0.08)",
+  goldLightDark: "rgba(59, 130, 246, 0.14)",
+  goldRing: "rgba(59, 130, 246, 0.5)",
   goldGlow:
-    "0 0 20px 0 hsl(45 82% 55% / 0.4), 0 4px 12px 0 hsl(45 82% 55% / 0.25)",
+    "0 0 20px 0 rgba(59, 130, 246, 0.35), 0 4px 12px 0 rgba(59, 130, 246, 0.20)",
 
   /** Primary HSL for CSS custom properties */
-  goldHsl: "45 82% 55%",
-  goldHoverHsl: "45 90% 48%",
-  goldHoverHslDark: "45 90% 62%",
+  goldHsl: "217 91% 60%",
+  goldHoverHsl: "221 83% 53%",
+  goldHoverHslDark: "221 83% 53%",
 
-  /** Core dark surface — graphite/slate family */
-  graphite: "#18181b",
-  graphiteHover: "#27272a",
-  graphiteDeep: "#09090b",
-  graphiteMid: "#27272a",
-  graphiteLight: "#3f3f46",
+  /** Core dark surface — deep navy family */
+  graphite: "#151A23",
+  graphiteHover: "#1e2533",
+  graphiteDeep: "#0B0F15",
+  graphiteMid: "#1e2533",
+  graphiteLight: "#2a3344",
 
   /** White/light text family */
   white: "#ffffff",
-  textPrimary: "#fafafa",
-  textSecondary: "#a1a1aa",
-  textMuted: "#71717a",
+  textPrimary: "#e2e8f0",
+  textSecondary: "#94a3b8",
+  textMuted: "#64748b",
   textSubtle: "#52525b",
+
+  /** Steel — secondary accent (link hover, secondary icons, nav active). Legacy key name `teal` retained. */
+  teal: "#94A3B8",
+  tealSoft: "rgba(148, 163, 184, 0.18)",
+  tealHover: "#CBD5E1",
 
   /** Brand name */
   name: "Slate360",
 } as const;
 
+/* ── App Shell Skin (single source of truth — matches mobile-shell-v2) */
+
+export const appShell = {
+  /** Page background */
+  page: "#0B0F15",
+  /** Card / panel surface */
+  card: "#151A23",
+  /** Hover overlay applied on top of card */
+  cardHover: "rgba(255, 255, 255, 0.04)",
+  /** Thin glass border on every card */
+  border: "rgba(255, 255, 255, 0.05)",
+  /** Glass header / footer / bottom-nav background */
+  glass: "rgba(11, 15, 21, 0.80)",
+  /** Backdrop filter for glass surfaces */
+  backdropBlur: "blur(16px)",
+  /** Soft cobalt glow used on logo tile + primary CTA */
+  glowAmber: "0 0 15px rgba(59, 130, 246, 0.18)",
+  /** Stronger cobalt glow used on primary CTA hover */
+  glowAmberStrong:
+    "0 0 20px 0 rgba(59, 130, 246, 0.35), 0 4px 12px 0 rgba(59, 130, 246, 0.20)",
+  /** Card shadow */
+  cardShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.3)",
+  /** Elevated / hero card shadow */
+  elevatedShadow: "0 8px 32px -4px rgba(0, 0, 0, 0.4)",
+  /** Card corner radius (rounded-2xl) */
+  radius: "1rem",
+  /** Icon tile corner radius (rounded-xl) */
+  iconRadius: "0.75rem",
+  /** Hover micro-lift */
+  hoverLift: "-2px",
+  /** Active state scale */
+  activeScale: "0.99",
+} as const;
+
 /* ── Module Accent Colors ───────────────────────────────────── */
 
 export const modules = {
-  hub: "#D4AF37",
+  hub: "#3B82F6",
   design: "#7C3AED",
   content: "#EC4899",
   tours: "#0891B2",
   geo: "#059669",
-  virtual: "#D97706",
+  virtual: "#2563EB",
   analytics: "#6366F1",
   market: "#6366F1",
-  slatedrop: "#D4AF37",
+  slatedrop: "#3B82F6",
 } as const;
 
 /* ── Status Colors ──────────────────────────────────────────── */
@@ -74,7 +113,7 @@ export const modules = {
 export const status = {
   open: "#2563EB",
   openBg: "#EFF6FF",
-  review: "#D97706",
+  review: "#2563EB",
   reviewBg: "#FFFBEB",
   approved: "#059669",
   approvedBg: "#ECFDF5",
@@ -102,12 +141,12 @@ export const surfaces = {
   },
   /** Dark mode */
   dark: {
-    page: "#09090b",
-    card: "#18181b",
-    cardHover: "#27272a",
-    glass: "hsl(240 10% 9% / 0.75)",
-    glassSecondary: "hsl(240 10% 9%)",
-    border: "hsl(0 0% 100% / 0.12)",
+    page: "#0B0F15",
+    card: "#151A23",
+    cardHover: "#1e2533",
+    glass: "rgba(11, 15, 21, 0.80)",
+    glassSecondary: "#0B0F15",
+    border: "rgba(255, 255, 255, 0.08)",
     shadow: "0 1px 3px 0 rgb(0 0 0 / 0.3)",
     shadowGlass: "0 8px 32px -4px rgb(0 0 0 / 0.4)",
   },

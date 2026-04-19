@@ -108,7 +108,7 @@ export default function ManagementContractsTab({ projectId, showToast, onStatsCh
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold text-gray-600">{contracts.length} contract{contracts.length !== 1 ? "s" : ""}</p>
           <button onClick={() => { setCForm({ ...EMPTY_C_FORM }); setEditingCId(null); setShowCForm(true); }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition">
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition">
             <Plus size={15} /> Upload Contract
           </button>
         </div>
@@ -200,7 +200,7 @@ export default function ManagementContractsTab({ projectId, showToast, onStatsCh
               <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center"><FileSignature size={20} className="text-purple-600" /></div>
               <p className="text-xs text-gray-500">Upload AIA contracts, subcontracts, or any project agreement. AI extracts key requirements in plain English.</p>
               <button onClick={() => { setCForm({ ...EMPTY_C_FORM }); setEditingCId(null); setShowCForm(true); }}
-                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#D4AF37] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E64500] transition">
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition">
                 <Plus size={14} /> Upload Contract
               </button>
             </div>
@@ -208,35 +208,35 @@ export default function ManagementContractsTab({ projectId, showToast, onStatsCh
             <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
               <div>
                 <label className="mb-1 block text-xs font-bold text-gray-700">Title *</label>
-                <input value={cForm.title} onChange={(e) => setCForm({ ...cForm, title: e.target.value })} placeholder="e.g. Prime Contract – Phase 1" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/20" />
+                <input value={cForm.title} onChange={(e) => setCForm({ ...cForm, title: e.target.value })} placeholder="e.g. Prime Contract – Phase 1" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/20" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1 block text-xs font-bold text-gray-700">Contract Type</label>
-                  <select value={cForm.contract_type} onChange={(e) => setCForm({ ...cForm, contract_type: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]">
+                  <select value={cForm.contract_type} onChange={(e) => setCForm({ ...cForm, contract_type: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6]">
                     <option value="">Select…</option>
                     {CONTRACT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-gray-700">Status</label>
-                  <select value={cForm.status} onChange={(e) => setCForm({ ...cForm, status: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]">
+                  <select value={cForm.status} onChange={(e) => setCForm({ ...cForm, status: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6]">
                     {CONTRACT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-bold text-gray-700">Parties</label>
-                <input value={cForm.parties} onChange={(e) => setCForm({ ...cForm, parties: e.target.value })} placeholder="Owner, GC – separate by comma" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
+                <input value={cForm.parties} onChange={(e) => setCForm({ ...cForm, parties: e.target.value })} placeholder="Owner, GC – separate by comma" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6]" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1 block text-xs font-bold text-gray-700">Contract Value ($)</label>
-                  <input type="number" value={cForm.contract_value} onChange={(e) => setCForm({ ...cForm, contract_value: e.target.value })} placeholder="0" min="0" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
+                  <input type="number" value={cForm.contract_value} onChange={(e) => setCForm({ ...cForm, contract_value: e.target.value })} placeholder="0" min="0" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6]" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-gray-700">Executed Date</label>
-                  <input type="date" value={cForm.executed_date} onChange={(e) => setCForm({ ...cForm, executed_date: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
+                  <input type="date" value={cForm.executed_date} onChange={(e) => setCForm({ ...cForm, executed_date: e.target.value })} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6]" />
                 </div>
               </div>
               {!editingCId && (
@@ -247,10 +247,10 @@ export default function ManagementContractsTab({ projectId, showToast, onStatsCh
               )}
               <div>
                 <label className="mb-1 block text-xs font-bold text-gray-700">Notes</label>
-                <textarea value={cForm.notes} onChange={(e) => setCForm({ ...cForm, notes: e.target.value })} rows={2} placeholder="Scope notes, amendments…" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37] resize-none" />
+                <textarea value={cForm.notes} onChange={(e) => setCForm({ ...cForm, notes: e.target.value })} rows={2} placeholder="Scope notes, amendments…" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] resize-none" />
               </div>
               <button onClick={handleCSubmit} disabled={cSaving || !cForm.title.trim()}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E64500] disabled:opacity-50 transition">
+                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition">
                 {cSaving && <Loader2 size={14} className="animate-spin" />}
                 {editingCId ? "Update Contract" : "Save Contract"}
               </button>

@@ -26,6 +26,7 @@ async function ensureProjectMembership(
   admin: SupabaseClient,
   projectId: string,
   userId: string,
+  preferredRole: "collaborator" | "viewer" = "collaborator",
 ): Promise<void> {
   const { data: existing } = await admin
     .from("project_members")
@@ -39,7 +40,9 @@ async function ensureProjectMembership(
   }
 
   const attempts: Array<Record<string, unknown>> = [
-    { project_id: projectId, user_id: userId, role_id: "collaborator", status: "active" },
+    { project_id: projectId, user_id: userId, role: preferredRole, status: "active" },
+    { project_id: projectId, user_id: userId, role: preferredRole },
+    { project_id: projectId, user_id: userId, role_id: preferredRole, status: "active" },
     { project_id: projectId, user_id: userId, role: "viewer", status: "active" },
     { project_id: projectId, user_id: userId, role: "viewer" },
     { project_id: projectId, user_id: userId },
@@ -132,8 +135,29 @@ export async function redeemInvitationToken(
     if (!invitation.project_id) {
       throw new Error("Collaborator invite missing project scope");
     }
-    await ensureProjectMembership(admin, invitation.project_id, user.id);
-    redirectPath = `/projects/${invitation.project_id}`;
+    await ensureProjectMembership(admin, invitation.project_id, user.id, "collaborator");
+    // Mark the matching project_collaborator_invites row as accepted, if one exists.
+    // Best-effort — the table may not be present in older deployments.
+    try {
+      await admin
+        .from("project_collaborator_invites")
+        .update({ status: "accepted", accepted_at: new Date().toISOString() })
+        .eq("invitation_token", invitation.token)
+        .eq("status", "pending");
+    } catch {
+      // Migration not applied yet — ignore.
+    }
+    // Route invitees with no org of their own into the trapped Collaborator
+    // shell so they don't see modules they have no access to.
+    const { data: orgRows } = await admin
+      .from("organization_members")
+      .select("org_id")
+      .eq("user_id", user.id)
+      .limit(1);
+    const hasOrg = (orgRows ?? []).length > 0;
+    redirectPath = hasOrg
+      ? `/projects/${invitation.project_id}`
+      : `/collaborator`;
   }
 
   const nextCount = invitation.redeemed_count + 1;

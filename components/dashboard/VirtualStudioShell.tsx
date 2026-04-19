@@ -20,11 +20,11 @@ export default function VirtualStudioShell({ user, tier, isCeo, internalAccess }
       internalAccess={internalAccess}
       title="Virtual Studio"
       icon={Film}
-      accent="#D97706"
+      accent="#2563EB"
       status="coming-soon"
       requiredTier="standard"
     >
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-6 py-10 text-center">
+      <div className="rounded-2xl border border-app bg-app-card px-6 py-10 text-center">
         <p className="text-sm font-semibold text-white mb-1">Coming Soon</p>
         <p className="text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
           Virtual Studio — virtual production environments, VR walkthroughs, scene

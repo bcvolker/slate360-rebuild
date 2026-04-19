@@ -47,7 +47,7 @@ export function ProjectOverviewCard({ data, isLoading }: ProjectOverviewCardProp
             <div className="text-2xl font-bold text-emerald-400">{totals.completedProjects}</div>
             <div className="text-xs text-muted-foreground">Completed</div>
           </div>
-          <div className="rounded-lg bg-zinc-800 border border-zinc-700 p-3 text-center">
+          <div className="rounded-lg bg-white/[0.04] border border-app p-3 text-center">
             <div className="text-2xl font-bold text-zinc-300">{totals.onHoldProjects}</div>
             <div className="text-xs text-muted-foreground">On Hold</div>
           </div>
@@ -61,9 +61,9 @@ export function ProjectOverviewCard({ data, isLoading }: ProjectOverviewCardProp
               <a
                 key={p.id}
                 href={`/project-hub/${p.id}`}
-                className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-primary/10 transition-colors group"
+                className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-teal-soft transition-colors group"
               >
-                <span className="text-sm text-foreground group-hover:text-primary truncate">{p.name}</span>
+                <span className="text-sm text-foreground group-hover:text-teal truncate">{p.name}</span>
                 <Badge
                   variant="outline"
                   className={

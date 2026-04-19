@@ -23,9 +23,9 @@ export default function AccountNotificationsTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
-          <Bell size={16} className="text-[#D4AF37]" /> Notification Preferences
+          <Bell size={16} className="text-[#3B82F6]" /> Notification Preferences
         </h3>
         <div className="space-y-1">
           {NOTIFICATION_SETTINGS.map((setting) => {
@@ -33,7 +33,7 @@ export default function AccountNotificationsTab() {
             return (
               <label
                 key={setting.id}
-                className="flex items-center justify-between rounded-xl px-4 py-3 hover:bg-zinc-800 transition-colors cursor-pointer"
+                className="flex items-center justify-between rounded-xl px-4 py-3 hover:bg-white/[0.04] transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <Icon size={16} className="text-zinc-500" />
@@ -48,7 +48,7 @@ export default function AccountNotificationsTab() {
                   aria-checked={settings[setting.id]}
                   onClick={() => toggle(setting.id)}
                   className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                    settings[setting.id] ? "bg-[#D4AF37]" : "bg-zinc-700"
+                    settings[setting.id] ? "bg-[#3B82F6]" : "bg-zinc-700"
                   }`}
                 >
                   <span

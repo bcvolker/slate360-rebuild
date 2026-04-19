@@ -3,12 +3,15 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getScopedProjectForUser } from "@/lib/projects/access";
+import { readProjectViewMode } from "@/lib/server/project-view";
+import { ProjectViewSelector } from "@/components/projects/ProjectViewSelector";
 
 const TABS = [
 	{ label: "Overview", href: "" },
 	{ label: "SlateDrop", href: "slatedrop" },
 	{ label: "Photos", href: "photos" },
 	{ label: "Punch List", href: "punch-list" },
+	{ label: "People", href: "people" },
 ] as const;
 
 export default async function ProjectDetailLayout({
@@ -19,7 +22,7 @@ export default async function ProjectDetailLayout({
 	params: Promise<{ projectId: string }>;
 }) {
 	const { projectId } = await params;
-	const { user, tier, isSlateCeo, canAccessOperationsConsole } = await resolveServerOrgContext();
+	const { user, tier, isSlateCeo, canAccessOperationsConsole, isViewer, isAdmin } = await resolveServerOrgContext();
 
 	if (!user) {
 		redirect(`/login?redirectTo=${encodeURIComponent(`/projects/${projectId}`)}`);
@@ -31,6 +34,13 @@ export default async function ProjectDetailLayout({
 	if (!project) {
 		notFound();
 	}
+
+	const viewMode = await readProjectViewMode();
+	const allowedModes: Array<"my" | "owner" | "leadership"> = isViewer
+		? ["leadership"]
+		: isAdmin
+			? ["my", "owner", "leadership"]
+			: ["my", "owner"];
 
 	return (
 		<div className="min-h-screen bg-zinc-950 overflow-x-hidden">
@@ -52,9 +62,15 @@ export default async function ProjectDetailLayout({
 							<p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Project Details</p>
 							<h1 className="text-xl font-black text-white md:text-2xl">{project.name}</h1>
 						</div>
-						<span className="inline-flex rounded-full border border-zinc-700 bg-zinc-800 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-300">
-							{project.status}
-						</span>
+						<div className="flex items-center gap-3">
+							<ProjectViewSelector
+								initial={allowedModes.includes(viewMode) ? viewMode : allowedModes[0]}
+								allowed={allowedModes}
+							/>
+							<span className="inline-flex rounded-full border border-zinc-700 bg-zinc-800 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-300">
+								{project.status}
+							</span>
+						</div>
 					</div>
 
 					<nav className="mt-4 overflow-x-auto pb-1 -mx-1">
@@ -65,7 +81,7 @@ export default async function ProjectDetailLayout({
 									<li key={tab.label}>
 										<Link
 											href={href}
-											className="inline-flex rounded-full border border-zinc-800 bg-zinc-900 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-zinc-300 transition-all hover:border-[#D4AF37]/30 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] hover:shadow-sm hover:-translate-y-px whitespace-nowrap"
+											className="inline-flex rounded-full border border-zinc-800 bg-zinc-900 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-zinc-300 transition-all hover:border-[#3B82F6]/30 hover:bg-[#3B82F6]/10 hover:text-[#3B82F6] hover:shadow-sm hover:-translate-y-px whitespace-nowrap"
 										>
 											{tab.label}
 										</Link>

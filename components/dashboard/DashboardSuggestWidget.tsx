@@ -54,7 +54,7 @@ export default function DashboardSuggestWidget({
               placeholder="What feature would you like?"
               value={suggestTitle}
               onChange={(event) => onTitleChange(event.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
             />
           </div>
           <div>
@@ -64,7 +64,7 @@ export default function DashboardSuggestWidget({
               value={suggestDesc}
               onChange={(event) => onDescChange(event.target.value)}
               rows={3}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all resize-none"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all resize-none"
             />
           </div>
           <div>
@@ -76,7 +76,7 @@ export default function DashboardSuggestWidget({
                   onClick={() => onPriorityChange(priority)}
                   className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-all capitalize ${
                     suggestPriority === priority
-                      ? "border-[#D4AF37] bg-[#D4AF37]/5 text-[#D4AF37]"
+                      ? "border-[#3B82F6] bg-[#3B82F6]/5 text-[#3B82F6]"
                       : "border-gray-200 text-gray-500 hover:bg-gray-50"
                   }`}
                 >
@@ -89,7 +89,7 @@ export default function DashboardSuggestWidget({
             onClick={onSubmit}
             disabled={suggestLoading || !suggestTitle.trim() || !suggestDesc.trim()}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-            style={{ backgroundColor: "#D4AF37" }}
+            style={{ backgroundColor: "#3B82F6" }}
           >
             {suggestLoading ? (
               <Loader2 size={14} className="animate-spin" />

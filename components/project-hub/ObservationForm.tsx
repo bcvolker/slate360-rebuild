@@ -62,7 +62,7 @@ export default function ObservationForm({ form, setForm, onSubmit, onClose, savi
             value={form.title}
             onChange={(e) => set("title", e.target.value)}
             placeholder="Brief observation title"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#D4AF37] focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]/30"
           />
         </div>
 
@@ -74,7 +74,7 @@ export default function ObservationForm({ form, setForm, onSubmit, onClose, savi
             onChange={(e) => set("description", e.target.value)}
             rows={3}
             placeholder="Detailed observation description…"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#D4AF37] focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30 resize-none"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]/30 resize-none"
           />
         </div>
 
@@ -85,7 +85,7 @@ export default function ObservationForm({ form, setForm, onSubmit, onClose, savi
             <select
               value={form.category}
               onChange={(e) => set("category", e.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-[#D4AF37] focus:outline-none"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-[#3B82F6] focus:outline-none"
             >
               <option value="">Select…</option>
               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -96,7 +96,7 @@ export default function ObservationForm({ form, setForm, onSubmit, onClose, savi
             <select
               value={form.priority}
               onChange={(e) => set("priority", e.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-[#D4AF37] focus:outline-none"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-[#3B82F6] focus:outline-none"
             >
               {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
             </select>
@@ -110,7 +110,7 @@ export default function ObservationForm({ form, setForm, onSubmit, onClose, savi
             value={form.location_area}
             onChange={(e) => set("location_area", e.target.value)}
             placeholder="e.g. Building A, Floor 3, NW corner"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#D4AF37] focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]/30"
           />
         </div>
 
@@ -121,7 +121,7 @@ export default function ObservationForm({ form, setForm, onSubmit, onClose, savi
             type="date"
             value={form.observed_at}
             onChange={(e) => set("observed_at", e.target.value)}
-            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-[#D4AF37] focus:outline-none"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-[#3B82F6] focus:outline-none"
           />
         </div>
 
@@ -133,7 +133,7 @@ export default function ObservationForm({ form, setForm, onSubmit, onClose, savi
             onChange={(e) => set("notes", e.target.value)}
             rows={2}
             placeholder="Any additional context…"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#D4AF37] focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30 resize-none"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]/30 resize-none"
           />
         </div>
 
@@ -152,7 +152,7 @@ export default function ObservationForm({ form, setForm, onSubmit, onClose, savi
         <button
           onClick={onSubmit}
           disabled={saving || !form.title.trim()}
-          className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E64500] transition-colors disabled:opacity-50"
+          className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition-colors disabled:opacity-50"
         >
           {saving ? <Loader2 size={14} className="animate-spin" /> : null}
           {isEditing ? "Update" : "Create Observation"}

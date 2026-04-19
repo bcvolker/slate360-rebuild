@@ -1,9 +1,9 @@
 "use client";
 
 import { ArrowRight, ChevronRight, Play, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { STATS } from "@/components/home/landing-data";
-import { SlateCTA, SlateCard } from "@/lib/design-system";
 
 interface HeroSectionProps {
   onGetStarted: () => void;
@@ -44,29 +44,35 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-          <SlateCTA onClick={onGetStarted} className="text-base px-8">
+          <Button
+            size="lg"
+            onClick={onGetStarted}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-gold-glow text-base px-8"
+          >
             Start Free Trial
             <ArrowRight className="ml-2 h-4 w-4" />
-          </SlateCTA>
-          <SlateCTA variant="outline" className="text-base px-8">
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="border-border text-foreground hover:bg-muted/50 text-base px-8"
+          >
             <Play className="mr-2 h-4 w-4" />
             Watch Demo
-          </SlateCTA>
+          </Button>
         </div>
 
         {/* Stats row */}
-        <SlateCard elevation="hero" className="mx-auto max-w-4xl border-glass bg-card/40 px-6 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {STATS.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+          {STATS.map((stat) => (
+            <div key={stat.label} className="text-center">
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">
+                {stat.value}
               </div>
-            ))}
-          </div>
-        </SlateCard>
+              <div className="text-sm text-muted-foreground">{stat.label}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Scroll indicator */}

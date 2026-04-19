@@ -47,7 +47,7 @@ export default function DashboardDataUsageWidget({
       action={
         <span
           className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
-          style={{ backgroundColor: "#D4AF371A", color: "#D4AF37" }}
+          style={{ backgroundColor: "#3B82F61A", color: "#3B82F6" }}
         >
           {tierLabel}
         </span>
@@ -64,7 +64,7 @@ export default function DashboardDataUsageWidget({
           <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-1000 ease-out"
-              style={{ width: `${Math.min((creditsUsed / maxCredits) * 100, 100)}%`, backgroundColor: "#D4AF37" }}
+              style={{ width: `${Math.min((creditsUsed / maxCredits) * 100, 100)}%`, backgroundColor: "#3B82F6" }}
             />
           </div>
           <p className="text-[11px] text-gray-400 mt-1.5">
@@ -81,7 +81,7 @@ export default function DashboardDataUsageWidget({
           </div>
           <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
             <div
-              className="h-full rounded-full bg-[#D4AF37] transition-all duration-1000 ease-out"
+              className="h-full rounded-full bg-[#3B82F6] transition-all duration-1000 ease-out"
               style={{ width: `${Math.min((storageUsed / maxStorageGB) * 100, 100)}%` }}
             />
           </div>
@@ -105,7 +105,7 @@ export default function DashboardDataUsageWidget({
             onClick={onUpgradePlan}
             disabled={billingBusy !== null}
             className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-all hover:opacity-90 disabled:opacity-60"
-            style={{ backgroundColor: "#D4AF37" }}
+            style={{ backgroundColor: "#3B82F6" }}
           >
             {billingBusy === "upgrade" ? (
               <span className="inline-flex items-center gap-1">

@@ -9,7 +9,7 @@ export function OfflineBanner() {
   if (isOnline && pending === 0) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="fixed bottom-4 left-4 z-50 flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 shadow-lg dark:border-app dark:bg-app-card">
       {!isOnline && (
         <>
           <WifiOff className="size-4 text-amber-500" />

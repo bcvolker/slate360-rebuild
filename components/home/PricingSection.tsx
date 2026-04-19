@@ -1,10 +1,11 @@
 "use client";
 
 import { Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { PRICING_PLANS } from "@/components/home/landing-data";
-import { SlateCard, SlateCTA, SlateSectionHeader } from "@/lib/design-system";
 
 interface PricingSectionProps {
   onGetStarted: () => void;
@@ -18,21 +19,20 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
           <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
             Pricing
           </Badge>
-          <div className="mx-auto max-w-2xl">
-            <SlateSectionHeader
-              title="Simple, transparent pricing"
-              subtitle="Start free, scale as you grow. No hidden fees."
-              className="flex-col items-center text-center"
-            />
-          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+            Simple, transparent pricing
+          </h2>
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+            Start free, scale as you grow. No hidden fees.
+          </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {PRICING_PLANS.map((plan) => (
-            <SlateCard
+            <Card
               key={plan.name}
               className={cn(
-                "bg-card/60 border-glass relative p-6",
+                "bg-glass border-glass shadow-glass relative",
                 plan.popular && "border-primary/50 shadow-gold-glow"
               )}
             >
@@ -41,13 +41,13 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                   Most Popular
                 </Badge>
               )}
-              <div className="text-center pb-2">
-                <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
-                <p className="text-muted-foreground">
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="text-xl text-foreground">{plan.name}</CardTitle>
+                <CardDescription className="text-muted-foreground">
                   {plan.description}
-                </p>
-              </div>
-              <div className="text-center">
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-foreground">{plan.price}</span>
                   <span className="text-muted-foreground">{plan.period}</span>
@@ -60,15 +60,19 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                     </li>
                   ))}
                 </ul>
-                <SlateCTA
+                <Button
                   onClick={onGetStarted}
-                  variant={plan.popular ? "gold" : "outline"}
-                  className={cn("w-full", !plan.popular && "shadow-none")}
+                  className={cn(
+                    "w-full",
+                    plan.popular
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "bg-muted text-foreground hover:bg-muted/80"
+                  )}
                 >
                   {plan.cta}
-                </SlateCTA>
-              </div>
-            </SlateCard>
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>

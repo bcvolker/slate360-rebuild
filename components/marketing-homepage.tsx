@@ -6,7 +6,7 @@
  * ==========================================================================
  * 
  * A complete, production-ready marketing page following the Dark Glass aesthetic
- * with Industrial Gold (#D4AF37 / hsl(45 82% 55%)) accents.
+ * with Industrial Gold (#3B82F6 / hsl(45 82% 55%)) accents.
  * 
  * Design System Rules Applied:
  * - All surfaces use bg-glass (semi-transparent with backdrop-blur)
@@ -298,7 +298,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
               <div key={link.href} className="relative">
                 <button
                   onClick={() => setAppsOpen(!appsOpen)}
-                  className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                  className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-teal transition-colors"
                 >
                   Apps
                   <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", appsOpen && "rotate-180")} />
@@ -312,7 +312,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                           key={app.slug}
                           href={`/apps/${app.slug}`}
                           onClick={() => setAppsOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                         >
                           <app.icon className="h-4 w-4 flex-shrink-0" />
                           {app.name}
@@ -326,7 +326,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-teal transition-colors"
               >
                 {link.label}
               </Link>
@@ -337,15 +337,15 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
           {isLoggedIn ? (
-            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)]">
+            <Button asChild className="btn-amber-soft">
               <Link href="/dashboard">Go to Dashboard</Link>
             </Button>
           ) : (
             <>
-              <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary hover:bg-primary/10">
+              <Button variant="ghost" asChild className="text-muted-foreground hover:text-teal hover:bg-teal-soft">
                 <Link href="/login">Login</Link>
               </Button>
-              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)]">
+              <Button asChild className="btn-amber-soft">
                 <Link href="/signup">Get Started Free</Link>
               </Button>
             </>
@@ -355,7 +355,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
         {/* Mobile Menu Trigger */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+            <Button variant="ghost" size="icon" className="hover:bg-teal-soft">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Open menu</span>
             </Button>
@@ -368,7 +368,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                 <Link
                   href="#product"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                 >
                   Product
                 </Link>
@@ -377,7 +377,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                   <Link
                     href="#apps"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                    className="block rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                   >
                     Apps
                   </Link>
@@ -387,7 +387,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                         key={app.slug}
                         href={`/apps/${app.slug}`}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 rounded px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                        className="flex items-center gap-2 rounded px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                       >
                         <app.icon className="h-3.5 w-3.5 flex-shrink-0" />
                         {app.name}
@@ -398,29 +398,29 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                 <Link
                   href="#slatedrop"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                 >
                   Solutions
                 </Link>
                 <Link
                   href="#pricing"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                 >
                   Pricing
                 </Link>
               </nav>
               <div className="flex flex-col gap-3 border-t border-border pt-3">
                 {isLoggedIn ? (
-                  <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Button asChild className="btn-amber-soft">
                     <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Go to Dashboard</Link>
                   </Button>
                 ) : (
                   <>
-                    <Button variant="outline" asChild className="border-border text-foreground hover:border-primary hover:text-primary">
+                    <Button variant="outline" asChild className="border-border text-foreground hover:border-teal hover:text-teal">
                       <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
                     </Button>
-                    <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Button asChild className="btn-amber-soft">
                       <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>Subscribe Now</Link>
                     </Button>
                   </>
@@ -441,67 +441,67 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
 
 function HeroSection() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 sm:pt-28 pb-12 px-4 overflow-hidden">
+    <section className="relative h-screen flex items-center px-4 sm:px-6 lg:px-10 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-[hsl(240,6%,8%)]" />
-      
-      {/* Subtle grid pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.03]"
+
+      {/* Subtle grid pattern — neutral white, low opacity */}
+      <div
+        className="absolute inset-0 opacity-[0.025]"
         style={{
-          backgroundImage: `linear-gradient(hsla(45,82%,55%,0.3) 1px, transparent 1px), linear-gradient(90deg, hsla(45,82%,55%,0.3) 1px, transparent 1px)`,
-          backgroundSize: "60px 60px",
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)`,
+          backgroundSize: "64px 64px",
         }}
       />
 
-      <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8">
-        {/* Badge */}
-        <Badge variant="outline" className="border-primary/30 text-primary px-4 py-1.5">
-          <Zap className="mr-1.5 h-3.5 w-3.5" />
-          Site Walk + connected workflows
-        </Badge>
+      <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-[1fr_1.15fr] gap-8 lg:gap-12 items-center pt-20 sm:pt-24 pb-10">
+        {/* LEFT: copy + CTAs */}
+        <div className="space-y-5 text-center lg:text-left">
+          <Badge variant="outline" className="border-cobalt text-cobalt px-3.5 py-1 bg-cobalt/10">
+            <Zap className="mr-1.5 h-3 w-3" />
+            Now in Beta — Foundational Member Pricing
+          </Badge>
 
-        {/* Headline */}
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight text-balance">
-          The real-time interactive bridge between{" "}
-          <span className="text-primary">the field and the office</span>
-        </h1>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground leading-[1.15] text-balance">
+            The real-time interactive bridge between{" "}
+            <span className="text-teal">the field and the office</span>
+          </h1>
 
-        {/* Subheadline */}
-        <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
-          Use your phone or 360 camera to capture site conditions while you walk your project, add comments as you go, and automatically preserve a time-stamped, geolocated record. Site Walk turns that into punch lists, reports, or even proposals with your branding. Then share your deliverables with clients and project stakeholders within minutes. Free your phone from thousands of project photos that lose meaning over time.
-        </p>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto lg:mx-0 text-pretty">
+            Capture site conditions with your phone or 360 camera, add comments as you walk, and automatically preserve a time-stamped, geolocated record. Turn it into punch lists, reports, or proposals — and share with your team in minutes.
+          </p>
 
-        {/* Interactive Demo */}
-        <Card className="max-w-4xl mx-auto bg-glass border-[hsla(45,82%,55%,0.2)] shadow-[0_8px_32px_hsla(0,0%,0%,0.4),0_0_0_1px_hsla(45,82%,55%,0.1)]">
-          <CardContent className="p-4 sm:p-6">
-            <HeroDemo />
-          </CardContent>
-        </Card>
+          <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3 pt-1">
+            <Button asChild className="btn-amber-soft h-11 px-6 text-sm">
+              <Link href="/signup?next=/app">
+                Get the App — Free
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="btn-teal-outline h-11 px-6 text-sm">
+              <Link href="/signup">
+                Create Account
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="ghost" asChild className="h-11 px-4 text-sm text-muted-foreground hover:text-foreground">
+              <Link href="#apps">
+                Explore Apps
+              </Link>
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground/80 pt-1">
+            Free to download. 14-day all-access trial. Subscribe anytime — no credit card required during beta.
+          </p>
+        </div>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button 
-            size="lg" 
-            asChild 
-            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_30px_hsla(45,82%,55%,0.4)] hover:shadow-[0_0_40px_hsla(45,82%,55%,0.5)] transition-all px-8"
-          >
-            <Link href="/signup">
-              Subscribe Now
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-          <Button 
-            size="lg" 
-            variant="outline" 
-            asChild
-            className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary px-8"
-          >
-            <Link href="#apps">
-              Explore Apps
-              <ChevronRight className="ml-1 h-4 w-4" />
-            </Link>
-          </Button>
+        {/* RIGHT: interactive demo (larger, dominates the right side) */}
+        <div className="w-full">
+          <Card className="bg-app-card border-app shadow-app-glow rounded-2xl">
+            <CardContent className="p-3 sm:p-4 lg:p-5">
+              <HeroDemo />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </section>
@@ -573,7 +573,7 @@ function AppShowcaseSection() {
                     </div>
                     <CardTitle className="text-2xl text-foreground">{app.name}</CardTitle>
                     {app.comingSoon && (
-                      <span className="ml-auto rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
+                      <span className="ml-auto rounded-full border border-cobalt/30 bg-cobalt/10 px-2.5 py-0.5 text-xs font-semibold text-cobalt">
                         {app.statusLabel || "Coming Soon"}
                       </span>
                     )}
@@ -603,13 +603,13 @@ function AppShowcaseSection() {
 
                   {/* CTAs */}
                   <div className="flex gap-3">
-                    <Button asChild className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Button asChild className="flex-1 btn-amber-soft">
                       <Link href="/signup">
                         {app.comingSoon ? "Join Waitlist" : "Subscribe"}
                         <ArrowRight className="ml-1 h-4 w-4" />
                       </Link>
                     </Button>
-                    <Button asChild variant="outline" className="flex-1 border-[hsla(45,82%,55%,0.3)] text-muted-foreground hover:text-primary hover:border-primary/50">
+                    <Button asChild variant="outline" className="flex-1 border-[hsla(45,82%,55%,0.3)] text-muted-foreground hover:text-teal hover:border-teal/50">
                       <Link href={`/apps/${app.slug}`}>
                         Learn More
                         <ChevronRight className="ml-1 h-4 w-4" />
@@ -711,7 +711,7 @@ function SlateDropSection() {
 
             {/* CTA */}
             <div className="text-center mt-8">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button className="btn-amber-soft">
                 See the workflow in action
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
@@ -782,7 +782,7 @@ function PricingSection() {
             >
               {tier.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground shadow-[0_0_20px_hsla(45,82%,55%,0.4)]">
+                  <Badge className="bg-primary text-primary-foreground ">
                     Most Popular
                   </Badge>
                 </div>
@@ -819,7 +819,7 @@ function PricingSection() {
                   className={cn(
                     "w-full",
                     tier.popular
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)]"
+                      ? "btn-amber-soft"
                       : "bg-muted hover:bg-muted/80 text-foreground"
                   )}
                 >
@@ -949,7 +949,7 @@ function FinalCTASection() {
               />
               <Button 
                 size="lg" 
-                className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)] h-12 px-8"
+                className="btn-amber-soft h-12 px-8"
               >
                 Create Your Free Account
               </Button>
@@ -984,13 +984,13 @@ function Footer() {
               The real-time interactive bridge between the field and the office.
             </p>
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary">
+              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-teal-soft hover:text-teal">
                 <Twitter className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary">
+              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-teal-soft hover:text-teal">
                 <Linkedin className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary">
+              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-teal-soft hover:text-teal">
                 <Github className="h-4 w-4" />
               </Button>
             </div>
@@ -1001,22 +1001,22 @@ function Footer() {
             <h4 className="font-semibold text-foreground mb-4">Product</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="#apps" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#apps" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   360 Tours
                 </Link>
               </li>
               <li>
-                <Link href="#apps" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#apps" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Site Walk
                 </Link>
               </li>
               <li>
-                <Link href="#slatedrop" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#slatedrop" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   SlateDrop
                 </Link>
               </li>
               <li>
-                <Link href="#pricing" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#pricing" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Pricing
                 </Link>
               </li>
@@ -1028,22 +1028,22 @@ function Footer() {
             <h4 className="font-semibold text-foreground mb-4">Company</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/about" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/careers" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Careers
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/blog" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Blog
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/contact" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Contact
                 </Link>
               </li>
@@ -1055,17 +1055,17 @@ function Footer() {
             <h4 className="font-semibold text-foreground mb-4">Legal</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/terms" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/privacy" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/security" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/security" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Security
                 </Link>
               </li>

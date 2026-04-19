@@ -43,7 +43,7 @@ export default function SlateDropSidebar({
       )}
 
       <aside
-        className={`shrink-0 bg-zinc-950 border-r border-zinc-800 overflow-y-auto overscroll-contain transition-all duration-200 z-50
+        className={`shrink-0 bg-zinc-950 border-r border-app overflow-y-auto overscroll-contain transition-all duration-200 z-50
           ${mobileSidebarOpen ? `fixed ${embedded ? "top-0" : "top-14"} bottom-0 left-0 w-72 shadow-2xl` : "hidden"}
           md:relative md:flex md:flex-col
           md:h-full
@@ -51,7 +51,7 @@ export default function SlateDropSidebar({
         `}
       >
         <div className="p-3 pb-10">
-          <div className="mb-4 p-3 rounded-xl bg-zinc-900 border border-zinc-800">
+          <div className="mb-4 p-3 rounded-xl bg-app-card border border-app">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1">
                 <HardDrive size={10} /> Storage
@@ -65,7 +65,7 @@ export default function SlateDropSidebar({
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${Math.min((storageUsedGb / maxStorageGB) * 100, 100)}%`,
-                  backgroundColor: (storageUsedGb / maxStorageGB) > 0.85 ? "#EF4444" : "#D4AF37",
+                  backgroundColor: (storageUsedGb / maxStorageGB) > 0.85 ? "#EF4444" : "#3B82F6",
                 }}
               />
             </div>
@@ -77,7 +77,7 @@ export default function SlateDropSidebar({
           <button
             onClick={onRequestNewFolder}
             className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold text-white mb-3 transition-all hover:opacity-90"
-            style={{ backgroundColor: "#D4AF37" }}
+            style={{ backgroundColor: "#3B82F6" }}
           >
             <FolderPlus size={13} /> New Folder
           </button>
@@ -134,8 +134,8 @@ function FolderTreeItem({
           }}
           className={`w-full flex items-center gap-2 py-2.5 rounded-lg text-left transition-all text-sm group ${
             isActive
-              ? "bg-[#D4AF37]/10 text-[#D4AF37] font-semibold"
-              : "text-zinc-400 hover:bg-zinc-800"
+              ? "bg-[#3B82F6]/10 text-[#3B82F6] font-semibold"
+              : "text-zinc-400 hover:bg-white/[0.04]"
           }`}
           style={{ paddingLeft: `${12 + depth * 16}px`, paddingRight: isProjectNode ? "28px" : "12px" }}
         >
@@ -177,7 +177,7 @@ function FolderTreeItem({
               event.stopPropagation();
               onMenuClick(node, event);
             }}
-            className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover/tree-row:opacity-100 transition-opacity text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+            className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded flex items-center justify-center opacity-0 group-hover/tree-row:opacity-100 transition-opacity text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.04]"
             title="Project options"
           >
             <MoreHorizontal size={11} />

@@ -56,7 +56,7 @@ export default function CeoStaffAddForm({ onGrant, onCancel }: Props) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="user@example.com"
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] outline-none"
           />
         </div>
         <div>
@@ -68,7 +68,7 @@ export default function CeoStaffAddForm({ onGrant, onCancel }: Props) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="John Smith"
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] outline-none"
           />
         </div>
       </div>
@@ -88,7 +88,7 @@ export default function CeoStaffAddForm({ onGrant, onCancel }: Props) {
                 }
                 className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
                   checked
-                    ? "border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]"
+                    ? "border-[#3B82F6] bg-[#3B82F6]/10 text-[#3B82F6]"
                     : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
                 }`}
               >
@@ -110,7 +110,7 @@ export default function CeoStaffAddForm({ onGrant, onCancel }: Props) {
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Role, reason for access..."
-          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none"
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] outline-none"
         />
       </div>
 
@@ -126,7 +126,7 @@ export default function CeoStaffAddForm({ onGrant, onCancel }: Props) {
         <button
           onClick={handleSubmit}
           disabled={loading || !email.trim() || scope.length === 0}
-          className="rounded-lg bg-[#D4AF37] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#D4AF37]/90 transition-colors disabled:opacity-50"
+          className="rounded-lg bg-[#3B82F6] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#3B82F6]/90 transition-colors disabled:opacity-50"
         >
           {loading ? "Granting..." : "Grant Access"}
         </button>

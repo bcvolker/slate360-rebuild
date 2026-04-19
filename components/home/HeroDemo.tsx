@@ -26,8 +26,8 @@ export default function HeroDemo() {
           onClick={() => setActive("model")}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all ${
             active === "model"
-              ? "bg-primary text-primary-foreground shadow-[0_0_20px_hsla(45,82%,55%,0.3)]"
-              : "bg-muted/50 text-muted-foreground hover:text-foreground"
+              ? "bg-teal-soft text-teal border border-teal"
+              : "bg-app-card border border-app text-muted-foreground hover:text-teal hover:border-teal"
           }`}
         >
           <Box className="h-3.5 w-3.5" />
@@ -37,8 +37,8 @@ export default function HeroDemo() {
           onClick={() => setActive("panorama")}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all ${
             active === "panorama"
-              ? "bg-primary text-primary-foreground shadow-[0_0_20px_hsla(45,82%,55%,0.3)]"
-              : "bg-muted/50 text-muted-foreground hover:text-foreground"
+              ? "bg-teal-soft text-teal border border-teal"
+              : "bg-app-card border border-app text-muted-foreground hover:text-teal hover:border-teal"
           }`}
         >
           <Image className="h-3.5 w-3.5" />
@@ -48,8 +48,8 @@ export default function HeroDemo() {
           onClick={() => setActive("video")}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all ${
             active === "video"
-              ? "bg-primary text-primary-foreground shadow-[0_0_20px_hsla(45,82%,55%,0.3)]"
-              : "bg-muted/50 text-muted-foreground hover:text-foreground"
+              ? "bg-teal-soft text-teal border border-teal"
+              : "bg-app-card border border-app text-muted-foreground hover:text-teal hover:border-teal"
           }`}
         >
           <Box className="h-3.5 w-3.5" />

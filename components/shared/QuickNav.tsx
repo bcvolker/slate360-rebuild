@@ -29,15 +29,21 @@ interface NavItem {
   internalKey?: "operationsConsole";
   /** Hidden from tester-facing navigation in Phase 1 beta. */
   phase1Hidden?: boolean;
+  /** Marks the item as a preview / not-yet-shipped surface. */
+  comingSoon?: boolean;
 }
 
+// Apps are listed in canonical order with equal styling — no app takes precedence.
+// During beta, all four apps are surfaced for every signed-in user; the
+// `comingSoon` flag drives the "Soon" pill. Entitlement keys remain on the
+// items for the post-beta switch back to per-org gating.
 const NAV_ITEMS: NavItem[] = [
   { label: "Command Center", href: "/dashboard",       icon: LayoutDashboard },
   { label: "Projects",       href: "/projects",        icon: FolderKanban },
-  { label: "Site Walk",      href: "/site-walk",       icon: MapPin,          gate: "canAccessStandalonePunchwalk" },
-  { label: "360 Tours",      href: "/tours",           icon: Compass,      gate: "canAccessStandaloneTourBuilder", phase1Hidden: true },
-  { label: "Design Studio",  href: "/design-studio",   icon: Palette,      gate: "canAccessStandaloneDesignStudio", phase1Hidden: true },
-  { label: "Content Studio", href: "/content-studio",  icon: Layers,       gate: "canAccessStandaloneContentStudio", phase1Hidden: true },
+  { label: "Site Walk",      href: "/site-walk",                icon: MapPin },
+  { label: "360 Tours",      href: "/apps/360-tour-builder",    icon: Compass,   comingSoon: true },
+  { label: "Design Studio",  href: "/apps/design-studio",       icon: Palette,   comingSoon: true },
+  { label: "Content Studio", href: "/apps/content-studio",      icon: Layers,    comingSoon: true },
   { label: "Geospatial",     href: "/geospatial",      icon: Globe,        gate: "canAccessGeospatial", phase1Hidden: true },
   { label: "Virtual Studio", href: "/virtual-studio",  icon: Film,         gate: "canAccessVirtual", phase1Hidden: true },
   { label: "Analytics",      href: "/analytics",       icon: BarChart3,    gate: "canAccessAnalytics", phase1Hidden: true },
@@ -74,14 +80,14 @@ export default function QuickNav({ tier, isCeo = false, internalAccess }: QuickN
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-800 hover:border-zinc-600 transition-all"
+        className="flex items-center gap-2 rounded-xl border border-app bg-app-card px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-white/[0.04] hover:text-teal hover:border-teal transition-all"
       >
         <LayoutDashboard size={14} /> Navigate <ChevronDown size={12} />
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl py-2 overflow-hidden max-h-[70vh] overflow-y-auto">
+          <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl border border-app bg-app-card shadow-2xl py-2 overflow-hidden max-h-[70vh] overflow-y-auto">
             {visibleItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -89,9 +95,15 @@ export default function QuickNav({ tier, isCeo = false, internalAccess }: QuickN
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] transition-colors"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-white/[0.04] hover:text-teal transition-colors"
                 >
-                  <Icon size={14} /> {item.label}
+                  <Icon size={14} />
+                  <span className="flex-1">{item.label}</span>
+                  {item.comingSoon && (
+                    <span className="rounded-full border border-app bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Soon
+                    </span>
+                  )}
                 </Link>
               );
             })}

@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import { LandingPage } from "@/components/home/LandingPage";
+import MarketingHomepage from "@/components/marketing-homepage";
 
 export const metadata = {
   title: 'Slate360 - The real-time interactive bridge between the field and the office',
@@ -13,10 +12,8 @@ export default async function RootPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If user is logged in, redirect them directly to the dashboard
-  if (user) {
-    redirect("/dashboard");
-  }
-
-  return <LandingPage />;
+  // Logged-in users may still want to view the marketing homepage
+  // (e.g. clicking the Slate360 logo from the dashboard). The marketing
+  // component swaps its CTAs based on isLoggedIn, so we just render it.
+  return <MarketingHomepage isLoggedIn={!!user} />;
 }

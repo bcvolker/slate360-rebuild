@@ -21,9 +21,9 @@ export default function PhotosGallery({ mode, files, urlMap, selectedIds, toggle
           const selected = selectedIds.has(file.id);
           const category = guessCategory(file.name);
           return (
-            <article key={file.id} className={`group relative mb-4 break-inside-avoid overflow-hidden rounded-xl border transition hover:shadow-md ${selected ? "border-[#D4AF37] ring-2 ring-[#D4AF37]/20" : "border-zinc-800"}`}>
+            <article key={file.id} className={`group relative mb-4 break-inside-avoid overflow-hidden rounded-xl border transition hover:shadow-md ${selected ? "border-[#3B82F6] ring-2 ring-[#3B82F6]/20" : "border-zinc-800"}`}>
               <button onClick={(e) => { e.stopPropagation(); toggleSelect(file.id); }}
-                className={`absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded border text-white transition ${selected ? "border-[#D4AF37] bg-[#D4AF37]" : "border-white/70 bg-black/20 opacity-0 group-hover:opacity-100"}`}>
+                className={`absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded border text-white transition ${selected ? "border-[#3B82F6] bg-[#3B82F6]" : "border-white/70 bg-black/20 opacity-0 group-hover:opacity-100"}`}>
                 {selected && <span className="text-xs">✓</span>}
               </button>
               <button onClick={() => onOpenLightbox(idx)} className="block w-full text-left">
@@ -59,9 +59,9 @@ export default function PhotosGallery({ mode, files, urlMap, selectedIds, toggle
         const selected = selectedIds.has(file.id);
         const category = guessCategory(file.name);
         return (
-          <div key={file.id} className={`group relative overflow-hidden rounded-xl border transition hover:shadow-md ${selected ? "border-[#D4AF37] ring-2 ring-[#D4AF37]/20" : "border-zinc-800"}`}>
+          <div key={file.id} className={`group relative overflow-hidden rounded-xl border transition hover:shadow-md ${selected ? "border-[#3B82F6] ring-2 ring-[#3B82F6]/20" : "border-zinc-800"}`}>
             <button onClick={(e) => { e.stopPropagation(); toggleSelect(file.id); }}
-              className={`absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded border text-white transition ${selected ? "border-[#D4AF37] bg-[#D4AF37]" : "border-white/70 bg-black/20 opacity-0 group-hover:opacity-100"}`}>
+              className={`absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded border text-white transition ${selected ? "border-[#3B82F6] bg-[#3B82F6]" : "border-white/70 bg-black/20 opacity-0 group-hover:opacity-100"}`}>
               {selected && <span className="text-xs">✓</span>}
             </button>
             <button onClick={() => onOpenLightbox(idx)} className="block w-full">

@@ -12,7 +12,7 @@
 
 import type { ImgHTMLAttributes } from "react";
 
-const LOGO_SRC = "/uploads/slate360-logo-reversed-v2.svg";
+const LOGO_SRC = "/uploads/slate360-logo-cobalt-v3.svg?v=cobalt-2026-04-19c";
 
 const SIZE_MAP = {
   sm: "h-5 w-auto",

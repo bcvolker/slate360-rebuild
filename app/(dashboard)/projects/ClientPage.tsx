@@ -128,11 +128,11 @@ export default function ProjectsClientPage({ user, tier, isCeo = false, internal
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-3">
-            <FolderKanban size={28} className="text-[#D4AF37]" /> Projects
+            <FolderKanban size={28} className="text-[#3B82F6]" /> Projects
           </h1>
           <button
             onClick={() => setWizardOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-xl bg-[#D4AF37] px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-[#E64500] transition-all hover:-translate-y-0.5 hover:shadow-xl w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-[#1D4ED8] transition-all hover:-translate-y-0.5 hover:shadow-xl w-full sm:w-auto"
           >
             <Plus size={16} /> New Project
           </button>

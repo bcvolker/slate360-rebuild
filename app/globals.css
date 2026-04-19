@@ -48,74 +48,96 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: hsl(45 82% 55%);         /* Industrial Gold #D4AF37 */
-  --primary-foreground: hsl(240 10% 10%);  /* near black */
-  --primary-hover: hsl(45 90% 48%);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: hsl(45 82% 55%);         /* Industrial Gold #D4AF37 */
-  --primary-foreground: hsl(240 10% 10%);
-  --primary-hover: hsl(45 90% 62%);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* ── Slate360 unified app skin — matches /preview/mobile-shell-v2 ──
+     :root === .dark for Phase 1. The brand IS dark.
+     A dedicated light theme can be reintroduced later if needed. */
+  --radius: 1rem;
+  --background: #0B0F15;
+  --foreground: #e2e8f0;
+  --card: #151A23;
+  --card-foreground: #e2e8f0;
+  --popover: #151A23;
+  --popover-foreground: #e2e8f0;
+  --primary: #3B82F6;                  /* Cobalt-500 — primary brand action */
+  --primary-foreground: #0B1220;       /* Deep navy text on cobalt */
+  --primary-hover: #2563EB;            /* Cobalt-600 */
+  --secondary: #1e2533;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e2533;
+  --muted-foreground: #94a3b8;
+  --accent: #1e2533;
+  --accent-foreground: #e2e8f0;
+  /* Steel — secondary accent (link hover, secondary icons, nav active) */
+  --accent-teal: #94A3B8;
+  --accent-teal-soft: rgba(148, 163, 184, 0.18);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.10);
+  --ring: #3B82F6;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: #0B0F15;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #0B1220;
+  --sidebar-accent: #1e2533;
+  --sidebar-accent-foreground: #e2e8f0;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-ring: #3B82F6;
+  /* App-shell skin tokens (mirror lib/design-system/tokens.ts appShell) */
+  --app-page: #0B0F15;
+  --app-card: #151A23;
+  --app-card-hover: rgba(255, 255, 255, 0.04);
+  --app-border: rgba(255, 255, 255, 0.05);
+  --app-glass: rgba(11, 15, 21, 0.80);
+  --app-glow-amber: 0 0 12px rgba(59, 130, 246, 0.14);
+  --app-glow-amber-strong: 0 0 16px 0 rgba(59, 130, 246, 0.22), 0 2px 8px 0 rgba(59, 130, 246, 0.14);
+  --app-shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  --app-shadow-elevated: 0 8px 32px -4px rgba(0, 0, 0, 0.4);
+  --color-scheme: dark;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+.dark {
+  /* ── New Slate360 palette (deep-navy + cobalt + steel) ── */
+  --background: #0B0F15;
+  --foreground: #e2e8f0;
+  --card: #151A23;
+  --card-foreground: #e2e8f0;
+  --popover: #151A23;
+  --popover-foreground: #e2e8f0;
+  --primary: #3B82F6;                  /* Cobalt-500 */
+  --primary-foreground: #0B1220;       /* Deep navy text */
+  --primary-hover: #2563EB;            /* Cobalt-600 */
+  --secondary: #1e2533;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e2533;
+  --muted-foreground: #94a3b8;         /* Slate-400 */
+  --accent: #1e2533;
+  --accent-foreground: #e2e8f0;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.10);
+  --ring: #3B82F6;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: #0B0F15;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #0B1220;
+  --sidebar-accent: #1e2533;
+  --sidebar-accent-foreground: #e2e8f0;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-ring: #3B82F6;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -125,32 +147,34 @@
    Enterprise white-label: override --slate-orange and --slate-blue.
    ───────────────────────────────────────────────────────────────── */
 :root {
-  /* Brand colors */
-  --slate-gold: #D4AF37;
-  --slate-gold-hover: #B38F2E;
-  --slate-gold-light: rgba(212, 175, 55, 0.08);
-  --slate-accent: #D4AF37;
-  --slate-accent-hover: #B38F2E;
-  --slate-accent-ring: rgba(212, 175, 55, 0.5);
-  --slate-blue: #18181b;
-  --slate-blue-hover: #27272a;
-  --slate-blue-light: rgba(24, 24, 27, 0.08);
+  /* Brand colors — Cobalt (primary) + Steel (secondary). 2026-04-19. */
+  --slate-gold: #3B82F6;
+  --slate-gold-hover: #2563EB;
+  --slate-gold-light: rgba(59, 130, 246, 0.14);
+  --slate-accent: #3B82F6;
+  --slate-accent-hover: #2563EB;
+  --slate-accent-ring: rgba(59, 130, 246, 0.5);
+  --slate-teal: #94A3B8;
+  --slate-teal-soft: rgba(148, 163, 184, 0.18);
+  --slate-blue: #0B0F15;
+  --slate-blue-hover: #151A23;
+  --slate-blue-light: rgba(11, 15, 21, 0.50);
 
   /* Module accent colors */
-  --module-hub: #D4AF37;
+  --module-hub: #3B82F6;
   --module-design: #7C3AED;
   --module-content: #EC4899;
   --module-tours: #0891B2;
   --module-geo: #059669;
-  --module-virtual: #D97706;
+  --module-virtual: #2563EB;
   --module-analytics: #6366F1;
   --module-market: #6366F1;
-  --module-slatedrop: #D4AF37;
+  --module-slatedrop: #3B82F6;
 
   /* Status colors — used for RFIs, submittals, punch items */
   --status-open: #2563EB;
   --status-open-bg: #EFF6FF;
-  --status-review: #D97706;
+  --status-review: #2563EB;
   --status-review-bg: #FFFBEB;
   --status-approved: #059669;
   --status-approved-bg: #ECFDF5;
@@ -161,10 +185,10 @@
   --status-draft: #6B7280;
   --status-draft-bg: #F9FAFB;
 
-  /* Surface */
-  --surface-page: #ECEEF2;
-  --surface-card: #FFFFFF;
-  --surface-card-hover: #F9FAFB;
+  /* Surface — deep navy app skin (matches mobile-shell-v2) */
+  --surface-page: #0B0F15;
+  --surface-card: #151A23;
+  --surface-card-hover: #1e2533;
 
   /* Spacing (8px grid) */
   --space-1: 4px;
@@ -174,46 +198,52 @@
   --space-6: 24px;
   --space-8: 32px;
 
-  /* Dark Glass Design System (DESIGN.md) */
-  --text-primary: hsl(240 10% 10%);
-  --text-secondary: hsl(240 5% 35%);
-  --text-muted: hsl(240 4% 55%);
-  --surface-glass: hsl(0 0% 100% / 0.85);
-  --surface-light: hsl(0 0% 98%);
-  --surface-light-secondary: hsl(0 0% 95%);
-  --border-glass: hsl(0 0% 0% / 0.08);
-  --glass-border: 1px solid hsl(0 0% 0% / 0.08);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-  --shadow-glass: 0 8px 32px -4px rgb(0 0 0 / 0.12);
+  /* Dark Glass Design System — deep navy (single source of truth) */
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --surface-glass: rgba(11, 15, 21, 0.80);
+  --surface-light: #0B0F15;
+  --surface-light-secondary: #151A23;
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --backdrop-blur: blur(16px);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+  --shadow-glass: 0 8px 32px -4px rgb(0 0 0 / 0.4);
 }
 
 /* Dark mode overrides for Slate360 design tokens */
 .dark {
-  --slate-gold-light: rgba(212, 175, 55, 0.12);
-  --slate-blue: #fafafa;
-  --slate-blue-hover: #e4e4e7;
-  --slate-blue-light: rgba(250, 250, 250, 0.08);
+  --slate-gold: #3B82F6;
+  --slate-gold-hover: #2563EB;
+  --slate-gold-light: rgba(59, 130, 246, 0.14);
+  --slate-accent: #3B82F6;
+  --slate-accent-hover: #2563EB;
+  --slate-accent-ring: rgba(59, 130, 246, 0.5);
+  --slate-blue: #e2e8f0;
+  --slate-blue-hover: #cbd5e1;
+  --slate-blue-light: rgba(226, 232, 240, 0.08);
 
   --status-open-bg: rgba(37, 99, 235, 0.15);
-  --status-review-bg: rgba(217, 119, 6, 0.15);
+  --status-review-bg: rgba(37, 99, 235, 0.15);
   --status-approved-bg: rgba(5, 150, 105, 0.15);
   --status-closed-bg: rgba(5, 150, 105, 0.15);
   --status-overdue-bg: rgba(220, 38, 38, 0.15);
   --status-draft-bg: rgba(107, 114, 128, 0.15);
 
-  --surface-page: #09090b;
-  --surface-card: #18181b;
-  --surface-card-hover: #27272a;
+  --surface-page: #0B0F15;
+  --surface-card: #151A23;
+  --surface-card-hover: #1e2533;
 
-  /* Dark Glass Design System (DESIGN.md) */
-  --text-primary: hsl(0 0% 98%);
-  --text-secondary: hsl(240 5% 65%);
-  --text-muted: hsl(240 5% 48%);
-  --surface-glass: hsl(240 10% 9% / 0.75);
-  --surface-light: hsl(240 10% 9%);
-  --surface-light-secondary: hsl(240 10% 12%);
-  --border-glass: hsl(0 0% 100% / 0.12);
-  --glass-border: 1px solid hsl(0 0% 100% / 0.12);
+  /* Dark Glass Design System — deep navy */
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --surface-glass: rgba(11, 15, 21, 0.80);
+  --surface-light: #0B0F15;
+  --surface-light-secondary: #151A23;
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
   --backdrop-blur: blur(16px);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
   --shadow-glass: 0 8px 32px -4px rgb(0 0 0 / 0.4);
@@ -296,7 +326,68 @@
 }
 
 @utility shadow-gold-glow {
-  box-shadow: 0 0 20px 0 hsl(45 82% 55% / 0.4), 0 4px 12px 0 hsl(45 82% 55% / 0.25);
+  box-shadow: 0 0 20px 0 rgba(59, 130, 246, 0.35), 0 4px 12px 0 rgba(59, 130, 246, 0.20);
+}
+
+@utility shadow-app-glow {
+  box-shadow: var(--app-glow-amber);
+}
+
+@utility bg-app-page {
+  background-color: var(--app-page);
+}
+
+@utility bg-app-card {
+  background-color: var(--app-card);
+}
+
+@utility border-app {
+  border-color: var(--app-border);
+}
+
+@utility text-teal {
+  color: var(--accent-teal);
+}
+
+@utility bg-teal-soft {
+  background-color: var(--accent-teal-soft);
+}
+
+@utility border-teal {
+  border-color: var(--accent-teal);
+}
+
+@utility hover-teal {
+  &:hover {
+    color: var(--accent-teal);
+  }
+}
+
+/* Muted/glass cobalt CTA — calmer than solid bg-primary, still recognizably the brand action */
+@utility btn-amber-soft {
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.92), rgba(37, 99, 235, 0.92));
+  color: #ffffff;
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  box-shadow: var(--app-glow-amber);
+  transition: all 0.18s ease;
+}
+.btn-amber-soft:hover {
+  background: linear-gradient(180deg, rgba(59, 130, 246, 1), rgba(37, 99, 235, 1));
+  box-shadow: var(--app-glow-amber-strong);
+  transform: translateY(-1px);
+}
+
+/* Outlined steel CTA — secondary action that complements cobalt without competing */
+@utility btn-teal-outline {
+  background: rgba(148, 163, 184, 0.06);
+  color: var(--accent-teal);
+  border: 1px solid rgba(148, 163, 184, 0.40);
+  transition: all 0.18s ease;
+}
+.btn-teal-outline:hover {
+  background: rgba(148, 163, 184, 0.14);
+  border-color: var(--accent-teal);
+  color: #CBD5E1;
 }
 
 @utility scrollbar-none {
@@ -313,60 +404,74 @@
    ───────────────────────────────────────────────────────────────── */
 @utility auth-page {
   @apply min-h-screen flex flex-col bg-background text-foreground;
+  background-color: var(--app-page);
   background-image:
-    radial-gradient(circle at top, hsl(45 82% 55% / 0.16), transparent 22%),
-    linear-gradient(180deg, hsl(240 10% 7%) 0%, hsl(240 8% 9%) 100%);
+    radial-gradient(circle at top, rgba(59, 130, 246, 0.12), transparent 28%),
+    linear-gradient(180deg, var(--app-page) 0%, #0E131B 100%);
   background-attachment: fixed;
   color-scheme: dark;
 }
 
 @utility auth-topbar {
-  @apply flex items-center justify-between px-6 py-4 border-b border-primary/10 bg-black/30 backdrop-blur-xl;
+  @apply flex items-center justify-between px-6 py-4;
+  background-color: var(--app-glass);
+  border-bottom: 1px solid var(--app-border);
+  backdrop-filter: blur(var(--app-backdrop-blur, 20px));
+  -webkit-backdrop-filter: blur(var(--app-backdrop-blur, 20px));
 }
 
 @utility auth-card {
-  @apply w-full max-w-md rounded-[1.75rem] border border-primary/15 p-8 shadow-glass;
-  background: linear-gradient(180deg, hsl(240 10% 12% / 0.84), hsl(240 8% 10% / 0.76));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  @apply w-full max-w-md rounded-2xl p-8;
+  background-color: var(--app-card);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-elevated, 0 24px 48px rgba(0, 0, 0, 0.45));
 }
 
 @utility auth-input {
-  @apply w-full rounded-2xl border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary;
-  border-color: hsl(45 82% 55% / 0.14);
-  background: hsl(240 8% 8% / 0.64);
+  @apply w-full rounded-xl border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground transition-all focus:outline-none focus:ring-2;
+  border-color: var(--app-border);
+  background: rgba(11, 15, 21, 0.6);
+  --tw-ring-color: rgba(59, 130, 246, 0.32);
 }
+.auth-input:focus { border-color: var(--primary); }
 
 @utility auth-label {
   @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground;
 }
 
 @utility auth-btn-primary {
-  @apply w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm text-primary-foreground bg-primary hover:bg-primary/90 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100 shadow-gold-glow;
+  @apply w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm text-white bg-primary hover:bg-primary/90 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100;
+  box-shadow: var(--app-glow-amber, 0 0 24px rgba(59, 130, 246, 0.30));
 }
 
 @utility auth-btn-oauth {
-  @apply w-full flex items-center justify-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium text-foreground transition-colors disabled:opacity-50;
-  border-color: hsl(45 82% 55% / 0.14);
-  background: hsl(240 8% 8% / 0.4);
+  @apply w-full flex items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium text-foreground transition-colors disabled:opacity-50;
+  border-color: var(--app-border);
+  background: rgba(11, 15, 21, 0.4);
+}
+.auth-btn-oauth:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--accent-teal);
 }
 
 @utility auth-link {
-  @apply text-primary hover:text-primary/80 transition-colors;
+  color: var(--accent-teal);
+  transition: color 0.15s ease;
 }
+.auth-link:hover { color: var(--primary); }
 
 @utility auth-divider-line {
   @apply w-full border-t;
-  border-color: hsl(45 82% 55% / 0.12);
+  border-color: var(--app-border);
 }
 
 @utility auth-divider-text {
   @apply px-3 text-xs text-muted-foreground;
-  background: hsl(240 10% 10% / 0.92);
+  background: var(--app-card);
 }
 
 @utility auth-error {
-  @apply mb-4 rounded-2xl border p-3 text-sm text-destructive;
+  @apply mb-4 rounded-xl border p-3 text-sm text-destructive;
   background: hsl(0 72% 52% / 0.08);
   border-color: hsl(0 72% 52% / 0.24);
 }

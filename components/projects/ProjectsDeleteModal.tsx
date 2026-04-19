@@ -34,7 +34,7 @@ export default function ProjectsDeleteModal({
       <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div className="fixed inset-0 z-[61] flex items-center justify-center p-4">
         <div
-          className="w-full max-w-md rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl overflow-hidden"
+          className="w-full max-w-md rounded-2xl border border-app bg-app-card shadow-2xl overflow-hidden"
           onClick={(event) => event.stopPropagation()}
         >
           <div className="bg-red-950/50 border-b border-red-900/50 px-6 py-4 flex items-center justify-between">
@@ -47,13 +47,13 @@ export default function ProjectsDeleteModal({
                 <p className="text-xs text-zinc-400">This action cannot be undone</p>
               </div>
             </div>
-            <button onClick={onClose} className="p-1 rounded-lg hover:bg-zinc-800 transition-colors">
+            <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/[0.04] transition-colors">
               <X size={18} className="text-zinc-400" />
             </button>
           </div>
 
           <div className="px-6 py-5 space-y-4">
-            <div className="rounded-xl border border-zinc-700 bg-zinc-800 p-4">
+            <div className="rounded-xl border border-app bg-white/[0.04] p-4">
               <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Project to delete</p>
               <p className="text-sm font-black text-white">{target.name}</p>
             </div>
@@ -79,7 +79,7 @@ export default function ProjectsDeleteModal({
                 value={confirmName}
                 onChange={(event) => onConfirmNameChange(event.target.value)}
                 placeholder="Enter project name..."
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-red-500 focus:ring-2 focus:ring-red-900/50 outline-none transition-all"
+                className="w-full rounded-lg border border-app bg-white/[0.04] px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-red-500 focus:ring-2 focus:ring-red-900/50 outline-none transition-all"
                 autoFocus
               />
             </div>
@@ -89,10 +89,10 @@ export default function ProjectsDeleteModal({
             )}
           </div>
 
-          <div className="border-t border-zinc-800 px-6 py-4 flex items-center justify-end gap-3 bg-zinc-800/50">
+          <div className="border-t border-app px-6 py-4 flex items-center justify-end gap-3 bg-white/[0.04]/50">
             <button
               onClick={onClose}
-              className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 transition-all"
+              className="rounded-xl border border-app bg-white/[0.04] px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-white/[0.06] transition-all"
               disabled={loading}
             >
               Cancel

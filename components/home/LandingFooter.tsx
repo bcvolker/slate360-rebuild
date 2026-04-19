@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { FOOTER_LINKS } from "@/components/home/landing-data";
-import { SlateLogo } from "@/components/shared/SlateLogo";
 
 export default function LandingFooter() {
   return (
@@ -12,7 +11,11 @@ export default function LandingFooter() {
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <SlateLogo />
+              <img
+                src="/uploads/slate360-logo-reversed-v2.svg?v=cobalt-2026-04-19"
+                alt="Slate360"
+                className="h-7 w-auto"
+              />
             </Link>
             <p className="text-sm text-muted-foreground">
               The complete platform for construction documentation.
@@ -28,7 +31,7 @@ export default function LandingFooter() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-sm text-muted-foreground hover:text-teal transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -45,10 +48,10 @@ export default function LandingFooter() {
             &copy; {new Date().getFullYear()} Slate360. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-teal transition-colors">
               Privacy
             </Link>
-            <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/terms" className="text-sm text-muted-foreground hover:text-teal transition-colors">
               Terms
             </Link>
           </div>

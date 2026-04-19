@@ -14,7 +14,7 @@ interface Props {
   onClose: () => void;
 }
 
-const inp = "w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 placeholder:text-zinc-500";
+const inp = "w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/30 placeholder:text-zinc-500";
 const lbl = "mb-1 block text-xs font-bold text-zinc-300";
 
 export default function SubmittalsForm({ form, setForm, editingId, saving, attachment, setAttachment, onSubmit, onClose }: Props) {
@@ -53,7 +53,7 @@ export default function SubmittalsForm({ form, setForm, editingId, saving, attac
           {editingId && <div><label className={lbl}>Response / Notes</label><textarea value={form.response_text} onChange={(e) => u({ response_text: e.target.value })} rows={3} placeholder="Enter response or review notes..." className={`${inp} resize-none`} /></div>}
           {!editingId && <div><label className={lbl}>Attachment</label><input type="file" onChange={(e) => setAttachment(e.target.files?.[0] ?? null)} className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-300" /></div>}
           <div className="flex items-center gap-3 pt-2">
-            <button onClick={onSubmit} disabled={saving || !form.title.trim()} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E64500] disabled:opacity-50 transition">{saving && <Loader2 size={14} className="animate-spin" />}{editingId ? "Update Submittal" : "Create Submittal"}</button>
+            <button onClick={onSubmit} disabled={saving || !form.title.trim()} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition">{saving && <Loader2 size={14} className="animate-spin" />}{editingId ? "Update Submittal" : "Create Submittal"}</button>
             <button onClick={onClose} className="rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700">Cancel</button>
           </div>
         </div>

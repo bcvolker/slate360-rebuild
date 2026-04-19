@@ -129,7 +129,7 @@ export default function DashboardMyAccount({
         </div>
         <button
           onClick={onRefresh}
-          className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-800 text-xs font-semibold text-zinc-400 hover:bg-zinc-800 transition-colors"
+          className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-app text-xs font-semibold text-zinc-400 hover:bg-white/[0.04] transition-colors"
         >
           {accountLoading ? (
             <Loader2 size={13} className="animate-spin" />
@@ -197,14 +197,14 @@ export default function DashboardMyAccount({
           <div className="space-y-2">
             <Link
               href="/forgot-password"
-              className="w-full flex items-center justify-between p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 transition-colors"
+              className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.04]/50 border border-app/50 hover:bg-white/[0.04] transition-colors"
             >
               <span className="text-xs font-semibold text-zinc-300">
                 Reset password
               </span>
               <ArrowRight size={12} className="text-zinc-500" />
             </Link>
-            <button className="w-full flex items-center justify-between p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 transition-colors text-left">
+            <button className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.04]/50 border border-app/50 hover:bg-white/[0.04] transition-colors text-left">
               <span className="text-xs font-semibold text-zinc-300">
                 2FA status
               </span>
@@ -212,7 +212,7 @@ export default function DashboardMyAccount({
                 Coming soon
               </span>
             </button>
-            <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+            <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-zinc-300">
                   Recent sessions

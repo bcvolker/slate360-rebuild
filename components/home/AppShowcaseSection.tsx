@@ -1,12 +1,12 @@
 "use client";
 
 import { ChevronRight, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { InteractiveDemo } from "@/components/home/AppDemos";
 import { APPS } from "@/components/home/landing-data";
 import type { AppItem } from "@/components/home/landing-data";
-import { SlateCard, SlateCTA, SlateSectionHeader } from "@/lib/design-system";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // SECTION WRAPPER
@@ -20,13 +20,13 @@ export default function AppShowcaseSection() {
           <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
             Our Products
           </Badge>
-          <div className="mx-auto max-w-2xl">
-            <SlateSectionHeader
-              title="Three powerful apps, one platform"
-              subtitle="Everything you need to document, visualize, and present construction projects professionally."
-              className="flex-col items-center text-center"
-            />
-          </div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+            Three powerful apps, one platform
+          </h2>
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+            Everything you need to document, visualize, and present construction
+            projects professionally.
+          </p>
         </div>
 
         <div className="space-y-24">
@@ -49,7 +49,7 @@ function AppShowcase({ app, reversed }: { app: AppItem; reversed: boolean }) {
   return (
     <div className={cn("grid lg:grid-cols-2 gap-12 items-center", reversed && "lg:grid-flow-dense")}>
       {/* Content */}
-      <SlateCard elevation="hero" className={cn("border-glass bg-card/50 p-8", reversed && "lg:col-start-2")}>
+      <div className={cn(reversed && "lg:col-start-2")}>
         <div className="flex items-center gap-3 mb-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
             <Icon className="h-5 w-5 text-primary" />
@@ -68,16 +68,16 @@ function AppShowcase({ app, reversed }: { app: AppItem; reversed: boolean }) {
             </li>
           ))}
         </ul>
-        <SlateCTA>
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
           Learn More
           <ChevronRight className="ml-1 h-4 w-4" />
-        </SlateCTA>
-      </SlateCard>
+        </Button>
+      </div>
 
       {/* Demo */}
-      <SlateCard elevation="hero" className={cn("border-glass bg-card/40 p-4", reversed && "lg:col-start-1 lg:row-start-1")}>
+      <div className={cn(reversed && "lg:col-start-1 lg:row-start-1")}>
         <InteractiveDemo app={app} />
-      </SlateCard>
+      </div>
     </div>
   );
 }
