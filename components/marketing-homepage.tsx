@@ -457,9 +457,9 @@ function HeroSection() {
       <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-[1fr_1.15fr] gap-8 lg:gap-12 items-center pt-20 sm:pt-24 pb-10">
         {/* LEFT: copy + CTAs */}
         <div className="space-y-5 text-center lg:text-left">
-          <Badge variant="outline" className="border-teal text-teal px-3.5 py-1 bg-teal-soft">
+          <Badge variant="outline" className="border-cobalt text-cobalt px-3.5 py-1 bg-cobalt/10">
             <Zap className="mr-1.5 h-3 w-3" />
-            Site Walk + connected workflows
+            Now in Beta — Foundational Member Pricing
           </Badge>
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground leading-[1.15] text-balance">
@@ -474,7 +474,7 @@ function HeroSection() {
           <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3 pt-1">
             <Button asChild className="btn-amber-soft h-11 px-6 text-sm">
               <Link href="/signup">
-                Subscribe Now
+                Create Free Account
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -485,6 +485,9 @@ function HeroSection() {
               </Link>
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground/80 pt-1">
+            Free to download. 14-day all-access trial. No credit card required.
+          </p>
         </div>
 
         {/* RIGHT: interactive demo (larger, dominates the right side) */}
