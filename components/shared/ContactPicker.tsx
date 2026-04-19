@@ -187,7 +187,7 @@ export default function ContactPicker({
       <button
         onClick={handleOpen}
         disabled={disabled}
-        className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:border-[#F59E0B]/50 hover:text-[#F59E0B] transition-all disabled:opacity-50"
+        className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:border-teal hover:text-teal transition-all disabled:opacity-50"
       >
         <UserPlus size={14} />
         Pick contact

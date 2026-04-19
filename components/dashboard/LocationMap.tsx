@@ -994,7 +994,7 @@ function DrawController({
           />
           <button
             onClick={goToCurrentLocation}
-            className="ml-1 flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 text-gray-400 hover:text-[#F59E0B] transition-colors"
+            className="ml-1 flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 text-gray-400 hover:text-teal transition-colors"
             title="Use current location"
             type="button"
           >
@@ -1007,10 +1007,10 @@ function DrawController({
                 <button
                   key={suggestion.placeId}
                   onClick={() => void selectAddress(suggestion)}
-                  className="w-full flex items-start gap-2 border-b border-gray-50 px-3 py-2.5 text-left hover:bg-[#F59E0B]/5 transition-colors last:border-b-0 group"
+                  className="w-full flex items-start gap-2 border-b border-gray-50 px-3 py-2.5 text-left hover:bg-teal-soft transition-colors last:border-b-0 group"
                   type="button"
                 >
-                  <MapPin size={14} className="mt-0.5 shrink-0 text-gray-400 group-hover:text-[#F59E0B]" />
+                  <MapPin size={14} className="mt-0.5 shrink-0 text-gray-400 group-hover:text-teal" />
                   <span className="text-xs text-gray-700 leading-snug group-hover:text-gray-900">{suggestion.description}</span>
                 </button>
               ))}
@@ -1806,7 +1806,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                   <button
                     onClick={handleSaveToFolder}
                     disabled={isSaving || !selectedFolderId}
-                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-bold text-[#F59E0B] hover:bg-[#F59E0B]/10 disabled:opacity-50 transition-colors"
+                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-bold text-[#F59E0B] hover:bg-teal-soft disabled:opacity-50 transition-colors"
                   >
                     {isSaving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />} Save
                   </button>

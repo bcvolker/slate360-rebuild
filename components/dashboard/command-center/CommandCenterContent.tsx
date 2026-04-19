@@ -63,25 +63,25 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb }: Comm
       {/* Quick Actions */}
       <section className="rounded-2xl border border-border bg-card/60 p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-2">
-          <Button asChild variant="outline" className="rounded-xl border-border hover:border-primary/50 hover:text-primary transition-all">
+          <Button asChild variant="outline" className="rounded-xl border-border hover:border-teal hover:text-teal transition-all">
             <Link href="/projects">
               <FolderOpen className="mr-2 h-4 w-4" />
               Open Projects
             </Link>
           </Button>
-          <Button asChild variant="outline" className="rounded-xl border-border hover:border-primary/50 hover:text-primary transition-all">
+          <Button asChild variant="outline" className="rounded-xl border-border hover:border-teal hover:text-teal transition-all">
             <Link href="/projects">
               <Plus className="mr-2 h-4 w-4" />
               New Project
             </Link>
           </Button>
-          <Button asChild variant="outline" className="rounded-xl border-border hover:border-primary/50 hover:text-primary transition-all">
+          <Button asChild variant="outline" className="rounded-xl border-border hover:border-teal hover:text-teal transition-all">
             <Link href="/install">
               <Download className="mr-2 h-4 w-4" />
               Install App
             </Link>
           </Button>
-          <Button asChild variant="outline" className="rounded-xl border-border hover:border-primary/50 hover:text-primary transition-all">
+          <Button asChild variant="outline" className="rounded-xl border-border hover:border-teal hover:text-teal transition-all">
             <Link href="/my-account">
               <Settings className="mr-2 h-4 w-4" />
               My Account
@@ -99,7 +99,7 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb }: Comm
           </div>
           <Link
             href="/my-account?tab=notifications"
-            className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors"
+            className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-teal transition-colors"
           >
             Communications Center
             <ChevronRight className="h-3.5 w-3.5" />

@@ -42,7 +42,7 @@ export function DashboardTopBar({ onMenuClick, isSidebarOpen, userName }: Dashbo
           </div>
           <button
             onClick={onMenuClick}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.04]/80 hover:bg-primary/20 border border-app hover:border-primary/50 text-zinc-300 hover:text-primary transition-all"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.04]/80 hover:bg-teal-soft border border-app hover:border-teal text-zinc-300 hover:text-teal transition-all"
             aria-label="Menu"
           >
             <Menu className="h-5 w-5" />
@@ -60,7 +60,7 @@ export function DashboardTopBar({ onMenuClick, isSidebarOpen, userName }: Dashbo
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative hover:bg-primary/10 hover:text-primary"
+                className="relative hover:bg-teal-soft hover:text-teal"
                 asChild
               >
                 <a href="/my-account?tab=notifications">
@@ -88,10 +88,10 @@ export function DashboardTopBar({ onMenuClick, isSidebarOpen, userName }: Dashbo
             <DropdownMenuContent align="end" className="w-56 bg-glass border-glass">
               <DropdownMenuLabel className="text-foreground">{userName || "My Account"}</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border/50" />
-              <DropdownMenuItem asChild className="hover:bg-primary/10 hover:text-primary cursor-pointer">
+              <DropdownMenuItem asChild className="hover:bg-teal-soft hover:text-teal cursor-pointer">
                 <a href="/my-account">My Account</a>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="hover:bg-primary/10 hover:text-primary cursor-pointer">
+              <DropdownMenuItem asChild className="hover:bg-teal-soft hover:text-teal cursor-pointer">
                 <a href="/my-account?tab=billing">Billing &amp; Payments</a>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border/50" />
