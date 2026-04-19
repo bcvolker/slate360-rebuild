@@ -197,6 +197,55 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-19c (Collaborator invite end-to-end: API + People tab + SMS + 2 migrations)
+
+### What Changed
+- **Migrations** (HEAD `1e63650`):
+  - `supabase/migrations/20260419130000_org_member_app_access.sql` — new table for per-member app seat assignment (`site_walk` / `tours` / `design_studio` / `content_studio`), with RLS scoped to org admins (write) and the member themselves (read).
+  - `supabase/migrations/20260419130001_org_members_permissions.sql` — adds `permissions jsonb default '{}'` to `organization_members` for enterprise per-feature overrides. Comment lists recognized keys. **No** runtime read-side wired yet — populating the column is a no-op until `org-context.ts` reads it.
+- **Backend**:
+  - `lib/sms.ts` — Twilio REST client implemented via `fetch()` (no SDK dependency). `sendSms()` returns a typed `SmsResult`; missing env → `{ ok:false, reason:"missing_config" }` and a dev-mode warn. E.164 validator exported.
+  - `lib/email-collaborators.ts` — new `sendCollaboratorInviteEmail()` using the existing branded HTML wrapper from `lib/email.ts` (kept here so `lib/email.ts` stays under 300 lines). HTML-escapes all interpolated user input.
+  - `lib/server/collaborator-data.ts` — `loadProjectPeople(projectId, orgId)` returns `{ members, pendingInvites, leadershipViewers }`. Hydrates user emails/names from `profiles` (single round trip via `.in()`).
+  - `app/api/projects/[projectId]/collaborators/route.ts` — GET, returns the people payload + `seatUsage: { used, limit | null }`.
+  - `app/api/projects/[projectId]/collaborators/invite/route.ts` — POST, zod-validated, runs `assertCanInviteCollaborator`, mints an `invitation_tokens` row (`max_redemptions=1`, 14-day TTL), inserts the invite row, then dispatches via email/SMS/both/link. Returns `{ inviteId, inviteUrl, qrPayload, delivery }`.
+  - `app/api/projects/[projectId]/collaborators/[inviteId]/revoke/route.ts` — POST, sets status=revoked + revokes the underlying token.
+  - `app/api/projects/[projectId]/collaborators/[inviteId]/resend/route.ts` — POST, re-dispatches over the original channel and bumps `send_count` + `last_sent_at`.
+  - All routes use the **real** wrappers (`withProjectAuth(req, ctx, handler)` / `ok` / `badRequest` / `conflict` / `serverError`), not the wrong shape an external AI suggested.
+- **UI**:
+  - `app/(dashboard)/projects/[projectId]/people/page.tsx` — server component that calls `loadProjectPeople` and `countActiveCollaborators` directly (no internal HTTP).
+  - `components/projects/ProjectPeopleView.tsx` — client view, three sections (Project members / Outside collaborators with seat counter / Leadership viewers), inline resend+revoke buttons.
+  - `components/projects/PeopleSection.tsx` — primitive list section.
+  - `components/projects/CollaboratorInviteModal.tsx` — channel-aware form (email / sms / both / link). Link mode reveals the URL for QR/copy. Disables when at seat limit.
+- `.env.example` — added `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_FROM`.
+- Validation: `npm run typecheck` clean. File-size guard clean (none of the new files >300 lines).
+
+### What's Broken / Partially Done
+- **Migrations not yet applied** to live Supabase — `20260419120000`, `20260419130000`, `20260419130001`. Apply them before the People tab is exercised in prod. The invite redemption code in `lib/server/invites.ts` already swallows missing-table errors.
+- **No "trapped collaborator" shell built yet** (`CollaboratorShell` + `(collaborator)` route group) — invited users with no subscription currently land on the regular dashboard. Next big UX item.
+- **No `ProjectViewSelector`** (header view selector for `My / Owner / Leadership view`) — placeholder per design doc.
+- **`organization_members.permissions` column not yet read anywhere** — runtime resolver in `org-context.ts` still needs to surface it (enterprise tier only).
+- **Per-app seat assignment UI** for `org_member_app_access` not built — `MyAccountShell › Members & Roles` placeholder still.
+- **Missing `withAppAccess` middleware** — nothing yet enforces `org_member_app_access` at the route level.
+- **Twilio package**: not in `package.json`. `lib/sms.ts` uses raw REST so it works with zero deps — keep it that way unless you need MMS / verify / etc.
+- No automated tests added this session (deferred — see next steps).
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
+- (Did **not** edit `slate360-context/ORG_ROLES_AND_PERMISSIONS.md` because the design there is still accurate; only the "Backend Status" table now needs the People-tab + invite-API rows flipped to live — handle in next chat.)
+
+### Next Steps (ordered)
+1. Run the 3 outstanding migrations on Supabase (`20260419120000`, `20260419130000`, `20260419130001`) and smoke the People tab end-to-end (invite via email → check inbox → click link → land on `/projects/{id}` as a collaborator).
+2. Build `CollaboratorShell` + `app/(collaborator)/layout.tsx` for invitees with no subscription. Use `project_members.role='collaborator'` + tier='trial' + no other org membership as the trap condition.
+3. Build `components/projects/ProjectViewSelector.tsx` and mount it in the project header — wire it to a server-readable cookie or query param so server components can render the right slice.
+4. Wire `MyAccountShell › Members & Roles` to live `organization_members` + `org_member_app_access` (invite, role select, per-app checkboxes, permissions toggles for enterprise tier).
+5. Surface `organization_members.permissions` in `lib/server/org-context.ts` (enterprise-only) and add helpers `can('canViewBilling')` etc.
+6. Add `withAppAccess(appKey, …)` middleware mirroring `withAppAuth` but enforcing `org_member_app_access` for sub-app routes.
+7. Tests: vitest smoke for `assertCanInviteCollaborator` (trial=throw, standard at 3=throw, enterprise=infinity), and an integration test for the invite POST happy path (mock admin client).
+8. Operations Console subscription-status / cohort panel — still pending from earlier handoff.
+
+---
+
 ### Session Handoff — 2026-04-19 (Cobalt+Steel palette + viewer role + collaborator plan)
 
 ### What Changed
