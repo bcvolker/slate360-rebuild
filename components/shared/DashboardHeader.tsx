@@ -106,7 +106,7 @@ export default function DashboardHeader({
 
   return (
     <header className="sticky top-0 z-50 bg-app-page/80 backdrop-blur-xl border-b border-app">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center gap-3 sm:gap-6 h-14 sm:h-16">
 
         {/* ── Left cluster: Logo + optional back link ── */}
         <div className="flex items-center gap-2 shrink-0">
@@ -120,13 +120,18 @@ export default function DashboardHeader({
               <ChevronLeft size={18} />
             </Link>
           )}
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link
+            href="/"
+            aria-label="Slate360 home"
+            title="Home"
+            className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+          >
             <SlateLogo className="h-6 sm:h-7 w-auto" />
           </Link>
         </div>
 
         {/* ── Center: Search bar ── */}
-        <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
+        <div className="hidden md:flex items-center flex-1 max-w-md">
           <div className="relative w-full">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
             <input
@@ -140,14 +145,17 @@ export default function DashboardHeader({
           </div>
         </div>
 
+        {/* spacer keeps right cluster pinned right when search is hidden */}
+        <div className="flex-1 md:hidden" />
+
         {/* ── Right cluster: QuickNav + Bell + Customize + User ── */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 ml-auto md:ml-0">
 
           {/* Hamburger — mobile only (Sheet nav) */}
           <MobileNavSheet tier={ent.tier} isCeo={isCeo} internalAccess={internalAccess} />
 
-          {/* QuickNav — desktop only */}
-          <div className="hidden sm:block">
+          {/* QuickNav — desktop only (lg+ to avoid crowding next to logo on tablets) */}
+          <div className="hidden lg:block">
             <QuickNav tier={ent.tier} isCeo={isCeo} internalAccess={internalAccess} />
           </div>
 
