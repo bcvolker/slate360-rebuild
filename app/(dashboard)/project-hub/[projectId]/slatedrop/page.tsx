@@ -33,12 +33,12 @@ export default async function ProjectSlateDropPage({
       <div className="shrink-0 flex items-center gap-3 px-4 sm:px-6 py-3 bg-white border-b border-gray-100">
         <Link
           href={`/project-hub/${projectId}`}
-          className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-[#D4AF37] transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-[#3B82F6] transition-colors"
         >
           <ChevronLeft size={14} /> {projectName}
         </Link>
         <span className="text-gray-300">/</span>
-        <span className="flex items-center gap-1.5 text-xs font-semibold text-[#D4AF37]">
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-[#3B82F6]">
           <FolderOpen size={13} /> Files
         </span>
       </div>

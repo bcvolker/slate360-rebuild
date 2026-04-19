@@ -49,7 +49,7 @@ export default function DashboardFinancialWidget({
                   className="w-full max-w-[32px] rounded-t-md transition-all duration-700 ease-out hover:opacity-80"
                   style={{
                     height: `${(point.credits / financialMax) * 100}%`,
-                    backgroundColor: index === liveFinancial.length - 1 ? "#D4AF37" : "#6366F1",
+                    backgroundColor: index === liveFinancial.length - 1 ? "#3B82F6" : "#6366F1",
                     opacity: index === liveFinancial.length - 1 ? 1 : 0.6,
                   }}
                 />
@@ -62,7 +62,7 @@ export default function DashboardFinancialWidget({
           )}
         </div>
 
-        <div className="flex gap-4 pt-2 border-t border-zinc-800">
+        <div className="flex gap-4 pt-2 border-t border-app">
           <div>
             <p className="text-[10px] text-zinc-500 font-medium">This month</p>
             <p className="text-sm font-bold text-zinc-100">

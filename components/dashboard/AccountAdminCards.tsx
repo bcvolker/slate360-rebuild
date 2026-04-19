@@ -62,7 +62,7 @@ export default function AccountAdminCards({
             </div>
             <div className="h-2 rounded-full bg-zinc-700 overflow-hidden">
               <div
-                className="h-full rounded-full bg-[#D4AF37]"
+                className="h-full rounded-full bg-[#3B82F6]"
                 style={{
                   width: `${Math.min(((accountOverview?.usage.storageUsedGb ?? storageUsed) / (accountOverview?.usage.storageLimitGb ?? ent.maxStorageGB)) * 100, 100)}%`,
                 }}
@@ -70,7 +70,7 @@ export default function AccountAdminCards({
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="p-2.5 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
+            <div className="p-2.5 rounded-lg bg-white/[0.04]/50 border border-app/50">
               <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
                 Projects
               </p>
@@ -80,7 +80,7 @@ export default function AccountAdminCards({
                 ).toLocaleString()}
               </p>
             </div>
-            <div className="p-2.5 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
+            <div className="p-2.5 rounded-lg bg-white/[0.04]/50 border border-app/50">
               <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
                 Models
               </p>
@@ -88,7 +88,7 @@ export default function AccountAdminCards({
                 {(accountOverview?.usage.modelsCount ?? 0).toLocaleString()}
               </p>
             </div>
-            <div className="p-2.5 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
+            <div className="p-2.5 rounded-lg bg-white/[0.04]/50 border border-app/50">
               <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
                 Tours
               </p>
@@ -96,7 +96,7 @@ export default function AccountAdminCards({
                 {(accountOverview?.usage.toursCount ?? 0).toLocaleString()}
               </p>
             </div>
-            <div className="p-2.5 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
+            <div className="p-2.5 rounded-lg bg-white/[0.04]/50 border border-app/50">
               <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
                 Documents
               </p>
@@ -105,7 +105,7 @@ export default function AccountAdminCards({
               </p>
             </div>
           </div>
-          <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+          <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Purchased Credits
             </p>
@@ -122,7 +122,7 @@ export default function AccountAdminCards({
                 text: "Data export request submitted.",
               })
             }
-            className="w-full text-xs font-semibold py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:bg-zinc-800 transition-colors"
+            className="w-full text-xs font-semibold py-2 rounded-lg border border-app text-zinc-400 hover:bg-white/[0.04] transition-colors"
           >
             Download my data
           </button>
@@ -151,13 +151,13 @@ export default function AccountAdminCards({
               value={apiKeyLabel}
               onChange={(e) => onApiKeyLabelChange(e.target.value)}
               placeholder="Key label (e.g. CI Runner)"
-              className="flex-1 px-3 py-2 rounded-lg border border-zinc-700 bg-zinc-800 text-xs text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+              className="flex-1 px-3 py-2 rounded-lg border border-app bg-white/[0.04] text-xs text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
             />
             <button
               onClick={onGenerateApiKey}
               disabled={apiKeyBusy === "create"}
               className="px-3 py-2 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-all disabled:opacity-60"
-              style={{ backgroundColor: "#D4AF37" }}
+              style={{ backgroundColor: "#3B82F6" }}
             >
               {apiKeyBusy === "create" ? "Generating…" : "Generate Key"}
             </button>
@@ -189,7 +189,7 @@ export default function AccountAdminCards({
               (accountOverview?.apiKeys ?? []).map((key) => (
                 <div
                   key={key.id}
-                  className="p-3 rounded-xl border border-zinc-700/50 bg-zinc-800/50 flex items-center gap-3"
+                  className="p-3 rounded-xl border border-app/50 bg-white/[0.04]/50 flex items-center gap-3"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-zinc-200 truncate">
@@ -234,7 +234,7 @@ export default function AccountAdminCards({
             (accountOverview?.auditLog ?? []).slice(0, 5).map((event) => (
               <div
                 key={event.id}
-                className="p-2.5 rounded-lg bg-zinc-800/50 border border-zinc-700/50"
+                className="p-2.5 rounded-lg bg-white/[0.04]/50 border border-app/50"
               >
                 <p className="text-xs font-semibold text-zinc-200">
                   {event.action}

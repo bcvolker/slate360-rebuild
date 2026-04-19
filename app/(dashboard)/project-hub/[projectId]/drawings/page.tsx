@@ -89,7 +89,7 @@ export default function ProjectDrawingsPage() {
         <div className="flex items-center gap-2 text-xs text-zinc-500">
           <span className="font-semibold text-zinc-300">{files.length}</span> drawing{files.length !== 1 ? "s" : ""} uploaded
           {Object.keys(setCounts).length > 0 && <span>· {Object.keys(setCounts).length} set{Object.keys(setCounts).length !== 1 ? "s" : ""}</span>}
-          <span className="ml-1 rounded-md bg-[#D4AF37]/10 px-2 py-0.5 text-[10px] font-semibold text-[#D4AF37] ring-1 ring-[#D4AF37]/20">Saved to /Drawings/</span>
+          <span className="ml-1 rounded-md bg-[#3B82F6]/10 px-2 py-0.5 text-[10px] font-semibold text-[#3B82F6] ring-1 ring-[#3B82F6]/20">Saved to /Drawings/</span>
         </div>
       </header>
 
@@ -115,15 +115,15 @@ export default function ProjectDrawingsPage() {
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search drawings…" className="rounded-lg border border-zinc-700 bg-zinc-900 py-1.5 pl-8 pr-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:border-[#D4AF37] focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/30 w-56" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search drawings…" className="rounded-lg border border-zinc-700 bg-zinc-900 py-1.5 pl-8 pr-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]/30 w-56" />
             </div>
-            <select value={setFilter} onChange={(e) => setSetFilter(e.target.value)} className="rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-300 focus:border-[#D4AF37] focus:outline-none">
+            <select value={setFilter} onChange={(e) => setSetFilter(e.target.value)} className="rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-300 focus:border-[#3B82F6] focus:outline-none">
               {DRAWING_SETS.map((s) => <option key={s} value={s}>{s}{s !== "All Sets" && setCounts[s] ? ` (${setCounts[s]})` : ""}</option>)}
             </select>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={() => setViewMode("grid")} className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${viewMode === "grid" ? "bg-[#D4AF37] text-white" : "border border-zinc-700 bg-zinc-900 text-zinc-400 hover:bg-zinc-800"}`}>Grid</button>
-            <button onClick={() => setViewMode("list")} className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${viewMode === "list" ? "bg-[#D4AF37] text-white" : "border border-zinc-700 bg-zinc-900 text-zinc-400 hover:bg-zinc-800"}`}>List</button>
+            <button onClick={() => setViewMode("grid")} className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${viewMode === "grid" ? "bg-[#3B82F6] text-white" : "border border-zinc-700 bg-zinc-900 text-zinc-400 hover:bg-zinc-800"}`}>Grid</button>
+            <button onClick={() => setViewMode("list")} className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${viewMode === "list" ? "bg-[#3B82F6] text-white" : "border border-zinc-700 bg-zinc-900 text-zinc-400 hover:bg-zinc-800"}`}>List</button>
             <ViewCustomizer storageKey={`viewprefs-drawings-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
           </div>
         </div>

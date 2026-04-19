@@ -23,10 +23,10 @@ export default async function BetaPendingPage() {
   }
 
   return (
-    <div className="dark min-h-screen bg-zinc-950 flex items-center justify-center p-6">
+    <div className="dark min-h-screen bg-app-page flex items-center justify-center p-6">
       <div className="max-w-md w-full text-center space-y-6">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#D4AF37]/10">
-          <Clock className="h-8 w-8 text-[#D4AF37]" />
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+          <Clock className="h-8 w-8 text-primary" />
         </div>
 
         <div className="space-y-2">
@@ -37,7 +37,7 @@ export default async function BetaPendingPage() {
           </p>
         </div>
 
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 text-left text-sm text-zinc-400 space-y-1.5">
+        <div className="rounded-2xl border border-app bg-app-card p-4 text-left text-sm text-zinc-400 space-y-1.5">
           <p className="font-medium text-zinc-300">What happens next?</p>
           <ul className="list-disc list-inside space-y-1">
             <li>The Slate360 team reviews new accounts</li>
@@ -50,7 +50,7 @@ export default async function BetaPendingPage() {
 
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-[#D4AF37] transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-teal transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to home

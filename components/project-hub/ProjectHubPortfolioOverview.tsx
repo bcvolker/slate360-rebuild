@@ -167,7 +167,7 @@ export default function ProjectHubPortfolioOverview({
   return (
     <div className="space-y-3">
       {/* Portfolio Snapshot header */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-4 sm:px-5 sm:py-5">
+      <div className="rounded-2xl border border-app bg-app-card px-4 py-4 sm:px-5 sm:py-5">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <p className="text-[11px] uppercase tracking-wider font-bold text-zinc-500">
@@ -218,7 +218,7 @@ export default function ProjectHubPortfolioOverview({
 
                 {/* Expanded detail dropdown */}
                 {isOpen && (
-                  <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-zinc-800 rounded-xl border border-zinc-700 shadow-lg p-3 space-y-1.5 animate-in slide-in-from-top-1">
+                  <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-white/[0.04] rounded-xl border border-app shadow-lg p-3 space-y-1.5 animate-in slide-in-from-top-1">
                     {card.detail.map((entry, idx) => (
                       <p
                         key={`${card.id}-${idx}`}

@@ -10,7 +10,9 @@
  * To change the logo sitewide, update the `src` constant below.
  */
 
-const LOGO_SRC = "/uploads/slate360-logo-reversed-v2.svg";
+import type { ImgHTMLAttributes } from "react";
+
+const LOGO_SRC = "/uploads/slate360-logo-cobalt-v3.svg?v=cobalt-2026-04-19c";
 
 const SIZE_MAP = {
   sm: "h-5 w-auto",
@@ -23,12 +25,15 @@ interface SlateLogoProps {
   className?: string;
 }
 
-export function SlateLogo({ size = "md", className }: SlateLogoProps) {
+type SlateLogoImageProps = SlateLogoProps & Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt">;
+
+export function SlateLogo({ size = "md", className, ...imgProps }: SlateLogoImageProps) {
   return (
     <img
       src={LOGO_SRC}
       alt="Slate360"
       className={className ?? SIZE_MAP[size]}
+      {...imgProps}
     />
   );
 }

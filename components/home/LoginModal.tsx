@@ -36,7 +36,7 @@ export default function LoginModal({ open, onOpenChange }: LoginModalProps) {
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">
             <img
-              src="/uploads/slate360-logo-reversed-v2.svg"
+              src="/uploads/slate360-logo-cobalt-v3.svg?v=cobalt-2026-04-19b"
               alt="Slate360"
               className="h-7 w-auto"
             />

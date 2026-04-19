@@ -64,7 +64,7 @@ export default function CompanyProfileModal({ open, onClose, initial, onSave }: 
                   value={form.companyName}
                   onChange={f("companyName")}
                   placeholder="Acme Construction LLC"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/20"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/20"
                 />
               </div>
               <div>
@@ -73,21 +73,21 @@ export default function CompanyProfileModal({ open, onClose, initial, onSave }: 
                   value={form.companyAddress}
                   onChange={f("companyAddress")}
                   placeholder="123 Main St"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/20"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/20"
                 />
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-gray-700">City</label>
-                  <input value={form.companyCity} onChange={f("companyCity")} placeholder="Denver" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
+                  <input value={form.companyCity} onChange={f("companyCity")} placeholder="Denver" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6]" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-gray-700">State</label>
-                  <input value={form.companyState} onChange={f("companyState")} placeholder="CO" maxLength={2} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
+                  <input value={form.companyState} onChange={f("companyState")} placeholder="CO" maxLength={2} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6]" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-gray-700">ZIP</label>
-                  <input value={form.companyZip} onChange={f("companyZip")} placeholder="80202" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
+                  <input value={form.companyZip} onChange={f("companyZip")} placeholder="80202" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6]" />
                 </div>
               </div>
             </div>
@@ -105,7 +105,7 @@ export default function CompanyProfileModal({ open, onClose, initial, onSave }: 
                   value={form.contactName}
                   onChange={f("contactName")}
                   placeholder="John Smith"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/20"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/20"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -113,20 +113,20 @@ export default function CompanyProfileModal({ open, onClose, initial, onSave }: 
                   <label className="mb-1 block text-xs font-semibold text-gray-700">
                     <Phone size={10} className="mr-1 inline" />Phone
                   </label>
-                  <input value={form.companyPhone} onChange={f("companyPhone")} placeholder="(303) 555-0100" type="tel" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
+                  <input value={form.companyPhone} onChange={f("companyPhone")} placeholder="(303) 555-0100" type="tel" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6]" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-gray-700">
                     <Mail size={10} className="mr-1 inline" />Email
                   </label>
-                  <input value={form.companyEmail} onChange={f("companyEmail")} placeholder="info@acme.com" type="email" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
+                  <input value={form.companyEmail} onChange={f("companyEmail")} placeholder="info@acme.com" type="email" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6]" />
                 </div>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-700">
                   <Hash size={10} className="mr-1 inline" />Contractor License #
                 </label>
-                <input value={form.licenseNumber} onChange={f("licenseNumber")} placeholder="GC-12345" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#D4AF37]" />
+                <input value={form.licenseNumber} onChange={f("licenseNumber")} placeholder="GC-12345" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6]" />
               </div>
             </div>
           </div>
@@ -144,7 +144,7 @@ export default function CompanyProfileModal({ open, onClose, initial, onSave }: 
         <div className="border-t border-gray-100 px-6 py-4">
           <button
             onClick={handleSave}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E64500] transition"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition"
           >
             {saved ? <><CheckCircle2 size={15} /> Saved!</> : <><Save size={15} /> Save Profile</>}
           </button>

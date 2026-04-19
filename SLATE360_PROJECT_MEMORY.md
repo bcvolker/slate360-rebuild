@@ -1,6 +1,6 @@
 "# Slate360 — Project Memory
 
-Last Updated: 2026-04-16
+Last Updated: 2026-04-19
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -13,6 +13,7 @@ This file is the default new-chat attachment. Keep it short. Read this first, th
 - **Git**: commit, branch, merge, and push to `bcvolker/slate360-rebuild` on GitHub
 - **Vercel**: deploy + env var management via `VERCEL_TOKEN` Codespace secret
 - **AWS S3**: bucket `slate360-storage` (us-east-2) via stored credentials
+- **Cloudflare R2**: bucket `slate360-storage` via stored S3-compatible credentials and account-scoped R2 access
 - **Stripe**: webhook and billing management via Vercel env secrets
 - **Supabase CLI**: migrations, RPC functions, schema changes to project `hadnfcenpcfaeclczsmm`
 
@@ -31,7 +32,7 @@ Do not read all context files by default.
 
 Slate360 is a Next.js 15 + React 19 + TypeScript SaaS platform with:
 - Supabase for auth and primary data
-- AWS S3 for file storage
+- AWS S3 and Cloudflare R2 through the shared S3-compatible storage layer in `lib/s3.ts`
 - Stripe for billing
 - Vercel for hosting and cron
 - Market Robot as an internal route at `/market`
@@ -100,6 +101,14 @@ import { createAdminClient } from "@/lib/supabase/admin";
 - Region: `us-east-2`
 - Client: `lib/s3.ts`
 
+### Cloudflare R2
+- Bucket: `slate360-storage`
+- Account ID: `96019f75871542598e1c34e4b4fe2626`
+- Endpoint: derived from `CLOUDFLARE_ACCOUNT_ID` as `https://<account>.r2.cloudflarestorage.com` unless `R2_ENDPOINT` is set explicitly
+- Required runtime env: `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`
+- Optional runtime env: `R2_REGION` (`auto` default), `R2_ENDPOINT`, `CLOUDFLARE_R2_API_TOKEN`
+- Validation commands: `npm run diag:storage-runtime`, `npm run diag:storage-runtime:write`, `npm run diag:storage-runtime:presign`
+
 ### Vercel
 - Auto-deploy from `main`
 - Cron source: `vercel.json`
@@ -119,6 +128,7 @@ npm run dev
 npm run typecheck
 npm run build
 npm run diag:market-runtime
+npm run diag:storage-runtime
 npm run verify:release
 bash scripts/check-file-size.sh
 ```
@@ -187,54 +197,224 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-17
+### Session Handoff — 2026-04-19e (Live Supabase migrations applied + codespace audit + marketing-page mismatch flagged)
 
 ### What Changed
-- **Password reset flow completed** — PR #4 (`fix/auth-reset-password`) merged to main (commit `623a03e`)
-  - `app/auth/reset-password/route.ts`: server route verifies `token_hash` via `verifyOtp`, redirects to form
-  - `app/reset-password/page.tsx`: client page with password+confirm form, calls `updateUser`
-  - `app/forgot-password/page.tsx`: fixed `redirectTo` from `/account/reset-password` (404) to `/reset-password`
-- **Supabase auth email templates updated** — all 5 via Management API (PATCH to `/v1/projects/.../config/auth`)
-  - Templates: confirmation, recovery, magic_link, email_change, invite
-  - All use: v2 logo (`https://www.slate360.ai/uploads/slate360-logo-reversed-v2.svg`), `#D4AF37` gold CTA buttons, `#18181b` zinc header, branded subjects
-  - API key format: lowercase keys (`mailer_templates_*_content`, `mailer_subjects_*`)
-- **CI false-red fixed** — PR #5 (`fix/ci-false-red`) merged to main (commit `4aa13a5`)
-  - `ops/release-gates.json`: `clob-contract` gate set to `required: false` with `disabledReason` (both source files deleted)
-  - `ops/file-size-baseline.json`: removed stale `app/api/market/buy/route.ts` entry
-  - `npm run verify:release` now passes all required gates
-- **S360-001 marked done** in `ONGOING_ISSUES.md` (dark-mode logo bug, fixed in PR #3)
+- **5 migrations applied to live Supabase** (`hadnfcenpcfaeclczsmm`, West US):
+  - `20260306_slate360_staff.sql` (was missing on prod)
+  - `20260418080828_create_invitation_tokens.sql` (was missing on prod)
+  - `20260419120000_project_collaborator_invites.sql` (collaborator invite store)
+  - `20260419130000_org_member_app_access.sql` (per-app seat assignment)
+  - `20260419130001_org_members_permissions.sql` (enterprise per-feature `permissions` jsonb)
+  - Verification query returned `t|t|t|t|t` for all five objects.
+- **No code changes this turn.** Tree clean at `624d674`. Push state matches origin.
+- **Codespace health probed**: 22 GB free on /workspaces, 109 GB free on /tmp, 9.7 GB RAM available, node v20.19.2, npm 10.8.2 — healthy. 4 stashes intact (DO NOT POP `stash@{0}` `broken-skin-attempts-before-restore-2026-04-19`).
+- **Marketing homepage brand audit**: no raw amber hex left. The legacy class names (`btn-amber-soft`, `hover:bg-teal-soft`, `hover:text-teal`) intentionally remain — they're remapped to cobalt+steel in `globals.css`.
 
 ### What's Broken / Partially Done
-- Supabase email templates: applied via API only — not persisted in repo code, no migration file. Templates would revert if someone resets auth config in Supabase dashboard.
-- `mobile-smoke` optional CI gate still fails (`Homepage hero copy missing`) — pre-existing, not related to this work
-- Forgot-password page does not show a message when redirected with `?error=reset-link-expired` — minor UX gap, not a blocker
+- **Marketing homepage tier mismatch** (`components/marketing-homepage.tsx` lines ~200-255): advertises `Free Trial / Field Pro Bundle (Custom) / Enterprise` but `lib/entitlements.ts` defines four tiers with concrete prices: `trial / standard $149/mo / business $499/mo / enterprise (custom)`. Either the marketing copy needs to publish the per-tier prices, or the entitlements need a "bundle" mapping. **Decision needed from user before edit.** Also: no mention of the new "outside collaborators" feature in any tier card.
+- **Members & Roles tab** in `MyAccountShell` still placeholder. Data layer is fully ready on live now.
+- **No route uses `withAppAccess` yet** — wire to Site Walk / Tours / Design Studio / Content Studio API routes.
+- **View selector is presentation-only** — `readProjectViewMode()` not consumed in any server query yet.
+- **No vitest config** — tests for `assertCanInviteCollaborator` / `resolvePermissions` / `isCollaboratorOnly` still pending.
+
+### How to Run Future Migrations on Live (recorded so we don't re-discover this)
+```bash
+psql "postgresql://postgres.hadnfcenpcfaeclczsmm:${POSTGRES_PASSWORD}@aws-1-us-west-1.pooler.supabase.com:5432/postgres?sslmode=require" \
+  -v ON_ERROR_STOP=1 -f supabase/migrations/<file>.sql
+```
+- Pooler URL came from `supabase/.temp/pooler-url` after `supabase link` — note **`aws-1-us-west-1`** (not us-east-2 as the rest of our infra).
+- `supabase` CLI cannot run from `/workspaces/slate360-rebuild` (`.env` has a backslash that breaks its parser). Workaround: `cd /tmp/sblink` (or any non-workspace dir) before running CLI commands.
+- Live `supabase_migrations.schema_migrations` is unreliable — only tracks through `20260215`. Verify objects with `to_regclass(...)` instead of trusting the history.
+- `psql` is installed via apt; supabase CLI via `npx supabase@2.92.1`.
 
 ### Context Files Updated
-- `ONGOING_ISSUES.md`: S360-001 marked done, timestamp updated
-- `SLATE360_PROJECT_MEMORY.md`: this handoff
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
 
 ### Next Steps (ordered)
-1. Test the full password reset flow end-to-end (forgot-password → email → reset → new password → login)
-2. Consider adding Supabase email template HTML to repo for version control (optional)
-3. Continue auth continuity: S360-002 (mobile auth text sizing), S360-003 (confirm-email guidance), S360-004 (first-run onboarding)
-4. Do NOT start global color-token refactor yet
+1. **User decision**: marketing-homepage tier framing — publish Standard/Business prices or keep bundle pricing?
+2. Build **Members & Roles** UI in `MyAccountShell › Workspace`: invite, role select, per-app seat checkboxes, enterprise permission toggles. Data layer is live.
+3. Adopt `withAppAccess(...)` in Site Walk / Tours / Design Studio / Content Studio API routes.
+4. Branch server components on `readProjectViewMode()` where Owner/Leadership views must differ from My view.
+5. Stand up `vitest.config.ts` + smoke specs for `assertCanInviteCollaborator`, `resolvePermissions`, `isCollaboratorOnly`.
+6. Operations Console subscription-status / cohort panel.
+
+---
+
+### Session Handoff — 2026-04-19d (CollaboratorShell + view selector + permissions resolver + app-access guard)
+
+### What Changed (commit `99cf0e7`)
+- **Trapped-collaborator shell**: `app/(collaborator)/collaborator/layout.tsx` + `page.tsx`. Layout calls `isCollaboratorOnly(user.id)` (new `lib/server/collaborator-mode.ts`) — if user has any `organization_members` row they bounce to `/dashboard`; otherwise they get `CollaboratorShell` (`components/collaborator/CollaboratorShell.tsx`) with stripped sidebar (My projects / Shared files / Comments / Account) and a persistent cobalt upgrade banner. Landing lists their projects via `listCollaboratorProjects()`.
+- **Invite redemption now routes correctly**: `lib/server/invites.ts` checks `organization_members` after acceptance — invitees with no org go to `/collaborator`, everyone else to `/projects/{id}` as before.
+- **Project view selector**:
+  - `lib/server/project-view.ts` — cookie name + reader (`readProjectViewMode()` returns `"my" | "owner" | "leadership"`).
+  - `app/api/projects/view-mode/route.ts` — POST sets the cookie (sameSite=lax, 30d).
+  - `components/projects/ProjectViewSelector.tsx` — client `<select>` that POSTs + `router.refresh()`.
+  - `app/(dashboard)/projects/[projectId]/layout.tsx` — mounts the selector next to the status pill, computes `allowedModes` from role (viewer→`["leadership"]`, admin→all three, member→`["my","owner"]`). Also adds the **People** tab to the nav.
+- **Enterprise per-feature permissions resolver**:
+  - `lib/server/org-context.ts` exports `PERMISSION_KEYS`, `PermissionKey`, `MemberPermissions`, and `resolvePermissions()`.
+  - `ServerOrgContext.permissions: MemberPermissions` resolved on every request — enterprise reads `organization_members.permissions` jsonb, every other tier falls back to `isAdmin`.
+  - All four return paths (no-user / no-membership / success / catch) wired with the resolver.
+  - The membership query now selects the `permissions` column.
+- **App-access guard for routes**: `lib/server/api-app-access.ts`:
+  - `APP_ACCESS_KEYS` = `site_walk | tours | design_studio | content_studio`.
+  - `userHasAppAccess(userId, orgId, appKey)` — owner/admin pass implicitly, otherwise checks `org_member_app_access`.
+  - `withAppAccess(appKey, req, handler)` — drop-in wrapper that returns 403 `No seat assigned for {app}` when the grant is missing.
+- Validation: `npm run typecheck` clean. File-size guard clean.
 
 ### What's Broken / Partially Done
-- Blank-canvas rebuilds are not implemented yet for the 4 target surfaces; only the replacement boundaries and reuse contracts are now defined
-- `app/(dashboard)/project-hub/[projectId]` plus the thin `/projects/[projectId]/*` re-export wrappers remain the main legacy contamination source under the project detail tree
-- `components/slatedrop/ProjectFileExplorer.tsx` and `components/slatedrop/useProjectFileExplorer.ts` are isolated legacy explorer code and strong delete candidates once the replacement pass begins
-- `components/slatedrop/SlateDropClient.tsx` should be treated as a visible-surface rebuild candidate at the shell/composition level even though its backend hooks and file APIs remain reusable
-- `bash scripts/check-file-size.sh` still reports pre-existing oversized files outside this planning slice: `app/api/dashboard/widgets/route.ts`, `components/calendar/CalendarWidget.tsx`, `components/marketing-homepage.tsx`, `components/project-hub/ObservationsClient.tsx`, `components/ui/sidebar.tsx`, `components/widgets/WidgetBodies.tsx`
+- **3 migrations still not applied to live Supabase**: `20260419120000_project_collaborator_invites`, `20260419130000_org_member_app_access`, `20260419130001_org_members_permissions`. Until applied, `permissions` reads short-circuit through the `catch` branch (returns the fallback resolver). People tab + invite API will hard-fail until the first migration lands.
+- **Members & Roles tab** in `MyAccountShell` still placeholder — the data layer is now ready (`organization_members` + `org_member_app_access` + `permissions`) so this is purely a UI build.
+- **No route uses `withAppAccess` yet** — the wrapper exists but isn't wired to Site Walk / Tours / Design Studio / Content Studio routes. Adopt incrementally.
+- **Trapped-collaborator detection is membership-based, not invite-based**: a paying user who happens to be added as a collaborator on someone else's project will NOT be trapped (correct). But a fresh invitee who happens to also start their own org later will keep `isCollaboratorOnly()` returning false (correct). Edge case: if we ever support "collaborator-only" enterprise-level users we'll need a separate flag.
+- **View selector is presentation-only right now** — server components don't yet branch on `readProjectViewMode()`. Hook it into the per-tab queries (e.g. owner view widens scope, leadership view forces read-only) when those views need to differ from "my view".
+- **No automated tests added** — would require setting up vitest config first (none exists). Deferred.
+- `lib/email.ts` is at 280 lines — close to the 300 cap. Future templates should go in dedicated modules like `lib/email-collaborators.ts`.
 
 ### Context Files Updated
-- `slate360-context/ONGOING_ISSUES.md`: recorded the strategy shift to blank-canvas replacement planning for the 4 visible Phase 1 surfaces
-- `SLATE360_PROJECT_MEMORY.md`: refreshed the handoff with the replacement-boundary audit and next implementation order
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
 
 ### Next Steps (ordered)
-1. Rebuild the Web Command Center visible composition behind the existing `/dashboard` route while preserving `resolveUsageTruth`, `/api/dashboard/summary`, `/api/projects/summary`, and auth/navigation guards
-2. Rebuild the `/projects` surface with a new list/directory composition and a new project-creation flow while preserving project create/delete APIs and folder provisioning
-3. Rebuild the `/projects/[projectId]` home composition behind the existing server data loader, then decide whether deeper wrapper-backed `/projects/[projectId]/*` Phase 2 routes should be migrated or gated
-4. Rebuild the project-scoped SlateDrop visible shell around the existing file APIs, upload/finalize flow, and project folder model; delete `ProjectFileExplorer` only when the new shell is wired
+1. Apply the 3 outstanding migrations on Supabase. Smoke-test the People tab → invite via email → click link → arrive at `/collaborator` (new user) or `/projects/{id}` (existing org user).
+2. Wire `MyAccountShell › Workspace › Members & Roles` to live `organization_members` (invite, role select, per-app seat checkboxes, enterprise permission toggles).
+3. Adopt `withAppAccess(...)` in the Site Walk / Tours / Design Studio / Content Studio API routes.
+4. Branch server components on `readProjectViewMode()` where views need to actually differ (e.g. punch list "Owner view" reveals assignments, "Leadership view" hides edit controls).
+5. Stand up `vitest.config.ts` + `package.json`'s `"test"` script and write smoke specs for: `assertCanInviteCollaborator` (trial throws, standard at 3 throws, enterprise unlimited), `resolvePermissions` (enterprise honors keys; standard ignores them), `isCollaboratorOnly` (org-member → false, project-only → true).
+6. Operations Console subscription-status / cohort panel — still pending from earlier handoff.
+
+---
+
+### Session Handoff — 2026-04-19c (Collaborator invite end-to-end: API + People tab + SMS + 2 migrations)
+
+### What Changed
+- **Migrations** (HEAD `1e63650`):
+  - `supabase/migrations/20260419130000_org_member_app_access.sql` — new table for per-member app seat assignment (`site_walk` / `tours` / `design_studio` / `content_studio`), with RLS scoped to org admins (write) and the member themselves (read).
+  - `supabase/migrations/20260419130001_org_members_permissions.sql` — adds `permissions jsonb default '{}'` to `organization_members` for enterprise per-feature overrides. Comment lists recognized keys. **No** runtime read-side wired yet — populating the column is a no-op until `org-context.ts` reads it.
+- **Backend**:
+  - `lib/sms.ts` — Twilio REST client implemented via `fetch()` (no SDK dependency). `sendSms()` returns a typed `SmsResult`; missing env → `{ ok:false, reason:"missing_config" }` and a dev-mode warn. E.164 validator exported.
+  - `lib/email-collaborators.ts` — new `sendCollaboratorInviteEmail()` using the existing branded HTML wrapper from `lib/email.ts` (kept here so `lib/email.ts` stays under 300 lines). HTML-escapes all interpolated user input.
+  - `lib/server/collaborator-data.ts` — `loadProjectPeople(projectId, orgId)` returns `{ members, pendingInvites, leadershipViewers }`. Hydrates user emails/names from `profiles` (single round trip via `.in()`).
+  - `app/api/projects/[projectId]/collaborators/route.ts` — GET, returns the people payload + `seatUsage: { used, limit | null }`.
+  - `app/api/projects/[projectId]/collaborators/invite/route.ts` — POST, zod-validated, runs `assertCanInviteCollaborator`, mints an `invitation_tokens` row (`max_redemptions=1`, 14-day TTL), inserts the invite row, then dispatches via email/SMS/both/link. Returns `{ inviteId, inviteUrl, qrPayload, delivery }`.
+  - `app/api/projects/[projectId]/collaborators/[inviteId]/revoke/route.ts` — POST, sets status=revoked + revokes the underlying token.
+  - `app/api/projects/[projectId]/collaborators/[inviteId]/resend/route.ts` — POST, re-dispatches over the original channel and bumps `send_count` + `last_sent_at`.
+  - All routes use the **real** wrappers (`withProjectAuth(req, ctx, handler)` / `ok` / `badRequest` / `conflict` / `serverError`), not the wrong shape an external AI suggested.
+- **UI**:
+  - `app/(dashboard)/projects/[projectId]/people/page.tsx` — server component that calls `loadProjectPeople` and `countActiveCollaborators` directly (no internal HTTP).
+  - `components/projects/ProjectPeopleView.tsx` — client view, three sections (Project members / Outside collaborators with seat counter / Leadership viewers), inline resend+revoke buttons.
+  - `components/projects/PeopleSection.tsx` — primitive list section.
+  - `components/projects/CollaboratorInviteModal.tsx` — channel-aware form (email / sms / both / link). Link mode reveals the URL for QR/copy. Disables when at seat limit.
+- `.env.example` — added `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_FROM`.
+- Validation: `npm run typecheck` clean. File-size guard clean (none of the new files >300 lines).
+
+### What's Broken / Partially Done
+- **Migrations not yet applied** to live Supabase — `20260419120000`, `20260419130000`, `20260419130001`. Apply them before the People tab is exercised in prod. The invite redemption code in `lib/server/invites.ts` already swallows missing-table errors.
+- **No "trapped collaborator" shell built yet** (`CollaboratorShell` + `(collaborator)` route group) — invited users with no subscription currently land on the regular dashboard. Next big UX item.
+- **No `ProjectViewSelector`** (header view selector for `My / Owner / Leadership view`) — placeholder per design doc.
+- **`organization_members.permissions` column not yet read anywhere** — runtime resolver in `org-context.ts` still needs to surface it (enterprise tier only).
+- **Per-app seat assignment UI** for `org_member_app_access` not built — `MyAccountShell › Members & Roles` placeholder still.
+- **Missing `withAppAccess` middleware** — nothing yet enforces `org_member_app_access` at the route level.
+- **Twilio package**: not in `package.json`. `lib/sms.ts` uses raw REST so it works with zero deps — keep it that way unless you need MMS / verify / etc.
+- No automated tests added this session (deferred — see next steps).
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
+- (Did **not** edit `slate360-context/ORG_ROLES_AND_PERMISSIONS.md` because the design there is still accurate; only the "Backend Status" table now needs the People-tab + invite-API rows flipped to live — handle in next chat.)
+
+### Next Steps (ordered)
+1. Run the 3 outstanding migrations on Supabase (`20260419120000`, `20260419130000`, `20260419130001`) and smoke the People tab end-to-end (invite via email → check inbox → click link → land on `/projects/{id}` as a collaborator).
+2. Build `CollaboratorShell` + `app/(collaborator)/layout.tsx` for invitees with no subscription. Use `project_members.role='collaborator'` + tier='trial' + no other org membership as the trap condition.
+3. Build `components/projects/ProjectViewSelector.tsx` and mount it in the project header — wire it to a server-readable cookie or query param so server components can render the right slice.
+4. Wire `MyAccountShell › Members & Roles` to live `organization_members` + `org_member_app_access` (invite, role select, per-app checkboxes, permissions toggles for enterprise tier).
+5. Surface `organization_members.permissions` in `lib/server/org-context.ts` (enterprise-only) and add helpers `can('canViewBilling')` etc.
+6. Add `withAppAccess(appKey, …)` middleware mirroring `withAppAuth` but enforcing `org_member_app_access` for sub-app routes.
+7. Tests: vitest smoke for `assertCanInviteCollaborator` (trial=throw, standard at 3=throw, enterprise=infinity), and an integration test for the invite POST happy path (mock admin client).
+8. Operations Console subscription-status / cohort panel — still pending from earlier handoff.
+
+---
+
+### Session Handoff — 2026-04-19 (Cobalt+Steel palette + viewer role + collaborator plan)
+
+### What Changed
+- **Brand palette swapped from Amber+Teal to Cobalt+Steel** across the app:
+  - `app/globals.css`: `--primary` → `#3B82F6` (cobalt-500), `--primary-hover` → `#2563EB`, `--primary-foreground` → `#0B1220`, `--ring` → `#3B82F6`, `--accent-teal` → `#94A3B8` (steel-400), `--accent-teal-soft` → `rgba(148,163,184,0.18)`, `--slate-gold/accent` → cobalt, all sidebar tokens, all `--app-glow-*`, `btn-amber-soft`/`btn-teal-outline` utilities, `auth-page`/`auth-input`/`auth-btn-primary` utilities.
+  - `lib/design-system/tokens.ts`: `brand.gold/goldHover/goldRing/goldGlow`, HSL strings, `teal/tealSoft/tealHover`, `appShell.glowAmber/glowAmberStrong`, all `modules.*` accents → cobalt + cobalt-deep.
+  - `lib/types/branding.ts`: `DEFAULT_BRANDING.primary_color` → `#3B82F6`.
+  - Logos: `public/logo.svg` and `public/uploads/slate360-logo-reversed-v2.svg` — `cls-2` fill swapped from amber to cobalt. Cache-bust string `?v=amber-2026-04-19` → `?v=cobalt-2026-04-19` everywhere.
+  - Mass `sed` swept all `.ts/.tsx/.css` under `app/`, `components/`, `lib/`, `hooks/`: `#F59E0B/#f59e0b → #3B82F6`, `#D97706/#d97706 → #2563EB`, `#E64500/#e64500/#E04400/#162D69 → #1D4ED8`, `#451a03 → #0B1220`, `#5E8E8E → #94A3B8`, `rgba(245,158,11,…) → rgba(59,130,246,…)`, `rgba(217,119,6,…) → rgba(37,99,235,…)`, `rgba(94,142,142,…) → rgba(148,163,184,…)`. Verified zero stragglers outside `app/palette-lab/` (now deleted).
+  - `app/palette-lab/` deleted (526-line sandbox served its purpose).
+- **Viewer role wired into the server context:**
+  - `lib/server/org-context.ts`: `roleRank()` now returns `viewer=3`. `ServerOrgContext` adds `isViewer: boolean` and `canEditOrg: boolean`. All return paths (no-user, no-membership, success, catch) updated. The `org_role` enum already included `viewer` (migration `20260406000003_org_member_roles.sql`) so no SQL change needed.
+- **Collaborator + leadership-view plan documented** (no code yet — design only):
+  - `slate360-context/ORG_ROLES_AND_PERMISSIONS.md`: appended a long Project Collaborators section (data model with new `project_collaborator_invites` table, seat-limit enforcement, multi-channel invite flow incl. SMS via Twilio, two UI variations for collaborators with/without subscriptions, list of code surfaces to build) plus a Leadership View section (the ASU-director use case packaged into a single `Project › People` tab + a header-level view selector with `My view / Owner view / Leadership view`) plus a Backend Status table marking what's live vs gap.
+  - `docs/SLATE360_MASTER_BUILD_PLAN.md`: updated the collaborator onboarding path to reference SMS/QR channels and the Collaborator Shell, and links out to the new design doc as single source of truth.
+- Validation: `npm run typecheck` clean after every change.
+
+### What's Broken / Partially Done
+- **No backend code yet** for the new collaborator pieces — only the plan doc. Specifically still missing: `project_collaborator_invites` migration, `org_member_app_access` migration, `org_members.permissions` jsonb migration, `maxCollaborators` in `lib/entitlements.ts`, `lib/sms.ts` (Twilio), the `Project › People` tab, the `CollaboratorShell` no-subscription view, the view-selector packaging, and the Operations Console subscription-status panel. Status table at the bottom of `ORG_ROLES_AND_PERMISSIONS.md` is the source of truth.
+- Members & Roles, Permissions, Audit Log tabs in `MyAccountShell` are still placeholders (rendering `<PlaceholderTab>`). Now that `viewer` is in `ServerOrgContext`, the Members tab can be wired with role assignment when built.
+- Tailwind utility classes `bg-amber-*` / `text-amber-*` / `border-amber-*` / `ring-amber-*` were intentionally NOT swept — they encode semantic warning / "in progress" status in punch-list, billing past-due, AccountDataTrackerTab, etc. A handful of brand-only usages (e.g. SceneUploader hover, AccountAdminCards "Internal Owner" badge) remain amber and look slightly off-brand. Punch them up if/when the visual review surfaces them.
+- Production-deployment work for the homepage cutover (commit `7cce7b9`) noted in the previous handoff is unrelated and unaffected.
+
+### Context Files Updated
+- `app/globals.css`: cobalt+steel tokens + utility classes.
+- `lib/design-system/tokens.ts`: brand/accent tokens.
+- `lib/types/branding.ts`: default primary color.
+- `lib/server/org-context.ts`: viewer role wired.
+- `public/logo.svg`, `public/uploads/slate360-logo-reversed-v2.svg`: cobalt fill.
+- `slate360-context/ORG_ROLES_AND_PERMISSIONS.md`: viewer marked live; full collaborator + leadership-view design appended.
+- `docs/SLATE360_MASTER_BUILD_PLAN.md`: collaborator onboarding section updated.
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
+
+### Next Steps (ordered)
+1. Visual QA of the cobalt+steel skin on `/dashboard`, `/projects`, `/slatedrop`, `/login`, `/signup`, `/preview/marketing-home`, `/preview/mobile-shell-v2`. Hard-refresh to bust any cached SVG. Capture any amber/steel utility-class stragglers worth sweeping.
+2. Write the migration `project_collaborator_invites` (schema in `ORG_ROLES_AND_PERMISSIONS.md`).
+3. Add `maxCollaborators` to `lib/entitlements.ts` per tier and surface it in `getEntitlements()`.
+4. Build `Project › People` tab (`app/(dashboard)/projects/[projectId]/people/page.tsx`) wrapping the existing `app/api/invites/generate/route.ts` for the email/QR path; stub SMS until Twilio creds are added.
+5. Build `CollaboratorShell` no-subscription view + the header view-selector (`My view / Owner view / Leadership view`).
+6. Wire `MyAccountShell › Workspace › Members & Roles` to the live `organization_members` table now that `isViewer` exists in context — invite + role select + per-app seat assignment.
+7. Operations Console subscription-status / cohort segmentation panel.
+
+### Earlier Handoff — 2026-04-18
+
+### What Changed
+- `app/page.tsx`: the live homepage route no longer renders `components/marketing-homepage.tsx`; it now serves `components/home/LandingPage.tsx`, making the extracted home stack the active homepage source of truth.
+- `components/home/LandingHeader.tsx`, `HeroSection.tsx`, `AppShowcaseSection.tsx`, `PricingSection.tsx`, `CTASection.tsx`, `LandingFooter.tsx`, and `LoginModal.tsx`: the live homepage stack now uses shared design-system primitives (`SlateCTA`, `SlateCard`, `SlateSectionHeader`) in the highest-visibility sections instead of the old ad hoc shadcn-only treatment.
+- `components/shared/SlateLogo.tsx`: shared logo usage now covers the active homepage, auth pages, dashboard top bar/sidebar/header, mobile nav sheet, Site Walk header, SlateDrop top bar, external response portal, and the preview marketing page. Repo searches now show no remaining raw app/component logo-path references outside `SlateLogo.tsx` itself.
+- Git / deploy promotion: committed `7cce7b9` (`Cut homepage to extracted landing shell`), pushed `refactor/brand-token-migration-core-surfaces`, and fast-forwarded `main` to `7cce7b9`. The Vercel production deployment for `7cce7b9` (`dpl_HDVXFzWGum1Zqw8JjgsCCBNiwCAS`) is currently building.
+- Validation: `npm run typecheck` passed; local runtime spot-checks against `http://127.0.0.1:3000/` returned the extracted landing-page copy and the shared logo asset.
+
+### What's Broken / Partially Done
+- Production deployment for `7cce7b9` is still building, so live browser verification of the new homepage cutover is still pending.
+- `components/marketing-homepage.tsx` remains in the repo as a pre-existing 1112-line monolith, but it is no longer the live homepage route.
+- `mobile-smoke` CI gate still fails (pre-existing, not touched in this slice).
+- Site Walk backend plumbing is mostly present, but three blockers remain before a confident UI build sprint: deliverable editor persistence is still uncertain (`S360-020`), core Phase 1 workflow gaps remain (`S360-019`), and offline capture queue wiring is still not connected to Site Walk components.
+- The repo still contains unrelated local scratch/untracked asset files and deletions (`find_shell.mjs`, `get_git*.mjs`, extra SVGs, deleted screenshots/icons). They were intentionally left untouched.
+
+### Context Files Updated
+- `ONGOING_ISSUES.md`: updated `S360-037` to reflect that `/` now renders the extracted `components/home/*` stack and that commit `7cce7b9` was promoted to `main`.
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
+
+### Next Steps (ordered)
+1. Wait for the Vercel production deployment for `7cce7b9` to reach `READY`, then visually verify the live homepage and auth/shell logo continuity on desktop and mobile.
+2. If homepage direction is accepted, continue the same extracted-home migration by either deleting or freezing `components/marketing-homepage.tsx` so it cannot drift back into use.
+3. Start the Site Walk UI sprint only after defining the first slice around already-real backend paths: session board/list/detail/review, while explicitly deferring offline capture and unresolved deliverable-persistence work unless those are part of the first milestone.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: future-chat startup context now lists Cloudflare R2 access and verification commands.
+- `.github/copilot-instructions.md`: startup instructions now include Cloudflare R2 in services and environment sources.
+- `docs/ENV_AND_TOOL_MATRIX.md`: added the external service/env/tool matrix, including the Cloudflare R2 contract and verification commands.
+- `docs/reference/R2_CUTOVER_CHECKLIST.md`: added the R2 production cutover and bucket CORS checklist.
+- `ONGOING_ISSUES.md`, `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json`: recorded the resolved R2 CORS blocker and the resolved unified_files/share-link bridge mismatch.
+- `slate360-context/BACKEND.md`: documented the shared storage client R2 env contract plus the tracked `unified_files` bridge.
+- `slate360-context/SUPABASE_EMAIL_TEMPLATES.md`: updated the documented confirm-signup template to match the Slate360 app palette.
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
+
+### Next Steps (ordered)
+1. Merge or deploy this branch so the production domain picks up the `unified_files` share bridge and the updated R2/CSP changes, then rerun the hosted smoke pass.
+2. If preview smoke automation is required before merge, provide a Vercel preview-protection bypass or temporarily relax preview protection for the branch deployment.
+3. Continue the homepage/web-shell visual migration by extracting the remaining live `components/marketing-homepage.tsx` sections into the already-existing `components/home/*` structure instead of extending the 1,100-line monolith.
+4. Decide whether `slate360-storage` should remain the canonical bucket name on R2 or whether the project should move to a distinct R2 bucket before production cutover.
 
 ### Session Handoff — 2026-04-14 (Command Center Cleanup Follow-Up)
 

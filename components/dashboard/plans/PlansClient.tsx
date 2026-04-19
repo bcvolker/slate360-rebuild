@@ -77,13 +77,13 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
 
         {/* Tab bar */}
         <div className="flex justify-center mb-8">
-          <div className="inline-flex items-center rounded-full border border-zinc-700 bg-zinc-900 p-1 gap-0.5 overflow-x-auto">
+          <div className="inline-flex items-center rounded-full border border-app bg-app-card p-1 gap-0.5 overflow-x-auto">
             {PLAN_TABS.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${
-                  tab === t.id ? "bg-zinc-800 text-white shadow" : "text-zinc-500 hover:text-zinc-300"
+                  tab === t.id ? "bg-white/[0.04] text-white shadow" : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
                 {t.label}
@@ -119,12 +119,12 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
       </section>
 
       {/* FAQ */}
-      <section className="py-16 px-4 sm:px-6 border-t border-zinc-800">
+      <section className="py-16 px-4 sm:px-6 border-t border-app">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl font-black mb-8 text-center">Frequently asked questions</h2>
           <div className="space-y-4">
             {PLAN_FAQS.map((faq) => (
-              <details key={faq.q} className="group border border-zinc-800 rounded-xl">
+              <details key={faq.q} className="group border border-app rounded-xl">
                 <summary className="flex items-center justify-between px-5 py-4 cursor-pointer text-sm font-semibold text-zinc-200 hover:text-white">
                   {faq.q}
                   <ChevronRight size={14} className="text-zinc-500 transition-transform group-open:rotate-90" />
@@ -144,7 +144,7 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
 function AppCard({ plan, busyId, onCheckout }: { plan: AppPlanDisplay; busyId: string | null; onCheckout: (k: string) => void }) {
   const key = `${plan.appId}_${plan.tier}`;
   return (
-    <div className={`rounded-2xl p-6 relative flex flex-col ${plan.highlight ? "border-2 border-orange-500 bg-zinc-900 shadow-xl shadow-orange-500/5" : "border border-zinc-800 bg-zinc-900"}`}>
+    <div className={`rounded-2xl p-6 relative flex flex-col ${plan.highlight ? "border-2 border-orange-500 bg-app-card shadow-xl shadow-orange-500/5" : "border border-app bg-app-card"}`}>
       {plan.highlight && (
         <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-white bg-orange-500 flex items-center gap-1">
           <Sparkles size={10} /> Recommended
@@ -165,7 +165,7 @@ function AppCard({ plan, busyId, onCheckout }: { plan: AppPlanDisplay; busyId: s
           ))}
         </ul>
       </div>
-      <button onClick={() => onCheckout(key)} disabled={busyId !== null} className={`flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-[1.02] disabled:opacity-60 ${plan.highlight ? "bg-orange-500 text-white" : "border border-zinc-700 text-zinc-300 hover:bg-zinc-800"}`}>
+      <button onClick={() => onCheckout(key)} disabled={busyId !== null} className={`flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-[1.02] disabled:opacity-60 ${plan.highlight ? "bg-orange-500 text-white" : "border border-app text-zinc-300 hover:bg-white/[0.04]"}`}>
         {busyId === key ? <Loader2 size={14} className="animate-spin" /> : <>Subscribe <ChevronRight size={14} className="ml-1" /></>}
       </button>
     </div>
@@ -175,7 +175,7 @@ function AppCard({ plan, busyId, onCheckout }: { plan: AppPlanDisplay; busyId: s
 function BundleCard({ bundle, busyId, onCheckout }: { bundle: BundlePlanDisplay; busyId: string | null; onCheckout: (k: string) => void }) {
   const key = `bundle_${bundle.bundleId}`;
   return (
-    <div className={`rounded-2xl p-6 relative flex flex-col ${bundle.highlight ? "border-2 border-orange-500 bg-zinc-900 shadow-xl shadow-orange-500/5" : "border border-zinc-800 bg-zinc-900"}`}>
+    <div className={`rounded-2xl p-6 relative flex flex-col ${bundle.highlight ? "border-2 border-orange-500 bg-app-card shadow-xl shadow-orange-500/5" : "border border-app bg-app-card"}`}>
       {bundle.highlight && (
         <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-white bg-orange-500 flex items-center gap-1">
           <Package size={10} /> Best value
@@ -208,7 +208,7 @@ function AddonsSection({ busyId, onCheckout }: { busyId: string | null; onChecko
   return (
     <div className="space-y-6">
       {/* SlateDrop Pro */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-app bg-app-card p-6">
         <div className="flex items-center gap-2 mb-2">
           <Zap size={16} className="text-orange-400" />
           <h3 className="text-base font-black">{ADDONS_DISPLAY.slatedropPro.name}</h3>
@@ -220,17 +220,17 @@ function AddonsSection({ busyId, onCheckout }: { busyId: string | null; onChecko
             <li key={f} className="flex items-start gap-2 text-xs text-zinc-400"><Check size={12} className="text-orange-400 flex-shrink-0 mt-0.5" />{f}</li>
           ))}
         </ul>
-        <button onClick={() => onCheckout("slatedrop_pro")} disabled={busyId !== null} className="px-6 py-2 rounded-full text-sm font-semibold border border-zinc-700 text-zinc-300 hover:bg-zinc-800 transition-all disabled:opacity-60">
+        <button onClick={() => onCheckout("slatedrop_pro")} disabled={busyId !== null} className="px-6 py-2 rounded-full text-sm font-semibold border border-app text-zinc-300 hover:bg-white/[0.04] transition-all disabled:opacity-60">
           {busyId === "slatedrop_pro" ? <Loader2 size={14} className="animate-spin" /> : <>Add <Plus size={12} className="ml-1" /></>}
         </button>
       </div>
 
       {/* Storage add-ons */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-base font-black mb-3">Extra Storage</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {ADDONS_DISPLAY.storage.map((s) => (
-            <div key={s.label} className="flex items-center justify-between border border-zinc-800 rounded-xl px-4 py-3">
+            <div key={s.label} className="flex items-center justify-between border border-app rounded-xl px-4 py-3">
               <span className="text-sm text-zinc-300">{s.label}</span>
               <span className="text-sm font-bold text-orange-400">{s.price}</span>
             </div>
@@ -239,11 +239,11 @@ function AddonsSection({ busyId, onCheckout }: { busyId: string | null; onChecko
       </div>
 
       {/* Credit packs */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-base font-black mb-3">Credit Packs</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {ADDONS_DISPLAY.credits.map((c) => (
-            <div key={c.label} className="flex items-center justify-between border border-zinc-800 rounded-xl px-4 py-3">
+            <div key={c.label} className="flex items-center justify-between border border-app rounded-xl px-4 py-3">
               <span className="text-sm text-zinc-300">{c.label}</span>
               <span className="text-sm font-bold text-orange-400">{c.price}</span>
             </div>

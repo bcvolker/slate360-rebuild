@@ -41,13 +41,13 @@ export default function ProjectHubWidgetBody({
   if (id === "slatedrop") {
     return (
       <div className="space-y-4">
-        <div className="inline-flex items-center rounded-lg border border-zinc-700 p-0.5">
+        <div className="inline-flex items-center rounded-lg border border-app p-0.5">
           <button
             onClick={() => onSlateDropWidgetViewChange("recent")}
             className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors ${
               slateDropWidgetView === "recent"
-                ? "bg-[#D4AF37] text-white"
-                : "text-zinc-400 hover:bg-zinc-800"
+                ? "bg-[#3B82F6] text-white"
+                : "text-zinc-400 hover:bg-white/[0.04]"
             }`}
           >
             Recent
@@ -56,8 +56,8 @@ export default function ProjectHubWidgetBody({
             onClick={() => onSlateDropWidgetViewChange("folders")}
             className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors ${
               slateDropWidgetView === "folders"
-                ? "bg-[#D4AF37] text-white"
-                : "text-zinc-400 hover:bg-zinc-800"
+                ? "bg-[#3B82F6] text-white"
+                : "text-zinc-400 hover:bg-white/[0.04]"
             }`}
           >
             Folder View
@@ -70,7 +70,7 @@ export default function ProjectHubWidgetBody({
               slateDropFiles.map((file, index) => (
                 <div
                   key={`${file.name}-${index}`}
-                  className="flex items-center gap-2.5 p-2 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 transition-colors"
+                  className="flex items-center gap-2.5 p-2 rounded-lg bg-white/[0.04]/50 hover:bg-white/[0.04] transition-colors"
                 >
                   <FileText size={13} className="text-zinc-500 shrink-0" />
                   <span className="text-[11px] text-zinc-300 truncate flex-1">{file.name}</span>
@@ -83,9 +83,9 @@ export default function ProjectHubWidgetBody({
         ) : (
           <div className="grid grid-cols-1 gap-2">
             {(slateDropFolders.length > 0 ? slateDropFolders : FALLBACK_FOLDER_VIEW).map((folder) => (
-              <div key={folder.name} className="rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 py-2">
+              <div key={folder.name} className="rounded-lg border border-app bg-white/[0.04]/50 px-3 py-2">
                 <p className="text-[11px] font-semibold text-zinc-200 flex items-center gap-1.5">
-                  <FolderOpen size={12} className="text-[#D4AF37]" /> {folder.name}
+                  <FolderOpen size={12} className="text-[#3B82F6]" /> {folder.name}
                 </p>
                 {"description" in folder ? (
                   <p className="text-[10px] text-zinc-500 mt-1">{folder.description}</p>
@@ -101,7 +101,7 @@ export default function ProjectHubWidgetBody({
 
         <Link
           href="/slatedrop"
-          className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#D4AF37] hover:underline"
+          className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#3B82F6] hover:underline"
         >
           <FolderOpen size={10} /> Open SlateDrop →
         </Link>

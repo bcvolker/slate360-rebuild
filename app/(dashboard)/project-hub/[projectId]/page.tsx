@@ -59,9 +59,9 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
   const pendingTasks = allTasks.filter((t: any) => t.status !== "Completed" && t.status !== "Done").length;
 
   const stats = [
-    { label: "Open RFIs", value: openRfis, sub: `${rfisData.length} total`, href: `/project-hub/${projectId}/rfis`, color: "#D4AF37", Icon: ClipboardList },
+    { label: "Open RFIs", value: openRfis, sub: `${rfisData.length} total`, href: `/project-hub/${projectId}/rfis`, color: "#3B82F6", Icon: ClipboardList },
     { label: "Submittals", value: openSubmittals, sub: "pending review", href: `/project-hub/${projectId}/submittals`, color: "#7C3AED", Icon: FileCheck2 },
-    { label: "Schedule Tasks", value: pendingTasks, sub: "active tasks", href: `/project-hub/${projectId}/schedule`, color: "#D4AF37", Icon: CalendarCheck2 },
+    { label: "Schedule Tasks", value: pendingTasks, sub: "active tasks", href: `/project-hub/${projectId}/schedule`, color: "#3B82F6", Icon: CalendarCheck2 },
     { label: "Budget", value: "View", sub: "Financials", href: `/project-hub/${projectId}/budget`, color: "#059669", Icon: DollarSign },
     { label: "Team Members", value: memberCount, sub: "on this project", href: `/project-hub/${projectId}`, color: "#0891B2", Icon: Users },
     { label: "Punch List", value: "View", sub: "Open items", href: `/project-hub/${projectId}/punch-list`, color: "#DC2626", Icon: ShieldAlert },
@@ -111,9 +111,9 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-black text-white flex items-center gap-2">
-                <CalendarCheck2 size={14} className="text-[#D4AF37]" /> Upcoming Schedule
+                <CalendarCheck2 size={14} className="text-[#3B82F6]" /> Upcoming Schedule
               </h3>
-              <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#D4AF37] hover:underline">Open Schedule →</Link>
+              <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#3B82F6] hover:underline">Open Schedule →</Link>
             </div>
             {nextTasks.length === 0 ? (
               <p className="text-xs text-zinc-500 py-2">No pending tasks.</p>
@@ -121,7 +121,7 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
               <ul className="space-y-2">
                 {nextTasks.map((t) => (
                   <li key={t.id} className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-800 border border-zinc-700">
-                    <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: t.status === "In Progress" ? "#D4AF37" : "#d1d5db" }} />
+                    <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: t.status === "In Progress" ? "#3B82F6" : "#d1d5db" }} />
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-zinc-200 truncate">{t.name}</p>
                       <p className="text-[10px] text-zinc-500">{t.end_date ? `Due ${new Date(t.end_date).toLocaleDateString()}` : "No due date"} · {t.status}</p>
@@ -136,7 +136,7 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
             <h3 className="text-sm font-black text-white mb-3">All Tools</h3>
             <div className="grid grid-cols-3 gap-2">
               {toolLinks.map(({ label, href, Icon }) => (
-                <Link key={label} href={href} className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl border border-zinc-800 bg-zinc-800/50 hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/30 transition-all text-center">
+                <Link key={label} href={href} className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl border border-zinc-800 bg-zinc-800/50 hover:bg-[#3B82F6]/10 hover:border-[#3B82F6]/30 transition-all text-center">
                   <Icon size={14} className="text-zinc-400" />
                   <span className="text-[10px] font-semibold text-zinc-300 leading-tight">{label}</span>
                 </Link>

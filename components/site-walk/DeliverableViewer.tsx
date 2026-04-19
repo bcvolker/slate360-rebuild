@@ -22,7 +22,7 @@ export function DeliverableViewer({
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       {/* Header */}
-      <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <header className="border-b border-zinc-200 bg-white dark:border-app dark:bg-app-card">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <FileText className="size-5 text-amber-500" />
@@ -63,7 +63,7 @@ export function DeliverableViewer({
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-200 py-6 text-center text-xs text-zinc-400 dark:border-zinc-800">
+      <footer className="border-t border-zinc-200 py-6 text-center text-xs text-zinc-400 dark:border-app">
         Powered by{" "}
         <a
           href="https://www.slate360.ai"
@@ -110,7 +110,7 @@ function ViewBlock({ block }: { block: EditorBlock }) {
               className="max-h-96 w-full rounded-md object-cover"
             />
           ) : (
-            <div className="flex aspect-video items-center justify-center rounded-md bg-zinc-100 dark:bg-zinc-800">
+            <div className="flex aspect-video items-center justify-center rounded-md bg-zinc-100 dark:bg-white/[0.04]">
               <span className="text-xs text-zinc-400">Image unavailable</span>
             </div>
           )}
@@ -122,7 +122,7 @@ function ViewBlock({ block }: { block: EditorBlock }) {
         </figure>
       );
     case "divider":
-      return <hr className="border-zinc-200 dark:border-zinc-800" />;
+      return <hr className="border-zinc-200 dark:border-app" />;
     case "callout":
       return <CalloutView block={block} />;
     default:

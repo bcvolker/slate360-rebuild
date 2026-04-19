@@ -2,63 +2,51 @@
 
 /**
  * DashboardHeader — Unified top bar shared by the dashboard home,
- * all tab pages, and SlateDrop standalone. Replaces the parallel
- * header implementations in DashboardClient and DashboardTabShell.
+ * all tab pages, and SlateDrop standalone.
  *
- * Tier-gated QuickNav, live notifications, customize trigger, and
- * user menu all live here so every page has exactly the same chrome.
+ * Layout (industry-standard):
+ *   [Back] [Logo]  [⌘K Search]  [QuickNav] [+] [🔔] [⚙] [?] [Avatar▾]
+ *
+ * Tier-gated QuickNav, live notifications, command palette, quick-create,
+ * help, and user menu all live here so every page has the same chrome.
+ *
+ * Sub-components extracted to `components/shared/header/` for size compliance.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
-  Bell,
-  ChevronDown,
   ChevronLeft,
-  CreditCard,
-  Loader2,
-  LogOut,
+  FolderPlus,
+  HelpCircle,
+  Inbox,
+  MapPin,
+  Plus,
   Search,
   SlidersHorizontal,
-  Activity,
 } from "lucide-react";
 import QuickNav from "@/components/shared/QuickNav";
 import MobileNavSheet from "@/components/shared/MobileNavSheet";
+import CommandPalette from "@/components/shared/CommandPalette";
+import NotificationsMenu, { type HeaderNotification } from "@/components/shared/header/NotificationsMenu";
+import UserMenu from "@/components/shared/header/UserMenu";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
-import { createClient } from "@/lib/supabase/client";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
-export type HeaderNotification = {
-  id: string;
-  project_id: string;
-  title: string;
-  message: string;
-  link_path?: string | null;
-  created_at: string;
-};
+export type { HeaderNotification };
 
 export interface DashboardHeaderProps {
   user: { name: string; email: string; avatar?: string };
   tier: Tier;
   isCeo?: boolean;
+  /** Org admin (owner/admin role). Controls billing visibility in user menu. */
+  isAdmin?: boolean;
   internalAccess?: { operationsConsole?: boolean };
-  /**
-   * When true, renders a "← Dashboard" back link in the left cluster.
-   * Set this on all tab pages; leave false (default) on the dashboard home itself.
-   */
   showBackLink?: boolean;
-  /** Active search query for pages that support real search. */
-  searchQuery?: string;
-  onSearchChange?: (q: string) => void;
+  /** Search shortcut placeholder (palette opens via ⌘K). */
   searchPlaceholder?: string;
-  /** Shows an amber dot on the customize button when there are unsaved widget prefs. */
   prefsDirty?: boolean;
-  /** Called when the user clicks the Customize (sliders) button. */
   onCustomizeOpen?: () => void;
-  /**
-   * Unread notifications to display in the bell dropdown.
-   * Pass an empty array while loading and after clearing.
-   */
   notifications?: HeaderNotification[];
   notificationsLoading?: boolean;
   onRefreshNotifications?: () => void;
@@ -68,11 +56,10 @@ export default function DashboardHeader({
   user,
   tier,
   isCeo = false,
+  isAdmin = true,
   internalAccess,
   showBackLink = false,
-  searchQuery = "",
-  onSearchChange,
-  searchPlaceholder = "Search…",
+  searchPlaceholder = "Search projects, files, people…",
   prefsDirty = false,
   onCustomizeOpen,
   notifications = [],
@@ -80,145 +67,120 @@ export default function DashboardHeader({
   onRefreshNotifications,
 }: DashboardHeaderProps) {
   const ent = getEntitlements(tier, { isSlateCeo: isCeo });
-  const router = useRouter();
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [billingBusy, setBillingBusy] = useState<"portal" | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
-  const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-  };
+  const [shortcutKey, setShortcutKey] = useState("⌘");
+  useEffect(() => {
+    setShortcutKey(typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl");
+  }, []);
 
-  const handleOpenBillingPortal = async () => {
-    setBillingBusy("portal");
-    try {
-      const res = await fetch("/api/billing/portal", { method: "POST" });
-      const data = (await res.json()) as { url?: string };
-      if (data?.url) window.location.href = data.url;
-    } finally {
-      setBillingBusy(null);
-    }
+  const closeAll = () => {
+    setUserMenuOpen(false);
+    setNotificationsOpen(false);
+    setCreateOpen(false);
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
+    <header className="sticky top-0 z-50 bg-app-page/80 backdrop-blur-xl border-b border-app">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center gap-3 sm:gap-6 h-14 sm:h-16">
 
         {/* ── Left cluster: Logo + optional back link ── */}
-        <div className="flex items-center gap-3 shrink-0">
-          <Link href="/" className="flex items-center gap-2.5">
-            <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-6 sm:h-7 w-auto" />
-          </Link>
+        <div className="flex items-center gap-2 shrink-0">
           {showBackLink && (
             <Link
               href="/dashboard"
-              className="hidden sm:flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-[#D4AF37] transition-colors"
+              aria-label="Back to Command Center"
+              title="Command Center"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-zinc-400 hover:bg-white/[0.04] hover:text-teal transition-colors"
             >
-              <ChevronLeft size={14} /> Command Center
+              <ChevronLeft size={18} />
             </Link>
           )}
+          <Link
+            href="/"
+            aria-label="Slate360 home"
+            title="Home"
+            className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+          >
+            <SlateLogo className="h-6 sm:h-7 w-auto" />
+          </Link>
         </div>
 
-        {/* ── Center: Search bar ── */}
-        <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
-          <div className="relative w-full">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
-            <input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchQuery}
-              readOnly={!onSearchChange}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-zinc-700 bg-zinc-900/50 text-sm text-white placeholder:text-zinc-500 focus:bg-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus:border-transparent transition-all"
-            />
-          </div>
+        {/* ── Center: ⌘K palette trigger ── */}
+        <div className="hidden md:flex items-center flex-1 max-w-md">
+          <button
+            onClick={() => { closeAll(); setPaletteOpen(true); }}
+            className="group relative w-full flex items-center gap-2 rounded-xl border border-app bg-app-card px-3 py-2 text-left text-sm text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300 hover:border-white/10 transition-all"
+            aria-label="Open command palette"
+          >
+            <Search size={15} />
+            <span className="flex-1 truncate">{searchPlaceholder}</span>
+            <kbd className="rounded border border-app bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-mono text-zinc-400">
+              {shortcutKey}K
+            </kbd>
+          </button>
         </div>
 
-        {/* ── Right cluster: QuickNav + Bell + Customize + User ── */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
+        {/* spacer keeps right cluster pinned right when search is hidden */}
+        <div className="flex-1 md:hidden" />
 
-          {/* Hamburger — mobile only (Sheet nav) */}
+        {/* ── Right cluster ── */}
+        <div className="flex items-center gap-1.5 sm:gap-3 ml-auto md:ml-0">
+          {/* Hamburger — mobile only */}
           <MobileNavSheet tier={ent.tier} isCeo={isCeo} internalAccess={internalAccess} />
 
           {/* QuickNav — desktop only */}
-          <div className="hidden sm:block">
+          <div className="hidden lg:block">
             <QuickNav tier={ent.tier} isCeo={isCeo} internalAccess={internalAccess} />
           </div>
 
-          {/* Notifications bell */}
+          {/* Quick-create + */}
           <div className="relative">
             <button
-              onClick={() => {
-                setNotificationsOpen((v) => !v);
-                setUserMenuOpen(false);
-                if (!notificationsOpen) onRefreshNotifications?.();
-              }}
-              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 transition-colors"
+              onClick={() => { closeAll(); setCreateOpen((v) => !v); }}
+              title="Create new…"
+              aria-label="Create new"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-white/[0.04] hover:text-teal transition-colors"
             >
-              <Bell size={18} />
-              {notifications.length > 0 && (
-                <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-[#D4AF37]" />
-              )}
+              <Plus size={18} />
             </button>
-
-            {notificationsOpen && (
+            {createOpen && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setNotificationsOpen(false)} />
-                <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 shadow-xl">
-                  <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
-                    <p className="text-sm font-bold text-white">Notifications</p>
-                    {onRefreshNotifications && (
-                      <button
-                        onClick={onRefreshNotifications}
-                        className="text-xs font-semibold text-[#D4AF37] hover:opacity-80"
-                      >
-                        Refresh
-                      </button>
-                    )}
-                  </div>
-                  <div className="max-h-[360px] overflow-y-auto">
-                    {notificationsLoading ? (
-                      <div className="px-4 py-6 text-sm text-zinc-500">
-                        <Loader2 size={14} className="mr-2 inline animate-spin" /> Loading…
-                      </div>
-                    ) : notifications.length === 0 ? (
-                      <div className="px-4 py-6 text-sm text-zinc-500">No unread alerts.</div>
-                    ) : (
-                      notifications.map((n) => (
-                        (() => {
-                          const href = (n.link_path ?? `/projects/${n.project_id}`).replace(/^\/project-hub(?=\/|$)/, "/projects");
-                          return (
-                        <Link
-                          key={n.id}
-                          href={href}
-                          onClick={() => setNotificationsOpen(false)}
-                          className="block border-b border-zinc-800/50 px-4 py-3 hover:bg-zinc-800"
-                        >
-                          <p className="text-sm font-semibold text-zinc-200">{n.title}</p>
-                          <p className="mt-0.5 text-xs text-zinc-400">{n.message}</p>
-                          <p className="mt-1 text-[11px] text-zinc-500">
-                            {new Date(n.created_at).toLocaleString()}
-                          </p>
-                        </Link>
-                          );
-                        })()
-                      ))
-                    )}
-                  </div>
+                <div className="fixed inset-0 z-40" onClick={() => setCreateOpen(false)} />
+                <div className="absolute right-0 top-12 z-50 w-52 rounded-xl border border-app bg-app-card shadow-xl py-1">
+                  <Link href="/projects?new=1" onClick={() => setCreateOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/[0.04] hover:text-white">
+                    <FolderPlus size={15} /> New Project
+                  </Link>
+                  <Link href="/site-walk?new=1" onClick={() => setCreateOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/[0.04] hover:text-white">
+                    <MapPin size={15} /> New Site Walk
+                  </Link>
+                  <Link href="/slatedrop?new=1" onClick={() => setCreateOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/[0.04] hover:text-white">
+                    <Inbox size={15} /> Send via SlateDrop
+                  </Link>
                 </div>
               </>
             )}
           </div>
 
-          {/* Customize */}
+          {/* Notifications */}
+          <NotificationsMenu
+            open={notificationsOpen}
+            onOpenChange={(v) => { closeAll(); setNotificationsOpen(v); }}
+            notifications={notifications}
+            loading={notificationsLoading}
+            onRefresh={onRefreshNotifications}
+          />
+
+          {/* Customize (only on dashboard home) */}
           {onCustomizeOpen && (
             <button
               onClick={onCustomizeOpen}
               title="Customize layout"
-              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-[#D4AF37] transition-colors"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-white/[0.04] hover:text-teal transition-colors"
             >
               <SlidersHorizontal size={18} />
               {prefsDirty && (
@@ -227,73 +189,33 @@ export default function DashboardHeader({
             </button>
           )}
 
-          {/* User avatar + dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => { setUserMenuOpen((v) => !v); setNotificationsOpen(false); }}
-              className="flex items-center gap-1.5 sm:gap-2.5 p-1 sm:pl-2 sm:pr-3 sm:py-1.5 rounded-xl hover:bg-zinc-800 transition-colors"
-            >
-              {user.avatar ? (
-                <img src={user.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-white text-xs font-bold">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="hidden sm:block text-left">
-                <p className="text-xs font-semibold text-white leading-tight">{user.name}</p>
-                <p className="text-[10px] text-zinc-400 leading-tight">{ent.label} plan</p>
-              </div>
-              <ChevronDown size={14} className="hidden sm:block text-zinc-500" />
-            </button>
+          {/* Help */}
+          <Link
+            href="/help"
+            title="Help & docs"
+            aria-label="Help and documentation"
+            className="hidden sm:flex w-9 h-9 sm:w-10 sm:h-10 rounded-xl items-center justify-center text-zinc-400 hover:bg-white/[0.04] hover:text-teal transition-colors"
+          >
+            <HelpCircle size={18} />
+          </Link>
 
-            {userMenuOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                <div className="absolute right-0 top-12 w-56 bg-zinc-900 rounded-xl border border-zinc-800 shadow-xl z-50 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-zinc-800">
-                    <p className="text-sm font-semibold text-white">{user.name}</p>
-                    <p className="text-xs text-zinc-400 truncate">{user.email}</p>
-                    <span
-                      className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-white bg-[#D4AF37]"
-                    >
-                      {ent.label}
-                    </span>
-                  </div>
-                  <div className="py-1">
-                    <Link
-                      href="/my-account"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
-                    >
-                      <Activity size={15} /> My Account
-                    </Link>
-                    <button
-                      onClick={handleOpenBillingPortal}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
-                    >
-                      {billingBusy === "portal" ? (
-                        <Loader2 size={15} className="animate-spin" />
-                      ) : (
-                        <CreditCard size={15} />
-                      )}
-                      Billing &amp; Payments
-                    </button>
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-400 hover:bg-red-950/30 transition-colors"
-                    >
-                      <LogOut size={15} /> Sign out
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+          {/* User menu */}
+          <UserMenu
+            user={user}
+            tierLabel={ent.label}
+            isAdmin={isAdmin}
+            open={userMenuOpen}
+            onOpenChange={(v) => { closeAll(); setUserMenuOpen(v); }}
+          />
         </div>
       </div>
 
-
+      {/* Global ⌘K command palette */}
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        hasOperationsConsoleAccess={Boolean(internalAccess?.operationsConsole)}
+      />
     </header>
   );
 }

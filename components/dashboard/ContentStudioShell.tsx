@@ -24,7 +24,7 @@ export default function ContentStudioShell({ user, tier, isCeo, internalAccess }
       status="coming-soon"
       requiredTier="standard"
     >
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 px-6 py-10 text-center">
+      <div className="rounded-2xl border border-app bg-app-card px-6 py-10 text-center">
         <p className="text-sm font-semibold text-white mb-1">Coming Soon</p>
         <p className="text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
           Content Studio — renderings, walkthrough videos, AI-assisted editing, and

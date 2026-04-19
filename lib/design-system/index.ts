@@ -27,3 +27,8 @@ export {
   SlateSectionHeader,
   SlateNavItem,
 } from "./primitives";
+
+export {
+  SlateContainedSection,
+  SlateSubtleToggle,
+} from "./containers";

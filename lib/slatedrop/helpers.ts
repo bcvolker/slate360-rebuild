@@ -35,10 +35,10 @@ export function getFileColor(type: string): string {
   switch (type) {
     case "pdf": return "#EF4444";
     case "jpg": case "jpeg": case "png": case "gif": case "tif": case "psd": return "#8B5CF6";
-    case "glb": case "obj": case "stl": case "dwg": case "fbx": return "#D4AF37";
+    case "glb": case "obj": case "stl": case "dwg": case "fbx": return "#3B82F6";
     case "mp4": case "mov": return "#3B82F6";
     case "zip": case "rar": return "#059669";
-    case "las": case "laz": return "#D97706";
+    case "las": case "laz": return "#2563EB";
     default: return "#6B7280";
   }
 }

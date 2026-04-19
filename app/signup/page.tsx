@@ -5,11 +5,19 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import SignupConfirmation from "@/components/auth/SignupConfirmation";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  // Optional demographic fields — collected at signup so the operations
+  // console can segment users by industry, role, company size, etc.
+  const [company, setCompany] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [companySize, setCompanySize] = useState("");
+  const [referralSource, setReferralSource] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
@@ -43,7 +51,19 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name, redirectAfter }),
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          redirectAfter,
+          demographics: {
+            company: company || null,
+            jobTitle: jobTitle || null,
+            industry: industry || null,
+            companySize: companySize || null,
+            referralSource: referralSource || null,
+          },
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -98,7 +118,7 @@ export default function SignupPage() {
   return (
     <div className="auth-page">
       <div className="auth-topbar">
-        <Link href="/"><img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto" /></Link>
+        <Link href="/"><SlateLogo /></Link>
         <Link href="/login" className="text-sm text-muted-foreground auth-link">
           Have an account? <span className="font-semibold text-primary">Sign in</span>
         </Link>
@@ -162,6 +182,59 @@ export default function SignupPage() {
                 </button>
               </div>
             </div>
+
+            {/* Optional demographic fields — helps tailor your experience */}
+            <details className="group rounded-xl border border-input bg-card/40 px-4 py-3">
+              <summary className="flex items-center justify-between cursor-pointer text-xs font-semibold text-muted-foreground hover:text-foreground">
+                <span>Tell us about your work <span className="text-muted-foreground/60 font-normal">(optional)</span></span>
+                <span className="text-muted-foreground/60 group-open:rotate-180 transition-transform">▾</span>
+              </summary>
+              <div className="mt-4 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="auth-label">Company / Organization</label>
+                    <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Acme Construction" className="auth-input" />
+                  </div>
+                  <div>
+                    <label className="auth-label">Job title</label>
+                    <input type="text" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Project Manager" className="auth-input" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="auth-label">Industry</label>
+                    <select value={industry} onChange={(e) => setIndustry(e.target.value)} className="auth-input">
+                      <option value="">Select…</option>
+                      <option>General Contractor</option>
+                      <option>Architecture</option>
+                      <option>Engineering</option>
+                      <option>Owner / Developer</option>
+                      <option>Subcontractor</option>
+                      <option>Real Estate</option>
+                      <option>Education</option>
+                      <option>Government / Public Works</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="auth-label">Company size</label>
+                    <select value={companySize} onChange={(e) => setCompanySize(e.target.value)} className="auth-input">
+                      <option value="">Select…</option>
+                      <option>Just me</option>
+                      <option>2–10</option>
+                      <option>11–50</option>
+                      <option>51–200</option>
+                      <option>201–1000</option>
+                      <option>1000+</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="auth-label">How did you hear about us?</label>
+                  <input type="text" value={referralSource} onChange={(e) => setReferralSource(e.target.value)} placeholder="Search, colleague, conference…" className="auth-input" />
+                </div>
+              </div>
+            </details>
             <div className="space-y-2.5 pt-1">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" required checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)}

@@ -22,7 +22,7 @@ export const DEFAULT_BRANDING: OrgBranding = {
   logo_dark_url: "/uploads/slate360-logo-reversed-v2.svg",
   favicon_url: "/icon-v2.svg",
   brand_name: "Slate360",
-  primary_color: "#D4AF37",
+  primary_color: "#3B82F6",
   accent_color: "#6366F1",
   font_family: "Inter, system-ui, sans-serif",
 };

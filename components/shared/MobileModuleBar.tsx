@@ -64,7 +64,7 @@ export default function MobileModuleBar({ tier, isCeo = false, internalAccess }:
   });
 
   return (
-    <nav className="flex sm:hidden border-t border-zinc-800/60 bg-zinc-950/90 backdrop-blur-sm">
+    <nav className="flex sm:hidden border-t border-app/60 bg-zinc-950/90 backdrop-blur-sm">
       <div
         className="flex gap-1 px-3 py-1.5 overflow-x-auto scrollbar-hide"
         style={{ scrollbarWidth: "none" }}
@@ -75,7 +75,7 @@ export default function MobileModuleBar({ tier, isCeo = false, internalAccess }:
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-zinc-400 hover:text-[#D4AF37] hover:bg-zinc-800/50 transition-colors shrink-0"
+              className="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-zinc-400 hover:text-teal hover:bg-white/[0.04]/50 transition-colors shrink-0"
             >
               <Icon size={16} />
               <span className="text-[9px] font-medium leading-tight">{item.label}</span>

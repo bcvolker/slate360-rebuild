@@ -97,7 +97,7 @@ export function SceneUploader({
         <div className={`
           flex items-center justify-center gap-3 w-full h-16 rounded-xl border-2 border-dashed
           transition-all duration-200
-          ${isUploading ? 'bg-zinc-900 border-zinc-800' : 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-500/50'}
+          ${isUploading ? 'bg-app-card border-app' : 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-500/50'}
         `}>
           {isUploading ? (
             <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
@@ -112,7 +112,7 @@ export function SceneUploader({
 
       {/* Progress Bar */}
       {isUploading && (
-        <div className="w-full max-w-sm mt-4 bg-zinc-900 rounded-full h-2 overflow-hidden border border-zinc-800">
+        <div className="w-full max-w-sm mt-4 bg-app-card rounded-full h-2 overflow-hidden border border-app">
           <div 
             className="bg-amber-500 h-full transition-all duration-300 ease-out"
             style={{ width: `${progress}%` }}

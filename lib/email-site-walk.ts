@@ -23,13 +23,13 @@ export async function sendDeliverableShareEmail({
   message?: string;
 }) {
   const body = `
-    <h2 style="margin:0 0 8px;color:#D4AF37;font-size:24px;font-weight:800;">${senderName} shared a ${deliverableType} with you</h2>
+    <h2 style="margin:0 0 8px;color:#3B82F6;font-size:24px;font-weight:800;">${senderName} shared a ${deliverableType} with you</h2>
     <p style="margin:0 0 18px;color:#6b7280;font-size:15px;line-height:1.7;">
       You've been sent <strong>"${deliverableTitle}"</strong> via Slate360 Site Walk.
     </p>
     ${
       message
-        ? `<div style="margin:0 0 24px;padding:16px;background:#f3f4f6;border-left:4px solid #D4AF37;border-radius:4px;color:#4b5563;font-size:14px;font-style:italic;">"${message}"</div>`
+        ? `<div style="margin:0 0 24px;padding:16px;background:#f3f4f6;border-left:4px solid #3B82F6;border-radius:4px;color:#4b5563;font-size:14px;font-style:italic;">"${message}"</div>`
         : ""
     }
     ${ctaButton("View Deliverable", shareUrl)}

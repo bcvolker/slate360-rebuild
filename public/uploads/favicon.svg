@@ -3,10 +3,10 @@
   <defs>
     <style>
       .fav-bg { fill: #18181b; }
-      .fav-mark { fill: #D4AF37; }
+      .fav-mark { fill: #F59E0B; }
       @media (prefers-color-scheme: dark) {
         .fav-bg { fill: #ffffff; }
-        .fav-mark { fill: #D4AF37; }
+        .fav-mark { fill: #F59E0B; }
       }
     </style>
   </defs>

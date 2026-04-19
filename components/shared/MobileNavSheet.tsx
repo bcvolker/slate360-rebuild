@@ -23,6 +23,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 
 interface NavItem {
@@ -32,15 +33,16 @@ interface NavItem {
   gate?: keyof ReturnType<typeof getEntitlements>;
   internalKey?: "operationsConsole";
   phase1Hidden?: boolean;
+  comingSoon?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Command Center",href: "/dashboard",      icon: LayoutDashboard },
   { label: "Projects",      href: "/projects",       icon: FolderKanban },
-  { label: "Site Walk",     href: "/site-walk",      icon: MapPin,        gate: "canAccessStandalonePunchwalk" },
-  { label: "360 Tours",     href: "/tours",          icon: Compass,       gate: "canAccessTourBuilder", phase1Hidden: true },
-  { label: "Design Studio", href: "/design-studio",  icon: Palette,       gate: "canAccessDesignStudio", phase1Hidden: true },
-  { label: "Content Studio",href: "/content-studio", icon: Layers,        gate: "canAccessContent", phase1Hidden: true },
+  { label: "Site Walk",     href: "/site-walk",                icon: MapPin },
+  { label: "360 Tours",     href: "/apps/360-tour-builder",    icon: Compass,   comingSoon: true },
+  { label: "Design Studio", href: "/apps/design-studio",       icon: Palette,   comingSoon: true },
+  { label: "Content Studio",href: "/apps/content-studio",      icon: Layers,    comingSoon: true },
   { label: "Geospatial",    href: "/geospatial",     icon: Globe,         gate: "canAccessGeospatial", phase1Hidden: true },
   { label: "Virtual Studio",href: "/virtual-studio", icon: Film,          gate: "canAccessVirtual", phase1Hidden: true },
   { label: "Analytics",     href: "/analytics",      icon: BarChart3,     gate: "canAccessAnalytics", phase1Hidden: true },
@@ -79,7 +81,7 @@ export default function MobileNavSheet({
     <>
       {/* Hamburger trigger — only visible on mobile */}
       <button
-        className="sm:hidden w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-[#D4AF37] transition-colors"
+        className="sm:hidden w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-white/[0.04] hover:text-teal transition-colors"
         onClick={() => setOpen(true)}
         aria-label="Open navigation menu"
       >
@@ -89,9 +91,9 @@ export default function MobileNavSheet({
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
           side="left"
-          className="w-64 sm:w-72 bg-zinc-950 border-zinc-800 p-0 [&>button]:text-white [&>button]:opacity-100 [&>button]:top-3.5 [&>button]:right-3 [&>button]:size-6"
+          className="w-64 sm:w-72 bg-zinc-950 border-app p-0 [&>button]:text-white [&>button]:opacity-100 [&>button]:top-3.5 [&>button]:right-3 [&>button]:size-6"
         >
-          <SheetHeader className="px-5 py-4 border-b border-zinc-800">
+          <SheetHeader className="px-5 py-4 border-b border-app">
             <SheetTitle className="text-sm font-bold text-white">
               Navigation
             </SheetTitle>
@@ -101,12 +103,12 @@ export default function MobileNavSheet({
             <Link
               href="/"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-300 hover:text-white hover:bg-white/[0.04]/80 transition-colors"
             >
-              <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Home" className="h-4 w-auto flex-shrink-0" />
+              <SlateLogo className="h-4 w-auto flex-shrink-0" />
               Home
             </Link>
-            <div className="h-px bg-zinc-800 my-1" />
+            <div className="h-px bg-white/[0.04] my-1" />
             {visibleItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -114,10 +116,15 @@ export default function MobileNavSheet({
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-300 hover:text-white hover:bg-white/[0.04]/80 transition-colors"
                 >
                   <Icon size={16} className="text-zinc-400 flex-shrink-0" />
-                  {item.label}
+                  <span className="flex-1">{item.label}</span>
+                  {item.comingSoon && (
+                    <span className="rounded-full border border-app bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Soon
+                    </span>
+                  )}
                 </Link>
               );
             })}

@@ -3,7 +3,7 @@
   <defs>
     <style>
       .fav-bg { fill: #18181b; }
-      .fav-mark { fill: #D4AF37; }
+      .fav-mark { fill: #F59E0B; }
     </style>
   </defs>
   <rect x="8" y="8" width="112" height="112" rx="28" class="fav-bg"/>

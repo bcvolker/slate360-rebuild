@@ -6,7 +6,7 @@
  * ==========================================================================
  * 
  * A complete, production-ready marketing page following the Dark Glass aesthetic
- * with Industrial Gold (#D4AF37 / hsl(45 82% 55%)) accents.
+ * with Industrial Gold (#3B82F6 / hsl(45 82% 55%)) accents.
  * 
  * Design System Rules Applied:
  * - All surfaces use bg-glass (semi-transparent with backdrop-blur)
@@ -54,6 +54,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 const HeroDemo = dynamic(() => import("@/components/home/HeroDemo"), { ssr: false });
 const AppDemo = dynamic(() => import("@/components/home/AppDemo"), { ssr: false });
@@ -117,27 +118,27 @@ const APP_SHOWCASE: AppShowcase[] = [
   {
     name: "Site Walk",
     slug: "site-walk",
-    description: "Document construction progress with GPS-tagged photos, automated timelines, and instant client reports.",
+    description: "Capture site conditions in context, document observations as you walk, and turn field documentation into punch lists, branded reports, and proposals.",
     icon: MapPin,
     comingSoon: true,
     statusLabel: "On the Way — Coming Soon",
     demoType: "placeholder",
     demoLabel: "Live demo coming soon",
     features: [
-      "GPS-tagged photo capture",
-      "Automated progress timelines",
-      "Weather & date stamping",
-      "One-click client sharing",
-      "Compare views over time",
-      "AI issue detection",
-      "Offline mode support",
-      "PDF report export",
+      "Capture project context in real time",
+      "Document observations as you walk",
+      "Preserve geolocated, time-stamped records",
+      "Create client-ready deliverables fast",
+      "Keep project files tied to the right context",
+      "Share outputs within minutes",
+      "Reduce photo clutter on mobile devices",
+      "Turn field capture into usable reports",
     ],
   },
   {
-    name: "360 Tour Builder",
+    name: "360 Tours",
     slug: "360-tour-builder",
-    description: "Create stunning 360° virtual tours with interactive hotspots, floor plans, and seamless client sharing.",
+    description: "Create immersive 360 walkthroughs with hotspots, floor plans, and branded share links so clients and stakeholders can explore remotely with context.",
     icon: Building2,
     comingSoon: true,
     statusLabel: "Under Development — Coming Soon",
@@ -158,7 +159,7 @@ const APP_SHOWCASE: AppShowcase[] = [
   {
     name: "Design Studio",
     slug: "design-studio",
-    description: "Visualize projects with interactive 3D models. Upload, annotate, and share models with clients in one click.",
+    description: "Review plans, generate and present 3D models, and work through design decisions in connected 2D and 3D workspaces.",
     icon: Palette,
     comingSoon: true,
     statusLabel: "Under Development — Coming Soon",
@@ -179,7 +180,7 @@ const APP_SHOWCASE: AppShowcase[] = [
   {
     name: "Content Studio",
     slug: "content-studio",
-    description: "Organize, manage, and share digital assets across your projects. A central hub for photos, videos, documents, and media.",
+    description: "Edit standard and 360 video, organize project media, and produce branded client and marketing deliverables from one content workspace.",
     icon: FileText,
     comingSoon: true,
     statusLabel: "Under Development — Coming Soon",
@@ -283,11 +284,11 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const [appsOpen, setAppsOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-glass border-b border-[hsla(45,82%,55%,0.12)] backdrop-blur-lg">
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-primary/15 bg-glass backdrop-blur-lg">
       <div className="container mx-auto h-full px-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto" />
+          <SlateLogo />
         </Link>
 
         {/* Desktop Navigation */}
@@ -297,7 +298,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
               <div key={link.href} className="relative">
                 <button
                   onClick={() => setAppsOpen(!appsOpen)}
-                  className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                  className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-teal transition-colors"
                 >
                   Apps
                   <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", appsOpen && "rotate-180")} />
@@ -305,13 +306,13 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                 {appsOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setAppsOpen(false)} />
-                    <div className="absolute left-1/2 -translate-x-1/2 top-8 z-50 w-52 rounded-xl border border-[hsla(45,82%,55%,0.12)] bg-[hsl(240,6%,6%)] shadow-xl py-2">
+                    <div className="absolute left-1/2 top-8 z-50 w-52 -translate-x-1/2 rounded-xl border border-primary/15 bg-card/95 py-2 shadow-xl backdrop-blur-xl">
                       {APP_SHOWCASE.map((app) => (
                         <Link
                           key={app.slug}
                           href={`/apps/${app.slug}`}
                           onClick={() => setAppsOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-zinc-300 hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                         >
                           <app.icon className="h-4 w-4 flex-shrink-0" />
                           {app.name}
@@ -325,7 +326,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-teal transition-colors"
               >
                 {link.label}
               </Link>
@@ -336,15 +337,15 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
           {isLoggedIn ? (
-            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)]">
+            <Button asChild className="btn-amber-soft">
               <Link href="/dashboard">Go to Dashboard</Link>
             </Button>
           ) : (
             <>
-              <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary hover:bg-primary/10">
+              <Button variant="ghost" asChild className="text-muted-foreground hover:text-teal hover:bg-teal-soft">
                 <Link href="/login">Login</Link>
               </Button>
-              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)]">
+              <Button asChild className="btn-amber-soft">
                 <Link href="/signup">Get Started Free</Link>
               </Button>
             </>
@@ -354,20 +355,20 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
         {/* Mobile Menu Trigger */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+            <Button variant="ghost" size="icon" className="hover:bg-teal-soft">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Open menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[280px] !h-auto !inset-y-auto !top-0 !right-0 !rounded-bl-2xl !bg-[hsl(240,6%,6%)] border-l border-b border-[hsla(45,82%,55%,0.12)] backdrop-blur-xl [&>button]:text-white">
+          <SheetContent side="right" className="w-[280px] !h-auto !inset-y-auto !top-0 !right-0 !rounded-bl-2xl border-b border-l border-primary/15 !bg-card/95 backdrop-blur-xl [&>button]:text-foreground">
             <div className="flex flex-col gap-4 py-4 px-5">
               {/* Logo */}
-              <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-6 w-auto self-start" />
+              <SlateLogo className="h-6 w-auto self-start" />
               <nav className="flex flex-col gap-1">
                 <Link
                   href="#product"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2.5 rounded-lg text-[15px] font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                 >
                   Product
                 </Link>
@@ -376,17 +377,17 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                   <Link
                     href="#apps"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-3 py-2.5 rounded-lg text-[15px] font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors block"
+                    className="block rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                   >
                     Apps
                   </Link>
-                  <div className="ml-4 mt-1 flex flex-col gap-0.5 border-l border-[hsla(45,82%,55%,0.15)] pl-3">
+                  <div className="ml-4 mt-1 flex flex-col gap-0.5 border-l border-border pl-3">
                     {APP_SHOWCASE.map((app) => (
                       <Link
                         key={app.slug}
                         href={`/apps/${app.slug}`}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded text-sm text-zinc-400 hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                        className="flex items-center gap-2 rounded px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                       >
                         <app.icon className="h-3.5 w-3.5 flex-shrink-0" />
                         {app.name}
@@ -397,29 +398,29 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                 <Link
                   href="#slatedrop"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2.5 rounded-lg text-[15px] font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                 >
                   Solutions
                 </Link>
                 <Link
                   href="#pricing"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2.5 rounded-lg text-[15px] font-medium text-[hsl(0,0%,95%)] hover:text-[hsl(45,82%,55%)] hover:bg-white/5 transition-colors"
+                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                 >
                   Pricing
                 </Link>
               </nav>
-              <div className="flex flex-col gap-3 pt-3 border-t border-[hsla(45,82%,55%,0.12)]">
+              <div className="flex flex-col gap-3 border-t border-border pt-3">
                 {isLoggedIn ? (
-                  <Button asChild className="bg-[hsl(45,82%,55%)] text-[hsl(240,6%,6%)] hover:bg-[hsl(45,82%,55%,0.9)]">
+                  <Button asChild className="btn-amber-soft">
                     <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Go to Dashboard</Link>
                   </Button>
                 ) : (
                   <>
-                    <Button variant="outline" asChild className="border-[hsla(0,0%,100%,0.15)] text-[hsl(0,0%,95%)] hover:border-[hsl(45,82%,55%)] hover:text-[hsl(45,82%,55%)]">
+                    <Button variant="outline" asChild className="border-border text-foreground hover:border-teal hover:text-teal">
                       <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
                     </Button>
-                    <Button asChild className="bg-[hsl(45,82%,55%)] text-[hsl(240,6%,6%)] hover:bg-[hsl(45,82%,55%,0.9)]">
+                    <Button asChild className="btn-amber-soft">
                       <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>Subscribe Now</Link>
                     </Button>
                   </>
@@ -440,68 +441,67 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
 
 function HeroSection() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 sm:pt-28 pb-12 px-4 overflow-hidden">
+    <section className="relative h-screen flex items-center px-4 sm:px-6 lg:px-10 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-[hsl(240,6%,8%)]" />
-      
-      {/* Subtle grid pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.03]"
+
+      {/* Subtle grid pattern — neutral white, low opacity */}
+      <div
+        className="absolute inset-0 opacity-[0.025]"
         style={{
-          backgroundImage: `linear-gradient(hsla(45,82%,55%,0.3) 1px, transparent 1px), linear-gradient(90deg, hsla(45,82%,55%,0.3) 1px, transparent 1px)`,
-          backgroundSize: "60px 60px",
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)`,
+          backgroundSize: "64px 64px",
         }}
       />
 
-      <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8">
-        {/* Badge */}
-        <Badge variant="outline" className="border-primary/30 text-primary px-4 py-1.5">
-          <Zap className="mr-1.5 h-3.5 w-3.5" />
-          Now with AI-powered tour generation
-        </Badge>
+      <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-[1fr_1.15fr] gap-8 lg:gap-12 items-center pt-20 sm:pt-24 pb-10">
+        {/* LEFT: copy + CTAs */}
+        <div className="space-y-5 text-center lg:text-left">
+          <Badge variant="outline" className="border-cobalt text-cobalt px-3.5 py-1 bg-cobalt/10">
+            <Zap className="mr-1.5 h-3 w-3" />
+            Now in Beta — Foundational Member Pricing
+          </Badge>
 
-        {/* Headline */}
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight text-balance">
-          The Interactive and Visual Central Nervous System for{" "}
-          <span className="text-primary">All of Your Construction Projects</span>
-        </h1>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground leading-[1.15] text-balance">
+            The real-time interactive bridge between{" "}
+            <span className="text-teal">the field and the office</span>
+          </h1>
 
-        {/* Subheadline */}
-        <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
-          Slate360 Core + powerful add-ons. One place for tours, site walks, client portals, 
-          and secure file sharing. <span className="text-primary font-medium">Client links never break.</span>
-        </p>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto lg:mx-0 text-pretty">
+            Capture site conditions with your phone or 360 camera, add comments as you walk, and automatically preserve a time-stamped, geolocated record. Turn it into punch lists, reports, or proposals — and share with your team in minutes.
+          </p>
 
-        {/* Interactive Demo */}
-        <Card className="max-w-4xl mx-auto bg-glass border-[hsla(45,82%,55%,0.2)] shadow-[0_8px_32px_hsla(0,0%,0%,0.4),0_0_0_1px_hsla(45,82%,55%,0.1)]">
-          <CardContent className="p-4 sm:p-6">
-            <HeroDemo />
-          </CardContent>
-        </Card>
+          <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3 pt-1">
+            <Button asChild className="btn-amber-soft h-11 px-6 text-sm">
+              <Link href="/signup?next=/app">
+                Get the App — Free
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="btn-teal-outline h-11 px-6 text-sm">
+              <Link href="/signup">
+                Create Account
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="ghost" asChild className="h-11 px-4 text-sm text-muted-foreground hover:text-foreground">
+              <Link href="#apps">
+                Explore Apps
+              </Link>
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground/80 pt-1">
+            Free to download. 14-day all-access trial. Subscribe anytime — no credit card required during beta.
+          </p>
+        </div>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button 
-            size="lg" 
-            asChild 
-            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_30px_hsla(45,82%,55%,0.4)] hover:shadow-[0_0_40px_hsla(45,82%,55%,0.5)] transition-all px-8"
-          >
-            <Link href="/signup">
-              Subscribe Now
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-          <Button 
-            size="lg" 
-            variant="outline" 
-            asChild
-            className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary px-8"
-          >
-            <Link href="#apps">
-              Explore Apps
-              <ChevronRight className="ml-1 h-4 w-4" />
-            </Link>
-          </Button>
+        {/* RIGHT: interactive demo (larger, dominates the right side) */}
+        <div className="w-full">
+          <Card className="bg-app-card border-app shadow-app-glow rounded-2xl">
+            <CardContent className="p-3 sm:p-4 lg:p-5">
+              <HeroDemo />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </section>
@@ -547,14 +547,13 @@ function AppShowcaseSection() {
         {/* Section Header */}
         <div className="text-center mb-12">
           <Badge variant="outline" className="border-primary/30 text-primary mb-4">
-            Powerful Add-ons
+            Connected Ecosystem
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Apps that work together seamlessly
+            One platform. Multiple interactive workflows.
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Each app is powerful on its own, but when bundled together they share storage 
-            and create a unified client experience.
+            Slate360 is built as an ecosystem of connected apps that share projects, files, permissions, and deliverables. Start with Site Walk, then expand into other capabilities as your workflows grow without losing continuity or context.
           </p>
         </div>
 
@@ -574,7 +573,7 @@ function AppShowcaseSection() {
                     </div>
                     <CardTitle className="text-2xl text-foreground">{app.name}</CardTitle>
                     {app.comingSoon && (
-                      <span className="ml-auto rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
+                      <span className="ml-auto rounded-full border border-cobalt/30 bg-cobalt/10 px-2.5 py-0.5 text-xs font-semibold text-cobalt">
                         {app.statusLabel || "Coming Soon"}
                       </span>
                     )}
@@ -604,13 +603,13 @@ function AppShowcaseSection() {
 
                   {/* CTAs */}
                   <div className="flex gap-3">
-                    <Button asChild className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Button asChild className="flex-1 btn-amber-soft">
                       <Link href="/signup">
                         {app.comingSoon ? "Join Waitlist" : "Subscribe"}
                         <ArrowRight className="ml-1 h-4 w-4" />
                       </Link>
                     </Button>
-                    <Button asChild variant="outline" className="flex-1 border-[hsla(45,82%,55%,0.3)] text-muted-foreground hover:text-primary hover:border-primary/50">
+                    <Button asChild variant="outline" className="flex-1 border-[hsla(45,82%,55%,0.3)] text-muted-foreground hover:text-teal hover:border-teal/50">
                       <Link href={`/apps/${app.slug}`}>
                         Learn More
                         <ChevronRight className="ml-1 h-4 w-4" />
@@ -627,8 +626,7 @@ function AppShowcaseSection() {
         <Card className="mt-8 bg-primary/5 border-primary/20">
           <CardContent className="py-4 px-6">
             <p className="text-sm text-center text-foreground">
-              <span className="text-primary font-medium">Bundle & Save:</span> Apps purchased 
-              together share pooled storage. Standalone apps have isolated storage allocations.
+              Connected apps share projects, files, permissions, and deliverables so your workflow can expand without losing context.
             </p>
           </CardContent>
         </Card>
@@ -650,14 +648,13 @@ function SlateDropSection() {
         <div className="text-center mb-12">
           <Badge variant="outline" className="border-primary/30 text-primary mb-4">
             <FolderSync className="mr-1.5 h-3.5 w-3.5" />
-            SlateDrop Technology
+            Workflow Impact
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            One Nervous System for All Deliverables
+            Why Slate360 changes the workflow
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            SlateDrop auto-provisions folders for every project. Set permissions once, 
-            and every deliverable inherits client email access automatically.
+            Slate360 keeps the field capture, project context, and office outputs connected so teams can work from the same current information instead of reconstructing it later.
           </p>
         </div>
 
@@ -680,87 +677,42 @@ function SlateDropSection() {
                 <line x1="50%" y1="20%" x2="50%" y2="80%" stroke="url(#gold-gradient)" strokeWidth="2" />
               </svg>
 
-              {/* Grid of connected nodes */}
-              <div className="relative grid grid-cols-3 gap-4 md:gap-8">
-                {/* Top row */}
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <Building2 className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Tours</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-primary/10 border-primary/30 shadow-[0_0_20px_hsla(45,82%,55%,0.2)]">
-                    <CardContent className="p-4 text-center">
-                      <Sparkles className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-primary">SlateDrop</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <MapPin className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Site Walks</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Middle row */}
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <Users className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Client Portal</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="flex justify-center items-center">
-                  <div className="h-3 w-3 rounded-full bg-primary animate-pulse" />
-                </div>
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <Shield className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Permissions</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Bottom row */}
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <Globe className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Share Links</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <FolderSync className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Auto-Folders</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-[140px] bg-muted/30 border-border">
-                    <CardContent className="p-4 text-center">
-                      <Zap className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-medium text-foreground">Instant Sync</p>
-                    </CardContent>
-                  </Card>
-                </div>
+              {/* Grid of workflow outcomes */}
+              <div className="relative grid gap-4 md:grid-cols-3 md:gap-8">
+                <Card className="bg-muted/30 border-border shadow-[0_8px_24px_hsla(0,0%,0%,0.2)]">
+                  <CardContent className="p-6 text-center">
+                    <FolderSync className="h-7 w-7 text-primary mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-foreground mb-2">Stop losing project meaning</p>
+                    <p className="text-sm text-muted-foreground">
+                      Photos, notes, and documents are only valuable if they stay tied to the project context that explains them.
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-primary/10 border-primary/30 shadow-[0_0_20px_hsla(45,82%,55%,0.15)]">
+                  <CardContent className="p-6 text-center">
+                    <Sparkles className="h-7 w-7 text-primary mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-foreground mb-2">Create polished outputs faster</p>
+                    <p className="text-sm text-muted-foreground">
+                      Slate360 helps teams turn site documentation into professional, branded deliverables in minutes instead of spending hours rebuilding the story later.
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-muted/30 border-border shadow-[0_8px_24px_hsla(0,0%,0%,0.2)]">
+                  <CardContent className="p-6 text-center">
+                    <Users className="h-7 w-7 text-primary mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-foreground mb-2">Keep the field and office aligned</p>
+                    <p className="text-sm text-muted-foreground">
+                      Make it easier for the people walking the project and the people reviewing it in real-time to work from the same current, contextualized information.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             </div>
 
             {/* CTA */}
             <div className="text-center mt-8">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                See Folder Permissions in Action
+              <Button className="btn-amber-soft">
+                See the workflow in action
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </div>
@@ -830,7 +782,7 @@ function PricingSection() {
             >
               {tier.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground shadow-[0_0_20px_hsla(45,82%,55%,0.4)]">
+                  <Badge className="bg-primary text-primary-foreground ">
                     Most Popular
                   </Badge>
                 </div>
@@ -867,7 +819,7 @@ function PricingSection() {
                   className={cn(
                     "w-full",
                     tier.popular
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)]"
+                      ? "btn-amber-soft"
                       : "bg-muted hover:bg-muted/80 text-foreground"
                   )}
                 >
@@ -997,7 +949,7 @@ function FinalCTASection() {
               />
               <Button 
                 size="lg" 
-                className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)] h-12 px-8"
+                className="btn-amber-soft h-12 px-8"
               >
                 Create Your Free Account
               </Button>
@@ -1020,25 +972,25 @@ function FinalCTASection() {
 
 function Footer() {
   return (
-    <footer className="bg-glass border-t border-[hsla(45,82%,55%,0.12)] backdrop-blur-lg">
+    <footer className="border-t border-primary/15 bg-glass backdrop-blur-lg">
       <div className="container mx-auto px-4 py-12">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center mb-4">
-              <img src="/uploads/slate360-logo-reversed-v2.svg" alt="Slate360" className="h-7 w-auto" />
+              <SlateLogo />
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
-              The interactive and visual central nervous system for all of your construction projects.
+              The real-time interactive bridge between the field and the office.
             </p>
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary">
+              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-teal-soft hover:text-teal">
                 <Twitter className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary">
+              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-teal-soft hover:text-teal">
                 <Linkedin className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary">
+              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-teal-soft hover:text-teal">
                 <Github className="h-4 w-4" />
               </Button>
             </div>
@@ -1049,22 +1001,22 @@ function Footer() {
             <h4 className="font-semibold text-foreground mb-4">Product</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="#apps" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Tour Builder
+                <Link href="#apps" className="text-sm text-muted-foreground hover:text-teal transition-colors">
+                  360 Tours
                 </Link>
               </li>
               <li>
-                <Link href="#apps" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#apps" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Site Walk
                 </Link>
               </li>
               <li>
-                <Link href="#slatedrop" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#slatedrop" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   SlateDrop
                 </Link>
               </li>
               <li>
-                <Link href="#pricing" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#pricing" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Pricing
                 </Link>
               </li>
@@ -1076,22 +1028,22 @@ function Footer() {
             <h4 className="font-semibold text-foreground mb-4">Company</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/about" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/careers" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Careers
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/blog" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Blog
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/contact" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Contact
                 </Link>
               </li>
@@ -1103,17 +1055,17 @@ function Footer() {
             <h4 className="font-semibold text-foreground mb-4">Legal</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/terms" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/privacy" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/security" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/security" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Security
                 </Link>
               </li>

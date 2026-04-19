@@ -64,7 +64,7 @@ const MONTHS = [
 const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
 const EVENT_COLORS = [
-  "#D4AF37","#3B82F6","#10B981","#8B5CF6","#F59E0B","#EF4444","#06B6D4","#EC4899",
+  "#3B82F6","#3B82F6","#10B981","#8B5CF6","#3B82F6","#EF4444","#06B6D4","#EC4899",
 ];
 
 function getCalendarDays(year: number, month: number) {
@@ -231,7 +231,7 @@ export default function CalendarWidget({ span, widgetSize, widgetColor, onSetSiz
             setAddingEvent(true);
             setFormDate(calSelected ?? todayStr);
           }}
-          className="flex items-center gap-1 text-[11px] font-semibold text-[#D4AF37] hover:underline"
+          className="flex items-center gap-1 text-[11px] font-semibold text-[#3B82F6] hover:underline"
         >
           <Plus size={13} /> Add event
         </button>
@@ -279,13 +279,13 @@ export default function CalendarWidget({ span, widgetSize, widgetColor, onSetSiz
                     onClick={() => setCalSelected(cell.dateStr === calSelected ? null : cell.dateStr)}
                     className={`relative h-9 rounded-lg text-xs font-medium transition-all
                       ${!cell.inMonth ? "text-gray-300" : "text-gray-700 hover:bg-gray-100"}
-                      ${isToday && !isSelected ? "bg-[#D4AF37]/10 text-[#D4AF37] font-bold" : ""}
-                      ${isSelected ? "bg-[#D4AF37] text-white font-bold shadow-sm" : ""}
+                      ${isToday && !isSelected ? "bg-[#3B82F6]/10 text-[#3B82F6] font-bold" : ""}
+                      ${isSelected ? "bg-[#3B82F6] text-white font-bold shadow-sm" : ""}
                     `}
                   >
                     {cell.day}
                     {hasEvents && !isSelected && (
-                      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#D4AF37]" />
+                      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#3B82F6]" />
                     )}
                   </button>
                 );
@@ -312,7 +312,7 @@ export default function CalendarWidget({ span, widgetSize, widgetColor, onSetSiz
                 placeholder="Event title…"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37]"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6]"
               />
 
               {/* Date */}
@@ -320,7 +320,7 @@ export default function CalendarWidget({ span, widgetSize, widgetColor, onSetSiz
                 type="date"
                 value={formDate}
                 onChange={(e) => setFormDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] bg-white"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-white"
               />
 
               {/* All day toggle */}
@@ -329,7 +329,7 @@ export default function CalendarWidget({ span, widgetSize, widgetColor, onSetSiz
                   type="checkbox"
                   checked={formAllDay}
                   onChange={(e) => setFormAllDay(e.target.checked)}
-                  className="accent-[#D4AF37]"
+                  className="accent-[#3B82F6]"
                 />
                 All-day event
               </label>
@@ -343,7 +343,7 @@ export default function CalendarWidget({ span, widgetSize, widgetColor, onSetSiz
                       type="time"
                       value={formStartTime}
                       onChange={(e) => setFormStartTime(e.target.value)}
-                      className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] bg-white"
+                      className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-white"
                     />
                   </div>
                   <div className="flex-1">
@@ -352,7 +352,7 @@ export default function CalendarWidget({ span, widgetSize, widgetColor, onSetSiz
                       type="time"
                       value={formEndTime}
                       onChange={(e) => setFormEndTime(e.target.value)}
-                      className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] bg-white"
+                      className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-white"
                     />
                   </div>
                 </div>
@@ -363,7 +363,7 @@ export default function CalendarWidget({ span, widgetSize, widgetColor, onSetSiz
                 <select
                   value={formProjectId}
                   onChange={(e) => setFormProjectId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] bg-white"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-white"
                 >
                   <option value="">No project</option>
                   {projects.map((p) => (
@@ -378,7 +378,7 @@ export default function CalendarWidget({ span, widgetSize, widgetColor, onSetSiz
                 placeholder="Notes (optional)…"
                 value={formDesc}
                 onChange={(e) => setFormDesc(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] resize-none"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] resize-none"
               />
 
               {/* Color picker */}
@@ -399,7 +399,7 @@ export default function CalendarWidget({ span, widgetSize, widgetColor, onSetSiz
                   onClick={handleAddEvent}
                   disabled={!formTitle.trim() || saving}
                   className="flex-1 text-xs font-semibold py-2 rounded-lg text-white disabled:opacity-50 transition-opacity"
-                  style={{ backgroundColor: "#D4AF37" }}
+                  style={{ backgroundColor: "#3B82F6" }}
                 >
                   {saving ? <Loader2 size={12} className="animate-spin mx-auto" /> : "Save"}
                 </button>
@@ -452,7 +452,7 @@ export default function CalendarWidget({ span, widgetSize, widgetColor, onSetSiz
                 </p>
                 <button
                   onClick={() => { setFormDate(calSelected ?? todayStr); setAddingEvent(true); }}
-                  className="mt-2 text-[11px] font-semibold text-[#D4AF37] hover:underline"
+                  className="mt-2 text-[11px] font-semibold text-[#3B82F6] hover:underline"
                 >
                   + Add event
                 </button>

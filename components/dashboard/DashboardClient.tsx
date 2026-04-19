@@ -51,13 +51,13 @@ function useVisibleTabs(
     { id: "content-studio", label: "Content Studio", icon: Layers,          color: "#EC4899", entKey: "canAccessContent",      requiredTier: "standard" },
     { id: "tours",          label: "360 Tours",      icon: Compass,         color: "#0891B2", entKey: "canAccessStandaloneTourBuilder",  requiredTier: "standard" },
     { id: "geospatial",     label: "Geospatial",     icon: Globe,           color: "#059669", entKey: "canAccessGeospatial",   requiredTier: "standard" },
-    { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#D97706", entKey: "canAccessVirtual",      requiredTier: "standard" },
+    { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#2563EB", entKey: "canAccessVirtual",      requiredTier: "standard" },
     { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#6366F1", entKey: "canAccessAnalytics",    requiredTier: "business" },
-    { id: "my-account",     label: "My Account",     icon: User,            color: "#D4AF37" },
+    { id: "my-account",     label: "My Account",     icon: User,            color: "#3B82F6" },
   ];
 
   const internalTabs: DashTab[] = canAccessOperationsConsole
-    ? [{ id: "operations-console", label: "Operations Console", icon: Shield, color: "#D4AF37", isCEOOnly: true }]
+    ? [{ id: "operations-console", label: "Operations Console", icon: Shield, color: "#3B82F6", isCEOOnly: true }]
     : [];
 
   return [
@@ -108,8 +108,6 @@ export default function DashboardClient(props: DashboardProps) {
         tier={props.tier}
         isCeo={props.isSlateCeo ?? false}
         internalAccess={s.internalAccess}
-        searchQuery={s.searchQuery}
-        onSearchChange={s.setSearchQuery}
         searchPlaceholder="Search projects, files, contacts…"
         prefsDirty={s.prefsDirty}
         onCustomizeOpen={() => s.setCustomizeOpen(true)}
@@ -132,7 +130,7 @@ export default function DashboardClient(props: DashboardProps) {
           <div className="mb-6">
             <button
               onClick={() => s.setActiveTab("overview")}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-zinc-300 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:text-white transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-zinc-300 bg-app-card border border-app hover:bg-white/[0.04] hover:text-white transition-colors"
             >
               <ChevronLeft size={16} />
               Back to Dashboard
