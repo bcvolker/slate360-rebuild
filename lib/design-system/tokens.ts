@@ -23,19 +23,19 @@
 /* ── Brand Identity ─────────────────────────────────────────── */
 
 export const brand = {
-  /** Primary brand accent — amber family */
-  gold: "#F59E0B",
-  goldHover: "#d97706",
-  goldLight: "rgba(245, 158, 11, 0.08)",
-  goldLightDark: "rgba(245, 158, 11, 0.12)",
-  goldRing: "rgba(245, 158, 11, 0.5)",
+  /** Primary brand accent — cobalt family (legacy key name `gold` retained for compatibility) */
+  gold: "#3B82F6",
+  goldHover: "#2563EB",
+  goldLight: "rgba(59, 130, 246, 0.08)",
+  goldLightDark: "rgba(59, 130, 246, 0.14)",
+  goldRing: "rgba(59, 130, 246, 0.5)",
   goldGlow:
-    "0 0 20px 0 rgba(245, 158, 11, 0.35), 0 4px 12px 0 rgba(245, 158, 11, 0.2)",
+    "0 0 20px 0 rgba(59, 130, 246, 0.35), 0 4px 12px 0 rgba(59, 130, 246, 0.20)",
 
   /** Primary HSL for CSS custom properties */
-  goldHsl: "38 93% 50%",
-  goldHoverHsl: "32 95% 44%",
-  goldHoverHslDark: "32 95% 44%",
+  goldHsl: "217 91% 60%",
+  goldHoverHsl: "221 83% 53%",
+  goldHoverHslDark: "221 83% 53%",
 
   /** Core dark surface — deep navy family */
   graphite: "#151A23",
@@ -51,10 +51,10 @@ export const brand = {
   textMuted: "#64748b",
   textSubtle: "#52525b",
 
-  /** Smoked Teal — secondary accent (link hover, secondary icons, nav active) */
-  teal: "#5E8E8E",
-  tealSoft: "rgba(94, 142, 142, 0.20)",
-  tealHover: "#7AA5A5",
+  /** Steel — secondary accent (link hover, secondary icons, nav active). Legacy key name `teal` retained. */
+  teal: "#94A3B8",
+  tealSoft: "rgba(148, 163, 184, 0.18)",
+  tealHover: "#CBD5E1",
 
   /** Brand name */
   name: "Slate360",
@@ -75,11 +75,11 @@ export const appShell = {
   glass: "rgba(11, 15, 21, 0.80)",
   /** Backdrop filter for glass surfaces */
   backdropBlur: "blur(16px)",
-  /** Soft amber glow used on logo tile + primary CTA */
-  glowAmber: "0 0 15px rgba(245, 158, 11, 0.15)",
-  /** Stronger amber glow used on primary CTA hover */
+  /** Soft cobalt glow used on logo tile + primary CTA */
+  glowAmber: "0 0 15px rgba(59, 130, 246, 0.18)",
+  /** Stronger cobalt glow used on primary CTA hover */
   glowAmberStrong:
-    "0 0 20px 0 rgba(245, 158, 11, 0.35), 0 4px 12px 0 rgba(245, 158, 11, 0.2)",
+    "0 0 20px 0 rgba(59, 130, 246, 0.35), 0 4px 12px 0 rgba(59, 130, 246, 0.20)",
   /** Card shadow */
   cardShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.3)",
   /** Elevated / hero card shadow */
@@ -97,15 +97,15 @@ export const appShell = {
 /* ── Module Accent Colors ───────────────────────────────────── */
 
 export const modules = {
-  hub: "#F59E0B",
+  hub: "#3B82F6",
   design: "#7C3AED",
   content: "#EC4899",
   tours: "#0891B2",
   geo: "#059669",
-  virtual: "#D97706",
+  virtual: "#2563EB",
   analytics: "#6366F1",
   market: "#6366F1",
-  slatedrop: "#F59E0B",
+  slatedrop: "#3B82F6",
 } as const;
 
 /* ── Status Colors ──────────────────────────────────────────── */
@@ -113,7 +113,7 @@ export const modules = {
 export const status = {
   open: "#2563EB",
   openBg: "#EFF6FF",
-  review: "#D97706",
+  review: "#2563EB",
   reviewBg: "#FFFBEB",
   approved: "#059669",
   approvedBg: "#ECFDF5",

@@ -41,7 +41,7 @@ export default function DashboardContactsWidget({
       onSetSize={onSetSize}
       size={widgetSize}
       action={
-        <button className="text-[11px] font-semibold text-[#F59E0B] hover:underline flex items-center gap-0.5">
+        <button className="text-[11px] font-semibold text-[#3B82F6] hover:underline flex items-center gap-0.5">
           <UserPlus size={12} /> Add
         </button>
       }
@@ -54,7 +54,7 @@ export default function DashboardContactsWidget({
             placeholder="Search contacts…"
             value={contactSearch}
             onChange={(event) => onContactSearchChange(event.target.value)}
-            className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20 focus:border-[#F59E0B] transition-all"
+            className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
           />
         </div>
         <div className="space-y-1 max-h-[200px] overflow-y-auto">

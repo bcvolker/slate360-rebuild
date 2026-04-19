@@ -189,7 +189,7 @@ export default function ObservationsClient() {
             <Download size={14} /> Export
           </button>
           <ViewCustomizer storageKey="observations" cols={OBS_COLS.map(c => ({ key: c, label: c.charAt(0).toUpperCase() + c.slice(1) }))} defaultCols={OBS_COLS} prefs={prefs} onPrefsChange={setPrefs} />
-          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-xl bg-[#F59E0B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#E64500] transition-colors">
+          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-xl bg-[#3B82F6] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1D4ED8] transition-colors">
             <Plus size={14} /> New Observation
           </button>
         </div>
@@ -198,11 +198,11 @@ export default function ObservationsClient() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {[
-          { label: "Total", value: counts.total, color: "#F59E0B" },
+          { label: "Total", value: counts.total, color: "#3B82F6" },
           { label: "Positive", value: counts.positive, color: "#059669" },
           { label: "Negative", value: counts.negative, color: "#DC2626" },
           { label: "Neutral", value: counts.neutral, color: "#6B7280" },
-          { label: "Open", value: counts.open, color: "#F59E0B" },
+          { label: "Open", value: counts.open, color: "#3B82F6" },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
             <p className="text-xs font-semibold text-gray-500">{s.label}</p>
@@ -219,13 +219,13 @@ export default function ObservationsClient() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search observations…"
-            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#F59E0B] focus:outline-none focus:ring-1 focus:ring-[#F59E0B]/30"
+            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]/30"
           />
         </div>
         <select
           value={filterSentiment}
           onChange={(e) => setFilterSentiment(e.target.value)}
-          className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-700 focus:border-[#F59E0B] focus:outline-none"
+          className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-700 focus:border-[#3B82F6] focus:outline-none"
         >
           <option value="all">All Sentiments</option>
           <option value="positive">Positive</option>
@@ -287,7 +287,7 @@ export default function ObservationsClient() {
                       </div>
                     )}
                     <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                      <button onClick={() => startEdit(obs)} className="text-xs font-semibold text-[#F59E0B] hover:underline">Edit</button>
+                      <button onClick={() => startEdit(obs)} className="text-xs font-semibold text-[#3B82F6] hover:underline">Edit</button>
                       <button onClick={() => { setHistoryItem(obs); setShowHistory(true); }} className="text-xs font-semibold text-gray-500 hover:text-gray-700 flex items-center gap-1"><History size={12} /> History</button>
                       <div className="flex-1" />
                       <button onClick={() => handleDelete(obs.id)} className="text-xs font-semibold text-red-500 hover:text-red-700 flex items-center gap-1"><Trash2 size={12} /> Delete</button>

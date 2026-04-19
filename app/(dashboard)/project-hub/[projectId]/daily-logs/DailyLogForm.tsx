@@ -13,7 +13,7 @@ interface Props {
   onClose: () => void;
 }
 
-const field = "w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20 focus:border-[#F59E0B] transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+const field = "w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all disabled:opacity-50 disabled:cursor-not-allowed";
 const label = "block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1.5";
 
 export default function DailyLogForm({ form, setForm, editingId, saving, onSubmit, onClose }: Props) {
@@ -76,7 +76,7 @@ export default function DailyLogForm({ form, setForm, editingId, saving, onSubmi
           <div><label className={label}>Delays</label><textarea className={`${field} resize-y`} rows={2} value={form.delays} onChange={set("delays")} placeholder="Weather delays, material shortages, etc." /></div>
         </div>
         <div className="sticky bottom-0 border-t border-zinc-800 bg-zinc-900/95 backdrop-blur px-6 py-4 flex items-center gap-3">
-          <button disabled={saving || !form.log_date} onClick={onSubmit} className="flex-1 rounded-xl bg-[#F59E0B] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#e64500] transition disabled:opacity-40">{saving ? "Saving…" : editingId ? "Update Log" : "Save Daily Log"}</button>
+          <button disabled={saving || !form.log_date} onClick={onSubmit} className="flex-1 rounded-xl bg-[#3B82F6] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8] transition disabled:opacity-40">{saving ? "Saving…" : editingId ? "Update Log" : "Save Daily Log"}</button>
           <button onClick={onClose} className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 transition">Cancel</button>
         </div>
       </div>

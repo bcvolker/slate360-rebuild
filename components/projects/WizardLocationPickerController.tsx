@@ -46,7 +46,7 @@ export default function WizardLocationPickerController({
   const buttonClassName = (active: boolean) =>
     `px-2 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 ${
       active
-        ? "bg-[#F59E0B] text-white"
+        ? "bg-[#3B82F6] text-white"
         : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
     }`;
 
@@ -67,7 +67,7 @@ export default function WizardLocationPickerController({
                 if (event.key === "Escape") setSuggestions([]);
               }}
               placeholder="Search address or coordinates…"
-              className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/20 focus:outline-none"
+              className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/20 focus:outline-none"
             />
             {resolving && (
               <Loader2
@@ -86,7 +86,7 @@ export default function WizardLocationPickerController({
                     }}
                     className="px-3 py-2 text-xs hover:bg-amber-50 cursor-pointer flex items-start gap-2"
                   >
-                    <MapPin size={11} className="text-[#F59E0B] mt-0.5 shrink-0" />
+                    <MapPin size={11} className="text-[#3B82F6] mt-0.5 shrink-0" />
                     {suggestion.description}
                   </li>
                 ))}
@@ -96,7 +96,7 @@ export default function WizardLocationPickerController({
           <button
             type="button"
             onClick={() => void searchAddress()}
-            className="px-2.5 py-1.5 bg-[#F59E0B] hover:bg-[#E64500] rounded-lg text-white transition-colors"
+            className="px-2.5 py-1.5 bg-[#3B82F6] hover:bg-[#1D4ED8] rounded-lg text-white transition-colors"
           >
             <Search size={14} />
           </button>
@@ -145,7 +145,7 @@ export default function WizardLocationPickerController({
       {value.lat !== null && value.lng !== null && (
         <div className="absolute bottom-2 right-2 z-10 pointer-events-none">
           <div className="bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 text-[10px] text-gray-600 border border-gray-200 shadow flex items-center gap-1">
-            <MapPin size={9} className="text-[#F59E0B]" />
+            <MapPin size={9} className="text-[#3B82F6]" />
             {value.lat.toFixed(5)}, {value.lng.toFixed(5)}
           </div>
         </div>
@@ -153,7 +153,7 @@ export default function WizardLocationPickerController({
 
       {!isDrawingPolygon && value.boundary.length > 0 && (
         <div className="absolute top-14 right-2 z-10 pointer-events-none">
-          <div className="bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-lg px-2 py-1 text-[10px] text-[#F59E0B] font-semibold">
+          <div className="bg-[#3B82F6]/10 border border-[#3B82F6]/30 rounded-lg px-2 py-1 text-[10px] text-[#3B82F6] font-semibold">
             Boundary: {value.boundary.length} pts
           </div>
         </div>

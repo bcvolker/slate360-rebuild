@@ -74,7 +74,7 @@ export default function PhotoLogClient({ files }: { files: PhotoFile[] }) {
           )}
           <button
             onClick={() => setToast("Photo Report PDF Generating...")}
-            className="rounded-lg bg-[#F59E0B] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#E64500]"
+            className="rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1D4ED8]"
           >
             Generate Photo Report
           </button>
@@ -95,7 +95,7 @@ export default function PhotoLogClient({ files }: { files: PhotoFile[] }) {
                 { id: "demo-photo-2", name: "Demo Interior Framing.jpg" },
               ])
             }
-            className="mt-3 rounded-md bg-[#F59E0B] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#E64500]"
+            className="mt-3 rounded-md bg-[#3B82F6] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#1D4ED8]"
           >
             Add Demo Photos
           </button>

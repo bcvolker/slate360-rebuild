@@ -172,8 +172,8 @@ export default function ProjectSchedulePage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded-lg border border-zinc-700 bg-zinc-900 overflow-hidden">
-            <button onClick={() => setViewMode("gantt")} className={`px-3 py-2 text-xs font-semibold transition ${viewMode === "gantt" ? "bg-[#F59E0B] text-white" : "text-zinc-400 hover:bg-zinc-800"}`}>Gantt</button>
-            <button onClick={() => setViewMode("table")} className={`px-3 py-2 text-xs font-semibold transition ${viewMode === "table" ? "bg-[#F59E0B] text-white" : "text-zinc-400 hover:bg-zinc-800"}`}>Table</button>
+            <button onClick={() => setViewMode("gantt")} className={`px-3 py-2 text-xs font-semibold transition ${viewMode === "gantt" ? "bg-[#3B82F6] text-white" : "text-zinc-400 hover:bg-zinc-800"}`}>Gantt</button>
+            <button onClick={() => setViewMode("table")} className={`px-3 py-2 text-xs font-semibold transition ${viewMode === "table" ? "bg-[#3B82F6] text-white" : "text-zinc-400 hover:bg-zinc-800"}`}>Table</button>
           </div>
           {viewMode === "gantt" && (
             <div className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5">
@@ -185,7 +185,7 @@ export default function ProjectSchedulePage() {
           <button onClick={exportCSV} disabled={rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-800 disabled:opacity-40"><Download size={14} /> Export</button>
           <button onClick={() => void onSaveSnapshot()} disabled={snapshotSaving || rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-800 disabled:opacity-40">{snapshotSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Snapshot</button>
           <ViewCustomizer storageKey={`viewprefs-schedule-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
-          <button onClick={() => { setForm({ ...EMPTY_FORM, assignedTo: profile.contractorName }); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#F59E0B] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition"><Plus size={15} /> Add Task</button>
+          <button onClick={() => { setForm({ ...EMPTY_FORM, assignedTo: profile.contractorName }); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition"><Plus size={15} /> Add Task</button>
         </div>
       </div>
 
@@ -219,7 +219,7 @@ export default function ProjectSchedulePage() {
           <span key={status} className="flex items-center gap-1.5"><span className={`w-3 h-1.5 rounded-full inline-block ${c.bar}`} />{status}</span>
         ))}
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rotate-45 inline-block bg-purple-500 rounded-sm" />Milestone</span>
-        <span className="flex items-center gap-1.5"><span className="w-0.5 h-3 inline-block bg-[#F59E0B]" />Today</span>
+        <span className="flex items-center gap-1.5"><span className="w-0.5 h-3 inline-block bg-[#3B82F6]" />Today</span>
         {viewMode === "gantt" && <span className="text-zinc-600 italic">Drag right edge of bar to adjust end date</span>}
       </div>
 

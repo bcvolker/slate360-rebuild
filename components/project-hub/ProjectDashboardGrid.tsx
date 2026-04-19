@@ -106,14 +106,14 @@ function resolveProjectLocation(metadata: unknown, profileAddress: string | null
 
 /* ─── Widget metadata ─────────────────────────────────────────── */
 const PROJECT_WIDGET_META: WidgetMeta[] = [
-  { id: "project-info",      label: "Project Info",       icon: Info,           color: "#F59E0B" },
-  { id: "location",          label: "Site Location",      icon: MapPin,         color: "#F59E0B" },
+  { id: "project-info",      label: "Project Info",       icon: Info,           color: "#3B82F6" },
+  { id: "location",          label: "Site Location",      icon: MapPin,         color: "#3B82F6" },
   { id: "weather",           label: "Weather",            icon: Sun,            color: "#0891B2" },
   { id: "budget-snapshot",   label: "Budget Snapshot",    icon: BarChart2,      color: "#059669" },
-  { id: "schedule-snapshot", label: "Schedule Snapshot",  icon: CalendarCheck2, color: "#F59E0B" },
+  { id: "schedule-snapshot", label: "Schedule Snapshot",  icon: CalendarCheck2, color: "#3B82F6" },
   { id: "quick-actions",     label: "Quick Actions",      icon: Zap,            color: "#7C3AED" },
-  { id: "slatedrop",         label: "SlateDrop",          icon: FolderOpen,     color: "#F59E0B" },
-  { id: "continue",          label: "Continue Working",   icon: Clock,          color: "#F59E0B" },
+  { id: "slatedrop",         label: "SlateDrop",          icon: FolderOpen,     color: "#3B82F6" },
+  { id: "continue",          label: "Continue Working",   icon: Clock,          color: "#3B82F6" },
 ];
 
 function fmtUsd(v: number) {
@@ -257,7 +257,7 @@ export default function ProjectDashboardGrid({
       return (
         <div className="rounded-xl bg-white/[0.04]/50 border border-app p-4 flex-1 space-y-3">
           <div className="flex items-start gap-2.5">
-            <Building2 size={18} className="text-[#F59E0B] mt-0.5 shrink-0" />
+            <Building2 size={18} className="text-[#3B82F6] mt-0.5 shrink-0" />
             <div className="min-w-0">
               <p className="text-sm font-black text-white truncate">{project.name ?? "—"}</p>
               {locationStr && (
@@ -281,7 +281,7 @@ export default function ProjectDashboardGrid({
             {rfiCount !== null && (
               <div className="bg-white/[0.04] rounded-lg p-2">
                 <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Open RFIs</p>
-                <p className="text-xs font-bold text-[#F59E0B] mt-0.5">{rfiCount.open} <span className="text-zinc-500 font-normal">/ {rfiCount.total}</span></p>
+                <p className="text-xs font-bold text-[#3B82F6] mt-0.5">{rfiCount.open} <span className="text-zinc-500 font-normal">/ {rfiCount.total}</span></p>
               </div>
             )}
             {subCount !== null && (
@@ -296,7 +296,7 @@ export default function ProjectDashboardGrid({
           )}
           <button
             onClick={() => setProfileOpen(true)}
-            className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-app py-1.5 text-[10px] font-semibold text-zinc-500 hover:text-[#F59E0B] hover:border-[#F59E0B]/30 transition"
+            className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-app py-1.5 text-[10px] font-semibold text-zinc-500 hover:text-[#3B82F6] hover:border-[#3B82F6]/30 transition"
           >
             <Settings size={10} /> Edit Company Profile (Auto-fill)
           </button>
@@ -386,20 +386,20 @@ export default function ProjectDashboardGrid({
           <div className="rounded-xl border border-dashed border-app bg-white/[0.04]/50 p-4 flex-1 flex flex-col items-center justify-center gap-2">
             <CalendarCheck2 size={24} className="text-zinc-600" />
             <p className="text-xs text-zinc-500 font-semibold">No tasks scheduled</p>
-            <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#F59E0B] hover:underline">Add tasks →</Link>
+            <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#3B82F6] hover:underline">Add tasks →</Link>
           </div>
         );
       }
       return (
         <div className="flex flex-col gap-2 flex-1">
-          <div className="flex items-center gap-3 rounded-lg bg-[#F59E0B]/10 border border-[#F59E0B]/20 px-3 py-2">
+          <div className="flex items-center gap-3 rounded-lg bg-[#3B82F6]/10 border border-[#3B82F6]/20 px-3 py-2">
             <div className="flex-1">
               <div className="flex justify-between text-[10px] mb-1">
                 <span className="font-bold text-zinc-300">{tasks.filter((t) => t.status === "Completed").length}/{tasks.length} completed</span>
-                <span className="font-black text-[#F59E0B]">{overallPct}%</span>
+                <span className="font-black text-[#3B82F6]">{overallPct}%</span>
               </div>
               <div className="w-full bg-white/[0.04] rounded-full h-1.5 overflow-hidden">
-                <div className="h-full bg-[#F59E0B] rounded-full transition-all" style={{ width: `${overallPct}%` }} />
+                <div className="h-full bg-[#3B82F6] rounded-full transition-all" style={{ width: `${overallPct}%` }} />
               </div>
             </div>
           </div>
@@ -416,7 +416,7 @@ export default function ProjectDashboardGrid({
               </div>
             ))}
           </div>
-          <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#F59E0B] hover:underline text-right block">Open Gantt →</Link>
+          <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#3B82F6] hover:underline text-right block">Open Gantt →</Link>
         </div>
       );
     }
@@ -424,11 +424,11 @@ export default function ProjectDashboardGrid({
     /* QUICK ACTIONS */
     if (id === "quick-actions") {
       const actions = [
-        { label: "New RFI",       href: `/project-hub/${projectId}/rfis`,       icon: ClipboardList, color: "#F59E0B" },
+        { label: "New RFI",       href: `/project-hub/${projectId}/rfis`,       icon: ClipboardList, color: "#3B82F6" },
         { label: "Add Submittal", href: `/project-hub/${projectId}/submittals`,  icon: FileCheck2,    color: "#7C3AED" },
-        { label: "Daily Log",     href: `/project-hub/${projectId}/daily-logs`,  icon: Layers,        color: "#F59E0B" },
+        { label: "Daily Log",     href: `/project-hub/${projectId}/daily-logs`,  icon: Layers,        color: "#3B82F6" },
         { label: "Punch List",    href: `/project-hub/${projectId}/punch-list`,  icon: ShieldAlert,   color: "#DC2626" },
-        { label: "Upload File",   href: `/project-hub/${projectId}/slatedrop`,   icon: FolderOpen,    color: "#F59E0B" },
+        { label: "Upload File",   href: `/project-hub/${projectId}/slatedrop`,   icon: FolderOpen,    color: "#3B82F6" },
         { label: "Add Task",      href: `/project-hub/${projectId}/schedule`,    icon: CalendarCheck2, color: "#059669" },
       ];
       return (
@@ -468,9 +468,9 @@ export default function ProjectDashboardGrid({
             <Link
               key={link.title}
               href={link.href}
-              className="flex items-center gap-2.5 rounded-xl border border-app bg-white/[0.04] px-3 py-2.5 hover:border-[#F59E0B]/20 hover:bg-[#F59E0B]/5 transition group"
+              className="flex items-center gap-2.5 rounded-xl border border-app bg-white/[0.04] px-3 py-2.5 hover:border-[#3B82F6]/20 hover:bg-[#3B82F6]/5 transition group"
             >
-              <link.icon size={13} className="text-zinc-500 group-hover:text-[#F59E0B] transition shrink-0" />
+              <link.icon size={13} className="text-zinc-500 group-hover:text-[#3B82F6] transition shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-semibold text-zinc-200 truncate">{link.title}</p>
                 <p className="text-[9px] text-zinc-500 truncate">{link.subtitle}</p>
@@ -494,14 +494,14 @@ export default function ProjectDashboardGrid({
           <button
             onClick={() => setProfileOpen(true)}
             title="Company auto-fill profile"
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-white/[0.04] hover:text-[#F59E0B] transition-colors"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-500 hover:bg-white/[0.04] hover:text-[#3B82F6] transition-colors"
           >
             <Settings size={15} />
           </button>
           <button
             onClick={() => setCustomizeOpen(true)}
             title="Customize widgets"
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-white/[0.04] hover:text-[#F59E0B] transition-colors"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-white/[0.04] hover:text-[#3B82F6] transition-colors"
           >
             <SlidersHorizontal size={16} />
           </button>

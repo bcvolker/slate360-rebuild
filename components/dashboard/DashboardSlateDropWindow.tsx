@@ -159,7 +159,7 @@ export default function DashboardSlateDropWindow({
             />
           )}
         </div>
-        <FolderOpen size={14} className="text-[#F59E0B] ml-1 shrink-0" />
+        <FolderOpen size={14} className="text-[#3B82F6] ml-1 shrink-0" />
         <span className="text-[13px] font-semibold text-white/90 flex-1 text-center -ml-8 pointer-events-none">
           SlateDrop
         </span>

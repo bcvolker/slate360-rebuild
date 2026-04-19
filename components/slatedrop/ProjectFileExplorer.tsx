@@ -56,7 +56,7 @@ export default function ProjectFileExplorer({
                   onClick={() => setActiveFolderId(folder.id)}
                   className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm transition ${
                     active
-                      ? "border-[#F59E0B]/40 bg-[#F59E0B]/10 text-[#F59E0B]"
+                      ? "border-[#3B82F6]/40 bg-[#3B82F6]/10 text-[#3B82F6]"
                       : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
                   }`}
                 >
@@ -89,7 +89,7 @@ export default function ProjectFileExplorer({
               <button
                 onClick={handleGenerateLink}
                 disabled={isGeneratingLink}
-                className="flex items-center gap-2 rounded-lg bg-[#F59E0B] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#E64500] disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-[#3B82F6] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#1D4ED8] disabled:opacity-50"
               >
                 {isGeneratingLink ? <Loader2 size={14} className="animate-spin" /> : <LinkIcon size={14} />}
                 Request Link

@@ -64,8 +64,8 @@ const VARS_TO_CHECK = [
 ];
 
 const AMBER_HEX_PATTERNS = [
-  /245,\s*158,\s*11/i, // rgb(245, 158, 11) — amber-500
-  /217,\s*119,\s*6/i, // rgb(217, 119, 6) — amber-600
+  /245,\s*158,\s*11/i, // rgb(59, 130, 246) — amber-500
+  /217,\s*119,\s*6/i, // rgb(37, 99, 235) — amber-600
   /212,\s*175,\s*55/i, // rgb(212, 175, 55) — old industrial gold #D4AF37
   /251,\s*191,\s*36/i, // amber-400
 ];
@@ -255,7 +255,7 @@ export default function ColorAuditPage() {
         )}
         <button onClick={refreshSw} style={btnStyle}>Refresh</button>
         {" "}
-        <button onClick={unregisterSw} style={{ ...btnStyle, background: "#F59E0B", color: "#451a03" }}>
+        <button onClick={unregisterSw} style={{ ...btnStyle, background: "#3B82F6", color: "#0B1220" }}>
           Unregister SW + Clear Caches
         </button>
         <p style={{ color: "#64748b", marginTop: 8, fontSize: 11 }}>
@@ -312,9 +312,9 @@ export default function ColorAuditPage() {
                     <td style={td}>{h.tag}</td>
                     <td style={{ ...td, color: "#94a3b8" }}>{h.classes}</td>
                     <td style={{ ...td, color: "#94a3b8" }}>{h.text}</td>
-                    <td style={{ ...td, color: isAmberColor(h.color) ? "#F59E0B" : "#94a3b8" }}>{h.color}</td>
-                    <td style={{ ...td, color: isAmberColor(h.bg) ? "#F59E0B" : "#94a3b8" }}>{h.bg}</td>
-                    <td style={{ ...td, color: isAmberColor(h.border) ? "#F59E0B" : "#94a3b8" }}>{h.border}</td>
+                    <td style={{ ...td, color: isAmberColor(h.color) ? "#3B82F6" : "#94a3b8" }}>{h.color}</td>
+                    <td style={{ ...td, color: isAmberColor(h.bg) ? "#3B82F6" : "#94a3b8" }}>{h.bg}</td>
+                    <td style={{ ...td, color: isAmberColor(h.border) ? "#3B82F6" : "#94a3b8" }}>{h.border}</td>
                     <td style={{ ...td, color: "#64748b", fontSize: 10 }}>{h.selector}</td>
                   </tr>
                 ))}
@@ -328,7 +328,7 @@ export default function ColorAuditPage() {
         <p style={{ color: "#94a3b8", marginBottom: 8 }}>
           Open the app shell skin source of truth in another tab to compare:
         </p>
-        <a href="/preview/mobile-shell-v2" target="_blank" rel="noreferrer" style={{ color: "#5E8E8E", textDecoration: "underline" }}>
+        <a href="/preview/mobile-shell-v2" target="_blank" rel="noreferrer" style={{ color: "#94A3B8", textDecoration: "underline" }}>
           /preview/mobile-shell-v2 →
         </a>
       </Section>

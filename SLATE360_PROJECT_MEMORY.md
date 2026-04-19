@@ -197,7 +197,49 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-18
+### Session Handoff — 2026-04-19 (Cobalt+Steel palette + viewer role + collaborator plan)
+
+### What Changed
+- **Brand palette swapped from Amber+Teal to Cobalt+Steel** across the app:
+  - `app/globals.css`: `--primary` → `#3B82F6` (cobalt-500), `--primary-hover` → `#2563EB`, `--primary-foreground` → `#0B1220`, `--ring` → `#3B82F6`, `--accent-teal` → `#94A3B8` (steel-400), `--accent-teal-soft` → `rgba(148,163,184,0.18)`, `--slate-gold/accent` → cobalt, all sidebar tokens, all `--app-glow-*`, `btn-amber-soft`/`btn-teal-outline` utilities, `auth-page`/`auth-input`/`auth-btn-primary` utilities.
+  - `lib/design-system/tokens.ts`: `brand.gold/goldHover/goldRing/goldGlow`, HSL strings, `teal/tealSoft/tealHover`, `appShell.glowAmber/glowAmberStrong`, all `modules.*` accents → cobalt + cobalt-deep.
+  - `lib/types/branding.ts`: `DEFAULT_BRANDING.primary_color` → `#3B82F6`.
+  - Logos: `public/logo.svg` and `public/uploads/slate360-logo-reversed-v2.svg` — `cls-2` fill swapped from amber to cobalt. Cache-bust string `?v=amber-2026-04-19` → `?v=cobalt-2026-04-19` everywhere.
+  - Mass `sed` swept all `.ts/.tsx/.css` under `app/`, `components/`, `lib/`, `hooks/`: `#F59E0B/#f59e0b → #3B82F6`, `#D97706/#d97706 → #2563EB`, `#E64500/#e64500/#E04400/#162D69 → #1D4ED8`, `#451a03 → #0B1220`, `#5E8E8E → #94A3B8`, `rgba(245,158,11,…) → rgba(59,130,246,…)`, `rgba(217,119,6,…) → rgba(37,99,235,…)`, `rgba(94,142,142,…) → rgba(148,163,184,…)`. Verified zero stragglers outside `app/palette-lab/` (now deleted).
+  - `app/palette-lab/` deleted (526-line sandbox served its purpose).
+- **Viewer role wired into the server context:**
+  - `lib/server/org-context.ts`: `roleRank()` now returns `viewer=3`. `ServerOrgContext` adds `isViewer: boolean` and `canEditOrg: boolean`. All return paths (no-user, no-membership, success, catch) updated. The `org_role` enum already included `viewer` (migration `20260406000003_org_member_roles.sql`) so no SQL change needed.
+- **Collaborator + leadership-view plan documented** (no code yet — design only):
+  - `slate360-context/ORG_ROLES_AND_PERMISSIONS.md`: appended a long Project Collaborators section (data model with new `project_collaborator_invites` table, seat-limit enforcement, multi-channel invite flow incl. SMS via Twilio, two UI variations for collaborators with/without subscriptions, list of code surfaces to build) plus a Leadership View section (the ASU-director use case packaged into a single `Project › People` tab + a header-level view selector with `My view / Owner view / Leadership view`) plus a Backend Status table marking what's live vs gap.
+  - `docs/SLATE360_MASTER_BUILD_PLAN.md`: updated the collaborator onboarding path to reference SMS/QR channels and the Collaborator Shell, and links out to the new design doc as single source of truth.
+- Validation: `npm run typecheck` clean after every change.
+
+### What's Broken / Partially Done
+- **No backend code yet** for the new collaborator pieces — only the plan doc. Specifically still missing: `project_collaborator_invites` migration, `org_member_app_access` migration, `org_members.permissions` jsonb migration, `maxCollaborators` in `lib/entitlements.ts`, `lib/sms.ts` (Twilio), the `Project › People` tab, the `CollaboratorShell` no-subscription view, the view-selector packaging, and the Operations Console subscription-status panel. Status table at the bottom of `ORG_ROLES_AND_PERMISSIONS.md` is the source of truth.
+- Members & Roles, Permissions, Audit Log tabs in `MyAccountShell` are still placeholders (rendering `<PlaceholderTab>`). Now that `viewer` is in `ServerOrgContext`, the Members tab can be wired with role assignment when built.
+- Tailwind utility classes `bg-amber-*` / `text-amber-*` / `border-amber-*` / `ring-amber-*` were intentionally NOT swept — they encode semantic warning / "in progress" status in punch-list, billing past-due, AccountDataTrackerTab, etc. A handful of brand-only usages (e.g. SceneUploader hover, AccountAdminCards "Internal Owner" badge) remain amber and look slightly off-brand. Punch them up if/when the visual review surfaces them.
+- Production-deployment work for the homepage cutover (commit `7cce7b9`) noted in the previous handoff is unrelated and unaffected.
+
+### Context Files Updated
+- `app/globals.css`: cobalt+steel tokens + utility classes.
+- `lib/design-system/tokens.ts`: brand/accent tokens.
+- `lib/types/branding.ts`: default primary color.
+- `lib/server/org-context.ts`: viewer role wired.
+- `public/logo.svg`, `public/uploads/slate360-logo-reversed-v2.svg`: cobalt fill.
+- `slate360-context/ORG_ROLES_AND_PERMISSIONS.md`: viewer marked live; full collaborator + leadership-view design appended.
+- `docs/SLATE360_MASTER_BUILD_PLAN.md`: collaborator onboarding section updated.
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
+
+### Next Steps (ordered)
+1. Visual QA of the cobalt+steel skin on `/dashboard`, `/projects`, `/slatedrop`, `/login`, `/signup`, `/preview/marketing-home`, `/preview/mobile-shell-v2`. Hard-refresh to bust any cached SVG. Capture any amber/steel utility-class stragglers worth sweeping.
+2. Write the migration `project_collaborator_invites` (schema in `ORG_ROLES_AND_PERMISSIONS.md`).
+3. Add `maxCollaborators` to `lib/entitlements.ts` per tier and surface it in `getEntitlements()`.
+4. Build `Project › People` tab (`app/(dashboard)/projects/[projectId]/people/page.tsx`) wrapping the existing `app/api/invites/generate/route.ts` for the email/QR path; stub SMS until Twilio creds are added.
+5. Build `CollaboratorShell` no-subscription view + the header view-selector (`My view / Owner view / Leadership view`).
+6. Wire `MyAccountShell › Workspace › Members & Roles` to the live `organization_members` table now that `isViewer` exists in context — invite + role select + per-app seat assignment.
+7. Operations Console subscription-status / cohort segmentation panel.
+
+### Earlier Handoff — 2026-04-18
 
 ### What Changed
 - `app/page.tsx`: the live homepage route no longer renders `components/marketing-homepage.tsx`; it now serves `components/home/LandingPage.tsx`, making the extracted home stack the active homepage source of truth.

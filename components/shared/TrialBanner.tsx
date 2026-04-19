@@ -9,7 +9,7 @@ interface TrialBannerProps {
   accent?: string;
 }
 
-export default function TrialBanner({ feature, accent = "#F59E0B" }: TrialBannerProps) {
+export default function TrialBanner({ feature, accent = "#3B82F6" }: TrialBannerProps) {
   return (
     <div
       className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-xl border px-4 py-3"

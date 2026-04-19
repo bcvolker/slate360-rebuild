@@ -65,7 +65,7 @@ export default async function ProjectDetailLayout({
 									<li key={tab.label}>
 										<Link
 											href={href}
-											className="inline-flex rounded-full border border-zinc-800 bg-zinc-900 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-zinc-300 transition-all hover:border-[#F59E0B]/30 hover:bg-[#F59E0B]/10 hover:text-[#F59E0B] hover:shadow-sm hover:-translate-y-px whitespace-nowrap"
+											className="inline-flex rounded-full border border-zinc-800 bg-zinc-900 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-zinc-300 transition-all hover:border-[#3B82F6]/30 hover:bg-[#3B82F6]/10 hover:text-[#3B82F6] hover:shadow-sm hover:-translate-y-px whitespace-nowrap"
 										>
 											{tab.label}
 										</Link>

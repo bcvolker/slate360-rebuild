@@ -56,7 +56,7 @@ export default function ProjectManagementPage() {
           </Link>
           <ViewCustomizer storageKey={`viewprefs-management-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
           <Link href={`/project-hub/${projectId}/submittals`}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#F59E0B] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition">
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition">
             <FileText size={14} /> AIA Documents
           </Link>
         </div>
@@ -65,7 +65,7 @@ export default function ProjectManagementPage() {
       {/* ── Quick stats ── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: "Total Stakeholders", value: sCounts.total, color: "text-[#F59E0B]", icon: Users },
+          { label: "Total Stakeholders", value: sCounts.total, color: "text-[#3B82F6]", icon: Users },
           { label: "Active Contracts", value: cCounts.executed, color: "text-emerald-600", icon: FileSignature },
           { label: "Contracts Drafted", value: cCounts.draft, color: "text-amber-600", icon: FileText },
           { label: "Subcontractors", value: sCounts.subs, color: "text-amber-600", icon: Building2 },
@@ -82,11 +82,11 @@ export default function ProjectManagementPage() {
       <div className="flex items-center gap-2 border-b border-gray-100 pb-0">
         {TAB_DEF.map((t) => (
           <button key={t.id} onClick={() => setActiveTab(t.id)}
-            className={["inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors", activeTab === t.id ? "border-[#F59E0B] text-[#F59E0B]" : "border-transparent text-gray-500 hover:text-gray-700"].join(" ")}>
+            className={["inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors", activeTab === t.id ? "border-[#3B82F6] text-[#3B82F6]" : "border-transparent text-gray-500 hover:text-gray-700"].join(" ")}>
             <t.icon size={14} />
             {t.label}
             {t.count !== undefined && (
-              <span className={["rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none", activeTab === t.id ? "bg-[#F59E0B]/10 text-[#F59E0B]" : "bg-gray-100 text-gray-500"].join(" ")}>{t.count}</span>
+              <span className={["rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none", activeTab === t.id ? "bg-[#3B82F6]/10 text-[#3B82F6]" : "bg-gray-100 text-gray-500"].join(" ")}>{t.count}</span>
             )}
           </button>
         ))}

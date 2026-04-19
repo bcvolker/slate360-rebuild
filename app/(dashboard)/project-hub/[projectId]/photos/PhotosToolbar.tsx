@@ -66,13 +66,13 @@ export default function PhotosToolbar({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search photos…"
-              className="rounded-lg border border-zinc-700 bg-zinc-800 py-1.5 pl-8 pr-3 text-xs text-zinc-200 placeholder:text-zinc-500 focus:border-[#F59E0B] focus:outline-none focus:ring-1 focus:ring-[#F59E0B]/20 w-52"
+              className="rounded-lg border border-zinc-700 bg-zinc-800 py-1.5 pl-8 pr-3 text-xs text-zinc-200 placeholder:text-zinc-500 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]/20 w-52"
             />
           </div>
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-2.5 py-1.5 text-xs text-zinc-300 focus:border-[#F59E0B] focus:outline-none"
+            className="rounded-lg border border-zinc-700 bg-zinc-800 px-2.5 py-1.5 text-xs text-zinc-300 focus:border-[#3B82F6] focus:outline-none"
           >
             {categories.map((c) => (
               <option key={c} value={c}>{c}{c !== "All" && categoryCounts[c] ? ` (${categoryCounts[c]})` : ""}</option>
@@ -81,7 +81,7 @@ export default function PhotosToolbar({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortBy)}
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-2.5 py-1.5 text-xs text-zinc-300 focus:border-[#F59E0B] focus:outline-none"
+            className="rounded-lg border border-zinc-700 bg-zinc-800 px-2.5 py-1.5 text-xs text-zinc-300 focus:border-[#3B82F6] focus:outline-none"
           >
             <option value="name">Sort: Name</option>
             <option value="date">Sort: Date</option>
@@ -91,8 +91,8 @@ export default function PhotosToolbar({
         <div className="flex items-center gap-2">
           {selectedIds.size > 0 && (
             <div className="flex items-center gap-1.5 mr-2">
-              <span className="text-xs font-semibold text-[#F59E0B]">{selectedIds.size} selected</span>
-              <button onClick={handleDownloadSelected} className="rounded-md border border-[#F59E0B]/30 bg-[#F59E0B]/10 px-2 py-1 text-xs font-semibold text-[#F59E0B] hover:bg-[#F59E0B]/20">
+              <span className="text-xs font-semibold text-[#3B82F6]">{selectedIds.size} selected</span>
+              <button onClick={handleDownloadSelected} className="rounded-md border border-[#3B82F6]/30 bg-[#3B82F6]/10 px-2 py-1 text-xs font-semibold text-[#3B82F6] hover:bg-[#3B82F6]/20">
                 <Download size={12} className="inline mr-1" />Download
               </button>
               <button onClick={clearSelection} className="rounded-md px-1.5 py-1 text-xs text-zinc-400 hover:bg-zinc-800">Clear</button>
@@ -102,7 +102,7 @@ export default function PhotosToolbar({
             <button
               key={mode}
               onClick={() => setViewMode(mode)}
-              className={`rounded-md p-1.5 transition ${viewMode === mode ? "bg-[#F59E0B] text-white" : "border border-zinc-700 bg-zinc-800 text-zinc-400 hover:bg-zinc-700"}`}
+              className={`rounded-md p-1.5 transition ${viewMode === mode ? "bg-[#3B82F6] text-white" : "border border-zinc-700 bg-zinc-800 text-zinc-400 hover:bg-zinc-700"}`}
               title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} view`}
             >
               <Icon size={14} />
@@ -115,7 +115,7 @@ export default function PhotosToolbar({
       {/* Bulk Actions Bar */}
       {selectedIds.size === 0 && (
         <div className="flex items-center gap-2 text-xs text-zinc-500">
-          <button onClick={selectAll} className="text-[#F59E0B] hover:underline">Select all ({filteredCount})</button>
+          <button onClick={selectAll} className="text-[#3B82F6] hover:underline">Select all ({filteredCount})</button>
           <span>· Showing {filteredCount} of {totalFiles}</span>
         </div>
       )}

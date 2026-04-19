@@ -67,7 +67,7 @@ export function getFileColor(type: string): string {
     case "stl":
     case "dwg":
     case "fbx":
-      return "#F59E0B";
+      return "#3B82F6";
     case "mp4":
     case "mov":
       return "#3B82F6";
@@ -76,7 +76,7 @@ export function getFileColor(type: string): string {
       return "#059669";
     case "las":
     case "laz":
-      return "#D97706";
+      return "#2563EB";
     default:
       return "#6B7280";
   }

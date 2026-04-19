@@ -119,7 +119,7 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
       internalAccess={internalAccess}
       title="My Account"
       icon={User}
-      accent="#F59E0B"
+      accent="#3B82F6"
       status="live"
       showCustomize={false}
     >

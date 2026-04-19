@@ -58,22 +58,22 @@
   --card-foreground: #e2e8f0;
   --popover: #151A23;
   --popover-foreground: #e2e8f0;
-  --primary: #F59E0B;                  /* Amber-500 — sparing accent only */
-  --primary-foreground: #451a03;
-  --primary-hover: #d97706;
+  --primary: #3B82F6;                  /* Cobalt-500 — primary brand action */
+  --primary-foreground: #0B1220;       /* Deep navy text on cobalt */
+  --primary-hover: #2563EB;            /* Cobalt-600 */
   --secondary: #1e2533;
   --secondary-foreground: #e2e8f0;
   --muted: #1e2533;
   --muted-foreground: #94a3b8;
   --accent: #1e2533;
   --accent-foreground: #e2e8f0;
-  /* Smoked Teal — secondary accent (link hover, secondary icons, nav active) */
-  --accent-teal: #5E8E8E;
-  --accent-teal-soft: rgba(94, 142, 142, 0.20);
+  /* Steel — secondary accent (link hover, secondary icons, nav active) */
+  --accent-teal: #94A3B8;
+  --accent-teal-soft: rgba(148, 163, 184, 0.18);
   --destructive: oklch(0.704 0.191 22.216);
   --border: rgba(255, 255, 255, 0.08);
   --input: rgba(255, 255, 255, 0.10);
-  --ring: #F59E0B;
+  --ring: #3B82F6;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -81,20 +81,20 @@
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: #0B0F15;
   --sidebar-foreground: #e2e8f0;
-  --sidebar-primary: #F59E0B;
-  --sidebar-primary-foreground: #451a03;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #0B1220;
   --sidebar-accent: #1e2533;
   --sidebar-accent-foreground: #e2e8f0;
   --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #F59E0B;
+  --sidebar-ring: #3B82F6;
   /* App-shell skin tokens (mirror lib/design-system/tokens.ts appShell) */
   --app-page: #0B0F15;
   --app-card: #151A23;
   --app-card-hover: rgba(255, 255, 255, 0.04);
   --app-border: rgba(255, 255, 255, 0.05);
   --app-glass: rgba(11, 15, 21, 0.80);
-  --app-glow-amber: 0 0 12px rgba(245, 158, 11, 0.10);
-  --app-glow-amber-strong: 0 0 16px 0 rgba(245, 158, 11, 0.18), 0 2px 8px 0 rgba(245, 158, 11, 0.10);
+  --app-glow-amber: 0 0 12px rgba(59, 130, 246, 0.14);
+  --app-glow-amber-strong: 0 0 16px 0 rgba(59, 130, 246, 0.22), 0 2px 8px 0 rgba(59, 130, 246, 0.14);
   --app-shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
   --app-shadow-elevated: 0 8px 32px -4px rgba(0, 0, 0, 0.4);
   --color-scheme: dark;
@@ -105,16 +105,16 @@
 }
 
 .dark {
-  /* ── New Slate360 palette (deep-navy + amber) matching mobile-shell-v2 ── */
+  /* ── New Slate360 palette (deep-navy + cobalt + steel) ── */
   --background: #0B0F15;
   --foreground: #e2e8f0;
   --card: #151A23;
   --card-foreground: #e2e8f0;
   --popover: #151A23;
   --popover-foreground: #e2e8f0;
-  --primary: #F59E0B;                  /* Amber-500 */
-  --primary-foreground: #451a03;       /* Amber-950 */
-  --primary-hover: #d97706;            /* Amber-600 */
+  --primary: #3B82F6;                  /* Cobalt-500 */
+  --primary-foreground: #0B1220;       /* Deep navy text */
+  --primary-hover: #2563EB;            /* Cobalt-600 */
   --secondary: #1e2533;
   --secondary-foreground: #e2e8f0;
   --muted: #1e2533;
@@ -124,7 +124,7 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: rgba(255, 255, 255, 0.08);
   --input: rgba(255, 255, 255, 0.10);
-  --ring: #F59E0B;
+  --ring: #3B82F6;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -132,12 +132,12 @@
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: #0B0F15;
   --sidebar-foreground: #e2e8f0;
-  --sidebar-primary: #F59E0B;
-  --sidebar-primary-foreground: #451a03;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #0B1220;
   --sidebar-accent: #1e2533;
   --sidebar-accent-foreground: #e2e8f0;
   --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #F59E0B;
+  --sidebar-ring: #3B82F6;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -147,34 +147,34 @@
    Enterprise white-label: override --slate-orange and --slate-blue.
    ───────────────────────────────────────────────────────────────── */
 :root {
-  /* Brand colors — aligned with mobile-shell-v2 dark skin */
-  --slate-gold: #F59E0B;
-  --slate-gold-hover: #d97706;
-  --slate-gold-light: rgba(245, 158, 11, 0.12);
-  --slate-accent: #F59E0B;
-  --slate-accent-hover: #d97706;
-  --slate-accent-ring: rgba(245, 158, 11, 0.5);
-  --slate-teal: #5E8E8E;
-  --slate-teal-soft: rgba(94, 142, 142, 0.20);
+  /* Brand colors — Cobalt (primary) + Steel (secondary). 2026-04-19. */
+  --slate-gold: #3B82F6;
+  --slate-gold-hover: #2563EB;
+  --slate-gold-light: rgba(59, 130, 246, 0.14);
+  --slate-accent: #3B82F6;
+  --slate-accent-hover: #2563EB;
+  --slate-accent-ring: rgba(59, 130, 246, 0.5);
+  --slate-teal: #94A3B8;
+  --slate-teal-soft: rgba(148, 163, 184, 0.18);
   --slate-blue: #0B0F15;
   --slate-blue-hover: #151A23;
   --slate-blue-light: rgba(11, 15, 21, 0.50);
 
   /* Module accent colors */
-  --module-hub: #F59E0B;
+  --module-hub: #3B82F6;
   --module-design: #7C3AED;
   --module-content: #EC4899;
   --module-tours: #0891B2;
   --module-geo: #059669;
-  --module-virtual: #D97706;
+  --module-virtual: #2563EB;
   --module-analytics: #6366F1;
   --module-market: #6366F1;
-  --module-slatedrop: #F59E0B;
+  --module-slatedrop: #3B82F6;
 
   /* Status colors — used for RFIs, submittals, punch items */
   --status-open: #2563EB;
   --status-open-bg: #EFF6FF;
-  --status-review: #D97706;
+  --status-review: #2563EB;
   --status-review-bg: #FFFBEB;
   --status-approved: #059669;
   --status-approved-bg: #ECFDF5;
@@ -214,18 +214,18 @@
 
 /* Dark mode overrides for Slate360 design tokens */
 .dark {
-  --slate-gold: #F59E0B;
-  --slate-gold-hover: #d97706;
-  --slate-gold-light: rgba(245, 158, 11, 0.12);
-  --slate-accent: #F59E0B;
-  --slate-accent-hover: #d97706;
-  --slate-accent-ring: rgba(245, 158, 11, 0.5);
+  --slate-gold: #3B82F6;
+  --slate-gold-hover: #2563EB;
+  --slate-gold-light: rgba(59, 130, 246, 0.14);
+  --slate-accent: #3B82F6;
+  --slate-accent-hover: #2563EB;
+  --slate-accent-ring: rgba(59, 130, 246, 0.5);
   --slate-blue: #e2e8f0;
   --slate-blue-hover: #cbd5e1;
   --slate-blue-light: rgba(226, 232, 240, 0.08);
 
   --status-open-bg: rgba(37, 99, 235, 0.15);
-  --status-review-bg: rgba(217, 119, 6, 0.15);
+  --status-review-bg: rgba(37, 99, 235, 0.15);
   --status-approved-bg: rgba(5, 150, 105, 0.15);
   --status-closed-bg: rgba(5, 150, 105, 0.15);
   --status-overdue-bg: rgba(220, 38, 38, 0.15);
@@ -326,7 +326,7 @@
 }
 
 @utility shadow-gold-glow {
-  box-shadow: 0 0 20px 0 rgba(245, 158, 11, 0.35), 0 4px 12px 0 rgba(245, 158, 11, 0.2);
+  box-shadow: 0 0 20px 0 rgba(59, 130, 246, 0.35), 0 4px 12px 0 rgba(59, 130, 246, 0.20);
 }
 
 @utility shadow-app-glow {
@@ -363,31 +363,31 @@
   }
 }
 
-/* Muted/glass amber CTA — calmer than solid bg-primary, still recognizably the brand action */
+/* Muted/glass cobalt CTA — calmer than solid bg-primary, still recognizably the brand action */
 @utility btn-amber-soft {
-  background: linear-gradient(180deg, rgba(245, 158, 11, 0.92), rgba(217, 119, 6, 0.92));
-  color: #1a0f02;
-  border: 1px solid rgba(245, 158, 11, 0.45);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.92), rgba(37, 99, 235, 0.92));
+  color: #ffffff;
+  border: 1px solid rgba(59, 130, 246, 0.45);
   box-shadow: var(--app-glow-amber);
   transition: all 0.18s ease;
 }
 .btn-amber-soft:hover {
-  background: linear-gradient(180deg, rgba(245, 158, 11, 1), rgba(217, 119, 6, 1));
+  background: linear-gradient(180deg, rgba(59, 130, 246, 1), rgba(37, 99, 235, 1));
   box-shadow: var(--app-glow-amber-strong);
   transform: translateY(-1px);
 }
 
-/* Outlined teal CTA — secondary action that complements amber without competing */
+/* Outlined steel CTA — secondary action that complements cobalt without competing */
 @utility btn-teal-outline {
-  background: rgba(94, 142, 142, 0.06);
+  background: rgba(148, 163, 184, 0.06);
   color: var(--accent-teal);
-  border: 1px solid rgba(94, 142, 142, 0.40);
+  border: 1px solid rgba(148, 163, 184, 0.40);
   transition: all 0.18s ease;
 }
 .btn-teal-outline:hover {
-  background: rgba(94, 142, 142, 0.14);
+  background: rgba(148, 163, 184, 0.14);
   border-color: var(--accent-teal);
-  color: #7AB0B0;
+  color: #CBD5E1;
 }
 
 @utility scrollbar-none {
@@ -406,7 +406,7 @@
   @apply min-h-screen flex flex-col bg-background text-foreground;
   background-color: var(--app-page);
   background-image:
-    radial-gradient(circle at top, rgba(245, 158, 11, 0.10), transparent 25%),
+    radial-gradient(circle at top, rgba(59, 130, 246, 0.12), transparent 28%),
     linear-gradient(180deg, var(--app-page) 0%, #0E131B 100%);
   background-attachment: fixed;
   color-scheme: dark;
@@ -431,7 +431,7 @@
   @apply w-full rounded-xl border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground transition-all focus:outline-none focus:ring-2;
   border-color: var(--app-border);
   background: rgba(11, 15, 21, 0.6);
-  --tw-ring-color: rgba(245, 158, 11, 0.30);
+  --tw-ring-color: rgba(59, 130, 246, 0.32);
 }
 .auth-input:focus { border-color: var(--primary); }
 
@@ -440,8 +440,8 @@
 }
 
 @utility auth-btn-primary {
-  @apply w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm text-primary-foreground bg-primary hover:bg-primary/90 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100;
-  box-shadow: var(--app-glow-amber, 0 0 24px rgba(245, 158, 11, 0.25));
+  @apply w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm text-white bg-primary hover:bg-primary/90 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100;
+  box-shadow: var(--app-glow-amber, 0 0 24px rgba(59, 130, 246, 0.30));
 }
 
 @utility auth-btn-oauth {

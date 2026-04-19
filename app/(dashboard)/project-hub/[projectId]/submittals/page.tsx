@@ -144,7 +144,7 @@ export default function ProjectSubmittalsPage() {
         <div className="flex items-center gap-2">
           <button onClick={exportCSV} disabled={rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"><Download size={14} /> Export</button>
           <ViewCustomizer storageKey={`viewprefs-submittals-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
-          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setAttachment(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#F59E0B] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition"><Plus size={15} /> New Submittal</button>
+          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setAttachment(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition"><Plus size={15} /> New Submittal</button>
         </div>
       </div>
 
@@ -159,9 +159,9 @@ export default function ProjectSubmittalsPage() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search submittals..." className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-2 pl-9 pr-3 text-sm text-zinc-200 placeholder:text-zinc-500 outline-none focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search submittals..." className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-2 pl-9 pr-3 text-sm text-zinc-200 placeholder:text-zinc-500 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/30" />
         </div>
-        <button onClick={() => setShowFilters(!showFilters)} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition ${showFilters ? "border-[#F59E0B] bg-[#F59E0B]/10 text-[#F59E0B]" : "border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"}`}><Filter size={14} /> Filters</button>
+        <button onClick={() => setShowFilters(!showFilters)} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition ${showFilters ? "border-[#3B82F6] bg-[#3B82F6]/10 text-[#3B82F6]" : "border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"}`}><Filter size={14} /> Filters</button>
       </div>
       {showFilters && (
         <div className="flex flex-wrap gap-3 rounded-xl border border-zinc-800 bg-zinc-900 p-4">

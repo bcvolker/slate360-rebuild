@@ -139,14 +139,26 @@ A **collaborator** is a separate role from a subscriber. Collaborators are NOT p
 - Whether collaborators can access full project file browser or only item-scoped files
 
 **Collaborator onboarding path:**
-1. Subscriber invites collaborator (by email)
-2. Collaborator receives invite link
+1. Subscriber invites collaborator (by email, SMS, or both — SMS via Twilio, email via existing `lib/email.ts`)
+2. Collaborator receives invite link (and/or QR for in-person handoff)
 3. Collaborator creates a Slate360 account (lightweight — no subscription required)
 4. Collaborator installs Slate360 PWA (or uses web)
-5. Collaborator sees ONLY the project(s) they were invited to
+5. Collaborator sees ONLY the project(s) they were invited to (Collaborator Shell)
 6. Collaborator can immediately start field work within their project scope
 
+If the collaborator already has their own Slate360 subscription, they
+keep their full dashboard — the inviting subscriber's project shows up
+under `Projects → Shared with me` with the collaborator-scoped
+permissions intact.
+
 This is distinct from the subscriber onboarding path (Section 7).
+
+**Detailed data model + UI surfaces** for the collaborator system —
+including the new `project_collaborator_invites` table, the
+`Project › People` tab packaging, the view selector that also serves
+ASU directors / leadership-viewers, and the back-end status table —
+live in [`slate360-context/ORG_ROLES_AND_PERMISSIONS.md`](../slate360-context/ORG_ROLES_AND_PERMISSIONS.md). That document is the single source of truth
+for what is built vs. what is still a gap.
 
 ### Future Enterprise Model
 

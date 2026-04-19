@@ -75,7 +75,7 @@ export default async function SiteWalkPage({
           <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.3fr_0.9fr] lg:px-10 lg:py-10">
             <div className="space-y-6">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#F59E0B]/30 bg-[#F59E0B]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#F59E0B]">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#3B82F6]/30 bg-[#3B82F6]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#3B82F6]">
                   <Sparkles className="h-3.5 w-3.5" />
                   Standalone app
                 </span>
@@ -86,7 +86,7 @@ export default async function SiteWalkPage({
 
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F59E0B]/12 text-[#F59E0B] ring-1 ring-[#F59E0B]/20">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#3B82F6]/12 text-[#3B82F6] ring-1 ring-[#3B82F6]/20">
                     <MapPinned className="h-7 w-7" />
                   </div>
                   <div>
@@ -110,7 +110,7 @@ export default async function SiteWalkPage({
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
                   href="/site-walk/board"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#F59E0B] px-5 py-3 text-sm font-bold text-zinc-950 transition hover:bg-[#e7c35a]"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#3B82F6] px-5 py-3 text-sm font-bold text-zinc-950 transition hover:bg-[#e7c35a]"
                 >
                   Open session board
                   <ArrowRight className="h-4 w-4" />
@@ -154,7 +154,7 @@ export default async function SiteWalkPage({
                     key={item}
                     className="flex items-start gap-3 rounded-2xl border border-zinc-800 bg-black/20 px-4 py-3"
                   >
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#F59E0B]" />
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#3B82F6]" />
                     <p className="text-sm leading-6 text-zinc-300">{item}</p>
                   </div>
                 ))}
@@ -172,7 +172,7 @@ export default async function SiteWalkPage({
                 key={feature.title}
                 className="rounded-[24px] border border-zinc-800 bg-zinc-900/80 p-6 shadow-lg shadow-black/10 transition hover:border-zinc-700 hover:bg-zinc-900"
               >
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F59E0B]/10 text-[#F59E0B] ring-1 ring-[#F59E0B]/15">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#3B82F6]/10 text-[#3B82F6] ring-1 ring-[#3B82F6]/15">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="text-lg font-black text-white">{feature.title}</h3>

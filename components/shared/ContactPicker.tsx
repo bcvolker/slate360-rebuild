@@ -144,7 +144,7 @@ export default function ContactPicker({
         .slice(0, 8);
 
   const inputClasses =
-    "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20 focus:border-[#F59E0B] transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+    "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all disabled:opacity-50 disabled:cursor-not-allowed";
 
   if (inline) {
     return (
@@ -206,7 +206,7 @@ export default function ContactPicker({
                   value={query}
                   onChange={(e) => handleQueryChange(e.target.value)}
                   placeholder="Search…"
-                  className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20 focus:border-[#F59E0B]"
+                  className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6]"
                 />
               </div>
             </div>
@@ -243,7 +243,7 @@ function ContactDropdown({
     return (
       <div className={base}>
         <div className="p-4 text-center">
-          <div className="w-4 h-4 border-2 border-[#F59E0B]/30 border-t-[#F59E0B] rounded-full animate-spin mx-auto" />
+          <div className="w-4 h-4 border-2 border-[#3B82F6]/30 border-t-[#3B82F6] rounded-full animate-spin mx-auto" />
         </div>
       </div>
     );

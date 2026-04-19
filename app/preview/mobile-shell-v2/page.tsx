@@ -28,7 +28,7 @@ export default function MobileShellV2() {
         <div className="flex items-center justify-between px-5 pt-12 pb-4 bg-[#0B0F15] border-b border-white/5">
           {/* Logo & Workspace Dropdown */}
           <div className="flex items-center gap-3">
-            <div className="relative w-8 h-8 flex-shrink-0 flex items-center justify-center bg-[#151A23] rounded-lg border border-white/10 shadow-[0_0_15px_rgba(245,158,11,0.15)] overflow-hidden p-1">
+            <div className="relative w-8 h-8 flex-shrink-0 flex items-center justify-center bg-[#151A23] rounded-lg border border-white/10 shadow-[0_0_15px_rgba(59,130,246,0.15)] overflow-hidden p-1">
               <img src="/icon.svg" alt="Slate360 Logo" className="w-full h-full object-contain drop-shadow-md" />
             </div>
             
@@ -64,7 +64,7 @@ export default function MobileShellV2() {
                   // Determine ambient glow color based on app identity
                   let glowColor = "group-hover:bg-amber-500/15";
                   let iconColor = "text-amber-500";
-                  if (app.label === "360 Tours") { glowColor = "group-hover:bg-[#5E8E8E]/20"; iconColor = "text-[#5E8E8E]"; }
+                  if (app.label === "360 Tours") { glowColor = "group-hover:bg-[#94A3B8]/20"; iconColor = "text-[#94A3B8]"; }
                   if (app.label === "Design Studio") { glowColor = "group-hover:bg-slate-300/15"; iconColor = "text-slate-300"; }
                   if (app.label === "Content Studio") { glowColor = "group-hover:bg-slate-500/15"; iconColor = "text-slate-500"; }
 
@@ -107,7 +107,7 @@ export default function MobileShellV2() {
                 >
                   <div className="p-2.5 bg-[#0B0F15] rounded-xl group-hover:scale-110 transition-transform">
                     {/* Using muted teal-smoke secondary accent for quick actions as per guidelines */}
-                    <action.icon size={18} className="text-[#5E8E8E]" /> 
+                    <action.icon size={18} className="text-[#94A3B8]" /> 
                   </div>
                   <span className="text-[11px] font-medium text-slate-300">{action.label}</span>
                 </button>
@@ -123,7 +123,7 @@ export default function MobileShellV2() {
                 <span className="flex items-center gap-1 text-[10px] font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">
                   3 New
                 </span>
-                <button className="flex items-center gap-1 text-[10px] font-medium text-[#5E8E8E] hover:text-amber-500 transition-colors group">
+                <button className="flex items-center gap-1 text-[10px] font-medium text-[#94A3B8] hover:text-amber-500 transition-colors group">
                   Open Hub
                   <ChevronRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
                 </button>
@@ -144,7 +144,7 @@ export default function MobileShellV2() {
                     className="flex items-start gap-3 p-3 rounded-xl transition-all duration-200 hover:bg-white/[0.04] hover:pl-4 cursor-pointer group"
                   >
                     <div className="mt-0.5">
-                      {item.type === "review" && <AlertCircle size={14} className="text-[#5E8E8E]" />}
+                      {item.type === "review" && <AlertCircle size={14} className="text-[#94A3B8]" />}
                       {item.type === "upload" && <MessageSquare size={14} className="text-amber-500" />}
                       {item.type === "submission" && <CheckSquare size={14} className="text-slate-400" />}
                     </div>
@@ -224,11 +224,11 @@ export default function MobileShellV2() {
             >
               {/* Active state top border indicator */}
               {nav.active && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-amber-500 rounded-b-full shadow-[0_2px_8px_rgba(245,158,11,0.5)]" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-amber-500 rounded-b-full shadow-[0_2px_8px_rgba(59,130,246,0.5)]" />
               )}
               
               <div className={`relative transition-transform duration-300 ${nav.active ? "-translate-y-1" : "group-hover:-translate-y-1"}`}>
-                <nav.icon size={22} strokeWidth={nav.active ? 2.5 : 2} className={nav.active ? "text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]" : ""} />
+                <nav.icon size={22} strokeWidth={nav.active ? 2.5 : 2} className={nav.active ? "text-amber-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]" : ""} />
               </div>
               
               <span className={`text-[10px] font-medium transition-all duration-300 ${nav.active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 absolute bottom-3"}`}>

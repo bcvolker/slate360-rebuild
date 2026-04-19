@@ -40,7 +40,7 @@ export default function DashboardSeatsWidget({
       action={
         <button
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90"
-          style={{ backgroundColor: "#F59E0B" }}
+          style={{ backgroundColor: "#3B82F6" }}
         >
           <UserPlus size={13} /> Invite member
         </button>
@@ -77,7 +77,7 @@ export default function DashboardSeatsWidget({
                     <span
                       className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
                         member.role === "Owner"
-                          ? "bg-[#F59E0B]/10 text-[#F59E0B]"
+                          ? "bg-[#3B82F6]/10 text-[#3B82F6]"
                           : member.role === "Admin"
                             ? "bg-[#6366F1]/10 text-[#6366F1]"
                             : "bg-gray-100 text-gray-600"

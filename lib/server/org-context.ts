@@ -29,7 +29,9 @@ function roleRank(role?: string | null): number {
   const normalized = (role ?? "").toLowerCase();
   if (normalized === "owner") return 0;
   if (normalized === "admin") return 1;
-  return 2;
+  if (normalized === "member") return 2;
+  if (normalized === "viewer") return 3;
+  return 4;
 }
 
 function resolveInternalAccess(isSlateCeo: boolean) {
@@ -46,6 +48,10 @@ export type ServerOrgContext = {
   orgName: string | null;
   role: string | null;
   isAdmin: boolean;
+  /** True when role === "viewer" — read-only access (e.g. ASU directors observing beta-tester PMs). */
+  isViewer: boolean;
+  /** True when role allows mutating org-scoped resources (anyone except viewer). */
+  canEditOrg: boolean;
   isSlateCeo: boolean;
   /** True when the user's email is in the slate360_staff table (granted by CEO). */
   isSlateStaff: boolean;
@@ -77,6 +83,8 @@ export const resolveServerOrgContext = cache(async (): Promise<ServerOrgContext>
       orgName: null,
       role: null,
       isAdmin: false,
+      isViewer: false,
+      canEditOrg: false,
       isSlateCeo: false,
       isSlateStaff: false,
       canAccessOperationsConsole: false,
@@ -128,6 +136,8 @@ export const resolveServerOrgContext = cache(async (): Promise<ServerOrgContext>
         orgName: null,
         role: null,
         isAdmin: false,
+        isViewer: false,
+        canEditOrg: false,
         isSlateCeo,
         isSlateStaff: isSlateStaffResolved,
         ...internalAccess,
@@ -141,7 +151,10 @@ export const resolveServerOrgContext = cache(async (): Promise<ServerOrgContext>
     const org = Array.isArray(orgRaw) ? orgRaw[0] : orgRaw;
     const orgId = selected.org_id ?? org?.id ?? null;
     const role = selected.role ?? null;
-    const isAdmin = role === "owner" || role === "admin";
+    const normalizedRole = (role ?? "").toLowerCase();
+    const isAdmin = normalizedRole === "owner" || normalizedRole === "admin";
+    const isViewer = normalizedRole === "viewer";
+    const canEditOrg = !isViewer && !!normalizedRole;
 
     let resolvedOrgName = org?.name ?? null;
     let resolvedTier = org?.tier ?? null;
@@ -164,6 +177,8 @@ export const resolveServerOrgContext = cache(async (): Promise<ServerOrgContext>
       orgName: resolvedOrgName,
       role,
       isAdmin,
+      isViewer,
+      canEditOrg,
       isSlateCeo,
       isSlateStaff: isSlateStaffResolved,
       ...internalAccess,
@@ -178,6 +193,8 @@ export const resolveServerOrgContext = cache(async (): Promise<ServerOrgContext>
       orgName: null,
       role: null,
       isAdmin: false,
+      isViewer: false,
+      canEditOrg: false,
       isSlateCeo,
       isSlateStaff: isSlateStaffResolved,
       ...internalAccess,

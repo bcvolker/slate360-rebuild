@@ -183,7 +183,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
             </p>
             <a
               href="/projects"
-              className="inline-flex items-center justify-center rounded-xl bg-[#F59E0B] px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-[#F59E0B]/85 transition-colors"
+              className="inline-flex items-center justify-center rounded-xl bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-[#3B82F6]/85 transition-colors"
             >
               Open Projects
             </a>

@@ -195,7 +195,7 @@ export default function WidgetCustomizeDrawer({
                 onClick={onSave}
                 disabled={saving || !dirty}
                 className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl text-white transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor: "#F59E0B" }}
+                style={{ backgroundColor: "#3B82F6" }}
               >
                 {saving ? (
                   <Loader2 size={13} className="animate-spin" />

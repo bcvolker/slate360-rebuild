@@ -111,7 +111,7 @@ export function useWizardLocationPickerController({
         } else {
           previewPolylineRef.current = new google.maps.Polyline({
             path: nextVertices,
-            strokeColor: "#F59E0B",
+            strokeColor: "#3B82F6",
             strokeWeight: 2,
             map,
           });
@@ -123,7 +123,7 @@ export function useWizardLocationPickerController({
             icon: {
               path: google.maps.SymbolPath.CIRCLE,
               scale: 5,
-              fillColor: "#F59E0B",
+              fillColor: "#3B82F6",
               fillOpacity: 1,
               strokeColor: "#fff",
               strokeWeight: 1.5,
@@ -179,9 +179,9 @@ export function useWizardLocationPickerController({
     boundaryPolygonRef.current?.setMap(null);
     boundaryPolygonRef.current = new google.maps.Polygon({
       paths: vertices,
-      strokeColor: "#F59E0B",
+      strokeColor: "#3B82F6",
       strokeWeight: 2,
-      fillColor: "#F59E0B",
+      fillColor: "#3B82F6",
       fillOpacity: 0.15,
       editable: true,
       draggable: true,

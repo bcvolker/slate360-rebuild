@@ -16,7 +16,7 @@ export default async function MarketingHomepageV2() {
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               {/* Marketing Nav Header uses the full Wordmark Logo */}
-              <img src="/logo.svg?v=amber-2026-04-19" alt="Slate360 Logo" className="h-8 w-auto object-contain" />
+              <img src="/logo.svg?v=cobalt-2026-04-19" alt="Slate360 Logo" className="h-8 w-auto object-contain" />
             </Link>
             
             <div className="flex items-center gap-4">
@@ -52,7 +52,7 @@ export default async function MarketingHomepageV2() {
               {isLoggedIn ? (
                 <Link 
                   href="/dashboard"
-                  className="px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] hover:-translate-y-1 flex items-center gap-2"
+                  className="px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] hover:-translate-y-1 flex items-center gap-2"
                 >
                   Enter Workspace <ArrowRight className="w-5 h-5" />
                 </Link>
@@ -60,7 +60,7 @@ export default async function MarketingHomepageV2() {
                 <>
                   <Link 
                     href="/signup"
-                    className="px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] hover:-translate-y-1 w-full sm:w-auto"
+                    className="px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] hover:-translate-y-1 w-full sm:w-auto"
                   >
                     Start Free Trial
                   </Link>
@@ -100,9 +100,9 @@ export default async function MarketingHomepageV2() {
 
               {/* Block 2 */}
               <div className="p-8 bg-[#151A23] rounded-3xl border border-white/5 hover:border-white/10 transition-colors group relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#5E8E8E]/5 rounded-bl-full group-hover:bg-[#5E8E8E]/10 transition-colors" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#94A3B8]/5 rounded-bl-full group-hover:bg-[#94A3B8]/10 transition-colors" />
                 <div className="w-14 h-14 bg-[#0B0F15] rounded-2xl flex items-center justify-center mb-6 shadow-inner border border-white/5">
-                  <PenTool className="w-7 h-7 text-[#5E8E8E]" />
+                  <PenTool className="w-7 h-7 text-[#94A3B8]" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-4">Create polished outputs faster</h3>
                 <p className="text-slate-400 leading-relaxed">
@@ -152,9 +152,9 @@ export default async function MarketingHomepageV2() {
               </div>
 
               {/* 360 Tours App Card */}
-              <div className="flex gap-6 p-6 md:p-8 bg-[#0B0F15] rounded-[2rem] border border-white/5 group hover:border-[#5E8E8E]/30 transition-all cursor-pointer">
+              <div className="flex gap-6 p-6 md:p-8 bg-[#0B0F15] rounded-[2rem] border border-white/5 group hover:border-[#94A3B8]/30 transition-all cursor-pointer">
                 <div className="w-16 h-16 rounded-2xl bg-[#151A23] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-inner">
-                  <Compass className="w-8 h-8 text-[#5E8E8E]" />
+                  <Compass className="w-8 h-8 text-[#94A3B8]" />
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-3">360 Tours</h3>

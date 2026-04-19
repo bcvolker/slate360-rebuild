@@ -42,7 +42,7 @@ export default function SlateDropToolbar({
         >
           {sidebarOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
         </button>
-        <FolderOpen size={15} className="text-[#F59E0B] shrink-0" />
+        <FolderOpen size={15} className="text-[#3B82F6] shrink-0" />
         <div className="flex items-center gap-1.5 text-sm flex-1 min-w-0 overflow-hidden">
           {breadcrumb.map((segment, index) => (
             <span key={index} className="flex items-center gap-1.5 min-w-0">
@@ -61,7 +61,7 @@ export default function SlateDropToolbar({
         <button
           onClick={onUploadClick}
           className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-zinc-950 transition-all hover:opacity-90 shrink-0"
-          style={{ backgroundColor: "#F59E0B" }}
+          style={{ backgroundColor: "#3B82F6" }}
         >
           <Upload size={13} /> <span className="hidden xs:inline">Upload</span>
         </button>
@@ -76,7 +76,7 @@ export default function SlateDropToolbar({
             placeholder="Search files…"
             value={searchQuery}
             onChange={(event) => onSearchChange(event.target.value)}
-            className="w-full pl-8 pr-3 py-2 rounded-lg border border-app bg-app-card text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20 focus:border-[#F59E0B] transition-all"
+            className="w-full pl-8 pr-3 py-2 rounded-lg border border-app bg-app-card text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
           />
         </div>
 
@@ -91,13 +91,13 @@ export default function SlateDropToolbar({
         <div className="flex rounded-lg border border-app overflow-hidden shrink-0">
           <button
             onClick={() => onSetViewMode("grid")}
-            className={`w-9 h-9 flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-[#F59E0B] text-zinc-950" : "text-zinc-400 hover:bg-white/[0.04]"}`}
+            className={`w-9 h-9 flex items-center justify-center transition-colors ${viewMode === "grid" ? "bg-[#3B82F6] text-zinc-950" : "text-zinc-400 hover:bg-white/[0.04]"}`}
           >
             <Grid3X3 size={14} />
           </button>
           <button
             onClick={() => onSetViewMode("list")}
-            className={`w-9 h-9 flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-[#F59E0B] text-zinc-950" : "text-zinc-400 hover:bg-white/[0.04]"}`}
+            className={`w-9 h-9 flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-[#3B82F6] text-zinc-950" : "text-zinc-400 hover:bg-white/[0.04]"}`}
           >
             <List size={14} />
           </button>

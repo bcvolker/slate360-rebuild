@@ -94,7 +94,7 @@ export default function DashboardCalendarWidget({
       action={
         <button
           onClick={onStartAddEvent}
-          className="flex items-center gap-1 text-[11px] font-semibold text-[#F59E0B] hover:underline"
+          className="flex items-center gap-1 text-[11px] font-semibold text-[#3B82F6] hover:underline"
         >
           <Plus size={13} /> Add event
         </button>
@@ -138,13 +138,13 @@ export default function DashboardCalendarWidget({
                   onClick={() => onSelectDate(cell.dateStr)}
                   className={`relative h-9 rounded-lg text-xs font-medium transition-all
                     ${!cell.inMonth ? "text-gray-300" : "text-gray-700 hover:bg-gray-100"}
-                    ${isToday && !isSelected ? "bg-[#F59E0B]/10 text-[#F59E0B] font-bold" : ""}
-                    ${isSelected ? "bg-[#F59E0B] text-white font-bold shadow-sm" : ""}
+                    ${isToday && !isSelected ? "bg-[#3B82F6]/10 text-[#3B82F6] font-bold" : ""}
+                    ${isSelected ? "bg-[#3B82F6] text-white font-bold shadow-sm" : ""}
                   `}
                 >
                   {cell.day}
                   {hasEvents && !isSelected && (
-                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#F59E0B]" />
+                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#3B82F6]" />
                   )}
                 </button>
               );
@@ -169,14 +169,14 @@ export default function DashboardCalendarWidget({
                 placeholder="Event title…"
                 value={newEventTitle}
                 onChange={(event) => onTitleChange(event.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20 focus:border-[#F59E0B] mb-2"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] mb-2"
                 autoFocus
               />
               <div className="flex gap-2">
                 <button
                   onClick={onAddEvent}
                   className="flex-1 text-xs font-semibold py-2 rounded-lg text-white"
-                  style={{ backgroundColor: "#F59E0B" }}
+                  style={{ backgroundColor: "#3B82F6" }}
                 >
                   Add
                 </button>

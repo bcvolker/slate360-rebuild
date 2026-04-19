@@ -20,7 +20,7 @@ export default function VirtualStudioShell({ user, tier, isCeo, internalAccess }
       internalAccess={internalAccess}
       title="Virtual Studio"
       icon={Film}
-      accent="#D97706"
+      accent="#2563EB"
       status="coming-soon"
       requiredTier="standard"
     >

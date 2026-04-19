@@ -28,7 +28,7 @@ export default function LandingHeader({ onLoginClick, isScrolled }: LandingHeade
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <img
-              src="/uploads/slate360-logo-reversed-v2.svg?v=amber-2026-04-19"
+              src="/uploads/slate360-logo-reversed-v2.svg?v=cobalt-2026-04-19"
               alt="Slate360"
               className="h-7 sm:h-8 w-auto"
             />

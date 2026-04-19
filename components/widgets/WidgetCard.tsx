@@ -67,7 +67,7 @@ export default function WidgetCard({
   span,
   children,
   delay = 0,
-  color = "#F59E0B",
+  color = "#3B82F6",
   size = "default",
   onSetSize,
   draggable: isDraggable = false,

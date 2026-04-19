@@ -2,10 +2,10 @@ import Link from "next/link";
 import type { DashTab } from "@/lib/types/dashboard";
 
 const REDIRECT_ROUTES: Record<string, { href: string; hoverColor?: string }> = {
-  "project-hub":    { href: "/project-hub",    hoverColor: "#E64500" },
-  "integrations":   { href: "/integrations",   hoverColor: "#E04400" },
-  "analytics":      { href: "/analytics",      hoverColor: "#E04400" },
-  "operations-console": { href: "/operations-console", hoverColor: "#E64500" },
+  "project-hub":    { href: "/project-hub",    hoverColor: "#1D4ED8" },
+  "integrations":   { href: "/integrations",   hoverColor: "#1D4ED8" },
+  "analytics":      { href: "/analytics",      hoverColor: "#1D4ED8" },
+  "operations-console": { href: "/operations-console", hoverColor: "#1D4ED8" },
   "design-studio":  { href: "/design-studio" },
   "content-studio": { href: "/content-studio" },
   "tours":          { href: "/tours" },
@@ -21,7 +21,7 @@ export default function TabRedirectCard({ tab }: { tab: DashTab }) {
   const route = REDIRECT_ROUTES[tab.id];
   if (!route) return null;
 
-  const bgColor = route.hoverColor ? "#F59E0B" : tab.color;
+  const bgColor = route.hoverColor ? "#3B82F6" : tab.color;
   const hoverStyle = route.hoverColor
     ? `hover:bg-[${route.hoverColor}]`
     : "hover:opacity-90";

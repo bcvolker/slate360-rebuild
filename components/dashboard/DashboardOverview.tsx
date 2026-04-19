@@ -189,9 +189,9 @@ export default function DashboardOverview({
                 <>
                   <div className="fixed inset-0 z-30" onClick={onProjectDropdownToggle} />
                   <div className="absolute right-0 top-10 w-56 bg-app-card rounded-xl border border-app shadow-xl z-40 overflow-hidden">
-                    <button onClick={() => { onSelectProject("all"); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === "all" ? "bg-[#F59E0B]/10 text-[#F59E0B] font-semibold" : "text-zinc-400 hover:bg-white/[0.04]"}`}>All projects</button>
+                    <button onClick={() => { onSelectProject("all"); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === "all" ? "bg-[#3B82F6]/10 text-[#3B82F6] font-semibold" : "text-zinc-400 hover:bg-white/[0.04]"}`}>All projects</button>
                     {projects.map((p) => (
-                      <button key={p.id} onClick={() => { onSelectProject(p.id); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === p.id ? "bg-[#F59E0B]/10 text-[#F59E0B] font-semibold" : "text-zinc-400 hover:bg-white/[0.04]"}`}>{p.name}</button>
+                      <button key={p.id} onClick={() => { onSelectProject(p.id); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === p.id ? "bg-[#3B82F6]/10 text-[#3B82F6] font-semibold" : "text-zinc-400 hover:bg-white/[0.04]"}`}>{p.name}</button>
                     ))}
                   </div>
                 </>
@@ -200,7 +200,7 @@ export default function DashboardOverview({
             <button
               onClick={onCreateProject}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
-              style={{ backgroundColor: "#F59E0B" }}
+              style={{ backgroundColor: "#3B82F6" }}
             >
               <Plus size={13} /> New Project
             </button>

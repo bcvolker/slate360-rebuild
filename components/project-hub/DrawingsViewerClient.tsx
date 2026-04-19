@@ -96,7 +96,7 @@ export default function DrawingsViewerClient({ files }: { files: DrawingFile[] }
                 },
               ])
             }
-            className="mt-3 rounded-md bg-[#F59E0B] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#E64500]"
+            className="mt-3 rounded-md bg-[#3B82F6] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#1D4ED8]"
           >
             Add Demo Drawing
           </button>

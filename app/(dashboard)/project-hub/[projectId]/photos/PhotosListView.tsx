@@ -42,7 +42,7 @@ export default function PhotosListView({
             const url = urlMap[file.id];
             const selected = selectedIds.has(file.id);
             return (
-              <tr key={file.id} className={`hover:bg-zinc-800/50 ${selected ? "bg-[#F59E0B]/5" : ""}`}>
+              <tr key={file.id} className={`hover:bg-zinc-800/50 ${selected ? "bg-[#3B82F6]/5" : ""}`}>
                 <td className="px-3 py-2">
                   <input
                     type="checkbox"
@@ -63,7 +63,7 @@ export default function PhotosListView({
                   </button>
                 </td>
                 <td className="px-3 py-2">
-                  <button onClick={() => onOpenLightbox(idx)} className="font-semibold text-zinc-200 hover:text-[#F59E0B]">{file.name}</button>
+                  <button onClick={() => onOpenLightbox(idx)} className="font-semibold text-zinc-200 hover:text-[#3B82F6]">{file.name}</button>
                 </td>
                 <td className="px-3 py-2">
                   <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] font-semibold text-zinc-400">{guessCategory(file.name)}</span>

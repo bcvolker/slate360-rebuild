@@ -6,7 +6,7 @@
  * ==========================================================================
  * 
  * A complete, production-ready marketing page following the Dark Glass aesthetic
- * with Industrial Gold (#F59E0B / hsl(45 82% 55%)) accents.
+ * with Industrial Gold (#3B82F6 / hsl(45 82% 55%)) accents.
  * 
  * Design System Rules Applied:
  * - All surfaces use bg-glass (semi-transparent with backdrop-blur)
