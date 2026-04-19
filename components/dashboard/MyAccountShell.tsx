@@ -2,22 +2,60 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { User, CreditCard, BarChart3, Shield, Bell } from "lucide-react";
+import {
+  Activity,
+  Bell,
+  Building2,
+  CreditCard,
+  Database,
+  FileText,
+  KeyRound,
+  Lock,
+  Settings,
+  Shield,
+  Users,
+  User,
+} from "lucide-react";
 import DashboardTabShell from "@/components/shared/DashboardTabShell";
 import AccountProfileTab from "./my-account/AccountProfileTab";
 import AccountBillingTab from "./my-account/AccountBillingTab";
 import AccountDataTrackerTab from "./my-account/AccountDataTrackerTab";
 import AccountSecurityTab from "./my-account/AccountSecurityTab";
 import AccountNotificationsTab from "./my-account/AccountNotificationsTab";
+import PlaceholderTab from "./my-account/PlaceholderTab";
 import type { DashboardAccountOverview } from "@/lib/types/dashboard";
 import type { Tier } from "@/lib/entitlements";
 
+// Tab IA — grouped by section. Each tab declares which audience can see it:
+//   - everyone: all signed-in users
+//   - admin:    org owner/admin only (workspace + billing surfaces)
+//
+// Enterprise admins control which non-admin members see billing/data via
+// `permissions` on the org_members row (future). Today we gate by `isAdmin`.
 const TABS = [
-  { id: "profile", label: "Profile", icon: User },
-  { id: "billing", label: "Billing & Payments", icon: CreditCard },
-  { id: "data", label: "Data Tracker", icon: BarChart3 },
-  { id: "security", label: "Security", icon: Shield },
-  { id: "notifications", label: "Notifications", icon: Bell },
+  // PROFILE
+  { id: "profile",       group: "Profile",      label: "Profile",         icon: User,     audience: "everyone" },
+  { id: "preferences",   group: "Profile",      label: "Preferences",     icon: Settings, audience: "everyone" },
+  { id: "notifications", group: "Profile",      label: "Notifications",   icon: Bell,     audience: "everyone" },
+  { id: "sessions",      group: "Profile",      label: "Sessions",        icon: Activity, audience: "everyone" },
+
+  // SECURITY
+  { id: "security",      group: "Security",     label: "Password & 2FA",  icon: Lock,     audience: "everyone" },
+  { id: "login-history", group: "Security",     label: "Login History",   icon: KeyRound, audience: "everyone" },
+
+  // WORKSPACE
+  { id: "workspace",     group: "Workspace",    label: "General",         icon: Building2, audience: "admin" },
+  { id: "members",       group: "Workspace",    label: "Members & Roles", icon: Users,     audience: "admin" },
+  { id: "permissions",   group: "Workspace",    label: "Permissions",     icon: Shield,    audience: "admin" },
+  { id: "audit",         group: "Workspace",    label: "Audit Log",       icon: FileText,  audience: "admin" },
+
+  // BILLING
+  { id: "billing",       group: "Billing",      label: "Plan & Billing",  icon: CreditCard, audience: "admin" },
+  { id: "data",          group: "Billing",      label: "Usage & Credits", icon: Database,   audience: "admin" },
+
+  // DATA & PRIVACY
+  { id: "privacy",       group: "Data & Privacy", label: "Privacy & Data", icon: Database, audience: "everyone" },
+  { id: "legal",         group: "Data & Privacy", label: "Legal",          icon: FileText, audience: "everyone" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -59,11 +97,19 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
 
   const switchToBilling = useCallback(() => setActiveTab("billing"), []);
 
-  // Filter tabs: enterprise non-admins should not see billing
+  // Audience filter: non-admins never see admin-only tabs.
+  // Future: per-member `permissions` row will further restrict billing/data
+  // for delegated admins (e.g. Enterprise managers without billing access).
   const visibleTabs = TABS.filter((t) => {
-    if (t.id === "billing" && !isAdmin) return false;
+    if (t.audience === "admin" && !isAdmin) return false;
     return true;
   });
+
+  // Group tabs for the left rail, preserving declaration order within group.
+  const groupOrder = ["Profile", "Security", "Workspace", "Billing", "Data & Privacy"] as const;
+  const grouped = groupOrder
+    .map((g) => ({ group: g, items: visibleTabs.filter((t) => t.group === g) }))
+    .filter((g) => g.items.length > 0);
 
   return (
     <DashboardTabShell
@@ -77,32 +123,105 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
       status="live"
       showCustomize={false}
     >
-      {/* Tab Bar */}
-      <div className="flex gap-1 overflow-x-auto border-b border-app -mx-1 px-1">
-        {visibleTabs.map((tab) => {
-          const Icon = tab.icon;
-          const active = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                active
-                  ? "border-[#F59E0B] text-[#F59E0B]"
-                  : "border-transparent text-zinc-500 hover:text-zinc-300"
-              }`}
-            >
-              <Icon size={14} />
-              <span className="hidden sm:inline">{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Two-column layout: left tab rail (grouped) + right content */}
+      <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
+        <nav className="md:sticky md:top-20 md:self-start space-y-5">
+          {grouped.map(({ group, items }) => (
+            <div key={group}>
+              <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                {group}
+              </p>
+              <ul className="space-y-0.5">
+                {items.map((tab) => {
+                  const Icon = tab.icon;
+                  const active = activeTab === tab.id;
+                  return (
+                    <li key={tab.id}>
+                      <button
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${
+                          active
+                            ? "bg-white/[0.06] text-white border-l-2 border-teal pl-[10px]"
+                            : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+                        }`}
+                      >
+                        <Icon size={14} />
+                        {tab.label}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </nav>
 
-      {/* Tab Content */}
-      <div className="mt-6">
+        <div className="min-w-0">
         {activeTab === "profile" && (
           <AccountProfileTab user={user} orgName={orgName} role={role} />
+        )}
+        {activeTab === "preferences" && (
+          <PlaceholderTab
+            title="Preferences"
+            description="Theme, density, language, timezone, default landing page."
+            fields={["Theme (system / light / dark)", "Density (comfortable / compact)", "Language", "Timezone", "Default landing page after sign in"]}
+          />
+        )}
+        {activeTab === "sessions" && (
+          <PlaceholderTab
+            title="Sessions & Devices"
+            description="Active sessions across devices. Revoke any to sign out remotely."
+            fields={["Current session (this browser)", "Other active sessions", "Connected accounts (Google, Microsoft)"]}
+          />
+        )}
+        {activeTab === "login-history" && (
+          <PlaceholderTab
+            title="Login History"
+            description="Recent sign-ins with IP, location, and device for security auditing."
+            fields={["Last 30 sign-ins", "Suspicious activity flag", "Export history (CSV)"]}
+          />
+        )}
+        {activeTab === "workspace" && (
+          <PlaceholderTab
+            title="Workspace General"
+            description="Organization name, slug, logo, default project settings."
+            fields={["Organization name", "Workspace slug / URL", "Organization logo", "Default project visibility", "Industry / org type (used by Slate360 analytics)"]}
+          />
+        )}
+        {activeTab === "members" && (
+          <PlaceholderTab
+            title="Members & Roles"
+            description="Invite teammates, assign roles (owner, admin, member, viewer), and manage seats."
+            fields={[
+              "Invite member by email",
+              "Role: owner / admin / member / viewer",
+              "Seat assignment per app (Site Walk, Tours, Design Studio, Content Studio)",
+              "Project access scope (all projects / specific projects)",
+              "Director / cross-team viewer (read-only across all org projects)",
+              "Remove or suspend member",
+            ]}
+          />
+        )}
+        {activeTab === "permissions" && (
+          <PlaceholderTab
+            title="Permissions"
+            description="Per-role permission matrix \u2014 control which roles can see billing, data usage, audit log, etc."
+            fields={[
+              "Can view billing & invoices",
+              "Can view org-wide data usage",
+              "Can view audit log",
+              "Can invite / remove members",
+              "Can change org settings",
+              "Can publish to client portals",
+            ]}
+          />
+        )}
+        {activeTab === "audit" && (
+          <PlaceholderTab
+            title="Audit Log"
+            description="Org-level event history: member changes, billing changes, data exports, role changes."
+            fields={["Filter by actor / event type / date", "Export (CSV)", "Retention by tier"]}
+          />
         )}
         {activeTab === "billing" && (
           <AccountBillingTab
@@ -131,6 +250,21 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
         {activeTab === "notifications" && (
           <AccountNotificationsTab />
         )}
+        {activeTab === "privacy" && (
+          <PlaceholderTab
+            title="Privacy & Data"
+            description="Export your data, manage consent, or delete your account."
+            fields={["Export my data (JSON)", "Manage marketing consent", "Delete my account (with confirmation)"]}
+          />
+        )}
+        {activeTab === "legal" && (
+          <PlaceholderTab
+            title="Legal"
+            description="Terms of service and privacy policy versions you've accepted."
+            fields={["Terms of Service \u2014 version + accepted date", "Privacy Policy \u2014 version + accepted date", "Data Processing Agreement (Enterprise)"]}
+          />
+        )}
+        </div>
       </div>
     </DashboardTabShell>
   );

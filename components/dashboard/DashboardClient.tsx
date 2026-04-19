@@ -108,8 +108,6 @@ export default function DashboardClient(props: DashboardProps) {
         tier={props.tier}
         isCeo={props.isSlateCeo ?? false}
         internalAccess={s.internalAccess}
-        searchQuery={s.searchQuery}
-        onSearchChange={s.setSearchQuery}
         searchPlaceholder="Search projects, files, contacts…"
         prefsDirty={s.prefsDirty}
         onCustomizeOpen={() => s.setCustomizeOpen(true)}
