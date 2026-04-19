@@ -223,9 +223,12 @@ Layout: 2-column.
 - Main area: list view (sortable table) + detail drawer when row clicked.
   Drawer shows full body, screenshot if present, console_errors as
   collapsible code block, status dropdown, admin_notes textarea, "Mark
-  Resolved" button, "Convert to GitHub Issue" button (this round: just
-  prepares a `mailto:` or copy-to-clipboard with the issue body — the
-  orchestrator will wire the real GH integration later).
+  Resolved" button, "Copy as GitHub Issue" button. Decision (locked):
+  GitHub issue creation is MANUAL ONLY — never auto-open issues from
+  feedback submissions. The button copies a pre-filled markdown body
+  (title, type/severity/app_area metadata header, description, steps,
+  console_errors fenced code block, link back to feedback row) to the
+  clipboard. Toast: "Copied — paste into a new GitHub issue."
 
 Components to extract:
 - components/operations/feedback/FeedbackFilters.tsx
@@ -291,3 +294,19 @@ DO NOT
 
 When all 5 units delivered, end with:
 "ROUND 2 COMPLETE. <N> commits, <M> files, ready for orchestrator integration."
+
+================================================================================
+LOCKED PRODUCT DECISIONS (apply throughout your code)
+================================================================================
+
+- **GitHub issue creation from beta feedback**: MANUAL ONLY. Never auto-open
+  issues. The Operations Console exposes a "Copy as GitHub Issue" action that
+  copies a pre-filled markdown body to the clipboard. The CEO/staff member
+  pastes it manually into the GitHub issue tracker.
+- **Foundational Member 20% lifetime discount**: REVOKED if the subscription
+  lapses for more than 30 days. "Lifetime" means lifetime of continuous
+  subscription, with a 30-day grace window for expired cards / accidental
+  cancels. Implementation note for future entitlements/Stripe webhook work:
+  on `customer.subscription.deleted`, schedule a 30-day timer; if no new
+  active subscription by then, set `profiles.foundational_member = false`
+  AND remove the FOUNDATIONAL_LIFETIME coupon from any future invoices.
