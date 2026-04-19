@@ -1,6 +1,6 @@
 "# Slate360 — Project Memory
 
-Last Updated: 2026-04-16
+Last Updated: 2026-04-19
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -196,6 +196,50 @@ When editing oversized files, always read both the state declarations AND the JS
 ## Latest Session Handoff
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
+
+### Session Handoff — 2026-04-19e (Live Supabase migrations applied + codespace audit + marketing-page mismatch flagged)
+
+### What Changed
+- **5 migrations applied to live Supabase** (`hadnfcenpcfaeclczsmm`, West US):
+  - `20260306_slate360_staff.sql` (was missing on prod)
+  - `20260418080828_create_invitation_tokens.sql` (was missing on prod)
+  - `20260419120000_project_collaborator_invites.sql` (collaborator invite store)
+  - `20260419130000_org_member_app_access.sql` (per-app seat assignment)
+  - `20260419130001_org_members_permissions.sql` (enterprise per-feature `permissions` jsonb)
+  - Verification query returned `t|t|t|t|t` for all five objects.
+- **No code changes this turn.** Tree clean at `624d674`. Push state matches origin.
+- **Codespace health probed**: 22 GB free on /workspaces, 109 GB free on /tmp, 9.7 GB RAM available, node v20.19.2, npm 10.8.2 — healthy. 4 stashes intact (DO NOT POP `stash@{0}` `broken-skin-attempts-before-restore-2026-04-19`).
+- **Marketing homepage brand audit**: no raw amber hex left. The legacy class names (`btn-amber-soft`, `hover:bg-teal-soft`, `hover:text-teal`) intentionally remain — they're remapped to cobalt+steel in `globals.css`.
+
+### What's Broken / Partially Done
+- **Marketing homepage tier mismatch** (`components/marketing-homepage.tsx` lines ~200-255): advertises `Free Trial / Field Pro Bundle (Custom) / Enterprise` but `lib/entitlements.ts` defines four tiers with concrete prices: `trial / standard $149/mo / business $499/mo / enterprise (custom)`. Either the marketing copy needs to publish the per-tier prices, or the entitlements need a "bundle" mapping. **Decision needed from user before edit.** Also: no mention of the new "outside collaborators" feature in any tier card.
+- **Members & Roles tab** in `MyAccountShell` still placeholder. Data layer is fully ready on live now.
+- **No route uses `withAppAccess` yet** — wire to Site Walk / Tours / Design Studio / Content Studio API routes.
+- **View selector is presentation-only** — `readProjectViewMode()` not consumed in any server query yet.
+- **No vitest config** — tests for `assertCanInviteCollaborator` / `resolvePermissions` / `isCollaboratorOnly` still pending.
+
+### How to Run Future Migrations on Live (recorded so we don't re-discover this)
+```bash
+psql "postgresql://postgres.hadnfcenpcfaeclczsmm:${POSTGRES_PASSWORD}@aws-1-us-west-1.pooler.supabase.com:5432/postgres?sslmode=require" \
+  -v ON_ERROR_STOP=1 -f supabase/migrations/<file>.sql
+```
+- Pooler URL came from `supabase/.temp/pooler-url` after `supabase link` — note **`aws-1-us-west-1`** (not us-east-2 as the rest of our infra).
+- `supabase` CLI cannot run from `/workspaces/slate360-rebuild` (`.env` has a backslash that breaks its parser). Workaround: `cd /tmp/sblink` (or any non-workspace dir) before running CLI commands.
+- Live `supabase_migrations.schema_migrations` is unreliable — only tracks through `20260215`. Verify objects with `to_regclass(...)` instead of trusting the history.
+- `psql` is installed via apt; supabase CLI via `npx supabase@2.92.1`.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
+
+### Next Steps (ordered)
+1. **User decision**: marketing-homepage tier framing — publish Standard/Business prices or keep bundle pricing?
+2. Build **Members & Roles** UI in `MyAccountShell › Workspace`: invite, role select, per-app seat checkboxes, enterprise permission toggles. Data layer is live.
+3. Adopt `withAppAccess(...)` in Site Walk / Tours / Design Studio / Content Studio API routes.
+4. Branch server components on `readProjectViewMode()` where Owner/Leadership views must differ from My view.
+5. Stand up `vitest.config.ts` + smoke specs for `assertCanInviteCollaborator`, `resolvePermissions`, `isCollaboratorOnly`.
+6. Operations Console subscription-status / cohort panel.
+
+---
 
 ### Session Handoff — 2026-04-19d (CollaboratorShell + view selector + permissions resolver + app-access guard)
 
