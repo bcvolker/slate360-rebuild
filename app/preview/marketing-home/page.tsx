@@ -16,7 +16,7 @@ export default async function MarketingHomepageV2() {
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               {/* Marketing Nav Header uses the full Wordmark Logo */}
-              <img src="/logo.svg" alt="Slate360 Logo" className="h-8 w-auto object-contain" />
+              <img src="/logo.svg?v=amber-2026-04-19" alt="Slate360 Logo" className="h-8 w-auto object-contain" />
             </Link>
             
             <div className="flex items-center gap-4">
