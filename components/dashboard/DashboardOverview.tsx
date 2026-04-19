@@ -237,7 +237,7 @@ export default function DashboardOverview({
           <button
             type="button"
             onClick={onCreateProject}
-            className="snap-start shrink-0 w-[300px] h-[200px] rounded-xl border-2 border-dashed border-zinc-800 hover:border-[#D4AF37] flex flex-col items-center justify-center gap-3 text-zinc-500 hover:text-[#D4AF37] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-zinc-900/50"
+            className="snap-start shrink-0 w-[300px] h-[200px] rounded-xl border-2 border-dashed border-zinc-800 hover:border-teal flex flex-col items-center justify-center gap-3 text-zinc-500 hover:text-teal transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-zinc-900/50"
           >
             <div className="w-14 h-14 rounded-2xl border-2 border-dashed border-current flex items-center justify-center">
               <Plus size={24} />

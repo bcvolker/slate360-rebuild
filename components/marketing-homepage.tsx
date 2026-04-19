@@ -441,7 +441,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
 
 function HeroSection() {
   return (
-    <section className="relative min-h-[calc(100vh-4rem)] flex items-center pt-20 sm:pt-24 pb-10 px-4 overflow-hidden">
+    <section className="relative h-screen flex items-center px-4 sm:px-6 lg:px-10 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-[hsl(240,6%,8%)]" />
 
@@ -454,40 +454,31 @@ function HeroSection() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+      <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-[1fr_1.15fr] gap-8 lg:gap-12 items-center pt-20 sm:pt-24 pb-10">
         {/* LEFT: copy + CTAs */}
-        <div className="space-y-6 text-center lg:text-left">
-          <Badge variant="outline" className="border-primary/30 text-primary px-4 py-1.5">
-            <Zap className="mr-1.5 h-3.5 w-3.5" />
+        <div className="space-y-5 text-center lg:text-left">
+          <Badge variant="outline" className="border-primary/30 text-primary px-3.5 py-1">
+            <Zap className="mr-1.5 h-3 w-3" />
             Site Walk + connected workflows
           </Badge>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground leading-tight text-balance">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground leading-[1.15] text-balance">
             The real-time interactive bridge between{" "}
             <span className="text-primary">the field and the office</span>
           </h1>
 
-          <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 text-pretty">
-            Use your phone or 360 camera to capture site conditions while you walk your project, add comments as you go, and automatically preserve a time-stamped, geolocated record. Site Walk turns that into punch lists, reports, or proposals — then share with your team in minutes.
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto lg:mx-0 text-pretty">
+            Capture site conditions with your phone or 360 camera, add comments as you walk, and automatically preserve a time-stamped, geolocated record. Turn it into punch lists, reports, or proposals — and share with your team in minutes.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3 pt-2">
-            <Button
-              size="lg"
-              asChild
-              className="btn-amber-soft px-8"
-            >
+          <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3 pt-1">
+            <Button asChild className="btn-amber-soft h-11 px-6 text-sm">
               <Link href="/signup">
                 Subscribe Now
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              asChild
-              className="btn-teal-outline px-8"
-            >
+            <Button variant="outline" asChild className="btn-teal-outline h-11 px-6 text-sm">
               <Link href="#apps">
                 Explore Apps
                 <ChevronRight className="ml-1 h-4 w-4" />
@@ -496,10 +487,10 @@ function HeroSection() {
           </div>
         </div>
 
-        {/* RIGHT: interactive demo */}
+        {/* RIGHT: interactive demo (larger, dominates the right side) */}
         <div className="w-full">
           <Card className="bg-app-card border-app shadow-app-glow rounded-2xl">
-            <CardContent className="p-3 sm:p-5">
+            <CardContent className="p-3 sm:p-4 lg:p-5">
               <HeroDemo />
             </CardContent>
           </Card>

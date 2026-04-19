@@ -159,7 +159,7 @@ export default function DashboardProjectCard({
 
         {/* Info */}
         <Link href={`/project-hub/${p.id}`} className="absolute bottom-0 left-0 right-0 p-4 z-[2]">
-          <h3 className="text-white font-bold text-base mb-1 group-hover:text-[#D4AF37] transition-colors">
+          <h3 className="text-white font-bold text-base mb-1 group-hover:text-teal transition-colors">
             {p.name}
           </h3>
           <div className="flex items-center gap-3">

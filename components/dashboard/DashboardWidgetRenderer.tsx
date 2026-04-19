@@ -405,9 +405,9 @@ export default function DashboardWidgetRenderer({
               const Icon = item.kind === "design" ? Palette : item.kind === "tour" ? Compass : item.kind === "rfi" ? MessageSquare : item.kind === "report" ? BarChart3 : FileText;
               return (
                 <Link key={i} href={item.href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition-colors group">
-                  <div className="w-9 h-9 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-[#D4AF37] transition-colors"><Icon size={16} /></div>
+                  <div className="w-9 h-9 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-teal transition-colors"><Icon size={16} /></div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-white truncate group-hover:text-[#D4AF37] transition-colors">{item.title}</p>
+                    <p className="text-xs font-semibold text-white truncate group-hover:text-teal transition-colors">{item.title}</p>
                     <p className="text-[10px] text-zinc-500 truncate">{item.subtitle}</p>
                   </div>
                   <span className="text-[10px] text-zinc-600 shrink-0">{item.time}</span>
