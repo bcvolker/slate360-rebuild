@@ -55,6 +55,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 import { SlateLogo } from "@/components/shared/SlateLogo";
+import { BetaGatedButton } from "@/components/billing/BetaGatedButton";
 
 const HeroDemo = dynamic(() => import("@/components/home/HeroDemo"), { ssr: false });
 const AppDemo = dynamic(() => import("@/components/home/AppDemo"), { ssr: false });
@@ -598,12 +599,20 @@ function AppShowcaseSection() {
 
                   {/* CTAs */}
                   <div className="flex gap-3">
-                    <Button asChild className="flex-1 btn-amber-soft">
-                      <Link href="/signup">
-                        {app.comingSoon ? "Join Waitlist" : "Subscribe"}
-                        <ArrowRight className="ml-1 h-4 w-4" />
-                      </Link>
-                    </Button>
+                    <BetaGatedButton
+                      action="subscribe"
+                      className="flex-1 btn-amber-soft inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-medium"
+                      renderEnabled={() => (
+                        <Button asChild className="flex-1 btn-amber-soft">
+                          <Link href="/signup">
+                            {app.comingSoon ? "Join Waitlist" : "Subscribe"}
+                            <ArrowRight className="ml-1 h-4 w-4" />
+                          </Link>
+                        </Button>
+                      )}
+                    >
+                      {app.comingSoon ? "Join Waitlist" : "Subscribe"}
+                    </BetaGatedButton>
                     <Button asChild variant="outline" className="flex-1 border-[hsla(45,82%,55%,0.3)] text-muted-foreground hover:text-teal hover:border-teal/50">
                       <Link href={`/apps/${app.slug}`}>
                         Learn More
@@ -810,16 +819,27 @@ function PricingSection() {
                     </li>
                   ))}
                 </ul>
-                <Button
+                <BetaGatedButton
+                  action={tier.popular ? "subscribe" : "upgrade"}
                   className={cn(
-                    "w-full",
-                    tier.popular
-                      ? "btn-amber-soft"
-                      : "bg-muted hover:bg-muted/80 text-foreground"
+                    "w-full inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-medium",
+                    tier.popular ? "btn-amber-soft" : "bg-muted hover:bg-muted/80 text-foreground"
+                  )}
+                  renderEnabled={() => (
+                    <Button
+                      className={cn(
+                        "w-full",
+                        tier.popular
+                          ? "btn-amber-soft"
+                          : "bg-muted hover:bg-muted/80 text-foreground"
+                      )}
+                    >
+                      {tier.cta}
+                    </Button>
                   )}
                 >
                   {tier.cta}
-                </Button>
+                </BetaGatedButton>
               </CardContent>
             </Card>
           ))}
