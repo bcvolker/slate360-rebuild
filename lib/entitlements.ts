@@ -37,6 +37,10 @@ export interface Entitlements {
   maxCredits: number;
   maxStorageGB: number;
   maxSeats: number;
+  /** Maximum number of project collaborators (non-subscriber outside contributors)
+   *  this subscriber may have active across all projects they own. Counted as
+   *  active project_members.role='collaborator' + pending invites. */
+  maxCollaborators: number;
   monthlyPrice: number;
   annualPrice: number;
 
@@ -69,6 +73,7 @@ const TIER_MAP: Record<Tier, TierEntitlements> = {
     maxCredits: 250,
     maxStorageGB: 2,
     maxSeats: 1,
+    maxCollaborators: 0,
     monthlyPrice: 0,
     annualPrice: 0,
   },
@@ -88,6 +93,7 @@ const TIER_MAP: Record<Tier, TierEntitlements> = {
     maxCredits: 5000,
     maxStorageGB: 25,
     maxSeats: 3,
+    maxCollaborators: 3,
     monthlyPrice: 149,
     annualPrice: 1490,
   },
@@ -107,6 +113,7 @@ const TIER_MAP: Record<Tier, TierEntitlements> = {
     maxCredits: 25000,
     maxStorageGB: 100,
     maxSeats: 15,
+    maxCollaborators: 10,
     monthlyPrice: 499,
     annualPrice: 4990,
   },
@@ -126,6 +133,7 @@ const TIER_MAP: Record<Tier, TierEntitlements> = {
     maxCredits: 100000,
     maxStorageGB: 500,
     maxSeats: 999,
+    maxCollaborators: Number.POSITIVE_INFINITY,
     monthlyPrice: 0,
     annualPrice: 0,
   },
