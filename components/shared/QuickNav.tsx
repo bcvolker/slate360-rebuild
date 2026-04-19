@@ -34,15 +34,16 @@ interface NavItem {
 }
 
 // Apps are listed in canonical order with equal styling — no app takes precedence.
-// Visibility is entitlement-driven; items not yet shipped link to their public
-// info page (`/apps/*`) and carry a "Soon" badge.
+// During beta, all four apps are surfaced for every signed-in user; the
+// `comingSoon` flag drives the "Soon" pill. Entitlement keys remain on the
+// items for the post-beta switch back to per-org gating.
 const NAV_ITEMS: NavItem[] = [
   { label: "Command Center", href: "/dashboard",       icon: LayoutDashboard },
   { label: "Projects",       href: "/projects",        icon: FolderKanban },
-  { label: "Site Walk",      href: "/site-walk",                icon: MapPin,    gate: "canAccessStandalonePunchwalk" },
-  { label: "360 Tours",      href: "/apps/360-tour-builder",    icon: Compass,   gate: "canAccessStandaloneTourBuilder",   comingSoon: true },
-  { label: "Design Studio",  href: "/apps/design-studio",       icon: Palette,   gate: "canAccessStandaloneDesignStudio",  comingSoon: true },
-  { label: "Content Studio", href: "/apps/content-studio",      icon: Layers,    gate: "canAccessStandaloneContentStudio", comingSoon: true },
+  { label: "Site Walk",      href: "/site-walk",                icon: MapPin },
+  { label: "360 Tours",      href: "/apps/360-tour-builder",    icon: Compass,   comingSoon: true },
+  { label: "Design Studio",  href: "/apps/design-studio",       icon: Palette,   comingSoon: true },
+  { label: "Content Studio", href: "/apps/content-studio",      icon: Layers,    comingSoon: true },
   { label: "Geospatial",     href: "/geospatial",      icon: Globe,        gate: "canAccessGeospatial", phase1Hidden: true },
   { label: "Virtual Studio", href: "/virtual-studio",  icon: Film,         gate: "canAccessVirtual", phase1Hidden: true },
   { label: "Analytics",      href: "/analytics",       icon: BarChart3,    gate: "canAccessAnalytics", phase1Hidden: true },

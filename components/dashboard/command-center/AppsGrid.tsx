@@ -80,11 +80,10 @@ function gridColsForCount(count: number): string {
   }
 }
 
-export function AppsGrid({ entitlements }: AppsGridProps) {
-  // Without entitlements (e.g. trial pre-load), show all apps as previews.
-  const visible = entitlements
-    ? APPS.filter((app) => Boolean(entitlements[app.entitlement]))
-    : APPS;
+export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
+  // Beta: surface all apps for every signed-in user. Entitlement gating returns
+  // post-beta — keep the prop wired so the switch is a one-line change.
+  const visible = APPS;
 
   if (visible.length === 0) {
     return (
