@@ -147,7 +147,17 @@ export async function redeemInvitationToken(
     } catch {
       // Migration not applied yet — ignore.
     }
-    redirectPath = `/projects/${invitation.project_id}`;
+    // Route invitees with no org of their own into the trapped Collaborator
+    // shell so they don't see modules they have no access to.
+    const { data: orgRows } = await admin
+      .from("organization_members")
+      .select("org_id")
+      .eq("user_id", user.id)
+      .limit(1);
+    const hasOrg = (orgRows ?? []).length > 0;
+    redirectPath = hasOrg
+      ? `/projects/${invitation.project_id}`
+      : `/collaborator`;
   }
 
   const nextCount = invitation.redeemed_count + 1;

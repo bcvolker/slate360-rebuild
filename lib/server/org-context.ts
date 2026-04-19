@@ -10,11 +10,44 @@ import { isOwnerEmail, checkBetaApproved } from "@/lib/server/beta-access";
 type MembershipRow = {
   org_id?: string | null;
   role?: string | null;
+  permissions?: Record<string, unknown> | null;
   organizations?:
     | { id?: string | null; name?: string | null; tier?: string | null }
     | Array<{ id?: string | null; name?: string | null; tier?: string | null }>
     | null;
 };
+
+export const PERMISSION_KEYS = [
+  "canViewBilling",
+  "canViewOrgDataUsage",
+  "canViewAuditLog",
+  "canInviteMembers",
+  "canChangeOrgSettings",
+  "canPublishToClients",
+] as const;
+export type PermissionKey = (typeof PERMISSION_KEYS)[number];
+export type MemberPermissions = Record<PermissionKey, boolean>;
+
+function resolvePermissions(
+  raw: Record<string, unknown> | null | undefined,
+  tier: Tier,
+  isAdmin: boolean,
+): MemberPermissions {
+  // Outside enterprise, role + isAdmin remain authoritative — admins get
+  // everything, non-admins get nothing.
+  if (tier !== "enterprise") {
+    const fallback = isAdmin;
+    return PERMISSION_KEYS.reduce((acc, key) => {
+      acc[key] = fallback;
+      return acc;
+    }, {} as MemberPermissions);
+  }
+  return PERMISSION_KEYS.reduce((acc, key) => {
+    const value = raw?.[key];
+    acc[key] = typeof value === "boolean" ? value : isAdmin;
+    return acc;
+  }, {} as MemberPermissions);
+}
 
 function toTier(value?: string | null): Tier {
   if (value === "trial" || value === "standard" || value === "business" || value === "enterprise") {
@@ -61,6 +94,8 @@ export type ServerOrgContext = {
   isBetaApproved: boolean;
   /** Convenience alias — currently equals canAccessOperationsConsole. */
   hasOperationsConsoleAccess: boolean;
+  /** Resolved per-feature permissions. Enterprise reads from organization_members.permissions; other tiers fall back to isAdmin. */
+  permissions: MemberPermissions;
 };
 
 /**
@@ -91,6 +126,7 @@ export const resolveServerOrgContext = cache(async (): Promise<ServerOrgContext>
       hasInternalAccess: false,
       isBetaApproved: false,
       hasOperationsConsoleAccess: false,
+      permissions: resolvePermissions(null, "trial", false),
     };
   }
 
@@ -122,7 +158,7 @@ export const resolveServerOrgContext = cache(async (): Promise<ServerOrgContext>
   try {
     const { data } = await admin
       .from("organization_members")
-      .select("org_id, role, organizations(id,name,tier)")
+      .select("org_id, role, permissions, organizations(id,name,tier)")
       .eq("user_id", user.id)
       .limit(25);
 
@@ -143,6 +179,7 @@ export const resolveServerOrgContext = cache(async (): Promise<ServerOrgContext>
         ...internalAccess,
         isBetaApproved,
         hasOperationsConsoleAccess: internalAccess.canAccessOperationsConsole,
+        permissions: resolvePermissions(null, "trial", false),
       };
     }
 
@@ -184,6 +221,11 @@ export const resolveServerOrgContext = cache(async (): Promise<ServerOrgContext>
       ...internalAccess,
       isBetaApproved,
       hasOperationsConsoleAccess: internalAccess.canAccessOperationsConsole,
+      permissions: resolvePermissions(
+        (selected.permissions ?? null) as Record<string, unknown> | null,
+        toTier(resolvedTier),
+        isAdmin,
+      ),
     };
   } catch {
     return {
@@ -200,6 +242,7 @@ export const resolveServerOrgContext = cache(async (): Promise<ServerOrgContext>
       ...internalAccess,
       isBetaApproved,
       hasOperationsConsoleAccess: internalAccess.canAccessOperationsConsole,
+      permissions: resolvePermissions(null, "trial", false),
     };
   }
 });
