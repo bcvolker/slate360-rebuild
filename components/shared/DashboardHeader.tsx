@@ -105,7 +105,7 @@ export default function DashboardHeader({
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800">
+    <header className="sticky top-0 z-50 bg-app-page/80 backdrop-blur-xl border-b border-app">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
 
         {/* ── Left cluster: Logo + optional back link ── */}
@@ -116,7 +116,7 @@ export default function DashboardHeader({
           {showBackLink && (
             <Link
               href="/dashboard"
-              className="hidden sm:flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-primary transition-colors"
+              className="hidden sm:flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-teal transition-colors"
             >
               <ChevronLeft size={14} /> Command Center
             </Link>
@@ -133,7 +133,7 @@ export default function DashboardHeader({
               value={searchQuery}
               readOnly={!onSearchChange}
               onChange={(e) => onSearchChange?.(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-zinc-700 bg-zinc-900/50 text-sm text-white placeholder:text-zinc-500 focus:bg-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus:border-transparent transition-all"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-app bg-app-card text-sm text-white placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus:border-transparent transition-all"
             />
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function DashboardHeader({
                 setUserMenuOpen(false);
                 if (!notificationsOpen) onRefreshNotifications?.();
               }}
-              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 transition-colors"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-white/[0.04] transition-colors"
             >
               <Bell size={18} />
               {notifications.length > 0 && (
@@ -196,7 +196,7 @@ export default function DashboardHeader({
                           key={n.id}
                           href={href}
                           onClick={() => setNotificationsOpen(false)}
-                          className="block border-b border-zinc-800/50 px-4 py-3 hover:bg-zinc-800"
+                          className="block border-b border-zinc-800/50 px-4 py-3 hover:bg-white/[0.04]"
                         >
                           <p className="text-sm font-semibold text-zinc-200">{n.title}</p>
                           <p className="mt-0.5 text-xs text-zinc-400">{n.message}</p>
@@ -219,7 +219,7 @@ export default function DashboardHeader({
             <button
               onClick={onCustomizeOpen}
               title="Customize layout"
-              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-primary transition-colors"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-white/[0.04] hover:text-teal transition-colors"
             >
               <SlidersHorizontal size={18} />
               {prefsDirty && (
@@ -232,7 +232,7 @@ export default function DashboardHeader({
           <div className="relative">
             <button
               onClick={() => { setUserMenuOpen((v) => !v); setNotificationsOpen(false); }}
-              className="flex items-center gap-1.5 sm:gap-2.5 p-1 sm:pl-2 sm:pr-3 sm:py-1.5 rounded-xl hover:bg-zinc-800 transition-colors"
+              className="flex items-center gap-1.5 sm:gap-2.5 p-1 sm:pl-2 sm:pr-3 sm:py-1.5 rounded-xl hover:bg-white/[0.04] transition-colors"
             >
               {user.avatar ? (
                 <img src={user.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
@@ -265,13 +265,13 @@ export default function DashboardHeader({
                     <Link
                       href="/my-account"
                       onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/[0.04] transition-colors"
                     >
                       <Activity size={15} /> My Account
                     </Link>
                     <button
                       onClick={handleOpenBillingPortal}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/[0.04] transition-colors"
                     >
                       {billingBusy === "portal" ? (
                         <Loader2 size={15} className="animate-spin" />

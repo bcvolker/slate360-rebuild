@@ -377,60 +377,74 @@
    ───────────────────────────────────────────────────────────────── */
 @utility auth-page {
   @apply min-h-screen flex flex-col bg-background text-foreground;
+  background-color: var(--app-page);
   background-image:
-    radial-gradient(circle at top, hsl(45 82% 55% / 0.16), transparent 22%),
-    linear-gradient(180deg, hsl(240 10% 7%) 0%, hsl(240 8% 9%) 100%);
+    radial-gradient(circle at top, rgba(245, 158, 11, 0.10), transparent 25%),
+    linear-gradient(180deg, var(--app-page) 0%, #0E131B 100%);
   background-attachment: fixed;
   color-scheme: dark;
 }
 
 @utility auth-topbar {
-  @apply flex items-center justify-between px-6 py-4 border-b border-primary/10 bg-black/30 backdrop-blur-xl;
+  @apply flex items-center justify-between px-6 py-4;
+  background-color: var(--app-glass);
+  border-bottom: 1px solid var(--app-border);
+  backdrop-filter: blur(var(--app-backdrop-blur, 20px));
+  -webkit-backdrop-filter: blur(var(--app-backdrop-blur, 20px));
 }
 
 @utility auth-card {
-  @apply w-full max-w-md rounded-[1.75rem] border border-primary/15 p-8 shadow-glass;
-  background: linear-gradient(180deg, hsl(240 10% 12% / 0.84), hsl(240 8% 10% / 0.76));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  @apply w-full max-w-md rounded-2xl p-8;
+  background-color: var(--app-card);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-elevated, 0 24px 48px rgba(0, 0, 0, 0.45));
 }
 
 @utility auth-input {
-  @apply w-full rounded-2xl border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary;
-  border-color: hsl(45 82% 55% / 0.14);
-  background: hsl(240 8% 8% / 0.64);
+  @apply w-full rounded-xl border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground transition-all focus:outline-none focus:ring-2;
+  border-color: var(--app-border);
+  background: rgba(11, 15, 21, 0.6);
+  --tw-ring-color: rgba(245, 158, 11, 0.30);
 }
+.auth-input:focus { border-color: var(--primary); }
 
 @utility auth-label {
   @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground;
 }
 
 @utility auth-btn-primary {
-  @apply w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm text-primary-foreground bg-primary hover:bg-primary/90 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100 shadow-gold-glow;
+  @apply w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm text-primary-foreground bg-primary hover:bg-primary/90 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100;
+  box-shadow: var(--app-glow-amber, 0 0 24px rgba(245, 158, 11, 0.25));
 }
 
 @utility auth-btn-oauth {
-  @apply w-full flex items-center justify-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium text-foreground transition-colors disabled:opacity-50;
-  border-color: hsl(45 82% 55% / 0.14);
-  background: hsl(240 8% 8% / 0.4);
+  @apply w-full flex items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium text-foreground transition-colors disabled:opacity-50;
+  border-color: var(--app-border);
+  background: rgba(11, 15, 21, 0.4);
+}
+.auth-btn-oauth:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--accent-teal);
 }
 
 @utility auth-link {
-  @apply text-primary hover:text-primary/80 transition-colors;
+  color: var(--accent-teal);
+  transition: color 0.15s ease;
 }
+.auth-link:hover { color: var(--primary); }
 
 @utility auth-divider-line {
   @apply w-full border-t;
-  border-color: hsl(45 82% 55% / 0.12);
+  border-color: var(--app-border);
 }
 
 @utility auth-divider-text {
   @apply px-3 text-xs text-muted-foreground;
-  background: hsl(240 10% 10% / 0.92);
+  background: var(--app-card);
 }
 
 @utility auth-error {
-  @apply mb-4 rounded-2xl border p-3 text-sm text-destructive;
+  @apply mb-4 rounded-xl border p-3 text-sm text-destructive;
   background: hsl(0 72% 52% / 0.08);
   border-color: hsl(0 72% 52% / 0.24);
 }
