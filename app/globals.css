@@ -353,6 +353,10 @@
   background-color: var(--accent-teal-soft);
 }
 
+@utility border-teal {
+  border-color: var(--accent-teal);
+}
+
 @utility hover-teal {
   &:hover {
     color: var(--accent-teal);

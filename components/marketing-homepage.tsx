@@ -298,7 +298,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
               <div key={link.href} className="relative">
                 <button
                   onClick={() => setAppsOpen(!appsOpen)}
-                  className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                  className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-teal transition-colors"
                 >
                   Apps
                   <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", appsOpen && "rotate-180")} />
@@ -312,7 +312,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                           key={app.slug}
                           href={`/apps/${app.slug}`}
                           onClick={() => setAppsOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                          className="flex items-center gap-2.5 px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                         >
                           <app.icon className="h-4 w-4 flex-shrink-0" />
                           {app.name}
@@ -326,7 +326,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-teal transition-colors"
               >
                 {link.label}
               </Link>
@@ -342,7 +342,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
             </Button>
           ) : (
             <>
-              <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary hover:bg-primary/10">
+              <Button variant="ghost" asChild className="text-muted-foreground hover:text-teal hover:bg-teal-soft">
                 <Link href="/login">Login</Link>
               </Button>
               <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)]">
@@ -355,7 +355,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
         {/* Mobile Menu Trigger */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+            <Button variant="ghost" size="icon" className="hover:bg-teal-soft">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Open menu</span>
             </Button>
@@ -368,7 +368,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                 <Link
                   href="#product"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                 >
                   Product
                 </Link>
@@ -377,7 +377,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                   <Link
                     href="#apps"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                    className="block rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                   >
                     Apps
                   </Link>
@@ -387,7 +387,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                         key={app.slug}
                         href={`/apps/${app.slug}`}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 rounded px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                        className="flex items-center gap-2 rounded px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                       >
                         <app.icon className="h-3.5 w-3.5 flex-shrink-0" />
                         {app.name}
@@ -398,14 +398,14 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                 <Link
                   href="#slatedrop"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                 >
                   Solutions
                 </Link>
                 <Link
                   href="#pricing"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                  className="rounded-lg px-3 py-2.5 text-[15px] font-medium text-foreground transition-colors hover:bg-teal-soft hover:text-teal"
                 >
                   Pricing
                 </Link>
@@ -417,7 +417,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                   </Button>
                 ) : (
                   <>
-                    <Button variant="outline" asChild className="border-border text-foreground hover:border-primary hover:text-primary">
+                    <Button variant="outline" asChild className="border-border text-foreground hover:border-teal hover:text-teal">
                       <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
                     </Button>
                     <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
@@ -495,7 +495,7 @@ function HeroSection() {
             size="lg" 
             variant="outline" 
             asChild
-            className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary px-8"
+            className="border-primary/50 text-primary hover:bg-teal-soft hover:border-teal px-8"
           >
             <Link href="#apps">
               Explore Apps
@@ -609,7 +609,7 @@ function AppShowcaseSection() {
                         <ArrowRight className="ml-1 h-4 w-4" />
                       </Link>
                     </Button>
-                    <Button asChild variant="outline" className="flex-1 border-[hsla(45,82%,55%,0.3)] text-muted-foreground hover:text-primary hover:border-primary/50">
+                    <Button asChild variant="outline" className="flex-1 border-[hsla(45,82%,55%,0.3)] text-muted-foreground hover:text-teal hover:border-teal/50">
                       <Link href={`/apps/${app.slug}`}>
                         Learn More
                         <ChevronRight className="ml-1 h-4 w-4" />
@@ -984,13 +984,13 @@ function Footer() {
               The real-time interactive bridge between the field and the office.
             </p>
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary">
+              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-teal-soft hover:text-teal">
                 <Twitter className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary">
+              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-teal-soft hover:text-teal">
                 <Linkedin className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/10 hover:text-primary">
+              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-teal-soft hover:text-teal">
                 <Github className="h-4 w-4" />
               </Button>
             </div>
@@ -1001,22 +1001,22 @@ function Footer() {
             <h4 className="font-semibold text-foreground mb-4">Product</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="#apps" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#apps" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   360 Tours
                 </Link>
               </li>
               <li>
-                <Link href="#apps" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#apps" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Site Walk
                 </Link>
               </li>
               <li>
-                <Link href="#slatedrop" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#slatedrop" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   SlateDrop
                 </Link>
               </li>
               <li>
-                <Link href="#pricing" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#pricing" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Pricing
                 </Link>
               </li>
@@ -1028,22 +1028,22 @@ function Footer() {
             <h4 className="font-semibold text-foreground mb-4">Company</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/about" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/careers" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Careers
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/blog" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Blog
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/contact" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Contact
                 </Link>
               </li>
@@ -1055,17 +1055,17 @@ function Footer() {
             <h4 className="font-semibold text-foreground mb-4">Legal</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/terms" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/privacy" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/security" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/security" className="text-sm text-muted-foreground hover:text-teal transition-colors">
                   Security
                 </Link>
               </li>
