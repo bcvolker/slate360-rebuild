@@ -78,6 +78,7 @@ export default function WalledGardenDashboard({
               userName={userName}
               orgName={orgName}
               storageLimitGb={storageLimitGb}
+              entitlements={entitlements}
             />
           </div>
         </main>

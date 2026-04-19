@@ -19,14 +19,17 @@ import {
   SlateContainedSection,
   SlateSubtleToggle,
 } from "@/lib/design-system";
+import type { Entitlements } from "@/lib/entitlements";
+import { AppsGrid } from "@/components/dashboard/command-center/AppsGrid";
 
 interface CommandCenterContentProps {
   userName: string;
   orgName: string;
   storageLimitGb: number;
+  entitlements?: Entitlements | null;
 }
 
-export function CommandCenterContent({ userName, orgName, storageLimitGb }: CommandCenterContentProps) {
+export function CommandCenterContent({ userName, orgName, storageLimitGb, entitlements = null }: CommandCenterContentProps) {
   const [query, setQuery] = useState("");
   const [projectView, setProjectView] = useState("Pinned");
 
@@ -89,6 +92,9 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb }: Comm
           </Button>
         </div>
       </section>
+
+      {/* Apps */}
+      <AppsGrid entitlements={entitlements} />
 
       {/* Notifications / Work Feed Preview */}
       <section className="rounded-2xl border border-border bg-card/60 p-4 sm:p-5">

@@ -33,15 +33,16 @@ interface NavItem {
   gate?: keyof ReturnType<typeof getEntitlements>;
   internalKey?: "operationsConsole";
   phase1Hidden?: boolean;
+  comingSoon?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Command Center",href: "/dashboard",      icon: LayoutDashboard },
   { label: "Projects",      href: "/projects",       icon: FolderKanban },
-  { label: "Site Walk",     href: "/site-walk",      icon: MapPin,        gate: "canAccessStandalonePunchwalk" },
-  { label: "360 Tours",     href: "/tours",          icon: Compass,       gate: "canAccessTourBuilder", phase1Hidden: true },
-  { label: "Design Studio", href: "/design-studio",  icon: Palette,       gate: "canAccessDesignStudio", phase1Hidden: true },
-  { label: "Content Studio",href: "/content-studio", icon: Layers,        gate: "canAccessContent", phase1Hidden: true },
+  { label: "Site Walk",     href: "/site-walk",                icon: MapPin,    gate: "canAccessStandalonePunchwalk" },
+  { label: "360 Tours",     href: "/apps/360-tour-builder",    icon: Compass,   gate: "canAccessStandaloneTourBuilder",   comingSoon: true },
+  { label: "Design Studio", href: "/apps/design-studio",       icon: Palette,   gate: "canAccessStandaloneDesignStudio",  comingSoon: true },
+  { label: "Content Studio",href: "/apps/content-studio",      icon: Layers,    gate: "canAccessStandaloneContentStudio", comingSoon: true },
   { label: "Geospatial",    href: "/geospatial",     icon: Globe,         gate: "canAccessGeospatial", phase1Hidden: true },
   { label: "Virtual Studio",href: "/virtual-studio", icon: Film,          gate: "canAccessVirtual", phase1Hidden: true },
   { label: "Analytics",     href: "/analytics",      icon: BarChart3,     gate: "canAccessAnalytics", phase1Hidden: true },
@@ -118,7 +119,12 @@ export default function MobileNavSheet({
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-300 hover:text-white hover:bg-white/[0.04]/80 transition-colors"
                 >
                   <Icon size={16} className="text-zinc-400 flex-shrink-0" />
-                  {item.label}
+                  <span className="flex-1">{item.label}</span>
+                  {item.comingSoon && (
+                    <span className="rounded-full border border-app bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Soon
+                    </span>
+                  )}
                 </Link>
               );
             })}
