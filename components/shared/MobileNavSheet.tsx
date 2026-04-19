@@ -80,7 +80,7 @@ export default function MobileNavSheet({
     <>
       {/* Hamburger trigger — only visible on mobile */}
       <button
-        className="sm:hidden w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-primary transition-colors"
+        className="sm:hidden w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-white/[0.04] hover:text-teal transition-colors"
         onClick={() => setOpen(true)}
         aria-label="Open navigation menu"
       >

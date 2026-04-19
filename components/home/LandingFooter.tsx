@@ -31,7 +31,7 @@ export default function LandingFooter() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-sm text-muted-foreground hover:text-teal transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -48,10 +48,10 @@ export default function LandingFooter() {
             &copy; {new Date().getFullYear()} Slate360. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-teal transition-colors">
               Privacy
             </Link>
-            <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/terms" className="text-sm text-muted-foreground hover:text-teal transition-colors">
               Terms
             </Link>
           </div>

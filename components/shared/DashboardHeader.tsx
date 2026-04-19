@@ -109,18 +109,20 @@ export default function DashboardHeader({
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-center justify-between h-14 sm:h-16">
 
         {/* ── Left cluster: Logo + optional back link ── */}
-        <div className="flex items-center gap-3 shrink-0">
-          <Link href="/" className="flex items-center gap-2.5">
-            <SlateLogo className="h-6 sm:h-7 w-auto" />
-          </Link>
+        <div className="flex items-center gap-2 shrink-0">
           {showBackLink && (
             <Link
               href="/dashboard"
-              className="hidden sm:flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-teal transition-colors"
+              aria-label="Back to Command Center"
+              title="Command Center"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-zinc-400 hover:bg-white/[0.04] hover:text-teal transition-colors"
             >
-              <ChevronLeft size={14} /> Command Center
+              <ChevronLeft size={18} />
             </Link>
           )}
+          <Link href="/" className="flex items-center gap-2.5">
+            <SlateLogo className="h-6 sm:h-7 w-auto" />
+          </Link>
         </div>
 
         {/* ── Center: Search bar ── */}

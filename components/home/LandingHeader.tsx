@@ -36,16 +36,16 @@ export default function LandingHeader({ onLoginClick, isScrolled }: LandingHeade
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#apps" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#apps" className="text-sm text-muted-foreground hover:text-teal transition-colors">
               Products
             </a>
-            <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#pricing" className="text-sm text-muted-foreground hover:text-teal transition-colors">
               Pricing
             </a>
-            <a href="#testimonials" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#testimonials" className="text-sm text-muted-foreground hover:text-teal transition-colors">
               Customers
             </a>
-            <a href="mailto:hello@slate360.ai" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="mailto:hello@slate360.ai" className="text-sm text-muted-foreground hover:text-teal transition-colors">
               Contact
             </a>
           </nav>
@@ -74,16 +74,16 @@ export default function LandingHeader({ onLoginClick, isScrolled }: LandingHeade
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-border/50">
             <nav className="flex flex-col gap-4">
-              <a href="#apps" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">
+              <a href="#apps" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground hover:text-teal">
                 Products
               </a>
-              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">
+              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground hover:text-teal">
                 Pricing
               </a>
-              <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">
+              <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="text-sm text-muted-foreground hover:text-teal">
                 Customers
               </a>
-              <a href="mailto:hello@slate360.ai" className="text-sm text-muted-foreground hover:text-foreground">
+              <a href="mailto:hello@slate360.ai" className="text-sm text-muted-foreground hover:text-teal">
                 Contact
               </a>
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">

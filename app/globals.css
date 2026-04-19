@@ -93,8 +93,8 @@
   --app-card-hover: rgba(255, 255, 255, 0.04);
   --app-border: rgba(255, 255, 255, 0.05);
   --app-glass: rgba(11, 15, 21, 0.80);
-  --app-glow-amber: 0 0 15px rgba(245, 158, 11, 0.15);
-  --app-glow-amber-strong: 0 0 20px 0 rgba(245, 158, 11, 0.35), 0 4px 12px 0 rgba(245, 158, 11, 0.2);
+  --app-glow-amber: 0 0 12px rgba(245, 158, 11, 0.10);
+  --app-glow-amber-strong: 0 0 16px 0 rgba(245, 158, 11, 0.18), 0 2px 8px 0 rgba(245, 158, 11, 0.10);
   --app-shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
   --app-shadow-elevated: 0 8px 32px -4px rgba(0, 0, 0, 0.4);
   --color-scheme: dark;
@@ -361,6 +361,33 @@
   &:hover {
     color: var(--accent-teal);
   }
+}
+
+/* Muted/glass amber CTA — calmer than solid bg-primary, still recognizably the brand action */
+@utility btn-amber-soft {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.92), rgba(217, 119, 6, 0.92));
+  color: #1a0f02;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  box-shadow: var(--app-glow-amber);
+  transition: all 0.18s ease;
+}
+.btn-amber-soft:hover {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 1), rgba(217, 119, 6, 1));
+  box-shadow: var(--app-glow-amber-strong);
+  transform: translateY(-1px);
+}
+
+/* Outlined teal CTA — secondary action that complements amber without competing */
+@utility btn-teal-outline {
+  background: rgba(94, 142, 142, 0.06);
+  color: var(--accent-teal);
+  border: 1px solid rgba(94, 142, 142, 0.40);
+  transition: all 0.18s ease;
+}
+.btn-teal-outline:hover {
+  background: rgba(94, 142, 142, 0.14);
+  border-color: var(--accent-teal);
+  color: #7AB0B0;
 }
 
 @utility scrollbar-none {

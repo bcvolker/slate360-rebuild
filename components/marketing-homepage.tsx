@@ -337,7 +337,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
           {isLoggedIn ? (
-            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)]">
+            <Button asChild className="btn-amber-soft">
               <Link href="/dashboard">Go to Dashboard</Link>
             </Button>
           ) : (
@@ -345,7 +345,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
               <Button variant="ghost" asChild className="text-muted-foreground hover:text-teal hover:bg-teal-soft">
                 <Link href="/login">Login</Link>
               </Button>
-              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)]">
+              <Button asChild className="btn-amber-soft">
                 <Link href="/signup">Get Started Free</Link>
               </Button>
             </>
@@ -412,7 +412,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
               </nav>
               <div className="flex flex-col gap-3 border-t border-border pt-3">
                 {isLoggedIn ? (
-                  <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Button asChild className="btn-amber-soft">
                     <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Go to Dashboard</Link>
                   </Button>
                 ) : (
@@ -420,7 +420,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
                     <Button variant="outline" asChild className="border-border text-foreground hover:border-teal hover:text-teal">
                       <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
                     </Button>
-                    <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Button asChild className="btn-amber-soft">
                       <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>Subscribe Now</Link>
                     </Button>
                   </>
@@ -441,12 +441,12 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
 
 function HeroSection() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 sm:pt-28 pb-12 px-4 overflow-hidden">
+    <section className="relative min-h-[calc(100vh-4rem)] flex items-center pt-20 sm:pt-24 pb-10 px-4 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-[hsl(240,6%,8%)]" />
-      
+
       {/* Subtle grid pattern */}
-      <div 
+      <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
           backgroundImage: `linear-gradient(hsla(45,82%,55%,0.3) 1px, transparent 1px), linear-gradient(90deg, hsla(45,82%,55%,0.3) 1px, transparent 1px)`,
@@ -454,54 +454,55 @@ function HeroSection() {
         }}
       />
 
-      <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8">
-        {/* Badge */}
-        <Badge variant="outline" className="border-primary/30 text-primary px-4 py-1.5">
-          <Zap className="mr-1.5 h-3.5 w-3.5" />
-          Site Walk + connected workflows
-        </Badge>
+      <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+        {/* LEFT: copy + CTAs */}
+        <div className="space-y-6 text-center lg:text-left">
+          <Badge variant="outline" className="border-primary/30 text-primary px-4 py-1.5">
+            <Zap className="mr-1.5 h-3.5 w-3.5" />
+            Site Walk + connected workflows
+          </Badge>
 
-        {/* Headline */}
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight text-balance">
-          The real-time interactive bridge between{" "}
-          <span className="text-primary">the field and the office</span>
-        </h1>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground leading-tight text-balance">
+            The real-time interactive bridge between{" "}
+            <span className="text-primary">the field and the office</span>
+          </h1>
 
-        {/* Subheadline */}
-        <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
-          Use your phone or 360 camera to capture site conditions while you walk your project, add comments as you go, and automatically preserve a time-stamped, geolocated record. Site Walk turns that into punch lists, reports, or even proposals with your branding. Then share your deliverables with clients and project stakeholders within minutes. Free your phone from thousands of project photos that lose meaning over time.
-        </p>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 text-pretty">
+            Use your phone or 360 camera to capture site conditions while you walk your project, add comments as you go, and automatically preserve a time-stamped, geolocated record. Site Walk turns that into punch lists, reports, or proposals — then share with your team in minutes.
+          </p>
 
-        {/* Interactive Demo */}
-        <Card className="max-w-4xl mx-auto bg-glass border-[hsla(45,82%,55%,0.2)] shadow-[0_8px_32px_hsla(0,0%,0%,0.4),0_0_0_1px_hsla(45,82%,55%,0.1)]">
-          <CardContent className="p-4 sm:p-6">
-            <HeroDemo />
-          </CardContent>
-        </Card>
+          <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3 pt-2">
+            <Button
+              size="lg"
+              asChild
+              className="btn-amber-soft px-8"
+            >
+              <Link href="/signup">
+                Subscribe Now
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              asChild
+              className="btn-teal-outline px-8"
+            >
+              <Link href="#apps">
+                Explore Apps
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button 
-            size="lg" 
-            asChild 
-            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_30px_hsla(45,82%,55%,0.4)] hover:shadow-[0_0_40px_hsla(45,82%,55%,0.5)] transition-all px-8"
-          >
-            <Link href="/signup">
-              Subscribe Now
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-          <Button 
-            size="lg" 
-            variant="outline" 
-            asChild
-            className="border-primary/50 text-primary hover:bg-teal-soft hover:border-teal px-8"
-          >
-            <Link href="#apps">
-              Explore Apps
-              <ChevronRight className="ml-1 h-4 w-4" />
-            </Link>
-          </Button>
+        {/* RIGHT: interactive demo */}
+        <div className="w-full">
+          <Card className="bg-app-card border-app shadow-app-glow rounded-2xl">
+            <CardContent className="p-3 sm:p-5">
+              <HeroDemo />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </section>
@@ -603,7 +604,7 @@ function AppShowcaseSection() {
 
                   {/* CTAs */}
                   <div className="flex gap-3">
-                    <Button asChild className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Button asChild className="flex-1 btn-amber-soft">
                       <Link href="/signup">
                         {app.comingSoon ? "Join Waitlist" : "Subscribe"}
                         <ArrowRight className="ml-1 h-4 w-4" />
@@ -711,7 +712,7 @@ function SlateDropSection() {
 
             {/* CTA */}
             <div className="text-center mt-8">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button className="btn-amber-soft">
                 See the workflow in action
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
@@ -782,7 +783,7 @@ function PricingSection() {
             >
               {tier.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground shadow-[0_0_20px_hsla(45,82%,55%,0.4)]">
+                  <Badge className="bg-primary text-primary-foreground ">
                     Most Popular
                   </Badge>
                 </div>
@@ -819,7 +820,7 @@ function PricingSection() {
                   className={cn(
                     "w-full",
                     tier.popular
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)]"
+                      ? "btn-amber-soft"
                       : "bg-muted hover:bg-muted/80 text-foreground"
                   )}
                 >
@@ -949,7 +950,7 @@ function FinalCTASection() {
               />
               <Button 
                 size="lg" 
-                className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsla(45,82%,55%,0.3)] h-12 px-8"
+                className="btn-amber-soft h-12 px-8"
               >
                 Create Your Free Account
               </Button>
