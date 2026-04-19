@@ -197,6 +197,49 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-19d (CollaboratorShell + view selector + permissions resolver + app-access guard)
+
+### What Changed (commit `99cf0e7`)
+- **Trapped-collaborator shell**: `app/(collaborator)/collaborator/layout.tsx` + `page.tsx`. Layout calls `isCollaboratorOnly(user.id)` (new `lib/server/collaborator-mode.ts`) — if user has any `organization_members` row they bounce to `/dashboard`; otherwise they get `CollaboratorShell` (`components/collaborator/CollaboratorShell.tsx`) with stripped sidebar (My projects / Shared files / Comments / Account) and a persistent cobalt upgrade banner. Landing lists their projects via `listCollaboratorProjects()`.
+- **Invite redemption now routes correctly**: `lib/server/invites.ts` checks `organization_members` after acceptance — invitees with no org go to `/collaborator`, everyone else to `/projects/{id}` as before.
+- **Project view selector**:
+  - `lib/server/project-view.ts` — cookie name + reader (`readProjectViewMode()` returns `"my" | "owner" | "leadership"`).
+  - `app/api/projects/view-mode/route.ts` — POST sets the cookie (sameSite=lax, 30d).
+  - `components/projects/ProjectViewSelector.tsx` — client `<select>` that POSTs + `router.refresh()`.
+  - `app/(dashboard)/projects/[projectId]/layout.tsx` — mounts the selector next to the status pill, computes `allowedModes` from role (viewer→`["leadership"]`, admin→all three, member→`["my","owner"]`). Also adds the **People** tab to the nav.
+- **Enterprise per-feature permissions resolver**:
+  - `lib/server/org-context.ts` exports `PERMISSION_KEYS`, `PermissionKey`, `MemberPermissions`, and `resolvePermissions()`.
+  - `ServerOrgContext.permissions: MemberPermissions` resolved on every request — enterprise reads `organization_members.permissions` jsonb, every other tier falls back to `isAdmin`.
+  - All four return paths (no-user / no-membership / success / catch) wired with the resolver.
+  - The membership query now selects the `permissions` column.
+- **App-access guard for routes**: `lib/server/api-app-access.ts`:
+  - `APP_ACCESS_KEYS` = `site_walk | tours | design_studio | content_studio`.
+  - `userHasAppAccess(userId, orgId, appKey)` — owner/admin pass implicitly, otherwise checks `org_member_app_access`.
+  - `withAppAccess(appKey, req, handler)` — drop-in wrapper that returns 403 `No seat assigned for {app}` when the grant is missing.
+- Validation: `npm run typecheck` clean. File-size guard clean.
+
+### What's Broken / Partially Done
+- **3 migrations still not applied to live Supabase**: `20260419120000_project_collaborator_invites`, `20260419130000_org_member_app_access`, `20260419130001_org_members_permissions`. Until applied, `permissions` reads short-circuit through the `catch` branch (returns the fallback resolver). People tab + invite API will hard-fail until the first migration lands.
+- **Members & Roles tab** in `MyAccountShell` still placeholder — the data layer is now ready (`organization_members` + `org_member_app_access` + `permissions`) so this is purely a UI build.
+- **No route uses `withAppAccess` yet** — the wrapper exists but isn't wired to Site Walk / Tours / Design Studio / Content Studio routes. Adopt incrementally.
+- **Trapped-collaborator detection is membership-based, not invite-based**: a paying user who happens to be added as a collaborator on someone else's project will NOT be trapped (correct). But a fresh invitee who happens to also start their own org later will keep `isCollaboratorOnly()` returning false (correct). Edge case: if we ever support "collaborator-only" enterprise-level users we'll need a separate flag.
+- **View selector is presentation-only right now** — server components don't yet branch on `readProjectViewMode()`. Hook it into the per-tab queries (e.g. owner view widens scope, leadership view forces read-only) when those views need to differ from "my view".
+- **No automated tests added** — would require setting up vitest config first (none exists). Deferred.
+- `lib/email.ts` is at 280 lines — close to the 300 cap. Future templates should go in dedicated modules like `lib/email-collaborators.ts`.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
+
+### Next Steps (ordered)
+1. Apply the 3 outstanding migrations on Supabase. Smoke-test the People tab → invite via email → click link → arrive at `/collaborator` (new user) or `/projects/{id}` (existing org user).
+2. Wire `MyAccountShell › Workspace › Members & Roles` to live `organization_members` (invite, role select, per-app seat checkboxes, enterprise permission toggles).
+3. Adopt `withAppAccess(...)` in the Site Walk / Tours / Design Studio / Content Studio API routes.
+4. Branch server components on `readProjectViewMode()` where views need to actually differ (e.g. punch list "Owner view" reveals assignments, "Leadership view" hides edit controls).
+5. Stand up `vitest.config.ts` + `package.json`'s `"test"` script and write smoke specs for: `assertCanInviteCollaborator` (trial throws, standard at 3 throws, enterprise unlimited), `resolvePermissions` (enterprise honors keys; standard ignores them), `isCollaboratorOnly` (org-member → false, project-only → true).
+6. Operations Console subscription-status / cohort panel — still pending from earlier handoff.
+
+---
+
 ### Session Handoff — 2026-04-19c (Collaborator invite end-to-end: API + People tab + SMS + 2 migrations)
 
 ### What Changed
