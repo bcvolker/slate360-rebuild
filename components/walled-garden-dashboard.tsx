@@ -33,16 +33,20 @@ export default function WalledGardenDashboard({
   entitlements = null,
   hasOperationsConsoleAccess = false,
 }: WalledGardenDashboardProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Default OPEN on desktop. Only collapse if user explicitly pinned closed.
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Restore pinned sidebar state on mount (desktop only).
+  // Restore explicit collapsed state on mount (desktop only).
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (window.innerWidth < 1024) return;
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+      return;
+    }
     try {
       const pinned = window.localStorage.getItem(SIDEBAR_PIN_KEY);
-      if (pinned === "1") setSidebarOpen(true);
+      if (pinned === "0") setSidebarOpen(false);
     } catch {
       /* ignore localStorage failures (private mode, etc.) */
     }

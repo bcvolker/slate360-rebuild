@@ -473,20 +473,25 @@ function HeroSection() {
 
           <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3 pt-1">
             <Button asChild className="btn-amber-soft h-11 px-6 text-sm">
-              <Link href="/signup">
-                Create Free Account
+              <Link href="/signup?next=/app">
+                Get the App — Free
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="outline" asChild className="btn-teal-outline h-11 px-6 text-sm">
+            <Button asChild variant="outline" className="btn-teal-outline h-11 px-6 text-sm">
+              <Link href="/signup">
+                Create Account
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="ghost" asChild className="h-11 px-4 text-sm text-muted-foreground hover:text-foreground">
               <Link href="#apps">
                 Explore Apps
-                <ChevronRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </div>
           <p className="text-xs text-muted-foreground/80 pt-1">
-            Free to download. 14-day all-access trial. No credit card required.
+            Free to download. 14-day all-access trial. Subscribe anytime — no credit card required during beta.
           </p>
         </div>
 
@@ -568,7 +573,7 @@ function AppShowcaseSection() {
                     </div>
                     <CardTitle className="text-2xl text-foreground">{app.name}</CardTitle>
                     {app.comingSoon && (
-                      <span className="ml-auto rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
+                      <span className="ml-auto rounded-full border border-cobalt/30 bg-cobalt/10 px-2.5 py-0.5 text-xs font-semibold text-cobalt">
                         {app.statusLabel || "Coming Soon"}
                       </span>
                     )}
