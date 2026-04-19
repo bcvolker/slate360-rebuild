@@ -14,7 +14,6 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Bell, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SlateLogo } from "@/components/shared/SlateLogo";
 
 interface DashboardTopBarProps {
   onMenuClick: () => void;
@@ -31,22 +30,14 @@ export function DashboardTopBar({ onMenuClick, isSidebarOpen, userName }: Dashbo
       )}
     >
       <div className="flex h-full items-center justify-between px-4 gap-4">
-        {/* Left: Home + Menu Toggle */}
+        {/* Left: Menu Toggle only — sidebar already shows the logo */}
         <div className="flex items-center gap-3">
-          <a href="/" aria-label="Home" className="shrink-0">
-            <SlateLogo className="h-6 w-auto" />
-          </a>
-          <div className="hidden md:block">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Slate360</p>
-            <p className="text-sm font-bold text-white">Command Center</p>
-          </div>
           <button
             onClick={onMenuClick}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.04]/80 hover:bg-teal-soft border border-app hover:border-teal text-zinc-300 hover:text-teal transition-all"
-            aria-label="Menu"
+            className="flex items-center justify-center h-10 w-10 rounded-xl bg-white/[0.04] hover:bg-teal-soft border border-app hover:border-teal text-zinc-300 hover:text-teal transition-all"
+            aria-label="Toggle menu"
           >
             <Menu className="h-5 w-5" />
-            <span className="text-sm font-medium hidden sm:inline">Menu</span>
           </button>
         </div>
 
