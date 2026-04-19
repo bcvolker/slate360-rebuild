@@ -132,7 +132,7 @@ export default function DashboardClient(props: DashboardProps) {
           <div className="mb-6">
             <button
               onClick={() => s.setActiveTab("overview")}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-zinc-300 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:text-white transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-zinc-300 bg-app-card border border-app hover:bg-white/[0.04] hover:text-white transition-colors"
             >
               <ChevronLeft size={16} />
               Back to Dashboard

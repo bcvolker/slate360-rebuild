@@ -147,10 +147,10 @@ export default function DashboardOverview({
                       onSetActiveTab(tab.id);
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    className={`group relative flex flex-col items-center gap-1.5 sm:gap-2 ${pad} rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors duration-200 hover:-translate-y-0.5 text-center md:flex-1 md:min-w-0 ${tab.locked ? "opacity-60" : ""}`}
+                    className={`group relative flex flex-col items-center gap-1.5 sm:gap-2 ${pad} rounded-2xl bg-app-card border border-app hover:border-app transition-colors duration-200 hover:-translate-y-0.5 text-center md:flex-1 md:min-w-0 ${tab.locked ? "opacity-60" : ""}`}
                   >
                     {tab.locked && (
-                      <div className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-800 border border-zinc-700">
+                      <div className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-white/[0.04] border border-app">
                         <Lock size={10} className="text-zinc-400" />
                       </div>
                     )}
@@ -179,7 +179,7 @@ export default function DashboardOverview({
             <div className="relative">
               <button
                 onClick={onProjectDropdownToggle}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-zinc-800 bg-zinc-900 text-xs font-medium text-zinc-300 hover:border-zinc-700 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-app bg-app-card text-xs font-medium text-zinc-300 hover:border-app transition-colors"
               >
                 <FolderOpen size={13} className="text-zinc-500" />
                 {selectedProject === "all" ? "All projects" : projects.find((p) => p.id === selectedProject)?.name ?? "All projects"}
@@ -188,10 +188,10 @@ export default function DashboardOverview({
               {projectDropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-30" onClick={onProjectDropdownToggle} />
-                  <div className="absolute right-0 top-10 w-56 bg-zinc-900 rounded-xl border border-zinc-800 shadow-xl z-40 overflow-hidden">
-                    <button onClick={() => { onSelectProject("all"); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === "all" ? "bg-[#F59E0B]/10 text-[#F59E0B] font-semibold" : "text-zinc-400 hover:bg-zinc-800"}`}>All projects</button>
+                  <div className="absolute right-0 top-10 w-56 bg-app-card rounded-xl border border-app shadow-xl z-40 overflow-hidden">
+                    <button onClick={() => { onSelectProject("all"); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === "all" ? "bg-[#F59E0B]/10 text-[#F59E0B] font-semibold" : "text-zinc-400 hover:bg-white/[0.04]"}`}>All projects</button>
                     {projects.map((p) => (
-                      <button key={p.id} onClick={() => { onSelectProject(p.id); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === p.id ? "bg-[#F59E0B]/10 text-[#F59E0B] font-semibold" : "text-zinc-400 hover:bg-zinc-800"}`}>{p.name}</button>
+                      <button key={p.id} onClick={() => { onSelectProject(p.id); }} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${selectedProject === p.id ? "bg-[#F59E0B]/10 text-[#F59E0B] font-semibold" : "text-zinc-400 hover:bg-white/[0.04]"}`}>{p.name}</button>
                     ))}
                   </div>
                 </>
@@ -204,10 +204,10 @@ export default function DashboardOverview({
             >
               <Plus size={13} /> New Project
             </button>
-            <button onClick={() => onScrollCarousel(-1)} className="w-8 h-8 rounded-lg border border-zinc-800 flex items-center justify-center text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300 transition-colors">
+            <button onClick={() => onScrollCarousel(-1)} className="w-8 h-8 rounded-lg border border-app flex items-center justify-center text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300 transition-colors">
               <ChevronLeft size={16} />
             </button>
-            <button onClick={() => onScrollCarousel(1)} className="w-8 h-8 rounded-lg border border-zinc-800 flex items-center justify-center text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300 transition-colors">
+            <button onClick={() => onScrollCarousel(1)} className="w-8 h-8 rounded-lg border border-app flex items-center justify-center text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300 transition-colors">
               <ChevronRight size={16} />
             </button>
           </div>
@@ -228,7 +228,7 @@ export default function DashboardOverview({
           ))}
 
           {projects.length === 0 && (
-            <div className="snap-start shrink-0 w-full rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-center text-sm text-zinc-400">
+            <div className="snap-start shrink-0 w-full rounded-xl border border-app bg-app-card p-8 text-center text-sm text-zinc-400">
               No projects yet. Create a project in Project Hub to populate this dashboard.
             </div>
           )}
@@ -237,7 +237,7 @@ export default function DashboardOverview({
           <button
             type="button"
             onClick={onCreateProject}
-            className="snap-start shrink-0 w-[300px] h-[200px] rounded-xl border-2 border-dashed border-zinc-800 hover:border-teal flex flex-col items-center justify-center gap-3 text-zinc-500 hover:text-teal transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-zinc-900/50"
+            className="snap-start shrink-0 w-[300px] h-[200px] rounded-xl border-2 border-dashed border-app hover:border-teal flex flex-col items-center justify-center gap-3 text-zinc-500 hover:text-teal transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-app-card/50"
           >
             <div className="w-14 h-14 rounded-2xl border-2 border-dashed border-current flex items-center justify-center">
               <Plus size={24} />

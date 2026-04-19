@@ -27,7 +27,7 @@ export default function TabRedirectCard({ tab }: { tab: DashTab }) {
     : "hover:opacity-90";
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+    <div className="rounded-xl border border-app bg-app-card p-6">
       <h3 className="text-base font-bold text-white">Open {tab.label}</h3>
       <p className="mt-1 text-sm text-zinc-400">{tab.label} now runs in its dedicated workspace route.</p>
       <Link

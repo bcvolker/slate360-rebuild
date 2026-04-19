@@ -32,7 +32,7 @@ function UsageBar({ used, max, label, icon: Icon, unit, warning }: {
           {used.toLocaleString()} / {max.toLocaleString()} {unit}
         </span>
       </div>
-      <div className="h-2.5 rounded-full bg-zinc-800 overflow-hidden">
+      <div className="h-2.5 rounded-full bg-white/[0.04] overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ${
             isCritical ? "bg-red-500" : isHigh ? "bg-amber-500" : "bg-[#F59E0B]"
@@ -67,7 +67,7 @@ export default function AccountDataTrackerTab({ overview, isAdmin, isCeo, maxCre
   return (
     <div className="space-y-6">
       {/* Credits & Storage Meters */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 space-y-5">
+      <div className="rounded-2xl border border-app bg-app-card p-6 space-y-5">
         <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
           <Zap size={16} className="text-[#F59E0B]" /> Usage Overview
           <span className="ml-auto text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#F59E0B]/20 text-[#F59E0B]">
@@ -94,7 +94,7 @@ export default function AccountDataTrackerTab({ overview, isAdmin, isCeo, maxCre
       )}
 
       {/* Asset Breakdown */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4">Asset Breakdown</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
@@ -103,7 +103,7 @@ export default function AccountDataTrackerTab({ overview, isAdmin, isCeo, maxCre
             { label: "3D Models", value: usage?.modelsCount ?? 0, icon: Box },
             { label: "Images", value: usage?.toursCount ?? 0, icon: Compass },
           ].map((item) => (
-            <div key={item.label} className="rounded-xl bg-zinc-800 p-3 text-center">
+            <div key={item.label} className="rounded-xl bg-white/[0.04] p-3 text-center">
               <item.icon size={18} className="text-[#F59E0B] mx-auto mb-1.5" />
               <p className="text-lg font-black text-zinc-100">{item.value}</p>
               <p className="text-[10px] text-zinc-500">{item.label}</p>
@@ -113,7 +113,7 @@ export default function AccountDataTrackerTab({ overview, isAdmin, isCeo, maxCre
       </div>
 
       {/* Credit Balance Detail */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-3">Credit Balance</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -147,7 +147,7 @@ export default function AccountDataTrackerTab({ overview, isAdmin, isCeo, maxCre
 
       {/* Non-admin notice */}
       {!isAdmin && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 text-center">
+        <div className="rounded-2xl border border-app bg-app-card/50 p-4 text-center">
           <p className="text-xs text-zinc-500">
             Credit purchases and storage upgrades are managed by your organization&apos;s administrator.
             {" "}Contact them if you need additional capacity.

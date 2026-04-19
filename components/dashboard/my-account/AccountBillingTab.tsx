@@ -73,7 +73,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
       )}
 
       {/* Current Plan */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
           <Crown size={16} className="text-[#F59E0B]" /> Current Plan
         </h3>
@@ -85,7 +85,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
                 billing?.status === "active" ? "bg-emerald-900/50 text-emerald-400" :
                 billing?.status === "past_due" ? "bg-amber-900/50 text-amber-400" :
                 billing?.status === "canceled" ? "bg-red-900/50 text-red-400" :
-                "bg-zinc-800 text-zinc-400"
+                "bg-white/[0.04] text-zinc-400"
               }`}>
                 {billing?.status ?? "trialing"}
               </span>
@@ -100,7 +100,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
             <button
               onClick={openBillingPortal}
               disabled={portalBusy}
-              className="inline-flex items-center gap-2 rounded-xl bg-zinc-800 border border-zinc-700 px-4 py-2 text-xs font-semibold text-zinc-200 hover:bg-zinc-700 transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] border border-app px-4 py-2 text-xs font-semibold text-zinc-200 hover:bg-white/[0.06] transition-colors disabled:opacity-50"
             >
               {portalBusy ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
               Manage Subscription
@@ -111,7 +111,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
 
       {/* Payment Methods — admin only */}
       {isAdmin && !isCeo && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+        <div className="rounded-2xl border border-app bg-app-card p-6">
           <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
             <CreditCard size={16} className="text-[#F59E0B]" /> Payment Methods
           </h3>
@@ -131,7 +131,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
 
       {/* Buy Credits — admin only */}
       {isAdmin && !isCeo && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+        <div className="rounded-2xl border border-app bg-app-card p-6">
           <h3 className="text-sm font-bold text-zinc-100 mb-1 flex items-center gap-2">
             <Zap size={16} className="text-[#F59E0B]" /> Purchase Credits
           </h3>
@@ -144,7 +144,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
                 key={pack.id}
                 onClick={() => buyCredits(pack.id)}
                 disabled={creditBusy !== null}
-                className="rounded-xl border border-zinc-700 bg-zinc-800 p-4 text-left hover:border-[#F59E0B]/50 hover:bg-zinc-800/80 transition-all disabled:opacity-50"
+                className="rounded-xl border border-app bg-white/[0.04] p-4 text-left hover:border-[#F59E0B]/50 hover:bg-white/[0.04]/80 transition-all disabled:opacity-50"
               >
                 <p className="text-sm font-bold text-zinc-100">{pack.name}</p>
                 <p className="text-lg font-black text-[#F59E0B]">{pack.credits.toLocaleString()}</p>
@@ -158,7 +158,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
 
       {/* Invoices — admin only */}
       {isAdmin && !isCeo && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+        <div className="rounded-2xl border border-app bg-app-card p-6">
           <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
             <Download size={16} className="text-[#F59E0B]" /> Invoices & Receipts
           </h3>
@@ -168,7 +168,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
           <button
             onClick={openBillingPortal}
             disabled={portalBusy}
-            className="inline-flex items-center gap-2 rounded-xl bg-zinc-800 border border-zinc-700 px-4 py-2 text-xs font-semibold text-zinc-200 hover:bg-zinc-700 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] border border-app px-4 py-2 text-xs font-semibold text-zinc-200 hover:bg-white/[0.06] transition-colors disabled:opacity-50"
           >
             {portalBusy ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
             View Invoices
@@ -198,7 +198,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
 
       {/* Non-admin notice */}
       {!isAdmin && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 text-center">
+        <div className="rounded-2xl border border-app bg-app-card/50 p-4 text-center">
           <p className="text-xs text-zinc-500">
             Billing and payment information is managed by your organization&apos;s administrator.
           </p>
@@ -206,7 +206,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
       )}
 
       {isCeo && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 text-center">
+        <div className="rounded-2xl border border-app bg-app-card/50 p-4 text-center">
           <p className="text-xs text-zinc-500">
             Internal owner billing is managed outside the standard subscriber self-service flow.
           </p>

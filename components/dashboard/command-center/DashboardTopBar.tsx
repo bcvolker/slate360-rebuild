@@ -42,7 +42,7 @@ export function DashboardTopBar({ onMenuClick, isSidebarOpen, userName }: Dashbo
           </div>
           <button
             onClick={onMenuClick}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-800/80 hover:bg-primary/20 border border-zinc-700 hover:border-primary/50 text-zinc-300 hover:text-primary transition-all"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.04]/80 hover:bg-primary/20 border border-app hover:border-primary/50 text-zinc-300 hover:text-primary transition-all"
             aria-label="Menu"
           >
             <Menu className="h-5 w-5" />

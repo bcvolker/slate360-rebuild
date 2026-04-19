@@ -62,7 +62,7 @@ export default function DashboardFinancialWidget({
           )}
         </div>
 
-        <div className="flex gap-4 pt-2 border-t border-zinc-800">
+        <div className="flex gap-4 pt-2 border-t border-app">
           <div>
             <p className="text-[10px] text-zinc-500 font-medium">This month</p>
             <p className="text-sm font-bold text-zinc-100">

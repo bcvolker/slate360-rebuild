@@ -110,7 +110,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
       )}
 
       {/* ── Report Builder ─────────────────────────────────────── */}
-      <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <section className="rounded-2xl border border-app bg-app-card p-6">
         <div className="mb-5">
           <h2 className="text-lg font-black text-white">Build a Report</h2>
           <p className="mt-1 text-sm text-zinc-400">
@@ -129,7 +129,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
             <select
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm font-semibold text-zinc-200 focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20"
+              className="w-full rounded-xl border border-app bg-white/[0.04] px-3 py-2.5 text-sm font-semibold text-zinc-200 focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20"
             >
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -152,7 +152,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
             <div className="relative">
               <button
                 onClick={() => setTypeOpen(!typeOpen)}
-                className="flex w-full items-center justify-between gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm font-semibold text-zinc-200 hover:border-zinc-600 transition-colors"
+                className="flex w-full items-center justify-between gap-2 rounded-xl border border-app bg-white/[0.04] px-3 py-2.5 text-sm font-semibold text-zinc-200 hover:border-zinc-600 transition-colors"
               >
                 {selectedTypeObj.label}
                 <ChevronDown size={14} className="shrink-0 text-zinc-500" />
@@ -160,12 +160,12 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
               {typeOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setTypeOpen(false)} />
-                  <div className="absolute left-0 top-full z-50 mt-1 w-80 rounded-2xl border border-zinc-700 bg-zinc-800 py-2 shadow-2xl">
+                  <div className="absolute left-0 top-full z-50 mt-1 w-80 rounded-2xl border border-app bg-white/[0.04] py-2 shadow-2xl">
                     {REPORT_TYPES.map((t) => (
                       <button
                         key={t.id}
                         onClick={() => { setSelectedType(t.id); setTypeOpen(false); }}
-                        className={`w-full px-4 py-3 text-left transition-colors hover:bg-zinc-700 ${selectedType === t.id ? "bg-[#F59E0B]/10" : ""}`}
+                        className={`w-full px-4 py-3 text-left transition-colors hover:bg-white/[0.06] ${selectedType === t.id ? "bg-[#F59E0B]/10" : ""}`}
                       >
                         <p className="text-sm font-semibold text-white">{t.label}</p>
                         <p className="mt-0.5 text-xs text-zinc-400">{t.desc}</p>
@@ -183,7 +183,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm font-semibold text-zinc-200 focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20"
+              className="w-full rounded-xl border border-app bg-white/[0.04] px-3 py-2.5 text-sm font-semibold text-zinc-200 focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20"
             >
               {DATE_RANGES.map((r) => (
                 <option key={r.value} value={r.value}>{r.label}</option>
@@ -217,7 +217,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
                 className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
                   selectedSections.includes(s.id)
                     ? "border-[#6366F1] bg-[#6366F1]/10 text-[#6366F1]"
-                    : "border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600"
+                    : "border-app bg-white/[0.04] text-zinc-400 hover:border-zinc-600"
                 }`}
               >
                 {s.label}
@@ -236,14 +236,14 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
       </section>
 
       {/* ── Saved Reports ───────────────────────────────────────── */}
-      <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+      <section className="rounded-2xl border border-app bg-app-card p-5">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-sm font-black text-white">
             <Layers size={15} className="text-[#F59E0B]" /> Saved Reports
           </h2>
           <button
             onClick={() => void requestExport("csv", "projects")}
-            className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-zinc-800 transition-colors"
+            className="inline-flex items-center gap-1 rounded-lg border border-app px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/[0.04] transition-colors"
           >
             <Download size={12} /> Export All (CSV)
           </button>
@@ -254,7 +254,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
             <Loader2 size={14} className="animate-spin" /> Loading reports…
           </div>
         ) : reports.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-zinc-700 py-10 text-center">
+          <div className="rounded-xl border border-dashed border-app py-10 text-center">
             <FileText size={28} className="mx-auto mb-3 text-zinc-600" />
             <p className="text-sm font-semibold text-zinc-400">No reports yet</p>
             <p className="mt-1 text-xs text-zinc-500">Build your first report above — it will appear here once generated.</p>
@@ -262,7 +262,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
         ) : (
           <div className="space-y-2">
             {reports.map((report) => (
-              <div key={report.id} className="flex items-center justify-between gap-4 rounded-xl border border-zinc-800 bg-zinc-800/50 px-4 py-3">
+              <div key={report.id} className="flex items-center justify-between gap-4 rounded-xl border border-app bg-white/[0.04]/50 px-4 py-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-white">{report.title}</p>
                   <p className="mt-0.5 text-xs text-zinc-500">
@@ -273,11 +273,11 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
                 <div className="flex shrink-0 items-center gap-2">
                   <button
                     onClick={() => void requestExport("pdf", "projects")}
-                    className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 transition-colors"
+                    className="inline-flex items-center gap-1 rounded-lg border border-app bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/[0.06] transition-colors"
                   >
                     <Download size={11} /> PDF
                   </button>
-                  <button className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 transition-colors">
+                  <button className="inline-flex items-center gap-1 rounded-lg border border-app bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/[0.06] transition-colors">
                     <Send size={11} /> Share
                   </button>
                 </div>

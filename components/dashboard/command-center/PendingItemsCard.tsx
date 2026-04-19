@@ -46,7 +46,7 @@ export function PendingItemsCard({ data, isLoading }: PendingItemsCardProps) {
               <a
                 key={p.id}
                 href={`/project-hub/${p.id}`}
-                className="flex items-center gap-3 rounded-lg bg-zinc-800/50 px-4 py-3 hover:bg-primary/10 transition-colors group"
+                className="flex items-center gap-3 rounded-lg bg-white/[0.04]/50 px-4 py-3 hover:bg-primary/10 transition-colors group"
               >
                 <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
                   <FolderOpen className="h-4 w-4 text-primary" />

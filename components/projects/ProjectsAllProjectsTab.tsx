@@ -25,7 +25,7 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
 
   if (projects.length === 0) {
     return (
-      <div className="rounded-2xl border-2 border-dashed border-zinc-700 bg-zinc-900 p-20 text-center text-zinc-400">
+      <div className="rounded-2xl border-2 border-dashed border-app bg-app-card p-20 text-center text-zinc-400">
         No projects found. Click "New Project" to start building.
       </div>
     );
@@ -51,7 +51,7 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
         return (
           <div
             key={project.id}
-            className="group relative flex w-[340px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 hover:border-zinc-700 hover:-translate-y-1 transition-all"
+            className="group relative flex w-[340px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-app bg-app-card hover:border-app hover:-translate-y-1 transition-all"
           >
             <Link href={`/projects/${project.id}`} className="block">
               <div className="h-32 w-full relative overflow-hidden">
@@ -92,7 +92,7 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
               {cardMenuOpen === project.id && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setCardMenuOpen(null)} />
-                  <div className="absolute left-0 top-9 z-50 w-48 rounded-xl border border-zinc-700 bg-zinc-800 shadow-2xl py-1 overflow-hidden">
+                  <div className="absolute left-0 top-9 z-50 w-48 rounded-xl border border-app bg-white/[0.04] shadow-2xl py-1 overflow-hidden">
                     <button
                       onClick={(event) => {
                         event.preventDefault();
@@ -111,7 +111,7 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
 
             <Link href={`/projects/${project.id}`} className="p-5 flex-1 flex flex-col justify-between">
               <p className="text-sm text-zinc-400 line-clamp-2">{project.description || "No description provided."}</p>
-              <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between text-xs font-semibold text-zinc-500">
+              <div className="mt-4 pt-4 border-t border-app flex justify-between text-xs font-semibold text-zinc-500">
                 <span>Created: {new Date(project.created_at).toLocaleDateString()}</span>
                 <span className="text-[#F59E0B] group-hover:underline">Open Project →</span>
               </div>

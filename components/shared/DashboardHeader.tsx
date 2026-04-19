@@ -178,8 +178,8 @@ export default function DashboardHeader({
             {notificationsOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setNotificationsOpen(false)} />
-                <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 shadow-xl">
-                  <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+                <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-app bg-app-card shadow-xl">
+                  <div className="flex items-center justify-between border-b border-app px-4 py-3">
                     <p className="text-sm font-bold text-white">Notifications</p>
                     {onRefreshNotifications && (
                       <button
@@ -206,7 +206,7 @@ export default function DashboardHeader({
                           key={n.id}
                           href={href}
                           onClick={() => setNotificationsOpen(false)}
-                          className="block border-b border-zinc-800/50 px-4 py-3 hover:bg-white/[0.04]"
+                          className="block border-b border-app/50 px-4 py-3 hover:bg-white/[0.04]"
                         >
                           <p className="text-sm font-semibold text-zinc-200">{n.title}</p>
                           <p className="mt-0.5 text-xs text-zinc-400">{n.message}</p>
@@ -261,8 +261,8 @@ export default function DashboardHeader({
             {userMenuOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                <div className="absolute right-0 top-12 w-56 bg-zinc-900 rounded-xl border border-zinc-800 shadow-xl z-50 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-zinc-800">
+                <div className="absolute right-0 top-12 w-56 bg-app-card rounded-xl border border-app shadow-xl z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-app">
                     <p className="text-sm font-semibold text-white">{user.name}</p>
                     <p className="text-xs text-zinc-400 truncate">{user.email}</p>
                     <span

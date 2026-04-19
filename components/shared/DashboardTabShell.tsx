@@ -77,7 +77,7 @@ export default function DashboardTabShell({
               </span>
             )}
             {status === "coming-soon" && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-zinc-800 text-zinc-400 border border-zinc-700">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/[0.04] text-zinc-400 border border-app">
                 Coming Soon
               </span>
             )}

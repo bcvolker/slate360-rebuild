@@ -24,7 +24,7 @@ export default function SlateDropTopBar({
   if (embedded) return null;
 
   return (
-    <header className="shrink-0 bg-zinc-950 border-b border-zinc-800 z-30">
+    <header className="shrink-0 bg-zinc-950 border-b border-app z-30">
       <div className="flex items-center justify-between h-14 px-4">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
@@ -37,7 +37,7 @@ export default function SlateDropTopBar({
 
           <button
             onClick={onToggleMobileSidebar}
-            className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-800"
+            className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-white/[0.04]"
           >
             <FolderOpen size={18} />
           </button>
@@ -46,19 +46,19 @@ export default function SlateDropTopBar({
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:bg-zinc-800 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:bg-white/[0.04] transition-colors"
           >
             <Home size={13} /> <span className="hidden sm:inline">Command Center</span>
           </Link>
 
-          <button className="relative w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-800">
+          <button className="relative w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-white/[0.04]">
             <Bell size={16} />
           </button>
 
           <div className="relative">
             <button
               onClick={onToggleUserMenu}
-              className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-white text-[10px] font-bold"
+              className="w-8 h-8 rounded-full bg-white/[0.04] flex items-center justify-center text-white text-[10px] font-bold"
             >
               {user.name.charAt(0).toUpperCase()}
             </button>
@@ -66,8 +66,8 @@ export default function SlateDropTopBar({
             {userMenuOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={onCloseUserMenu} />
-                <div className="absolute right-0 top-10 w-52 bg-zinc-900 rounded-xl border border-zinc-800 shadow-xl z-50 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-zinc-800">
+                <div className="absolute right-0 top-10 w-52 bg-app-card rounded-xl border border-app shadow-xl z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-app">
                     <p className="text-sm font-semibold text-zinc-100">{user.name}</p>
                     <p className="text-xs text-zinc-500 truncate">{user.email}</p>
                   </div>

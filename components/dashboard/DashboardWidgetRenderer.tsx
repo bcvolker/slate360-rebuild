@@ -65,7 +65,7 @@ function SlateDropCompactGrid({ tier }: { tier: Tier }) {
           <Link
             key={f.id}
             href="/slatedrop"
-            className="group flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-zinc-800/60 transition-colors"
+            className="group flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-white/[0.04]/60 transition-colors"
           >
             <span className="text-2xl">{f.icon ?? "📁"}</span>
             <span className="text-[10px] font-medium text-zinc-400 group-hover:text-white text-center leading-tight line-clamp-2">
@@ -74,7 +74,7 @@ function SlateDropCompactGrid({ tier }: { tier: Tier }) {
           </Link>
         ))}
       </div>
-      <div className="pt-2 border-t border-zinc-800 mt-auto">
+      <div className="pt-2 border-t border-app mt-auto">
         <p className="text-[10px] text-zinc-500 text-center">
           Expand widget or click &ldquo;Open Full View&rdquo; for file management
         </p>
@@ -100,7 +100,7 @@ const statusColor = (s: Job["status"]) => {
   switch (s) {
     case "completed": return "text-emerald-400 bg-emerald-950/40";
     case "processing": return "text-amber-400 bg-amber-950/40";
-    case "queued": return "text-zinc-400 bg-zinc-800";
+    case "queued": return "text-zinc-400 bg-white/[0.04]";
     case "failed": return "text-red-400 bg-red-950/40";
   }
 };
@@ -261,7 +261,7 @@ export default function DashboardWidgetRenderer({
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
-              <button onClick={ctx.handleBuyCredits} disabled={ctx.billingBusy !== null} className="flex-1 text-xs font-semibold py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:bg-zinc-800 transition-colors disabled:opacity-60">
+              <button onClick={ctx.handleBuyCredits} disabled={ctx.billingBusy !== null} className="flex-1 text-xs font-semibold py-2 rounded-lg border border-app text-zinc-400 hover:bg-white/[0.04] transition-colors disabled:opacity-60">
                 {ctx.billingBusy === "credits" ? <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span> : "Buy credits"}
               </button>
               <button onClick={ctx.handleUpgradePlan} disabled={ctx.billingBusy !== null} className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-all hover:opacity-90 disabled:opacity-60" style={{ backgroundColor: "#F59E0B" }}>
@@ -280,7 +280,7 @@ export default function DashboardWidgetRenderer({
         >
           <div className="space-y-3">
             {ctx.liveJobs.map((job) => (
-              <div key={job.id} className="flex items-center gap-3 p-3 rounded-xl bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors group">
+              <div key={job.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04]/50 hover:bg-white/[0.06]/50 transition-colors group">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${statusColor(job.status)}`}>{statusIcon(job.status)}</div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold text-white truncate">{job.name}</p>
@@ -323,7 +323,7 @@ export default function DashboardWidgetRenderer({
               ))}
               {ctx.liveFinancial.length === 0 && <div className="w-full text-center text-xs text-zinc-500">No financial activity yet</div>}
             </div>
-            <div className="flex gap-4 pt-2 border-t border-zinc-800">
+            <div className="flex gap-4 pt-2 border-t border-app">
               <div>
                 <p className="text-[10px] text-zinc-500 font-medium">This month</p>
                 <p className="text-sm font-bold text-white">{(ctx.liveFinancial[ctx.liveFinancial.length - 1]?.credits ?? 0).toLocaleString()} credits</p>
@@ -372,7 +372,7 @@ export default function DashboardWidgetRenderer({
             </div>
             <div className="grid grid-cols-5 gap-1.5">
               {(ctx.liveWeather?.forecast ?? DEMO_WEATHER.forecast).map((f) => (
-                <div key={f.day} className="text-center p-2 rounded-xl bg-zinc-800/50 hover:bg-zinc-800 transition-colors">
+                <div key={f.day} className="text-center p-2 rounded-xl bg-white/[0.04]/50 hover:bg-white/[0.04] transition-colors">
                   <p className="text-[10px] text-zinc-500 font-semibold mb-1">{f.day}</p>
                   {weatherIcon(f.icon)}
                   <p className="text-[10px] font-bold text-white mt-1">{f.hi}°</p>
@@ -388,7 +388,7 @@ export default function DashboardWidgetRenderer({
                 </div>
               ))}
             </div>
-            <button onClick={() => ctx.setWeatherLogged(true)} disabled={ctx.weatherLogged} className="w-full text-xs font-semibold py-2.5 rounded-xl border border-zinc-700 text-zinc-400 hover:bg-zinc-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
+            <button onClick={() => ctx.setWeatherLogged(true)} disabled={ctx.weatherLogged} className="w-full text-xs font-semibold py-2.5 rounded-xl border border-app text-zinc-400 hover:bg-white/[0.04] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
               {ctx.weatherLogged ? <><CheckCircle2 size={13} className="text-emerald-500" /> Logged to daily report</> : <><Send size={12} /> Log to Daily Report</>}
             </button>
           </div>
@@ -404,8 +404,8 @@ export default function DashboardWidgetRenderer({
             {ctx.liveContinueWorking.map((item, i) => {
               const Icon = item.kind === "design" ? Palette : item.kind === "tour" ? Compass : item.kind === "rfi" ? MessageSquare : item.kind === "report" ? BarChart3 : FileText;
               return (
-                <Link key={i} href={item.href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition-colors group">
-                  <div className="w-9 h-9 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-teal transition-colors"><Icon size={16} /></div>
+                <Link key={i} href={item.href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.04] transition-colors group">
+                  <div className="w-9 h-9 rounded-xl bg-white/[0.04] flex items-center justify-center text-zinc-400 group-hover:text-teal transition-colors"><Icon size={16} /></div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-white truncate group-hover:text-teal transition-colors">{item.title}</p>
                     <p className="text-[10px] text-zinc-500 truncate">{item.subtitle}</p>
@@ -455,17 +455,17 @@ export default function DashboardWidgetRenderer({
             <div className="space-y-3">
               <div>
                 <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Title</label>
-                <input type="text" placeholder="What feature would you like?" value={ctx.suggestTitle} onChange={(e) => ctx.setSuggestTitle(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 transition-all" />
+                <input type="text" placeholder="What feature would you like?" value={ctx.suggestTitle} onChange={(e) => ctx.setSuggestTitle(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-app bg-white/[0.04] text-sm text-white placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 transition-all" />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Description</label>
-                <textarea placeholder="Tell us more about what you need…" value={ctx.suggestDesc} onChange={(e) => ctx.setSuggestDesc(e.target.value)} rows={3} className="w-full px-3 py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 transition-all resize-none" />
+                <textarea placeholder="Tell us more about what you need…" value={ctx.suggestDesc} onChange={(e) => ctx.setSuggestDesc(e.target.value)} rows={3} className="w-full px-3 py-2.5 rounded-xl border border-app bg-white/[0.04] text-sm text-white placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 transition-all resize-none" />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Priority</label>
                 <div className="flex gap-2">
                   {(["low", "medium", "high"] as const).map((p) => (
-                    <button key={p} onClick={() => ctx.setSuggestPriority(p)} className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-all capitalize ${ctx.suggestPriority === p ? "border-[#F59E0B] bg-[#F59E0B]/10 text-[#F59E0B]" : "border-zinc-700 text-zinc-400 hover:bg-zinc-800"}`}>{p}</button>
+                    <button key={p} onClick={() => ctx.setSuggestPriority(p)} className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-all capitalize ${ctx.suggestPriority === p ? "border-[#F59E0B] bg-[#F59E0B]/10 text-[#F59E0B]" : "border-app text-zinc-400 hover:bg-white/[0.04]"}`}>{p}</button>
                   ))}
                 </div>
               </div>
@@ -488,7 +488,7 @@ export default function DashboardWidgetRenderer({
                 <p className="text-2xl font-black text-white">{ctx.liveSeatMembers.length}</p>
                 <p className="text-[10px] text-zinc-500 font-medium">of {ctx.entitlements.maxSeats} seats used</p>
               </div>
-              <div className="h-10 w-px bg-zinc-800" />
+              <div className="h-10 w-px bg-white/[0.04]" />
               <div>
                 <p className="text-2xl font-black text-emerald-600">{ctx.liveSeatMembers.filter((m) => m.active).length}</p>
                 <p className="text-[10px] text-zinc-500 font-medium">Active now</p>
@@ -497,7 +497,7 @@ export default function DashboardWidgetRenderer({
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-zinc-800">
+                  <tr className="border-b border-app">
                     <th className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider pb-3 pr-4">Name</th>
                     <th className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider pb-3 pr-4">Email</th>
                     <th className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider pb-3 pr-4">Role</th>
@@ -506,11 +506,11 @@ export default function DashboardWidgetRenderer({
                 </thead>
                 <tbody>
                   {ctx.liveSeatMembers.map((m, i) => (
-                    <tr key={i} className="border-b border-zinc-800/50 hover:bg-zinc-800/50 transition-colors">
+                    <tr key={i} className="border-b border-app/50 hover:bg-white/[0.04]/50 transition-colors">
                       <td className="py-3 pr-4 text-xs font-semibold text-white">{m.name}</td>
                       <td className="py-3 pr-4 text-xs text-zinc-400">{m.email}</td>
                       <td className="py-3 pr-4">
-                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${m.role === "Owner" ? "bg-[#F59E0B]/10 text-[#F59E0B]" : m.role === "Admin" ? "bg-[#6366F1]/10 text-[#6366F1]" : "bg-zinc-800 text-zinc-400"}`}>{m.role}</span>
+                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${m.role === "Owner" ? "bg-[#F59E0B]/10 text-[#F59E0B]" : m.role === "Admin" ? "bg-[#6366F1]/10 text-[#6366F1]" : "bg-white/[0.04] text-zinc-400"}`}>{m.role}</span>
                       </td>
                       <td className="py-3">
                         <span className={`flex items-center gap-1.5 text-[10px] font-medium ${m.active ? "text-emerald-600" : "text-zinc-500"}`}>

@@ -30,7 +30,7 @@ export default function AccountProfileTab({ user, orgName, role }: Props) {
   return (
     <div className="space-y-6">
       {/* Avatar + Name */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
           <User size={16} className="text-[#F59E0B]" /> Profile Information
         </h3>
@@ -54,7 +54,7 @@ export default function AccountProfileTab({ user, orgName, role }: Props) {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full max-w-sm px-3 py-2 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/30 focus:border-[#F59E0B]"
+                className="w-full max-w-sm px-3 py-2 rounded-xl border border-app bg-white/[0.04] text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/30 focus:border-[#F59E0B]"
               />
             </div>
             <div>
@@ -85,13 +85,13 @@ export default function AccountProfileTab({ user, orgName, role }: Props) {
       </div>
 
       {/* Preferences */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4">Preferences</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="block text-xs font-semibold text-zinc-400 mb-1">Theme</label>
             <select
-              className="w-full px-3 py-2 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-100 text-sm"
+              className="w-full px-3 py-2 rounded-xl border border-app bg-white/[0.04] text-zinc-100 text-sm"
               defaultValue="dark"
               onChange={(e) => {
                 localStorage.setItem("slate360-theme", e.target.value);

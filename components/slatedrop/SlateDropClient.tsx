@@ -176,7 +176,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
         />
 
         <div className="flex-1 flex items-center justify-center p-6">
-          <div className="max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-center space-y-3">
+          <div className="max-w-md rounded-2xl border border-app bg-app-card p-6 text-center space-y-3">
             <h2 className="text-lg font-bold text-white">Open files from a project</h2>
             <p className="text-sm text-zinc-400">
               Phase 1 SlateDrop is project-scoped. Open a project first to browse and manage files.

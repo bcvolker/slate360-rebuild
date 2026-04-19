@@ -95,30 +95,30 @@ export default function CreateProjectWizard({
     });
   };
 
-  const field = "w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-[#F59E0B] focus:ring-2 focus:ring-[#F59E0B]/20 focus:outline-none transition-all";
+  const field = "w-full rounded-xl border border-app bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-[#F59E0B] focus:ring-2 focus:ring-[#F59E0B]/20 focus:outline-none transition-all";
   const label = "mb-1.5 block text-xs font-semibold text-zinc-300";
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl text-white flex flex-col max-h-[90vh]">
+      <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-app bg-app-card shadow-2xl text-white flex flex-col max-h-[90vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-800/50 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-app bg-white/[0.04]/50 px-5 py-4">
           <div>
             <h3 className="text-lg font-black text-white">Create New Project</h3>
             <p className="text-xs text-zinc-400 mt-0.5">Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}</p>
           </div>
-          <button type="button" onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors"><X size={18} /></button>
+          <button type="button" onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-white/[0.06] hover:text-white transition-colors"><X size={18} /></button>
         </div>
 
         {/* Progress bar */}
-        <div className="h-1 bg-zinc-800">
+        <div className="h-1 bg-white/[0.04]">
           <div className="h-full bg-[#F59E0B] transition-all duration-300" style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
         </div>
 
         {/* Step pills */}
-        <div className="flex border-b border-zinc-800 bg-zinc-900">
+        <div className="flex border-b border-app bg-app-card">
           {STEP_LABELS.map((lbl, i) => (
             <div key={lbl} className={`flex-1 py-2 text-center text-[10px] font-bold transition-colors ${i + 1 === step ? "text-[#F59E0B]" : i + 1 < step ? "text-emerald-400" : "text-zinc-500"}`}>
               {i + 1 < step && <CheckCircle2 size={10} className="inline mr-0.5 mb-0.5" />}{lbl}
@@ -165,7 +165,7 @@ export default function CreateProjectWizard({
               <p className="text-xs text-zinc-400">
                 Search for an address, click anywhere on the map to drop a pin, or use the <strong>polygon tool</strong> to outline the site boundary.
               </p>
-              <div className="h-[360px] w-full rounded-xl border border-zinc-700 overflow-hidden bg-zinc-800">
+              <div className="h-[360px] w-full rounded-xl border border-app overflow-hidden bg-white/[0.04]">
                 <WizardLocationPicker value={location} onChange={setLocation} />
               </div>
               {location.address && (
@@ -193,7 +193,7 @@ export default function CreateProjectWizard({
                 { label: "Location", value: location.address || (location.lat !== null && location.lng !== null ? `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}` : "Not set") },
                 { label: "Boundary", value: location.boundary.length > 0 ? `${location.boundary.length} point polygon` : "Not drawn" },
               ].map(({ label: l, value }) => (
-                <div key={l} className="rounded-xl border border-zinc-800 bg-zinc-800/50 px-4 py-3">
+                <div key={l} className="rounded-xl border border-app bg-white/[0.04]/50 px-4 py-3">
                   <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-0.5">{l}</p>
                   <p className="text-sm font-semibold text-white">{value}</p>
                 </div>
@@ -203,13 +203,13 @@ export default function CreateProjectWizard({
         </form>
 
         {/* Footer */}
-        <div className="border-t border-zinc-800 bg-zinc-800/50 px-5 py-4 flex items-center justify-between">
+        <div className="border-t border-app bg-white/[0.04]/50 px-5 py-4 flex items-center justify-between">
           {step > 1 ? (
-            <button type="button" onClick={() => setStep((s) => s - 1)} className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 transition-all">
+            <button type="button" onClick={() => setStep((s) => s - 1)} className="inline-flex items-center gap-1.5 rounded-xl border border-app bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-white/[0.06] transition-all">
               <ChevronLeft size={14} /> Back
             </button>
           ) : (
-            <button type="button" onClick={onClose} className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 transition-all">
+            <button type="button" onClick={onClose} className="inline-flex items-center gap-1.5 rounded-xl border border-app bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-white/[0.06] transition-all">
               Cancel
             </button>
           )}

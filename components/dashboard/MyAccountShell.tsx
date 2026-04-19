@@ -78,7 +78,7 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
       showCustomize={false}
     >
       {/* Tab Bar */}
-      <div className="flex gap-1 overflow-x-auto border-b border-zinc-800 -mx-1 px-1">
+      <div className="flex gap-1 overflow-x-auto border-b border-app -mx-1 px-1">
         {visibleTabs.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;

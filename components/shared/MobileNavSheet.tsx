@@ -90,9 +90,9 @@ export default function MobileNavSheet({
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
           side="left"
-          className="w-64 sm:w-72 bg-zinc-950 border-zinc-800 p-0 [&>button]:text-white [&>button]:opacity-100 [&>button]:top-3.5 [&>button]:right-3 [&>button]:size-6"
+          className="w-64 sm:w-72 bg-zinc-950 border-app p-0 [&>button]:text-white [&>button]:opacity-100 [&>button]:top-3.5 [&>button]:right-3 [&>button]:size-6"
         >
-          <SheetHeader className="px-5 py-4 border-b border-zinc-800">
+          <SheetHeader className="px-5 py-4 border-b border-app">
             <SheetTitle className="text-sm font-bold text-white">
               Navigation
             </SheetTitle>
@@ -102,12 +102,12 @@ export default function MobileNavSheet({
             <Link
               href="/"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-300 hover:text-white hover:bg-white/[0.04]/80 transition-colors"
             >
               <SlateLogo className="h-4 w-auto flex-shrink-0" />
               Home
             </Link>
-            <div className="h-px bg-zinc-800 my-1" />
+            <div className="h-px bg-white/[0.04] my-1" />
             {visibleItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -115,7 +115,7 @@ export default function MobileNavSheet({
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-300 hover:text-white hover:bg-white/[0.04]/80 transition-colors"
                 >
                   <Icon size={16} className="text-zinc-400 flex-shrink-0" />
                   {item.label}

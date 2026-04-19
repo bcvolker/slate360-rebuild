@@ -33,7 +33,7 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
   return (
     <div className="space-y-6">
       {/* Password */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
           <KeyRound size={16} className="text-[#F59E0B]" /> Password
         </h3>
@@ -51,20 +51,20 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
       </div>
 
       {/* Two-Factor Auth */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
           <Smartphone size={16} className="text-[#F59E0B]" /> Two-Factor Authentication
         </h3>
         <p className="text-xs text-zinc-400 mb-3">
           Add an extra layer of security to your account with authenticator app or SMS verification.
         </p>
-        <div className="inline-flex items-center gap-2 rounded-full bg-zinc-800 px-3 py-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+        <div className="inline-flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
           Coming Soon
         </div>
       </div>
 
       {/* Active Sessions */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
           <Monitor size={16} className="text-[#F59E0B]" /> Recent Sessions
         </h3>
@@ -75,7 +75,7 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
         ) : (
           <div className="space-y-2">
             {sessions.map((s) => (
-              <div key={s.id} className="flex items-center justify-between rounded-xl bg-zinc-800 px-4 py-3">
+              <div key={s.id} className="flex items-center justify-between rounded-xl bg-white/[0.04] px-4 py-3">
                 <div>
                   <p className="text-xs font-semibold text-zinc-200">{s.device}</p>
                   <p className="text-[10px] text-zinc-500">{s.ip}</p>
@@ -90,7 +90,7 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
       </div>
 
       {/* Data Export & Deletion */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
           <Shield size={16} className="text-[#F59E0B]" /> Data & Privacy
         </h3>
@@ -100,11 +100,11 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
               <p className="text-xs font-semibold text-zinc-200">Export My Data</p>
               <p className="text-[10px] text-zinc-500">Download a copy of all your account data.</p>
             </div>
-            <button className="rounded-xl bg-zinc-800 border border-zinc-700 px-3 py-2 text-[10px] font-semibold text-zinc-300 hover:bg-zinc-700 transition-colors">
+            <button className="rounded-xl bg-white/[0.04] border border-app px-3 py-2 text-[10px] font-semibold text-zinc-300 hover:bg-white/[0.06] transition-colors">
               Request Export
             </button>
           </div>
-          <div className="h-px bg-zinc-800" />
+          <div className="h-px bg-white/[0.04]" />
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-red-400">Delete Account</p>

@@ -79,7 +79,7 @@ export default function DashboardProjectCard({
 
   return (
     <>
-      <div className="group snap-start shrink-0 w-[300px] h-[200px] rounded-2xl overflow-hidden relative border border-zinc-800 hover:border-zinc-700 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+      <div className="group snap-start shrink-0 w-[300px] h-[200px] rounded-2xl overflow-hidden relative border border-app hover:border-app hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         {/* Background */}
         <Link href={`/project-hub/${p.id}`} className="absolute inset-0">
           {staticMapUrl ? (
@@ -135,7 +135,7 @@ export default function DashboardProjectCard({
           {menuOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-              <div className="absolute left-0 top-9 z-50 w-48 rounded-xl border border-zinc-800 bg-zinc-900 shadow-2xl py-1 overflow-hidden">
+              <div className="absolute left-0 top-9 z-50 w-48 rounded-xl border border-app bg-app-card shadow-2xl py-1 overflow-hidden">
                 <button
                   onClick={(e) => {
                     e.preventDefault();
@@ -183,7 +183,7 @@ export default function DashboardProjectCard({
           <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" onClick={() => setDeleteModal(false)} />
           <div className="fixed inset-0 z-[61] flex items-center justify-center p-4">
             <div
-              className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl overflow-hidden"
+              className="w-full max-w-md rounded-2xl border border-app bg-app-card shadow-2xl overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
@@ -204,7 +204,7 @@ export default function DashboardProjectCard({
 
               {/* Body */}
               <div className="px-6 py-5 space-y-4">
-                <div className="rounded-xl border border-zinc-700/50 bg-zinc-800/50 p-4">
+                <div className="rounded-xl border border-app/50 bg-white/[0.04]/50 p-4">
                   <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Project to delete</p>
                   <p className="text-sm font-black text-white">{p.name}</p>
                 </div>
@@ -233,7 +233,7 @@ export default function DashboardProjectCard({
                       setDeleteError(null);
                     }}
                     placeholder="Enter project name..."
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                    className="w-full rounded-lg border border-app bg-white/[0.04] px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
                     autoFocus
                   />
                 </div>
@@ -244,10 +244,10 @@ export default function DashboardProjectCard({
               </div>
 
               {/* Footer */}
-              <div className="border-t border-zinc-800 px-6 py-4 flex items-center justify-end gap-3 bg-zinc-800/30">
+              <div className="border-t border-app px-6 py-4 flex items-center justify-end gap-3 bg-white/[0.04]/30">
                 <button
                   onClick={() => setDeleteModal(false)}
-                  className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 transition-all"
+                  className="rounded-xl border border-app bg-white/[0.04] px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-white/[0.06] transition-all"
                   disabled={deleting}
                 >
                   Cancel

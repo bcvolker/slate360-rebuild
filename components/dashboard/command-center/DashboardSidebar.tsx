@@ -42,14 +42,14 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
   const [searchQuery, setSearchQuery] = useState("");
 
   const sidebarContent = (
-    <div className="flex flex-col bg-zinc-950 border-r border-zinc-800">
+    <div className="flex flex-col bg-zinc-950 border-r border-app">
       {/* Logo + Close */}
-      <div className="flex h-14 items-center justify-between px-4 border-b border-zinc-800">
+      <div className="flex h-14 items-center justify-between px-4 border-b border-app">
         <a href="/" className="flex items-center">
           <SlateLogo className="h-6 w-auto" />
         </a>
         {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-zinc-400 hover:text-white hover:bg-zinc-800 h-8 w-8">
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-zinc-400 hover:text-white hover:bg-white/[0.04] h-8 w-8">
             <X className="h-4 w-4" />
           </Button>
         )}
@@ -73,7 +73,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
               placeholder="Search projects, clients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 text-sm bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-primary/50"
+              className="h-8 text-sm bg-app-card border-app text-white placeholder:text-zinc-500 focus-visible:ring-primary/50"
               autoFocus
             />
           </div>

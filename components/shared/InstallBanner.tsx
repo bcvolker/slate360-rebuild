@@ -11,7 +11,7 @@ export function InstallBanner() {
   if (!canInstall || dismissed) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="fixed bottom-4 right-4 z-50 flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3 shadow-lg dark:border-app dark:bg-app-card">
       <Download className="size-5 text-amber-500" />
       <div className="mr-2">
         <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">

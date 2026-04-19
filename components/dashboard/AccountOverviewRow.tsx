@@ -64,7 +64,7 @@ export default function AccountOverviewRow({
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+                <div key={i} className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
                   <Skeleton className="h-3 w-16 mb-2" />
                   <Skeleton className="h-4 w-32" />
                 </div>
@@ -74,7 +74,7 @@ export default function AccountOverviewRow({
         ) : (
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+              <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Name
                 </p>
@@ -82,7 +82,7 @@ export default function AccountOverviewRow({
                   {accountOverview?.profile.name ?? user.name}
                 </p>
               </div>
-              <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+              <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Email
                 </p>
@@ -90,7 +90,7 @@ export default function AccountOverviewRow({
                   {accountOverview?.profile.email ?? user.email}
                 </p>
               </div>
-              <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+              <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Organization
                 </p>
@@ -98,7 +98,7 @@ export default function AccountOverviewRow({
                   {accountOverview?.profile.orgName ?? "Slate360 Organization"}
                 </p>
               </div>
-              <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+              <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Role
                 </p>
@@ -107,7 +107,7 @@ export default function AccountOverviewRow({
                 </p>
               </div>
             </div>
-            <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-between gap-2">
+            <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50 flex items-center justify-between gap-2">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Storage Health
@@ -130,19 +130,19 @@ export default function AccountOverviewRow({
             <div className="flex flex-wrap gap-2 pt-1">
               <button
                 onClick={() => onApplyPreset("simple")}
-                className="px-3 py-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-400 hover:bg-zinc-800 transition-colors"
+                className="px-3 py-1.5 rounded-lg border border-app text-xs font-semibold text-zinc-400 hover:bg-white/[0.04] transition-colors"
               >
                 Simple View
               </button>
               <button
                 onClick={() => onApplyPreset("creative")}
-                className="px-3 py-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-400 hover:bg-zinc-800 transition-colors"
+                className="px-3 py-1.5 rounded-lg border border-app text-xs font-semibold text-zinc-400 hover:bg-white/[0.04] transition-colors"
               >
                 Creative View
               </button>
               <button
                 onClick={() => onApplyPreset("fieldwork")}
-                className="px-3 py-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-400 hover:bg-zinc-800 transition-colors"
+                className="px-3 py-1.5 rounded-lg border border-app text-xs font-semibold text-zinc-400 hover:bg-white/[0.04] transition-colors"
               >
                 Fieldwork View
               </button>
@@ -164,7 +164,7 @@ export default function AccountOverviewRow({
         }
       >
         <div className="space-y-3">
-          <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+          <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Current Plan
             </p>
@@ -172,7 +172,7 @@ export default function AccountOverviewRow({
               {accountOverview?.billing.plan ?? ent.label}
             </p>
           </div>
-          <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+          <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Status
             </p>
@@ -180,7 +180,7 @@ export default function AccountOverviewRow({
               {accountOverview?.billing.status ?? "active"}
             </p>
           </div>
-          <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+          <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Renewal
             </p>
@@ -190,7 +190,7 @@ export default function AccountOverviewRow({
                 : "Not available"}
             </p>
           </div>
-          <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+          <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Seats
             </p>
@@ -201,7 +201,7 @@ export default function AccountOverviewRow({
             </p>
           </div>
           {isAdmin && (
-            <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+            <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">
                 Plan Preview
               </p>
@@ -231,7 +231,7 @@ export default function AccountOverviewRow({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <button
                 onClick={onBuyCredits}
-                className="text-xs font-semibold py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:bg-zinc-800 transition-colors"
+                className="text-xs font-semibold py-2 rounded-lg border border-app text-zinc-400 hover:bg-white/[0.04] transition-colors"
               >
                 Buy Credits
               </button>
@@ -244,7 +244,7 @@ export default function AccountOverviewRow({
               </button>
               <button
                 onClick={onBackToOverview}
-                className="text-xs font-semibold py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:bg-zinc-800 transition-colors"
+                className="text-xs font-semibold py-2 rounded-lg border border-app text-zinc-400 hover:bg-white/[0.04] transition-colors"
               >
                 Manage Seats
               </button>

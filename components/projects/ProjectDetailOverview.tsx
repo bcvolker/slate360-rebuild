@@ -81,30 +81,30 @@ export function ProjectDetailOverview({
   return (
     <div className="space-y-6">
       <div className="grid gap-6 xl:grid-cols-[1.1fr_1.4fr]">
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+        <section className="rounded-2xl border border-app bg-app-card p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-sm font-black text-white">
               <Building2 size={16} className="text-[#F59E0B]" /> Project Info
             </h2>
-            <span className="rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-zinc-300">
+            <span className="rounded-full border border-app bg-white/[0.04] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-zinc-300">
               {project.status ?? "Active"}
             </span>
           </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-3">
+            <div className="rounded-xl border border-app bg-white/[0.04]/50 p-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Created</p>
               <p className="mt-1 text-sm font-semibold text-white">{formatDate(project.created_at)}</p>
             </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-3">
+            <div className="rounded-xl border border-app bg-white/[0.04]/50 p-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Project Type</p>
               <p className="mt-1 text-sm font-semibold text-white">{projectType ?? "Not set"}</p>
             </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-3">
+            <div className="rounded-xl border border-app bg-white/[0.04]/50 p-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Contract Type</p>
               <p className="mt-1 text-sm font-semibold text-white">{contractType ?? "Not set"}</p>
             </div>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-3">
+            <div className="rounded-xl border border-app bg-white/[0.04]/50 p-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Location</p>
               <p className="mt-1 flex items-start gap-1.5 text-sm font-semibold text-white">
                 <MapPin size={14} className="mt-0.5 shrink-0 text-[#F59E0B]" />
@@ -114,18 +114,18 @@ export function ProjectDetailOverview({
           </div>
         </section>
 
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+        <section className="rounded-2xl border border-app bg-app-card p-5">
           <h2 className="flex items-center gap-2 text-sm font-black text-white">
             <FileText size={16} className="text-[#F59E0B]" /> Project Notes / Status Notes
           </h2>
 
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
+            <div className="rounded-xl border border-app bg-white/[0.04]/50 p-4">
               <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Project Notes</p>
               <p className="mt-2 text-sm leading-relaxed text-zinc-300">{project.description?.trim() || "No project notes yet."}</p>
             </div>
 
-            <div className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
+            <div className="rounded-xl border border-app bg-white/[0.04]/50 p-4">
               <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Status Notes</p>
               {statusNotes.length > 0 ? (
                 <ul className="mt-2 space-y-2 text-sm text-zinc-300">
@@ -145,7 +145,7 @@ export function ProjectDetailOverview({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+        <section className="rounded-2xl border border-app bg-app-card p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-sm font-black text-white">
               <FolderOpen size={16} className="text-[#F59E0B]" /> SlateDrop Snapshot
@@ -161,7 +161,7 @@ export function ProjectDetailOverview({
                 <Link
                   key={file.id}
                   href={`/projects/${project.id}/slatedrop`}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-800/50 px-4 py-3 transition-colors hover:border-[#F59E0B]/30 hover:bg-[#F59E0B]/10"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-app bg-white/[0.04]/50 px-4 py-3 transition-colors hover:border-[#F59E0B]/30 hover:bg-[#F59E0B]/10"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-white">{file.file_name}</p>
@@ -174,13 +174,13 @@ export function ProjectDetailOverview({
               ))}
             </div>
           ) : (
-            <div className="mt-4 rounded-xl border border-dashed border-zinc-700 bg-zinc-800/30 p-6 text-sm text-zinc-400">
+            <div className="mt-4 rounded-xl border border-dashed border-app bg-white/[0.04]/30 p-6 text-sm text-zinc-400">
               No project files yet. Open SlateDrop to upload into this project.
             </div>
           )}
         </section>
 
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+        <section className="rounded-2xl border border-app bg-app-card p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-sm font-black text-white">
               <Camera size={16} className="text-[#F59E0B]" /> Photos Snapshot
@@ -190,7 +190,7 @@ export function ProjectDetailOverview({
             </Link>
           </div>
 
-          <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
+          <div className="mt-4 rounded-xl border border-app bg-white/[0.04]/50 p-4">
             <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Total Photos</p>
             <p className="mt-1 text-2xl font-black text-white">{photoCount}</p>
           </div>
@@ -201,7 +201,7 @@ export function ProjectDetailOverview({
                 <Link
                   key={photo.id}
                   href={`/projects/${project.id}/photos`}
-                  className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-3 transition-colors hover:border-[#F59E0B]/30 hover:bg-[#F59E0B]/10"
+                  className="rounded-xl border border-app bg-white/[0.04]/50 p-3 transition-colors hover:border-[#F59E0B]/30 hover:bg-[#F59E0B]/10"
                 >
                   <p className="truncate text-sm font-semibold text-white">{photo.file_name}</p>
                   <p className="mt-1 text-[11px] text-zinc-500">{formatDate(photo.created_at)}</p>
@@ -214,7 +214,7 @@ export function ProjectDetailOverview({
         </section>
       </div>
 
-      <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+      <section className="rounded-2xl border border-app bg-app-card p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 text-sm font-black text-white">
             <ClipboardList size={16} className="text-[#F59E0B]" /> Punch List Summary
@@ -232,7 +232,7 @@ export function ProjectDetailOverview({
             { label: "Review", value: punchSummary.review },
             { label: "Closed", value: punchSummary.closed },
           ].map((item) => (
-            <div key={item.label} className="rounded-xl border border-zinc-800 bg-zinc-800/50 p-4">
+            <div key={item.label} className="rounded-xl border border-app bg-white/[0.04]/50 p-4">
               <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{item.label}</p>
               <p className="mt-1 text-2xl font-black text-white">{item.value}</p>
             </div>
@@ -245,7 +245,7 @@ export function ProjectDetailOverview({
               <Link
                 key={item.id}
                 href={`/projects/${project.id}/punch-list`}
-                className="flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-800/50 px-4 py-3 transition-colors hover:border-[#F59E0B]/30 hover:bg-[#F59E0B]/10"
+                className="flex items-center justify-between gap-3 rounded-xl border border-app bg-white/[0.04]/50 px-4 py-3 transition-colors hover:border-[#F59E0B]/30 hover:bg-[#F59E0B]/10"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-white">
@@ -262,7 +262,7 @@ export function ProjectDetailOverview({
             ))}
           </div>
         ) : (
-          <div className="mt-4 rounded-xl border border-dashed border-zinc-700 bg-zinc-800/30 p-6 text-sm text-zinc-400">
+          <div className="mt-4 rounded-xl border border-dashed border-app bg-white/[0.04]/30 p-6 text-sm text-zinc-400">
             No active punch list items yet.
           </div>
         )}

@@ -30,9 +30,9 @@ export default function UpgradeGate({
   icon: Icon,
 }: UpgradeGateProps) {
   return (
-    <div className="relative rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 sm:p-12 text-center backdrop-blur-sm">
+    <div className="relative rounded-2xl border border-app bg-app-card/60 p-8 sm:p-12 text-center backdrop-blur-sm">
       {/* Lock badge */}
-      <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-800 border border-zinc-700">
+      <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/[0.04] border border-app">
         {Icon ? (
           <div className="relative">
             <Icon size={24} className="text-zinc-500" />
