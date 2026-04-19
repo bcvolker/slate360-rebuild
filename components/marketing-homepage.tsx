@@ -6,7 +6,7 @@
  * ==========================================================================
  * 
  * A complete, production-ready marketing page following the Dark Glass aesthetic
- * with Industrial Gold (#D4AF37 / hsl(45 82% 55%)) accents.
+ * with Industrial Gold (#F59E0B / hsl(45 82% 55%)) accents.
  * 
  * Design System Rules Applied:
  * - All surfaces use bg-glass (semi-transparent with backdrop-blur)
@@ -445,26 +445,26 @@ function HeroSection() {
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-[hsl(240,6%,8%)]" />
 
-      {/* Subtle grid pattern */}
+      {/* Subtle grid pattern — neutral white, low opacity */}
       <div
-        className="absolute inset-0 opacity-[0.03]"
+        className="absolute inset-0 opacity-[0.025]"
         style={{
-          backgroundImage: `linear-gradient(hsla(45,82%,55%,0.3) 1px, transparent 1px), linear-gradient(90deg, hsla(45,82%,55%,0.3) 1px, transparent 1px)`,
-          backgroundSize: "60px 60px",
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)`,
+          backgroundSize: "64px 64px",
         }}
       />
 
       <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-[1fr_1.15fr] gap-8 lg:gap-12 items-center pt-20 sm:pt-24 pb-10">
         {/* LEFT: copy + CTAs */}
         <div className="space-y-5 text-center lg:text-left">
-          <Badge variant="outline" className="border-primary/30 text-primary px-3.5 py-1">
+          <Badge variant="outline" className="border-teal text-teal px-3.5 py-1 bg-teal-soft">
             <Zap className="mr-1.5 h-3 w-3" />
             Site Walk + connected workflows
           </Badge>
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground leading-[1.15] text-balance">
             The real-time interactive bridge between{" "}
-            <span className="text-primary">the field and the office</span>
+            <span className="text-teal">the field and the office</span>
           </h1>
 
           <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto lg:mx-0 text-pretty">

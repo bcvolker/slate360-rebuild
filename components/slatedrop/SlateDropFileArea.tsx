@@ -89,7 +89,7 @@ export default function SlateDropFileArea({
   return (
     <div
       className={`flex-1 overflow-y-auto p-4 transition-colors ${
-        dragOver ? "bg-[#D4AF37]/5 ring-2 ring-inset ring-[#D4AF37] ring-opacity-30" : ""
+        dragOver ? "bg-[#F59E0B]/5 ring-2 ring-inset ring-[#F59E0B] ring-opacity-30" : ""
       }`}
       onDrop={onDrop}
       onDragOver={onDragOver}
@@ -97,8 +97,8 @@ export default function SlateDropFileArea({
     >
       {dragOver && (
         <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-          <div className="bg-zinc-900/90 backdrop-blur-sm rounded-2xl border-2 border-dashed border-[#D4AF37] px-10 py-8 text-center shadow-xl">
-            <Upload size={32} className="mx-auto mb-3 text-[#D4AF37]" />
+          <div className="bg-zinc-900/90 backdrop-blur-sm rounded-2xl border-2 border-dashed border-[#F59E0B] px-10 py-8 text-center shadow-xl">
+            <Upload size={32} className="mx-auto mb-3 text-[#F59E0B]" />
             <p className="text-sm font-semibold text-zinc-100">Drop files here to upload</p>
             <p className="text-xs text-zinc-500 mt-1">Files will be saved to {activeFolderName ?? "this folder"}</p>
           </div>
@@ -106,7 +106,7 @@ export default function SlateDropFileArea({
       )}
 
       {projectBanner && (
-        <div className="mb-5 rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-r from-[#D4AF37]/5 to-[#D4AF37]/3 p-4 flex items-center justify-between gap-4">
+        <div className="mb-5 rounded-2xl border border-[#F59E0B]/20 bg-gradient-to-r from-[#F59E0B]/5 to-[#F59E0B]/3 p-4 flex items-center justify-between gap-4">
           <div>
             <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-0.5">Project Sandbox</p>
             <h3 className="text-base font-black text-zinc-100">{projectBanner.name}</h3>
@@ -115,7 +115,7 @@ export default function SlateDropFileArea({
           <div className="flex items-center gap-2 shrink-0">
             <Link
               href={`/projects/${projectBanner.id}`}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#D4AF37] text-white text-xs font-bold hover:bg-[#E64500] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#F59E0B] text-white text-xs font-bold hover:bg-[#E64500] transition-colors"
             >
               Open Project
             </Link>
@@ -141,7 +141,7 @@ export default function SlateDropFileArea({
                 className="flex items-center gap-2.5 p-3 rounded-xl border border-zinc-800 bg-zinc-900 hover:border-zinc-700 hover:shadow-sm transition-all text-left group"
               >
                 <Folder size={18} className="text-zinc-400 shrink-0" />
-                <span className="text-xs font-medium text-zinc-300 truncate group-hover:text-[#D4AF37] transition-colors">{folder.name}</span>
+                <span className="text-xs font-medium text-zinc-300 truncate group-hover:text-[#F59E0B] transition-colors">{folder.name}</span>
                 {folder.isSystem && <Lock size={8} className="text-zinc-600 shrink-0" />}
               </button>
             ))}
@@ -168,7 +168,7 @@ export default function SlateDropFileArea({
                 onDoubleClick={() => onPreviewFile(file)}
                 onContextMenu={(event) => onFileContextMenu(event, file)}
                 className={`group relative rounded-xl border overflow-hidden cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${
-                  isSelected ? "border-[#D4AF37] ring-2 ring-[#D4AF37]/20 bg-[#D4AF37]/5" : "border-zinc-800 bg-zinc-900 hover:border-zinc-700"
+                  isSelected ? "border-[#F59E0B] ring-2 ring-[#F59E0B]/20 bg-[#F59E0B]/5" : "border-zinc-800 bg-zinc-900 hover:border-zinc-700"
                 }`}
               >
                 <div className="aspect-square flex items-center justify-center bg-zinc-800/50 relative overflow-hidden">
@@ -195,7 +195,7 @@ export default function SlateDropFileArea({
                         event.stopPropagation();
                         onPreviewFile(file);
                       }}
-                      className="w-6 h-6 rounded-md bg-zinc-800/90 shadow-sm flex items-center justify-center text-zinc-400 hover:text-[#D4AF37] transition-colors"
+                      className="w-6 h-6 rounded-md bg-zinc-800/90 shadow-sm flex items-center justify-center text-zinc-400 hover:text-[#F59E0B] transition-colors"
                     >
                       <Eye size={11} />
                     </button>
@@ -204,7 +204,7 @@ export default function SlateDropFileArea({
                         event.stopPropagation();
                         onFileContextMenu(event, file);
                       }}
-                      className="w-6 h-6 rounded-md bg-zinc-800/90 shadow-sm flex items-center justify-center text-zinc-400 hover:text-[#D4AF37] transition-colors"
+                      className="w-6 h-6 rounded-md bg-zinc-800/90 shadow-sm flex items-center justify-center text-zinc-400 hover:text-[#F59E0B] transition-colors"
                     >
                       <MoreHorizontal size={11} />
                     </button>
@@ -246,12 +246,12 @@ export default function SlateDropFileArea({
                 onDoubleClick={() => onPreviewFile(file)}
                 onContextMenu={(event) => onFileContextMenu(event, file)}
                 className={`grid grid-cols-[1fr_100px_120px_80px] gap-4 px-4 py-3 border-b border-zinc-800 cursor-pointer transition-colors group ${
-                  isSelected ? "bg-[#D4AF37]/5" : "hover:bg-zinc-800"
+                  isSelected ? "bg-[#F59E0B]/5" : "hover:bg-zinc-800"
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <Icon size={16} style={{ color }} className="shrink-0" />
-                  <span className="text-xs font-medium text-zinc-100 truncate group-hover:text-[#D4AF37] transition-colors">{file.name}</span>
+                  <span className="text-xs font-medium text-zinc-100 truncate group-hover:text-[#F59E0B] transition-colors">{file.name}</span>
                 </div>
                 <span className="text-xs text-zinc-500 hidden sm:block">{formatBytes(file.size)}</span>
                 <span className="text-xs text-zinc-500 hidden sm:block">{formatDate(file.modified)}</span>
@@ -276,7 +276,7 @@ export default function SlateDropFileArea({
           <button
             onClick={onUploadClick}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90"
-            style={{ backgroundColor: "#D4AF37" }}
+            style={{ backgroundColor: "#F59E0B" }}
           >
             <Upload size={13} /> Upload files
           </button>

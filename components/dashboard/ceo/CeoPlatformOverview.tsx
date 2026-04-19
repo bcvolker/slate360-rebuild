@@ -56,7 +56,7 @@ export default function CeoPlatformOverview() {
       label: "Organizations",
       value: data?.totalOrgs ?? 0,
       icon: Building2,
-      accent: "#D4AF37",
+      accent: "#F59E0B",
     },
     {
       label: "Total Users",
@@ -121,7 +121,7 @@ export default function CeoPlatformOverview() {
           {data && Object.keys(data.tierBreakdown).length > 0 && (
             <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
               <div className="flex items-center gap-2 mb-3">
-                <TrendingUp size={14} className="text-[#D4AF37]" />
+                <TrendingUp size={14} className="text-[#F59E0B]" />
                 <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
                   Subscription Breakdown
                 </p>

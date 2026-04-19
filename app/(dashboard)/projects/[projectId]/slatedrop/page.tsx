@@ -33,12 +33,12 @@ export default async function ProjectSlateDropPage({
 				<div className="mt-1 flex items-center gap-3">
 				<Link
 					href={`/projects/${projectId}`}
-					className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400 transition-colors hover:text-[#D4AF37]"
+					className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400 transition-colors hover:text-[#F59E0B]"
 				>
 					<ChevronLeft size={14} /> {projectName}
 				</Link>
 				<span className="text-zinc-600">/</span>
-				<span className="flex items-center gap-1.5 text-xs font-semibold text-[#D4AF37]">
+				<span className="flex items-center gap-1.5 text-xs font-semibold text-[#F59E0B]">
 					<FolderOpen size={13} /> Files
 				</span>
 				</div>

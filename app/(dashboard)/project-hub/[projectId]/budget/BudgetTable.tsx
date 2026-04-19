@@ -44,7 +44,7 @@ export default function BudgetTable({ rows, filtered, loading, editingId, totals
             const isEditing = editingId === row.id;
             return (
               <>
-                <tr key={row.id} className={`border-t border-zinc-800 transition cursor-pointer ${isEditing ? "bg-[#D4AF37]/5 ring-1 ring-inset ring-[#D4AF37]/20" : "hover:bg-zinc-800/50"}`} onClick={() => setExpandedId(isExpanded ? null : row.id)}>
+                <tr key={row.id} className={`border-t border-zinc-800 transition cursor-pointer ${isEditing ? "bg-[#F59E0B]/5 ring-1 ring-inset ring-[#F59E0B]/20" : "hover:bg-zinc-800/50"}`} onClick={() => setExpandedId(isExpanded ? null : row.id)}>
                   <td className="px-4 py-3 font-mono text-xs font-semibold text-zinc-300">{row.cost_code}</td>
                   <td className="px-4 py-3 max-w-[160px] truncate font-medium text-zinc-200 text-xs">{row.description || "—"}</td>
                   <td className="px-4 py-3 text-[10px] text-zinc-500">{row.category || "—"}</td>
@@ -54,7 +54,7 @@ export default function BudgetTable({ rows, filtered, loading, editingId, totals
                   <td className={`px-4 py-3 text-right text-xs font-bold ${rowVariance >= 0 ? "text-emerald-400" : "text-red-400"}`}>{fmtCurrency(rowVariance)}</td>
                   <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                     <div className="inline-flex items-center gap-0.5">
-                      <button onClick={() => { onEdit(row); setExpandedId(null); }} className={`rounded p-1 ${isEditing ? "text-[#D4AF37]" : "text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300"}`} title="Edit"><Pencil size={12} /></button>
+                      <button onClick={() => { onEdit(row); setExpandedId(null); }} className={`rounded p-1 ${isEditing ? "text-[#F59E0B]" : "text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300"}`} title="Edit"><Pencil size={12} /></button>
                       <button onClick={() => onHistory(row)} className="rounded p-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300" title="History"><History size={12} /></button>
                       <button onClick={() => onDelete(row.id)} className="rounded p-1 text-zinc-500 hover:bg-red-950/30 hover:text-red-400" title="Delete"><Trash2 size={12} /></button>
                       {isExpanded ? <ChevronUp size={12} className="text-zinc-500" /> : <ChevronDown size={12} className="text-zinc-500" />}

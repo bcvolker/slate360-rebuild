@@ -49,7 +49,7 @@ export default function DashboardFinancialWidget({
                   className="w-full max-w-[32px] rounded-t-md transition-all duration-700 ease-out hover:opacity-80"
                   style={{
                     height: `${(point.credits / financialMax) * 100}%`,
-                    backgroundColor: index === liveFinancial.length - 1 ? "#D4AF37" : "#6366F1",
+                    backgroundColor: index === liveFinancial.length - 1 ? "#F59E0B" : "#6366F1",
                     opacity: index === liveFinancial.length - 1 ? 1 : 0.6,
                   }}
                 />

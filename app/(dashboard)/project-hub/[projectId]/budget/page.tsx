@@ -164,9 +164,9 @@ export default function ProjectBudgetPage() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[180px]">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search cost codes…" className="w-full rounded-lg border border-zinc-700 bg-zinc-900 py-2 pl-8 pr-3 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-[#D4AF37]" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search cost codes…" className="w-full rounded-lg border border-zinc-700 bg-zinc-900 py-2 pl-8 pr-3 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-[#F59E0B]" />
         </div>
-        <button onClick={() => setShowFilters(!showFilters)} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition ${showFilters ? "border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]" : "border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"}`}><Filter size={13} /> Filters</button>
+        <button onClick={() => setShowFilters(!showFilters)} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition ${showFilters ? "border-[#F59E0B] bg-[#F59E0B]/10 text-[#F59E0B]" : "border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"}`}><Filter size={13} /> Filters</button>
       </div>
       {showFilters && (
         <div className="flex flex-wrap gap-3 rounded-xl border border-zinc-800 bg-zinc-900 p-4">
@@ -195,13 +195,13 @@ export default function ProjectBudgetPage() {
             <p className="text-sm text-zinc-400">This will pre-populate all standard CSI division codes (01–16) with $0 budget amounts. You can then fill in the actual values.</p>
             <div>
               <label className="mb-1 block text-xs font-bold text-zinc-400">Project Name</label>
-              <input type="text" value={scratchName || profile.projectName} onChange={(e) => setScratchName(e.target.value)} placeholder={profile.projectName || "Enter project name…"} className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D4AF37]" />
+              <input type="text" value={scratchName || profile.projectName} onChange={(e) => setScratchName(e.target.value)} placeholder={profile.projectName || "Enter project name…"} className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#F59E0B]" />
             </div>
             <div className="rounded-xl bg-blue-950/30 border border-blue-900/40 p-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-blue-400 mb-2">Will create {CSI_TEMPLATES.length} line items</p>
               <div className="flex flex-wrap gap-1">{CSI_TEMPLATES.slice(0, 8).map((t) => <span key={t.costCode} className="inline-flex rounded-full bg-blue-500/20 px-2 py-0.5 text-[9px] font-semibold text-blue-300">{t.costCode}</span>)}<span className="inline-flex rounded-full bg-blue-500/20 px-2 py-0.5 text-[9px] font-semibold text-blue-300">+{CSI_TEMPLATES.length - 8} more</span></div>
             </div>
-            <button onClick={() => void handleFromScratch()} disabled={saving} className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E64500] disabled:opacity-50 transition">{saving ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />} Generate CSI Budget Template</button>
+            <button onClick={() => void handleFromScratch()} disabled={saving} className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#F59E0B] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E64500] disabled:opacity-50 transition">{saving ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />} Generate CSI Budget Template</button>
           </div>
         </div>
       )}

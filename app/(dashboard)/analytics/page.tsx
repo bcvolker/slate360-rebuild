@@ -18,14 +18,14 @@ export default async function AnalyticsPage() {
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center bg-zinc-950 px-6 py-12">
         <section className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-center shadow-xl">
-          <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#D4AF37]/10">
-            <Lock className="h-6 w-6 text-[#D4AF37]" />
+          <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#F59E0B]/10">
+            <Lock className="h-6 w-6 text-[#F59E0B]" />
           </div>
           <h1 className="text-2xl font-black text-zinc-100">Upgrade Required</h1>
           <p className="mt-2 text-sm text-zinc-400">Your current plan does not include Analytics & Reports access.</p>
           <a
             href={getUpgradeUrl()}
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-[#D4AF37]/80"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#F59E0B] px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-[#F59E0B]/80"
           >
             <TrendingUp size={16} /> View Upgrade Options
           </a>

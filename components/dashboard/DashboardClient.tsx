@@ -53,11 +53,11 @@ function useVisibleTabs(
     { id: "geospatial",     label: "Geospatial",     icon: Globe,           color: "#059669", entKey: "canAccessGeospatial",   requiredTier: "standard" },
     { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#D97706", entKey: "canAccessVirtual",      requiredTier: "standard" },
     { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#6366F1", entKey: "canAccessAnalytics",    requiredTier: "business" },
-    { id: "my-account",     label: "My Account",     icon: User,            color: "#D4AF37" },
+    { id: "my-account",     label: "My Account",     icon: User,            color: "#F59E0B" },
   ];
 
   const internalTabs: DashTab[] = canAccessOperationsConsole
-    ? [{ id: "operations-console", label: "Operations Console", icon: Shield, color: "#D4AF37", isCEOOnly: true }]
+    ? [{ id: "operations-console", label: "Operations Console", icon: Shield, color: "#F59E0B", isCEOOnly: true }]
     : [];
 
   return [

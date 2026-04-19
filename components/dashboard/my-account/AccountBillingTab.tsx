@@ -53,7 +53,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="animate-spin text-[#D4AF37]" size={24} />
+        <Loader2 className="animate-spin text-[#F59E0B]" size={24} />
       </div>
     );
   }
@@ -61,9 +61,9 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
   return (
     <div className="space-y-6">
       {isCeo && (
-        <div className="rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-6">
+        <div className="rounded-2xl border border-[#F59E0B]/30 bg-[#F59E0B]/5 p-6">
           <h3 className="text-sm font-bold text-zinc-100 mb-2 flex items-center gap-2">
-            <Crown size={16} className="text-[#D4AF37]" /> Internal Owner Account
+            <Crown size={16} className="text-[#F59E0B]" /> Internal Owner Account
           </h3>
           <p className="text-xs text-zinc-400">
             This account is treated as an internal Slate360 operator account for Phase 1 testing.
@@ -75,7 +75,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
       {/* Current Plan */}
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
-          <Crown size={16} className="text-[#D4AF37]" /> Current Plan
+          <Crown size={16} className="text-[#F59E0B]" /> Current Plan
         </h3>
         <div className="flex items-center justify-between">
           <div>
@@ -113,7 +113,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
       {isAdmin && !isCeo && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
           <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
-            <CreditCard size={16} className="text-[#D4AF37]" /> Payment Methods
+            <CreditCard size={16} className="text-[#F59E0B]" /> Payment Methods
           </h3>
           <p className="text-xs text-zinc-400 mb-4">
             Payment methods are managed securely through Stripe. Update your card, add a backup, or change your billing address.
@@ -121,7 +121,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
           <button
             onClick={openBillingPortal}
             disabled={portalBusy}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-[#D4AF37]/80 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#F59E0B] px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-[#F59E0B]/80 transition-colors disabled:opacity-50"
           >
             {portalBusy ? <Loader2 size={14} className="animate-spin" /> : <ArrowRight size={14} />}
             Update Payment Method
@@ -133,7 +133,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
       {isAdmin && !isCeo && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
           <h3 className="text-sm font-bold text-zinc-100 mb-1 flex items-center gap-2">
-            <Zap size={16} className="text-[#D4AF37]" /> Purchase Credits
+            <Zap size={16} className="text-[#F59E0B]" /> Purchase Credits
           </h3>
           <p className="text-xs text-zinc-400 mb-4">
             Credits power data processing, model rendering, and AI features. Your current balance: <strong className="text-zinc-200">{billing?.totalCreditsBalance?.toLocaleString() ?? 0}</strong>
@@ -144,12 +144,12 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
                 key={pack.id}
                 onClick={() => buyCredits(pack.id)}
                 disabled={creditBusy !== null}
-                className="rounded-xl border border-zinc-700 bg-zinc-800 p-4 text-left hover:border-[#D4AF37]/50 hover:bg-zinc-800/80 transition-all disabled:opacity-50"
+                className="rounded-xl border border-zinc-700 bg-zinc-800 p-4 text-left hover:border-[#F59E0B]/50 hover:bg-zinc-800/80 transition-all disabled:opacity-50"
               >
                 <p className="text-sm font-bold text-zinc-100">{pack.name}</p>
-                <p className="text-lg font-black text-[#D4AF37]">{pack.credits.toLocaleString()}</p>
+                <p className="text-lg font-black text-[#F59E0B]">{pack.credits.toLocaleString()}</p>
                 <p className="text-[10px] text-zinc-500">{pack.desc}</p>
-                {creditBusy === pack.id && <Loader2 size={14} className="animate-spin text-[#D4AF37] mt-2" />}
+                {creditBusy === pack.id && <Loader2 size={14} className="animate-spin text-[#F59E0B] mt-2" />}
               </button>
             ))}
           </div>
@@ -160,7 +160,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
       {isAdmin && !isCeo && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
           <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
-            <Download size={16} className="text-[#D4AF37]" /> Invoices & Receipts
+            <Download size={16} className="text-[#F59E0B]" /> Invoices & Receipts
           </h3>
           <p className="text-xs text-zinc-400 mb-4">
             View and download all past invoices, receipts, and credit purchase confirmations.
@@ -178,17 +178,17 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
 
       {/* Upgrade CTA (non-enterprise) */}
       {tierLabel !== "Enterprise" && !isCeo && (
-        <div className="rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-6">
+        <div className="rounded-2xl border border-[#F59E0B]/30 bg-[#F59E0B]/5 p-6">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
-                <TrendingUp size={16} className="text-[#D4AF37]" /> Upgrade Your Plan
+                <TrendingUp size={16} className="text-[#F59E0B]" /> Upgrade Your Plan
               </h3>
               <p className="text-xs text-zinc-400 mt-1">Unlock more storage, credits, seats, and premium features.</p>
             </div>
             <a
               href="/plans"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-[#D4AF37]/80 transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#F59E0B] px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-[#F59E0B]/80 transition-colors"
             >
               View Plans <ArrowRight size={14} />
             </a>

@@ -35,7 +35,7 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
       {/* Password */}
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
-          <KeyRound size={16} className="text-[#D4AF37]" /> Password
+          <KeyRound size={16} className="text-[#F59E0B]" /> Password
         </h3>
         <p className="text-xs text-zinc-400 mb-4">
           Receive a secure password reset link at <strong className="text-zinc-200">{userEmail}</strong>.
@@ -43,7 +43,7 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
         <button
           onClick={handlePasswordReset}
           disabled={resetBusy || resetSent}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-[#D4AF37]/80 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#F59E0B] px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-[#F59E0B]/80 transition-colors disabled:opacity-50"
         >
           {resetBusy ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
           {resetSent ? "Reset Link Sent" : "Send Reset Link"}
@@ -53,7 +53,7 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
       {/* Two-Factor Auth */}
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
-          <Smartphone size={16} className="text-[#D4AF37]" /> Two-Factor Authentication
+          <Smartphone size={16} className="text-[#F59E0B]" /> Two-Factor Authentication
         </h3>
         <p className="text-xs text-zinc-400 mb-3">
           Add an extra layer of security to your account with authenticator app or SMS verification.
@@ -66,7 +66,7 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
       {/* Active Sessions */}
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
-          <Monitor size={16} className="text-[#D4AF37]" /> Recent Sessions
+          <Monitor size={16} className="text-[#F59E0B]" /> Recent Sessions
         </h3>
         {loading ? (
           <div className="flex justify-center py-4"><Loader2 className="animate-spin text-zinc-500" size={20} /></div>
@@ -92,7 +92,7 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
       {/* Data Export & Deletion */}
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
-          <Shield size={16} className="text-[#D4AF37]" /> Data & Privacy
+          <Shield size={16} className="text-[#F59E0B]" /> Data & Privacy
         </h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between">

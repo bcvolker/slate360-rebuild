@@ -74,7 +74,7 @@ export default function SlateDropActionModals({
                 value={newFolderModal.name}
                 onChange={(event) => setNewFolderModal((prev) => (prev ? { ...prev, name: event.target.value } : prev))}
                 placeholder="Folder name"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all mb-4"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20 focus:border-[#F59E0B] transition-all mb-4"
                 autoFocus
               />
               <div className="flex gap-2">
@@ -93,7 +93,7 @@ export default function SlateDropActionModals({
                   }}
                   disabled={!newFolderModal.name.trim()}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: "#D4AF37" }}
+                  style={{ backgroundColor: "#F59E0B" }}
                 >
                   Create
                 </button>
@@ -117,7 +117,7 @@ export default function SlateDropActionModals({
                 type="text"
                 value={renameValue}
                 onChange={(event) => setRenameValue(event.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all mb-4"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20 focus:border-[#F59E0B] transition-all mb-4"
                 autoFocus
               />
               <div className="flex gap-2">
@@ -133,7 +133,7 @@ export default function SlateDropActionModals({
                     await onRename(renameModal, renameValue.trim());
                   }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
-                  style={{ backgroundColor: "#D4AF37" }}
+                  style={{ backgroundColor: "#F59E0B" }}
                 >
                   Rename
                 </button>
@@ -226,10 +226,10 @@ export default function SlateDropActionModals({
                       key={folder.id}
                       onClick={() => setMoveTargetFolder(folder.id)}
                       className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left transition-colors ${
-                        moveTargetFolder === folder.id ? "bg-[#D4AF37]/10 text-[#D4AF37] font-medium" : "hover:bg-gray-50 text-gray-700"
+                        moveTargetFolder === folder.id ? "bg-[#F59E0B]/10 text-[#F59E0B] font-medium" : "hover:bg-gray-50 text-gray-700"
                       }`}
                     >
-                      <Folder size={16} className={moveTargetFolder === folder.id ? "text-[#D4AF37]" : "text-gray-400"} />
+                      <Folder size={16} className={moveTargetFolder === folder.id ? "text-[#F59E0B]" : "text-gray-400"} />
                       {folder.name}
                     </button>
                   ));
@@ -252,7 +252,7 @@ export default function SlateDropActionModals({
                   }}
                   disabled={!moveTargetFolder || moveTargetFolder === activeFolderId}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: "#D4AF37" }}
+                  style={{ backgroundColor: "#F59E0B" }}
                 >
                   Move Here
                 </button>

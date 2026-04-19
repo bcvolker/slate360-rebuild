@@ -46,18 +46,18 @@ export interface WidgetMeta {
 /* ── Canonical widget list (12 entries) ──────────────────────── */
 
 export const WIDGET_META: WidgetMeta[] = [
-  { id: "slatedrop",  label: "SlateDrop",            icon: FolderOpen,   color: "#D4AF37" },
-  { id: "location",   label: "Site Location",        icon: MapPin,       color: "#D4AF37" },
+  { id: "slatedrop",  label: "SlateDrop",            icon: FolderOpen,   color: "#F59E0B" },
+  { id: "location",   label: "Site Location",        icon: MapPin,       color: "#F59E0B" },
   { id: "data-usage", label: "Data Usage & Credits",  icon: CreditCard,   color: "#059669" },
   { id: "processing", label: "Processing Jobs",       icon: Cpu,          color: "#D97706" },
   { id: "financial",  label: "Financial Snapshot",    icon: TrendingUp,   color: "#6366F1" },
   { id: "calendar",   label: "Calendar",             icon: CalendarIcon, color: "#DC2626" },
   { id: "weather",    label: "Weather",              icon: Cloud,        color: "#0891B2" },
-  { id: "continue",   label: "Continue Working",     icon: Clock,        color: "#D4AF37" },
+  { id: "continue",   label: "Continue Working",     icon: Clock,        color: "#F59E0B" },
   { id: "contacts",   label: "Contacts",             icon: Users,        color: "#059669" },
   { id: "suggest",    label: "Suggest a Feature",    icon: Lightbulb,    color: "#7C3AED" },
   { id: "seats",      label: "Seat Management",      icon: Users,        color: "#6366F1", tierGate: "seats" },
-  { id: "upgrade",    label: "Upgrade Card",         icon: Zap,          color: "#D4AF37", tierGate: "no-seats" },
+  { id: "upgrade",    label: "Upgrade Card",         icon: Zap,          color: "#F59E0B", tierGate: "no-seats" },
 ];
 
 /* ── Grid-span helper (consistent across dashboard & hub) ──── */

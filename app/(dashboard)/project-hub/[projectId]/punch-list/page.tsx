@@ -128,7 +128,7 @@ export default function PunchListPage() {
             <Download size={14} /> Export
           </button>
           <ViewCustomizer storageKey={`viewprefs-punch-list-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
-          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition">
+          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#F59E0B] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition">
             <Plus size={15} /> New Item
           </button>
         </div>
@@ -154,9 +154,9 @@ export default function PunchListPage() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search items…" className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-2 pl-9 pr-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search items…" className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-2 pl-9 pr-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30" />
         </div>
-        <button onClick={() => setShowFilters(!showFilters)} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition ${showFilters ? "border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]" : "border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"}`}>
+        <button onClick={() => setShowFilters(!showFilters)} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition ${showFilters ? "border-[#F59E0B] bg-[#F59E0B]/10 text-[#F59E0B]" : "border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"}`}>
           <Filter size={14} /> Filters
         </button>
       </div>

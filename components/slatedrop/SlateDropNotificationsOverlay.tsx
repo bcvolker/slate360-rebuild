@@ -27,11 +27,11 @@ export default function SlateDropNotificationsOverlay({
           {Object.entries(uploadProgress).map(([key, pct]) => (
             <div key={key} className="bg-white rounded-xl border border-gray-200 shadow-xl p-3 w-64">
               <div className="flex items-center gap-2 mb-2">
-                <Loader2 size={13} className="animate-spin text-[#D4AF37]" />
+                <Loader2 size={13} className="animate-spin text-[#F59E0B]" />
                 <span className="text-xs text-gray-700 truncate">{key.split("-").slice(0, -1).join("-")}</span>
               </div>
               <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#D4AF37] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                <div className="h-full bg-[#F59E0B] rounded-full transition-all" style={{ width: `${pct}%` }} />
               </div>
             </div>
           ))}

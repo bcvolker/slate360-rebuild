@@ -30,7 +30,7 @@ export default function ProjectHubWorkspaceTabs({
             onClick={() => onTabChange(tab)}
             className={`px-3 sm:px-4 py-2.5 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px rounded-t-lg transition-all ${
               activeTab === tab
-                ? "border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/10"
+                ? "border-[#F59E0B] text-[#F59E0B] bg-[#F59E0B]/10"
                 : "border-transparent text-zinc-400 hover:text-white hover:bg-zinc-800/50"
             }`}
           >

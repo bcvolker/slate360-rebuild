@@ -38,7 +38,7 @@ export default function TabWireframe({ tab, onBack, onOpenSlateDrop }: { tab: Da
         <button
           onClick={onOpenSlateDrop}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 mb-4"
-          style={{ backgroundColor: "#D4AF37" }}
+          style={{ backgroundColor: "#F59E0B" }}
         >
           Open SlateDrop <ArrowRight size={15} />
         </button>

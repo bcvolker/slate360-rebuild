@@ -62,7 +62,7 @@ export default function AccountAdminCards({
             </div>
             <div className="h-2 rounded-full bg-zinc-700 overflow-hidden">
               <div
-                className="h-full rounded-full bg-[#D4AF37]"
+                className="h-full rounded-full bg-[#F59E0B]"
                 style={{
                   width: `${Math.min(((accountOverview?.usage.storageUsedGb ?? storageUsed) / (accountOverview?.usage.storageLimitGb ?? ent.maxStorageGB)) * 100, 100)}%`,
                 }}
@@ -157,7 +157,7 @@ export default function AccountAdminCards({
               onClick={onGenerateApiKey}
               disabled={apiKeyBusy === "create"}
               className="px-3 py-2 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-all disabled:opacity-60"
-              style={{ backgroundColor: "#D4AF37" }}
+              style={{ backgroundColor: "#F59E0B" }}
             >
               {apiKeyBusy === "create" ? "Generating…" : "Generate Key"}
             </button>

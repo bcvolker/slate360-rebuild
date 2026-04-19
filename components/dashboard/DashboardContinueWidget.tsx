@@ -40,7 +40,7 @@ export default function DashboardContinueWidget({ span, widgetColor, widgetSize,
       onSetSize={onSetSize}
       size={widgetSize}
       action={
-        <Link href="/dashboard" className="text-[11px] font-semibold text-[#D4AF37] hover:underline flex items-center gap-0.5">
+        <Link href="/dashboard" className="text-[11px] font-semibold text-[#F59E0B] hover:underline flex items-center gap-0.5">
           View all <ArrowRight size={11} />
         </Link>
       }

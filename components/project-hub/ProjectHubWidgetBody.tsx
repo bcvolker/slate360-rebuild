@@ -46,7 +46,7 @@ export default function ProjectHubWidgetBody({
             onClick={() => onSlateDropWidgetViewChange("recent")}
             className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors ${
               slateDropWidgetView === "recent"
-                ? "bg-[#D4AF37] text-white"
+                ? "bg-[#F59E0B] text-white"
                 : "text-zinc-400 hover:bg-zinc-800"
             }`}
           >
@@ -56,7 +56,7 @@ export default function ProjectHubWidgetBody({
             onClick={() => onSlateDropWidgetViewChange("folders")}
             className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors ${
               slateDropWidgetView === "folders"
-                ? "bg-[#D4AF37] text-white"
+                ? "bg-[#F59E0B] text-white"
                 : "text-zinc-400 hover:bg-zinc-800"
             }`}
           >
@@ -85,7 +85,7 @@ export default function ProjectHubWidgetBody({
             {(slateDropFolders.length > 0 ? slateDropFolders : FALLBACK_FOLDER_VIEW).map((folder) => (
               <div key={folder.name} className="rounded-lg border border-zinc-700 bg-zinc-800/50 px-3 py-2">
                 <p className="text-[11px] font-semibold text-zinc-200 flex items-center gap-1.5">
-                  <FolderOpen size={12} className="text-[#D4AF37]" /> {folder.name}
+                  <FolderOpen size={12} className="text-[#F59E0B]" /> {folder.name}
                 </p>
                 {"description" in folder ? (
                   <p className="text-[10px] text-zinc-500 mt-1">{folder.description}</p>
@@ -101,7 +101,7 @@ export default function ProjectHubWidgetBody({
 
         <Link
           href="/slatedrop"
-          className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#D4AF37] hover:underline"
+          className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#F59E0B] hover:underline"
         >
           <FolderOpen size={10} /> Open SlateDrop →
         </Link>

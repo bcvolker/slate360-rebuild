@@ -21,7 +21,7 @@ export default function TabRedirectCard({ tab }: { tab: DashTab }) {
   const route = REDIRECT_ROUTES[tab.id];
   if (!route) return null;
 
-  const bgColor = route.hoverColor ? "#D4AF37" : tab.color;
+  const bgColor = route.hoverColor ? "#F59E0B" : tab.color;
   const hoverStyle = route.hoverColor
     ? `hover:bg-[${route.hoverColor}]`
     : "hover:opacity-90";

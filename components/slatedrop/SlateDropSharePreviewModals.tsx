@@ -103,7 +103,7 @@ export default function SlateDropSharePreviewModals({
                           onClick={() => setSharePerm(permission)}
                           className={`flex-1 text-xs font-semibold py-2.5 rounded-lg border transition-all capitalize ${
                             sharePerm === permission
-                              ? "border-[#D4AF37] bg-[#D4AF37]/5 text-[#D4AF37]"
+                              ? "border-[#F59E0B] bg-[#F59E0B]/5 text-[#F59E0B]"
                               : "border-gray-200 text-gray-500 hover:bg-gray-50"
                           }`}
                         >
@@ -117,7 +117,7 @@ export default function SlateDropSharePreviewModals({
                     <select
                       value={shareExpiry}
                       onChange={(event) => setShareExpiry(event.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all bg-white"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20 focus:border-[#F59E0B] transition-all bg-white"
                     >
                       <option value="1">1 day</option>
                       <option value="7">7 days</option>
@@ -129,7 +129,7 @@ export default function SlateDropSharePreviewModals({
                     onClick={onSendSecureLink}
                     disabled={!shareEmail.trim()}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                    style={{ backgroundColor: "#D4AF37" }}
+                    style={{ backgroundColor: "#F59E0B" }}
                   >
                     <Send size={14} /> Send secure link
                   </button>
@@ -179,7 +179,7 @@ export default function SlateDropSharePreviewModals({
             <div className="flex items-center justify-center bg-gray-50 min-h-[300px] p-8">
               {previewLoading ? (
                 <div className="text-center">
-                  <Loader2 size={32} className="mx-auto mb-3 animate-spin text-[#D4AF37]" />
+                  <Loader2 size={32} className="mx-auto mb-3 animate-spin text-[#F59E0B]" />
                   <p className="text-sm text-gray-500 font-medium">Loading preview…</p>
                 </div>
               ) : previewError ? (

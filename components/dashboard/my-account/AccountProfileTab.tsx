@@ -32,7 +32,7 @@ export default function AccountProfileTab({ user, orgName, role }: Props) {
       {/* Avatar + Name */}
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
-          <User size={16} className="text-[#D4AF37]" /> Profile Information
+          <User size={16} className="text-[#F59E0B]" /> Profile Information
         </h3>
         <div className="flex items-start gap-5">
           <div className="relative group">
@@ -54,7 +54,7 @@ export default function AccountProfileTab({ user, orgName, role }: Props) {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full max-w-sm px-3 py-2 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]"
+                className="w-full max-w-sm px-3 py-2 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/30 focus:border-[#F59E0B]"
               />
             </div>
             <div>
@@ -75,7 +75,7 @@ export default function AccountProfileTab({ user, orgName, role }: Props) {
             <button
               onClick={handleSave}
               disabled={saving || name === user.name}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-[#D4AF37]/80 transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#F59E0B] px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-[#F59E0B]/80 transition-colors disabled:opacity-50"
             >
               {saving ? <Loader2 size={14} className="animate-spin" /> : saved ? <Check size={14} /> : null}
               {saved ? "Saved" : "Save Changes"}

@@ -113,7 +113,7 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
               <p className="text-sm text-zinc-400 line-clamp-2">{project.description || "No description provided."}</p>
               <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between text-xs font-semibold text-zinc-500">
                 <span>Created: {new Date(project.created_at).toLocaleDateString()}</span>
-                <span className="text-[#D4AF37] group-hover:underline">Open Project →</span>
+                <span className="text-[#F59E0B] group-hover:underline">Open Project →</span>
               </div>
             </Link>
           </div>

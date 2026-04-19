@@ -232,7 +232,7 @@ export default function CeoSubscriberDirectory({
                     <button
                       disabled={pending || entry.isOwnerAccount || marketOn}
                       onClick={() => void applyMarketAccess(entry)}
-                      className="rounded-lg bg-[#D4AF37] px-3 py-2 text-xs font-bold text-white hover:bg-[#E04400] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rounded-lg bg-[#F59E0B] px-3 py-2 text-xs font-bold text-white hover:bg-[#E04400] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {pending ? "Saving..." : marketOn ? "Market Enabled" : "Grant Market"}
                     </button>

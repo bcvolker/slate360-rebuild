@@ -107,7 +107,7 @@ export default function DailyLogsPage() {
         <div className="flex items-center gap-2">
           <button onClick={exportCSV} disabled={logs.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"><Download size={14} /> Export</button>
           <ViewCustomizer storageKey={`viewprefs-daily-logs-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
-          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition"><Plus size={15} /> New Log Entry</button>
+          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#F59E0B] px-4 py-2 text-sm font-semibold text-white hover:bg-[#E64500] transition"><Plus size={15} /> New Log Entry</button>
         </div>
       </div>
 
@@ -121,7 +121,7 @@ export default function DailyLogsPage() {
       {/* Search */}
       <div className="relative max-w-md">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by date, summary, delays…" className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-2 pl-9 pr-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30" />
+        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by date, summary, delays…" className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-2 pl-9 pr-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30" />
       </div>
 
       {/* List */}

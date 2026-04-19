@@ -101,7 +101,7 @@ export default function CeoStaffPanel({
           </button>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-1.5 rounded-lg bg-[#D4AF37] px-3 py-2 text-xs font-bold text-white hover:bg-[#D4AF37]/90 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg bg-[#F59E0B] px-3 py-2 text-xs font-bold text-white hover:bg-[#F59E0B]/90 transition-colors"
           >
             <UserPlus size={13} />
             Grant Access
@@ -162,7 +162,7 @@ export default function CeoStaffPanel({
               key={member.id}
               className="group relative flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 hover:shadow-sm transition-all"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#D4AF37]/10 text-[#D4AF37] text-xs font-black shrink-0">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F59E0B]/10 text-[#F59E0B] text-xs font-black shrink-0">
                 {(member.display_name ?? member.email).charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
@@ -181,7 +181,7 @@ export default function CeoStaffPanel({
                       title={`${active ? "Remove" : "Add"}: ${label}`}
                       className={`rounded-md px-2 py-1 text-[10px] font-bold transition-colors ${
                         active
-                          ? "bg-[#D4AF37]/10 text-[#D4AF37]"
+                          ? "bg-[#F59E0B]/10 text-[#F59E0B]"
                           : "bg-gray-100 text-gray-400 hover:bg-gray-200"
                       }`}
                     >

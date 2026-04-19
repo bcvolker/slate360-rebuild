@@ -12,7 +12,7 @@ interface Props {
   onClose: () => void;
 }
 
-const field = "w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+const field = "w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#F59E0B]/20 focus:border-[#F59E0B] transition-all disabled:opacity-50 disabled:cursor-not-allowed";
 const label = "block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1.5";
 
 export default function PunchListForm({ form, setForm, editingId, saving, onSubmit, onClose }: Props) {
@@ -40,7 +40,7 @@ export default function PunchListForm({ form, setForm, editingId, saving, onSubm
           <div className="rounded-xl border-2 border-dashed border-zinc-700 bg-zinc-800/50 p-6 text-center text-xs text-zinc-500">Photo upload coming soon</div>
         </div>
         <div className="sticky bottom-0 border-t border-zinc-800 bg-zinc-900/95 backdrop-blur px-6 py-4 flex items-center gap-3">
-          <button disabled={saving || !form.title.trim()} onClick={onSubmit} className="flex-1 rounded-xl bg-[#D4AF37] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#e64500] transition disabled:opacity-40">{saving ? "Saving…" : editingId ? "Update" : "Create"}</button>
+          <button disabled={saving || !form.title.trim()} onClick={onSubmit} className="flex-1 rounded-xl bg-[#F59E0B] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#e64500] transition disabled:opacity-40">{saving ? "Saving…" : editingId ? "Update" : "Create"}</button>
           <button onClick={onClose} className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 transition">Cancel</button>
         </div>
       </div>
