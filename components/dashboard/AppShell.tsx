@@ -16,6 +16,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { DashboardSidebar } from "@/components/dashboard/command-center/DashboardSidebar";
 import { DashboardTopBar } from "@/components/dashboard/command-center/DashboardTopBar";
+import CommandPalette from "@/components/shared/CommandPalette";
 
 interface AppShellProps {
   userName: string;
@@ -32,6 +33,7 @@ export function AppShell({
 }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -45,6 +47,18 @@ export function AppShell({
     } catch {
       /* ignore */
     }
+  }, []);
+
+  // Global ⌘K / Ctrl+K listener so the palette works from anywhere.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   const toggleSidebar = () => {
@@ -105,6 +119,12 @@ export function AppShell({
         >
           {children}
         </main>
+
+        <CommandPalette
+          open={paletteOpen}
+          onOpenChange={setPaletteOpen}
+          hasOperationsConsoleAccess={hasOperationsConsoleAccess}
+        />
       </div>
     </TooltipProvider>
   );
