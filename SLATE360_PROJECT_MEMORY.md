@@ -197,6 +197,39 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-20 (Shell consistency root-cause fix + clean-slate DB + single logo source — PRs #12 / #13 / #14)
+
+### What Changed (PRs #12, #13, #14 — all merged to `main`)
+- **PR #12** — `(apps)` group switched to `AuthedAppShell` (consistent shell on `/site-walk`, `/slatedrop`, `/tours`, `/geospatial`, `/virtual-studio`). `ComingSoonEmptyState` created (cobalt-themed). Removed fake placeholder forms from MyAccountShell tabs (preferences/sessions/login-history/workspace/members/permissions/audit/privacy/legal) and from unbuilt `(apps)` pages. `/site-walk` 187-line marketing hero replaced with redirect to `/site-walk/board`. Mobile homepage hero spacing fix.
+- **PR #13** — Three architectural root-causes fixed:
+  1. **Double headers killed**: `DashboardHeader` (logo + ⌘K + quick-nav + create + bell + user-menu) was rendered INSIDE `AppShell`'s `<main>` by both `DashboardTabShell` and `DashboardClient`. Result: every authed page had two stacked topbars. **Fix:** `DashboardHeader` now returns `null` (interface kept for backward compat); removed import from `DashboardTabShell`; removed `<DashboardHeader>` JSX block from `DashboardClient` (also fixed a TS error: `DashboardInboxNotification[]` not assignable to `HeaderNotification[]`); `CommandPalette` mounted globally in `AppShell` with ⌘K/Ctrl+K listener so search still works on every authed route.
+  2. **Logo single source**: `variant` prop **removed entirely** from `SlateLogo`. Old "dark" variant used `#18181b` (near-black) on `#0B0F15` background = invisible. App is dark-themed everywhere; one logo (white SLATE + cobalt 360, `/uploads/slate360-logo-light-v3.svg?v=cobalt-2026-04-19d`). **Decision recorded: never reintroduce a `variant` prop on `SlateLogo`. If a future light surface needs graphite, create a separate `SlateLogoOnLight` component.** This is the third time this bug returned.
+  3. **Projects DB clean-slate**: `TRUNCATE projects RESTART IDENTITY CASCADE` on live Supabase wiped 177 leftover test projects (4 CEO-owned `Beth 5/7/8/9`, 173 orphaned `Runtime Overflow2 mm8jbcso-*` from deleted users). Cascade hit ~37 dependent tables (project_rfis, submittals, budgets, notifications, external_links, punch_items, daily_logs, contracts, tours, site_walk_*, design_studio_*, tour_scenes, file_versions, folder_permissions, model_files, media_assets, etc.). Plus explicit truncates for design_studio_projects, file_folders, project_files, project_folders, project_members, project_activity, project_history_events, project_documents, project_assets, project_stakeholders, project_tasks, project_observations, deliverable_access_tokens, deliverable_cleanup_queue. Verified `SELECT COUNT(*) FROM projects = 0`. Auth users untouched (slate360ceo@gmail.com remains).
+- **PR #14 (build hotfix)** — After PR #13 merged, Vercel build broke because three `<SlateLogo variant="dark" />` call sites in `components/marketing-homepage.tsx` (lines 292, 367, 996) lingered (the merge from main re-introduced them despite the local edit). Stripped all three to `<SlateLogo />`. Build now compiles.
+
+### What's Broken / Partially Done
+- **Awaiting visual verification post-deploy**: walk `/dashboard`, `/projects`, `/site-walk`, `/slatedrop`, `/tours`, `/my-account` and confirm: (a) only ONE topbar, (b) no extra logo/search/avatar in body, (c) projects list empty, (d) logo white+cobalt and visible everywhere, (e) account "Coming Soon" tabs are clean (no fake field lists).
+- **UNITS #16 / #17 / #20** — code-only request `docs/CODE_REQUEST_CREDIT_METER_BETA_BANNER_APP_SHELL.md` still pending response from parallel AI.
+- **UNITS #18 / #19 / #21 / #22 / #23 / #24 / #25** — backlog, not started.
+- **User offered**: full per-page content specs once shell is clean — request these next.
+
+### Critical Decisions Recorded This Session
+- **`SlateLogo` has NO `variant` prop, ever.** Period. The product is dark-themed; the logo is white SLATE + cobalt 360. End of variants.
+- **`DashboardHeader` is a no-op**. Do NOT add chrome back to it. AppShell's `DashboardTopBar` is the only authed topbar. If you need a per-page chrome element, add it INSIDE the page (not in a header wrapper).
+- **`CommandPalette` lives in `AppShell`** (mounted once, global ⌘K listener). Do NOT re-mount it in `DashboardHeader` / `DashboardTabShell` / page-level shells.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
+
+### Next Steps (ordered)
+1. **Visual smoke** of deployed prod (~3 min after PR #14 merge): verify the five points above.
+2. Request page-by-page content specs from user; build empty-state → real-content rollout plan tab-by-tab.
+3. When parallel AI responds with Credit Meter / Beta Banner / `/app` shell code, integrate per the existing `docs/CODE_REQUEST_CREDIT_METER_BETA_BANNER_APP_SHELL.md` plan.
+4. Scope UNIT #18 (Pricing page beta state) and UNIT #19 (Production smoke checklist).
+5. Resolve marketing-page tier mismatch (decision still pending from earlier handoff).
+
+---
+
 ### Session Handoff — 2026-04-19f (Branch fix + AppShell extraction + beta join API + parallel-AI collaboration model)
 
 ### What Changed (PRs #8 → #11, all merged to `main`)
