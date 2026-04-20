@@ -13,6 +13,7 @@
     "app/api/market/book/route.ts",
     "app/api/market/polymarket/route.ts",
     "app/api/market/resolution/route.ts",
-    "app/api/email/send/route.ts"
+    "app/api/email/send/route.ts",
+    "app/api/projects/view-mode/route.ts"
   ]
 }

@@ -11,6 +11,7 @@ const FeedbackSchema = z.object({
   pageUrl: z.string().max(500).optional().default(""),
   userAgent: z.string().max(500).optional().default(""),
   replayUrl: z.string().max(500).optional().default(""),
+  appArea: z.string().max(100).optional().default(""),
 });
 
 export async function POST(req: NextRequest) {
@@ -27,18 +28,19 @@ export async function POST(req: NextRequest) {
       return badRequest(parsed.error.issues[0]?.message ?? "Invalid request");
     }
 
-    const { category, title, description, severity, pageUrl, userAgent, replayUrl } = parsed.data;
+    const { category, title, description, severity, pageUrl, userAgent, replayUrl, appArea } = parsed.data;
 
     const { error } = await admin.from("beta_feedback").insert({
       user_id: user.id,
       org_id: orgId,
-      category,
+      type: category,
       title,
       description,
       severity: severity ?? null,
+      app_area: appArea || null,
       page_url: pageUrl || null,
       user_agent: userAgent || null,
-      replay_url: replayUrl || null,
+      console_errors: replayUrl ? { replayUrl } : null,
       status: "new",
     });
 
