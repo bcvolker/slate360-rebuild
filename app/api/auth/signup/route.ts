@@ -16,7 +16,16 @@ export async function POST(req: Request) {
   if (blocked) return blocked;
 
   try {
-    const { email, password, name, redirectAfter, demographics } = await req.json();
+    const {
+      email,
+      password,
+      name,
+      firstName,
+      lastName,
+      phone,
+      redirectAfter,
+      demographics,
+    } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -25,11 +34,19 @@ export async function POST(req: Request) {
       );
     }
 
-    // Demographics are optional. We persist whatever is provided into
-    // user_metadata so the operations console can later segment users
-    // by industry, role, company size, and referral source.
+    const fullName: string =
+      typeof name === "string" && name.trim().length > 0
+        ? name.trim()
+        : `${firstName ?? ""} ${lastName ?? ""}`.trim();
+
+    // Demographics are required at signup. We persist them into
+    // user_metadata AND into the profiles row so the operations console
+    // can segment users by industry, role, company size, and referral source.
     const demo = demographics && typeof demographics === "object" ? demographics : {};
-    const metadata: Record<string, unknown> = { full_name: name };
+    const metadata: Record<string, unknown> = { full_name: fullName };
+    if (typeof firstName === "string" && firstName.length > 0) metadata.first_name = firstName;
+    if (typeof lastName === "string" && lastName.length > 0) metadata.last_name = lastName;
+    if (typeof phone === "string" && phone.length > 0) metadata.phone = phone;
     for (const key of ["company", "jobTitle", "industry", "companySize", "referralSource"] as const) {
       const v = (demo as Record<string, unknown>)[key];
       if (typeof v === "string" && v.length > 0) metadata[key] = v;
@@ -40,7 +57,7 @@ export async function POST(req: Request) {
     const origin = new URL(req.url).origin;
     const next = typeof redirectAfter === "string" && redirectAfter.startsWith("/")
       ? redirectAfter
-      : "/dashboard";
+      : "/welcome";
     const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
     // Use generateLink which creates user + generates confirmation link in one step
@@ -74,8 +91,6 @@ export async function POST(req: Request) {
     // Send the confirmation email via Resend
     const confirmUrl = linkData.properties?.action_link;
     console.log("[signup] action_link present:", !!confirmUrl, "user id:", linkData?.user?.id);
-    let emailSent = false;
-    let emailError: string | null = null;
 
     if (!confirmUrl) {
     return NextResponse.json(
@@ -84,14 +99,54 @@ export async function POST(req: Request) {
     );
   }
 
+    // Upsert profile row so operations console + onboarding flow can
+    // read demographics immediately. Confirmation hasn't happened yet
+    // but the auth.users row exists, so the FK is satisfied.
+    if (linkData.user?.id) {
+      const profileRow: Record<string, unknown> = {
+        id: linkData.user.id,
+        email,
+        first_name: typeof firstName === "string" ? firstName : null,
+        last_name: typeof lastName === "string" ? lastName : null,
+        organization_name:
+          typeof (demo as Record<string, unknown>).company === "string"
+            ? (demo as Record<string, unknown>).company
+            : null,
+        role:
+          typeof (demo as Record<string, unknown>).jobTitle === "string"
+            ? (demo as Record<string, unknown>).jobTitle
+            : null,
+        industry:
+          typeof (demo as Record<string, unknown>).industry === "string"
+            ? (demo as Record<string, unknown>).industry
+            : null,
+        company_size:
+          typeof (demo as Record<string, unknown>).companySize === "string"
+            ? (demo as Record<string, unknown>).companySize
+            : null,
+        referral_source:
+          typeof (demo as Record<string, unknown>).referralSource === "string"
+            ? (demo as Record<string, unknown>).referralSource
+            : null,
+        phone: typeof phone === "string" && phone.length > 0 ? phone : null,
+      };
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .upsert(profileRow, { onConflict: "id" });
+      if (profileError) {
+        console.warn("[signup] profile upsert failed (non-fatal):", profileError.message);
+      }
+    }
+
+    let emailError: string | null = null;
+
     if (confirmUrl) {
       try {
         await sendConfirmationEmail({
           to: email,
-          name,
+          name: fullName,
           confirmUrl,
         });
-        emailSent = true;
       } catch (err: unknown) {
         emailError = err instanceof Error ? err.message : String(err);
         console.error("[signup] Resend error detail:", { email, emailError, confirmUrlPresent: !!confirmUrl });

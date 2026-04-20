@@ -5,14 +5,17 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import SignupConfirmation from "@/components/auth/SignupConfirmation";
+import SignupDemographicsFields from "@/components/auth/SignupDemographicsFields";
 import { SlateLogo } from "@/components/shared/SlateLogo";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  // Optional demographic fields — collected at signup so the operations
-  // console can segment users by industry, role, company size, etc.
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  // Demographic fields — required at signup so the operations console can
+  // segment users by industry, role, company size, and referral source.
   const [company, setCompany] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [industry, setIndustry] = useState("");
@@ -47,21 +50,25 @@ export default function SignupPage() {
     try {
       const redirectAfter = selectedPlan
         ? `/plans?plan=${selectedPlan}&billing=${selectedBilling}`
-        : undefined;
+        : "/welcome";
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
           password,
-          name,
+          firstName,
+          lastName,
+          name: `${firstName} ${lastName}`.trim(),
+          phone: phone || null,
           redirectAfter,
           demographics: {
-            company: company || null,
-            jobTitle: jobTitle || null,
-            industry: industry || null,
-            companySize: companySize || null,
-            referralSource: referralSource || null,
+            company,
+            jobTitle,
+            industry,
+            companySize,
+            referralSource,
+            phone: phone || null,
           },
         }),
       });
@@ -161,80 +168,37 @@ export default function SignupPage() {
           {error && <div className="auth-error">{error}</div>}
 
           <form onSubmit={handleSignup} className="space-y-4">
-            <div>
-              <label className="auth-label">Full name *</label>
-              <input type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Smith"
-                className="auth-input" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="auth-label">First name *</label>
+                <input type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Jane" className="auth-input" />
+              </div>
+              <div>
+                <label className="auth-label">Last name *</label>
+                <input type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Smith" className="auth-input" />
+              </div>
             </div>
             <div>
-              <label className="auth-label">Work email</label>
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@yourcompany.com"
-                className="auth-input" />
+              <label className="auth-label">Work email *</label>
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@yourcompany.com" className="auth-input" />
             </div>
             <div>
-              <label className="auth-label">Password</label>
+              <label className="auth-label">Password *</label>
               <div className="relative">
-                <input type={showPass ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters"
-                  minLength={8}
-                  className="auth-input pr-11" />
+                <input type={showPass ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" minLength={8} className="auth-input pr-11" />
                 <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
-
-            {/* Optional demographic fields — helps tailor your experience */}
-            <details className="group rounded-xl border border-input bg-card/40 px-4 py-3">
-              <summary className="flex items-center justify-between cursor-pointer text-xs font-semibold text-muted-foreground hover:text-foreground">
-                <span>Tell us about your work <span className="text-muted-foreground/60 font-normal">(optional)</span></span>
-                <span className="text-muted-foreground/60 group-open:rotate-180 transition-transform">▾</span>
-              </summary>
-              <div className="mt-4 space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="auth-label">Company / Organization</label>
-                    <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Acme Construction" className="auth-input" />
-                  </div>
-                  <div>
-                    <label className="auth-label">Job title</label>
-                    <input type="text" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Project Manager" className="auth-input" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="auth-label">Industry</label>
-                    <select value={industry} onChange={(e) => setIndustry(e.target.value)} className="auth-input">
-                      <option value="">Select…</option>
-                      <option>General Contractor</option>
-                      <option>Architecture</option>
-                      <option>Engineering</option>
-                      <option>Owner / Developer</option>
-                      <option>Subcontractor</option>
-                      <option>Real Estate</option>
-                      <option>Education</option>
-                      <option>Government / Public Works</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="auth-label">Company size</label>
-                    <select value={companySize} onChange={(e) => setCompanySize(e.target.value)} className="auth-input">
-                      <option value="">Select…</option>
-                      <option>Just me</option>
-                      <option>2–10</option>
-                      <option>11–50</option>
-                      <option>51–200</option>
-                      <option>201–1000</option>
-                      <option>1000+</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="auth-label">How did you hear about us?</label>
-                  <input type="text" value={referralSource} onChange={(e) => setReferralSource(e.target.value)} placeholder="Search, colleague, conference…" className="auth-input" />
-                </div>
-              </div>
-            </details>
+            <SignupDemographicsFields
+              company={company} setCompany={setCompany}
+              jobTitle={jobTitle} setJobTitle={setJobTitle}
+              industry={industry} setIndustry={setIndustry}
+              companySize={companySize} setCompanySize={setCompanySize}
+              referralSource={referralSource} setReferralSource={setReferralSource}
+              phone={phone} setPhone={setPhone}
+            />
             <div className="space-y-2.5 pt-1">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" required checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)}
