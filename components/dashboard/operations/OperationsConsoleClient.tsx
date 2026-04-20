@@ -22,6 +22,10 @@ import { OverviewTab } from "./OverviewTab";
 import { BetaApprovalsTab } from "./BetaApprovalsTab";
 import { UserAccountsTab } from "./UserAccountsTab";
 import { OrganizationsTab } from "./OrganizationsTab";
+import { PlansPricingTab } from "./PlansPricingTab";
+import { SubscriptionsTab } from "./SubscriptionsTab";
+import { UsageProcessingTab } from "./UsageProcessingTab";
+import { CommunicationsFeedbackTab } from "./CommunicationsFeedbackTab";
 
 type TabID =
   | "overview"
@@ -65,12 +69,8 @@ const TABS: TabDef[] = [
 ];
 
 const PHASE_2_TABS: ReadonlyArray<TabID> = [
-  "plans",
-  "subs",
   "revenue",
-  "usage",
   "content",
-  "comms",
   "support",
   "surveys",
   "employees",
@@ -129,6 +129,10 @@ export function OperationsConsoleClient({ ownerEmail }: Props) {
           {activeTab === "beta" && <BetaApprovalsTab />}
           {activeTab === "users" && <UserAccountsTab />}
           {activeTab === "orgs" && <OrganizationsTab />}
+          {activeTab === "plans" && <PlansPricingTab />}
+          {activeTab === "subs" && <SubscriptionsTab />}
+          {activeTab === "usage" && <UsageProcessingTab />}
+          {activeTab === "comms" && <CommunicationsFeedbackTab />}
           {PHASE_2_TABS.includes(activeTab) && <Phase2Placeholder label={activeDef.label} />}
         </div>
       </div>
