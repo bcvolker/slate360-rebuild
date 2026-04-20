@@ -22,7 +22,7 @@
     "components/dashboard/DashboardClient.tsx": 1961,
     "components/dashboard/DashboardWidgetRenderer.tsx": 547,
     "components/dashboard/LocationMap.tsx": 1892,
-    "components/dashboard/MarketClient.tsx": 3131,    "components/marketing-homepage.tsx": 1160,    "components/project-hub/ObservationsClient.tsx": 335,
+    "components/dashboard/MarketClient.tsx": 3131,    "components/marketing-homepage.tsx": 1170,    "components/project-hub/ObservationsClient.tsx": 335,
     "components/project-hub/ProjectDashboardGrid.tsx": 560,
     "components/project-hub/WizardLocationPicker.tsx": 412,
     "components/slatedrop/ProjectFileExplorer.tsx": 363,
