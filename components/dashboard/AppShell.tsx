@@ -128,11 +128,13 @@ export function AppShell({
 
         <main
           className={cn(
-            "pt-16 transition-all duration-300",
+            "pt-16 transition-all duration-300 min-w-0 overflow-x-hidden",
             sidebarOpen ? "lg:pl-64" : "lg:pl-0"
           )}
         >
-          {children}
+          <div className="w-full min-w-0">
+            {children}
+          </div>
         </main>
 
         <CommandPalette

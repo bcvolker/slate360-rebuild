@@ -475,3 +475,23 @@
   background: hsl(0 72% 52% / 0.08);
   border-color: hsl(0 72% 52% / 0.24);
 }
+
+/* ── Mobile shell hardening ─────────────────────────────────
+ * Prevents accidental horizontal scroll on phones (which makes
+ * the dashboard feel broken) and keeps the iOS Safari focus-zoom
+ * from triggering on tiny font sizes.
+ */
+html,
+body {
+  overflow-x: hidden;
+}
+
+@media (max-width: 640px) {
+  :root {
+    font-size: 16px;
+  }
+  .text-xs {
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+}
