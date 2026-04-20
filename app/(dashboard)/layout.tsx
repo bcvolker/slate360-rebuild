@@ -7,6 +7,7 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { AppShell } from "@/components/dashboard/AppShell";
 import { buildInviteShareData } from "@/lib/server/invite-share-data";
 import { isBetaMode } from "@/lib/beta-mode";
+import { createClient } from "@/lib/supabase/server";
 
 type DashboardRouteLayoutProps = {
   children: React.ReactNode;
@@ -17,6 +18,18 @@ export default async function DashboardRouteLayout({ children }: DashboardRouteL
   const { user, isBetaApproved, hasOperationsConsoleAccess, orgId, isSlateCeo, isSlateStaff } = ctx;
   if (!user) redirect("/login");
   if (!isBetaApproved) redirect("/beta-pending");
+
+  // Onboarding gate — first-time users must complete /welcome.
+  // Slate staff/CEO bypass so internal tooling stays unblocked.
+  if (!isSlateCeo && !isSlateStaff) {
+    const supabase = await createClient();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("onboarding_completed_at")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (!profile?.onboarding_completed_at) redirect("/welcome");
+  }
 
   const userName =
     (user.user_metadata?.name as string | undefined) ??

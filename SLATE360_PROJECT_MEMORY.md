@@ -197,6 +197,53 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-20 (Onboarding /welcome flow + required signup demographics — PR #18)
+
+**What Changed**
+- New `/welcome` 3-step onboarding (PWA install, use cases, destinations). Lives outside `(dashboard)` group so beta gate doesn't intercept.
+- `app/welcome/layout.tsx` (server) + `app/welcome/page.tsx` (server, redirects already-onboarded users to /dashboard) + `components/welcome/WelcomeClient.tsx` (268L) + `components/welcome/WelcomeInstallStep.tsx` (111L)
+- New APIs: `POST /api/onboarding/profile` (saves use cases via Zod), `POST /api/onboarding/complete` (marks `onboarding_completed_at` or `onboarding_skipped_install`)
+- `app/signup/page.tsx`: split `name` → `firstName`/`lastName`, added `phone`, promoted demographics from `<details>` to required inline fields, extracted to `components/auth/SignupDemographicsFields.tsx` (140L). Page now 233 lines.
+- `app/api/auth/signup/route.ts`: accepts new field shape; upserts `profiles` row immediately after `generateLink` succeeds; default redirect now `/welcome` (was `/dashboard`). Kept generateLink+Resend (NOT supabase.auth.signUp).
+- `app/(dashboard)/layout.tsx`: added onboarding gate after beta-approval check — redirects to `/welcome` if `onboarding_completed_at IS NULL`. CEO/staff bypass.
+- Migration `20260420020000_onboarding_and_demographics.sql` — APPLIED to live Supabase. Adds: first_name, last_name, organization_name, industry, company_size, primary_use_case[], referral_source, profile_completed_at, onboarding_completed_at, onboarding_skipped_install. NOTICEs for phone/role (already existed).
+- Cleaned 2 junk files (`20`, `tart`) accidentally created by shell quoting issues.
+- PR #18 opened: https://github.com/bcvolker/slate360-rebuild/pull/18
+
+**What's Broken / Partially Done**
+- PR #18 awaiting verify run + merge
+- Operations Console still showing wrong data (Prompt 2 deferred to next chat)
+- Beta Feedback button still beta-only with no attachments (Prompt 3 deferred)
+- Mobile shell has horizontal scroll (Prompt 4 deferred)
+- After PR #18 merges, the very next signup will hit `/welcome` — confirm the email-confirmation `next` query param routes correctly through `app/auth/callback/route.ts`
+
+**Context Files Updated**
+- SLATE360_PROJECT_MEMORY.md (this handoff)
+
+**Next Steps (ordered)**
+1. Wait for PR #18 verify; admin-merge once green (`gh pr merge 18 --squash --admin --delete-branch`)
+2. Live smoke: sign up new account → verify `/welcome` redirect → walk through 3 steps → confirm `profiles` row populated with demographics + `onboarding_completed_at`
+3. Prompt 2 (Operations Console rebuild) — external AI delivery, then integrate
+4. Prompt 3 (Unified Help & Feedback modal with S3 attachments, available to all users) — external AI delivery
+5. Prompt 4 (Mobile shell horizontal-scroll audit + typography pass) — external AI delivery
+
+**External AI Validation Checklist (use for every incoming prompt response)**
+- Auth helper signature: `withAuth(req, async ({user, admin, orgId}) => …)` from `@/lib/server/api-auth`
+- Response helpers from `@/lib/server/api-response` (`ok`, `badRequest`, `serverError`)
+- No `any` — use `unknown` with narrowing, or proper interfaces (e.g., `BeforeInstallPromptEvent extends Event`)
+- Tailwind tokens that exist: `bg-card`, `bg-glass`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-cobalt`, `text-cobalt`, `border-cobalt`, `bg-teal`, `bg-teal/20`. Do NOT invent.
+- Supabase server client: `await createClient()` from `@/lib/supabase/server` (async)
+- Email flow: NEVER `supabase.auth.signUp()` — use `supabase.auth.admin.generateLink({type:"signup"})` + `sendConfirmationEmail` via Resend (Supabase SMTP is broken)
+- Files ≤300 lines — extract sub-components when nearing limit
+- Content-Type headers on fetch POSTs
+
+**Live DB / Env Reference**
+- DB: `aws-1-us-west-1.pooler.supabase.com:5432`, password `Arlopear$1976_989*` (URL-encode `$`→`%24`, `*`→`%2A`)
+- psql gotcha: use `--no-psqlrc -X -A -t`; avoid `-P pager=off -c "long sql"` (creates junk files)
+- CEO: `slate360ceo@gmail.com`, user_id `f73fd954-d8dd-425f-bb93-0ce92cb65088`, org_id `c5538bfd-a67a-4930-8481-0e5e331ec7cc`
+- Live state: 2 auth.users, 2 profiles (orphans deleted earlier this session)
+- File-size baseline: `ops/file-size-baseline.json` — bump when adding lines to baselined file
+
 ### Session Handoff — 2026-04-20 (Shell consistency root-cause fix + clean-slate DB + single logo source — PRs #12 / #13 / #14)
 
 ### What Changed (PRs #12, #13, #14 — all merged to `main`)
