@@ -17,11 +17,21 @@ import { cn } from "@/lib/utils";
 import { DashboardSidebar } from "@/components/dashboard/command-center/DashboardSidebar";
 import { DashboardTopBar } from "@/components/dashboard/command-center/DashboardTopBar";
 import CommandPalette from "@/components/shared/CommandPalette";
+import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
+import { InviteShareModal } from "@/components/shared/InviteShareModal";
+import type { InviteShareData } from "@/lib/types/invite";
 
 interface AppShellProps {
   userName: string;
   hasOperationsConsoleAccess?: boolean;
+  inviteShareData: InviteShareData;
+  isBetaEligible?: boolean;
   children: ReactNode;
+}
+
+function GlobalInviteModal({ data }: { data: InviteShareData }) {
+  const { open, setOpen } = useInviteShare();
+  return <InviteShareModal open={open} onOpenChange={setOpen} {...data} />;
 }
 
 const SIDEBAR_PIN_KEY = "slate360.sidebar.pinned";
@@ -29,6 +39,8 @@ const SIDEBAR_PIN_KEY = "slate360.sidebar.pinned";
 export function AppShell({
   userName,
   hasOperationsConsoleAccess = false,
+  inviteShareData,
+  isBetaEligible = false,
   children,
 }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -75,6 +87,7 @@ export function AppShell({
 
   return (
     <TooltipProvider>
+     <InviteShareProvider>
       <div className="dark min-h-screen bg-background overflow-x-hidden">
         <div className="hidden lg:block">
           <DashboardSidebar
@@ -102,6 +115,8 @@ export function AppShell({
         <DashboardTopBar
           isSidebarOpen={sidebarOpen}
           userName={userName}
+          isBetaEligible={isBetaEligible}
+          showLogo={!sidebarOpen}
           onMenuClick={() => {
             if (typeof window !== "undefined" && window.innerWidth >= 1024) {
               toggleSidebar();
@@ -125,7 +140,9 @@ export function AppShell({
           onOpenChange={setPaletteOpen}
           hasOperationsConsoleAccess={hasOperationsConsoleAccess}
         />
+        <GlobalInviteModal data={inviteShareData} />
       </div>
+     </InviteShareProvider>
     </TooltipProvider>
   );
 }

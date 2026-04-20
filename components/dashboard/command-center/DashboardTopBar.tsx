@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,15 +12,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Bell, Menu } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { SlateLogo } from "@/components/shared/SlateLogo";
+import { InviteShareButton } from "@/components/shared/InviteShareButton";
+import { BetaFeedbackButton } from "@/components/shared/BetaFeedbackButton";
 
 interface DashboardTopBarProps {
   onMenuClick: () => void;
   isSidebarOpen: boolean;
   userName: string;
+  showLogo?: boolean;
+  isBetaEligible?: boolean;
 }
 
-export function DashboardTopBar({ onMenuClick, isSidebarOpen, userName }: DashboardTopBarProps) {
+export function DashboardTopBar({
+  onMenuClick,
+  isSidebarOpen,
+  userName,
+  showLogo = false,
+  isBetaEligible = false,
+}: DashboardTopBarProps) {
   return (
     <header
       className={cn(
@@ -30,8 +41,13 @@ export function DashboardTopBar({ onMenuClick, isSidebarOpen, userName }: Dashbo
       )}
     >
       <div className="flex h-full items-center justify-between px-4 gap-4">
-        {/* Left: Menu Toggle only — sidebar already shows the logo */}
+        {/* Left: Optional logo (only when sidebar is collapsed) + Menu Toggle */}
         <div className="flex items-center gap-3">
+          {showLogo && (
+            <Link href="/dashboard" className="hidden sm:flex items-center" aria-label="Slate360 home">
+              <SlateLogo className="h-6 w-auto" />
+            </Link>
+          )}
           <button
             onClick={onMenuClick}
             className="flex items-center justify-center h-10 w-10 rounded-xl bg-white/[0.04] hover:bg-teal-soft border border-app hover:border-teal text-zinc-300 hover:text-teal transition-all"
@@ -45,6 +61,8 @@ export function DashboardTopBar({ onMenuClick, isSidebarOpen, userName }: Dashbo
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
+          <BetaFeedbackButton isEligible={isBetaEligible} />
+          <InviteShareButton />
           {/* Notification Bell — no hardcoded count */}
           <Tooltip>
             <TooltipTrigger asChild>
