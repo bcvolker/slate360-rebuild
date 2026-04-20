@@ -16,13 +16,14 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { SlateLogo } from "@/components/shared/SlateLogo";
 import { InviteShareButton } from "@/components/shared/InviteShareButton";
-import { BetaFeedbackButton } from "@/components/shared/BetaFeedbackButton";
+import { HelpFeedbackButton } from "@/components/shared/HelpFeedbackButton";
 
 interface DashboardTopBarProps {
   onMenuClick: () => void;
   isSidebarOpen: boolean;
   userName: string;
   showLogo?: boolean;
+  /** @deprecated retained for backward compatibility; HelpFeedbackButton is universal */
   isBetaEligible?: boolean;
 }
 
@@ -31,7 +32,6 @@ export function DashboardTopBar({
   isSidebarOpen,
   userName,
   showLogo = false,
-  isBetaEligible = false,
 }: DashboardTopBarProps) {
   return (
     <header
@@ -61,7 +61,7 @@ export function DashboardTopBar({
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
-          <BetaFeedbackButton isEligible={isBetaEligible} />
+          <HelpFeedbackButton />
           <InviteShareButton />
           {/* Notification Bell — no hardcoded count */}
           <Tooltip>
