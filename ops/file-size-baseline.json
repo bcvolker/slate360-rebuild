@@ -3,6 +3,7 @@
   "updatedAt": "2026-04-17",
   "threshold": 300,
   "files": {
+    "app/_color-audit/page.tsx": 387,
     "app/(dashboard)/project-hub/[projectId]/budget/page.tsx": 421,
     "app/(dashboard)/project-hub/[projectId]/daily-logs/page.tsx": 358,
     "app/(dashboard)/project-hub/[projectId]/drawings/page.tsx": 448,
