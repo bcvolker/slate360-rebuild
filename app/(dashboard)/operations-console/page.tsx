@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
-import OperationsConsoleClient from "@/components/dashboard/OperationsConsoleClient";
+import OperationsConsoleClient from "@/components/dashboard/operations/OperationsConsoleClient";
 
 export const metadata = {
   title: "Operations Console — Slate360",
