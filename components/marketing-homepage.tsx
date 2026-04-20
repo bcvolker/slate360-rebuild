@@ -289,7 +289,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
       <div className="container mx-auto h-full px-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          <SlateLogo variant="dark" />
+          <SlateLogo />
         </Link>
 
         {/* Desktop Navigation */}
@@ -364,7 +364,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
           <SheetContent side="right" className="w-[280px] !h-auto !inset-y-auto !top-0 !right-0 !rounded-bl-2xl border-b border-l border-primary/15 !bg-card/95 backdrop-blur-xl [&>button]:text-foreground">
             <div className="flex flex-col gap-4 py-4 px-5">
               {/* Logo */}
-              <SlateLogo variant="dark" className="h-6 w-auto self-start" />
+              <SlateLogo className="h-6 w-auto self-start" />
               <nav className="flex flex-col gap-1">
                 <Link
                   href="#product"
@@ -993,7 +993,7 @@ function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center mb-4">
-              <SlateLogo variant="dark" />
+              <SlateLogo />
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
               The real-time interactive bridge between the field and the office.

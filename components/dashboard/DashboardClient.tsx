@@ -2,7 +2,6 @@
 
 import { useDashboardState, type DashboardProps } from "@/lib/hooks/useDashboardState";
 import { useEffect } from "react";
-import DashboardHeader from "@/components/shared/DashboardHeader";
 import CreateProjectWizard, { type CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import DashboardMyAccount from "@/components/dashboard/DashboardMyAccount";
@@ -103,19 +102,6 @@ export default function DashboardClient(props: DashboardProps) {
 
   return (
     <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
-      <DashboardHeader
-        user={props.user}
-        tier={props.tier}
-        isCeo={props.isSlateCeo ?? false}
-        internalAccess={s.internalAccess}
-        searchPlaceholder="Search projects, files, contacts…"
-        prefsDirty={s.prefsDirty}
-        onCustomizeOpen={() => s.setCustomizeOpen(true)}
-        notifications={s.unreadNotifications}
-        notificationsLoading={s.notificationsLoading}
-        onRefreshNotifications={s.loadUnreadNotifications}
-      />
-
       {/* ════════ MAIN CONTENT ════════ */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden">
 

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { type LucideIcon } from "lucide-react";
-import DashboardHeader from "@/components/shared/DashboardHeader";
 import UpgradeGate from "@/components/shared/UpgradeGate";
 import TrialBanner from "@/components/shared/TrialBanner";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
@@ -45,18 +44,7 @@ export default function DashboardTabShell({
   return (
     <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
 
-      {/* Shared header — identical to dashboard home */}
-      <DashboardHeader
-        user={user}
-        tier={tier}
-        isCeo={isCeo}
-        internalAccess={internalAccess}
-        showBackLink
-        searchPlaceholder={`Search ${title}\u2026`}
-        onCustomizeOpen={showCustomize ? () => setCustomizeOpen(true) : undefined}
-      />
-
-      {/* MAIN */}
+      {/* MAIN — chrome is provided by AppShell; we only paint page content */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden space-y-6">
 
         {/* Page-header row */}
