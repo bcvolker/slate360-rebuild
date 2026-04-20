@@ -197,6 +197,60 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-19f (Branch fix + AppShell extraction + beta join API + parallel-AI collaboration model)
+
+### What Changed (PRs #8 → #11, all merged to `main`)
+- **Critical fix — PR #7 was misconfigured**: targeted sibling feature branch instead of `main`. Production was stuck at `b691ca8`. Resolved by opening fresh PRs with explicit `--base main`. New rule: always use `gh pr create --base main --head <branch>`.
+- **PR #8** (brand token migration to main): full cobalt + zinc surface migration.
+- **PR #9** (logo + sidebar + topbar fixes): cobalt `SlateLogo` source-of-truth, default-open sidebar with persisted pin (`localStorage.slate360.sidebar.pinned`), homepage hero "Get the App — Free" CTA.
+- **PR #10** (BetaGatedButton wire-up): all "Subscribe" / "Upgrade" / "Buy Credits" / "Add Collaborator" CTAs route through `components/billing/BetaGatedButton.tsx` (tooltip + disabled when `isBetaMode()`).
+- **PR #11** (AppShell extraction + beta join API):
+  - **`components/dashboard/AppShell.tsx`** (111 lines, client) — owns sidebar+topbar+pin persistence. Props: `{userName, hasOperationsConsoleAccess, children}`.
+  - **`components/dashboard/AuthedAppShell.tsx`** (27 lines, server wrapper) — calls `resolveServerOrgContext()` then renders `<AppShell>`.
+  - Mounted in `app/(dashboard)/layout.tsx`, `app/site-walk/layout.tsx`, `app/slatedrop/layout.tsx`. **Sidebar is now consistent across all dashboard routes** (was missing on /site-walk and /slatedrop before).
+  - `components/walled-garden-dashboard.tsx` simplified to just render `<CommandCenterContent />`.
+  - **`app/api/beta/join/route.ts`** (41 lines): correct `withAuth(req, async ({user, admin}) => …)` signature, counts beta testers via admin client, returns `forbidden("beta_full")` if `>= BETA_TESTER_CAP`, else flips `beta_tester=true, foundational_member=true, beta_joined_at=now(), foundational_granted_at=now()` on profiles.
+- **Test users cleaned**: `DELETE FROM auth.users WHERE email != 'slate360ceo@gmail.com'` — 13 deleted, only CEO account remains.
+- **All service credentials verified working from dev container**: Supabase pooler (`aws-1-us-west-1.pooler.supabase.com:5432`, password URL-encoded as `Arlopear%241976_989*`), AWS S3 (`slate360-storage` us-east-2), Cloudflare R2 (`slate360-storage` empty), Stripe products endpoint, gh CLI auth, Vercel auto-deploy on main merge.
+- **Master issue cross-reference**: `docs/MASTER_ISSUE_CROSS_REFERENCE.md` — maps the 10-category beta-readiness audit against shipped/queued/new-backlog work. Net-new units #22 (storage routing), #23 (Site Walk capture closeout), #24 (Ops Console roster + ledger), #25 (usage visibility).
+- **Code-only request prepared** for the parallel AI assistant: `docs/CODE_REQUEST_CREDIT_METER_BETA_BANNER_APP_SHELL.md` covers Credit Meter (UNIT #16) + Beta Banner (UNIT #17) + `/app` mobile shell (UNIT #20) in one document with full type contracts, real DB schemas, helper signatures, and example call sites.
+
+### Parallel-AI Collaboration Model (NEW — important for next chat)
+The "other AI assistant" the user pastes into has **NO repo access**. Their file tools don't see this codebase. New workflow:
+1. Orchestrator (this chat) writes code-only request docs in `docs/CODE_REQUEST_*.md` with full contracts + schemas + surrounding code.
+2. User pastes the doc to the other AI.
+3. Other AI returns full file contents (no diffs, no `...existing code...` placeholders).
+4. Orchestrator integrates, fixes signature mismatches (they routinely get `withAuth` and `forbidden()` wrong), grep-confirms imports are wired, opens PR `--base main`.
+
+### Critical Schema Gotchas (don't re-discover)
+- **`credit_balance.org_id` (NOT `organization_id`)** — PK is `org_id uuid`. Columns: `balance_credits bigint`, `monthly_allowance bigint`, `last_reset_at`, `updated_at`. RLS via organization_members.
+- **`credit_ledger.organization_id`** — different name from credit_balance! Columns: `delta numeric(12,2)`, `running_balance numeric(12,2)`, `reason`, `category` (enum: subscription/purchase/bonus/refund/job_usage/storage_usage/bandwidth_usage/export_usage/api_usage/adjustment/expiration), `credit_source` (enum: monthly/purchased/bonus/refund/mixed), `metadata jsonb`.
+- **`forbidden(msg: string)`** — accepts STRING only, not an object. Other AI keeps writing `forbidden({reason: '...'})` — wrong.
+- **`withAuth(req, handler)`** — handler receives `{req, user, admin, orgId}`. Other AI keeps writing `withAuth(async (req, {userId}) => …)` — wrong.
+- **Beta limit for credits** = `BETA_LIMITS.credits = 500` from `lib/billing/cost-model.ts`. Use as the "limit" for beta users in CreditMeter.
+
+### What's Broken / Partially Done
+- **UNITS #16 / #17 / #20 pending** — code-only request sent to other AI (`docs/CODE_REQUEST_CREDIT_METER_BETA_BANNER_APP_SHELL.md`), awaiting their response.
+- **UNIT #18** Pricing page beta state, **UNIT #19** Production smoke checklist, **UNIT #21** Command Center reimagine — not yet started.
+- **Net-new UNITS #22/#23/#24/#25** added to backlog; not yet scoped into prompt rounds.
+- Marketing-page tier mismatch from previous handoff still unresolved (decision needed).
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
+- `docs/CODE_REQUEST_CREDIT_METER_BETA_BANNER_APP_SHELL.md`: NEW — comprehensive request to parallel AI.
+- `docs/MASTER_ISSUE_CROSS_REFERENCE.md`: NEW — 10-category audit mapped to build plan.
+
+### Next Steps (ordered)
+1. **When other AI responds** to `docs/CODE_REQUEST_CREDIT_METER_BETA_BANNER_APP_SHELL.md`: integrate Section A (Credit Meter), then B (Beta Banner), then C (`/app` shell). For each, run `npm run typecheck`, grep-confirm imports are wired, open PR `--base main`.
+2. After Credit Meter lands, wire `<CreditMeter />` into `components/dashboard/AppShell.tsx` topbar (right side, before user menu).
+3. After Beta Banner lands, wire `<BetaBanner isBetaTester={...} />` into `components/dashboard/AuthedAppShell.tsx` (above AppShell, fed from `getBetaStatus(user.id)`).
+4. After `/app` shell lands, smoke-test PWA install on iOS Safari + Android Chrome at `https://www.slate360.ai/app`.
+5. Scope and dispatch UNIT #18 (Pricing page beta state).
+6. Resolve marketing-page tier mismatch (user decision pending from prior handoff).
+7. Apply remaining migrations from prior handoffs if any are still outstanding.
+
+---
+
 ### Session Handoff — 2026-04-19e (Live Supabase migrations applied + codespace audit + marketing-page mismatch flagged)
 
 ### What Changed

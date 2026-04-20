@@ -289,7 +289,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
       <div className="container mx-auto h-full px-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          <SlateLogo />
+          <SlateLogo variant="dark" />
         </Link>
 
         {/* Desktop Navigation */}
@@ -364,7 +364,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
           <SheetContent side="right" className="w-[280px] !h-auto !inset-y-auto !top-0 !right-0 !rounded-bl-2xl border-b border-l border-primary/15 !bg-card/95 backdrop-blur-xl [&>button]:text-foreground">
             <div className="flex flex-col gap-4 py-4 px-5">
               {/* Logo */}
-              <SlateLogo className="h-6 w-auto self-start" />
+              <SlateLogo variant="dark" className="h-6 w-auto self-start" />
               <nav className="flex flex-col gap-1">
                 <Link
                   href="#product"
@@ -442,7 +442,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
 
 function HeroSection() {
   return (
-    <section className="relative h-screen flex items-center px-4 sm:px-6 lg:px-10 overflow-hidden">
+    <section className="relative min-h-[100dvh] lg:h-screen flex items-center px-4 sm:px-6 lg:px-10 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-[hsl(240,6%,8%)]" />
 
@@ -455,9 +455,9 @@ function HeroSection() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-[1fr_1.15fr] gap-8 lg:gap-12 items-center pt-20 sm:pt-24 pb-10">
+      <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-[1fr_1.15fr] gap-6 lg:gap-12 items-center pt-28 sm:pt-28 lg:pt-24 pb-16 sm:pb-12">
         {/* LEFT: copy + CTAs */}
-        <div className="space-y-5 text-center lg:text-left">
+        <div className="space-y-4 sm:space-y-5 text-center lg:text-left">
           <Badge variant="outline" className="border-cobalt text-cobalt px-3.5 py-1 bg-cobalt/10">
             <Zap className="mr-1.5 h-3 w-3" />
             Now in Beta — Foundational Member Pricing
@@ -492,7 +492,7 @@ function HeroSection() {
         </div>
 
         {/* RIGHT: interactive demo (larger, dominates the right side) */}
-        <div className="w-full">
+        <div className="w-full max-w-md mx-auto lg:max-w-none">
           <Card className="bg-app-card border-app shadow-app-glow rounded-2xl">
             <CardContent className="p-3 sm:p-4 lg:p-5">
               <HeroDemo />
@@ -993,7 +993,7 @@ function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center mb-4">
-              <SlateLogo />
+              <SlateLogo variant="dark" />
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
               The real-time interactive bridge between the field and the office.
