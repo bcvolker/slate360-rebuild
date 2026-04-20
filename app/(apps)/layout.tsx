@@ -1,16 +1,16 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireBetaAccess } from "@/lib/server/beta-access";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/apps/AppSidebar";
-import { AppTopBar } from "@/components/apps/AppTopBar";
+import AuthedAppShell from "@/components/dashboard/AuthedAppShell";
 
 /**
  * Shared layout for the App Ecosystem route group.
  *
- * All standalone apps (Tour Builder, Site Walk, future apps) nest inside
- * this layout. It enforces authentication and provides the Linear-style
- * sidebar + top-bar chrome, visually quarantined from the marketing site.
+ * Routes inside this group inherit the SAME sidebar + topbar chrome as the
+ * Command Center via AuthedAppShell. This is intentional: every authenticated
+ * page must look identical at the chrome level so users always know where
+ * they are in the product. Page-level content paints inside <main>; chrome
+ * stays put.
  */
 export default async function AppsLayout({
   children,
@@ -28,13 +28,5 @@ export default async function AppsLayout({
 
   await requireBetaAccess(user);
 
-  return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <AppTopBar />
-        <main className="flex-1 overflow-auto p-6">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
-  );
+  return <AuthedAppShell>{children}</AuthedAppShell>;
 }

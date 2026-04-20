@@ -22,7 +22,7 @@ import AccountBillingTab from "./my-account/AccountBillingTab";
 import AccountDataTrackerTab from "./my-account/AccountDataTrackerTab";
 import AccountSecurityTab from "./my-account/AccountSecurityTab";
 import AccountNotificationsTab from "./my-account/AccountNotificationsTab";
-import PlaceholderTab from "./my-account/PlaceholderTab";
+import { ComingSoonEmptyState } from "@/components/shared/ComingSoonEmptyState";
 import type { DashboardAccountOverview } from "@/lib/types/dashboard";
 import type { Tier } from "@/lib/entitlements";
 
@@ -161,67 +161,25 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
           <AccountProfileTab user={user} orgName={orgName} role={role} />
         )}
         {activeTab === "preferences" && (
-          <PlaceholderTab
-            title="Preferences"
-            description="Theme, density, language, timezone, default landing page."
-            fields={["Theme (system / light / dark)", "Density (comfortable / compact)", "Language", "Timezone", "Default landing page after sign in"]}
-          />
+          <ComingSoonEmptyState title="Preferences" />
         )}
         {activeTab === "sessions" && (
-          <PlaceholderTab
-            title="Sessions & Devices"
-            description="Active sessions across devices. Revoke any to sign out remotely."
-            fields={["Current session (this browser)", "Other active sessions", "Connected accounts (Google, Microsoft)"]}
-          />
+          <ComingSoonEmptyState title="Sessions & Devices" />
         )}
         {activeTab === "login-history" && (
-          <PlaceholderTab
-            title="Login History"
-            description="Recent sign-ins with IP, location, and device for security auditing."
-            fields={["Last 30 sign-ins", "Suspicious activity flag", "Export history (CSV)"]}
-          />
+          <ComingSoonEmptyState title="Login History" />
         )}
         {activeTab === "workspace" && (
-          <PlaceholderTab
-            title="Workspace General"
-            description="Organization name, slug, logo, default project settings."
-            fields={["Organization name", "Workspace slug / URL", "Organization logo", "Default project visibility", "Industry / org type (used by Slate360 analytics)"]}
-          />
+          <ComingSoonEmptyState title="Workspace General" />
         )}
         {activeTab === "members" && (
-          <PlaceholderTab
-            title="Members & Roles"
-            description="Invite teammates, assign roles (owner, admin, member, viewer), and manage seats."
-            fields={[
-              "Invite member by email",
-              "Role: owner / admin / member / viewer",
-              "Seat assignment per app (Site Walk, Tours, Design Studio, Content Studio)",
-              "Project access scope (all projects / specific projects)",
-              "Director / cross-team viewer (read-only across all org projects)",
-              "Remove or suspend member",
-            ]}
-          />
+          <ComingSoonEmptyState title="Members & Roles" />
         )}
         {activeTab === "permissions" && (
-          <PlaceholderTab
-            title="Permissions"
-            description="Per-role permission matrix \u2014 control which roles can see billing, data usage, audit log, etc."
-            fields={[
-              "Can view billing & invoices",
-              "Can view org-wide data usage",
-              "Can view audit log",
-              "Can invite / remove members",
-              "Can change org settings",
-              "Can publish to client portals",
-            ]}
-          />
+          <ComingSoonEmptyState title="Permissions" />
         )}
         {activeTab === "audit" && (
-          <PlaceholderTab
-            title="Audit Log"
-            description="Org-level event history: member changes, billing changes, data exports, role changes."
-            fields={["Filter by actor / event type / date", "Export (CSV)", "Retention by tier"]}
-          />
+          <ComingSoonEmptyState title="Audit Log" />
         )}
         {activeTab === "billing" && (
           <AccountBillingTab
@@ -251,18 +209,10 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
           <AccountNotificationsTab />
         )}
         {activeTab === "privacy" && (
-          <PlaceholderTab
-            title="Privacy & Data"
-            description="Export your data, manage consent, or delete your account."
-            fields={["Export my data (JSON)", "Manage marketing consent", "Delete my account (with confirmation)"]}
-          />
+          <ComingSoonEmptyState title="Privacy & Data" />
         )}
         {activeTab === "legal" && (
-          <PlaceholderTab
-            title="Legal"
-            description="Terms of service and privacy policy versions you've accepted."
-            fields={["Terms of Service \u2014 version + accepted date", "Privacy Policy \u2014 version + accepted date", "Data Processing Agreement (Enterprise)"]}
-          />
+          <ComingSoonEmptyState title="Legal" />
         )}
         </div>
       </div>
