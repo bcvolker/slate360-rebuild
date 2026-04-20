@@ -43,6 +43,7 @@ import {
   Github,
   ArrowRight,
   Quote,
+  Maximize2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -441,6 +442,8 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
    ========================================================================== */
 
 function HeroSection() {
+  const [demoExpanded, setDemoExpanded] = useState(false);
+
   return (
     <section className="relative min-h-[100dvh] lg:h-screen flex items-center px-4 sm:px-6 lg:px-10 overflow-hidden">
       {/* Background gradient */}
@@ -455,51 +458,90 @@ function HeroSection() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-[1fr_1.15fr] gap-6 lg:gap-12 items-center pt-28 sm:pt-28 lg:pt-24 pb-16 sm:pb-12">
+      <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-[1fr_1.15fr] gap-6 lg:gap-12 items-center pt-24 sm:pt-28 lg:pt-24 pb-12 sm:pb-12">
         {/* LEFT: copy + CTAs */}
-        <div className="space-y-4 sm:space-y-5 text-center lg:text-left">
-          <Badge variant="outline" className="border-cobalt text-cobalt px-3.5 py-1 bg-cobalt/10">
-            <Zap className="mr-1.5 h-3 w-3" />
+        <div className="space-y-5 sm:space-y-5 text-center lg:text-left">
+          <Badge variant="outline" className="border-cobalt text-cobalt px-3.5 py-1.5 bg-cobalt/10 text-sm">
+            <Zap className="mr-1.5 h-3.5 w-3.5" />
             Now in Beta — Foundational Member Pricing
           </Badge>
 
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground leading-[1.15] text-balance">
+          <h1 className="text-[2rem] leading-[1.15] sm:text-4xl lg:text-4xl xl:text-5xl font-bold text-foreground text-balance">
             The real-time interactive bridge between{" "}
             <span className="text-teal">the field and the office</span>
           </h1>
 
-          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto lg:mx-0 text-pretty">
+          <p className="text-base sm:text-base lg:text-base text-muted-foreground max-w-xl mx-auto lg:mx-0 text-pretty leading-relaxed">
             Capture site conditions with your phone or 360 camera, add comments as you walk, and automatically preserve a time-stamped, geolocated record. Turn it into punch lists, reports, or proposals — and share with your team in minutes.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3 pt-1">
-            <Button asChild className="btn-amber-soft h-11 px-6 text-sm">
+          {/* CTAs: side-by-side on ALL screens (50/50 on mobile, auto on desktop) */}
+          <div className="grid grid-cols-2 sm:flex sm:flex-row sm:items-center sm:justify-center lg:justify-start gap-3 pt-1">
+            <Button asChild className="btn-amber-soft h-12 px-4 sm:px-6 text-base font-semibold w-full sm:w-auto">
               <Link href="/signup?next=/app">
-                Get the App — Free
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <span className="truncate">Get the App</span>
+                <ArrowRight className="ml-1.5 h-4 w-4 shrink-0" />
               </Link>
             </Button>
-            <Button variant="outline" asChild className="btn-teal-outline h-11 px-6 text-sm">
+            <Button variant="outline" asChild className="btn-teal-outline h-12 px-4 sm:px-6 text-base font-semibold w-full sm:w-auto">
               <Link href="#apps">
-                Explore Apps
-                <ChevronRight className="ml-1 h-4 w-4" />
+                <span className="truncate">Explore Apps</span>
+                <ChevronRight className="ml-1 h-4 w-4 shrink-0" />
               </Link>
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground/80 pt-1">
+          <p className="text-sm text-muted-foreground/90 pt-1 leading-relaxed">
             Free to download. 14-day all-access trial. Subscribe anytime — no credit card required during beta.
           </p>
         </div>
 
-        {/* RIGHT: interactive demo (larger, dominates the right side) */}
-        <div className="w-full max-w-md mx-auto lg:max-w-none">
-          <Card className="bg-app-card border-app shadow-app-glow rounded-2xl">
+        {/* RIGHT: interactive demo. Smaller on mobile to save space; expand button reveals fullscreen view. */}
+        <div className="w-full max-w-[20rem] sm:max-w-md mx-auto lg:max-w-none">
+          <Card className="bg-app-card border-app shadow-app-glow rounded-2xl relative">
             <CardContent className="p-3 sm:p-4 lg:p-5">
               <HeroDemo />
+              <button
+                type="button"
+                onClick={() => setDemoExpanded(true)}
+                className="lg:hidden absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full bg-background/80 backdrop-blur px-2.5 py-1.5 text-xs font-medium text-foreground border border-border shadow-sm hover:bg-background"
+                aria-label="Expand demo"
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+                Expand
+              </button>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Mobile fullscreen demo overlay */}
+      {demoExpanded && (
+        <div
+          className="lg:hidden fixed inset-0 z-[100] bg-background/95 backdrop-blur flex flex-col"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Expanded demo"
+        >
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <span className="text-sm font-semibold text-foreground">Live Demo</span>
+            <button
+              type="button"
+              onClick={() => setDemoExpanded(false)}
+              className="inline-flex items-center justify-center h-9 w-9 rounded-full hover:bg-muted text-foreground"
+              aria-label="Close demo"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-auto p-4">
+            <Card className="bg-app-card border-app rounded-2xl">
+              <CardContent className="p-3 sm:p-4">
+                <HeroDemo />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
