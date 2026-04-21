@@ -5,6 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --breakpoint-xs: 22rem;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -276,6 +277,7 @@
   body {
     @apply bg-background text-foreground;
     -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
     overflow-x: clip;
     overscroll-behavior-x: none;
     width: 100%;
@@ -284,6 +286,7 @@
     touch-action: pan-y;
   }
   html {
+    overflow-x: hidden;
     overflow-x: clip;
     overscroll-behavior-x: none;
     width: 100%;

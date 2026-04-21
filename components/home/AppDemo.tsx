@@ -48,13 +48,15 @@ export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoP
     };
   }, [expanded]);
 
-  const viewer = (
+  const viewer = (full: boolean) => {
+    const cameraOrbit = full ? "45deg 60deg 90%" : "45deg 60deg 107%";
+    return (
     <>
       {type === "model" && modelSrc && (
         <ModelViewerClient
           src={modelSrc}
           alt={label ?? "3D model"}
-          cameraOrbit="45deg 60deg 105%"
+          cameraOrbit={cameraOrbit}
           shadowIntensity={1}
           shadowSoftness={1}
         />
@@ -68,14 +70,15 @@ export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoP
         </div>
       )}
     </>
-  );
+    );
+  };
 
   const isPlaceholder = type === "placeholder";
 
   return (
     <div className="relative">
       <div className="relative aspect-video rounded-lg overflow-hidden bg-background/50 border border-border">
-        {viewer}
+        {viewer(false)}
         {!isPlaceholder && (
           <button
             type="button"
@@ -113,14 +116,7 @@ export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoP
               <X className="h-6 w-6" />
             </button>
           </div>
-          <div className="flex-1 min-h-0 w-full">{viewer}</div>
-          <button
-            type="button"
-            onClick={() => setExpanded(false)}
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium border border-white/20 backdrop-blur"
-          >
-            Close (Esc)
-          </button>
+          <div className="flex-1 min-h-0 w-full">{viewer(true)}</div>
         </div>
       )}
     </div>

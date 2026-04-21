@@ -47,11 +47,11 @@ export function MobileTopBar({
         "lg:hidden fixed top-0 left-0 right-0 z-30",
         "h-14 bg-[#0B0F15]/85 backdrop-blur-xl",
         "border-b border-white/5",
-        "px-3"
+        "px-2 max-w-full overflow-hidden"
       )}
       style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
     >
-      <div className="flex h-14 items-center justify-between gap-2">
+      <div className="flex h-14 items-center justify-between gap-1 min-w-0 overflow-hidden">
         {/* Left: back button (auto-hides on root) + cobalt icon */}
         <div className="flex items-center min-w-0 flex-shrink-0 gap-1">
           <BackButton />
@@ -76,7 +76,7 @@ export function MobileTopBar({
             type="button"
             onClick={onSearchClick}
             aria-label="Search"
-            className="h-9 w-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-cobalt hover:bg-white/5 transition-colors"
+            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:text-cobalt hover:bg-white/5 transition-colors"
           >
             <Search className="h-[18px] w-[18px]" />
           </button>
@@ -91,7 +91,7 @@ export function MobileTopBar({
               }
             }}
             aria-label="Download Slate360 to your phone"
-            className="h-9 w-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-cobalt hover:bg-white/5 transition-colors"
+            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:text-cobalt hover:bg-white/5 transition-colors"
           >
             <Download className="h-[18px] w-[18px]" />
           </button>
@@ -111,7 +111,7 @@ export function MobileTopBar({
           <Link
             href="/my-account?tab=notifications"
             aria-label="Notifications"
-            className="h-9 w-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-cobalt hover:bg-white/5 transition-colors"
+            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:text-cobalt hover:bg-white/5 transition-colors"
           >
             <Bell className="h-[18px] w-[18px]" />
           </Link>
