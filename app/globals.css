@@ -53,96 +53,99 @@
 }
 
 :root {
-  /* ── Slate360 unified app skin — matches /preview/mobile-shell-v2 ──
-     :root === .dark for Phase 1. The brand IS dark.
-     A dedicated light theme can be reintroduced later if needed. */
+  /* ── Slate360 unified app skin (2026-04-22 light-content rollout) ──
+     The brand uses LIGHT content (white cards on slate canvas) with
+     DARK chrome (sidebar, top bar, mobile bottom nav). This block is
+     mirrored in the .dark selector below since <html> is force-dark
+     for backward compatibility with shadcn .dark variants. */
   --radius: 1rem;
-  --background: #0B0F15;
-  --foreground: #e2e8f0;
-  --card: #151A23;
-  --card-foreground: #e2e8f0;
-  --popover: #151A23;
-  --popover-foreground: #e2e8f0;
-  --primary: #3B82F6;                  /* Cobalt-500 — primary brand action */
-  --primary-foreground: #0B1220;       /* Deep navy text on cobalt */
-  --primary-hover: #2563EB;            /* Cobalt-600 */
-  --secondary: #1e2533;
-  --secondary-foreground: #e2e8f0;
-  --muted: #1e2533;
-  --muted-foreground: #94a3b8;
-  --accent: #1e2533;
-  --accent-foreground: #e2e8f0;
-  /* Steel — secondary accent (link hover, secondary icons, nav active) */
-  --accent-teal: #94A3B8;
-  --accent-teal-soft: rgba(148, 163, 184, 0.18);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.10);
-  --ring: #3B82F6;
+  --background: #E5EAF1;               /* App canvas — light slate */
+  --foreground: #0F172A;               /* Slate-900 text */
+  --card: #FFFFFF;                     /* Cards — pure white */
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --primary: #2563EB;                  /* Cobalt-600 — primary action */
+  --primary-foreground: #FFFFFF;
+  --primary-hover: #1D4ED8;            /* Cobalt-700 */
+  --secondary: #F1F5F9;                /* Slate-100 */
+  --secondary-foreground: #0F172A;
+  --muted: #F1F5F9;
+  --muted-foreground: #475569;         /* Slate-600 */
+  --accent: #EFF6FF;                   /* Cobalt-50 — hover wash */
+  --accent-foreground: #1D4ED8;
+  --accent-teal: #475569;
+  --accent-teal-soft: rgba(71, 85, 105, 0.10);
+  --destructive: #DC2626;
+  --border: #CBD5E1;                   /* Slate-300 */
+  --input: #CBD5E1;
+  --ring: #2563EB;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: #0B0F15;
-  --sidebar-foreground: #e2e8f0;
-  --sidebar-primary: #3B82F6;
-  --sidebar-primary-foreground: #0B1220;
-  --sidebar-accent: #1e2533;
-  --sidebar-accent-foreground: #e2e8f0;
-  --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #3B82F6;
-  /* App-shell skin tokens (mirror lib/design-system/tokens.ts appShell) */
-  --app-page: #0B0F15;
-  --app-card: #151A23;
-  --app-card-hover: rgba(255, 255, 255, 0.04);
-  --app-border: rgba(255, 255, 255, 0.05);
-  --app-glass: rgba(11, 15, 21, 0.80);
-  --app-glow-amber: 0 0 12px rgba(59, 130, 246, 0.14);
-  --app-glow-amber-strong: 0 0 16px 0 rgba(59, 130, 246, 0.22), 0 2px 8px 0 rgba(59, 130, 246, 0.14);
-  --app-shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
-  --app-shadow-elevated: 0 8px 32px -4px rgba(0, 0, 0, 0.4);
-  --color-scheme: dark;
+  /* Sidebar stays DARK — chrome contrast pattern */
+  --sidebar: #18181B;                  /* Zinc-900 */
+  --sidebar-foreground: #E4E4E7;       /* Zinc-200 */
+  --sidebar-primary: #2563EB;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #27272A;           /* Zinc-800 */
+  --sidebar-accent-foreground: #FAFAFA;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #2563EB;
+  /* App-shell skin tokens */
+  --app-page: #E5EAF1;
+  --app-card: #FFFFFF;
+  --app-card-hover: #F8FAFC;           /* Slate-50 */
+  --app-border: #CBD5E1;
+  --app-glass: rgba(255, 255, 255, 0.85);
+  --app-glow-amber: 0 0 12px rgba(37, 99, 235, 0.14);
+  --app-glow-amber-strong: 0 0 16px 0 rgba(37, 99, 235, 0.22), 0 2px 8px 0 rgba(37, 99, 235, 0.14);
+  --app-shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --app-shadow-elevated: 0 8px 32px -4px rgba(15, 23, 42, 0.18);
+  --color-scheme: light;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 .dark {
-  /* ── New Slate360 palette (deep-navy + cobalt + steel) ── */
-  --background: #131A24;
-  --foreground: #e2e8f0;
-  --card: #0F141C;
-  --card-foreground: #e2e8f0;
-  --popover: #0F141C;
-  --popover-foreground: #e2e8f0;
-  --primary: #3B82F6;                  /* Cobalt-500 */
-  --primary-foreground: #0B1220;       /* Deep navy text */
-  --primary-hover: #2563EB;            /* Cobalt-600 */
-  --secondary: #1e2533;
-  --secondary-foreground: #e2e8f0;
-  --muted: #1e2533;
-  --muted-foreground: #94a3b8;         /* Slate-400 */
-  --accent: #1e2533;
-  --accent-foreground: #e2e8f0;
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.10);
-  --ring: #3B82F6;
+  /* Mirror of :root — <html class="dark"> is the default chrome.
+     Light content / dark chrome pattern (Linear / Vercel / Notion). */
+  --background: #E5EAF1;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --primary: #2563EB;
+  --primary-foreground: #FFFFFF;
+  --primary-hover: #1D4ED8;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0F172A;
+  --muted: #F1F5F9;
+  --muted-foreground: #475569;
+  --accent: #EFF6FF;
+  --accent-foreground: #1D4ED8;
+  --destructive: #DC2626;
+  --border: #CBD5E1;
+  --input: #CBD5E1;
+  --ring: #2563EB;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: #0B0F15;
-  --sidebar-foreground: #e2e8f0;
-  --sidebar-primary: #3B82F6;
-  --sidebar-primary-foreground: #0B1220;
-  --sidebar-accent: #1e2533;
-  --sidebar-accent-foreground: #e2e8f0;
-  --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #3B82F6;
+  --sidebar: #18181B;
+  --sidebar-foreground: #E4E4E7;
+  --sidebar-primary: #2563EB;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #27272A;
+  --sidebar-accent-foreground: #FAFAFA;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #2563EB;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -190,10 +193,10 @@
   --status-draft: #6B7280;
   --status-draft-bg: #F9FAFB;
 
-  /* Surface — deep navy app skin (matches mobile-shell-v2) */
-  --surface-page: #131A24;
-  --surface-card: #0F141C;
-  --surface-card-hover: #1a212c;
+  /* Surface — light app skin (2026-04-22 light-content rollout) */
+  --surface-page: #E5EAF1;
+  --surface-card: #FFFFFF;
+  --surface-card-hover: #F8FAFC;
 
   /* Spacing (8px grid) */
   --space-1: 4px;
@@ -203,55 +206,54 @@
   --space-6: 24px;
   --space-8: 32px;
 
-  /* Dark Glass Design System — deep navy (single source of truth) */
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --surface-glass: rgba(11, 15, 21, 0.80);
-  --surface-light: #0B0F15;
-  --surface-light-secondary: #151A23;
-  --border-glass: rgba(255, 255, 255, 0.08);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  /* Light app design system (single source of truth) */
+  --text-primary: #0F172A;             /* Slate-900 */
+  --text-secondary: #475569;           /* Slate-600 */
+  --text-muted: #64748B;               /* Slate-500 */
+  --surface-glass: rgba(255, 255, 255, 0.85);
+  --surface-light: #FFFFFF;
+  --surface-light-secondary: #F8FAFC;
+  --border-glass: rgba(15, 23, 42, 0.08);
+  --glass-border: 1px solid rgba(15, 23, 42, 0.08);
   --backdrop-blur: blur(16px);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
-  --shadow-glass: 0 8px 32px -4px rgb(0 0 0 / 0.4);
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-glass: 0 8px 32px -4px rgba(15, 23, 42, 0.18);
 }
 
-/* Dark mode overrides for Slate360 design tokens */
+/* Mirror tokens under .dark since <html class="dark"> is the default */
 .dark {
-  --slate-gold: #3B82F6;
-  --slate-gold-hover: #2563EB;
-  --slate-gold-light: rgba(59, 130, 246, 0.14);
-  --slate-accent: #3B82F6;
-  --slate-accent-hover: #2563EB;
-  --slate-accent-ring: rgba(59, 130, 246, 0.5);
-  --slate-blue: #e2e8f0;
-  --slate-blue-hover: #cbd5e1;
-  --slate-blue-light: rgba(226, 232, 240, 0.08);
+  --slate-gold: #2563EB;
+  --slate-gold-hover: #1D4ED8;
+  --slate-gold-light: rgba(37, 99, 235, 0.10);
+  --slate-accent: #2563EB;
+  --slate-accent-hover: #1D4ED8;
+  --slate-accent-ring: rgba(37, 99, 235, 0.5);
+  --slate-blue: #0F172A;
+  --slate-blue-hover: #1E293B;
+  --slate-blue-light: rgba(15, 23, 42, 0.06);
 
-  --status-open-bg: rgba(37, 99, 235, 0.15);
-  --status-review-bg: rgba(37, 99, 235, 0.15);
-  --status-approved-bg: rgba(5, 150, 105, 0.15);
-  --status-closed-bg: rgba(5, 150, 105, 0.15);
-  --status-overdue-bg: rgba(220, 38, 38, 0.15);
-  --status-draft-bg: rgba(107, 114, 128, 0.15);
+  --status-open-bg: #EFF6FF;
+  --status-review-bg: #FFFBEB;
+  --status-approved-bg: #ECFDF5;
+  --status-closed-bg: #ECFDF5;
+  --status-overdue-bg: #FEF2F2;
+  --status-draft-bg: #F9FAFB;
 
-  --surface-page: #131A24;
-  --surface-card: #0F141C;
-  --surface-card-hover: #1a212c;
+  --surface-page: #E5EAF1;
+  --surface-card: #FFFFFF;
+  --surface-card-hover: #F8FAFC;
 
-  /* Dark Glass Design System — deep navy */
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --surface-glass: rgba(11, 15, 21, 0.80);
-  --surface-light: #0B0F15;
-  --surface-light-secondary: #151A23;
-  --border-glass: rgba(255, 255, 255, 0.08);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --surface-glass: rgba(255, 255, 255, 0.85);
+  --surface-light: #FFFFFF;
+  --surface-light-secondary: #F8FAFC;
+  --border-glass: rgba(15, 23, 42, 0.08);
+  --glass-border: 1px solid rgba(15, 23, 42, 0.08);
   --backdrop-blur: blur(16px);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
-  --shadow-glass: 0 8px 32px -4px rgb(0 0 0 / 0.4);
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-glass: 0 8px 32px -4px rgba(15, 23, 42, 0.18);
 }
 
 @layer base {
@@ -291,6 +293,17 @@
     overscroll-behavior-x: none;
     width: 100%;
     max-width: 100%;
+  }
+  /* iOS Safari: any input with computed font-size <16px triggers
+     auto-zoom on focus, then leaves the page zoomed (forcing the user
+     to pinch to restore). Lock all form fields to ≥16px on touch
+     devices to prevent the wiggle / pinch-to-restore loop. */
+  @media (hover: none) and (pointer: coarse) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
   }
 }
 
