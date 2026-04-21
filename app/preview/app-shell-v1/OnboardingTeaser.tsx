@@ -220,7 +220,7 @@ export function OnboardingTeaser() {
               onClick={dismiss}
               className="h-10 px-5 rounded-lg bg-cobalt text-white text-sm font-semibold hover:bg-cobalt-hover flex items-center gap-2"
             >
-              <Share2 className="h-4 w-4" />
+              <Check className="h-4 w-4" />
               Got it — let&apos;s go
             </button>
           ) : (
