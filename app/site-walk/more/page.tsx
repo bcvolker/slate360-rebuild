@@ -1,4 +1,4 @@
-import { MoreHorizontal, Map, LayoutTemplate, Users, Palette, ClipboardCheck, Settings } from "lucide-react";
+import { MoreHorizontal, Map, LayoutTemplate, Users, Palette, ClipboardCheck, Settings, FolderKanban } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = { title: "More — Site Walk" };
@@ -8,6 +8,7 @@ const SECTIONS = [
   { label: "Templates", href: "/site-walk/more/templates", icon: LayoutTemplate, desc: "Reusable session and deliverable templates" },
   { label: "Contacts", href: "/site-walk/more/contacts", icon: Users, desc: "Recipients for share, leadership view-only access" },
   { label: "Branding", href: "/site-walk/more/branding", icon: Palette, desc: "Logo, colors, email signature for deliverables" },
+  { label: "Project defaults", href: "/site-walk/more/projects", icon: FolderKanban, desc: "Per-project info that auto-fills into deliverables" },
   { label: "Assignments", href: "/site-walk/more/assignments", icon: ClipboardCheck, desc: "Tasks for collaborators, status tracking" },
   { label: "Settings", href: "/site-walk/more/settings", icon: Settings, desc: "Metadata defaults, notification preferences" },
 ];
