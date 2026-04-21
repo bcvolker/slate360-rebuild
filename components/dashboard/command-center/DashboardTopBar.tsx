@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { SlateLogo } from "@/components/shared/SlateLogo";
 import { InviteShareButton } from "@/components/shared/InviteShareButton";
 import { BetaFeedbackButton } from "@/components/shared/BetaFeedbackButton";
+import { BackButton } from "@/components/shared/BackButton";
 
 interface DashboardTopBarProps {
   onMenuClick: () => void;
@@ -55,6 +56,7 @@ export function DashboardTopBar({
           >
             <Menu className="h-5 w-5" />
           </button>
+          <BackButton className="h-10 w-10 rounded-xl bg-white/[0.04] hover:bg-cobalt-soft border border-app hover:border-cobalt text-zinc-300 hover:text-cobalt-hover" />
         </div>
 
         <div className="flex-1" />
