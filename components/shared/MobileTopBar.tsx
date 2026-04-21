@@ -11,7 +11,6 @@
  */
 
 import Link from "next/link";
-import Image from "next/image";
 import { Bell, Search, QrCode, Download } from "lucide-react";
 import {
   DropdownMenu,
@@ -36,11 +35,9 @@ interface MobileTopBarProps {
 
 export function MobileTopBar({
   userName,
-  workspaceName,
   isBetaEligible = false,
   onSearchClick,
 }: MobileTopBarProps) {
-  const display = workspaceName?.trim() || userName?.trim() || "Slate360";
   const { setOpen: openInviteShare } = useInviteShare();
 
   return (
@@ -57,22 +54,16 @@ export function MobileTopBar({
         {/* Left: cobalt icon + workspace label */}
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 min-w-0 flex-shrink-0"
+          className="flex items-center min-w-0 flex-shrink-0"
           aria-label="Slate360 home"
         >
-          <Image
-            src="/slate360-icon-color.png"
-            alt=""
+          <img
+            src="/slate360-icon-color.png?v=cobalt-2026-04-21"
+            alt="Slate360"
             width={36}
             height={36}
-            priority
-            unoptimized
             className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
-            aria-hidden="true"
           />
-          <span className="text-[12px] font-semibold text-slate-200 tracking-wide truncate max-w-[110px]">
-            {display}
-          </span>
         </Link>
 
         {/* Right: actions */}

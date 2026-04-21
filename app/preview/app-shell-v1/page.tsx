@@ -73,11 +73,6 @@ export default function AppShellPreviewPage() {
     >
       <OnboardingTeaser />
       <div className="px-4 py-5 lg:px-8 lg:py-8 space-y-6 max-w-5xl mx-auto">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Good morning, Preview</h1>
-          <p className="text-sm text-slate-400 mt-1">Here&apos;s what&apos;s happening today.</p>
-        </div>
-
         {/* Apps Grid — 2 cols, last-odd centers */}
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Apps</h2>
