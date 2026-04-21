@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { Maximize2, X } from "lucide-react";
 
 const ModelViewerClient = dynamic(
   () => import("@/components/ModelViewerClient"),
@@ -17,16 +17,36 @@ export type DemoType = "panorama" | "model" | "placeholder";
 
 interface AppDemoProps {
   type: DemoType;
-  /** Path to GLB file for "model" type */
   modelSrc?: string;
-  /** Path to panorama image for "panorama" type */
   panoramaSrc?: string;
-  /** Label shown under the demo */
   label?: string;
 }
 
+/**
+ * AppDemo — app-tile preview viewer. Mirrors HeroDemo's expand pattern
+ * exactly so users see ONE consistent fullscreen UI across the marketing
+ * page: Maximize2 button top-right; expanded mode = `fixed inset-0`
+ * overlay with header X close + Esc-to-close + bottom "Close (Esc)" pill.
+ */
 export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoProps) {
   const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" || e.key === "Esc") {
+        e.preventDefault();
+        setExpanded(false);
+      }
+    };
+    document.addEventListener("keydown", onKey, true);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey, true);
+    };
+  }, [expanded]);
 
   const viewer = (
     <>
@@ -40,10 +60,7 @@ export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoP
         />
       )}
       {type === "panorama" && panoramaSrc && (
-        <PanoramaViewer
-          src={panoramaSrc}
-          caption="Drag to look around"
-        />
+        <PanoramaViewer src={panoramaSrc} caption="Drag to look around" />
       )}
       {type === "placeholder" && (
         <div className="flex items-center justify-center h-full">
@@ -53,60 +70,57 @@ export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoP
     </>
   );
 
-  if (type === "placeholder") {
-    return (
-      <div className="relative">
-        <div className="rounded-lg overflow-hidden bg-background/50 border border-border aspect-video">
-          {viewer}
-        </div>
-        {label && (
-          <p className="text-xs text-muted-foreground text-center mt-2">{label}</p>
-        )}
-      </div>
-    );
-  }
+  const isPlaceholder = type === "placeholder";
 
   return (
     <div className="relative">
-      {/* Inline preview */}
-      <button
-        onClick={() => setExpanded(true)}
-        className="w-full text-left"
-        aria-label="Expand demo"
-      >
-        <div className="rounded-lg overflow-hidden bg-background/50 border border-border aspect-video relative group cursor-pointer">
-          {viewer}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-lg bg-background/80 backdrop-blur-sm border border-border">
-              <Maximize2 className="h-5 w-5 text-primary" />
-            </div>
-          </div>
-        </div>
-      </button>
+      <div className="relative aspect-video rounded-lg overflow-hidden bg-background/50 border border-border">
+        {viewer}
+        {!isPlaceholder && (
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            aria-label="Expand viewer"
+            className="absolute top-2 right-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur border border-border text-foreground hover:bg-background hover:border-cobalt/40 transition-colors shadow-md"
+          >
+            <Maximize2 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
 
       {label && (
         <p className="text-xs text-muted-foreground text-center mt-2">{label}</p>
       )}
 
-      {/* Full-screen expanded overlay */}
-      {expanded && (
+      {expanded && !isPlaceholder && (
         <div
-          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8"
-          onClick={() => setExpanded(false)}
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur flex flex-col"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Expanded ${label ?? "demo"} viewer`}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setExpanded(false);
+          }}
         >
-          <div
-            className="relative w-full max-w-5xl aspect-video rounded-xl overflow-hidden border border-primary/30 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {viewer}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0 bg-black/60">
+            <span className="text-sm text-white/80 truncate">{label ?? "Demo"}</span>
             <button
+              type="button"
               onClick={() => setExpanded(false)}
-              className="absolute top-3 right-3 z-10 p-2 rounded-lg bg-background/80 backdrop-blur-sm border border-border hover:border-primary/50 text-muted-foreground hover:text-primary transition-all"
-              aria-label="Close expanded view"
+              aria-label="Close expanded viewer"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors"
             >
-              <Minimize2 className="h-5 w-5" />
+              <X className="h-6 w-6" />
             </button>
           </div>
+          <div className="flex-1 min-h-0 w-full">{viewer}</div>
+          <button
+            type="button"
+            onClick={() => setExpanded(false)}
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium border border-white/20 backdrop-blur"
+          >
+            Close (Esc)
+          </button>
         </div>
       )}
     </div>

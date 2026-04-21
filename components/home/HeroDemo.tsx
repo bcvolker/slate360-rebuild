@@ -86,7 +86,7 @@ export default function HeroDemo() {
         <TabBtn active={active === "video"}    onClick={() => setActive("video")}    icon={<Box className="h-3.5 w-3.5" />}       label="Video" />
       </div>
 
-      <div className="relative aspect-[4/3] sm:aspect-[4/3] lg:aspect-video max-h-[40vh] sm:max-h-[44vh] lg:max-h-none rounded-lg overflow-hidden bg-background/50">
+      <div className="relative aspect-video sm:aspect-[4/3] lg:aspect-video max-h-[36vh] sm:max-h-[44vh] lg:max-h-none rounded-lg overflow-hidden bg-background/50">
         {viewer(false)}
         <button
           type="button"
