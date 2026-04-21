@@ -15,27 +15,27 @@ import { ArrowLeft, FolderOpen, Camera, Layers, Activity, ChevronRight, Plus, Se
 export const metadata = { title: "Light theme preview — Slate360" };
 
 const lightVars: React.CSSProperties = {
-  // Canvas
-  ["--background" as string]: "#F8FAFC",
-  ["--foreground" as string]: "#1E293B",
+  // Canvas — darker so white cards have something to pop against
+  ["--background" as string]: "#E5EAF1",
+  ["--foreground" as string]: "#0F172A",
   ["--card" as string]: "#FFFFFF",
   ["--card-foreground" as string]: "#0F172A",
   ["--popover" as string]: "#FFFFFF",
   ["--popover-foreground" as string]: "#0F172A",
   // Brand
-  ["--primary" as string]: "#3B82F6",
+  ["--primary" as string]: "#2563EB",
   ["--primary-foreground" as string]: "#FFFFFF",
-  ["--primary-hover" as string]: "#2563EB",
-  ["--secondary" as string]: "#F1F5F9",
-  ["--secondary-foreground" as string]: "#334155",
-  ["--muted" as string]: "#F1F5F9",
-  ["--muted-foreground" as string]: "#64748B",
-  ["--accent" as string]: "#F1F5F9",
+  ["--primary-hover" as string]: "#1D4ED8",
+  ["--secondary" as string]: "#E2E8F0",
+  ["--secondary-foreground" as string]: "#1E293B",
+  ["--muted" as string]: "#E2E8F0",
+  ["--muted-foreground" as string]: "#475569",
+  ["--accent" as string]: "#DBE3EE",
   ["--accent-foreground" as string]: "#0F172A",
-  // Borders
-  ["--border" as string]: "#E2E8F0",
-  ["--input" as string]: "#E2E8F0",
-  ["--ring" as string]: "rgba(59, 130, 246, 0.5)",
+  // Borders — stronger
+  ["--border" as string]: "#CBD5E1",
+  ["--input" as string]: "#CBD5E1",
+  ["--ring" as string]: "rgba(37, 99, 235, 0.55)",
   // Chrome (graphite, no navy)
   ["--sidebar" as string]: "#09090B",
   ["--sidebar-foreground" as string]: "#FAFAFA",
@@ -45,20 +45,20 @@ const lightVars: React.CSSProperties = {
   ["--sidebar-accent-foreground" as string]: "#FAFAFA",
   ["--sidebar-border" as string]: "#27272A",
   // Surface helpers used by various components
-  ["--surface-page" as string]: "#F8FAFC",
+  ["--surface-page" as string]: "#E5EAF1",
   ["--surface-card" as string]: "#FFFFFF",
-  ["--surface-card-hover" as string]: "#F1F5F9",
-  ["--text-primary" as string]: "#1E293B",
-  ["--text-secondary" as string]: "#64748B",
-  ["--text-muted" as string]: "#94A3B8",
-  ["--surface-glass" as string]: "rgba(255, 255, 255, 0.85)",
+  ["--surface-card-hover" as string]: "#F8FAFC",
+  ["--text-primary" as string]: "#0F172A",
+  ["--text-secondary" as string]: "#475569",
+  ["--text-muted" as string]: "#64748B",
+  ["--surface-glass" as string]: "rgba(255, 255, 255, 0.9)",
   ["--surface-light" as string]: "#FFFFFF",
-  ["--surface-light-secondary" as string]: "#F8FAFC",
-  ["--border-glass" as string]: "#E2E8F0",
-  ["--app-page" as string]: "#F8FAFC",
+  ["--surface-light-secondary" as string]: "#F1F5F9",
+  ["--border-glass" as string]: "#CBD5E1",
+  ["--app-page" as string]: "#E5EAF1",
   ["--app-card" as string]: "#FFFFFF",
-  ["--app-card-hover" as string]: "#F1F5F9",
-  ["--app-border" as string]: "#E2E8F0",
+  ["--app-card-hover" as string]: "#F8FAFC",
+  ["--app-border" as string]: "#CBD5E1",
 };
 
 const apps = [
@@ -148,7 +148,7 @@ export default function LightThemePreview() {
           {/* Activity feed */}
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">Recent activity</h2>
-            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-sm divide-y divide-[var(--border)]">
+            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-md ring-1 ring-slate-900/5 divide-y divide-[var(--border)]">
               {[
                 { who: "Sara Lopez", what: "uploaded 12 photos to", where: "1247 Mountain Trail Rd" },
                 { who: "Mike Tanaka", what: "approved RFI #008 on", where: "Building Permits" },
@@ -172,7 +172,7 @@ export default function LightThemePreview() {
           {/* CTA palette */}
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">Buttons & links — depth check</h2>
-            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-sm p-6 flex flex-wrap gap-3">
+            <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-md ring-1 ring-slate-900/5 p-6 flex flex-wrap gap-3">
               <button className="h-11 px-5 rounded-xl bg-[var(--primary)] text-white font-semibold shadow-lg shadow-blue-500/40 hover:bg-[var(--primary-hover)] transition-all">
                 Primary action
               </button>
@@ -213,8 +213,8 @@ function SidebarItem({ label, active = false }: { label: string; active?: boolea
 
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-sm p-5">
-      <div className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] font-medium">{label}</div>
+    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-md ring-1 ring-slate-900/5 p-5">
+      <div className="text-xs uppercase tracking-wide text-[var(--muted-foreground)] font-semibold">{label}</div>
       <div className="mt-1 text-3xl font-bold text-[var(--foreground)]">{value}</div>
     </div>
   );
@@ -232,7 +232,7 @@ function AppCard({
   desc: string;
 }) {
   return (
-    <button className="text-left bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-sm hover:shadow-lg hover:border-[var(--primary)] hover:-translate-y-0.5 transition-all p-5 group">
+    <button className="text-left bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-md ring-1 ring-slate-900/5 hover:shadow-xl hover:ring-2 hover:ring-[var(--primary)]/40 hover:border-[var(--primary)] hover:-translate-y-0.5 transition-all p-5 group">
       <div
         className="h-12 w-12 rounded-xl flex items-center justify-center mb-3"
         style={{ backgroundColor: `${color}1a`, color }}
