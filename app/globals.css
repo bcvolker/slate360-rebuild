@@ -53,99 +53,95 @@
 }
 
 :root {
-  /* ── Slate360 unified app skin (2026-04-22 light-content rollout) ──
-     The brand uses LIGHT content (white cards on slate canvas) with
-     DARK chrome (sidebar, top bar, mobile bottom nav). This block is
-     mirrored in the .dark selector below since <html> is force-dark
-     for backward compatibility with shadcn .dark variants. */
+  /* ── Slate360 unified app skin (2026-04-22 dark + high-contrast text) ──
+     Logo requires a dark background. Brand stays dark.
+     Text contrast bumped to slate-50 / slate-300 for legibility. */
   --radius: 1rem;
-  --background: #E5EAF1;               /* App canvas — light slate */
-  --foreground: #0F172A;               /* Slate-900 text */
-  --card: #FFFFFF;                     /* Cards — pure white */
-  --card-foreground: #0F172A;
-  --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
-  --primary: #2563EB;                  /* Cobalt-600 — primary action */
+  --background: #0B0F15;               /* App canvas — deep navy */
+  --foreground: #F8FAFC;               /* Slate-50 — near-white text */
+  --card: #151A23;                     /* Card surface */
+  --card-foreground: #F8FAFC;
+  --popover: #151A23;
+  --popover-foreground: #F8FAFC;
+  --primary: #3B82F6;                  /* Cobalt-500 — primary action */
   --primary-foreground: #FFFFFF;
-  --primary-hover: #1D4ED8;            /* Cobalt-700 */
-  --secondary: #F1F5F9;                /* Slate-100 */
-  --secondary-foreground: #0F172A;
-  --muted: #F1F5F9;
-  --muted-foreground: #475569;         /* Slate-600 */
-  --accent: #EFF6FF;                   /* Cobalt-50 — hover wash */
-  --accent-foreground: #1D4ED8;
-  --accent-teal: #475569;
-  --accent-teal-soft: rgba(71, 85, 105, 0.10);
-  --destructive: #DC2626;
-  --border: #CBD5E1;                   /* Slate-300 */
-  --input: #CBD5E1;
-  --ring: #2563EB;
+  --primary-hover: #2563EB;            /* Cobalt-600 */
+  --secondary: #1e2533;
+  --secondary-foreground: #F8FAFC;
+  --muted: #1e2533;
+  --muted-foreground: #CBD5E1;         /* Slate-300 — was 94a3b8 (too dim) */
+  --accent: #1e2533;
+  --accent-foreground: #F8FAFC;
+  --accent-teal: #CBD5E1;
+  --accent-teal-soft: rgba(203, 213, 225, 0.18);
+  --destructive: #F87171;              /* Red-400 — readable on dark */
+  --border: rgba(255, 255, 255, 0.14); /* was 0.08 — stronger separation */
+  --input: rgba(255, 255, 255, 0.16);
+  --ring: #3B82F6;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  /* Sidebar stays DARK — chrome contrast pattern */
-  --sidebar: #18181B;                  /* Zinc-900 */
-  --sidebar-foreground: #E4E4E7;       /* Zinc-200 */
-  --sidebar-primary: #2563EB;
+  --sidebar: #0B0F15;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #3B82F6;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #27272A;           /* Zinc-800 */
-  --sidebar-accent-foreground: #FAFAFA;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #2563EB;
+  --sidebar-accent: #1e2533;
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: rgba(255, 255, 255, 0.10);
+  --sidebar-ring: #3B82F6;
   /* App-shell skin tokens */
-  --app-page: #E5EAF1;
-  --app-card: #FFFFFF;
-  --app-card-hover: #F8FAFC;           /* Slate-50 */
-  --app-border: #CBD5E1;
-  --app-glass: rgba(255, 255, 255, 0.85);
-  --app-glow-amber: 0 0 12px rgba(37, 99, 235, 0.14);
-  --app-glow-amber-strong: 0 0 16px 0 rgba(37, 99, 235, 0.22), 0 2px 8px 0 rgba(37, 99, 235, 0.14);
-  --app-shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-  --app-shadow-elevated: 0 8px 32px -4px rgba(15, 23, 42, 0.18);
-  --color-scheme: light;
+  --app-page: #0B0F15;
+  --app-card: #151A23;
+  --app-card-hover: rgba(255, 255, 255, 0.06);
+  --app-border: rgba(255, 255, 255, 0.10);
+  --app-glass: rgba(11, 15, 21, 0.80);
+  --app-glow-amber: 0 0 12px rgba(59, 130, 246, 0.14);
+  --app-glow-amber-strong: 0 0 16px 0 rgba(59, 130, 246, 0.22), 0 2px 8px 0 rgba(59, 130, 246, 0.14);
+  --app-shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
+  --app-shadow-elevated: 0 8px 32px -4px rgba(0, 0, 0, 0.5);
+  --color-scheme: dark;
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 .dark {
-  /* Mirror of :root — <html class="dark"> is the default chrome.
-     Light content / dark chrome pattern (Linear / Vercel / Notion). */
-  --background: #E5EAF1;
-  --foreground: #0F172A;
-  --card: #FFFFFF;
-  --card-foreground: #0F172A;
-  --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
-  --primary: #2563EB;
+  /* Mirror of :root — <html class="dark"> is default. */
+  --background: #0B0F15;
+  --foreground: #F8FAFC;
+  --card: #151A23;
+  --card-foreground: #F8FAFC;
+  --popover: #151A23;
+  --popover-foreground: #F8FAFC;
+  --primary: #3B82F6;
   --primary-foreground: #FFFFFF;
-  --primary-hover: #1D4ED8;
-  --secondary: #F1F5F9;
-  --secondary-foreground: #0F172A;
-  --muted: #F1F5F9;
-  --muted-foreground: #475569;
-  --accent: #EFF6FF;
-  --accent-foreground: #1D4ED8;
-  --destructive: #DC2626;
-  --border: #CBD5E1;
-  --input: #CBD5E1;
-  --ring: #2563EB;
+  --primary-hover: #2563EB;
+  --secondary: #1e2533;
+  --secondary-foreground: #F8FAFC;
+  --muted: #1e2533;
+  --muted-foreground: #CBD5E1;
+  --accent: #1e2533;
+  --accent-foreground: #F8FAFC;
+  --destructive: #F87171;
+  --border: rgba(255, 255, 255, 0.14);
+  --input: rgba(255, 255, 255, 0.16);
+  --ring: #3B82F6;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: #18181B;
-  --sidebar-foreground: #E4E4E7;
-  --sidebar-primary: #2563EB;
+  --sidebar: #0B0F15;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #3B82F6;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #27272A;
-  --sidebar-accent-foreground: #FAFAFA;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #2563EB;
+  --sidebar-accent: #1e2533;
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: rgba(255, 255, 255, 0.10);
+  --sidebar-ring: #3B82F6;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -193,10 +189,10 @@
   --status-draft: #6B7280;
   --status-draft-bg: #F9FAFB;
 
-  /* Surface — light app skin (2026-04-22 light-content rollout) */
-  --surface-page: #E5EAF1;
-  --surface-card: #FFFFFF;
-  --surface-card-hover: #F8FAFC;
+  /* Surface — dark app skin (2026-04-22 logo-on-dark) */
+  --surface-page: #0B0F15;
+  --surface-card: #151A23;
+  --surface-card-hover: #1F2937;
 
   /* Spacing (8px grid) */
   --space-1: 4px;
@@ -206,54 +202,54 @@
   --space-6: 24px;
   --space-8: 32px;
 
-  /* Light app design system (single source of truth) */
-  --text-primary: #0F172A;             /* Slate-900 */
-  --text-secondary: #475569;           /* Slate-600 */
-  --text-muted: #64748B;               /* Slate-500 */
-  --surface-glass: rgba(255, 255, 255, 0.85);
-  --surface-light: #FFFFFF;
-  --surface-light-secondary: #F8FAFC;
-  --border-glass: rgba(15, 23, 42, 0.08);
-  --glass-border: 1px solid rgba(15, 23, 42, 0.08);
+  /* Dark app design system — high-contrast text */
+  --text-primary: #F8FAFC;             /* Slate-50 — near-white */
+  --text-secondary: #CBD5E1;           /* Slate-300 — was too dim before */
+  --text-muted: #94A3B8;               /* Slate-400 */
+  --surface-glass: rgba(11, 15, 21, 0.80);
+  --surface-light: #0B0F15;
+  --surface-light-secondary: #151A23;
+  --border-glass: rgba(255, 255, 255, 0.14);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.14);
   --backdrop-blur: blur(16px);
-  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-  --shadow-glass: 0 8px 32px -4px rgba(15, 23, 42, 0.18);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
+  --shadow-glass: 0 8px 32px -4px rgba(0, 0, 0, 0.5);
 }
 
 /* Mirror tokens under .dark since <html class="dark"> is the default */
 .dark {
-  --slate-gold: #2563EB;
-  --slate-gold-hover: #1D4ED8;
-  --slate-gold-light: rgba(37, 99, 235, 0.10);
-  --slate-accent: #2563EB;
-  --slate-accent-hover: #1D4ED8;
-  --slate-accent-ring: rgba(37, 99, 235, 0.5);
-  --slate-blue: #0F172A;
-  --slate-blue-hover: #1E293B;
-  --slate-blue-light: rgba(15, 23, 42, 0.06);
+  --slate-gold: #3B82F6;
+  --slate-gold-hover: #2563EB;
+  --slate-gold-light: rgba(59, 130, 246, 0.14);
+  --slate-accent: #3B82F6;
+  --slate-accent-hover: #2563EB;
+  --slate-accent-ring: rgba(59, 130, 246, 0.5);
+  --slate-blue: #F8FAFC;
+  --slate-blue-hover: #E2E8F0;
+  --slate-blue-light: rgba(248, 250, 252, 0.08);
 
-  --status-open-bg: #EFF6FF;
-  --status-review-bg: #FFFBEB;
-  --status-approved-bg: #ECFDF5;
-  --status-closed-bg: #ECFDF5;
-  --status-overdue-bg: #FEF2F2;
-  --status-draft-bg: #F9FAFB;
+  --status-open-bg: rgba(37, 99, 235, 0.18);
+  --status-review-bg: rgba(37, 99, 235, 0.18);
+  --status-approved-bg: rgba(5, 150, 105, 0.18);
+  --status-closed-bg: rgba(5, 150, 105, 0.18);
+  --status-overdue-bg: rgba(220, 38, 38, 0.20);
+  --status-draft-bg: rgba(107, 114, 128, 0.20);
 
-  --surface-page: #E5EAF1;
-  --surface-card: #FFFFFF;
-  --surface-card-hover: #F8FAFC;
+  --surface-page: #0B0F15;
+  --surface-card: #151A23;
+  --surface-card-hover: #1F2937;
 
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #64748B;
-  --surface-glass: rgba(255, 255, 255, 0.85);
-  --surface-light: #FFFFFF;
-  --surface-light-secondary: #F8FAFC;
-  --border-glass: rgba(15, 23, 42, 0.08);
-  --glass-border: 1px solid rgba(15, 23, 42, 0.08);
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --surface-glass: rgba(11, 15, 21, 0.80);
+  --surface-light: #0B0F15;
+  --surface-light-secondary: #151A23;
+  --border-glass: rgba(255, 255, 255, 0.14);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.14);
   --backdrop-blur: blur(16px);
-  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-  --shadow-glass: 0 8px 32px -4px rgba(15, 23, 42, 0.18);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
+  --shadow-glass: 0 8px 32px -4px rgba(0, 0, 0, 0.5);
 }
 
 @layer base {
