@@ -36,13 +36,10 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
           {orgName || userName || "Slate360"}
         </p>
         <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
-          Command Center
+          {userName ? `Welcome back, ${userName.split(" ")[0]}` : "Welcome back"}
         </h1>
         <p className="text-sm text-muted-foreground sm:text-base">
-          Your workspace at a glance
-        </p>
-        <p className="text-xs text-muted-foreground/50">
-          Storage limit: {storageLimitGb} GB
+          Jump into your projects, apps, and recent work.
         </p>
       </section>
 
