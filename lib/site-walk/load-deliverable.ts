@@ -35,7 +35,7 @@ function isValidToken(token: string): boolean {
   return typeof token === "string" && /^[A-Za-z0-9_-]{16,64}$/.test(token);
 }
 
-function normaliseItems(content: unknown): ViewerItem[] {
+function normaliseItems(content: unknown, token: string): ViewerItem[] {
   if (!Array.isArray(content)) return [];
   const items: ViewerItem[] = [];
   for (const raw of content) {
@@ -45,11 +45,14 @@ function normaliseItems(content: unknown): ViewerItem[] {
     const type = typeof r.type === "string" ? (r.type as ViewerItem["type"]) : null;
     const title = typeof r.title === "string" ? r.title : "";
     if (!id || !type) continue;
+    const mediaItemId = typeof r.mediaItemId === "string" ? r.mediaItemId : undefined;
+    const explicitUrl = typeof r.url === "string" ? r.url : undefined;
     items.push({
       id,
       type,
       title,
-      url: typeof r.url === "string" ? r.url : undefined,
+      mediaItemId,
+      url: explicitUrl ?? (mediaItemId ? `/api/view/${token}/media/${mediaItemId}` : undefined),
       notes: typeof r.notes === "string" ? r.notes : undefined,
       markupSvg: typeof r.markupSvg === "string" ? r.markupSvg : undefined,
       transcript: typeof r.transcript === "string" ? r.transcript : undefined,
@@ -132,7 +135,7 @@ export async function loadDeliverableByToken(
     senderName,
     senderLogo,
     shareToken: deliverable.share_token,
-    items: normaliseItems(deliverable.content),
+    items: normaliseItems(deliverable.content, deliverable.share_token),
     metadataVisibility,
   };
 }

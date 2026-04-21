@@ -27,6 +27,8 @@ export interface ViewerItem {
   type: ViewerItemType;
   title: string;
   url?: string;
+  /** When set, viewer fetches via `/api/view/[token]/media/[mediaItemId]`. */
+  mediaItemId?: string;
   notes?: string;
   metadata?: ViewerMetadata;
   markupSvg?: string;

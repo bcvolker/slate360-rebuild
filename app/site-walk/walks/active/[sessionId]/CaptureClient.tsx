@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import { Camera, Upload, Mic, FileText, Loader2, MapPin, CloudSun, CheckCircle2, AlertCircle } from "lucide-react";
 import { captureMetadata, type CaptureMetadata } from "@/lib/site-walk/metadata";
 
@@ -207,9 +208,19 @@ export default function CaptureClient({ sessionId, title }: { sessionId: string;
 
       {/* Item feed */}
       <section>
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
-          Captured ({items.length})
-        </h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+            Captured ({items.length})
+          </h2>
+          {items.length > 0 && (
+            <Link
+              href={`/site-walk/deliverables/new?session=${sessionId}`}
+              className="text-xs text-cobalt hover:text-cobalt-hover font-medium inline-flex items-center gap-1"
+            >
+              <FileText className="h-3 w-3" /> Build deliverable
+            </Link>
+          )}
+        </div>
         {items.length === 0 ? (
           <p className="text-sm text-slate-500">Nothing yet. Take a photo or write a note above.</p>
         ) : (

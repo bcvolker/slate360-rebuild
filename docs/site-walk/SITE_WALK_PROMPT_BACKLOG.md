@@ -11,7 +11,7 @@ Founder direction: capture → AI-formatted deliverable → multi-channel share 
 
 - ✅ **PR #27a** — Site Walk shell wrap (AppShell + cobalt logo + 5-tab nav + placeholder screens). Shipped commit `8aa4c44`.
 - 🟢 **PR #27b** — Capture flow MVP: Quick Start tiles (Camera / Upload Photo / Voice Note / Text Note), GPS + weather metadata stamping, presigned upload via existing `/api/site-walk/upload`, items via `/api/site-walk/items`. **In progress (parallel track)** — photo upload + metadata working; camera/voice/markup follow in #27b.2.
-- ⏳ **PR #27c** — Deliverable builder: template picker → AI cleanup → preview → branded edit → SlateDrop save.
+- 🟢 **PR #27c** — Deliverable builder MVP: list page, "New deliverable" picker (session + type + title), detail editor with title autosave, share link mint via `/api/site-walk/deliverables/[id]/share`, copy + native-share + revoke. Public media resolver `/api/view/[token]/media/[itemId]` so shared photos load in the viewer. **In progress** — block-editor + AI cleanup land in #27c.2.
 - ⏳ **PR #27d** — Share channels: (A) PDF email, (B) inline image email, (C) hosted viewing page (page rendering shipped in #27e — channels remain).
 - ✅ **PR #27e** — Viewing page renderer: slideshow + comments + 9 item types + native share. Shipped commit `9f1e338`.
 - ⏳ **PR #27f** — Project-bound mode (premium tier).
