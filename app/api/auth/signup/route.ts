@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     // by industry, role, company size, and referral source.
     const demo = demographics && typeof demographics === "object" ? demographics : {};
     const metadata: Record<string, unknown> = { full_name: name };
-    for (const key of ["company", "jobTitle", "industry", "companySize", "referralSource"] as const) {
+    for (const key of ["company", "jobTitle", "industry", "companySize", "referralSource", "referredBy"] as const) {
       const v = (demo as Record<string, unknown>)[key];
       if (typeof v === "string" && v.length > 0) metadata[key] = v;
     }
