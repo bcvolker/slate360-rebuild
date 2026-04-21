@@ -36,7 +36,7 @@ const PLATFORM_NAV: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: Home, matchPrefixes: ["/dashboard"] },
   { label: "Projects", href: "/projects", icon: FolderOpen, matchPrefixes: ["/projects"] },
   { label: "SlateDrop", href: "/slatedrop", icon: Cloud, matchPrefixes: ["/slatedrop"] },
-  { label: "Coordination", href: "/my-account?tab=notifications", icon: MessagesSquare, matchPrefixes: ["/coordination", "/my-account"] },
+  { label: "Coordination", href: "/coordination", icon: MessagesSquare, matchPrefixes: ["/coordination"] },
   { label: "Account", href: "/my-account", icon: User, matchPrefixes: ["/my-account"] },
 ];
 

@@ -444,7 +444,7 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
    ========================================================================== */
 
 function HeroSection() {
-  const [demoExpanded, setDemoExpanded] = useState(false);
+
 
   return (
     <section className="relative min-h-[100dvh] lg:h-screen flex items-center px-4 sm:px-6 lg:px-10 overflow-hidden">
@@ -497,54 +497,16 @@ function HeroSection() {
           </p>
         </div>
 
-        {/* RIGHT: interactive demo. Fills the column on lg+, expands wider
-            on md/sm so the viewer doesn't look pinched next to the headline. */}
+        {/* RIGHT: interactive demo. HeroDemo manages its own expand button
+            and fullscreen overlay so we don't add a giant border around it. */}
         <div className="w-full max-w-md sm:max-w-2xl mx-auto lg:max-w-none">
-          <Card className="bg-app-card border-app shadow-app-glow rounded-2xl relative">
-            <CardContent className="p-3 sm:p-4 lg:p-5">
+          <Card className="bg-app-card border-app shadow-app-glow rounded-2xl">
+            <CardContent className="p-2 sm:p-3">
               <HeroDemo />
-              <button
-                type="button"
-                onClick={() => setDemoExpanded(true)}
-                className="lg:hidden absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full bg-background/80 backdrop-blur px-2.5 py-1.5 text-xs font-medium text-foreground border border-border shadow-sm hover:bg-background"
-                aria-label="Expand demo"
-              >
-                <Maximize2 className="h-3.5 w-3.5" />
-                Expand
-              </button>
             </CardContent>
           </Card>
         </div>
       </div>
-
-      {/* Mobile fullscreen demo overlay */}
-      {demoExpanded && (
-        <div
-          className="lg:hidden fixed inset-0 z-[100] bg-background/95 backdrop-blur flex flex-col"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Expanded demo"
-        >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <span className="text-sm font-semibold text-foreground">Live Demo</span>
-            <button
-              type="button"
-              onClick={() => setDemoExpanded(false)}
-              className="inline-flex items-center justify-center h-9 w-9 rounded-full hover:bg-muted text-foreground"
-              aria-label="Close demo"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="flex-1 overflow-auto p-4">
-            <Card className="bg-app-card border-app rounded-2xl">
-              <CardContent className="p-3 sm:p-4">
-                <HeroDemo />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

@@ -83,33 +83,6 @@ export default function AccountProfileTab({ user, orgName, role }: Props) {
           </div>
         </div>
       </div>
-
-      {/* Preferences */}
-      <div className="rounded-2xl border border-app bg-app-card p-6">
-        <h3 className="text-sm font-bold text-zinc-100 mb-4">Preferences</h3>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 mb-1">Theme</label>
-            <select
-              className="w-full px-3 py-2 rounded-xl border border-app bg-white/[0.04] text-zinc-100 text-sm"
-              defaultValue="dark"
-              onChange={(e) => {
-                localStorage.setItem("slate360-theme", e.target.value);
-                document.documentElement.classList.remove("light", "dark");
-                document.documentElement.classList.add(e.target.value === "system" ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : e.target.value);
-              }}
-            >
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-              <option value="system">System</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-zinc-400 mb-1">Timezone</label>
-            <p className="text-sm text-zinc-300">{Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

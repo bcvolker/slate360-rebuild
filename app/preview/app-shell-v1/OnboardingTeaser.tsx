@@ -30,43 +30,55 @@ const steps = [
   {
     id: "welcome",
     title: "Welcome to the Slate360 beta",
-    body: "You're one of a limited number of early testers helping shape Slate360. This is the mobile app shell — what your installed app will look and feel like.",
+    body: "Thanks for being one of our early testers. The beta runs while we finalize the first official release. Your data is safe, backed up, and stays yours.",
     icon: Smartphone,
     showBetaProgress: true,
   },
   {
     id: "download",
-    title: "Download Slate360 to your phone",
-    body: "No App Store needed during beta. Slate360 installs directly from your browser and opens like a native app.",
+    title: "Install Slate360 on your phone",
+    body: "No App Store during beta. Slate360 installs from your browser and opens like a native app.",
     icon: Download,
     bullets: [
-      "iPhone: Safari → tap the Share icon → Add to Home Screen",
+      "iPhone: Safari → Share icon → Add to Home Screen",
       "Android: Chrome → ⋮ menu → Install app",
-      "Slate360 icon will appear on your home screen",
+      "Slate360's icon appears on your home screen",
     ],
   },
   {
     id: "permissions",
     title: "Permissions Slate360 will ask for",
-    body: "You'll see permission prompts when you first use a feature. Here's what each one is for and why it's needed.",
+    body: "You'll see prompts when you first use a feature. Here's what each one does and why we ask.",
     icon: Camera,
     permissions: [
-      { icon: Camera, name: "Camera", why: "Capture site walk photos and 360° tours directly from your phone." },
-      { icon: MapPin, name: "Location", why: "Geo-tag photos and pin observations to a coordinate on your site plan." },
-      { icon: Bell, name: "Notifications", why: "Alert you when teammates assign work, share deliverables, or comment on your captures." },
+      { icon: Camera, name: "Camera", why: "Capture site walk photos and 360° tours from your phone." },
+      { icon: MapPin, name: "Location", why: "Tag photos and observations to the spot on your site plan." },
+      { icon: Bell, name: "Notifications", why: "Alert you when teammates assign work or comment on your captures." },
+    ],
+  },
+  {
+    id: "data-safety",
+    title: "Your data is safe and yours",
+    body: "Beta is temporary, but your work isn't. Here's exactly what to expect.",
+    icon: Bell,
+    bullets: [
+      "Beta runs until our v1 launch — typically a few months",
+      "You'll get 30 days' notice before beta ends",
+      "After beta ends, you can view and download all your data free for 1 year in read-only mode",
+      "You can export anything (photos, deliverables, files) at any time",
     ],
   },
   {
     id: "referral",
-    title: "Share Slate360 → earn rewards",
-    body: "Tap the QR icon at the top of your screen to invite a teammate or another firm. Bigger rewards when invitees subscribe annually.",
+    title: "After beta — refer friends, earn discounts",
+    body: "Once paid plans go live, anyone you refer who subscribes earns you a discount. The size of your discount depends on what they subscribe to.",
     icon: Gift,
     bullets: [
-      "Share generates a personal QR code + invite link",
-      "1 paid signup → 1 free month",
-      "1 annual signup → 50% off your next annual renewal",
-      "5 annual signups → 1 free year",
-      "Rewards confirm 90 days after invitee's first payment clears",
+      "Friend subscribes to one app → small discount on your next month",
+      "Friend subscribes to a 2-app bundle → larger discount",
+      "Friend subscribes to the all-apps bundle → biggest discount",
+      "Annual plans earn the most. Discounts apply to your next renewal",
+      "Discounts confirm 30 days after their first payment clears",
     ],
   },
 ];
@@ -141,10 +153,10 @@ export function OnboardingTeaser() {
           <div className="h-12 w-12 rounded-2xl bg-cobalt/15 text-cobalt flex items-center justify-center mb-4">
             <Icon className="h-6 w-6" />
           </div>
-          <h2 id="onboarding-title" className="text-lg font-semibold text-foreground">
+          <h2 id="onboarding-title" className="text-xl sm:text-2xl font-semibold text-foreground">
             {current.title}
           </h2>
-          <p className="text-sm text-slate-400 mt-2 leading-relaxed">{current.body}</p>
+          <p className="text-base text-slate-300 mt-3 leading-relaxed">{current.body}</p>
 
           {/* Beta seat status — show only when ≥80% full (else just a generic note) */}
           {current.showBetaProgress && (
@@ -174,8 +186,8 @@ export function OnboardingTeaser() {
           {current.bullets && (
             <ul className="mt-4 space-y-2">
               {current.bullets.map((b) => (
-                <li key={b} className="flex items-start gap-2 text-sm text-slate-300">
-                  <Check className="h-4 w-4 text-cobalt flex-shrink-0 mt-0.5" />
+                <li key={b} className="flex items-start gap-2 text-base text-slate-200 leading-relaxed">
+                  <Check className="h-5 w-5 text-cobalt flex-shrink-0 mt-0.5" />
                   <span>{b}</span>
                 </li>
               ))}
@@ -192,8 +204,8 @@ export function OnboardingTeaser() {
                       <PIcon className="h-4 w-4" />
                     </span>
                     <div className="min-w-0">
-                      <div className="text-sm font-semibold text-foreground">{p.name}</div>
-                      <div className="text-xs text-slate-400 leading-snug mt-0.5">{p.why}</div>
+                      <div className="text-base font-semibold text-foreground">{p.name}</div>
+                      <div className="text-sm text-slate-300 leading-relaxed mt-1">{p.why}</div>
                     </div>
                   </li>
                 );

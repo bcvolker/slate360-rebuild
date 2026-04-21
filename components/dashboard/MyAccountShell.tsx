@@ -35,7 +35,6 @@ import type { Tier } from "@/lib/entitlements";
 const TABS = [
   // PROFILE
   { id: "profile",       group: "Profile",      label: "Profile",         icon: User,     audience: "everyone" },
-  { id: "preferences",   group: "Profile",      label: "Preferences",     icon: Settings, audience: "everyone" },
   { id: "notifications", group: "Profile",      label: "Notifications",   icon: Bell,     audience: "everyone" },
   { id: "sessions",      group: "Profile",      label: "Sessions",        icon: Activity, audience: "everyone" },
 
@@ -159,9 +158,6 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
         <div className="min-w-0">
         {activeTab === "profile" && (
           <AccountProfileTab user={user} orgName={orgName} role={role} />
-        )}
-        {activeTab === "preferences" && (
-          <ComingSoonEmptyState title="Preferences" />
         )}
         {activeTab === "sessions" && (
           <ComingSoonEmptyState title="Sessions & Devices" />
