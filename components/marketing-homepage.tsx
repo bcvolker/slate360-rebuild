@@ -497,8 +497,9 @@ function HeroSection() {
           </p>
         </div>
 
-        {/* RIGHT: interactive demo. Smaller on mobile to save space; expand button reveals fullscreen view. */}
-        <div className="w-full max-w-[20rem] sm:max-w-md mx-auto lg:max-w-none">
+        {/* RIGHT: interactive demo. Fills the column on lg+, expands wider
+            on md/sm so the viewer doesn't look pinched next to the headline. */}
+        <div className="w-full max-w-md sm:max-w-2xl mx-auto lg:max-w-none">
           <Card className="bg-app-card border-app shadow-app-glow rounded-2xl relative">
             <CardContent className="p-3 sm:p-4 lg:p-5">
               <HeroDemo />
