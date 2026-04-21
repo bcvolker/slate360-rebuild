@@ -11,7 +11,7 @@
  */
 
 import Link from "next/link";
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, QrCode } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +23,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { InviteShareButton } from "@/components/shared/InviteShareButton";
 import { BetaFeedbackButton } from "@/components/shared/BetaFeedbackButton";
+import { useInviteShare } from "@/components/shared/InviteShareProvider";
 import { cn } from "@/lib/utils";
 
 interface MobileTopBarProps {
@@ -39,6 +40,7 @@ export function MobileTopBar({
   onSearchClick,
 }: MobileTopBarProps) {
   const display = workspaceName?.trim() || userName?.trim() || "Slate360";
+  const { setOpen: openInviteShare } = useInviteShare();
 
   return (
     <header
@@ -57,14 +59,12 @@ export function MobileTopBar({
           className="flex items-center gap-2 min-w-0 flex-shrink-0"
           aria-label="Slate360 home"
         >
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#151A23] border border-white/10 shadow-[0_0_15px_rgba(59,130,246,0.18)] overflow-hidden p-1">
-            <img
-              src="/uploads/slate360-icon-cobalt.svg"
-              alt=""
-              className="h-full w-full object-contain"
-              aria-hidden="true"
-            />
-          </span>
+          <img
+            src="/uploads/slate360-icon-color.png"
+            alt=""
+            className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
+            aria-hidden="true"
+          />
           <span className="text-[12px] font-semibold text-slate-200 tracking-wide truncate max-w-[110px]">
             {display}
           </span>
@@ -82,6 +82,17 @@ export function MobileTopBar({
           </button>
 
           <BetaFeedbackButton isEligible={isBetaEligible} />
+          {/* Mobile-only: obvious QR/share button → opens Invite & Share modal */}
+          <button
+            type="button"
+            onClick={() => openInviteShare(true)}
+            aria-label="Invite & Share — get QR code"
+            className="sm:hidden h-9 w-9 flex items-center justify-center rounded-lg bg-cobalt/15 text-cobalt border border-cobalt/40 hover:bg-cobalt/25 transition-colors relative"
+          >
+            <QrCode className="h-[18px] w-[18px]" />
+            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-cobalt animate-pulse" />
+          </button>
+          {/* Desktop pill version (hidden < sm) */}
           <InviteShareButton />
 
           <Link
