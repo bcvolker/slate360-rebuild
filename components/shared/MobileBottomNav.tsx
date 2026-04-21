@@ -12,7 +12,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FolderOpen, Cloud, MessagesSquare, User } from "lucide-react";
+import {
+  Home,
+  FolderOpen,
+  Cloud,
+  MessagesSquare,
+  User,
+  Footprints,
+  FileText,
+  Send,
+  MoreHorizontal,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -22,7 +32,7 @@ interface NavItem {
   matchPrefixes: string[];
 }
 
-const NAV_ITEMS: NavItem[] = [
+const PLATFORM_NAV: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: Home, matchPrefixes: ["/dashboard"] },
   { label: "Projects", href: "/projects", icon: FolderOpen, matchPrefixes: ["/projects"] },
   { label: "SlateDrop", href: "/slatedrop", icon: Cloud, matchPrefixes: ["/slatedrop"] },
@@ -30,8 +40,22 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Account", href: "/my-account", icon: User, matchPrefixes: ["/my-account"] },
 ];
 
+const SITE_WALK_NAV: NavItem[] = [
+  { label: "Home", href: "/site-walk", icon: Home, matchPrefixes: ["/site-walk$"] },
+  { label: "Walks", href: "/site-walk/walks", icon: Footprints, matchPrefixes: ["/site-walk/walks", "/site-walk/board"] },
+  { label: "Deliverables", href: "/site-walk/deliverables", icon: FileText, matchPrefixes: ["/site-walk/deliverables"] },
+  { label: "Share", href: "/site-walk/share", icon: Send, matchPrefixes: ["/site-walk/share"] },
+  { label: "More", href: "/site-walk/more", icon: MoreHorizontal, matchPrefixes: ["/site-walk/more", "/site-walk/plans", "/site-walk/templates", "/site-walk/contacts"] },
+];
+
+function pickNav(pathname: string): NavItem[] {
+  if (pathname.startsWith("/site-walk")) return SITE_WALK_NAV;
+  return PLATFORM_NAV;
+}
+
 export function MobileBottomNav() {
   const pathname = usePathname() ?? "/";
+  const items = pickNav(pathname);
 
   return (
     <nav
@@ -45,13 +69,13 @@ export function MobileBottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <ul className="flex h-full items-stretch justify-around px-2">
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const Icon = item.icon;
-          const active = item.matchPrefixes.some((p) =>
-            p === "/dashboard"
-              ? pathname === "/dashboard" || pathname === "/"
-              : pathname.startsWith(p)
-          );
+          const active = item.matchPrefixes.some((p) => {
+            if (p === "/dashboard") return pathname === "/dashboard" || pathname === "/";
+            if (p === "/site-walk$") return pathname === "/site-walk";
+            return pathname.startsWith(p);
+          });
 
           return (
             <li key={item.label} className="flex-1">

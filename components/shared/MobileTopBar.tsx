@@ -58,7 +58,7 @@ export function MobileTopBar({
           aria-label="Slate360 home"
         >
           <img
-            src="/slate360-icon-color.png?v=cobalt-2026-04-21"
+            src="/uploads/slate360-icon-cobalt.svg?v=cobalt-2026-04-21"
             alt="Slate360"
             width={36}
             height={36}
