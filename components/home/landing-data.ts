@@ -58,10 +58,14 @@ export const APPS: AppItem[] = [
       "Walk a job with your phone or tablet to capture conditions, photos, notes, and tagged fields as you go — then turn what you saw into punch lists, branded reports, and proposals without retyping a thing.",
     icon: MapPin,
     features: [
-      "Geolocated, time-stamped photo capture",
-      "Automatic timeline organization",
-      "Weather & timestamp metadata",
-      "Instant sharing with stakeholders",
+      "Take photos and notes as you walk the job — no clipboard, no retyping later",
+      "Every photo automatically tagged with where it was taken, when, and the weather",
+      "Speak instead of type — voice notes are transcribed for you",
+      "Mark up photos with arrows, circles, and callouts to point out exactly what matters",
+      "Drop photos onto floor plans so anyone can see what you saw and where",
+      "Turn a finished walk into a punch list, branded report, or proposal in one tap",
+      "Send to clients, owners, or trades by email or share link — no app required to view",
+      "Works offline on the job site and syncs as soon as you're back on signal",
     ],
     demoType: "video",
     demoUrl:

@@ -341,12 +341,12 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
           {isLoggedIn ? (
-            <Button asChild className="btn-amber-soft">
-              <Link href="/dashboard">Go to Dashboard</Link>
+            <Button variant="ghost" asChild className="text-muted-foreground hover:text-cobalt hover:bg-cobalt-soft">
+              <Link href="/dashboard">Dashboard</Link>
             </Button>
           ) : (
             <>
-              <Button variant="ghost" asChild className="text-muted-foreground hover:text-teal hover:bg-teal-soft">
+              <Button variant="ghost" asChild className="text-muted-foreground hover:text-cobalt hover:bg-cobalt-soft">
                 <Link href="/login">Login</Link>
               </Button>
               <Button asChild className="btn-amber-soft">
