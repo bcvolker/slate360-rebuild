@@ -1,6 +1,32 @@
 # Site Walk — Prompt Backlog
 
-Last Updated: 2026-04-13
+Last Updated: 2026-04-21
+
+## Priority Reset (2026-04-21)
+
+Founder direction: capture → AI-formatted deliverable → multi-channel share is the spine.
+**Plans are demoted to the More tab** (~20–30% adoption assumption).
+
+### PR Status
+
+- ✅ **PR #27a** — Site Walk shell wrap (AppShell + cobalt logo + 5-tab nav + placeholder screens). Shipped commit `8aa4c44`.
+- 🟢 **PR #27b** — Capture flow MVP: Quick Start tiles (Camera / Upload Photo / Voice Note / Text Note), GPS + weather metadata stamping, presigned upload via existing `/api/site-walk/upload`, items via `/api/site-walk/items`. **In progress (parallel track)** — photo upload + metadata working; camera/voice/markup follow in #27b.2.
+- 🟢 **PR #27c** — Deliverable builder MVP: list page, "New deliverable" picker (session + type + title), detail editor with title autosave, share link mint via `/api/site-walk/deliverables/[id]/share`, copy + native-share + revoke. Public media resolver `/api/view/[token]/media/[itemId]` so shared photos load in the viewer. **In progress** — block-editor + AI cleanup land in #27c.2.
+- ⏳ **PR #27d** — Share channels: (A) PDF email, (B) inline image email, (C) hosted viewing page (page rendering shipped in #27e — channels remain).
+- ✅ **PR #27e** — Viewing page renderer: slideshow + comments + 9 item types + native share. Shipped commit `9f1e338`.
+- ⏳ **PR #27f** — Project-bound mode (premium tier).
+- ⏳ **PR #27g** — Leadership view + contacts.
+- 🟢 **PR #27h** — Plans + pin-to-plan (under More): upload + view pins. **In progress (parallel track)**.
+- ✅ **PR #28a** — Signup referral capture (`?ref=CODE`). Shipped commit `0173984`.
+
+### End-to-End Validation Gate (before beta open)
+
+No deliverable path ships without virtual end-to-end test:
+- PDF email arrives with rendered (non-blank) PDF
+- Image email arrives with rendered image inline
+- Viewing link loads real assets, comment thread works
+- Bulk export downloads complete dataset
+- Edit-before-send works on all 3 channels
 
 ## Do Now (Safe, No Dependencies)
 

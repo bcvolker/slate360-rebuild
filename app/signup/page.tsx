@@ -18,6 +18,10 @@ export default function SignupPage() {
   const [industry, setIndustry] = useState("");
   const [companySize, setCompanySize] = useState("");
   const [referralSource, setReferralSource] = useState("");
+  // Referral code — auto-filled from ?ref=CODE URL param. Locked once set
+  // from URL so the original referral attribution is preserved.
+  const [referredBy, setReferredBy] = useState("");
+  const [referredByLocked, setReferredByLocked] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
@@ -34,8 +38,13 @@ export default function SignupPage() {
     const params = new URLSearchParams(window.location.search);
     const plan = params.get("plan");
     const billing = params.get("billing");
+    const ref = params.get("ref");
     if (plan) setSelectedPlan(plan);
     if (billing === "annual") setSelectedBilling("annual");
+    if (ref && ref.trim().length > 0) {
+      setReferredBy(ref.trim().toUpperCase());
+      setReferredByLocked(true);
+    }
   }, []);
 
   const supabase = createClient();
@@ -62,6 +71,7 @@ export default function SignupPage() {
             industry: industry || null,
             companySize: companySize || null,
             referralSource: referralSource || null,
+            referredBy: referredBy ? referredBy.trim().toUpperCase() : null,
           },
         }),
       });
@@ -232,6 +242,25 @@ export default function SignupPage() {
                 <div>
                   <label className="auth-label">How did you hear about us?</label>
                   <input type="text" value={referralSource} onChange={(e) => setReferralSource(e.target.value)} placeholder="Search, colleague, conference…" className="auth-input" />
+                </div>
+                <div>
+                  <label className="auth-label">
+                    Referred by
+                    {referredByLocked && (
+                      <span className="ml-2 text-[10px] text-primary font-semibold uppercase tracking-wider">From link</span>
+                    )}
+                  </label>
+                  <input
+                    type="text"
+                    value={referredBy}
+                    onChange={(e) => setReferredBy(e.target.value.toUpperCase())}
+                    placeholder="Referral code (optional)"
+                    readOnly={referredByLocked}
+                    className={`auth-input uppercase ${referredByLocked ? "opacity-70 cursor-not-allowed" : ""}`}
+                  />
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Both you and your referrer earn rewards once your subscription clears.
+                  </p>
                 </div>
               </div>
             </details>

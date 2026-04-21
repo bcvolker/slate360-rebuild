@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Copy, Mail, CheckCircle2, Loader2, X } from "lucide-react";
+import { Copy, Mail, MessageSquare, Share2, CheckCircle2, Loader2, X } from "lucide-react";
 import type { InviteShareData } from "@/lib/types/invite";
 
 interface InviteShareModalProps extends InviteShareData {
@@ -49,6 +49,32 @@ export function InviteShareModal({
       `Hi,\n\nI'm using Slate360 and thought you'd find it useful. Use my invite link to join the beta:\n\n${inviteLink}`,
     );
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
+
+  // Native share sheet — on iOS opens AirDrop / Messages / Mail / contact picker;
+  // on Android opens Nearby Share / SMS / Gmail / contact picker. Falls back to copy.
+  const handleNativeShare = async () => {
+    const shareData = {
+      title: "Slate360 Beta",
+      text: "I'm using Slate360 — join me on the beta:",
+      url: inviteLink,
+    };
+    if (typeof navigator !== "undefined" && "share" in navigator) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        /* user cancelled */
+      }
+    } else {
+      await handleCopy();
+      setStatus({ kind: "ok", message: "Link copied. Paste into any app to share." });
+    }
+  };
+
+  const handleSmsShare = () => {
+    const body = encodeURIComponent(`Join me on Slate360 Beta: ${inviteLink}`);
+    // iOS uses ?body=, Android uses &body=. ?body= works on both modern devices.
+    window.location.href = `sms:?&body=${body}`;
   };
 
   const handleCollaboratorSubmit = async (e: FormEvent) => {
@@ -152,11 +178,27 @@ export function InviteShareModal({
               </div>
               <button
                 type="button"
-                onClick={handleEmailShare}
-                className="w-full flex items-center justify-center gap-2 py-2 rounded-md bg-glass border border-border text-foreground hover:border-cobalt hover:text-cobalt transition-colors text-sm"
+                onClick={handleNativeShare}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-md bg-cobalt text-white hover:bg-cobalt-hover transition-colors text-sm font-medium"
               >
-                <Mail className="h-4 w-4" /> Share via Email
+                <Share2 className="h-4 w-4" /> Share — AirDrop, Contacts, Apps
               </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleEmailShare}
+                  className="flex items-center justify-center gap-2 py-2 rounded-md bg-glass border border-border text-foreground hover:border-cobalt hover:text-cobalt transition-colors text-sm"
+                >
+                  <Mail className="h-4 w-4" /> Email
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSmsShare}
+                  className="flex items-center justify-center gap-2 py-2 rounded-md bg-glass border border-border text-foreground hover:border-cobalt hover:text-cobalt transition-colors text-sm"
+                >
+                  <MessageSquare className="h-4 w-4" /> Text
+                </button>
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               Beta seats: {beta.seatsClaimed} / {beta.cap} claimed

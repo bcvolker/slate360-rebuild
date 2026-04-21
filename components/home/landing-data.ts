@@ -148,50 +148,114 @@ export const TESTIMONIALS: TestimonialItem[] = [
 export const PRICING_PLANS: PricingPlan[] = [
   {
     name: "Site Walk Basic",
-    price: "TBD",
-    period: "",
-    description: "Field documentation essentials",
+    price: "$79",
+    period: "/mo",
+    description: "Solo field documentation",
     features: [
-      "5 GB cloud storage",
-      "200 processing credits/mo",
-      "2 seats",
-      "SlateDrop file management",
-      "Share links for clients",
+      "Capture: photos, voice notes, GPS, weather",
+      "AI-formatted deliverables (PDF + share link)",
+      "5 GB storage",
+      "200 processing credits / mo",
+      "1 seat (solo use)",
+      "SlateDrop Basic included",
     ],
-    cta: "Get Started",
+    cta: "Start Site Walk",
+    popular: false,
+  },
+  {
+    name: "Site Walk Pro",
+    price: "$129",
+    period: "/mo",
+    description: "Field teams + collaboration",
+    features: [
+      "Everything in Basic",
+      "Up to 3 collaborators per subscriber",
+      "Project-bound mode + leadership view",
+      "Branded deliverables (logo, colors, signature)",
+      "Inline-image + hosted-viewer share channels",
+      "15 GB storage · 500 credits / mo",
+    ],
+    cta: "Start Site Walk Pro",
     popular: false,
   },
   {
     name: "Field Pro Bundle",
-    price: "TBD",
-    period: "",
+    price: "$149",
+    period: "/mo",
     description: "Site Walk Pro + 360 Tours Pro",
     features: [
-      "30 GB cloud storage",
-      "1,000 credits/mo",
-      "5 seats + team management",
-      "Full cross-app synergy",
-      "Priority processing",
+      "Everything in Site Walk Pro",
+      "360 Tours Pro: navigable scenes pinned to findings",
+      "Cross-app: open issues directly inside immersive context",
+      "30 GB storage · 1,000 credits / mo",
+      "5 collaborator seats",
+      "Priority processing queue",
     ],
-    cta: "Get Started",
+    cta: "Get Field Pro",
     popular: true,
   },
   {
     name: "All Access",
-    price: "TBD",
-    period: "",
-    description: "Every app at Pro tier",
+    price: "$249",
+    period: "/mo",
+    description: "Every Slate360 app at Pro tier",
     features: [
-      "75 GB storage",
-      "2,500 credits/mo",
-      "10 seats + team management",
-      "Every current and future app",
+      "Site Walk Pro · 360 Tours Pro · Design Studio Pro · Content Studio Pro",
+      "SlateDrop Pro file management + advanced shares",
+      "75 GB storage · 2,500 credits / mo",
+      "10 collaborator seats + team management",
+      "Every current and future app at Pro tier",
       "Priority support",
     ],
-    cta: "Get Started",
+    cta: "Get All Access",
     popular: false,
   },
 ];
+
+/**
+ * Standalone per-app prices (rendered below the bundle grid). Each app can be
+ * subscribed to individually at Basic or Pro tier.
+ */
+export interface StandaloneAppPrice {
+  name: string;
+  basic: string;
+  pro: string;
+  summary: string;
+}
+
+export const STANDALONE_APP_PRICES: StandaloneAppPrice[] = [
+  { name: "Site Walk",       basic: "$79",  pro: "$129", summary: "Capture → AI deliverables → multi-channel share" },
+  { name: "360 Tours",       basic: "$49",  pro: "$99",  summary: "Navigable 360 scenes, pin issues in immersive context" },
+  { name: "Design Studio",   basic: "$49",  pro: "$99",  summary: "3D model upload, viewing, and design context" },
+  { name: "Content Studio",  basic: "$49",  pro: "$99",  summary: "Media upload, editing, and content packaging" },
+  { name: "SlateDrop",       basic: "Free", pro: "$39",  summary: "File management — Basic included with any paid app" },
+];
+
+/** Storage and credit add-ons (a la carte). */
+export interface AddOnPrice {
+  label: string;
+  price: string;
+  detail: string;
+}
+
+export const STORAGE_ADDONS: AddOnPrice[] = [
+  { label: "+10 GB storage",   price: "$9 / mo",  detail: "Top up any plan" },
+  { label: "+50 GB storage",   price: "$29 / mo", detail: "Best value per GB" },
+];
+
+export const CREDIT_PACKS: AddOnPrice[] = [
+  { label: "500 credits",   price: "$19 one-time", detail: "Top up processing" },
+  { label: "2,000 credits", price: "$49 one-time", detail: "Most popular" },
+  { label: "5,000 credits", price: "$99 one-time", detail: "Heavy use" },
+];
+
+/** Industry-standard usage disclaimer for the pricing section. */
+export const PRICING_DISCLAIMER =
+  "Plans include a monthly allotment of processing credits and storage shown above. " +
+  "Heavy back-end usage — large media uploads, AI deliverable generation beyond the included credits, " +
+  "extended hosted share-link retention, and overage storage — may incur additional usage-based charges " +
+  "billed against your account. You'll always see usage in your billing dashboard before any overage applies, " +
+  "and you can cap or disable overages at any time. Prices are USD and exclude applicable taxes.";
 
 export const FOOTER_LINKS: Record<string, { label: string; href: string }[]> = {
   Product: [

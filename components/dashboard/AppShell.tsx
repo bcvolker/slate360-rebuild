@@ -19,6 +19,8 @@ import { DashboardTopBar } from "@/components/dashboard/command-center/Dashboard
 import CommandPalette from "@/components/shared/CommandPalette";
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
 import { InviteShareModal } from "@/components/shared/InviteShareModal";
+import { MobileTopBar } from "@/components/shared/MobileTopBar";
+import { MobileBottomNav } from "@/components/shared/MobileBottomNav";
 import type { InviteShareData } from "@/lib/types/invite";
 
 interface AppShellProps {
@@ -112,28 +114,35 @@ export function AppShell({
           </SheetContent>
         </Sheet>
 
-        <DashboardTopBar
-          isSidebarOpen={sidebarOpen}
-          userName={userName}
-          isBetaEligible={isBetaEligible}
-          showLogo={!sidebarOpen}
-          onMenuClick={() => {
-            if (typeof window !== "undefined" && window.innerWidth >= 1024) {
-              toggleSidebar();
-            } else {
-              setMobileSidebarOpen(true);
-            }
-          }}
-        />
+        <div className="hidden lg:block">
+          <DashboardTopBar
+            isSidebarOpen={sidebarOpen}
+            userName={userName}
+            isBetaEligible={isBetaEligible}
+            showLogo={!sidebarOpen}
+            onMenuClick={() => {
+              if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+                toggleSidebar();
+              } else {
+                setMobileSidebarOpen(true);
+              }
+            }}
+          />
+        </div>
+
+        <MobileTopBar userName={userName} isBetaEligible={isBetaEligible} />
 
         <main
           className={cn(
-            "pt-16 transition-all duration-300",
+            "pt-14 pb-[88px] transition-all duration-300",
+            "lg:pt-16 lg:pb-0",
             sidebarOpen ? "lg:pl-64" : "lg:pl-0"
           )}
         >
           {children}
         </main>
+
+        <MobileBottomNav />
 
         <CommandPalette
           open={paletteOpen}

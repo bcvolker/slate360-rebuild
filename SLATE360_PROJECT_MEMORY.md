@@ -197,6 +197,69 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-21 (PR #27d email channels + project/org defaults infrastructure — commit `becadfd`)
+
+#### What Changed
+- `supabase/migrations/20260421000001_brand_and_report_defaults.sql`: added `organizations.brand_settings` jsonb (logo/signature/header/footer/contact/address) + `projects.report_defaults` jsonb (project_name, client_name, client_email, project_address, project_number, inspector_name, inspector_license, scope_of_work, default_deliverable_type, custom_fields). **NEEDS TO BE APPLIED** in Supabase before features fully work.
+- `app/api/projects/[projectId]/report-defaults/route.ts`: GET/PUT, key-whitelisted, uses `withProjectAuth`.
+- `app/api/site-walk/branding/settings/route.ts`: GET/PUT, key-whitelisted, uses `withAppAuth("punchwalk")`. Sits next to existing `/api/site-walk/branding` (logo upload) — they're different surfaces (multipart vs JSON).
+- `lib/email-site-walk.ts`: added `sendDeliverableInlineImageEmail` + `InlineImageItem` (12-photo cap, escapeHtml).
+- `app/api/site-walk/deliverables/send/route.ts`: rewrote to accept `mode: "link" | "inline_images"`, switched share URL from legacy `/share/deliverable/[token]` to new `/view/[token]`.
+- `app/site-walk/deliverables/[id]/SendEmailModal.tsx`: new modal with mode toggle (inline_images disabled when no photos).
+- `app/site-walk/deliverables/[id]/DeliverableDetailClient.tsx`: added "Send by email" button + modal mount.
+- `app/site-walk/deliverables/new/{page,NewDeliverableClient}.tsx`: fetch `projects.report_defaults` when session changes; auto-fill title (`${project_name} — ${typeLabel}`); prepend `project_info` block to `content[]` so viewer/PDF render header without re-entry.
+
+#### What's Broken / Partially Done
+- Migration `20260421000001` not yet applied to live Supabase. Run before testing email/defaults end-to-end.
+- No UI yet for editing org `brand_settings` or `projects.report_defaults` — APIs are ready but users currently have no way to populate the data. **Delegated to outside AI** (prompt below).
+- PDF email mode deferred to PR #27d.2 — needs `@react-pdf/renderer` or `puppeteer-core + @sparticuz/chromium`.
+- `/site-walk/more/branding` page exists for logo upload only; needs extension to cover the new `brand_settings` text fields.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff.
+
+#### Outside-AI Delegation Prompt — PR #27c.3 (Branding & Project Defaults UI)
+
+> **Task:** Build two settings forms that POST to existing JSON APIs.
+>
+> **Repo:** bcvolker/slate360-rebuild, branch `feat/app-shell-cobalt-v1`. Read `.github/copilot-instructions.md` first. **Do not exceed 300 lines per file.** No `any`. Use Tailwind + the cobalt palette already in the codebase.
+>
+> **1. Org Branding form** — extend `app/site-walk/more/branding/page.tsx` (and split into `BrandingClient.tsx` if needed):
+> - GET `/api/site-walk/branding/settings` → prefill form
+> - Fields: `logo_url` (display existing — upload UI already exists at `/api/site-walk/branding`), `signature_url` (signature pad — render to PNG, upload via existing branding endpoint with a new field type, OR use a simple file input as v1), `primary_color` (hex picker), `header_html` (textarea, monospace), `footer_html` (textarea, monospace), `contact_name`, `contact_email`, `contact_phone`, `address`, `website`
+> - PUT `/api/site-walk/branding/settings` with `{ settings: { ...fields } }`
+> - Show a small live preview card at the top with logo + primary color + contact line (no `<iframe>`, just a Tailwind card).
+>
+> **2. Project Defaults form** — new page `app/site-walk/more/projects/[projectId]/page.tsx` + `ProjectDefaultsClient.tsx`:
+> - Server component fetches project name via Supabase admin client (use `createAdminClient` from `@/lib/supabase/admin` then verify ownership via `withProjectAuth` pattern — or fetch via the already-built API).
+> - GET `/api/projects/[projectId]/report-defaults` → prefill
+> - Fields: `project_name`, `client_name`, `client_email`, `project_address`, `project_number`, `inspector_name`, `inspector_license`, `scope_of_work` (textarea), `default_deliverable_type` (select: photo_log/punchlist/report/custom)
+> - PUT `/api/projects/[projectId]/report-defaults` with `{ defaults: { ...fields } }`
+>
+> **Hard rules:**
+> - Use `useState` + `useEffect`, no form libraries.
+> - Save button disabled until dirty; show "Saved ✓" toast for 1.5s on success.
+> - Both APIs return shape `{ brand_settings: {...} }` or `{ report_defaults: {...} }`.
+> - Both APIs accept `{ settings: {...} }` or `{ defaults: {...} }` with key whitelist enforced server-side — only valid keys persist.
+> - All file paths must be absolute imports (`@/lib/...`).
+>
+> **Smoke test:** Open form, change `primary_color` to `#ff0000`, save, refresh — value persists. Open NewDeliverable page after setting `project_name` → title auto-fills.
+
+#### Next Steps (ordered)
+1. Apply migration `20260421000001_brand_and_report_defaults.sql` in Supabase Studio.
+2. Send the prompt above to the outside AI for the two settings forms (PR #27c.3).
+3. Verify email sending end-to-end: set `RESEND_API_KEY` in env, share a deliverable, click "Send by email" → expect link mode + inline_images mode both deliver.
+4. PR #27d.2 — PDF email mode. Pick stack: `@react-pdf/renderer` (lighter, react-component PDF) vs `puppeteer-core + @sparticuz/chromium` (full HTML→PDF on Vercel). Recommend `@react-pdf/renderer` for speed and bundle size.
+5. PR #27f — project-bound mode (lock a session to a project on creation; today they're loosely coupled by project_id but the UI doesn't enforce it).
+6. PR #27g — leadership view + contacts tab.
+
+#### Progress (LA-trip beta target)
+- Shipped: PR #27a, #27b, #27c, #27d (link + inline images), #27e, #27h, #28a, branding/defaults infra (#27c.1+#27c.2 backend)
+- Remaining: branding/defaults UI (#27c.3, delegated), PDF email (#27d.2), #27f, #27g
+- **Estimate: ~75-80% to LA-trip beta-ready.**
+
+---
+
 ### Session Handoff — 2026-04-20 (Shell consistency root-cause fix + clean-slate DB + single logo source — PRs #12 / #13 / #14)
 
 ### What Changed (PRs #12, #13, #14 — all merged to `main`)
