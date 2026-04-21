@@ -7,16 +7,17 @@ Last Updated: 2026-04-21
 Founder direction: capture → AI-formatted deliverable → multi-channel share is the spine.
 **Plans are demoted to the More tab** (~20–30% adoption assumption).
 
-### New PR Order (replaces previous PR #27a–f plan)
+### PR Status
 
-- **PR #27a** — Site Walk shell wrap: AppShell + cobalt platform icon top-left + 5-tab bottom nav (Home / Walks / Deliverables / Share / More) + 5 placeholder screens. Plans moved to More.
-- **PR #27b** — Capture flow polish: Quick Start tiles (Camera / Upload Photo / Upload File / Voice Note), photo markup, always-on metadata stamping (time/GPS/weather/device EXIF + DB).
-- **PR #27c** — Deliverable builder: template picker → AI cleanup (bullets, spell-check) → preview → branded edit → save to SlateDrop folder.
-- **PR #27d** — Share channels: (A) PDF email with customizable company template, (B) inline image email, (C) hosted viewing page with per-item comments.
-- **PR #27e** — Viewing page renderer: photos/notes/voice/video baseline; pluggable for 360 / 3D / thermal / time-lapse based on app entitlements.
-- **PR #27f** — Project-bound mode (premium tier): walk → project link, photos auto-route to project SlateDrop folder, multi-walk progress aggregation.
-- **PR #27g** — Leadership view + contacts: contact picker, view-only share, send via email/SMS/download bundle.
-- **PR #27h** — Plans (deferred, lives under More): upload, pin-to-plan, plan markup. Lower priority.
+- ✅ **PR #27a** — Site Walk shell wrap (AppShell + cobalt logo + 5-tab nav + placeholder screens). Shipped commit `8aa4c44`.
+- 🟢 **PR #27b** — Capture flow MVP: Quick Start tiles (Camera / Upload Photo / Voice Note / Text Note), GPS + weather metadata stamping, presigned upload via existing `/api/site-walk/upload`, items via `/api/site-walk/items`. **In progress (parallel track)** — photo upload + metadata working; camera/voice/markup follow in #27b.2.
+- ⏳ **PR #27c** — Deliverable builder: template picker → AI cleanup → preview → branded edit → SlateDrop save.
+- ⏳ **PR #27d** — Share channels: (A) PDF email, (B) inline image email, (C) hosted viewing page (page rendering shipped in #27e — channels remain).
+- ✅ **PR #27e** — Viewing page renderer: slideshow + comments + 9 item types + native share. Shipped commit `9f1e338`.
+- ⏳ **PR #27f** — Project-bound mode (premium tier).
+- ⏳ **PR #27g** — Leadership view + contacts.
+- 🟢 **PR #27h** — Plans + pin-to-plan (under More): upload + view pins. **In progress (parallel track)**.
+- ✅ **PR #28a** — Signup referral capture (`?ref=CODE`). Shipped commit `0173984`.
 
 ### End-to-End Validation Gate (before beta open)
 
