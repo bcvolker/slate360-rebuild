@@ -53,9 +53,9 @@ export const APPS: AppItem[] = [
   {
     id: "site-walk",
     name: "Site Walk",
-    tagline: "Capture context. Create deliverables.",
+    tagline: "Walk the project. Capture everything.",
     description:
-      "Capture site conditions, document observations in context, and turn field documentation into punch lists, branded reports, and proposal-ready deliverables.",
+      "Walk a job with your phone or tablet to capture conditions, photos, notes, and tagged fields as you go — then turn what you saw into punch lists, branded reports, and proposals without retyping a thing.",
     icon: MapPin,
     features: [
       "Geolocated, time-stamped photo capture",

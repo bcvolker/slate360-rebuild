@@ -71,7 +71,7 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
           </div>
           <Link
             href="/my-account?tab=notifications"
-            className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-teal transition-colors"
+            className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-cobalt-hover transition-colors"
           >
             Communications Center
             <ChevronRight className="h-3.5 w-3.5" />

@@ -64,11 +64,11 @@ export default function DashboardContinueWidget({ span, widgetColor, widgetSize,
               href={item.href}
               className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
             >
-              <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 group-hover:text-teal transition-colors">
+              <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 group-hover:text-cobalt-hover transition-colors">
                 <Icon size={16} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-gray-900 truncate group-hover:text-teal transition-colors">{item.title}</p>
+                <p className="text-xs font-semibold text-gray-900 truncate group-hover:text-cobalt-hover transition-colors">{item.title}</p>
                 <p className="text-[10px] text-gray-400 truncate">{item.subtitle}</p>
               </div>
               <span className="text-[10px] text-gray-300 shrink-0">{item.time}</span>

@@ -367,6 +367,31 @@
   }
 }
 
+/* ── Cobalt hover utilities — used by the app shell (sidebar, top bar, cards) ── */
+@utility bg-cobalt-soft {
+  background-color: rgba(59, 130, 246, 0.10);
+}
+
+@utility bg-cobalt-soft-strong {
+  background-color: rgba(59, 130, 246, 0.16);
+}
+
+@utility text-cobalt {
+  color: var(--color-cobalt);
+}
+
+@utility text-cobalt-hover {
+  color: #60A5FA; /* Cobalt-400 — slightly lighter so it reads on dark */
+}
+
+@utility border-cobalt {
+  border-color: var(--color-cobalt);
+}
+
+@utility border-cobalt-soft {
+  border-color: rgba(59, 130, 246, 0.40);
+}
+
 /* Muted/glass cobalt CTA — calmer than solid bg-primary, still recognizably the brand action */
 @utility btn-amber-soft {
   background: linear-gradient(180deg, rgba(59, 130, 246, 0.92), rgba(37, 99, 235, 0.92));

@@ -18,7 +18,7 @@ export function QuickActionsCard() {
         <div className="grid grid-cols-2 gap-2">
           <Button
             variant="outline"
-            className="h-auto py-3 flex-col gap-1.5 rounded-xl border-border hover:border-teal hover:text-teal hover:bg-teal-soft"
+            className="h-auto py-3 flex-col gap-1.5 rounded-xl border-border hover:border-cobalt hover:text-cobalt-hover hover:bg-cobalt-soft"
             asChild
           >
             <Link href="/project-hub">
@@ -28,7 +28,7 @@ export function QuickActionsCard() {
           </Button>
           <Button
             variant="outline"
-            className="h-auto py-3 flex-col gap-1.5 rounded-xl border-border hover:border-teal hover:text-teal hover:bg-teal-soft"
+            className="h-auto py-3 flex-col gap-1.5 rounded-xl border-border hover:border-cobalt hover:text-cobalt-hover hover:bg-cobalt-soft"
             asChild
           >
             <Link href="/project-hub">
@@ -38,7 +38,7 @@ export function QuickActionsCard() {
           </Button>
           <Button
             variant="outline"
-            className="h-auto py-3 flex-col gap-1.5 rounded-xl border-border hover:border-teal hover:text-teal hover:bg-teal-soft"
+            className="h-auto py-3 flex-col gap-1.5 rounded-xl border-border hover:border-cobalt hover:text-cobalt-hover hover:bg-cobalt-soft"
             asChild
           >
             <Link href="/slatedrop">
@@ -48,7 +48,7 @@ export function QuickActionsCard() {
           </Button>
           <Button
             variant="outline"
-            className="h-auto py-3 flex-col gap-1.5 rounded-xl border-border hover:border-teal hover:text-teal hover:bg-teal-soft"
+            className="h-auto py-3 flex-col gap-1.5 rounded-xl border-border hover:border-cobalt hover:text-cobalt-hover hover:bg-cobalt-soft"
             asChild
           >
             <Link href="/site-walk">

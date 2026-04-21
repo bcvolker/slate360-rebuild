@@ -71,13 +71,13 @@ export function RecentFilesCard({ files, isLoading }: RecentFilesCardProps) {
               <a
                 key={file.id}
                 href={href}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-teal-soft transition-colors group"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-cobalt-soft transition-colors group"
               >
                 <div className="h-8 w-8 rounded bg-muted/50 flex items-center justify-center flex-shrink-0">
                   <Icon className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground group-hover:text-teal truncate">{file.file_name}</p>
+                  <p className="text-sm font-medium text-foreground group-hover:text-cobalt-hover truncate">{file.file_name}</p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span>{formatFileSize(file.file_size)}</span>
                     <span>·</span>
