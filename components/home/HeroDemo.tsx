@@ -63,7 +63,7 @@ export default function HeroDemo() {
           <ModelViewerClient
             src="/uploads/csb-stadium-model.glb"
             alt="Stadium 3D model"
-            cameraOrbit="45deg 60deg 105%"
+            cameraOrbit="45deg 65deg 160%"
             shadowIntensity={1}
             shadowSoftness={1}
           />

@@ -52,6 +52,11 @@ export default function ModelViewerClient({
     el.setAttribute("environment-image", "neutral");
     el.setAttribute("exposure", "0.8");
     el.setAttribute("auto-rotate", "");
+    // Auto-frame so the whole model fits on resize without being clipped.
+    el.setAttribute("camera-target", "auto auto auto");
+    el.setAttribute("field-of-view", "30deg");
+    el.setAttribute("min-camera-orbit", "auto auto 50%");
+    el.setAttribute("max-camera-orbit", "auto auto 400%");
     if (interactive) {
       el.setAttribute("camera-controls", "");
       el.removeAttribute("interaction-prompt");
