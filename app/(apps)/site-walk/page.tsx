@@ -3,15 +3,14 @@ import { MapPinned } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { resolveProjectScope } from "@/lib/projects/access";
 import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
+import { isBetaMode } from "@/lib/beta-mode";
 import { ComingSoonEmptyState } from "@/components/shared/ComingSoonEmptyState";
 
 /**
  * /site-walk landing.
  *
- * The real Site Walk surfaces live at /site-walk/board and
- * /site-walk/[projectId]. This index is intentionally minimal — no
- * placeholder marketing content — so the chrome (sidebar + topbar from
- * AuthedAppShell) carries the page identity.
+ * The real Site Walk surfaces live at /site-walk/walks (the new 5-tab shell
+ * from PR #27a). This index gates access then redirects.
  */
 export default async function SiteWalkPage() {
   const supabase = await createClient();
@@ -24,13 +23,14 @@ export default async function SiteWalkPage() {
   const { orgId } = await resolveProjectScope(user.id);
   const entitlements = await resolveOrgEntitlements(orgId);
 
-  if (!entitlements.canAccessStandalonePunchwalk) {
+  // In beta mode, every beta-approved user gets Site Walk access regardless
+  // of paid entitlements. Outside beta, gate on canAccessStandalonePunchwalk.
+  if (!isBetaMode() && !entitlements.canAccessStandalonePunchwalk) {
     redirect("/dashboard?error=no_punchwalk");
   }
 
   // PR #27a moved the Site Walk landing experience to the 5-tab shell at
   // /site-walk/walks (Walks · Deliverables · Capture · More · Account).
-  // The legacy session board still lives at /site-walk/board for now.
   redirect("/site-walk/walks");
 
   // Unreachable — kept so the file always returns JSX.
