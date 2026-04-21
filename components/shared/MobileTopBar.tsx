@@ -134,6 +134,12 @@ export function MobileTopBar({
                 <Link href="/my-account?tab=billing">Billing &amp; Payments</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border/50" />
+              <DropdownMenuItem asChild className="text-xs hover:bg-cobalt/10 hover:text-cobalt cursor-pointer">
+                <Link href="/install">
+                  <Download className="h-3.5 w-3.5 mr-2" /> Download Slate360 app
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-border/50" />
               <DropdownMenuItem
                 className="text-xs hover:bg-destructive/10 hover:text-destructive cursor-pointer"
                 onClick={() => {
