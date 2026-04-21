@@ -10,7 +10,7 @@
  */
 
 import Link from "next/link";
-import { ArrowLeft, FolderOpen, Camera, Layers, Activity, ChevronRight, Plus, Search, Bell, User } from "lucide-react";
+import { ArrowLeft, FolderOpen, Camera, Layers, Activity, ChevronRight, Plus, Search, Bell, User, Home, Briefcase, Compass, Settings } from "lucide-react";
 
 export const metadata = { title: "Light theme preview — Slate360" };
 
@@ -36,14 +36,17 @@ const lightVars: React.CSSProperties = {
   ["--border" as string]: "#CBD5E1",
   ["--input" as string]: "#CBD5E1",
   ["--ring" as string]: "rgba(37, 99, 235, 0.55)",
-  // Chrome (graphite, no navy)
-  ["--sidebar" as string]: "#09090B",
+  // Chrome — header is dark graphite, bottom nav is even darker (near-black)
+  ["--sidebar" as string]: "#18181B",
   ["--sidebar-foreground" as string]: "#FAFAFA",
   ["--sidebar-primary" as string]: "#3B82F6",
   ["--sidebar-primary-foreground" as string]: "#FFFFFF",
   ["--sidebar-accent" as string]: "#27272A",
   ["--sidebar-accent-foreground" as string]: "#FAFAFA",
   ["--sidebar-border" as string]: "#27272A",
+  // Bottom nav — deliberately darker than header for layered depth
+  ["--bottomnav" as string]: "#09090B",
+  ["--bottomnav-border" as string]: "#1F1F23",
   // Surface helpers used by various components
   ["--surface-page" as string]: "#E5EAF1",
   ["--surface-card" as string]: "#FFFFFF",
@@ -191,8 +194,33 @@ export default function LightThemePreview() {
           <div className="pt-4 text-xs text-[var(--muted-foreground)]">
             Preview only. Nothing here ships until you approve. Compare side-by-side with the live dashboard at <Link href="/dashboard" className="text-[var(--primary)] underline">/dashboard</Link>.
           </div>
+          {/* Spacer so content doesn't sit under the bottom nav on mobile */}
+          <div className="h-20 md:hidden" />
         </main>
       </div>
+
+      {/* MOBILE BOTTOM NAV — darker than the header */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-20 h-[68px] bg-[var(--bottomnav)] border-t border-[var(--bottomnav-border)] text-zinc-400">
+        <ul className="grid grid-cols-5 h-full">
+          {[
+            { icon: Home, label: "Home", active: true },
+            { icon: Briefcase, label: "Projects" },
+            { icon: Camera, label: "Capture" },
+            { icon: Compass, label: "Tours" },
+            { icon: Settings, label: "More" },
+          ].map((it, i) => {
+            const Icon = it.icon;
+            return (
+              <li key={i} className="flex items-center justify-center">
+                <button className={`flex flex-col items-center gap-0.5 ${it.active ? "text-[var(--primary)]" : "text-zinc-500 hover:text-zinc-200"}`}>
+                  <Icon className="h-5 w-5" strokeWidth={it.active ? 2.5 : 2} />
+                  <span className={`text-[10px] ${it.active ? "font-semibold" : "font-medium"}`}>{it.label}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
     </div>
   );
 }

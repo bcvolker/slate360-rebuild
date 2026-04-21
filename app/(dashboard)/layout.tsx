@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import BuildRuntimeBadge from "@/components/shared/BuildRuntimeBadge";
+import OverflowProbe from "@/components/shared/OverflowProbe";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { AppShell } from "@/components/dashboard/AppShell";
 import { buildInviteShareData } from "@/lib/server/invite-share-data";
@@ -39,6 +40,9 @@ export default async function DashboardRouteLayout({ children }: DashboardRouteL
         </AppShell>
         <Suspense fallback={null}>
           <BuildRuntimeBadge />
+        </Suspense>
+        <Suspense fallback={null}>
+          <OverflowProbe />
         </Suspense>
       </TooltipProvider>
     </NuqsAdapter>
