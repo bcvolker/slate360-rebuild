@@ -23,6 +23,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { InviteShareButton } from "@/components/shared/InviteShareButton";
 import { BetaFeedbackButton } from "@/components/shared/BetaFeedbackButton";
+import { BackButton } from "@/components/shared/BackButton";
 import { useInviteShare } from "@/components/shared/InviteShareProvider";
 import { cn } from "@/lib/utils";
 
@@ -51,20 +52,23 @@ export function MobileTopBar({
       style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
     >
       <div className="flex h-14 items-center justify-between gap-2">
-        {/* Left: cobalt icon + workspace label */}
-        <Link
-          href="/dashboard"
-          className="flex items-center min-w-0 flex-shrink-0"
-          aria-label="Slate360 home"
-        >
-          <img
-            src="/uploads/slate360-icon-cobalt.svg?v=cobalt-2026-04-21"
-            alt="Slate360"
-            width={36}
-            height={36}
-            className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
-          />
-        </Link>
+        {/* Left: back button (auto-hides on root) + cobalt icon */}
+        <div className="flex items-center min-w-0 flex-shrink-0 gap-1">
+          <BackButton />
+          <Link
+            href="/dashboard"
+            className="flex items-center"
+            aria-label="Slate360 home"
+          >
+            <img
+              src="/uploads/slate360-icon-cobalt-v2.svg?v=cobalt-2026-04-21b"
+              alt="Slate360"
+              width={36}
+              height={36}
+              className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
+            />
+          </Link>
+        </div>
 
         {/* Right: actions */}
         <div className="flex items-center gap-1">

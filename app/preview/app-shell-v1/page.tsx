@@ -84,10 +84,10 @@ export default function AppShellPreviewPage() {
               return (
                 <div
                   key={app.label}
-                  className={`relative rounded-2xl border p-4 transition-colors ${
+                  className={`relative rounded-2xl border p-4 transition-all duration-150 ${
                     isLive
-                      ? "bg-[#151A23] border-cobalt/30 hover:border-cobalt/60"
-                      : "bg-[#151A23]/60 border-white/5"
+                      ? "bg-[#151A23] border-cobalt/30 hover:border-cobalt hover:bg-cobalt/[0.06] hover:shadow-[0_0_24px_-4px_rgba(59,130,246,0.45)] cursor-pointer"
+                      : "bg-[#151A23]/60 border-white/5 hover:border-white/10"
                   } ${lastOdd ? "col-span-2 max-w-[calc(50%-0.375rem)] mx-auto w-full" : ""}`}
                 >
                   <div
@@ -117,7 +117,7 @@ export default function AppShellPreviewPage() {
               return (
                 <button
                   key={qa.label}
-                  className={`flex items-center gap-3 rounded-2xl bg-[#151A23] border border-white/5 px-4 py-3 hover:border-cobalt/40 transition-colors text-left ${
+                  className={`flex items-center gap-3 rounded-2xl bg-[#151A23] border border-white/5 px-4 py-3 transition-all duration-150 hover:border-cobalt hover:bg-cobalt/[0.06] hover:shadow-[0_0_20px_-4px_rgba(59,130,246,0.4)] text-left ${
                     lastOdd ? "col-span-2 max-w-[calc(50%-0.375rem)] mx-auto w-full" : ""
                   }`}
                 >

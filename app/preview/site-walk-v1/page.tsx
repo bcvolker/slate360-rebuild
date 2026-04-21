@@ -24,6 +24,7 @@ import {
   Video,
   Square,
   Plus,
+  ChevronLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -65,15 +66,24 @@ export default function SiteWalkPreviewPage() {
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         <div className="flex h-14 items-center justify-between">
-          <Link href="/preview/app-shell-v1" className="flex items-center" aria-label="Back to Slate360 home">
-            <img
-              src="/uploads/slate360-icon-cobalt.svg?v=cobalt-2026-04-21"
-              alt="Slate360"
-              width={36}
-              height={36}
-              className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
-            />
-          </Link>
+          <div className="flex items-center gap-1">
+            <Link
+              href="/preview/app-shell-v1"
+              aria-label="Back to Slate360 home"
+              className="h-9 w-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-cobalt hover:bg-cobalt/10 transition-colors"
+            >
+              <ChevronLeft className="h-5 w-5" strokeWidth={2.25} />
+            </Link>
+            <Link href="/preview/app-shell-v1" className="flex items-center" aria-label="Back to Slate360 home">
+              <img
+                src="/uploads/slate360-icon-cobalt-v2.svg?v=cobalt-2026-04-21b"
+                alt="Slate360"
+                width={36}
+                height={36}
+                className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
+              />
+            </Link>
+          </div>
           <div className="text-xs text-slate-400">Site Walk Preview</div>
         </div>
       </header>
