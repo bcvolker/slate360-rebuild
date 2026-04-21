@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import AuthedAppShell from "@/components/dashboard/AuthedAppShell";
+import { SiteWalkShell } from "@/components/site-walk/SiteWalkShell";
 
 export const metadata: Metadata = {
   title: "Site Walk — Slate360",
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function SiteWalkLayout({ children }: { children: ReactNode }) {
-  return <AuthedAppShell>{children}</AuthedAppShell>;
+  return (
+    <AuthedAppShell>
+      <SiteWalkShell>{children}</SiteWalkShell>
+    </AuthedAppShell>
+  );
 }
