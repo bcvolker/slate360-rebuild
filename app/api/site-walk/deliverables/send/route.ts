@@ -2,19 +2,25 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError, notFound } from "@/lib/server/api-response";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { loadDeliverableByToken } from "@/lib/site-walk/load-deliverable";
+import { renderDeliverablePdf } from "@/lib/site-walk/pdf";
 import {
   sendDeliverableShareEmail,
   sendDeliverableInlineImageEmail,
+  sendDeliverableAsPdfEmail,
   type InlineImageItem,
 } from "@/lib/email-site-walk";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.ai";
 
+type SendMode = "link" | "inline_images" | "pdf_attachment";
+
 /**
  * POST /api/site-walk/deliverables/send
- * Body: { deliverable_id, recipient_email, message?, mode?: "link" | "inline_images" }
- * Default mode is "link". "inline_images" embeds the first 12 photos
- * directly in the email body using public media URLs.
+ * Body: { deliverable_id, recipient_email, message?, mode?: "link" | "inline_images" | "pdf_attachment" }
+ * - link            → recipient gets a viewer link
+ * - inline_images   → first 12 photos embedded in email body
+ * - pdf_attachment  → generated PDF report attached
  */
 export const POST = (req: NextRequest) =>
   withAppAuth("punchwalk", req, async ({ user, orgId }) => {
@@ -25,13 +31,14 @@ export const POST = (req: NextRequest) =>
       deliverable_id?: string;
       recipient_email?: string;
       message?: string;
-      mode?: "link" | "inline_images";
+      mode?: SendMode;
     };
 
     if (!deliverable_id || !recipient_email) {
       return badRequest("deliverable_id and recipient_email are required");
     }
-    const sendMode: "link" | "inline_images" = mode === "inline_images" ? "inline_images" : "link";
+    const sendMode: SendMode =
+      mode === "inline_images" || mode === "pdf_attachment" ? mode : "link";
 
     const admin = createAdminClient();
 
@@ -54,11 +61,42 @@ export const POST = (req: NextRequest) =>
       .single();
 
     const senderName = profile?.full_name ?? "A Slate360 user";
-    // Use the new /view/[token] viewer (PR #27e), not the legacy /share/deliverable/.
     const shareUrl = `${APP_URL}/view/${del.share_token}`;
+    const deliverableTitle = del.title ?? "Deliverable";
 
     try {
-      if (sendMode === "inline_images") {
+      if (sendMode === "pdf_attachment") {
+        const viewerData = await loadDeliverableByToken(del.share_token);
+        if (!viewerData) return serverError("Failed to load deliverable rendering data");
+
+        const { data: orgRow } = await admin
+          .from("organizations")
+          .select("brand_settings, name")
+          .eq("id", orgId)
+          .single();
+
+        const bs = (orgRow?.brand_settings as Record<string, unknown> | null) ?? {};
+        const branding = {
+          logoUrl: typeof bs.logo_url === "string" ? bs.logo_url : null,
+          signatureUrl: typeof bs.signature_url === "string" ? bs.signature_url : null,
+          primaryColor: typeof bs.primary_color === "string" ? bs.primary_color : null,
+          companyName: orgRow?.name ?? null,
+        };
+
+        const pdfBuffer = await renderDeliverablePdf(viewerData, branding);
+        const safeTitle = deliverableTitle.replace(/[^a-z0-9]/gi, "_").toLowerCase() || "report";
+        const filename = `${safeTitle}.pdf`;
+
+        await sendDeliverableAsPdfEmail({
+          to: recipient_email,
+          senderName,
+          deliverableTitle,
+          message: message ?? undefined,
+          pdfBuffer,
+          filename,
+        });
+        // TODO PR #27d.3: audit into site_walk_deliverable_sends with delivery_mode = "pdf_attachment"
+      } else if (sendMode === "inline_images") {
         const items: InlineImageItem[] = inlineImageItemsFromContent(del.content, del.share_token, APP_URL);
         if (items.length === 0) {
           return badRequest("No photos in this deliverable to embed. Use mode=link instead.");
@@ -66,7 +104,7 @@ export const POST = (req: NextRequest) =>
         await sendDeliverableInlineImageEmail({
           to: recipient_email,
           senderName,
-          deliverableTitle: del.title,
+          deliverableTitle,
           shareUrl,
           message: message ?? undefined,
           items,
@@ -75,7 +113,7 @@ export const POST = (req: NextRequest) =>
         await sendDeliverableShareEmail({
           to: recipient_email,
           senderName,
-          deliverableTitle: del.title,
+          deliverableTitle,
           deliverableType: del.deliverable_type ?? "deliverable",
           shareUrl,
           expiresAt: del.share_expires_at ?? undefined,

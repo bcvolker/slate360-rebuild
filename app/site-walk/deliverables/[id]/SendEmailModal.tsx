@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Send, X, Mail, Image as ImageIcon } from "lucide-react";
+import { Loader2, Send, X, Mail, Image as ImageIcon, FileText } from "lucide-react";
 
-type Mode = "link" | "inline_images";
+type Mode = "link" | "inline_images" | "pdf_attachment";
 
 export default function SendEmailModal({
   deliverableId,
@@ -57,7 +57,7 @@ export default function SendEmailModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="w-full sm:max-w-md bg-slate-950 border border-white/10 rounded-t-2xl sm:rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div className="w-full sm:max-w-xl bg-slate-950 border border-white/10 rounded-t-2xl sm:rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-base font-semibold flex items-center gap-2">
@@ -68,13 +68,16 @@ export default function SendEmailModal({
           <button onClick={onClose} className="p-1 rounded hover:bg-white/5"><X className="h-4 w-4" /></button>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <ModeBtn active={mode === "link"} onClick={() => setMode("link")}
             icon={<Mail className="h-4 w-4" />} label="Link only" desc="Simple share link" />
           <ModeBtn active={mode === "inline_images"} onClick={() => setMode("inline_images")}
             icon={<ImageIcon className="h-4 w-4" />} label="Photo email"
             desc={hasPhotos ? "Photos render inline" : "No photos in this report"}
             disabled={!hasPhotos} />
+          <ModeBtn active={mode === "pdf_attachment"} onClick={() => setMode("pdf_attachment")}
+            icon={<FileText className="h-4 w-4" />} label="PDF attachment"
+            desc="Single PDF report attached. Best for archive / records." />
         </div>
 
         <div>
