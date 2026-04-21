@@ -197,26 +197,41 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-21 (PR #27d email channels + project/org defaults infrastructure — commit `becadfd`)
+### Session Handoff — 2026-04-22 (Mobile bug-fix root causes + Site Walk Phase 3 — commits `174b066`, `01aca4b`)
 
 #### What Changed
-- `supabase/migrations/20260421000001_brand_and_report_defaults.sql`: added `organizations.brand_settings` jsonb (logo/signature/header/footer/contact/address) + `projects.report_defaults` jsonb (project_name, client_name, client_email, project_address, project_number, inspector_name, inspector_license, scope_of_work, default_deliverable_type, custom_fields). **NEEDS TO BE APPLIED** in Supabase before features fully work.
-- `app/api/projects/[projectId]/report-defaults/route.ts`: GET/PUT, key-whitelisted, uses `withProjectAuth`.
-- `app/api/site-walk/branding/settings/route.ts`: GET/PUT, key-whitelisted, uses `withAppAuth("punchwalk")`. Sits next to existing `/api/site-walk/branding` (logo upload) — they're different surfaces (multipart vs JSON).
-- `lib/email-site-walk.ts`: added `sendDeliverableInlineImageEmail` + `InlineImageItem` (12-photo cap, escapeHtml).
-- `app/api/site-walk/deliverables/send/route.ts`: rewrote to accept `mode: "link" | "inline_images"`, switched share URL from legacy `/share/deliverable/[token]` to new `/view/[token]`.
-- `app/site-walk/deliverables/[id]/SendEmailModal.tsx`: new modal with mode toggle (inline_images disabled when no photos).
-- `app/site-walk/deliverables/[id]/DeliverableDetailClient.tsx`: added "Send by email" button + modal mount.
-- `app/site-walk/deliverables/new/{page,NewDeliverableClient}.tsx`: fetch `projects.report_defaults` when session changes; auto-fill title (`${project_name} — ${typeLabel}`); prepend `project_info` block to `content[]` so viewer/PDF render header without re-entry.
+- `app/globals.css`: iOS 15 fallback `overflow-x: hidden;` BEFORE `overflow-x: clip;` on `html, body`. Added `--breakpoint-xs: 22rem` to `@theme inline`.
+- `components/shared/MobileTopBar.tsx`: header gets `max-w-full overflow-hidden`, inner row gets `min-w-0 overflow-hidden gap-1`. Hid Search/Download/Bell on `<xs` (22rem) screens. (Root cause of horizontal scroll: a `position: fixed` topbar with 7+ icons forced 384px width on a 360px viewport, escaping all parent overflow clips.)
+- `components/dashboard/command-center/DashboardSidebar.tsx`: line 67 logo `<a href="/">` → `<Link href="/dashboard">`. Fixes "logo doesn't take me home."
+- `app/sw.ts`: added `CACHE_VERSION` constant + `activate` handler that deletes ALL caches not matching version + `message` handler for `SLATE360_FORCE_REFRESH`. **Critical:** previous SW used `defaultCache` with no version bump → iOS Safari served stale precached HTML/CSS for hours, which is why prior "fixes" appeared not to work.
+- `components/home/HeroDemo.tsx`: cameraOrbit `145% → 107%` inline (model ~35% larger). Removed bottom "Close (Esc)" pill — top X is the only close.
+- `components/home/AppDemo.tsx`: viewer refactored to function `viewer(full)` that mirrors HeroDemo zoom (90% expanded / 107% inline). Removed bottom Close pill. All app card viewers now match Hero behavior.
+- `components/dashboard/AppShell.tsx`: added `usePathname` + `fullBleed` detection for `/site-walk/walks/active/[id]`. Renders a `fixed inset-0 h-[100dvh]` wrapper with NO sidebar, NO topbar, NO bottom-nav, NO padding when fullBleed.
+- `components/site-walk/LiveWalkShell.tsx` (NEW, 101 lines): floating top bar `[← Exit] [Title · LIVE] [···]` with iOS safe-area padding. Menu has End session + Back to walks. Body locked to 100dvh, content scrolls inside.
+- `app/site-walk/walks/active/[sessionId]/CaptureClient.tsx`: wrapped in `<LiveWalkShell title={title}>`, removed inline `<header><h1>` (title now lives in floating bar).
 
 #### What's Broken / Partially Done
-- Migration `20260421000001` not yet applied to live Supabase. Run before testing email/defaults end-to-end.
-- No UI yet for editing org `brand_settings` or `projects.report_defaults` — APIs are ready but users currently have no way to populate the data. **Delegated to outside AI** (prompt below).
-- PDF email mode deferred to PR #27d.2 — needs `@react-pdf/renderer` or `puppeteer-core + @sparticuz/chromium`.
-- `/site-walk/more/branding` page exists for logo upload only; needs extension to cover the new `brand_settings` text fields.
+- Migration `20260421000001_brand_and_report_defaults.sql` (from prior chat) still NOT applied to live Supabase. Run before testing Send-by-Email features end-to-end.
+- No UI yet for editing org `brand_settings` or `projects.report_defaults` — APIs are ready (see prior handoff for delegation prompt).
+- PDF email mode deferred to PR #27d.2.
+- `/site-walk/more/branding` page extension (text fields beyond logo) still pending.
+- LiveWalkShell `onEndSession` prop wired but CaptureClient does not yet call any "end session" API — menu currently only shows "Back to walks."
+- `MobileTopBar`: hiding Search/Download/Bell on `<xs` is a temporary measure. Long-term: rethink which actions belong on mobile (likely move to a "More" sheet).
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: this handoff.
+
+#### Next Steps (ordered)
+1. **Verify on iPhone after Vercel deploy completes** — open the deployed URL with cleared Safari cache (Settings → Safari → Clear History) OR force-quit Safari first; confirm:
+   - No horizontal scroll on `/dashboard` after login
+   - Sidebar/header logo navigates to `/dashboard`
+   - `/install` PWA install button works (or shows the new server-rendered `<a>` with text "Install Slate360")
+   - Hero model is visibly larger; expand view has X close at top, no bottom pill
+   - All app card viewers (AppDemo) match Hero behavior
+2. **Apply migration `20260421000001_brand_and_report_defaults.sql`** in Supabase SQL editor.
+3. **Phase 4 Live Walk** (next vertical slice): bottom action bar inside LiveWalkShell with persistent capture FAB + sheet selector (camera / upload / note / voice). Move the existing 2x2 tile grid into a bottom sheet so camera is one tap.
+4. **End Session API + UI** wiring in LiveWalkShell menu (POST to `/api/site-walk/sessions/[id]/end` — likely needs new endpoint that sets status to `completed`).
+5. **Outside-AI Branding & Project Defaults UI** (delegation prompt below) — unchanged from previous handoff.
 
 #### Outside-AI Delegation Prompt — PR #27c.3 (Branding & Project Defaults UI)
 
