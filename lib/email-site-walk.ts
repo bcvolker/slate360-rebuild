@@ -50,3 +50,66 @@ export async function sendDeliverableShareEmail({
     html: brandedHtml("Deliverable Shared", body),
   });
 }
+
+/* ── Email: Inline-image deliverable (photos render in the email body) ── */
+
+export interface InlineImageItem {
+  title: string;
+  imageUrl: string;
+  notes?: string;
+}
+
+export async function sendDeliverableInlineImageEmail({
+  to,
+  senderName,
+  deliverableTitle,
+  shareUrl,
+  message,
+  items,
+}: {
+  to: string;
+  senderName: string;
+  deliverableTitle: string;
+  shareUrl: string;
+  message?: string;
+  items: InlineImageItem[];
+}) {
+  const photoBlocks = items
+    .slice(0, 12)
+    .map(
+      (it) => `
+        <div style="margin:0 0 24px;">
+          <img src="${it.imageUrl}" alt="${escapeHtml(it.title)}" style="display:block;width:100%;max-width:520px;border-radius:8px;border:1px solid #e5e7eb;" />
+          <div style="margin:8px 0 0;font-size:14px;font-weight:600;color:#111827;">${escapeHtml(it.title)}</div>
+          ${it.notes ? `<div style="margin:4px 0 0;font-size:13px;color:#4b5563;line-height:1.5;">${escapeHtml(it.notes)}</div>` : ""}
+        </div>`,
+    )
+    .join("");
+
+  const overflow = items.length > 12
+    ? `<p style="margin:0 0 16px;font-size:13px;color:#6b7280;">+ ${items.length - 12} more item${items.length - 12 === 1 ? "" : "s"} on the full page.</p>`
+    : "";
+
+  const body = `
+    <h2 style="margin:0 0 8px;color:#3B82F6;font-size:22px;font-weight:800;">${escapeHtml(senderName)} sent you "${escapeHtml(deliverableTitle)}"</h2>
+    ${message ? `<div style="margin:0 0 20px;padding:14px;background:#f3f4f6;border-left:4px solid #3B82F6;border-radius:4px;color:#4b5563;font-size:14px;font-style:italic;">"${escapeHtml(message)}"</div>` : ""}
+    ${photoBlocks}
+    ${overflow}
+    ${ctaButton("Open the full report", shareUrl)}
+    <p style="margin:14px 0 0;font-size:12px;color:#6b7280;">No Slate360 account required.</p>`;
+
+  return sendEmail({
+    to,
+    subject: `${senderName} sent you "${deliverableTitle}"`,
+    html: brandedHtml(deliverableTitle, body),
+  });
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}

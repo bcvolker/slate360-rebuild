@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, FileText } from "lucide-react";
+import { Loader2, FileText, Sparkles } from "lucide-react";
 
-type Session = { id: string; title: string; created_at: string };
+type Session = { id: string; title: string; created_at: string; project_id: string };
 
 const TYPES = [
   { value: "photo_log", label: "Photo log", desc: "Visual feed of all captures" },
@@ -20,6 +20,32 @@ export default function NewDeliverableClient({ sessions }: { sessions: Session[]
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [defaults, setDefaults] = useState<Record<string, unknown> | null>(null);
+  const [defaultsLoading, setDefaultsLoading] = useState(false);
+
+  const activeSession = sessions.find((s) => s.id === sessionId);
+
+  // Auto-load project report defaults whenever the session changes.
+  // These flow into the deliverable as a `project_info` block at the top of
+  // content[] so the user doesn't re-enter info per deliverable.
+  useEffect(() => {
+    if (!activeSession) { setDefaults(null); return; }
+    setDefaultsLoading(true);
+    fetch(`/api/projects/${activeSession.project_id}/report-defaults`)
+      .then((r) => r.json())
+      .then((j) => setDefaults(j.report_defaults ?? {}))
+      .catch(() => setDefaults({}))
+      .finally(() => setDefaultsLoading(false));
+  }, [activeSession]);
+
+  // Auto-suggest the title from defaults + type when defaults arrive
+  useEffect(() => {
+    if (!defaults || title) return;
+    const projectName = (defaults as Record<string, string>).project_name;
+    if (projectName) {
+      setTitle(`${projectName} — ${TYPES.find((t) => t.value === type)?.label ?? "Report"}`);
+    }
+  }, [defaults, type, title]);
 
   async function create() {
     if (!sessionId) { setError("Pick a session"); return; }
@@ -33,7 +59,19 @@ export default function NewDeliverableClient({ sessions }: { sessions: Session[]
       const itemsJson = await itemsRes.json();
       const rawItems: Array<Record<string, unknown>> = itemsJson.items ?? [];
 
-      const content = rawItems
+      // Prepend a project_info block so the viewer/PDF can render the
+      // header (project name, client, address, inspector, etc.) without
+      // making the user re-enter anything.
+      const projectInfoBlock = defaults && Object.keys(defaults).length > 0
+        ? [{
+            id: "project-info",
+            type: "project_info" as const,
+            title: "Project information",
+            metadata: defaults as Record<string, unknown>,
+          }]
+        : [];
+
+      const content = [...projectInfoBlock, ...rawItems
         .filter((it) => {
           const t = it.item_type;
           if (t === "photo" || t === "video") return Boolean(it.s3_key);
@@ -52,7 +90,7 @@ export default function NewDeliverableClient({ sessions }: { sessions: Session[]
           if (itemType === "video") return { ...base, type: "video", mediaItemId: id };
           if (itemType === "voice_note") return { ...base, type: "voice", mediaItemId: id };
           return { ...base, type: "note" };
-        });
+        })];
 
       const res = await fetch("/api/site-walk/deliverables", {
         method: "POST",
@@ -124,6 +162,20 @@ export default function NewDeliverableClient({ sessions }: { sessions: Session[]
           placeholder="e.g. Site walk — North wing — 4/21"
           className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-white/10 text-sm"
         />
+        {defaultsLoading && (
+          <p className="text-[11px] text-slate-500 mt-1">Loading project defaults…</p>
+        )}
+        {!defaultsLoading && defaults && Object.keys(defaults).length > 0 && (
+          <p className="text-[11px] text-cobalt mt-1 flex items-center gap-1">
+            <Sparkles className="h-3 w-3" />
+            Auto-filled from project info
+          </p>
+        )}
+        {!defaultsLoading && defaults && Object.keys(defaults).length === 0 && activeSession && (
+          <p className="text-[11px] text-slate-500 mt-1">
+            Tip: set project defaults so future deliverables auto-fill.
+          </p>
+        )}
       </div>
 
       {error && <p className="text-xs text-red-400">{error}</p>}

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Loader2, Share2, Copy, CheckCircle2, ExternalLink, Ban } from "lucide-react";
+import { Loader2, Share2, Copy, CheckCircle2, ExternalLink, Ban, Mail } from "lucide-react";
+import SendEmailModal from "./SendEmailModal";
 
 type Item = {
   id: string;
@@ -32,8 +33,10 @@ export default function DeliverableDetailClient({ deliverable }: { deliverable: 
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showEmail, setShowEmail] = useState(false);
 
   const items: Item[] = Array.isArray(deliverable.content) ? (deliverable.content as Item[]) : [];
+  const hasPhotos = items.some((it) => it.type === "photo" && it.mediaItemId);
   const shareUrl = shareToken
     ? (typeof window !== "undefined" ? `${window.location.origin}/view/${shareToken}` : `/view/${shareToken}`)
     : null;
@@ -136,6 +139,12 @@ export default function DeliverableDetailClient({ deliverable }: { deliverable: 
                 <Ban className="h-4 w-4" /> Revoke
               </button>
             </div>
+            <button
+              onClick={() => setShowEmail(true)}
+              className="w-full py-2 rounded-lg border border-cobalt/30 text-cobalt hover:bg-cobalt/10 text-sm font-medium flex items-center justify-center gap-2"
+            >
+              <Mail className="h-4 w-4" /> Send by email
+            </button>
           </>
         ) : (
           <button onClick={share} disabled={sharing} className="w-full py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover disabled:opacity-50 text-white text-sm font-medium flex items-center justify-center gap-2">
@@ -168,6 +177,15 @@ export default function DeliverableDetailClient({ deliverable }: { deliverable: 
           </ul>
         )}
       </section>
+
+      {showEmail && shareToken && (
+        <SendEmailModal
+          deliverableId={deliverable.id}
+          deliverableTitle={title}
+          hasPhotos={hasPhotos}
+          onClose={() => setShowEmail(false)}
+        />
+      )}
     </div>
   );
 }

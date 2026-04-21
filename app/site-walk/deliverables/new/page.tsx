@@ -16,7 +16,7 @@ export default async function NewDeliverablePage() {
   const admin = createAdminClient();
   const { data: sessions } = await admin
     .from("site_walk_sessions")
-    .select("id, title, created_at")
+    .select("id, title, created_at, project_id")
     .eq("org_id", ctx.orgId)
     .order("created_at", { ascending: false })
     .limit(40);
