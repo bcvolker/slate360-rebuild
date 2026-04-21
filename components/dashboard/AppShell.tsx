@@ -134,7 +134,7 @@ export function AppShell({
 
         <main
           className={cn(
-            "pt-14 pb-[88px] transition-all duration-300",
+            "w-full min-w-0 overflow-x-hidden pt-14 pb-[88px] transition-all duration-300",
             "lg:pt-16 lg:pb-0",
             sidebarOpen ? "lg:pl-64" : "lg:pl-0"
           )}

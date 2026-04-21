@@ -513,3 +513,7 @@
   background: hsl(0 72% 52% / 0.08);
   border-color: hsl(0 72% 52% / 0.24);
 }
+@utility no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }

@@ -65,32 +65,34 @@ export default function GetTheAppButton({ className = "" }: { className?: string
     );
   }
 
-  const handleClick = async () => {
+  const handleClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (installEvent) {
+      e.preventDefault();
       try {
         await installEvent.prompt();
         await installEvent.userChoice;
         setInstallEvent(null);
         return;
       } catch {
-        // fall through to help modal
+        // fall through to navigate to /install
+        window.location.href = "/install";
       }
+      return;
     }
-    // No native prompt available — always show instructions so the button
-    // never feels broken. iOS Safari + every non-Chromium browser hits this.
-    setShowHelp(true);
+    // No native prompt — let the anchor navigate to /install (works even if
+    // JS state machine fails or service worker serves stale chunks).
   };
 
   return (
     <>
-      <button
-        type="button"
+      <a
+        href="/install"
         onClick={handleClick}
         className={`btn-amber-soft inline-flex items-center justify-center h-12 px-4 sm:px-6 text-base font-semibold rounded-md ${className}`}
       >
         <Download className="mr-1.5 h-4 w-4 shrink-0" />
         <span className="truncate">Get the App</span>
-      </button>
+      </a>
 
       {showHelp && (
         <InstallHelpModal platform={platform} onClose={() => setShowHelp(false)} />
