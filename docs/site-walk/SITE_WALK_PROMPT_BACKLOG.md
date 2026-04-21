@@ -1,6 +1,31 @@
 # Site Walk — Prompt Backlog
 
-Last Updated: 2026-04-13
+Last Updated: 2026-04-21
+
+## Priority Reset (2026-04-21)
+
+Founder direction: capture → AI-formatted deliverable → multi-channel share is the spine.
+**Plans are demoted to the More tab** (~20–30% adoption assumption).
+
+### New PR Order (replaces previous PR #27a–f plan)
+
+- **PR #27a** — Site Walk shell wrap: AppShell + cobalt platform icon top-left + 5-tab bottom nav (Home / Walks / Deliverables / Share / More) + 5 placeholder screens. Plans moved to More.
+- **PR #27b** — Capture flow polish: Quick Start tiles (Camera / Upload Photo / Upload File / Voice Note), photo markup, always-on metadata stamping (time/GPS/weather/device EXIF + DB).
+- **PR #27c** — Deliverable builder: template picker → AI cleanup (bullets, spell-check) → preview → branded edit → save to SlateDrop folder.
+- **PR #27d** — Share channels: (A) PDF email with customizable company template, (B) inline image email, (C) hosted viewing page with per-item comments.
+- **PR #27e** — Viewing page renderer: photos/notes/voice/video baseline; pluggable for 360 / 3D / thermal / time-lapse based on app entitlements.
+- **PR #27f** — Project-bound mode (premium tier): walk → project link, photos auto-route to project SlateDrop folder, multi-walk progress aggregation.
+- **PR #27g** — Leadership view + contacts: contact picker, view-only share, send via email/SMS/download bundle.
+- **PR #27h** — Plans (deferred, lives under More): upload, pin-to-plan, plan markup. Lower priority.
+
+### End-to-End Validation Gate (before beta open)
+
+No deliverable path ships without virtual end-to-end test:
+- PDF email arrives with rendered (non-blank) PDF
+- Image email arrives with rendered image inline
+- Viewing link loads real assets, comment thread works
+- Bulk export downloads complete dataset
+- Edit-before-send works on all 3 channels
 
 ## Do Now (Safe, No Dependencies)
 

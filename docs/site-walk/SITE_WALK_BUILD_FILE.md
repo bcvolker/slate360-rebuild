@@ -1,8 +1,75 @@
 # Site Walk — Build File
 
-Last Updated: 2026-04-14
+Last Updated: 2026-04-21
 Module Status: **Active — first real usable module in Phase 1 beta**
 Doctrine Source: `docs/SLATE360_MASTER_BUILD_PLAN.md` (this file must align)
+
+## Vision Update — 2026-04-21 (Founder Direction)
+
+**Headline:** Site Walk is *capture → AI-formatted deliverable → multi-channel share*. Plans are a power-user feature (~20–30% of users), not a top-level tab.
+
+### Revised IA (Bottom Nav, 5 tabs)
+1. **Home** — Quick Start (Camera / Upload Photo / Upload File / Voice Note), Recent Walks, Recent Deliverables
+2. **Walks** — Active + past sessions (standalone OR project-bound)
+3. **Deliverables** — Created reports grouped by type-folder; bulk export
+4. **Share** — Outbound deliverable history, recipient list, viewing-page comments inbox
+5. **More** — **Plans (demoted here)**, Templates, Contacts, Branding, Assignments, Settings
+
+> Top-left icon = Slate360 cobalt platform icon (taps back to platform Home). No module-specific icon. **Locked.**
+
+### Capture-First Flow
+1. Open Walk → take photo / record voice / type note / mark up photo
+2. Background metadata (time, GPS, weather, device) stamped automatically — always recorded, visibility per-deliverable
+3. End walk → "Create Deliverable" → pick template → AI cleanup formats notes (bullets, headings, spell-check)
+4. Preview → edit → brand (logo, company info) → share
+
+### Sharing Modes (3 channels per deliverable)
+| Mode | Format | Use Case |
+|---|---|---|
+| **A. PDF Email** | PDF attachment + customizable company-branded email body | Formal record |
+| **B. Inline Image Email** | Non-editable rendered image embedded in email body — no attachment to open | Quick "look-at-this" recipients |
+| **C. Viewing Page** | Hosted slideshow link (click-through), per-item comment/question thread | Interactive review, async Q&A |
+
+Customizable email template per user/org (company name, signature, contact info).
+
+### Viewing Page Capabilities (renders by app entitlement)
+- Always: photos, notes, voice clips, videos, markup, GPS pins
+- With 360 Tours app: 360 photos, 360 tours, 360 video
+- With Design Studio: 3D models, plan markups
+- With Content Studio: edited video, time-lapse
+- With future apps: thermal, drone, etc.
+- **Comments per item** — viewer can leave questions on each slide; routed to creator's inbox
+
+### Project Modes (tier-gated)
+- **Standalone (all tiers)** — walk not bound to a project. Use for inspections, proposals, one-offs. Deliverables saved in Site Walk app folder.
+- **Project-bound (premium tier)** — walk attached to a construction project. Photos auto-route to project's SlateDrop photo folder. Multiple walks per project link over time for progress tracking.
+
+### Storage / SlateDrop Folder Doctrine
+- Deliverables saved in SlateDrop under `Site Walk / Deliverables / <Type>/` folder structure
+- Photos from project-bound walks also saved under `Projects / <ProjectName> / Photos /`
+- **Bulk download** — beta testers can download all data + deliverables (per-deliverable or full export) so they retain everything if they don't subscribe
+- All other apps follow the same pattern: `<App> / <Type> /` folders inside SlateDrop
+
+### Collaboration & Leadership Visibility (beta-critical)
+- Subscriber can grant **view-only access** to leadership (select from contact list OR enter name + email/phone)
+- Send report via: email / SMS link / direct download package
+- Contacts have email + cell — system picks the right channel based on what the recipient has
+- Multi-walk-per-project enables progress reports auto-populated with latest dates/notes
+
+### 360 Tours Quick Start (cross-reference)
+- Default Quick Action = "Upload 360 photos from phone" (transferred from 360 cam/drone)
+- Build branded tour (user logo) → host on Slate360 → share via link OR embed snippet for client websites
+
+### End-to-End Validation Requirement (pre-beta)
+Before beta launch every deliverable path must be virtually tested:
+- No mock data, no placeholder buttons
+- PDF actually contains the rendered content (not blank)
+- Email actually sends with correct attachment
+- Viewing page actually loads with real assets
+- Edit-before-send works
+- All channels (PDF email, image email, viewing link) tested end-to-end
+
+
 
 ## Doctrine Alignment
 
