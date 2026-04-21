@@ -82,19 +82,14 @@ export function MobileTopBar({
           </button>
 
           <BetaFeedbackButton isEligible={isBetaEligible} />
-          {/* Download App — fires custom event the host page can listen to */}
-          <button
-            type="button"
-            onClick={() => {
-              if (typeof window !== "undefined") {
-                window.dispatchEvent(new CustomEvent("slate360:open-onboarding"));
-              }
-            }}
+          {/* Download App — server-rendered link, always works */}
+          <Link
+            href="/install"
             aria-label="Download Slate360 to your phone"
             className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:text-cobalt hover:bg-white/5 transition-colors"
           >
             <Download className="h-[18px] w-[18px]" />
-          </button>
+          </Link>
           {/* Mobile-only: obvious QR/share button → opens Invite & Share modal */}
           <button
             type="button"
