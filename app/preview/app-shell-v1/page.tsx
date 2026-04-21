@@ -9,7 +9,7 @@
  */
 
 import { AppShell } from "@/components/dashboard/AppShell";
-import { MapPin, Camera, Palette, BookOpen, Plus, Cloud, Zap, FileText, MessageSquare, Star } from "lucide-react";
+import { MapPin, Camera, Palette, BookOpen, Plus, Cloud, Zap, FileText, MessageSquare, Star, ArrowRight } from "lucide-react";
 import { OnboardingTeaser } from "./OnboardingTeaser";
 
 export const metadata = {
@@ -54,10 +54,6 @@ const projects = [
 export default function AppShellPreviewPage() {
   const isOddApps = apps.length % 2 === 1;
   const isOddQA = quickActions.length % 2 === 1;
-  const scrollStyle = {
-    scrollbarWidth: "thin" as const,
-    scrollbarColor: "rgba(59,130,246,0.3) transparent",
-  };
 
   return (
     <AppShell
@@ -140,69 +136,78 @@ export default function AppShellPreviewPage() {
           </div>
         </section>
 
-        {/* Coordination Hub — fixed-height scroll container with edge fade */}
+        {/* Coordination Hub — preview only (3 most recent), full hub on its own page */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Coordination Hub</h2>
-            <span className="text-[11px] text-cobalt">View all</span>
+            <a href="#coordination" className="text-[11px] text-cobalt font-semibold inline-flex items-center gap-1">
+              Open Hub
+              <ArrowRight className="h-3 w-3" />
+            </a>
           </div>
-          <div className="relative rounded-2xl bg-[#151A23] border border-white/5 overflow-hidden">
-            <div className="max-h-[220px] overflow-y-auto divide-y divide-white/5" style={scrollStyle}>
-              {messages.map((m) => (
-                <div key={m.from + m.time} className="flex items-start gap-3 p-3">
-                  <div className="h-8 w-8 rounded-full bg-cobalt/15 text-cobalt flex items-center justify-center text-[11px] font-semibold flex-shrink-0">
-                    {m.from.split(" ").map((n) => n[0]).join("")}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium text-foreground truncate flex items-center gap-1.5">
-                        {m.from}
-                        {m.unread && <span className="h-1.5 w-1.5 rounded-full bg-cobalt flex-shrink-0" />}
-                      </span>
-                      <span className="text-[11px] text-slate-500 flex-shrink-0">{m.time}</span>
-                    </div>
-                    <p className="text-xs text-slate-400 truncate">{m.text}</p>
-                  </div>
-                  <MessageSquare className="h-4 w-4 text-slate-600 flex-shrink-0 mt-1" />
+          <div className="rounded-2xl bg-[#151A23] border border-white/5 divide-y divide-white/5 overflow-hidden">
+            {messages.slice(0, 3).map((m) => (
+              <div key={m.from + m.time} className="flex items-start gap-3 p-3">
+                <div className="h-8 w-8 rounded-full bg-cobalt/15 text-cobalt flex items-center justify-center text-[11px] font-semibold flex-shrink-0">
+                  {m.from.split(" ").map((n) => n[0]).join("")}
                 </div>
-              ))}
-            </div>
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-[#151A23] to-transparent" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium text-foreground truncate flex items-center gap-1.5">
+                      {m.from}
+                      {m.unread && <span className="h-1.5 w-1.5 rounded-full bg-cobalt flex-shrink-0" />}
+                    </span>
+                    <span className="text-[11px] text-slate-500 flex-shrink-0">{m.time}</span>
+                  </div>
+                  <p className="text-xs text-slate-400 truncate">{m.text}</p>
+                </div>
+                <MessageSquare className="h-4 w-4 text-slate-600 flex-shrink-0 mt-1" />
+              </div>
+            ))}
+            {messages.length > 3 && (
+              <a
+                href="#coordination"
+                className="flex items-center justify-between p-3 text-xs text-cobalt hover:bg-cobalt/5 transition-colors"
+              >
+                <span>+{messages.length - 3} more in Coordination Hub</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </a>
+            )}
           </div>
         </section>
 
-        {/* Projects — fixed-height scroll container with edge fade */}
+        {/* Projects — pinned shown inline, full list opens its own page */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Projects</h2>
-            <div className="flex gap-1 text-[11px]">
-              <span className="px-2 py-0.5 rounded-full bg-cobalt/15 text-cobalt font-medium">Pinned</span>
-              <span className="px-2 py-0.5 rounded-full text-slate-500">All</span>
-            </div>
+            <a href="/projects" className="text-[11px] text-cobalt font-semibold inline-flex items-center gap-1">
+              All projects
+              <ArrowRight className="h-3 w-3" />
+            </a>
           </div>
-          <div className="relative rounded-2xl overflow-hidden">
-            <div className="max-h-[260px] overflow-y-auto space-y-2 pr-1" style={scrollStyle}>
-              {projects.map((p) => (
-                <div key={p.name} className="rounded-xl bg-[#151A23] border border-white/5 p-3 flex items-center gap-3">
-                  {p.pinned ? (
-                    <Star className="h-3.5 w-3.5 text-cobalt fill-cobalt flex-shrink-0" />
-                  ) : (
-                    <span className="w-3.5 flex-shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-foreground truncate">{p.name}</div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">{p.status}</div>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-xs font-semibold text-cobalt">{p.progress}%</div>
-                    <div className="w-16 h-1 bg-white/5 rounded-full mt-1 overflow-hidden">
-                      <div className="h-full bg-cobalt" style={{ width: `${p.progress}%` }} />
-                    </div>
+          <div className="space-y-2">
+            {projects.filter((p) => p.pinned).map((p) => (
+              <div key={p.name} className="rounded-xl bg-[#151A23] border border-white/5 p-3 flex items-center gap-3">
+                <Star className="h-3.5 w-3.5 text-cobalt fill-cobalt flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-foreground truncate">{p.name}</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">{p.status}</div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <div className="text-xs font-semibold text-cobalt">{p.progress}%</div>
+                  <div className="w-16 h-1 bg-white/5 rounded-full mt-1 overflow-hidden">
+                    <div className="h-full bg-cobalt" style={{ width: `${p.progress}%` }} />
                   </div>
                 </div>
-              ))}
-            </div>
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#0B0F15] via-[#0B0F15]/80 to-transparent" />
+              </div>
+            ))}
+            <a
+              href="/projects"
+              className="flex items-center justify-between rounded-xl bg-[#151A23]/60 border border-dashed border-white/10 p-3 text-xs text-cobalt hover:border-cobalt/40 transition-colors"
+            >
+              <span>View all {projects.length} projects</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </a>
           </div>
         </section>
 

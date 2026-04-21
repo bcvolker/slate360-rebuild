@@ -11,7 +11,8 @@
  */
 
 import Link from "next/link";
-import { Bell, Search, QrCode } from "lucide-react";
+import Image from "next/image";
+import { Bell, Search, QrCode, Download } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,9 +60,13 @@ export function MobileTopBar({
           className="flex items-center gap-2 min-w-0 flex-shrink-0"
           aria-label="Slate360 home"
         >
-          <img
+          <Image
             src="/slate360-icon-color.png"
             alt=""
+            width={36}
+            height={36}
+            priority
+            unoptimized
             className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
             aria-hidden="true"
           />
@@ -82,6 +87,19 @@ export function MobileTopBar({
           </button>
 
           <BetaFeedbackButton isEligible={isBetaEligible} />
+          {/* Download App — fires custom event the host page can listen to */}
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("slate360:open-onboarding"));
+              }
+            }}
+            aria-label="Download Slate360 to your phone"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-cobalt hover:bg-white/5 transition-colors"
+          >
+            <Download className="h-[18px] w-[18px]" />
+          </button>
           {/* Mobile-only: obvious QR/share button → opens Invite & Share modal */}
           <button
             type="button"

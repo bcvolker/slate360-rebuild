@@ -82,6 +82,13 @@ export function OnboardingTeaser() {
     } catch {
       setOpen(true);
     }
+    // Listen for header Download button → reopens this modal at step 1 (download)
+    const handler = () => {
+      setStep(1);
+      setOpen(true);
+    };
+    window.addEventListener("slate360:open-onboarding", handler);
+    return () => window.removeEventListener("slate360:open-onboarding", handler);
   }, []);
 
   const dismiss = () => {
@@ -93,22 +100,7 @@ export function OnboardingTeaser() {
     setOpen(false);
   };
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => {
-          setStep(0);
-          setOpen(true);
-        }}
-        className="fixed bottom-[100px] right-3 z-30 lg:bottom-6 lg:right-6 h-11 rounded-full bg-cobalt text-white text-xs font-semibold px-4 shadow-[0_4px_20px_rgba(59,130,246,0.45)] flex items-center gap-2 hover:bg-cobalt-hover transition-colors"
-        aria-label="Show download instructions"
-      >
-        <Download className="h-4 w-4" />
-        Download App
-      </button>
-    );
-  }
+  if (!open) return null;
 
   const current = steps[step];
   const Icon = current.icon;
