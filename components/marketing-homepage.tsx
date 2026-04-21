@@ -505,9 +505,9 @@ function HeroSection() {
 
         {/* RIGHT (desktop) / FIRST (mobile): interactive demo. HeroDemo manages
             its own expand button and fullscreen overlay. */}
-        <div className="order-1 lg:order-2 w-full max-w-sm sm:max-w-md lg:max-w-none mx-auto">
+        <div className="order-1 lg:order-2 w-full max-w-[18rem] sm:max-w-sm lg:max-w-none mx-auto">
           <Card className="bg-app-card border-app shadow-app-glow rounded-2xl">
-            <CardContent className="p-2 sm:p-3">
+            <CardContent className="p-1.5 sm:p-2 lg:p-3">
               <HeroDemo />
             </CardContent>
           </Card>
