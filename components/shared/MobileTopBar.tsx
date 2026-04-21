@@ -60,7 +60,7 @@ export function MobileTopBar({
           aria-label="Slate360 home"
         >
           <img
-            src="/uploads/slate360-icon-color.png"
+            src="/slate360-icon-color.png"
             alt=""
             className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
             aria-hidden="true"

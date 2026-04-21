@@ -14,26 +14,35 @@
  */
 
 import { useEffect, useState } from "react";
-import { X, Camera, MapPin, Bell, Share2, Smartphone, Gift, ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { X, Camera, MapPin, Bell, Download, Smartphone, Gift, ArrowRight, ArrowLeft, Check } from "lucide-react";
 
 const STORAGE_KEY = "slate360.onboarding.preview.dismissed";
+
+// Beta seat counts — sourced from API in production. Hardcoded mock here.
+// Threshold: only show progress bar once ≥ 80% of cap is filled.
+const BETA_SEATS_CLAIMED = 47;
+const BETA_SEATS_CAP = 200;
+const BETA_VISIBILITY_THRESHOLD = 0.8;
+const betaPct = BETA_SEATS_CLAIMED / BETA_SEATS_CAP;
+const showBetaProgress = betaPct >= BETA_VISIBILITY_THRESHOLD;
 
 const steps = [
   {
     id: "welcome",
     title: "Welcome to the Slate360 beta",
-    body: "You're one of 200 early testers. This is the mobile app shell preview — what your installed app will look and feel like once you finish onboarding.",
+    body: "You're one of a limited number of early testers helping shape Slate360. This is the mobile app shell — what your installed app will look and feel like.",
     icon: Smartphone,
+    showBetaProgress: true,
   },
   {
-    id: "install",
-    title: "Install Slate360 on your phone",
-    body: "Tap your browser's Share button → Add to Home Screen. Slate360 will open chromeless like a native app — no App Store needed during beta.",
-    icon: Smartphone,
+    id: "download",
+    title: "Download Slate360 to your phone",
+    body: "No App Store needed during beta. Slate360 installs directly from your browser and opens like a native app.",
+    icon: Download,
     bullets: [
-      "iPhone: Safari → Share icon → Add to Home Screen",
+      "iPhone: Safari → tap the Share icon → Add to Home Screen",
       "Android: Chrome → ⋮ menu → Install app",
-      "Slate360 icon appears on your home screen",
+      "Slate360 icon will appear on your home screen",
     ],
   },
   {
@@ -50,13 +59,14 @@ const steps = [
   {
     id: "referral",
     title: "Share Slate360 → earn rewards",
-    body: "Tap the QR icon at the top of your screen any time to invite a teammate or another firm.",
+    body: "Tap the QR icon at the top of your screen to invite a teammate or another firm. Bigger rewards when invitees subscribe annually.",
     icon: Gift,
     bullets: [
       "Share generates a personal QR code + invite link",
-      "When 3 people sign up using your link → 1 month free",
-      "When 10 sign up → 25% off your first paid year",
-      "Track referrals in My Account → Referrals (coming with PR #28)",
+      "1 paid signup → 1 free month",
+      "1 annual signup → 50% off your next annual renewal",
+      "5 annual signups → 1 free year",
+      "Rewards confirm 90 days after invitee's first payment clears",
     ],
   },
 ];
@@ -92,10 +102,10 @@ export function OnboardingTeaser() {
           setOpen(true);
         }}
         className="fixed bottom-[100px] right-3 z-30 lg:bottom-6 lg:right-6 h-11 rounded-full bg-cobalt text-white text-xs font-semibold px-4 shadow-[0_4px_20px_rgba(59,130,246,0.45)] flex items-center gap-2 hover:bg-cobalt-hover transition-colors"
-        aria-label="Show onboarding"
+        aria-label="Show download instructions"
       >
-        <Smartphone className="h-4 w-4" />
-        How to install
+        <Download className="h-4 w-4" />
+        Download App
       </button>
     );
   }
@@ -143,6 +153,31 @@ export function OnboardingTeaser() {
             {current.title}
           </h2>
           <p className="text-sm text-slate-400 mt-2 leading-relaxed">{current.body}</p>
+
+          {/* Beta seat status — show only when ≥80% full (else just a generic note) */}
+          {current.showBetaProgress && (
+            <div className="mt-4 rounded-xl bg-[#151A23] border border-cobalt/20 p-3">
+              {showBetaProgress ? (
+                <>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-foreground">Beta is filling up</span>
+                    <span className="text-xs font-semibold text-cobalt">{Math.round(betaPct * 100)}% full</span>
+                  </div>
+                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-cobalt to-cobalt-hover transition-all"
+                      style={{ width: `${Math.round(betaPct * 100)}%` }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <Gift className="h-3.5 w-3.5 text-cobalt flex-shrink-0" />
+                  <span>Limited beta tester spots available — invite teammates to claim a seat.</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {current.bullets && (
             <ul className="mt-4 space-y-2">

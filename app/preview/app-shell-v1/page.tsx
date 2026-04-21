@@ -9,7 +9,7 @@
  */
 
 import { AppShell } from "@/components/dashboard/AppShell";
-import { MapPin, Camera, Palette, BookOpen, Plus, Cloud, Calendar, FileText, MessageSquare, Star } from "lucide-react";
+import { MapPin, Camera, Palette, BookOpen, Plus, Cloud, Zap, FileText, MessageSquare, Star } from "lucide-react";
 import { OnboardingTeaser } from "./OnboardingTeaser";
 
 export const metadata = {
@@ -23,11 +23,12 @@ const apps = [
   { label: "Content Studio", icon: BookOpen, status: "coming" },
 ];
 
-// 4 generic tiles to match Apps grid — none app-specific
+// 4 generic tiles to match Apps grid — none app-specific.
+// Quick Start = adaptive launcher (opens picker for whichever app(s) the user is subscribed to).
 const quickActions = [
+  { label: "Quick Start", icon: Zap },
   { label: "New Project", icon: Plus },
   { label: "SlateDrop", icon: Cloud },
-  { label: "Schedule", icon: Calendar },
   { label: "Recent Files", icon: FileText },
 ];
 
