@@ -37,7 +37,14 @@ export default function HeroDemo() {
     if (!expanded) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setExpanded(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
   }, [expanded]);
 
   const viewer = (full: boolean) => {
@@ -76,13 +83,13 @@ export default function HeroDemo() {
         <TabBtn active={active === "video"}    onClick={() => setActive("video")}    icon={<Box className="h-3.5 w-3.5" />}       label="Video" />
       </div>
 
-      <div className="relative aspect-square sm:aspect-[4/3] lg:aspect-video rounded-lg overflow-hidden bg-background/50">
+      <div className="relative aspect-square sm:aspect-[4/3] lg:aspect-video max-h-[55vh] sm:max-h-[60vh] lg:max-h-none rounded-lg overflow-hidden bg-background/50">
         {viewer(false)}
         <button
           type="button"
           onClick={() => setExpanded(true)}
           aria-label="Expand viewer"
-          className="absolute top-2 right-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-background/70 backdrop-blur border border-border text-foreground hover:bg-background hover:border-cobalt/40 transition-colors"
+          className="absolute top-2 right-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur border border-border text-foreground hover:bg-background hover:border-cobalt/40 transition-colors shadow-md"
         >
           <Maximize2 className="h-4 w-4" />
         </button>
@@ -94,8 +101,12 @@ export default function HeroDemo() {
           role="dialog"
           aria-modal="true"
           aria-label="Expanded demo viewer"
+          onClick={(e) => {
+            // Click outside the viewer body closes — viewer stops propagation below
+            if (e.target === e.currentTarget) setExpanded(false);
+          }}
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0 bg-black/60">
             <div className="flex items-center gap-2">
               <TabBtn active={active === "model"}    onClick={() => setActive("model")}    icon={<Box className="h-3.5 w-3.5" />}       label="3D" />
               <TabBtn active={active === "panorama"} onClick={() => setActive("panorama")} icon={<ImageIcon className="h-3.5 w-3.5" />} label="360°" />
@@ -105,12 +116,19 @@ export default function HeroDemo() {
               type="button"
               onClick={() => setExpanded(false)}
               aria-label="Close expanded viewer"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-white hover:bg-white/10"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors"
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6" />
             </button>
           </div>
           <div className="flex-1 min-h-0 w-full">{viewer(true)}</div>
+          <button
+            type="button"
+            onClick={() => setExpanded(false)}
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium border border-white/20 backdrop-blur"
+          >
+            Close (Esc)
+          </button>
         </div>
       )}
     </div>

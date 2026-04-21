@@ -61,6 +61,7 @@ import { SlateLogo } from "@/components/shared/SlateLogo";
 import { BetaGatedButton } from "@/components/billing/BetaGatedButton";
 
 const HeroDemo = dynamic(() => import("@/components/home/HeroDemo"), { ssr: false });
+const GetTheAppButton = dynamic(() => import("@/components/home/GetTheAppButton"), { ssr: false });
 const AppDemo = dynamic(() => import("@/components/home/AppDemo"), { ssr: false });
 
 /* ==========================================================================
@@ -341,9 +342,14 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3">
           {isLoggedIn ? (
-            <Button variant="ghost" asChild className="text-muted-foreground hover:text-cobalt hover:bg-cobalt-soft">
-              <Link href="/dashboard">Dashboard</Link>
-            </Button>
+            <>
+              <Button variant="ghost" asChild className="text-muted-foreground hover:text-cobalt hover:bg-cobalt-soft">
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+              <Button variant="outline" asChild className="border-border text-muted-foreground hover:text-cobalt hover:border-cobalt">
+                <Link href="/auth/logout">Logout</Link>
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" asChild className="text-muted-foreground hover:text-cobalt hover:bg-cobalt-soft">
@@ -416,9 +422,14 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
               </nav>
               <div className="flex flex-col gap-3 border-t border-border pt-3">
                 {isLoggedIn ? (
-                  <Button asChild className="btn-amber-soft">
-                    <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Go to Dashboard</Link>
-                  </Button>
+                  <>
+                    <Button asChild className="btn-amber-soft">
+                      <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Go to Dashboard</Link>
+                    </Button>
+                    <Button variant="outline" asChild className="border-border text-foreground hover:border-teal hover:text-teal">
+                      <Link href="/auth/logout" onClick={() => setMobileMenuOpen(false)}>Logout</Link>
+                    </Button>
+                  </>
                 ) : (
                   <>
                     <Button variant="outline" asChild className="border-border text-foreground hover:border-teal hover:text-teal">
@@ -447,7 +458,7 @@ function HeroSection() {
 
 
   return (
-    <section className="relative min-h-[100dvh] lg:h-screen flex items-center px-4 sm:px-6 lg:px-10 overflow-hidden">
+    <section className="relative lg:h-screen flex items-center px-4 sm:px-6 lg:px-10 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-[hsl(240,6%,8%)]" />
 
@@ -479,12 +490,7 @@ function HeroSection() {
 
           {/* CTAs: side-by-side on ALL screens (50/50 on mobile, auto on desktop) */}
           <div className="grid grid-cols-2 sm:flex sm:flex-row sm:items-center sm:justify-center lg:justify-start gap-3 pt-1">
-            <Button asChild className="btn-amber-soft h-12 px-4 sm:px-6 text-base font-semibold w-full sm:w-auto">
-              <Link href="/signup?next=/app">
-                <span className="truncate">Get the App</span>
-                <ArrowRight className="ml-1.5 h-4 w-4 shrink-0" />
-              </Link>
-            </Button>
+            <GetTheAppButton className="w-full sm:w-auto" />
             <Button variant="outline" asChild className="btn-teal-outline h-12 px-4 sm:px-6 text-base font-semibold w-full sm:w-auto">
               <Link href="#apps">
                 <span className="truncate">Explore Apps</span>
