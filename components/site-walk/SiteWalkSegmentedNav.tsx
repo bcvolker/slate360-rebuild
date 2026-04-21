@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 type Tab = { href: string; label: string };
 
 const TABS: Tab[] = [
-  { href: "/site-walk", label: "Home" },
+  { href: "/site-walk/home", label: "Home" },
   { href: "/site-walk/walks", label: "Walks" },
   { href: "/site-walk/board", label: "Plans" },
   { href: "/site-walk/deliverables", label: "Deliverables" },
@@ -31,9 +31,7 @@ export function SiteWalkSegmentedNav() {
         <ul className="flex min-w-max items-center gap-1 px-2 py-1.5">
           {TABS.map((tab) => {
             const active =
-              tab.href === "/site-walk"
-                ? pathname === "/site-walk"
-                : pathname === tab.href || pathname.startsWith(tab.href + "/");
+              pathname === tab.href || pathname.startsWith(tab.href + "/");
             return (
               <li key={tab.href}>
                 <Link
