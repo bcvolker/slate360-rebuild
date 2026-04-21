@@ -90,7 +90,7 @@ export function AppShell({
   return (
     <TooltipProvider>
      <InviteShareProvider>
-      <div className="dark min-h-screen bg-background overflow-x-hidden">
+      <div className="dark min-h-screen w-full max-w-full bg-background overflow-x-hidden relative">
         <div className="hidden lg:block">
           <DashboardSidebar
             isOpen={sidebarOpen}
