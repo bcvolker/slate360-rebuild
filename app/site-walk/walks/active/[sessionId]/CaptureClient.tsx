@@ -24,6 +24,7 @@ export default function CaptureClient({ sessionId, title }: { sessionId: string;
   const [noteText, setNoteText] = useState("");
   const [showNote, setShowNote] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     void loadItems();
@@ -155,7 +156,7 @@ export default function CaptureClient({ sessionId, title }: { sessionId: string;
           icon={<Camera className="h-6 w-6" />}
           label="Camera"
           sub="Take photo"
-          onClick={() => fileRef.current?.click()}
+          onClick={() => cameraRef.current?.click()}
           loading={busy === "upload"}
         />
         <Tile
@@ -238,10 +239,21 @@ export default function CaptureClient({ sessionId, title }: { sessionId: string;
       </section>
 
       <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void uploadPhoto(f);
+          e.target.value = "";
+        }}
+      />
+      <input
         ref={fileRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/heic"
-        capture="environment"
+        accept="image/*"
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];

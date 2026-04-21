@@ -21,6 +21,7 @@ import CommandPalette from "@/components/shared/CommandPalette";
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
 import { InviteShareModal } from "@/components/shared/InviteShareModal";
 import { MobileTopBar } from "@/components/shared/MobileTopBar";
+import { MobileInstallStrip } from "@/components/shared/MobileInstallStrip";
 import { MobileBottomNav } from "@/components/shared/MobileBottomNav";
 import type { InviteShareData } from "@/lib/types/invite";
 
@@ -96,7 +97,7 @@ export function AppShell({
     <TooltipProvider>
      <InviteShareProvider>
       {fullBleed ? (
-        <div className="dark fixed inset-0 w-screen h-[100dvh] bg-background overflow-hidden">
+        <div className="dark fixed inset-0 w-full h-[100dvh] bg-background overflow-hidden">
           {children}
           <GlobalInviteModal data={inviteShareData} />
         </div>
@@ -142,10 +143,11 @@ export function AppShell({
         </div>
 
         <MobileTopBar userName={userName} isBetaEligible={isBetaEligible} />
+        <MobileInstallStrip />
 
         <main
           className={cn(
-            "w-full min-w-0 overflow-x-hidden pt-14 pb-[88px] transition-all duration-300",
+            "w-full min-w-0 overflow-x-hidden pt-[6.25rem] pb-[88px] transition-all duration-300",
             "lg:pt-16 lg:pb-0",
             sidebarOpen ? "lg:pl-64" : "lg:pl-0"
           )}
