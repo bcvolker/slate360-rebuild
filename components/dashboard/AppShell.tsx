@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -48,6 +49,10 @@ export function AppShell({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+
+  const pathname = usePathname() ?? "";
+  // Live Walk owns the entire viewport — no app chrome.
+  const fullBleed = /^\/site-walk\/walks\/active\/[^/]+/.test(pathname);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -90,6 +95,12 @@ export function AppShell({
   return (
     <TooltipProvider>
      <InviteShareProvider>
+      {fullBleed ? (
+        <div className="dark fixed inset-0 w-screen h-[100dvh] bg-background overflow-hidden">
+          {children}
+          <GlobalInviteModal data={inviteShareData} />
+        </div>
+      ) : (
       <div className="dark min-h-screen w-full max-w-full bg-background overflow-x-hidden relative">
         <div className="hidden lg:block">
           <DashboardSidebar
@@ -151,6 +162,7 @@ export function AppShell({
         />
         <GlobalInviteModal data={inviteShareData} />
       </div>
+      )}
      </InviteShareProvider>
     </TooltipProvider>
   );

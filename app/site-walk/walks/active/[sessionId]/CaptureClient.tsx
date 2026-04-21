@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { Camera, Upload, Mic, FileText, Loader2, MapPin, CloudSun, CheckCircle2, AlertCircle } from "lucide-react";
 import { captureMetadata, type CaptureMetadata } from "@/lib/site-walk/metadata";
+import { LiveWalkShell } from "@/components/site-walk/LiveWalkShell";
 
 type ItemLite = {
   id: string;
@@ -130,11 +131,9 @@ export default function CaptureClient({ sessionId, title }: { sessionId: string;
   }
 
   return (
+    <LiveWalkShell title={title}>
     <div className="p-4 max-w-2xl mx-auto space-y-5 pb-24">
-      <header>
-        <h1 className="text-xl font-semibold truncate">{title}</h1>
-        <p className="text-xs text-slate-500 mt-1">Session in progress · captures stamped with time, GPS, weather.</p>
-      </header>
+      <p className="text-xs text-slate-500">Captures stamped with time, GPS, weather.</p>
 
       {/* Live metadata strip */}
       <div className="flex flex-wrap gap-2 text-xs">
@@ -260,6 +259,7 @@ export default function CaptureClient({ sessionId, title }: { sessionId: string;
         </div>
       )}
     </div>
+    </LiveWalkShell>
   );
 }
 
