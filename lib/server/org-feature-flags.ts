@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getEntitlements, type OrgFeatureFlags, type Entitlements, type Tier } from "@/lib/entitlements";
 import { resolveModularEntitlements, type OrgAppSubscriptions } from "@/lib/entitlements-modular";
 import type { StandaloneAppId } from "@/lib/billing-apps";
+import { isBetaMode } from "@/lib/beta-mode";
 
 const EMPTY_FLAGS: OrgFeatureFlags = {
   standalone_tour_builder: false,
@@ -109,6 +110,25 @@ export async function resolveOrgEntitlements(orgId: string | null): Promise<Enti
     if (modular.apps.content_studio.active && !modular.isTrial) {
       base.canAccessStandaloneContentStudio = true;
     }
+  }
+
+  // Beta-mode override: every beta tester gets full app access so they can
+  // exercise the entire surface and report bugs. Cost is controlled via
+  // per-org data + processing caps, not by entitlement gates. Gates re-engage
+  // automatically when NEXT_PUBLIC_BETA_MODE === "false".
+  if (isBetaMode()) {
+    base.canAccessHub = true;
+    base.canAccessDesignStudio = true;
+    base.canAccessContent = true;
+    base.canAccessTourBuilder = true;
+    base.canAccessGeospatial = true;
+    base.canAccessVirtual = true;
+    base.canAccessAnalytics = true;
+    base.canAccessReports = true;
+    base.canAccessStandaloneTourBuilder = true;
+    base.canAccessStandalonePunchwalk = true;
+    base.canAccessStandaloneDesignStudio = true;
+    base.canAccessStandaloneContentStudio = true;
   }
 
   return base;
