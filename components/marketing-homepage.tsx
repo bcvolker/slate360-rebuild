@@ -471,9 +471,9 @@ function HeroSection() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-[1fr_1.15fr] gap-6 lg:gap-12 items-center pt-24 sm:pt-28 lg:pt-24 pb-12 sm:pb-12">
-        {/* LEFT: copy + CTAs */}
-        <div className="space-y-5 sm:space-y-5 text-center lg:text-left">
+      <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-[1fr_1.15fr] gap-4 lg:gap-12 items-center pt-20 sm:pt-24 lg:pt-24 pb-8 sm:pb-12">
+        {/* LEFT (desktop) / SECOND (mobile): copy + CTAs */}
+        <div className="order-2 lg:order-1 space-y-4 sm:space-y-5 text-center lg:text-left">
           <Badge variant="outline" className="border-cobalt text-cobalt px-3.5 py-1.5 bg-cobalt/10 text-sm">
             <Zap className="mr-1.5 h-3.5 w-3.5" />
             Now in Beta — Foundational Member Pricing
@@ -503,9 +503,9 @@ function HeroSection() {
           </p>
         </div>
 
-        {/* RIGHT: interactive demo. HeroDemo manages its own expand button
-            and fullscreen overlay so we don't add a giant border around it. */}
-        <div className="w-full max-w-md sm:max-w-2xl mx-auto lg:max-w-none">
+        {/* RIGHT (desktop) / FIRST (mobile): interactive demo. HeroDemo manages
+            its own expand button and fullscreen overlay. */}
+        <div className="order-1 lg:order-2 w-full max-w-sm sm:max-w-md lg:max-w-none mx-auto">
           <Card className="bg-app-card border-app shadow-app-glow rounded-2xl">
             <CardContent className="p-2 sm:p-3">
               <HeroDemo />
