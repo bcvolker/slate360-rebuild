@@ -7,7 +7,9 @@ export default function manifest(): MetadataRoute.Manifest {
     description:
       "Slate360 gives construction teams, architects, and project managers a complete platform to manage, visualize, and deliver building projects.",
     id: "/",
-    start_url: "/",
+    // Installed PWA opens directly into the app. Middleware redirects to
+    // /login if no session, then back to /dashboard on success.
+    start_url: "/dashboard",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
