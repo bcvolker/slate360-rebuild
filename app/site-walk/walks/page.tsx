@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function WalksPage() {
   let ctx = await resolveServerOrgContext();
   if (!ctx.user) redirect("/login?next=/site-walk/walks");
+  const userId = ctx.user.id;
 
   // Auto-provision a personal organization on first visit so beta testers
   // never get stuck on a "join an organization" wall. Mirrors the pattern in
@@ -64,12 +65,28 @@ export default async function WalksPage() {
   }
 
   const admin = createAdminClient();
-  const { data: projects } = await admin
+  let { data: projects } = await admin
     .from("projects")
     .select("id, name")
     .eq("org_id", ctx.orgId)
     .order("created_at", { ascending: false })
     .limit(50);
+
+  // Beta-tester convenience: auto-create a "My Site Walks" project on first
+  // visit so the user can immediately start a walk without going through the
+  // full project-creation wizard. A real project can be added later.
+  if (!projects || projects.length === 0) {
+    const { data: created } = await admin
+      .from("projects")
+      .insert({
+        org_id: ctx.orgId,
+        name: "My Site Walks",
+        created_by: userId,
+      })
+      .select("id, name")
+      .single();
+    if (created) projects = [created];
+  }
 
   return <WalksClient initialProjects={projects ?? []} />;
 }
