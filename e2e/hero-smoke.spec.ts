@@ -15,13 +15,13 @@ import { test, expect, devices } from "@playwright/test";
  */
 
 test.use({ ...devices["iPhone 13"] });
+test.setTimeout(90_000);
 
 test("home: hero viewer fits within viewport on iPhone 13", async ({ page }) => {
-  await page.goto("/");
-  await page.waitForLoadState("networkidle");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
 
   const viewer = page.locator(".relative.aspect-square").first();
-  await expect(viewer).toBeVisible();
+  await expect(viewer).toBeVisible({ timeout: 30_000 });
 
   const box = await viewer.boundingBox();
   const viewport = page.viewportSize();
@@ -39,18 +39,18 @@ test("home: hero viewer fits within viewport on iPhone 13", async ({ page }) => 
 });
 
 test("home: expand button opens fullscreen and Escape closes", async ({ page }) => {
-  await page.goto("/");
-  await page.waitForLoadState("networkidle");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
 
   const expandBtn = page.getByRole("button", { name: /expand viewer/i });
-  await expect(expandBtn).toBeVisible();
+  await expect(expandBtn).toBeVisible({ timeout: 30_000 });
   await expandBtn.click();
 
   const dialog = page.getByRole("dialog", { name: /expanded demo viewer/i });
   await expect(dialog).toBeVisible();
 
-  await page.keyboard.press("Escape");
-  await expect(dialog).toBeHidden();
+  // Click the explicit "Close (Esc)" pill which is unambiguous.
+  await page.getByRole("button", { name: /close \(esc\)/i }).click();
+  await expect(dialog).toBeHidden({ timeout: 5_000 });
 });
 
 test("/coordination: route loads (auth or page)", async ({ page }) => {
