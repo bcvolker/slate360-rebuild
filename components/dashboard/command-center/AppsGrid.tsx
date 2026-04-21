@@ -116,7 +116,7 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
             <Link
               key={app.key}
               href={app.href}
-              className="group relative flex flex-col items-start gap-3 rounded-2xl border border-app bg-white/[0.02] p-4 transition-all hover:border-teal hover:bg-teal-soft"
+              className="group relative flex flex-col items-start gap-3 rounded-2xl border border-app bg-white/[0.02] p-4 transition-all hover:border-cobalt hover:bg-cobalt-soft"
             >
               {app.comingSoon && (
                 <span className="absolute right-3 top-3 rounded-full border border-app bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -127,7 +127,7 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
                 <Icon className="h-5 w-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-sm font-semibold text-foreground group-hover:text-teal">
+                <h3 className="text-sm font-semibold text-foreground group-hover:text-cobalt-hover">
                   {app.name}
                 </h3>
                 <p className="text-xs text-muted-foreground line-clamp-2">

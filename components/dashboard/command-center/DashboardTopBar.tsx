@@ -50,7 +50,7 @@ export function DashboardTopBar({
           )}
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center h-10 w-10 rounded-xl bg-white/[0.04] hover:bg-teal-soft border border-app hover:border-teal text-zinc-300 hover:text-teal transition-all"
+            className="flex items-center justify-center h-10 w-10 rounded-xl bg-white/[0.04] hover:bg-cobalt-soft border border-app hover:border-cobalt text-zinc-300 hover:text-cobalt-hover transition-all"
             aria-label="Toggle menu"
           >
             <Menu className="h-5 w-5" />
@@ -69,7 +69,7 @@ export function DashboardTopBar({
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative hover:bg-teal-soft hover:text-teal"
+                className="relative hover:bg-cobalt-soft hover:text-cobalt-hover"
                 asChild
               >
                 <a href="/my-account?tab=notifications">
@@ -97,10 +97,10 @@ export function DashboardTopBar({
             <DropdownMenuContent align="end" className="w-56 bg-glass border-glass">
               <DropdownMenuLabel className="text-foreground">{userName || "My Account"}</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border/50" />
-              <DropdownMenuItem asChild className="hover:bg-teal-soft hover:text-teal cursor-pointer">
+              <DropdownMenuItem asChild className="hover:bg-cobalt-soft hover:text-cobalt-hover cursor-pointer">
                 <a href="/my-account">My Account</a>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="hover:bg-teal-soft hover:text-teal cursor-pointer">
+              <DropdownMenuItem asChild className="hover:bg-cobalt-soft hover:text-cobalt-hover cursor-pointer">
                 <a href="/my-account?tab=billing">Billing &amp; Payments</a>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border/50" />

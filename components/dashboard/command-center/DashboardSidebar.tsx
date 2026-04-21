@@ -78,7 +78,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
         {/* Search */}
         <button
           onClick={() => setSearchExpanded(!searchExpanded)}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-teal-soft hover:text-teal transition-all"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-cobalt-soft hover:text-cobalt-hover transition-all"
         >
           <Search className="h-4 w-4" />
           Search
@@ -120,8 +120,8 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
                 active
-                  ? "bg-teal-soft text-teal"
-                  : "text-zinc-400 hover:bg-teal-soft hover:text-teal",
+                  ? "bg-cobalt-soft-strong text-cobalt-hover"
+                  : "text-zinc-400 hover:bg-cobalt-soft hover:text-cobalt-hover",
               )}
             >
               <item.icon className="h-4 w-4" />
@@ -134,7 +134,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
         {hasOperationsConsoleAccess && (
           <a
             href="/operations-console"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-teal-soft hover:text-teal transition-all"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 hover:bg-cobalt-soft hover:text-cobalt-hover transition-all"
           >
             <Shield className="h-4 w-4" />
             Operations Console

@@ -61,9 +61,9 @@ export function ProjectOverviewCard({ data, isLoading }: ProjectOverviewCardProp
               <a
                 key={p.id}
                 href={`/project-hub/${p.id}`}
-                className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-teal-soft transition-colors group"
+                className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-cobalt-soft transition-colors group"
               >
-                <span className="text-sm text-foreground group-hover:text-teal truncate">{p.name}</span>
+                <span className="text-sm text-foreground group-hover:text-cobalt-hover truncate">{p.name}</span>
                 <Badge
                   variant="outline"
                   className={

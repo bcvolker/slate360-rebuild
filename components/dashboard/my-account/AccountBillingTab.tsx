@@ -144,7 +144,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
                 key={pack.id}
                 onClick={() => buyCredits(pack.id)}
                 disabled={creditBusy !== null}
-                className="rounded-xl border border-app bg-white/[0.04] p-4 text-left hover:border-teal hover:bg-white/[0.04]/80 transition-all disabled:opacity-50"
+                className="rounded-xl border border-app bg-white/[0.04] p-4 text-left hover:border-cobalt hover:bg-white/[0.04]/80 transition-all disabled:opacity-50"
               >
                 <p className="text-sm font-bold text-zinc-100">{pack.name}</p>
                 <p className="text-lg font-black text-[#3B82F6]">{pack.credits.toLocaleString()}</p>
