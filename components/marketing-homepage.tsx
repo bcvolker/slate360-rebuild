@@ -20,6 +20,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import PricingSectionV2 from "@/components/home/PricingSection";
 import {
   Menu,
   X,
@@ -1151,6 +1153,7 @@ function Footer() {
    ========================================================================== */
 
 export default function MarketingHomepage({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
+  const router = useRouter();
   return (
     <div className="dark min-h-screen bg-background text-foreground overflow-x-hidden">
       <Header isLoggedIn={isLoggedIn} />
@@ -1159,7 +1162,7 @@ export default function MarketingHomepage({ isLoggedIn = false }: { isLoggedIn?:
         <TrustBar />
         <AppShowcaseSection />
         <SlateDropSection />
-        <PricingSection />
+        <PricingSectionV2 onGetStarted={() => router.push(isLoggedIn ? "/dashboard" : "/signup")} />
         <TestimonialsSection />
         <FinalCTASection />
       </main>
