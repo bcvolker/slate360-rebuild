@@ -51,7 +51,7 @@ export default function HeroDemo() {
   }, [expanded]);
 
   const viewer = (full: boolean) => {
-    const cameraOrbit = full ? "45deg 65deg 105%" : "45deg 65deg 145%";
+    const cameraOrbit = full ? "45deg 65deg 90%" : "45deg 65deg 107%";
     if (active === "model") {
       return (
         <ModelViewerClient
@@ -125,13 +125,6 @@ export default function HeroDemo() {
             </button>
           </div>
           <div className="flex-1 min-h-0 w-full">{viewer(true)}</div>
-          <button
-            type="button"
-            onClick={() => setExpanded(false)}
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium border border-white/20 backdrop-blur"
-          >
-            Close (Esc)
-          </button>
         </div>
       )}
     </div>

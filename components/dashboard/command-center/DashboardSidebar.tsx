@@ -63,9 +63,9 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
     <div className="flex flex-col bg-zinc-950 border-r border-app">
       {/* Logo + Close */}
       <div className="flex h-14 items-center justify-between px-4 border-b border-app">
-        <a href="/" className="flex items-center">
+        <Link href="/dashboard" className="flex items-center">
           <SlateLogo className="h-6 w-auto" />
-        </a>
+        </Link>
         {onClose && (
           <Button variant="ghost" size="icon" onClick={onClose} className="text-zinc-400 hover:text-white hover:bg-white/[0.04] h-8 w-8">
             <X className="h-4 w-4" />
