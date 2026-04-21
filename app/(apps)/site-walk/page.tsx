@@ -29,9 +29,10 @@ export default async function SiteWalkPage() {
     redirect("/dashboard?error=no_punchwalk");
   }
 
-  // PR #27a moved the Site Walk landing experience to the 5-tab shell at
-  // /site-walk/walks (Walks · Deliverables · Capture · More · Account).
-  redirect("/site-walk/walks");
+  // PR #27a moved the Site Walk landing experience to the 5-tab shell.
+  // Phase 1 redesign (PR #27g) introduces /site-walk/home as the new
+  // landing surface; legacy /walks remains active.
+  redirect("/site-walk/home");
 
   // Unreachable — kept so the file always returns JSX.
   return <ComingSoonEmptyState title="Site Walk" icon={MapPinned} />;
