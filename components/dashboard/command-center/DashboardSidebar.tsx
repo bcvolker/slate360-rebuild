@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,13 +25,15 @@ interface NavItem {
   label: string;
   icon: React.ElementType;
   href: string;
+  /** Path prefix used to determine active state. Defaults to href. */
+  matchPrefix?: string;
   comingSoon?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Projects", icon: FolderKanban, href: "/projects" },
   { label: "SlateDrop", icon: Inbox, href: "/slatedrop" },
-  { label: "Site Walk", icon: MapPin, href: "/site-walk" },
+  { label: "Site Walk", icon: MapPin, href: "/site-walk/walks", matchPrefix: "/site-walk" },
   { label: "360 Tours", icon: Compass, href: "/tours", comingSoon: true },
   { label: "Design Studio", icon: Palette, href: "/design-studio", comingSoon: true },
   { label: "Content Studio", icon: Film, href: "/content-studio", comingSoon: true },
@@ -47,6 +51,13 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperationsConsoleAccess = false }: DashboardSidebarProps) {
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const pathname = usePathname() ?? "";
+
+  const isActive = (item: NavItem): boolean => {
+    if (item.comingSoon) return false;
+    const prefix = item.matchPrefix ?? item.href;
+    return pathname === prefix || pathname.startsWith(`${prefix}/`);
+  };
 
   const sidebarContent = (
     <div className="flex flex-col bg-zinc-950 border-r border-app">
@@ -86,25 +97,38 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
           </div>
         )}
 
-        {NAV_ITEMS.map((item) => (
-          <a
-            key={item.label}
-            href={item.comingSoon ? "#" : item.href}
-            onClick={(e) => { if (item.comingSoon) e.preventDefault(); }}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
-              item.comingSoon
-                ? "text-zinc-600 cursor-not-allowed"
-                : "text-zinc-400 hover:bg-teal-soft hover:text-teal"
-            )}
-          >
-            <item.icon className="h-4 w-4" />
-            <span className="flex-1">{item.label}</span>
-            {item.comingSoon && (
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-cobalt/70">Soon</span>
-            )}
-          </a>
-        ))}
+        {NAV_ITEMS.map((item) => {
+          const active = isActive(item);
+          if (item.comingSoon) {
+            return (
+              <span
+                key={item.label}
+                aria-disabled="true"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 cursor-not-allowed"
+              >
+                <item.icon className="h-4 w-4" />
+                <span className="flex-1">{item.label}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-cobalt/70">Soon</span>
+              </span>
+            );
+          }
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                active
+                  ? "bg-teal-soft text-teal"
+                  : "text-zinc-400 hover:bg-teal-soft hover:text-teal",
+              )}
+            >
+              <item.icon className="h-4 w-4" />
+              <span className="flex-1">{item.label}</span>
+            </Link>
+          );
+        })}
 
         {/* Operations Console — owner only */}
         {hasOperationsConsoleAccess && (

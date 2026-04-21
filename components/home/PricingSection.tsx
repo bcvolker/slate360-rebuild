@@ -1,28 +1,35 @@
 "use client";
 
-import { Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
-  PRICING_PLANS,
-  STANDALONE_APP_PRICES,
-  STORAGE_ADDONS,
-  CREDIT_PACKS,
+  APP_PRICING,
+  BUNDLE_PRICING,
+  CREDIT_PACK_OPTIONS,
+  STORAGE_ADDON_OPTIONS,
+  COLLABORATOR_ADDON_OPTIONS,
   PRICING_DISCLAIMER,
-} from "@/components/home/landing-data";
+  type BillingPeriod,
+} from "@/components/home/pricing-data";
+import { PricingTierCard } from "@/components/home/pricing/PricingTierCard";
+import { EnterpriseCard } from "@/components/home/pricing/EnterpriseCard";
 
 interface PricingSectionProps {
   onGetStarted: () => void;
 }
 
 export default function PricingSection({ onGetStarted }: PricingSectionProps) {
+  const [period, setPeriod] = useState<BillingPeriod>("monthly");
+
   return (
     <section id="pricing" className="py-24 bg-surface">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">Pricing</Badge>
+        {/* Header */}
+        <div className="text-center mb-10">
+          <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
+            Pricing
+          </Badge>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
             Simple, transparent pricing
           </h2>
@@ -31,119 +38,132 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
           </p>
         </div>
 
-        {/* Plan grid (per-app starter + bundles) */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-          {PRICING_PLANS.map((plan) => (
-            <Card
-              key={plan.name}
-              className={cn(
-                "bg-glass border-glass shadow-glass relative flex flex-col",
-                plan.popular && "border-primary/50 shadow-gold-glow"
-              )}
-            >
-              {plan.popular && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground">
-                  Most Popular
-                </Badge>
-              )}
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-lg text-foreground">{plan.name}</CardTitle>
-                <CardDescription className="text-muted-foreground text-xs">
-                  {plan.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center flex flex-col flex-1">
-                <div className="mb-5">
-                  <span className="text-4xl font-bold text-foreground">{plan.price}</span>
-                  <span className="text-muted-foreground text-sm">{plan.period}</span>
-                </div>
-                <ul className="space-y-2 mb-6 text-left flex-1">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2 text-xs">
-                      <Check className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
-                      <span className="text-foreground">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  onClick={onGetStarted}
-                  className={cn(
-                    "w-full",
-                    plan.popular
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "bg-muted text-foreground hover:bg-muted/80"
-                  )}
-                >
-                  {plan.cta}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* Monthly / Annual toggle */}
+        <BillingToggle period={period} onChange={setPeriod} />
 
-        {/* Per-app price table */}
-        <div className="mt-16 max-w-5xl mx-auto">
+        {/* PER-APP TIERS — equal treatment, two cards per app */}
+        <div className="mt-14">
           <h3 className="text-xl font-semibold text-foreground text-center mb-2">
-            Or build your own — subscribe to apps individually
+            Per-app subscriptions
           </h3>
-          <p className="text-center text-sm text-muted-foreground mb-6">
-            Mix and match. Stacking apps that match a bundle? The bundle is always the better deal.
+          <p className="text-center text-sm text-muted-foreground mb-8">
+            Every app available standalone at Basic or Pro. Pick what your team needs.
           </p>
-          <div className="rounded-xl border border-glass bg-glass overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-muted-foreground">
-                <tr>
-                  <th className="text-left py-3 px-4 font-medium">App</th>
-                  <th className="text-left py-3 px-4 font-medium hidden sm:table-cell">What it does</th>
-                  <th className="text-right py-3 px-4 font-medium">Basic</th>
-                  <th className="text-right py-3 px-4 font-medium">Pro</th>
-                </tr>
-              </thead>
-              <tbody>
-                {STANDALONE_APP_PRICES.map((app) => (
-                  <tr key={app.name} className="border-t border-glass">
-                    <td className="py-3 px-4 font-medium text-foreground">{app.name}</td>
-                    <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell">{app.summary}</td>
-                    <td className="py-3 px-4 text-right text-foreground">
-                      {app.basic}
-                      {app.basic !== "Free" && <span className="text-xs text-muted-foreground"> /mo</span>}
-                    </td>
-                    <td className="py-3 px-4 text-right text-foreground">
-                      {app.pro}<span className="text-xs text-muted-foreground"> /mo</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-10">
+            {APP_PRICING.map((app) => (
+              <div key={app.id}>
+                <div className="text-center mb-4">
+                  <div className="text-base font-semibold text-foreground">{app.name}</div>
+                  <div className="text-xs text-muted-foreground">{app.tagline}</div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                  <PricingTierCard
+                    groupName={app.name}
+                    tagline=""
+                    tier={app.basic}
+                    period={period}
+                    cta={`Start ${app.name} Basic`}
+                    onCta={onGetStarted}
+                  />
+                  <PricingTierCard
+                    groupName={app.name}
+                    tagline=""
+                    tier={app.pro}
+                    period={period}
+                    cta={`Start ${app.name} Pro`}
+                    onCta={onGetStarted}
+                    highlight
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Add-ons */}
-        <div className="mt-12 grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-          <div className="rounded-xl border border-glass bg-glass p-6">
-            <h4 className="text-sm font-semibold text-foreground mb-1">Storage add-ons</h4>
-            <p className="text-xs text-muted-foreground mb-4">Top up any plan, anytime.</p>
-            <ul className="space-y-2">
-              {STORAGE_ADDONS.map((a) => (
-                <li key={a.label} className="flex items-center justify-between text-sm">
-                  <span className="text-foreground">{a.label}</span>
-                  <span className="text-foreground font-medium">{a.price}</span>
-                </li>
-              ))}
-            </ul>
+        {/* BUNDLES — equal treatment, Basic + Pro for each */}
+        <div className="mt-20">
+          <h3 className="text-xl font-semibold text-foreground text-center mb-2">
+            Bundles
+          </h3>
+          <p className="text-center text-sm text-muted-foreground mb-8">
+            Combine apps for a lower per-app cost. Every bundle has Basic and Pro options.
+          </p>
+          <div className="space-y-10">
+            {BUNDLE_PRICING.filter((b) => !b.enterpriseCustom).map((bundle) => (
+              <div key={bundle.id}>
+                <div className="text-center mb-4">
+                  <div className="text-base font-semibold text-foreground">{bundle.name}</div>
+                  <div className="text-xs text-muted-foreground">{bundle.tagline}</div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                  {bundle.basic && (
+                    <PricingTierCard
+                      groupName={bundle.name}
+                      tagline=""
+                      tier={bundle.basic}
+                      period={period}
+                      cta={`Get ${bundle.name} Basic`}
+                      onCta={onGetStarted}
+                    />
+                  )}
+                  {bundle.pro && (
+                    <PricingTierCard
+                      groupName={bundle.name}
+                      tagline=""
+                      tier={bundle.pro}
+                      period={period}
+                      cta={`Get ${bundle.name} Pro`}
+                      onCta={onGetStarted}
+                      highlight
+                    />
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="rounded-xl border border-glass bg-glass p-6">
-            <h4 className="text-sm font-semibold text-foreground mb-1">Processing credit packs</h4>
-            <p className="text-xs text-muted-foreground mb-4">One-time purchase. Credits never expire.</p>
-            <ul className="space-y-2">
-              {CREDIT_PACKS.map((a) => (
-                <li key={a.label} className="flex items-center justify-between text-sm">
-                  <span className="text-foreground">{a.label}</span>
-                  <span className="text-foreground font-medium">{a.price}</span>
-                </li>
+
+          {/* Enterprise standalone */}
+          <div className="mt-10 max-w-md mx-auto">
+            {BUNDLE_PRICING
+              .filter((b) => b.enterpriseCustom)
+              .map((bundle) => (
+                <EnterpriseCard
+                  key={bundle.id}
+                  bundle={bundle}
+                  onContact={onGetStarted}
+                />
               ))}
-            </ul>
           </div>
+        </div>
+
+        {/* Add-ons row */}
+        <div className="mt-20 grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <AddonCard title="Storage add-ons" subtitle="Top up any plan, monthly.">
+            {STORAGE_ADDON_OPTIONS.map((a) => (
+              <li key={a.label} className="flex items-center justify-between text-sm">
+                <span className="text-foreground">{a.label}</span>
+                <span className="text-foreground font-medium">${a.monthlyUsd} / mo</span>
+              </li>
+            ))}
+          </AddonCard>
+          <AddonCard title="Processing credits" subtitle="One-time. Credits never expire.">
+            {CREDIT_PACK_OPTIONS.map((p) => (
+              <li key={p.label} className="flex items-center justify-between text-sm">
+                <span className="text-foreground">
+                  {p.credits.toLocaleString()} credits
+                </span>
+                <span className="text-foreground font-medium">${p.priceUsd}</span>
+              </li>
+            ))}
+          </AddonCard>
+          <AddonCard title="Extra collaborators" subtitle="Add seats to any plan.">
+            {COLLABORATOR_ADDON_OPTIONS.map((c) => (
+              <li key={c.label} className="flex items-center justify-between text-sm">
+                <span className="text-foreground">{c.label}</span>
+                <span className="text-foreground font-medium">${c.monthlyUsd} / mo</span>
+              </li>
+            ))}
+          </AddonCard>
         </div>
 
         {/* Disclaimer */}
@@ -154,5 +174,86 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
         </div>
       </div>
     </section>
+  );
+}
+
+function BillingToggle({
+  period,
+  onChange,
+}: {
+  period: BillingPeriod;
+  onChange: (p: BillingPeriod) => void;
+}) {
+  return (
+    <div className="flex justify-center">
+      <div
+        className="inline-flex items-center rounded-full border border-glass bg-glass p-1"
+        role="tablist"
+        aria-label="Billing period"
+      >
+        <ToggleButton
+          active={period === "monthly"}
+          onClick={() => onChange("monthly")}
+          label="Monthly"
+        />
+        <ToggleButton
+          active={period === "annual"}
+          onClick={() => onChange("annual")}
+          label="Annual"
+          subtitle="Save 17%"
+        />
+      </div>
+    </div>
+  );
+}
+
+function ToggleButton({
+  active,
+  onClick,
+  label,
+  subtitle,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  subtitle?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "px-5 py-2 rounded-full text-sm font-medium transition-colors",
+        active
+          ? "bg-primary text-primary-foreground"
+          : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {label}
+      {subtitle && (
+        <span className="ml-2 text-[10px] uppercase tracking-wide opacity-80">
+          {subtitle}
+        </span>
+      )}
+    </button>
+  );
+}
+
+function AddonCard({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-glass bg-glass p-6">
+      <h4 className="text-sm font-semibold text-foreground mb-1">{title}</h4>
+      <p className="text-xs text-muted-foreground mb-4">{subtitle}</p>
+      <ul className="space-y-2">{children}</ul>
+    </div>
   );
 }

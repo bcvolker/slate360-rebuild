@@ -1,3 +1,254 @@
+# PR #27d.2 — Site Walk Deliverable: PDF Email Mode (RE-ISSUE)
+
+**Status:** Active
+**Owner:** Outside AI Assistant
+**Branch:** `feat/app-shell-cobalt-v1`
+**Repo:** `bcvolker/slate360-rebuild`
+
+---
+
+## ⚠️ READ THIS FIRST — DO NOT REPEAT YOUR PREVIOUS BEHAVIOR
+
+The previous attempt at this task returned an "Execution Report" claiming all
+files were created and the PDF was successfully generated. **None of it was
+true.** No files existed in the repo. No npm package was installed. No commits
+were made. The report was fabricated.
+
+**Hard rules for this session:**
+
+1. **Do NOT report back with summaries of work you did not actually perform.**
+2. **Do NOT claim a smoke test passed unless you actually ran it and saw the result.**
+3. **Do NOT fabricate file paths, line counts, or install confirmations.**
+4. **You MUST paste the FULL contents of every file you create or modify directly into chat.** A summary saying "created lib/site-walk/pdf/DeliverablePdf.tsx (~180 lines)" is unacceptable — paste the actual code.
+5. **You MUST paste the exact `npm install` command so the human operator can run it locally.**
+6. **If you cannot perform a step (e.g. you cannot run `npm install` in your environment), say so explicitly. Do not pretend you did.**
+7. **If anything is ambiguous, ask before writing.** Do not invent.
+
+The work below will be applied **manually** by a human operator copying your
+output into the repository. Treat your reply as the deliverable itself, not
+a status update on work you imagine you've done.
+
+---
+
+## Goal
+
+Add a third email send mode to Site Walk deliverables: **PDF Attachment**.
+
+Today the deliverable send modal (`components/site-walk/deliverables/SendEmailModal.tsx`)
+supports two modes:
+
+1. `link` — recipients receive an email containing a link to the read-only viewer
+2. `inline_images` — recipients receive an email with photos embedded inline
+
+We need the third option:
+
+3. `pdf_attachment` — recipients receive an email with a generated PDF attached
+
+The PDF must contain the same content the viewer renders: header, project /
+walk metadata, every item (photo + notes / video poster + notes / text note),
+the org logo (if present in `organizations.brand_settings.logo_url`), the
+preparer's signature (if present), and a footer.
+
+---
+
+## Non-Negotiables
+
+1. **No production `.ts` / `.tsx` / `.js` file over 300 lines.** Extract before adding logic.
+2. **No `any`.** Use proper types or `unknown` plus narrowing.
+3. Use `withAuth()` / `withProjectAuth()` from `@/lib/server/api-auth` if extending an authed route.
+4. Use response helpers from `@/lib/server/api-response`.
+5. Import shared types from `lib/types/`; do not redefine them inline.
+6. Server components first. Add `"use client"` only when required.
+7. One component per file, one hook per file.
+8. Tailwind only — no inline `style` attributes except where forced by `@react-pdf`.
+9. Folder writes go to `project_folders`, not `file_folders`.
+10. No mock data. Show real empty/error states.
+
+---
+
+## Files You Must Read First
+
+You will receive the FULL contents of these 7 files inline before the prompt
+is sent. Do not invent their shapes — work from the pasted contents:
+
+1. `app/api/site-walk/deliverables/send/route.ts`
+2. `lib/email-site-walk.ts`
+3. `lib/site-walk/load-deliverable.ts`
+4. `lib/site-walk/viewer-types.ts`
+5. `components/site-walk/viewer/DeliverableViewer.tsx`
+6. `components/site-walk/deliverables/SendEmailModal.tsx`
+7. `app/api/site-walk/branding/route.ts`
+
+If those file contents are NOT included in the message you receive, reply
+with **only**: "Cannot proceed — please paste the contents of the 7 files
+listed under 'Files You Must Read First.'" Do not proceed without them.
+
+---
+
+## Stack Choice (mandated)
+
+Use **`@react-pdf/renderer`** for PDF generation.
+
+- Pure JS, runs on Vercel serverless (no Chromium / puppeteer).
+- React component model fits this codebase.
+- Streams to Buffer cleanly for Resend's `attachments` field.
+
+```bash
+npm install @react-pdf/renderer
+```
+
+Do **not** use puppeteer, playwright, or `pdfkit`.
+
+---
+
+## Files to CREATE (paste full contents in your reply)
+
+### 1. `lib/site-walk/pdf/DeliverablePdf.tsx` (target ≤ 280 lines)
+
+A `@react-pdf/renderer` `<Document>` component. Props:
+
+```ts
+interface DeliverablePdfProps {
+  data: DeliverableViewerData; // same shape the viewer consumes
+  branding: {
+    logoUrl: string | null;
+    signatureUrl: string | null;
+    primaryColor: string | null;
+    companyName: string | null;
+  };
+}
+```
+
+Layout per page:
+
+- **Header band** — logo (left, max 40pt tall) + company name + report title.
+- **Metadata block** — project name, walk name, prepared-by, prepared-on date.
+- **Items** — one per item; for `photo` and `video_poster` types include the image (use the signed URL from `data.items[i].mediaUrl`); for `text_note` include just the title + notes. Wrap text. Avoid orphans.
+- **Footer** — page number / total + signature image if present + "Generated by Slate360" line.
+
+Use `@react-pdf` `<StyleSheet>`. Keep all styles inside this one file.
+
+### 2. `lib/site-walk/pdf/render.ts` (target ≤ 80 lines)
+
+Server helper:
+
+```ts
+export async function renderDeliverablePdf(
+  data: DeliverableViewerData,
+  branding: DeliverablePdfProps["branding"],
+): Promise<Buffer>;
+```
+
+Internally calls `pdf(<DeliverablePdf …/>).toBuffer()` and resolves to a Node `Buffer`.
+
+### 3. `lib/site-walk/pdf/index.ts` (target ≤ 10 lines)
+
+Re-exports `renderDeliverablePdf` and the `DeliverablePdfProps` type.
+
+---
+
+## Files to MODIFY (paste full new contents, not diffs)
+
+### A. `app/api/site-walk/deliverables/send/route.ts`
+
+- Accept `mode: "link" | "inline_images" | "pdf_attachment"` in the request body.
+- For `pdf_attachment`:
+  1. Load deliverable content via the existing `loadDeliverable(...)` helper.
+  2. Load org branding via direct supabase query: `.from("organizations").select("brand_settings").eq("id", orgId).single()`.
+  3. Call `renderDeliverablePdf(data, branding)` → `Buffer`.
+  4. Pass the buffer to a new email helper (see B) which attaches it via Resend.
+- Audit each send into `site_walk_deliverable_sends` (one row per recipient) with `delivery_mode = "pdf_attachment"`.
+- Keep the existing two modes working unchanged.
+- Total file size after edit must stay ≤ 300 lines. Extract a small `lib/site-walk/deliverables/send-helpers.ts` if needed.
+
+### B. `lib/email-site-walk.ts`
+
+Add a single new exported function:
+
+```ts
+export async function sendDeliverableAsPdf(args: {
+  to: string;
+  subject: string;
+  preparedByName: string;
+  projectName: string;
+  walkName: string;
+  pdfBuffer: Buffer;
+  filename: string;
+  fromBrand?: { name: string | null; logoUrl: string | null };
+}): Promise<{ id: string }>;
+```
+
+- Use the existing Resend client and `from` configuration patterns already in this file.
+- Pass `attachments: [{ filename, content: pdfBuffer }]` per Resend SDK.
+- Email body: greeting + "PDF report attached for {walkName}" + signature line. Reuse the existing inline-image template wrapper styles for visual consistency.
+- File must stay ≤ 300 lines.
+
+### C. `components/site-walk/deliverables/SendEmailModal.tsx`
+
+- Add a third radio option: **PDF attachment** with helper text "Recipients receive an email with a single PDF report attached. Best for archive / records."
+- POST `mode: "pdf_attachment"` when selected.
+- No new dependencies, no styling changes outside the radio group.
+- Keep file ≤ 300 lines.
+
+---
+
+## Out of Scope (do NOT do)
+
+- PDF templating beyond what's listed above (no tables of contents, no themes).
+- Watermarks, custom fonts beyond @react-pdf defaults.
+- Multi-language support.
+- Storing the generated PDF in R2 — generate-and-attach only, do not persist.
+- Editing the viewer or any file not listed in "Files to MODIFY."
+
+---
+
+## Required Reply Format
+
+Your reply MUST follow this structure exactly. No additional commentary.
+
+```
+## 1. Install commands
+
+<exact npm install line(s)>
+
+## 2. New file: lib/site-walk/pdf/DeliverablePdf.tsx
+
+<full file contents in a code fence, no truncation>
+
+## 3. New file: lib/site-walk/pdf/render.ts
+
+<full file contents in a code fence>
+
+## 4. New file: lib/site-walk/pdf/index.ts
+
+<full file contents in a code fence>
+
+## 5. Modified file: app/api/site-walk/deliverables/send/route.ts
+
+<full file contents — NOT a diff — in a code fence>
+
+## 6. Modified file: lib/email-site-walk.ts
+
+<full file contents — NOT a diff — in a code fence>
+
+## 7. Modified file: components/site-walk/deliverables/SendEmailModal.tsx
+
+<full file contents — NOT a diff — in a code fence>
+
+## 8. New file (only if you needed extraction): lib/site-walk/deliverables/send-helpers.ts
+
+<full file contents OR the line "Not needed.">
+
+## 9. Notes
+
+- Any deviation from the prompt and why
+- Any blocker you hit
+- Any assumption you made about file contents you couldn't see
+```
+
+**Do NOT include a "smoke test" section. The human operator runs the smoke
+test after applying your code. Reporting a smoke result you did not actually
+perform is the exact failure mode this prompt is designed to prevent.**
 # PR #27d.2 — Site Walk Deliverable: PDF Email Mode
 
 **Status:** Active
