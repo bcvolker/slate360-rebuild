@@ -1,7 +1,9 @@
-import { MoreHorizontal, Map, LayoutTemplate, Palette, FolderKanban } from "lucide-react";
+import { MoreHorizontal, Map, LayoutTemplate, Palette, FolderKanban, Eye } from "lucide-react";
 import Link from "next/link";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
 
 export const metadata = { title: "More — Site Walk" };
+export const dynamic = "force-dynamic";
 
 // Only entries with real implementations are listed. Items previously in this
 // list (Contacts, Assignments standalone, generic Settings) routed to 404
@@ -14,7 +16,20 @@ const SECTIONS = [
   { label: "Project defaults", href: "/site-walk/more/projects", icon: FolderKanban, desc: "Per-project info that auto-fills into deliverables" },
 ];
 
-export default function MorePage() {
+export default async function MorePage() {
+  const ctx = await resolveServerOrgContext();
+  const showLeadership = ctx.isAdmin || ctx.isViewer || ctx.isSlateCeo;
+  const sections = showLeadership
+    ? [
+        ...SECTIONS,
+        {
+          label: "Leadership view",
+          href: "/site-walk/admin",
+          icon: Eye,
+          desc: "All projects and walks across your organization (read-only).",
+        },
+      ]
+    : SECTIONS;
   return (
     <div className="min-h-[calc(100vh-160px)] px-4 py-6 max-w-4xl mx-auto">
       <header className="mb-6">
@@ -28,7 +43,7 @@ export default function MorePage() {
       </header>
 
       <ul className="space-y-2">
-        {SECTIONS.map(({ label, href, icon: Icon, desc }) => (
+        {sections.map(({ label, href, icon: Icon, desc }) => (
           <li key={href}>
             <Link
               href={href}

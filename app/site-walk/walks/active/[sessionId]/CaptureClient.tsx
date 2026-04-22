@@ -226,9 +226,9 @@ export default function CaptureClient({ sessionId, title }: { sessionId: string;
       {/* Item feed */}
       <section>
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-            Captured ({items.length})
-          </h2>
+          <Link href={`/site-walk/walks/active/${sessionId}/items`} className="text-xs font-semibold text-slate-400 uppercase tracking-wide hover:text-cobalt">
+            Captured ({items.length}) · Browse all →
+          </Link>
           {items.length > 0 && (
             <Link
               href={`/site-walk/deliverables/new?session=${sessionId}`}
