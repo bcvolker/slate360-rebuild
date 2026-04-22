@@ -6,6 +6,7 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import type { CreateAssignmentPayload, AssignmentPriority } from "@/lib/types/site-walk";
+import { notifyAssignment } from "@/lib/site-walk/notify-assignment";
 
 const VALID_PRIORITIES: AssignmentPriority[] = ["low", "medium", "high", "critical"];
 
@@ -70,5 +71,19 @@ export const POST = (req: NextRequest) =>
       .single();
 
     if (error) return serverError(error.message);
+
+    // Fire-and-forget assignment notification
+    void notifyAssignment({
+      kind: "task",
+      sessionId: body.session_id,
+      assigneeUserId: body.assigned_to,
+      assignerUserId: user.id,
+      title: body.title.trim(),
+      message: body.description ?? null,
+      priority: body.priority ?? "medium",
+      dueDate: body.due_date ?? null,
+      itemId: body.item_id ?? null,
+    });
+
     return ok({ assignment: data });
   });

@@ -5,6 +5,7 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import type { ItemStatus, ItemPriority, WorkflowType } from "@/lib/types/site-walk";
+import { notifyAssignment } from "@/lib/site-walk/notify-assignment";
 
 type BulkPayload = {
   item_ids: string[];
@@ -16,7 +17,7 @@ type BulkPayload = {
 };
 
 export const PATCH = (req: NextRequest) =>
-  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId, user }) => {
     if (!orgId) return badRequest("Organization context required");
 
     const body = (await req.json()) as BulkPayload;
@@ -43,8 +44,29 @@ export const PATCH = (req: NextRequest) =>
       .update(updates)
       .in("id", body.item_ids)
       .eq("org_id", orgId)
-      .select("id, item_status, priority, workflow_type, assigned_to, due_date");
+      .select("id, session_id, title, item_status, priority, workflow_type, assigned_to, due_date");
 
     if (error) return serverError(error.message);
+
+    // Fire-and-forget assignment notifications
+    if (body.assigned_to && Array.isArray(data)) {
+      const assignee = body.assigned_to;
+      for (const row of data) {
+        const sessionId = (row as { session_id?: unknown }).session_id;
+        const itemId = (row as { id?: unknown }).id;
+        if (typeof sessionId !== "string" || typeof itemId !== "string") continue;
+        void notifyAssignment({
+          kind: "item",
+          sessionId,
+          assigneeUserId: assignee,
+          assignerUserId: user.id,
+          title: ((row as { title?: unknown }).title as string | null) ?? "Punch list item",
+          priority: ((row as { priority?: unknown }).priority as string | null) ?? null,
+          dueDate: ((row as { due_date?: unknown }).due_date as string | null) ?? null,
+          itemId,
+        });
+      }
+    }
+
     return ok({ updated: data?.length ?? 0, items: data });
   });

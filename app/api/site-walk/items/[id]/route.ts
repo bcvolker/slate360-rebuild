@@ -8,6 +8,7 @@ import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
 import type { UpdateItemPayload } from "@/lib/types/site-walk";
+import { notifyAssignment } from "@/lib/site-walk/notify-assignment";
 
 export const GET = (req: NextRequest, ctx: IdRouteContext) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
@@ -26,7 +27,7 @@ export const GET = (req: NextRequest, ctx: IdRouteContext) =>
   });
 
 export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
-  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId, user }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 
@@ -61,6 +62,25 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
 
     if (error) return serverError(error.message);
     if (!data) return notFound("Item not found");
+
+    // Fire-and-forget notification when assignment changes to a new user
+    if (
+      body.assigned_to !== undefined &&
+      body.assigned_to &&
+      typeof data.session_id === "string"
+    ) {
+      void notifyAssignment({
+        kind: "item",
+        sessionId: data.session_id as string,
+        assigneeUserId: body.assigned_to,
+        assignerUserId: user.id,
+        title: (data.title as string | null) ?? "Punch list item",
+        priority: (data.priority as string | null) ?? null,
+        dueDate: (data.due_date as string | null) ?? null,
+        itemId: data.id as string,
+      });
+    }
+
     return ok({ item: data });
   });
 
