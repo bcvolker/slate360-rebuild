@@ -14,6 +14,7 @@ const VALID_TYPES: SiteWalkDeliverableType[] = [
   "report",
   "punchlist",
   "photo_log",
+  "status_report",
   "custom",
 ];
 

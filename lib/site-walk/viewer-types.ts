@@ -58,4 +58,7 @@ export interface ViewerComment {
   author_email?: string | null;
   body: string;
   created_at: string;
+  is_field?: boolean;
+  is_escalation?: boolean;
+  comment_intent?: "approve" | "needs_change" | "question" | "comment" | null;
 }

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Sparkles, Loader2, Save, AlertCircle, Wifi, WifiOff } from "lucide-react";
 import { useVoiceToText } from "@/lib/hooks/useVoiceToText";
 import { useAudioRecorder } from "@/lib/hooks/useAudioRecorder";
+import { useViewportInsets } from "@/lib/hooks/useViewportInsets";
 
 export interface NoteCaptureBarProps {
   initialText?: string;
@@ -42,6 +43,7 @@ export default function NoteCaptureBar({
 
   const voice = useVoiceToText();
   const audio = useAudioRecorder();
+  const { keyboardOffset } = useViewportInsets();
   const baseTextRef = useRef(initialText);
 
   // Live append: while listening, show interim/final on top of the user's
@@ -163,7 +165,10 @@ export default function NoteCaptureBar({
   );
 
   return (
-    <div className="space-y-2">
+    <div
+      className="space-y-2"
+      style={keyboardOffset > 0 ? { paddingBottom: keyboardOffset } : undefined}
+    >
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}

@@ -1,4 +1,4 @@
-import { MoreHorizontal, Map, LayoutTemplate, Palette, FolderKanban, Eye } from "lucide-react";
+import { MoreHorizontal, Map, LayoutTemplate, Palette, FolderKanban, Eye, Compass } from "lucide-react";
 import Link from "next/link";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 
@@ -19,17 +19,30 @@ const SECTIONS = [
 export default async function MorePage() {
   const ctx = await resolveServerOrgContext();
   const showLeadership = ctx.isAdmin || ctx.isViewer || ctx.isSlateCeo;
-  const sections = showLeadership
-    ? [
-        ...SECTIONS,
-        {
-          label: "Leadership view",
-          href: "/site-walk/admin",
-          icon: Eye,
-          desc: "All projects and walks across your organization (read-only).",
-        },
-      ]
-    : SECTIONS;
+  const showDevMap = ctx.isAdmin || ctx.isSlateCeo;
+  const sections = [
+    ...SECTIONS,
+    ...(showLeadership
+      ? [
+          {
+            label: "Leadership view",
+            href: "/site-walk/admin",
+            icon: Eye,
+            desc: "All projects and walks across your organization (read-only).",
+          },
+        ]
+      : []),
+    ...(showDevMap
+      ? [
+          {
+            label: "Walkthrough map",
+            href: "/site-walk/dev/map",
+            icon: Compass,
+            desc: "Click-through preview of every Site Walk page (admin only).",
+          },
+        ]
+      : []),
+  ];
   return (
     <div className="min-h-[calc(100vh-160px)] px-4 py-6 max-w-4xl mx-auto">
       <header className="mb-6">

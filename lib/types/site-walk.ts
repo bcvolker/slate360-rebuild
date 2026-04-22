@@ -86,6 +86,7 @@ export type SiteWalkDeliverableType =
   | "report"
   | "punchlist"
   | "photo_log"
+  | "status_report"
   | "custom";
 
 export type SiteWalkDeliverableStatus =

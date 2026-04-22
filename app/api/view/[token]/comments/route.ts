@@ -50,7 +50,7 @@ export async function GET(req: NextRequest, ctx: Params) {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("viewer_comments")
-    .select("id, deliverable_id, item_id, parent_id, author_user_id, author_name, author_email, body, created_at")
+    .select("id, deliverable_id, item_id, parent_id, author_user_id, author_name, author_email, body, created_at, is_field, is_escalation, comment_intent")
     .eq("deliverable_id", deliverableId)
     .eq("item_id", itemId)
     .order("created_at", { ascending: false });
@@ -80,6 +80,12 @@ export async function POST(req: NextRequest, ctx: Params) {
   const name = typeof p.name === "string" ? p.name.trim() : "";
   const body = typeof p.body === "string" ? p.body.trim() : "";
   const email = typeof p.email === "string" ? p.email.trim() : "";
+  const isField = p.is_field === true;
+  const isEscalation = p.is_escalation === true;
+  const intentRaw = typeof p.intent === "string" ? p.intent.trim() : "";
+  const intent = ["approve", "needs_change", "question", "comment"].includes(intentRaw)
+    ? intentRaw
+    : null;
 
   if (!itemId || !name || !body) return badRequest("Missing required fields");
   if (name.length > 120) return badRequest("Name too long");
@@ -94,8 +100,11 @@ export async function POST(req: NextRequest, ctx: Params) {
       author_name: name,
       author_email: email || null,
       body,
+      is_field: isField,
+      is_escalation: isEscalation,
+      comment_intent: intent,
     })
-    .select("id, deliverable_id, item_id, parent_id, author_user_id, author_name, author_email, body, created_at")
+    .select("id, deliverable_id, item_id, parent_id, author_user_id, author_name, author_email, body, created_at, is_field, is_escalation, comment_intent")
     .single();
 
   if (error) return serverError(error.message);

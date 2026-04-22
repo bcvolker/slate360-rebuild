@@ -230,12 +230,20 @@ export default function CaptureClient({ sessionId, title }: { sessionId: string;
             Captured ({items.length}) · Browse all →
           </Link>
           {items.length > 0 && (
-            <Link
-              href={`/site-walk/deliverables/new?session=${sessionId}`}
-              className="text-xs text-cobalt hover:text-cobalt-hover font-medium inline-flex items-center gap-1"
-            >
-              <FileText className="h-3 w-3" /> Build deliverable
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link
+                href={`/site-walk/walks/active/${sessionId}/status-report`}
+                className="text-xs text-violet-300 hover:text-violet-200 font-medium inline-flex items-center gap-1"
+              >
+                <FileText className="h-3 w-3" /> Status report
+              </Link>
+              <Link
+                href={`/site-walk/deliverables/new?session=${sessionId}`}
+                className="text-xs text-cobalt hover:text-cobalt-hover font-medium inline-flex items-center gap-1"
+              >
+                <FileText className="h-3 w-3" /> Build deliverable
+              </Link>
+            </div>
           )}
         </div>
         {items.length === 0 ? (
