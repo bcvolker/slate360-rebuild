@@ -102,6 +102,8 @@ export const POST = (req: NextRequest) =>
         weather: body.weather ?? null,
         metadata,
         sort_order: nextOrder,
+        before_item_id: body.before_item_id ?? null,
+        item_relationship: body.item_relationship ?? "standalone",
       })
       .select()
       .single();

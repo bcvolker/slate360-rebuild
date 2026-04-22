@@ -72,9 +72,13 @@ export type SiteWalkItem = {
   cost_estimate: number | null;
   manpower_hours: number | null;
   before_item_id: string | null;
+  item_relationship: ItemRelationship;
+  audio_s3_key: string | null;
   created_at: string;
   updated_at: string;
 };
+
+export type ItemRelationship = "standalone" | "resolution" | "rework";
 
 /* ─── Deliverable ──────────────────────────────────────────── */
 
@@ -132,6 +136,8 @@ export type CreateItemPayload = {
   location_label?: string;
   weather?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
+  before_item_id?: string;
+  item_relationship?: ItemRelationship;
 };
 
 export type UpdateItemPayload = {
