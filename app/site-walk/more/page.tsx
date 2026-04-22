@@ -1,16 +1,17 @@
-import { MoreHorizontal, Map, LayoutTemplate, Users, Palette, ClipboardCheck, Settings, FolderKanban } from "lucide-react";
+import { MoreHorizontal, Map, LayoutTemplate, Palette, FolderKanban } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = { title: "More — Site Walk" };
 
+// Only entries with real implementations are listed. Items previously in this
+// list (Contacts, Assignments standalone, generic Settings) routed to 404
+// shells and have been removed until their pages ship. Assignments live on the
+// project dashboard inbox.
 const SECTIONS = [
   { label: "Plans", href: "/site-walk/more/plans", icon: Map, desc: "Upload plans, pin photos to plan locations" },
   { label: "Templates", href: "/site-walk/more/templates", icon: LayoutTemplate, desc: "Reusable session and deliverable templates" },
-  { label: "Contacts", href: "/site-walk/more/contacts", icon: Users, desc: "Recipients for share, leadership view-only access" },
   { label: "Branding", href: "/site-walk/more/branding", icon: Palette, desc: "Logo, colors, email signature for deliverables" },
   { label: "Project defaults", href: "/site-walk/more/projects", icon: FolderKanban, desc: "Per-project info that auto-fills into deliverables" },
-  { label: "Assignments", href: "/site-walk/more/assignments", icon: ClipboardCheck, desc: "Tasks for collaborators, status tracking" },
-  { label: "Settings", href: "/site-walk/more/settings", icon: Settings, desc: "Metadata defaults, notification preferences" },
 ];
 
 export default function MorePage() {

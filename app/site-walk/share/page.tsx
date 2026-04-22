@@ -1,14 +1,12 @@
-import { Send } from "lucide-react";
-import SiteWalkScreenStub from "@/components/site-walk/SiteWalkScreenStub";
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "Share — Site Walk" };
-
-export default function SharePage() {
-  return (
-    <SiteWalkScreenStub
-      title="Share"
-      description="Sent deliverables, viewing-page comments, and recipient activity."
-      icon={Send}
-    />
-  );
+/**
+ * Legacy `/site-walk/share` placeholder. The real share/send flow lives
+ * inside each deliverable detail page (`/site-walk/deliverables/[id]`) and
+ * the public viewer is at `/view/[token]`. Recipients open the viewer
+ * directly; sending users belong on the deliverables list.
+ */
+export default function ShareRedirect(): never {
+  redirect("/site-walk/deliverables");
 }
+

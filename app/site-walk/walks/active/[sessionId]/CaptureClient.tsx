@@ -7,6 +7,7 @@ import { Camera, Upload, Mic, FileText, Loader2, MapPin, CloudSun, CheckCircle2,
 import { captureMetadata, type CaptureMetadata } from "@/lib/site-walk/metadata";
 import { LiveWalkShell } from "@/components/site-walk/LiveWalkShell";
 import { Tile, Chip } from "@/components/site-walk/CaptureTiles";
+import VoiceCaptureSheet from "@/components/site-walk/VoiceCaptureSheet";
 
 type ItemLite = {
   id: string;
@@ -26,6 +27,7 @@ export default function CaptureClient({ sessionId, title }: { sessionId: string;
   const [meta, setMeta] = useState<CaptureMetadata | null>(null);
   const [noteText, setNoteText] = useState("");
   const [showNote, setShowNote] = useState(false);
+  const [showVoice, setShowVoice] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
 
@@ -185,9 +187,8 @@ export default function CaptureClient({ sessionId, title }: { sessionId: string;
         <Tile
           icon={<Mic className="h-6 w-6" />}
           label="Voice note"
-          sub="Coming next"
-          onClick={() => setToast({ kind: "error", text: "Voice capture lands in #27b.2" })}
-          disabled
+          sub="Tap to record"
+          onClick={() => setShowVoice(true)}
         />
         <Tile
           icon={<FileText className="h-6 w-6" />}
@@ -285,6 +286,14 @@ export default function CaptureClient({ sessionId, title }: { sessionId: string;
           {toast.kind === "success" ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
           {toast.text}
         </div>
+      )}
+
+      {showVoice && (
+        <VoiceCaptureSheet
+          sessionId={sessionId}
+          onClose={() => setShowVoice(false)}
+          onSaved={() => { setToast({ kind: "success", text: "Voice note saved" }); void loadItems(); }}
+        />
       )}
     </div>
     </LiveWalkShell>

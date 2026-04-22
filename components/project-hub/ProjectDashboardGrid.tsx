@@ -113,6 +113,7 @@ const PROJECT_WIDGET_META: WidgetMeta[] = [
   { id: "schedule-snapshot", label: "Schedule Snapshot",  icon: CalendarCheck2, color: "#3B82F6" },
   { id: "quick-actions",     label: "Quick Actions",      icon: Zap,            color: "#7C3AED" },
   { id: "slatedrop",         label: "SlateDrop",          icon: FolderOpen,     color: "#3B82F6" },
+  { id: "site-walk",         label: "Site Walk",          icon: ClipboardList,  color: "#F97316" },
   { id: "continue",          label: "Continue Working",   icon: Clock,          color: "#3B82F6" },
 ];
 
@@ -430,6 +431,7 @@ export default function ProjectDashboardGrid({
         { label: "Punch List",    href: `/project-hub/${projectId}/punch-list`,  icon: ShieldAlert,   color: "#DC2626" },
         { label: "Upload File",   href: `/project-hub/${projectId}/slatedrop`,   icon: FolderOpen,    color: "#3B82F6" },
         { label: "Add Task",      href: `/project-hub/${projectId}/schedule`,    icon: CalendarCheck2, color: "#059669" },
+        { label: "Site Walk",     href: `/site-walk/projects/${projectId}`,      icon: ClipboardList, color: "#F97316" },
       ];
       return (
         <div className="grid grid-cols-2 gap-2 flex-1 content-start">
@@ -452,6 +454,35 @@ export default function ProjectDashboardGrid({
     /* SLATEDROP */
     if (id === "slatedrop") {
       return <SlateDropWidgetBody user={user} tier={tier} initialProjectId={projectId} />;
+    }
+
+    /* SITE WALK */
+    if (id === "site-walk") {
+      return (
+        <div className="rounded-xl bg-white/[0.04]/50 border border-app p-4 flex-1 flex flex-col gap-3">
+          <div className="flex items-start gap-2.5">
+            <ClipboardList size={18} className="text-[#F97316] mt-0.5 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-sm font-black text-white">Site Walk</p>
+              <p className="text-[10px] text-zinc-400 mt-0.5">Field photos, voice notes, deliverables, and inbox.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              href={`/site-walk/projects/${projectId}`}
+              className="rounded-lg border border-app bg-white/[0.04] hover:border-[#F97316]/40 px-3 py-2 text-[11px] font-semibold text-zinc-200 hover:text-white transition"
+            >
+              Open dashboard
+            </Link>
+            <Link
+              href={`/site-walk/walks?projectId=${projectId}&new=1`}
+              className="rounded-lg bg-[#F97316]/15 border border-[#F97316]/30 hover:bg-[#F97316]/25 px-3 py-2 text-[11px] font-semibold text-[#F97316] transition text-center"
+            >
+              Start walk
+            </Link>
+          </div>
+        </div>
+      );
     }
 
     /* CONTINUE WORKING */
