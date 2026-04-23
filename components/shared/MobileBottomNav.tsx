@@ -82,10 +82,10 @@ export function MobileBottomNav() {
               <Link
                 href={item.href}
                 className={cn(
-                  "relative flex flex-col items-center justify-center h-full gap-1 transition-colors rounded-lg mx-0.5",
+                  "relative flex flex-col items-center justify-center h-full gap-1 transition-colors duration-200 rounded-lg mx-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg",
                   active
-                    ? "text-cobalt"
-                    : "text-header-muted hover:text-cobalt-hover hover:bg-cobalt-soft"
+                    ? "bg-header-active text-header"
+                    : "text-header-muted hover:text-header hover:bg-header-hover"
                 )}
                 aria-current={active ? "page" : undefined}
               >

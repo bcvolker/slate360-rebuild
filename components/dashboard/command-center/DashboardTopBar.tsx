@@ -51,12 +51,12 @@ export function DashboardTopBar({
           )}
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center h-10 w-10 rounded-xl bg-header-hover hover:bg-cobalt-soft border border-header hover:border-cobalt text-header-muted hover:text-cobalt-hover transition-all"
+            className="flex items-center justify-center h-10 w-10 rounded-xl bg-header-hover hover:bg-cobalt-soft border border-header hover:border-cobalt text-header-muted hover:text-cobalt-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
             aria-label="Toggle menu"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <BackButton className="h-10 w-10 rounded-xl bg-header-hover hover:bg-cobalt-soft border border-header hover:border-cobalt text-header-muted hover:text-cobalt-hover" />
+          <BackButton className="h-10 w-10 rounded-xl bg-header-hover hover:bg-cobalt-soft border border-header hover:border-cobalt text-header-muted hover:text-cobalt-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg" />
         </div>
 
         <div className="flex-1" />
@@ -71,7 +71,7 @@ export function DashboardTopBar({
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative hover:bg-cobalt-soft hover:text-cobalt-hover"
+                className="relative hover:bg-cobalt-soft hover:text-cobalt-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
                 asChild
               >
                 <a href="/my-account?tab=notifications">

@@ -76,7 +76,7 @@ export function MobileTopBar({
             type="button"
             onClick={onSearchClick}
             aria-label="Search"
-            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors"
+            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Search className="h-[18px] w-[18px]" />
           </button>
@@ -86,7 +86,7 @@ export function MobileTopBar({
           <Link
             href="/install"
             aria-label="Download Slate360 to your phone"
-            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors"
+            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Download className="h-[18px] w-[18px]" />
           </Link>
@@ -95,7 +95,7 @@ export function MobileTopBar({
             type="button"
             onClick={() => openInviteShare(true)}
             aria-label="Invite & Share — get QR code"
-            className="sm:hidden h-9 w-9 flex items-center justify-center rounded-lg bg-cobalt/15 text-cobalt border border-cobalt/40 hover:bg-cobalt/25 transition-colors relative"
+            className="sm:hidden h-9 w-9 flex items-center justify-center rounded-lg bg-cobalt/15 text-cobalt border border-cobalt/40 hover:bg-cobalt/25 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg relative"
           >
             <QrCode className="h-[18px] w-[18px]" />
             <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-cobalt animate-pulse" />
@@ -106,7 +106,7 @@ export function MobileTopBar({
           <Link
             href="/my-account?tab=notifications"
             aria-label="Notifications"
-            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors"
+            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Bell className="h-[18px] w-[18px]" />
           </Link>
@@ -114,7 +114,7 @@ export function MobileTopBar({
           <DropdownMenu>
             <DropdownMenuTrigger
               aria-label="Account menu"
-              className="h-9 w-9 flex items-center justify-center rounded-full"
+              className="h-9 w-9 flex items-center justify-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
             >
               <Avatar className="h-8 w-8 border border-cobalt/40">
                 <AvatarFallback className="bg-cobalt/15 text-cobalt text-[12px] font-semibold">

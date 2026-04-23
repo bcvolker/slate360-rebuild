@@ -67,7 +67,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
           <SlateLogo className="h-6 w-auto" />
         </Link>
         {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-header-muted hover:text-header hover:bg-header-hover h-8 w-8">
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-header-muted hover:text-header hover:bg-header-hover h-8 w-8 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg">
             <X className="h-4 w-4" />
           </Button>
         )}
@@ -78,7 +78,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
         {/* Search */}
         <button
           onClick={() => setSearchExpanded(!searchExpanded)}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-header-muted hover:bg-cobalt-soft hover:text-cobalt-hover transition-all"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-header-muted hover:bg-cobalt-soft hover:text-cobalt-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
         >
           <Search className="h-4 w-4" />
           Search
@@ -91,7 +91,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
               placeholder="Search projects, clients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 text-sm bg-app-card border-header text-header placeholder:text-header-subtle focus-visible:ring-primary/50"
+              className="h-8 text-sm bg-app-card border-header text-header placeholder:text-header-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
               autoFocus
             />
           </div>
@@ -118,10 +118,10 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg",
                 active
-                  ? "bg-cobalt-soft-strong text-cobalt-hover"
-                  : "text-header-muted hover:bg-cobalt-soft hover:text-cobalt-hover",
+                  ? "bg-header-active text-header"
+                  : "text-header-muted hover:bg-header-hover hover:text-header",
               )}
             >
               <item.icon className="h-4 w-4" />
@@ -134,7 +134,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
         {hasOperationsConsoleAccess && (
           <a
             href="/operations-console"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-header-muted hover:bg-cobalt-soft hover:text-cobalt-hover transition-all"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-header-muted hover:bg-header-hover hover:text-header transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Shield className="h-4 w-4" />
             Operations Console

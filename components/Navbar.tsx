@@ -66,13 +66,13 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           <Link
             href="/login"
-            className="px-4 py-2 rounded-lg text-sm font-medium text-header-muted hover:text-teal hover:bg-teal-soft transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-header-muted hover:text-teal hover:bg-teal-soft transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             Sign in
           </Link>
           <Link
             href="/signup"
-            className="px-5 py-2.5 rounded-full text-sm font-semibold text-primary-foreground bg-primary transition-all hover:opacity-90 hover:scale-105"
+            className="px-5 py-2.5 rounded-full text-sm font-semibold text-primary-foreground bg-primary transition-all duration-200 hover:opacity-90 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             Start free trial
           </Link>
@@ -80,7 +80,7 @@ export default function Navbar() {
 
         {/* ── Hamburger button ─────────────────────────── */}
         <button
-          className="md:hidden p-2 rounded-lg text-header-muted hover:bg-primary/10 transition-colors"
+          className="md:hidden p-2 rounded-lg text-header-muted hover:bg-primary/10 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
         >

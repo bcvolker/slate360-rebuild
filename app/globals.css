@@ -85,6 +85,8 @@
   --color-header-subtle: var(--header-fg-subtle);
   /* Subtle hover surface for icon buttons / nav items in dark shells. */
   --color-header-hover: var(--header-hover);
+  /* Selected / active nav-item surface — slightly stronger than hover. */
+  --color-header-active: var(--header-active);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -146,6 +148,7 @@
   --header-fg-subtle: #64748B;      /* slate-500 — placeholders, disabled, captions */
   --header-border: rgba(255, 255, 255, 0.08);   /* ultra-subtle hairline */
   --header-hover: rgba(255, 255, 255, 0.05);    /* subtle glass hover surface */
+  --header-active: rgba(255, 255, 255, 0.08);   /* selected nav item surface */
 
   /* ── App-shell skin tokens (consumed by @utility blocks) ───── */
   --app-page: var(--background);
