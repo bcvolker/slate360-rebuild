@@ -1,4 +1,5 @@
 import React from "react";
+import { EMAIL_COLORS } from "@/lib/email-theme";
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import type { ViewerDeliverable } from "@/lib/site-walk/viewer-types";
 
@@ -21,8 +22,8 @@ const styles = StyleSheet.create({
     padding: 36,
     fontFamily: "Helvetica",
     fontSize: 11,
-    color: "#1f2937",
-    backgroundColor: "#ffffff",
+    color: EMAIL_COLORS.pdfBody,
+    backgroundColor: EMAIL_COLORS.cardBg,
     paddingBottom: 80,
   },
   header: {
@@ -30,7 +31,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: EMAIL_COLORS.cardBorder,
     paddingBottom: 16,
     marginBottom: 24,
   },
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
   companyName: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#374151",
+    color: EMAIL_COLORS.textInverseDark,
   },
   reportTitle: {
     fontSize: 18,
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
   metadataBlock: {
     marginBottom: 32,
     padding: 16,
-    backgroundColor: "#f9fafb",
+    backgroundColor: EMAIL_COLORS.pdfSubtleBg,
     borderRadius: 6,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -67,12 +68,12 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   metaLabel: {
-    color: "#6b7280",
+    color: EMAIL_COLORS.textMuted,
     fontSize: 10,
     marginBottom: 4,
   },
   metaValue: {
-    color: "#111827",
+    color: EMAIL_COLORS.textPrimary,
     fontWeight: "bold",
     fontSize: 12,
   },
@@ -82,7 +83,7 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#111827",
+    color: EMAIL_COLORS.textPrimary,
     marginBottom: 8,
   },
   itemImage: {
@@ -94,17 +95,17 @@ const styles = StyleSheet.create({
   },
   itemNotes: {
     fontSize: 11,
-    color: "#4b5563",
+    color: EMAIL_COLORS.textBody,
     lineHeight: 1.5,
     marginBottom: 8,
   },
   itemTranscript: {
     fontSize: 11,
-    color: "#4b5563",
+    color: EMAIL_COLORS.textBody,
     lineHeight: 1.5,
     fontStyle: "italic",
     padding: 8,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: EMAIL_COLORS.quoteBg,
     borderRadius: 4,
     marginBottom: 8,
   },
@@ -113,16 +114,16 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: "#f3f4f6",
+    borderTopColor: EMAIL_COLORS.quoteBg,
   },
   itemMetaBadge: {
     fontSize: 9,
-    color: "#6b7280",
+    color: EMAIL_COLORS.textMuted,
     marginRight: 12,
   },
   linkText: {
     fontSize: 10,
-    color: "#3b82f6",
+    color: EMAIL_COLORS.primary,
     textDecoration: "underline",
     marginBottom: 8,
   },
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-end",
     borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
+    borderTopColor: EMAIL_COLORS.cardBorder,
     paddingTop: 16,
   },
   footerSignature: {
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 9,
-    color: "#9ca3af",
+    color: EMAIL_COLORS.textFaint,
   },
   footerRight: {
     alignItems: "flex-end",

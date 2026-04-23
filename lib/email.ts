@@ -2,8 +2,12 @@
  * lib/email.ts
  * Resend email client + typed send helpers.
  * All outbound email from Slate360 flows through here.
+ *
+ * Color palette is centralized in `lib/email-theme.ts` (EMAIL_COLORS).
+ * Do NOT inline hex literals in this file or any sibling email module.
  */
 import { Resend } from "resend";
+import { EMAIL_COLORS as C } from "./email-theme";
 
 export const FROM = process.env.EMAIL_FROM ?? "Slate360 <noreply@slate360.ai>";
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.ai";
@@ -54,14 +58,14 @@ export function brandedHtml(title: string, body: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${title}</title>
 </head>
-<body style="margin:0;padding:0;background:#f7f8fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f8fa;padding:40px 20px;">
+<body style="margin:0;padding:0;background:${C.pageBg};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:${C.pageBg};padding:40px 20px;">
     <tr>
       <td align="center">
-        <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:${C.cardBg};border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
           <!-- Header -->
           <tr>
-            <td style="background:#18181b;padding:24px 40px;">
+            <td style="background:${C.headerBand};padding:24px 40px;">
               <img src="${logoUrl}" alt="Slate360" width="180" height="auto" style="display:block;max-width:180px;height:auto;" />
             </td>
           </tr>
@@ -73,10 +77,10 @@ export function brandedHtml(title: string, body: string): string {
           </tr>
           <!-- Footer -->
           <tr>
-            <td style="padding:24px 40px;border-top:1px solid #f1f1f1;background:#fafafa;">
-              <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.6;">
+            <td style="padding:24px 40px;border-top:1px solid ${C.footerBorder};background:${C.footerBand};">
+              <p style="margin:0;font-size:11px;color:${C.textFaint};line-height:1.6;">
                 You're receiving this email because you have an account on
-                <a href="${APP_URL}" style="color:#3B82F6;text-decoration:none;">Slate360</a>.
+                <a href="${APP_URL}" style="color:${C.primary};text-decoration:none;">Slate360</a>.
                 &copy; ${new Date().getFullYear()} Slate360. All rights reserved.
               </p>
             </td>
@@ -93,8 +97,8 @@ export function brandedHtml(title: string, body: string): string {
 export function ctaButton(label: string, href: string) {
   return `<table cellpadding="0" cellspacing="0" style="margin:28px 0 8px;">
     <tr>
-      <td style="background:#3B82F6;border-radius:10px;">
-        <a href="${href}" style="display:inline-block;padding:14px 32px;color:#fff;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:0.1px;">${label}</a>
+      <td style="background:${C.primary};border-radius:10px;">
+        <a href="${href}" style="display:inline-block;padding:14px 32px;color:${C.textOnDark};font-size:14px;font-weight:700;text-decoration:none;letter-spacing:0.1px;">${label}</a>
       </td>
     </tr>
   </table>`;
@@ -112,12 +116,12 @@ export async function sendWelcomeEmail({
 }) {
   const displayName = name ?? to.split("@")[0];
   const body = `
-    <h2 style="margin:0 0 8px;color:#3B82F6;font-size:24px;font-weight:800;">Welcome to Slate360${displayName ? `, ${displayName}` : ""}! 🎉</h2>
-    <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
+    <h2 style="margin:0 0 8px;color:${C.primary};font-size:24px;font-weight:800;">Welcome to Slate360${displayName ? `, ${displayName}` : ""}! 🎉</h2>
+    <p style="margin:0 0 24px;color:${C.textMuted};font-size:15px;line-height:1.7;">
       Your email has been verified and your account is ready. You now have access to your dashboard, SlateDrop file manager, and all Slate360 modules.
     </p>
     ${ctaButton("Go to my dashboard →", confirmUrl)}
-    <p style="margin:20px 0 0;font-size:12px;color:#9ca3af;">
+    <p style="margin:20px 0 0;font-size:12px;color:${C.textFaint};">
       If you didn't create a Slate360 account, you can safely ignore this email.
     </p>`;
   
@@ -147,19 +151,19 @@ export async function sendSecureSendEmail({
   message?: string;
 }) {
   const body = `
-    <h2 style="margin:0 0 8px;color:#3B82F6;font-size:24px;font-weight:800;">${senderName} shared a file with you</h2>
-    <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
+    <h2 style="margin:0 0 8px;color:${C.primary};font-size:24px;font-weight:800;">${senderName} shared a file with you</h2>
+    <p style="margin:0 0 24px;color:${C.textMuted};font-size:15px;line-height:1.7;">
       You have been granted <strong>${permission}</strong> access to the file <strong>${fileName}</strong> via SlateDrop.
     </p>
     ${
       message
-        ? `<div style="margin:0 0 24px;padding:16px;background:#f3f4f6;border-left:4px solid #3B82F6;border-radius:4px;color:#4b5563;font-size:14px;font-style:italic;">"${message}"</div>`
+        ? `<div style="margin:0 0 24px;padding:16px;background:${C.quoteBg};border-left:4px solid ${C.primary};border-radius:4px;color:${C.textBody};font-size:14px;font-style:italic;">"${message}"</div>`
         : ""
     }
     ${ctaButton(permission === "download" ? "Download File" : "View File", shareUrl)}
     ${
       expiresAt
-        ? `<p style="margin:20px 0 0;font-size:12px;color:#ef4444;font-weight:600;">
+        ? `<p style="margin:20px 0 0;font-size:12px;color:${C.warning};font-weight:600;">
             ⚠️ This secure link expires on ${new Date(expiresAt).toLocaleDateString()}.
            </p>`
         : ""
@@ -185,13 +189,13 @@ export async function sendPasswordResetEmail({
 }) {
   const displayName = name ?? to.split("@")[0];
   const body = `
-    <h2 style="margin:0 0 8px;color:#3B82F6;font-size:24px;font-weight:800;">Reset your password</h2>
-    <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
+    <h2 style="margin:0 0 8px;color:${C.primary};font-size:24px;font-weight:800;">Reset your password</h2>
+    <p style="margin:0 0 24px;color:${C.textMuted};font-size:15px;line-height:1.7;">
       Hi ${displayName},<br/><br/>
       We received a request to reset the password for your Slate360 account. Click the button below to choose a new password.
     </p>
     ${ctaButton("Reset Password", resetUrl)}
-    <p style="margin:20px 0 0;font-size:12px;color:#9ca3af;">
+    <p style="margin:20px 0 0;font-size:12px;color:${C.textFaint};">
       If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
     </p>`;
 
@@ -223,25 +227,25 @@ export async function sendExternalResponseRequestEmail({
   message?: string;
 }) {
   const body = `
-    <h2 style="margin:0 0 8px;color:#3B82F6;font-size:24px;font-weight:800;">Response requested for ${itemType}</h2>
-    <p style="margin:0 0 18px;color:#6b7280;font-size:15px;line-height:1.7;">
+    <h2 style="margin:0 0 8px;color:${C.primary};font-size:24px;font-weight:800;">Response requested for ${itemType}</h2>
+    <p style="margin:0 0 18px;color:${C.textMuted};font-size:15px;line-height:1.7;">
       ${senderName} requested your response in <strong>${projectName}</strong>.
     </p>
-    <div style="margin:0 0 20px;padding:14px 16px;background:#f3f4f6;border-left:4px solid #3B82F6;border-radius:6px;">
-      <p style="margin:0;color:#374151;font-size:13px;"><strong>${itemType}:</strong> ${itemTitle}</p>
+    <div style="margin:0 0 20px;padding:14px 16px;background:${C.quoteBg};border-left:4px solid ${C.primary};border-radius:6px;">
+      <p style="margin:0;color:${C.textInverseDark};font-size:13px;"><strong>${itemType}:</strong> ${itemTitle}</p>
       ${
         message
-          ? `<p style="margin:10px 0 0;color:#4b5563;font-size:13px;">${message}</p>`
+          ? `<p style="margin:10px 0 0;color:${C.textBody};font-size:13px;">${message}</p>`
           : ""
       }
     </div>
     ${ctaButton("Review & Respond Securely", responseUrl)}
-    <p style="margin:14px 0 0;font-size:12px;color:#6b7280;">
+    <p style="margin:14px 0 0;font-size:12px;color:${C.textMuted};">
       No Slate360 account is required to respond.
     </p>
     ${
       expiresAt
-        ? `<p style="margin:8px 0 0;font-size:12px;color:#ef4444;font-weight:600;">This link expires on ${new Date(expiresAt).toLocaleDateString()}.</p>`
+        ? `<p style="margin:8px 0 0;font-size:12px;color:${C.warning};font-weight:600;">This link expires on ${new Date(expiresAt).toLocaleDateString()}.</p>`
         : ""
     }
   `;
@@ -265,13 +269,13 @@ export async function sendConfirmationEmail({
 }) {
   const displayName = name ?? to.split("@")[0];
   const body = `
-    <h2 style="margin:0 0 8px;color:#3B82F6;font-size:24px;font-weight:800;">Confirm your email</h2>
-    <p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.7;">
+    <h2 style="margin:0 0 8px;color:${C.primary};font-size:24px;font-weight:800;">Confirm your email</h2>
+    <p style="margin:0 0 24px;color:${C.textMuted};font-size:15px;line-height:1.7;">
       Hi ${displayName},<br/><br/>
       Please confirm your email address to complete your Slate360 registration.
     </p>
     ${ctaButton("Confirm Email", confirmUrl)}
-    <p style="margin:20px 0 0;font-size:12px;color:#9ca3af;">
+    <p style="margin:20px 0 0;font-size:12px;color:${C.textFaint};">
       If you didn't create a Slate360 account, you can safely ignore this email.
     </p>`;
 

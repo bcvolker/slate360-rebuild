@@ -13,7 +13,7 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-[var(--surface-light)]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-card" />
 
       {/* Subtle grid */}
       <div

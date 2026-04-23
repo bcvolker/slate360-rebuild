@@ -63,8 +63,8 @@ export function MobileBottomNav() {
       className={cn(
         "lg:hidden fixed bottom-0 left-0 right-0 z-40",
         "h-[72px] pb-safe",
-        "bg-[#0B0F15]/85 backdrop-blur-xl",
-        "border-t border-white/5"
+        "bg-header-glass",
+        "border-t border-header"
       )}
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >

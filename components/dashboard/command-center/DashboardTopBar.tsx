@@ -37,7 +37,7 @@ export function DashboardTopBar({
   return (
     <header
       className={cn(
-        "fixed top-0 right-0 left-0 z-30 h-16 bg-glass border-b border-glass transition-all duration-300",
+        "fixed top-0 right-0 left-0 z-30 h-16 bg-header-glass border-b border-header transition-all duration-300",
         isSidebarOpen ? "lg:left-64" : "lg:left-0"
       )}
     >

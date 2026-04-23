@@ -103,7 +103,7 @@ export function AppPreviewSheet({ app, open, onOpenChange }: AppPreviewSheetProp
           <ul className="mt-2 space-y-2">
             {app.features.map((feature) => (
               <li key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <Check className="mt-0.5 size-3.5 shrink-0 text-[var(--slate-orange)]" />
+                <Check className="mt-0.5 size-3.5 shrink-0 text-[var(--primary)]" />
                 {feature}
               </li>
             ))}
@@ -125,7 +125,7 @@ export function AppPreviewSheet({ app, open, onOpenChange }: AppPreviewSheetProp
 
           {app.available ? (
             <Button
-              className="w-full bg-[var(--slate-orange)] text-white hover:bg-[var(--slate-orange-hover)]"
+              className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"
               onClick={() => handleSubscribe(app.id)}
               disabled={loading !== null}
             >

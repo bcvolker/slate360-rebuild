@@ -197,6 +197,37 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-23 (Phase 1 UI Architecture Cleanup)
+
+#### What Changed (Phase 1 — token consolidation, header isolation, email quarantine)
+
+- [app/globals.css](app/globals.css) — **fully rewritten, 534→457 lines.** Removed duplicate token systems: entire `--slate-*` block, `--text-primary/secondary/muted`, `--surface-page/card/glass/light/light-secondary`, `--border-glass`, `--shadow-glass`, all `--status-*`, the `.dark` mirror block (now empty placeholder + comment), redundant `--space-*`. **Preserved (real consumers):** all shadcn vars, all `--app-*`, `--accent-teal*`, all `--module-*` (6 keys used by `components/apps/app-data.ts`).
+- **Header isolation tokens added** in `:root`: `--header-bg: #0B0F15`, `--header-fg: #F8FAFC`, `--header-border: rgba(255,255,255,0.10)` — permanently dark, independent of any future body light theme. New `@utility` blocks: `bg-header`, `bg-header-glass`, `text-header`, `border-header`.
+- **White-label hook wired:** `--primary: var(--brand-primary, #3B82F6)` and `--ring: var(--brand-primary, #3B82F6)`. The org branding cookie injection on `<body>` (existing in `app/layout.tsx`) now actually flips the brand color globally — previously dead.
+- 4 shells migrated to header tokens: [components/dashboard/command-center/DashboardTopBar.tsx](components/dashboard/command-center/DashboardTopBar.tsx), [components/shared/MobileTopBar.tsx](components/shared/MobileTopBar.tsx), [components/shared/MobileBottomNav.tsx](components/shared/MobileBottomNav.tsx), [components/Navbar.tsx](components/Navbar.tsx).
+- `--slate-*` + `--surface-light` leaks fixed in [components/apps/AppCard.tsx](components/apps/AppCard.tsx), [components/apps/AppPreviewSheet.tsx](components/apps/AppPreviewSheet.tsx), [components/home/HeroSection.tsx](components/home/HeroSection.tsx). The `--slate-orange` refs were broken (var was never defined); replaced with `--primary`.
+- [lib/email-theme.ts](lib/email-theme.ts) — **NEW.** Exports `EMAIL_COLORS` constant. Single source of truth for all transactional email + PDF brand colors (HTML emails and `@react-pdf` cannot consume CSS vars).
+- [lib/email.ts](lib/email.ts), [lib/email-site-walk.ts](lib/email-site-walk.ts), [lib/site-walk/pdf/DeliverablePdf.tsx](lib/site-walk/pdf/DeliverablePdf.tsx) — refactored: every inline hex literal replaced with `EMAIL_COLORS.xxx` references. Future white-label swap = edit one file.
+- Backup: `app/globals.css.bak.20260423` (committed for safety; can be deleted next session).
+
+#### Tracks Delegated (NOT Copilot's job)
+
+- **Track 2 — palette CSS-var generation:** delegated to ChatGPT (produce final `:root` color palette).
+- **Track 3 — homepage v0 redesign:** delegated to v0.
+- **Open file `prompts/CURRENT.md`** (PR #27d.2 PDF prompt): explicitly held for the v0 piece. Copilot does NOT touch it.
+
+#### Validation
+- `npx tsc --noEmit` → clean.
+- `bash scripts/check-file-size.sh` → no new oversized files (only pre-existing warnings).
+
+#### Next Steps (ordered)
+1. Wait for v0 components to land — wire them up (entitlements, Supabase, error states).
+2. Apply migration `20260421000001_brand_and_report_defaults.sql` to live Supabase (still pending from prior chat).
+3. Build Blocker #3 (SlateDrop "Site Walks" virtual folder per project) once v0 ships the SlateDrop project view.
+4. Delete `app/globals.css.bak.20260423` after one stable session.
+
+---
+
 ### Session Handoff — 2026-04-23 (Strategic pivot: v0+Copilot split, Unified Projects, Whisper wired)
 
 #### Strategy Pivot (READ FIRST — applies to ALL future chats)

@@ -1,3 +1,4 @@
+import { EMAIL_COLORS as C } from "./email-theme";
 /**
  * lib/email-site-walk.ts
  * Site Walk–specific email helpers. Extends the core email module.
@@ -23,24 +24,24 @@ export async function sendDeliverableShareEmail({
   message?: string;
 }) {
   const body = `
-    <h2 style="margin:0 0 8px;color:#3B82F6;font-size:24px;font-weight:800;">${senderName} shared a ${deliverableType} with you</h2>
-    <p style="margin:0 0 18px;color:#6b7280;font-size:15px;line-height:1.7;">
+    <h2 style="margin:0 0 8px;color:${C.primary};font-size:24px;font-weight:800;">${senderName} shared a ${deliverableType} with you</h2>
+    <p style="margin:0 0 18px;color:${C.textMuted};font-size:15px;line-height:1.7;">
       You've been sent <strong>"${deliverableTitle}"</strong> via Slate360 Site Walk.
     </p>
     ${
       message
-        ? `<div style="margin:0 0 24px;padding:16px;background:#f3f4f6;border-left:4px solid #3B82F6;border-radius:4px;color:#4b5563;font-size:14px;font-style:italic;">"${message}"</div>`
+        ? `<div style="margin:0 0 24px;padding:16px;background:${C.quoteBg};border-left:4px solid ${C.primary};border-radius:4px;color:${C.textBody};font-size:14px;font-style:italic;">"${message}"</div>`
         : ""
     }
     ${ctaButton("View Deliverable", shareUrl)}
     ${
       expiresAt
-        ? `<p style="margin:20px 0 0;font-size:12px;color:#ef4444;font-weight:600;">
+        ? `<p style="margin:20px 0 0;font-size:12px;color:${C.warning};font-weight:600;">
             ⚠️ This link expires on ${new Date(expiresAt).toLocaleDateString()}.
            </p>`
         : ""
     }
-    <p style="margin:14px 0 0;font-size:12px;color:#6b7280;">
+    <p style="margin:14px 0 0;font-size:12px;color:${C.textMuted};">
       No Slate360 account is required to view this deliverable.
     </p>`;
 
@@ -79,24 +80,24 @@ export async function sendDeliverableInlineImageEmail({
     .map(
       (it) => `
         <div style="margin:0 0 24px;">
-          <img src="${it.imageUrl}" alt="${escapeHtml(it.title)}" style="display:block;width:100%;max-width:520px;border-radius:8px;border:1px solid #e5e7eb;" />
-          <div style="margin:8px 0 0;font-size:14px;font-weight:600;color:#111827;">${escapeHtml(it.title)}</div>
-          ${it.notes ? `<div style="margin:4px 0 0;font-size:13px;color:#4b5563;line-height:1.5;">${escapeHtml(it.notes)}</div>` : ""}
+          <img src="${it.imageUrl}" alt="${escapeHtml(it.title)}" style="display:block;width:100%;max-width:520px;border-radius:8px;border:1px solid ${C.cardBorder};" />
+          <div style="margin:8px 0 0;font-size:14px;font-weight:600;color:${C.textPrimary};">${escapeHtml(it.title)}</div>
+          ${it.notes ? `<div style="margin:4px 0 0;font-size:13px;color:${C.textBody};line-height:1.5;">${escapeHtml(it.notes)}</div>` : ""}
         </div>`,
     )
     .join("");
 
   const overflow = items.length > 12
-    ? `<p style="margin:0 0 16px;font-size:13px;color:#6b7280;">+ ${items.length - 12} more item${items.length - 12 === 1 ? "" : "s"} on the full page.</p>`
+    ? `<p style="margin:0 0 16px;font-size:13px;color:${C.textMuted};">+ ${items.length - 12} more item${items.length - 12 === 1 ? "" : "s"} on the full page.</p>`
     : "";
 
   const body = `
-    <h2 style="margin:0 0 8px;color:#3B82F6;font-size:22px;font-weight:800;">${escapeHtml(senderName)} sent you "${escapeHtml(deliverableTitle)}"</h2>
-    ${message ? `<div style="margin:0 0 20px;padding:14px;background:#f3f4f6;border-left:4px solid #3B82F6;border-radius:4px;color:#4b5563;font-size:14px;font-style:italic;">"${escapeHtml(message)}"</div>` : ""}
+    <h2 style="margin:0 0 8px;color:${C.primary};font-size:22px;font-weight:800;">${escapeHtml(senderName)} sent you "${escapeHtml(deliverableTitle)}"</h2>
+    ${message ? `<div style="margin:0 0 20px;padding:14px;background:${C.quoteBg};border-left:4px solid ${C.primary};border-radius:4px;color:${C.textBody};font-size:14px;font-style:italic;">"${escapeHtml(message)}"</div>` : ""}
     ${photoBlocks}
     ${overflow}
     ${ctaButton("Open the full report", shareUrl)}
-    <p style="margin:14px 0 0;font-size:12px;color:#6b7280;">No Slate360 account required.</p>`;
+    <p style="margin:14px 0 0;font-size:12px;color:${C.textMuted};">No Slate360 account required.</p>`;
 
   return sendEmail({
     to,
@@ -132,12 +133,12 @@ export async function sendDeliverableAsPdfEmail({
   filename: string;
 }) {
   const body = `
-    <h2 style="margin:0 0 8px;color:#3B82F6;font-size:22px;font-weight:800;">${escapeHtml(senderName)} sent you a report</h2>
-    <p style="margin:0 0 18px;color:#6b7280;font-size:15px;line-height:1.7;">
+    <h2 style="margin:0 0 8px;color:${C.primary};font-size:22px;font-weight:800;">${escapeHtml(senderName)} sent you a report</h2>
+    <p style="margin:0 0 18px;color:${C.textMuted};font-size:15px;line-height:1.7;">
       Please find the PDF report attached for <strong>"${escapeHtml(deliverableTitle)}"</strong>.
     </p>
-    ${message ? `<div style="margin:0 0 20px;padding:14px;background:#f3f4f6;border-left:4px solid #3B82F6;border-radius:4px;color:#4b5563;font-size:14px;font-style:italic;">"${escapeHtml(message)}"</div>` : ""}
-    <p style="margin:14px 0 0;font-size:12px;color:#6b7280;">Generated by Slate360.</p>`;
+    ${message ? `<div style="margin:0 0 20px;padding:14px;background:${C.quoteBg};border-left:4px solid ${C.primary};border-radius:4px;color:${C.textBody};font-size:14px;font-style:italic;">"${escapeHtml(message)}"</div>` : ""}
+    <p style="margin:14px 0 0;font-size:12px;color:${C.textMuted};">Generated by Slate360.</p>`;
 
   return sendEmail({
     to,

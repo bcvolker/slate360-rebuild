@@ -26,7 +26,7 @@ export function AppCard({ app, onSelect }: AppCardProps) {
       }}
       className={cn(
         "cursor-pointer transition-colors hover:border-border/80 hover:bg-accent/50",
-        "focus-visible:ring-2 focus-visible:ring-[var(--slate-accent-ring)] focus-visible:outline-none",
+        "focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:outline-none",
         !app.available && "opacity-60"
       )}
     >
@@ -48,7 +48,7 @@ export function AppCard({ app, onSelect }: AppCardProps) {
             )}
           </div>
           <p className="mt-1 text-xs text-muted-foreground">{app.tagline}</p>
-          <p className="mt-2 text-lg font-bold text-[var(--slate-orange)]">{app.price}</p>
+          <p className="mt-2 text-lg font-bold text-[var(--primary)]">{app.price}</p>
         </div>
       </CardContent>
     </Card>

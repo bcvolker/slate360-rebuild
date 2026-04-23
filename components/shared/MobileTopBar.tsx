@@ -45,8 +45,8 @@ export function MobileTopBar({
     <header
       className={cn(
         "lg:hidden fixed top-0 left-0 right-0 z-30",
-        "h-14 bg-[#0B0F15]/85 backdrop-blur-xl",
-        "border-b border-white/5",
+        "h-14 bg-header-glass",
+        "border-b border-header",
         "px-2 max-w-full overflow-hidden"
       )}
       style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
@@ -122,7 +122,7 @@ export function MobileTopBar({
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-[#151A23] border-white/10">
+            <DropdownMenuContent align="end" className="w-56 bg-card border-border">
               <DropdownMenuLabel className="text-foreground text-xs">
                 {userName || "My Account"}
               </DropdownMenuLabel>

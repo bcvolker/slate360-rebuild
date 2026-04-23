@@ -4,6 +4,33 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ─────────────────────────────────────────────────────────────────
+   Slate360 Theme (consolidated 2026-04-23)
+   Single source of truth. Three layers only:
+     1. @theme inline   — Tailwind v4 token registration.
+     2. :root           — canonical CSS vars (shadcn + app-shell + brand).
+     3. @utility        — named utilities used in className strings.
+
+   Header isolation: --header-bg / --header-fg / --header-border are
+   permanently dark regardless of any future light-theme migration of
+   the body. Logo lives on --header-bg, do not retheme it.
+
+   White-label hook: --primary / --ring fall back through --brand-primary
+   (injected on <body> from org branding cookie in app/layout.tsx).
+
+   Removed in this consolidation:
+     - duplicate --slate-* alias block (no real consumers)
+     - duplicate --text-primary / --text-secondary / --text-muted
+       (use --foreground / --muted-foreground / shadcn-native instead)
+     - duplicate --surface-page / --surface-card / --surface-glass /
+       --surface-light / --border-glass (folded into --background /
+       --card / --app-glass / --border)
+     - --status-* block (zero consumers)
+     - .dark mirror block (app forces <html class="dark"> always; if a
+       light theme is added later, redefine vars under :root and let
+       .dark override)
+   ───────────────────────────────────────────────────────────────── */
+
 @theme inline {
   --breakpoint-xs: 22rem;
   --color-background: var(--background);
@@ -39,10 +66,17 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* Brand + header tokens registered for Tailwind v4 (used as bg-cobalt,
+     text-cobalt, bg-header, etc — see @utility blocks below). */
   --color-cobalt: #3B82F6;
   --color-cobalt-hover: #2563EB;
   --color-steel: #94A3B8;
-  --color-glass: rgba(21, 26, 35, 0.6);
+  --color-glass: var(--app-glass);
+  --color-header-bg: var(--header-bg);
+  --color-header-fg: var(--header-fg);
+  --color-header-border: var(--header-border);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -53,72 +87,16 @@
 }
 
 :root {
-  /* ── Slate360 unified app skin (2026-04-22 dark + high-contrast text) ──
-     Logo requires a dark background. Brand stays dark.
-     Text contrast bumped to slate-50 / slate-300 for legibility. */
   --radius: 1rem;
-  --background: #0B0F15;               /* App canvas — deep navy */
-  --foreground: #F8FAFC;               /* Slate-50 — near-white text */
-  --card: #151A23;                     /* Card surface */
-  --card-foreground: #F8FAFC;
-  --popover: #151A23;
-  --popover-foreground: #F8FAFC;
-  --primary: #3B82F6;                  /* Cobalt-500 — primary action */
-  --primary-foreground: #FFFFFF;
-  --primary-hover: #2563EB;            /* Cobalt-600 */
-  --secondary: #1e2533;
-  --secondary-foreground: #F8FAFC;
-  --muted: #1e2533;
-  --muted-foreground: #CBD5E1;         /* Slate-300 — was 94a3b8 (too dim) */
-  --accent: #1e2533;
-  --accent-foreground: #F8FAFC;
-  --accent-teal: #CBD5E1;
-  --accent-teal-soft: rgba(203, 213, 225, 0.18);
-  --destructive: #F87171;              /* Red-400 — readable on dark */
-  --border: rgba(255, 255, 255, 0.14); /* was 0.08 — stronger separation */
-  --input: rgba(255, 255, 255, 0.16);
-  --ring: #3B82F6;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: #0B0F15;
-  --sidebar-foreground: #F8FAFC;
-  --sidebar-primary: #3B82F6;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1e2533;
-  --sidebar-accent-foreground: #F8FAFC;
-  --sidebar-border: rgba(255, 255, 255, 0.10);
-  --sidebar-ring: #3B82F6;
-  /* App-shell skin tokens */
-  --app-page: #0B0F15;
-  --app-card: #151A23;
-  --app-card-hover: rgba(255, 255, 255, 0.06);
-  --app-border: rgba(255, 255, 255, 0.10);
-  --app-glass: rgba(11, 15, 21, 0.80);
-  --app-glow-amber: 0 0 12px rgba(59, 130, 246, 0.14);
-  --app-glow-amber-strong: 0 0 16px 0 rgba(59, 130, 246, 0.22), 0 2px 8px 0 rgba(59, 130, 246, 0.14);
-  --app-shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
-  --app-shadow-elevated: 0 8px 32px -4px rgba(0, 0, 0, 0.5);
-  --color-scheme: dark;
-}
-
-:root {
   color-scheme: dark;
-}
 
-.dark {
-  /* Mirror of :root — <html class="dark"> is default. */
+  /* ── shadcn canonical surface + text ───────────────────────── */
   --background: #0B0F15;
   --foreground: #F8FAFC;
   --card: #151A23;
   --card-foreground: #F8FAFC;
   --popover: #151A23;
   --popover-foreground: #F8FAFC;
-  --primary: #3B82F6;
-  --primary-foreground: #FFFFFF;
-  --primary-hover: #2563EB;
   --secondary: #1e2533;
   --secondary-foreground: #F8FAFC;
   --muted: #1e2533;
@@ -128,43 +106,52 @@
   --destructive: #F87171;
   --border: rgba(255, 255, 255, 0.14);
   --input: rgba(255, 255, 255, 0.16);
-  --ring: #3B82F6;
+
+  /* ── Brand (white-label override via --brand-primary on <body>) ── */
+  --primary: var(--brand-primary, #3B82F6);
+  --primary-foreground: #FFFFFF;
+  --primary-hover: #2563EB;
+  --ring: var(--brand-primary, #3B82F6);
+
+  /* ── Charts (oklch — keep distinct hues for data viz) ──────── */
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
+
+  /* ── Sidebar (shadcn) ──────────────────────────────────────── */
   --sidebar: #0B0F15;
   --sidebar-foreground: #F8FAFC;
-  --sidebar-primary: #3B82F6;
+  --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #1e2533;
   --sidebar-accent-foreground: #F8FAFC;
   --sidebar-border: rgba(255, 255, 255, 0.10);
-  --sidebar-ring: #3B82F6;
-}
+  --sidebar-ring: var(--ring);
 
-/* ─────────────────────────────────────────────────────────────────
-   Slate360 Design Tokens
-   Single source of truth for brand colors and spacing.
-   Use these CSS variables everywhere instead of hardcoded hex values.
-   Enterprise white-label: override --slate-orange and --slate-blue.
-   ───────────────────────────────────────────────────────────────── */
-:root {
-  /* Brand colors — Cobalt (primary) + Steel (secondary). 2026-04-19. */
-  --slate-gold: #3B82F6;
-  --slate-gold-hover: #2563EB;
-  --slate-gold-light: rgba(59, 130, 246, 0.14);
-  --slate-accent: #3B82F6;
-  --slate-accent-hover: #2563EB;
-  --slate-accent-ring: rgba(59, 130, 246, 0.5);
-  --slate-teal: #94A3B8;
-  --slate-teal-soft: rgba(148, 163, 184, 0.18);
-  --slate-blue: #0B0F15;
-  --slate-blue-hover: #151A23;
-  --slate-blue-light: rgba(11, 15, 21, 0.50);
+  /* ── Header isolation (PERMANENTLY DARK — do not retheme) ──── */
+  --header-bg: #0B0F15;
+  --header-fg: #F8FAFC;
+  --header-border: rgba(255, 255, 255, 0.10);
 
-  /* Module accent colors */
+  /* ── App-shell skin tokens (consumed by @utility blocks) ───── */
+  --app-page: var(--background);
+  --app-card: var(--card);
+  --app-card-hover: rgba(255, 255, 255, 0.06);
+  --app-border: rgba(255, 255, 255, 0.10);
+  --app-glass: rgba(11, 15, 21, 0.80);
+  --app-backdrop-blur: 20px;
+  --app-glow-amber: 0 0 12px rgba(59, 130, 246, 0.14);
+  --app-glow-amber-strong: 0 0 16px 0 rgba(59, 130, 246, 0.22), 0 2px 8px 0 rgba(59, 130, 246, 0.14);
+  --app-shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
+  --app-shadow-elevated: 0 8px 32px -4px rgba(0, 0, 0, 0.5);
+
+  /* ── Steel / teal accent (consumed by btn-teal-outline, text-teal) ── */
+  --accent-teal: #CBD5E1;
+  --accent-teal-soft: rgba(203, 213, 225, 0.18);
+
+  /* ── Module accent colors (consumed by components/apps/app-data.ts) ── */
   --module-hub: #3B82F6;
   --module-design: #7C3AED;
   --module-content: #EC4899;
@@ -174,82 +161,13 @@
   --module-analytics: #6366F1;
   --module-market: #6366F1;
   --module-slatedrop: #3B82F6;
-
-  /* Status colors — used for RFIs, submittals, punch items */
-  --status-open: #2563EB;
-  --status-open-bg: #EFF6FF;
-  --status-review: #2563EB;
-  --status-review-bg: #FFFBEB;
-  --status-approved: #059669;
-  --status-approved-bg: #ECFDF5;
-  --status-closed: #059669;
-  --status-closed-bg: #ECFDF5;
-  --status-overdue: #DC2626;
-  --status-overdue-bg: #FEF2F2;
-  --status-draft: #6B7280;
-  --status-draft-bg: #F9FAFB;
-
-  /* Surface — dark app skin (2026-04-22 logo-on-dark) */
-  --surface-page: #0B0F15;
-  --surface-card: #151A23;
-  --surface-card-hover: #1F2937;
-
-  /* Spacing (8px grid) */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-
-  /* Dark app design system — high-contrast text */
-  --text-primary: #F8FAFC;             /* Slate-50 — near-white */
-  --text-secondary: #CBD5E1;           /* Slate-300 — was too dim before */
-  --text-muted: #94A3B8;               /* Slate-400 */
-  --surface-glass: rgba(11, 15, 21, 0.80);
-  --surface-light: #0B0F15;
-  --surface-light-secondary: #151A23;
-  --border-glass: rgba(255, 255, 255, 0.14);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.14);
-  --backdrop-blur: blur(16px);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
-  --shadow-glass: 0 8px 32px -4px rgba(0, 0, 0, 0.5);
 }
 
-/* Mirror tokens under .dark since <html class="dark"> is the default */
+/* When a future light theme is added, redefine all of the above under
+   :root and use this .dark block to override. App currently always sets
+   <html class="dark">, so this block is intentionally empty for now. */
 .dark {
-  --slate-gold: #3B82F6;
-  --slate-gold-hover: #2563EB;
-  --slate-gold-light: rgba(59, 130, 246, 0.14);
-  --slate-accent: #3B82F6;
-  --slate-accent-hover: #2563EB;
-  --slate-accent-ring: rgba(59, 130, 246, 0.5);
-  --slate-blue: #F8FAFC;
-  --slate-blue-hover: #E2E8F0;
-  --slate-blue-light: rgba(248, 250, 252, 0.08);
-
-  --status-open-bg: rgba(37, 99, 235, 0.18);
-  --status-review-bg: rgba(37, 99, 235, 0.18);
-  --status-approved-bg: rgba(5, 150, 105, 0.18);
-  --status-closed-bg: rgba(5, 150, 105, 0.18);
-  --status-overdue-bg: rgba(220, 38, 38, 0.20);
-  --status-draft-bg: rgba(107, 114, 128, 0.20);
-
-  --surface-page: #0B0F15;
-  --surface-card: #151A23;
-  --surface-card-hover: #1F2937;
-
-  --text-primary: #F8FAFC;
-  --text-secondary: #CBD5E1;
-  --text-muted: #94A3B8;
-  --surface-glass: rgba(11, 15, 21, 0.80);
-  --surface-light: #0B0F15;
-  --surface-light-secondary: #151A23;
-  --border-glass: rgba(255, 255, 255, 0.14);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.14);
-  --backdrop-blur: blur(16px);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
-  --shadow-glass: 0 8px 32px -4px rgba(0, 0, 0, 0.5);
+  /* intentionally empty — :root values above are the dark palette. */
 }
 
 @layer base {
@@ -305,52 +223,60 @@
 
 /* Mobile menu slide-in */
 @keyframes slideIn {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
 }
-
-.animate-slide-in {
-  animation: slideIn 0.2s ease-out;
-}
+.animate-slide-in { animation: slideIn 0.2s ease-out; }
 
 /* Continuous horizontal pan for 360 card thumbnail */
 @keyframes pan360 {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-66.67%);
-  }
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-66.67%); }
+}
+.animate-pan-360 { animation: pan360 20s linear infinite; }
+
+/* ─────────────────────────────────────────────────────────────────
+   Header isolation utilities (permanently dark — no theme follows)
+   ───────────────────────────────────────────────────────────────── */
+
+@utility bg-header {
+  background-color: var(--header-bg);
 }
 
-.animate-pan-360 {
-  animation: pan360 20s linear infinite;
+@utility bg-header-glass {
+  background-color: color-mix(in oklab, var(--header-bg) 85%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+@utility text-header {
+  color: var(--header-fg);
+}
+
+@utility border-header {
+  border-color: var(--header-border);
 }
 
 /* ─────────────────────────────────────────────────────────────────
-   Dark Glass Utility Classes (registered for Tailwind v4)
+   Glass / surface utilities (now wired to canonical tokens)
    ───────────────────────────────────────────────────────────────── */
 
 @utility bg-glass {
-  background-color: var(--surface-glass);
+  background-color: var(--app-glass);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 
 @utility bg-surface {
-  background-color: var(--surface-light);
+  background-color: var(--background);
 }
 
 @utility border-glass {
-  border-color: var(--border-glass);
+  border-color: var(--border);
 }
 
 @utility shadow-glass {
-  box-shadow: var(--shadow-glass);
+  box-shadow: var(--app-shadow-elevated);
 }
 
 @utility shadow-gold-glow {
@@ -373,6 +299,7 @@
   border-color: var(--app-border);
 }
 
+/* ── Steel / teal accent ── */
 @utility text-teal {
   color: var(--accent-teal);
 }
@@ -386,12 +313,10 @@
 }
 
 @utility hover-teal {
-  &:hover {
-    color: var(--accent-teal);
-  }
+  &:hover { color: var(--accent-teal); }
 }
 
-/* ── Cobalt hover utilities — used by the app shell (sidebar, top bar, cards) ── */
+/* ── Cobalt hover utilities (used by app shell) ── */
 @utility bg-cobalt-soft {
   background-color: rgba(59, 130, 246, 0.10);
 }
@@ -416,7 +341,7 @@
   border-color: rgba(59, 130, 246, 0.40);
 }
 
-/* Muted/glass cobalt CTA — calmer than solid bg-primary, still recognizably the brand action */
+/* ── Branded buttons ── */
 @utility btn-amber-soft {
   background: linear-gradient(180deg, rgba(59, 130, 246, 0.92), rgba(37, 99, 235, 0.92));
   color: #ffffff;
@@ -430,7 +355,6 @@
   transform: translateY(-1px);
 }
 
-/* Outlined steel CTA — secondary action that complements cobalt without competing */
 @utility btn-teal-outline {
   background: rgba(148, 163, 184, 0.06);
   color: var(--accent-teal);
@@ -445,10 +369,13 @@
 
 @utility scrollbar-none {
   scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  &::-webkit-scrollbar { display: none; }
 }
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 /* ─────────────────────────────────────────────────────────────────
    Auth Page Shared Styles
@@ -528,7 +455,3 @@
   background: hsl(0 72% 52% / 0.08);
   border-color: hsl(0 72% 52% / 0.24);
 }
-@utility no-scrollbar {
-  scrollbar-width: none;
-}
-.no-scrollbar::-webkit-scrollbar { display: none; }
