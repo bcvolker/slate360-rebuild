@@ -1,17 +1,13 @@
 "use client";
 
 /**
- * SiteWalkSessionProvider — capture-state safety net.
+ * SiteWalkSessionProvider — capture-state safety net + realtime sync.
  *
- * Holds the user's in-progress capture so it survives:
- *   - Tab switching between Camera / Note / Voice (no draft loss)
- *   - Hard reloads mid-capture (text + photo Blob + audio Blob persisted
- *     to IndexedDB and rehydrated on remount via fresh ObjectURLs)
- *   - Network drops (failed POSTs are routed to lib/offline-queue.ts and
- *     auto-flushed on `online` events)
+ * Survives tab switches, hard reloads (IDB blob persistence), network
+ * drops (offline queue), and multi-user sessions (Supabase Realtime
+ * broadcasts on site_walk_items + site_walk_pins).
  *
- * Scope: a single active capture session. Mount this provider at the
- * `walks/active/[sessionId]` route segment via its `layout.tsx`.
+ * Mount at app/site-walk/walks/active/[sessionId]/layout.tsx.
  */
 
 import {
@@ -24,24 +20,22 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { get as idbGet, set as idbSet, del as idbDel, createStore } from "idb-keyval";
-import { enqueue, flushQueue, pendingCount } from "@/lib/offline-queue";
+import {
+  EMPTY_DRAFT,
+  loadDraftFromIdb,
+  persistDraftToIdb,
+  clearDraftFromIdb,
+  type DraftItem,
+  type DraftTab,
+} from "@/lib/site-walk/draft-store";
+import { useSiteWalkRealtime } from "@/lib/hooks/useSiteWalkRealtime";
+import {
+  useSiteWalkOfflineSync,
+  type SubmitItemPayload,
+  type SubmitItemResult,
+} from "@/lib/hooks/useSiteWalkOfflineSync";
 
-export type DraftTab = "camera" | "note" | "voice" | null;
-
-export interface DraftItem {
-  tab: DraftTab;
-  title: string;
-  noteText: string;
-  /** ObjectURL for an in-flight photo blob. Generated fresh on rehydrate. */
-  photoBlobUrl: string | null;
-  /** ObjectURL for an in-flight voice recording. Generated fresh on rehydrate. */
-  audioBlobUrl: string | null;
-  /** Underlying Blobs — what actually persists to IndexedDB. */
-  photoBlob: Blob | null;
-  audioBlob: Blob | null;
-  updatedAt: number;
-}
+export type { DraftItem, DraftTab, SubmitItemPayload, SubmitItemResult };
 
 export interface CapturedItem {
   id: string;
@@ -60,18 +54,6 @@ export interface SiteWalkSessionState {
   isOnline: boolean;
 }
 
-export interface SubmitItemPayload {
-  url: string;
-  body: Record<string, unknown>;
-}
-
-export interface SubmitItemResult {
-  ok: boolean;
-  queued: boolean;
-  status?: number;
-  error?: string;
-}
-
 export interface SiteWalkSessionApi {
   setCapturedItems: (items: CapturedItem[]) => void;
   addCapturedItem: (item: CapturedItem) => void;
@@ -81,97 +63,31 @@ export interface SiteWalkSessionApi {
   beginSync: () => void;
   endSync: () => void;
   setPendingUploadCount: (n: number) => void;
-  /**
-   * Submit a capture. Tries network first; on network failure or offline,
-   * enqueues the JSON payload into lib/offline-queue.ts. Blobs stay in the
-   * draft IDB store until the upload eventually succeeds.
-   */
   submitItem: (payload: SubmitItemPayload) => Promise<SubmitItemResult>;
-  /** Flush the offline queue. Runs automatically on `online` events. */
   syncOfflineItems: () => Promise<number>;
-}
-
-const EMPTY_DRAFT: DraftItem = {
-  tab: null,
-  title: "",
-  noteText: "",
-  photoBlobUrl: null,
-  audioBlobUrl: null,
-  photoBlob: null,
-  audioBlob: null,
-  updatedAt: 0,
-};
-
-interface PersistedDraft {
-  tab: DraftTab;
-  title: string;
-  noteText: string;
-  photoBlob: Blob | null;
-  audioBlob: Blob | null;
-  updatedAt: number;
 }
 
 const SiteWalkSessionContext = createContext<
   (SiteWalkSessionState & SiteWalkSessionApi) | null
 >(null);
 
-// Dedicated IDB store for in-flight drafts. idb-keyval can store Blob values
-// directly because IndexedDB uses the structured-clone algorithm.
-const draftStore =
-  typeof window !== "undefined"
-    ? createStore("slate360-site-walk", "session-drafts")
-    : null;
-
-function draftKey(sessionId: string): string {
-  return `draft:${sessionId}`;
+interface RealtimeItemRow {
+  id?: string;
+  item_type?: string;
+  title?: string;
+  captured_at?: string;
+  [key: string]: unknown;
 }
 
-async function loadDraftFromIdb(sessionId: string): Promise<DraftItem> {
-  if (!draftStore) return EMPTY_DRAFT;
-  try {
-    const raw = await idbGet<PersistedDraft>(draftKey(sessionId), draftStore);
-    if (!raw) return EMPTY_DRAFT;
-    const photoBlob = raw.photoBlob instanceof Blob ? raw.photoBlob : null;
-    const audioBlob = raw.audioBlob instanceof Blob ? raw.audioBlob : null;
-    return {
-      tab: raw.tab ?? null,
-      title: typeof raw.title === "string" ? raw.title : "",
-      noteText: typeof raw.noteText === "string" ? raw.noteText : "",
-      photoBlob,
-      audioBlob,
-      photoBlobUrl: photoBlob ? URL.createObjectURL(photoBlob) : null,
-      audioBlobUrl: audioBlob ? URL.createObjectURL(audioBlob) : null,
-      updatedAt: typeof raw.updatedAt === "number" ? raw.updatedAt : 0,
-    };
-  } catch {
-    return EMPTY_DRAFT;
-  }
-}
-
-async function persistDraftToIdb(sessionId: string, draft: DraftItem): Promise<void> {
-  if (!draftStore) return;
-  try {
-    const payload: PersistedDraft = {
-      tab: draft.tab,
-      title: draft.title,
-      noteText: draft.noteText,
-      photoBlob: draft.photoBlob,
-      audioBlob: draft.audioBlob,
-      updatedAt: draft.updatedAt,
-    };
-    await idbSet(draftKey(sessionId), payload, draftStore);
-  } catch {
-    // Quota / private mode — silent.
-  }
-}
-
-async function clearDraftFromIdb(sessionId: string): Promise<void> {
-  if (!draftStore) return;
-  try {
-    await idbDel(draftKey(sessionId), draftStore);
-  } catch {
-    // ignore
-  }
+function realtimeRowToCapturedItem(row: RealtimeItemRow): CapturedItem | null {
+  if (!row.id) return null;
+  return {
+    id: row.id,
+    type: typeof row.item_type === "string" ? row.item_type : "unknown",
+    title: typeof row.title === "string" ? row.title : "",
+    capturedAt:
+      typeof row.captured_at === "string" ? row.captured_at : new Date().toISOString(),
+  };
 }
 
 export interface SiteWalkSessionProviderProps {
@@ -187,13 +103,18 @@ export function SiteWalkSessionProvider({
 }: SiteWalkSessionProviderProps) {
   const [capturedItems, setCapturedItemsState] = useState<CapturedItem[]>(initialItems);
   const [draftItem, setDraftItem] = useState<DraftItem>(EMPTY_DRAFT);
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [pendingUploadCount, setPendingUploadCountState] = useState<number>(0);
-  const [isOnline, setIsOnline] = useState<boolean>(
-    typeof navigator !== "undefined" ? navigator.onLine : true,
-  );
 
-  // Hydrate draft from IDB after mount (avoids SSR mismatch).
+  const {
+    isOnline,
+    isSyncing,
+    pendingUploadCount,
+    beginSync,
+    endSync,
+    setPendingUploadCount,
+    submitItem,
+    syncOfflineItems,
+  } = useSiteWalkOfflineSync();
+
   const hydratedRef = useRef<boolean>(false);
   useEffect(() => {
     if (hydratedRef.current) return;
@@ -209,16 +130,13 @@ export function SiteWalkSessionProvider({
         setDraftItem(restored);
       }
     });
-    void pendingCount().then((n) => setPendingUploadCountState(n));
   }, [sessionId]);
 
-  // Persist draft on every change (after hydration).
   useEffect(() => {
     if (!hydratedRef.current) return;
     void persistDraftToIdb(sessionId, draftItem);
   }, [sessionId, draftItem]);
 
-  // Revoke object URLs on unmount to avoid leaks (Blobs themselves stay in IDB).
   useEffect(() => {
     return () => {
       if (draftItem.photoBlobUrl) URL.revokeObjectURL(draftItem.photoBlobUrl);
@@ -232,7 +150,9 @@ export function SiteWalkSessionProvider({
   }, []);
 
   const addCapturedItem = useCallback((item: CapturedItem) => {
-    setCapturedItemsState((prev) => [item, ...prev]);
+    setCapturedItemsState((prev) =>
+      prev.some((i) => i.id === item.id) ? prev : [item, ...prev],
+    );
   }, []);
 
   const removeCapturedItem = useCallback((itemId: string) => {
@@ -268,83 +188,24 @@ export function SiteWalkSessionProvider({
     void clearDraftFromIdb(sessionId);
   }, [sessionId]);
 
-  const beginSync = useCallback(() => setIsSyncing(true), []);
-  const endSync = useCallback(() => setIsSyncing(false), []);
-
-  const setPendingUploadCount = useCallback((n: number) => {
-    setPendingUploadCountState(n);
-  }, []);
-
-  const syncOfflineItems = useCallback(async (): Promise<number> => {
-    setIsSyncing(true);
-    try {
-      const flushed = await flushQueue();
-      const remaining = await pendingCount();
-      setPendingUploadCountState(remaining);
-      return flushed;
-    } catch {
-      return 0;
-    } finally {
-      setIsSyncing(false);
-    }
-  }, []);
-
-  const submitItem = useCallback(
-    async (payload: SubmitItemPayload): Promise<SubmitItemResult> => {
-      const { url, body } = payload;
-      const offline = typeof navigator !== "undefined" && !navigator.onLine;
-
-      if (!offline) {
-        try {
-          const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-          });
-          if (res.ok) {
-            return { ok: true, queued: false, status: res.status };
-          }
-          if (res.status >= 400 && res.status < 500) {
-            const errText = await res.text().catch(() => "");
-            return { ok: false, queued: false, status: res.status, error: errText };
-          }
-          // 5xx — fall through to queue.
-        } catch {
-          // Network throw — fall through to queue.
-        }
-      }
-
-      try {
-        await enqueue({ url, method: "POST", body: JSON.stringify(body) });
-        const remaining = await pendingCount();
-        setPendingUploadCountState(remaining);
-        return { ok: true, queued: true };
-      } catch (err) {
-        return {
-          ok: false,
-          queued: false,
-          error: err instanceof Error ? err.message : "queue failure",
-        };
-      }
+  // Realtime: optimistically reconcile capturedItems with INSERT/UPDATE/
+  // DELETE events from any other connected user.
+  useSiteWalkRealtime<RealtimeItemRow>(sessionId, {
+    onItemInsert: (row) => {
+      const item = realtimeRowToCapturedItem(row);
+      if (item) addCapturedItem(item);
     },
-    [],
-  );
-
-  // Online / offline listeners — auto-flush when connection returns.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const onOnline = () => {
-      setIsOnline(true);
-      void syncOfflineItems();
-    };
-    const onOffline = () => setIsOnline(false);
-    window.addEventListener("online", onOnline);
-    window.addEventListener("offline", onOffline);
-    return () => {
-      window.removeEventListener("online", onOnline);
-      window.removeEventListener("offline", onOffline);
-    };
-  }, [syncOfflineItems]);
+    onItemUpdate: (row) => {
+      const item = realtimeRowToCapturedItem(row);
+      if (!item) return;
+      setCapturedItemsState((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, ...item } : i)),
+      );
+    },
+    onItemDelete: (row) => {
+      if (typeof row.id === "string") removeCapturedItem(row.id);
+    },
+  });
 
   const value = useMemo<SiteWalkSessionState & SiteWalkSessionApi>(
     () => ({
@@ -403,7 +264,6 @@ export function useSiteWalkSession(): SiteWalkSessionState & SiteWalkSessionApi 
   return ctx;
 }
 
-/** Read-only hook for components that just need the badge count. */
 export function useSiteWalkSessionItems(): CapturedItem[] {
   return useSiteWalkSession().capturedItems;
 }

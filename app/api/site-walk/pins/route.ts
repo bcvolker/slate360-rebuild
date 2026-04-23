@@ -1,11 +1,19 @@
 /**
  * GET  /api/site-walk/pins?plan_id=... — list pins for a plan
  * POST /api/site-walk/pins — place a pin on a plan for an item
+ *
+ * The POST payload is the unified "long-press drop" body:
+ *   { plan_id, item_id, x_pct, y_pct, pin_number?, pin_color?, markup_data? }
+ *
+ * The associated `item_id` is created separately via POST /api/site-walk/items
+ * (which carries the title, notes, attachments). This route only places the
+ * pin on the plan and stores any vector overlay data in `markup_data`.
  */
 import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import type { CreatePinPayload } from "@/lib/types/site-walk";
+import { isMarkupData } from "@/lib/site-walk/markup-types";
 
 export const GET = (req: NextRequest) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
@@ -32,8 +40,18 @@ export const POST = (req: NextRequest) =>
     if (!body.plan_id || !body.item_id) {
       return badRequest("plan_id and item_id are required");
     }
-    if (body.x_pct < 0 || body.x_pct > 100 || body.y_pct < 0 || body.y_pct > 100) {
-      return badRequest("x_pct and y_pct must be between 0 and 100");
+    if (
+      typeof body.x_pct !== "number" ||
+      typeof body.y_pct !== "number" ||
+      body.x_pct < 0 ||
+      body.x_pct > 100 ||
+      body.y_pct < 0 ||
+      body.y_pct > 100
+    ) {
+      return badRequest("x_pct and y_pct must be numbers between 0 and 100");
+    }
+    if (body.markup_data !== undefined && !isMarkupData(body.markup_data)) {
+      return badRequest("markup_data must match the MarkupData v1 schema");
     }
 
     const { data, error } = await admin
@@ -46,6 +64,7 @@ export const POST = (req: NextRequest) =>
         y_pct: body.y_pct,
         pin_number: body.pin_number ?? null,
         pin_color: body.pin_color ?? "blue",
+        markup_data: body.markup_data ?? {},
       })
       .select()
       .single();

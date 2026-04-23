@@ -35,6 +35,8 @@ export type CreatePlanPayload = {
 
 export type PinColor = "blue" | "green" | "amber" | "red" | "gray" | "purple";
 
+import type { MarkupData } from "@/lib/site-walk/markup-types";
+
 export type SiteWalkPin = {
   id: string;
   plan_id: string;
@@ -44,7 +46,10 @@ export type SiteWalkPin = {
   y_pct: number;
   pin_number: number | null;
   pin_color: PinColor;
+  /** Vector primitives layered alongside this pin (rotation, sticker, etc.). */
+  markup_data: MarkupData | Record<string, never>;
   created_at: string;
+  updated_at: string;
 };
 
 export type CreatePinPayload = {
@@ -54,6 +59,15 @@ export type CreatePinPayload = {
   y_pct: number;
   pin_number?: number;
   pin_color?: PinColor;
+  markup_data?: MarkupData;
+};
+
+export type UpdatePinPayload = {
+  x_pct?: number;
+  y_pct?: number;
+  pin_number?: number | null;
+  pin_color?: PinColor;
+  markup_data?: MarkupData;
 };
 
 /* ─── Template ─────────────────────────────────────────────── */

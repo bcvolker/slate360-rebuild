@@ -249,6 +249,7 @@ export type {
   PinColor,
   SiteWalkPin,
   CreatePinPayload,
+  UpdatePinPayload,
   TemplateType,
   ChecklistEntry,
   SiteWalkTemplate,

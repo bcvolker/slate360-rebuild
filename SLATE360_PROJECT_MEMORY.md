@@ -197,6 +197,50 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-23 (Site Walk Canvas Foundation: Realtime + Markup + PlanViewer + Pin API)
+
+#### What Changed
+
+- [supabase/migrations/20260423000002_canvas_markup_realtime.sql](supabase/migrations/20260423000002_canvas_markup_realtime.sql) — **NEW migration.** Adds `markup_data jsonb DEFAULT '{}'` to both `site_walk_items` and `site_walk_pins`. Adds `updated_at` + trigger to pins (was missing). Adds the missing UPDATE RLS policy on `site_walk_pins` (pins must be moveable). Adds both tables to `supabase_realtime` publication. Sets `REPLICA IDENTITY FULL` so realtime UPDATE payloads include the `old` row for delta calc.
+- [lib/site-walk/markup-types.ts](lib/site-walk/markup-types.ts) — **NEW.** `MarkupData v1` shape (rect/ellipse/arrow/line/freehand/text). Each shape carries id + stroke/fill/strokeWidth/rotation/authorId/updatedAt. Designed for direct rehydration into Konva.js / Fabric.js. Exports `EMPTY_MARKUP` + `isMarkupData()` runtime guard used by API validation.
+- [lib/hooks/usePlanViewer.ts](lib/hooks/usePlanViewer.ts) — **NEW hook.** Owns `currentPage`, `pageCount`, `zoomLevel`, `panOffset`, `visibleLayers: Set<PlanLayerId>`, `isCleanView`. API: `nextPage/prevPage`, `setZoom/zoomBy/resetZoom`, `setPan/panBy/resetPan/resetView`, `toggleLayer/setLayerVisible`, `showCleanSet()` (base only — for clean drawings), `showMarkedUp()` (all layers — for marked-up drawings). Layer ids: `base | pins | markup | comments | measurements`.
+- [lib/hooks/useSiteWalkRealtime.ts](lib/hooks/useSiteWalkRealtime.ts) — **NEW hook.** Subscribes one Supabase channel `site-walk:<sessionId>` to `postgres_changes` on `site_walk_items` (filtered by session_id) and `site_walk_pins` (org-scoped via RLS). Calls `onItemInsert/Update/Delete` and `onPinInsert/Update/Delete` callbacks. Auto-cleanup on unmount.
+- [lib/hooks/useSiteWalkOfflineSync.ts](lib/hooks/useSiteWalkOfflineSync.ts) — **NEW hook.** Extracted from provider to keep it under 300 lines. Owns `isOnline / isSyncing / pendingUploadCount`, `submitItem(payload)` (network-first → enqueue fallback), `syncOfflineItems()` (flushQueue), and the online/offline window listeners.
+- [lib/site-walk/draft-store.ts](lib/site-walk/draft-store.ts) — **NEW module.** Extracted IDB draft persistence: `loadDraftFromIdb / persistDraftToIdb / clearDraftFromIdb`, `EMPTY_DRAFT`, `DraftItem`, `DraftTab`. Uses `idb-keyval` `createStore("slate360-site-walk", "session-drafts")`.
+- [components/site-walk/SiteWalkSessionProvider.tsx](components/site-walk/SiteWalkSessionProvider.tsx) — **rewritten, 269 lines.** Now composes draft-store + offline-sync + realtime hooks. Realtime item events automatically reconcile `capturedItems` (insert/update/delete) so multi-user sessions feel instant.
+- [app/api/site-walk/pins/route.ts](app/api/site-walk/pins/route.ts) — POST now accepts `markup_data` with `isMarkupData()` validation.
+- [app/api/site-walk/pins/[id]/route.ts](app/api/site-walk/pins/[id]/route.ts) — **new PATCH endpoint.** Accepts `{x_pct?, y_pct?, pin_number?, pin_color?, markup_data?}` so pins can be dragged, restyled, or have their overlay edited without re-creating. DELETE unchanged.
+- [lib/types/site-walk-ops.ts](lib/types/site-walk-ops.ts) — `SiteWalkPin` now has `markup_data: MarkupData | Record<string, never>` and `updated_at: string`. Added `UpdatePinPayload` type. `CreatePinPayload` now optionally accepts `markup_data`.
+- [lib/types/site-walk.ts](lib/types/site-walk.ts) — re-export adds `UpdatePinPayload`.
+
+#### What's Broken / Pending Operator Action
+
+- **Migration NOT applied to live Supabase.** Dev container has no Supabase CLI access. Operator must run `supabase db push` (or apply via dashboard SQL editor) for project `hadnfcenpcfaeclczsmm` before realtime broadcasts and `markup_data` columns work in any environment.
+- **Realtime publication add is conditional on `supabase_realtime` existing** — true on managed Supabase, true if the operator hasn't dropped it.
+- **No UI consumer wired yet.** The hooks compile but no component imports `usePlanViewer` or wires pin realtime. That's the next slice (canvas component).
+- **Pin realtime events are NOT routed through the provider** — the provider only handles item events. Plan viewer components must mount their own `useSiteWalkRealtime<SiteWalkPin>(sessionId, { onPinInsert, onPinUpdate, onPinDelete })` to drive the canvas. (Documented in the provider comment + canvas-foundation memory.)
+- **Phase 1 prior session** still has migration `20260421000001_brand_and_report_defaults.sql` pending live application.
+- `prompts/CURRENT.md` (PR #27d.2 PDF email) is still held for v0/external assistant — NOT touched this session.
+
+#### Context Files Updated
+- `/memories/repo/canvas-foundation.md` — full breakdown of what shipped + what's deferred.
+- `/memories/repo/edit-affordance-principle.md` — already exists from prior session; still applies.
+
+#### Next Steps (ordered)
+1. **Operator:** apply both pending migrations to live Supabase (`20260421000001_brand_and_report_defaults.sql` + `20260423000002_canvas_markup_realtime.sql`).
+2. Pick canvas library (recommend **Konva.js** — better React story via `react-konva`, lower bundle than Fabric, perf identical for <500 shapes).
+3. Build `PlanCanvas.tsx` consuming `usePlanViewer` + `useSiteWalkRealtime<SiteWalkPin>` — render base layer (image or PDF page via pdf.js) + Konva `<Layer>` per visible layer id.
+4. Build long-press gesture handler on the canvas — calls `POST /api/site-walk/items` then `POST /api/site-walk/pins` with the new pin's `item_id`.
+5. Wire pin drag → `PATCH /api/site-walk/pins/[id]` with debounced `{x_pct, y_pct}` updates; the realtime broadcast will mirror to all other users automatically.
+
+#### Validation
+- `npx tsc --noEmit` → clean exit 0.
+- All new/changed files under 300 lines (provider 269, plan viewer 180, others ≤135).
+- Pre-existing oversized files unchanged.
+- Build was NOT run (no test infrastructure changes); unit tests not added (UI-less hooks — to be tested when wired).
+
+---
+
 ### Session Handoff — 2026-04-23 (Phase 1 UI Architecture Cleanup)
 
 #### What Changed (Phase 1 — token consolidation, header isolation, email quarantine)
