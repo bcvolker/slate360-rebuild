@@ -197,6 +197,66 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-23 (Strategic pivot: v0+Copilot split, Unified Projects, Whisper wired)
+
+#### Strategy Pivot (READ FIRST — applies to ALL future chats)
+
+1. **v0 by Vercel owns visual UI.** User generates static React/Tailwind components in v0 and pastes them into the repo. **Copilot does NOT redesign UI conversationally anymore.** Copilot's job is plumbing: Supabase wiring, state, entitlements, server actions, error/empty states, accessibility audit on what v0 produced.
+2. **Unified Projects Architecture (LOCKED rule).** ONE `projects` table for ALL tiers — no `field_projects`, no `sites` table, no parallel hierarchy.
+   - Trial + Standard tier UI says "Site"/"Sites".
+   - Business + Enterprise tier UI says "Project"/"Projects".
+   - Stripe upgrade flips entitlements only — zero data migration.
+   - Site Walk sessions, SlateDrop folders, photos, etc. all reference the same `projects.id`.
+   - **Hardcoding "Project" or "Site" anywhere in UI is forbidden.** Always use `getProjectLabel(tier)` / `getProjectsLabel(tier)` from [lib/projects/labels.ts](lib/projects/labels.ts).
+3. **STT path.** Voice notes use the existing Groq-first / OpenAI-fallback Whisper helper at [lib/server/ai-provider.ts](lib/server/ai-provider.ts) (`transcribeAudio(blob, filename)`). Two routes:
+   - [app/api/site-walk/notes/transcribe/route.ts](app/api/site-walk/notes/transcribe/route.ts) — live form-data Blob upload (offline-friendly, fires from `NoteCaptureBar`).
+   - [app/api/site-walk/transcribe/route.ts](app/api/site-walk/transcribe/route.ts) — **NEW this session.** Post-upload path: takes `{ item_id }`, fetches audio from S3 via `audio_s3_key`, runs Whisper, persists to `site_walk_items.metadata.transcript`. Idempotent (returns cached transcript unless `?force=1`).
+
+#### Backend Audit Outcome (3 directives, all DONE)
+
+- **Blocker #1 — `projects.org_id` FK.** Verified live prod ALREADY has `projects_org_id_fkey FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE`. Created idempotent backfill migration [supabase/migrations/20260423000001_projects_org_id_fk.sql](supabase/migrations/20260423000001_projects_org_id_fk.sql) for fresh deploys + `idx_projects_org_id` index. **No prod action needed.**
+- **Blocker #2 — Tier-aware label helper.** Created [lib/projects/labels.ts](lib/projects/labels.ts) exporting `getProjectLabel`, `getProjectsLabel`, `getProjectLabelLower`, `getProjectsLabelLower`, `getProjectLabels`. `SITE_TIERS = new Set(["trial", "standard"])`. Tier type imported from `@/lib/entitlements` (`"trial" | "standard" | "business" | "enterprise"`).
+- **Blocker #3 — STILL OPEN.** SlateDrop UI does not surface a virtual "Site Walks" / "Field Reports" folder per project. Site Walk photos already land in the project's `Photos` folder via `provisionProjectFolders()`, but the dedicated read-only view is not built. Punted to v0 (waiting on a v0 component for the SlateDrop project view).
+
+#### What Changed
+- [supabase/migrations/20260423000001_projects_org_id_fk.sql](supabase/migrations/20260423000001_projects_org_id_fk.sql) — NEW. Idempotent FK + index for fresh deploys.
+- [lib/projects/labels.ts](lib/projects/labels.ts) — NEW. Tier→label helper. Use this everywhere instead of hardcoded "Project"/"Site".
+- [app/api/site-walk/transcribe/route.ts](app/api/site-walk/transcribe/route.ts) — NEW. Post-upload Whisper transcribe with 25 MB cap, S3 fetch via inline `GetObjectCommand`, writes to `metadata.transcript` (preserves other metadata via spread). Idempotent unless `?force=1`. Error code `"no-stt-provider"` returns friendly serverError.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### What's Broken / Partially Done
+- Migration `20260421000001_brand_and_report_defaults.sql` (from prior chat) still NOT applied to live Supabase.
+- Blocker #3 (SlateDrop "Site Walks" virtual folder per project) — no UI yet.
+- Branding/Project Defaults UI (delegated below) — still pending external dev.
+- Mobile bug-fix verification on iPhone — pending after Vercel redeploy.
+- Capture Screen (the next vertical slice) is BLOCKED on user delivering the v0 component. **Do not write any new field-capture UI until the v0 paste arrives.**
+- New `/api/site-walk/transcribe` route is wired but no client calls it yet — needs a "Transcribe" button on the voice_note item viewer (also waiting on v0 component).
+
+#### Validation Done
+- `get_errors` clean on all 3 new files.
+- TypeScript types confirmed (`Tier`, `AuthedContext.user`, `s3`, `BUCKET`, `withAppAuth("punchwalk", ...)`).
+- **Not yet run:** `npm run typecheck`, `bash scripts/check-file-size.sh`, commit, push. Do these before signing off the chat.
+
+#### Next Steps (ordered)
+1. Run `npm run typecheck` and `bash scripts/check-file-size.sh`. Commit + push the 3 new files: `feat: prep for v0 — projects FK, labels helper, Whisper transcribe`.
+2. **WAIT for v0 Capture Screen component from user.** No new UI work until then.
+3. When Capture Screen arrives: wire it to existing `/api/site-walk/items` POST + `/api/site-walk/items/[id]/voice` upload + new `/api/site-walk/transcribe` for the transcribe button.
+4. Audit existing UI (DashboardSidebar, ProjectHub headers, SlateDrop folder labels) for hardcoded "Project"/"Site" strings and migrate to `getProjectLabel(tier)`. Sweep grep: `grep -rn "Project\|Site" components/ app/ | grep -v node_modules` — selective, not blanket.
+5. Apply migration `20260421000001_brand_and_report_defaults.sql` in Supabase SQL editor.
+6. Build SlateDrop "Site Walks" virtual folder (Blocker #3) once v0 ships the SlateDrop project view component.
+7. Verify mobile iPhone bug fixes from prior session after Vercel redeploy.
+
+#### Reference: Unified Architecture Quick Facts (for future agents)
+
+- `projects` table is tier-agnostic. No `field_projects` or `sites` table exists.
+- `site_walk_sessions.project_id NOT NULL` — every session attaches to a project.
+- Canonical S3 key: `orgs/{orgId|userId}/{folderId}/{ts}_{filename}` (built by `buildS3Key` in [lib/s3.ts](lib/s3.ts)).
+- File metadata table: `slatedrop_uploads` (single source of truth — Site Walk uploads also write here).
+- Entitlement resolver: `resolveOrgEntitlements(orgId)` — returns booleans like `canAccessStandalonePunchwalk`, `canAccessStandaloneTourBuilder`. Driven by `organizations.tier` + `org_feature_flags` + `org_app_subscriptions`. Stripe webhook updates `tier` → entitlements flip on next request.
+- Auth wrappers: `withAuth`, `withAppAuth(appId, req, handler)`, `withProjectAuth` from [lib/server/api-auth.ts](lib/server/api-auth.ts). `withAppAuth` app IDs: `tour_builder`, `punchwalk`, `design_studio`, `content_studio`.
+
+---
+
 ### Session Handoff — 2026-04-22 (Mobile bug-fix root causes + Site Walk Phase 3 — commits `174b066`, `01aca4b`)
 
 #### What Changed
