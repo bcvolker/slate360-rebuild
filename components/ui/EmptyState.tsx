@@ -34,7 +34,7 @@ export default function EmptyState({
     >
       <div
         className={[
-          "rounded-2xl flex items-center justify-center bg-zinc-800",
+          "rounded-2xl flex items-center justify-center bg-card",
           compact ? "w-10 h-10" : "w-14 h-14",
         ].join(" ")}
       >

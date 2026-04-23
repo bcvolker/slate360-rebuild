@@ -126,7 +126,7 @@ export default function CeoStaffAddForm({ onGrant, onCancel }: Props) {
         <button
           onClick={handleSubmit}
           disabled={loading || !email.trim() || scope.length === 0}
-          className="rounded-lg bg-[#3B82F6] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#3B82F6]/90 transition-colors disabled:opacity-50"
+          className="rounded-lg bg-[#3B82F6] px-4 py-1.5 text-xs font-bold text-foreground hover:bg-[#3B82F6]/90 transition-colors disabled:opacity-50"
         >
           {loading ? "Granting..." : "Grant Access"}
         </button>

@@ -32,7 +32,7 @@ export function ComingSoonEmptyState({
     >
       <div className="mx-auto max-w-md text-center">
         {Icon ? (
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-900 text-primary">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-card text-primary">
             <Icon className="h-6 w-6" />
           </div>
         ) : null}

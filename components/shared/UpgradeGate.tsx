@@ -44,7 +44,7 @@ export default function UpgradeGate({
       </div>
 
       {/* Copy */}
-      <h2 className="text-lg font-bold text-white mb-2">
+      <h2 className="text-lg font-bold text-foreground mb-2">
         {feature} requires {TIER_LABELS[requiredTier]}
       </h2>
       <p className="text-sm text-zinc-400 max-w-md mx-auto mb-6 leading-relaxed">
@@ -56,7 +56,7 @@ export default function UpgradeGate({
       {/* CTA */}
       <Link
         href={getUpgradeUrl()}
-        className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-colors hover:opacity-90"
+        className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-foreground transition-colors hover:opacity-90"
         style={{ backgroundColor: accent }}
       >
         View Plans <ArrowUpRight size={14} />

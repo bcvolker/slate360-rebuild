@@ -76,7 +76,7 @@ export function ItemRenderers({ item }: { item: ViewerItem }) {
       return (
         <div className="flex flex-col items-center justify-center text-slate-400 gap-3 max-w-md text-center">
           <Sparkles className="h-12 w-12 text-cobalt" />
-          <h3 className="text-lg font-semibold text-white">{item.title}</h3>
+          <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
           <p className="text-sm">
             {labelFor(item.type)} viewer ships with the next Site Walk update.
           </p>

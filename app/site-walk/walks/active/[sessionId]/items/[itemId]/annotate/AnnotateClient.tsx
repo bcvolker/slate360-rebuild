@@ -102,7 +102,7 @@ export default function AnnotateClient({
         {/* Prev / Next / New capture footer */}
         <div className="border-t border-white/10 bg-bg-base/95 backdrop-blur px-4 py-2 flex items-center justify-between sticky bottom-0">
           {prevUrl ? (
-            <Link href={prevUrl} className="inline-flex items-center gap-1 text-sm text-slate-300 hover:text-white">
+            <Link href={prevUrl} className="inline-flex items-center gap-1 text-sm text-slate-300 hover:text-foreground">
               <ChevronLeft className="h-4 w-4" /> Prev
             </Link>
           ) : (
@@ -117,7 +117,7 @@ export default function AnnotateClient({
           </Link>
 
           {nextUrl ? (
-            <Link href={nextUrl} className="inline-flex items-center gap-1 text-sm text-slate-300 hover:text-white">
+            <Link href={nextUrl} className="inline-flex items-center gap-1 text-sm text-slate-300 hover:text-foreground">
               Next <ChevronRight className="h-4 w-4" />
             </Link>
           ) : (
@@ -128,7 +128,7 @@ export default function AnnotateClient({
 
       {toast && (
         <div className={`fixed bottom-20 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg text-sm flex items-center gap-2 shadow-lg ${
-          toast.kind === "success" ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
+          toast.kind === "success" ? "bg-emerald-600 text-foreground" : "bg-red-600 text-foreground"
         }`}>
           {toast.kind === "success" ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
           {toast.text}

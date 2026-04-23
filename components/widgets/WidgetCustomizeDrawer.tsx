@@ -194,7 +194,7 @@ export default function WidgetCustomizeDrawer({
               <button
                 onClick={onSave}
                 disabled={saving || !dirty}
-                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl text-white transition-all hover:opacity-90 disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl text-foreground transition-all hover:opacity-90 disabled:opacity-50"
                 style={{ backgroundColor: "#3B82F6" }}
               >
                 {saving ? (

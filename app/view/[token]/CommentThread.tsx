@@ -126,7 +126,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
 
   return (
     <div className="flex flex-col gap-4 mt-6 border-t border-white/10 pt-6">
-      <h3 className="text-sm font-semibold text-white uppercase tracking-wider flex items-center gap-2">
+      <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
         Feedback ({comments.length})
         {comments.some((c) => c.comment_intent === "approve") && (
           <CheckCircle2 size={14} className="text-emerald-400" aria-label="Has approval" />
@@ -142,7 +142,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
             placeholder="Your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="bg-transparent text-sm text-white placeholder-slate-500 outline-none border-b border-white/10 pb-1.5 focus:border-cobalt transition-colors"
+            className="bg-transparent text-sm text-foreground placeholder-slate-500 outline-none border-b border-white/10 pb-1.5 focus:border-cobalt transition-colors"
             required
             maxLength={120}
           />
@@ -151,7 +151,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
             placeholder="Email (optional)"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="bg-transparent text-sm text-white placeholder-slate-500 outline-none border-b border-white/10 pb-1.5 focus:border-cobalt transition-colors"
+            className="bg-transparent text-sm text-foreground placeholder-slate-500 outline-none border-b border-white/10 pb-1.5 focus:border-cobalt transition-colors"
           />
         </div>
 
@@ -166,7 +166,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
                 type="button"
                 onClick={() => chooseIntent(key)}
                 className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-md border transition-colors ${
-                  active ? meta.tone : "border-white/10 text-slate-400 hover:text-white hover:border-white/20"
+                  active ? meta.tone : "border-white/10 text-slate-400 hover:text-foreground hover:border-white/20"
                 }`}
               >
                 <Icon size={12} /> {meta.label}
@@ -188,14 +188,14 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
             }
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            className="flex-1 bg-transparent text-sm text-white placeholder-slate-500 outline-none resize-none min-h-[40px] max-h-[120px]"
+            className="flex-1 bg-transparent text-sm text-foreground placeholder-slate-500 outline-none resize-none min-h-[40px] max-h-[120px]"
             required
             maxLength={2000}
           />
           <button
             type="submit"
             disabled={submitting || !body.trim() || !name.trim()}
-            className="text-cobalt hover:text-white disabled:opacity-40 p-2 transition-colors"
+            className="text-cobalt hover:text-foreground disabled:opacity-40 p-2 transition-colors"
             aria-label="Send comment"
           >
             {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}

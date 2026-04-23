@@ -49,7 +49,7 @@ export default function StatusReportClient({
             <FileBarChart2 className="h-6 w-6 text-cobalt" />
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-semibold text-white">Auto-generate a status report</h2>
+            <h2 className="text-lg font-semibold text-foreground">Auto-generate a status report</h2>
             <p className="text-sm text-slate-400 mt-1">
               Turns every item from this walk into a leadership-ready PDF with the same data
               you already captured. No double-entry — your field notes <em>are</em> the report.
@@ -75,7 +75,7 @@ export default function StatusReportClient({
             type="button"
             onClick={generate}
             disabled={busy}
-            className="mt-6 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-cobalt hover:bg-cobalt-hover text-white font-medium disabled:opacity-50"
+            className="mt-6 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-cobalt hover:bg-cobalt-hover text-primary-foreground font-medium disabled:opacity-50"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             {busy ? "Generating…" : `Generate report from ${totalItems} item${totalItems === 1 ? "" : "s"}`}
@@ -109,7 +109,7 @@ export default function StatusReportClient({
 
 function Stat({ label, value, accent }: { label: string; value: number; accent?: "amber" }) {
   const colorClass =
-    accent === "amber" ? "text-amber-300" : "text-white";
+    accent === "amber" ? "text-amber-300" : "text-foreground";
   return (
     <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
       <p className={`text-2xl font-semibold tabular-nums ${colorClass}`}>{value}</p>

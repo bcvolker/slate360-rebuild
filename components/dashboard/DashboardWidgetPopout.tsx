@@ -166,13 +166,13 @@ export default function DashboardWidgetPopout({
           size={14}
           className="text-[#3B82F6] ml-1 shrink-0"
         />
-        <span className="text-[13px] font-semibold text-white/90 flex-1 text-center -ml-8 pointer-events-none">
+        <span className="text-[13px] font-semibold text-foreground/90 flex-1 text-center -ml-8 pointer-events-none">
           {popoutMeta?.label ?? "Widget"}
         </span>
       </div>
 
       {!minimized && (
-        <div className="flex-1 overflow-auto bg-zinc-950 p-4">
+        <div className="flex-1 overflow-auto bg-background p-4">
           <DashboardWidgetRenderer
             id={widgetId}
             widgetSize="lg"

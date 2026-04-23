@@ -101,7 +101,7 @@ export default function DashboardClient(props: DashboardProps) {
      ================================================================ */
 
   return (
-    <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* ════════ MAIN CONTENT ════════ */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden">
 
@@ -116,7 +116,7 @@ export default function DashboardClient(props: DashboardProps) {
           <div className="mb-6">
             <button
               onClick={() => s.setActiveTab("overview")}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-zinc-300 bg-app-card border border-app hover:bg-white/[0.04] hover:text-white transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-zinc-300 bg-app-card border border-app hover:bg-white/[0.04] hover:text-foreground transition-colors"
             >
               <ChevronLeft size={16} />
               Back to Dashboard

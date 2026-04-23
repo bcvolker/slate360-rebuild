@@ -65,7 +65,7 @@ export default async function WalkItemsBrowsePage({ params }: { params: Promise<
           </div>
           <Link
             href={`/site-walk/walks/active/${sessionId}`}
-            className="inline-flex items-center gap-1.5 bg-cobalt hover:bg-cobalt/90 text-white text-xs font-medium px-3 py-2 rounded-md"
+            className="inline-flex items-center gap-1.5 bg-cobalt hover:bg-cobalt/90 text-primary-foreground text-xs font-medium px-3 py-2 rounded-md"
           >
             <Camera className="w-3.5 h-3.5" /> Capture
           </Link>

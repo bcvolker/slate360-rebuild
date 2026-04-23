@@ -20,7 +20,7 @@ export default async function SuperAdminPage() {
   if (!isSuperAdmin) redirect("/dashboard");
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-8">
+    <div className="min-h-screen bg-background text-foreground p-8">
       <div className="mx-auto max-w-4xl space-y-6">
         <h1 className="text-3xl font-bold tracking-tight">
           Super Admin Console
@@ -29,14 +29,14 @@ export default async function SuperAdminPage() {
           This route is restricted to super admins only. Middleware enforces the
           gate at the edge; this page performs a secondary server-side check.
         </p>
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-6">
+        <div className="rounded-lg border border-zinc-800 bg-card p-6">
           <p className="text-sm text-zinc-500">
             Authenticated as:{" "}
-            <span className="text-white font-mono">{user.email}</span>
+            <span className="text-foreground font-mono">{user.email}</span>
           </p>
           <p className="text-sm text-zinc-500 mt-1">
             User ID:{" "}
-            <span className="text-white font-mono">{user.id}</span>
+            <span className="text-foreground font-mono">{user.id}</span>
           </p>
         </div>
       </div>

@@ -68,7 +68,7 @@ function SlateDropCompactGrid({ tier }: { tier: Tier }) {
             className="group flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-white/[0.04]/60 transition-colors"
           >
             <span className="text-2xl">{f.icon ?? "📁"}</span>
-            <span className="text-[10px] font-medium text-zinc-400 group-hover:text-white text-center leading-tight line-clamp-2">
+            <span className="text-[10px] font-medium text-zinc-400 group-hover:text-foreground text-center leading-tight line-clamp-2">
               {f.name}
             </span>
           </Link>
@@ -244,7 +244,7 @@ export default function DashboardWidgetRenderer({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-zinc-400 font-medium">Credits used</span>
-                <span className="text-xs font-bold text-white">{ctx.creditsUsed.toLocaleString()} / {ctx.entitlements.maxCredits.toLocaleString()}</span>
+                <span className="text-xs font-bold text-foreground">{ctx.creditsUsed.toLocaleString()} / {ctx.entitlements.maxCredits.toLocaleString()}</span>
               </div>
               <div className="h-2.5 rounded-full bg-zinc-700 overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.min((ctx.creditsUsed / ctx.entitlements.maxCredits) * 100, 100)}%`, backgroundColor: "#3B82F6" }} />
@@ -254,7 +254,7 @@ export default function DashboardWidgetRenderer({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-zinc-400 font-medium">Storage</span>
-                <span className="text-xs font-bold text-white">{ctx.storageUsed} GB / {ctx.entitlements.maxStorageGB} GB</span>
+                <span className="text-xs font-bold text-foreground">{ctx.storageUsed} GB / {ctx.entitlements.maxStorageGB} GB</span>
               </div>
               <div className="h-2.5 rounded-full bg-zinc-700 overflow-hidden">
                 <div className="h-full rounded-full bg-[#3B82F6] transition-all duration-1000 ease-out" style={{ width: `${Math.min((ctx.storageUsed / ctx.entitlements.maxStorageGB) * 100, 100)}%` }} />
@@ -264,7 +264,7 @@ export default function DashboardWidgetRenderer({
               <button onClick={ctx.handleBuyCredits} disabled={ctx.billingBusy !== null} className="flex-1 text-xs font-semibold py-2 rounded-lg border border-app text-zinc-400 hover:bg-white/[0.04] transition-colors disabled:opacity-60">
                 {ctx.billingBusy === "credits" ? <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span> : "Buy credits"}
               </button>
-              <button onClick={ctx.handleUpgradePlan} disabled={ctx.billingBusy !== null} className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-all hover:opacity-90 disabled:opacity-60" style={{ backgroundColor: "#3B82F6" }}>
+              <button onClick={ctx.handleUpgradePlan} disabled={ctx.billingBusy !== null} className="flex-1 text-xs font-semibold py-2 rounded-lg text-foreground transition-all hover:opacity-90 disabled:opacity-60" style={{ backgroundColor: "#3B82F6" }}>
                 {ctx.billingBusy === "upgrade" ? <span className="inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Loading…</span> : "Upgrade plan"}
               </button>
             </div>
@@ -283,7 +283,7 @@ export default function DashboardWidgetRenderer({
               <div key={job.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04]/50 hover:bg-white/[0.06]/50 transition-colors group">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${statusColor(job.status)}`}>{statusIcon(job.status)}</div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-white truncate">{job.name}</p>
+                  <p className="text-xs font-semibold text-foreground truncate">{job.name}</p>
                   <p className="text-[10px] text-zinc-500">{job.type}</p>
                 </div>
                 {job.status === "processing" && (
@@ -326,11 +326,11 @@ export default function DashboardWidgetRenderer({
             <div className="flex gap-4 pt-2 border-t border-app">
               <div>
                 <p className="text-[10px] text-zinc-500 font-medium">This month</p>
-                <p className="text-sm font-bold text-white">{(ctx.liveFinancial[ctx.liveFinancial.length - 1]?.credits ?? 0).toLocaleString()} credits</p>
+                <p className="text-sm font-bold text-foreground">{(ctx.liveFinancial[ctx.liveFinancial.length - 1]?.credits ?? 0).toLocaleString()} credits</p>
               </div>
               <div>
                 <p className="text-[10px] text-zinc-500 font-medium">Avg / month</p>
-                <p className="text-sm font-bold text-white">{Math.round(ctx.liveFinancial.reduce((sum, p) => sum + p.credits, 0) / Math.max(ctx.liveFinancial.length, 1)).toLocaleString()} credits</p>
+                <p className="text-sm font-bold text-foreground">{Math.round(ctx.liveFinancial.reduce((sum, p) => sum + p.credits, 0) / Math.max(ctx.liveFinancial.length, 1)).toLocaleString()} credits</p>
               </div>
             </div>
           </div>
@@ -362,7 +362,7 @@ export default function DashboardWidgetRenderer({
                 </div>
               </div>
               <div>
-                <p className="text-3xl font-black text-white">{ctx.liveWeather?.current.temp ?? "--"}°<span className="text-base font-normal text-zinc-500">F</span></p>
+                <p className="text-3xl font-black text-foreground">{ctx.liveWeather?.current.temp ?? "--"}°<span className="text-base font-normal text-zinc-500">F</span></p>
                 <p className="text-xs text-zinc-400">{ctx.liveWeather?.current.condition ?? "Unavailable"}</p>
               </div>
               <div className="ml-auto text-right space-y-1">
@@ -375,7 +375,7 @@ export default function DashboardWidgetRenderer({
                 <div key={f.day} className="text-center p-2 rounded-xl bg-white/[0.04]/50 hover:bg-white/[0.04] transition-colors">
                   <p className="text-[10px] text-zinc-500 font-semibold mb-1">{f.day}</p>
                   {weatherIcon(f.icon)}
-                  <p className="text-[10px] font-bold text-white mt-1">{f.hi}°</p>
+                  <p className="text-[10px] font-bold text-foreground mt-1">{f.hi}°</p>
                   <p className="text-[9px] text-zinc-500">{f.lo}°</p>
                   {f.precip >= 40 && <p className="text-[9px] text-blue-500 font-medium mt-0.5">{f.precip}%</p>}
                 </div>
@@ -407,7 +407,7 @@ export default function DashboardWidgetRenderer({
                 <Link key={i} href={item.href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.04] transition-colors group">
                   <div className="w-9 h-9 rounded-xl bg-white/[0.04] flex items-center justify-center text-zinc-400 group-hover:text-cobalt-hover transition-colors"><Icon size={16} /></div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-white truncate group-hover:text-cobalt-hover transition-colors">{item.title}</p>
+                    <p className="text-xs font-semibold text-foreground truncate group-hover:text-cobalt-hover transition-colors">{item.title}</p>
                     <p className="text-[10px] text-zinc-500 truncate">{item.subtitle}</p>
                   </div>
                   <span className="text-[10px] text-zinc-600 shrink-0">{item.time}</span>
@@ -448,18 +448,18 @@ export default function DashboardWidgetRenderer({
           {ctx.suggestDone ? (
             <div className="text-center py-6">
               <CheckCircle2 size={32} className="mx-auto mb-3 text-emerald-500" />
-              <p className="text-sm font-semibold text-white mb-1">Thank you!</p>
+              <p className="text-sm font-semibold text-foreground mb-1">Thank you!</p>
               <p className="text-xs text-zinc-500">Your suggestion has been sent to our team.</p>
             </div>
           ) : (
             <div className="space-y-3">
               <div>
                 <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Title</label>
-                <input type="text" placeholder="What feature would you like?" value={ctx.suggestTitle} onChange={(e) => ctx.setSuggestTitle(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-app bg-white/[0.04] text-sm text-white placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 transition-all" />
+                <input type="text" placeholder="What feature would you like?" value={ctx.suggestTitle} onChange={(e) => ctx.setSuggestTitle(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-app bg-white/[0.04] text-sm text-foreground placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 transition-all" />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Description</label>
-                <textarea placeholder="Tell us more about what you need…" value={ctx.suggestDesc} onChange={(e) => ctx.setSuggestDesc(e.target.value)} rows={3} className="w-full px-3 py-2.5 rounded-xl border border-app bg-white/[0.04] text-sm text-white placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 transition-all resize-none" />
+                <textarea placeholder="Tell us more about what you need…" value={ctx.suggestDesc} onChange={(e) => ctx.setSuggestDesc(e.target.value)} rows={3} className="w-full px-3 py-2.5 rounded-xl border border-app bg-white/[0.04] text-sm text-foreground placeholder:text-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 transition-all resize-none" />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Priority</label>
@@ -469,7 +469,7 @@ export default function DashboardWidgetRenderer({
                   ))}
                 </div>
               </div>
-              <button onClick={ctx.handleSuggestFeature} disabled={ctx.suggestLoading || !ctx.suggestTitle.trim() || !ctx.suggestDesc.trim()} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50" style={{ backgroundColor: "#3B82F6" }}>
+              <button onClick={ctx.handleSuggestFeature} disabled={ctx.suggestLoading || !ctx.suggestTitle.trim() || !ctx.suggestDesc.trim()} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50" style={{ backgroundColor: "#3B82F6" }}>
                 {ctx.suggestLoading ? <Loader2 size={14} className="animate-spin" /> : <><Send size={14} /> Submit suggestion</>}
               </button>
             </div>
@@ -480,12 +480,12 @@ export default function DashboardWidgetRenderer({
     case "seats":
       return (
         <WidgetCard key={id} icon={Users} title="Seat Management" span={span} delay={400} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}
-          action={<button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: "#3B82F6" }}><UserPlus size={13} /> Invite member</button>}
+          action={<button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-foreground transition-all hover:opacity-90" style={{ backgroundColor: "#3B82F6" }}><UserPlus size={13} /> Invite member</button>}
         >
           <div>
             <div className="flex items-center gap-6 mb-5">
               <div>
-                <p className="text-2xl font-black text-white">{ctx.liveSeatMembers.length}</p>
+                <p className="text-2xl font-black text-foreground">{ctx.liveSeatMembers.length}</p>
                 <p className="text-[10px] text-zinc-500 font-medium">of {ctx.entitlements.maxSeats} seats used</p>
               </div>
               <div className="h-10 w-px bg-white/[0.04]" />
@@ -507,7 +507,7 @@ export default function DashboardWidgetRenderer({
                 <tbody>
                   {ctx.liveSeatMembers.map((m, i) => (
                     <tr key={i} className="border-b border-app/50 hover:bg-white/[0.04]/50 transition-colors">
-                      <td className="py-3 pr-4 text-xs font-semibold text-white">{m.name}</td>
+                      <td className="py-3 pr-4 text-xs font-semibold text-foreground">{m.name}</td>
                       <td className="py-3 pr-4 text-xs text-zinc-400">{m.email}</td>
                       <td className="py-3 pr-4">
                         <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${m.role === "Owner" ? "bg-[#3B82F6]/10 text-[#3B82F6]" : m.role === "Admin" ? "bg-[#6366F1]/10 text-[#6366F1]" : "bg-white/[0.04] text-zinc-400"}`}>{m.role}</span>
@@ -532,9 +532,9 @@ export default function DashboardWidgetRenderer({
         <WidgetCard key={id} icon={Zap} title="Unlock more power" span={span} delay={400} color={widgetColor} onSetSize={handleSetSize} size={widgetSize}>
           <div className="text-center py-4">
             <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#3B82F61A" }}><Zap size={24} style={{ color: "#3B82F6" }} /></div>
-            <p className="text-sm font-bold text-white mb-2">Upgrade to Business</p>
+            <p className="text-sm font-bold text-foreground mb-2">Upgrade to Business</p>
             <p className="text-xs text-zinc-400 mb-4 leading-relaxed">Get seat management, Project Hub, advanced analytics, and 30,000 credits per month.</p>
-            <Link href="/plans?plan=business&billing=monthly" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02]" style={{ backgroundColor: "#3B82F6" }}>
+            <Link href="/plans?plan=business&billing=monthly" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold text-foreground transition-all hover:opacity-90 hover:scale-[1.02]" style={{ backgroundColor: "#3B82F6" }}>
               View plans <ArrowRight size={13} />
             </Link>
           </div>

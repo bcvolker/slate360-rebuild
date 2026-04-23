@@ -17,7 +17,7 @@ export default function PlaceholderTab({ title, description, fields = [] }: Plac
   return (
     <section className="space-y-6">
       <header className="space-y-1">
-        <h2 className="text-lg font-bold text-white">{title}</h2>
+        <h2 className="text-lg font-bold text-foreground">{title}</h2>
         <p className="text-sm text-zinc-400">{description}</p>
       </header>
 

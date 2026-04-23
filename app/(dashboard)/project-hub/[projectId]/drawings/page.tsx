@@ -84,7 +84,7 @@ export default function ProjectDrawingsPage() {
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Drawings</p>
-          <h2 className="text-lg font-black text-white">Plans & Drawings Viewer</h2>
+          <h2 className="text-lg font-black text-foreground">Plans & Drawings Viewer</h2>
         </div>
         <div className="flex items-center gap-2 text-xs text-zinc-500">
           <span className="font-semibold text-zinc-300">{files.length}</span> drawing{files.length !== 1 ? "s" : ""} uploaded
@@ -96,14 +96,14 @@ export default function ProjectDrawingsPage() {
       {/* Stats */}
       {!loading && files.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2">
+          <div className="rounded-xl border border-zinc-800 bg-card px-3 py-2">
             <p className="text-[10px] font-semibold uppercase text-zinc-500">Total</p>
-            <p className="text-lg font-black text-white">{files.length}</p>
+            <p className="text-lg font-black text-foreground">{files.length}</p>
           </div>
           {Object.entries(setCounts).slice(0, 5).map(([set, count]) => (
-            <div key={set} className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2">
+            <div key={set} className="rounded-xl border border-zinc-800 bg-card px-3 py-2">
               <p className="text-[10px] font-semibold uppercase text-zinc-500 truncate">{set}</p>
-              <p className="text-lg font-black text-white">{count}</p>
+              <p className="text-lg font-black text-foreground">{count}</p>
             </div>
           ))}
         </div>
@@ -115,15 +115,15 @@ export default function ProjectDrawingsPage() {
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search drawings…" className="rounded-lg border border-zinc-700 bg-zinc-900 py-1.5 pl-8 pr-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]/30 w-56" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search drawings…" className="rounded-lg border border-zinc-700 bg-card py-1.5 pl-8 pr-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]/30 w-56" />
             </div>
-            <select value={setFilter} onChange={(e) => setSetFilter(e.target.value)} className="rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1.5 text-xs text-zinc-300 focus:border-[#3B82F6] focus:outline-none">
+            <select value={setFilter} onChange={(e) => setSetFilter(e.target.value)} className="rounded-lg border border-zinc-700 bg-card px-2.5 py-1.5 text-xs text-zinc-300 focus:border-[#3B82F6] focus:outline-none">
               {DRAWING_SETS.map((s) => <option key={s} value={s}>{s}{s !== "All Sets" && setCounts[s] ? ` (${setCounts[s]})` : ""}</option>)}
             </select>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={() => setViewMode("grid")} className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${viewMode === "grid" ? "bg-[#3B82F6] text-white" : "border border-zinc-700 bg-zinc-900 text-zinc-400 hover:bg-zinc-800"}`}>Grid</button>
-            <button onClick={() => setViewMode("list")} className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${viewMode === "list" ? "bg-[#3B82F6] text-white" : "border border-zinc-700 bg-zinc-900 text-zinc-400 hover:bg-zinc-800"}`}>List</button>
+            <button onClick={() => setViewMode("grid")} className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${viewMode === "grid" ? "bg-[#3B82F6] text-foreground" : "border border-zinc-700 bg-card text-zinc-400 hover:bg-card"}`}>Grid</button>
+            <button onClick={() => setViewMode("list")} className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${viewMode === "list" ? "bg-[#3B82F6] text-foreground" : "border border-zinc-700 bg-card text-zinc-400 hover:bg-card"}`}>List</button>
             <ViewCustomizer storageKey={`viewprefs-drawings-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
           </div>
         </div>
@@ -131,15 +131,15 @@ export default function ProjectDrawingsPage() {
 
       {/* Content */}
       {loading ? (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-sm text-zinc-400"><Loader2 size={16} className="mr-2 inline animate-spin" /> Loading drawings…</div>
+        <div className="rounded-2xl border border-zinc-800 bg-card p-8 text-sm text-zinc-400"><Loader2 size={16} className="mr-2 inline animate-spin" /> Loading drawings…</div>
       ) : files.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900 p-12 text-center">
+        <div className="rounded-2xl border border-dashed border-zinc-700 bg-card p-12 text-center">
           <FileText size={40} className="mx-auto mb-3 text-zinc-600" />
           <p className="text-sm font-semibold text-zinc-300">No drawings uploaded yet</p>
           <p className="mt-1 text-xs text-zinc-500">Upload PDF drawings to your project&apos;s &quot;Drawings&quot; folder in SlateDrop</p>
         </div>
       ) : filteredFiles.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900 p-8 text-center text-sm text-zinc-400">No drawings match your search or filter.</div>
+        <div className="rounded-2xl border border-dashed border-zinc-700 bg-card p-8 text-center text-sm text-zinc-400">No drawings match your search or filter.</div>
       ) : viewMode === "grid" ? (
         <DrawingsGrid files={filteredFiles} urlMap={urlMap} pageCounts={pageCounts} onSelect={setActiveFile} onPageCount={handlePageCount} />
       ) : (

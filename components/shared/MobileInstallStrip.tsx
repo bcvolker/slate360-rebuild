@@ -71,7 +71,7 @@ export function MobileInstallStrip() {
         <button
           type="button"
           onClick={onClick}
-          className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-cobalt text-white text-sm font-semibold hover:bg-cobalt-hover active:scale-[0.98] transition"
+          className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-cobalt text-primary-foreground text-sm font-semibold hover:bg-cobalt-hover active:scale-[0.98] transition"
         >
           <Download className="h-4 w-4" />
           {installEvent ? "Install Slate360 app" : "Get the Slate360 app"}
@@ -88,7 +88,7 @@ export function MobileInstallStrip() {
           type="button"
           onClick={dismiss}
           aria-label="Dismiss install banner"
-          className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
+          className="p-2 rounded-lg text-slate-400 hover:text-foreground hover:bg-white/10"
         >
           <X className="h-4 w-4" />
         </button>

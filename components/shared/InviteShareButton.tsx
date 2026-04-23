@@ -9,7 +9,7 @@ export function InviteShareButton() {
     <button
       type="button"
       onClick={() => setOpen(true)}
-      className="hidden sm:flex items-center gap-2 bg-cobalt text-white px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity text-sm font-medium border border-cobalt/30"
+      className="hidden sm:flex items-center gap-2 bg-cobalt text-primary-foreground px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity text-sm font-medium border border-cobalt/30"
       aria-label="Invite and Share"
     >
       <Link2 className="h-4 w-4" />

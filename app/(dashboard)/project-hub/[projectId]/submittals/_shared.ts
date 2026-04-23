@@ -191,7 +191,7 @@ export const DOCUMENT_CODE_OPTIONS = [
 export const STATUSES = ["Pending", "Submitted", "Approved", "Approved as Noted", "Revise and Resubmit", "Rejected", "Closed"];
 
 export const STATUS_COLORS: Record<string, string> = {
-  Pending: "bg-zinc-800 text-zinc-300 border-zinc-700",
+  Pending: "bg-card text-zinc-300 border-zinc-700",
   Submitted: "bg-amber-950/40 text-amber-400 border-amber-900/50",
   Approved: "bg-emerald-950/40 text-emerald-400 border-emerald-900/50",
   "Approved as Noted": "bg-green-950/40 text-green-400 border-green-900/50",

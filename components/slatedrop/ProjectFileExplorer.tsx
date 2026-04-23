@@ -89,7 +89,7 @@ export default function ProjectFileExplorer({
               <button
                 onClick={handleGenerateLink}
                 disabled={isGeneratingLink}
-                className="flex items-center gap-2 rounded-lg bg-[#3B82F6] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#1D4ED8] disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-[#3B82F6] px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-[#1D4ED8] disabled:opacity-50"
               >
                 {isGeneratingLink ? <Loader2 size={14} className="animate-spin" /> : <LinkIcon size={14} />}
                 Request Link

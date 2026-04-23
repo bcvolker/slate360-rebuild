@@ -152,7 +152,7 @@ export default function ObservationForm({ form, setForm, onSubmit, onClose, savi
         <button
           onClick={onSubmit}
           disabled={saving || !form.title.trim()}
-          className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition-colors disabled:opacity-50"
+          className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] transition-colors disabled:opacity-50"
         >
           {saving ? <Loader2 size={14} className="animate-spin" /> : null}
           {isEditing ? "Update" : "Create Observation"}

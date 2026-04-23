@@ -16,8 +16,8 @@ export default async function AnalyticsPage() {
   const entitlements = getEntitlements(tier, { isSlateCeo });
   if (!entitlements.canAccessReports) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center bg-zinc-950 px-6 py-12">
-        <section className="w-full rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-center shadow-xl">
+      <main className="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center bg-background px-6 py-12">
+        <section className="w-full rounded-2xl border border-zinc-800 bg-card p-8 text-center shadow-xl">
           <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#3B82F6]/10">
             <Lock className="h-6 w-6 text-[#3B82F6]" />
           </div>

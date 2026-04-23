@@ -76,7 +76,7 @@ export default function MarkupClient({ sessionId, itemId, title, imageUrl, initi
             type="button"
             onClick={saveAndContinue}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg bg-cobalt hover:bg-cobalt-hover text-white disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg bg-cobalt hover:bg-cobalt-hover text-primary-foreground disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
             Save & Annotate

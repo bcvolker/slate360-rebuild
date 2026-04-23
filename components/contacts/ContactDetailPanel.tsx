@@ -113,7 +113,7 @@ export default function ContactDetailPanel({ contact, onClose, onUpdate, onDelet
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
           <div
-            className="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+            className="w-11 h-11 rounded-full flex items-center justify-center text-foreground text-sm font-bold shrink-0"
             style={{ backgroundColor: contact.color }}
           >
             {contact.initials}
@@ -254,7 +254,7 @@ export default function ContactDetailPanel({ contact, onClose, onUpdate, onDelet
               <button
                 onClick={handleSave}
                 disabled={saving || !form.name.trim()}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-foreground disabled:opacity-50 flex items-center justify-center gap-1.5"
                 style={{ backgroundColor: "#3B82F6" }}
               >
                 {saving ? <Loader2 size={13} className="animate-spin" /> : "Save"}
@@ -278,7 +278,7 @@ export default function ContactDetailPanel({ contact, onClose, onUpdate, onDelet
                 <button
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-red-500 text-white hover:bg-red-600 transition-colors flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-red-500 text-foreground hover:bg-red-600 transition-colors flex items-center justify-center gap-1.5"
                 >
                   {deleting ? <Loader2 size={13} className="animate-spin" /> : "Confirm delete"}
                 </button>

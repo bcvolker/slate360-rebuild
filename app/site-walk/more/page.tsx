@@ -50,7 +50,7 @@ export default async function MorePage() {
           <div className="h-10 w-10 rounded-xl bg-cobalt/15 border border-cobalt/30 flex items-center justify-center">
             <MoreHorizontal className="h-5 w-5 text-cobalt" />
           </div>
-          <h1 className="text-xl font-semibold text-white">More</h1>
+          <h1 className="text-xl font-semibold text-foreground">More</h1>
         </div>
         <p className="text-sm text-slate-400">Plans, templates, contacts, branding, and settings.</p>
       </header>
@@ -66,7 +66,7 @@ export default async function MorePage() {
                 <Icon className="h-5 w-5 text-cobalt" />
               </div>
               <div className="min-w-0">
-                <div className="text-sm font-medium text-white">{label}</div>
+                <div className="text-sm font-medium text-foreground">{label}</div>
                 <div className="text-xs text-slate-400 mt-0.5">{desc}</div>
               </div>
             </Link>

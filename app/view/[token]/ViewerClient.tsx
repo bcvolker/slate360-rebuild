@@ -105,7 +105,7 @@ export default function ViewerClient({ deliverable, token }: Props) {
             />
           )}
           <div className="min-w-0">
-            <h1 className="font-semibold text-sm text-white truncate">
+            <h1 className="font-semibold text-sm text-foreground truncate">
               {deliverable.title}
             </h1>
             <p className="text-[11px] text-slate-400 truncate">
@@ -158,7 +158,7 @@ export default function ViewerClient({ deliverable, token }: Props) {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="absolute left-3 p-3 bg-[#151A23]/80 hover:bg-cobalt text-white rounded-full backdrop-blur z-20 transition-colors"
+              className="absolute left-3 p-3 bg-[#151A23]/80 hover:bg-cobalt text-primary-foreground rounded-full backdrop-blur z-20 transition-colors"
               aria-label="Previous"
             >
               <ChevronLeft size={20} />
@@ -168,7 +168,7 @@ export default function ViewerClient({ deliverable, token }: Props) {
             <button
               type="button"
               onClick={() => navigate(1)}
-              className="absolute right-3 p-3 bg-[#151A23]/80 hover:bg-cobalt text-white rounded-full backdrop-blur z-20 transition-colors"
+              className="absolute right-3 p-3 bg-[#151A23]/80 hover:bg-cobalt text-primary-foreground rounded-full backdrop-blur z-20 transition-colors"
               aria-label="Next"
             >
               <ChevronRight size={20} />
@@ -183,13 +183,13 @@ export default function ViewerClient({ deliverable, token }: Props) {
         {panelOpen && (
           <aside className="w-full sm:w-96 absolute sm:relative inset-x-0 bottom-0 sm:inset-auto bg-[#151A23] border-l border-white/10 flex flex-col shrink-0 max-h-[60vh] sm:max-h-none">
             <div className="p-4 border-b border-white/10 flex justify-between items-center">
-              <h2 className="font-semibold text-sm text-white truncate">
+              <h2 className="font-semibold text-sm text-foreground truncate">
                 {activeItem.title || "Item details"}
               </h2>
               <button
                 type="button"
                 onClick={() => setPanelOpen(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-foreground"
                 aria-label="Close panel"
               >
                 <X size={18} />

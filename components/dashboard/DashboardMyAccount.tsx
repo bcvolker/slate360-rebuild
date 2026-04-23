@@ -122,7 +122,7 @@ export default function DashboardMyAccount({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 px-1">
         <div>
-          <h2 className="text-2xl font-bold text-white">My Account</h2>
+          <h2 className="text-2xl font-bold text-foreground">My Account</h2>
           <p className="text-sm text-zinc-400 mt-1">
             Profile, billing, and account controls.
           </p>

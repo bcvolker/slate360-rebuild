@@ -139,7 +139,7 @@ export default function DashboardCalendarWidget({
                   className={`relative h-9 rounded-lg text-xs font-medium transition-all
                     ${!cell.inMonth ? "text-gray-300" : "text-gray-700 hover:bg-gray-100"}
                     ${isToday && !isSelected ? "bg-[#3B82F6]/10 text-[#3B82F6] font-bold" : ""}
-                    ${isSelected ? "bg-[#3B82F6] text-white font-bold shadow-sm" : ""}
+                    ${isSelected ? "bg-[#3B82F6] text-foreground font-bold shadow-sm" : ""}
                   `}
                 >
                   {cell.day}
@@ -175,7 +175,7 @@ export default function DashboardCalendarWidget({
               <div className="flex gap-2">
                 <button
                   onClick={onAddEvent}
-                  className="flex-1 text-xs font-semibold py-2 rounded-lg text-white"
+                  className="flex-1 text-xs font-semibold py-2 rounded-lg text-foreground"
                   style={{ backgroundColor: "#3B82F6" }}
                 >
                   Add

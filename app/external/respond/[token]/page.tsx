@@ -134,7 +134,7 @@ export default function ExternalRespondPage() {
 
       <section className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         {/* Branded header bar */}
-        <div className="bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8] px-6 py-5 text-white">
+        <div className="bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8] px-6 py-5 text-foreground">
           <div className="flex items-start justify-between gap-4">
             <div>
               <span className="inline-block text-[10px] font-bold uppercase tracking-widest text-blue-200/80 mb-1.5 bg-white/10 px-2 py-0.5 rounded-full">
@@ -142,10 +142,10 @@ export default function ExternalRespondPage() {
               </span>
               <h1 className="text-xl font-black leading-tight">{payload.item.title}</h1>
               <p className="mt-1.5 text-sm text-blue-100">
-                Project: <span className="font-semibold text-white">{payload.project.name}</span>
+                Project: <span className="font-semibold text-foreground">{payload.project.name}</span>
               </p>
             </div>
-            <div className="shrink-0 w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white/80">
+            <div className="shrink-0 w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-foreground/80">
               <UploadCloud size={18} />
             </div>
           </div>
@@ -218,7 +218,7 @@ export default function ExternalRespondPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-5 py-3 text-sm font-bold text-white hover:bg-[#1D4ED8] disabled:opacity-60 transition-all active:scale-[0.98]"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-5 py-3 text-sm font-bold text-foreground hover:bg-[#1D4ED8] disabled:opacity-60 transition-all active:scale-[0.98]"
             >
               {submitting ? <Loader2 size={15} className="animate-spin" /> : null}
               {submitting ? "Submitting response…" : "Submit Response"}

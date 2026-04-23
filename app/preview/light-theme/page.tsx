@@ -77,7 +77,7 @@ export default function LightThemePreview() {
       {/* SIDEBAR — graphite */}
       <aside className="hidden md:flex flex-col w-64 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] border-r border-[var(--sidebar-border)] min-h-screen">
         <div className="px-5 py-5 flex items-center gap-2 border-b border-[var(--sidebar-border)]">
-          <div className="h-8 w-8 rounded-lg bg-[var(--primary)] flex items-center justify-center font-bold text-white">S</div>
+          <div className="h-8 w-8 rounded-lg bg-[var(--primary)] flex items-center justify-center font-bold text-foreground">S</div>
           <span className="font-bold text-lg">Slate360</span>
         </div>
         <nav className="flex-1 p-3 space-y-1 text-sm">
@@ -99,18 +99,18 @@ export default function LightThemePreview() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* TOPBAR — graphite */}
         <header className="h-16 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] border-b border-[var(--sidebar-border)] flex items-center px-6 gap-4 sticky top-0 z-10">
-          <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Back
           </Link>
           <div className="flex-1" />
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-800 text-sm text-zinc-400 w-72">
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card text-sm text-zinc-400 w-72">
             <Search className="h-4 w-4" />
             Search projects, files, tools…
           </div>
-          <button className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-300">
+          <button className="p-2 rounded-lg hover:bg-card text-zinc-300">
             <Bell className="h-5 w-5" />
           </button>
-          <div className="h-9 w-9 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-semibold">
+          <div className="h-9 w-9 rounded-full bg-[var(--primary)] flex items-center justify-center text-foreground font-semibold">
             <User className="h-5 w-5" />
           </div>
         </header>
@@ -122,7 +122,7 @@ export default function LightThemePreview() {
               <h1 className="text-3xl font-bold tracking-tight">Welcome back, Brock</h1>
               <p className="text-[var(--muted-foreground)] mt-1">Here&rsquo;s what&rsquo;s waiting for you today.</p>
             </div>
-            <button className="hidden sm:inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-[var(--primary)] text-white font-semibold shadow-lg shadow-blue-500/30 hover:bg-[var(--primary-hover)] transition-all">
+            <button className="hidden sm:inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-[var(--primary)] text-foreground font-semibold shadow-lg shadow-blue-500/30 hover:bg-[var(--primary-hover)] transition-all">
               <Plus className="h-4 w-4" /> New Project
             </button>
           </div>
@@ -176,7 +176,7 @@ export default function LightThemePreview() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">Buttons & links — depth check</h2>
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-md ring-1 ring-slate-900/5 p-6 flex flex-wrap gap-3">
-              <button className="h-11 px-5 rounded-xl bg-[var(--primary)] text-white font-semibold shadow-lg shadow-blue-500/40 hover:bg-[var(--primary-hover)] transition-all">
+              <button className="h-11 px-5 rounded-xl bg-[var(--primary)] text-foreground font-semibold shadow-lg shadow-blue-500/40 hover:bg-[var(--primary-hover)] transition-all">
                 Primary action
               </button>
               <button className="h-11 px-5 rounded-xl bg-white border border-[var(--border)] text-[var(--foreground)] font-semibold hover:bg-[var(--accent)] hover:border-[var(--primary)] transition-all">

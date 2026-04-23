@@ -177,7 +177,7 @@ export default function WalkItemsBrowse({
                           type="button"
                           onClick={() => handleDelete(it.id)}
                           disabled={busyId === it.id}
-                          className="px-2 py-1.5 text-[11px] rounded-md bg-red-600 hover:bg-red-500 text-white disabled:opacity-50 inline-flex items-center gap-1"
+                          className="px-2 py-1.5 text-[11px] rounded-md bg-red-600 hover:bg-red-500 text-foreground disabled:opacity-50 inline-flex items-center gap-1"
                         >
                           {busyId === it.id ? (
                             <Loader2 className="h-3 w-3 animate-spin" />

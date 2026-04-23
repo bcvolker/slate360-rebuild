@@ -43,7 +43,7 @@ export default function ProjectHubDeleteModal({
                 <AlertTriangle size={20} className="text-red-400" />
               </div>
               <div>
-                <h3 className="text-base font-black text-white">Delete Project</h3>
+                <h3 className="text-base font-black text-foreground">Delete Project</h3>
                 <p className="text-xs text-zinc-400">This action cannot be undone</p>
               </div>
             </div>
@@ -55,7 +55,7 @@ export default function ProjectHubDeleteModal({
           <div className="px-6 py-5 space-y-4">
             <div className="rounded-xl border border-app bg-white/[0.04] p-4">
               <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Project to delete</p>
-              <p className="text-sm font-black text-white">{target.name}</p>
+              <p className="text-sm font-black text-foreground">{target.name}</p>
             </div>
 
             <div className="text-sm text-zinc-300 space-y-2">
@@ -79,7 +79,7 @@ export default function ProjectHubDeleteModal({
                 value={confirmName}
                 onChange={(event) => onConfirmNameChange(event.target.value)}
                 placeholder="Enter project name..."
-                className="w-full rounded-lg border border-app bg-white/[0.04] px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-red-500 focus:ring-2 focus:ring-red-900/50 outline-none transition-all"
+                className="w-full rounded-lg border border-app bg-white/[0.04] px-3 py-2 text-sm text-foreground placeholder-zinc-500 focus:border-red-500 focus:ring-2 focus:ring-red-900/50 outline-none transition-all"
                 autoFocus
               />
             </div>
@@ -100,7 +100,7 @@ export default function ProjectHubDeleteModal({
             <button
               onClick={onDelete}
               disabled={deleteDisabled}
-              className="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+              className="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-foreground hover:bg-red-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {loading ? (
                 <>

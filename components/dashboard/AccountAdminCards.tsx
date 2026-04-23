@@ -49,7 +49,7 @@ export default function AccountAdminCards({
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs text-zinc-400">Storage used</span>
-              <span className="text-xs font-bold text-white">
+              <span className="text-xs font-bold text-foreground">
                 {(
                   accountOverview?.usage.storageUsedGb ?? storageUsed
                 ).toFixed(1)}{" "}
@@ -74,7 +74,7 @@ export default function AccountAdminCards({
               <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
                 Projects
               </p>
-              <p className="text-sm font-semibold text-white">
+              <p className="text-sm font-semibold text-foreground">
                 {(
                   accountOverview?.usage.projectsCount ?? 0
                 ).toLocaleString()}
@@ -84,7 +84,7 @@ export default function AccountAdminCards({
               <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
                 Models
               </p>
-              <p className="text-sm font-semibold text-white">
+              <p className="text-sm font-semibold text-foreground">
                 {(accountOverview?.usage.modelsCount ?? 0).toLocaleString()}
               </p>
             </div>
@@ -92,7 +92,7 @@ export default function AccountAdminCards({
               <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
                 Tours
               </p>
-              <p className="text-sm font-semibold text-white">
+              <p className="text-sm font-semibold text-foreground">
                 {(accountOverview?.usage.toursCount ?? 0).toLocaleString()}
               </p>
             </div>
@@ -100,7 +100,7 @@ export default function AccountAdminCards({
               <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
                 Documents
               </p>
-              <p className="text-sm font-semibold text-white">
+              <p className="text-sm font-semibold text-foreground">
                 {(accountOverview?.usage.docsCount ?? 0).toLocaleString()}
               </p>
             </div>
@@ -109,7 +109,7 @@ export default function AccountAdminCards({
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Purchased Credits
             </p>
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-semibold text-foreground">
               {(
                 accountOverview?.billing.purchasedCredits ?? 0
               ).toLocaleString()}
@@ -151,12 +151,12 @@ export default function AccountAdminCards({
               value={apiKeyLabel}
               onChange={(e) => onApiKeyLabelChange(e.target.value)}
               placeholder="Key label (e.g. CI Runner)"
-              className="flex-1 px-3 py-2 rounded-lg border border-app bg-white/[0.04] text-xs text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+              className="flex-1 px-3 py-2 rounded-lg border border-app bg-white/[0.04] text-xs text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
             />
             <button
               onClick={onGenerateApiKey}
               disabled={apiKeyBusy === "create"}
-              className="px-3 py-2 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-all disabled:opacity-60"
+              className="px-3 py-2 rounded-lg text-xs font-semibold text-foreground hover:opacity-90 transition-all disabled:opacity-60"
               style={{ backgroundColor: "#3B82F6" }}
             >
               {apiKeyBusy === "create" ? "Generating…" : "Generate Key"}

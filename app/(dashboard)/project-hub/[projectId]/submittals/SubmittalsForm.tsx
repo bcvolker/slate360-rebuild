@@ -14,17 +14,17 @@ interface Props {
   onClose: () => void;
 }
 
-const inp = "w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/30 placeholder:text-zinc-500";
+const inp = "w-full rounded-lg border border-zinc-700 bg-card px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/30 placeholder:text-zinc-500";
 const lbl = "mb-1 block text-xs font-bold text-zinc-300";
 
 export default function SubmittalsForm({ form, setForm, editingId, saving, attachment, setAttachment, onSubmit, onClose }: Props) {
   const u = (patch: Partial<SubmittalFormData>) => setForm({ ...form, ...patch });
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
-      <div className="h-full w-full max-w-lg overflow-y-auto bg-zinc-900 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-900 px-6 py-4 flex items-center justify-between">
-          <h3 className="text-lg font-black text-white">{editingId ? "Edit Submittal" : "New Submittal"}</h3>
-          <button onClick={onClose} className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-800"><X size={18} /></button>
+      <div className="h-full w-full max-w-lg overflow-y-auto bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="sticky top-0 z-10 border-b border-zinc-800 bg-card px-6 py-4 flex items-center justify-between">
+          <h3 className="text-lg font-black text-foreground">{editingId ? "Edit Submittal" : "New Submittal"}</h3>
+          <button onClick={onClose} className="rounded-lg p-1 text-zinc-400 hover:bg-card"><X size={18} /></button>
         </div>
         <div className="space-y-5 p-6">
           <div><label className={lbl}>Title *</label><input type="text" value={form.title} onChange={(e) => u({ title: e.target.value })} className={inp} /></div>
@@ -51,10 +51,10 @@ export default function SubmittalsForm({ form, setForm, editingId, saving, attac
             <div><label className={lbl}>Lead Time (days)</label><input type="number" value={form.lead_time_days} onChange={(e) => u({ lead_time_days: e.target.value })} className={inp} /></div>
           </div>
           {editingId && <div><label className={lbl}>Response / Notes</label><textarea value={form.response_text} onChange={(e) => u({ response_text: e.target.value })} rows={3} placeholder="Enter response or review notes..." className={`${inp} resize-none`} /></div>}
-          {!editingId && <div><label className={lbl}>Attachment</label><input type="file" onChange={(e) => setAttachment(e.target.files?.[0] ?? null)} className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-300" /></div>}
+          {!editingId && <div><label className={lbl}>Attachment</label><input type="file" onChange={(e) => setAttachment(e.target.files?.[0] ?? null)} className="w-full rounded-lg border border-zinc-700 bg-card px-3 py-2 text-sm text-zinc-300" /></div>}
           <div className="flex items-center gap-3 pt-2">
-            <button onClick={onSubmit} disabled={saving || !form.title.trim()} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition">{saving && <Loader2 size={14} className="animate-spin" />}{editingId ? "Update Submittal" : "Create Submittal"}</button>
-            <button onClick={onClose} className="rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700">Cancel</button>
+            <button onClick={onSubmit} disabled={saving || !form.title.trim()} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] disabled:opacity-50 transition">{saving && <Loader2 size={14} className="animate-spin" />}{editingId ? "Update Submittal" : "Create Submittal"}</button>
+            <button onClick={onClose} className="rounded-lg border border-zinc-700 bg-card px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700">Cancel</button>
           </div>
         </div>
       </div>

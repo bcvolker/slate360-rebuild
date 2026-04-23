@@ -120,15 +120,15 @@ export default function PunchListPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Punch List</p>
-          <h2 className="text-xl font-black text-white">Deficiency Tracker</h2>
+          <h2 className="text-xl font-black text-foreground">Deficiency Tracker</h2>
           <p className="mt-1 text-sm text-zinc-400">Track, assign, and close out punch items before project completion.</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={exportCSV} disabled={items.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 disabled:opacity-40">
+          <button onClick={exportCSV} disabled={items.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-card px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 disabled:opacity-40">
             <Download size={14} /> Export
           </button>
           <ViewCustomizer storageKey={`viewprefs-punch-list-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
-          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition">
+          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] transition">
             <Plus size={15} /> New Item
           </button>
         </div>
@@ -137,13 +137,13 @@ export default function PunchListPage() {
       {/* ── Stats Cards ─────────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {([
-          { label: "Total", value: stats.total, color: "text-white" },
+          { label: "Total", value: stats.total, color: "text-foreground" },
           { label: "Open", value: stats.open, color: "text-red-400" },
           { label: "In Progress", value: stats.progress, color: "text-amber-400" },
           { label: "Review", value: stats.review, color: "text-blue-400" },
           { label: "Closed", value: stats.closed, color: "text-emerald-400" },
         ] as const).map((s) => (
-          <div key={s.label} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 shadow-sm">
+          <div key={s.label} className="rounded-xl border border-zinc-800 bg-card p-4 shadow-sm">
             <p className="text-xs font-semibold text-zinc-500">{s.label}</p>
             <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
           </div>
@@ -154,24 +154,24 @@ export default function PunchListPage() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search items…" className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-2 pl-9 pr-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/30" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search items…" className="w-full rounded-lg border border-zinc-700 bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-zinc-500 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/30" />
         </div>
-        <button onClick={() => setShowFilters(!showFilters)} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition ${showFilters ? "border-[#3B82F6] bg-[#3B82F6]/10 text-[#3B82F6]" : "border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"}`}>
+        <button onClick={() => setShowFilters(!showFilters)} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition ${showFilters ? "border-[#3B82F6] bg-[#3B82F6]/10 text-[#3B82F6]" : "border-zinc-700 bg-card text-zinc-300 hover:bg-zinc-700"}`}>
           <Filter size={14} /> Filters
         </button>
       </div>
       {showFilters && (
-        <div className="flex flex-wrap gap-3 rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+        <div className="flex flex-wrap gap-3 rounded-xl border border-zinc-800 bg-card p-4">
           <div>
             <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-zinc-500">Status</label>
-            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white outline-none">
+            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded-lg border border-zinc-700 bg-card px-3 py-1.5 text-sm text-foreground outline-none">
               <option value="all">All</option>
               {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
           <div>
             <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-zinc-500">Priority</label>
-            <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white outline-none">
+            <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} className="rounded-lg border border-zinc-700 bg-card px-3 py-1.5 text-sm text-foreground outline-none">
               <option value="all">All</option>
               {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
             </select>
@@ -181,15 +181,15 @@ export default function PunchListPage() {
 
       {/* ── Items List ──────────────────────────────────────────── */}
       {loading ? (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-center text-sm text-zinc-500"><Loader2 size={16} className="mr-2 inline animate-spin" /> Loading punch items…</div>
+        <div className="rounded-2xl border border-zinc-800 bg-card p-8 text-center text-sm text-zinc-500"><Loader2 size={16} className="mr-2 inline animate-spin" /> Loading punch items…</div>
       ) : items.length === 0 ? (
-        <div className="rounded-2xl border-2 border-dashed border-zinc-700 bg-zinc-900 p-12 text-center">
+        <div className="rounded-2xl border-2 border-dashed border-zinc-700 bg-card p-12 text-center">
           <AlertTriangle size={32} className="mx-auto mb-3 text-zinc-600" />
           <p className="text-sm font-semibold text-zinc-400">No punch items yet</p>
           <p className="mt-1 text-xs text-zinc-500">Click &quot;New Item&quot; to create your first deficiency.</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-center text-sm text-zinc-500">No items match your filters.</div>
+        <div className="rounded-2xl border border-zinc-800 bg-card p-8 text-center text-sm text-zinc-500">No items match your filters.</div>
       ) : (
         <div className="space-y-2">
           {filtered.map((item) => (

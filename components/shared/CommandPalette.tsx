@@ -130,7 +130,7 @@ export default function CommandPalette({
               value={search}
               onValueChange={setSearch}
               placeholder="Type a command or search…"
-              className="flex-1 bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-zinc-500 outline-none"
               autoFocus
             />
             <kbd className="rounded border border-app bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-mono text-zinc-400">
@@ -159,7 +159,7 @@ export default function CommandPalette({
                         key={item.id}
                         value={`${item.group} ${item.label}`}
                         onSelect={() => runItem(item)}
-                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-300 cursor-pointer aria-selected:bg-white/[0.06] aria-selected:text-white"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-300 cursor-pointer aria-selected:bg-white/[0.06] aria-selected:text-foreground"
                       >
                         <Icon className="h-4 w-4 text-zinc-400" />
                         <span className="flex-1">{item.label}</span>

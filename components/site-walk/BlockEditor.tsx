@@ -64,7 +64,7 @@ export function BlockEditor({ projectId }: BlockEditorProps) {
           </Button>
           <Button
             size="sm"
-            className="bg-[var(--slate-orange)] text-white hover:bg-[var(--slate-orange-hover)]"
+            className="bg-[var(--slate-orange)] text-foreground hover:bg-[var(--slate-orange-hover)]"
             disabled={!title.trim() || blocks.length === 0}
           >
             <Save className="size-4" />

@@ -260,7 +260,7 @@ export default function ProjectDashboardGrid({
           <div className="flex items-start gap-2.5">
             <Building2 size={18} className="text-[#3B82F6] mt-0.5 shrink-0" />
             <div className="min-w-0">
-              <p className="text-sm font-black text-white truncate">{project.name ?? "—"}</p>
+              <p className="text-sm font-black text-foreground truncate">{project.name ?? "—"}</p>
               {locationStr && (
                 <p className="text-[10px] text-zinc-400 flex items-center gap-1 mt-0.5">
                   <MapPin size={9} />{locationStr}
@@ -346,11 +346,11 @@ export default function ProjectDashboardGrid({
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-white/[0.04] rounded-lg p-2">
               <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Budget</p>
-              <p className="text-sm font-black text-white">{fmtUsd(revisedBudget)}</p>
+              <p className="text-sm font-black text-foreground">{fmtUsd(revisedBudget)}</p>
             </div>
             <div className="bg-white/[0.04] rounded-lg p-2">
               <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">Spent</p>
-              <p className="text-sm font-black text-white">{fmtUsd(budgetTotals.spent)}</p>
+              <p className="text-sm font-black text-foreground">{fmtUsd(budgetTotals.spent)}</p>
             </div>
           </div>
           <div>
@@ -444,7 +444,7 @@ export default function ProjectDashboardGrid({
               <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${a.color}1A`, color: a.color }}>
                 <a.icon size={13} />
               </div>
-              <span className="text-[11px] font-semibold text-zinc-300 group-hover:text-white leading-tight">{a.label}</span>
+              <span className="text-[11px] font-semibold text-zinc-300 group-hover:text-foreground leading-tight">{a.label}</span>
             </Link>
           ))}
         </div>
@@ -463,14 +463,14 @@ export default function ProjectDashboardGrid({
           <div className="flex items-start gap-2.5">
             <ClipboardList size={18} className="text-[#F97316] mt-0.5 shrink-0" />
             <div className="min-w-0">
-              <p className="text-sm font-black text-white">Site Walk</p>
+              <p className="text-sm font-black text-foreground">Site Walk</p>
               <p className="text-[10px] text-zinc-400 mt-0.5">Field photos, voice notes, deliverables, and inbox.</p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <Link
               href={`/site-walk/projects/${projectId}`}
-              className="rounded-lg border border-app bg-white/[0.04] hover:border-[#F97316]/40 px-3 py-2 text-[11px] font-semibold text-zinc-200 hover:text-white transition"
+              className="rounded-lg border border-app bg-white/[0.04] hover:border-[#F97316]/40 px-3 py-2 text-[11px] font-semibold text-zinc-200 hover:text-foreground transition"
             >
               Open dashboard
             </Link>
@@ -520,7 +520,7 @@ export default function ProjectDashboardGrid({
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-black text-white">Project Widgets</h2>
+        <h2 className="text-lg font-black text-foreground">Project Widgets</h2>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setProfileOpen(true)}

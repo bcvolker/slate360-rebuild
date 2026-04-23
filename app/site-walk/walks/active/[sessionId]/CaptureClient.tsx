@@ -215,7 +215,7 @@ export default function CaptureClient({ sessionId, title }: { sessionId: string;
             <button
               onClick={saveNote}
               disabled={busy === "note" || !noteText.trim()}
-              className="px-3 py-1.5 text-xs rounded-lg bg-cobalt hover:bg-cobalt-hover disabled:opacity-50 text-white flex items-center gap-1.5"
+              className="px-3 py-1.5 text-xs rounded-lg bg-cobalt hover:bg-cobalt-hover disabled:opacity-50 text-primary-foreground flex items-center gap-1.5"
             >
               {busy === "note" && <Loader2 className="h-3 w-3 animate-spin" />} Save note
             </button>
@@ -289,7 +289,7 @@ export default function CaptureClient({ sessionId, title }: { sessionId: string;
 
       {toast && (
         <div className={`fixed bottom-20 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg text-sm flex items-center gap-2 shadow-lg ${
-          toast.kind === "success" ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
+          toast.kind === "success" ? "bg-emerald-600 text-foreground" : "bg-red-600 text-foreground"
         }`}>
           {toast.kind === "success" ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
           {toast.text}

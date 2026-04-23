@@ -76,21 +76,21 @@ const SECTIONS = [
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-zinc-950">
+    <main className="min-h-screen bg-background">
       {/* Hero */}
-      <div className="bg-zinc-900 py-16 text-center">
+      <div className="bg-card py-16 text-center">
         <div className="mx-auto max-w-3xl px-4">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
-            <Scale size={24} className="text-white" />
+            <Scale size={24} className="text-foreground" />
           </div>
-          <h1 className="text-3xl font-black text-white sm:text-4xl">Terms of Service</h1>
+          <h1 className="text-3xl font-black text-foreground sm:text-4xl">Terms of Service</h1>
           <p className="mt-3 text-sm text-blue-200">Effective Date: January 1, 2025 · Last Updated: June 1, 2025</p>
         </div>
       </div>
 
       {/* Content */}
       <div className="mx-auto max-w-3xl px-4 py-12">
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 shadow-sm divide-y divide-zinc-800">
+        <div className="rounded-2xl border border-zinc-800 bg-card shadow-sm divide-y divide-zinc-800">
           {SECTIONS.map((s) => (
             <div key={s.heading} className="px-8 py-6">
               <h2 className="text-sm font-black text-zinc-100 mb-2">{s.heading}</h2>

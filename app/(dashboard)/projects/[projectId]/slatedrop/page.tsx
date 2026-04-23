@@ -28,7 +28,7 @@ export default async function ProjectSlateDropPage({
 
 	return (
 		<div className="flex flex-col" style={{ height: "calc(100svh - 3.5rem)" }}>
-			<div className="shrink-0 border-b border-zinc-800 bg-zinc-950 px-4 py-3 sm:px-6">
+			<div className="shrink-0 border-b border-zinc-800 bg-background px-4 py-3 sm:px-6">
 				<p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Project Files</p>
 				<div className="mt-1 flex items-center gap-3">
 				<Link

@@ -49,7 +49,7 @@ export default async function WalksPage() {
         <div className="flex gap-2 justify-center pt-2">
           <a
             href="/site-walk/walks"
-            className="inline-flex items-center justify-center rounded-lg bg-cobalt px-4 py-2 text-sm font-medium text-white hover:bg-cobalt-hover"
+            className="inline-flex items-center justify-center rounded-lg bg-cobalt px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-cobalt-hover"
           >
             Retry
           </a>

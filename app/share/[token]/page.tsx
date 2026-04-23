@@ -32,7 +32,7 @@ export default async function SharePage({ params }: PageProps) {
   // Check expiry
   if (link.expires_at && new Date(link.expires_at) < new Date()) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-3 p-8">
           <h1 className="text-2xl font-black text-zinc-100">Link Expired</h1>
           <p className="text-sm text-zinc-400">This share link has expired. Please request a new one.</p>
@@ -77,7 +77,7 @@ export default async function SharePage({ params }: PageProps) {
 
   if (unifiedFileError || legacyFileError || !file || !file.storageKey || file.status === "archived") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-3 p-8">
           <h1 className="text-2xl font-black text-zinc-100">File Not Found</h1>
           <p className="text-sm text-zinc-400">The shared file is no longer available.</p>

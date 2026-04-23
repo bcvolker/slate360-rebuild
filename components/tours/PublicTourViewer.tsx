@@ -37,7 +37,7 @@ export function PublicTourViewer({ tour, scenes }: PublicTourViewerProps) {
 
   if (!scene) {
     return (
-      <div className="flex h-screen items-center justify-center bg-black text-white">
+      <div className="flex h-screen items-center justify-center bg-black text-foreground">
         <p>This tour has no scenes yet.</p>
       </div>
     );
@@ -57,9 +57,9 @@ export function PublicTourViewer({ tour, scenes }: PublicTourViewerProps) {
 
       {/* Tour title overlay */}
       <div className="pointer-events-none absolute left-4 top-4 z-10">
-        <h1 className="text-lg font-bold text-white drop-shadow-lg">{tour.title}</h1>
+        <h1 className="text-lg font-bold text-foreground drop-shadow-lg">{tour.title}</h1>
         {scenes.length > 1 && (
-          <p className="text-sm text-white/70 drop-shadow">
+          <p className="text-sm text-foreground/70 drop-shadow">
             {scene.title} — {currentIdx + 1} / {scenes.length}
           </p>
         )}
@@ -71,7 +71,7 @@ export function PublicTourViewer({ tour, scenes }: PublicTourViewerProps) {
           <Button
             variant="secondary"
             size="icon"
-            className="rounded-full bg-black/50 text-white hover:bg-black/70"
+            className="rounded-full bg-black/50 text-foreground hover:bg-black/70"
             disabled={!hasPrev}
             onClick={() => setCurrentIdx((i) => i - 1)}
           >
@@ -96,7 +96,7 @@ export function PublicTourViewer({ tour, scenes }: PublicTourViewerProps) {
           <Button
             variant="secondary"
             size="icon"
-            className="rounded-full bg-black/50 text-white hover:bg-black/70"
+            className="rounded-full bg-black/50 text-foreground hover:bg-black/70"
             disabled={!hasNext}
             onClick={() => setCurrentIdx((i) => i + 1)}
           >
@@ -133,7 +133,7 @@ export function PublicTourViewer({ tour, scenes }: PublicTourViewerProps) {
       )}
 
       {/* Powered by */}
-      <div className="absolute bottom-2 right-4 z-10 text-[10px] text-white/30">
+      <div className="absolute bottom-2 right-4 z-10 text-[10px] text-foreground/30">
         Powered by Slate360
       </div>
     </div>

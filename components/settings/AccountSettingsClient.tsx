@@ -110,7 +110,7 @@ export function AccountSettingsClient({
               </ul>
               <p className="text-sm">
                 Type{" "}
-                <code className="rounded bg-zinc-800 px-1.5 py-0.5 text-xs font-bold text-destructive">
+                <code className="rounded bg-card px-1.5 py-0.5 text-xs font-bold text-destructive">
                   DELETE MY ACCOUNT
                 </code>{" "}
                 to confirm:

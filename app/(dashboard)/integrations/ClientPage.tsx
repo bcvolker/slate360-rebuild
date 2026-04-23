@@ -41,7 +41,7 @@ interface Props {
 
 export default function IntegrationsHubPage({ user, tier, isCeo = false, internalAccess }: Props) {
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-background">
             <DashboardHeader
         user={user}
         tier={tier}
@@ -60,15 +60,15 @@ export default function IntegrationsHubPage({ user, tier, isCeo = false, interna
         <section className="grid gap-4 sm:grid-cols-2">
           {INTEGRATIONS.map((integration) => {
             return (
-              <article key={integration.id} className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
-                <div className="mb-3 inline-flex rounded-lg border border-zinc-700 bg-zinc-800 p-2 text-zinc-400">
+              <article key={integration.id} className="rounded-2xl border border-zinc-800 bg-card p-4">
+                <div className="mb-3 inline-flex rounded-lg border border-zinc-700 bg-card p-2 text-zinc-400">
                   <Link2 size={16} />
                 </div>
                 <h2 className="text-base font-black text-zinc-100">{integration.name}</h2>
                 <p className="mt-1 text-sm text-zinc-400">{integration.description}</p>
 
                 <div className="mt-4 flex items-center justify-between">
-                  <span className="inline-flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-2 text-xs font-semibold text-zinc-400 cursor-not-allowed">
+                  <span className="inline-flex items-center gap-2 rounded-lg bg-card px-3 py-2 text-xs font-semibold text-zinc-400 cursor-not-allowed">
                     <Link2 size={14} />
                     Coming Soon
                   </span>

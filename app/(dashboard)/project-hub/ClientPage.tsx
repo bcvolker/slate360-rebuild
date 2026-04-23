@@ -145,7 +145,7 @@ export default function ProjectHubPage({ user, tier, isCeo = false, internalAcce
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden">
             <DashboardHeader
         user={user}
         tier={tier}
@@ -157,12 +157,12 @@ export default function ProjectHubPage({ user, tier, isCeo = false, internalAcce
 
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-black text-foreground flex items-center gap-3">
             <FolderKanban size={28} className="text-[#3B82F6]" /> Project Hub
           </h1>
           <button
             onClick={() => setWizardOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-[#1D4ED8] transition-all hover:-translate-y-0.5 hover:shadow-xl w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-5 py-3 text-sm font-bold text-foreground shadow-lg hover:bg-[#1D4ED8] transition-all hover:-translate-y-0.5 hover:shadow-xl w-full sm:w-auto"
           >
             <Plus size={16} /> New Project
           </button>
@@ -184,7 +184,7 @@ export default function ProjectHubPage({ user, tier, isCeo = false, internalAcce
 
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-black text-white">Widgets</h2>
+            <h2 className="text-lg font-black text-foreground">Widgets</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

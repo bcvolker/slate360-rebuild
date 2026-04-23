@@ -147,7 +147,7 @@ export default function ViewCustomizer({ cols, prefs, onPrefsChange }: Props) {
                       <span
                         className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
                           visible
-                            ? "border-amber-500 bg-amber-500 text-white"
+                            ? "border-amber-500 bg-amber-500 text-foreground"
                             : "border-gray-300 bg-white"
                         }`}
                       >

@@ -27,7 +27,7 @@ export default function TabWireframe({ tab, onBack, onOpenSlateDrop }: { tab: Da
       >
         <Icon size={36} />
       </div>
-      <h2 className="text-2xl font-bold text-white mb-2">{tab.label}</h2>
+      <h2 className="text-2xl font-bold text-foreground mb-2">{tab.label}</h2>
       {tab.isCEOOnly && (
         <span className="inline-block mb-3 text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-900/30 border border-amber-700/50 px-3 py-1 rounded-full">
           CEO Access Only
@@ -37,7 +37,7 @@ export default function TabWireframe({ tab, onBack, onOpenSlateDrop }: { tab: Da
       {tab.id === "slatedrop" && (
         <button
           onClick={onOpenSlateDrop}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 mb-4"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 mb-4"
           style={{ backgroundColor: "#3B82F6" }}
         >
           Open SlateDrop <ArrowRight size={15} />

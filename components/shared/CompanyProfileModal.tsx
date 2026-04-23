@@ -144,7 +144,7 @@ export default function CompanyProfileModal({ open, onClose, initial, onSave }: 
         <div className="border-t border-gray-100 px-6 py-4">
           <button
             onClick={handleSave}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] transition"
           >
             {saved ? <><CheckCircle2 size={15} /> Saved!</> : <><Save size={15} /> Save Profile</>}
           </button>

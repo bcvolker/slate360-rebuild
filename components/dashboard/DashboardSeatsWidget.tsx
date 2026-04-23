@@ -39,7 +39,7 @@ export default function DashboardSeatsWidget({
       size={widgetSize}
       action={
         <button
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-foreground transition-all hover:opacity-90"
           style={{ backgroundColor: "#3B82F6" }}
         >
           <UserPlus size={13} /> Invite member

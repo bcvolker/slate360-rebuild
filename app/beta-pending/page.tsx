@@ -30,7 +30,7 @@ export default async function BetaPendingPage() {
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-white">Beta Access Pending</h1>
+          <h1 className="text-2xl font-bold text-foreground">Beta Access Pending</h1>
           <p className="text-zinc-400 text-sm leading-relaxed">
             Your account has been created, but beta access has not been granted yet.
             You will receive a notification when your access is approved.

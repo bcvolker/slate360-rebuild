@@ -39,12 +39,12 @@ export function LiveWalkShell({
         <Link
           href={exitHref}
           aria-label="Exit walk"
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white hover:bg-white/10 transition-colors"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-foreground hover:bg-white/10 transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="min-w-0 flex-1 text-center">
-          <p className="truncate text-sm font-semibold text-white">{title}</p>
+          <p className="truncate text-sm font-semibold text-foreground">{title}</p>
           <p className="text-[10px] uppercase tracking-wider text-emerald-400">Live</p>
         </div>
         <div className="relative shrink-0">
@@ -53,7 +53,7 @@ export function LiveWalkShell({
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Walk menu"
             aria-expanded={menuOpen}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-white hover:bg-white/10 transition-colors"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground hover:bg-white/10 transition-colors"
           >
             <MoreVertical className="h-5 w-5" />
           </button>
@@ -64,7 +64,7 @@ export function LiveWalkShell({
                 onClick={() => setMenuOpen(false)}
                 aria-hidden="true"
               />
-              <div className="absolute right-0 top-12 z-50 w-44 rounded-xl border border-white/10 bg-zinc-950 shadow-2xl py-1">
+              <div className="absolute right-0 top-12 z-50 w-44 rounded-xl border border-white/10 bg-background shadow-2xl py-1">
                 {onEndSession && (
                   <button
                     type="button"

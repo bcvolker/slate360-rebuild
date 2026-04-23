@@ -103,7 +103,7 @@ export default function AccountPreferencesCard({
             <span className="text-xs font-semibold text-zinc-300">
               Profile Completeness
             </span>
-            <span className="text-xs font-bold text-white">
+            <span className="text-xs font-bold text-foreground">
               {profileCompletion}%
             </span>
           </div>

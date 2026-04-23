@@ -17,7 +17,7 @@ export const STATUSES = ["Not Started", "In Progress", "Completed", "On Hold", "
 export const PRIORITIES = ["Low", "Normal", "High", "Critical"];
 
 export const STATUS_COLORS: Record<string, { bar: string; badge: string }> = {
-  "Not Started": { bar: "bg-zinc-500",    badge: "bg-zinc-800 text-zinc-300 border-zinc-700" },
+  "Not Started": { bar: "bg-zinc-500",    badge: "bg-card text-zinc-300 border-zinc-700" },
   "In Progress": { bar: "bg-blue-500",    badge: "bg-blue-950/40 text-blue-400 border-blue-900/50" },
   Completed:     { bar: "bg-emerald-500", badge: "bg-emerald-950/40 text-emerald-400 border-emerald-900/50" },
   "On Hold":     { bar: "bg-amber-400",   badge: "bg-amber-950/40 text-amber-400 border-amber-900/50" },

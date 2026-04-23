@@ -18,7 +18,7 @@ export default function SiteWalkScreenStub({ title, description, icon: Icon, chi
           <div className="h-10 w-10 rounded-xl bg-cobalt/15 border border-cobalt/30 flex items-center justify-center">
             <Icon className="h-5 w-5 text-cobalt" />
           </div>
-          <h1 className="text-xl font-semibold text-white">{title}</h1>
+          <h1 className="text-xl font-semibold text-foreground">{title}</h1>
         </div>
         <p className="text-sm text-slate-400">{description}</p>
       </header>

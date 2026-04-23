@@ -163,7 +163,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 mt-1 rounded-md bg-cobalt text-white hover:opacity-90 transition-opacity disabled:opacity-50 text-sm font-medium"
+            className="w-full py-2 mt-1 rounded-md bg-cobalt text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 text-sm font-medium"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Submit Feedback"}
           </button>

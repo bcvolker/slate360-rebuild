@@ -157,7 +157,7 @@ export function ProjectDefaultsClient({
         <button
           onClick={handleSave}
           disabled={!isDirty || saveStatus !== "idle"}
-          className="flex items-center justify-center gap-2 bg-cobalt text-white px-6 py-2.5 rounded-lg font-medium hover:bg-cobalt/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all w-full sm:w-auto min-w-[140px]"
+          className="flex items-center justify-center gap-2 bg-cobalt text-primary-foreground px-6 py-2.5 rounded-lg font-medium hover:bg-cobalt/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all w-full sm:w-auto min-w-[140px]"
         >
           {saveStatus === "saving" && <Loader2 className="w-4 h-4 animate-spin" />}
           {saveStatus === "saved" && <Check className="w-4 h-4" />}

@@ -67,11 +67,11 @@ export default function ProjectHubAllProjectsTab({ loading, projects, onOpenDele
                 <div className="absolute inset-0 p-4 flex flex-col justify-between">
                   <div className="flex items-start justify-between">
                     <span />
-                    <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-md uppercase tracking-wider">
+                    <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-foreground backdrop-blur-md uppercase tracking-wider">
                       {project.status ?? "active"}
                     </span>
                   </div>
-                  <h2 className="text-xl font-black text-white truncate">{project.name}</h2>
+                  <h2 className="text-xl font-black text-foreground truncate">{project.name}</h2>
                 </div>
               </div>
             </Link>
@@ -83,7 +83,7 @@ export default function ProjectHubAllProjectsTab({ loading, projects, onOpenDele
                   event.stopPropagation();
                   setCardMenuOpen(cardMenuOpen === project.id ? null : project.id);
                 }}
-                className="flex items-center justify-center w-7 h-7 rounded-lg bg-white/20 hover:bg-white/40 backdrop-blur-md transition-all text-white"
+                className="flex items-center justify-center w-7 h-7 rounded-lg bg-white/20 hover:bg-white/40 backdrop-blur-md transition-all text-foreground"
                 title="Project options"
               >
                 <MoreVertical size={14} />

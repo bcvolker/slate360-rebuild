@@ -64,7 +64,7 @@ export default function MobileModuleBar({ tier, isCeo = false, internalAccess }:
   });
 
   return (
-    <nav className="flex sm:hidden border-t border-app/60 bg-zinc-950/90 backdrop-blur-sm">
+    <nav className="flex sm:hidden border-t border-app/60 bg-background/90 backdrop-blur-sm">
       <div
         className="flex gap-1 px-3 py-1.5 overflow-x-auto scrollbar-hide"
         style={{ scrollbarWidth: "none" }}

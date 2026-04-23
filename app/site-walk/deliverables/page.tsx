@@ -46,7 +46,7 @@ export default async function DeliverablesPage() {
 
       <Link
         href="/site-walk/deliverables/new"
-        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover text-white text-sm"
+        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover text-primary-foreground text-sm"
       >
         <Plus className="h-4 w-4" /> New deliverable
       </Link>

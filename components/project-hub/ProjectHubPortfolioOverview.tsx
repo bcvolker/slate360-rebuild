@@ -173,7 +173,7 @@ export default function ProjectHubPortfolioOverview({
             <p className="text-[11px] uppercase tracking-wider font-bold text-zinc-500">
               Portfolio Snapshot
             </p>
-            <h2 className="text-base sm:text-lg font-black text-white">
+            <h2 className="text-base sm:text-lg font-black text-foreground">
               Organization-level project health
             </h2>
           </div>

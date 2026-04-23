@@ -21,11 +21,11 @@ export default async function MarketingHomepageV2() {
             
             <div className="flex items-center gap-4">
               {isLoggedIn ? (
-                <Link href="/dashboard" className="text-sm font-semibold text-slate-200 hover:text-white transition-colors">
+                <Link href="/dashboard" className="text-sm font-semibold text-slate-200 hover:text-foreground transition-colors">
                   Go to Command Center
                 </Link>
               ) : (
-                <Link href="/login" className="text-sm font-semibold text-slate-200 hover:text-white transition-colors">
+                <Link href="/login" className="text-sm font-semibold text-slate-200 hover:text-foreground transition-colors">
                   Sign In
                 </Link>
               )}
@@ -40,7 +40,7 @@ export default async function MarketingHomepageV2() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-500/10 rounded-full blur-[120px] opacity-50 pointer-events-none" />
           
           <div className="container mx-auto px-6 relative z-10 text-center max-w-5xl">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 text-white">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 text-foreground">
               The real-time interactive bridge between the field and the office
             </h1>
             
@@ -66,7 +66,7 @@ export default async function MarketingHomepageV2() {
                   </Link>
                   <Link 
                     href="/login"
-                    className="px-8 py-4 bg-[#151A23] border border-white/10 hover:bg-white/5 text-white font-medium rounded-xl transition-all w-full sm:w-auto"
+                    className="px-8 py-4 bg-[#151A23] border border-white/10 hover:bg-white/5 text-foreground font-medium rounded-xl transition-all w-full sm:w-auto"
                   >
                     Sign In
                   </Link>
@@ -80,7 +80,7 @@ export default async function MarketingHomepageV2() {
         <section className="py-24 bg-[#0B0F15] border-t border-white/5 relative z-10">
           <div className="container mx-auto px-6 max-w-6xl">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+              <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
                 Why Slate360 changes the workflow
               </h2>
             </div>
@@ -92,7 +92,7 @@ export default async function MarketingHomepageV2() {
                 <div className="w-14 h-14 bg-[#0B0F15] rounded-2xl flex items-center justify-center mb-6 shadow-inner border border-white/5">
                   <CheckCircle2 className="w-7 h-7 text-amber-500" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-4">Stop losing project meaning</h3>
+                <h3 className="text-xl font-bold text-foreground mb-4">Stop losing project meaning</h3>
                 <p className="text-slate-400 leading-relaxed">
                   Photos, notes, and documents are only valuable if they stay tied to the project context that explains them.
                 </p>
@@ -104,7 +104,7 @@ export default async function MarketingHomepageV2() {
                 <div className="w-14 h-14 bg-[#0B0F15] rounded-2xl flex items-center justify-center mb-6 shadow-inner border border-white/5">
                   <PenTool className="w-7 h-7 text-[#94A3B8]" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-4">Create polished outputs faster</h3>
+                <h3 className="text-xl font-bold text-foreground mb-4">Create polished outputs faster</h3>
                 <p className="text-slate-400 leading-relaxed">
                   Slate360 helps teams turn site documentation into professional, branded deliverables in minutes instead of spending hours rebuilding the story later.
                 </p>
@@ -116,7 +116,7 @@ export default async function MarketingHomepageV2() {
                 <div className="w-14 h-14 bg-[#0B0F15] rounded-2xl flex items-center justify-center mb-6 shadow-inner border border-white/5">
                   <Smartphone className="w-7 h-7 text-amber-500" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-4">Keep the field and office aligned</h3>
+                <h3 className="text-xl font-bold text-foreground mb-4">Keep the field and office aligned</h3>
                 <p className="text-slate-400 leading-relaxed">
                   Make it easier for the people walking the project and the people reviewing it in real-time to work from the same current, contextualized information.
                 </p>
@@ -129,7 +129,7 @@ export default async function MarketingHomepageV2() {
         <section className="py-24 bg-[#151A23] border-y border-white/5">
           <div className="container mx-auto px-6 max-w-6xl">
             <div className="text-center mb-16 max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+              <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
                 One platform. Multiple interactive workflows.
               </h2>
               <p className="text-lg text-slate-400">
@@ -144,7 +144,7 @@ export default async function MarketingHomepageV2() {
                   <Smartphone className="w-8 h-8 text-amber-500" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white mb-3">Site Walk</h3>
+                  <h3 className="text-2xl font-bold text-foreground mb-3">Site Walk</h3>
                   <p className="text-slate-400 leading-relaxed">
                     Collect imagery, document your observations, and quickly create deliverables.
                   </p>
@@ -157,7 +157,7 @@ export default async function MarketingHomepageV2() {
                   <Compass className="w-8 h-8 text-[#94A3B8]" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white mb-3">360 Tours</h3>
+                  <h3 className="text-2xl font-bold text-foreground mb-3">360 Tours</h3>
                   <p className="text-slate-400 leading-relaxed">
                     Create immersive 360 experiences for your clients and project stakeholders.
                   </p>
@@ -170,7 +170,7 @@ export default async function MarketingHomepageV2() {
                   <PenTool className="w-8 h-8 text-slate-300" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white mb-3">Design Studio</h3>
+                  <h3 className="text-2xl font-bold text-foreground mb-3">Design Studio</h3>
                   <p className="text-slate-400 leading-relaxed">
                     Conduct plan reviews, generate 3D models, and design in 2D and 3D workspaces.
                   </p>
@@ -183,7 +183,7 @@ export default async function MarketingHomepageV2() {
                   <Video className="w-8 h-8 text-slate-500" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white mb-3">Content Studio</h3>
+                  <h3 className="text-2xl font-bold text-foreground mb-3">Content Studio</h3>
                   <p className="text-slate-400 leading-relaxed">
                     Edit standard and 360 video and create high-quality branded videos for your clients and marketing needs.
                   </p>

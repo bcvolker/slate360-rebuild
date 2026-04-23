@@ -142,7 +142,7 @@ export default function VoiceCaptureSheet({ sessionId, onClose, onSaved }: Voice
             <button
               type="button"
               onClick={() => void startRecording()}
-              className="px-5 py-2.5 text-sm rounded-full bg-cobalt hover:bg-cobalt-hover text-white font-medium inline-flex items-center gap-2"
+              className="px-5 py-2.5 text-sm rounded-full bg-cobalt hover:bg-cobalt-hover text-primary-foreground font-medium inline-flex items-center gap-2"
             >
               <Mic className="h-4 w-4" /> Start
             </button>
@@ -152,7 +152,7 @@ export default function VoiceCaptureSheet({ sessionId, onClose, onSaved }: Voice
               type="button"
               onClick={() => void stopAndSave()}
               disabled={busy === "saving"}
-              className="px-5 py-2.5 text-sm rounded-full bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white font-medium inline-flex items-center gap-2"
+              className="px-5 py-2.5 text-sm rounded-full bg-red-500 hover:bg-red-600 disabled:opacity-50 text-foreground font-medium inline-flex items-center gap-2"
             >
               {busy === "saving" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Square className="h-4 w-4" />}
               Stop &amp; save

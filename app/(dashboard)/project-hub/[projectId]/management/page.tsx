@@ -56,7 +56,7 @@ export default function ProjectManagementPage() {
           </Link>
           <ViewCustomizer storageKey={`viewprefs-management-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
           <Link href={`/project-hub/${projectId}/submittals`}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition">
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] transition">
             <FileText size={14} /> AIA Documents
           </Link>
         </div>

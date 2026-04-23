@@ -113,7 +113,7 @@ export default function SendEmailModal({
           <button
             onClick={send}
             disabled={sending || sent || !email}
-            className="px-4 py-2 text-sm rounded-lg bg-cobalt hover:bg-cobalt-hover disabled:opacity-50 text-white flex items-center gap-1.5 font-medium"
+            className="px-4 py-2 text-sm rounded-lg bg-cobalt hover:bg-cobalt-hover disabled:opacity-50 text-primary-foreground flex items-center gap-1.5 font-medium"
           >
             {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             Send

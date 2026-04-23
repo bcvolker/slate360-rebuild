@@ -149,10 +149,10 @@ export default function MobileDiag() {
     }
   }
 
-  if (!probe) return <div className="p-4 text-white">Probing…</div>;
+  if (!probe) return <div className="p-4 text-foreground">Probing…</div>;
 
   return (
-    <div className="min-h-[100dvh] bg-zinc-950 text-white p-4 space-y-4 text-sm font-mono">
+    <div className="min-h-[100dvh] bg-background text-foreground p-4 space-y-4 text-sm font-mono">
       <h1 className="text-xl font-bold">Slate360 Mobile Diagnostic</h1>
       <p className="text-xs text-slate-400">
         Built {new Date().toISOString()} · share this screenshot if anything is RED.
@@ -183,7 +183,7 @@ export default function MobileDiag() {
         ))}
         <button
           onClick={nukeCaches}
-          className="mt-2 px-3 py-2 rounded-lg bg-red-600 text-white text-xs font-bold"
+          className="mt-2 px-3 py-2 rounded-lg bg-red-600 text-foreground text-xs font-bold"
         >
           NUKE all caches + unregister SW
         </button>
@@ -198,7 +198,7 @@ export default function MobileDiag() {
         <Row k="permission state" v={probe.cameraState} />
         <button
           onClick={probeCamera}
-          className="mt-2 px-3 py-2 rounded-lg bg-cobalt text-white text-xs font-bold"
+          className="mt-2 px-3 py-2 rounded-lg bg-cobalt text-primary-foreground text-xs font-bold"
         >
           Probe camera (getUserMedia)
         </button>

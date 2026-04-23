@@ -144,7 +144,7 @@ export function AssetEditorClient({ assetId, onBack }: AssetEditorClientProps) {
       )}
 
       {/* Preview area */}
-      <div className="flex flex-1 flex-col items-center justify-center overflow-hidden rounded-lg bg-zinc-900 p-4">
+      <div className="flex flex-1 flex-col items-center justify-center overflow-hidden rounded-lg bg-card p-4">
         {asset.media_type === "image" && asset.s3_key ? (
           <img
             src={`/api/uploads/download?key=${encodeURIComponent(asset.s3_key)}`}

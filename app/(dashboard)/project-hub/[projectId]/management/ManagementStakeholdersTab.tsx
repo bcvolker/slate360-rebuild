@@ -95,17 +95,17 @@ export default function ManagementStakeholdersTab({ projectId, company, showToas
       <div className="xl:col-span-2 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => setRoleFilter("all")} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${roleFilter === "all" ? "bg-[#3B82F6] text-white border-[#3B82F6]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+            <button onClick={() => setRoleFilter("all")} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${roleFilter === "all" ? "bg-[#3B82F6] text-foreground border-[#3B82F6]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
               All ({stakeholders.length})
             </button>
             {Object.entries(roleGroups).map(([role, count]) => (
-              <button key={role} onClick={() => setRoleFilter(role)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${roleFilter === role ? "bg-[#3B82F6] text-white border-[#3B82F6]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+              <button key={role} onClick={() => setRoleFilter(role)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${roleFilter === role ? "bg-[#3B82F6] text-foreground border-[#3B82F6]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
                 {role} ({count})
               </button>
             ))}
           </div>
           <button onClick={() => { setSForm({ ...EMPTY_S_FORM }); setEditingSId(null); setShowSForm(true); }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition">
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] transition">
             <Plus size={15} /> Add Stakeholder
           </button>
         </div>
@@ -174,7 +174,7 @@ export default function ManagementStakeholdersTab({ projectId, company, showToas
               <div className="w-12 h-12 rounded-xl bg-[#3B82F6]/10 flex items-center justify-center"><Users size={20} className="text-[#3B82F6]" /></div>
               <p className="text-xs text-gray-500">Add owners, architects, GCs, subs, engineers, or any project stakeholder.</p>
               <button onClick={() => { setSForm({ ...EMPTY_S_FORM }); setEditingSId(null); setShowSForm(true); }}
-                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition">
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] transition">
                 <Plus size={14} /> Add Stakeholder
               </button>
             </div>
@@ -225,7 +225,7 @@ export default function ManagementStakeholdersTab({ projectId, company, showToas
                 <textarea value={sForm.notes} onChange={(e) => setSForm({ ...sForm, notes: e.target.value })} rows={2} placeholder="Scope, specialty, payment terms…" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] resize-none" />
               </div>
               <button onClick={handleSSubmit} disabled={sSaving || !sForm.name.trim()}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition">
+                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] disabled:opacity-50 transition">
                 {sSaving && <Loader2 size={14} className="animate-spin" />}
                 {editingSId ? "Update" : "Add Stakeholder"}
               </button>

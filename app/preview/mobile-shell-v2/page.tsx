@@ -79,7 +79,7 @@ export default function MobileShellV2() {
                       <div className="relative p-2.5 bg-[#0B0F15] rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-inner z-10">
                         <app.icon size={18} className={iconColor} />
                       </div>
-                      <span className="relative text-[11px] font-medium text-slate-300 z-10 group-hover:text-white transition-colors">{app.label}</span>
+                      <span className="relative text-[11px] font-medium text-slate-300 z-10 group-hover:text-foreground transition-colors">{app.label}</span>
                       
                       {app.status === "coming" && (
                         <span className="absolute top-2 right-2 text-[8px] font-bold text-slate-500 uppercase tracking-wider z-10">Soon</span>

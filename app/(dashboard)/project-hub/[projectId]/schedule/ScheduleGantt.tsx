@@ -28,20 +28,20 @@ export default function ScheduleGantt({ rows, loading, ganttStart, totalDays, mo
   const BADGE_ICON: Record<string, string> = { Completed: "✓", Delayed: "!", "In Progress": "▶", "On Hold": "⏸" };
 
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900 shadow-sm overflow-hidden select-none">
+    <div className="rounded-2xl border border-zinc-800 bg-card shadow-sm overflow-hidden select-none">
       {loading ? (
         <div className="p-12 text-center text-sm text-zinc-400"><Loader2 size={16} className="mr-2 inline animate-spin" /> Loading schedule...</div>
       ) : (
         <div className="flex">
           {/* Left fixed panel */}
           <div className="shrink-0 border-r border-zinc-800" style={{ width: LEFT_W }}>
-            <div className="sticky top-0 z-10 bg-zinc-800/50 border-b border-zinc-800 px-3 flex items-center" style={{ height: 64 }}>
+            <div className="sticky top-0 z-10 bg-card/50 border-b border-zinc-800 px-3 flex items-center" style={{ height: 64 }}>
               <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Task</span>
             </div>
             {rows.length === 0 ? (
               <div className="p-6 text-center"><Calendar size={28} className="mx-auto mb-2 text-zinc-600" /><p className="text-xs text-zinc-500 font-semibold">No tasks yet</p><p className="text-[10px] text-zinc-500 mt-1">Click &quot;Add Task&quot; to begin.</p></div>
             ) : rows.map((task) => (
-              <div key={task.id} className="flex items-center gap-2 px-3 border-b border-zinc-800 hover:bg-zinc-800/50 cursor-pointer" style={{ height: TASK_ROW_H }} onClick={() => onEdit(task)}>
+              <div key={task.id} className="flex items-center gap-2 px-3 border-b border-zinc-800 hover:bg-card/50 cursor-pointer" style={{ height: TASK_ROW_H }} onClick={() => onEdit(task)}>
                 {task.is_milestone ? <Flag size={11} className="text-purple-400 shrink-0" /> : <div className={`w-2 h-2 rounded-full shrink-0 ${PRIORITY_DOT[task.priority] ?? "bg-zinc-500"}`} />}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-semibold text-zinc-200">{task.name}</p>
@@ -55,17 +55,17 @@ export default function ScheduleGantt({ rows, loading, ganttStart, totalDays, mo
           {/* Right scrollable Gantt */}
           <div className="flex-1 overflow-x-auto" style={{ minWidth: 0 }}>
             <div style={{ width: totalDays * dayW, minWidth: "100%" }}>
-              <div className="sticky top-0 z-10 bg-zinc-800/50 border-b border-zinc-800 flex" style={{ height: 32 }}>
+              <div className="sticky top-0 z-10 bg-card/50 border-b border-zinc-800 flex" style={{ height: 32 }}>
                 {monthGroups.map((mg) => <div key={`${mg.label}-${mg.startDay}`} className="flex items-center justify-center border-r border-zinc-700 text-[9px] font-bold uppercase tracking-wider text-zinc-500" style={{ width: mg.span * dayW, minWidth: mg.span * dayW }}>{mg.label}</div>)}
               </div>
-              <div className="sticky top-8 z-10 bg-zinc-900 border-b border-zinc-800 flex" style={{ height: 32 }}>
+              <div className="sticky top-8 z-10 bg-card border-b border-zinc-800 flex" style={{ height: 32 }}>
                 {dayNumbers.map((d, i) => {
                   const dow = d.getDay(); const isWE = dow === 0 || dow === 6; const isToday = fmtYMD(d) === fmtYMD(new Date());
-                  return <div key={i} className={`flex items-center justify-center shrink-0 border-r border-zinc-800/50 text-[8px] font-semibold ${isToday ? "bg-[#3B82F6]/10 text-[#3B82F6] font-black" : isWE ? "bg-zinc-800/40 text-zinc-600" : "text-zinc-500"}`} style={{ width: dayW, minWidth: dayW }} title={d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}>{dayW >= 24 ? d.getDate() : ""}</div>;
+                  return <div key={i} className={`flex items-center justify-center shrink-0 border-r border-zinc-800/50 text-[8px] font-semibold ${isToday ? "bg-[#3B82F6]/10 text-[#3B82F6] font-black" : isWE ? "bg-card/40 text-zinc-600" : "text-zinc-500"}`} style={{ width: dayW, minWidth: dayW }} title={d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}>{dayW >= 24 ? d.getDate() : ""}</div>;
                 })}
               </div>
               <div className="relative">
-                {dayNumbers.map((d, i) => { const dow = d.getDay(); if (dow !== 0 && dow !== 6) return null; return <div key={`ws-${i}`} className="absolute top-0 bottom-0 bg-zinc-800/30 pointer-events-none" style={{ left: i * dayW, width: dayW }} />; })}
+                {dayNumbers.map((d, i) => { const dow = d.getDay(); if (dow !== 0 && dow !== 6) return null; return <div key={`ws-${i}`} className="absolute top-0 bottom-0 bg-card/30 pointer-events-none" style={{ left: i * dayW, width: dayW }} />; })}
                 {todayOffsetPx >= 0 && todayOffsetPx <= totalDays * dayW && (
                   <div className="absolute top-0 bottom-0 w-0.5 bg-[#3B82F6] z-20 pointer-events-none" style={{ left: todayOffsetPx }}><div className="absolute -top-0 -left-1.5 w-3 h-3 rounded-full bg-[#3B82F6]" /></div>
                 )}
@@ -78,7 +78,7 @@ export default function ScheduleGantt({ rows, loading, ganttStart, totalDays, mo
                         <div className="absolute top-1/2 -translate-y-1/2 rounded-md flex items-center group/bar cursor-pointer shadow-sm overflow-visible" style={{ left: bar.left, width: bar.width, height: 22 }} onClick={() => onEdit(task)} title={`${task.name} — ${task.status} (${pct}%)`}>
                           <div className={`absolute inset-0 rounded-md opacity-20 ${colors.bar}`} />
                           <div className={`absolute top-0 left-0 bottom-0 rounded-md ${colors.bar}`} style={{ width: `${pct}%` }} />
-                          {bar.width > 48 && <span className="relative z-10 px-2 text-[9px] font-bold text-white drop-shadow truncate">{pct}%</span>}
+                          {bar.width > 48 && <span className="relative z-10 px-2 text-[9px] font-bold text-foreground drop-shadow truncate">{pct}%</span>}
                           <div className="absolute right-0 top-0 bottom-0 w-3 flex items-center justify-center cursor-ew-resize z-20 opacity-0 group-hover/bar:opacity-100 transition-opacity" onMouseDown={(e) => { e.stopPropagation(); onResizeStart(e, task); }}><div className="w-1 h-3 rounded-full bg-white/80" /></div>
                         </div>
                       )}

@@ -80,7 +80,7 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
               key={m}
               onClick={() => setMode(m)}
               className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all capitalize ${
-                mode === m ? "bg-[#3B82F6] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                mode === m ? "bg-[#3B82F6] text-foreground" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               } ${m === "quick" ? "rounded-r-none" : "rounded-l-none"}`}
             >
               {m === "quick" ? "Quick add" : "Full profile"}
@@ -209,7 +209,7 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
           <button
             onClick={handleSubmit}
             disabled={saving || !form.name.trim()}
-            className="flex-1 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 py-3 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
             style={{ backgroundColor: "#3B82F6" }}
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : "Add Contact"}

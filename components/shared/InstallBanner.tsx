@@ -25,7 +25,7 @@ export function InstallBanner() {
         onClick={async () => {
           await promptInstall();
         }}
-        className="rounded-md bg-cobalt px-3 py-1.5 text-xs font-semibold text-white hover:bg-cobalt-strong transition"
+        className="rounded-md bg-cobalt px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-cobalt-strong transition"
       >
         Install
       </button>

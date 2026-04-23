@@ -101,7 +101,7 @@ export default function CeoStaffPanel({
           </button>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-3 py-2 text-xs font-bold text-white hover:bg-[#3B82F6]/90 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-3 py-2 text-xs font-bold text-foreground hover:bg-[#3B82F6]/90 transition-colors"
           >
             <UserPlus size={13} />
             Grant Access
@@ -230,7 +230,7 @@ export default function CeoStaffPanel({
                       </button>
                       <button
                         onClick={() => handleRevoke(member.id)}
-                        className="rounded-md bg-red-600 px-3 py-1 text-xs font-bold text-white hover:bg-red-700"
+                        className="rounded-md bg-red-600 px-3 py-1 text-xs font-bold text-foreground hover:bg-red-700"
                       >
                         Revoke
                       </button>

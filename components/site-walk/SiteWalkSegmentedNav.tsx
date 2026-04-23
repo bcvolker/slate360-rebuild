@@ -40,7 +40,7 @@ export function SiteWalkSegmentedNav() {
                   className={cn(
                     "inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium transition-colors",
                     active
-                      ? "bg-cobalt text-white shadow-sm"
+                      ? "bg-cobalt text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
                   )}
                 >

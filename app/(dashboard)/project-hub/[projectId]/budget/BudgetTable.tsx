@@ -32,7 +32,7 @@ export default function BudgetTable({ rows, filtered, loading, editingId, totals
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
-        <thead className="bg-zinc-800/50 text-[10px] uppercase tracking-wider text-zinc-500 border-b border-zinc-800">
+        <thead className="bg-card/50 text-[10px] uppercase tracking-wider text-zinc-500 border-b border-zinc-800">
           <tr><th className="px-4 py-3">Code</th><th className="px-4 py-3">Description</th><th className="px-4 py-3">Category</th><th className="px-4 py-3 text-right">Budget</th><th className="px-4 py-3 text-right">Revised</th><th className="px-4 py-3 text-right">Spent</th><th className="px-4 py-3 text-right">Variance</th><th className="px-4 py-3 text-center">·</th></tr>
         </thead>
         <tbody>
@@ -44,7 +44,7 @@ export default function BudgetTable({ rows, filtered, loading, editingId, totals
             const isEditing = editingId === row.id;
             return (
               <>
-                <tr key={row.id} className={`border-t border-zinc-800 transition cursor-pointer ${isEditing ? "bg-[#3B82F6]/5 ring-1 ring-inset ring-[#3B82F6]/20" : "hover:bg-zinc-800/50"}`} onClick={() => setExpandedId(isExpanded ? null : row.id)}>
+                <tr key={row.id} className={`border-t border-zinc-800 transition cursor-pointer ${isEditing ? "bg-[#3B82F6]/5 ring-1 ring-inset ring-[#3B82F6]/20" : "hover:bg-card/50"}`} onClick={() => setExpandedId(isExpanded ? null : row.id)}>
                   <td className="px-4 py-3 font-mono text-xs font-semibold text-zinc-300">{row.cost_code}</td>
                   <td className="px-4 py-3 max-w-[160px] truncate font-medium text-zinc-200 text-xs">{row.description || "—"}</td>
                   <td className="px-4 py-3 text-[10px] text-zinc-500">{row.category || "—"}</td>
@@ -54,15 +54,15 @@ export default function BudgetTable({ rows, filtered, loading, editingId, totals
                   <td className={`px-4 py-3 text-right text-xs font-bold ${rowVariance >= 0 ? "text-emerald-400" : "text-red-400"}`}>{fmtCurrency(rowVariance)}</td>
                   <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                     <div className="inline-flex items-center gap-0.5">
-                      <button onClick={() => { onEdit(row); setExpandedId(null); }} className={`rounded p-1 ${isEditing ? "text-[#3B82F6]" : "text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300"}`} title="Edit"><Pencil size={12} /></button>
-                      <button onClick={() => onHistory(row)} className="rounded p-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300" title="History"><History size={12} /></button>
+                      <button onClick={() => { onEdit(row); setExpandedId(null); }} className={`rounded p-1 ${isEditing ? "text-[#3B82F6]" : "text-zinc-500 hover:bg-card hover:text-zinc-300"}`} title="Edit"><Pencil size={12} /></button>
+                      <button onClick={() => onHistory(row)} className="rounded p-1 text-zinc-500 hover:bg-card hover:text-zinc-300" title="History"><History size={12} /></button>
                       <button onClick={() => onDelete(row.id)} className="rounded p-1 text-zinc-500 hover:bg-red-950/30 hover:text-red-400" title="Delete"><Trash2 size={12} /></button>
                       {isExpanded ? <ChevronUp size={12} className="text-zinc-500" /> : <ChevronDown size={12} className="text-zinc-500" />}
                     </div>
                   </td>
                 </tr>
                 {isExpanded && (
-                  <tr key={`${row.id}-exp`} className="bg-zinc-800/30 border-t border-zinc-800">
+                  <tr key={`${row.id}-exp`} className="bg-card/30 border-t border-zinc-800">
                     <td colSpan={8} className="px-4 py-3">
                       <div className="flex flex-wrap gap-6 text-xs">
                         {row.notes && <div><span className="font-bold text-zinc-500">Notes: </span><span className="text-zinc-400">{row.notes}</span></div>}
@@ -77,7 +77,7 @@ export default function BudgetTable({ rows, filtered, loading, editingId, totals
             );
           })}
         </tbody>
-        <tfoot className="border-t-2 border-zinc-700 bg-zinc-800/50 text-xs font-bold text-zinc-200">
+        <tfoot className="border-t-2 border-zinc-700 bg-card/50 text-xs font-bold text-zinc-200">
           <tr>
             <td className="px-4 py-3" colSpan={3}>Totals ({filtered.length} items)</td>
             <td className="px-4 py-3 text-right">{fmtCurrency(totals.budget)}</td>

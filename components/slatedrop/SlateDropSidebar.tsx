@@ -43,7 +43,7 @@ export default function SlateDropSidebar({
       )}
 
       <aside
-        className={`shrink-0 bg-zinc-950 border-r border-app overflow-y-auto overscroll-contain transition-all duration-200 z-50
+        className={`shrink-0 bg-background border-r border-app overflow-y-auto overscroll-contain transition-all duration-200 z-50
           ${mobileSidebarOpen ? `fixed ${embedded ? "top-0" : "top-14"} bottom-0 left-0 w-72 shadow-2xl` : "hidden"}
           md:relative md:flex md:flex-col
           md:h-full
@@ -76,7 +76,7 @@ export default function SlateDropSidebar({
 
           <button
             onClick={onRequestNewFolder}
-            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold text-white mb-3 transition-all hover:opacity-90"
+            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold text-foreground mb-3 transition-all hover:opacity-90"
             style={{ backgroundColor: "#3B82F6" }}
           >
             <FolderPlus size={13} /> New Folder

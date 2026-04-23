@@ -115,7 +115,7 @@ export function AppShell({
           <SheetContent
             side="left"
             showCloseButton={false}
-            className="w-64 p-0 !bg-zinc-950 !border-zinc-800 lg:hidden"
+            className="w-64 p-0 !bg-background !border-zinc-800 lg:hidden"
           >
             <DashboardSidebar
               isOpen

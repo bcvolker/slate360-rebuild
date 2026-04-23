@@ -92,7 +92,7 @@ export default function SlateDropActionModals({
                     await onCreateFolder(newFolderModal.parentId, folderName);
                   }}
                   disabled={!newFolderModal.name.trim()}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50"
                   style={{ backgroundColor: "#3B82F6" }}
                 >
                   Create
@@ -132,7 +132,7 @@ export default function SlateDropActionModals({
                     if (!renameModal || !renameValue.trim()) return;
                     await onRename(renameModal, renameValue.trim());
                   }}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90"
                   style={{ backgroundColor: "#3B82F6" }}
                 >
                   Rename
@@ -187,7 +187,7 @@ export default function SlateDropActionModals({
                     deleteConfirm.type === "project" &&
                     deleteProjectConfirmName.trim() !== deleteConfirm.name
                   }
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-foreground bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Delete
                 </button>
@@ -251,7 +251,7 @@ export default function SlateDropActionModals({
                     await onMoveFile(moveModal.id, moveTargetFolder);
                   }}
                   disabled={!moveTargetFolder || moveTargetFolder === activeFolderId}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50"
                   style={{ backgroundColor: "#3B82F6" }}
                 >
                   Move Here

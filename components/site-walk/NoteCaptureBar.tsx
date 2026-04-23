@@ -231,7 +231,7 @@ export default function NoteCaptureBar({
             type="button"
             onClick={handleSave}
             disabled={saving || transcribing || !text.trim()}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover text-white text-sm disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover text-primary-foreground text-sm disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {saveLabel}

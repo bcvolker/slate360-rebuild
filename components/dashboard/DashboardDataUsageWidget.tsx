@@ -104,7 +104,7 @@ export default function DashboardDataUsageWidget({
           <button
             onClick={onUpgradePlan}
             disabled={billingBusy !== null}
-            className="flex-1 text-xs font-semibold py-2 rounded-lg text-white transition-all hover:opacity-90 disabled:opacity-60"
+            className="flex-1 text-xs font-semibold py-2 rounded-lg text-foreground transition-all hover:opacity-90 disabled:opacity-60"
             style={{ backgroundColor: "#3B82F6" }}
           >
             {billingBusy === "upgrade" ? (

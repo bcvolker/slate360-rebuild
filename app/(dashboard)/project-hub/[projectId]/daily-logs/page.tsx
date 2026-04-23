@@ -101,40 +101,40 @@ export default function DailyLogsPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Field Reports</p>
-          <h2 className="text-xl font-black text-white">Daily Logs</h2>
+          <h2 className="text-xl font-black text-foreground">Daily Logs</h2>
           <p className="mt-1 text-sm text-zinc-400">Capture daily site conditions, crew, weather, delays and safety.</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={exportCSV} disabled={logs.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"><Download size={14} /> Export</button>
+          <button onClick={exportCSV} disabled={logs.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-card px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"><Download size={14} /> Export</button>
           <ViewCustomizer storageKey={`viewprefs-daily-logs-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
-          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition"><Plus size={15} /> New Log Entry</button>
+          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] transition"><Plus size={15} /> New Log Entry</button>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {([{ label: "Total Logs", value: logs.length, color: "text-white" }, { label: "This Week", value: logs.filter((l) => { const d = new Date(l.log_date); const now = new Date(); const diff = (now.getTime() - d.getTime()) / 86400000; return diff <= 7; }).length, color: "text-blue-400" }, { label: "Total Crew Count", value: totalCrew, color: "text-emerald-400" }, { label: "Delay Entries", value: logs.filter((l) => l.delays).length, color: "text-amber-400" }] as const).map((s) => (
-          <div key={s.label} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 shadow-sm"><p className="text-xs font-semibold text-zinc-500">{s.label}</p><p className={`text-2xl font-black ${s.color}`}>{s.value}</p></div>
+        {([{ label: "Total Logs", value: logs.length, color: "text-foreground" }, { label: "This Week", value: logs.filter((l) => { const d = new Date(l.log_date); const now = new Date(); const diff = (now.getTime() - d.getTime()) / 86400000; return diff <= 7; }).length, color: "text-blue-400" }, { label: "Total Crew Count", value: totalCrew, color: "text-emerald-400" }, { label: "Delay Entries", value: logs.filter((l) => l.delays).length, color: "text-amber-400" }] as const).map((s) => (
+          <div key={s.label} className="rounded-xl border border-zinc-800 bg-card p-4 shadow-sm"><p className="text-xs font-semibold text-zinc-500">{s.label}</p><p className={`text-2xl font-black ${s.color}`}>{s.value}</p></div>
         ))}
       </div>
 
       {/* Search */}
       <div className="relative max-w-md">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by date, summary, delays…" className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-2 pl-9 pr-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/30" />
+        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by date, summary, delays…" className="w-full rounded-lg border border-zinc-700 bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-zinc-500 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/30" />
       </div>
 
       {/* List */}
       {loading ? (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-center text-sm text-zinc-500"><Loader2 size={16} className="mr-2 inline animate-spin" /> Loading daily logs…</div>
+        <div className="rounded-2xl border border-zinc-800 bg-card p-8 text-center text-sm text-zinc-500"><Loader2 size={16} className="mr-2 inline animate-spin" /> Loading daily logs…</div>
       ) : logs.length === 0 ? (
-        <div className="rounded-2xl border-2 border-dashed border-zinc-700 bg-zinc-900 p-12 text-center">
+        <div className="rounded-2xl border-2 border-dashed border-zinc-700 bg-card p-12 text-center">
           <AlertCircle size={32} className="mx-auto mb-3 text-zinc-600" />
           <p className="text-sm font-semibold text-zinc-400">No daily logs yet</p>
           <p className="mt-1 text-xs text-zinc-500">Click &quot;New Log Entry&quot; to start recording site activity.</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-center text-sm text-zinc-500">No logs match your search.</div>
+        <div className="rounded-2xl border border-zinc-800 bg-card p-8 text-center text-sm text-zinc-500">No logs match your search.</div>
       ) : (
         <div className="space-y-2">
           {filtered.map((log) => (

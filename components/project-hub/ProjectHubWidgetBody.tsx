@@ -46,7 +46,7 @@ export default function ProjectHubWidgetBody({
             onClick={() => onSlateDropWidgetViewChange("recent")}
             className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors ${
               slateDropWidgetView === "recent"
-                ? "bg-[#3B82F6] text-white"
+                ? "bg-[#3B82F6] text-foreground"
                 : "text-zinc-400 hover:bg-white/[0.04]"
             }`}
           >
@@ -56,7 +56,7 @@ export default function ProjectHubWidgetBody({
             onClick={() => onSlateDropWidgetViewChange("folders")}
             className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-colors ${
               slateDropWidgetView === "folders"
-                ? "bg-[#3B82F6] text-white"
+                ? "bg-[#3B82F6] text-foreground"
                 : "text-zinc-400 hover:bg-white/[0.04]"
             }`}
           >

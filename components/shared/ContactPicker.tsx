@@ -259,7 +259,7 @@ function ContactDropdown({
             className="w-full flex items-center gap-3 px-3.5 py-2.5 hover:bg-gray-50 transition-colors text-left"
           >
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-foreground text-[10px] font-bold shrink-0"
               style={{ backgroundColor: c.color }}
             >
               {c.initials}

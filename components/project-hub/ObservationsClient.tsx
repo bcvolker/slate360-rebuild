@@ -189,7 +189,7 @@ export default function ObservationsClient() {
             <Download size={14} /> Export
           </button>
           <ViewCustomizer storageKey="observations" cols={OBS_COLS.map(c => ({ key: c, label: c.charAt(0).toUpperCase() + c.slice(1) }))} defaultCols={OBS_COLS} prefs={prefs} onPrefsChange={setPrefs} />
-          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-xl bg-[#3B82F6] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1D4ED8] transition-colors">
+          <button onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-xl bg-[#3B82F6] px-4 py-2 text-xs font-semibold text-foreground hover:bg-[#1D4ED8] transition-colors">
             <Plus size={14} /> New Observation
           </button>
         </div>
@@ -325,7 +325,7 @@ export default function ObservationsClient() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white shadow-xl flex items-center gap-2">
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-foreground shadow-xl flex items-center gap-2">
           <AlertCircle size={14} /> {toast}
           <button onClick={() => setToast(null)}><X size={14} /></button>
         </div>

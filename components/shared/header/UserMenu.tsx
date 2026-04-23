@@ -59,12 +59,12 @@ export default function UserMenu({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={user.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-white text-xs font-bold">
+          <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-foreground text-xs font-bold">
             {user.name.charAt(0).toUpperCase()}
           </div>
         )}
         <div className="hidden sm:block text-left">
-          <p className="text-xs font-semibold text-white leading-tight">{user.name}</p>
+          <p className="text-xs font-semibold text-foreground leading-tight">{user.name}</p>
           <p className="text-[10px] text-zinc-400 leading-tight">{tierLabel} plan</p>
         </div>
         <ChevronDown size={14} className="hidden sm:block text-zinc-500" />
@@ -75,7 +75,7 @@ export default function UserMenu({
           <div className="fixed inset-0 z-40" onClick={() => onOpenChange(false)} />
           <div className="absolute right-0 top-12 w-56 bg-app-card rounded-xl border border-app shadow-xl z-50 overflow-hidden">
             <div className="px-4 py-3 border-b border-app">
-              <p className="text-sm font-semibold text-white">{user.name}</p>
+              <p className="text-sm font-semibold text-foreground">{user.name}</p>
               <p className="text-xs text-zinc-400 truncate">{user.email}</p>
               <span className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full text-primary-foreground bg-primary">
                 {tierLabel}

@@ -108,7 +108,7 @@ export default function ManagementContractsTab({ projectId, showToast, onStatsCh
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold text-gray-600">{contracts.length} contract{contracts.length !== 1 ? "s" : ""}</p>
           <button onClick={() => { setCForm({ ...EMPTY_C_FORM }); setEditingCId(null); setShowCForm(true); }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition">
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] transition">
             <Plus size={15} /> Upload Contract
           </button>
         </div>
@@ -200,7 +200,7 @@ export default function ManagementContractsTab({ projectId, showToast, onStatsCh
               <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center"><FileSignature size={20} className="text-purple-600" /></div>
               <p className="text-xs text-gray-500">Upload AIA contracts, subcontracts, or any project agreement. AI extracts key requirements in plain English.</p>
               <button onClick={() => { setCForm({ ...EMPTY_C_FORM }); setEditingCId(null); setShowCForm(true); }}
-                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition">
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] transition">
                 <Plus size={14} /> Upload Contract
               </button>
             </div>
@@ -250,7 +250,7 @@ export default function ManagementContractsTab({ projectId, showToast, onStatsCh
                 <textarea value={cForm.notes} onChange={(e) => setCForm({ ...cForm, notes: e.target.value })} rows={2} placeholder="Scope notes, amendments…" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] resize-none" />
               </div>
               <button onClick={handleCSubmit} disabled={cSaving || !cForm.title.trim()}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition">
+                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] disabled:opacity-50 transition">
                 {cSaving && <Loader2 size={14} className="animate-spin" />}
                 {editingCId ? "Update Contract" : "Save Contract"}
               </button>

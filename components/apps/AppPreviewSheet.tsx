@@ -125,7 +125,7 @@ export function AppPreviewSheet({ app, open, onOpenChange }: AppPreviewSheetProp
 
           {app.available ? (
             <Button
-              className="w-full bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"
+              className="w-full bg-[var(--primary)] text-foreground hover:bg-[var(--primary-hover)]"
               onClick={() => handleSubscribe(app.id)}
               disabled={loading !== null}
             >

@@ -1175,7 +1175,7 @@ function DrawController({
             <button
               onClick={() => void getDirections(originInput, destInput, travelMode)}
               disabled={isLoadingRoute || !originInput || !destInput}
-              className="h-9 px-4 flex items-center justify-center gap-1.5 rounded-lg bg-[#3B82F6] text-xs font-bold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition-all shadow-sm"
+              className="h-9 px-4 flex items-center justify-center gap-1.5 rounded-lg bg-[#3B82F6] text-xs font-bold text-foreground hover:bg-[#1D4ED8] disabled:opacity-50 transition-all shadow-sm"
               title="Calculate route between origin and destination"
             >
               {isLoadingRoute ? <Loader2 size={13} className="animate-spin" /> : "Calculate"}
@@ -1826,7 +1826,7 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
                   <button
                     onClick={handleSendShareLink}
                     disabled={isSharing || (!lastFileId && !routeData) || !recipientValue}
-                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-[#3B82F6] px-3 py-1 text-[11px] font-bold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition-colors shadow-sm"
+                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-[#3B82F6] px-3 py-1 text-[11px] font-bold text-foreground hover:bg-[#1D4ED8] disabled:opacity-50 transition-colors shadow-sm"
                   >
                     {isSharing ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Send
                   </button>

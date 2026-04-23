@@ -18,7 +18,7 @@ export default async function ViewDeliverablePage({ params }: Props) {
   if (!deliverable) notFound();
 
   return (
-    <main className="h-screen w-full bg-[#0B0F15] text-white overflow-hidden flex flex-col">
+    <main className="h-screen w-full bg-[#0B0F15] text-foreground overflow-hidden flex flex-col">
       <ViewerClient deliverable={deliverable} token={token} />
     </main>
   );

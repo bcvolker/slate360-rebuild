@@ -33,17 +33,17 @@ export default function DrawingsViewer({ file, url, filteredFiles, pageCounts, o
       {/* Title bar */}
       <div className="flex items-center justify-between bg-gray-900 px-4 py-2.5">
         <div className="flex items-center gap-3 min-w-0">
-          <button onClick={handlePrevFile} disabled={idx === 0} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-30"><ChevronLeft size={16} /></button>
+          <button onClick={handlePrevFile} disabled={idx === 0} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-foreground disabled:opacity-30"><ChevronLeft size={16} /></button>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-white">{file.name}</p>
+            <p className="truncate text-sm font-semibold text-foreground">{file.name}</p>
             <p className="text-[10px] text-gray-400">{idx + 1} of {filteredFiles.length} · {guessSet(file.name)}</p>
           </div>
-          <button onClick={handleNextFile} disabled={idx === filteredFiles.length - 1} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-30"><ChevronRight size={16} /></button>
+          <button onClick={handleNextFile} disabled={idx === filteredFiles.length - 1} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-foreground disabled:opacity-30"><ChevronRight size={16} /></button>
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={handleDownload} className="rounded-md p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white" title="Download"><Download size={16} /></button>
-          <button onClick={() => setIsFullscreen((f) => !f)} className="rounded-md p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white" title="Toggle fullscreen">{isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}</button>
-          <button onClick={() => { onClose(); setIsFullscreen(false); }} className="rounded-md p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white" title="Close"><X size={18} /></button>
+          <button onClick={handleDownload} className="rounded-md p-1.5 text-gray-400 hover:bg-gray-700 hover:text-foreground" title="Download"><Download size={16} /></button>
+          <button onClick={() => setIsFullscreen((f) => !f)} className="rounded-md p-1.5 text-gray-400 hover:bg-gray-700 hover:text-foreground" title="Toggle fullscreen">{isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}</button>
+          <button onClick={() => { onClose(); setIsFullscreen(false); }} className="rounded-md p-1.5 text-gray-400 hover:bg-gray-700 hover:text-foreground" title="Close"><X size={18} /></button>
         </div>
       </div>
 
@@ -54,14 +54,14 @@ export default function DrawingsViewer({ file, url, filteredFiles, pageCounts, o
           <button className="inline-flex items-center gap-1 rounded-md border border-gray-600 bg-gray-700 px-2.5 py-1 text-xs font-semibold text-gray-300 hover:bg-gray-600"><Ruler size={12} /> Measure</button>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage <= 1} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-30"><ChevronLeft size={16} /></button>
+          <button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage <= 1} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-foreground disabled:opacity-30"><ChevronLeft size={16} /></button>
           <span className="text-xs font-semibold text-gray-300">Page {currentPage} of {totalPages}</span>
-          <button onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage >= totalPages} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-30"><ChevronRight size={16} /></button>
+          <button onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage >= totalPages} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-foreground disabled:opacity-30"><ChevronRight size={16} /></button>
         </div>
         <div className="flex items-center gap-1.5">
-          <button onClick={() => setZoom((z) => Math.max(z - 25, 25))} disabled={zoom <= 25} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-30"><ZoomOut size={16} /></button>
+          <button onClick={() => setZoom((z) => Math.max(z - 25, 25))} disabled={zoom <= 25} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-foreground disabled:opacity-30"><ZoomOut size={16} /></button>
           <span className="min-w-[3rem] text-center text-xs font-semibold text-gray-300">{zoom}%</span>
-          <button onClick={() => setZoom((z) => Math.min(z + 25, 300))} disabled={zoom >= 300} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-30"><ZoomIn size={16} /></button>
+          <button onClick={() => setZoom((z) => Math.min(z + 25, 300))} disabled={zoom >= 300} className="rounded p-1 text-gray-400 hover:bg-gray-700 hover:text-foreground disabled:opacity-30"><ZoomIn size={16} /></button>
           <button onClick={() => setZoom(100)} className="ml-1 rounded-md border border-gray-600 px-2 py-0.5 text-[10px] font-semibold text-gray-400 hover:bg-gray-700">Reset</button>
         </div>
       </div>

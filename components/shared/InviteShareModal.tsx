@@ -179,7 +179,7 @@ export function InviteShareModal({
               <button
                 type="button"
                 onClick={handleNativeShare}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-md bg-cobalt text-white hover:bg-cobalt-hover transition-colors text-sm font-medium"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-md bg-cobalt text-primary-foreground hover:bg-cobalt-hover transition-colors text-sm font-medium"
               >
                 <Share2 className="h-4 w-4" /> Share — AirDrop, Contacts, Apps
               </button>
@@ -257,7 +257,7 @@ export function InviteShareModal({
             <button
               type="submit"
               disabled={loading || projects.length === 0}
-              className="w-full flex items-center justify-center gap-2 py-2 mt-1 rounded-md bg-cobalt text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              className="w-full flex items-center justify-center gap-2 py-2 mt-1 rounded-md bg-cobalt text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Invite"}
             </button>

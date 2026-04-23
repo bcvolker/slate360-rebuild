@@ -137,7 +137,7 @@ export default function PlansClient({ sessionId, items }: { sessionId: string; i
         <button
           onClick={() => fileRef.current?.click()}
           disabled={busy}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-cobalt hover:bg-cobalt-hover disabled:opacity-50 text-white"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-cobalt hover:bg-cobalt-hover disabled:opacity-50 text-primary-foreground"
         >
           {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
           Upload plan
@@ -215,7 +215,7 @@ export default function PlansClient({ sessionId, items }: { sessionId: string; i
                 className="absolute -translate-x-1/2 -translate-y-full hover:scale-110 transition"
                 style={{ left: `${pin.x_pct}%`, top: `${pin.y_pct}%` }}
               >
-                <span className="block w-6 h-6 rounded-full bg-cobalt border-2 border-white shadow-lg flex items-center justify-center text-[10px] font-bold text-white">
+                <span className="block w-6 h-6 rounded-full bg-cobalt border-2 border-white shadow-lg flex items-center justify-center text-[10px] font-bold text-primary-foreground">
                   {pin.pin_number ?? "•"}
                 </span>
               </button>

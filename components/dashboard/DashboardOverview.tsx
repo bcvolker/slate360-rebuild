@@ -103,7 +103,7 @@ export default function DashboardOverview({
       <div className="mb-10">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-5">
           <div>
-            <h2 className="text-2xl font-bold text-white">Welcome back, {userName} 👋</h2>
+            <h2 className="text-2xl font-bold text-foreground">Welcome back, {userName} 👋</h2>
             <p className="text-sm text-zinc-400 mt-1">Pick a module below or jump into a project to get started.</p>
           </div>
         </div>
@@ -160,7 +160,7 @@ export default function DashboardOverview({
                     >
                       <TabIcon size={iconSize} style={{ color: tab.color }} />
                     </div>
-                    <span className={`${labelSize} font-semibold text-zinc-400 group-hover:text-white leading-tight truncate max-w-full`}>{tab.label}</span>
+                    <span className={`${labelSize} font-semibold text-zinc-400 group-hover:text-foreground leading-tight truncate max-w-full`}>{tab.label}</span>
                   </button>
                 );
               })}
@@ -174,7 +174,7 @@ export default function DashboardOverview({
       {/* ════════ PROJECT CAROUSEL ════════ */}
       <div className="relative mb-10">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">Your Projects</h2>
+          <h2 className="text-lg font-semibold text-foreground">Your Projects</h2>
           <div className="flex items-center gap-2">
             <div className="relative">
               <button
@@ -199,7 +199,7 @@ export default function DashboardOverview({
             </div>
             <button
               onClick={onCreateProject}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-foreground transition-all hover:opacity-90"
               style={{ backgroundColor: "#3B82F6" }}
             >
               <Plus size={13} /> New Project

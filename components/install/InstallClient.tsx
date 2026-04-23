@@ -134,7 +134,7 @@ function OpenInRealBrowser({
 
       <button
         onClick={onCopy}
-        className="w-full inline-flex items-center justify-center gap-2 h-14 rounded-xl bg-cobalt text-white text-base font-bold hover:bg-cobalt-hover transition-colors"
+        className="w-full inline-flex items-center justify-center gap-2 h-14 rounded-xl bg-cobalt text-primary-foreground text-base font-bold hover:bg-cobalt-hover transition-colors"
       >
         {copied ? (
           <>
@@ -227,7 +227,7 @@ function AndroidOneTap({
           <button
             onClick={onInstall}
             disabled={installing}
-            className="w-full inline-flex items-center justify-center gap-2 h-16 rounded-xl bg-cobalt text-white text-lg font-bold hover:bg-cobalt-hover disabled:opacity-50 shadow-lg shadow-cobalt/30"
+            className="w-full inline-flex items-center justify-center gap-2 h-16 rounded-xl bg-cobalt text-primary-foreground text-lg font-bold hover:bg-cobalt-hover disabled:opacity-50 shadow-lg shadow-cobalt/30"
           >
             <Download className="h-6 w-6" />
             {installing ? "Installing…" : "Install Slate360"}

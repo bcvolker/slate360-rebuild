@@ -77,7 +77,7 @@ export default function ManagementReportsTab({ projectId, projectName, showToast
                 </div>
               </div>
               <button onClick={generateReport} disabled={generatingReport || reportSections.length === 0}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition">
+                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] disabled:opacity-50 transition">
                 {generatingReport ? <><Loader2 size={14} className="animate-spin" /> Generating…</> : <><BarChart2 size={14} /> Generate Report</>}
               </button>
             </div>
@@ -106,7 +106,7 @@ export default function ManagementReportsTab({ projectId, projectName, showToast
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="bg-[#3B82F6] px-6 py-5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-blue-200 mb-1">Slate360 Professional Report</p>
-              <h3 className="text-lg font-black text-white">{reportResult.title}</h3>
+              <h3 className="text-lg font-black text-foreground">{reportResult.title}</h3>
               <p className="text-[11px] text-blue-200 mt-1">Generated {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
             </div>
             <div className="p-6 space-y-5">

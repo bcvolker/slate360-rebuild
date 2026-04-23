@@ -137,7 +137,7 @@ export function CaptureCamera({ sessionId, onItemCaptured }: Props) {
         />
         {/* GPS indicator */}
         {position && (
-          <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
+          <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/50 px-2 py-1 text-xs text-foreground">
             <MapPin className="h-3 w-3" /> GPS
           </div>
         )}

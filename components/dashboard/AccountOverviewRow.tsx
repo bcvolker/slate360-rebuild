@@ -78,7 +78,7 @@ export default function AccountOverviewRow({
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Name
                 </p>
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-foreground">
                   {accountOverview?.profile.name ?? user.name}
                 </p>
               </div>
@@ -86,7 +86,7 @@ export default function AccountOverviewRow({
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Email
                 </p>
-                <p className="text-sm font-semibold text-white truncate">
+                <p className="text-sm font-semibold text-foreground truncate">
                   {accountOverview?.profile.email ?? user.email}
                 </p>
               </div>
@@ -94,7 +94,7 @@ export default function AccountOverviewRow({
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Organization
                 </p>
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-foreground">
                   {accountOverview?.profile.orgName ?? "Slate360 Organization"}
                 </p>
               </div>
@@ -102,7 +102,7 @@ export default function AccountOverviewRow({
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Role
                 </p>
-                <p className="text-sm font-semibold text-white capitalize">
+                <p className="text-sm font-semibold text-foreground capitalize">
                   {accountOverview?.profile.role ?? "member"}
                 </p>
               </div>
@@ -112,7 +112,7 @@ export default function AccountOverviewRow({
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
                   Storage Health
                 </p>
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-foreground">
                   {(accountOverview?.usage.storageUsedGb ?? storageUsed).toFixed(1)}{" "}
                   /{" "}
                   {(
@@ -168,7 +168,7 @@ export default function AccountOverviewRow({
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Current Plan
             </p>
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-semibold text-foreground">
               {accountOverview?.billing.plan ?? ent.label}
             </p>
           </div>
@@ -176,7 +176,7 @@ export default function AccountOverviewRow({
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Status
             </p>
-            <p className="text-sm font-semibold text-white capitalize">
+            <p className="text-sm font-semibold text-foreground capitalize">
               {accountOverview?.billing.status ?? "active"}
             </p>
           </div>
@@ -184,7 +184,7 @@ export default function AccountOverviewRow({
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Renewal
             </p>
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-semibold text-foreground">
               {accountOverview?.billing.renewsOn
                 ? new Date(accountOverview.billing.renewsOn).toLocaleDateString()
                 : "Not available"}
@@ -194,7 +194,7 @@ export default function AccountOverviewRow({
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-1">
               Seats
             </p>
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-semibold text-foreground">
               {isAdmin
                 ? "4 used / 10 included"
                 : "Managed by your organization"}
@@ -237,7 +237,7 @@ export default function AccountOverviewRow({
               </button>
               <button
                 onClick={onUpgradePlan}
-                className="text-xs font-semibold py-2 rounded-lg text-white hover:opacity-90 transition-all"
+                className="text-xs font-semibold py-2 rounded-lg text-foreground hover:opacity-90 transition-all"
                 style={{ backgroundColor: "#3B82F6" }}
               >
                 Upgrade

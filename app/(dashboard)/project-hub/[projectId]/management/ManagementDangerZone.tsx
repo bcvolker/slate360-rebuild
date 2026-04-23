@@ -73,7 +73,7 @@ export default function ManagementDangerZone({ projectId, projectName, showToast
             {deleteError && <p className="text-xs font-semibold text-red-600 bg-red-50 rounded-lg px-3 py-2">{deleteError}</p>}
             <button onClick={handleDeleteProject}
               disabled={deleteLoading || !projectName || deleteConfirmName.trim() !== projectName}
-              className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+              className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-foreground hover:bg-red-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
               {deleteLoading ? <><Loader2 size={14} className="animate-spin" /> Deleting...</> : <><Trash2 size={14} /> Delete Project Permanently</>}
             </button>
           </div>

@@ -13,7 +13,7 @@ interface Props {
   onClose: () => void;
 }
 
-const field = "w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3.5 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+const field = "w-full rounded-xl border border-zinc-700 bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all disabled:opacity-50 disabled:cursor-not-allowed";
 const label = "block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1.5";
 
 export default function DailyLogForm({ form, setForm, editingId, saving, onSubmit, onClose }: Props) {
@@ -43,10 +43,10 @@ export default function DailyLogForm({ form, setForm, editingId, saving, onSubmi
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-zinc-900 border-l border-zinc-800 shadow-xl overflow-y-auto animate-in slide-in-from-right duration-300">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-800 bg-zinc-900/95 backdrop-blur px-6 py-4">
-          <h2 className="text-lg font-bold text-white">{editingId ? "Edit Log" : "New Daily Log"}</h2>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-white transition"><X size={16} /></button>
+      <div className="relative w-full max-w-lg bg-card border-l border-zinc-800 shadow-xl overflow-y-auto animate-in slide-in-from-right duration-300">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-800 bg-card/95 backdrop-blur px-6 py-4">
+          <h2 className="text-lg font-bold text-foreground">{editingId ? "Edit Log" : "New Daily Log"}</h2>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-zinc-400 hover:bg-card hover:text-foreground transition"><X size={16} /></button>
         </div>
         <div className="space-y-4 p-6">
           <div><label className={label}>Date *</label><input type="date" className={field} value={form.log_date} onChange={set("log_date")} /></div>
@@ -62,10 +62,10 @@ export default function DailyLogForm({ form, setForm, editingId, saving, onSubmi
             </div>
             {weatherToast && <p className="text-[10px] font-semibold text-blue-400">{weatherToast}</p>}
             <div className="grid grid-cols-2 gap-3">
-              <div><label className="mb-1 block text-[10px] font-bold text-blue-500">Temp (°C)</label><input type="number" value={form.weather_temp} onChange={set("weather_temp")} className="w-full rounded-lg border border-blue-500/30 bg-zinc-800 px-3 py-1.5 text-sm text-white outline-none" /></div>
-              <div><label className="mb-1 block text-[10px] font-bold text-blue-500">Condition</label><input type="text" value={form.weather_condition} onChange={set("weather_condition")} placeholder="Clear, Rain, etc." className="w-full rounded-lg border border-blue-500/30 bg-zinc-800 px-3 py-1.5 text-sm text-white outline-none" /></div>
-              <div><label className="mb-1 block text-[10px] font-bold text-blue-500">Wind</label><input type="text" value={form.weather_wind} onChange={set("weather_wind")} placeholder="10 km/h" className="w-full rounded-lg border border-blue-500/30 bg-zinc-800 px-3 py-1.5 text-sm text-white outline-none" /></div>
-              <div><label className="mb-1 block text-[10px] font-bold text-blue-500">Precipitation</label><input type="text" value={form.weather_precip} onChange={set("weather_precip")} placeholder="None, 5mm, etc." className="w-full rounded-lg border border-blue-500/30 bg-zinc-800 px-3 py-1.5 text-sm text-white outline-none" /></div>
+              <div><label className="mb-1 block text-[10px] font-bold text-blue-500">Temp (°C)</label><input type="number" value={form.weather_temp} onChange={set("weather_temp")} className="w-full rounded-lg border border-blue-500/30 bg-card px-3 py-1.5 text-sm text-foreground outline-none" /></div>
+              <div><label className="mb-1 block text-[10px] font-bold text-blue-500">Condition</label><input type="text" value={form.weather_condition} onChange={set("weather_condition")} placeholder="Clear, Rain, etc." className="w-full rounded-lg border border-blue-500/30 bg-card px-3 py-1.5 text-sm text-foreground outline-none" /></div>
+              <div><label className="mb-1 block text-[10px] font-bold text-blue-500">Wind</label><input type="text" value={form.weather_wind} onChange={set("weather_wind")} placeholder="10 km/h" className="w-full rounded-lg border border-blue-500/30 bg-card px-3 py-1.5 text-sm text-foreground outline-none" /></div>
+              <div><label className="mb-1 block text-[10px] font-bold text-blue-500">Precipitation</label><input type="text" value={form.weather_precip} onChange={set("weather_precip")} placeholder="None, 5mm, etc." className="w-full rounded-lg border border-blue-500/30 bg-card px-3 py-1.5 text-sm text-foreground outline-none" /></div>
             </div>
           </div>
 
@@ -75,9 +75,9 @@ export default function DailyLogForm({ form, setForm, editingId, saving, onSubmi
           <div><label className={label}>Safety Observations</label><textarea className={`${field} resize-y`} rows={2} value={form.safety_observations} onChange={set("safety_observations")} placeholder="Any safety items noted on site…" /></div>
           <div><label className={label}>Delays</label><textarea className={`${field} resize-y`} rows={2} value={form.delays} onChange={set("delays")} placeholder="Weather delays, material shortages, etc." /></div>
         </div>
-        <div className="sticky bottom-0 border-t border-zinc-800 bg-zinc-900/95 backdrop-blur px-6 py-4 flex items-center gap-3">
-          <button disabled={saving || !form.log_date} onClick={onSubmit} className="flex-1 rounded-xl bg-[#3B82F6] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1d4ed8] transition disabled:opacity-40">{saving ? "Saving…" : editingId ? "Update Log" : "Save Daily Log"}</button>
-          <button onClick={onClose} className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 transition">Cancel</button>
+        <div className="sticky bottom-0 border-t border-zinc-800 bg-card/95 backdrop-blur px-6 py-4 flex items-center gap-3">
+          <button disabled={saving || !form.log_date} onClick={onSubmit} className="flex-1 rounded-xl bg-[#3B82F6] px-4 py-2.5 text-sm font-bold text-foreground hover:bg-[#1d4ed8] transition disabled:opacity-40">{saving ? "Saving…" : editingId ? "Update Log" : "Save Daily Log"}</button>
+          <button onClick={onClose} className="rounded-xl border border-zinc-700 bg-card px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700 transition">Cancel</button>
         </div>
       </div>
     </div>

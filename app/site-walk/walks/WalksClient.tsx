@@ -69,7 +69,7 @@ export default function WalksClient({ initialProjects }: { initialProjects: Proj
         </p>
         <Link
           href="/projects"
-          className="inline-block px-4 py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover text-white text-sm"
+          className="inline-block px-4 py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover text-primary-foreground text-sm"
         >
           Go to Projects
         </Link>
@@ -111,7 +111,7 @@ export default function WalksClient({ initialProjects }: { initialProjects: Proj
         <button
           onClick={startSession}
           disabled={creating || !title.trim()}
-          className="w-full py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover disabled:opacity-50 text-white text-sm font-medium flex items-center justify-center gap-2"
+          className="w-full py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover disabled:opacity-50 text-primary-foreground text-sm font-medium flex items-center justify-center gap-2"
         >
           {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
           Start walk

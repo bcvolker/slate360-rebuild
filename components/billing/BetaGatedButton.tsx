@@ -28,8 +28,8 @@ export function BetaGatedButton({ action, children, className, renderEnabled }: 
       </button>
       
       {/* Tooltip */}
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex items-center space-x-2 bg-gray-900 text-white text-xs py-1.5 px-3 rounded whitespace-nowrap z-50">
-        <span className="bg-[#3B82F6] text-white px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex items-center space-x-2 bg-gray-900 text-foreground text-xs py-1.5 px-3 rounded whitespace-nowrap z-50">
+        <span className="bg-[#3B82F6] text-foreground px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
           Beta
         </span>
         <span>{label}</span>

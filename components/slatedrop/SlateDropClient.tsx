@@ -164,7 +164,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
 
   if (!isProjectScoped) {
     return (
-      <div className={embedded ? "h-full flex flex-col bg-zinc-950 overflow-hidden" : "h-screen flex flex-col bg-zinc-950 overflow-hidden"}>
+      <div className={embedded ? "h-full flex flex-col bg-background overflow-hidden" : "h-screen flex flex-col bg-background overflow-hidden"}>
         <SlateDropNotificationsOverlay toastMsg={toastMsg} uploadProgress={uploadProgress} />
 
         <SlateDropTopBar
@@ -177,7 +177,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
 
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="max-w-md rounded-2xl border border-app bg-app-card p-6 text-center space-y-3">
-            <h2 className="text-lg font-bold text-white">Open files from a project</h2>
+            <h2 className="text-lg font-bold text-foreground">Open files from a project</h2>
             <p className="text-sm text-zinc-400">
               Phase 1 SlateDrop is project-scoped. Open a project first to browse and manage files.
             </p>
@@ -194,7 +194,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
   }
 
   return (
-    <div className={embedded ? "h-full flex flex-col bg-zinc-950 overflow-hidden" : "h-screen flex flex-col bg-zinc-950 overflow-hidden"}>
+    <div className={embedded ? "h-full flex flex-col bg-background overflow-hidden" : "h-screen flex flex-col bg-background overflow-hidden"}>
       <SlateDropNotificationsOverlay toastMsg={toastMsg} uploadProgress={uploadProgress} />
 
       <SlateDropTopBar

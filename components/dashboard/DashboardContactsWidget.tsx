@@ -64,7 +64,7 @@ export default function DashboardContactsWidget({
               className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors text-left"
             >
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-foreground text-[10px] font-bold shrink-0"
                 style={{ backgroundColor: contact.color }}
               >
                 {contact.initials}

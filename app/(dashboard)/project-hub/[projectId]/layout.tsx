@@ -38,7 +38,7 @@ export default async function ProjectDetailLayout({
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       
       <DashboardHeader
         user={{
@@ -51,7 +51,7 @@ export default async function ProjectDetailLayout({
         internalAccess={{ operationsConsole: canAccessOperationsConsole }}
         showBackLink
       />
-      <div className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur-md">
+      <div className="sticky top-0 z-30 border-b border-zinc-800 bg-background/95 backdrop-blur-md">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-3 sm:py-4 md:px-10">
 
 
@@ -59,9 +59,9 @@ export default async function ProjectDetailLayout({
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Project Hub</p>
-              <h1 className="text-xl font-black text-white md:text-2xl">{project.name}</h1>
+              <h1 className="text-xl font-black text-foreground md:text-2xl">{project.name}</h1>
             </div>
-            <span className="inline-flex rounded-full border border-zinc-700 bg-zinc-800 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-300">
+            <span className="inline-flex rounded-full border border-zinc-700 bg-card px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-300">
               {project.status}
             </span>
           </div>
@@ -74,7 +74,7 @@ export default async function ProjectDetailLayout({
                   <li key={tab.label}>
                     <Link
                       href={href}
-                      className="inline-flex rounded-full border border-zinc-800 bg-zinc-900 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-zinc-300 transition-all hover:border-[#3B82F6]/30 hover:bg-[#3B82F6]/10 hover:text-[#3B82F6] hover:shadow-sm hover:-translate-y-px whitespace-nowrap"
+                      className="inline-flex rounded-full border border-zinc-800 bg-card px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-zinc-300 transition-all hover:border-[#3B82F6]/30 hover:bg-[#3B82F6]/10 hover:text-[#3B82F6] hover:shadow-sm hover:-translate-y-px whitespace-nowrap"
                     >
                       {tab.label}
                     </Link>

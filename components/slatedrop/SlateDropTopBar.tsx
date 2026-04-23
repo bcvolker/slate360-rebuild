@@ -24,7 +24,7 @@ export default function SlateDropTopBar({
   if (embedded) return null;
 
   return (
-    <header className="shrink-0 bg-zinc-950 border-b border-app z-30">
+    <header className="shrink-0 bg-background border-b border-app z-30">
       <div className="flex items-center justify-between h-14 px-4">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
@@ -58,7 +58,7 @@ export default function SlateDropTopBar({
           <div className="relative">
             <button
               onClick={onToggleUserMenu}
-              className="w-8 h-8 rounded-full bg-white/[0.04] flex items-center justify-center text-white text-[10px] font-bold"
+              className="w-8 h-8 rounded-full bg-white/[0.04] flex items-center justify-center text-foreground text-[10px] font-bold"
             >
               {user.name.charAt(0).toUpperCase()}
             </button>

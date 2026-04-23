@@ -16,8 +16,8 @@ export default function ProjectDetailError({
 	}, [error]);
 
 	return (
-		<div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
-			<div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-lg text-center space-y-5">
+		<div className="min-h-screen bg-background flex items-center justify-center px-4">
+			<div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-card p-8 shadow-lg text-center space-y-5">
 				<div className="mx-auto w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
 					<AlertTriangle size={28} className="text-red-500" />
 				</div>
@@ -30,7 +30,7 @@ export default function ProjectDetailError({
 				</div>
 
 				{error.message && (
-					<p className="text-xs text-zinc-500 bg-zinc-800 rounded-lg px-3 py-2 font-mono break-all">
+					<p className="text-xs text-zinc-500 bg-card rounded-lg px-3 py-2 font-mono break-all">
 						{error.message}
 					</p>
 				)}
@@ -44,7 +44,7 @@ export default function ProjectDetailError({
 					</button>
 					<Link
 						href="/projects"
-						className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-5 py-2.5 text-sm font-bold text-zinc-200 hover:bg-zinc-700 transition-all"
+						className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-card px-5 py-2.5 text-sm font-bold text-zinc-200 hover:bg-zinc-700 transition-all"
 					>
 						<ArrowLeft size={14} /> Back to Projects
 					</Link>

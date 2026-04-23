@@ -39,20 +39,20 @@ export default function PhotosToolbar({
     <>
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2">
+        <div className="rounded-xl border border-zinc-800 bg-card px-3 py-2">
           <p className="text-[10px] font-semibold uppercase text-zinc-500">Total Photos</p>
-          <p className="text-lg font-black text-white">{totalFiles}</p>
+          <p className="text-lg font-black text-foreground">{totalFiles}</p>
         </div>
         {Object.entries(categoryCounts).slice(0, 3).map(([cat, count]) => (
-          <div key={cat} className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2">
+          <div key={cat} className="rounded-xl border border-zinc-800 bg-card px-3 py-2">
             <p className="text-[10px] font-semibold uppercase text-zinc-500 truncate">{cat}</p>
-            <p className="text-lg font-black text-white">{count}</p>
+            <p className="text-lg font-black text-foreground">{count}</p>
           </div>
         ))}
         {Object.entries(typeCounts).slice(0, 2).map(([ext, count]) => (
-          <div key={ext} className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2">
+          <div key={ext} className="rounded-xl border border-zinc-800 bg-card px-3 py-2">
             <p className="text-[10px] font-semibold uppercase text-zinc-500">{ext}</p>
-            <p className="text-lg font-black text-white">{count}</p>
+            <p className="text-lg font-black text-foreground">{count}</p>
           </div>
         ))}
       </div>
@@ -66,13 +66,13 @@ export default function PhotosToolbar({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search photos…"
-              className="rounded-lg border border-zinc-700 bg-zinc-800 py-1.5 pl-8 pr-3 text-xs text-zinc-200 placeholder:text-zinc-500 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]/20 w-52"
+              className="rounded-lg border border-zinc-700 bg-card py-1.5 pl-8 pr-3 text-xs text-zinc-200 placeholder:text-zinc-500 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]/20 w-52"
             />
           </div>
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-2.5 py-1.5 text-xs text-zinc-300 focus:border-[#3B82F6] focus:outline-none"
+            className="rounded-lg border border-zinc-700 bg-card px-2.5 py-1.5 text-xs text-zinc-300 focus:border-[#3B82F6] focus:outline-none"
           >
             {categories.map((c) => (
               <option key={c} value={c}>{c}{c !== "All" && categoryCounts[c] ? ` (${categoryCounts[c]})` : ""}</option>
@@ -81,7 +81,7 @@ export default function PhotosToolbar({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortBy)}
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-2.5 py-1.5 text-xs text-zinc-300 focus:border-[#3B82F6] focus:outline-none"
+            className="rounded-lg border border-zinc-700 bg-card px-2.5 py-1.5 text-xs text-zinc-300 focus:border-[#3B82F6] focus:outline-none"
           >
             <option value="name">Sort: Name</option>
             <option value="date">Sort: Date</option>
@@ -95,14 +95,14 @@ export default function PhotosToolbar({
               <button onClick={handleDownloadSelected} className="rounded-md border border-[#3B82F6]/30 bg-[#3B82F6]/10 px-2 py-1 text-xs font-semibold text-[#3B82F6] hover:bg-[#3B82F6]/20">
                 <Download size={12} className="inline mr-1" />Download
               </button>
-              <button onClick={clearSelection} className="rounded-md px-1.5 py-1 text-xs text-zinc-400 hover:bg-zinc-800">Clear</button>
+              <button onClick={clearSelection} className="rounded-md px-1.5 py-1 text-xs text-zinc-400 hover:bg-card">Clear</button>
             </div>
           )}
           {([["grid", Grid3X3], ["masonry", Image], ["list", List]] as const).map(([mode, Icon]) => (
             <button
               key={mode}
               onClick={() => setViewMode(mode)}
-              className={`rounded-md p-1.5 transition ${viewMode === mode ? "bg-[#3B82F6] text-white" : "border border-zinc-700 bg-zinc-800 text-zinc-400 hover:bg-zinc-700"}`}
+              className={`rounded-md p-1.5 transition ${viewMode === mode ? "bg-[#3B82F6] text-foreground" : "border border-zinc-700 bg-card text-zinc-400 hover:bg-zinc-700"}`}
               title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} view`}
             >
               <Icon size={14} />

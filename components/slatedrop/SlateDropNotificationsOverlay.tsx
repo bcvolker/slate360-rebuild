@@ -13,7 +13,7 @@ export default function SlateDropNotificationsOverlay({
     <>
       {toastMsg && (
         <div
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-2 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold text-white transition-all ${
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-2 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold text-foreground transition-all ${
             toastMsg.ok ? "bg-emerald-600" : "bg-red-500"
           }`}
         >

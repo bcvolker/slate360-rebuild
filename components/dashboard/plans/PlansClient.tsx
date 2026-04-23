@@ -56,10 +56,10 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
   const appPlans = tab === "site_walk" ? SITE_WALK_PLANS : tab === "tours" ? TOURS_PLANS : [];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <div className="px-4 sm:px-6 pt-6 pb-4 max-w-7xl mx-auto">
-        <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-white transition-colors mb-6">
+        <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-foreground transition-colors mb-6">
           <ChevronLeft size={16} /> Back to Dashboard
         </Link>
         <div className="text-center mb-8">
@@ -71,7 +71,7 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
           </h1>
           <p className="text-zinc-400 text-sm">
             Subscribe per app, or save with a bundle. Currently on{" "}
-            <span className="text-white font-semibold">{currentLabel}</span>
+            <span className="text-foreground font-semibold">{currentLabel}</span>
           </p>
         </div>
 
@@ -83,7 +83,7 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
                 key={t.id}
                 onClick={() => setTab(t.id)}
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${
-                  tab === t.id ? "bg-white/[0.04] text-white shadow" : "text-zinc-500 hover:text-zinc-300"
+                  tab === t.id ? "bg-white/[0.04] text-foreground shadow" : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
                 {t.label}
@@ -125,7 +125,7 @@ export default function PlansClient({ currentTier, currentLabel, isAdmin }: Prop
           <div className="space-y-4">
             {PLAN_FAQS.map((faq) => (
               <details key={faq.q} className="group border border-app rounded-xl">
-                <summary className="flex items-center justify-between px-5 py-4 cursor-pointer text-sm font-semibold text-zinc-200 hover:text-white">
+                <summary className="flex items-center justify-between px-5 py-4 cursor-pointer text-sm font-semibold text-zinc-200 hover:text-foreground">
                   {faq.q}
                   <ChevronRight size={14} className="text-zinc-500 transition-transform group-open:rotate-90" />
                 </summary>
@@ -146,7 +146,7 @@ function AppCard({ plan, busyId, onCheckout }: { plan: AppPlanDisplay; busyId: s
   return (
     <div className={`rounded-2xl p-6 relative flex flex-col ${plan.highlight ? "border-2 border-orange-500 bg-app-card shadow-xl shadow-orange-500/5" : "border border-app bg-app-card"}`}>
       {plan.highlight && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-white bg-orange-500 flex items-center gap-1">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-foreground bg-orange-500 flex items-center gap-1">
           <Sparkles size={10} /> Recommended
         </span>
       )}
@@ -165,7 +165,7 @@ function AppCard({ plan, busyId, onCheckout }: { plan: AppPlanDisplay; busyId: s
           ))}
         </ul>
       </div>
-      <button onClick={() => onCheckout(key)} disabled={busyId !== null} className={`flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-[1.02] disabled:opacity-60 ${plan.highlight ? "bg-orange-500 text-white" : "border border-app text-zinc-300 hover:bg-white/[0.04]"}`}>
+      <button onClick={() => onCheckout(key)} disabled={busyId !== null} className={`flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all hover:opacity-90 hover:scale-[1.02] disabled:opacity-60 ${plan.highlight ? "bg-orange-500 text-foreground" : "border border-app text-zinc-300 hover:bg-white/[0.04]"}`}>
         {busyId === key ? <Loader2 size={14} className="animate-spin" /> : <>Subscribe <ChevronRight size={14} className="ml-1" /></>}
       </button>
     </div>
@@ -177,7 +177,7 @@ function BundleCard({ bundle, busyId, onCheckout }: { bundle: BundlePlanDisplay;
   return (
     <div className={`rounded-2xl p-6 relative flex flex-col ${bundle.highlight ? "border-2 border-orange-500 bg-app-card shadow-xl shadow-orange-500/5" : "border border-app bg-app-card"}`}>
       {bundle.highlight && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-white bg-orange-500 flex items-center gap-1">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-foreground bg-orange-500 flex items-center gap-1">
           <Package size={10} /> Best value
         </span>
       )}
@@ -197,7 +197,7 @@ function BundleCard({ bundle, busyId, onCheckout }: { bundle: BundlePlanDisplay;
           ))}
         </ul>
       </div>
-      <button onClick={() => onCheckout(key)} disabled={busyId !== null} className="flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all bg-orange-500 text-white hover:opacity-90 hover:scale-[1.02] disabled:opacity-60">
+      <button onClick={() => onCheckout(key)} disabled={busyId !== null} className="flex items-center justify-center w-full py-2.5 rounded-full text-sm font-semibold transition-all bg-orange-500 text-foreground hover:opacity-90 hover:scale-[1.02] disabled:opacity-60">
         {busyId === key ? <Loader2 size={14} className="animate-spin" /> : <>Get Bundle <ChevronRight size={14} className="ml-1" /></>}
       </button>
     </div>

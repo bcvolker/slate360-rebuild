@@ -53,7 +53,7 @@ export default function NotificationsMenu({
           <div className="fixed inset-0 z-40" onClick={() => onOpenChange(false)} />
           <div className="absolute right-0 top-12 z-50 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-app bg-app-card shadow-xl">
             <div className="flex items-center justify-between border-b border-app px-4 py-3">
-              <p className="text-sm font-bold text-white">Notifications</p>
+              <p className="text-sm font-bold text-foreground">Notifications</p>
               {onRefresh && (
                 <button
                   onClick={onRefresh}

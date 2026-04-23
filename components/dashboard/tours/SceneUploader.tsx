@@ -104,7 +104,7 @@ export function SceneUploader({
           ) : (
             <Camera className="w-5 h-5 text-amber-500" />
           )}
-          <span className="font-semibold text-white">
+          <span className="font-semibold text-foreground">
             {isUploading ? "Uploading..." : "Add Scene"}
           </span>
         </div>

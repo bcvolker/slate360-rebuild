@@ -214,7 +214,7 @@ export function ModelEditorClient({ modelId, onBack }: ModelEditorClientProps) {
         </div>
 
         {/* 3D Viewer */}
-        <div className="flex-1 overflow-hidden rounded-lg bg-zinc-900">
+        <div className="flex-1 overflow-hidden rounded-lg bg-card">
           {viewableFile ? (
             <ModelViewerClient src={viewableFile.s3_key} alt={model.title} />
           ) : (

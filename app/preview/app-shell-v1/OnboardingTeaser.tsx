@@ -230,7 +230,7 @@ export function OnboardingTeaser() {
             <button
               type="button"
               onClick={dismiss}
-              className="h-10 px-5 rounded-lg bg-cobalt text-white text-sm font-semibold hover:bg-cobalt-hover flex items-center gap-2"
+              className="h-10 px-5 rounded-lg bg-cobalt text-primary-foreground text-sm font-semibold hover:bg-cobalt-hover flex items-center gap-2"
             >
               <Check className="h-4 w-4" />
               Got it — let&apos;s go
@@ -239,7 +239,7 @@ export function OnboardingTeaser() {
             <button
               type="button"
               onClick={() => setStep((s) => Math.min(steps.length - 1, s + 1))}
-              className="h-10 px-5 rounded-lg bg-cobalt text-white text-sm font-semibold hover:bg-cobalt-hover flex items-center gap-2"
+              className="h-10 px-5 rounded-lg bg-cobalt text-primary-foreground text-sm font-semibold hover:bg-cobalt-hover flex items-center gap-2"
             >
               Next
               <ArrowRight className="h-4 w-4" />

@@ -39,12 +39,12 @@ export default function AccountProfileTab({ user, orgName, role }: Props) {
             {user.avatar ? (
               <img src={user.avatar} alt="" className="w-20 h-20 rounded-2xl object-cover" />
             ) : (
-              <div className="w-20 h-20 rounded-2xl bg-zinc-700 flex items-center justify-center text-white text-2xl font-bold">
+              <div className="w-20 h-20 rounded-2xl bg-zinc-700 flex items-center justify-center text-foreground text-2xl font-bold">
                 {user.name.charAt(0).toUpperCase()}
               </div>
             )}
             <div className="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
-              <Camera size={20} className="text-white" />
+              <Camera size={20} className="text-foreground" />
             </div>
           </div>
           <div className="flex-1 space-y-4">

@@ -112,7 +112,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
       {/* ── Report Builder ─────────────────────────────────────── */}
       <section className="rounded-2xl border border-app bg-app-card p-6">
         <div className="mb-5">
-          <h2 className="text-lg font-black text-white">Build a Report</h2>
+          <h2 className="text-lg font-black text-foreground">Build a Report</h2>
           <p className="mt-1 text-sm text-zinc-400">
             Pull data from your projects and generate a professional report to share with stakeholders. Built reports are stored in the Saved Reports section below.
           </p>
@@ -167,7 +167,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
                         onClick={() => { setSelectedType(t.id); setTypeOpen(false); }}
                         className={`w-full px-4 py-3 text-left transition-colors hover:bg-white/[0.06] ${selectedType === t.id ? "bg-[#3B82F6]/10" : ""}`}
                       >
-                        <p className="text-sm font-semibold text-white">{t.label}</p>
+                        <p className="text-sm font-semibold text-foreground">{t.label}</p>
                         <p className="mt-0.5 text-xs text-zinc-400">{t.desc}</p>
                       </button>
                     ))}
@@ -196,7 +196,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
             <button
               onClick={() => void handleBuild()}
               disabled={building || selectedSections.length === 0 || !selectedProjectId}
-              className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-[#3B82F6] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-[#3B82F6] px-5 py-2.5 text-sm font-bold text-foreground hover:bg-[#1D4ED8] disabled:opacity-50 transition-colors"
             >
               {building ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
               Build Report
@@ -238,7 +238,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
       {/* ── Saved Reports ───────────────────────────────────────── */}
       <section className="rounded-2xl border border-app bg-app-card p-5">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-sm font-black text-white">
+          <h2 className="flex items-center gap-2 text-sm font-black text-foreground">
             <Layers size={15} className="text-[#3B82F6]" /> Saved Reports
           </h2>
           <button
@@ -264,7 +264,7 @@ export default function AnalyticsReportsClient({ user, tier, isCeo = false, inte
             {reports.map((report) => (
               <div key={report.id} className="flex items-center justify-between gap-4 rounded-xl border border-app bg-white/[0.04]/50 px-4 py-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-white">{report.title}</p>
+                  <p className="truncate text-sm font-semibold text-foreground">{report.title}</p>
                   <p className="mt-0.5 text-xs text-zinc-500">
                     {new Date(report.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
                     &nbsp;·&nbsp;{report.status}

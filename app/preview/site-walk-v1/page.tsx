@@ -59,7 +59,7 @@ export default function SiteWalkPreviewPage() {
   const pathname = usePathname() ?? "/preview/site-walk-v1";
 
   return (
-    <div className="min-h-screen bg-[#0B0F15] text-white">
+    <div className="min-h-screen bg-[#0B0F15] text-foreground">
       {/* Top bar — cobalt platform icon */}
       <header
         className="fixed top-0 left-0 right-0 z-40 h-14 bg-[#0B0F15]/85 backdrop-blur-xl border-b border-white/5 px-3"
@@ -107,7 +107,7 @@ export default function SiteWalkPreviewPage() {
                 <div className="h-10 w-10 rounded-xl bg-cobalt/15 border border-cobalt/30 flex items-center justify-center">
                   <Icon className="h-5 w-5 text-cobalt" />
                 </div>
-                <div className="text-sm font-medium text-white">{label}</div>
+                <div className="text-sm font-medium text-foreground">{label}</div>
                 <div className="text-xs text-slate-400">{desc}</div>
               </button>
             ))}
@@ -130,7 +130,7 @@ export default function SiteWalkPreviewPage() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="text-sm font-medium text-white truncate">{w.name}</div>
+                    <div className="text-sm font-medium text-foreground truncate">{w.name}</div>
                     <div className="text-xs text-slate-400 mt-0.5">
                       {w.items} items · {w.when}
                       {w.project && <span className="text-cobalt"> · {w.project}</span>}
@@ -159,7 +159,7 @@ export default function SiteWalkPreviewPage() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="text-sm font-medium text-white truncate">{d.name}</div>
+                    <div className="text-sm font-medium text-foreground truncate">{d.name}</div>
                     <div className="text-xs text-slate-400 mt-0.5">{d.type} · {d.when}</div>
                   </div>
                   <ArrowRight className="h-4 w-4 text-slate-500 flex-shrink-0 mt-1" />

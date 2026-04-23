@@ -16,17 +16,17 @@ interface Props {
   architectName: string;
 }
 
-const inp = "w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/30 placeholder:text-zinc-500";
+const inp = "w-full rounded-lg border border-zinc-700 bg-card px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/30 placeholder:text-zinc-500";
 const lbl = "mb-1 block text-xs font-bold text-zinc-300";
 
 export default function ScheduleForm({ form, setForm, editingId, saving, onSubmit, onDelete, onClose, contractorName, ownerName, architectName }: Props) {
   const u = (patch: Partial<ScheduleFormData>) => setForm({ ...form, ...patch });
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
-      <div className="h-full w-full max-w-lg overflow-y-auto bg-zinc-900 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-900 px-6 py-4 flex items-center justify-between">
-          <h3 className="text-lg font-black text-white">{editingId ? "Edit Task" : "New Task"}</h3>
-          <button onClick={onClose} className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-800"><X size={18} /></button>
+      <div className="h-full w-full max-w-lg overflow-y-auto bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="sticky top-0 z-10 border-b border-zinc-800 bg-card px-6 py-4 flex items-center justify-between">
+          <h3 className="text-lg font-black text-foreground">{editingId ? "Edit Task" : "New Task"}</h3>
+          <button onClick={onClose} className="rounded-lg p-1 text-zinc-400 hover:bg-card"><X size={18} /></button>
         </div>
         <div className="space-y-5 p-6">
           <div><label className={lbl}>Task Name *</label><input autoFocus type="text" value={form.name} onChange={(e) => u({ name: e.target.value })} placeholder="e.g. Foundation pour, Framing, Roofing..." className={inp} /></div>
@@ -52,9 +52,9 @@ export default function ScheduleForm({ form, setForm, editingId, saving, onSubmi
             <div className="flex flex-wrap gap-2"><p className="w-full text-[10px] font-bold uppercase tracking-wider text-zinc-500">Quick-set status</p>{STATUSES.filter((s) => s !== form.status).map((s) => <button key={s} type="button" onClick={() => u({ status: s, percentComplete: s === "Completed" ? "100" : form.percentComplete })} className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase transition ${(STATUS_COLORS[s] ?? STATUS_COLORS["Not Started"]).badge}`}>{s}</button>)}</div>
           )}
           <div className="flex items-center gap-3 pt-2">
-            <button onClick={onSubmit} disabled={saving || !form.name.trim()} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition">{saving && <Loader2 size={14} className="animate-spin" />}{editingId ? "Update Task" : "Add Task"}</button>
-            <button onClick={onClose} className="rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700">Cancel</button>
-            {editingId && <button onClick={() => onDelete(editingId)} className="rounded-lg border border-red-900/50 bg-zinc-800 px-3 py-2.5 text-sm text-red-400 hover:bg-red-950/30"><Trash2 size={14} /></button>}
+            <button onClick={onSubmit} disabled={saving || !form.name.trim()} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] disabled:opacity-50 transition">{saving && <Loader2 size={14} className="animate-spin" />}{editingId ? "Update Task" : "Add Task"}</button>
+            <button onClick={onClose} className="rounded-lg border border-zinc-700 bg-card px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-zinc-700">Cancel</button>
+            {editingId && <button onClick={() => onDelete(editingId)} className="rounded-lg border border-red-900/50 bg-card px-3 py-2.5 text-sm text-red-400 hover:bg-red-950/30"><Trash2 size={14} /></button>}
           </div>
         </div>
       </div>

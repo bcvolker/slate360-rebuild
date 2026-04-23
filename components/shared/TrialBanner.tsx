@@ -25,7 +25,7 @@ export default function TrialBanner({ feature, accent = "#3B82F6" }: TrialBanner
         <Sparkles size={16} />
       </div>
       <p className="text-sm text-zinc-300 leading-relaxed">
-        You&apos;re on the <span className="font-semibold text-white">Trial</span> plan.{" "}
+        You&apos;re on the <span className="font-semibold text-foreground">Trial</span> plan.{" "}
         {feature} is available with limited data, watermarked exports, and restricted deliverables.{" "}
         <Link
           href={getUpgradeUrl()}

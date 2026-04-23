@@ -167,39 +167,39 @@ export default function ProjectSchedulePage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Timeline</p>
-          <h2 className="text-xl font-black text-white">Schedule & Tasks{profile.projectName && <span className="ml-2 text-base font-semibold text-zinc-500">— {profile.projectName}</span>}</h2>
+          <h2 className="text-xl font-black text-foreground">Schedule & Tasks{profile.projectName && <span className="ml-2 text-base font-semibold text-zinc-500">— {profile.projectName}</span>}</h2>
           <p className="mt-1 text-sm text-zinc-400">Plan tasks, set milestones, and track progress with Gantt.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex rounded-lg border border-zinc-700 bg-zinc-900 overflow-hidden">
-            <button onClick={() => setViewMode("gantt")} className={`px-3 py-2 text-xs font-semibold transition ${viewMode === "gantt" ? "bg-[#3B82F6] text-white" : "text-zinc-400 hover:bg-zinc-800"}`}>Gantt</button>
-            <button onClick={() => setViewMode("table")} className={`px-3 py-2 text-xs font-semibold transition ${viewMode === "table" ? "bg-[#3B82F6] text-white" : "text-zinc-400 hover:bg-zinc-800"}`}>Table</button>
+          <div className="inline-flex rounded-lg border border-zinc-700 bg-card overflow-hidden">
+            <button onClick={() => setViewMode("gantt")} className={`px-3 py-2 text-xs font-semibold transition ${viewMode === "gantt" ? "bg-[#3B82F6] text-foreground" : "text-zinc-400 hover:bg-card"}`}>Gantt</button>
+            <button onClick={() => setViewMode("table")} className={`px-3 py-2 text-xs font-semibold transition ${viewMode === "table" ? "bg-[#3B82F6] text-foreground" : "text-zinc-400 hover:bg-card"}`}>Table</button>
           </div>
           {viewMode === "gantt" && (
-            <div className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5">
-              <button onClick={() => setDayW((w) => Math.max(14, w - 4))} className="w-6 h-6 flex items-center justify-center rounded hover:bg-zinc-800 text-zinc-400" title="Zoom out"><ZoomOut size={13} /></button>
+            <div className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 bg-card px-2 py-1.5">
+              <button onClick={() => setDayW((w) => Math.max(14, w - 4))} className="w-6 h-6 flex items-center justify-center rounded hover:bg-card text-zinc-400" title="Zoom out"><ZoomOut size={13} /></button>
               <span className="text-[10px] font-semibold text-zinc-500 w-10 text-center">{dayW}px/d</span>
-              <button onClick={() => setDayW((w) => Math.min(60, w + 4))} className="w-6 h-6 flex items-center justify-center rounded hover:bg-zinc-800 text-zinc-400" title="Zoom in"><ZoomIn size={13} /></button>
+              <button onClick={() => setDayW((w) => Math.min(60, w + 4))} className="w-6 h-6 flex items-center justify-center rounded hover:bg-card text-zinc-400" title="Zoom in"><ZoomIn size={13} /></button>
             </div>
           )}
-          <button onClick={exportCSV} disabled={rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-800 disabled:opacity-40"><Download size={14} /> Export</button>
-          <button onClick={() => void onSaveSnapshot()} disabled={snapshotSaving || rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-800 disabled:opacity-40">{snapshotSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Snapshot</button>
+          <button onClick={exportCSV} disabled={rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-card px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-card disabled:opacity-40"><Download size={14} /> Export</button>
+          <button onClick={() => void onSaveSnapshot()} disabled={snapshotSaving || rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-card px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-card disabled:opacity-40">{snapshotSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Snapshot</button>
           <ViewCustomizer storageKey={`viewprefs-schedule-${projectId}`} cols={[]} defaultCols={[]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
-          <button onClick={() => { setForm({ ...EMPTY_FORM, assignedTo: profile.contractorName }); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8] transition"><Plus size={15} /> Add Task</button>
+          <button onClick={() => { setForm({ ...EMPTY_FORM, assignedTo: profile.contractorName }); setEditingId(null); setShowCreate(true); }} className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] transition"><Plus size={15} /> Add Task</button>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
         {[
-          { label: "Total", value: stats.total, color: "text-white" },
+          { label: "Total", value: stats.total, color: "text-foreground" },
           { label: "In Progress", value: stats.inProgress, color: "text-blue-400" },
           { label: "Completed", value: stats.completed, color: "text-emerald-400" },
           { label: "Delayed", value: stats.delayed, color: "text-red-400" },
           { label: "Milestones", value: stats.milestones, color: "text-purple-400" },
-          { label: "Avg %", value: `${stats.avgPct}%`, color: "text-white" },
+          { label: "Avg %", value: `${stats.avgPct}%`, color: "text-foreground" },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl border border-zinc-800 bg-zinc-900 p-3 shadow-sm text-center">
+          <div key={s.label} className="rounded-xl border border-zinc-800 bg-card p-3 shadow-sm text-center">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{s.label}</p>
             <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
           </div>

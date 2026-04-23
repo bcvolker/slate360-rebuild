@@ -119,7 +119,7 @@ export default function HeroDemo() {
               type="button"
               onClick={() => setExpanded(false)}
               aria-label="Close expanded viewer"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-foreground border border-white/20 transition-colors"
             >
               <X className="h-6 w-6" />
             </button>

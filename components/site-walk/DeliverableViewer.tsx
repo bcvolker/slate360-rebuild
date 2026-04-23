@@ -20,7 +20,7 @@ export function DeliverableViewer({
   sharedAt,
 }: DeliverableViewerProps) {
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-zinc-50 dark:bg-background">
       {/* Header */}
       <header className="border-b border-zinc-200 bg-white dark:border-app dark:bg-app-card">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">

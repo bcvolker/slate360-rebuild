@@ -116,7 +116,7 @@ export default function UploadPortalClient({
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={uploading}
-              className="mt-3 rounded-xl px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              className="mt-3 rounded-xl px-4 py-2 text-sm font-semibold text-foreground disabled:opacity-60"
               style={{ backgroundColor: "#3B82F6" }}
             >
               Select Files

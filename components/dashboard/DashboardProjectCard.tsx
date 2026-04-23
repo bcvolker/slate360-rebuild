@@ -108,10 +108,10 @@ export default function DashboardProjectCard({
           <span
             className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
               p.status === "active"
-                ? "bg-emerald-500/90 text-white"
+                ? "bg-emerald-500/90 text-foreground"
                 : p.status === "completed"
-                ? "bg-blue-500/90 text-white"
-                : "bg-amber-500/90 text-white"
+                ? "bg-blue-500/90 text-foreground"
+                : "bg-amber-500/90 text-foreground"
             }`}
           >
             {p.status}
@@ -126,7 +126,7 @@ export default function DashboardProjectCard({
               e.stopPropagation();
               setMenuOpen(!menuOpen);
             }}
-            className="flex items-center justify-center w-7 h-7 rounded-lg bg-black/30 hover:bg-black/50 backdrop-blur-md transition-all text-white"
+            className="flex items-center justify-center w-7 h-7 rounded-lg bg-black/30 hover:bg-black/50 backdrop-blur-md transition-all text-foreground"
             title="Project options"
           >
             <MoreVertical size={14} />
@@ -159,7 +159,7 @@ export default function DashboardProjectCard({
 
         {/* Info */}
         <Link href={`/project-hub/${p.id}`} className="absolute bottom-0 left-0 right-0 p-4 z-[2]">
-          <h3 className="text-white font-bold text-base mb-1 group-hover:text-cobalt-hover transition-colors">
+          <h3 className="text-foreground font-bold text-base mb-1 group-hover:text-cobalt-hover transition-colors">
             {p.name}
           </h3>
           <div className="flex items-center gap-3">
@@ -167,9 +167,9 @@ export default function DashboardProjectCard({
               label={p.location}
               iconSize={10}
               className="flex items-center gap-1"
-              textClassName="text-[11px] text-white/60"
+              textClassName="text-[11px] text-foreground/60"
             />
-            <span className="text-[11px] text-white/40 flex items-center gap-1">
+            <span className="text-[11px] text-foreground/40 flex items-center gap-1">
               <Clock size={10} />
               {p.lastEdited}
             </span>
@@ -193,7 +193,7 @@ export default function DashboardProjectCard({
                     <AlertTriangle size={20} className="text-red-400" />
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-white">Delete Project</h3>
+                    <h3 className="text-base font-black text-foreground">Delete Project</h3>
                     <p className="text-xs text-zinc-400">This action cannot be undone</p>
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export default function DashboardProjectCard({
               <div className="px-6 py-5 space-y-4">
                 <div className="rounded-xl border border-app/50 bg-white/[0.04]/50 p-4">
                   <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Project to delete</p>
-                  <p className="text-sm font-black text-white">{p.name}</p>
+                  <p className="text-sm font-black text-foreground">{p.name}</p>
                 </div>
 
                 <div className="text-sm text-zinc-300 space-y-2">
@@ -233,7 +233,7 @@ export default function DashboardProjectCard({
                       setDeleteError(null);
                     }}
                     placeholder="Enter project name..."
-                    className="w-full rounded-lg border border-app bg-white/[0.04] px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                    className="w-full rounded-lg border border-app bg-white/[0.04] px-3 py-2 text-sm text-foreground placeholder-zinc-500 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
                     autoFocus
                   />
                 </div>
@@ -255,7 +255,7 @@ export default function DashboardProjectCard({
                 <button
                   onClick={handleDelete}
                   disabled={deleting || confirmName.trim() !== p.name}
-                  className="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-foreground hover:bg-red-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {deleting ? (
                     <>

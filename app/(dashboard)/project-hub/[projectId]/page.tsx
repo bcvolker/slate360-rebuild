@@ -86,12 +86,12 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         {stats.map(({ label, value, sub, href, color, Icon }) => (
-          <Link key={label} href={href} className="group rounded-2xl border border-zinc-800 bg-zinc-900 p-4 hover:border-zinc-700 transition-all flex flex-col gap-2">
+          <Link key={label} href={href} className="group rounded-2xl border border-zinc-800 bg-card p-4 hover:border-zinc-700 transition-all flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <Icon size={16} style={{ color }} />
               <ChevronRight size={12} className="text-zinc-600 group-hover:text-zinc-400 transition-colors" />
             </div>
-            <p className="text-2xl font-black text-white">{value}</p>
+            <p className="text-2xl font-black text-foreground">{value}</p>
             <div>
               <p className="text-xs font-semibold text-zinc-300">{label}</p>
               {sub && <p className="text-[10px] text-zinc-500 mt-0.5">{sub}</p>}
@@ -108,9 +108,9 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
 
         {/* Schedule snapshot + tool quick-links */}
         <div className="flex flex-col gap-4">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+          <div className="rounded-2xl border border-zinc-800 bg-card p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-black text-white flex items-center gap-2">
+              <h3 className="text-sm font-black text-foreground flex items-center gap-2">
                 <CalendarCheck2 size={14} className="text-[#3B82F6]" /> Upcoming Schedule
               </h3>
               <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#3B82F6] hover:underline">Open Schedule →</Link>
@@ -120,7 +120,7 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
             ) : (
               <ul className="space-y-2">
                 {nextTasks.map((t) => (
-                  <li key={t.id} className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-800 border border-zinc-700">
+                  <li key={t.id} className="flex items-start gap-3 p-2.5 rounded-xl bg-card border border-zinc-700">
                     <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: t.status === "In Progress" ? "#3B82F6" : "#d1d5db" }} />
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-zinc-200 truncate">{t.name}</p>
@@ -132,11 +132,11 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
             )}
           </div>
 
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
-            <h3 className="text-sm font-black text-white mb-3">All Tools</h3>
+          <div className="rounded-2xl border border-zinc-800 bg-card p-5">
+            <h3 className="text-sm font-black text-foreground mb-3">All Tools</h3>
             <div className="grid grid-cols-3 gap-2">
               {toolLinks.map(({ label, href, Icon }) => (
-                <Link key={label} href={href} className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl border border-zinc-800 bg-zinc-800/50 hover:bg-[#3B82F6]/10 hover:border-[#3B82F6]/30 transition-all text-center">
+                <Link key={label} href={href} className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl border border-zinc-800 bg-card/50 hover:bg-[#3B82F6]/10 hover:border-[#3B82F6]/30 transition-all text-center">
                   <Icon size={14} className="text-zinc-400" />
                   <span className="text-[10px] font-semibold text-zinc-300 leading-tight">{label}</span>
                 </Link>

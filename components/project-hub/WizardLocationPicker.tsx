@@ -271,7 +271,7 @@ function Controller({
 
   const btn = (active: boolean) =>
     `px-2 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 ${
-      active ? "bg-[#3B82F6] text-white" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
+      active ? "bg-[#3B82F6] text-foreground" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
     }`;
 
   return (
@@ -303,7 +303,7 @@ function Controller({
               </ul>
             )}
           </div>
-          <button type="button" onClick={() => void searchAddress()} className="px-2.5 py-1.5 bg-[#3B82F6] hover:bg-[#1D4ED8] rounded-lg text-white transition-colors"><Search size={14} /></button>
+          <button type="button" onClick={() => void searchAddress()} className="px-2.5 py-1.5 bg-[#3B82F6] hover:bg-[#1D4ED8] rounded-lg text-foreground transition-colors"><Search size={14} /></button>
         </div>
       </div>
 
@@ -342,7 +342,7 @@ function Controller({
       {/* Drawing hint */}
       {isDrawingPolygon && (
         <div className="absolute top-14 left-2 right-2 z-10 pointer-events-none">
-          <div className="bg-app-card/95 backdrop-blur-sm rounded-lg px-3 py-1.5 text-[11px] text-white font-semibold text-center">
+          <div className="bg-app-card/95 backdrop-blur-sm rounded-lg px-3 py-1.5 text-[11px] text-foreground font-semibold text-center">
             {drawingVertices.length < 3
               ? `Click map to add vertices (${drawingVertices.length} so far, need 3 min)`
               : `${drawingVertices.length} pts — click ⧆ again to close boundary`}

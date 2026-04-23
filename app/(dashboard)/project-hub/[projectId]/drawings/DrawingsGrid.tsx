@@ -20,8 +20,8 @@ export default function DrawingsGrid({ files, urlMap, pageCounts, onSelect, onPa
         const set = guessSet(file.name);
         const pages = pageCounts[file.id];
         return (
-          <button key={file.id} onClick={() => onSelect(file)} className="group overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 text-left shadow-sm transition hover:border-zinc-600 hover:shadow-md">
-            <div className="relative flex h-[220px] items-center justify-center bg-zinc-800/50">
+          <button key={file.id} onClick={() => onSelect(file)} className="group overflow-hidden rounded-2xl border border-zinc-800 bg-card text-left shadow-sm transition hover:border-zinc-600 hover:shadow-md">
+            <div className="relative flex h-[220px] items-center justify-center bg-card/50">
               {url ? (
                 <Document file={url} loading={<Loader2 size={16} className="animate-spin text-zinc-500" />} onLoadSuccess={({ numPages }) => onPageCount(file.id, numPages)}>
                   <Page pageNumber={1} width={260} renderTextLayer={false} renderAnnotationLayer={false} />
@@ -30,7 +30,7 @@ export default function DrawingsGrid({ files, urlMap, pageCounts, onSelect, onPa
                 <p className="text-sm text-zinc-500">Preview unavailable</p>
               )}
               <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/20">
-                <Maximize2 size={20} className="text-white opacity-0 transition group-hover:opacity-80" />
+                <Maximize2 size={20} className="text-foreground opacity-0 transition group-hover:opacity-80" />
               </div>
             </div>
             <div className="border-t border-zinc-800 px-3 py-2">

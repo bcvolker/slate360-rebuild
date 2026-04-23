@@ -132,7 +132,7 @@ export default function DeliverableDetailClient({ deliverable }: { deliverable: 
               </a>
             </div>
             <div className="flex gap-2">
-              <button onClick={nativeShare} className="flex-1 py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover text-white text-sm font-medium flex items-center justify-center gap-2">
+              <button onClick={nativeShare} className="flex-1 py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover text-primary-foreground text-sm font-medium flex items-center justify-center gap-2">
                 <Share2 className="h-4 w-4" /> Share — AirDrop, Contacts, Apps
               </button>
               <button onClick={revoke} className="px-3 py-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-sm flex items-center gap-1.5" title="Revoke">
@@ -147,7 +147,7 @@ export default function DeliverableDetailClient({ deliverable }: { deliverable: 
             </button>
           </>
         ) : (
-          <button onClick={share} disabled={sharing} className="w-full py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover disabled:opacity-50 text-white text-sm font-medium flex items-center justify-center gap-2">
+          <button onClick={share} disabled={sharing} className="w-full py-2 rounded-lg bg-cobalt hover:bg-cobalt-hover disabled:opacity-50 text-primary-foreground text-sm font-medium flex items-center justify-center gap-2">
             {sharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
             Generate share link
           </button>

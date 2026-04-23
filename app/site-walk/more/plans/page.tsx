@@ -36,7 +36,7 @@ export default async function PlansGatewayPage() {
           <p className="text-sm text-slate-400 mb-3">No sessions yet.</p>
           <Link
             href="/site-walk/walks"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cobalt hover:bg-cobalt-hover text-white text-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cobalt hover:bg-cobalt-hover text-primary-foreground text-sm"
           >
             <Plus className="h-4 w-4" /> Start a walk
           </Link>

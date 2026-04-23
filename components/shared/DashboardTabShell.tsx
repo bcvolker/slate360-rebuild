@@ -42,7 +42,7 @@ export default function DashboardTabShell({
   const isLocked = !isTrial && requiredTier ? !tierMeetsRequirement(tier, requiredTier) : false;
 
   return (
-    <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden">
 
       {/* MAIN — chrome is provided by AppShell; we only paint page content */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden space-y-6">
@@ -58,7 +58,7 @@ export default function DashboardTabShell({
             </div>
           )}
           <div className="flex items-center flex-wrap gap-2">
-            <h1 className="text-xl font-bold text-white sm:text-2xl">{title}</h1>
+            <h1 className="text-xl font-bold text-foreground sm:text-2xl">{title}</h1>
             {status === "under-development" && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-900/30 text-amber-400 border border-amber-700/50">
                 Under Development

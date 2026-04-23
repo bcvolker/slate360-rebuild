@@ -106,12 +106,12 @@ export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoP
           }}
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0 bg-black/60">
-            <span className="text-sm text-white/80 truncate">{label ?? "Demo"}</span>
+            <span className="text-sm text-foreground/80 truncate">{label ?? "Demo"}</span>
             <button
               type="button"
               onClick={() => setExpanded(false)}
               aria-label="Close expanded viewer"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-foreground border border-white/20 transition-colors"
             >
               <X className="h-6 w-6" />
             </button>

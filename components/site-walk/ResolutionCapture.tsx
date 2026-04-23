@@ -131,7 +131,7 @@ export default function ResolutionCapture({
       <div className="flex items-center gap-3 mb-3">
         {/* BEFORE */}
         <div className="flex-1 rounded-lg overflow-hidden border border-white/10 relative bg-black">
-          <span className="absolute top-2 left-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-sm">
+          <span className="absolute top-2 left-2 bg-black/70 text-foreground text-[10px] px-2 py-0.5 rounded backdrop-blur-sm">
             BEFORE
           </span>
           {/* eslint-disable-next-line @next/next/no-img-element */}

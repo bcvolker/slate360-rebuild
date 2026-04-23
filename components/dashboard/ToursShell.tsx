@@ -25,7 +25,7 @@ export default function ToursShell({ user, tier, isCeo, internalAccess }: Props)
       requiredTier="standard"
     >
       <div className="rounded-2xl border border-app bg-app-card px-6 py-10 text-center">
-        <p className="text-sm font-semibold text-white mb-1">Coming Soon</p>
+        <p className="text-sm font-semibold text-foreground mb-1">Coming Soon</p>
         <p className="text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
           360 Tour Builder — panoramic capture, floor plan hotspot mapping, and
           interactive virtual walkthroughs — is planned for a future development phase.

@@ -60,14 +60,14 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
   };
 
   const sidebarContent = (
-    <div className="flex flex-col bg-zinc-950 border-r border-app">
+    <div className="flex flex-col bg-header text-header border-r border-header">
       {/* Logo + Close */}
       <div className="flex h-14 items-center justify-between px-4 border-b border-app">
         <Link href="/dashboard" className="flex items-center">
           <SlateLogo className="h-6 w-auto" />
         </Link>
         {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-zinc-400 hover:text-white hover:bg-white/[0.04] h-8 w-8">
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-zinc-400 hover:text-foreground hover:bg-white/[0.04] h-8 w-8">
             <X className="h-4 w-4" />
           </Button>
         )}
@@ -91,7 +91,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
               placeholder="Search projects, clients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 text-sm bg-app-card border-app text-white placeholder:text-zinc-500 focus-visible:ring-primary/50"
+              className="h-8 text-sm bg-app-card border-app text-foreground placeholder:text-zinc-500 focus-visible:ring-primary/50"
               autoFocus
             />
           </div>
@@ -153,7 +153,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 w-64 bg-zinc-950 transition-transform duration-300",
+        "fixed left-0 top-0 z-40 w-64 bg-header transition-transform duration-300",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}
     >

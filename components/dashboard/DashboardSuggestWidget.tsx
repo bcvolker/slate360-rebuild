@@ -88,7 +88,7 @@ export default function DashboardSuggestWidget({
           <button
             onClick={onSubmit}
             disabled={suggestLoading || !suggestTitle.trim() || !suggestDesc.trim()}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50"
             style={{ backgroundColor: "#3B82F6" }}
           >
             {suggestLoading ? (

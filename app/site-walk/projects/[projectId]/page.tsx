@@ -100,7 +100,7 @@ export default async function ProjectSiteWalkDashboard({ params }: { params: Pro
             <input type="hidden" name="project_id" value={projectId} />
             <Link
               href={`/site-walk/walks?projectId=${projectId}&new=1`}
-              className="inline-flex items-center gap-2 bg-cobalt hover:bg-cobalt/90 text-white text-sm font-medium px-3 py-2 rounded-md"
+              className="inline-flex items-center gap-2 bg-cobalt hover:bg-cobalt/90 text-primary-foreground text-sm font-medium px-3 py-2 rounded-md"
             >
               <Camera className="w-4 h-4" /> Start Walk
             </Link>

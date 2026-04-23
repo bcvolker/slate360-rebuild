@@ -123,11 +123,11 @@ export default function ProjectPhotosPage() {
 			<div className="flex flex-wrap items-end justify-between gap-3">
 				<div>
 					<p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Photos</p>
-					<h2 className="text-lg font-black text-white">Photo Log</h2>
+					<h2 className="text-lg font-black text-foreground">Photo Log</h2>
 					<p className="mt-0.5 inline-block rounded-md bg-[#3B82F6]/10 px-2 py-0.5 text-[10px] font-semibold text-[#3B82F6] ring-1 ring-[#3B82F6]/20">Saved to /Photos/</p>
 				</div>
 				<button onClick={onGenerateReport} disabled={generating}
-					className="inline-flex items-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1D4ED8] disabled:opacity-60">
+					className="inline-flex items-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-[#1D4ED8] disabled:opacity-60">
 					{generating ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
 					{generating ? "Generating..." : "Generate Photo Report"}
 				</button>
@@ -147,17 +147,17 @@ export default function ProjectPhotosPage() {
 			)}
 
 			{loading ? (
-				<div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 text-sm text-zinc-400">
+				<div className="rounded-2xl border border-zinc-800 bg-card p-8 text-sm text-zinc-400">
 					<Loader2 size={16} className="mr-2 inline animate-spin" /> Loading photos...
 				</div>
 			) : files.length === 0 ? (
-				<div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900 p-12 text-center">
+				<div className="rounded-2xl border border-dashed border-zinc-700 bg-card p-12 text-center">
 					<Camera size={40} className="mx-auto mb-3 text-zinc-600" />
 					<p className="text-sm font-semibold text-zinc-300">No photos uploaded yet</p>
 					<p className="mt-1 text-xs text-zinc-500">Upload images to your project&apos;s &quot;Photos&quot; folder in SlateDrop</p>
 				</div>
 			) : filteredFiles.length === 0 ? (
-				<div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900 p-8 text-center text-sm text-zinc-400">No photos match your search or filter.</div>
+				<div className="rounded-2xl border border-dashed border-zinc-700 bg-card p-8 text-center text-sm text-zinc-400">No photos match your search or filter.</div>
 			) : viewMode === "list" ? (
 				<PhotosListView files={filteredFiles} urlMap={urlMap} selectedIds={selectedIds} toggleSelect={toggleSelect} selectAll={selectAll} clearSelection={clearSelection} onOpenLightbox={setLightboxIndex} />
 			) : (

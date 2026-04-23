@@ -115,7 +115,7 @@ export default function SlateDropFileArea({
           <div className="flex items-center gap-2 shrink-0">
             <Link
               href={`/projects/${projectBanner.id}`}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#3B82F6] text-white text-xs font-bold hover:bg-[#1D4ED8] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#3B82F6] text-foreground text-xs font-bold hover:bg-[#1D4ED8] transition-colors"
             >
               Open Project
             </Link>
@@ -275,7 +275,7 @@ export default function SlateDropFileArea({
           </p>
           <button
             onClick={onUploadClick}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-semibold text-foreground transition-all hover:opacity-90"
             style={{ backgroundColor: "#3B82F6" }}
           >
             <Upload size={13} /> Upload files

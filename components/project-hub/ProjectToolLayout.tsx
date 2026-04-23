@@ -45,7 +45,7 @@ export default function ProjectToolLayout({
   const resolvedBackHref = backHref ?? `/project-hub/${projectId}`;
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-background">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Breadcrumb / back nav */}
         <div className="mb-5">
