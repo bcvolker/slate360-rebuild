@@ -66,7 +66,7 @@ export function MobileInstallStrip() {
   };
 
   return (
-    <div className="lg:hidden fixed top-14 left-0 right-0 z-20 bg-cobalt/15 border-b border-cobalt/30 backdrop-blur-md">
+    <div className="lg:hidden bg-cobalt/15 border-b border-cobalt/30 backdrop-blur-md">
       <div className="flex items-center gap-2 px-3 py-2">
         <button
           type="button"

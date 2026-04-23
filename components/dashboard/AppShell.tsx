@@ -143,15 +143,15 @@ export function AppShell({
         </div>
 
         <MobileTopBar userName={userName} isBetaEligible={isBetaEligible} />
-        <MobileInstallStrip />
 
         <main
           className={cn(
-            "w-full min-w-0 overflow-x-hidden pt-[6.25rem] pb-[88px] transition-all duration-300",
+            "w-full min-w-0 overflow-x-hidden pt-14 pb-[88px] transition-all duration-300",
             "lg:pt-16 lg:pb-0",
             sidebarOpen ? "lg:pl-64" : "lg:pl-0"
           )}
         >
+          <MobileInstallStrip />
           {children}
         </main>
 

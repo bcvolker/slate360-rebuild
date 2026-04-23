@@ -21,6 +21,7 @@ export default async function SlateDropPage() {
         email: user.email ?? "",
       }}
       tier={tier}
+      embedded
     />
   );
 }
