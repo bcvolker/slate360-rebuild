@@ -28,14 +28,21 @@ import {
   type DraftItem,
   type DraftTab,
 } from "@/lib/site-walk/draft-store";
-import { useSiteWalkRealtime } from "@/lib/hooks/useSiteWalkRealtime";
+import { useSiteWalkRealtime, type SiteWalkRealtimeApi } from "@/lib/hooks/useSiteWalkRealtime";
 import {
   useSiteWalkOfflineSync,
   type SubmitItemPayload,
   type SubmitItemResult,
+  type SubmitMutationPayload,
 } from "@/lib/hooks/useSiteWalkOfflineSync";
 
-export type { DraftItem, DraftTab, SubmitItemPayload, SubmitItemResult };
+export type {
+  DraftItem,
+  DraftTab,
+  SubmitItemPayload,
+  SubmitItemResult,
+  SubmitMutationPayload,
+};
 
 export interface CapturedItem {
   id: string;
@@ -64,7 +71,9 @@ export interface SiteWalkSessionApi {
   endSync: () => void;
   setPendingUploadCount: (n: number) => void;
   submitItem: (payload: SubmitItemPayload) => Promise<SubmitItemResult>;
+  submitMutation: (payload: SubmitMutationPayload) => Promise<SubmitItemResult>;
   syncOfflineItems: () => Promise<number>;
+  realtime: SiteWalkRealtimeApi;
 }
 
 const SiteWalkSessionContext = createContext<
@@ -112,6 +121,7 @@ export function SiteWalkSessionProvider({
     endSync,
     setPendingUploadCount,
     submitItem,
+    submitMutation,
     syncOfflineItems,
   } = useSiteWalkOfflineSync();
 
@@ -189,8 +199,9 @@ export function SiteWalkSessionProvider({
   }, [sessionId]);
 
   // Realtime: optimistically reconcile capturedItems with INSERT/UPDATE/
-  // DELETE events from any other connected user.
-  useSiteWalkRealtime<RealtimeItemRow>(sessionId, {
+  // DELETE events from any other connected user. Also exposes ephemeral
+  // broadcast channel (cursor + pin drag) on the returned API.
+  const realtime = useSiteWalkRealtime<RealtimeItemRow>(sessionId, {
     onItemInsert: (row) => {
       const item = realtimeRowToCapturedItem(row);
       if (item) addCapturedItem(item);
@@ -224,7 +235,9 @@ export function SiteWalkSessionProvider({
       endSync,
       setPendingUploadCount,
       submitItem,
+      submitMutation,
       syncOfflineItems,
+      realtime,
     }),
     [
       sessionId,
@@ -242,7 +255,9 @@ export function SiteWalkSessionProvider({
       endSync,
       setPendingUploadCount,
       submitItem,
+      submitMutation,
       syncOfflineItems,
+      realtime,
     ],
   );
 

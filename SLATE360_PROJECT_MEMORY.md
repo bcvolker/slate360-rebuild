@@ -197,6 +197,34 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-23 (Canvas UX-Perf Patches: Broadcast, Offline PATCH, Undo/Redo, Strict Realtime Types)
+
+#### What Changed
+- `lib/hooks/useSiteWalkRealtime.ts` (rewrite, 201 lines)
+  - Replaced `"postgres_changes" as never` cast with strictly typed `RealtimePostgresChangesFilter<...ALL>` filters via `REALTIME_LISTEN_TYPES.POSTGRES_CHANGES` + `REALTIME_POSTGRES_CHANGES_LISTEN_EVENT.ALL`. No casts.
+  - Added Supabase **Broadcast** transport on the same channel: events `cursor:move` and `pin:drag`. Hook now returns `{ sendCursorMove, sendPinDrag }` so canvas can push ephemeral X/Y deltas without DB writes.
+  - Added `onCursorMove` / `onPinDrag` handlers for ghost rendering.
+  - Channel held in `useRef`; handlers held in `handlersRef` so callers may pass inline callbacks without resubscribing.
+- `lib/hooks/useSiteWalkOfflineSync.ts` — new generic `submitMutation({url, method, body})` (POST/PATCH/DELETE). `submitItem` delegates. PATCH calls (pin moves, markup edits) now seamlessly fall back to offline queue.
+- `lib/site-walk/pin-mutations.ts` (NEW, 65 lines) — `patchPinPosition`, `patchPinMarkup`, `patchPin`. Canvas uses these on dragEnd / shape commit.
+- `components/site-walk/canvas/useUndoRedo.ts` (NEW, 125 lines) — generic `<T>` history stack: `state`, `commitState`, `replaceState`, `undo`, `redo`, `canUndo`, `canRedo`, `reset`. Capped at 100 snapshots. Designed for `MarkupData` but reusable.
+- `components/site-walk/SiteWalkSessionProvider.tsx` — context now exposes `realtime: SiteWalkRealtimeApi` and `submitMutation`.
+
+#### What's Broken / Partially Done
+- Nothing broken. UI canvas component (Konva/Fabric) is the next logical build — all required hooks now exist.
+- Operator action still pending: apply migrations `20260421000001_brand_and_report_defaults.sql` and `20260423000002_canvas_markup_realtime.sql` to live Supabase.
+
+#### Context Files Updated
+- `/memories/repo/canvas-foundation.md`: added "Phase 10 add-ons" section.
+
+#### Next Steps (ordered)
+1. Pick canvas library (recommend **Konva.js** + `react-konva`).
+2. Build `components/site-walk/canvas/PlanCanvas.tsx` consuming `usePlanViewer`, `useSiteWalkSession().realtime`, `useUndoRedo<MarkupData>(EMPTY_MARKUP)`.
+3. On pin drag: call `realtime.sendPinDrag({...})` per `requestAnimationFrame`; on dragEnd call `patchPinPosition(submitMutation, …)`.
+4. Render remote ghost pins via `onPinDrag` handler.
+5. Wire PDF.js for the multi-page base layer.
+6. Bind `⌘Z` / `⌘⇧Z` to `useUndoRedo` API.
+
 ### Session Handoff — 2026-04-23 (Site Walk Canvas Foundation: Realtime + Markup + PlanViewer + Pin API)
 
 #### What Changed

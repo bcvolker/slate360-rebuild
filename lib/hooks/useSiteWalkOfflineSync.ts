@@ -17,6 +17,14 @@ export interface SubmitItemPayload {
   body: Record<string, unknown>;
 }
 
+export type OfflineMutationMethod = "POST" | "PATCH" | "DELETE";
+
+export interface SubmitMutationPayload {
+  url: string;
+  method: OfflineMutationMethod;
+  body?: Record<string, unknown>;
+}
+
 export interface SubmitItemResult {
   ok: boolean;
   queued: boolean;
@@ -32,6 +40,12 @@ export interface SiteWalkOfflineSyncApi {
   endSync: () => void;
   setPendingUploadCount: (n: number) => void;
   submitItem: (payload: SubmitItemPayload) => Promise<SubmitItemResult>;
+  /**
+   * Generic mutation submitter — used for any non-create call that should
+   * fall back to the offline queue (e.g. PATCH /api/site-walk/pins/[id]).
+   * Network-first, queue on 5xx / network throw / `!navigator.onLine`.
+   */
+  submitMutation: (payload: SubmitMutationPayload) => Promise<SubmitItemResult>;
   syncOfflineItems: () => Promise<number>;
 }
 
@@ -67,17 +81,18 @@ export function useSiteWalkOfflineSync(): SiteWalkOfflineSyncApi {
     }
   }, []);
 
-  const submitItem = useCallback(
-    async (payload: SubmitItemPayload): Promise<SubmitItemResult> => {
-      const { url, body } = payload;
+  const submitMutation = useCallback(
+    async (payload: SubmitMutationPayload): Promise<SubmitItemResult> => {
+      const { url, method, body } = payload;
+      const serialised = body ? JSON.stringify(body) : "";
       const offline = typeof navigator !== "undefined" && !navigator.onLine;
 
       if (!offline) {
         try {
           const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
+            method,
+            headers: body ? { "Content-Type": "application/json" } : undefined,
+            body: method === "DELETE" ? undefined : serialised || undefined,
           });
           if (res.ok) return { ok: true, queued: false, status: res.status };
           if (res.status >= 400 && res.status < 500) {
@@ -91,7 +106,7 @@ export function useSiteWalkOfflineSync(): SiteWalkOfflineSyncApi {
       }
 
       try {
-        await enqueue({ url, method: "POST", body: JSON.stringify(body) });
+        await enqueue({ url, method, body: serialised });
         const remaining = await pendingCount();
         setPendingUploadCountState(remaining);
         return { ok: true, queued: true };
@@ -104,6 +119,12 @@ export function useSiteWalkOfflineSync(): SiteWalkOfflineSyncApi {
       }
     },
     [],
+  );
+
+  const submitItem = useCallback(
+    (payload: SubmitItemPayload): Promise<SubmitItemResult> =>
+      submitMutation({ url: payload.url, method: "POST", body: payload.body }),
+    [submitMutation],
   );
 
   useEffect(() => {
@@ -129,6 +150,7 @@ export function useSiteWalkOfflineSync(): SiteWalkOfflineSyncApi {
     endSync,
     setPendingUploadCount,
     submitItem,
+    submitMutation,
     syncOfflineItems,
   };
 }
