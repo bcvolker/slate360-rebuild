@@ -35,7 +35,7 @@ export default function ModelViewerClient({
   const defaultStyle: React.CSSProperties = {
     width: "100%",
     height: "100%",
-    background: "transparent",
+    background: "#0B0F15",
     display: "block",
   };
 

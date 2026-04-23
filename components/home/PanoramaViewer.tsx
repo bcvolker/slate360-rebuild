@@ -32,8 +32,8 @@ export default function PanoramaViewer({ src, caption }: PanoramaViewerProps) {
   }, [src]);
 
   return (
-    <div className="relative w-full h-full">
-      <div ref={containerRef} className="w-full h-full rounded-lg overflow-hidden" />
+    <div className="relative w-full h-full bg-[#0B0F15]">
+      <div ref={containerRef} className="w-full h-full rounded-lg overflow-hidden bg-[#0B0F15]" />
       {caption && (
         <p className="absolute bottom-3 left-1/2 -translate-x-1/2 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full">
           {caption}

@@ -99,24 +99,30 @@
 
 :root {
   --radius: 1rem;
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* ── shadcn canonical surface + text ───────────────────────── */
-  --background: #0B0F15;
-  --foreground: #F8FAFC;
-  --card: #151A23;
-  --card-foreground: #F8FAFC;
-  --popover: #151A23;
-  --popover-foreground: #F8FAFC;
-  --secondary: #1e2533;
-  --secondary-foreground: #F8FAFC;
-  --muted: #1e2533;
-  --muted-foreground: #CBD5E1;
-  --accent: #1e2533;
-  --accent-foreground: #F8FAFC;
-  --destructive: #F87171;
-  --border: rgba(255, 255, 255, 0.14);
-  --input: rgba(255, 255, 255, 0.16);
+  /* ── shadcn canonical surface + text (PREMIUM LIGHT 2026-04-23) ──
+     Inner-app pages, cards, popovers, and authenticated dashboards now
+     render against this light palette by default. Surfaces that must
+     stay dark (sidebar, topbar, marketing/auth header chrome) consume
+     the isolated --header-* tokens defined below — they are NOT affected
+     by this flip. To opt a subtree back into the dark palette, wrap it
+     in `<div class="dark">…</div>` and the .dark block below will apply. */
+  --background: #F8FAFC;            /* slate-50 */
+  --foreground: #0F172A;            /* slate-900 — high-contrast body text */
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --secondary: #F1F5F9;             /* slate-100 */
+  --secondary-foreground: #0F172A;
+  --muted: #F1F5F9;                 /* slate-100 */
+  --muted-foreground: #475569;      /* slate-600 */
+  --accent: #F1F5F9;
+  --accent-foreground: #0F172A;
+  --destructive: #DC2626;           /* red-600 */
+  --border: #E2E8F0;                /* slate-200 */
+  --input: #E2E8F0;
 
   /* ── Brand (white-label override via --brand-primary on <body>) ── */
   --primary: var(--brand-primary, #3B82F6);
@@ -178,11 +184,32 @@
   --module-slatedrop: #3B82F6;
 }
 
-/* When a future light theme is added, redefine all of the above under
-   :root and use this .dark block to override. App currently always sets
-   <html class="dark">, so this block is intentionally empty for now. */
+/* Dark-palette opt-in. The premium light tokens above are the default
+   for the entire app (marketing, auth, authenticated dashboards, etc).
+   Anything that wants the legacy dark shadcn surface — interactive 3D
+   viewers, fullscreen media shells, dashboards opted-in to night mode,
+   etc — should wrap in `<div class="dark">…</div>` and these values
+   will override.
+   NOTE: the --header-* tokens are intentionally NOT redefined here —
+   they live in :root only, are permanently dark, and stay consistent
+   across both light and dark surfaces. */
 .dark {
-  /* intentionally empty — :root values above are the dark palette. */
+  color-scheme: dark;
+  --background: #0B0F15;
+  --foreground: #F8FAFC;
+  --card: #151A23;
+  --card-foreground: #F8FAFC;
+  --popover: #151A23;
+  --popover-foreground: #F8FAFC;
+  --secondary: #1E2533;
+  --secondary-foreground: #F8FAFC;
+  --muted: #1E2533;
+  --muted-foreground: #CBD5E1;
+  --accent: #1E2533;
+  --accent-foreground: #F8FAFC;
+  --destructive: #F87171;
+  --border: rgba(255, 255, 255, 0.14);
+  --input: rgba(255, 255, 255, 0.16);
 }
 
 @layer base {
@@ -440,7 +467,7 @@
 .auth-input:focus { border-color: var(--color-cobalt); }
 
 @utility auth-label {
-  @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-slate-500;
+  @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-slate-700;
 }
 
 @utility auth-btn-primary {
