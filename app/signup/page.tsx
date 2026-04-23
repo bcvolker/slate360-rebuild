@@ -129,7 +129,7 @@ export default function SignupPage() {
     <div className="auth-page">
       <div className="auth-topbar">
         <Link href="/"><SlateLogo /></Link>
-        <Link href="/login" className="text-sm text-muted-foreground auth-link">
+        <Link href="/login" className="text-sm text-slate-300 hover:text-white">
           Have an account? <span className="font-semibold text-primary">Sign in</span>
         </Link>
       </div>
@@ -137,11 +137,11 @@ export default function SignupPage() {
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="auth-card">
           <div className="mb-8">
-            <h1 className="text-2xl font-black mb-1 text-foreground">Start your free trial</h1>
-            <p className="text-sm text-muted-foreground">No credit card required. All modules included.</p>
+            <h1 className="text-2xl font-black mb-1 text-slate-900">Start your free trial</h1>
+            <p className="text-sm text-slate-600">No credit card required. All modules included.</p>
             {selectedPlan && (
-              <p className="text-xs text-muted-foreground mt-2">
-                Plan selected: <span className="font-semibold text-foreground capitalize">{selectedPlan}</span> · {selectedBilling}
+              <p className="text-xs text-slate-600 mt-2">
+                Plan selected: <span className="font-semibold text-slate-900 capitalize">{selectedPlan}</span> · {selectedBilling}
               </p>
             )}
           </div>
@@ -187,7 +187,7 @@ export default function SignupPage() {
                 <input type={showPass ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters"
                   minLength={8}
                   className="auth-input pr-11" />
-                <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900">
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -195,9 +195,9 @@ export default function SignupPage() {
 
             {/* Optional demographic fields — helps tailor your experience */}
             <details className="group rounded-xl border border-input bg-card/40 px-4 py-3">
-              <summary className="flex items-center justify-between cursor-pointer text-xs font-semibold text-muted-foreground hover:text-foreground">
-                <span>Tell us about your work <span className="text-muted-foreground/60 font-normal">(optional)</span></span>
-                <span className="text-muted-foreground/60 group-open:rotate-180 transition-transform">▾</span>
+              <summary className="flex items-center justify-between cursor-pointer text-xs font-semibold text-slate-500 hover:text-slate-900">
+                <span>Tell us about your work <span className="text-slate-500 font-normal">(optional)</span></span>
+                <span className="text-slate-500 group-open:rotate-180 transition-transform">▾</span>
               </summary>
               <div className="mt-4 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -258,7 +258,7 @@ export default function SignupPage() {
                     readOnly={referredByLocked}
                     className={`auth-input uppercase ${referredByLocked ? "opacity-70 cursor-not-allowed" : ""}`}
                   />
-                  <p className="text-[11px] text-muted-foreground mt-1">
+                  <p className="text-[11px] text-slate-600 mt-1">
                     Both you and your referrer earn rewards once your subscription clears.
                   </p>
                 </div>
@@ -268,18 +268,18 @@ export default function SignupPage() {
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" required checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)}
                   className="mt-0.5 h-4 w-4 rounded border-input accent-primary cursor-pointer" />
-                <span className="text-xs text-muted-foreground leading-relaxed">
+                <span className="text-xs text-slate-600 leading-relaxed">
                   I agree to the{" "}
-                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground underline hover:text-primary">Terms of Service</Link>{" "}
+                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-900 underline hover:text-cobalt">Terms of Service</Link>{" "}
                   <span className="text-destructive font-bold">*</span>
                 </span>
               </label>
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" required checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)}
                   className="mt-0.5 h-4 w-4 rounded border-input accent-primary cursor-pointer" />
-                <span className="text-xs text-muted-foreground leading-relaxed">
+                <span className="text-xs text-slate-600 leading-relaxed">
                   I agree to the{" "}
-                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground underline hover:text-primary">Privacy Policy</Link>{" "}
+                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-900 underline hover:text-cobalt">Privacy Policy</Link>{" "}
                   and consent to receiving product updates{" "}
                   <span className="text-destructive font-bold">*</span>
                 </span>

@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
         <Link href="/">
           <SlateLogo />
         </Link>
-        <Link href="/login" className="text-sm text-muted-foreground auth-link">
+        <Link href="/login" className="text-sm text-slate-300 hover:text-white">
           Back to <span className="font-semibold text-primary">Sign in</span>
         </Link>
       </div>
@@ -48,11 +48,11 @@ export default function ForgotPasswordPage() {
           {done ? (
             <div className="text-center">
               <CheckCircle2 size={48} className="mx-auto mb-4 text-primary" />
-              <h2 className="text-2xl font-black mb-2 text-foreground">Check your email</h2>
-              <p className="text-muted-foreground mb-6">
-                We sent a password reset link to <strong className="text-foreground">{email}</strong>. Click the link to set a new password.
+              <h2 className="text-2xl font-black mb-2 text-slate-900">Check your email</h2>
+              <p className="text-slate-600 mb-6">
+                We sent a password reset link to <strong className="text-slate-900">{email}</strong>. Click the link to set a new password.
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-slate-600">
                 Didn&apos;t get it? Check your spam folder, or{" "}
                 <button onClick={() => setDone(false)} className="text-primary underline">try again</button>.
               </p>
@@ -60,8 +60,8 @@ export default function ForgotPasswordPage() {
           ) : (
             <>
               <div className="mb-8">
-                <h1 className="text-2xl font-black mb-1 text-foreground">Reset your password</h1>
-                <p className="text-sm text-muted-foreground">Enter your email and we&apos;ll send you a reset link.</p>
+                <h1 className="text-2xl font-black mb-1 text-slate-900">Reset your password</h1>
+                <p className="text-sm text-slate-600">Enter your email and we&apos;ll send you a reset link.</p>
               </div>
 
               {error && <div className="auth-error">{error}</div>}
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
                 </button>
               </form>
 
-              <p className="text-xs text-center text-muted-foreground mt-6">
+              <p className="text-xs text-center text-slate-600 mt-6">
                 Remember your password?{" "}
                 <Link href="/login" className="text-primary underline">Sign in</Link>
               </p>

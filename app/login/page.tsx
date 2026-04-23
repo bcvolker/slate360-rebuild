@@ -64,8 +64,8 @@ function LoginForm() {
         <Link href="/" className="flex items-center gap-2">
           <SlateLogo />
         </Link>
-        <Link href="/signup" className="text-sm text-muted-foreground auth-link">
-          No account? <span className="font-semibold text-primary">Sign up free</span>
+        <Link href="/signup" className="text-sm text-slate-300 hover:text-white">
+          No account? <span className="font-semibold text-cobalt">Sign up free</span>
         </Link>
       </div>
 
@@ -73,8 +73,8 @@ function LoginForm() {
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="auth-card">
           <div className="mb-8">
-            <h1 className="text-2xl font-black text-foreground mb-1">Welcome back</h1>
-            <p className="text-sm text-muted-foreground">Sign in to your Slate360 account</p>
+            <h1 className="text-2xl font-black text-slate-900 mb-1">Welcome back</h1>
+            <p className="text-sm text-slate-600">Sign in to your Slate360 account</p>
           </div>
 
           {/* OAuth */}
@@ -131,12 +131,12 @@ function LoginForm() {
                   placeholder="••••••••"
                   className="auth-input pr-11"
                 />
-                <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900">
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
               <div className="text-right mt-1.5">
-                <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary transition-colors">Forgot password?</Link>
+                <Link href="/forgot-password" className="text-xs text-slate-600 hover:text-cobalt transition-colors">Forgot password?</Link>
               </div>
             </div>
             <button
@@ -147,9 +147,9 @@ function LoginForm() {
             </button>
           </form>
 
-          <p className="text-center text-xs text-muted-foreground mt-6">
+          <p className="text-center text-xs text-slate-600 mt-6">
             No account?{" "}
-            <Link href="/signup" className="font-semibold text-primary hover:underline">Start a free trial</Link>
+            <Link href="/signup" className="font-semibold text-cobalt hover:underline">Start a free trial</Link>
           </p>
         </div>
       </div>

@@ -37,7 +37,7 @@ export function DashboardTopBar({
   return (
     <header
       className={cn(
-        "fixed top-0 right-0 left-0 z-30 h-16 bg-header-glass border-b border-header transition-all duration-300",
+        "dark fixed top-0 right-0 left-0 z-30 h-16 bg-[#0B0F15]/95 backdrop-blur-xl border-b border-white/10 text-white transition-all duration-300",
         isSidebarOpen ? "lg:left-64" : "lg:left-0"
       )}
     >
@@ -51,12 +51,12 @@ export function DashboardTopBar({
           )}
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center h-10 w-10 rounded-xl bg-header-hover hover:bg-cobalt-soft border border-header hover:border-cobalt text-header-muted hover:text-cobalt-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+            className="flex items-center justify-center h-10 w-10 rounded-xl bg-white/5 hover:bg-cobalt/20 border border-white/10 hover:border-cobalt text-slate-300 hover:text-white transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
             aria-label="Toggle menu"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <BackButton className="h-10 w-10 rounded-xl bg-header-hover hover:bg-cobalt-soft border border-header hover:border-cobalt text-header-muted hover:text-cobalt-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg" />
+          <BackButton className="h-10 w-10 rounded-xl bg-white/5 hover:bg-cobalt/20 border border-white/10 hover:border-cobalt text-slate-300 hover:text-white transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]" />
         </div>
 
         <div className="flex-1" />
@@ -71,7 +71,7 @@ export function DashboardTopBar({
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative hover:bg-cobalt-soft hover:text-cobalt-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+                className="relative text-slate-300 hover:bg-white/5 hover:text-white transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
                 asChild
               >
                 <a href="/my-account?tab=notifications">
@@ -80,7 +80,7 @@ export function DashboardTopBar({
                 </a>
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-glass border-glass">
+            <TooltipContent>
               <p>Notifications</p>
             </TooltipContent>
           </Tooltip>
@@ -89,25 +89,25 @@ export function DashboardTopBar({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar className="h-9 w-9 border-2 border-primary/30">
-                  <AvatarFallback className="bg-primary/20 text-primary">
+                <Avatar className="h-9 w-9 border-2 border-cobalt/40">
+                  <AvatarFallback className="bg-cobalt/20 text-cobalt">
                     {userName ? userName.charAt(0).toUpperCase() : "U"}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-glass border-glass">
-              <DropdownMenuLabel className="text-header">{userName || "My Account"}</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-border/50" />
-              <DropdownMenuItem asChild className="hover:bg-cobalt-soft hover:text-cobalt-hover cursor-pointer">
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>{userName || "My Account"}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild className="cursor-pointer">
                 <a href="/my-account">My Account</a>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="hover:bg-cobalt-soft hover:text-cobalt-hover cursor-pointer">
+              <DropdownMenuItem asChild className="cursor-pointer">
                 <a href="/my-account?tab=billing">Billing &amp; Payments</a>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-border/50" />
+              <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+                className="text-destructive focus:text-destructive cursor-pointer"
                 onClick={() => {
                   import("@/lib/supabase/client").then(({ createClient }) => {
                     const supabase = createClient();

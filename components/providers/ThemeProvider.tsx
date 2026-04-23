@@ -16,8 +16,8 @@ interface ThemeContextValue {
 }
 
 const defaultContext: ThemeContextValue = {
-  theme: "dark",
-  resolvedTheme: "dark",
+  theme: "light",
+  resolvedTheme: "light",
   setTheme: () => {},
 };
 
@@ -36,17 +36,17 @@ export function useTheme() {
 }
 
 function getSystemTheme(): "light" | "dark" {
-  if (typeof window === "undefined") return "dark";
+  if (typeof window === "undefined") return "light";
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("dark");
+  const [theme, setThemeState] = useState<Theme>("light");
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
 
   // Read saved preference on mount
   useEffect(() => {
-    const saved = (localStorage.getItem("slate360-theme") ?? "dark") as Theme;
+    const saved = (localStorage.getItem("slate360-theme") ?? "light") as Theme;
     setThemeState(saved);
   }, []);
 
@@ -92,7 +92,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
  * Must be rendered server-side from app/layout.tsx.
  */
 export function ThemeScript() {
-  const script = `(function(){try{var t=localStorage.getItem('slate360-theme')||'dark';var r=t==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.classList.add(r);}catch(e){}})();`;
+  // Brute-force light: clear any stale 'dark' value persisted from prior
+  // builds so the global premium-light flip actually takes effect on first
+  // paint. Users who explicitly opt back into dark via setTheme() will
+  // re-persist 'dark' and that value will survive subsequent loads.
+  const script = `(function(){try{var s=localStorage.getItem('slate360-theme');if(s==='dark'){localStorage.removeItem('slate360-theme');s=null;}var t=s||'light';var r=t==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(r);}catch(e){}})();`;
   return <script dangerouslySetInnerHTML={{ __html: script }} />;
 }
 
@@ -103,7 +107,7 @@ export function ThemeScript() {
 export function ThemeApplier() {
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("slate360-theme") ?? "dark";
+      const saved = localStorage.getItem("slate360-theme") ?? "light";
       const resolved = saved === "system"
         ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
         : saved;

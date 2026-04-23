@@ -60,14 +60,14 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
   };
 
   const sidebarContent = (
-    <div className="flex flex-col bg-header text-header border-r border-header">
+    <div className="dark flex flex-col bg-[#0B0F15] text-white border-r border-white/10 h-full">
       {/* Logo + Close */}
-      <div className="flex h-14 items-center justify-between px-4 border-b border-header">
+      <div className="flex h-14 items-center justify-between px-4 border-b border-white/10">
         <Link href="/dashboard" className="flex items-center">
           <SlateLogo className="h-6 w-auto" />
         </Link>
         {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-header-muted hover:text-header hover:bg-header-hover h-8 w-8 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg">
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-slate-300 hover:text-white hover:bg-white/5 h-8 w-8 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]">
             <X className="h-4 w-4" />
           </Button>
         )}
@@ -78,7 +78,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
         {/* Search */}
         <button
           onClick={() => setSearchExpanded(!searchExpanded)}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-header-muted hover:bg-cobalt-soft hover:text-cobalt-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 hover:bg-cobalt-soft hover:text-cobalt-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
         >
           <Search className="h-4 w-4" />
           Search
@@ -91,7 +91,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
               placeholder="Search projects, clients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 text-sm bg-app-card border-header text-header placeholder:text-header-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+              className="h-8 text-sm bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
               autoFocus
             />
           </div>
@@ -104,7 +104,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
               <span
                 key={item.label}
                 aria-disabled="true"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-header-subtle cursor-not-allowed"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 cursor-not-allowed"
               >
                 <item.icon className="h-4 w-4" />
                 <span className="flex-1">{item.label}</span>
@@ -118,10 +118,10 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]",
                 active
-                  ? "bg-header-active text-header"
-                  : "text-header-muted hover:bg-header-hover hover:text-header",
+                  ? "bg-white/10 text-white"
+                  : "text-slate-300 hover:bg-white/5 hover:text-white",
               )}
             >
               <item.icon className="h-4 w-4" />
@@ -134,7 +134,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
         {hasOperationsConsoleAccess && (
           <a
             href="/operations-console"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-header-muted hover:bg-header-hover hover:text-header transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
           >
             <Shield className="h-4 w-4" />
             Operations Console
@@ -153,7 +153,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 w-64 bg-header transition-transform duration-300",
+        "fixed left-0 top-0 z-40 w-64 h-[100dvh] bg-[#0B0F15] transition-transform duration-300",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}
     >

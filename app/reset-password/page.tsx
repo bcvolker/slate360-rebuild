@@ -55,7 +55,7 @@ export default function ResetPasswordPage() {
         </Link>
         <Link
           href="/login"
-          className="text-sm text-muted-foreground auth-link"
+          className="text-sm text-slate-300 hover:text-white"
         >
           Back to <span className="font-semibold text-primary">Sign in</span>
         </Link>
@@ -66,10 +66,10 @@ export default function ResetPasswordPage() {
           {done ? (
             <div className="text-center">
               <CheckCircle2 size={48} className="mx-auto mb-4 text-primary" />
-              <h2 className="text-2xl font-black mb-2 text-foreground">
+              <h2 className="text-2xl font-black mb-2 text-slate-900">
                 Password updated
               </h2>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-slate-600 mb-6">
                 Your password has been reset successfully.
               </p>
               <button
@@ -82,10 +82,10 @@ export default function ResetPasswordPage() {
           ) : (
             <>
               <div className="mb-8">
-                <h1 className="text-2xl font-black mb-1 text-foreground">
+                <h1 className="text-2xl font-black mb-1 text-slate-900">
                   Set a new password
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-600">
                   Enter your new password below.
                 </p>
               </div>
@@ -107,7 +107,7 @@ export default function ResetPasswordPage() {
                     <button
                       type="button"
                       onClick={() => setShow(!show)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900"
                       aria-label={show ? "Hide password" : "Show password"}
                     >
                       {show ? <EyeOff size={16} /> : <Eye size={16} />}
