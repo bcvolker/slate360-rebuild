@@ -409,9 +409,13 @@
   color-scheme: light;
 }
 
-/* Topbar stays dark + isolated so it matches the marketing/header chrome. */
+/* Topbar stays dark + isolated so it matches the marketing/header chrome.
+   The .dark variant must be applied via the className on the consumer
+   element (e.g. <header class="dark auth-topbar">), not via @apply here —
+   Tailwind v4 treats `dark` as a variant selector, not a utility. */
 @utility auth-topbar {
-  @apply dark flex items-center justify-between px-6 py-4 text-white;
+  @apply flex items-center justify-between px-6 py-4 text-white;
+  color-scheme: dark;
   background-color: var(--header-bg);
   border-bottom: 1px solid var(--header-border);
   backdrop-filter: blur(var(--app-backdrop-blur, 20px));
