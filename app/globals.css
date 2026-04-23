@@ -76,6 +76,9 @@
   --color-header-bg: var(--header-bg);
   --color-header-fg: var(--header-fg);
   --color-header-border: var(--header-border);
+  /* Short alias so `text-header` + `text-header/70` opacity modifier work
+     natively via Tailwind's color system inside dark-isolated shells. */
+  --color-header: var(--header-fg);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

@@ -51,12 +51,12 @@ export function DashboardTopBar({
           )}
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center h-10 w-10 rounded-xl bg-white/[0.04] hover:bg-cobalt-soft border border-app hover:border-cobalt text-zinc-300 hover:text-cobalt-hover transition-all"
+            className="flex items-center justify-center h-10 w-10 rounded-xl bg-white/[0.04] hover:bg-cobalt-soft border border-app hover:border-cobalt text-header/70 hover:text-cobalt-hover transition-all"
             aria-label="Toggle menu"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <BackButton className="h-10 w-10 rounded-xl bg-white/[0.04] hover:bg-cobalt-soft border border-app hover:border-cobalt text-zinc-300 hover:text-cobalt-hover" />
+          <BackButton className="h-10 w-10 rounded-xl bg-white/[0.04] hover:bg-cobalt-soft border border-app hover:border-cobalt text-header/70 hover:text-cobalt-hover" />
         </div>
 
         <div className="flex-1" />
@@ -97,7 +97,7 @@ export function DashboardTopBar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-glass border-glass">
-              <DropdownMenuLabel className="text-foreground">{userName || "My Account"}</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-header">{userName || "My Account"}</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border/50" />
               <DropdownMenuItem asChild className="hover:bg-cobalt-soft hover:text-cobalt-hover cursor-pointer">
                 <a href="/my-account">My Account</a>
