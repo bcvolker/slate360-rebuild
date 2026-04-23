@@ -76,7 +76,7 @@ export function MobileTopBar({
             type="button"
             onClick={onSearchClick}
             aria-label="Search"
-            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header/70 hover:text-cobalt hover:bg-white/5 transition-colors"
+            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors"
           >
             <Search className="h-[18px] w-[18px]" />
           </button>
@@ -86,7 +86,7 @@ export function MobileTopBar({
           <Link
             href="/install"
             aria-label="Download Slate360 to your phone"
-            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header/70 hover:text-cobalt hover:bg-white/5 transition-colors"
+            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors"
           >
             <Download className="h-[18px] w-[18px]" />
           </Link>
@@ -106,7 +106,7 @@ export function MobileTopBar({
           <Link
             href="/my-account?tab=notifications"
             aria-label="Notifications"
-            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header/70 hover:text-cobalt hover:bg-white/5 transition-colors"
+            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors"
           >
             <Bell className="h-[18px] w-[18px]" />
           </Link>

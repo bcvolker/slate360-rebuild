@@ -51,12 +51,12 @@ export function DashboardTopBar({
           )}
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center h-10 w-10 rounded-xl bg-white/[0.04] hover:bg-cobalt-soft border border-app hover:border-cobalt text-header/70 hover:text-cobalt-hover transition-all"
+            className="flex items-center justify-center h-10 w-10 rounded-xl bg-header-hover hover:bg-cobalt-soft border border-header hover:border-cobalt text-header-muted hover:text-cobalt-hover transition-all"
             aria-label="Toggle menu"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <BackButton className="h-10 w-10 rounded-xl bg-white/[0.04] hover:bg-cobalt-soft border border-app hover:border-cobalt text-header/70 hover:text-cobalt-hover" />
+          <BackButton className="h-10 w-10 rounded-xl bg-header-hover hover:bg-cobalt-soft border border-header hover:border-cobalt text-header-muted hover:text-cobalt-hover" />
         </div>
 
         <div className="flex-1" />

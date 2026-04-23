@@ -79,6 +79,12 @@
   /* Short alias so `text-header` + `text-header/70` opacity modifier work
      natively via Tailwind's color system inside dark-isolated shells. */
   --color-header: var(--header-fg);
+  /* Solid text-hierarchy tokens — prefer these over opacity modifiers for
+     crisp font rendering and predictable WCAG contrast. */
+  --color-header-muted: var(--header-fg-muted);
+  --color-header-subtle: var(--header-fg-subtle);
+  /* Subtle hover surface for icon buttons / nav items in dark shells. */
+  --color-header-hover: var(--header-hover);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -135,8 +141,11 @@
 
   /* ── Header isolation (PERMANENTLY DARK — do not retheme) ──── */
   --header-bg: #0B0F15;
-  --header-fg: #F8FAFC;
-  --header-border: rgba(255, 255, 255, 0.10);
+  --header-fg: #F8FAFC;             /* primary white text */
+  --header-fg-muted: #94A3B8;       /* slate-400 — labels, inactive nav, secondary text */
+  --header-fg-subtle: #64748B;      /* slate-500 — placeholders, disabled, captions */
+  --header-border: rgba(255, 255, 255, 0.08);   /* ultra-subtle hairline */
+  --header-hover: rgba(255, 255, 255, 0.05);    /* subtle glass hover surface */
 
   /* ── App-shell skin tokens (consumed by @utility blocks) ───── */
   --app-page: var(--background);
