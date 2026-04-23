@@ -58,6 +58,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 import { SlateLogo } from "@/components/shared/SlateLogo";
+import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
 import { BetaGatedButton } from "@/components/billing/BetaGatedButton";
 import GetTheAppButton from "@/components/home/GetTheAppButton";
 
@@ -289,10 +290,10 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const [appsOpen, setAppsOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-primary/15 bg-glass backdrop-blur-lg">
-      <div className="container mx-auto h-full px-4 flex items-center justify-between">
+    <header className="dark fixed top-0 left-0 right-0 z-50 h-16 border-b border-white/10 bg-[#0B0F15]/85 backdrop-blur-lg text-white">
+      <div className="container mx-auto h-full pl-3 pr-2 sm:px-4 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center -ml-1 sm:ml-0">
           <SlateLogo />
         </Link>
 
@@ -365,15 +366,15 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
         {/* Mobile Menu Trigger */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" className="hover:bg-teal-soft">
-              <Menu className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="text-white hover:text-cobalt hover:bg-white/10">
+              <Menu className="h-6 w-6" />
               <span className="sr-only">Open menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[280px] !h-auto !inset-y-auto !top-0 !right-0 !rounded-bl-2xl border-b border-l border-primary/15 !bg-card/95 backdrop-blur-xl [&>button]:text-foreground">
+          <SheetContent side="right" className="w-[280px] !h-auto !inset-y-auto !top-0 !right-0 !rounded-bl-2xl border-b border-l border-slate-200 !bg-white backdrop-blur-xl [&>button]:text-slate-900">
             <div className="flex flex-col gap-4 py-4 px-5">
-              {/* Logo */}
-              <SlateLogo className="h-6 w-auto self-start" />
+              {/* Logo (cobalt variant for light sheet) */}
+              <SlateLogoOnLight className="h-6 w-auto self-start" />
               <nav className="flex flex-col gap-1">
                 <Link
                   href="#product"

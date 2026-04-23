@@ -62,13 +62,12 @@ export function MobileBottomNav() {
       aria-label="Primary"
       className={cn(
         "lg:hidden fixed bottom-0 left-0 right-0 z-40",
-        "h-[72px] pb-safe",
         "bg-header-glass",
         "border-t border-header"
       )}
-      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", paddingTop: "4px" }}
     >
-      <ul className="flex h-full items-stretch justify-around px-2">
+      <ul className="flex min-h-[64px] items-stretch justify-around px-2">
         {items.map((item) => {
           const Icon = item.icon;
           const active = item.matchPrefixes.some((p) => {
@@ -82,7 +81,7 @@ export function MobileBottomNav() {
               <Link
                 href={item.href}
                 className={cn(
-                  "relative flex flex-col items-center justify-center h-full gap-1 transition-colors duration-200 rounded-lg mx-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg",
+                  "relative flex flex-col items-center justify-center h-full gap-1 py-2 transition-colors duration-200 rounded-lg mx-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg",
                   active
                     ? "bg-header-active text-header"
                     : "text-header-muted hover:text-header hover:bg-header-hover"

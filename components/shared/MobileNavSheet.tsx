@@ -24,6 +24,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { SlateLogo } from "@/components/shared/SlateLogo";
+import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 
 interface NavItem {
@@ -81,11 +82,11 @@ export default function MobileNavSheet({
     <>
       {/* Hamburger trigger — only visible on mobile */}
       <button
-        className="sm:hidden w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:bg-white/[0.04] hover:text-cobalt-hover transition-colors"
+        className="sm:hidden w-9 h-9 rounded-xl flex items-center justify-center text-white hover:bg-white/10 hover:text-cobalt transition-colors"
         onClick={() => setOpen(true)}
         aria-label="Open navigation menu"
       >
-        <Menu size={20} />
+        <Menu size={22} strokeWidth={2.25} />
       </button>
 
       <Sheet open={open} onOpenChange={setOpen}>
@@ -103,9 +104,9 @@ export default function MobileNavSheet({
             <Link
               href="/"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-300 hover:text-foreground hover:bg-white/[0.04]/80 transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:text-cobalt hover:bg-cobalt/5 transition-colors"
             >
-              <SlateLogo className="h-4 w-auto flex-shrink-0" />
+              <SlateLogoOnLight className="h-4 w-auto flex-shrink-0" />
               Home
             </Link>
             <div className="h-px bg-white/[0.04] my-1" />

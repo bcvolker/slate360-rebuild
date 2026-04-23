@@ -44,7 +44,7 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
       </section>
 
       {/* Search */}
-      <section className="rounded-2xl border border-border bg-card/60 p-4 sm:p-5">
+      <section className="surface-raised p-4 sm:p-5">
         <div className="relative max-w-xl">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -60,7 +60,7 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
       <AppsGrid entitlements={entitlements} />
 
       {/* Notifications / Work Feed Preview */}
-      <section className="rounded-2xl border border-border bg-card/60 p-4 sm:p-5">
+      <section className="surface-raised p-4 sm:p-5">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bell className="h-4 w-4 text-primary" />
@@ -82,7 +82,7 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
       </section>
 
       {/* Projects */}
-      <section className="rounded-2xl border border-border bg-card/60 p-4 sm:p-5">
+      <section className="surface-raised p-4 sm:p-5">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Pin className="h-4 w-4 text-primary" />
@@ -106,7 +106,7 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
       </section>
 
       {/* Files */}
-      <section className="rounded-2xl border border-border bg-card/60 p-4 sm:p-5">
+      <section className="surface-raised p-4 sm:p-5">
         <div className="mb-3 flex items-center gap-2">
           <FileText className="h-4 w-4 text-primary" />
           <h2 className="text-lg font-semibold text-foreground">Files</h2>

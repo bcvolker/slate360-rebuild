@@ -156,17 +156,21 @@
   --header-hover: rgba(255, 255, 255, 0.05);    /* subtle glass hover surface */
   --header-active: rgba(255, 255, 255, 0.08);   /* selected nav item surface */
 
-  /* ── App-shell skin tokens (consumed by @utility blocks) ───── */
+  /* ── App-shell skin tokens (consumed by @utility blocks) ─────
+     Light-mode values: visible slate borders + subtle lift shadow so
+     cards/buttons separate from the slate-50 page background. The
+     dark-mode equivalents are mirrored in the .dark block below. */
   --app-page: var(--background);
   --app-card: var(--card);
-  --app-card-hover: rgba(255, 255, 255, 0.06);
-  --app-border: rgba(255, 255, 255, 0.10);
+  --app-card-hover: #F8FAFC;                  /* slate-50 — hover wash on white card */
+  --app-border: #E2E8F0;                      /* slate-200 — visible hairline on white */
+  --app-border-strong: #CBD5E1;               /* slate-300 — used on hover */
   --app-glass: rgba(11, 15, 21, 0.80);
   --app-backdrop-blur: 20px;
   --app-glow-amber: 0 0 12px rgba(59, 130, 246, 0.14);
   --app-glow-amber-strong: 0 0 16px 0 rgba(59, 130, 246, 0.22), 0 2px 8px 0 rgba(59, 130, 246, 0.14);
-  --app-shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
-  --app-shadow-elevated: 0 8px 32px -4px rgba(0, 0, 0, 0.5);
+  --app-shadow-card: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.08);
+  --app-shadow-elevated: 0 8px 24px -8px rgba(15, 23, 42, 0.16), 0 2px 6px -2px rgba(15, 23, 42, 0.08);
 
   /* ── Steel / teal accent (consumed by btn-teal-outline, text-teal) ── */
   --accent-teal: #CBD5E1;
@@ -210,6 +214,13 @@
   --destructive: #F87171;
   --border: rgba(255, 255, 255, 0.14);
   --input: rgba(255, 255, 255, 0.16);
+  /* Restore dark-mode app-shell tokens so opted-in dark subtrees keep
+     their original glass-on-black look. */
+  --app-card-hover: rgba(255, 255, 255, 0.06);
+  --app-border: rgba(255, 255, 255, 0.10);
+  --app-border-strong: rgba(255, 255, 255, 0.18);
+  --app-shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
+  --app-shadow-elevated: 0 8px 32px -4px rgba(0, 0, 0, 0.5);
 }
 
 @layer base {
@@ -335,10 +346,41 @@
 
 @utility bg-app-card {
   background-color: var(--app-card);
+  box-shadow: var(--app-shadow-card);
+  transition: box-shadow 200ms ease, border-color 200ms ease, background-color 200ms ease;
 }
 
 @utility border-app {
   border-color: var(--app-border);
+}
+
+/* surface-raised — drop-in card treatment for light-mode app surfaces.
+   Use on any post-login card/button that needs to separate visually from
+   the slate-50 page background. Hover lifts the shadow + tints the border
+   to cobalt for a consistent interaction across the dashboard. */
+@utility surface-raised {
+  background-color: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  box-shadow: var(--app-shadow-card);
+  transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease, background-color 200ms ease;
+}
+
+@utility surface-raised-interactive {
+  background-color: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  box-shadow: var(--app-shadow-card);
+  transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease, background-color 200ms ease;
+  &:hover {
+    border-color: var(--primary);
+    box-shadow: var(--app-shadow-elevated);
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(0);
+    box-shadow: var(--app-shadow-card);
+  }
 }
 
 /* ── Steel / teal accent ── */

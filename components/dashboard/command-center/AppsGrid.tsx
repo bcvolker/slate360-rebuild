@@ -102,7 +102,7 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
   const cols = gridColsForCount(visible.length);
 
   return (
-    <section className="rounded-2xl border border-app bg-app-card p-4 sm:p-5">
+    <section className="surface-raised p-4 sm:p-5">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">Your Apps</h2>
         <span className="text-xs text-muted-foreground">
@@ -116,14 +116,14 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
             <Link
               key={app.key}
               href={app.href}
-              className="group relative flex flex-col items-start gap-3 rounded-2xl border border-app bg-white/[0.02] p-4 transition-all hover:border-cobalt hover:bg-cobalt-soft"
+              className="surface-raised-interactive group relative flex flex-col items-start gap-3 p-4"
             >
               {app.comingSoon && (
-                <span className="absolute right-3 top-3 rounded-full border border-app bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <span className="absolute right-3 top-3 rounded-full border border-app bg-muted/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                   Coming Soon
                 </span>
               )}
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.04] text-teal transition-transform group-hover:scale-110">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cobalt/10 text-cobalt transition-transform group-hover:scale-110">
                 <Icon className="h-5 w-5" />
               </div>
               <div className="space-y-1">

@@ -11,7 +11,7 @@
  */
 
 import Link from "next/link";
-import { Bell, Search, QrCode, Download } from "lucide-react";
+import { Bell, Search, QrCode } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -82,14 +82,6 @@ export function MobileTopBar({
           </button>
 
           <BetaFeedbackButton isEligible={isBetaEligible} />
-          {/* Download App — server-rendered link, always works */}
-          <Link
-            href="/install"
-            aria-label="Download Slate360 to your phone"
-            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
-          >
-            <Download className="h-[18px] w-[18px]" />
-          </Link>
           {/* Mobile-only: obvious QR/share button → opens Invite & Share modal */}
           <button
             type="button"
@@ -132,12 +124,6 @@ export function MobileTopBar({
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="text-xs hover:bg-cobalt/10 hover:text-cobalt cursor-pointer">
                 <Link href="/my-account?tab=billing">Billing &amp; Payments</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-border/50" />
-              <DropdownMenuItem asChild className="text-xs hover:bg-cobalt/10 hover:text-cobalt cursor-pointer">
-                <Link href="/install">
-                  <Download className="h-3.5 w-3.5 mr-2" /> Download Slate360 app
-                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border/50" />
               <DropdownMenuItem

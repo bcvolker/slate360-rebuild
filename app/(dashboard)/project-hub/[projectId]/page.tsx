@@ -86,15 +86,15 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         {stats.map(({ label, value, sub, href, color, Icon }) => (
-          <Link key={label} href={href} className="group rounded-2xl border border-zinc-800 bg-card p-4 hover:border-zinc-700 transition-all flex flex-col gap-2">
+          <Link key={label} href={href} className="surface-raised-interactive group p-4 flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <Icon size={16} style={{ color }} />
-              <ChevronRight size={12} className="text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+              <ChevronRight size={12} className="text-muted-foreground group-hover:text-cobalt transition-colors" />
             </div>
             <p className="text-2xl font-black text-foreground">{value}</p>
             <div>
-              <p className="text-xs font-semibold text-zinc-300">{label}</p>
-              {sub && <p className="text-[10px] text-zinc-500 mt-0.5">{sub}</p>}
+              <p className="text-xs font-semibold text-foreground">{label}</p>
+              {sub && <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>}
             </div>
           </Link>
         ))}
@@ -108,7 +108,7 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
 
         {/* Schedule snapshot + tool quick-links */}
         <div className="flex flex-col gap-4">
-          <div className="rounded-2xl border border-zinc-800 bg-card p-5">
+          <div className="surface-raised p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-black text-foreground flex items-center gap-2">
                 <CalendarCheck2 size={14} className="text-[#3B82F6]" /> Upcoming Schedule
@@ -116,15 +116,15 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
               <Link href={`/project-hub/${projectId}/schedule`} className="text-[10px] font-bold text-[#3B82F6] hover:underline">Open Schedule →</Link>
             </div>
             {nextTasks.length === 0 ? (
-              <p className="text-xs text-zinc-500 py-2">No pending tasks.</p>
+              <p className="text-xs text-muted-foreground py-2">No pending tasks.</p>
             ) : (
               <ul className="space-y-2">
                 {nextTasks.map((t) => (
-                  <li key={t.id} className="flex items-start gap-3 p-2.5 rounded-xl bg-card border border-zinc-700">
+                  <li key={t.id} className="flex items-start gap-3 p-2.5 rounded-xl bg-muted/30 border border-app">
                     <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: t.status === "In Progress" ? "#3B82F6" : "#d1d5db" }} />
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-zinc-200 truncate">{t.name}</p>
-                      <p className="text-[10px] text-zinc-500">{t.end_date ? `Due ${new Date(t.end_date).toLocaleDateString()}` : "No due date"} · {t.status}</p>
+                      <p className="text-xs font-semibold text-foreground truncate">{t.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{t.end_date ? `Due ${new Date(t.end_date).toLocaleDateString()}` : "No due date"} · {t.status}</p>
                     </div>
                   </li>
                 ))}
@@ -132,13 +132,13 @@ export default async function ProjectHubProjectPage({ params }: { params: Promis
             )}
           </div>
 
-          <div className="rounded-2xl border border-zinc-800 bg-card p-5">
+          <div className="surface-raised p-5">
             <h3 className="text-sm font-black text-foreground mb-3">All Tools</h3>
             <div className="grid grid-cols-3 gap-2">
               {toolLinks.map(({ label, href, Icon }) => (
-                <Link key={label} href={href} className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl border border-zinc-800 bg-card/50 hover:bg-[#3B82F6]/10 hover:border-[#3B82F6]/30 transition-all text-center">
-                  <Icon size={14} className="text-zinc-400" />
-                  <span className="text-[10px] font-semibold text-zinc-300 leading-tight">{label}</span>
+                <Link key={label} href={href} className="surface-raised-interactive flex flex-col items-center gap-1.5 p-2.5 text-center">
+                  <Icon size={14} className="text-muted-foreground" />
+                  <span className="text-[10px] font-semibold text-foreground leading-tight">{label}</span>
                 </Link>
               ))}
             </div>
