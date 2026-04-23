@@ -1154,9 +1154,7 @@ export default function MarketingHomepage({ isLoggedIn = false }: { isLoggedIn?:
         <TrustBar />
         <AppShowcaseSection />
         <SlateDropSection />
-        <div className="bg-white">
-          <PricingSectionV2 onGetStarted={() => router.push(isLoggedIn ? "/dashboard" : "/signup")} />
-        </div>
+        <PricingSectionV2 onGetStarted={() => router.push(isLoggedIn ? "/dashboard" : "/signup")} />
         <TestimonialsSection />
         <FinalCTASection />
       </main>

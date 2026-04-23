@@ -395,78 +395,87 @@
 /* ─────────────────────────────────────────────────────────────────
    Auth Page Shared Styles
    Single source of truth for login, signup, forgot-password, and
-   confirmation pages. Change these once → every auth page updates.
+   confirmation pages. Light premium surface to match the marketing
+   homepage. The dark top bar (auth-topbar) is kept isolated dark so
+   the SlateLogo + nav remains consistent across the app shell.
    ───────────────────────────────────────────────────────────────── */
 @utility auth-page {
-  @apply min-h-screen flex flex-col bg-background text-foreground;
-  background-color: var(--app-page);
+  @apply min-h-screen flex flex-col text-slate-900;
+  background-color: #F8FAFC; /* slate-50 */
   background-image:
-    radial-gradient(circle at top, rgba(59, 130, 246, 0.12), transparent 28%),
-    linear-gradient(180deg, var(--app-page) 0%, #0E131B 100%);
+    radial-gradient(circle at top, rgba(59, 130, 246, 0.08), transparent 32%),
+    linear-gradient(180deg, #F8FAFC 0%, rgba(239, 246, 255, 0.6) 100%);
   background-attachment: fixed;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
+/* Topbar stays dark + isolated so it matches the marketing/header chrome. */
 @utility auth-topbar {
-  @apply flex items-center justify-between px-6 py-4;
-  background-color: var(--app-glass);
-  border-bottom: 1px solid var(--app-border);
+  @apply dark flex items-center justify-between px-6 py-4 text-white;
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
   backdrop-filter: blur(var(--app-backdrop-blur, 20px));
   -webkit-backdrop-filter: blur(var(--app-backdrop-blur, 20px));
 }
 
 @utility auth-card {
-  @apply w-full max-w-md rounded-2xl p-8;
-  background-color: var(--app-card);
-  border: 1px solid var(--app-border);
-  box-shadow: var(--app-shadow-elevated, 0 24px 48px rgba(0, 0, 0, 0.45));
+  @apply w-full max-w-md rounded-2xl p-8 bg-white;
+  ring-width: 1px;
+  --tw-ring-color: rgba(226, 232, 240, 0.8); /* slate-200/80 */
+  box-shadow:
+    0 25px 50px -12px rgba(15, 23, 42, 0.12),
+    0 0 0 1px rgba(226, 232, 240, 0.8);
 }
 
 @utility auth-input {
-  @apply w-full rounded-xl border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground transition-all focus:outline-none focus:ring-2;
-  border-color: var(--app-border);
-  background: rgba(11, 15, 21, 0.6);
+  @apply w-full rounded-xl border px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2;
+  border-color: #CBD5E1; /* slate-300 */
+  background: #FFFFFF;
   --tw-ring-color: rgba(59, 130, 246, 0.32);
 }
-.auth-input:focus { border-color: var(--primary); }
+.auth-input:focus { border-color: var(--color-cobalt); }
 
 @utility auth-label {
-  @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground;
+  @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-slate-500;
 }
 
 @utility auth-btn-primary {
-  @apply w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm text-white bg-primary hover:bg-primary/90 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100;
-  box-shadow: var(--app-glow-amber, 0 0 24px rgba(59, 130, 246, 0.30));
+  @apply w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm text-white transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100;
+  background-color: var(--color-cobalt);
+  box-shadow: 0 8px 20px -4px rgba(59, 130, 246, 0.40), 0 4px 8px -2px rgba(59, 130, 246, 0.20);
 }
+.auth-btn-primary:hover { background-color: var(--color-cobalt-hover); }
 
 @utility auth-btn-oauth {
-  @apply w-full flex items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium text-foreground transition-colors disabled:opacity-50;
-  border-color: var(--app-border);
-  background: rgba(11, 15, 21, 0.4);
+  @apply w-full flex items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium text-slate-700 transition-colors disabled:opacity-50;
+  border-color: #CBD5E1; /* slate-300 */
+  background: #FFFFFF;
 }
 .auth-btn-oauth:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: var(--accent-teal);
+  background: #F8FAFC; /* slate-50 */
+  border-color: var(--color-cobalt);
+  color: var(--color-cobalt);
 }
 
 @utility auth-link {
-  color: var(--accent-teal);
+  color: var(--color-cobalt);
   transition: color 0.15s ease;
 }
-.auth-link:hover { color: var(--primary); }
+.auth-link:hover { color: var(--color-cobalt-hover); }
 
 @utility auth-divider-line {
   @apply w-full border-t;
-  border-color: var(--app-border);
+  border-color: #E2E8F0; /* slate-200 */
 }
 
 @utility auth-divider-text {
-  @apply px-3 text-xs text-muted-foreground;
-  background: var(--app-card);
+  @apply px-3 text-xs text-slate-500;
+  background: #FFFFFF;
 }
 
 @utility auth-error {
-  @apply mb-4 rounded-xl border p-3 text-sm text-destructive;
-  background: hsl(0 72% 52% / 0.08);
-  border-color: hsl(0 72% 52% / 0.24);
+  @apply mb-4 rounded-xl border p-3 text-sm;
+  color: #B91C1C; /* red-700 */
+  background: #FEF2F2; /* red-50 */
+  border-color: #FECACA; /* red-200 */
 }
