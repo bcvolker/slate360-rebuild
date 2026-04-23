@@ -88,7 +88,7 @@ export default function SendEmailModal({
             onChange={(e) => setEmail(e.target.value)}
             placeholder="recipient@example.com"
             autoFocus
-            className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-white/10 text-sm"
+            className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-white/20 text-slate-100 placeholder:text-slate-500 text-sm outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt/30"
           />
         </div>
 
@@ -99,11 +99,11 @@ export default function SendEmailModal({
             onChange={(e) => setMessage(e.target.value)}
             rows={3}
             placeholder="Quick note for the recipient…"
-            className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-white/10 text-sm"
+            className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-white/20 text-slate-100 placeholder:text-slate-500 text-sm outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt/30"
           />
         </div>
 
-        {error && <p className="text-xs text-red-400">{error}</p>}
+        {error && <p className="text-xs text-rose-400">{error}</p>}
         {sent && <p className="text-xs text-emerald-400">Sent — closing…</p>}
 
         <div className="flex gap-2 justify-end">

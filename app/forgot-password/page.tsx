@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
-import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
     <div className="auth-page">
       <div className="auth-topbar">
         <Link href="/">
-          <SlateLogoOnLight />
+          <SlateLogo />
         </Link>
         <Link href="/login" className="text-sm text-slate-300 hover:text-white">
           Back to <span className="font-semibold text-primary">Sign in</span>

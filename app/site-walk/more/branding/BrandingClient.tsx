@@ -175,7 +175,7 @@ export function BrandingClient() {
             {(["logo", "signature"] as const).map((kind) => (
               <div key={kind} className="space-y-1.5">
                 <label className="text-sm text-muted-foreground capitalize">{kind}</label>
-                <label className="flex items-center justify-center gap-2 h-10 w-full bg-glass border border-border border-dashed rounded-md text-sm text-foreground cursor-pointer hover:border-cobalt transition-colors">
+                <label className="flex items-center justify-center gap-2 h-10 w-full bg-slate-50 border border-dashed border-slate-300 rounded-md text-sm text-slate-700 cursor-pointer hover:border-cobalt hover:text-cobalt hover:bg-cobalt/5 transition-colors">
                   {uploading === kind ? <Loader2 className="w-4 h-4 animate-spin text-cobalt" /> : <UploadCloud className="w-4 h-4 text-muted-foreground" />}
                   {formData[`${kind}_url`] ? `Replace ${kind}` : `Upload ${kind}`}
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => handleUpload(e, kind)} />

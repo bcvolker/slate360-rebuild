@@ -117,24 +117,24 @@ export function InviteShareModal({
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && close()}
     >
-      <div className="bg-card border border-border rounded-xl w-full max-w-md p-6 shadow-2xl relative">
+      <div className="modal-panel w-full max-w-md p-6 relative">
         <button
           type="button"
           onClick={close}
-          className="absolute top-3 right-3 p-1 text-muted-foreground hover:text-foreground rounded transition-colors"
+          className="absolute top-3 right-3 p-1 text-slate-500 hover:text-slate-900 rounded transition-colors"
           aria-label="Close"
         >
           <X className="h-4 w-4" />
         </button>
 
-        <div className="flex border-b border-border mb-5 -mx-6 px-6">
+        <div className="flex border-b border-slate-200 mb-5 -mx-6 px-6">
           <button
             type="button"
             onClick={() => setTab("app")}
             className={`pb-3 px-3 text-sm font-medium transition-colors ${
               tab === "app"
                 ? "text-cobalt border-b-2 border-cobalt"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-slate-500 hover:text-slate-900"
             }`}
           >
             Share the App
@@ -145,7 +145,7 @@ export function InviteShareModal({
             className={`pb-3 px-3 text-sm font-medium transition-colors ${
               tab === "collaborator"
                 ? "text-cobalt border-b-2 border-cobalt"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-slate-500 hover:text-slate-900"
             }`}
           >
             Add Collaborator
@@ -154,26 +154,26 @@ export function InviteShareModal({
 
         {tab === "app" && (
           <div className="flex flex-col items-center text-center space-y-5">
-            <p className="text-sm text-foreground">
+            <p className="text-sm text-slate-700">
               Let a colleague scan this code to join the Slate360 Beta.
             </p>
-            <div className="bg-white p-3 rounded-lg">
+            <div className="bg-white p-3 rounded-lg border border-slate-200">
               <QRCodeSVG value={inviteLink} size={180} level="M" />
             </div>
             <div className="w-full space-y-2">
-              <div className="flex items-center gap-2 bg-glass border border-border rounded-md p-1.5">
+              <div className="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-md p-1.5">
                 <input
                   readOnly
                   value={inviteLink}
-                  className="bg-transparent text-xs text-muted-foreground flex-1 outline-none px-2"
+                  className="bg-transparent text-xs text-slate-700 flex-1 outline-none px-2"
                 />
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="p-1.5 text-foreground hover:text-cobalt rounded transition-colors"
+                  className="p-1.5 text-slate-600 hover:text-cobalt rounded transition-colors"
                   aria-label="Copy invite link"
                 >
-                  {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                  {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
                 </button>
               </div>
               <button
@@ -187,20 +187,20 @@ export function InviteShareModal({
                 <button
                   type="button"
                   onClick={handleEmailShare}
-                  className="flex items-center justify-center gap-2 py-2 rounded-md bg-glass border border-border text-foreground hover:border-cobalt hover:text-cobalt transition-colors text-sm"
+                  className="form-button-ghost flex items-center justify-center gap-2 py-2 rounded-md text-sm"
                 >
                   <Mail className="h-4 w-4" /> Email
                 </button>
                 <button
                   type="button"
                   onClick={handleSmsShare}
-                  className="flex items-center justify-center gap-2 py-2 rounded-md bg-glass border border-border text-foreground hover:border-cobalt hover:text-cobalt transition-colors text-sm"
+                  className="form-button-ghost flex items-center justify-center gap-2 py-2 rounded-md text-sm"
                 >
                   <MessageSquare className="h-4 w-4" /> Text
                 </button>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-500">
               Beta seats: {beta.seatsClaimed} / {beta.cap} claimed
             </p>
           </div>
@@ -213,7 +213,7 @@ export function InviteShareModal({
                 required
                 value={form.projectId}
                 onChange={(e) => setForm({ ...form, projectId: e.target.value })}
-                className="w-full p-2 rounded-md bg-glass border border-border text-foreground outline-none focus:border-cobalt text-sm"
+                className="form-field"
               >
                 <option value="" disabled>Choose a project...</option>
                 {projects.length === 0 && <option value="" disabled>No projects yet — create one first</option>}
@@ -229,7 +229,7 @@ export function InviteShareModal({
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="subcontractor@example.com"
                 list="invite-contacts-list"
-                className="w-full p-2 rounded-md bg-glass border border-border text-foreground outline-none focus:border-cobalt text-sm"
+                className="form-field"
               />
               <datalist id="invite-contacts-list">
                 {contacts.map((c) => <option key={c.id} value={c.email}>{c.fullName ?? c.email}</option>)}
@@ -240,7 +240,7 @@ export function InviteShareModal({
               <select
                 value={form.role}
                 onChange={(e) => setForm({ ...form, role: e.target.value as "viewer" | "collaborator" })}
-                className="w-full p-2 rounded-md bg-glass border border-border text-foreground outline-none focus:border-cobalt text-sm"
+                className="form-field"
               >
                 <option value="viewer">Viewer (Read Only)</option>
                 <option value="collaborator">Collaborator</option>
@@ -248,10 +248,10 @@ export function InviteShareModal({
             </Field>
 
             {status.kind === "error" && (
-              <p className="text-xs text-rose-400" role="alert">{status.message}</p>
+              <p className="text-xs text-rose-600" role="alert">{status.message}</p>
             )}
             {status.kind === "ok" && (
-              <p className="text-xs text-emerald-400">{status.message}</p>
+              <p className="text-xs text-emerald-600">{status.message}</p>
             )}
 
             <button
@@ -271,7 +271,7 @@ export function InviteShareModal({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</label>
+      <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</label>
       {children}
     </div>
   );

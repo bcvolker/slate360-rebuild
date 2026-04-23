@@ -86,16 +86,16 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && onOpenChange(false)}
     >
-      <div className="bg-card border border-border rounded-xl w-full max-w-lg p-6 shadow-2xl relative">
+      <div className="modal-panel w-full max-w-lg p-6 relative">
         <button
           type="button"
           onClick={() => onOpenChange(false)}
-          className="absolute top-3 right-3 p-1 text-muted-foreground hover:text-foreground rounded transition-colors"
+          className="absolute top-3 right-3 p-1 text-slate-500 hover:text-slate-900 rounded transition-colors"
           aria-label="Close"
         >
           <X className="h-4 w-4" />
         </button>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Submit Beta Feedback</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">Submit Beta Feedback</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-3">
@@ -103,7 +103,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
               <select
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
-                className="w-full p-2 rounded-md bg-glass border border-border text-foreground outline-none focus:border-cobalt text-sm"
+                className="form-field"
               >
                 <option value="bug">Report a Bug</option>
                 <option value="suggestion">Suggest a Feature</option>
@@ -116,7 +116,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
                 <select
                   value={form.severity}
                   onChange={(e) => setForm({ ...form, severity: e.target.value as Severity })}
-                  className="w-full p-2 rounded-md bg-glass border border-border text-foreground outline-none focus:border-cobalt text-sm"
+                  className="form-field"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -133,7 +133,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
               type="text"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full p-2 rounded-md bg-glass border border-border text-foreground outline-none focus:border-cobalt text-sm"
+              className="form-field"
             />
           </Field>
 
@@ -143,22 +143,22 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
               rows={4}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full p-2 rounded-md bg-glass border border-border text-foreground outline-none focus:border-cobalt resize-none text-sm"
+              className="form-field resize-none"
             />
           </Field>
 
-          <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          <label className="flex items-center gap-2 text-xs text-slate-600">
             <input
               type="checkbox"
               checked={form.includeData}
               onChange={(e) => setForm({ ...form, includeData: e.target.checked })}
-              className="rounded border-border"
+              className="rounded border-slate-300 text-cobalt focus:ring-cobalt/30"
             />
             Include current page URL &amp; session data
           </label>
 
-          {status.kind === "error" && <p className="text-xs text-rose-400" role="alert">{status.message}</p>}
-          {status.kind === "ok" && <p className="text-xs text-emerald-400">Thanks — feedback received.</p>}
+          {status.kind === "error" && <p className="text-xs text-rose-600" role="alert">{status.message}</p>}
+          {status.kind === "ok" && <p className="text-xs text-emerald-600">Thanks — feedback received.</p>}
 
           <button
             type="submit"

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import SignupConfirmation from "@/components/auth/SignupConfirmation";
-import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -128,7 +128,7 @@ export default function SignupPage() {
   return (
     <div className="auth-page">
       <div className="auth-topbar">
-        <Link href="/"><SlateLogoOnLight /></Link>
+        <Link href="/"><SlateLogo /></Link>
         <Link href="/login" className="text-sm text-slate-300 hover:text-white">
           Have an account? <span className="font-semibold text-primary">Sign in</span>
         </Link>
