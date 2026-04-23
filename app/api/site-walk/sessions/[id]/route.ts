@@ -71,11 +71,57 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
     return ok({ session: data });
   });
 
+/**
+ * DELETE /api/site-walk/sessions/[id]
+ *
+ * Two behaviours:
+ *   - body.permanent !== true → soft archive (sets status='archived').
+ *   - body.permanent === true → hard delete. Requires double-confirmation:
+ *       body.confirmText === "DELETE" AND body.confirmName === session.title
+ *     This mirrors DELETE /api/projects/[projectId] so the universal
+ *     <DoubleDeleteModal> works against both endpoints unchanged.
+ *
+ * Access is org-scoped via withAppAuth + .eq("org_id", orgId).
+ */
 export const DELETE = (req: NextRequest, ctx: IdRouteContext) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 
+    const body = (await req.json().catch(() => ({}))) as {
+      permanent?: boolean;
+      confirmText?: string;
+      confirmName?: string;
+    };
+
+    if (body.permanent === true) {
+      const { data: existing } = await admin
+        .from("site_walk_sessions")
+        .select("id, title")
+        .eq("id", id)
+        .eq("org_id", orgId)
+        .maybeSingle();
+
+      if (!existing) return notFound("Session not found");
+
+      if (body.confirmText !== "DELETE") {
+        return badRequest("Type DELETE to confirm");
+      }
+      if ((body.confirmName ?? "").trim() !== (existing.title ?? "").trim()) {
+        return badRequest("Session title confirmation does not match");
+      }
+
+      const { error: delErr } = await admin
+        .from("site_walk_sessions")
+        .delete()
+        .eq("id", id)
+        .eq("org_id", orgId);
+
+      if (delErr) return serverError(delErr.message);
+      return ok({ deleted: true });
+    }
+
+    // Default: soft archive.
     const { data, error } = await admin
       .from("site_walk_sessions")
       .update({ status: "archived" })

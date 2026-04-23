@@ -5,14 +5,13 @@
  *
  * Holds the user's in-progress capture so it survives:
  *   - Tab switching between Camera / Note / Voice (no draft loss)
- *   - Brief network drops (items + drafts mirrored to sessionStorage so
- *     a hard reload during capture restores the form)
+ *   - Hard reloads mid-capture (text + photo Blob + audio Blob persisted
+ *     to IndexedDB and rehydrated on remount via fresh ObjectURLs)
+ *   - Network drops (failed POSTs are routed to lib/offline-queue.ts and
+ *     auto-flushed on `online` events)
  *
  * Scope: a single active capture session. Mount this provider at the
  * `walks/active/[sessionId]` route segment via its `layout.tsx`.
- *
- * NOT a global app provider — wrapping the whole app would risk leaking
- * one session's draft into the next.
  */
 
 import {
@@ -25,21 +24,22 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { get as idbGet, set as idbSet, del as idbDel, createStore } from "idb-keyval";
+import { enqueue, flushQueue, pendingCount } from "@/lib/offline-queue";
 
 export type DraftTab = "camera" | "note" | "voice" | null;
 
 export interface DraftItem {
-  /** Which capture tab this draft belongs to. */
   tab: DraftTab;
-  /** Free-form title — applies to all tabs. */
   title: string;
-  /** Note body (used by `note` and as caption for photo/voice). */
   noteText: string;
-  /** ObjectURL for an in-flight photo blob. Cleared on commit. */
+  /** ObjectURL for an in-flight photo blob. Generated fresh on rehydrate. */
   photoBlobUrl: string | null;
-  /** ObjectURL for an in-flight voice recording. Cleared on commit. */
+  /** ObjectURL for an in-flight voice recording. Generated fresh on rehydrate. */
   audioBlobUrl: string | null;
-  /** Last-edited timestamp (epoch ms) — for stale-draft warnings. */
+  /** Underlying Blobs — what actually persists to IndexedDB. */
+  photoBlob: Blob | null;
+  audioBlob: Blob | null;
   updatedAt: number;
 }
 
@@ -57,16 +57,38 @@ export interface SiteWalkSessionState {
   draftItem: DraftItem;
   isSyncing: boolean;
   pendingUploadCount: number;
+  isOnline: boolean;
+}
+
+export interface SubmitItemPayload {
+  url: string;
+  body: Record<string, unknown>;
+}
+
+export interface SubmitItemResult {
+  ok: boolean;
+  queued: boolean;
+  status?: number;
+  error?: string;
 }
 
 export interface SiteWalkSessionApi {
   setCapturedItems: (items: CapturedItem[]) => void;
   addCapturedItem: (item: CapturedItem) => void;
+  removeCapturedItem: (itemId: string) => void;
   updateDraft: (patch: Partial<DraftItem>) => void;
   clearDraft: () => void;
   beginSync: () => void;
   endSync: () => void;
   setPendingUploadCount: (n: number) => void;
+  /**
+   * Submit a capture. Tries network first; on network failure or offline,
+   * enqueues the JSON payload into lib/offline-queue.ts. Blobs stay in the
+   * draft IDB store until the upload eventually succeeds.
+   */
+  submitItem: (payload: SubmitItemPayload) => Promise<SubmitItemResult>;
+  /** Flush the offline queue. Runs automatically on `online` events. */
+  syncOfflineItems: () => Promise<number>;
 }
 
 const EMPTY_DRAFT: DraftItem = {
@@ -75,51 +97,80 @@ const EMPTY_DRAFT: DraftItem = {
   noteText: "",
   photoBlobUrl: null,
   audioBlobUrl: null,
+  photoBlob: null,
+  audioBlob: null,
   updatedAt: 0,
 };
+
+interface PersistedDraft {
+  tab: DraftTab;
+  title: string;
+  noteText: string;
+  photoBlob: Blob | null;
+  audioBlob: Blob | null;
+  updatedAt: number;
+}
 
 const SiteWalkSessionContext = createContext<
   (SiteWalkSessionState & SiteWalkSessionApi) | null
 >(null);
 
-function draftStorageKey(sessionId: string): string {
-  return `slate360.siteWalk.draft.${sessionId}`;
+// Dedicated IDB store for in-flight drafts. idb-keyval can store Blob values
+// directly because IndexedDB uses the structured-clone algorithm.
+const draftStore =
+  typeof window !== "undefined"
+    ? createStore("slate360-site-walk", "session-drafts")
+    : null;
+
+function draftKey(sessionId: string): string {
+  return `draft:${sessionId}`;
 }
 
-function loadDraftFromStorage(sessionId: string): DraftItem {
-  if (typeof window === "undefined") return EMPTY_DRAFT;
+async function loadDraftFromIdb(sessionId: string): Promise<DraftItem> {
+  if (!draftStore) return EMPTY_DRAFT;
   try {
-    const raw = window.sessionStorage.getItem(draftStorageKey(sessionId));
+    const raw = await idbGet<PersistedDraft>(draftKey(sessionId), draftStore);
     if (!raw) return EMPTY_DRAFT;
-    const parsed = JSON.parse(raw) as Partial<DraftItem>;
+    const photoBlob = raw.photoBlob instanceof Blob ? raw.photoBlob : null;
+    const audioBlob = raw.audioBlob instanceof Blob ? raw.audioBlob : null;
     return {
-      tab: parsed.tab ?? null,
-      title: typeof parsed.title === "string" ? parsed.title : "",
-      noteText: typeof parsed.noteText === "string" ? parsed.noteText : "",
-      // Blob URLs do NOT survive reloads — the underlying Blob is gone.
-      // Persist text only; treat media drafts as ephemeral.
-      photoBlobUrl: null,
-      audioBlobUrl: null,
-      updatedAt: typeof parsed.updatedAt === "number" ? parsed.updatedAt : 0,
+      tab: raw.tab ?? null,
+      title: typeof raw.title === "string" ? raw.title : "",
+      noteText: typeof raw.noteText === "string" ? raw.noteText : "",
+      photoBlob,
+      audioBlob,
+      photoBlobUrl: photoBlob ? URL.createObjectURL(photoBlob) : null,
+      audioBlobUrl: audioBlob ? URL.createObjectURL(audioBlob) : null,
+      updatedAt: typeof raw.updatedAt === "number" ? raw.updatedAt : 0,
     };
   } catch {
     return EMPTY_DRAFT;
   }
 }
 
-function persistDraftToStorage(sessionId: string, draft: DraftItem): void {
-  if (typeof window === "undefined") return;
+async function persistDraftToIdb(sessionId: string, draft: DraftItem): Promise<void> {
+  if (!draftStore) return;
   try {
-    // Only persist serialisable text fields.
-    const payload: Pick<DraftItem, "tab" | "title" | "noteText" | "updatedAt"> = {
+    const payload: PersistedDraft = {
       tab: draft.tab,
       title: draft.title,
       noteText: draft.noteText,
+      photoBlob: draft.photoBlob,
+      audioBlob: draft.audioBlob,
       updatedAt: draft.updatedAt,
     };
-    window.sessionStorage.setItem(draftStorageKey(sessionId), JSON.stringify(payload));
+    await idbSet(draftKey(sessionId), payload, draftStore);
   } catch {
     // Quota / private mode — silent.
+  }
+}
+
+async function clearDraftFromIdb(sessionId: string): Promise<void> {
+  if (!draftStore) return;
+  try {
+    await idbDel(draftKey(sessionId), draftStore);
+  } catch {
+    // ignore
   }
 }
 
@@ -137,26 +188,37 @@ export function SiteWalkSessionProvider({
   const [capturedItems, setCapturedItemsState] = useState<CapturedItem[]>(initialItems);
   const [draftItem, setDraftItem] = useState<DraftItem>(EMPTY_DRAFT);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [pendingUploadCount, setPendingUploadCount] = useState<number>(0);
+  const [pendingUploadCount, setPendingUploadCountState] = useState<number>(0);
+  const [isOnline, setIsOnline] = useState<boolean>(
+    typeof navigator !== "undefined" ? navigator.onLine : true,
+  );
 
-  // Hydrate draft from sessionStorage after mount (avoids SSR mismatch).
+  // Hydrate draft from IDB after mount (avoids SSR mismatch).
   const hydratedRef = useRef<boolean>(false);
   useEffect(() => {
     if (hydratedRef.current) return;
     hydratedRef.current = true;
-    const restored = loadDraftFromStorage(sessionId);
-    if (restored.title || restored.noteText || restored.tab) {
-      setDraftItem(restored);
-    }
+    void loadDraftFromIdb(sessionId).then((restored) => {
+      if (
+        restored.title ||
+        restored.noteText ||
+        restored.tab ||
+        restored.photoBlob ||
+        restored.audioBlob
+      ) {
+        setDraftItem(restored);
+      }
+    });
+    void pendingCount().then((n) => setPendingUploadCountState(n));
   }, [sessionId]);
 
-  // Persist draft on every change.
+  // Persist draft on every change (after hydration).
   useEffect(() => {
     if (!hydratedRef.current) return;
-    persistDraftToStorage(sessionId, draftItem);
+    void persistDraftToIdb(sessionId, draftItem);
   }, [sessionId, draftItem]);
 
-  // Revoke object URLs on unmount to avoid leaks.
+  // Revoke object URLs on unmount to avoid leaks (Blobs themselves stay in IDB).
   useEffect(() => {
     return () => {
       if (draftItem.photoBlobUrl) URL.revokeObjectURL(draftItem.photoBlobUrl);
@@ -173,13 +235,24 @@ export function SiteWalkSessionProvider({
     setCapturedItemsState((prev) => [item, ...prev]);
   }, []);
 
+  const removeCapturedItem = useCallback((itemId: string) => {
+    setCapturedItemsState((prev) => prev.filter((i) => i.id !== itemId));
+  }, []);
+
   const updateDraft = useCallback((patch: Partial<DraftItem>) => {
     setDraftItem((prev) => {
-      // Revoke superseded blob URLs.
-      if (patch.photoBlobUrl !== undefined && prev.photoBlobUrl && prev.photoBlobUrl !== patch.photoBlobUrl) {
+      if (
+        patch.photoBlobUrl !== undefined &&
+        prev.photoBlobUrl &&
+        prev.photoBlobUrl !== patch.photoBlobUrl
+      ) {
         URL.revokeObjectURL(prev.photoBlobUrl);
       }
-      if (patch.audioBlobUrl !== undefined && prev.audioBlobUrl && prev.audioBlobUrl !== patch.audioBlobUrl) {
+      if (
+        patch.audioBlobUrl !== undefined &&
+        prev.audioBlobUrl &&
+        prev.audioBlobUrl !== patch.audioBlobUrl
+      ) {
         URL.revokeObjectURL(prev.audioBlobUrl);
       }
       return { ...prev, ...patch, updatedAt: Date.now() };
@@ -192,17 +265,86 @@ export function SiteWalkSessionProvider({
       if (prev.audioBlobUrl) URL.revokeObjectURL(prev.audioBlobUrl);
       return EMPTY_DRAFT;
     });
-    if (typeof window !== "undefined") {
-      try {
-        window.sessionStorage.removeItem(draftStorageKey(sessionId));
-      } catch {
-        // ignore
-      }
-    }
+    void clearDraftFromIdb(sessionId);
   }, [sessionId]);
 
   const beginSync = useCallback(() => setIsSyncing(true), []);
   const endSync = useCallback(() => setIsSyncing(false), []);
+
+  const setPendingUploadCount = useCallback((n: number) => {
+    setPendingUploadCountState(n);
+  }, []);
+
+  const syncOfflineItems = useCallback(async (): Promise<number> => {
+    setIsSyncing(true);
+    try {
+      const flushed = await flushQueue();
+      const remaining = await pendingCount();
+      setPendingUploadCountState(remaining);
+      return flushed;
+    } catch {
+      return 0;
+    } finally {
+      setIsSyncing(false);
+    }
+  }, []);
+
+  const submitItem = useCallback(
+    async (payload: SubmitItemPayload): Promise<SubmitItemResult> => {
+      const { url, body } = payload;
+      const offline = typeof navigator !== "undefined" && !navigator.onLine;
+
+      if (!offline) {
+        try {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          if (res.ok) {
+            return { ok: true, queued: false, status: res.status };
+          }
+          if (res.status >= 400 && res.status < 500) {
+            const errText = await res.text().catch(() => "");
+            return { ok: false, queued: false, status: res.status, error: errText };
+          }
+          // 5xx — fall through to queue.
+        } catch {
+          // Network throw — fall through to queue.
+        }
+      }
+
+      try {
+        await enqueue({ url, method: "POST", body: JSON.stringify(body) });
+        const remaining = await pendingCount();
+        setPendingUploadCountState(remaining);
+        return { ok: true, queued: true };
+      } catch (err) {
+        return {
+          ok: false,
+          queued: false,
+          error: err instanceof Error ? err.message : "queue failure",
+        };
+      }
+    },
+    [],
+  );
+
+  // Online / offline listeners — auto-flush when connection returns.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onOnline = () => {
+      setIsOnline(true);
+      void syncOfflineItems();
+    };
+    const onOffline = () => setIsOnline(false);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+  }, [syncOfflineItems]);
 
   const value = useMemo<SiteWalkSessionState & SiteWalkSessionApi>(
     () => ({
@@ -211,13 +353,17 @@ export function SiteWalkSessionProvider({
       draftItem,
       isSyncing,
       pendingUploadCount,
+      isOnline,
       setCapturedItems,
       addCapturedItem,
+      removeCapturedItem,
       updateDraft,
       clearDraft,
       beginSync,
       endSync,
       setPendingUploadCount,
+      submitItem,
+      syncOfflineItems,
     }),
     [
       sessionId,
@@ -225,17 +371,24 @@ export function SiteWalkSessionProvider({
       draftItem,
       isSyncing,
       pendingUploadCount,
+      isOnline,
       setCapturedItems,
       addCapturedItem,
+      removeCapturedItem,
       updateDraft,
       clearDraft,
       beginSync,
       endSync,
+      setPendingUploadCount,
+      submitItem,
+      syncOfflineItems,
     ],
   );
 
   return (
-    <SiteWalkSessionContext.Provider value={value}>{children}</SiteWalkSessionContext.Provider>
+    <SiteWalkSessionContext.Provider value={value}>
+      {children}
+    </SiteWalkSessionContext.Provider>
   );
 }
 
@@ -250,8 +403,7 @@ export function useSiteWalkSession(): SiteWalkSessionState & SiteWalkSessionApi 
   return ctx;
 }
 
-/** Read-only hook for components that just need the badge count without
- *  triggering re-renders on every draft keystroke. */
+/** Read-only hook for components that just need the badge count. */
 export function useSiteWalkSessionItems(): CapturedItem[] {
   return useSiteWalkSession().capturedItems;
 }
