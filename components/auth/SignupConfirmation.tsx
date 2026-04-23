@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import { SlateLogo } from "@/components/shared/SlateLogo";
+import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
 
 interface SignupConfirmationProps {
   email: string;
@@ -50,7 +50,7 @@ export default function SignupConfirmation({
   return (
     <div className="auth-page">
       <div className="auth-topbar">
-        <Link href="/"><SlateLogo /></Link>
+        <Link href="/"><SlateLogoOnLight /></Link>
       </div>
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="auth-card text-center">

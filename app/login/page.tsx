@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
-import { SlateLogo } from "@/components/shared/SlateLogo";
+import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
 
 /** Block open-redirect attacks: only allow relative paths that stay on our origin. */
 function isSafeRedirectPath(url: string): boolean {
@@ -62,7 +62,7 @@ function LoginForm() {
       {/* Top bar */}
       <div className="auth-topbar">
         <Link href="/" className="flex items-center gap-2">
-          <SlateLogo />
+          <SlateLogoOnLight />
         </Link>
         <Link href="/signup" className="text-sm text-slate-300 hover:text-white">
           No account? <span className="font-semibold text-cobalt">Sign up free</span>

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { getUpgradeUrl } from "@/lib/billing";
-import { SlateLogo } from "@/components/shared/SlateLogo";
+import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
 
 const platformLinks = [
   { label: "Dashboard", href: "/dashboard" },
@@ -16,7 +16,7 @@ export default function Footer() {
         {/* Brand */}
         <div className="col-span-1">
           <Link href="/" className="inline-block mb-4">
-            <SlateLogo className="h-8 w-auto" />
+            <SlateLogoOnLight className="h-8 w-auto" />
           </Link>
           <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
             The all-in-one construction platform for teams who build.

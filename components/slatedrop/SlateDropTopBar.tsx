@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Bell, ChevronRight, FolderOpen, Home, LogOut } from "lucide-react";
-import { SlateLogo } from "@/components/shared/SlateLogo";
+import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
 
 type SlateDropTopBarProps = {
   embedded: boolean;
@@ -28,7 +28,7 @@ export default function SlateDropTopBar({
       <div className="flex items-center justify-between h-14 px-4">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
-            <SlateLogo className="h-6 w-auto" />
+            <SlateLogoOnLight className="h-6 w-auto" />
           </Link>
           <div className="hidden sm:flex items-center text-xs text-zinc-500">
             <ChevronRight size={12} />

@@ -14,7 +14,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Bell, Menu } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { SlateLogo } from "@/components/shared/SlateLogo";
+import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
 import { InviteShareButton } from "@/components/shared/InviteShareButton";
 import { BetaFeedbackButton } from "@/components/shared/BetaFeedbackButton";
 import { BackButton } from "@/components/shared/BackButton";
@@ -37,7 +37,7 @@ export function DashboardTopBar({
   return (
     <header
       className={cn(
-        "dark fixed top-0 right-0 left-0 z-30 h-16 bg-[#0B0F15]/95 backdrop-blur-xl border-b border-white/10 text-white transition-all duration-300",
+        "fixed top-0 right-0 left-0 z-30 h-16 bg-white/95 backdrop-blur-xl border-b border-app text-foreground transition-all duration-300",
         isSidebarOpen ? "lg:left-64" : "lg:left-0"
       )}
     >
@@ -46,17 +46,17 @@ export function DashboardTopBar({
         <div className="flex items-center gap-3">
           {showLogo && (
             <Link href="/dashboard" className="hidden sm:flex items-center" aria-label="Slate360 home">
-              <SlateLogo className="h-6 w-auto" />
+              <SlateLogoOnLight className="h-6 w-auto" />
             </Link>
           )}
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center h-10 w-10 rounded-xl bg-white/5 hover:bg-cobalt/20 border border-white/10 hover:border-cobalt text-slate-300 hover:text-white transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
+            className="flex items-center justify-center h-10 w-10 rounded-xl bg-slate-100 hover:bg-cobalt/10 border border-app hover:border-cobalt text-slate-700 hover:text-cobalt transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
             aria-label="Toggle menu"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <BackButton className="h-10 w-10 rounded-xl bg-white/5 hover:bg-cobalt/20 border border-white/10 hover:border-cobalt text-slate-300 hover:text-white transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]" />
+          <BackButton className="h-10 w-10 rounded-xl bg-slate-100 hover:bg-cobalt/10 border border-app hover:border-cobalt text-slate-700 hover:text-cobalt transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-white" />
         </div>
 
         <div className="flex-1" />
@@ -71,7 +71,7 @@ export function DashboardTopBar({
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative text-slate-300 hover:bg-white/5 hover:text-white transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
+                className="relative text-slate-700 hover:bg-slate-100 hover:text-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
                 asChild
               >
                 <a href="/my-account?tab=notifications">

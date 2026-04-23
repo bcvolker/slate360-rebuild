@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SlateLogo } from "@/components/shared/SlateLogo";
+import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
 
 type Props = {
   title: string;
@@ -25,7 +25,7 @@ export function SiteWalkHeader({ title, backHref, actions }: Props) {
         </Link>
       )}
       <Link href="/dashboard" className="flex items-center" aria-label="Command Center">
-        <SlateLogo className="h-5 w-auto" />
+        <SlateLogoOnLight className="h-5 w-auto" />
       </Link>
       <h1 className="truncate text-lg font-semibold text-foreground">{title}</h1>
       <div className="ml-auto flex items-center gap-2">{actions}</div>

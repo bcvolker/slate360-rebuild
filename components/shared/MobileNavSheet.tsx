@@ -23,7 +23,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { SlateLogo } from "@/components/shared/SlateLogo";
 import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 

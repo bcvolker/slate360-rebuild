@@ -1025,7 +1025,7 @@ function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center mb-4">
-              <SlateLogo />
+              <SlateLogoOnLight />
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
               The real-time interactive bridge between the field and the office.
